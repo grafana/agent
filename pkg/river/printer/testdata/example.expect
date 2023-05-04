@@ -34,7 +34,7 @@ really_long_name = "really long value" // Align me
 extremely_long_name = true // Unaligned
 
 //
-// Identation tests
+// Indentation tests
 //
 
 // Array literals, object literals, and blocks should all be indented properly.

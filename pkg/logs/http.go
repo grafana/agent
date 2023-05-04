@@ -36,11 +36,11 @@ func (l *Logs) ListInstancesHandler(w http.ResponseWriter, _ *http.Request) {
 // information on them.
 func (l *Logs) ListTargetsHandler(w http.ResponseWriter, r *http.Request) {
 	instances := l.instances
-	allTagets := make(map[string]TargetSet, len(instances))
+	allTargets := make(map[string]TargetSet, len(instances))
 	for instName, inst := range instances {
-		allTagets[instName] = inst.promtail.ActiveTargets()
+		allTargets[instName] = inst.promtail.ActiveTargets()
 	}
-	listTargetsHandler(allTagets).ServeHTTP(w, r)
+	listTargetsHandler(allTargets).ServeHTTP(w, r)
 }
 
 func listTargetsHandler(targets map[string]TargetSet) http.Handler {

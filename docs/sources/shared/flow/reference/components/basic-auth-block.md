@@ -10,5 +10,5 @@ Name | Type | Description | Default | Required
 `password` | `secret` | Basic auth password. | | no
 `password_file` | `string` | File containing the basic auth password. | | no
 
-`password` and `password_file` are mututally exclusive and only one can be
+`password` and `password_file` are mutually exclusive and only one can be
 provided inside of a `basic_auth` block.

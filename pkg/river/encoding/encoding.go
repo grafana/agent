@@ -22,9 +22,13 @@ func ConvertRiverBodyToJSON(input interface{}) ([]byte, error) {
 	if input == nil {
 		return nil, nil
 	}
-	fields, err := getFieldsForBlock(nil, input)
+	fields, err := getFieldsForBlockStruct(nil, input)
 	if err != nil {
 		return nil, err
+	}
+	if fields == nil {
+		// Make sure that the list of fields is never null.
+		fields = make([]interface{}, 0)
 	}
 	bb, err := json.Marshal(fields)
 	if err != nil {

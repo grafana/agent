@@ -115,7 +115,7 @@ metrics:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rc, err := newRemoteConfig(tt.args.rawURL, tt.args.opts)
+			rc, err := newRemoteProvider(tt.args.rawURL, tt.args.opts)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return

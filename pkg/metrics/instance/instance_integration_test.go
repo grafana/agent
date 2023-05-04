@@ -30,9 +30,7 @@ import (
 func TestInstance_Update(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	t.Cleanup(func() { os.RemoveAll(walDir) })
+	walDir := t.TempDir()
 
 	var (
 		scraped = atomic.NewBool(false)
@@ -106,9 +104,7 @@ remote_write:
 func TestInstance_Update_Failed(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	t.Cleanup(func() { os.RemoveAll(walDir) })
+	walDir := t.TempDir()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
@@ -173,9 +169,7 @@ remote_write:
 func TestInstance_Update_InvalidChanges(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	t.Cleanup(func() { os.RemoveAll(walDir) })
+	walDir := t.TempDir()
 
 	// Create a new instance where it's not scraping or writing anything by default.
 	initialConfig := loadConfig(t, `

@@ -37,8 +37,10 @@ Name            | Type                   | Description          | Default | Requ
 `relabel_rules` | `RelabelRules`         | Relabeling rules to apply on log entries. | "{}" | no
 
 The `relabel_rules` field can make use of the `rules` export value from a
-`loki.relabel` component to apply one or more relabeling rules to log entries
+[loki.relabel][] component to apply one or more relabeling rules to log entries
 before they're forwarded to the list of receivers in `forward_to`.
+
+[loki.relabel]: {{< relref "./loki.relabel.md" >}}
 
 ## Blocks
 
@@ -50,7 +52,7 @@ Hierarchy | Name | Description | Required
 listener | [listener][] | Configures a listener for IETF Syslog (RFC5424) messages. | no
 listener > tls_config | [tls_config][] | Configures TLS settings for connecting to the endpoint for TCP connections. | no
 
-The `>` symbol indicates deeper levels of nesting. For example, `config > tls_config` 
+The `>` symbol indicates deeper levels of nesting. For example, `config > tls_config`
 refers to a `tls_config` block defined inside a `config` block.
 
 [listener]: #listener-block
@@ -88,7 +90,7 @@ internal labels, prefixed with `__syslog_`.
 If `label_structured_data` is set, structured data in the syslog header is also
 translated to internal labels in the form of
 `__syslog_message_sd_<ID>_<KEY>`. For example, a  structured data entry of
-`[example@99999 test="yes"]` becomes the label 
+`[example@99999 test="yes"]` becomes the label
 `__syslog_message_sd_example_99999_test` with the value `"yes"`.
 
 ### tls_config block
@@ -125,13 +127,13 @@ UDP in the specified ports and forwards them to a `loki.write` component.
 loki.source.syslog "local" {
   listener {
     address  = "127.0.0.1:51893"
-    labels   = { component = "loki.source.syslog", protocol = "tcp" } 
+    labels   = { component = "loki.source.syslog", protocol = "tcp" }
   }
 
   listener {
     address  = "127.0.0.1:51898"
     protocol = "udp"
-    labels   = { component = "loki.source.syslog", protocol = "udp"} 
+    labels   = { component = "loki.source.syslog", protocol = "udp"}
   }
 
   forward_to = [loki.write.local.receiver]

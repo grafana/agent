@@ -13,12 +13,11 @@ steps:
   - name: docker
     path: /var/run/docker.sock
 trigger:
-  event:
-    include:
-    - pull_request
   paths:
     include:
     - build-image/**
+  ref:
+  - refs/heads/main
 type: docker
 volumes:
 - host:
@@ -40,9 +39,9 @@ steps:
     ./build-image
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
   image: docker
   name: Build
   volumes:
@@ -74,12 +73,11 @@ steps:
   - name: docker
     path: //./pipe/docker_engine/
 trigger:
-  event:
-    include:
-    - pull_request
   paths:
     include:
     - build-image/**
+  ref:
+  - refs/heads/main
 type: docker
 volumes:
 - host:
@@ -100,9 +98,9 @@ steps:
   - docker push grafana/agent-build-image:$IMAGE_TAG
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
   image: docker:windowsservercore-1809
   name: Build
   volumes:
@@ -128,7 +126,7 @@ steps:
 - commands:
   - apt-get update -y && apt-get install -y libsystemd-dev
   - make lint
-  image: golangci/golangci-lint:v1.50.1
+  image: grafana/agent-build-image:0.25.0
   name: Lint
 trigger:
   event:
@@ -146,7 +144,7 @@ steps:
   - ERR_MSG="Dashboard definitions are out of date. Please run 'make generate-dashboards'
     and commit changes!"
   - if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Regenerate dashboards
 trigger:
   event:
@@ -164,7 +162,7 @@ steps:
   - ERR_MSG="The environment manifests are out of date. Please run 'make generate-manifests'
     and commit changes!"
   - if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Regenerate environment manifests
 trigger:
   event:
@@ -178,15 +176,30 @@ platform:
   os: linux
 steps:
 - commands:
+  - make GO_TAGS="nodocker" test
+  image: grafana/agent-build-image:0.25.0
+  name: Run Go tests
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Test (Full)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
   - K8S_USE_DOCKER_NETWORK=1 make test
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Run Go tests
   volumes:
   - name: docker
     path: /var/run/docker.sock
 trigger:
-  event:
-  - pull_request
+  ref:
+  - refs/heads/main
 type: docker
 volumes:
 - host:
@@ -202,9 +215,7 @@ platform:
 steps:
 - commands:
   - go test -tags="nodocker,nonetwork" ./...
-  environment:
-    ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH: go1.20
-  image: grafana/agent-build-image:0.21.0-windows
+  image: grafana/agent-build-image:0.25.0-windows
   name: Run Go tests
 trigger:
   event:
@@ -219,16 +230,17 @@ platform:
 steps:
 - commands:
   - make agent-image
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Build container
   volumes:
   - name: docker
     path: /var/run/docker.sock
 trigger:
-  event:
-  - pull_request
   paths:
   - cmd/grafana-agent/Dockerfile
+  - tools/ci/docker-containers
+  ref:
+  - refs/heads/main
 type: docker
 volumes:
 - host:
@@ -243,16 +255,17 @@ platform:
 steps:
 - commands:
   - make agentctl-image
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Build container
   volumes:
   - name: docker
     path: /var/run/docker.sock
 trigger:
-  event:
-  - pull_request
   paths:
   - cmd/grafana-agentctl/Dockerfile
+  - tools/ci/docker-containers
+  ref:
+  - refs/heads/main
 type: docker
 volumes:
 - host:
@@ -267,16 +280,17 @@ platform:
 steps:
 - commands:
   - make operator-image
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Build container
   volumes:
   - name: docker
     path: /var/run/docker.sock
 trigger:
-  event:
-  - pull_request
   paths:
   - cmd/grafana-agent-operator/Dockerfile
+  - tools/ci/docker-containers
+  ref:
+  - refs/heads/main
 type: docker
 volumes:
 - host:
@@ -291,18 +305,18 @@ platform:
   version: "1809"
 steps:
 - commands:
-  - git config --global --add safe.directory C:/drone/src/
   - '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows agent'
-  image: grafana/agent-build-image:0.21.0-windows
+  image: grafana/agent-build-image:0.25.0-windows
   name: Build container
   volumes:
   - name: docker
     path: //./pipe/docker_engine/
 trigger:
-  event:
-  - pull_request
   paths:
   - cmd/grafana-agent/Dockerfile.windows
+  - tools/ci/docker-containers-windows
+  ref:
+  - refs/heads/main
 type: docker
 volumes:
 - host:
@@ -317,18 +331,18 @@ platform:
   version: "1809"
 steps:
 - commands:
-  - git config --global --add safe.directory C:/drone/src/
   - '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows agentctl'
-  image: grafana/agent-build-image:0.21.0-windows
+  image: grafana/agent-build-image:0.25.0-windows
   name: Build container
   volumes:
   - name: docker
     path: //./pipe/docker_engine/
 trigger:
-  event:
-  - pull_request
   paths:
   - cmd/grafana-agentctl/Dockerfile.windows
+  - tools/ci/docker-containers-windows
+  ref:
+  - refs/heads/main
 type: docker
 volumes:
 - host:
@@ -342,8 +356,10 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM=
+    make agent
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -357,38 +373,10 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agent (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agent
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agent (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agent
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
+    make agent
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -402,8 +390,27 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=ppc64le GOARM=
+    make agent
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent (Linux s390x)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=s390x GOARM=
+    make agent
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -417,8 +424,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=darwin GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -432,8 +440,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=darwin GOARCH=arm64 GOARM= make agent
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -447,8 +456,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -462,8 +472,141 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make agent
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=freebsd GOARCH=amd64 GOARM= make agent
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent-flow (Linux amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM=
+    make agent-flow
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent-flow (Linux arm64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
+    make agent-flow
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent-flow (Linux ppc64le)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=ppc64le GOARM=
+    make agent-flow
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent-flow (Linux s390x)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=s390x GOARM=
+    make agent-flow
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent-flow (macOS Intel)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=darwin GOARCH=amd64 GOARM= make agent-flow
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent-flow (macOS Apple Silicon)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=darwin GOARCH=arm64 GOARM= make agent-flow
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent-flow (Windows amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= make agent-flow
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent-flow (FreeBSD amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=freebsd GOARCH=amd64 GOARM= make agent-flow
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -477,8 +620,10 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM=
+    make agentctl
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -492,38 +637,10 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agentctl (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make agentctl
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build agentctl (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make agentctl
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
+    make agentctl
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -537,8 +654,27 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=ppc64le GOARM=
+    make agentctl
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agentctl (Linux s390x)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=s390x GOARM=
+    make agentctl
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -552,8 +688,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=darwin GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -567,8 +704,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=darwin GOARCH=arm64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -582,8 +720,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -597,8 +736,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make agentctl
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=freebsd GOARCH=amd64 GOARM= make agentctl
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -612,8 +752,10 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=amd64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM=
+    make operator
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -627,38 +769,10 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=arm64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build operator (Linux armv6)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=6 make operator
-  image: grafana/agent-build-image:0.21.0
-  name: Build
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
-name: Build operator (Linux armv7)
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - GOOS=linux GOARCH=arm GOARM=7 make operator
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
+    make operator
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -672,8 +786,27 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=linux GOARCH=ppc64le GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=ppc64le GOARM=
+    make operator
+  image: grafana/agent-build-image:0.25.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build operator (Linux s390x)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=s390x GOARM=
+    make operator
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -687,8 +820,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=amd64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=darwin GOARCH=amd64 GOARM= make operator
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -702,8 +836,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=darwin GOARCH=arm64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=darwin GOARCH=arm64 GOARM= make operator
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -717,8 +852,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=windows GOARCH=amd64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= make operator
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -732,8 +868,9 @@ platform:
   os: linux
 steps:
 - commands:
-  - GOOS=freebsd GOARCH=amd64 GOARM= make operator
-  image: grafana/agent-build-image:0.21.0
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=freebsd GOARCH=amd64 GOARM= make operator
+  image: grafana/agent-build-image:0.25.0
   name: Build
 trigger:
   event:
@@ -747,21 +884,29 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.25.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-agent --driver docker-container --use
+  - docker buildx create --name multiarch-agent-agent-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
   - ./tools/ci/docker-containers agent
-  - docker buildx rm multiarch-agent-agent
+  - docker buildx rm multiarch-agent-agent-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GCR_CREDS:
       from_secret: gcr_admin
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Publish container
   volumes:
   - name: docker
@@ -770,7 +915,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -784,22 +928,29 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.25.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-agentctl --driver docker-container
-    --use
+  - docker buildx create --name multiarch-agent-agentctl-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
   - ./tools/ci/docker-containers agentctl
-  - docker buildx rm multiarch-agent-agentctl
+  - docker buildx rm multiarch-agent-agentctl-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GCR_CREDS:
       from_secret: gcr_admin
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Publish container
   volumes:
   - name: docker
@@ -808,7 +959,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -822,22 +972,29 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.25.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-agent-operator --driver docker-container
-    --use
+  - docker buildx create --name multiarch-agent-agent-operator-${DRONE_COMMIT_SHA}
+    --driver docker-container --use
   - ./tools/ci/docker-containers agent-operator
-  - docker buildx rm multiarch-agent-agent-operator
+  - docker buildx rm multiarch-agent-agent-operator-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GCR_CREDS:
       from_secret: gcr_admin
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Publish container
   volumes:
   - name: docker
@@ -846,7 +1003,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -860,21 +1016,29 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.25.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-smoke --driver docker-container --use
+  - docker buildx create --name multiarch-agent-smoke-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
   - ./tools/ci/docker-containers smoke
-  - docker buildx rm multiarch-agent-smoke
+  - docker buildx rm multiarch-agent-smoke-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GCR_CREDS:
       from_secret: gcr_admin
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Publish container
   volumes:
   - name: docker
@@ -883,7 +1047,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -897,21 +1060,29 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.25.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
   - mkdir -p $HOME/.docker
   - printenv GCR_CREDS > $HOME/.docker/config.json
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  - docker buildx create --name multiarch-agent-crow --driver docker-container --use
+  - docker buildx create --name multiarch-agent-crow-${DRONE_COMMIT_SHA} --driver
+    docker-container --use
   - ./tools/ci/docker-containers crow
-  - docker buildx rm multiarch-agent-crow
+  - docker buildx rm multiarch-agent-crow-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GCR_CREDS:
       from_secret: gcr_admin
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Publish container
   volumes:
   - name: docker
@@ -920,7 +1091,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -935,14 +1105,13 @@ platform:
   version: "1809"
 steps:
 - commands:
-  - git config --global --add safe.directory C:/drone/src/
   - '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows agent'
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
-  image: grafana/agent-build-image:0.21.0-windows
+      from_secret: docker_password
+  image: grafana/agent-build-image:0.25.0-windows
   name: Build containers
   volumes:
   - name: docker
@@ -951,7 +1120,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -966,14 +1134,13 @@ platform:
   version: "1809"
 steps:
 - commands:
-  - git config --global --add safe.directory C:/drone/src/
   - '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows agentctl'
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
-  image: grafana/agent-build-image:0.21.0-windows
+      from_secret: docker_password
+  image: grafana/agent-build-image:0.25.0-windows
   name: Build containers
   volumes:
   - name: docker
@@ -982,7 +1149,6 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/dev.*
 type: docker
 volumes:
 - host:
@@ -1062,18 +1228,18 @@ steps:
     VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
   environment:
     DOCKER_LOGIN:
-      from_secret: DOCKER_LOGIN
+      from_secret: docker_login
     DOCKER_PASSWORD:
-      from_secret: DOCKER_PASSWORD
+      from_secret: docker_password
     GITHUB_TOKEN:
-      from_secret: GITHUB_KEY
+      from_secret: gh_token
     GPG_PASSPHRASE:
       from_secret: gpg_passphrase
     GPG_PRIVATE_KEY:
       from_secret: gpg_private_key
     GPG_PUBLIC_KEY:
       from_secret: gpg_public_key
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Publish release
   volumes:
   - name: docker
@@ -1096,23 +1262,36 @@ steps:
 - commands:
   - DOCKER_OPTS="" make dist/grafana-agent-linux-amd64
   - DOCKER_OPTS="" make dist/grafana-agentctl-linux-amd64
+  - DOCKER_OPTS="" make dist.temp/grafana-agent-flow-linux-amd64
   - DOCKER_OPTS="" make test-packages
-  image: grafana/agent-build-image:0.21.0
+  image: grafana/agent-build-image:0.25.0
   name: Test Linux system packages
   volumes:
   - name: docker
     path: /var/run/docker.sock
 trigger:
-  event:
-  - pull_request
   paths:
   - packaging/**
   - Makefile
+  ref:
+  - refs/heads/main
 type: docker
 volumes:
 - host:
     path: /var/run/docker.sock
   name: docker
+---
+get:
+  name: username
+  path: infra/data/ci/docker_hub
+kind: secret
+name: docker_login
+---
+get:
+  name: password
+  path: infra/data/ci/docker_hub
+kind: secret
+name: docker_password
 ---
 get:
   name: .dockerconfigjson
@@ -1133,10 +1312,10 @@ kind: secret
 name: gh_token
 ---
 get:
-  name: public-key
+  name: passphrase
   path: infra/data/ci/packages-publish/gpg
 kind: secret
-name: gpg_public_key
+name: gpg_passphrase
 ---
 get:
   name: private-key
@@ -1145,12 +1324,12 @@ kind: secret
 name: gpg_private_key
 ---
 get:
-  name: passphrase
+  name: public-key
   path: infra/data/ci/packages-publish/gpg
 kind: secret
-name: gpg_passphrase
+name: gpg_public_key
 ---
 kind: signature
-hmac: 5e85b73dd2e075bffd57cf6fd5d943abcdd72356097b0e18d9a0520d733d7ea0
+hmac: afe62dd01195b3a181449cc364bee9788d622a691c6d3802e06e29bd3bec1709
 
 ...

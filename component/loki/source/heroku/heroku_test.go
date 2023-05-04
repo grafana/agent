@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -21,16 +21,21 @@ import (
 )
 
 func TestPush(t *testing.T) {
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry()}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 
 	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
 	args := Arguments{
-		HerokuListener: ListenerConfig{
-			ListenAddress: address,
-			ListenPort:    port,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: address,
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
 		},
 		UseIncomingTimestamp: false,
 		Labels:               map[string]string{"foo": "bar"},

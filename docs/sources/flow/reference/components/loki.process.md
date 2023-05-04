@@ -68,7 +68,7 @@ stage.tenant       | [stage.tenant][]        | Configures a `tenant` processing 
 stage.timestamp    | [stage.timestamp][]     | Configures a `timestamp` processing stage. | no
 
 A user can provide any number of these stage blocks nested inside
-`loki.process`; these will run in order of appearence in the configuration
+`loki.process`; these will run in order of appearance in the configuration
 file.
 
 [stage.cri]: #stagecri-block
@@ -186,10 +186,10 @@ provide a custom label using the `drop_counter_reason` argument.
 The following stage drops log entries that contain the word `debug` _and_ are
 longer than 1KB.
 
-```
+```river
 stage.drop {
-		expression  = ".*debug.*"
-		longer_than = "1KB"
+    expression  = ".*debug.*"
+    longer_than = "1KB"
 }
 ```
 
@@ -197,20 +197,20 @@ On the following example, we define multiple `drop` blocks so `loki.process`
 drops entries that are either 24h or older, are longer than 8KB, _or_ the
 extracted value of 'app' is equal to foo.
 
-```
+```river
 stage.drop {
-		older_than  = "24h"
-		drop_reason = "too old"
+    older_than  = "24h"
+    drop_reason = "too old"
 }
 
 stage.drop {
-		older_than  = "8KB"
-		drop_reason = "too long"
+    older_than  = "8KB"
+    drop_reason = "too long"
 }
 
 stage.drop {
-		source = "app"
-		value  = "foo"
+    source = "app"
+    value  = "foo"
 }
 ```
 
@@ -243,14 +243,14 @@ Here's a given log line and two JSON stages to run.
 {"log":"log message\n","extra":"{\"user\":\"agent\"}"}
 
 loki.process "username" {
-	stage.json {
-			expressions = {output = log, extra = ""}
-	}
+  stage.json {
+      expressions = {output = "log", extra = ""}
+  }
 
-	stage.json {
-			source      = "extra"
-			expressions = {username = "user"}
-	}
+  stage.json {
+      source      = "extra"
+      expressions = {username = "user"}
+  }
 }
 ```
 
@@ -281,7 +281,7 @@ Name         | Type           | Description                                  | D
 
 ```river
 stage.label_drop {
-		values = [ "kubernetes_node_name", "kubernetes_namespace" ]
+    values = [ "kubernetes_node_name", "kubernetes_namespace" ]
 }
 ```
 
@@ -299,7 +299,7 @@ Name        | Type           | Description                                   | D
 
 ```river
 stage.label_keep {
-		values = [ "kubernetes_pod_name", "kubernetes_pod_container_name" ]
+    values = [ "kubernetes_pod_name", "kubernetes_pod_container_name" ]
 }
 ```
 
@@ -320,10 +320,10 @@ the key.
 
 ```river
 stage.labels {
-		values = {
-			env  = "",         // Sets up an 'env' label, based on the 'env' extracted value.
-			user = "username", // Sets up a 'user' label, based on the 'username' extracted value.
-		}
+    values = {
+      env  = "",         // Sets up an 'env' label, based on the 'env' extracted value.
+      user = "username", // Sets up a 'user' label, based on the 'username' extracted value.
+    }
 }
 ```
 
@@ -349,8 +349,8 @@ more tokens are available.
 
 ```river
 stage.limit {
-		rate  = 5
-		burst = 10
+    rate  = 5
+    burst = 10
 }
 ```
 
@@ -363,11 +363,11 @@ The stage keeps track of up to `max_distinct_labels` unique
 values, defaulting at 10000.
 ```river
 stage.limit {
-		rate  = 10
-		burst = 10
-		drop  = true
-		
-		by_label_name = "namespace"
+    rate  = 10
+    burst = 10
+    drop  = true
+
+    by_label_name = "namespace"
 }
 ```
 
@@ -399,12 +399,12 @@ Let's see how this works on the following log line and stages.
 time=2012-11-01T22:08:41+00:00 app=loki level=WARN duration=125 message="this is a log line" extra="user=foo"
 
 stage.logfmt {
-		mapping = { "extra" = "" }
+    mapping = { "extra" = "" }
 }
 
 stage.logfmt {
-		mapping = { "username" = "user" }
-		source  = "extra"
+    mapping = { "username" = "user" }
+    source  = "extra"
 }
 ```
 
@@ -427,7 +427,7 @@ Name            | Type      | Description                                       
 `selector`      | `string`  | The LogQL stream selector and filter expressions to use.            |         | yes
 `pipeline_name` | `string`  | A custom name to use for the nested pipeline.                       | `""`    | no
 `action`        | `string`  | The action to take when the selector matches the log line. Supported values are `"keep"` and `"drop"` | `"keep"` | no
-`drop_counter_reason` | `string` | A custom reason to report for dropped lines.                   | `"match_stage"` | no 
+`drop_counter_reason` | `string` | A custom reason to report for dropped lines.                   | `"match_stage"` | no
 
 The `stage.match` block supports a number of `stage.*` inner blocks, like the top-level
 block. These are used to construct the nested set of stages to run if the
@@ -446,36 +446,37 @@ Let's see this in action, with the following log lines and stages
 { "time":"2023-01-18T17:08:42+00:00", "app":"bar", "component": ["parser","type"], "level" : "ERROR", "message" : "foo noisy error" }
 
 stage.json {
-		expressions = { "appname" = "app" }
+    expressions = { "appname" = "app" }
 }
 
 stage.labels {
-		values = { "applbl" = "appname" }
+    values = { "applbl" = "appname" }
 }
 
 stage.match {
-		selector = '{applbl="foo"}'
-		stage.json {
-				expressions = { "msg" = "message" }
-		}
+    selector = "{applbl=\"foo\"}"
+
+    stage.json {
+        expressions = { "msg" = "message" }
+    }
 }
 
 stage.match {
-		selector = '{applbl="qux"}'
-		stage.json {
-				expressions = { "msg" = "msg" }
-		}
+    selector = "{applbl=\"qux\"}"
+    stage.json {
+        expressions = { "msg" = "msg" }
+    }
 }
 
 stage.match {
-		selector = '{applbl="bar"} |~ ".*noisy error.*"'
-		action   = "drop"
+    selector = "{applbl=\"bar\"} |~ \".*noisy error.*\""
+    action   = "drop"
 
-		drop_counter_reason = "discard_noisy_errors"
+    drop_counter_reason = "discard_noisy_errors"
 }
 
 stage.output {
-		source = "msg"
+    source = "msg"
 }
 ```
 
@@ -612,27 +613,27 @@ The following pipeline creates a counter which increments every time any log lin
 These two metrics disappear after 24 hours if no new entries are received, to avoid building up metrics which no longer serve any use. These two metrics are a good starting point to track the volume of log streams in both the number of entries and their byte size, to identify sources of high-volume or high-cardinality data.
 ```river
 stage.metrics {
-		metric.counter {
-				name        = "log_lines_total"
-				description = "total number of log lines"
-				prefix      = "my_custom_tracking_"
+    metric.counter {
+        name        = "log_lines_total"
+        description = "total number of log lines"
+        prefix      = "my_custom_tracking_"
 
-				match_all         = true
-				action            = "inc"
-				max_idle_duration = "24h"
-		}
+        match_all         = true
+        action            = "inc"
+        max_idle_duration = "24h"
+    }
 }
 stage.metrics {
-		metric.counter {
-				name        = "log_bytes_total"	
-				description = "total bytes of log lines"
-				prefix      = "my_custom_tracking_"
+    metric.counter {
+        name        = "log_bytes_total"
+        description = "total bytes of log lines"
+        prefix      = "my_custom_tracking_"
 
-				match_all         = true
-				count_entry_bytes = true
-				action            = "add"
-				max_idle_duration = "24h"
-		}
+        match_all         = true
+        count_entry_bytes = true
+        action            = "add"
+        max_idle_duration = "24h"
+    }
 }
 ```
 
@@ -642,25 +643,25 @@ The second stage, defines a counter which increments the `successful_orders_tota
 
 ```river
 stage.regex {
-		expression = "^.* order_status=(?P<order_status>.*?) .*$"
+    expression = "^.* order_status=(?P<order_status>.*?) .*$"
 }
 stage.metrics {
-		metric.counter {
-				name        = "successful_orders_total"	
-				description = "successful orders"
-				source      = "order_status"
-				value       = "success"
-				action      = "inc"
-		}
+    metric.counter {
+        name        = "successful_orders_total"
+        description = "successful orders"
+        source      = "order_status"
+        value       = "success"
+        action      = "inc"
+    }
 }
 stage.metrics {
-		metric.counter {
-				name        = "failed_orders_total"	
-				description = "failed orders"
-				source      = "order_status"
-				value       = "fail"
-				action      = "inc"
-		}
+    metric.counter {
+        name        = "failed_orders_total"
+        description = "failed orders"
+        source      = "order_status"
+        value       = "fail"
+        action      = "inc"
+    }
 }
 ```
 
@@ -668,15 +669,15 @@ In this example, the first stage extracts text in the format of `retries=<value>
 
 ```river
 stage.regex {
-		expression = "^.* retries=(?P<retries>\\d+) .*$"
+    expression = "^.* retries=(?P<retries>\\d+) .*$"
 }
 stage.metrics {
-		metric.gauge {
-				name        = "retries_total"
-				description = "total_retries"
-				source      = "retries"
-				action      = "add"
-		}
+    metric.gauge {
+        name        = "retries_total"
+        description = "total_retries"
+        source      = "retries"
+        action      = "add"
+    }
 }
 ```
 
@@ -686,12 +687,12 @@ the sum for that particular bucket:
 
 ```river
 stage.metrics {
-		metric.histogram {
-				name = "http_response_time_seconds"
-				description = "recorded response times"
-				source = "response_time"
-				buckets = [0.001,0.0025,0.005,0.010,0.025,0.050]
-		}
+    metric.histogram {
+        name        = "http_response_time_seconds"
+        description = "recorded response times"
+        source      = "response_time"
+        buckets     = [0.001,0.0025,0.005,0.010,0.025,0.050]
+    }
 }
 ```
 
@@ -705,7 +706,7 @@ The following arguments are supported:
 Name                | Type           | Description                                           | Default  | Required
 ------------------- | -------------- | ----------------------------------------------------- | -------- | --------
 `firstline`         | `string`       | Name from extracted data to use for the log entry.    |          | yes
-`max_wait_time`     | `duration`     | The maximum time to wait for a multiline block.       |  `"3s"`  | no 
+`max_wait_time`     | `duration`     | The maximum time to wait for a multiline block.       |  `"3s"`  | no
 `max_lines`         | `int`          | The maximum number of lines a block can have.         |  `128`   | no
 
 
@@ -722,8 +723,8 @@ entries from a Flask web service.
 
 ```
 stage.multiline {
-		firstline     = "^\[\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}\]"
-		max_wait_time = "10s"
+    firstline     = "^\\[\\d{4}-\\d{2}-\\d{2} \\d{1,2}:\\d{2}:\\d{2}\\]"
+    max_wait_time = "10s"
 }
 
 [2023-01-18 17:41:21] "GET /hello HTTP/1.1" 200 -
@@ -772,15 +773,15 @@ Let's see how this works for the following log line and three-stage pipeline:
 {"user": "John Doe", "message": "hello, world!"}
 
 stage.json {
-		expressions = { "user" = "user", "message" = "message" }
+    expressions = { "user" = "user", "message" = "message" }
 }
 
 stage.labels {
-		values = { "user" = "user" }
+    values = { "user" = "user" }
 }
 
 stage.output {
-		source = "message"
+    source = "message"
 }
 ```
 
@@ -812,7 +813,7 @@ the `_entry` key, and all other keys retain their values. This is useful in
 cases where you _do_ want to keep a certain label or metadata, but you don't
 want it to be indexed as a label due to high cardinality.
 
-The querying capabilities of Loki make it easy to still access this data so it can 
+The querying capabilities of Loki make it easy to still access this data so it can
 be filtered and aggregated at query time.
 
 For example, consider the following log entry:
@@ -824,17 +825,17 @@ labels:   { "level" = "error", "env" = "dev", "user_id" = "f8fas0r" }
 and this processing stage:
 ```river
 stage.pack {
-		labels = ["env", "user_id"]
+    labels = ["env", "user_id"]
 }
 ```
 
-The stage transforms the log entry into the following JSON object, where the two 
+The stage transforms the log entry into the following JSON object, where the two
 embedded labels are removed from the original log entry:
 ```json
 {
-	"_entry": "something went wrong",
-	"env": "dev",
-	"user_id": "f8fas0r",
+  "_entry": "something went wrong",
+  "env": "dev",
+  "user_id": "f8fas0r",
 }
 ```
 
@@ -948,12 +949,12 @@ is omitted, the replacement occurs  on the log line itself.
 2023-01-01T01:00:00.000000001Z stderr P i'm a log message who has sensitive information with password xyz!
 
 stage.replace {
-		expression = "password (\\S+)"
-		replace    = "*****"
+    expression = "password (\\S+)"
+    replace    = "*****"
 }
 ```
 
-The log line is transformed to 
+The log line is transformed to
 ```
 2023-01-01T01:00:00.000000001Z stderr P i'm a log message who has sensitive information with password *****!
 ```
@@ -965,13 +966,13 @@ In the following example, `source` is defined.
 {"time":"2023-01-01T01:00:00.000000001Z", "level": "info", "msg":"11.11.11.11 - \"POST /loki/api/push/ HTTP/1.1\" 200 932 \"-\" \"Mozilla/5.0\"}
 
 stage.json {
-		expressions = { "level" = "", "msg" = "" }
+    expressions = { "level" = "", "msg" = "" }
 }
 
 stage.replace {
-		expression = "\\S+ - \"POST (\\S+) .*"
-		source     = "msg"
-		replace    = "redacted_url"
+    expression = "\\S+ - \"POST (\\S+) .*"
+    source     = "msg"
+    replace    = "redacted_url"
 }
 ```
 
@@ -999,8 +1000,8 @@ and stage.
 11.11.11.11 - agent [01/Jan/2023:00:00:01 +0200]
 
 stage.replace {
-		expression = "^(?P<ip>\\S+) (?P<identd>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[\\w:/]+\\s[+\\-]\\d{4})\\]"
-		replace    = "{{ .Value | ToUpper }}"
+    expression = "^(?P<ip>\\S+) (?P<identd>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[\\w:/]+\\s[+\\-]\\d{4})\\]"
+    replace    = "{{ .Value | ToUpper }}"
 }
 ```
 
@@ -1016,7 +1017,7 @@ timestamp: 01/JAN/2023:00:00:01 +0200
 
 and the log line becomes:
 ```
-11.11.11.11 - FRANK [01/JAN/2023:00:00:01 +0200] 
+11.11.11.11 - FRANK [01/JAN/2023:00:00:01 +0200]
 ```
 
 The following list contains available functions with examples of
@@ -1042,10 +1043,10 @@ Name         | Type          | Description                                      
 
 ```river
 stage.static_labels {
-		values = {
-			foo = "fooval",
-			bar = "barval",
-		}
+    values = {
+      foo = "fooval",
+      bar = "barval",
+    }
 }
 ```
 
@@ -1082,8 +1083,8 @@ Assuming no data is present on the extracted map, the following stage simply
 adds the `new_key: "hello_world"`key-value pair to the shared map.
 ```river
 stage.template {
-		source   = "new_key"
-		template = "hello_world"
+    source   = "new_key"
+    template = "hello_world"
 }
 ```
 
@@ -1092,8 +1093,8 @@ The next stage takes the current value of `app` from the extracted map,
 converts it to lowercase, and adds a suffix to its value:
 ```river
 stage.template {
-		source   = "app"
-		template = "{{ ToLower .Value }}_some_suffix"
+    source   = "app"
+    template = "{{ ToLower .Value }}_some_suffix"
 }
 ```
 
@@ -1102,8 +1103,8 @@ The next stage takes the current values for `level`, `app` and `module` and
 creates a new key named `output_message`:
 ```river
 stage.template {
-		source   = "output_msg"
-		template = "{{ .level }} for app {{ ToUpper .app }} in module {{.module}}"
+    source   = "output_msg"
+    template = "{{ .level }} for app {{ ToUpper .app }} in module {{.module}}"
 }
 ```
 
@@ -1111,11 +1112,11 @@ A special key named `Entry` can be used to reference the current line; this can
 be useful when you need to append/prepend something to the log line, like this snippet:
 ```river
 stage.template {
-		source   = "message"
-		template = "{{.app }}: {{ .Entry }}"
+    source   = "message"
+    template = "{{.app }}: {{ .Entry }}"
 }
 stage.output {
-		source = "message"
+    source = "message"
 }
 ```
 
@@ -1129,12 +1130,12 @@ uppercase, respectively.
 Examples:
 ```river
 stage.template {
-		source   = "out"
-		template = "{{ ToLower .app }}"
+    source   = "out"
+    template = "{{ ToLower .app }}"
 }
 stage.template {
-		source   = "out"
-		template = "{{ .app | ToUpper }}"
+    source   = "out"
+    template = "{{ .app | ToUpper }}"
 }
 ```
 
@@ -1150,8 +1151,8 @@ it matches before and after every UTF-8 character in the string.
 This example replaces the first two instances of the `loki` word by `Loki`:
 ```river
 stage.template {
-		source   = "output"
-		template = "{{ Replace .Value "loki" "Loki" 2 }}"
+    source   = "output"
+    template = "{{ Replace .Value "loki" "Loki" 2 }}"
 }
 ```
 
@@ -1166,16 +1167,16 @@ white space removed, as defined by Unicode.
 Examples:
 ```river
 stage.template {
-		source   = "output"
-		template = "{{ Trim .Value ",. " }}"
+    source   = "output"
+    template = "{{ Trim .Value ",. " }}"
 }
 stage.template {
-		source   = "output"
-		template = "{{ TrimSpace .Value }}"
+    source   = "output"
+    template = "{{ TrimSpace .Value }}"
 }
 stage.template {
-		source   = "output"
-		template = "{{ TrimPrefix .Value "--" }}"
+    source   = "output"
+    template = "{{ TrimPrefix .Value "--" }}"
 }
 ```
 
@@ -1191,12 +1192,12 @@ substituted directly, without using Expand.
 
 ```river
 stage.template {
-		source   = "output"
-		template = "{{ regexReplaceAll "(a*)bc" .Value "${1}a" }}"
+    source   = "output"
+    template = "{{ regexReplaceAll "(a*)bc" .Value "${1}a" }}"
 }
 stage.template {
-		source   = "output"
-		template = "{{ regexReplaceAllLiteral "(ts=)" .Value "timestamp=" }}"
+    source   = "output"
+    template = "{{ regexReplaceAllLiteral "(ts=)" .Value "timestamp=" }}"
 }
 ```
 
@@ -1207,16 +1208,16 @@ stage.template {
 Examples:
 ```river
 stage.template {
-		source   = "output"
-		template = "{{ Hash .Value "salt" }}"
+    source   = "output"
+    template = "{{ Hash .Value "salt" }}"
 }
 stage.template {
-		source   = "output"
-		template = "{{ Sha2Hash .Value "salt" }}"
+    source   = "output"
+    template = "{{ Sha2Hash .Value "salt" }}"
 }
 ```
 
-We recommend using Hash as it has a stronger hashing algorithm. 
+We recommend using Hash as it has a stronger hashing algorithm.
 
 ### stage.tenant block
 
@@ -1236,7 +1237,7 @@ The block expects only one of `label`, `source` or `value` to be provided.
 The following stage assigns the fixed value `team-a` as the tenant ID:
 ```river
 stage.tenant {
-		value = "team-a"
+    value = "team-a"
 }
 ```
 
@@ -1244,20 +1245,20 @@ This stage extracts the tenant ID from the `customer_id` field after
 parsing the log entry as JSON in the shared extracted map:
 ```river
 stage.json {
-		expressions = { "customer_id" = "" }
+    expressions = { "customer_id" = "" }
 }
 stage.tenant {
-		source = "customer_id"
+    source = "customer_id"
 }
 ```
 
 The final example extracts the tenant ID from a label set by a previous stage:
 ```river
 stage.labels {
-		"namespace" = "k8s_namespace"
+    "namespace" = "k8s_namespace"
 }
 stage.tenant {
-		label = "namespace"
+    label = "namespace"
 }
 ```
 
@@ -1320,7 +1321,7 @@ according to the system's clock.
 The following table shows the supported reference values to use when defining a
 custom format.
 
-Timestamp Component | Format value 
+Timestamp Component | Format value
 ------------------- | --------------
 Year                | 06, 2006
 Month               | 1, 01, Jan, January
@@ -1354,10 +1355,10 @@ The supported actions are:
 The following stage fetches the `time` value from the shared values map, parses
 it as a RFC3339 format, and sets it as the log entry's timestamp.
 
-```
+```river
 stage.timestamp {
-		source = "time"
-		format = "RFC3339"
+    source = "time"
+    format = "RFC3339"
 }
 ```
 
@@ -1379,6 +1380,7 @@ Name | Type | Description
 
 ## Debug metrics
 * `loki_process_dropped_lines_total` (counter): Number of lines dropped as part of a processing stage.
+* `loki_process_dropped_lines_by_label_total` (counter):  Number of lines dropped when `by_label_name` is non-empty in [stage.limit][]. 
 
 ## Example
 
@@ -1393,9 +1395,8 @@ loki.process "local" {
       expressions = { "extracted_env" = "environment" }
   }
 
-  stage.labels { 
+  stage.labels {
       values = { "env" = "extracted_env" }
   }
 }
 ```
-

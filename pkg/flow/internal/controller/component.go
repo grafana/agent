@@ -4,17 +4,19 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
@@ -55,15 +57,24 @@ func (id ComponentID) Equals(other ComponentID) bool {
 	return true
 }
 
+// DialFunc is a function to establish a network connection.
+type DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	Logger          log.Logger              // Logger shared between all managed components.
-	TraceProvider   trace.TracerProvider    // Tracer shared between all managed components.
-	DataPath        string                  // Shared directory where component data may be stored
-	OnExportsChange func(cn *ComponentNode) // Invoked when the managed component updated its exports
-	Registerer      prometheus.Registerer   // Registerer for serving agent and component metrics
-	HTTPListenAddr  string                  // Base address for server
+	LogSink           *logging.Sink                // Sink used for Logging.
+	Logger            *logging.Logger              // Logger shared between all managed components.
+	TraceProvider     trace.TracerProvider         // Tracer shared between all managed components.
+	Clusterer         *cluster.Clusterer           // Clusterer shared between all managed components.
+	DataPath          string                       // Shared directory where component data may be stored
+	OnComponentUpdate func(cn *ComponentNode)      // Informs controller that we need to reevaluate
+	OnExportsChange   func(exports map[string]any) // Invoked when the managed component updated its exports
+	Registerer        prometheus.Registerer        // Registerer for serving agent and component metrics
+	HTTPPathPrefix    string                       // HTTP prefix for components.
+	HTTPListenAddr    string                       // Base address for server
+	DialFunc          DialFunc                     // Function to connect to HTTPListenAddr.
+	ControllerID      string                       // ID of controller.
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -72,15 +83,15 @@ type ComponentGlobals struct {
 // arguments and exports. ComponentNode manages the arguments for the component
 // from a River block.
 type ComponentNode struct {
-	id              ComponentID
-	label           string
-	componentName   string
-	nodeID          string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	reg             component.Registration
-	managedOpts     component.Options
-	register        *wrappedRegisterer
-	exportsType     reflect.Type
-	onExportsChange func(cn *ComponentNode) // Informs controller that we changed our exports
+	id                ComponentID
+	label             string
+	componentName     string
+	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	reg               component.Registration
+	managedOpts       component.Options
+	register          *wrappedRegisterer
+	exportsType       reflect.Type
+	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -102,7 +113,7 @@ type ComponentNode struct {
 	exports    component.Exports // Evaluated exports for the managed component
 }
 
-var _ dag.Node = (*ComponentNode)(nil)
+var _ BlockNode = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
@@ -127,13 +138,13 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 	}
 
 	cn := &ComponentNode{
-		id:              id,
-		label:           b.Label,
-		nodeID:          nodeID,
-		componentName:   strings.Join(b.Name, "."),
-		reg:             reg,
-		exportsType:     getExportsType(reg),
-		onExportsChange: globals.OnExportsChange,
+		id:                id,
+		label:             b.Label,
+		nodeID:            nodeID,
+		componentName:     strings.Join(b.Name, "."),
+		reg:               reg,
+		exportsType:       getExportsType(reg),
+		OnComponentUpdate: globals.OnComponentUpdate,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -151,19 +162,39 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 }
 
 func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
+	// Make sure the prefix is always absolute.
+	prefix := globals.HTTPPathPrefix
+	if !strings.HasPrefix(prefix, "/") {
+		prefix = "/" + prefix
+	}
+
+	// We need to generate a globally unique component ID to give to the
+	// component and for use with telemetry data which doesn't support
+	// reconstructing the global ID. For everything else (HTTP, data), we can
+	// just use the controller-local ID as those values are guaranteed to be
+	// globally unique.
+	globalID := cn.nodeID
+	if globals.ControllerID != "" {
+		globalID = path.Join(globals.ControllerID, cn.nodeID)
+	}
+
 	wrapped := newWrappedRegisterer()
 	cn.register = wrapped
 	return component.Options{
-		ID:            cn.nodeID,
-		Logger:        log.With(globals.Logger, "component", cn.nodeID),
-		DataPath:      filepath.Join(globals.DataPath, cn.nodeID),
-		OnStateChange: cn.setExports,
+		ID:     globalID,
+		Logger: logging.New(logging.LoggerSink(globals.Logger), logging.WithComponentID(cn.nodeID)),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
-			"component_id": cn.nodeID,
+			"component_id": globalID,
 		}, wrapped),
-		Tracer:         wrapTracer(globals.TraceProvider, cn.nodeID),
+		Tracer:    wrapTracer(globals.TraceProvider, globalID),
+		Clusterer: globals.Clusterer,
+
+		DataPath:       filepath.Join(globals.DataPath, cn.nodeID),
 		HTTPListenAddr: globals.HTTPListenAddr,
-		HTTPPath:       fmt.Sprintf("/component/%s/", cn.nodeID),
+		DialFunc:       globals.DialFunc,
+		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
+
+		OnStateChange: cn.setExports,
 	}
 }
 
@@ -205,9 +236,9 @@ func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	cn.eval = vm.New(b.Body)
 }
 
-// Evaluate updates the arguments for the managed component by re-evaluating
-// its River block with the provided scope. The managed component will be built
-// the first time Evaluate is called.
+// Evaluate implements BlockNode and updates the arguments for the managed component
+// by re-evaluating its River block with the provided scope. The managed component
+// will be built the first time Evaluate is called.
 //
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
@@ -223,6 +254,37 @@ func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
 	}
 
 	return err
+}
+
+// Reevaluate calls Update on the managed component with its last used
+// arguments.Reevaluate does not build the component if it is not already built
+// and does not re-evaluate the River block itself.
+// Its only use case is for components opting-in to clustering where calling
+// Update with the same Arguments may result in different functionality.
+func (cn *ComponentNode) Reevaluate() error {
+	cn.mut.Lock()
+	defer cn.mut.Unlock()
+
+	cn.doingEval.Store(true)
+	defer cn.doingEval.Store(false)
+
+	if cn.managed == nil {
+		// We haven't built the managed component successfully yet.
+		return nil
+	}
+
+	// Update the existing managed component with the same arguments.
+	err := cn.managed.Update(cn.args)
+
+	switch err {
+	case nil:
+		cn.setEvalHealth(component.HealthTypeHealthy, "component evaluated")
+		return nil
+	default:
+		msg := fmt.Sprintf("component evaluation failed: %s", err)
+		cn.setEvalHealth(component.HealthTypeUnhealthy, msg)
+		return err
+	}
 }
 
 func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
@@ -312,6 +374,13 @@ func (cn *ComponentNode) Arguments() component.Arguments {
 	return cn.args
 }
 
+// Block implements BlockNode and returns the current block of the managed component.
+func (cn *ComponentNode) Block() *ast.BlockStmt {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.block
+}
+
 // Exports returns the current set of exports from the managed component.
 // Exports returns nil if the managed component does not have exports.
 func (cn *ComponentNode) Exports() component.Exports {
@@ -358,48 +427,32 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 
 	if changed {
 		// Inform the controller that we have new exports.
-		cn.onExportsChange(cn)
+		cn.OnComponentUpdate(cn)
 	}
 }
 
 // CurrentHealth returns the current health of the ComponentNode.
 //
-// The health of a ComponentNode is tracked from three parts, in descending
-// precedence order:
+// The health of a ComponentNode is determined by combining:
 //
-//  1. Exited health from a call to Run()
-//  2. Unhealthy status from last call to Evaluate
-//  3. Health reported by the managed component (if any)
-//  4. Latest health from Run() or Evaluate(), if the managed component does not
-//     report health.
+//  1. Health from the call to Run().
+//  2. Health from the last call to Evaluate().
+//  3. Health reported from the component.
 func (cn *ComponentNode) CurrentHealth() component.Health {
 	cn.healthMut.RLock()
 	defer cn.healthMut.RUnlock()
 
-	// A component which stopped running takes precedence over all other health
-	// states
-	if cn.runHealth.Health == component.HealthTypeExited {
-		return cn.runHealth
+	var (
+		runHealth  = cn.runHealth
+		evalHealth = cn.evalHealth
+	)
+
+	if hc, ok := cn.managed.(component.HealthComponent); ok {
+		componentHealth := hc.CurrentHealth()
+		return component.LeastHealthy(runHealth, evalHealth, componentHealth)
 	}
 
-	// Next, an unhealthy evaluate takes precedence over the real health of a
-	// component.
-	if cn.evalHealth.Health != component.HealthTypeHealthy {
-		return cn.evalHealth
-	}
-
-	// Then, the health of a managed component takes precedence if it is exposed.
-	hc, _ := cn.managed.(component.HealthComponent)
-	if hc != nil {
-		return hc.CurrentHealth()
-	}
-
-	// Finally, we return the newer health between eval and run
-	latestHealth := cn.evalHealth
-	if cn.runHealth.UpdateTime.After(latestHealth.UpdateTime) {
-		latestHealth = cn.runHealth
-	}
-	return latestHealth
+	return component.LeastHealthy(runHealth, evalHealth)
 }
 
 // DebugInfo returns debugging information from the managed component (if any).

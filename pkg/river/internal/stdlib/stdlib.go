@@ -5,15 +5,13 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/river/internal/value"
-	"github.com/prometheus/prometheus/discovery/targetgroup"
 )
 
 // Identifiers holds a list of stdlib identifiers by name. All interface{}
 // values are River-compatible values.
 //
-// Function identifiers are Go functions with exactly one one non-error return
+// Function identifiers are Go functions with exactly one non-error return
 // value, with an optionally supported error return value as the second return
 // value.
 var Identifiers = map[string]interface{}{
@@ -76,31 +74,25 @@ var Identifiers = map[string]interface{}{
 		return res, nil
 	},
 
-	"discovery_target_decode": func(in string) (interface{}, error) {
-		var targetGroups []*targetgroup.Group
-		if err := json.Unmarshal([]byte(in), &targetGroups); err != nil {
-			return nil, err
+	"coalesce": value.RawFunction(func(funcValue value.Value, args ...value.Value) (value.Value, error) {
+		if len(args) == 0 {
+			return value.Null, nil
 		}
 
-		var res []discovery.Target
+		for _, arg := range args {
+			if arg.Type() == value.TypeNull {
+				continue
+			}
 
-		for _, group := range targetGroups {
-			for _, target := range group.Targets {
-
-				// Create the output target from group and target labels. Target labels
-				// should override group labels.
-				outputTarget := make(discovery.Target, len(group.Labels)+len(target))
-				for k, v := range group.Labels {
-					outputTarget[string(k)] = string(v)
-				}
-				for k, v := range target {
-					outputTarget[string(k)] = string(v)
+			if !arg.Reflect().IsZero() {
+				if argType := value.RiverType(arg.Reflect().Type()); (argType == value.TypeArray || argType == value.TypeObject) && arg.Len() == 0 {
+					continue
 				}
 
-				res = append(res, outputTarget)
+				return arg, nil
 			}
 		}
 
-		return res, nil
-	},
+		return args[len(args)-1], nil
+	}),
 }

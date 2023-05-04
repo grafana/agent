@@ -183,7 +183,10 @@ func (ctrl *controller) configureInformers(ctx context.Context, informers cache.
 
 			return err
 		}
-		informer.AddEventHandler(onChangeEventHandler{ChangeFunc: ctrl.RequestReconcile})
+		_, err = informer.AddEventHandler(onChangeEventHandler{ChangeFunc: ctrl.RequestReconcile})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

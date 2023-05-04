@@ -116,7 +116,7 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 		})
 	}
 
-	// Convert he run function. Original integrations sometimes returned
+	// Convert the run function. Original integrations sometimes returned
 	// ctx.Err() on exit. This isn't recommended anymore, but we need to hide the
 	// error if it happens, since the error was previously ignored.
 	runFunc := func(ctx context.Context) error {

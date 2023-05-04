@@ -22,7 +22,7 @@ import (
 )
 
 func TestScrapePool(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	args := NewDefaultArguments()
 	args.Targets = []discovery.Target{
@@ -152,7 +152,8 @@ func TestScrapePool(t *testing.T) {
 }
 
 func TestScrapeLoop(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
+
 	down := atomic.NewBool(false)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// The test was failing on Windows, as the scrape loop was too fast for
@@ -185,7 +186,7 @@ func TestScrapeLoop(t *testing.T) {
 			return nil
 		}),
 		200*time.Millisecond, 30*time.Second, util.TestLogger(t))
-	defer loop.stop()
+	defer loop.stop(true)
 
 	require.Equal(t, HealthUnknown, loop.Health())
 	loop.start()

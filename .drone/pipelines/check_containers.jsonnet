@@ -15,8 +15,8 @@ local windows_containers = [
 (
   std.map(function(container) pipelines.linux('Check Linux container (%s)' % container.name) {
     trigger: {
-      event: ['pull_request'],
-      paths: [container.path],
+      ref: ['refs/heads/main'],
+      paths: [container.path, 'tools/ci/docker-containers'],
     },
     steps: [{
       name: 'Build container',
@@ -37,8 +37,8 @@ local windows_containers = [
 ) + (
   std.map(function(container) pipelines.windows('Check Windows container (%s)' % container.name) {
     trigger: {
-      event: ['pull_request'],
-      paths: [container.path],
+      ref: ['refs/heads/main'],
+      paths: [container.path, 'tools/ci/docker-containers-windows'],
     },
     steps: [{
       name: 'Build container',
@@ -48,7 +48,6 @@ local windows_containers = [
         path: '//./pipe/docker_engine/',
       }],
       commands: [
-        'git config --global --add safe.directory C:/drone/src/',
         '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows %s' % container.argument,
       ],
     }],

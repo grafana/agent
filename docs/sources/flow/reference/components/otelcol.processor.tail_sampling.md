@@ -1,10 +1,14 @@
 ---
 title: otelcol.​processor.tail_sampling
+labels:
+  stage: beta
 ---
 
 # otelcol.processor.tail_sampling
 
-`otelcol.processor.tail_sampling` samples traces based on a set of defined 
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+
+`otelcol.processor.tail_sampling` samples traces based on a set of defined
 policies. All spans for a given trace *must* be received by the same collector
 instance for effective sampling decisions.
 
@@ -162,7 +166,7 @@ Name | Type | Description | Default | Required
 `hash_salt`           | `string` | See below. | | no
 
 Use `hash_salt` to configure the hashing salts. This is important in scenarios where multiple layers of collectors
-have different sampling rates. If multiple collectors use the same salt with different sampling rates, passing one 
+have different sampling rates. If multiple collectors use the same salt with different sampling rates, passing one
 layer may pass the other even if the collectors have different sampling rates. Configuring different salts avoids that.
 
 ### status_code block
@@ -288,202 +292,202 @@ This example batches trace data from Grafana Agent before sending it to
 
 ```river
 tracing {
-	sampling_fraction = 1
-	write_to          = [otelcol.processor.tail_sampling.default.input]
+  sampling_fraction = 1
+  write_to          = [otelcol.processor.tail_sampling.default.input]
 }
 
 otelcol.processor.tail_sampling "default" {
-	decision_wait               = "10s"
-	num_traces                  = 100
-	expected_new_traces_per_sec = 10
+  decision_wait               = "10s"
+  num_traces                  = 100
+  expected_new_traces_per_sec = 10
 
-	policy {
-		name = "test-policy-1"
-		type = "always_sample"
-	}
+  policy {
+    name = "test-policy-1"
+    type = "always_sample"
+  }
 
-	policy {
-		name = "test-policy-2"
-		type = "latency"
+  policy {
+    name = "test-policy-2"
+    type = "latency"
 
-		latency {
-			threshold_ms = 5000
-		}
-	}
+    latency {
+      threshold_ms = 5000
+    }
+  }
 
-	policy {
-		name = "test-policy-3"
-		type = "numeric_attribute"
+  policy {
+    name = "test-policy-3"
+    type = "numeric_attribute"
 
-		numeric_attribute {
-			key       = "key1"
-			min_value = 50
-			max_value = 100
-		}
-	}
+    numeric_attribute {
+      key       = "key1"
+      min_value = 50
+      max_value = 100
+    }
+  }
 
-	policy {
-		name = "test-policy-4"
-		type = "probabilistic"
+  policy {
+    name = "test-policy-4"
+    type = "probabilistic"
 
-		probabilistic {
-			sampling_percentage = 10
-		}
-	}
+    probabilistic {
+      sampling_percentage = 10
+    }
+  }
 
-	policy {
-		name = "test-policy-5"
-		type = "status_code"
+  policy {
+    name = "test-policy-5"
+    type = "status_code"
 
-		status_code {
-			status_codes = ["ERROR", "UNSET"]
-		}
-	}
+    status_code {
+      status_codes = ["ERROR", "UNSET"]
+    }
+  }
 
-	policy {
-		name = "test-policy-6"
-		type = "string_attribute"
+  policy {
+    name = "test-policy-6"
+    type = "string_attribute"
 
-		string_attribute {
-			key    = "key2"
-			values = ["value1", "value2"]
-		}
-	}
+    string_attribute {
+      key    = "key2"
+      values = ["value1", "value2"]
+    }
+  }
 
-	policy {
-		name = "test-policy-7"
-		type = "string_attribute"
+  policy {
+    name = "test-policy-7"
+    type = "string_attribute"
 
-		string_attribute {
-			key                    = "key2"
-			values                 = ["value1", "val*"]
-			enabled_regex_matching = true
-			cache_max_size         = 10
-		}
-	}
+    string_attribute {
+      key                    = "key2"
+      values                 = ["value1", "val*"]
+      enabled_regex_matching = true
+      cache_max_size         = 10
+    }
+  }
 
-	policy {
-		name = "test-policy-8"
-		type = "rate_limiting"
+  policy {
+    name = "test-policy-8"
+    type = "rate_limiting"
 
-		rate_limiting {
-			spans_per_second = 35
-		}
-	}
+    rate_limiting {
+      spans_per_second = 35
+    }
+  }
 
-	policy {
-		name = "test-policy-9"
-		type = "string_attribute"
+  policy {
+    name = "test-policy-9"
+    type = "string_attribute"
 
-		string_attribute {
-			key                    = "http.url"
-			values                 = ["/health", "/metrics"]
-			enabled_regex_matching = true
-			invert_match           = true
-		}
-	}
+    string_attribute {
+      key                    = "http.url"
+      values                 = ["/health", "/metrics"]
+      enabled_regex_matching = true
+      invert_match           = true
+    }
+  }
 
-	policy {
-		name = "test-policy-10"
-		type = "span_count"
+  policy {
+    name = "test-policy-10"
+    type = "span_count"
 
-		span_count {
-			min_spans = 2
-		}
-	}
+    span_count {
+      min_spans = 2
+    }
+  }
 
-	policy {
-		name = "test-policy-11"
-		type = "trace_state"
+  policy {
+    name = "test-policy-11"
+    type = "trace_state"
 
-		trace_state {
-			key    = "key3"
-			values = ["value1", "value2"]
-		}
-	}
+    trace_state {
+      key    = "key3"
+      values = ["value1", "value2"]
+    }
+  }
 
-	policy {
-		name = "and-policy-1"
-		type = "and"
+  policy {
+    name = "and-policy-1"
+    type = "and"
 
-		and {
-			and_sub_policy {
-				name = "test-and-policy-1"
-				type = "numeric_attribute"
+    and {
+      and_sub_policy {
+        name = "test-and-policy-1"
+        type = "numeric_attribute"
 
-				numeric_attribute {
-					key       = "key1"
-					min_value = 50
-					max_value = 100
-				}
-			}
+        numeric_attribute {
+          key       = "key1"
+          min_value = 50
+          max_value = 100
+        }
+      }
 
-			and_sub_policy {
-				name = "test-and-policy-2"
-				type = "string_attribute"
+      and_sub_policy {
+        name = "test-and-policy-2"
+        type = "string_attribute"
 
-				string_attribute {
-					key    = "key1"
-					values = ["value1", "value2"]
-				}
-			}
-		}
-	}
+        string_attribute {
+          key    = "key1"
+          values = ["value1", "value2"]
+        }
+      }
+    }
+  }
 
-	policy {
-		name = "composite-policy-1"
-		type = "composite"
+  policy {
+    name = "composite-policy-1"
+    type = "composite"
 
-		composite {
-			max_total_spans_per_second = 1000
-			policy_order               = ["test-composite-policy-1", "test-composite-policy-2", "test-composite-policy-3"]
+    composite {
+      max_total_spans_per_second = 1000
+      policy_order               = ["test-composite-policy-1", "test-composite-policy-2", "test-composite-policy-3"]
 
-			composite_sub_policy {
-				name = "test-composite-policy-1"
-				type = "numeric_attribute"
+      composite_sub_policy {
+        name = "test-composite-policy-1"
+        type = "numeric_attribute"
 
-				numeric_attribute {
-					key       = "key1"
-					min_value = 50
-					max_value = 100
-				}
-			}
+        numeric_attribute {
+          key       = "key1"
+          min_value = 50
+          max_value = 100
+        }
+      }
 
-			composite_sub_policy {
-				name = "test-composite-policy-2"
-				type = "string_attribute"
+      composite_sub_policy {
+        name = "test-composite-policy-2"
+        type = "string_attribute"
 
-				string_attribute {
-					key    = "key1"
-					values = ["value1", "value2"]
-				}
-			}
+        string_attribute {
+          key    = "key1"
+          values = ["value1", "value2"]
+        }
+      }
 
-			composite_sub_policy {
-				name = "test-composite-policy-3"
-				type = "always_sample"
-			}
+      composite_sub_policy {
+        name = "test-composite-policy-3"
+        type = "always_sample"
+      }
 
-			rate_allocation {
-				policy  = "test-composite-policy-1"
-				percent = 50
-			}
+      rate_allocation {
+        policy  = "test-composite-policy-1"
+        percent = 50
+      }
 
-			rate_allocation {
-				policy  = "test-composite-policy-2"
-				percent = 50
-			}
-		}
-	}
+      rate_allocation {
+        policy  = "test-composite-policy-2"
+        percent = 50
+      }
+    }
+  }
 
-	output {
-		traces = [otelcol.exporter.otlp.production.input]
-	}
+  output {
+    traces = [otelcol.exporter.otlp.production.input]
+  }
 }
 
 otelcol.exporter.otlp "production" {
-	client {
-		endpoint = env("OTLP_SERVER_ENDPOINT")
-	}
+  client {
+    endpoint = env("OTLP_SERVER_ENDPOINT")
+  }
 }
 ```

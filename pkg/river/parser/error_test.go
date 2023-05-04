@@ -19,7 +19,7 @@ import (
 // messages expected in the test files.
 //
 // Expected errors are indicated in the test files by putting a comment of the
-// form /* ERROR "rx" */ immediately folloing an offending token. The harness
+// form /* ERROR "rx" */ immediately following an offending token. The harness
 // will verify that an error matching the regular expression rx is reported at
 // that source position.
 
@@ -81,7 +81,7 @@ func isLiteral(t token.Token) bool {
 	return false
 }
 
-// compareErrors compes the map of expected error messages with the list of
+// compareErrors compares the map of expected error messages with the list of
 // found errors and reports mismatches.
 func compareErrors(t *testing.T, file *token.File, expected map[token.Pos]string, found diag.Diagnostics) {
 	t.Helper()

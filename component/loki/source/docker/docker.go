@@ -64,10 +64,12 @@ type Component struct {
 	manager       *manager
 	lastOptions   *options
 	handler       loki.LogsReceiver
-	receivers     []loki.LogsReceiver
 	posFile       positions.Positions
 	rcs           []*relabel.Config
 	defaultLabels model.LabelSet
+
+	receiversMut sync.RWMutex
+	receivers    []loki.LogsReceiver
 }
 
 // New creates a new loki.source.file component.
@@ -124,9 +126,9 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.handler:
-			c.mut.RLock()
+			c.receiversMut.RLock()
 			receivers := c.receivers
-			c.mut.RUnlock()
+			c.receiversMut.RUnlock()
 			for _, receiver := range receivers {
 				receiver <- entry
 			}
@@ -138,10 +140,13 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
+	// Update the receivers before anything else, just in case something fails.
+	c.receiversMut.Lock()
+	c.receivers = newArgs.ForwardTo
+	c.receiversMut.Unlock()
+
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	c.args = newArgs
-	c.receivers = newArgs.ForwardTo
 
 	managerOpts, err := c.getManagerOptions(newArgs)
 	if err != nil {
@@ -200,6 +205,8 @@ func (c *Component) Update(args component.Arguments) error {
 		// This will never fail because it only fails if the context gets canceled.
 		_ = c.manager.syncTargets(context.Background(), targets)
 	}
+
+	c.args = newArgs
 	return nil
 }
 
@@ -214,7 +221,7 @@ func (c *Component) getManagerOptions(args Arguments) (*options, error) {
 	}
 
 	opts := []client.Opt{
-		client.WithHost(c.args.Host),
+		client.WithHost(args.Host),
 		client.WithAPIVersionNegotiation(),
 	}
 	client, err := client.NewClientWithOpts(opts...)

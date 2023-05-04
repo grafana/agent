@@ -2,18 +2,20 @@ package heroku
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"sync"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/loki"
-	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	ht "github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
-	sv "github.com/weaveworks/common/server"
+
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	ht "github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
+	"github.com/grafana/agent/pkg/util"
 )
 
 func init() {
@@ -30,42 +32,18 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.heroku
 // component.
 type Arguments struct {
-	HerokuListener       ListenerConfig      `river:"listener,block"`
+	Server               *fnet.ServerConfig  `river:",squash"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
 	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
-// ListenerConfig defines a heroku listener.
-type ListenerConfig struct {
-	ListenAddress string `river:"address,attr,optional"`
-	ListenPort    int    `river:"port,attr"`
-	// TODO - add the rest of the server config from Promtail
-}
-
-// DefaultListenerConfig provides the default arguments for a heroku listener.
-var DefaultListenerConfig = ListenerConfig{
-	ListenAddress: "0.0.0.0",
-}
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (lc *ListenerConfig) UnmarshalRiver(f func(interface{}) error) error {
-	*lc = DefaultListenerConfig
-
-	type herokucfg ListenerConfig
-	err := f((*herokucfg)(lc))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Component implements the loki.source.heroku component.
 type Component struct {
-	opts    component.Options
-	metrics *ht.Metrics
+	opts          component.Options
+	metrics       *ht.Metrics              // Metrics about Heroku entries.
+	serverMetrics *util.UncheckedCollector // Metircs about the HTTP server managed by the component.
 
 	mut    sync.RWMutex
 	args   Arguments
@@ -78,14 +56,17 @@ type Component struct {
 // New creates a new loki.source.heroku component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
-		opts:    o,
-		metrics: ht.NewMetrics(o.Registerer),
-		mut:     sync.RWMutex{},
-		args:    Arguments{},
-		fanout:  args.ForwardTo,
-		target:  nil,
-		handler: make(loki.LogsReceiver),
+		opts:          o,
+		metrics:       ht.NewMetrics(o.Registerer),
+		mut:           sync.RWMutex{},
+		args:          Arguments{},
+		fanout:        args.ForwardTo,
+		target:        nil,
+		handler:       make(loki.LogsReceiver),
+		serverMetrics: util.NewUncheckedCollector(nil),
 	}
+
+	o.Registerer.MustRegister(c.serverMetrics)
 
 	// Call to Update() to start readers and set receivers once at the start.
 	if err := c.Update(args); err != nil {
@@ -137,7 +118,7 @@ func (c *Component) Update(args component.Arguments) error {
 		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
 	}
 
-	if listenerChanged(c.args.HerokuListener, newArgs.HerokuListener) || relabelRulesChanged(c.args.RelabelRules, newArgs.RelabelRules) {
+	if listenerChanged(c.args.Server, newArgs.Server) || relabelRulesChanged(c.args.RelabelRules, newArgs.RelabelRules) {
 		if c.target != nil {
 			err := c.target.Stop()
 			if err != nil {
@@ -145,8 +126,15 @@ func (c *Component) Update(args component.Arguments) error {
 			}
 		}
 
+		// [ht.NewHerokuTarget] registers new metrics every time it is called. To
+		// avoid issues with re-registering metrics with the same name, we create a
+		// new registry for the target every time we create one, and pass it to an
+		// unchecked collector to bypass uniqueness checking.
+		registry := prometheus.NewRegistry()
+		c.serverMetrics.SetCollector(registry)
+
 		entryHandler := loki.NewEntryHandler(c.handler, func() {})
-		t, err := ht.NewHerokuTarget(c.metrics, c.opts.Logger, entryHandler, rcs, newArgs.Convert(), c.opts.Registerer)
+		t, err := ht.NewHerokuTarget(c.metrics, c.opts.Logger, entryHandler, rcs, newArgs.Convert(), registry)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to create heroku listener with provided config", "err", err)
 			return err
@@ -167,10 +155,7 @@ func (args *Arguments) Convert() *ht.HerokuDrainTargetConfig {
 	}
 
 	return &ht.HerokuDrainTargetConfig{
-		Server: sv.Config{
-			HTTPListenAddress: args.HerokuListener.ListenAddress,
-			HTTPListenPort:    args.HerokuListener.ListenPort,
-		},
+		Server:               args.Server,
 		Labels:               lbls,
 		UseIncomingTimestamp: args.UseIncomingTimestamp,
 	}
@@ -183,7 +168,7 @@ func (c *Component) DebugInfo() interface{} {
 
 	var res readerDebugInfo = readerDebugInfo{
 		Ready:   c.target.Ready(),
-		Address: fmt.Sprintf("%s:%d", c.target.ListenAddress(), c.target.ListenPort()),
+		Address: c.target.HTTPListenAddress(),
 	}
 
 	return res
@@ -194,7 +179,7 @@ type readerDebugInfo struct {
 	Address string `river:"address,attr"`
 }
 
-func listenerChanged(prev, next ListenerConfig) bool {
+func listenerChanged(prev, next *fnet.ServerConfig) bool {
 	return !reflect.DeepEqual(prev, next)
 }
 func relabelRulesChanged(prev, next flow_relabel.Rules) bool {

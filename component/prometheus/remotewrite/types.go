@@ -24,10 +24,10 @@ var (
 	}
 
 	DefaultQueueOptions = QueueOptions{
-		Capacity:          2500,
-		MaxShards:         200,
+		Capacity:          10000,
+		MaxShards:         50,
 		MinShards:         1,
-		MaxSamplesPerSend: 500,
+		MaxSamplesPerSend: 2000,
 		BatchSendDeadline: 5 * time.Second,
 		MinBackoff:        30 * time.Millisecond,
 		MaxBackoff:        5 * time.Second,
@@ -37,7 +37,7 @@ var (
 	DefaultMetadataOptions = MetadataOptions{
 		Send:              true,
 		SendInterval:      1 * time.Minute,
-		MaxSamplesPerSend: 500,
+		MaxSamplesPerSend: 2000,
 	}
 
 	DefaultWALOptions = WALOptions{

@@ -6,18 +6,32 @@ metadata:
   {{- end }}
   labels:
     {{- include "grafana-agent.selectorLabels" . | nindent 4 }}
+    {{- with .Values.controller.podLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   serviceAccount: {{ include "grafana-agent.serviceAccountName" . }}
   {{- with .Values.image.pullSecrets }}
   imagePullSecrets:
-    {{- toYaml . | nindent 6 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   containers:
-    {{- include "grafana-agent.container" . | nindent 6 }}
-    {{- include "grafana-agent.watch-container" . | nindent 6 }}
-  {{- with .Values.tolerations }}
+    {{- include "grafana-agent.container" . | nindent 4 }}
+    {{- include "grafana-agent.watch-container" . | nindent 4 }}
+  {{- if .Values.controller.priorityClassName }}
+  priorityClassName: {{ .Values.controller.priorityClassName }}
+  {{- end }}
+  {{- if .Values.controller.hostNetwork }}
+  hostNetwork: {{ .Values.controller.hostNetwork }}
+  {{- end }}
+  dnsPolicy: {{ .Values.controller.dnsPolicy }}
+  {{- with .Values.controller.affinity }}
+  affinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller.tolerations }}
   tolerations:
-    {{- toYaml . | nindent 6 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   volumes:
     - name: config
@@ -33,7 +47,7 @@ spec:
       hostPath:
         path: /var/lib/docker/containers
     {{- end }}
-    {{- range .Values.controller.volumes.extra }}
-    - {{ toYaml . | nindent 6 }}
+    {{- if .Values.controller.volumes.extra }}
+    {{- toYaml .Values.controller.volumes.extra | nindent 4 }}
     {{- end }}
 {{- end }}

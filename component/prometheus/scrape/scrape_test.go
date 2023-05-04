@@ -2,17 +2,21 @@ package scrape
 
 import (
 	"context"
-	"os"
+	"net"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/util"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
+	"github.com/rfratto/ckit/memconn"
 	"github.com/stretchr/testify/require"
 )
 
@@ -64,10 +68,8 @@ func TestBadRiverConfig(t *testing.T) {
 }
 
 func TestForwardingToAppendable(t *testing.T) {
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
 	opts := component.Options{
-		Logger:     l,
+		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus_client.NewRegistry(),
 	}
 
@@ -113,4 +115,59 @@ func TestForwardingToAppendable(t *testing.T) {
 	require.Equal(t, receivedTs, timestamp)
 	require.Len(t, receivedSamples, 1)
 	require.Equal(t, receivedSamples, sample)
+}
+
+// TestCustomDialer ensures that prometheus.scrape respects the custom dialer
+// given to it.
+func TestCustomDialer(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var (
+		reg        = prometheus_client.NewRegistry()
+		regHandler = promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
+
+		scrapeTrigger = util.NewWaitTrigger()
+
+		srv = &http.Server{
+			Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				scrapeTrigger.Trigger()
+				regHandler.ServeHTTP(w, r)
+			}),
+		}
+
+		memLis = memconn.NewListener(util.TestLogger(t))
+	)
+
+	go srv.Serve(memLis)
+	defer srv.Shutdown(ctx)
+
+	var config = `
+	targets         = [{ __address__ = "inmemory:80" }]
+	forward_to      = []
+	scrape_interval = "100ms"
+	scrape_timeout  = "85ms"
+	`
+	var args Arguments
+	err := river.Unmarshal([]byte(config), &args)
+	require.NoError(t, err)
+
+	opts := component.Options{
+		Logger: util.TestFlowLogger(t),
+		Clusterer: &cluster.Clusterer{
+			Node: cluster.NewLocalNode("inmemory:80"),
+		},
+		Registerer: prometheus_client.NewRegistry(),
+		DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
+			return memLis.DialContext(ctx)
+		},
+	}
+
+	s, err := New(opts, args)
+	require.NoError(t, err)
+	go s.Run(ctx)
+
+	// Wait for our scrape to be invoked.
+	err = scrapeTrigger.Wait(1 * time.Minute)
+	require.NoError(t, err, "custom dialer was not used")
 }

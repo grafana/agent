@@ -14,7 +14,7 @@ type Config interface {
 	// pull the configuration from the Agent config YAML.
 	Name() string
 
-	// InstanceKey should return the key the reprsents the config, which will be
+	// InstanceKey should return the key that represents the config, which will be
 	// used to populate the value of the `instance` label for metrics.
 	//
 	// InstanceKey is given an agentKey that represents the agent process. This

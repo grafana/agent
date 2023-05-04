@@ -148,17 +148,7 @@ The `tls` block configures TLS settings used for connecting to the Kafka
 brokers. If the `tls` block isn't provided, TLS won't be used for
 communication.
 
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`ca_file` | `string` | Path to the CA file. | | no
-`cert_file` | `string` | Path to the TLS certificate. | | no
-`key_file` | `string` | Path to the TLS certificate key. | | no
-`min_version` | `string` | Minimum acceptable TLS version for connections. | `"TLS 1.2"` | no
-`max_version` | `string` | Maximum acceptable TLS version for connections. | `"TLS 1.3"` | no
-`reload_interval` | `duration` | Frequency to reload the certificates. | | no
-`client_ca_file` | `string` | Path to the CA file used to authenticate client certificates. | | no
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
 
 ### kerberos block
 
@@ -175,7 +165,7 @@ Name | Type | Description | Default | Required
 `username` | `string` | Kerberos username to authenticate as. | | yes
 `password` | `secret` | Kerberos password to authenticate with. | | no
 `config_file` | `string` | Path to Kerberos location (for example, `/etc/krb5.conf`). | | no
-`keytab_file` | `string` | Path to keytab file (for eaxmple, `/etc/security/kafka.keytab`). | | no
+`keytab_file` | `string` | Path to keytab file (for example, `/etc/security/kafka.keytab`). | | no
 
 When `use_keytab` is `false`, the `password` argument is required. When
 `use_keytab` is `true`, the file pointed to by the `keytab_file` argument is

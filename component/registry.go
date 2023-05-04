@@ -1,11 +1,14 @@
 package component
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"reflect"
 	"strings"
 
-	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
@@ -32,9 +35,9 @@ type Options struct {
 	// components.
 	ID string
 
-	// Logger the component may use for logging. The component ID will always be
-	// set as a field.
-	Logger log.Logger
+	// Logger the component may use for logging. Logs emitted with the logger
+	// always include the component ID as a field.
+	Logger *logging.Logger
 
 	// A path to a directory with this component may use for storage. The path is
 	// guaranteed to be unique across all running components.
@@ -61,11 +64,22 @@ type Options struct {
 	// attribute denoting the component ID.
 	Tracer trace.TracerProvider
 
+	// Clusterer allows components to work in a clustered fashion. The
+	// clusterer is shared between all components initialized by a Flow
+	// controller.
+	Clusterer *cluster.Clusterer
+
 	// HTTPListenAddr is the address the server is configured to listen on.
 	HTTPListenAddr string
 
-	// HTTPPath is the base path that requests need in order to route to this component.
-	// Requests received by a component handler will have this already trimmed off.
+	// DialFunc is a function for components to use to properly communicate to
+	// HTTPListenAddr. If set, components which send HTTP requests to
+	// HTTPListenAddr must use this function to establish connections.
+	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+
+	// HTTPPath is the base path that requests need in order to route to this
+	// component. Requests received by a component handler will have this already
+	// trimmed off.
 	HTTPPath string
 }
 

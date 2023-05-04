@@ -1,13 +1,19 @@
 local build_image = import '../util/build_image.jsonnet';
 local pipelines = import '../util/pipelines.jsonnet';
 
+local go_tags = {
+  linux: 'builtinassets promtail_journal_enabled',
+  windows: 'builtinassets',
+  darwin: 'builtinassets',
+  freebsd: 'builtinassets',
+};
+
 local os_arch_tuples = [
   // Linux
   { name: 'Linux amd64', os: 'linux', arch: 'amd64' },
   { name: 'Linux arm64', os: 'linux', arch: 'arm64' },
-  { name: 'Linux armv6', os: 'linux', arch: 'arm', arm: '6' },
-  { name: 'Linux armv7', os: 'linux', arch: 'arm', arm: '7' },
   { name: 'Linux ppc64le', os: 'linux', arch: 'ppc64le' },
+  { name: 'Linux s390x', os: 'linux', arch: 's390x' },
 
   // Darwin
   { name: 'macOS Intel', os: 'darwin', arch: 'amd64' },
@@ -22,6 +28,7 @@ local os_arch_tuples = [
 
 local targets = [
   'agent',
+  'agent-flow',
   'agentctl',
   'operator',
 ];
@@ -35,6 +42,8 @@ std.flatMap(function(target) (
         GOARM: if 'arm' in platform then platform.arm else '',
 
         target: target,
+
+        tags: go_tags[platform.os],
       },
 
       trigger: {
@@ -44,7 +53,8 @@ std.flatMap(function(target) (
         name: 'Build',
         image: build_image.linux,
         commands: [
-          'GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s make %(target)s' % env,
+          'make generate-ui',
+          'GO_TAGS="%(tags)s" GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s make %(target)s' % env,
         ],
       }],
     }

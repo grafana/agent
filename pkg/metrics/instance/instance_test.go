@@ -189,9 +189,7 @@ func TestInstance_Path(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	globalConfig := getTestGlobalConfig(t)
 
@@ -218,9 +216,7 @@ func TestInstance(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	globalConfig := getTestGlobalConfig(t)
 	cfg := getTestConfig(t, &globalConfig, scrapeAddr)
@@ -252,9 +248,7 @@ func TestInstance_Recreate(t *testing.T) {
 	scrapeAddr, closeSrv := getTestServer(t)
 	defer closeSrv()
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	globalConfig := getTestGlobalConfig(t)
 
@@ -405,7 +399,7 @@ func (a *mockAppender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m 
 	return 0, nil
 }
 
-func (a *mockAppender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error) {
+func (a *mockAppender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
 	return 0, nil
 }
 

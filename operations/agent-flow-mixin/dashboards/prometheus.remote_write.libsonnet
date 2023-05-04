@@ -25,13 +25,13 @@ local stackedPanelMixin = {
     dashboard.withUID(std.md5(filename)) +
     dashboard.withTemplateVariablesMixin([
       dashboard.newTemplateVariable('cluster', |||
-        label_values(agent_component_controller_running_components_total, cluster)
+        label_values(agent_component_controller_running_components, cluster)
       |||),
       dashboard.newTemplateVariable('namespace', |||
-        label_values(agent_component_controller_running_components_total{cluster="$cluster"}, namespace)
+        label_values(agent_component_controller_running_components{cluster="$cluster"}, namespace)
       |||),
       dashboard.newMultiTemplateVariable('instance', |||
-        label_values(agent_component_controller_running_components_total{cluster="$cluster", namespace="$namespace"}, instance)
+        label_values(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace"}, instance)
       |||),
       dashboard.newMultiTemplateVariable('component', |||
         label_values(agent_wal_samples_appended_total{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"prometheus\\.remote_write\\..*"}, component_id)
@@ -61,7 +61,7 @@ local stackedPanelMixin = {
           the WAL delay continues to increase beyond that amount, try
           increasing the number of maximum shards.
         |||) +
-        panel.withPosition({ x: 0, y: 0, w: 8, h: 10 }) +
+        panel.withPosition({ x: 0, y: 0, w: 6, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
             expr=|||
@@ -85,7 +85,7 @@ local stackedPanelMixin = {
           Rate of data containing samples and metadata sent by
           prometheus.remote_write.
         |||) +
-        panel.withPosition({ x: 8, y: 0, w: 8, h: 10 }) +
+        panel.withPosition({ x: 6, y: 0, w: 6, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
             expr=|||
@@ -107,7 +107,7 @@ local stackedPanelMixin = {
           Latency of writes to the remote system made by
           prometheus.remote_write.
         |||) +
-        panel.withPosition({ x: 16, y: 0, w: 8, h: 10 }) +
+        panel.withPosition({ x: 12, y: 0, w: 6, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
             expr=|||
@@ -134,6 +134,79 @@ local stackedPanelMixin = {
           ),
         ])
       ),
+
+      // Shards
+      (
+        local minMaxOverride = {
+          properties: [{
+            id: 'custom.lineStyle',
+            value: {
+              dash: [10, 15],
+              fill: 'dash',
+            },
+          }, {
+            id: 'custom.showPoints',
+            value: 'never',
+          }, {
+            id: 'custom.hideFrom',
+            value: {
+              legend: true,
+              tooltip: false,
+              viz: false,
+            },
+          }],
+        };
+
+        panel.new(title='Shards', type='timeseries') {
+          fieldConfig+: {
+            overrides: [
+              minMaxOverride { matcher: { id: 'byName', options: 'Minimum' } },
+              minMaxOverride { matcher: { id: 'byName', options: 'Maximum' } },
+            ],
+          },
+        } +
+        panel.withUnit('none') +
+        panel.withDescription(|||
+          Total number of shards which are concurrently sending samples read
+          from the Write-Ahead Log.
+
+          Shards are bound to a minimum and maximum, displayed on the graph.
+          The lowest minimum and the highest maximum across all clients is
+          shown.
+
+          Each client has its own set of shards, minimum shards, and maximum
+          shards; filter to a specific URL to display more granular
+          information.
+        |||) +
+        panel.withPosition({ x: 18, y: 0, w: 6, h: 10 }) +
+        panel.withQueries([
+          panel.newQuery(
+            expr=|||
+              sum without (remote_name, url) (
+                  prometheus_remote_storage_shards{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component", url=~"$url"}
+              )
+            |||,
+            legendFormat='{{instance}} / {{component_id}}',
+          ),
+          panel.newQuery(
+            expr=|||
+              min (
+                  prometheus_remote_storage_shards_min{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component", url=~"$url"}
+              )
+            |||,
+            legendFormat='Minimum',
+          ),
+          panel.newQuery(
+            expr=|||
+              max (
+                  prometheus_remote_storage_shards_max{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component", url=~"$url"}
+              )
+            |||,
+            legendFormat='Maximum',
+          ),
+        ])
+      ),
+
 
       // Sent samples / second
       (
@@ -200,76 +273,57 @@ local stackedPanelMixin = {
         ])
       ),
 
-      // Shards
+      // Active series (Total)
       (
-        local minMaxOverride = {
-          properties: [{
-            id: 'custom.lineStyle',
-            value: {
-              dash: [10, 15],
-              fill: 'dash',
+        panel.new(title='Active series (total)', type='timeseries') {
+          options+: {
+            legend+: {
+              showLegend: false,
             },
-          }, {
-            id: 'custom.showPoints',
-            value: 'never',
-          }, {
-            id: 'custom.hideFrom',
-            value: {
-              legend: true,
-              tooltip: false,
-              viz: false,
-            },
-          }],
-        };
-
-        panel.new(title='Shards', type='timeseries') {
-          fieldConfig+: {
-            overrides: [
-              minMaxOverride { matcher: { id: 'byName', options: 'Minimum' } },
-              minMaxOverride { matcher: { id: 'byName', options: 'Maximum' } },
-            ],
           },
         } +
-        panel.withUnit('none') +
+        panel.withUnit('short') +
         panel.withDescription(|||
-          Total number of shards which are concurrently sending samples read
-          from the Write-Ahead Log.
+          Total number of active series across all components.
 
-          Shards are bound to a minimum and maximum, displayed on the graph.
-          The lowest minimum and the highest maximum across all clients is
-          shown.
-
-          Each client has its own set of shards, minimum shards, and maximum
-          shards; filter to a specific URL to display more granular
-          information.
+          An "active series" is a series that prometheus.remote_write recently
+          received a sample for. Active series are garbage collected whenever a
+          truncation of the WAL occurs.
         |||) +
-        panel.withPosition({ x: 0, y: 20, w: 24, h: 10 }) +
+        panel.withPosition({ x: 0, y: 20, w: 12, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
             expr=|||
-              sum without (remote_name, url) (
-                  prometheus_remote_storage_shards{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component", url=~"$url"}
-              )
+              sum(agent_wal_storage_active_series{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component", url=~"$url"})
             |||,
-            legendFormat='{{instance}} / {{component_id}}',
-          ),
-          panel.newQuery(
-            expr=|||
-              min (
-                  prometheus_remote_storage_shards_min{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component", url=~"$url"}
-              )
-            |||,
-            legendFormat='Minimum',
-          ),
-          panel.newQuery(
-            expr=|||
-              max (
-                  prometheus_remote_storage_shards_max{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component", url=~"$url"}
-              )
-            |||,
-            legendFormat='Maximum',
+            legendFormat='Series',
           ),
         ])
       ),
+
+      // Active series (by component)
+      (
+        panel.new(title='Active series (by component)', type='timeseries') +
+        panel.withUnit('short') +
+        panel.withDescription(|||
+          Total number of active series which are currently being tracked by
+          prometheus.remote_write components.
+
+          An "active series" is a series that prometheus.remote_write recently
+          received a sample for. Active series are garbage collected whenever a
+          truncation of the WAL occurs.
+        |||) +
+        panel.withPosition({ x: 12, y: 20, w: 12, h: 10 }) +
+        panel.withQueries([
+          panel.newQuery(
+            expr=|||
+              agent_wal_storage_active_series{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component", url=~"$url"}
+            |||,
+            legendFormat='{{instance}} / {{component_id}}',
+          ),
+        ])
+      ),
+
+
     ]),
 }

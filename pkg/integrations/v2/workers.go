@@ -102,7 +102,7 @@ func (p *workerPool) scheduleWorker(ci *controlledIntegration) {
 		// resources that will notify watchers waiting for the worker to stop.
 		//
 		// Afterwards, we'll block until we remove ourselves from the map; having
-		// an worker remove itself on shutdown allows exited integrations to
+		// a worker remove itself on shutdown allows exited integrations to
 		// re-start when the config is reloaded.
 		defer func() {
 			ci.running.Store(false)

@@ -8,6 +8,7 @@ import (
 	"unsafe"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -161,6 +162,61 @@ func TestDecode_Capsules(t *testing.T) {
 	require.Equal(t, expect, actual)
 }
 
+type ValueInterface interface{ SomeMethod() }
+
+type Value1 struct{ test string }
+
+func (c Value1) SomeMethod() {}
+
+// TestDecode_CapsuleInterface tests that we are able to decode when
+// the target `into` is an interface.
+func TestDecode_CapsuleInterface(t *testing.T) {
+	tt := []struct {
+		name     string
+		value    ValueInterface
+		expected ValueInterface
+	}{
+		{
+			name:     "Capsule to Capsule",
+			value:    Value1{test: "true"},
+			expected: Value1{test: "true"},
+		},
+		{
+			name:     "Capsule Pointer to Capsule",
+			value:    &Value1{test: "true"},
+			expected: &Value1{test: "true"},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			var actual ValueInterface
+			require.NoError(t, value.Decode(value.Encode(tc.value), &actual))
+
+			// require.Same validates the memory address matches after Decode.
+			if reflect.TypeOf(tc.value).Kind() == reflect.Pointer {
+				require.Same(t, tc.value, actual)
+			}
+
+			// We use tc.expected to validate the properties of actual match the
+			// original tc.value properties (nothing has mutated them during the test).
+			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+// TestDecode_CapsulesError tests that we are unable to decode when
+// the target `into` is not an interface.
+func TestDecode_CapsulesError(t *testing.T) {
+	type Capsule1 struct{ test string }
+	type Capsule2 Capsule1
+
+	v := Capsule1{test: "true"}
+	actual := Capsule2{}
+
+	require.EqualError(t, value.Decode(value.Encode(v), &actual), `expected capsule("value_test.Capsule2"), got capsule("value_test.Capsule1")`)
+}
+
 // TestDecodeCopy_SliceCopy ensures that copies are made during decoding
 // instead of setting values directly.
 func TestDecodeCopy_SliceCopy(t *testing.T) {
@@ -229,7 +285,7 @@ func TestDecode_CustomTypes(t *testing.T) {
 }
 
 type customUnmarshaler struct {
-	Called bool
+	Called bool `river:"called,attr,optional"`
 }
 
 func (cu *customUnmarshaler) UnmarshalRiver(f func(interface{}) error) error {
@@ -586,3 +642,95 @@ func TestDecode_SquashedSlice_Pointer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expect, out)
 }
+
+// TestDecode_KnownTypes_Any asserts that decoding River values into an
+// any/interface{} results in known types.
+func TestDecode_KnownTypes_Any(t *testing.T) {
+	tt := []struct {
+		input  any
+		expect any
+	}{
+		// All numbers must decode to float64.
+		{int(15), float64(15)},
+		{int8(15), float64(15)},
+		{int16(15), float64(15)},
+		{int32(15), float64(15)},
+		{int64(15), float64(15)},
+		{uint(15), float64(15)},
+		{uint8(15), float64(15)},
+		{uint16(15), float64(15)},
+		{uint32(15), float64(15)},
+		{uint64(15), float64(15)},
+		{float32(2.5), float64(2.5)},
+		{float64(2.5), float64(2.5)},
+
+		{bool(true), bool(true)},
+		{string("Hello"), string("Hello")},
+
+		{
+			input:  []int{1, 2, 3},
+			expect: []any{float64(1), float64(2), float64(3)},
+		},
+
+		{
+			input:  map[string]int{"number": 15},
+			expect: map[string]any{"number": float64(15)},
+		},
+		{
+			input: struct {
+				Name string `river:"name,attr"`
+			}{Name: "John"},
+
+			expect: map[string]any{"name": "John"},
+		},
+	}
+
+	t.Run("basic types", func(t *testing.T) {
+		for _, tc := range tt {
+			var actual any
+			err := value.Decode(value.Encode(tc.input), &actual)
+
+			if assert.NoError(t, err) {
+				assert.Equal(t, tc.expect, actual,
+					"Expected %[1]v (%[1]T) to transcode to %[2]v (%[2]T)", tc.input, tc.expect)
+			}
+		}
+	})
+
+	t.Run("inside maps", func(t *testing.T) {
+		for _, tc := range tt {
+			input := map[string]any{
+				"key": tc.input,
+			}
+
+			var actual map[string]any
+			err := value.Decode(value.Encode(input), &actual)
+
+			if assert.NoError(t, err) {
+				assert.Equal(t, tc.expect, actual["key"],
+					"Expected %[1]v (%[1]T) to transcode to %[2]v (%[2]T) inside a map", tc.input, tc.expect)
+			}
+		}
+	})
+}
+
+func TestRetainCapsulePointer(t *testing.T) {
+	capsuleVal := &capsule{}
+
+	in := map[string]any{
+		"foo": capsuleVal,
+	}
+
+	var actual map[string]any
+	err := value.Decode(value.Encode(in), &actual)
+	require.NoError(t, err)
+
+	expect := map[string]any{
+		"foo": capsuleVal,
+	}
+	require.Equal(t, expect, actual)
+}
+
+type capsule struct{}
+
+func (*capsule) RiverCapsule() {}

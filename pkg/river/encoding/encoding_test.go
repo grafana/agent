@@ -30,6 +30,29 @@ func TestConvertRiverBodyToJSON_CapsuleValue(t *testing.T) {
 	require.JSONEq(t, expect, string(out))
 }
 
+func TestConvertRiverBodyToJSON_Label(t *testing.T) {
+	// In this test since Name is a label it should NOT be represented in the convertRiverBody
+	type Content struct {
+		Name     string `river:",label"`
+		DummyVal string `river:"dummy,attr,optional"`
+	}
+
+	out, err := encoding.ConvertRiverBodyToJSON(Content{
+		Name:     "label_test",
+		DummyVal: "dummy_test"})
+	require.NoError(t, err)
+
+	expect := `[
+		{
+			"name": "dummy",
+			"type": "attr",
+			"value": {"type":"string","value":"dummy_test"}
+		}
+	]`
+
+	require.JSONEq(t, expect, string(out))
+}
+
 func TestConvertRiverBodyToJSON_BlockWithZeroValue(t *testing.T) {
 	type t1 struct {
 		Age int `river:"age,attr"`
@@ -116,6 +139,31 @@ func TestConvertRiverBodyToJSON_Enum_Block(t *testing.T) {
 			"name": "number",
 			"type": "attr",
 			"value": { "type": "number", "value": 3 }
+		}]
+	}]`
+
+	require.JSONEq(t, expect, string(actual))
+}
+
+func TestMapBlocks(t *testing.T) {
+	type Body struct {
+		Block map[string]string `river:"some_block,block,optional"`
+	}
+
+	val := Body{
+		Block: map[string]string{"key": "value"},
+	}
+
+	actual, err := encoding.ConvertRiverBodyToJSON(val)
+	require.NoError(t, err)
+
+	expect := `[{
+		"name": "some_block",
+		"type": "block",
+		"body": [{
+			"name": "key",
+			"type": "attr",
+			"value": { "type": "string", "value": "value" }
 		}]
 	}]`
 

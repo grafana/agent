@@ -2,15 +2,14 @@ package process
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/loki/process/internal/stages"
-	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -19,7 +18,7 @@ import (
 )
 
 func TestJSONLabelsStage(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// The following stages will attempt to parse input lines as JSON.
 	// The first stage _extract_ any fields found with the correct names:
@@ -67,9 +66,11 @@ func TestJSONLabelsStage(t *testing.T) {
 	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
 
 	// Create and run the component, so that it can process and forwards logs.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry(), OnStateChange: func(e component.Exports) {}}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 	args := Arguments{
 		ForwardTo: []loki.LogsReceiver{ch1, ch2},
 		Stages:    stagesCfg.Stages,
@@ -121,7 +122,7 @@ func TestJSONLabelsStage(t *testing.T) {
 }
 
 func TestStaticLabelsLabelAllowLabelDrop(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// The following stages manipulate the label set of a log entry.
 	// The first stage will define a static set of labels (foo, bar, baz, qux)
@@ -152,9 +153,11 @@ stage.label_keep {
 	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
 
 	// Create and run the component, so that it can process and forwards logs.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry(), OnStateChange: func(e component.Exports) {}}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 	args := Arguments{
 		ForwardTo: []loki.LogsReceiver{ch1, ch2},
 		Stages:    stagesCfg.Stages,
@@ -203,7 +206,7 @@ stage.label_keep {
 }
 
 func TestRegexTimestampOutput(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// The first stage will attempt to parse the input line using a regular
 	// expression with named capture groups. The three capture groups (time,
@@ -245,9 +248,11 @@ stage.labels {
 	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
 
 	// Create and run the component, so that it can process and forwards logs.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
-	opts := component.Options{Logger: l, Registerer: prometheus.NewRegistry(), OnStateChange: func(e component.Exports) {}}
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 	args := Arguments{
 		ForwardTo: []loki.LogsReceiver{ch1, ch2},
 		Stages:    stagesCfg.Stages,

@@ -7,13 +7,12 @@ package stages
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
@@ -47,7 +46,7 @@ var testTimestampLogLineWithMissingKey = `
 `
 
 func TestTimestampPipeline(t *testing.T) {
-	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+	logger := util.TestFlowLogger(t)
 	pl, err := NewPipeline(logger, loadConfig(testTimestampRiver), nil, prometheus.DefaultRegisterer)
 	require.NoError(t, err)
 
@@ -292,7 +291,7 @@ func TestTimestampStage_Process(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			logger := util.TestFlowLogger(t)
 			st, err := newTimestampStage(logger, test.config)
 			require.NoError(t, err)
 
@@ -433,7 +432,7 @@ func TestTimestampStage_ProcessActionOnFailure(t *testing.T) {
 			// Ensure the test has been correctly set
 			require.Equal(t, len(testData.inputEntries), len(testData.expectedTimestamps))
 
-			logger, _ := logging.New(io.Discard, logging.DefaultOptions)
+			logger := util.TestFlowLogger(t)
 			s, err := newTimestampStage(logger, testData.config)
 			require.NoError(t, err)
 

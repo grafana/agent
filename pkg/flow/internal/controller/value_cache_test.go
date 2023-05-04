@@ -6,19 +6,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type fooArgs struct {
+	Something bool `river:"something,attr"`
+}
+type fooExports struct {
+	SomethingElse bool `river:"something_else,attr"`
+}
+
+type barArgs struct {
+	Number int `river:"number,attr"`
+}
+
 func TestValueCache(t *testing.T) {
 	vc := newValueCache()
-
-	type fooArgs struct {
-		Something bool `river:"something,attr"`
-	}
-	type fooExports struct {
-		SomethingElse bool `river:"something_else,attr"`
-	}
-
-	type barArgs struct {
-		Number int `river:"number,attr"`
-	}
 
 	// Emulate values from the following River file:
 	//
@@ -58,7 +58,7 @@ func TestValueCache(t *testing.T) {
 	vc.CacheArguments(ComponentID{"bar", "label_a"}, barArgs{Number: 12})
 	vc.CacheArguments(ComponentID{"bar", "label_b"}, barArgs{Number: 34})
 
-	res := vc.BuildContext(nil)
+	res := vc.BuildContext()
 
 	var (
 		expectKeys = []string{"foo", "bar"}
@@ -78,4 +78,86 @@ func TestValueCache(t *testing.T) {
 	}
 	require.Equal(t, expectFoo, res.Variables["foo"])
 	require.Equal(t, expectBar, res.Variables["bar"])
+}
+
+func TestExportValueCache(t *testing.T) {
+	vc := newValueCache()
+	vc.CacheModuleExportValue("t1", 1)
+	index := 0
+	require.True(t, vc.ExportChangeIndex() != index)
+	index = vc.ExportChangeIndex()
+	require.False(t, vc.ExportChangeIndex() != index)
+
+	vc.CacheModuleExportValue("t1", 2)
+	require.True(t, vc.ExportChangeIndex() != index)
+	index = vc.ExportChangeIndex()
+	require.False(t, vc.ExportChangeIndex() != index)
+
+	vc.CacheModuleExportValue("t1", 2)
+	require.False(t, vc.ExportChangeIndex() != index)
+
+	index = vc.ExportChangeIndex()
+	vc.CacheModuleExportValue("t2", "test")
+	require.True(t, vc.ExportChangeIndex() != index)
+
+	index = vc.ExportChangeIndex()
+	vc.ClearModuleExports()
+	require.True(t, vc.ExportChangeIndex() != index)
+}
+
+func TestModuleArgumentCache(t *testing.T) {
+	tt := []struct {
+		name     string
+		argValue any
+	}{
+		{
+			name:     "Nil",
+			argValue: nil,
+		},
+		{
+			name:     "Number",
+			argValue: 1,
+		},
+		{
+			name:     "String",
+			argValue: "string",
+		},
+		{
+			name:     "Bool",
+			argValue: true,
+		},
+		{
+			name:     "Map",
+			argValue: map[string]any{"test": "map"},
+		},
+		{
+			name:     "Capsule",
+			argValue: fooExports{SomethingElse: true},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create and cache the argument
+			vc := newValueCache()
+			vc.CacheModuleArgument("arg", tc.argValue)
+
+			// Build the scope and validate it
+			res := vc.BuildContext()
+			expected := map[string]any{"arg": map[string]any{"value": tc.argValue}}
+			require.Equal(t, expected, res.Variables["argument"])
+
+			// Sync arguments where the arg shouldn't change
+			syncArgs := map[string]any{"arg": tc.argValue}
+			vc.SyncModuleArgs(syncArgs)
+			res = vc.BuildContext()
+			require.Equal(t, expected, res.Variables["argument"])
+
+			// Sync arguments where the arg should clear out
+			syncArgs = map[string]any{}
+			vc.SyncModuleArgs(syncArgs)
+			res = vc.BuildContext()
+			require.Equal(t, map[string]any{}, res.Variables)
+		})
+	}
 }

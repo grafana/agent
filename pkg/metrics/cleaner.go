@@ -206,7 +206,7 @@ func (c *WALCleaner) getAbandonedStorage(all []string, managed map[string]bool, 
 
 		diff := now.Sub(mtime)
 		if diff > c.minAge {
-			// The last segment for this WAL was modified more then $minAge (positive number of hours)
+			// The last segment for this WAL was modified more than $minAge (positive number of hours)
 			// in the past. This makes it a candidate for deletion since it's also not associated with
 			// any Instances this agent knows about.
 			out = append(out, dir)

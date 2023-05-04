@@ -79,7 +79,7 @@ func (lc *loggerCore) Write(e zapcore.Entry, ff []zapcore.Field) error {
 	case zapcore.WarnLevel:
 		return level.Warn(lc.inner).Log(enc.fields...)
 	case zapcore.ErrorLevel, zapcore.DPanicLevel, zapcore.PanicLevel, zapcore.FatalLevel:
-		// We ignore panics/fatals hwere because we really don't want components to
+		// We ignore panics/fatals here because we really don't want components to
 		// be able to do that.
 		return level.Error(lc.inner).Log(enc.fields...)
 	default:
