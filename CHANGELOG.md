@@ -35,12 +35,14 @@ Main (unreleased)
 - Support `clustering` block in `phlare.scrape` components to distribute
   targets amongst clustered agents. (@rfratto)
 
+- Delete stale series after a single WAL truncate instead of two. (@rfratto)
+
 ### Bugfixes
 
 - Fix issue where component evaluation time was overridden by a "default
   health" message. (@rfratto)
 
-- Fix an issue where defining `logging` or `tracing` blocks inside of a module 
+- Fix an issue where defining `logging` or `tracing` blocks inside of a module
   would generate a panic instead of returning an error. (@erikbaranowski)
 
 - Honor timeout when trying to establish a connection to another agent in Flow
