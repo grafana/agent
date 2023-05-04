@@ -3,6 +3,9 @@ package net
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
+	"net/http"
+
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
@@ -15,8 +18,6 @@ import (
 	"github.com/weaveworks/common/signals"
 	"golang.org/x/net/context"
 	"golang.org/x/net/netutil"
-	"net"
-	"net/http"
 )
 
 // Listen on the named network

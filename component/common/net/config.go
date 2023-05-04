@@ -3,11 +3,12 @@
 package net
 
 import (
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/middleware"
-	"time"
 )
 
 const (
