@@ -108,6 +108,7 @@ local pipelines = import '../util/pipelines.jsonnet';
       name: 'gomod',
       host: {
         path: 'C:/grafana-agent/gomod-cache/',
+        create: true,
       },
     }],
 

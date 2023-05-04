@@ -226,6 +226,7 @@ trigger:
 type: docker
 volumes:
 - host:
+    create: true
     path: C:/grafana-agent/gomod-cache/
   name: gomod
 ---
@@ -1337,6 +1338,6 @@ kind: secret
 name: gpg_public_key
 ---
 kind: signature
-hmac: b2364f103522d786fa02f403a0a15b9edd923b86753907e93f2b3d726882c297
+hmac: 26aa996ed2ec46c6e7f16752150f5ba345dabdb28e7fe774c06152fda4614344
 
 ...
