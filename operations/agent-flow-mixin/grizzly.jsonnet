@@ -28,7 +28,7 @@ local mixin = import './mixin.libsonnet';
       kind: 'Dashboard',
       metadata: {
         folder: $.folder.metadata.name,
-        name: std.split(file, '.')[0],
+        name: std.md5(file),
       },
       spec: mixin.grafanaDashboards[file],
     }
