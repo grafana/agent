@@ -107,6 +107,16 @@ func TestBadFile(t *testing.T) {
 			moduleContents:        "",
 			expectedErrorContains: `failed to read file:`,
 		},
+		{
+			name:                  "Logging in Module",
+			moduleContents:        "logging {}",
+			expectedErrorContains: `logging block not allowed inside a module`,
+		},
+		{
+			name:                  "Tracing in Module",
+			moduleContents:        "tracing {}",
+			expectedErrorContains: `tracing block not allowed inside a module`,
+		},
 	}
 
 	for _, tc := range tt {
