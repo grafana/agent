@@ -34,8 +34,6 @@ func TestPush(t *testing.T) {
 				ListenAddress: address,
 				ListenPort:    port,
 			},
-			// assign random grpc port
-			GRPC: &fnet.GRPCConfig{ListenPort: 0},
 		},
 		UseIncomingTimestamp: false,
 		Labels:               map[string]string{"foo": "bar"},

@@ -33,13 +33,13 @@ type PushTarget struct {
 	entries        chan<- loki.Entry
 	handler        loki.EntryHandler
 	relabelConfigs []*relabel.Config
-	server         *fnet.TargetServer
+	server         *fnet.Server
 }
 
 // NewPushTarget constructs a PushTarget.
 func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PushConfig, relabel []*relabel.Config, reg prometheus.Registerer) (*PushTarget, error) {
 	wrappedLogger := log.With(logger, "component", "gcp_push")
-	srv, err := fnet.NewTargetServer(wrappedLogger, jobName+"_push_target", reg, config.Server)
+	srv, err := fnet.NewWithDefaults(wrappedLogger, jobName+"_push_target", reg, config.Server)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create loki http server: %w", err)
 	}
@@ -144,7 +144,7 @@ func (p *PushTarget) Details() map[string]string {
 	return map[string]string{
 		"strategy":       "push",
 		"labels":         p.Labels().String(),
-		"server_address": p.server.HTTPListenAddr(),
+		"server_address": p.server.HTTPListenAddr().String(),
 	}
 }
 

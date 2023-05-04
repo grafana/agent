@@ -45,14 +45,14 @@ type HerokuTarget struct {
 	config         *HerokuDrainTargetConfig
 	metrics        *Metrics
 	relabelConfigs []*relabel.Config
-	server         *fnet.TargetServer
+	server         *fnet.Server
 }
 
 // NewTarget creates a brand new Heroku Drain target, capable of receiving logs from a Heroku application through an HTTP drain.
 func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, relabel []*relabel.Config, config *HerokuDrainTargetConfig, reg prometheus.Registerer) (*HerokuTarget, error) {
 	wrappedLogger := log.With(logger, "component", "heroku_drain")
 
-	srv, err := fnet.NewTargetServer(wrappedLogger, "loki_source_heroku_drain_target", reg, config.Server)
+	srv, err := fnet.NewWithDefaults(wrappedLogger, "loki_source_heroku_drain_target", reg, config.Server)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create loki server: %w", err)
 	}
@@ -146,7 +146,7 @@ func (h *HerokuTarget) Labels() model.LabelSet {
 }
 
 func (h *HerokuTarget) HTTPListenAddress() string {
-	return h.server.HTTPListenAddr()
+	return h.server.HTTPListenAddr().String()
 }
 
 func (h *HerokuTarget) DrainEndpoint() string {
