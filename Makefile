@@ -93,6 +93,7 @@
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
 ##   DOCKER_PLATFORM  Overrides platform to build Docker images for (defaults to host platform).
+##   GOEXPERIMENT     Used to enable features, most likely FIPS.
 
 include tools/make/*.mk
 
@@ -114,6 +115,7 @@ GOARCH           ?= $(shell go env GOARCH)
 GOARM            ?= $(shell go env GOARM)
 CGO_ENABLED      ?= 1
 RELEASE_BUILD    ?= 0
+GOEXPERIMENT     ?= $(shell go env GOEXPERIMENT)
 
 # List of all environment variables which will propagate to the build
 # container. USE_CONTAINER must _not_ be included to avoid infinite recursion.
@@ -121,7 +123,7 @@ PROPAGATE_VARS := \
 	AGENT_IMAGE AGENTCTL_IMAGE OPERATOR_IMAGE CROW_IMAGE SMOKE_IMAGE \
 	BUILD_IMAGE GOOS GOARCH GOARM CGO_ENABLED RELEASE_BUILD \
 	AGENT_BINARY FLOW_BINARY AGENTCTL_BINARY OPERATOR_BINARY CROW_BINARY SMOKE_BINARY \
-	VERSION GO_TAGS
+	VERSION GO_TAGS GOEXPERIMENT
 
 #
 # Constants for targets
@@ -200,15 +202,6 @@ ifeq ($(USE_CONTAINER),1)
 else
 	$(GO_ENV) go build $(GO_FLAGS) -o $(SERVICE_BINARY) ./cmd/grafana-agent-service
 endif
-
-# Run with GO_TAGS=fips make agent-fips
-agent-fips:
-ifeq ($(USE_CONTAINER),1)
-	$(RERUN_IN_CONTAINER)
-else
-	$(GO_ENV) GOEXPERIMENT=boringcrypto go build $(GO_FLAGS) -o $(AGENT_BINARY)-fips ./cmd/grafana-agent
-endif
-
 
 agentctl:
 ifeq ($(USE_CONTAINER),1)

@@ -14,7 +14,7 @@ clean-dist:
 # reference time. Earlier iterations of this file had each target explicitly
 # list these, but it's too easy to forget to set on so this is used to ensure
 # everything needed is always passed through.
-PACKAGING_VARS = RELEASE_BUILD=1 GO_TAGS="$(GO_TAGS)" GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM)
+PACKAGING_VARS = RELEASE_BUILD=1 GO_TAGS="$(GO_TAGS)" GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) GOEXPERIMENT=$(GOEXPERIMENT)
 
 #
 # agent release binaries
@@ -83,14 +83,14 @@ dist/grafana-agent-freebsd-amd64: generate-ui
 dist/grafana-agent-linux-amd64-fips: GO_TAGS += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-amd64-fips: GOOS    := linux
 dist/grafana-agent-linux-amd64-fips: GOARCH  := amd64
-dist/grafana-agent-linux-amd64-fips: GOEXPERIMENT=boringcrypto
+dist/grafana-agent-linux-amd64-fips: GOEXPERIMENT := boringcrypto
 dist/grafana-agent-linux-amd64-fips: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 dist/grafana-agent-linux-arm64-fips: GO_TAGS += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-arm64-fips: GOOS    := linux
 dist/grafana-agent-linux-arm64-fips: GOARCH  := arm64
-dist/grafana-agent-linux-arm64-fips: GOEXPERIMENT=boringcrypto
+dist/grafana-agent-linux-arm64-fips: GOEXPERIMENT := boringcrypto
 dist/grafana-agent-linux-arm64-fips: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
