@@ -3,10 +3,11 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/phayes/freeport"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/phayes/freeport"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
