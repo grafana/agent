@@ -3,7 +3,7 @@ local filename = 'clustering.json';
 
 {
   [filename]:
-    alert.new([
+    alert.newGroup([
       // Cluster not converging.
       alert.newRule(
         'ClusterNotConverged',
