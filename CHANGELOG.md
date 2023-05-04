@@ -32,6 +32,9 @@ Main (unreleased)
 
 - Disable node_exporter on Windows systems (@jkroepke)
 
+- Support `clustering` block in `phlare.scrape` components to distribute
+  targets amongst clustered agents. (@rfratto)
+
 ### Bugfixes
 
 - Fix issue where component evaluation time was overridden by a "default

@@ -75,6 +75,8 @@ type Arguments struct {
 	HTTPClientConfig component_config.HTTPClientConfig `river:",squash"`
 
 	ProfilingConfig ProfilingConfig `river:"profiling_config,block,optional"`
+
+	Clustering scrape.Clustering `river:"clustering,block,optional"`
 }
 
 type ProfilingConfig struct {
@@ -258,14 +260,19 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-c.reloadTargets:
 			c.mut.RLock()
 			var (
-				tgs     = c.args.Targets
-				jobName = c.opts.ID
+				tgs        = c.args.Targets
+				jobName    = c.opts.ID
+				clustering = c.args.Clustering.Enabled
 			)
 			if c.args.JobName != "" {
 				jobName = c.args.JobName
 			}
 			c.mut.RUnlock()
-			promTargets := c.componentTargetsToProm(jobName, tgs)
+
+			// NOTE(@tpaschalis) First approach, manually building the
+			// 'clustered' targets implementation every time.
+			ct := discovery.NewDistributedTargets(clustering, c.opts.Clusterer.Node, tgs)
+			promTargets := c.componentTargetsToProm(jobName, ct.Get())
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -318,7 +325,14 @@ func convertLabelSet(tg discovery.Target) model.LabelSet {
 	return lset
 }
 
-// DebugInfo implements component.DebugComponent
+// ClusterUpdatesRegistration implements component.ClusterComponent.
+func (c *Component) ClusterUpdatesRegistration() bool {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.args.Clustering.Enabled
+}
+
+// DebugInfo implements component.DebugComponent.
 func (c *Component) DebugInfo() interface{} {
 	var res []scrape.TargetStatus
 
