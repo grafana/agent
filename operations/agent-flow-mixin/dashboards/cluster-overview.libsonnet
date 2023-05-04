@@ -98,10 +98,10 @@ local cluster_node_filename = 'agent-cluster-node.json';
                       targetBlank: false,
                       title: 'Detail dashboard for node',
                       // Use this URL for development with Grizzly where links are not replaced with a UID.
-                      // url: '/d/agent-cluster-node/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}',                      
-                      
+                      // url: '/d/agent-cluster-node/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}',
+
                       // Use this URL to render and deploy the mixin.
-                      url: '/d/%(uid)s/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}' % {uid: std.md5(cluster_node_filename)},
+                      url: '/d/%(uid)s/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}' % { uid: std.md5(cluster_node_filename) },
                     },
                   ],
                 },
@@ -126,14 +126,14 @@ local cluster_node_filename = 'agent-cluster-node.json';
         panel.withPosition({ h: 9, w: 8, x: 0, y: 9 }) +
         panel.withQueries([
           panel.newInstantQuery(
-            expr = ||| 
+            expr=|||
               clamp((
-                sum(stddev by (state) (cluster_node_peers) != 0) or 
+                sum(stddev by (state) (cluster_node_peers) != 0) or
                 (sum(abs(sum without (state) (cluster_node_peers)) - scalar(count(cluster_node_info)) != 0))
-                ), 
+                ),
                 1, 1
               )
-|||,
+            |||,
             format='time_series'
           ),
         ]) +

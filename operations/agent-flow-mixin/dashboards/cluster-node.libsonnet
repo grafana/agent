@@ -172,21 +172,21 @@ local filename = 'agent-cluster-node.json';
         }) +
         panel.withQueries([
           panel.newQuery(
-            expr = ||| 
-              1 - ( 
-                rate(cluster_transport_tx_packets_failed_total{instance="$instance"}[$__rate_interval]) / 
-                rate(cluster_transport_tx_packets_total{instance="$instance"}[$__rate_interval])
-                )
-|||,
+            expr=|||
+              1 - (
+              rate(cluster_transport_tx_packets_failed_total{instance="$instance"}[$__rate_interval]) /
+              rate(cluster_transport_tx_packets_total{instance="$instance"}[$__rate_interval])
+              )
+            |||,
             legendFormat='Tx success %',
           ),
           panel.newQuery(
-            expr = |||
+            expr=|||
               1 - (
-                rate(cluster_transport_rx_packets_failed_total{instance="$instance"}[$__rate_interval]) / 
+                rate(cluster_transport_rx_packets_failed_total{instance="$instance"}[$__rate_interval]) /
                 rate(cluster_transport_rx_packets_total{instance="$instance"}[$__rate_interval])
                 )
-|||,
+            |||,
             legendFormat='Rx success %',
           ),
         ]) +
@@ -251,21 +251,21 @@ local filename = 'agent-cluster-node.json';
         }) +
         panel.withQueries([
           panel.newQuery(
-            expr = |||
-              1 - ( 
-                rate(cluster_transport_stream_tx_packets_failed_total{instance="$instance"}[$__rate_interval]) / 
+            expr=|||
+              1 - (
+                rate(cluster_transport_stream_tx_packets_failed_total{instance="$instance"}[$__rate_interval]) /
                 rate(cluster_transport_stream_tx_packets_total{instance="$instance"}[$__rate_interval])
                 )
-|||,
+            |||,
             legendFormat='Tx success %'
           ),
           panel.newQuery(
-            expr = |||
-              1 - ( 
-                rate(cluster_transport_stream_rx_packets_failed_total{instance="$instance"}[$__rate_interval]) / 
+            expr=|||
+              1 - (
+                rate(cluster_transport_stream_rx_packets_failed_total{instance="$instance"}[$__rate_interval]) /
                 rate(cluster_transport_stream_rx_packets_total{instance="$instance"}[$__rate_interval])
                 )
-|||,
+            |||,
             legendFormat='Rx success %'
           ),
         ]) +
