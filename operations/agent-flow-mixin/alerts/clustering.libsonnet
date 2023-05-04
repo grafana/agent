@@ -8,7 +8,7 @@ local filename = 'clustering.json';
       alert.newRule(
         'ClusterNotConverged',
         'stddev((sum without (state) (cluster_node_peers))) != 0',
-        'Cluster is not converging',
+        'Cluster is not converging.',
         '2m',
       ),
 
@@ -16,7 +16,7 @@ local filename = 'clustering.json';
       alert.newRule(
         'ClusterSplitBrain',
         '(sum without (state) (cluster_node_peers)) != count(cluster_node_info)',
-        'Cluster nodes have entered a split brain state',
+        'Cluster nodes have entered a split brain state.',
         '2m',
       ),
     ]),
