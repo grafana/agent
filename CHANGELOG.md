@@ -21,6 +21,8 @@ Main (unreleased)
 
 - Added coalesce function to river stdlib. (@jkroepke)
 
+- Add fips builds for arm64 and amd64 Linux. (@mattdurham)
+
 ### Enhancements
 
 - Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
