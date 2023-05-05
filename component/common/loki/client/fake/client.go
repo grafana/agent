@@ -47,6 +47,11 @@ func (c *Client) Chan() chan<- loki.Entry {
 	return c.entries
 }
 
+// LogsReceiver returns this client as a LogsReceiver, which is useful in testing.
+func (c *Client) LogsReceiver() loki.LogsReceiver {
+	return c.entries
+}
+
 func (c *Client) Received() []loki.Entry {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()

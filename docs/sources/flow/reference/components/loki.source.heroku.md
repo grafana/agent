@@ -23,9 +23,9 @@ different labels.
 
 ```river
 loki.source.heroku "LABEL" {
-    listener {
+    http {
         address = "LISTEN_ADDRESS"
-        port    = PORT
+        port    = LISTEN_PORT
     }
     forward_to = RECEIVER_LIST
 }
