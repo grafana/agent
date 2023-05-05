@@ -32,6 +32,7 @@ func (cg *ConfigGenerator) generateK8SSDConfig(
 	attachMetadata *promopv1.AttachMetadata,
 	matchLabels map[string]string,
 ) *promk8s.SDConfig {
+
 	cfg := &promk8s.SDConfig{
 		Role: role,
 	}
