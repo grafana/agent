@@ -4,9 +4,9 @@ title: loki.source.api
 
 # loki.source.api
 
-`loki.source.api` listens for HTTP requests containing Loki log entries and forwards them to other components capable of receiving log entries.
+`loki.source.api` receives log entries over HTTP and forwards them to other `loki.*` components.
 
-The HTTP API exposed is compatible with [Loki push API][loki-push-api], using Loki's `logproto` format. This means that other [`loki.write`][loki.write] components can be used as a client and send requests to `loki.source.api`. This enables Grafana Agents to send log entries over the network to other Grafana Agents.
+The HTTP API exposed is compatible with [Loki push API][loki-push-api] and the `logproto` format. This means that other [`loki.write`][loki.write] components can be used as a client and send requests to `loki.source.api` and enables using the Agent as a proxy for logs.
 
 [loki.write]: {{< relref "./loki.write.md" >}}
 [loki-push-api]: https://grafana.com/docs/loki/latest/api/#push-log-entries-to-loki
@@ -14,7 +14,7 @@ The HTTP API exposed is compatible with [Loki push API][loki-push-api], using Lo
 ## Usage
 
 ```river
-loki.source.api LABEL {
+loki.source.api "LABEL" {
     http {
         listen_address = "LISTEN_ADDRESS"
         listen_port = PORT 
@@ -65,10 +65,10 @@ The following blocks are supported inside the definition of `loki.source.heroku`
 
 The following are some of the metrics that are exposed when this component is used. Note that the metrics include labels such as `status_code` where relevant, which can be used to measure request success rates.
 
-* `agent_loki_source_api_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
-* `agent_loki_source_api_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
-* `agent_loki_source_api_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
-* `agent_loki_source_api_tcp_connections` (gauge): Current number of accepted TCP connections.
+* `loki_source_api_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
+* `loki_source_api_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
+* `loki_source_api_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
+* `loki_source_api_tcp_connections` (gauge): Current number of accepted TCP connections.
 
 ## Example
 
