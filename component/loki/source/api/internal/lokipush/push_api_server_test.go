@@ -16,13 +16,13 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/agent/component/common/loki/client/fake"
 	fnet "github.com/grafana/agent/component/common/net"
 	frelabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/dskit/flagext"
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/client"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
@@ -83,8 +83,8 @@ regex = "dropme"
 		BatchWait: 1 * time.Second,
 		BatchSize: 100 * 1024,
 	}
-	m := client.NewMetrics(prometheus.DefaultRegisterer)
-	pc, err := client.New(m, ccfg, 0, 0, false, logger)
+	m := client.NewMetrics(prometheus.DefaultRegisterer, nil)
+	pc, err := client.New(m, ccfg, nil, 0, logger)
 	require.NoError(t, err)
 	defer pc.Stop()
 
@@ -94,7 +94,7 @@ regex = "dropme"
 		"__anotherdroplabel": "dropme",
 	}
 	for i := 0; i < 100; i++ {
-		pc.Chan() <- api.Entry{
+		pc.Chan() <- loki.Entry{
 			Labels: labels,
 			Entry: logproto.Entry{
 				Timestamp: time.Unix(int64(i), 0),
