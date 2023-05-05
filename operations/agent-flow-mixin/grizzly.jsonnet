@@ -10,45 +10,5 @@
 // To deploy alerts and recording rules, set up the environment variables used
 // by cortextool to authenticate with a Prometheus or Alertmanager intance.
 
-local mixin = import './mixin.libsonnet';
-
-{
-  folder: {
-    apiVersion: 'grizzly.grafana.com/v1alpha1',
-    kind: 'DashboardFolder',
-    metadata: {
-      name: 'grafana-agent-flow',
-    },
-    spec: {
-      title: mixin.grafanaDashboardFolder,
-    },
-  },
-
-  dashboards: {
-    [file]: {
-      apiVersion: 'grizzly.grafana.com/v1alpha1',
-      kind: 'Dashboard',
-      metadata: {
-        folder: $.folder.metadata.name,
-        name: std.md5(file),
-      },
-      spec: mixin.grafanaDashboards[file],
-    }
-    for file in std.objectFields(mixin.grafanaDashboards)
-  },
-
-
-  prometheus_rules: {
-    [file]: {
-      apiVersion: 'grizzly.grafana.com/v1alpha1',
-      kind: 'PrometheusRuleGroup',
-      metadata: {
-        folder: $.folder.metadata.name,
-        namespace: 'agent-flow',
-        name: std.split(file, '.')[0],
-      },
-      spec: mixin.prometheusAlerts[file],
-    }
-    for file in std.objectFields(mixin.prometheusAlerts)
-  },
-}
+(import './grizzly/dashboards.jsonnet') +
+(import './grizzly/alerts.jsonnet')
