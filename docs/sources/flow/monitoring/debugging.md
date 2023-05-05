@@ -28,6 +28,8 @@ server, which defaults to listening at `http://localhost:12345`.
 > documentation for [`grafana-agent run`][grafana-agent run] to learn how to
 > change the HTTP listen address, and pass the appropriate flag when running
 > Grafana Agent Flow.
+>
+> [install]: {{< relref "../install/" >}}
 
 ### Home page
 
