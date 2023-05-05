@@ -1,0 +1,22 @@
+prometheus.scrape "prometheus1" {
+	targets = [{
+		__address__ = "localhost:9090",
+	}]
+	forward_to       = [prometheus.remote_write.default.receiver]
+	honor_timestamps = false
+	scrape_interval  = "10s"
+	scrape_timeout   = "5s"
+}
+
+prometheus.scrape "prometheus2" {
+	targets = [{
+		__address__ = "localhost:9091",
+	}]
+	forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+	endpoint {
+		url = "http://remote-write-url"
+	}
+}
