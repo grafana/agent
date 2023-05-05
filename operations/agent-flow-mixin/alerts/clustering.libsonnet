@@ -9,15 +9,22 @@ local filename = 'clustering.json';
         'ClusterNotConverged',
         'stddev by (cluster, namespace) ((sum without (state) (cluster_node_peers))) != 0',
         'Cluster is not converging.',
-        '2m',
+        '5m',
       ),
 
       // Clustering has entered a split brain state
       alert.newRule(
         'ClusterSplitBrain',
-        '(sum without (state) (cluster_node_peers)) != count(cluster_node_info)',
+        // Assert that the set of known peers (regardless of state) for an
+        // agent matches the same number of running agents in the same cluster
+        // and namespace.
+        |||
+          sum without (state) (cluster_node_peers) !=
+          on (cluster, namespace) group_left
+          count by (cluster, namespace) (cluster_node_info)
+        |||,
         'Cluster nodes have entered a split brain state.',
-        '2m',
+        '5m',
       ),
     ]),
 }
