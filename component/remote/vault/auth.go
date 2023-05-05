@@ -25,7 +25,7 @@ type authMethod interface {
 	vaultAuthenticate(context.Context, *vault.Client) (*vault.Secret, error)
 }
 
-// AuthArguments defines a single authentication type in a remote.vault
+// AuthArguments defines a single authenticationstring type in a remote.vault
 // component instance. These are embedded as an enum field so only one may be
 // set per AuthArguments.
 type AuthArguments struct {
@@ -62,7 +62,10 @@ func (a *AuthArguments) authMethod() authMethod {
 		return a.AuthCustom
 	}
 
-	panic("remote.vault: unreachable")
+	// Return a default authMethod which always fails. This code should not be
+	// reachable unless this function was mistakenly not updated after
+	// implemeneting a new auth block.
+	return invalidAuth{}
 }
 
 // AuthToken authenticates against Vault with a token.
@@ -80,7 +83,20 @@ type AuthAppRole struct {
 	RoleID        string            `river:"role_id,attr"`
 	Secret        rivertypes.Secret `river:"secret,attr"`
 	WrappingToken bool              `river:"wrapping_token,attr,optional"`
-	MountPath     string            `river:"mouth_path,attr,optional"`
+	MountPath     string            `river:"mount_path,attr,optional"`
+}
+
+// DefaultAuthAppRole provides default settings for AuthAppRole.
+var DefaultAuthAppRole = AuthAppRole{
+	MountPath: "approle",
+}
+
+// UnmarshalRiver implements river.Unmarshaler and applies default settings.
+func (a *AuthAppRole) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultAuthAppRole
+
+	type authAppRole AuthAppRole
+	return f((*authAppRole)(a))
 }
 
 func (a *AuthAppRole) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
@@ -116,21 +132,65 @@ type AuthAWS struct {
 	// EC2SignatureType specifies the signature to use against EC2. Only used
 	// when Type is ec2. Valid options are identity and pkcs7 (default).
 	EC2SignatureType string `river:"ec2_signature_type,attr,optional"`
-	MountPath        string `river:"mouth_path,attr,optional"`
+	MountPath        string `river:"mount_path,attr,optional"`
+}
+
+// DefaultAuthAWS provides default settings for AuthAWS.
+var DefaultAuthAWS = AuthAWS{
+	MountPath:        "aws",
+	Type:             "iam",
+	Region:           "us-east-1",
+	EC2SignatureType: "pkcs7",
+}
+
+// UnmarshalRiver implements river.Unmarshaler and applies default settings.
+func (a *AuthAWS) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultAuthAWS
+
+	type authAWS AuthAWS
+	if err := f((*authAWS)(a)); err != nil {
+		return err
+	}
+
+	return a.Validate()
+}
+
+// Validate validates settings for AuthAWS.
+func (a *AuthAWS) Validate() error {
+	switch a.Type {
+	case "":
+		return fmt.Errorf("type must not be empty")
+	case "ec2", "iam":
+		// no-op
+	default:
+		return fmt.Errorf("unrecognized type %q, expected one of ec2,iam", a.Type)
+	}
+
+	switch a.EC2SignatureType {
+	case "":
+		return fmt.Errorf("ec2_signature_type must not be empty")
+	case "pkcs7", "identity":
+		// no-op
+	default:
+		return fmt.Errorf(": unrecognized ec2_signature_type %q, expected one of pkcs7,identity", a.Type)
+	}
+
+	return nil
 }
 
 func (a *AuthAWS) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
+	// Re-validate for safety.
+	if err := a.Validate(); err != nil {
+		return nil, err
+	}
+
 	var opts []aws.LoginOption
 
 	switch a.Type {
-	case "":
-		return nil, fmt.Errorf("auth.aws: type must not be empty")
 	case "ec2":
 		opts = append(opts, aws.WithEC2Auth())
 	case "iam":
 		opts = append(opts, aws.WithIAMAuth())
-	default:
-		return nil, fmt.Errorf("auth.aws: unrecognized type %q, expected one of ec2,iam", a.Type)
 	}
 	if a.Region != "" {
 		opts = append(opts, aws.WithRegion(a.Region))
@@ -146,8 +206,6 @@ func (a *AuthAWS) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*va
 		opts = append(opts, aws.WithPKCS7Signature())
 	case "identity":
 		opts = append(opts, aws.WithIdentitySignature())
-	default:
-		return nil, fmt.Errorf("auth.aws: unrecognized ec2_signature_type %q, expected one of pkcs7,identity", a.Type)
 	}
 	if a.MountPath != "" {
 		opts = append(opts, aws.WithMountPath(a.MountPath))
@@ -168,7 +226,21 @@ func (a *AuthAWS) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*va
 type AuthAzure struct {
 	Role        string `river:"role,attr"`
 	ResourceURL string `river:"resource_url,attr,optional"`
-	MountPath   string `river:"mouth_path,attr,optional"`
+	MountPath   string `river:"mount_path,attr,optional"`
+}
+
+// DefaultAuthAzure provides default settings for AuthAzure.
+var DefaultAuthAzure = AuthAzure{
+	MountPath:   "azure",
+	ResourceURL: "https://management.azure.com/",
+}
+
+// UnmarshalRiver implements river.Unmarshaler and applies default settings.
+func (a *AuthAzure) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultAuthAzure
+
+	type authAzure AuthAzure
+	return f((*authAzure)(a))
 }
 
 func (a *AuthAzure) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
@@ -199,22 +271,56 @@ type AuthGCP struct {
 	// either gce or iam.
 	Type              string `river:"type,attr"`
 	IAMServiceAccount string `river:"iam_service_account,attr,optional"`
-	MountPath         string `river:"mouth_path,attr,optional"`
+	MountPath         string `river:"mount_path,attr,optional"`
+}
+
+// DefaultAuthGCP provides default settings for AuthGCP.
+var DefaultAuthGCP = AuthGCP{
+	MountPath: "gcp",
+	Type:      "gce",
+}
+
+// UnmarshalRiver implements river.Unmarshaler and applies default settings.
+func (a *AuthGCP) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultAuthGCP
+
+	type authGCP AuthGCP
+	if err := f((*authGCP)(a)); err != nil {
+		return err
+	}
+
+	return a.Validate()
+}
+
+// Validate returns a non-nil error if AuthGCP is invalid.
+func (a *AuthGCP) Validate() error {
+	switch a.Type {
+	case "gce":
+		// no-op
+	case "iam":
+		if a.IAMServiceAccount == "" {
+			return fmt.Errorf("iam_service_account must be provided when type is iam")
+		}
+	default:
+		return fmt.Errorf("unrecognized type %q, expected one of gce,iam", a.Type)
+	}
+
+	return nil
 }
 
 func (a *AuthGCP) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
+	// Re-validate for safety.
+	if err := a.Validate(); err != nil {
+		return nil, err
+	}
+
 	var opts []gcp.LoginOption
 
 	switch a.Type {
 	case "gce":
 		opts = append(opts, gcp.WithGCEAuth())
 	case "iam":
-		if a.IAMServiceAccount == "" {
-			return nil, fmt.Errorf("auth.gcp: iam_service_account must be provided when type is iam")
-		}
 		opts = append(opts, gcp.WithIAMAuth(a.IAMServiceAccount))
-	default:
-		return nil, fmt.Errorf("auth.gcp: unrecognized type %q, expected one of gce,iam", a.Type)
 	}
 
 	if a.MountPath != "" {
@@ -236,7 +342,21 @@ func (a *AuthGCP) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*va
 type AuthKubernetes struct {
 	Role                    string `river:"role,attr"`
 	ServiceAccountTokenFile string `river:"service_account_file,attr,optional"`
-	MountPath               string `river:"mouth_path,attr,optional"`
+	MountPath               string `river:"mount_path,attr,optional"`
+}
+
+// DefaultAuthKubernetes provides default settings for AuthKubernetes.
+var DefaultAuthKubernetes = AuthKubernetes{
+	MountPath:               "kubernetes",
+	ServiceAccountTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token",
+}
+
+// UnmarshalRiver implements river.Unmarshaler and applies default settings.
+func (a *AuthKubernetes) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultAuthKubernetes
+
+	type authKubernetes AuthKubernetes
+	return f((*authKubernetes)(a))
 }
 
 func (a *AuthKubernetes) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
@@ -264,7 +384,20 @@ func (a *AuthKubernetes) vaultAuthenticate(ctx context.Context, cli *vault.Clien
 type AuthLDAP struct {
 	Username  string            `river:"username,attr"`
 	Password  rivertypes.Secret `river:"password,attr"`
-	MountPath string            `river:"mouth_path,attr,optional"`
+	MountPath string            `river:"mount_path,attr,optional"`
+}
+
+// DefaultAuthLDAP provides default settings for AuthLDAP.
+var DefaultAuthLDAP = AuthLDAP{
+	MountPath: "ldap",
+}
+
+// UnmarshalRiver implements river.Unmarshaler and applies default settings.
+func (a *AuthLDAP) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultAuthLDAP
+
+	type authLDAP AuthLDAP
+	return f((*authLDAP)(a))
 }
 
 func (a *AuthLDAP) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
@@ -291,7 +424,20 @@ func (a *AuthLDAP) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*v
 type AuthUserPass struct {
 	Username  string            `river:"username,attr"`
 	Password  rivertypes.Secret `river:"password,attr"`
-	MountPath string            `river:"mouth_path,attr,optional"`
+	MountPath string            `river:"mount_path,attr,optional"`
+}
+
+// DefaultAuthUserPass provides default settings for AuthUserPass.
+var DefaultAuthUserPass = AuthUserPass{
+	MountPath: "userpass",
+}
+
+// UnmarshalRiver implements river.Unmarshaler and applies default settings.
+func (a *AuthUserPass) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultAuthUserPass
+
+	type authUserPass AuthUserPass
+	return f((*authUserPass)(a))
 }
 
 func (a *AuthUserPass) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
@@ -336,4 +482,12 @@ func (a *AuthCustom) vaultAuthenticate(ctx context.Context, cli *vault.Client) (
 		return nil, fmt.Errorf("auth.custom: %w", err)
 	}
 	return s, nil
+}
+
+type invalidAuth struct {
+	Name string
+}
+
+func (a invalidAuth) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
+	return nil, fmt.Errorf("unsupported auth method configured")
 }

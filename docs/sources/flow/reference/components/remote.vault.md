@@ -136,7 +136,7 @@ credentials file instead.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `type` | `string` | Mechanism to authenticate against AWS with. | | yes
-`region` | `string` | AWS region to connect to. | | no
+`region` | `string` | AWS region to connect to. | `"us-east-1"` | no
 `role` | `string` | Overrides the inferred role name inferred. | `""` | no
 `iam_server_id_header` | `string` | Configures a `X-Vault-AWS-IAM-Server-ID` header. | `""` | no
 `ec2_signature_type` | `string` | Signature to use when authenticating against EC2. | `"pkcs7"` | no
@@ -146,6 +146,9 @@ The `type` argument must be set to one of `"ec2"` or `"iam"`.
 
 The `iam_server_id_header` argument is required used when `type` is set to
 `"iam"`.
+
+If the `region` argument is explicitly set to an empty string `""`, the region
+to connect to will be inferred using an API call to the EC2 metadata service.
 
 The `ec2_signature_type` argument configures the signature to use when
 authenticating against EC2. It only applies when `type` is set to `"ec2"`.
@@ -243,7 +246,7 @@ command line.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `path` | `string` | Path to write to for creating an authentication token. | yes
-`data` | `object(secret)` | Authentication data. | yes
+`data` | `map(secret)` | Authentication data. | yes
 
 All values in the `data` attribute are considered secret, even if they contain
 nonsensitive information like usernames.

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/oklog/run"
@@ -279,6 +280,11 @@ func (c *Component) exportSecret(secret *vault.Secret) {
 
 		default:
 			// Non-string secrets are ignored.
+			level.Warn(c.log).Log(
+				"msg", "found field in secret which cannot be converted into a string",
+				"key", key,
+				"type", fmt.Sprintf("%T", value),
+			)
 		}
 	}
 

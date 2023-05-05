@@ -67,13 +67,33 @@ func newTokenManager(opts tokenManagerOptions) (*tokenManager, error) {
 
 		cli: opts.Client,
 	}
-	if err := tm.updateTokenError(ctx); err != nil {
+	if err := tm.updateToken(ctx); err != nil {
 		return nil, fmt.Errorf("failed to get token: %w", err)
 	}
 	return tm, nil
 }
 
-func (tm *tokenManager) updateTokenError(ctx context.Context) error {
+// updateToken attempts to update the token, logging an error if getting the
+// token failed.
+func (tm *tokenManager) updateToken(ctx context.Context) (err error) {
+	defer func() {
+		if err != nil {
+			tm.updateHealth(component.Health{
+				Health:     component.HealthTypeUnhealthy,
+				Message:    fmt.Sprintf("failed to retrieve token: %s", err),
+				UpdateTime: time.Now(),
+			})
+		} else {
+			tm.updateHealth(component.Health{
+				Health:     component.HealthTypeHealthy,
+				Message:    "retrieved token",
+				UpdateTime: time.Now(),
+			})
+		}
+
+		tm.updateDebugInfo(time.Now())
+	}()
+
 	tm.mut.Lock()
 	defer tm.mut.Unlock()
 
@@ -111,7 +131,8 @@ func (tm *tokenManager) Run(ctx context.Context) {
 
 		case <-tm.refreshTicker.Chan():
 			level.Info(tm.log).Log("msg", "refreshing token")
-			tm.updateToken(ctx)
+			// Error is handled via settting health and debug info.
+			_ = tm.updateToken(ctx)
 
 		case <-tm.onStateChange:
 			if cancelLifecycleWatcher != nil {
@@ -124,26 +145,6 @@ func (tm *tokenManager) Run(ctx context.Context) {
 			tm.updateLifecycleWatcher(ctx)
 		}
 	}
-}
-
-func (tm *tokenManager) updateToken(ctx context.Context) {
-	err := tm.updateTokenError(ctx)
-
-	if err != nil {
-		tm.updateHealth(component.Health{
-			Health:     component.HealthTypeUnhealthy,
-			Message:    fmt.Sprintf("failed to retrieve token: %s", err),
-			UpdateTime: time.Now(),
-		})
-	} else {
-		tm.updateHealth(component.Health{
-			Health:     component.HealthTypeHealthy,
-			Message:    "retrieved token",
-			UpdateTime: time.Now(),
-		})
-	}
-
-	tm.updateDebugInfo(time.Now())
 }
 
 func (tm *tokenManager) updateHealth(h component.Health) {
@@ -194,7 +195,8 @@ func (tm *tokenManager) updateLifecycleWatcher(ctx context.Context) {
 				if ctx.Err() != nil {
 					return
 				}
-				tm.updateToken(ctx)
+				// Error is logged as health and debug info.
+				_ = tm.updateToken(ctx)
 
 			case output := <-lw.RenewCh():
 				tm.refreshCounter.Inc()
@@ -209,6 +211,10 @@ func (tm *tokenManager) updateLifecycleWatcher(ctx context.Context) {
 // Secrets only need a lifecycle watcher if they are renewable or have a lease
 // duration.
 func needsLifecycleWatcher(secret *vault.Secret) bool {
+	if secret == nil {
+		return false
+	}
+
 	if secret.Auth != nil {
 		return secret.Auth.Renewable || secret.Auth.LeaseDuration > 0
 	}
@@ -225,10 +231,11 @@ func (tm *tokenManager) SetClient(cli *vault.Client) {
 	ctx, cancel := context.WithTimeout(context.Background(), tokenManagerInitializeTimeout)
 	defer cancel()
 
-	tm.updateToken(ctx)
+	// Error is handled via setting health and debug info.
+	_ = tm.updateToken(ctx)
 }
 
-// SetRefrehInterval sets a forced refresh interval, separate from automatic
+// SetRefreshInterval sets a forced refresh interval, separate from automatic
 // renewal based on the token lease.
 func (tm *tokenManager) SetRefreshInterval(interval time.Duration) {
 	tm.refreshTicker.Reset(interval)
@@ -259,6 +266,13 @@ type secretInfo struct {
 }
 
 func getSecretInfo(secret *vault.Secret, updateTime time.Time) secretInfo {
+	if secret == nil {
+		return secretInfo{
+			LastUpdateTime: updateTime,
+			Warnings:       []string{"no secret necessary for configured auth mechanism"},
+		}
+	}
+
 	return secretInfo{
 		LatestRequestID:  secret.RequestID,
 		LastUpdateTime:   updateTime,
