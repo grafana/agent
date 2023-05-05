@@ -169,7 +169,7 @@ To expose the UI to other machines, complete the following steps:
    to edit command line flags passed to Grafana Agent Flow, including the
    following customizations:
 
-    1. Add the following command line arugment to `CUSTOM_ARGS`:
+    1. Add the following command line argument to `CUSTOM_ARGS`:
 
        ```
        --server.http.listen-addr=LISTEN_ADDR:12345
