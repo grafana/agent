@@ -64,7 +64,7 @@ Name                  | Type       | Description                           | Def
 --------------------- | -----------| ------------------------------------- | -------------- | --------
 `url`                 | `string`   | Full URL to send logs to. | | yes
 `name`                | `string`   | Optional name to identify this endpoint with. | | no
-`batch_wait`          | `bool`     | Maximum amount of time to wait before sending a batch. | `"1s"` | no
+`batch_wait`          | `duration` | Maximum amount of time to wait before sending a batch. | `"1s"` | no
 `batch_size`          | `string`   | Maximum batch size of logs to accumulate before sending. | `"1MiB"` | no
 `remote_timeout`      | `duration` | Timeout for requests made to the URL. | `"10s"` | no
 `tenant_id`           | `string`   | The tenant ID used by default to push logs. | | no
