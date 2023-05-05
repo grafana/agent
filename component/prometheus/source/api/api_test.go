@@ -8,10 +8,9 @@ import (
 	"testing"
 	"time"
 
-	fnet "github.com/grafana/agent/component/common/net"
-
 	"github.com/golang/snappy"
 	"github.com/grafana/agent/component"
+	fnet "github.com/grafana/agent/component/common/net"
 	agentprom "github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/phayes/freeport"

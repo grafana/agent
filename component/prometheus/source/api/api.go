@@ -3,14 +3,14 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/mux"
-	fnet "github.com/grafana/agent/component/common/net"
 	"net/http"
 	"reflect"
 	"sync"
 
 	"github.com/go-kit/log/level"
+	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
+	fnet "github.com/grafana/agent/component/common/net"
 	agentprom "github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -46,14 +46,16 @@ type Component struct {
 
 func New(opts component.Options, args Arguments) (component.Component, error) {
 	fanout := agentprom.NewFanout(args.ForwardTo, opts.ID, opts.Registerer)
+
 	uncheckedCollector := util.NewUncheckedCollector(nil)
+	opts.Registerer.MustRegister(uncheckedCollector)
+
 	c := &Component{
 		opts:               opts,
 		handler:            remote.NewWriteHandler(opts.Logger, fanout),
 		fanout:             fanout,
 		uncheckedCollector: uncheckedCollector,
 	}
-	opts.Registerer.MustRegister(uncheckedCollector)
 
 	if err := c.Update(args); err != nil {
 		return nil, err
@@ -84,7 +86,8 @@ func (c *Component) Update(args component.Arguments) error {
 	c.updateMut.Lock()
 	defer c.updateMut.Unlock()
 
-	if !c.serverNeedsUpdate(newArgs) {
+	serverNeedsUpdate := !reflect.DeepEqual(c.args.Server, newArgs.Server)
+	if !serverNeedsUpdate {
 		c.args = newArgs
 		return nil
 	}
@@ -135,10 +138,4 @@ func (c *Component) shutdownServer() {
 		c.server.StopAndShutdown()
 		c.server = nil
 	}
-}
-
-func (c *Component) serverNeedsUpdate(args Arguments) bool {
-	oldConfig := c.args.Server
-	newConfig := args.Server
-	return !reflect.DeepEqual(newConfig, oldConfig)
 }
