@@ -41,7 +41,7 @@ local cluster_node_filename = 'agent-cluster-node.json';
         panel.withDescription(|||
           Nodes info.
         |||) +
-        panel.withPosition({ h: 18, w: 16, x: 8, y: 0 }) +
+        panel.withPosition({ h: 9, w: 16, x: 8, y: 0 }) +
         panel.withQueries([
           panel.newInstantQuery(
             expr='cluster_node_info',
@@ -97,7 +97,7 @@ local cluster_node_filename = 'agent-cluster-node.json';
                     {
                       targetBlank: false,
                       title: 'Detail dashboard for node',
-                      url: '/d/%(uid)s/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}' % {uid: std.md5(cluster_node_filename)},
+                      url: '/d/%(uid)s/grafana-agent-flow-cluster-node?var-instance=${__data.fields.instance}&var-datasource=${datasource}&var-loki_datasource=${loki_datasource}&var-cluster=${cluster}&var-namespace=${namespace}' % { uid: std.md5(cluster_node_filename) },
                     },
                   ],
                 },
@@ -110,14 +110,14 @@ local cluster_node_filename = 'agent-cluster-node.json';
       (
         panel.new('Convergance state', 'stat') +
         panel.withDescription(|||
-          "Whether the cluster state has converged.
+          Whether the cluster state has converged.
 
           It is normal for the cluster state to be diverged briefly as gossip events propagate. It is not normal for the cluster state to be diverged for a long period of time.
 
           This will show one of the following:
 
           * Converged: Nodes are aware of all other nodes, with the correct states.
-          * Not converged: A subset of nodes aren't aware of their peers, or don't have an updated view of peer states."
+          * Not converged: A subset of nodes aren't aware of their peers, or don't have an updated view of peer states.
         |||) +
         panel.withPosition({ h: 9, w: 8, x: 0, y: 9 }) +
         panel.withQueries([
@@ -173,6 +173,52 @@ local cluster_node_filename = 'agent-cluster-node.json';
           },
         ]) +
         panel.withUnit('suffix:nodes')
+      ),
+      // Convergance state timeline
+      (
+        panel.new('Convergance state timeline', 'state-timeline') {
+          fieldConfig: {
+            defaults: {
+              custom: {
+                fillOpacity: 80,
+                spanNulls: true,
+              },
+              noValue: 0,
+              max: 1,
+            },
+          },
+        } +
+        panel.withPosition({ h: 9, w: 16, x: 8, y: 9 }) +
+        panel.withQueries([
+          panel.newQuery(
+            expr=|||
+              ceil(clamp((
+                sum(stddev by (state) (cluster_node_peers)) or
+                (sum(abs(sum without (state) (cluster_node_peers)) - scalar(count(cluster_node_info))))
+                ),
+                0, 1
+              ))
+            |||,
+            legendFormat='Converged'
+          ),
+        ]) +
+        panel.withOptions({
+          mergeValues: true,
+        }) +
+        panel.withMappings([
+          {
+            options: {
+              '0': { color: 'green', text: 'Yes' },
+            },
+            type: 'value',
+          },
+          {
+            options: {
+              '1': { color: 'red', text: 'No' },
+            },
+            type: 'value',
+          },
+        ])
       ),
     ]),
 }
