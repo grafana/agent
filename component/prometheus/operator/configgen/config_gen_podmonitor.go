@@ -5,7 +5,6 @@ package configgen
 import (
 	"fmt"
 	"net/url"
-	"sort"
 	"strings"
 
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -37,7 +36,8 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 		cfg.HonorTimestamps = *ep.HonorTimestamps
 	}
 
-	cfg.ServiceDiscoveryConfigs = append(cfg.ServiceDiscoveryConfigs, cg.generateK8SSDConfig(m.Spec.NamespaceSelector, m.Namespace, promk8s.RolePod, m.Spec.AttachMetadata))
+	sdcfg := cg.generateK8SSDConfig(m.Spec.NamespaceSelector, m.Namespace, promk8s.RolePod, m.Spec.AttachMetadata, m.Spec.Selector.MatchLabels)
+	cfg.ServiceDiscoveryConfigs = append(cfg.ServiceDiscoveryConfigs, sdcfg)
 
 	if ep.Interval != "" {
 		if cfg.ScrapeInterval, err = model.ParseDuration(string(ep.Interval)); err != nil {
@@ -93,25 +93,7 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 		})
 	}
 
-	var labelKeys []string
 	// Filter targets by pods selected by the monitor.
-	// Exact label matches.
-	for k := range m.Spec.Selector.MatchLabels {
-		labelKeys = append(labelKeys, k)
-	}
-	sort.Strings(labelKeys)
-
-	for _, k := range labelKeys {
-		regex, err := relabel.NewRegexp(fmt.Sprintf("(%s);true", m.Spec.Selector.MatchLabels[k]))
-		if err != nil {
-			return nil, fmt.Errorf("parsing MatchLabels regex: %w", err)
-		}
-		relabels.add(&relabel.Config{
-			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_label_" + sanitizeLabelName(k), "__meta_kubernetes_pod_labelpresent_" + sanitizeLabelName(k)},
-			Action:       "keep",
-			Regex:        regex,
-		})
-	}
 
 	// Set based label matching. We have to map the valid relations
 	// `In`, `NotIn`, `Exists`, and `DoesNotExist`, into relabeling rules.

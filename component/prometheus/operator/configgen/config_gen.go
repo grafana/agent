@@ -25,13 +25,23 @@ var (
 // generateK8SSDConfig generates a kubernetes service discovery config based on the given namespace selector.
 // The k8s sd config is mostly dependent on our local config for accessing the kubernetes cluster.
 // If undefined it will default to an in-cluster config
-func (cg *ConfigGenerator) generateK8SSDConfig(namespaceSelector promopv1.NamespaceSelector, namespace string, role promk8s.Role, attachMetadata *promopv1.AttachMetadata) *promk8s.SDConfig {
+func (cg *ConfigGenerator) generateK8SSDConfig(
+	namespaceSelector promopv1.NamespaceSelector,
+	namespace string,
+	role promk8s.Role,
+	attachMetadata *promopv1.AttachMetadata,
+	matchLabels map[string]string,
+) *promk8s.SDConfig {
 	cfg := &promk8s.SDConfig{
 		Role: role,
 	}
 	namespaces := cg.getNamespacesFromNamespaceSelector(namespaceSelector, namespace)
 	if len(namespaces) != 0 {
 		cfg.NamespaceDiscovery.Names = namespaces
+	}
+	for k, v := range matchLabels {
+		sel := promk8s.SelectorConfig{Role: role, Label: fmt.Sprintf("%s=%s", k, v)}
+		cfg.Selectors = append(cfg.Selectors, sel)
 	}
 	client := cg.Client
 	if client.KubeConfig != "" {

@@ -127,7 +127,7 @@ func TestGenerateK8SSDConfig(t *testing.T) {
 			cg := &ConfigGenerator{
 				Client: tt.client,
 			}
-			got := cg.generateK8SSDConfig(promopv1.NamespaceSelector{}, "", promk8s.RoleEndpoint, tt.attachMetadata)
+			got := cg.generateK8SSDConfig(promopv1.NamespaceSelector{}, "", promk8s.RoleEndpoint, tt.attachMetadata, nil)
 			assert.Equal(t, tt.expected, got)
 		})
 	}

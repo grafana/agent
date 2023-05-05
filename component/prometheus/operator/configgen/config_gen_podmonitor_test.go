@@ -152,9 +152,6 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 			expectedRelabels: util.Untab(`
 				- source_labels: [job]
 				  target_label: __tmp_prometheus_job_name
-				- action: keep
-				  regex: (bar);true
-				  source_labels: [__meta_kubernetes_pod_label_foo,__meta_kubernetes_pod_labelpresent_foo]
 				- source_labels: [__meta_kubernetes_pod_label_key,__meta_kubernetes_pod_labelpresent_key]
 				  regex: "(val0|val1);true"
 				  action: keep
@@ -231,6 +228,12 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 						NamespaceDiscovery: promk8s.NamespaceDiscovery{
 							IncludeOwnNamespace: false,
 							Names:               []string{"ns_a", "ns_b"},
+						},
+						Selectors: []promk8s.SelectorConfig{
+							{
+								Role:  promk8s.RolePod,
+								Label: "foo=bar",
+							},
 						},
 					},
 				},

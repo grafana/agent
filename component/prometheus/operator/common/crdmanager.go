@@ -109,8 +109,13 @@ func (c *crdManager) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case m := <-c.discoveryManager.SyncCh():
-			targetSetsChan <- m
+		case pools := <-c.discoveryManager.SyncCh():
+			for pName, groups := range pools {
+				for _, group := range groups {
+					fmt.Println(pName, group.Source, len(group.Targets), "!!!!!")
+				}
+			}
+			targetSetsChan <- pools
 		}
 	}
 }

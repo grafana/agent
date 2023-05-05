@@ -166,9 +166,6 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 			expectedRelabels: util.Untab(`
 				- source_labels: [job]
 				  target_label: __tmp_prometheus_job_name
-				- source_labels: [__meta_kubernetes_service_label_foo, __meta_kubernetes_service_labelpresent_foo]
-				  action: keep
-				  regex: (bar);true
 				- source_labels: [__meta_kubernetes_service_label_key, __meta_kubernetes_service_labelpresent_key]
 				  action: keep
 				  regex: (val0|val1);true
@@ -257,6 +254,12 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 						NamespaceDiscovery: promk8s.NamespaceDiscovery{
 							IncludeOwnNamespace: false,
 							Names:               []string{"ns_a", "ns_b"},
+						},
+						Selectors: []promk8s.SelectorConfig{
+							{
+								Role:  promk8s.RoleEndpoint,
+								Label: "foo=bar",
+							},
 						},
 					},
 				},

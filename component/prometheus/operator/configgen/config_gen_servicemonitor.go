@@ -3,7 +3,6 @@ package configgen
 import (
 	"fmt"
 	"net/url"
-	"sort"
 	"strings"
 
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
@@ -27,7 +26,7 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 	if ep.HonorTimestamps != nil {
 		cfg.HonorTimestamps = *ep.HonorTimestamps
 	}
-	dConfig := cg.generateK8SSDConfig(m.Spec.NamespaceSelector, m.Namespace, promk8s.RoleEndpoint, m.Spec.AttachMetadata)
+	dConfig := cg.generateK8SSDConfig(m.Spec.NamespaceSelector, m.Namespace, promk8s.RoleEndpoint, m.Spec.AttachMetadata, m.Spec.Selector.MatchLabels)
 	cfg.ServiceDiscoveryConfigs = append(cfg.ServiceDiscoveryConfigs, dConfig)
 
 	if ep.Interval != "" {
@@ -78,24 +77,6 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 	relabels := cg.initRelabelings()
 
 	// Filter targets by services selected by the monitor.
-
-	// Exact label matches.
-	var labelKeys []string
-	for k := range m.Spec.Selector.MatchLabels {
-		labelKeys = append(labelKeys, k)
-	}
-	sort.Strings(labelKeys)
-	for _, k := range labelKeys {
-		regex, err := relabel.NewRegexp(fmt.Sprintf("(%s);true", m.Spec.Selector.MatchLabels[k]))
-		if err != nil {
-			return nil, fmt.Errorf("parsing MatchLabels regex: %w", err)
-		}
-		relabels.add(&relabel.Config{
-			SourceLabels: model.LabelNames{"__meta_kubernetes_service_label_" + sanitizeLabelName(k), "__meta_kubernetes_service_labelpresent_" + sanitizeLabelName(k)},
-			Action:       "keep",
-			Regex:        regex,
-		})
-	}
 
 	// Set based label matching. We have to map the valid relations
 	//  `In`, `NotIn`, `Exists`, and `DoesNotExist`, into relabeling rules.
