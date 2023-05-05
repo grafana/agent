@@ -1,7 +1,8 @@
 // alert.jsonnet defines utilities to create alerts.
 
 {
-  newGroup(rules):: {
+  newGroup(name, rules):: {
+    name: name,
     rules: rules,
   },
 
