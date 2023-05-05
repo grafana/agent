@@ -35,12 +35,14 @@ Main (unreleased)
 - Support `clustering` block in `phlare.scrape` components to distribute
   targets amongst clustered agents. (@rfratto)
 
+- Delete stale series after a single WAL truncate instead of two. (@rfratto)
+
 ### Bugfixes
 
 - Fix issue where component evaluation time was overridden by a "default
   health" message. (@rfratto)
 
-- Fix an issue where defining `logging` or `tracing` blocks inside of a module 
+- Fix an issue where defining `logging` or `tracing` blocks inside of a module
   would generate a panic instead of returning an error. (@erikbaranowski)
 
 - Honor timeout when trying to establish a connection to another agent in Flow
@@ -60,8 +62,9 @@ Main (unreleased)
 
 - Add metrics when clustering mode is enabled. (@rfratto)
 - Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
-- Update Flow documentation for `prometheus.exporter.postgres` to reference the correct
-  `custom_queries_config_path` argument. (@virtualtam)
+
+- Add `agent_wal_out_of_order_samples_total` metric to track samples received
+  out of order. (@rfratto)
 
 v0.33.1 (2023-05-01)
 --------------------
