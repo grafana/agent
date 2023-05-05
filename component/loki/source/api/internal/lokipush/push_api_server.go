@@ -50,7 +50,7 @@ func NewPushAPIServer(logger log.Logger,
 		handler:      handler,
 	}
 
-	srv, err := fnet.NewTargetServer(logger, "agent_loki_source_api", registerer, serverConfig)
+	srv, err := fnet.NewTargetServer(logger, "loki_source_api", registerer, serverConfig)
 	if err != nil {
 		return nil, err
 	}

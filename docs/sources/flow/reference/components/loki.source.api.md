@@ -23,6 +23,10 @@ loki.source.api "LABEL" {
 }
 ```
 
+The component will start HTTP server on the configured port and address with the following endpoints:
+- `/api/v1/push` - accepting `POST` requests compatible with [Loki push API][loki-push-api], for example, from another Grafana Agent's [`loki.write`][loki.write] component.
+- `/ready` - accepting `GET` requests - can be used to confirm the server is reachable and healthy. 
+
 ## Arguments
 
 `loki.source.api` supports the following arguments:
@@ -72,10 +76,18 @@ The following are some of the metrics that are exposed when this component is us
 
 ## Example
 
-This example starts an HTTP server on `0.0.0.0` address and port `9999`. The server receives log entries and forwards them to a `loki.echo` component while adding a `forwarded="true"` label.
+This example starts an HTTP server on `0.0.0.0` address and port `9999`. The server receives log entries and forwards them to a `loki.write` component while adding a `forwarded="true"` label. The `loki.write` component will send the logs to the specified loki instance using basic auth credentials provided.
 
 ```river
-loki.echo "print" {}
+loki.write "local" {
+    endpoint {
+        url = "http://loki:3100/api/v1/push"
+        basic_auth {
+            username = "<your username>"
+            password_file = "<your password>"
+        }
+    }
+}
 
 loki.source.api "loki_push_api" {
     http {
@@ -83,7 +95,7 @@ loki.source.api "loki_push_api" {
         listen_port = 9999
     }
     forward_to = [
-        loki.echo.print.receiver,
+        loki.write.local.receiver,
     ]
     labels = {
         forwarded = "true",
