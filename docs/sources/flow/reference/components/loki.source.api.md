@@ -24,8 +24,12 @@ loki.source.api "LABEL" {
 ```
 
 The component will start HTTP server on the configured port and address with the following endpoints:
+
 - `/api/v1/push` - accepting `POST` requests compatible with [Loki push API][loki-push-api], for example, from another Grafana Agent's [`loki.write`][loki.write] component.
-- `/ready` - accepting `GET` requests - can be used to confirm the server is reachable and healthy. 
+- `/api/v1/raw` - accepting `POST` requests with newline-delimited log lines in body. This can be used to send NDJSON or plaintext logs. This is compatible with promtail's push API endpoint - see [promtail's documentation][promtail-push-api] for more information.
+- `/ready` - accepting `GET` requests - can be used to confirm the server is reachable and healthy.
+
+[promtail-push-api]: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#loki_push_api
 
 ## Arguments
 
@@ -84,7 +88,7 @@ loki.write "local" {
         url = "http://loki:3100/api/v1/push"
         basic_auth {
             username = "<your username>"
-            password_file = "<your password>"
+            password_file = "<your password file>"
         }
     }
 }
