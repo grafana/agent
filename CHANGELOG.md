@@ -13,7 +13,7 @@ Main (unreleased)
 ### Breaking changes
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
-- The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`, `scrape_interval` usage of the integration is recommended. (@schmikei)
+- The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
 
 ### Features
 - New Grafana Agent Flow components:
