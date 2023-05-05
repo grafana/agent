@@ -21,6 +21,10 @@ Main (unreleased)
 - Fix an issue with the grafana/agent windows docker image entrypoint
   not targeting the right location for the config. (@erikbaranowski)
 
+- Fix issue where the the `node_exporter` integration and
+  `prometheus.exporter.unix` `diskstat_device_include` component could not set
+  the allowlist field for the diskstat collector. (@tpaschalis)
+
 v0.33.1 (2023-05-01)
 --------------------
 
