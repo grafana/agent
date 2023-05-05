@@ -84,6 +84,7 @@ profiling_config > profile.mutex | [profile.mutex][] | Collect mutex profiles. |
 profiling_config > profile.process_cpu | [profile.process_cpu][] | Collect CPU profiles. | no
 profiling_config > profile.fgprof | [profile.fgprof][] | Collect [fgprof][] profiles. | no
 profiling_config > profile.custom | [profile.custom][] | Collect custom profiles. | no
+clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -102,6 +103,7 @@ an `oauth2` block.
 [profile.fgprof]: #profile.fgprof-block
 [profile.custom]: #profile.custom-block
 [pprof]: https://github.com/google/pprof/blob/main/doc/README.md
+[clustering]: #clustering-experimental
 
 [fgprof]: https://github.com/felixge/fgprof
 
@@ -248,6 +250,29 @@ Name | Type | Description | Default | Required
 
 When the `delta` argument is `true`, a `seconds` query parameter is
 automatically added to requests.
+
+### clustering (experimental)
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
+
+When the agent is running in [clustered mode][], and `enabled` is set to true,
+then this `phlare.scrape` component instance opts-in to participating in the
+cluster to distribute scrape load between all cluster nodes.
+
+Clustering causes the set of targets to be locally filtered down to a unique
+subset per node, where each node is roughly assigned the same number of
+targets. If the state of the cluster changes, such as a new node joins, then
+the subset of targets to scrape per node will be recalculated.
+
+When clustering mode is enabled, all agents participating in the cluster must
+use the same configuration file and have access to the same service discovery
+APIs.
+
+If the agent is _not_ running in clustered mode, this block is a no-op.
+
+[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
 
 ## Exported fields
 
