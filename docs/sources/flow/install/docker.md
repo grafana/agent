@@ -52,6 +52,11 @@ The last line may be modified to change the arguments passed to the Grafana
 Agent Flow binary. To see the set of options available to the `run` command,
 refer to the documentation for [run][].
 
+> **NOTE**: Make sure to pass `--server.http.listen-addr=0.0.0.0:12345` as an
+> argument like in the example above, otherwise the [debugging UI][] won't be
+> available outside of the Docker container.
+
+[debugging UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
 [run]: {{< relref "../reference/cli/run.md" >}}
 
 ## Run a Windows Docker container
@@ -77,6 +82,11 @@ The last line may be modified to change the arguments passed to the Grafana
 Agent Flow binary. To see the set of options available to the `run` command,
 refer to the documentation for [run][].
 
+> **NOTE**: Make sure to pass `--server.http.listen-addr=0.0.0.0:12345` as an
+> argument like in the example above, otherwise the [debugging UI][] won't be
+> available outside of the Docker container.
+
+[debugging UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
 [run]: {{< relref "../reference/cli/run.md" >}}
 
 ## Result
@@ -89,4 +99,3 @@ To validate that Grafana Agent Flow is running successfully, navigate to
 without error.
 
 [UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
-

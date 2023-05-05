@@ -157,6 +157,32 @@ refer to the documentation for the [run][] command.
 
 [run]: {{< relref "../reference/cli/run.md" >}}
 
+### Exposing the UI to other machines
+
+By default, Grafana Agent Flow listens on the local network for its HTTP
+server. This prevents other machines on the network from being able to access
+the [UI for debugging][UI].
+
+To expose the UI to other machines, complete the following steps:
+
+1. Follow [Passing additional command-line flags](#passing-additional-command-line-flags)
+   to edit command line flags passed to Grafana Agent Flow, including the
+   following customizations:
+
+    1. Add the following command line arugment to `CUSTOM_ARGS`:
+
+       ```
+       --server.http.listen-addr=LISTEN_ADDR:12345
+       ```
+
+       Replace `LISTEN_ADDR` with an address which other machines on the
+       network have access to, like the network IP address of the machine
+       Grafana Agent Flow is running on.
+
+       To listen on all interfaces, replace `LISTEN_ADDR` with `0.0.0.0`.
+
+[UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+
 ### Viewing Grafana Agent Flow logs
 
 Logs of Grafana Agent Flow can be found by running the following command in a

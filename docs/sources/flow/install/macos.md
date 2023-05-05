@@ -107,6 +107,27 @@ steps:
    brew services restart grafana-agent-flow
    ```
 
+### Exposing the UI to other machines
+
+By default, Grafana Agent Flow listens on the local network for its HTTP
+server. This prevents other machines on the network from being able to access
+the [UI for debugging][UI].
+
+To expose the UI to other machines, complete the following steps:
+
+1. Follow [Configuring the Grafana Agent Flow service](#configuring-the-grafana-agent-flow-service)
+   to edit command line flags passed to Grafana Agent Flow, including the
+   following customizations:
+
+    1. Modify the line inside the `service` block containing
+       `--server.http.listen-addr=127.0.0.1:12345`, replacing `127.0.0.1` with
+       the address which other machines on the network have access to, like the
+       network IP address of the machine Grafana Agent Flow is running on.
+
+       To listen on all interfaces, replace `127.0.0.1` with `0.0.0.0`.
+
+[UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+
 ### Viewing Grafana Agent Flow logs
 
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent.log` and
