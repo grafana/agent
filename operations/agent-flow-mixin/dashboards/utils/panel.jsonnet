@@ -87,13 +87,13 @@
   },
 
   withCenteredAxis():: {
-    fieldConfig +: {
-      defaults +: {
-        custom +: {
+    fieldConfig+: {
+      defaults+: {
+        custom+: {
           axisCenteredZero: true,
-        }
-      }
-    }
+        },
+      },
+    },
   },
 
   withPosition(pos):: { gridPos: pos },
