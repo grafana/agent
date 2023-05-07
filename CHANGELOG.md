@@ -39,6 +39,8 @@ Main (unreleased)
 
 - Delete stale series after a single WAL truncate instead of two. (@rfratto)
 
+- Add `kustomization.yaml` in CRDs folder for easy installation of the definitions using Kustomize (@ssakuh)
+
 ### Bugfixes
 
 - Fix issue where component evaluation time was overridden by a "default
