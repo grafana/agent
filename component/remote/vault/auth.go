@@ -135,10 +135,15 @@ type AuthAWS struct {
 	MountPath        string `river:"mount_path,attr,optional"`
 }
 
+const (
+	authAWSTypeEC2 = "ec2"
+	authAWSTypeIAM = "iam"
+)
+
 // DefaultAuthAWS provides default settings for AuthAWS.
 var DefaultAuthAWS = AuthAWS{
 	MountPath:        "aws",
-	Type:             "iam",
+	Type:             authAWSTypeIAM,
 	Region:           "us-east-1",
 	EC2SignatureType: "pkcs7",
 }
@@ -160,7 +165,7 @@ func (a *AuthAWS) Validate() error {
 	switch a.Type {
 	case "":
 		return fmt.Errorf("type must not be empty")
-	case "ec2", "iam":
+	case authAWSTypeEC2, authAWSTypeIAM:
 		// no-op
 	default:
 		return fmt.Errorf("unrecognized type %q, expected one of ec2,iam", a.Type)
@@ -187,9 +192,9 @@ func (a *AuthAWS) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*va
 	var opts []aws.LoginOption
 
 	switch a.Type {
-	case "ec2":
+	case authAWSTypeEC2:
 		opts = append(opts, aws.WithEC2Auth())
-	case "iam":
+	case authAWSTypeIAM:
 		opts = append(opts, aws.WithIAMAuth())
 	}
 	if a.Region != "" {
@@ -274,10 +279,15 @@ type AuthGCP struct {
 	MountPath         string `river:"mount_path,attr,optional"`
 }
 
+const (
+	authGCPTypeGCE = "gce"
+	authGCPTypeIAM = "iam"
+)
+
 // DefaultAuthGCP provides default settings for AuthGCP.
 var DefaultAuthGCP = AuthGCP{
 	MountPath: "gcp",
-	Type:      "gce",
+	Type:      authGCPTypeGCE,
 }
 
 // UnmarshalRiver implements river.Unmarshaler and applies default settings.
@@ -295,9 +305,9 @@ func (a *AuthGCP) UnmarshalRiver(f func(interface{}) error) error {
 // Validate returns a non-nil error if AuthGCP is invalid.
 func (a *AuthGCP) Validate() error {
 	switch a.Type {
-	case "gce":
+	case authGCPTypeGCE:
 		// no-op
-	case "iam":
+	case authGCPTypeIAM:
 		if a.IAMServiceAccount == "" {
 			return fmt.Errorf("iam_service_account must be provided when type is iam")
 		}
@@ -317,9 +327,9 @@ func (a *AuthGCP) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*va
 	var opts []gcp.LoginOption
 
 	switch a.Type {
-	case "gce":
+	case authGCPTypeGCE:
 		opts = append(opts, gcp.WithGCEAuth())
-	case "iam":
+	case authGCPTypeIAM:
 		opts = append(opts, gcp.WithIAMAuth(a.IAMServiceAccount))
 	}
 

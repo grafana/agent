@@ -131,7 +131,7 @@ func (tm *tokenManager) Run(ctx context.Context) {
 
 		case <-tm.refreshTicker.Chan():
 			level.Info(tm.log).Log("msg", "refreshing token")
-			// Error is handled via settting health and debug info.
+			// Error is handled via setting health and debug info.
 			_ = tm.updateToken(ctx)
 
 		case <-tm.onStateChange:
