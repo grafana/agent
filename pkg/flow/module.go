@@ -5,7 +5,7 @@ import (
 )
 
 type module struct {
-	o *ModuleOptions
+	o *moduleOptions
 }
 
 var (
@@ -13,7 +13,7 @@ var (
 )
 
 // newModuleSystem is the entrypoint into creating module delegates.
-/*func newModuleSystem(o *ModuleOptions) component.ModuleSystem {
+/*func newModuleSystem(o *moduleOptions) component.ModuleSystem {
 	return &module{
 		o: o,
 	}

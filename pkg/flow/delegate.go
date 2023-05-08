@@ -21,7 +21,7 @@ type delegate struct {
 
 type delegateOptions struct {
 	ID string
-	*ModuleOptions
+	*moduleOptions
 }
 
 var (
@@ -29,11 +29,11 @@ var (
 )
 
 // newDelegate creates a module delegate for a specific component.
-func newDelegate(id string, o *ModuleOptions) *delegate {
+func newDelegate(id string, o *moduleOptions) *delegate {
 	return &delegate{
 		o: &delegateOptions{
 			ID:            id,
-			ModuleOptions: o,
+			moduleOptions: o,
 		},
 	}
 }
@@ -44,7 +44,7 @@ func (c *delegate) LoadConfig(config []byte, args map[string]any, onExport compo
 		f := New(Options{
 			ControllerID:   c.o.ID,
 			Tracer:         nil,
-			Clusterer:      c.o.Clusterer,
+			Clusterer:      c.f.clusterer,
 			Reg:            c.o.Reg,
 			DataPath:       c.o.DataPath,
 			HTTPPathPrefix: c.o.HTTPPath,
@@ -90,8 +90,8 @@ func (c *delegate) ComponentHandler() (_ http.Handler) {
 	return r
 }
 
-// ModuleOptions holds static options for module.
-type ModuleOptions struct {
+// moduleOptions holds static options for module.
+type moduleOptions struct {
 
 	// Logger to use for controller logs and components. A no-op logger will be
 	// created if this is nil.
