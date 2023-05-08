@@ -20,14 +20,20 @@ var DefaultConfig = Config{
 		EnabledList: "",
 	},
 	IIS: IISConfig{
-		AppInclude:  "",
-		AppExclude:  "",
-		SiteInclude: "",
-		SiteExclude: "",
+		AppBlackList:  "",
+		AppWhiteList:  "",
+		SiteBlackList: "",
+		SiteWhiteList: "",
+		AppInclude:    "",
+		AppExclude:    "",
+		SiteInclude:   "",
+		SiteExclude:   "",
 	},
 	LogicalDisk: LogicalDiskConfig{
-		Include: "",
-		Exclude: "",
+		BlackList: "",
+		WhiteList: "",
+		Include:   "",
+		Exclude:   "",
 	},
 	MSMQ: MSMQConfig{
 		Where: "",
@@ -36,12 +42,16 @@ var DefaultConfig = Config{
 		EnabledClasses: "",
 	},
 	Network: NetworkConfig{
-		Include: "",
-		Exclude: "",
+		BlackList: "",
+		WhiteList: "",
+		Include:   "",
+		Exclude:   "",
 	},
 	Process: ProcessConfig{
-		Include: "",
-		Exclude: "",
+		BlackList: "",
+		WhiteList: "",
+		Include:   "",
+		Exclude:   "",
 	},
 	ScheduledTask: ScheduledTaskConfig{
 		Include: "",
@@ -52,8 +62,10 @@ var DefaultConfig = Config{
 		Where:  "",
 	},
 	SMTP: SMTPConfig{
-		Include: "",
-		Exclude: "",
+		BlackList: "",
+		WhiteList: "",
+		Include:   "",
+		Exclude:   "",
 	},
 	TextFile: TextFileConfig{
 		TextFileDirectory: "",
@@ -184,8 +196,6 @@ type LogicalDiskConfig struct {
 
 // ScheduledTaskConfig handles settings for the windows_exporter scheduled_task collector
 type ScheduledTaskConfig struct {
-	BlackList string `yaml:"blacklist,omitempty"`
-	WhiteList string `yaml:"whitelist,omitempty"`
-	Include   string `yaml:"include,omitempty"`
-	Exclude   string `yaml:"exclude,omitempty"`
+	Include string `yaml:"include,omitempty"`
+	Exclude string `yaml:"exclude,omitempty"`
 }
