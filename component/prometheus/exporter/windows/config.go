@@ -192,8 +192,8 @@ type SMTPConfig struct {
 // Convert converts the component's SMTPConfig to the integration's SMTPConfig.
 func (t SMTPConfig) Convert() windows_integration.SMTPConfig {
 	return windows_integration.SMTPConfig{
-		WhiteList: t.WhiteList,
 		BlackList: t.BlackList,
+		WhiteList: t.WhiteList,
 		Exclude:   t.Exclude,
 		Include:   t.Include,
 	}
@@ -224,8 +224,8 @@ type ProcessConfig struct {
 // Convert converts the component's ProcessConfig to the integration's ProcessConfig.
 func (t ProcessConfig) Convert() windows_integration.ProcessConfig {
 	return windows_integration.ProcessConfig{
-		WhiteList: t.WhiteList,
 		BlackList: t.BlackList,
+		WhiteList: t.WhiteList,
 		Exclude:   t.Exclude,
 		Include:   t.Include,
 	}
@@ -256,8 +256,8 @@ type NetworkConfig struct {
 // Convert converts the component's NetworkConfig to the integration's NetworkConfig.
 func (t NetworkConfig) Convert() windows_integration.NetworkConfig {
 	return windows_integration.NetworkConfig{
-		WhiteList: t.WhiteList,
 		BlackList: t.BlackList,
+		WhiteList: t.WhiteList,
 		Exclude:   t.Exclude,
 		Include:   t.Include,
 	}
@@ -298,8 +298,8 @@ type LogicalDiskConfig struct {
 // Convert converts the component's LogicalDiskConfig to the integration's LogicalDiskConfig.
 func (t LogicalDiskConfig) Convert() windows_integration.LogicalDiskConfig {
 	return windows_integration.LogicalDiskConfig{
-		WhiteList: t.WhiteList,
 		BlackList: t.BlackList,
+		WhiteList: t.WhiteList,
 		Include:   t.Include,
 		Exclude:   t.Exclude,
 	}
