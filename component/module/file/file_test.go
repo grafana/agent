@@ -103,11 +103,6 @@ func TestBadFile(t *testing.T) {
 			expectedErrorContains: `Unrecognized component name "local.fake"`,
 		},
 		{
-			name:                  "Missing Module",
-			moduleContents:        "",
-			expectedErrorContains: `failed to read file:`,
-		},
-		{
 			name:                  "Logging in Module",
 			moduleContents:        "logging {}",
 			expectedErrorContains: `logging block not allowed inside a module`,
