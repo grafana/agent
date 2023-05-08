@@ -19,6 +19,7 @@ Main (unreleased)
 - New Grafana Agent Flow components:
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
+  - `remote.vault` retrieves a secret from Vault. (@rfratto)
 
 - Added new Grafana Agent Flow components:
   - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
