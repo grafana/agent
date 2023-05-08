@@ -5,20 +5,7 @@ weight: 1
 
 # Grafana Agent
 
-Grafana Agent is a vendor-neutral, batteries-included telemetry collector with
-configuration inspired by [Terraform][]. It is designed to be flexible,
-performant, and compatible with multiple ecosystems such as Prometheus and
-OpenTelemetry.
-
-Grafana Agent is based around **components**. Components are wired together to
-form programmable observability **pipelines** for telemetry collection,
-processing, and delivery.
-
-> **NOTE**: This page focuses mainly on "[Flow mode][Grafana Agent Flow]," the
-> Terraform-inspired variant of Grafana Agent.
->
-> For information on other variants of Grafana Agent, refer to [About Grafana
-> Agent][].
+Grafana Agent is software that can run on any of your hosts, and which collects events and metrics from hosts and sends them to Grafana.  Grafana Agent is capable of gathering data for [all three pillars of observability](https://grafana.com/docs/grafana-cloud/fundamentals/intro-to-observability/); logs, metrics, and traces.
 
 Grafana Agent can collect, transform, and send data to:
 
@@ -51,6 +38,16 @@ Grafana Agent can collect, transform, and send data to:
   [built-in UI][UI].
 * **Batteries included**: Integrate with systems like MySQL, Kubernetes, and
   Apache to get telemetry that's immediately useful.
+
+Grafana Agent is based around **components**. Components are wired together to
+form programmable observability **pipelines** for telemetry collection,
+processing, and delivery.
+
+> **NOTE**: This page focuses mainly on "[Flow mode][Grafana Agent Flow]," the
+> Terraform-inspired variant of Grafana Agent.
+>
+> For information on other variants of Grafana Agent, refer to [About Grafana
+> Agent][].
 
 [UI]: {{< relref "./flow/monitoring/debugging.md#grafana-agent-flow-ui" >}}
 
