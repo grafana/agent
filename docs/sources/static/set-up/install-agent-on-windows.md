@@ -20,7 +20,7 @@ Install Grafana Agent and get it up and running on Windows.
    You can also download the `grafana-agent-installer.exe.zip` asset directly from https://github.com/grafana/agent/releases/latest/download/grafana-agent-installer.exe.zip
 
     Grafana Agent is installed into the default directory `C:\Program Files\Grafana Agent`.
-    The [windows_exporter integration](https://github.com/prometheus-community/windows_exporter)
+    The [windows_exporter integration](https://grafana.com/docs/agent/latest/static/configuration/integrations/windows-exporter-config)
     can be enabled with all default windows_exporter options.
 
 1. Check you can access `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/metrics/targets`.

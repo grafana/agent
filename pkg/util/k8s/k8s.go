@@ -11,16 +11,16 @@ import (
 	docker_types "github.com/docker/docker/api/types"
 	docker_nat "github.com/docker/go-connections/nat"
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	k3d_client "github.com/k3d-io/k3d/v5/pkg/client"
+	config "github.com/k3d-io/k3d/v5/pkg/config"
+	k3d_cfgtypes "github.com/k3d-io/k3d/v5/pkg/config/types"
+	k3d_config "github.com/k3d-io/k3d/v5/pkg/config/v1alpha4"
+	k3d_log "github.com/k3d-io/k3d/v5/pkg/logger"
+	k3d_runtime "github.com/k3d-io/k3d/v5/pkg/runtimes"
+	k3d_docker "github.com/k3d-io/k3d/v5/pkg/runtimes/docker"
+	k3d_types "github.com/k3d-io/k3d/v5/pkg/types"
+	k3d_version "github.com/k3d-io/k3d/v5/version"
 	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	k3d_client "github.com/rancher/k3d/v5/pkg/client"
-	config "github.com/rancher/k3d/v5/pkg/config"
-	k3d_cfgtypes "github.com/rancher/k3d/v5/pkg/config/types"
-	k3d_config "github.com/rancher/k3d/v5/pkg/config/v1alpha3"
-	k3d_log "github.com/rancher/k3d/v5/pkg/logger"
-	k3d_runtime "github.com/rancher/k3d/v5/pkg/runtimes"
-	k3d_docker "github.com/rancher/k3d/v5/pkg/runtimes/docker"
-	k3d_types "github.com/rancher/k3d/v5/pkg/types"
-	k3d_version "github.com/rancher/k3d/v5/version"
 	apiextensions_v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -110,7 +110,9 @@ func NewCluster(ctx context.Context, o Options) (cluster *Cluster, err error) {
 			Kind:       "Simple",
 			APIVersion: config.DefaultConfigApiVersion,
 		},
-		Name:    randomClusterName(),
+		ObjectMeta: k3d_cfgtypes.ObjectMeta{
+			Name: randomClusterName(),
+		},
 		Servers: 1,
 		Ports: []k3d_config.PortWithNodeFilters{{
 			// Bind NGINX (container port 80) to 127.0.0.1:0
