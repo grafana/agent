@@ -4,7 +4,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for opening a bug report for Grafana Agent.
+        Thank you for opening a feature request for Grafana Agent.
 
         Please do not use GitHub issues for support questions. If you need help or support, ask a question in [GitHub Discussions](https://github.com/grafana/agent/discussions) or join the `#agent` channel on the [Grafana Slack](https://slack.grafana.com/).
   - type: textarea

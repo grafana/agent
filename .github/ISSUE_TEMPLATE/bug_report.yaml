@@ -35,5 +35,5 @@ body:
   - type: textarea
     attributes:
       label: Logs
-      description: Provide logs relevant to the issue.
+      description: Provide logs relevant to the issue. Remove sensitive information before sharing.
       render: text
