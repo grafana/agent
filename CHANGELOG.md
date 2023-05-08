@@ -68,6 +68,8 @@ Main (unreleased)
 - Add `agent_wal_out_of_order_samples_total` metric to track samples received
   out of order. (@rfratto)
 
+- Use Go 1.20.4 for builds. (@tpaschalis)
+
 v0.33.2 (2023-05-11)
 --------------------
 
