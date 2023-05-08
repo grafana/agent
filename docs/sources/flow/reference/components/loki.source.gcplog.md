@@ -41,16 +41,21 @@ Name            | Type                 | Description          | Default | Requir
 The following blocks are supported inside the definition of
 `loki.source.gcplog`:
 
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-pull      | [pull][] | Configures a target to pull logs from a GCP Pub/Sub subscription. | no
-push      | [push][] | Configures a server to receive logs as GCP Pub/Sub push requests. | no
+Hierarchy | Name     | Description                                                                   | Required
+--------- |----------|-------------------------------------------------------------------------------| --------
+pull      | [pull][] | Configures a target to pull logs from a GCP Pub/Sub subscription.             | no
+push      | [push][] | Configures a server to receive logs as GCP Pub/Sub push requests.             | no
+push > http    | [http][] | Configures the HTTP server that receives requests when using the `push` mode.   | no
+push > grpc    | [grpc][] | Configures the gRPC server that receives requests when using the `push` mode. | no
 
 The `pull` and `push` inner blocks are mutually exclusive; a component must
-contain exactly one of the two in its definition.
+contain exactly one of the two in its definition. The `http` and `grpc` block
+are just used when the `push` block is configured.
 
 [pull]: #pull-block
 [push]: #push-block
+[http]: #http
+[grpc]: #grpc
 
 ### pull block
 
@@ -80,19 +85,18 @@ a service account key.
 
 ### push block
 
-The `push` block defines the configuration of the HTTP server that receives
+The `push` block defines the configuration of the server that receives
 push requests from GCP's Pub/Sub servers.
 
 The following arguments can be used to configure the `push` block. Any omitted
 fields take their default values.
 
-Name                     | Type          | Description | Default | Required
------------------------- | ------------- | ----------- | ------- | --------
-`http_listen_address`    | `string`      | The address the server listens to.  | `"0.0.0.0"` | no
-`http_listen_port`       | `int`         | The port the server listens to.     |  `8080`     | no
+Name                     | Type          | Description                                                     | Default | Required
+------------------------ |---------------|-----------------------------------------------------------------| ------- | --------
+`graceful_shutdown_timeout` | `duration` | Timeout for servers graceful shutdown. If configured, should be greater than zero. | "30s"    | no
 `push_timeout`           | `duration`    | Sets a maximum processing time for each incoming GCP log entry. |  `"0s"`  | no
-`labels`                 | `map(string)` | Additional labels to associate with incoming entries. | `"{}"`  | no
-`use_incoming_timestamp` | `bool`        | Whether to use the incoming entry timestamp.          | `false` | no
+`labels`                 | `map(string)` | Additional labels to associate with incoming entries.           | `"{}"`  | no
+`use_incoming_timestamp` | `bool`        | Whether to use the incoming entry timestamp.                    | `false` | no
 
 The server listens for POST requests from GCP's Push subscriptions on
 `HOST:PORT/gcp/api/v1/push`.
@@ -103,6 +107,13 @@ true.
 
 The `labels` map is applied to every entry that passes through the component.
 
+### http
+
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
+
+### grpc
+
+{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" >}}
 
 ## Exported fields
 
@@ -153,3 +164,23 @@ loki.write "local" {
 }
 ```
 
+On the other hand, if we need the server to listen on `0.0.0.0:4040`, and forwards them
+to a `loki.write` component.
+
+```river
+loki.source.gcplog "local" {
+  push {
+    http {
+        listen_port = 4040
+    }
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "loki:3100/api/v1/push"
+  }
+}
+```

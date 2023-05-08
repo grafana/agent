@@ -33,12 +33,12 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `data_source_names`                  | `list(secret)`      | Specifies the Postgres server(s) to connect to.  |         | yes
 `disable_settings_metrics`           | `bool`              | Disables collection of metrics from pg_settings. | `false` | no
-`disable_default_metrics`            | `bool`              | When `true`, only exposes metrics supplied from `custom_queries_path`. | `false` | no
+`disable_default_metrics`            | `bool`              | When `true`, only exposes metrics supplied from `custom_queries_config_path`. | `false` | no
 `custom_queries_config_path`         | `string`            | Path to YAML file containing custom queries to expose as metrics. | "" | no
 
 The format for connection strings in `data_source_names` can be found in the [official postgresql documentation](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING).
 
-See examples for the `custom_queries_path` file in the [postgres_exporter repository](https://github.com/prometheus-community/postgres_exporter/blob/master/queries.yaml).
+See examples for the `custom_queries_config_path` file in the [postgres_exporter repository](https://github.com/prometheus-community/postgres_exporter/blob/master/queries.yaml).
 
 **NOTE**: There are a number of environment variables that are not recommended for use, as they will affect _all_ `prometheus.exporter.postgres` components. A full list can be found in the [postgres_exporter repository](https://github.com/prometheus-community/postgres_exporter#environment-variables).
 
@@ -137,8 +137,8 @@ prometheus.exporter.postgres "example" {
     database_allowlist = ["frontend_app", "backend_app"]
   }
 
-  disable_default_metrics = true
-  custom_queries_path     = "/etc/agent/custom-postgres-metrics.yaml"
+  disable_default_metrics    = true
+  custom_queries_config_path = "/etc/agent/custom-postgres-metrics.yaml"
 }
 
 prometheus.scrape "default" {

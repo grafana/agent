@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/loki/internal/fake"
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/Shopify/sarama"
 	"github.com/prometheus/common/model"

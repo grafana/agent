@@ -13,12 +13,15 @@ Main (unreleased)
 ### Breaking changes
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
+- The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
 
 ### Features
 - New Grafana Agent Flow components:
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
 
+- Added new Grafana Agent Flow components:
+  - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
 - Added coalesce function to river stdlib. (@jkroepke)
 
 ### Enhancements
@@ -32,6 +35,13 @@ Main (unreleased)
 
 - Disable node_exporter on Windows systems (@jkroepke)
 
+- Support `clustering` block in `phlare.scrape` components to distribute
+  targets amongst clustered agents. (@rfratto)
+
+- Delete stale series after a single WAL truncate instead of two. (@rfratto)
+
+- Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
+
 - Allow propagation of logs and traces from modules. (@mattdurham)
 
 ### Bugfixes
@@ -39,10 +49,29 @@ Main (unreleased)
 - Fix issue where component evaluation time was overridden by a "default
   health" message. (@rfratto)
 
+- Fix an issue where defining `logging` or `tracing` blocks inside of a module
+  would generate a panic instead of returning an error. (@erikbaranowski)
+
+- Honor timeout when trying to establish a connection to another agent in Flow
+  clustering mode. (@rfratto)
+
+- Fix an issue where not specifying either `http` nor `grpc` blocks could result
+  in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
+
+- Fix an issue with the grafana/agent windows docker image entrypoint
+  not targeting the right location for the config. (@erikbaranowski)
+
+- Fix issue where the the `node_exporter` integration and
+  `prometheus.exporter.unix` `diskstat_device_include` component could not set
+  the allowlist field for the diskstat collector. (@tpaschalis)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
 - Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
+
+- Add `agent_wal_out_of_order_samples_total` metric to track samples received
+  out of order. (@rfratto)
 
 v0.33.1 (2023-05-01)
 --------------------

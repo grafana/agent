@@ -9,7 +9,7 @@
 title: prometheus.exporter.memcached
 ---
 
-# COMPONENT_NAME
+# prometheus.exporter.memcached
 The `prometheus.exporter.memcached` component embeds
 [memcached_exporter](https://github.com/prometheus/memcached_exporter) for collecting metrics from a Memcached server.
 

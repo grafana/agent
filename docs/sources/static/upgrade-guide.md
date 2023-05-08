@@ -122,7 +122,7 @@ include symbolic links from the old binary names to the new binary names.
 
 There is no action to take at this time.
 
-## v0.24.0
+## v0.26.0
 
 ### Breaking change: Deprecated YAML fields in `server` block removed
 
