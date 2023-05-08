@@ -7,22 +7,29 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"path"
 
-	"github.com/prometheus/prometheus/util/httputil"
-
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/flow"
+	"github.com/grafana/agent/component"
+	"github.com/prometheus/prometheus/util/httputil"
 )
+
+// ComponentProvider provides the ability to introspect a flow components
+// in a read only manner.
+type ComponentProvider interface {
+	ComponentInfos() []*component.ComponentInfo
+	ComponentJSON(io.Writer, *component.ComponentInfo) error
+}
 
 // FlowAPI is a wrapper around the component API.
 type FlowAPI struct {
-	flow *flow.Flow
+	flow ComponentProvider
 }
 
 // NewFlowAPI instantiates a new Flow API.
-func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
+func NewFlowAPI(flow ComponentProvider) *FlowAPI {
 	return &FlowAPI{flow: flow}
 }
 
@@ -67,7 +74,7 @@ func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 }
 
 // json returns the JSON representation of c.
-func (f *FlowAPI) json(c *flow.ComponentInfo) ([]byte, error) {
+func (f *FlowAPI) json(c *component.ComponentInfo) ([]byte, error) {
 	var buf bytes.Buffer
 	err := f.flow.ComponentJSON(&buf, c)
 	if err != nil {

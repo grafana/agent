@@ -116,7 +116,7 @@ func (c *ModuleComponent) setHealth(h component.Health) {
 func (c *ModuleComponent) Handler() http.Handler {
 	r := mux.NewRouter()
 
-	fa := api.NewFlowAPI(c.ctrl, r)
+	fa := api.NewFlowAPI(c.ctrl)
 	fa.RegisterRoutes("/", r)
 
 	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
