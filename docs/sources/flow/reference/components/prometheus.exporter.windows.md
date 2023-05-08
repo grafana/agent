@@ -292,7 +292,7 @@ prometheus.exporter.windows "default" {
 
 // Configure a prometheus.scrape component to collect windows metrics.
 prometheus.scrape "example" {
-  targets    = prometheus.exporter.windows.this.targets
+  targets    = prometheus.exporter.windows.default.targets
   forward_to = [ /* ... */ ]
 }
 ```
