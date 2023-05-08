@@ -232,7 +232,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/Microsoft/hcsshim v0.9.7 // indirect
+	github.com/Microsoft/hcsshim v0.9.8 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210920160938-87db9fbc61c7 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
@@ -601,8 +601,8 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/willf/bitset v1.1.11 // indirect
 	github.com/willf/bloom v2.0.3+incompatible // indirect
-	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
+	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 )
 
 // NOTE: replace directives below must always be *temporary*.
