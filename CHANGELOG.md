@@ -72,6 +72,9 @@ Main (unreleased)
 - Add `agent_wal_out_of_order_samples_total` metric to track samples received
   out of order. (@rfratto)
 
+- The `phlare.scrape` flow component `fetch profile failed` log has been set to
+  `debug` instead of `error`. (@erikbaranowski)
+
 v0.33.1 (2023-05-01)
 --------------------
 
