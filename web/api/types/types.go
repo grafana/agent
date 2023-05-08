@@ -1,4 +1,4 @@
-package component
+package types
 
 import (
 	"encoding/json"

@@ -12,15 +12,15 @@ import (
 	"path"
 
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/web/api/types"
 	"github.com/prometheus/prometheus/util/httputil"
 )
 
 // ComponentProvider provides the ability to introspect a flow components
 // in a read only manner.
 type ComponentProvider interface {
-	ComponentInfos() []*component.ComponentInfo
-	ComponentJSON(io.Writer, *component.ComponentInfo) error
+	ComponentInfos() []*types.ComponentInfo
+	ComponentJSON(io.Writer, *types.ComponentInfo) error
 }
 
 // FlowAPI is a wrapper around the component API.
@@ -74,7 +74,7 @@ func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
 }
 
 // json returns the JSON representation of c.
-func (f *FlowAPI) json(c *component.ComponentInfo) ([]byte, error) {
+func (f *FlowAPI) json(c *types.ComponentInfo) ([]byte, error) {
 	var buf bytes.Buffer
 	err := f.flow.ComponentJSON(&buf, c)
 	if err != nil {

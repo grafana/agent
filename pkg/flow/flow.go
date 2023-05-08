@@ -51,12 +51,12 @@ import (
 	"sync"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/agent/web/api/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -267,12 +267,12 @@ func (c *Flow) Ready() bool {
 }
 
 // ComponentInfos returns the component infos.
-func (c *Flow) ComponentInfos() []*component.ComponentInfo {
+func (c *Flow) ComponentInfos() []*types.ComponentInfo {
 	c.loadMut.RLock()
 	defer c.loadMut.RUnlock()
 
 	cns := c.loader.Components()
-	infos := make([]*component.ComponentInfo, len(cns))
+	infos := make([]*types.ComponentInfo, len(cns))
 	edges := c.loader.OriginalGraph().Edges()
 	for i, com := range cns {
 		nn := newFromNode(com, edges)
@@ -281,7 +281,7 @@ func (c *Flow) ComponentInfos() []*component.ComponentInfo {
 	return infos
 }
 
-func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *component.ComponentInfo {
+func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *types.ComponentInfo {
 	references := make([]string, 0)
 	referencedBy := make([]string, 0)
 	for _, e := range edges {
@@ -304,14 +304,14 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *component.Comp
 		}
 	}
 	h := cn.CurrentHealth()
-	ci := &component.ComponentInfo{
+	ci := &types.ComponentInfo{
 		Label:        cn.Label(),
 		ID:           cn.NodeID(),
 		Name:         cn.ComponentName(),
 		Type:         "block",
 		References:   references,
 		ReferencedBy: referencedBy,
-		Health: &component.ComponentHealth{
+		Health: &types.ComponentHealth{
 			State:       h.Health.String(),
 			Message:     h.Message,
 			UpdatedTime: h.UpdateTime,

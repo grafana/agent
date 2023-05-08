@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/river/encoding"
+	"github.com/grafana/agent/web/api/types"
 )
 
 // ComponentHandler returns an http.HandlerFunc which will delegate all requests to
@@ -47,7 +47,7 @@ func (f *Flow) ComponentHandler() http.HandlerFunc {
 }
 
 // ComponentJSON returns the json representation of the flow component.
-func (f *Flow) ComponentJSON(w io.Writer, ci *component.ComponentInfo) error {
+func (f *Flow) ComponentJSON(w io.Writer, ci *types.ComponentInfo) error {
 	f.loadMut.RLock()
 	defer f.loadMut.RUnlock()
 
