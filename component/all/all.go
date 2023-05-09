@@ -80,4 +80,5 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape
 	_ "github.com/grafana/agent/component/remote/http"                              // Import remote.http
 	_ "github.com/grafana/agent/component/remote/s3"                                // Import remote.s3
+	_ "github.com/grafana/agent/component/remote/vault"                             // Import remote.vault
 )

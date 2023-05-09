@@ -1,6 +1,6 @@
 {
   prometheusAlerts+: {
-    groups: [
+    groups+: [
       (import './alerts/clustering.libsonnet'),
     ],
   },
