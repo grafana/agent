@@ -14,7 +14,7 @@ Main (unreleased)
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
 - The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
-- Upgrade the embedded windows_exporter to the last version. The windows_exporter contains some breaking changes.
+- Upgrade the embedded windows_exporter to the v.0.22.0 version. The windows_exporter contains some breaking changes.
   - `iss.app_blacklist` is now `iss.app_exclude`
   - `iss.app_whitelist` is now `iss.app_include`
   - `iss.site_blacklist` is now `iss.site_exclude`
