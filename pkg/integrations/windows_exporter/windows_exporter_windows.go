@@ -1,25 +1,30 @@
 package windows_exporter //nolint:golint
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/prometheus-community/windows_exporter/collector"
-	"github.com/prometheus/statsd_exporter/pkg/level"
 )
 
 // New creates a new windows_exporter integration.
-func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	// Get a list of collector configs and map our local config to it.
-	availableConfigs := collector.AllConfigs()
-	c.toExporterConfig(availableConfigs)
+func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+	windowsExporter := kingpin.New("", "")
+	collector.RegisterCollectorsFlags(windowsExporter)
+	c.toExporterConfig(windowsExporter)
 
+	if _, err := windowsExporter.Parse([]string{}); err != nil {
+		return nil, err
+	}
+
+	collector.RegisterCollectors()
 	enabledCollectorNames := enabledCollectors(c.EnabledCollectors)
-	collectors, err := buildCollectors(enabledCollectorNames, availableConfigs)
+	collectors, err := buildCollectors(enabledCollectorNames)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +34,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		collectorNames = append(collectorNames, key)
 	}
 	sort.Strings(collectorNames)
-	level.Info(log).Log("msg", "enabled windows_exporter collectors", "collectors", strings.Join(collectorNames, ","))
+	level.Info(logger).Log("msg", "enabled windows_exporter collectors", "collectors", strings.Join(collectorNames, ","))
 
 	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(
 		// Hard-coded 4m timeout to represent the time a series goes stale.
@@ -54,22 +59,11 @@ func enabledCollectors(input string) []string {
 	return result
 }
 
-func buildCollectors(enabled []string, available []collector.Config) (map[string]collector.Collector, error) {
+func buildCollectors(enabled []string) (map[string]collector.Collector, error) {
 	collectors := map[string]collector.Collector{}
 
 	for _, name := range enabled {
-		var found collector.Config
-		for _, c := range available {
-			if c.Name() == name {
-				found = c
-				break
-			}
-		}
-		if found == nil {
-			return nil, fmt.Errorf("unknown collector %q", name)
-		}
-
-		c, err := found.Build()
+		c, err := collector.Build(name)
 		if err != nil {
 			return nil, err
 		}
