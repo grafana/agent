@@ -42,6 +42,9 @@ v0.33.2 (2023-05-11)
 - The `phlare.scrape` Flow component `fetch profile failed` log has been set to
   `debug` instead of `error`. (@erikbaranowski)
 
+- The `phlare.scrape` Flow component `fetch profile failed` log has been set to
+  `debug` instead of `error`. (@erikbaranowski)
+
 v0.33.1 (2023-05-01)
 --------------------
 
