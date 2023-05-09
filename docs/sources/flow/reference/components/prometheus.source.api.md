@@ -70,7 +70,7 @@ The following are some of the metrics that are exposed when this component is us
 
 ## Example
 
-This example creates a `prometheus.source.api` component which starts an HTTP server on `0.0.0.0` address and port `9999`. The server receives metrics and forwards them to a `prometheus.remote_write` component which writes these metrics to a specified HTTP endpoint.
+This example creates a `prometheus.source.api` component which starts an HTTP server listening on `0.0.0.0` and port `9999`. The server receives metrics and forwards them to a `prometheus.remote_write` component which writes these metrics to the specified HTTP endpoint.
 
 ```river
 // Receives metrics over HTTP
