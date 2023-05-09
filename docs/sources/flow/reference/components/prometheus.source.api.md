@@ -82,10 +82,15 @@ prometheus.source.api "api" {
   forward_to = [prometheus.remote_write.local.receiver]
 }
 
-// Writes metrics to a specified address, e.g. cloud-hosted Prometheus instance
+// Send metrics to a locally running Mimir.
 prometheus.remote_write "local" {
   endpoint {
-    url = "http://my-cloud-prometheus-instance.com/api/prom/push"
+    url = "http://mimir:9009/api/v1/push"
+    
+    basic_auth {
+      username = "example-user"
+      password = "example-password"
+    }
   }
 }
 ```
