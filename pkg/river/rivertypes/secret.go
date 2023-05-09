@@ -3,7 +3,7 @@ package rivertypes
 import (
 	"fmt"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/token"
 	"github.com/grafana/agent/pkg/river/token/builder"
 )
@@ -17,9 +17,9 @@ import (
 type Secret string
 
 var (
-	_ river.Capsule                = Secret("")
-	_ river.ConvertibleIntoCapsule = Secret("")
-	_ river.ConvertibleFromCapsule = (*Secret)(nil)
+	_ value.Capsule                = Secret("")
+	_ value.ConvertibleIntoCapsule = Secret("")
+	_ value.ConvertibleFromCapsule = (*Secret)(nil)
 
 	_ builder.Tokenizer = Secret("")
 )
@@ -39,7 +39,7 @@ func (s Secret) ConvertInto(dst interface{}) error {
 		return fmt.Errorf("secrets may not be converted into strings")
 	}
 
-	return river.ErrNoConversion
+	return value.ErrNoConversion
 }
 
 // ConvertFrom converts the src value and stores it into the Secret s.
@@ -55,7 +55,7 @@ func (s *Secret) ConvertFrom(src interface{}) error {
 		return nil
 	}
 
-	return river.ErrNoConversion
+	return value.ErrNoConversion
 }
 
 // RiverTokenize returns a set of custom tokens to represent this value in

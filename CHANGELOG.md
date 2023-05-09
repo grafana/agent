@@ -19,6 +19,7 @@ Main (unreleased)
 - Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
 
 ### Features
+
 - New Grafana Agent Flow components:
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
@@ -26,8 +27,11 @@ Main (unreleased)
 
 - Added new Grafana Agent Flow components:
   - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
-- 
-- Added coalesce function to river stdlib. (@jkroepke)
+
+- Added new functions to the River standard library:
+  - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
+  - `nonsensitive` converts a River secret back into a string. (@rfratto)
+
 
 ### Enhancements
 
@@ -75,6 +79,9 @@ Main (unreleased)
 
 - Add `agent_wal_out_of_order_samples_total` metric to track samples received
   out of order. (@rfratto)
+
+- The `phlare.scrape` Flow component `fetch profile failed` log has been set to
+  `debug` instead of `error`. (@erikbaranowski)
 
 v0.33.1 (2023-05-01)
 --------------------
