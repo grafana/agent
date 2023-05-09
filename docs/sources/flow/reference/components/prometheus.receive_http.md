@@ -1,12 +1,12 @@
 ---
-title: prometheus.source.api
+title: prometheus.receive_http
 ---
 
-# prometheus.source.api
+# prometheus.receive_http
 
-`prometheus.source.api` listens for HTTP requests containing Prometheus metric samples and forwards them to other components capable of receiving metrics.
+`prometheus.receive_http` listens for HTTP requests containing Prometheus metric samples and forwards them to other components capable of receiving metrics.
 
-The HTTP API exposed is compatible with [Prometheus `remote_write` API][prometheus-remote-write-docs]. This means that other [`prometheus.remote_write`][prometheus.remote_write] components can be used as a client and send requests to `prometheus.source.api` which enables using the Agent as a proxy for prometheus metrics.
+The HTTP API exposed is compatible with [Prometheus `remote_write` API][prometheus-remote-write-docs]. This means that other [`prometheus.remote_write`][prometheus.remote_write] components can be used as a client and send requests to `prometheus.receive_http` which enables using the Agent as a proxy for prometheus metrics.
 
 [prometheus.remote_write]: {{< relref "./prometheus.remote_write.md" >}}
 [prometheus-remote-write-docs]: https://prometheus.io/docs/prometheus/latest/querying/api/#remote-write-receiver
@@ -14,7 +14,7 @@ The HTTP API exposed is compatible with [Prometheus `remote_write` API][promethe
 ## Usage
 
 ```river
-prometheus.source.api "LABEL" {
+prometheus.receive_http "LABEL" {
   http {
     listen_address = "LISTEN_ADDRESS"
     listen_port = PORT 
@@ -29,7 +29,7 @@ The component will start an HTTP server supporting the following endpoint:
 
 ## Arguments
 
-`prometheus.source.api` supports the following arguments:
+`prometheus.receive_http` supports the following arguments:
 
  Name         | Type             | Description                           | Default | Required 
 --------------|------------------|---------------------------------------|---------|----------
@@ -37,7 +37,7 @@ The component will start an HTTP server supporting the following endpoint:
 
 ## Blocks
 
-The following blocks are supported inside the definition of `prometheus.source.api`:
+The following blocks are supported inside the definition of `prometheus.receive_http`:
 
  Hierarchy | Name     | Description                                        | Required 
 -----------|----------|----------------------------------------------------|----------
@@ -51,20 +51,20 @@ The following blocks are supported inside the definition of `prometheus.source.a
 
 ## Exported fields
 
-`prometheus.source.api` does not export any fields.
+`prometheus.receive_http` does not export any fields.
 
 ## Component health
 
-`prometheus.source.api` is reported as unhealthy if it is given an invalid configuration.
+`prometheus.receive_http` is reported as unhealthy if it is given an invalid configuration.
 
 ## Debug metrics
 
 The following are some of the metrics that are exposed when this component is used. Note that the metrics include labels such as `status_code` where relevant, which can be used to measure request success rates.
 
-* `prometheus_source_api_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
-* `prometheus_source_api_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
-* `prometheus_source_api_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
-* `prometheus_source_api_tcp_connections` (gauge): Current number of accepted TCP connections.
+* `prometheus_receive_http_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
+* `prometheus_receive_http_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
+* `prometheus_receive_http_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
+* `prometheus_receive_http_tcp_connections` (gauge): Current number of accepted TCP connections.
 * `agent_prometheus_fanout_latency` (histogram): Write latency for sending metrics to other components.
 * `agent_prometheus_forwarded_samples_total` (counter): Total number of samples sent to downstream components.
 
@@ -72,11 +72,11 @@ The following are some of the metrics that are exposed when this component is us
 
 ### Receiving metrics over HTTP
 
-This example creates a `prometheus.source.api` component which starts an HTTP server listening on `0.0.0.0` and port `9999`. The server receives metrics and forwards them to a `prometheus.remote_write` component which writes these metrics to the specified HTTP endpoint.
+This example creates a `prometheus.receive_http` component which starts an HTTP server listening on `0.0.0.0` and port `9999`. The server receives metrics and forwards them to a `prometheus.remote_write` component which writes these metrics to the specified HTTP endpoint.
 
 ```river
 // Receives metrics over HTTP
-prometheus.source.api "api" {
+prometheus.receive_http "api" {
   http {
     listen_address = "0.0.0.0"
     listen_port = 9999 
@@ -99,7 +99,7 @@ prometheus.remote_write "local" {
 
 ### Proxying metrics
 
-In order to send metrics to the `prometheus.source.api` component defined in the previous example, another Grafana Agent can run with the following configuration:
+In order to send metrics to the `prometheus.receive_http` component defined in the previous example, another Grafana Agent can run with the following configuration:
 
 ```river
 // Collects metrics of localhost:12345
@@ -111,7 +111,7 @@ prometheus.scrape "agent_self" {
 }
 
 // Writes metrics to localhost:9999/api/v1/metrics/write - e.g. served by 
-// the prometheus.source.api component from the example above.
+// the prometheus.receive_http component from the example above.
 prometheus.remote_write "local" {
   endpoint {
     url = "http://localhost:9999/api/v1/metrics/write"

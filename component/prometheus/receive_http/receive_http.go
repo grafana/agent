@@ -1,4 +1,4 @@
-package api
+package receive_http
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "prometheus.source.api",
+		Name: "prometheus.receive_http",
 		Args: Arguments{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -118,7 +118,7 @@ func (c *Component) createNewServer(args Arguments) (error, *fnet.TargetServer) 
 
 	s, err := fnet.NewTargetServer(
 		c.opts.Logger,
-		"prometheus_source_api",
+		"prometheus_receive_http",
 		serverRegistry,
 		args.Server,
 	)

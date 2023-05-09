@@ -20,7 +20,7 @@ Main (unreleased)
   - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
-  - `prometheus.source.api` - receive Prometheus metrics over HTTP (e.g. from other agents). (@thampiotr)
+  - `prometheus.receive_http` - receive Prometheus metrics over HTTP (e.g. from other agents). (@thampiotr)
   - `remote.vault` retrieves a secret from Vault. (@rfratto)
 
 - Added coalesce function to river stdlib. (@jkroepke)

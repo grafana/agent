@@ -1,4 +1,4 @@
-package api
+package receive_http
 
 import (
 	"context"
