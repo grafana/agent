@@ -121,7 +121,7 @@ require (
 	github.com/prometheus-community/elasticsearch_exporter v1.5.0
 	github.com/prometheus-community/postgres_exporter v0.11.1
 	github.com/prometheus-community/stackdriver_exporter v0.13.0
-	github.com/prometheus-community/windows_exporter v0.22.0
+	github.com/prometheus-community/windows_exporter v0.0.0-20230507104622-79781c6d75fc
 	github.com/prometheus-operator/prometheus-operator v0.62.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.63.0
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.63.0

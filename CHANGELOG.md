@@ -16,7 +16,7 @@ Main (unreleased)
  
 - The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
 
-- Upgrade the embedded windows_exporter to the v0.22 version. (@jkroepke)
+- Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
 
 ### Features
 - New Grafana Agent Flow components:
