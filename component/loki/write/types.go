@@ -5,9 +5,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/grafana/agent/component/common/loki/client"
+
 	"github.com/alecthomas/units"
 	types "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/loki/write/internal/client"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/flagext"
 	lokiflagext "github.com/grafana/loki/pkg/util/flagext"

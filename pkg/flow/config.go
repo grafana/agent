@@ -7,7 +7,6 @@ import (
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/parser"
-	"github.com/grafana/agent/pkg/river/vm"
 )
 
 // An Argument is an input to a Flow module.
@@ -29,8 +28,6 @@ type Argument struct {
 type File struct {
 	Name string    // File name given to ReadFile.
 	Node *ast.File // Raw File node.
-
-	Arguments []Argument // Arguments found in the file.
 
 	// Components holds the list of raw River AST blocks describing components.
 	// The Flow controller can interpret them.
@@ -54,9 +51,6 @@ func ReadFile(name string, bb []byte) (*File, error) {
 	var (
 		components []*ast.BlockStmt
 		configs    []*ast.BlockStmt
-		args       []Argument
-
-		namedArgs = make(map[string]struct{})
 	)
 
 	for _, stmt := range node.Body {
@@ -77,22 +71,7 @@ func ReadFile(name string, bb []byte) (*File, error) {
 			case "tracing":
 				configs = append(configs, stmt)
 			case "argument":
-				var arg Argument
-				if err := vm.New(stmt).Evaluate(nil, &arg); err != nil {
-					return nil, err
-				}
-
-				if _, exist := namedArgs[arg.Name]; exist {
-					return nil, diag.Diagnostic{
-						Severity: diag.SeverityLevelError,
-						StartPos: ast.StartPos(stmt).Position(),
-						EndPos:   ast.EndPos(stmt).Position(),
-						Message:  fmt.Sprintf("argument %q declared more than once", arg.Name),
-					}
-				}
-
-				args = append(args, arg)
-				namedArgs[arg.Name] = struct{}{}
+				configs = append(configs, stmt)
 			case "export":
 				configs = append(configs, stmt)
 			default:
@@ -112,7 +91,6 @@ func ReadFile(name string, bb []byte) (*File, error) {
 	return &File{
 		Name:         name,
 		Node:         node,
-		Arguments:    args,
 		Components:   components,
 		ConfigBlocks: configs,
 	}, nil

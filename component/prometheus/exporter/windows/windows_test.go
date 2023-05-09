@@ -16,10 +16,10 @@ var (
 		}
 		
 		iis {
-			site_whitelist = ".+"
-			site_blacklist = ""
-			app_whitelist = ".+"
-			app_blacklist = ""
+			site_include = ".+"
+			site_exclude = ""
+			app_include = ".+"
+			app_exclude = ""
 		}
 		
 		text_file {
@@ -27,8 +27,8 @@ var (
 		}
 		
 		smtp {
-			whitelist = ".+"
-			blacklist = ""
+			include = ".+"
+			exclude = ""
 		}
 
         service {
@@ -36,13 +36,13 @@ var (
         }
 		
 		process {
-			whitelist = ".+"
-			blacklist = ""
+			include = ".+"
+			exclude = ""
 		}
 		
 		network {
-			whitelist = ".+"
-			blacklist = ""
+			include = ".+"
+			exclude = ""
 		}
 		
 		mssql {
@@ -54,7 +54,8 @@ var (
 		}
 		
 		logical_disk {
-			blacklist = ""
+			include = ".+"
+			exclude = ""
 		}
 		`
 )
@@ -66,22 +67,22 @@ func TestRiverUnmarshal(t *testing.T) {
 
 	require.Equal(t, []string{"textfile", "cpu"}, args.EnabledCollectors)
 	require.Equal(t, []string{"example"}, args.Exchange.EnabledList)
-	require.Equal(t, "", args.IIS.SiteBlackList)
-	require.Equal(t, ".+", args.IIS.SiteWhiteList)
-	require.Equal(t, "", args.IIS.AppBlackList)
-	require.Equal(t, ".+", args.IIS.AppWhiteList)
+	require.Equal(t, "", args.IIS.SiteExclude)
+	require.Equal(t, ".+", args.IIS.SiteInclude)
+	require.Equal(t, "", args.IIS.AppExclude)
+	require.Equal(t, ".+", args.IIS.AppInclude)
 	require.Equal(t, "C:", args.TextFile.TextFileDirectory)
-	require.Equal(t, "", args.SMTP.BlackList)
-	require.Equal(t, ".+", args.SMTP.WhiteList)
+	require.Equal(t, "", args.SMTP.Exclude)
+	require.Equal(t, ".+", args.SMTP.Include)
 	require.Equal(t, "where", args.Service.Where)
-	require.Equal(t, "", args.Process.BlackList)
-	require.Equal(t, ".+", args.Process.WhiteList)
-	require.Equal(t, "", args.Network.BlackList)
-	require.Equal(t, ".+", args.Network.WhiteList)
+	require.Equal(t, "", args.Process.Exclude)
+	require.Equal(t, ".+", args.Process.Include)
+	require.Equal(t, "", args.Network.Exclude)
+	require.Equal(t, ".+", args.Network.Include)
 	require.Equal(t, []string{"accessmethods"}, args.MSSQL.EnabledClasses)
 	require.Equal(t, "where", args.MSMQ.Where)
-	require.Equal(t, "", args.LogicalDisk.BlackList)
-	require.Equal(t, ".+", args.LogicalDisk.WhiteList)
+	require.Equal(t, "", args.LogicalDisk.Exclude)
+	require.Equal(t, ".+", args.LogicalDisk.Include)
 }
 
 func TestConvert(t *testing.T) {
@@ -93,20 +94,20 @@ func TestConvert(t *testing.T) {
 
 	require.Equal(t, "textfile,cpu", conf.EnabledCollectors)
 	require.Equal(t, "example", conf.Exchange.EnabledList)
-	require.Equal(t, "", conf.IIS.SiteBlackList)
-	require.Equal(t, ".+", conf.IIS.SiteWhiteList)
-	require.Equal(t, "", conf.IIS.AppBlackList)
-	require.Equal(t, ".+", conf.IIS.AppWhiteList)
+	require.Equal(t, "", conf.IIS.SiteExclude)
+	require.Equal(t, ".+", conf.IIS.SiteInclude)
+	require.Equal(t, "", conf.IIS.AppExclude)
+	require.Equal(t, ".+", conf.IIS.AppInclude)
 	require.Equal(t, "C:", conf.TextFile.TextFileDirectory)
-	require.Equal(t, "", conf.SMTP.BlackList)
-	require.Equal(t, ".+", conf.SMTP.WhiteList)
+	require.Equal(t, "", conf.SMTP.Exclude)
+	require.Equal(t, ".+", conf.SMTP.Include)
 	require.Equal(t, "where", conf.Service.Where)
-	require.Equal(t, "", conf.Process.BlackList)
-	require.Equal(t, ".+", conf.Process.WhiteList)
-	require.Equal(t, "", conf.Network.BlackList)
-	require.Equal(t, ".+", conf.Network.WhiteList)
+	require.Equal(t, "", conf.Process.Exclude)
+	require.Equal(t, ".+", conf.Process.Include)
+	require.Equal(t, "", conf.Network.Exclude)
+	require.Equal(t, ".+", conf.Network.Include)
 	require.Equal(t, "accessmethods", conf.MSSQL.EnabledClasses)
 	require.Equal(t, "where", conf.MSMQ.Where)
-	require.Equal(t, "", conf.LogicalDisk.BlackList)
-	require.Equal(t, ".+", conf.LogicalDisk.WhiteList)
+	require.Equal(t, "", conf.LogicalDisk.Exclude)
+	require.Equal(t, ".+", conf.LogicalDisk.Include)
 }

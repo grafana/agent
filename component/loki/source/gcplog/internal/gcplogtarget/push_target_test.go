@@ -9,10 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/loki/internal/fake"
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
+	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component/common/loki"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -165,8 +167,14 @@ func TestPushTarget(t *testing.T) {
 			config := &PushConfig{
 				Labels:               lbls,
 				UseIncomingTimestamp: false,
-				HTTPListenAddress:    "localhost",
-				HTTPListenPort:       port,
+				Server: &fnet.ServerConfig{
+					HTTP: &fnet.HTTPConfig{
+						ListenAddress: "localhost",
+						ListenPort:    port,
+					},
+					// assign random grpc port
+					GRPC: &fnet.GRPCConfig{ListenPort: 0},
+				},
 			}
 
 			prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -228,8 +236,14 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		HTTPListenAddress:    "localhost",
-		HTTPListenPort:       port,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -272,8 +286,14 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		HTTPListenAddress:    "localhost",
-		HTTPListenPort:       port,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -323,9 +343,15 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
 	config := &PushConfig{
-		Labels:            nil,
-		HTTPListenAddress: "localhost",
-		HTTPListenPort:    port,
+		Labels: nil,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -406,8 +432,14 @@ func TestPushTarget_UsePushTimeout(t *testing.T) {
 		Labels:               nil,
 		UseIncomingTimestamp: true,
 		PushTimeout:          time.Second,
-		HTTPListenAddress:    "localhost",
-		HTTPListenPort:       port,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()

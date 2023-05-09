@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/loki/internal/fake"
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/go-kit/log"

@@ -278,10 +278,10 @@ the Agent is running on is a no-op.
   # Regexp of `flags` field in cpu info to filter.
   [cpu_flags_include: <string>]
 
-  # Regexp of devices to ignore for diskstats (mutually exclusive with diskstats_device_include).
+  # Regexp of devices to ignore for diskstats.
   [diskstats_device_exclude: <string> | default = "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$"]
 
-  # Regexp of devices to include for diskstats (mutually exclusive with diskstats_device_exclude).
+  # Regexp of devices to include for diskstats. If set, the diskstat_device_exclude field is ignored.
   [diskstats_device_include: <string>]
 
   # Regexp of ethtool devices to exclude (mutually exclusive with ethtool_device_include)

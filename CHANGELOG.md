@@ -13,12 +13,29 @@ Main (unreleased)
 ### Breaking changes
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
+- The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
+- Upgrade the embedded windows_exporter to the last version. The windows_exporter contains some breaking changes.
+  - `iss.app_blacklist` is now `iss.app_exclude`
+  - `iss.app_whitelist` is now `iss.app_include`
+  - `iss.site_blacklist` is now `iss.site_exclude`
+  - `iss.site_whitelist` is now `iss.site_include`
+  - `logical_disk.blacklist` is now `logical_disk.exclude`
+  - `logical_disk.whitelist` is now `logical_disk.include`
+  - `network.blacklist` is now `network.exclude`
+  - `network.whitelist` is now `network.include`
+  - `process.blacklist` is now `process.exclude`
+  - `process.whitelist` is now `process.include`
+  - `smtp.blacklist` is now `smtp.exclude`
+  - `smtp.whitelist` is now `smtp.include`
 
 ### Features
 - New Grafana Agent Flow components:
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
+  - `remote.vault` retrieves a secret from Vault. (@rfratto)
 
+- Added new Grafana Agent Flow components:
+  - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
 - Added coalesce function to river stdlib. (@jkroepke)
 
 ### Enhancements
@@ -32,15 +49,41 @@ Main (unreleased)
 - Disable node_exporter on Windows systems (@jkroepke)
 - Operator support for OAuth 2.0 Client in LogsClientSpec (@DavidSpek)
 
+- Support `clustering` block in `phlare.scrape` components to distribute
+  targets amongst clustered agents. (@rfratto)
+
+- Delete stale series after a single WAL truncate instead of two. (@rfratto)
+
+- Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
+
 ### Bugfixes
 
 - Fix issue where component evaluation time was overridden by a "default
   health" message. (@rfratto)
 
+- Fix an issue where defining `logging` or `tracing` blocks inside of a module
+  would generate a panic instead of returning an error. (@erikbaranowski)
+
+- Honor timeout when trying to establish a connection to another agent in Flow
+  clustering mode. (@rfratto)
+
+- Fix an issue where not specifying either `http` nor `grpc` blocks could result
+  in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
+
+- Fix an issue with the grafana/agent windows docker image entrypoint
+  not targeting the right location for the config. (@erikbaranowski)
+
+- Fix issue where the the `node_exporter` integration and
+  `prometheus.exporter.unix` `diskstat_device_include` component could not set
+  the allowlist field for the diskstat collector. (@tpaschalis)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
 - Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
+
+- Add `agent_wal_out_of_order_samples_total` metric to track samples received
+  out of order. (@rfratto)
 
 v0.33.1 (2023-05-01)
 --------------------

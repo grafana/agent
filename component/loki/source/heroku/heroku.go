@@ -2,20 +2,20 @@ package heroku
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"sync"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/loki"
-	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	ht "github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
-	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
-	sv "github.com/weaveworks/common/server"
+
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	ht "github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
+	"github.com/grafana/agent/pkg/util"
 )
 
 func init() {
@@ -32,36 +32,11 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.heroku
 // component.
 type Arguments struct {
-	HerokuListener       ListenerConfig      `river:"listener,block"`
+	Server               *fnet.ServerConfig  `river:",squash"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
 	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
-}
-
-// ListenerConfig defines a heroku listener.
-type ListenerConfig struct {
-	ListenAddress string `river:"address,attr,optional"`
-	ListenPort    int    `river:"port,attr"`
-	// TODO - add the rest of the server config from Promtail
-}
-
-// DefaultListenerConfig provides the default arguments for a heroku listener.
-var DefaultListenerConfig = ListenerConfig{
-	ListenAddress: "0.0.0.0",
-}
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (lc *ListenerConfig) UnmarshalRiver(f func(interface{}) error) error {
-	*lc = DefaultListenerConfig
-
-	type herokucfg ListenerConfig
-	err := f((*herokucfg)(lc))
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Component implements the loki.source.heroku component.
@@ -143,7 +118,7 @@ func (c *Component) Update(args component.Arguments) error {
 		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
 	}
 
-	if listenerChanged(c.args.HerokuListener, newArgs.HerokuListener) || relabelRulesChanged(c.args.RelabelRules, newArgs.RelabelRules) {
+	if listenerChanged(c.args.Server, newArgs.Server) || relabelRulesChanged(c.args.RelabelRules, newArgs.RelabelRules) {
 		if c.target != nil {
 			err := c.target.Stop()
 			if err != nil {
@@ -180,10 +155,7 @@ func (args *Arguments) Convert() *ht.HerokuDrainTargetConfig {
 	}
 
 	return &ht.HerokuDrainTargetConfig{
-		Server: sv.Config{
-			HTTPListenAddress: args.HerokuListener.ListenAddress,
-			HTTPListenPort:    args.HerokuListener.ListenPort,
-		},
+		Server:               args.Server,
 		Labels:               lbls,
 		UseIncomingTimestamp: args.UseIncomingTimestamp,
 	}
@@ -196,7 +168,7 @@ func (c *Component) DebugInfo() interface{} {
 
 	var res readerDebugInfo = readerDebugInfo{
 		Ready:   c.target.Ready(),
-		Address: fmt.Sprintf("%s:%d", c.target.ListenAddress(), c.target.ListenPort()),
+		Address: c.target.HTTPListenAddress(),
 	}
 
 	return res
@@ -207,7 +179,7 @@ type readerDebugInfo struct {
 	Address string `river:"address,attr"`
 }
 
-func listenerChanged(prev, next ListenerConfig) bool {
+func listenerChanged(prev, next *fnet.ServerConfig) bool {
 	return !reflect.DeepEqual(prev, next)
 }
 func relabelRulesChanged(prev, next flow_relabel.Rules) bool {

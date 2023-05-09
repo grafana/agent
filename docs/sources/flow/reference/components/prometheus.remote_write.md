@@ -89,7 +89,7 @@ Name | Type | Description | Default | Required
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#endpoint-block).
- - [`bearer_token_file` argument](#endpoint-block). 
+ - [`bearer_token_file` argument](#endpoint-block).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -228,6 +228,8 @@ information.
   being tracked by the WAL.
 * `agent_wal_storage_deleted_series` (gauge): Current number of series marked
   for deletion from memory.
+* `agent_wal_out_of_order_samples_total` (counter): Total number of out of
+  order samples ingestion failed attempts.
 * `agent_wal_storage_created_series_total` (counter): Total number of created
   series appended to the WAL.
 * `agent_wal_storage_removed_series_total` (counter): Total number of series
