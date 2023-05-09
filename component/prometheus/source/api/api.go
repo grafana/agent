@@ -71,10 +71,8 @@ func (c *Component) Run(ctx context.Context) error {
 		c.shutdownServer()
 	}()
 
-	for range ctx.Done() {
-		level.Info(c.opts.Logger).Log("msg", "terminating due to context done")
-		return nil
-	}
+	<-ctx.Done()
+	level.Info(c.opts.Logger).Log("msg", "terminating due to context done")
 	return nil
 }
 
