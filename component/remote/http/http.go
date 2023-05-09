@@ -14,8 +14,8 @@ import (
 	"github.com/grafana/agent/component"
 	common_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 )
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/grafana/agent/pkg/river"
 
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 )
 
 var _ river.Unmarshaler = (*Arguments)(nil)

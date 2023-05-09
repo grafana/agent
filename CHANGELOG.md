@@ -36,7 +36,10 @@ Main (unreleased)
 
 - Added new Grafana Agent Flow components:
   - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
-- Added coalesce function to river stdlib. (@jkroepke)
+
+- Added new functions to the River standard library:
+  - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
+  - `nonsensitive` converts a River secret back into a string. (@rfratto)
 
 ### Enhancements
 
