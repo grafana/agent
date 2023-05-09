@@ -12,10 +12,13 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/pkg/cluster"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
+	"github.com/rfratto/ckit/shard"
 	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -110,7 +113,45 @@ func (c *crdManager) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case m := <-c.discoveryManager.SyncCh():
+			if c.args.Clustering.Enabled {
+				m = filterTargets(m, c.opts.Clusterer.Node)
+			}
 			targetSetsChan <- m
+
+		}
+	}
+}
+
+func filterTargets(m map[string][]*targetgroup.Group, node cluster.Node) map[string][]*targetgroup.Group {
+	// the key in the map is the job name.
+	// the targetGroups have one or more targets inside them.
+	// we should keep the same structure even when there are no targets in a group for this node to scrape,
+	// since an empty target group tells the scrape manager to stop scraping targets that match.
+	m2 := make(map[string][]*targetgroup.Group, len(m))
+	for k, groups := range m {
+		m2[k] = make([]*targetgroup.Group, len(groups))
+		for i, group := range groups {
+			g2 := &targetgroup.Group{
+				Labels:  group.Labels.Clone(),
+				Source:  group.Source,
+				Targets: make([]model.LabelSet, 0, len(group.Targets)),
+			}
+			// Check the hash based on each target's labels
+			// We should not need to include the group's common labels, as long
+			// as each node does this consistently.
+			for _, t := range group.Targets {
+				peers, err := node.Lookup(shard.StringKey(t.String()), 1, shard.OpReadWrite)
+				if err != nil {
+					// This can only fail in case we ask for more owners than the
+					// available peers. This should never happen, but in any case we fall
+					// back to owning the target ourselves.
+					g2.Targets = append(g2.Targets, t)
+				}
+				if peers[0].Self {
+					g2.Targets = append(g2.Targets, t)
+				}
+			}
+			m2[k][i] = g2
 		}
 	}
 }

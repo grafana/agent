@@ -22,6 +22,14 @@ type Arguments struct {
 
 	// LabelSelector allows filtering discovered monitor resources by labels
 	LabelSelector *config.LabelSelector `river:"selector,block,optional"`
+
+	Clustering Clustering `river:"clustering,block,optional"`
+}
+
+// Clustering holds values that configure clustering-specific behavior.
+type Clustering struct {
+	// TODO(@tpaschalis) Move this block to a shared place for all components using clustering.
+	Enabled bool `river:"enabled,attr"`
 }
 
 var DefaultArguments = Arguments{
