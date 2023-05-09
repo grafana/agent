@@ -13,11 +13,26 @@ Main (unreleased)
 ### Breaking changes
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
+- The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
+- Upgrade the embedded windows_exporter to the last version. The windows_exporter contains some breaking changes.
+  - `iss.app_blacklist` is now `iss.app_exclude`
+  - `iss.app_whitelist` is now `iss.app_include`
+  - `iss.site_blacklist` is now `iss.site_exclude`
+  - `iss.site_whitelist` is now `iss.site_include`
+  - `logical_disk.blacklist` is now `logical_disk.exclude`
+  - `logical_disk.whitelist` is now `logical_disk.include`
+  - `network.blacklist` is now `network.exclude`
+  - `network.whitelist` is now `network.include`
+  - `process.blacklist` is now `process.exclude`
+  - `process.whitelist` is now `process.include`
+  - `smtp.blacklist` is now `smtp.exclude`
+  - `smtp.whitelist` is now `smtp.include`
 
 ### Features
 - New Grafana Agent Flow components:
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
+  - `remote.vault` retrieves a secret from Vault. (@rfratto)
 
 - Added new Grafana Agent Flow components:
   - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
@@ -41,6 +56,8 @@ Main (unreleased)
   targets amongst clustered agents. (@rfratto)
 
 - Delete stale series after a single WAL truncate instead of two. (@rfratto)
+
+- Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
 
 ### Bugfixes
 

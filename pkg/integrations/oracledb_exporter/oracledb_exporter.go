@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
@@ -21,11 +20,10 @@ import (
 
 // DefaultConfig is the default config for the oracledb v2 integration
 var DefaultConfig = Config{
-	ConnectionString:     config_util.Secret(os.Getenv("DATA_SOURCE_NAME")),
-	MaxOpenConns:         10,
-	MaxIdleConns:         0,
-	QueryTimeout:         5,
-	MetricScrapeInterval: 0,
+	ConnectionString: config_util.Secret(os.Getenv("DATA_SOURCE_NAME")),
+	MaxOpenConns:     10,
+	MaxIdleConns:     0,
+	QueryTimeout:     5,
 }
 
 var (
@@ -35,11 +33,10 @@ var (
 
 // Config is the configuration for the oracledb v2 integration
 type Config struct {
-	ConnectionString     config_util.Secret `yaml:"connection_string"`
-	MaxIdleConns         int                `yaml:"max_idle_connections"`
-	MaxOpenConns         int                `yaml:"max_open_connections"`
-	MetricScrapeInterval time.Duration      `yaml:"metric_scrape_interval"`
-	QueryTimeout         int                `yaml:"query_timeout"`
+	ConnectionString config_util.Secret `yaml:"connection_string"`
+	MaxIdleConns     int                `yaml:"max_idle_connections"`
+	MaxOpenConns     int                `yaml:"max_open_connections"`
+	QueryTimeout     int                `yaml:"query_timeout"`
 }
 
 // ValidateConnString attempts to ensure the connection string supplied is valid
@@ -108,9 +105,8 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		MaxIdleConns: c.MaxIdleConns,
 		MaxOpenConns: c.MaxOpenConns,
 		// no custom metrics file for this integration
-		CustomMetrics:  "",
-		QueryTimeout:   c.QueryTimeout,
-		ScrapeInterval: c.MetricScrapeInterval,
+		CustomMetrics: "",
+		QueryTimeout:  c.QueryTimeout,
 	})
 
 	if err != nil {
