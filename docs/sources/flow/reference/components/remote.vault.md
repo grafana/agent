@@ -267,6 +267,18 @@ key-value pairs for a secret. The `remote.vault` component is only able to use
 values which are strings or can be converted to strings. Keys with non-string
 values will be ignored and omitted from the `data` field.
 
+If an individual key stored in `data` does not hold sensitive data, it can be
+converted into a string using [the `nonsensitive` function][nonsensitive]:
+
+```river
+nonsensitive(remote.vault.LABEL.data.KEY_NAME)
+```
+
+Using `nonsensitive` allows for using the exports of `remote.vault` for
+attributes in components that do not support secrets.
+
+[nonsensitive]: {{< relref "../stdlib/nonsensitive.md" >}}
+
 ## Component health
 
 `remote.vault` will be reported as unhealthy if the latest reread or renewal of
