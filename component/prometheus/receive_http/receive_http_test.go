@@ -379,7 +379,7 @@ func request(ctx context.Context, rawRemoteWriteURL string, req *prompb.WriteReq
 
 func testOptions(t *testing.T) component.Options {
 	return component.Options{
-		ID:         "loki.source.api.test",
+		ID:         "prometheus.receive_http.test",
 		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus.NewRegistry(),
 	}
