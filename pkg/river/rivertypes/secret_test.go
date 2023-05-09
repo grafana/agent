@@ -3,8 +3,8 @@ package rivertypes_test
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river/parser"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/stretchr/testify/require"
 )
