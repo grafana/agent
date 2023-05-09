@@ -23,7 +23,7 @@ prometheus.source.api "LABEL" {
 }
 ```
 
-The component will start HTTP server supporting the following requests:
+The component will start an HTTP server supporting the following endpoint:
 
 - `POST /api/v1/metrics/write` - send metrics to the component, which in turn will be forwarded to the receivers as configured in `forward_to` argument. The request format must match that of [Prometheus `remote_write` API][prometheus-remote-write-docs]. One way to send valid requests to this component is to use another Grafana Agent with a [`prometheus.remote_write`][prometheus.remote_write] component.
 
