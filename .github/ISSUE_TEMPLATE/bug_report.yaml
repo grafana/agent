@@ -1,0 +1,39 @@
+name: Bug report
+description: Create a report to help us improve Grafana Agent.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for opening a bug report for Grafana Agent.
+
+        Please do not use GitHub issues for support questions. If you need help or support, ask a question in [GitHub Discussions](https://github.com/grafana/agent/discussions) or join the `#agent` channel on the [Grafana Slack](https://slack.grafana.com/).
+  - type: textarea
+    attributes:
+      label: What's wrong?
+      description: Provide a brief description of the issue.
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      description: Please describe steps for us to be able to reproduce the issue.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: System information
+      description: Provide your operating system and architecture.
+      placeholder: e.g. Linux 5.16.15 x86_64
+  - type: input
+    attributes:
+      label: Software version
+      description: Provide the version of the software you are using.
+      placeholder: e.g. Grafana Agent v0.33.0
+  - type: textarea
+    attributes:
+      label: Configuration
+      description: Provide the relevant configuration file here. Remove sensitive information before sharing.
+      render: text
+  - type: textarea
+    attributes:
+      label: Logs
+      description: Provide logs relevant to the issue. Remove sensitive information before sharing.
+      render: text

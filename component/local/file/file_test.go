@@ -10,7 +10,7 @@ import (
 
 	"github.com/grafana/agent/component/local/file"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/stretchr/testify/require"
 )
 

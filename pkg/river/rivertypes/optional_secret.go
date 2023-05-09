@@ -3,7 +3,7 @@ package rivertypes
 import (
 	"fmt"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/token"
 	"github.com/grafana/agent/pkg/river/token/builder"
 )
@@ -24,9 +24,9 @@ type OptionalSecret struct {
 }
 
 var (
-	_ river.Capsule                = OptionalSecret{}
-	_ river.ConvertibleIntoCapsule = OptionalSecret{}
-	_ river.ConvertibleFromCapsule = (*OptionalSecret)(nil)
+	_ value.Capsule                = OptionalSecret{}
+	_ value.ConvertibleIntoCapsule = OptionalSecret{}
+	_ value.ConvertibleFromCapsule = (*OptionalSecret)(nil)
 
 	_ builder.Tokenizer = OptionalSecret{}
 )
@@ -52,7 +52,7 @@ func (s OptionalSecret) ConvertInto(dst interface{}) error {
 		return nil
 	}
 
-	return river.ErrNoConversion
+	return value.ErrNoConversion
 }
 
 // ConvertFrom converts the src value and stores it into the OptionalSecret s.
@@ -68,7 +68,7 @@ func (s *OptionalSecret) ConvertFrom(src interface{}) error {
 		return nil
 	}
 
-	return river.ErrNoConversion
+	return value.ErrNoConversion
 }
 
 // RiverTokenize returns a set of custom tokens to represent this value in
