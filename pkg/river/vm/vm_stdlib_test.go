@@ -7,6 +7,7 @@ import (
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/parser"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/stretchr/testify/require"
 )
@@ -73,6 +74,37 @@ func TestStdlibCoalesce(t *testing.T) {
 
 			rv := reflect.New(reflect.TypeOf(tc.expect))
 			require.NoError(t, eval.Evaluate(nil, rv.Interface()))
+			require.Equal(t, tc.expect, rv.Elem().Interface())
+		})
+	}
+}
+
+func TestStdlib_Nonsensitive(t *testing.T) {
+	scope := &vm.Scope{
+		Variables: map[string]any{
+			"secret":         rivertypes.Secret("foo"),
+			"optionalSecret": rivertypes.OptionalSecret{Value: "bar"},
+		},
+	}
+
+	tt := []struct {
+		name   string
+		input  string
+		expect interface{}
+	}{
+		{"secret to string", `nonsensitive(secret)`, string("foo")},
+		{"optional secret to string", `nonsensitive(optionalSecret)`, string("bar")},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			expr, err := parser.ParseExpression(tc.input)
+			require.NoError(t, err)
+
+			eval := vm.New(expr)
+
+			rv := reflect.New(reflect.TypeOf(tc.expect))
+			require.NoError(t, eval.Evaluate(scope, rv.Interface()))
 			require.Equal(t, tc.expect, rv.Elem().Interface())
 		})
 	}
