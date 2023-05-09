@@ -13,20 +13,10 @@ Main (unreleased)
 ### Breaking changes
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
+ 
 - The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
-- Upgrade the embedded windows_exporter to the v.0.22.0 version. The windows_exporter contains some breaking changes.
-  - `iss.app_blacklist` is now `iss.app_exclude`
-  - `iss.app_whitelist` is now `iss.app_include`
-  - `iss.site_blacklist` is now `iss.site_exclude`
-  - `iss.site_whitelist` is now `iss.site_include`
-  - `logical_disk.blacklist` is now `logical_disk.exclude`
-  - `logical_disk.whitelist` is now `logical_disk.include`
-  - `network.blacklist` is now `network.exclude`
-  - `network.whitelist` is now `network.include`
-  - `process.blacklist` is now `process.exclude`
-  - `process.whitelist` is now `process.include`
-  - `smtp.blacklist` is now `smtp.exclude`
-  - `smtp.whitelist` is now `smtp.include`
+
+- Upgrade the embedded windows_exporter to the v.0.22.0 version. (@jkroepke)
 
 ### Features
 - New Grafana Agent Flow components:
@@ -36,6 +26,7 @@ Main (unreleased)
 
 - Added new Grafana Agent Flow components:
   - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
+- 
 - Added coalesce function to river stdlib. (@jkroepke)
 
 ### Enhancements
