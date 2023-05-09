@@ -33,6 +33,11 @@ Main (unreleased)
   was created, and prevented a fresh process from being able to deliver metrics
   at all. (@rfratto)
 
+### Other changes
+
+- The `phlare.scrape` Flow component `fetch profile failed` log has been set to
+  `debug` instead of `error`. (@erikbaranowski)
+
 v0.33.1 (2023-05-01)
 --------------------
 
