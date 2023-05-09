@@ -100,7 +100,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.server = s
 
 	err = c.server.MountAndRun(func(router *mux.Router) {
-		router.Path("/api/v1/metrics/write").Methods("POST").HandlerFunc(c.handler.ServeHTTP)
+		router.Path("/api/v1/metrics/write").Methods("POST").Handler(c.handler)
 	})
 	if err != nil {
 		return err

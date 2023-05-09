@@ -70,6 +70,8 @@ The following are some of the metrics that are exposed when this component is us
 
 ## Example
 
+### Receiving metrics over HTTP
+
 This example creates a `prometheus.source.api` component which starts an HTTP server listening on `0.0.0.0` and port `9999`. The server receives metrics and forwards them to a `prometheus.remote_write` component which writes these metrics to the specified HTTP endpoint.
 
 ```river
@@ -95,7 +97,9 @@ prometheus.remote_write "local" {
 }
 ```
 
-In order to send metrics to the `prometheus.source.api` component defined above, another Grafana Agent can run with the following configuration:
+### Proxying metrics
+
+In order to send metrics to the `prometheus.source.api` component defined in the previous example, another Grafana Agent can run with the following configuration:
 
 ```river
 // Collects metrics of localhost:12345
