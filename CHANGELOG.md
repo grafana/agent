@@ -30,12 +30,11 @@ Main (unreleased)
 
 ### Features
 - New Grafana Agent Flow components:
+  - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
+  - `prometheus.receive_http` - receive Prometheus metrics over HTTP (e.g. from other agents). (@thampiotr)
   - `remote.vault` retrieves a secret from Vault. (@rfratto)
-
-- Added new Grafana Agent Flow components:
-  - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
 
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
