@@ -34,12 +34,12 @@ Omitted fields take their default values.
 | `account_name` | `string` | The account to collect metrics for.                   |                  | yes      |
 | `username`     | `string` | The username for the user used when querying metrics. |                  | yes      |
 | `password`     | `secret` | The password for the user used when querying metrics. |                  | yes      |
-| `role`         | `string` | The role to use when querying metrics                 | `"ACCOUNTADMIN"` | no       |
+| `role`         | `string` | The role to use when querying metrics.                | `"ACCOUNTADMIN"` | no       |
 | `warehouse`    | `string` | The warehouse to use when querying metrics.           |                  | yes      |
 
 ## Blocks
 
-The `Snowflake` component does not support any blocks, and is configured
+The `prometheus.exporter.snowflake` component does not support any blocks, and is configured
 fully through arguments.
 
 ## Exported fields
@@ -83,16 +83,22 @@ from `prometheus.exporter.snowflake`:
 
 ```river
 prometheus.exporter.snowflake "example" {
-    account_name = "XXXXXXX-YYYYYYY"
-    username     = "USERNAME"
-    password     = "PASSWORD"
-    warehouse    = "WAREHOUSE"
+  account_name = "XXXXXXX-YYYYYYY"
+  username     = "USERNAME"
+  password     = "PASSWORD"
+  warehouse    = "WAREHOUSE"
 }
 
 // Configure a prometheus.scrape component to collect snowflake metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.snowflake.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [ prometheus.remote_write.default.receiver ]
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "REMOTE_WRITE_URL"
+  }
 }
 ```
 
