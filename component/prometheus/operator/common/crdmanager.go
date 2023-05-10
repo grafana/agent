@@ -154,6 +154,7 @@ func filterTargets(m map[string][]*targetgroup.Group, node cluster.Node) map[str
 			m2[k][i] = g2
 		}
 	}
+	return m2
 }
 
 // DebugInfo returns debug information for the CRDManager.
