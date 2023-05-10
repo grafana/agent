@@ -13,16 +13,24 @@ Main (unreleased)
 ### Breaking changes
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
+ 
 - The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
 
+- Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
+
 ### Features
+
 - New Grafana Agent Flow components:
+  - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
+  - `prometheus.receive_http` - receive Prometheus metrics over HTTP (e.g. from other agents). (@thampiotr)
+  - `remote.vault` retrieves a secret from Vault. (@rfratto)
 
-- Added new Grafana Agent Flow components:
-  - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
-- Added coalesce function to river stdlib. (@jkroepke)
+- Added new functions to the River standard library:
+  - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
+  - `nonsensitive` converts a River secret back into a string. (@rfratto)
+
 
 ### Enhancements
 
@@ -63,6 +71,9 @@ Main (unreleased)
   `prometheus.exporter.unix` `diskstat_device_include` component could not set
   the allowlist field for the diskstat collector. (@tpaschalis)
 
+- Flow: Fix an issue within S3 Module where the S3 path was not parsed correctly when the
+  path consists of a parent directory. (@jastisriradheshyam)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
@@ -70,6 +81,9 @@ Main (unreleased)
 
 - Add `agent_wal_out_of_order_samples_total` metric to track samples received
   out of order. (@rfratto)
+
+- The `phlare.scrape` Flow component `fetch profile failed` log has been set to
+  `debug` instead of `error`. (@erikbaranowski)
 
 v0.33.1 (2023-05-01)
 --------------------

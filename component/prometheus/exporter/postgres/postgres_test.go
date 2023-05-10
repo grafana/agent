@@ -3,9 +3,9 @@ package postgres
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
 )
