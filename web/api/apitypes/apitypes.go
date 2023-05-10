@@ -1,4 +1,4 @@
-package types
+package apitypes
 
 import (
 	"encoding/json"

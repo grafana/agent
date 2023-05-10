@@ -56,7 +56,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/web/api/types"
+	"github.com/grafana/agent/web/api/apitypes"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -267,12 +267,12 @@ func (c *Flow) Ready() bool {
 }
 
 // ComponentInfos returns the component infos.
-func (c *Flow) ComponentInfos() []*types.ComponentInfo {
+func (c *Flow) ComponentInfos() []*apitypes.ComponentInfo {
 	c.loadMut.RLock()
 	defer c.loadMut.RUnlock()
 
 	cns := c.loader.Components()
-	infos := make([]*types.ComponentInfo, len(cns))
+	infos := make([]*apitypes.ComponentInfo, len(cns))
 	edges := c.loader.OriginalGraph().Edges()
 	for i, com := range cns {
 		nn := newFromNode(com, edges)
@@ -281,7 +281,7 @@ func (c *Flow) ComponentInfos() []*types.ComponentInfo {
 	return infos
 }
 
-func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *types.ComponentInfo {
+func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *apitypes.ComponentInfo {
 	references := make([]string, 0)
 	referencedBy := make([]string, 0)
 	for _, e := range edges {
@@ -304,14 +304,14 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *types.Componen
 		}
 	}
 	h := cn.CurrentHealth()
-	ci := &types.ComponentInfo{
+	ci := &apitypes.ComponentInfo{
 		Label:        cn.Label(),
 		ID:           cn.NodeID(),
 		Name:         cn.ComponentName(),
 		Type:         "block",
 		References:   references,
 		ReferencedBy: referencedBy,
-		Health: &types.ComponentHealth{
+		Health: &apitypes.ComponentHealth{
 			State:       h.Health.String(),
 			Message:     h.Message,
 			UpdatedTime: h.UpdateTime,
