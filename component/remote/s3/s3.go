@@ -222,8 +222,8 @@ func (s *S3) handleContentPolling(newContent string, err error) {
 // getPathBucketAndFile takes the path and splits it into a bucket and file.
 func getPathBucketAndFile(path string) (bucket, file string) {
 	parts := strings.Split(path, "/")
-	file = parts[len(parts)-1]
-	bucket = strings.Join(parts[:len(parts)-1], "/")
+	file = strings.Join(parts[3:], "/")
+	bucket = strings.Join(parts[:3], "/")
 	bucket = strings.ReplaceAll(bucket, "s3://", "")
 	return
 }
