@@ -29,8 +29,7 @@ var (
 	parsedNames = map[string]parsedName{}
 )
 
-// ModuleController is a mechanism responsible for allowing components to create other components, or
-// flow systems.
+// ModuleController is a mechanism responsible for allowing components to create other components via modules.
 type ModuleController interface {
 	// NewModule creates a new, un-started Module.
 	NewModule(id string, export ExportFunc) Module
@@ -60,7 +59,7 @@ type ExportFunc func(exports map[string]any)
 // Options are provided to a component when it is being constructed. Options
 // are static for the lifetime of a component.
 type Options struct {
-	// ModuleController allows for the creation of module controllers.
+	// ModuleController allows for the creation of modules.
 	ModuleController ModuleController
 
 	// ID of the component. Guaranteed to be globally unique across all running
