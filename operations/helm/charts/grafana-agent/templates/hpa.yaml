@@ -1,4 +1,4 @@
-{{- if and (eq .Values.controller.type "deployment") .Values.controller.autoscaling.enabled }}
+{{- if and (or (eq .Values.controller.type "deployment") (eq .Values.controller.type "statefulset" ))  .Values.controller.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
