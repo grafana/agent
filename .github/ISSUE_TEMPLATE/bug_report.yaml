@@ -31,10 +31,10 @@ body:
   - type: textarea
     attributes:
       label: Configuration
-      description: Provide the relevant configuration file here. Remove sensitive information before sharing.
+      description: Provide the relevant configuration file here. Remove sensitive information before sharing. This will be formatted into a code block; don't add backtick code fences.
       render: text
   - type: textarea
     attributes:
       label: Logs
-      description: Provide logs relevant to the issue. Remove sensitive information before sharing.
+      description: Provide logs relevant to the issue. Remove sensitive information before sharing. This will be formatted into a code block; don't add backtick code fences.
       render: text
