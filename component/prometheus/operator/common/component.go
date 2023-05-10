@@ -102,6 +102,13 @@ func (c *Component) DebugInfo() interface{} {
 	return c.manager.DebugInfo()
 }
 
+// ClusterUpdatesRegistration implements component.ClusterComponent.
+func (c *Component) ClusterUpdatesRegistration() bool {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	return c.config.Clustering.Enabled
+}
+
 func (c *Component) reportHealth(err error) {
 	c.healthMut.Lock()
 	defer c.healthMut.Unlock()

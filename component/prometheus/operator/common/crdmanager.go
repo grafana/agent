@@ -124,7 +124,7 @@ func (c *crdManager) Run(ctx context.Context) error {
 
 func filterTargets(m map[string][]*targetgroup.Group, node cluster.Node) map[string][]*targetgroup.Group {
 	// the key in the map is the job name.
-	// the targetGroups have one or more targets inside them.
+	// the targetGroups have zero or more targets inside them.
 	// we should keep the same structure even when there are no targets in a group for this node to scrape,
 	// since an empty target group tells the scrape manager to stop scraping targets that match.
 	m2 := make(map[string][]*targetgroup.Group, len(m))
