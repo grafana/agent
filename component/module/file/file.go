@@ -10,8 +10,8 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/local/file"
 	"github.com/grafana/agent/component/module"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 )
 
 func init() {
