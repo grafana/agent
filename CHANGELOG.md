@@ -25,6 +25,9 @@ Main (unreleased)
   `prometheus.exporter.unix` `diskstat_device_include` component could not set
   the allowlist field for the diskstat collector. (@tpaschalis)
 
+- Flow: Fix an issue within S3 Module where the S3 path was not parsed correctly when the
+  path consists of a parent directory. (@jastisriradheshyam)
+
 v0.33.1 (2023-05-01)
 --------------------
 
