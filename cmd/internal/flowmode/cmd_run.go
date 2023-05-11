@@ -184,6 +184,7 @@ func (fr *flowRun) Run(configFile string) error {
 
 	reload := func() (*flow.Source, error) {
 		flowSource, err := loadFlowSource(configFile)
+		instrumentation.InstrumentSHA256(flowSource.SHA256())
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
@@ -349,9 +350,6 @@ func loadFlowSource(filename string) (*flow.Source, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	instrumentation.InstrumentConfig(bb)
-
 	return flow.ParseSource(filename, bb)
 }
 
