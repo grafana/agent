@@ -52,6 +52,8 @@ Main (unreleased)
 
 - Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
 
+- Update azure-metrics-exporter to latest (@kgeckhart)
+
 ### Bugfixes
 
 - Fix an issue where defining `logging` or `tracing` blocks inside of a module

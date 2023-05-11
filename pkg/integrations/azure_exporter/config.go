@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/grafana/agent/pkg/util/zapadapter"
 	"net/url"
 	"strings"
 
@@ -99,7 +100,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 
 	return Exporter{
 		cfg:               *c,
-		logger:            integrations.NewLogger(l),
+		logger:            zapadapter.New(l).Sugar(),
 		ConcurrencyConfig: concurrencyConfig,
 	}, nil
 }
@@ -155,7 +156,6 @@ func (c *Config) ToScrapeSettings() (*metrics.RequestMetricSettings, error) {
 		Subscriptions:   c.Subscriptions,
 		Metrics:         c.Metrics,
 		ResourceType:    c.ResourceType,
-		TagLabels:       c.IncludedResourceTags,
 		Aggregations:    c.MetricAggregations,
 		Filter:          c.ResourceGraphQueryFilter,
 		MetricNamespace: c.MetricNamespace,
