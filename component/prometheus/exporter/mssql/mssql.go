@@ -1,6 +1,7 @@
 package mssql
 
 import (
+	"errors"
 	"time"
 
 	"github.com/grafana/agent/component"
@@ -45,7 +46,25 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*a = DefaultArguments
 
 	type args Arguments
-	return f((*args)(a))
+	if err := f((*args)(a)); err != nil {
+		return err
+	}
+	return a.Validate()
+}
+
+func (a *Arguments) Validate() error {
+	if a.MaxOpenConnections < 1 {
+		return errors.New("max_open_connections must be at least 1")
+	}
+
+	if a.MaxIdleConnections < 1 {
+		return errors.New("max_idle_connections must be at least 1")
+	}
+
+	if a.Timeout <= 0 {
+		return errors.New("timeout must be positive")
+	}
+	return nil
 }
 
 func (a *Arguments) Convert() *mssql.Config {

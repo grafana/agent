@@ -33,6 +33,79 @@ func TestRiverUnmarshal(t *testing.T) {
 	require.Equal(t, expected, args)
 }
 
+func TestUnmarshalInvalid(t *testing.T) {
+	invalidRiverConfig := `
+	connection_string = "sqlserver://user:pass@localhost:1433"
+	max_idle_connections = 1
+	max_open_connections = 1
+	timeout = "-1s"
+	`
+
+	var invalidArgs Arguments
+	err := river.Unmarshal([]byte(invalidRiverConfig), &invalidArgs)
+	require.Error(t, err)
+}
+
+func TestArgumentsValidate(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    Arguments
+		wantErr bool
+	}{
+		{
+			name: "invalid max open connections",
+			args: Arguments{
+				ConnectionString:   rivertypes.Secret("test"),
+				MaxIdleConnections: 1,
+				MaxOpenConnections: 0,
+				Timeout:            10 * time.Second,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid max idle connections",
+			args: Arguments{
+				ConnectionString:   rivertypes.Secret("test"),
+				MaxIdleConnections: 0,
+				MaxOpenConnections: 1,
+				Timeout:            10 * time.Second,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid timeout",
+			args: Arguments{
+				ConnectionString:   rivertypes.Secret("test"),
+				MaxIdleConnections: 1,
+				MaxOpenConnections: 1,
+				Timeout:            0,
+			},
+			wantErr: true,
+		},
+		{
+			name: "valid",
+			args: Arguments{
+				ConnectionString:   rivertypes.Secret("test"),
+				MaxIdleConnections: 1,
+				MaxOpenConnections: 1,
+				Timeout:            10 * time.Second,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.args.Validate()
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
 func TestConvert(t *testing.T) {
 	riverConfig := `
 	connection_string = "sqlserver://user:pass@localhost:1433"
