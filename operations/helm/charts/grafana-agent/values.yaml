@@ -161,6 +161,11 @@ service:
   annotations: {}
     # cloud.google.com/load-balancer-type: Internal
 
+headlessService:
+  # -- Enables a headless service for use with clustering.
+  enabled: false
+
+
 ingress:
   # -- Enables ingress for the agent (faro port)
   enabled: false
