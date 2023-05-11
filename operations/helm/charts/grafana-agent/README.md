@@ -82,7 +82,6 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.volumeClaimTemplates | list | `[]` | volumeClaimTemplates to add when controller.type is 'statefulset'. |
 | controller.volumes.extra | list | `[]` | Extra volumes to add to the Grafana Agent pod. |
 | fullnameOverride | string | `nil` | Overrides the chart's computed fullname. Used to change the full prefix of resource names. |
-| headlessService.enabled | bool | `false` | Enables a headless service for use with clustering. |
 | image.pullPolicy | string | `"IfNotPresent"` | Grafana Agent image pull policy. |
 | image.pullSecrets | list | `[]` | Optional set of image pull secrets. |
 | image.repository | string | `"grafana/agent"` | Grafana Agent image repository. |
@@ -99,6 +98,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | rbac.create | bool | `true` | Whether to create RBAC resources for the agent. |
 | service.annotations | object | `{}` |  |
 | service.clusterIP | string | `""` | Cluster IP, can be set to None, empty "" or an IP address |
+| service.enabled | bool | `true` | Creates a Service for the controller's pods. |
 | service.type | string | `"ClusterIP"` | Service type |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the created service account. |
 | serviceAccount.create | bool | `true` | Whether to create a service account for the Grafana Agent deployment. |

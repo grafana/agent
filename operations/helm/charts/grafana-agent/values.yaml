@@ -154,17 +154,14 @@ controller:
   volumeClaimTemplates: []
 
 service:
+  # -- Creates a Service for the controller's pods.
+  enabled: true
   # -- Service type
   type: ClusterIP
   # -- Cluster IP, can be set to None, empty "" or an IP address
   clusterIP: ''
   annotations: {}
     # cloud.google.com/load-balancer-type: Internal
-
-headlessService:
-  # -- Enables a headless service for use with clustering.
-  enabled: false
-
 
 ingress:
   # -- Enables ingress for the agent (faro port)
