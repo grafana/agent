@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	apps_v1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
@@ -116,7 +118,7 @@ func CreateOrUpdateEndpoints(ctx context.Context, c client.Client, eps *v1.Endpo
 }
 
 // CreateOrUpdateStatefulSet applies the given StatefulSet against the client.
-func CreateOrUpdateStatefulSet(ctx context.Context, c client.Client, ss *apps_v1.StatefulSet) error {
+func CreateOrUpdateStatefulSet(ctx context.Context, c client.Client, ss *apps_v1.StatefulSet, l log.Logger) error {
 	var exist apps_v1.StatefulSet
 	err := c.Get(ctx, client.ObjectKeyFromObject(ss), &exist)
 	if err != nil && !k8s_errors.IsNotFound(err) {
@@ -136,6 +138,7 @@ func CreateOrUpdateStatefulSet(ctx context.Context, c client.Client, ss *apps_v1
 
 		err := c.Update(ctx, ss)
 		if k8s_errors.IsNotAcceptable(err) || k8s_errors.IsInvalid(err) {
+			level.Error(l).Log("msg", "error updating StatefulSet. Attempting to recreate", "err", err.Error())
 			// Resource version should only be set when updating
 			ss.ResourceVersion = ""
 
@@ -156,7 +159,7 @@ func CreateOrUpdateStatefulSet(ctx context.Context, c client.Client, ss *apps_v1
 }
 
 // CreateOrUpdateDaemonSet applies the given DaemonSet against the client.
-func CreateOrUpdateDaemonSet(ctx context.Context, c client.Client, ss *apps_v1.DaemonSet) error {
+func CreateOrUpdateDaemonSet(ctx context.Context, c client.Client, ss *apps_v1.DaemonSet, l log.Logger) error {
 	var exist apps_v1.DaemonSet
 	err := c.Get(ctx, client.ObjectKeyFromObject(ss), &exist)
 	if err != nil && !k8s_errors.IsNotFound(err) {
@@ -176,6 +179,7 @@ func CreateOrUpdateDaemonSet(ctx context.Context, c client.Client, ss *apps_v1.D
 
 		err := c.Update(ctx, ss)
 		if k8s_errors.IsNotAcceptable(err) || k8s_errors.IsInvalid(err) {
+			level.Error(l).Log("msg", "error updating Daemonset. Attempting to recreate", "err", err.Error())
 			// Resource version should only be set when updating
 			ss.ResourceVersion = ""
 
@@ -196,7 +200,7 @@ func CreateOrUpdateDaemonSet(ctx context.Context, c client.Client, ss *apps_v1.D
 }
 
 // CreateOrUpdateDeployment applies the given DaemonSet against the client.
-func CreateOrUpdateDeployment(ctx context.Context, c client.Client, d *apps_v1.Deployment) error {
+func CreateOrUpdateDeployment(ctx context.Context, c client.Client, d *apps_v1.Deployment, l log.Logger) error {
 	var exist apps_v1.Deployment
 	err := c.Get(ctx, client.ObjectKeyFromObject(d), &exist)
 	if err != nil && !k8s_errors.IsNotFound(err) {
@@ -216,6 +220,7 @@ func CreateOrUpdateDeployment(ctx context.Context, c client.Client, d *apps_v1.D
 
 		err := c.Update(ctx, d)
 		if k8s_errors.IsNotAcceptable(err) || k8s_errors.IsInvalid(err) {
+			level.Error(l).Log("msg", "error updating Deployment. Attempting to recreate", "err", err.Error())
 			// Resource version should only be set when updating
 			d.ResourceVersion = ""
 
