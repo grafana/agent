@@ -59,11 +59,11 @@ func NewModuleComponent(o component.Options) *ModuleComponent {
 	}
 }
 
-// LoadFlowContent loads the flow controller with the current component content. It
-// will set the component health in addition to return the error so that the consumer
-// can rely on either or both.
-func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue string) error {
-	f, err := flow.ReadFile(c.opts.ID, []byte(contentValue))
+// LoadFlowSource loads the flow controller with the current component source.
+// It will set the component health in addition to return the error so that the
+// consumer can rely on either or both.
+func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string) error {
+	f, err := flow.ParseSource(c.opts.ID, []byte(contentValue))
 	if err != nil {
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
@@ -74,7 +74,7 @@ func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue stri
 		return err
 	}
 
-	err = c.ctrl.LoadFile(f, args)
+	err = c.ctrl.LoadSource(f, args)
 	if err != nil {
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,

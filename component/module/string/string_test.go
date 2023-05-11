@@ -193,9 +193,9 @@ func TestModule(t *testing.T) {
 
 func testFile(t *testing.T, fmtFile string, componentToFind string, searchable []string, expectedErrorContains string) {
 	f := flow.New(testOptions(t))
-	ff, err := flow.ReadFile("test", []byte(fmtFile))
+	source, err := flow.ParseSource("test", []byte(fmtFile))
 	require.NoError(t, err)
-	err = f.LoadFile(ff, nil)
+	err = f.LoadSource(source, nil)
 	if expectedErrorContains == "" {
 		require.NoError(t, err)
 	} else {

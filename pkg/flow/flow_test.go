@@ -35,11 +35,11 @@ func TestController_LoadFile_Evaluation(t *testing.T) {
 	ctrl := New(testOptions(t))
 
 	// Use testFile from graph_builder_test.go.
-	f, err := ReadFile(t.Name(), []byte(testFile))
+	f, err := ParseSource(t.Name(), []byte(testFile))
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	err = ctrl.LoadFile(f, nil)
+	err = ctrl.LoadSource(f, nil)
 	require.NoError(t, err)
 	require.Len(t, ctrl.loader.Components(), 4)
 

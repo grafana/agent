@@ -183,13 +183,13 @@ func (fr *flowRun) Run(configFile string) error {
 	})
 
 	reload := func() error {
-		flowCfg, err := loadFlowFile(configFile)
+		flowSource, err := loadFlowSource(configFile)
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
 			return fmt.Errorf("reading config file %q: %w", configFile, err)
 		}
-		if err := f.LoadFile(flowCfg, nil); err != nil {
+		if err := f.LoadSource(flowSource, nil); err != nil {
 			return fmt.Errorf("error during the initial gragent load: %w", err)
 		}
 
@@ -346,7 +346,7 @@ func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	}
 }
 
-func loadFlowFile(filename string) (*flow.File, error) {
+func loadFlowSource(filename string) (*flow.Source, error) {
 	bb, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -354,7 +354,7 @@ func loadFlowFile(filename string) (*flow.File, error) {
 
 	instrumentation.InstrumentConfig(bb)
 
-	return flow.ReadFile(filename, bb)
+	return flow.ParseSource(filename, bb)
 }
 
 func interruptContext() (context.Context, context.CancelFunc) {

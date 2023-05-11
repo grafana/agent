@@ -21,7 +21,7 @@ func TestReadFile(t *testing.T) {
 		}
 	`
 
-	f, err := ReadFile(t.Name(), []byte(content))
+	f, err := ParseSource(t.Name(), []byte(content))
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
@@ -41,7 +41,7 @@ func TestReadFileWithConfigBlock(t *testing.T) {
 		}
 	`
 
-	f, err := ReadFile(t.Name(), []byte(content))
+	f, err := ParseSource(t.Name(), []byte(content))
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
@@ -52,7 +52,7 @@ func TestReadFileWithConfigBlock(t *testing.T) {
 }
 
 func TestReadFile_Defaults(t *testing.T) {
-	f, err := ReadFile(t.Name(), []byte(``))
+	f, err := ParseSource(t.Name(), []byte(``))
 	require.NotNil(t, f)
 	require.NoError(t, err)
 

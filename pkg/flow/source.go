@@ -24,17 +24,17 @@ type Argument struct {
 	Default any `river:"default,attr,optional"`
 }
 
-// File holds the contents of a parsed Flow file.
-type File struct {
+// Source holds the contents of a parsed Flow source.
+type Source struct {
 	// components holds the list of raw River AST blocks describing components.
 	// The Flow controller can interpret them.
 	components   []*ast.BlockStmt
 	configBlocks []*ast.BlockStmt
 }
 
-// ReadFile parses the River file specified by bb into a File. name should be
-// the name of the file used for reporting errors.
-func ReadFile(name string, bb []byte) (*File, error) {
+// ParseSource parses the River contents specified by bb into a Source. name
+// should be the name of the source used for reporting errors.
+func ParseSource(name string, bb []byte) (*Source, error) {
 	node, err := parser.ParseFile(name, bb)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func ReadFile(name string, bb []byte) (*File, error) {
 		}
 	}
 
-	return &File{
+	return &Source{
 		components:   components,
 		configBlocks: configs,
 	}, nil
