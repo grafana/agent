@@ -13,7 +13,7 @@ Main (unreleased)
 ### Breaking changes
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
- 
+
 - The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
 
 - Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
@@ -74,6 +74,11 @@ Main (unreleased)
 
 - Flow: Fix an issue within S3 Module where the S3 path was not parsed correctly when the
   path consists of a parent directory. (@jastisriradheshyam)
+
+- Flow: Fix an issue on Windows where `prometheus.remote_write` failed to read
+  WAL checkpoints. This issue led to memory leaks once the initial checkpoint
+  was created, and prevented a fresh process from being able to deliver metrics
+  at all. (@rfratto)
 
 ### Other changes
 
