@@ -20,7 +20,7 @@ docker run \
   -v "/proc:/proc:ro" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.33.1 \
+  grafana/agent:v0.33.2 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -37,7 +37,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.33.1
+  - image: grafana/agent:v0.33.2
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -149,7 +149,7 @@ Full reference of options:
 # - {{.StartTime}}: The start time of the process. This is useful when combined
 #                   with PID as PIDS get reused over time.
 # - `{{.Cgroups}}`: The cgroups, if supported, of the process (`/proc/self/cgroup`). This is particularly useful for identifying to which container a process belongs.
-# 
+#
 # **NOTE**: Using `PID` or `StartTime` is discouraged, as it is almost never what you want, and is likely to result in high cardinality metrics.
 
 

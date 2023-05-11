@@ -7,8 +7,8 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Main (unreleased)
------------------
+v0.33.2 (2023-05-11)
+--------------------
 
 ### Bugfixes
 
@@ -33,7 +33,7 @@ Main (unreleased)
   was created, and prevented a fresh process from being able to deliver metrics
   at all. (@rfratto)
 
-- Fix an issue where the `loki.source.kubernetes` component could lead to 
+- Fix an issue where the `loki.source.kubernetes` component could lead to
   the Agent crashing due to a race condition. (@tpaschalis)
 
 ### Other changes
