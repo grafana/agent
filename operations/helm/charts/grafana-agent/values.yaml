@@ -154,6 +154,8 @@ controller:
   volumeClaimTemplates: []
 
 service:
+  # -- Creates a Service for the controller's pods.
+  enabled: true
   # -- Service type
   type: ClusterIP
   # -- Cluster IP, can be set to None, empty "" or an IP address
