@@ -52,7 +52,7 @@ Main (unreleased)
 
 - Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
 
-- Update azure-metrics-exporter to latest (@kgeckhart)
+- Update azure-metrics-exporter to v0.0.0-20230502203721-b2bfd97b5313 (@kgeckhart)
 
 ### Bugfixes
 
