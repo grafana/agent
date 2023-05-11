@@ -48,11 +48,6 @@ package flow
 import (
 	"context"
 	"encoding/json"
-<<<<<<< HEAD
-	"fmt"
-=======
-	"net"
->>>>>>> 7d77b625b... Module argument block (#3592)
 	"sync"
 	"time"
 
