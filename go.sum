@@ -2919,6 +2919,16 @@ github.com/prometheus/statsd_exporter v0.22.7/go.mod h1:N/TevpjkIh9ccs6nuzY3jQn9
 github.com/prometheus/statsd_exporter v0.22.8 h1:Qo2D9ZzaQG+id9i5NYNGmbf1aa/KxKbB9aKfMS+Yib0=
 github.com/prometheus/statsd_exporter v0.22.8/go.mod h1:/DzwbTEaFTE0Ojz5PqcSk6+PFHOPWGxdXVr6yC8eFOM=
 github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40TwIPHuXU=
+github.com/ptodev/opentelemetry-collector v0.0.0-20230419185709-ff2503d0f9bf h1:4n2/rHnwXHNFXkrQ8LQcmB9DBfA4aoIN4EMcIoY/MkA=
+github.com/ptodev/opentelemetry-collector v0.0.0-20230419185709-ff2503d0f9bf/go.mod h1:yOkOBNRBU0hJ72EjR7Q+ZrpXzSccFIIGfha6KYVV0wM=
+github.com/ptodev/opentelemetry-collector/exporter/otlpexporter v0.0.0-20230419185709-ff2503d0f9bf h1:m+EuJYC4jrp+b81zPu0bCsA9wqsR8Rz9T3nRkv+rkqg=
+github.com/ptodev/opentelemetry-collector/exporter/otlpexporter v0.0.0-20230419185709-ff2503d0f9bf/go.mod h1:HYeehpTcwYdw0GMncSjCcok0S1w0hEkbLdyvTiKgYTs=
+github.com/ptodev/opentelemetry-collector/exporter/otlphttpexporter v0.0.0-20230419185709-ff2503d0f9bf h1:y9dAcix9o8z9DKko/wmzc1VEnaKqpkz3tt4MX8Hby3I=
+github.com/ptodev/opentelemetry-collector/exporter/otlphttpexporter v0.0.0-20230419185709-ff2503d0f9bf/go.mod h1:HNQmnuks0uzYHCTpVghdB7mFHRGLe6RY9o7zjkyAf5Q=
+github.com/ptodev/opentelemetry-collector/featuregate v0.0.0-20230419185709-ff2503d0f9bf h1:7ZzCEV/MvE80fn+SvYzO4gpCbaPt1Mn0JOc3uJAFtsM=
+github.com/ptodev/opentelemetry-collector/featuregate v0.0.0-20230419185709-ff2503d0f9bf/go.mod h1:S3iqaiAYSyfNlvs9ZCj1YfWKN3YclNB/fi+Gi+hP2BI=
+github.com/ptodev/opentelemetry-collector/pdata v0.0.0-20230419185709-ff2503d0f9bf h1:dqGE22rTmVKNOm8qqZiFmQaYH8ulgQKrG4kcc3gNdj0=
+github.com/ptodev/opentelemetry-collector/pdata v0.0.0-20230419185709-ff2503d0f9bf/go.mod h1:ZPMyfub988wSQPGGoibk8shkDyGrCC7VDRjCBxwplho=
 github.com/rafaeljusto/redigomock v0.0.0-20190202135759-257e089e14a1/go.mod h1:JaY6n2sDr+z2WTsXkOmNRUfDy6FN0L6Nk7x06ndm4tY=
 github.com/rancher/k3d/v5 v5.2.2 h1:9F+wqmRZz5Gl7o70g0OSPLYVyCOrz/rJPVQhxmaI2Bo=
 github.com/rancher/k3d/v5 v5.2.2/go.mod h1:wf9CUngX+Klerdc1rKlQV5OKzTQesCwoYGDMcB56DLQ=
