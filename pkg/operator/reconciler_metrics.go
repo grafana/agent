@@ -174,7 +174,7 @@ func (r *reconciler) createMetricsStatefulSets(
 		}
 
 		level.Info(l).Log("msg", "reconciling statefulset", "statefulset", ss.Name)
-		err = clientutil.CreateOrUpdateStatefulSet(ctx, r.Client, ss)
+		err = clientutil.CreateOrUpdateStatefulSet(ctx, r.Client, ss, l)
 		if err != nil {
 			return fmt.Errorf("failed to reconcile statefulset for shard: %w", err)
 		}
