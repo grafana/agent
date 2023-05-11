@@ -246,7 +246,7 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	diags := c.loader.Apply(args, file.Components, file.ConfigBlocks)
+	diags := c.loader.Apply(args, file.components, file.configBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

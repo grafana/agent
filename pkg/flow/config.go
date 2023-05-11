@@ -26,13 +26,13 @@ type Argument struct {
 
 // File holds the contents of a parsed Flow file.
 type File struct {
-	Name string    // File name given to ReadFile.
-	Node *ast.File // Raw File node.
+	name string    // File name given to ReadFile.
+	node *ast.File // Raw File node.
 
-	// Components holds the list of raw River AST blocks describing components.
+	// components holds the list of raw River AST blocks describing components.
 	// The Flow controller can interpret them.
-	Components   []*ast.BlockStmt
-	ConfigBlocks []*ast.BlockStmt
+	components   []*ast.BlockStmt
+	configBlocks []*ast.BlockStmt
 }
 
 // ReadFile parses the River file specified by bb into a File. name should be
@@ -89,9 +89,9 @@ func ReadFile(name string, bb []byte) (*File, error) {
 	}
 
 	return &File{
-		Name:         name,
-		Node:         node,
-		Components:   components,
-		ConfigBlocks: configs,
+		name:         name,
+		node:         node,
+		components:   components,
+		configBlocks: configs,
 	}, nil
 }
