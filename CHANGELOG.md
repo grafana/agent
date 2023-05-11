@@ -80,6 +80,9 @@ Main (unreleased)
   was created, and prevented a fresh process from being able to deliver metrics
   at all. (@rfratto)
 
+- Fix an issue where the `loki.source.kubernetes` component could lead to 
+  the Agent crashing due to a race condition. (@tpaschalis)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
