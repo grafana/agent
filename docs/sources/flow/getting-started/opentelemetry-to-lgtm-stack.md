@@ -1,11 +1,11 @@
 ---
-title: OpenTelemetry to LGTM stack
+title: OpenTelemetry to Grafana stack
 weight: 350
 ---
 
-# OpenTelemetry to LGTM stack
+# OpenTelemetry to Grafana stack
 
-In the [previous guide][], we learnt how to ingest [OpenTelemetry][] data, and export it to a different destination. In this one, we will continue from there but send it to a Loki, Mimir and Tempo stack.
+In the [previous guide][], we learned how to ingest [OpenTelemetry][] data and export it to a different destination. This guide shows you how to send the ingested OpenTelemetry data to a Loki, Mimir, and Tempo stack.
 
 [previous guide]: {{< relref "./collect-opentelemetry-data.md" >}}
 [OpenTelemetry]: https://opentelemetry.io
@@ -78,12 +78,12 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-This represents the pipline:
+This represents the pipeline:
 ```
 Metrics, Logs, Traces: OTLP Receiver → batch processor → OTLP Exporter
 ```
 
-We would be implementing the following pipeline in this guide:
+We will be implementing the following pipeline in this guide:
 
 ```
 Metrics: OTel → batch processor → prometheus remote write
@@ -93,7 +93,7 @@ Traces: OTel → batch processor → OTel exporter
 
 ## Grafana Tempo
 
-[Grafana Tempo][] is is an open source, easy-to-use, and scalable distributed tracing backend. Tempo can ingest OTLP directly and we can use the OTLP exporter to send the traces to Tempo.
+[Grafana Tempo][] is an open-source, easy-to-use, scalable distributed tracing backend. Tempo can ingest OTLP directly, and we can use the OTLP exporter to send the traces to Tempo.
 
 ```river
 otelcol.exporter.otlp "default" {
@@ -103,7 +103,7 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-To use Tempo with basic-auth, which is the case with GrafanaCloud Tempo, you have to use the [otelcol.auth.basic][] component. For example, you can get the Tempo config from the “details” page of Tempo in the [GrafanaCloud Portal][]:
+To use Tempo with basic-auth, which is the case with GrafanaCloud Tempo, you must use the [otelcol.auth.basic][] component. For example, you can get the Tempo config from the “details” page of Tempo in the [GrafanaCloud Portal][]:
 
 TODO: Insert Tempo Config pic
 
@@ -126,7 +126,7 @@ otelcol.auth.basic "grafana_cloud_tempo" {
 
 ## Prometheus
 
-To send from OTLP to Prometheus, we do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component. This because the Agent’s Prometheus remote write is a more battle-tested implementation with a Write Ahead Log for resiliency.
+To send from OTLP to Prometheus, we do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component. The Agent’s Prometheus remote write is a more battle-tested implementation with a Write Ahead Log for resiliency.
 
 ```river
 otelcol.exporter.prometheus "default" {
@@ -176,7 +176,7 @@ loki.write "default" {
 }
 ```
 
-To use Loki with basic-auth, which is the case with GrafanaCloud Loki, you have to configure the [loki.write][] component. For example, you can get the Loki config from the “details” page of Loki in the [GrafanaCloud Portal][]:
+To use Loki with basic-auth, which is the case with GrafanaCloud Loki, you must configure the [loki.write][] component. For example, you can get the Loki config from the “details” page of Loki in the [GrafanaCloud Portal][]:
 
 TODO: Insert Loki Config pic
 
@@ -201,7 +201,7 @@ loki.write "grafana_cloud_loki" {
 
 ## Putting it all together
 
-Now instead of using just referencing `otelcol.exporter.otlp.default.input` in the output of `otelcol.processor.batch`, we need to reference the three exporters we just setup. The final config becomes:
+Instead of referencing `otelcol.exporter.otlp.default.input` in the output of `otelcol.processor.batch`, we need to reference the three exporters we set up. The final config becomes:
 
 ```river
 otelcol.receiver.otlp "example" {
@@ -271,7 +271,7 @@ loki.write "grafana_cloud_loki" {
 }
 ```
 
-Running the Agent now will give you:
+Running the Agent now will give you the following:
 
 ```
 AGENT_MODE=flow ./grafana-agent run agent-config.river
