@@ -68,33 +68,7 @@ alert.newGroup(
       '5m',
     ),
 
-    // Failed packet writes.
-    alert.newRule(
-      'ClusterNodePacketWritesFailing',
-      |||
-        1 - (
-        sum by (cluster, namespace) (rate(cluster_transport_tx_packets_failed_total[2m])) /
-        sum by (cluster, namespace) (rate(cluster_transport_tx_packets_total[2m]))
-        ) < 1
-
-      |||,
-      'Cluster node is having its packet writes failing.',
-      '5m',
-    ),
-
-    // Failed stream writes.
-    alert.newRule(
-      'ClusterNodeStreamWritesFailin',
-      |||
-        1 - (
-        sum by (cluster, namespace) (rate(cluster_transport_stream_tx_packets_failed_total[2m])) /
-        sum by (cluster, namespace) (rate(cluster_transport_stream_tx_packets_total[2m]))
-        ) < 1
-      |||,
-      'Cluster node is having its packet writes failing.',
-      '5m',
-    ),
-
-    // TODO(@tpaschalis) Alert on open transport streams once we investigate their behavior.
+    // TODO(@tpaschalis) Alert on open transport streams once we investigate
+    // their behavior.
   ]
 )
