@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 // Source holds the contents of a parsed Flow source.
 type Source struct {
 	sourceMap map[string][]byte
+	hash      [sha256.Size]byte // Hash of all files in sourceMap sorted by name.
 
 	// components holds the list of raw River AST blocks describing components.
 	// The Flow controller can interpret them.
@@ -78,6 +80,7 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 		components:   components,
 		configBlocks: configs,
 		sourceMap:    map[string][]byte{name: bb},
+		hash:         sha256.Sum256(bb),
 	}, nil
 }
 
@@ -88,4 +91,13 @@ func (s *Source) RawConfigs() map[string][]byte {
 		return nil
 	}
 	return s.sourceMap
+}
+
+// SHA256 returns the sha256 checksum of the source. Do not modify the returned
+// byte array.
+func (s *Source) SHA256() [sha256.Size]byte {
+	if s == nil {
+		return [sha256.Size]byte{}
+	}
+	return s.hash
 }
