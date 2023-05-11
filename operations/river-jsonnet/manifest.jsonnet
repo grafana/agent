@@ -8,12 +8,14 @@ local parseField(name) = (
   if numParts == 1 then {
     type: 'attr',
     name: parts[0],
+    index: 0,
     orig: name,
   }
-  else if numParts > 1 && numParts <= 3 && parts[0] == 'block' then {
+  else if numParts > 1 && numParts <= 4 && parts[0] == 'block' then {
     type: 'block',
-    name: parts[1],
-    label: if numParts == 3 then parts[2] else '',
+    index: std.parseInt(parts[1]),
+    name: parts[2],
+    label: if numParts == 4 then parts[3] else '',
     orig: name,
   } else (
     error 'invalid field name %s' % name
@@ -36,7 +38,10 @@ local manifester(indent=0) = {
   body(value): (
     // First we need to look at each public field of the value and parse it as
     // an attribute or block.
-    local parsedFields = std.map(function(field) parseField(field), std.objectFields(value));
+    local parsedFields = std.sort(
+      std.map(function(field) parseField(field), std.objectFields(value)),
+      function(field) field.index,
+    );
 
     // Now we can accumulate all of the fields into a single string. Each field
     // will be separated by exactly one newline.
