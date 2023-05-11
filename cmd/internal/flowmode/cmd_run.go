@@ -182,18 +182,18 @@ func (fr *flowRun) Run(configFile string) error {
 		},
 	})
 
-	reload := func() error {
+	reload := func() (*flow.Source, error) {
 		flowSource, err := loadFlowSource(configFile)
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
-			return fmt.Errorf("reading config file %q: %w", configFile, err)
+			return nil, fmt.Errorf("reading config file %q: %w", configFile, err)
 		}
 		if err := f.LoadSource(flowSource, nil); err != nil {
-			return fmt.Errorf("error during the initial gragent load: %w", err)
+			return flowSource, fmt.Errorf("error during the initial gragent load: %w", err)
 		}
 
-		return nil
+		return flowSource, nil
 	}
 
 	// Flow controller
@@ -241,7 +241,7 @@ func (fr *flowRun) Run(configFile string) error {
 			level.Info(l).Log("msg", "reload requested via /-/reload endpoint")
 			defer level.Info(l).Log("msg", "config reloaded")
 
-			err := reload()
+			_, err := reload()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -294,17 +294,15 @@ func (fr *flowRun) Run(configFile string) error {
 	// Perform the initial reload. This is done after starting the HTTP server so
 	// that /metric and pprof endpoints are available while the Flow controller
 	// is loading.
-	if err := reload(); err != nil {
+	if source, err := reload(); err != nil {
 		var diags diag.Diagnostics
 		if errors.As(err, &diags) {
-			bb, _ := os.ReadFile(configFile)
-
 			p := diag.NewPrinter(diag.PrinterConfig{
 				Color:              !color.NoColor,
 				ContextLinesBefore: 1,
 				ContextLinesAfter:  1,
 			})
-			_ = p.Fprint(os.Stderr, map[string][]byte{configFile: bb}, diags)
+			_ = p.Fprint(os.Stderr, source.RawConfigs(), diags)
 
 			// Print newline after the diagnostics.
 			fmt.Println()
@@ -325,7 +323,7 @@ func (fr *flowRun) Run(configFile string) error {
 		case <-ctx.Done():
 			return nil
 		case <-reloadSignal:
-			if err := reload(); err != nil {
+			if _, err := reload(); err != nil {
 				level.Error(l).Log("msg", "failed to reload config", "err", err)
 			} else {
 				level.Info(l).Log("msg", "config reloaded")

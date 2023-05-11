@@ -11,6 +11,8 @@ import (
 
 // Source holds the contents of a parsed Flow source.
 type Source struct {
+	sourceMap map[string][]byte
+
 	// components holds the list of raw River AST blocks describing components.
 	// The Flow controller can interpret them.
 	components   []*ast.BlockStmt
@@ -19,6 +21,8 @@ type Source struct {
 
 // ParseSource parses the River contents specified by bb into a Source. name
 // should be the name of the source used for reporting errors.
+//
+// bb must not be modified after passing to ParseSource.
 func ParseSource(name string, bb []byte) (*Source, error) {
 	node, err := parser.ParseFile(name, bb)
 	if err != nil {
@@ -73,5 +77,15 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	return &Source{
 		components:   components,
 		configBlocks: configs,
+		sourceMap:    map[string][]byte{name: bb},
 	}, nil
+}
+
+// RawConfigs returns the raw source content used to create Source. Do not
+// modify the returned map.
+func (s *Source) RawConfigs() map[string][]byte {
+	if s == nil {
+		return nil
+	}
+	return s.sourceMap
 }
