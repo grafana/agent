@@ -5,13 +5,13 @@ alert.newGroup(
   [
     // Cluster not converging.
     alert.newRule(
-      'ClusterNotConverged',
+      'ClusterNotConverging',
       'stddev by (cluster, namespace) ((sum without (state) (cluster_node_peers))) != 0',
       'Cluster is not converging.',
       '5m',
     ),
 
-    // Clustering has entered a split brain state
+    // Cluster has entered a split brain state.
     alert.newRule(
       'ClusterSplitBrain',
       // Assert that the set of known peers (regardless of state) for an
@@ -25,5 +25,76 @@ alert.newGroup(
       'Cluster nodes have entered a split brain state.',
       '5m',
     ),
+
+    // Standard Deviation of Lamport clock time between nodes is too high
+    alert.newRule(
+      'ClusterLamportClockDrift',
+      'stddev by (cluster, namespace) ((sum without (state) (cluster_node_lamport_time))) != 0',
+      "Cluster nodes' lamport clocks are not converging.",
+      '5m'
+    ),
+
+    // Nodes health score is not zero.
+    alert.newRule(
+      'ClusterNodeUnhealthy',
+      |||
+        sum by (cluster, namespace, instance) (cluster_node_gossip_health_score) > 0
+      |||,
+      'Cluster node is reporting a health score > 0.',
+      '5m',
+    ),
+
+    // Lamport clock of a node is not progressing at all.
+    alert.newRule(
+      'ClusterLamportClockStuck',
+      'sum by (cluster, namespace, instance) (rate(cluster_node_lamport_time[1m])) == 0',
+      "Cluster nodes's lamport clocks is not progressing.",
+      '5m',
+    ),
+
+    // Node tried to join the cluster with an already-present node name.
+    alert.newRule(
+      'ClusterNodeNameConflict',
+      'sum by (cluster, namespace) (rate(cluster_node_gossip_received_events_total{event="node_conflict"}[1m])) != 0',
+      'A node tried to join the cluster with a name conflicting with an existing peer.',
+      '5m',
+    ),
+
+    // Node stuck in Terminating state.
+    alert.newRule(
+      'ClusterNodeStuckTerminating',
+      'sum by (cluster, namespace, instance) (cluster_node_peers{state="terminating"}) != 0',
+      'Cluster node stuck in Terminating state.',
+      '5m',
+    ),
+
+    // Failed packet writes.
+    alert.newRule(
+      'ClusterNodePacketWritesFailing',
+      |||
+        1 - (
+        sum by (cluster, namespace) (rate(cluster_transport_tx_packets_failed_total[1m])) /
+        sum by (cluster, namespace) (rate(cluster_transport_tx_packets_total[1m]))
+        ) < 1
+
+      |||,
+      'Cluster node is having its packet writes failing.',
+      '5m',
+    ),
+
+    // Failed stream writes.
+    alert.newRule(
+      'ClusterNodeStreamWritesFailin',
+      |||
+        1 - (
+        sum by (cluster, namespace) (rate(cluster_transport_stream_tx_packets_failed_total[1m])) /
+        sum by (cluster, namespace) (rate(cluster_transport_stream_tx_packets_total[1m]))
+        ) < 1
+      |||,
+      'Cluster node is having its packet writes failing.',
+      '5m',
+    ),
+
+    // TODO(@tpaschalis) Alert on open transport streams once we investigate their behavior.
   ]
 )
