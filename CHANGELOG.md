@@ -7,41 +7,6 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.33.2 (2023-05-11)
---------------------
-
-### Bugfixes
-
-- Fix issue where component evaluation time was overridden by a "default
-  health" message. (@rfratto)
-
-- Fix an issue where defining `logging` or `tracing` blocks inside of a module 
-  would generate a panic instead of returning an error. (@erikbaranowski)
-
-- Honor timeout when trying to establish a connection to another agent in Flow
-  clustering mode. (@rfratto)
-
-- Fix an issue where not specifying either `http` nor `grpc` blocks could result
-  in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
-
-- Fix an issue with the grafana/agent windows docker image entrypoint
-  not targeting the right location for the config. (@erikbaranowski)
-
-- Fix issue where the the `node_exporter` integration and
-  `prometheus.exporter.unix` `diskstat_device_include` component could not set
-  the allowlist field for the diskstat collector. (@tpaschalis)
-
-- Flow: Fix an issue within S3 Module where the S3 path was not parsed correctly when the
-  path consists of a parent directory. (@jastisriradheshyam)
-
-- Flow: Fix an issue on Windows where `prometheus.remote_write` failed to read
-  WAL checkpoints. This issue led to memory leaks once the initial checkpoint
-  was created, and prevented a fresh process from being able to deliver metrics
-  at all. (@rfratto)
-
-- The `phlare.scrape` Flow component `fetch profile failed` log has been set to
-  `debug` instead of `error`. (@erikbaranowski)
-
 Main (unreleased)
 -----------------
 
@@ -88,6 +53,33 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fix issue where component evaluation time was overridden by a "default
+  health" message. (@rfratto)
+
+- Fix an issue where defining `logging` or `tracing` blocks inside of a module
+  would generate a panic instead of returning an error. (@erikbaranowski)
+
+- Honor timeout when trying to establish a connection to another agent in Flow
+  clustering mode. (@rfratto)
+
+- Fix an issue where not specifying either `http` nor `grpc` blocks could result
+  in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
+
+- Fix an issue with the grafana/agent windows docker image entrypoint
+  not targeting the right location for the config. (@erikbaranowski)
+
+- Fix issue where the the `node_exporter` integration and
+  `prometheus.exporter.unix` `diskstat_device_include` component could not set
+  the allowlist field for the diskstat collector. (@tpaschalis)
+
+- Flow: Fix an issue within S3 Module where the S3 path was not parsed correctly when the
+  path consists of a parent directory. (@jastisriradheshyam)
+
+- Flow: Fix an issue on Windows where `prometheus.remote_write` failed to read
+  WAL checkpoints. This issue led to memory leaks once the initial checkpoint
+  was created, and prevented a fresh process from being able to deliver metrics
+  at all. (@rfratto)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
@@ -95,6 +87,9 @@ Main (unreleased)
 
 - Add `agent_wal_out_of_order_samples_total` metric to track samples received
   out of order. (@rfratto)
+
+- The `phlare.scrape` Flow component `fetch profile failed` log has been set to
+  `debug` instead of `error`. (@erikbaranowski)
 
 v0.33.1 (2023-05-01)
 --------------------
