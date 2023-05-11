@@ -9,21 +9,6 @@ import (
 	"github.com/grafana/agent/pkg/river/parser"
 )
 
-// An Argument is an input to a Flow module.
-type Argument struct {
-	// Name of the argument.
-	Name string `river:",label"`
-
-	// Whether the Argument must be provided when evaluating the file.
-	Optional bool `river:"optional,attr,optional"`
-
-	// Description for the Argument.
-	Comment string `river:"comment,attr,optional"`
-
-	// Default value for the argument.
-	Default any `river:"default,attr,optional"`
-}
-
 // Source holds the contents of a parsed Flow source.
 type Source struct {
 	// components holds the list of raw River AST blocks describing components.
