@@ -13,13 +13,13 @@ Install Grafana Agent and get it up and running on Linux.
 
 1.  If your distribution supports the signed-by option, open a terminal and enter:
 ```shell
-$ mkdir -p /etc/apt/keyrings/
-$ wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg
+$ sudo mkdir -p /etc/apt/keyrings/
+$ wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
 $ echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
 ```
 Otherwise, with the deprecated apt-key command:
 ```shell
-$ echo "deb https://apt.grafana.com stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
+$ echo "deb https://apt.grafana.com stable main" | sudo sudo tee /etc/apt/sources.list.d/grafana.list
 $ wget -q -O - https://apt.grafana.com/gpg.key | apt-key add -
 ```
 2. After you add the repository, update package list:
