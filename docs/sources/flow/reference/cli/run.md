@@ -10,11 +10,18 @@ interrupt is received.
 
 ## Usage
 
-Usage: `grafana-agent run [FLAG ...] FILE_NAME`
+Usage: `grafana-agent run [FLAG ...] PATH_NAME`
 
-`grafana-agent run` must be provided an argument which points at the River config file
-to use. `grafana-agent run` will immediately exit with an error if the River file
+`grafana-agent run` must be provided an argument which points at the River
+configuration file to use, or a directory containing River configuration files.
+`grafana-agent run` will immediately exit with an error if the River file
 wasn't specified, can't be loaded, or contained errors during the initial load.
+
+If `PATH_NAME` is a directory, all files with a `.river` extension in that
+directory are loaded as a single configuration; component names must be unique
+across all River files in the directory. To allow multiple files that use the
+same component names, use [Modules][] instead. River files in subdirectories
+are ignored.
 
 Grafana Agent Flow will continue to run if subsequent reloads of the config
 file fail, potentially marking components as unhealthy depending on the nature
@@ -40,6 +47,7 @@ The following flags are supported:
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
 [components]: {{< relref "../../concepts/components.md" >}}
+[Modules]: {{< relref "../../concepts/modules.md" >}}
 
 ## Updating the config file
 

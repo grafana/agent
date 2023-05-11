@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"path"
+	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -49,14 +52,17 @@ func runCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "run [flags] file",
+		Use:   "run [flags] path",
 		Short: "Run Grafana Agent Flow",
 		Long: `The run subcommand runs Grafana Agent Flow in the foreground until an interrupt
 is received.
 
-run must be provided an argument pointing at the River file to use. If the
-River file wasn't specified, can't be loaded, or contains errors, run will exit
+run must be provided an argument pointing at the River path to use. If the
+River path wasn't specified, can't be loaded, or contains errors, run will exit
 immediately.
+
+If path is a directory, all *.river files in that directory will be combined
+into a single unit. Subdirectories are not searched.
 
 run starts an HTTP server which can be used to debug Grafana Agent Flow or
 force it to reload (by sending a GET or POST request to /-/reload). The listen
@@ -70,7 +76,7 @@ Additionally, the HTTP server exposes the following debug endpoints:
 
   /debug/pprof   Go performance profiling tools
 
-If reloading the config file fails, Grafana Agent Flow will continue running in
+If reloading the config path fails, Grafana Agent Flow will continue running in
 its last valid state. Components which failed may be be listed as unhealthy,
 depending on the nature of the reload error.
 `,
@@ -109,15 +115,15 @@ type flowRun struct {
 	clusterJoinAddr  string
 }
 
-func (fr *flowRun) Run(configFile string) error {
+func (fr *flowRun) Run(configPath string) error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
 	ctx, cancel := interruptContext()
 	defer cancel()
 
-	if configFile == "" {
-		return fmt.Errorf("file argument not provided")
+	if configPath == "" {
+		return fmt.Errorf("path argument not provided")
 	}
 
 	logSink, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
@@ -183,12 +189,12 @@ func (fr *flowRun) Run(configFile string) error {
 	})
 
 	reload := func() (*flow.Source, error) {
-		flowSource, err := loadFlowSource(configFile)
+		flowSource, err := loadFlowSource(configPath)
 		instrumentation.InstrumentSHA256(flowSource.SHA256())
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
-			return nil, fmt.Errorf("reading config file %q: %w", configFile, err)
+			return nil, fmt.Errorf("reading config path %q: %w", configPath, err)
 		}
 		if err := f.LoadSource(flowSource, nil); err != nil {
 			return flowSource, fmt.Errorf("error during the initial gragent load: %w", err)
@@ -311,7 +317,7 @@ func (fr *flowRun) Run(configFile string) error {
 			return fmt.Errorf("could not perform the initial load successfully")
 		}
 
-		// Exit if the initial load files
+		// Exit if the initial load fails.
 		return err
 	}
 
@@ -345,12 +351,50 @@ func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	}
 }
 
-func loadFlowSource(filename string) (*flow.Source, error) {
-	bb, err := os.ReadFile(filename)
+func loadFlowSource(path string) (*flow.Source, error) {
+	fi, err := os.Stat(path)
 	if err != nil {
 		return nil, err
 	}
-	return flow.ParseSource(filename, bb)
+
+	if fi.IsDir() {
+		sources := map[string][]byte{}
+
+		err := filepath.WalkDir(path, func(curPath string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			// Skip all directories, and don't recurse into child directories that
+			// aren't the top-level dir.
+			if d.IsDir() {
+				if curPath != path {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+
+			// Ignore files not ending in .river.
+			if !strings.HasSuffix(curPath, ".river") {
+				return nil
+			}
+
+			bb, err := os.ReadFile(curPath)
+			sources[curPath] = bb
+			return err
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return flow.ParseSources(sources)
+	}
+
+	bb, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return flow.ParseSource(path, bb)
 }
 
 func interruptContext() (context.Context, context.CancelFunc) {
