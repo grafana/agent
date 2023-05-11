@@ -51,6 +51,8 @@ Main (unreleased)
 
 - Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
 
+- Update azidentity dependency to v1.3.0. (@akselleirv)
+
 ### Bugfixes
 
 - Fix issue where component evaluation time was overridden by a "default
