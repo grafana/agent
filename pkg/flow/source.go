@@ -3,6 +3,7 @@ package flow
 import (
 	"crypto/sha256"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/grafana/agent/pkg/river/ast"
@@ -82,6 +83,54 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 		sourceMap:    map[string][]byte{name: bb},
 		hash:         sha256.Sum256(bb),
 	}, nil
+}
+
+// ParseSources parses the map of sources and combines them into a single
+// Source. sources must not be modified after calling ParseSources.
+func ParseSources(sources map[string][]byte) (*Source, error) {
+	var (
+		sortedSources = sourcesMapToSlice(sources)  // Sorted slice so ParseSources always does the same thing.
+		mergedSource  = &Source{sourceMap: sources} // Combined source from all the input content.
+		hash          = sha256.New()                // Combined hash of all the sources.
+	)
+
+	for _, namedSource := range sortedSources {
+		hash.Write(namedSource.Content)
+
+		sourceFragment, err := ParseSource(namedSource.Name, namedSource.Content)
+		if err != nil {
+			return nil, err
+		}
+
+		mergedSource.components = append(mergedSource.components, sourceFragment.components...)
+		mergedSource.configBlocks = append(mergedSource.configBlocks, sourceFragment.configBlocks...)
+	}
+
+	mergedSource.hash = [32]byte(hash.Sum(nil))
+	return mergedSource, nil
+}
+
+type namedSource struct {
+	Name    string
+	Content []byte
+}
+
+// sourcesMapToSlice returns a sorted slice of sources from an input map.
+func sourcesMapToSlice(in map[string][]byte) []namedSource {
+	out := make([]namedSource, 0, len(in))
+
+	for name, bb := range in {
+		out = append(out, namedSource{
+			Name:    name,
+			Content: bb,
+		})
+	}
+
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].Name < out[j].Name
+	})
+
+	return out
 }
 
 // RawConfigs returns the raw source content used to create Source. Do not
