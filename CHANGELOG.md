@@ -53,17 +53,30 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fix issue where component evaluation time was overridden by a "default
-  health" message. (@rfratto)
-
 - Fix an issue where defining `logging` or `tracing` blocks inside of a module
   would generate a panic instead of returning an error. (@erikbaranowski)
 
-- Honor timeout when trying to establish a connection to another agent in Flow
-  clustering mode. (@rfratto)
-
 - Fix an issue where not specifying either `http` nor `grpc` blocks could result
   in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
+
+### Other changes
+
+- Add metrics when clustering mode is enabled. (@rfratto)
+- Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
+
+- Add `agent_wal_out_of_order_samples_total` metric to track samples received
+  out of order. (@rfratto)
+
+v0.33.2 (2023-05-11)
+--------------------
+
+### Bugfixes
+
+- Fix issue where component evaluation time was overridden by a "default
+  health" message. (@rfratto)
+
+- Honor timeout when trying to establish a connection to another agent in Flow
+  clustering mode. (@rfratto)
 
 - Fix an issue with the grafana/agent windows docker image entrypoint
   not targeting the right location for the config. (@erikbaranowski)
@@ -81,12 +94,6 @@ Main (unreleased)
   at all. (@rfratto)
 
 ### Other changes
-
-- Add metrics when clustering mode is enabled. (@rfratto)
-- Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
-
-- Add `agent_wal_out_of_order_samples_total` metric to track samples received
-  out of order. (@rfratto)
 
 - The `phlare.scrape` Flow component `fetch profile failed` log has been set to
   `debug` instead of `error`. (@erikbaranowski)
