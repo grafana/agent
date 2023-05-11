@@ -321,6 +321,7 @@ receivers:
     protocols:
       grpc:
     remote_sampling:
+      host_endpoint: example:54321
       strategy_file: file_path
       tls:
         insecure: true
@@ -336,6 +337,7 @@ receivers:
     protocols:
       grpc:
     remote_sampling:
+      host_endpoint: example:54321
       strategy_file: file_path
       tls:
         insecure: true
@@ -1460,16 +1462,27 @@ service:
 			require.NoError(t, err)
 
 			configMap := confmap.NewFromStringMap(otelMapStructure)
-			expectedConfig, err := otelcol.Unmarshal(configMap, factories)
+			expectedConfigSettings, err := otelcol.Unmarshal(configMap, factories)
 			require.NoError(t, err)
+
+			//TODO: This code is the same as the one in the pdn code. Reuse it?
+			expectedConfig := otelcol.Config{
+				Receivers:  expectedConfigSettings.Receivers.Configs(),
+				Processors: expectedConfigSettings.Processors.Configs(),
+				Exporters:  expectedConfigSettings.Exporters.Configs(),
+				Connectors: expectedConfigSettings.Connectors.Configs(),
+				Extensions: expectedConfigSettings.Extensions.Configs(),
+				Service:    expectedConfigSettings.Service,
+			}
+
+			require.NoError(t, expectedConfig.Validate())
 
 			// Exporters/Receivers/Processors in the config's service.Pipelines, as well as
 			// service.Extensions have to be in the same order for them to be asserted as equal.
-			//TODO: Do we really need to sort these?
-			// sortService(actualConfig)
-			// sortService(expectedConfig)
+			sortService(actualConfig)
+			sortService(&expectedConfig)
 
-			assert.Equal(t, expectedConfig, actualConfig)
+			assert.Equal(t, expectedConfig, *actualConfig)
 		})
 	}
 }
@@ -1821,7 +1834,9 @@ func TestCreatingPushReceiver(t *testing.T) {
 receivers:
   jaeger:
     protocols:
-      grpc:`
+      grpc:
+remote_write:
+  - endpoint: example.com:12345`
 	cfg := InstanceConfig{}
 	err := yaml.Unmarshal([]byte(test), &cfg)
 	assert.Nil(t, err)
