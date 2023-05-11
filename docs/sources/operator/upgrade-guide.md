@@ -18,7 +18,7 @@ Static mode Kubernetes operator.
 > [upgrade-guide-static]: {{< relref "../static/upgrade-guide.md" >}}
 > [upgrade-guide-flow]: {{< relref "../flow/upgrade-guide.md" >}}
 
-## v0.33.1
+## v0.33.0
 
 ### Symbolic links in Docker containers removed
 

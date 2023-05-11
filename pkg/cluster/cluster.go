@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -152,8 +153,18 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 	cli := &http.Client{
 		Transport: &http2.Transport{
 			AllowHTTP: true,
-			DialTLS: func(network, addr string, _ *tls.Config) (net.Conn, error) {
-				return net.Dial(network, addr)
+			DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
+				// Set a maximum timeout for establishing the connection. If our
+				// context has a deadline earlier than our timeout, we shrink the
+				// timeout to it.
+				//
+				// TODO(rfratto): consider making the max timeout configurable.
+				timeout := 30 * time.Second
+				if dur, ok := deadlineDuration(ctx); ok && dur < timeout {
+					timeout = dur
+				}
+
+				return net.DialTimeout(network, addr, timeout)
 			},
 		},
 	}
@@ -196,4 +207,11 @@ func New(log log.Logger, clusterEnabled bool, addr, joinAddr string) (*Clusterer
 	}))
 
 	return res, nil
+}
+
+func deadlineDuration(ctx context.Context) (d time.Duration, ok bool) {
+	if t, ok := ctx.Deadline(); ok {
+		return time.Until(t), true
+	}
+	return 0, false
 }
