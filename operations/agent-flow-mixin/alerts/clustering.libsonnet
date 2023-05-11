@@ -29,7 +29,7 @@ alert.newGroup(
     // Standard Deviation of Lamport clock time between nodes is too high
     alert.newRule(
       'ClusterLamportClockDrift',
-      'stddev by (cluster, namespace) ((sum without (state) (cluster_node_lamport_time))) != 0',
+      'stddev by (cluster, namespace) (cluster_node_lamport_time) != 0',
       "Cluster nodes' lamport clocks are not converging.",
       '5m'
     ),
@@ -47,7 +47,7 @@ alert.newGroup(
     // Lamport clock of a node is not progressing at all.
     alert.newRule(
       'ClusterLamportClockStuck',
-      'sum by (cluster, namespace, instance) (rate(cluster_node_lamport_time[1m])) == 0',
+      'sum by (cluster, namespace, instance) (rate(cluster_node_lamport_time[2m])) == 0',
       "Cluster nodes's lamport clocks is not progressing.",
       '5m',
     ),
@@ -55,7 +55,7 @@ alert.newGroup(
     // Node tried to join the cluster with an already-present node name.
     alert.newRule(
       'ClusterNodeNameConflict',
-      'sum by (cluster, namespace) (rate(cluster_node_gossip_received_events_total{event="node_conflict"}[1m])) != 0',
+      'sum by (cluster, namespace) (rate(cluster_node_gossip_received_events_total{event="node_conflict"}[2m])) > 0',
       'A node tried to join the cluster with a name conflicting with an existing peer.',
       '5m',
     ),
@@ -73,8 +73,8 @@ alert.newGroup(
       'ClusterNodePacketWritesFailing',
       |||
         1 - (
-        sum by (cluster, namespace) (rate(cluster_transport_tx_packets_failed_total[1m])) /
-        sum by (cluster, namespace) (rate(cluster_transport_tx_packets_total[1m]))
+        sum by (cluster, namespace) (rate(cluster_transport_tx_packets_failed_total[2m])) /
+        sum by (cluster, namespace) (rate(cluster_transport_tx_packets_total[2m]))
         ) < 1
 
       |||,
@@ -87,8 +87,8 @@ alert.newGroup(
       'ClusterNodeStreamWritesFailin',
       |||
         1 - (
-        sum by (cluster, namespace) (rate(cluster_transport_stream_tx_packets_failed_total[1m])) /
-        sum by (cluster, namespace) (rate(cluster_transport_stream_tx_packets_total[1m]))
+        sum by (cluster, namespace) (rate(cluster_transport_stream_tx_packets_failed_total[2m])) /
+        sum by (cluster, namespace) (rate(cluster_transport_stream_tx_packets_total[2m]))
         ) < 1
       |||,
       'Cluster node is having its packet writes failing.',
