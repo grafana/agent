@@ -24,7 +24,7 @@ static mode.
 The experimental feature Dynamic Configuration has been removed. The use case of dynamic configuration will be replaced
 with [Modules](../../concepts/modules/) in Grafana Agent Flow.
 
-## v0.33.0
+## v0.33
 
 ### Symbolic links in Docker containers removed
 
@@ -37,7 +37,7 @@ use the new binaries that are prefixed with `/bin/grafana*`.
 [Dynamic Configuration](https://grafana.com/docs/agent/latest/cookbook/dynamic-configuration/) will be removed in v0.34.
 The use case of dynamic configuration will be replaced with Modules in Grafana Agent Flow.
 
-## v0.32.0
+## v0.32
 
 ### Breaking change: `node_exporter` configuration options changed
 
@@ -59,7 +59,7 @@ All release Windows `.exe` files are now zipped. Prior to v0.31, only
 This fixes an issue from v0.31.0 where all `.exe` files were accidentally left
 unzipped.
 
-## v0.31.0
+## v0.31
 
 ### Breaking change: binary names are now prefixed with `grafana-`
 
@@ -81,7 +81,7 @@ These symbolic links will be removed in v0.33. Custom entrypoints must be
 updated prior to v0.33 to use the new binaries before the symbolic links get
 removed.
 
-## v0.30.0
+## v0.30
 
 ### Breaking change: `ebpf_exporter` integration removed
 
@@ -97,7 +97,7 @@ configuration errors. To continue using the same configuration file, remove the
 
 [bcc]: https://github.com/iovisor/bcc
 
-## v0.29.0
+## v0.29
 
 ### Breaking change: JSON-encoded traces from OTLP versions below 0.16.0 are no longer supported
 
@@ -122,7 +122,7 @@ include symbolic links from the old binary names to the new binary names.
 
 There is no action to take at this time.
 
-## v0.26.0
+## v0.26
 
 ### Breaking change: Deprecated YAML fields in `server` block removed
 
@@ -165,7 +165,7 @@ traces:
           threshold_ms: 100
 ```
 
-## v0.24.0
+## v0.24
 
 ### Breaking change: Integrations renamed when `integrations-next` feature flag is used
 
@@ -361,7 +361,7 @@ This is a change over the previous behavior where autoscraping integrations
 would connect to themselves over the network. As a result of this change, the
 `integrations.client_config` field is no longer necessary and has been removed.
 
-## v0.22.0
+## v0.22
 
 ### `node_exporter` integration deprecated field names
 
@@ -392,7 +392,7 @@ disable the `/-/config` and `/agent/api/v1/configs/{name}` endpoints by
 default. Pass the `--config.enable-read-api` flag at the command line to
 re-enable them.
 
-## v0.21.0
+## v0.21
 
 ### Integrations: Change in how instance labels are handled (Breaking change)
 
@@ -419,7 +419,7 @@ and ignored from the YAML file, permanently treated as true. A future release
 will remove these fields, causing YAML errors on load instead of being silently
 ignored.
 
-## v0.20.0
+## v0.20
 
 ### Traces: Changes to receiver's TLS config (Breaking change).
 
@@ -466,7 +466,7 @@ This goes in line with OTLP legacy port deprecation.
 To upgrade, point the client instrumentation push endpoint to `:4317` if using
 the default OTLP gRPC endpoint.
 
-## v0.19.0
+## v0.19
 
 ### Traces: Deprecation of "tempo" in config and metrics. (Deprecation)
 
@@ -700,7 +700,7 @@ tempo:
       logs_instance_tag: tempo
 ```
 
-## v0.18.0
+## v0.18
 
 ### Tempo: Remote write TLS config
 
@@ -737,7 +737,7 @@ tempo:
             insecure_skip_verify: true
 ```
 
-## v0.15.0
+## v0.15
 
 ### Tempo: `automatic_logging` changes
 
@@ -766,7 +766,7 @@ tempo:
       loki_name: <some loki instance>
 ```
 
-## v0.14.0
+## v0.14
 
 ### Scraping Service security change
 
@@ -864,9 +864,9 @@ tempo:
 ```
 
 
-## v0.12.0
+## v0.12
 
-v0.12.0 had two breaking changes: the `tempo` and `loki` sections have been changed to require a list of `tempo`/`loki` configs rather than just one.
+v0.12 had two breaking changes: the `tempo` and `loki` sections have been changed to require a list of `tempo`/`loki` configs rather than just one.
 
 ### Tempo Config Change
 
