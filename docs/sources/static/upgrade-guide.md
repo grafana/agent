@@ -49,7 +49,7 @@ options for the `diskstats` collector have changed names:
 - `ignored_devices` is now `device_exclude` in the Flow component
   configuration.
 
-## v0.31
+## v0.31.1
 
 ### Breaking change: all Windows executables are now zipped
 
