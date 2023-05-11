@@ -33,7 +33,7 @@ Omitted fields take their default values.
 | `max_open_conns`    | `int`    | Number of maximum open connections in the connection pool.   | `10`    | no       |
 | `query_timeout`     | `int`    | The query timeout in seconds.                                | `5`     | no       |
 
-``The `connection_string` argument`` should be in the [format](https://github.com/iamseth/oracledb_exporter/tree/master#running):
+[The oracledb_exporter running documentation](https://github.com/iamseth/oracledb_exporter/tree/master#running) show the format and examples of the `connection_string` argument:
 ```conn
 oracle://user:pass@server/service_name[?OPTION1=VALUE1[&OPTIONn=VALUEn]...]
 ```
