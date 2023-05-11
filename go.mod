@@ -703,4 +703,4 @@ replace github.com/prometheus/common => github.com/grafana/prometheus-common v0.
 
 // TODO(mattdurham): this is so you can debug on windows, when PR is merged into perflib, can you use that
 // and eventually remove if windows_exporter shifts to it. https://github.com/leoluk/perflib_exporter/pull/42
-replace github.com/leoluk/perflib_exporter => github.com/mattdurham/perflib_exporter v0.0.0-20230511155951-b9ba65c68a11
+replace github.com/leoluk/perflib_exporter => github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090
