@@ -1860,8 +1860,13 @@ github.com/grafana/phlare/api v0.1.2 h1:1jrwd3KnsXMzj/tJih9likx5EvbY3pbvLbDqAAYe
 github.com/grafana/phlare/api v0.1.2/go.mod h1:29vcLwFDmZBDce2jwFIMtzvof7fzPadT8VMKw9ks7FU=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnFWqxhoSF3WC7sKAdMZ+SRXvHLVZlZ3sbQjuUlTqkw=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
+<<<<<<< HEAD
 github.com/grafana/prometheus v1.8.2-0.20230328154716-1d0e5416a0de h1:HjEfLfBCMlZktx4tGEtMSbTZNdHrhzaCouRsXkh13ps=
 github.com/grafana/prometheus v1.8.2-0.20230328154716-1d0e5416a0de/go.mod h1:Pfqb/MLnnR2KK+0vchiaH39jXxvLMBk+3lnIGP4N7Vk=
+=======
+github.com/grafana/prometheus v1.8.2-0.20230511165250-22c61d1811b2 h1:1h8KeWFbA2ytUcHok2SIUi+hQubaUEwq2yS2GEh5V6I=
+github.com/grafana/prometheus v1.8.2-0.20230511165250-22c61d1811b2/go.mod h1:Pfqb/MLnnR2KK+0vchiaH39jXxvLMBk+3lnIGP4N7Vk=
+>>>>>>> b5556814d... misc: cherry-pick prometheus/prometheus#12349 (#3853)
 github.com/grafana/prometheus-common v0.39.1-0.20230411174203-bcb00f1c26d7 h1:xFCw/hvc6lOmFjTvjcnvoWJrgnx2VxF1wz+lR+eYBLo=
 github.com/grafana/prometheus-common v0.39.1-0.20230411174203-bcb00f1c26d7/go.mod h1:xBwqVerjNdUDjgODMpudtOMwlOwf2SaTr1yjz4b7Zbc=
 github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd h1:PpuIBO5P3e9hpqBD0O/HjhShYuM6XE0i/lbE6J94kww=

@@ -631,7 +631,17 @@ replace (
 	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.0
 )
 
+<<<<<<< HEAD
 replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20230328154716-1d0e5416a0de // release-2.42.0-grafana branch
+=======
+// TODO(rfratto): remove replace directive once:
+//
+// * We remove our dependency on Cortex, which forces Prometheus to an older
+//   version since Go thinks v1 is newer than v0.
+// * There is a release of Prometheus which contains prometheus/prometheus#12349.
+// * We upgrade our OpenTelemetry dependency which will allow us to update Prometheus.
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20230511165250-22c61d1811b2 // release-2.42.0-grafana
+>>>>>>> b5556814d... misc: cherry-pick prometheus/prometheus#12349 (#3853)
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
