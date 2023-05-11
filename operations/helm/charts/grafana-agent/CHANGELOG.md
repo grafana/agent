@@ -10,9 +10,14 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.13.0 (2023-05-01)
+-------------------
+
 ### Enhancements
 
 - Add a toggle for enabling/disabling the Service. (@tpaschalis)
+
+- Update Grafana Agent version to v0.33.2. (@rfratto)
 
 0.13.0 (2023-05-01)
 -------------------
