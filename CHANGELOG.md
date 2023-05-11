@@ -28,6 +28,11 @@ Main (unreleased)
 - Flow: Fix an issue within S3 Module where the S3 path was not parsed correctly when the
   path consists of a parent directory. (@jastisriradheshyam)
 
+- Flow: Fix an issue on Windows where `prometheus.remote_write` failed to read
+  WAL checkpoints. This issue led to memory leaks once the initial checkpoint
+  was created, and prevented a fresh process from being able to deliver metrics
+  at all. (@rfratto)
+
 v0.33.1 (2023-05-01)
 --------------------
 
