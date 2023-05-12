@@ -20,9 +20,9 @@ import (
 
 	"github.com/grafana/agent/component/common/loki/client/fake"
 
-	"github.com/grafana/dskit/backoff"
 	"cloud.google.com/go/pubsub"
 	"github.com/go-kit/log"
+	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
