@@ -17,7 +17,7 @@ func init() {
 		Name:    "prometheus.exporter.snmp",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.NewMultiTarget(createExporter, "snmp", buildSNMPTargets),
+		Build:   exporter.NewMultiTarget(createExporter, "snmp", "", buildSNMPTargets),
 	})
 }
 

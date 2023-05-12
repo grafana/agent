@@ -14,7 +14,7 @@ func init() {
 		Name:    "prometheus.exporter.postgres",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "postgres"),
+		Build:   exporter.New(createExporter, "postgres", ""),
 	})
 }
 

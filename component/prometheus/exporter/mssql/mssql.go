@@ -17,7 +17,7 @@ func init() {
 		Name:    "prometheus.exporter.mssql",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "mssql"),
+		Build:   exporter.New(createExporter, "mssql", ""),
 	})
 }
 

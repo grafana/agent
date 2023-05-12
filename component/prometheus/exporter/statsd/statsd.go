@@ -13,7 +13,7 @@ func init() {
 		Name:    "prometheus.exporter.statsd",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "statsd"),
+		Build:   exporter.New(createExporter, "statsd", ""),
 	})
 }
 

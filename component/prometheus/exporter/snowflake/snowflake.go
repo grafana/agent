@@ -14,7 +14,7 @@ func init() {
 		Name:    "prometheus.exporter.snowflake",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "snowflake"),
+		Build:   exporter.New(createExporter, "snowflake", ""),
 	})
 }
 

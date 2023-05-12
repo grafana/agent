@@ -14,7 +14,7 @@ func init() {
 		Name:    "prometheus.exporter.mysql",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "mysql"),
+		Build:   exporter.New(createExporter, "mysql", ""),
 	})
 }
 
