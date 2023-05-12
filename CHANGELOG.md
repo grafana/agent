@@ -27,6 +27,7 @@ Main (unreleased)
   - `prometheus.receive_http` - receive Prometheus metrics over HTTP (e.g. from other agents). (@thampiotr)
   - `remote.vault` retrieves a secret from Vault. (@rfratto)
   - `prometheus.exporter.snowflake` collects metrics from a snowflake database (@jonathanWamsley)
+  - `prometheus.exporter.mssql` collects metrics from Microsoft SQL Server (@jonathanwamsley)
 
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
