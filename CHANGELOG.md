@@ -27,6 +27,7 @@ Main (unreleased)
   - `prometheus.receive_http` - receive Prometheus metrics over HTTP (e.g. from other agents). (@thampiotr)
   - `remote.vault` retrieves a secret from Vault. (@rfratto)
   - `prometheus.exporter.snowflake` collects metrics from a snowflake database (@jonathanWamsley)
+  - `prometheus.exporter.mssql` collects metrics from Microsoft SQL Server (@jonathanwamsley)
 
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
@@ -53,24 +54,40 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fix issue where component evaluation time was overridden by a "default
-  health" message. (@rfratto)
-
 - Fix an issue where defining `logging` or `tracing` blocks inside of a module
   would generate a panic instead of returning an error. (@erikbaranowski)
-
-- Honor timeout when trying to establish a connection to another agent in Flow
-  clustering mode. (@rfratto)
 
 - Fix an issue where not specifying either `http` nor `grpc` blocks could result
   in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
 
+### Other changes
+
+- Add metrics when clustering mode is enabled. (@rfratto)
+- Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
+
+- Add `agent_wal_out_of_order_samples_total` metric to track samples received
+  out of order. (@rfratto)
+
+v0.33.2 (2023-05-11)
+--------------------
+
+### Bugfixes
+
+- Fix issue where component evaluation time was overridden by a "default
+  health" message. (@rfratto)
+
+- Honor timeout when trying to establish a connection to another agent in Flow
+  clustering mode. (@rfratto)
+
 - Fix an issue with the grafana/agent windows docker image entrypoint
   not targeting the right location for the config. (@erikbaranowski)
 
-- Fix issue where the the `node_exporter` integration and
+- Fix issue where the `node_exporter` integration and
   `prometheus.exporter.unix` `diskstat_device_include` component could not set
   the allowlist field for the diskstat collector. (@tpaschalis)
+
+- Fix an issue in `loki.source.heroku` where updating the `labels` or `use_incoming_timestamp`
+  would not take effect. (@thampiotr)
 
 - Flow: Fix an issue within S3 Module where the S3 path was not parsed correctly when the
   path consists of a parent directory. (@jastisriradheshyam)
@@ -80,13 +97,10 @@ Main (unreleased)
   was created, and prevented a fresh process from being able to deliver metrics
   at all. (@rfratto)
 
+- Fix an issue where the `loki.source.kubernetes` component could lead to 
+  the Agent crashing due to a race condition. (@tpaschalis)
+
 ### Other changes
-
-- Add metrics when clustering mode is enabled. (@rfratto)
-- Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
-
-- Add `agent_wal_out_of_order_samples_total` metric to track samples received
-  out of order. (@rfratto)
 
 - The `phlare.scrape` Flow component `fetch profile failed` log has been set to
   `debug` instead of `error`. (@erikbaranowski)
