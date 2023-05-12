@@ -36,7 +36,7 @@ Omitted fields take their default values.
 
 
 
-[The sql_exporter examples](https://github.com/burningalchemist/sql_exporter/blob/master/examples/azure-sql-mi/sql_exporter.yml#L21) shows the format of the `connection_string` argument:
+[The sql_exporter examples](https://github.com/burningalchemist/sql_exporter/blob/master/examples/azure-sql-mi/sql_exporter.yml#L21) show the format of the `connection_string` argument:
 ```conn
 sqlserver://USERNAME_HERE:PASSWORD_HERE@SQLMI_HERE_ENDPOINT.database.windows.net:1433?encrypt=true&hostNameInCertificate=%2A.SQL_MI_DOMAIN_HERE.database.windows.net&trustservercertificate=true
 ```
@@ -87,7 +87,7 @@ from `prometheus.exporter.mssql`:
 
 ```river
 prometheus.exporter.mssql "example" {
-  sqlserver://user:pass@localhost:1433
+  connection_string = "sqlserver://user:pass@localhost:1433"
 }
 
 // Configure a prometheus.scrape component to collect mssql metrics.
