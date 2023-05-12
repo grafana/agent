@@ -10,6 +10,9 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Add a toggle for enabling/disabling the Service. (@tpaschalis)
 
 0.13.0 (2023-05-01)
 -------------------

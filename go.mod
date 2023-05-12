@@ -630,10 +630,13 @@ replace (
 	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.0
 )
 
-// TODO(rfratto): remove replace directive once we remove our dependency on
-// Cortex, which forces Prometheus to an older version since Go thinks v1 is
-// newer than v0.
-replace github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.42.0 // v2.42.0
+// TODO(rfratto): remove replace directive once:
+//
+// * We remove our dependency on Cortex, which forces Prometheus to an older
+//   version since Go thinks v1 is newer than v0.
+// * There is a release of Prometheus which contains prometheus/prometheus#12349.
+// * We upgrade our OpenTelemetry dependency which will allow us to update Prometheus.
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20230511165250-22c61d1811b2 // release-2.42.0-grafana
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
@@ -702,5 +705,5 @@ replace github.com/prometheus/procfs => github.com/prometheus/procfs v0.8.0
 replace github.com/prometheus/common => github.com/grafana/prometheus-common v0.39.1-0.20230411174203-bcb00f1c26d7
 
 // TODO(mattdurham): this is so you can debug on windows, when PR is merged into perflib, can you use that
-// and eventually remove if windows_exporter shifts to it. https://github.com/leoluk/perflib_exporter/pull/42
+// and eventually remove if windows_exporter shifts to it. https://github.com/leoluk/perflib_exporter/pull/43
 replace github.com/leoluk/perflib_exporter => github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090
