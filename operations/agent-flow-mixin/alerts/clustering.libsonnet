@@ -6,7 +6,7 @@ alert.newGroup(
     // Cluster not converging.
     alert.newRule(
       'ClusterNotConverging',
-      'stddev by (cluster, namespace) ((sum without (state) (cluster_node_peers))) != 0',
+      'stddev by (cluster, namespace) (sum without (state) (cluster_node_peers)) != 0',
       'Cluster is not converging.',
       '5m',
     ),
@@ -38,7 +38,7 @@ alert.newGroup(
     alert.newRule(
       'ClusterNodeUnhealthy',
       |||
-        sum by (cluster, namespace, instance) (cluster_node_gossip_health_score) > 0
+        cluster_node_gossip_health_score > 0
       |||,
       'Cluster node is reporting a health score > 0.',
       '5m',
@@ -63,7 +63,7 @@ alert.newGroup(
     // Node stuck in Terminating state.
     alert.newRule(
       'ClusterNodeStuckTerminating',
-      'sum by (cluster, namespace, instance) (cluster_node_peers{state="terminating"}) != 0',
+      'sum by (cluster, namespace, instance) (cluster_node_peers{state="terminating"}) > 0',
       'Cluster node stuck in Terminating state.',
       '5m',
     ),
