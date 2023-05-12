@@ -10,7 +10,6 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	fnet "github.com/grafana/agent/component/common/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	gt "github.com/grafana/agent/component/loki/source/gcplog/internal/gcplogtarget"
 
@@ -20,6 +19,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/common/server"
 )
 
 // TODO (@tpaschalis) We can't test this easily as there's no way to inject
@@ -39,15 +39,13 @@ func TestPush(t *testing.T) {
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
 	args.PushTarget = &gt.PushConfig{
-		Server: &fnet.ServerConfig{
-			HTTP: &fnet.HTTPConfig{
-				ListenAddress: "localhost",
-				ListenPort:    port,
-			},
+		Server: server.Config{
+			HTTPListenAddress: "localhost",
+			HTTPListenPort: port,
 			// assign random grpc port
-			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+			GRPCListenPort: 0,
 		},
-		Labels: map[string]string{
+		Labels: model.LabelSet{
 			"foo": "bar",
 		},
 	}

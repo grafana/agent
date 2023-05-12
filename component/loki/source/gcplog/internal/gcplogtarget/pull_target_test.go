@@ -1,20 +1,33 @@
 package gcplogtarget
 
+// This code is copied from Promtail. The gcplogtarget package is used to
+// configure and run the targets that can read log entries from cloud resource
+// logs like bucket logs, load balancer logs, and Kubernetes cluster logs
+// from GCP.
+// /!\ But
+// - "github.com/grafana/agent/component/common/loki/client/fake" is replace by "github.com/grafana/agent/component/common/loki/client/fake"
+// - replace "fake.New" with "fake.NewClient"
+// - replace "crapeconfig.GcplogTargetConfig" with "PullConfig"
+// - remove import scrapeconfig
+
 import (
 	"context"
-	"errors"
 	"io"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component/common/loki/client/fake"
 
+	"github.com/grafana/dskit/backoff"
+	"github.com/pkg/errors"
+
 	"cloud.google.com/go/pubsub"
 	"github.com/go-kit/log"
-	"github.com/grafana/dskit/backoff"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gotest.tools/assert"
 )
 
 func TestPullTarget_RunStop(t *testing.T) {
@@ -86,19 +99,26 @@ func TestPullTarget_RunStop(t *testing.T) {
 	})
 }
 
-// func TestPullTarget_Ready(t *testing.T) {
-// 	tc := testPullTarget(t)
-// 	assert.Equal(t, true, tc.target.Ready())
-// }
+func TestPullTarget_Type(t *testing.T) {
+	tc := testPullTarget(t)
+
+	assert.Equal(t, target.TargetType("Gcplog"), tc.target.Type())
+}
+
+func TestPullTarget_Ready(t *testing.T) {
+	tc := testPullTarget(t)
+
+	assert.Equal(t, true, tc.target.Ready())
+}
 
 func TestPullTarget_Labels(t *testing.T) {
 	tc := testPullTarget(t)
 
-	assert.Equal(t, `{job="test-gcplogtarget"}`, tc.target.Labels().String())
+	assert.Equal(t, model.LabelSet{"job": "test-gcplogtarget"}, tc.target.Labels())
 }
 
 type testContext struct {
-	target     *PullTarget
+	target     *pullTarget
 	promClient *fake.Client
 	sub        *fakeSubscription
 }
@@ -109,7 +129,7 @@ func testPullTarget(t *testing.T) *testContext {
 	ctx, cancel := context.WithCancel(context.Background())
 	sub := newFakeSubscription()
 	promClient := fake.NewClient(func() {})
-	target := &PullTarget{
+	target := &pullTarget{
 		metrics:       NewMetrics(prometheus.NewRegistry()),
 		logger:        log.NewNopLogger(),
 		handler:       promClient,
@@ -206,7 +226,7 @@ const (
 var testConfig = &PullConfig{
 	ProjectID:    project,
 	Subscription: subscription,
-	Labels: map[string]string{
+	Labels: model.LabelSet{
 		"job": "test-gcplogtarget",
 	},
 }

@@ -4,6 +4,12 @@ package gcplogtarget
 // configure and run the targets that can read log entries from cloud resource
 // logs like bucket logs, load balancer logs, and Kubernetes cluster logs
 // from GCP.
+// /!\ But
+// - newPushTarget is transform to NewPushTarget
+// - scrapeconfig import is deleted
+// - import 'github.com/grafana/agent/component/common/loki' is added, and api.* is replace by loki.*
+// - import 'github.com/grafana/loki/clients/pkg/promtail/api' is deleted
+// - change return 'pullTarget.Details', from `interface{}' to 'map[string]string'
 
 import (
 	"context"
@@ -14,144 +20,185 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
-
 	"github.com/grafana/agent/component/common/loki"
-	fnet "github.com/grafana/agent/component/common/net"
+	"github.com/weaveworks/common/logging"
+	"github.com/weaveworks/common/server"
+
+	"github.com/grafana/loki/clients/pkg/promtail/targets/serverutils"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
+
+	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
-// PushTarget defines a server for receiving messages from a GCP PubSub push
-// subscription.
-type PushTarget struct {
-	logger         log.Logger
-	jobName        string
-	metrics        *Metrics
+type pushTarget struct {
 	config         *PushConfig
 	entries        chan<- loki.Entry
 	handler        loki.EntryHandler
+	jobName        string
+	logger         log.Logger
+	metrics        *Metrics
 	relabelConfigs []*relabel.Config
-	server         *fnet.TargetServer
+	server         *server.Server
 }
 
-// NewPushTarget constructs a PushTarget.
-func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PushConfig, relabel []*relabel.Config, reg prometheus.Registerer) (*PushTarget, error) {
+// NewPushTarget creates a brand new GCP Push target, capable of receiving message from a GCP PubSub push subscription.
+func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PushConfig, relabel []*relabel.Config) (*pushTarget, error) {
 	wrappedLogger := log.With(logger, "component", "gcp_push")
-	srv, err := fnet.NewTargetServer(wrappedLogger, jobName+"_push_target", reg, config.Server)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create loki http server: %w", err)
-	}
-	pt := &PushTarget{
-		server:         srv,
-		logger:         wrappedLogger,
-		jobName:        jobName,
-		metrics:        metrics,
+
+	ht := &pushTarget{
 		config:         config,
 		entries:        handler.Chan(),
 		handler:        handler,
+		jobName:        jobName,
+		logger:         wrappedLogger,
+		metrics:        metrics,
 		relabelConfigs: relabel,
 	}
 
-	err = pt.server.MountAndRun(func(router *mux.Router) {
-		router.Path("/gcp/api/v1/push").Methods("POST").Handler(http.HandlerFunc(pt.push))
-	})
+	mergedServerConfigs, err := serverutils.MergeWithDefaults(config.Server)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse configs and override defaults when configuring gcp push target: %w", err)
+	}
+	config.Server = mergedServerConfigs
+	// Avoid logging entire received request on failures
+	config.Server.ExcludeRequestInLog = true
+
+	err = ht.run()
 	if err != nil {
 		return nil, err
 	}
 
-	return pt, nil
+	return ht, nil
 }
 
-func (p *PushTarget) push(w http.ResponseWriter, r *http.Request) {
+func (h *pushTarget) run() error {
+	level.Info(h.logger).Log("msg", "starting gcp push target", "job", h.jobName)
+
+	// To prevent metric collisions because all metrics are going to be registered in the global Prometheus registry.
+
+	tentativeServerMetricNamespace := "promtail_gcp_push_target_" + h.jobName
+	if !model.IsValidMetricName(model.LabelValue(tentativeServerMetricNamespace)) {
+		return fmt.Errorf("invalid prometheus-compatible job name: %s", h.jobName)
+	}
+	h.config.Server.MetricsNamespace = tentativeServerMetricNamespace
+
+	// We don't want the /debug and /metrics endpoints running, since this is not the main promtail HTTP server.
+	// We want this target to expose the least surface area possible, hence disabling WeaveWorks HTTP server metrics
+	// and debugging functionality.
+	h.config.Server.RegisterInstrumentation = false
+
+	// Wrapping util logger with component-specific key vals, and the expected GoKit logging interface
+	h.config.Server.Log = logging.GoKit(log.With(util_log.Logger, "component", "gcp_push"))
+
+	srv, err := server.New(h.config.Server)
+	if err != nil {
+		return err
+	}
+	h.server = srv
+
+	h.server.HTTP.Path("/gcp/api/v1/push").Methods("POST").Handler(http.HandlerFunc(h.push))
+
+	go func() {
+		err := srv.Run()
+		if err != nil {
+			level.Error(h.logger).Log("msg", "gcp push target shutdown with error", "err", err)
+		}
+	}()
+
+	return nil
+}
+
+func (h *pushTarget) push(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	// Create no-op context.WithTimeout returns to simplify logic
 	ctx := r.Context()
 	cancel := context.CancelFunc(func() {})
-	if p.config.PushTimeout != 0 {
-		ctx, cancel = context.WithTimeout(r.Context(), p.config.PushTimeout)
+	if h.config.PushTimeout != 0 {
+		ctx, cancel = context.WithTimeout(r.Context(), h.config.PushTimeout)
 	}
 	defer cancel()
 
 	pushMessage := PushMessage{}
 	bs, err := io.ReadAll(r.Body)
 	if err != nil {
-		p.metrics.gcpPushErrors.WithLabelValues("read_error").Inc()
-		level.Warn(p.logger).Log("msg", "failed to read incoming gcp push request", "err", err.Error())
+		h.metrics.gcpPushErrors.WithLabelValues("read_error").Inc()
+		level.Warn(h.logger).Log("msg", "failed to read incoming gcp push request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	err = json.Unmarshal(bs, &pushMessage)
 	if err != nil {
-		p.metrics.gcpPushErrors.WithLabelValues("format").Inc()
-		level.Warn(p.logger).Log("msg", "failed to unmarshall gcp push request", "err", err.Error())
+		h.metrics.gcpPushErrors.WithLabelValues("format").Inc()
+		level.Warn(h.logger).Log("msg", "failed to unmarshall gcp push request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if err = pushMessage.Validate(); err != nil {
-		p.metrics.gcpPushErrors.WithLabelValues("invalid_message").Inc()
-		level.Warn(p.logger).Log("msg", "invalid gcp push request", "err", err.Error())
+		h.metrics.gcpPushErrors.WithLabelValues("invalid_message").Inc()
+		level.Warn(h.logger).Log("msg", "invalid gcp push request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	entry, err := translate(pushMessage, p.Labels(), p.config.UseIncomingTimestamp, p.relabelConfigs, r.Header.Get("X-Scope-OrgID"))
+	entry, err := translate(pushMessage, h.config.Labels, h.config.UseIncomingTimestamp, h.config.UseFullLine, h.relabelConfigs, r.Header.Get("X-Scope-OrgID"))
 	if err != nil {
-		p.metrics.gcpPushErrors.WithLabelValues("translation").Inc()
-		level.Warn(p.logger).Log("msg", "failed to translate gcp push request", "err", err.Error())
+		h.metrics.gcpPushErrors.WithLabelValues("translation").Inc()
+		level.Warn(h.logger).Log("msg", "failed to translate gcp push request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	level.Debug(p.logger).Log("msg", fmt.Sprintf("Received line: %s", entry.Line))
+	level.Debug(h.logger).Log("msg", fmt.Sprintf("Received line: %s", entry.Line))
 
-	if err := p.doSendEntry(ctx, entry); err != nil {
-		// NOTE: timeout errors can be tracked with from the metrics exposed by
-		// the spun weaveworks server.
-		// loki.source.gcplog.componentid_push_target_request_duration_seconds_count{status_code="503"}
-		level.Warn(p.logger).Log("msg", "error sending log entry", "err", err.Error())
+	if err := h.doSendEntry(ctx, entry); err != nil {
+		// NOTE: timeout errors can be tracked with a metrics exporter from the spun weave-works server, and the 503 status code
+		// promtail_gcp_push_target_{job name}_request_duration_seconds_count{status_code="503"}
+		level.Warn(h.logger).Log("msg", "error sending log entry", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	}
 
-	p.metrics.gcpPushEntries.WithLabelValues().Inc()
+	h.metrics.gcpPushEntries.WithLabelValues().Inc()
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (p *PushTarget) doSendEntry(ctx context.Context, entry loki.Entry) error {
+func (h *pushTarget) doSendEntry(ctx context.Context, entry loki.Entry) error {
 	select {
-	// Timeout the loki.Entry channel send operation, which is the only blocking operation in the handler
+	// Timeout the api.Entry channel send operation, which is the only blocking operation in the handler
 	case <-ctx.Done():
 		return fmt.Errorf("timeout exceeded: %w", ctx.Err())
-	case p.entries <- entry:
+	case h.entries <- entry:
 		return nil
 	}
 }
 
-// Labels return the model.LabelSet that the target applies to log entries.
-func (p *PushTarget) Labels() model.LabelSet {
-	lbls := make(model.LabelSet, len(p.config.Labels))
-	for k, v := range p.config.Labels {
-		lbls[model.LabelName(k)] = model.LabelValue(v)
-	}
-	return lbls
+func (h *pushTarget) Type() target.TargetType {
+	return target.GcplogTargetType
 }
 
-// Details returns some debug information about the target.
-func (p *PushTarget) Details() map[string]string {
-	return map[string]string{
-		"strategy":       "push",
-		"labels":         p.Labels().String(),
-		"server_address": p.server.HTTPListenAddr(),
-	}
+func (h *pushTarget) DiscoveredLabels() model.LabelSet {
+	return nil
 }
 
-// Stop shuts down the push target.
-func (p *PushTarget) Stop() error {
-	level.Info(p.logger).Log("msg", "stopping gcp push target", "job", p.jobName)
-	p.server.StopAndShutdown()
-	p.handler.Stop()
+func (h *pushTarget) Labels() model.LabelSet {
+	return h.config.Labels
+}
+
+func (h *pushTarget) Ready() bool {
+	return true
+}
+
+func (h *pushTarget) Details() map[string]string {
+	return map[string]string{}
+}
+
+func (h *pushTarget) Stop() error {
+	level.Info(h.logger).Log("msg", "stopping gcp push target", "job", h.jobName)
+	h.server.Stop()
+	h.server.Shutdown()
+	h.handler.Stop()
 	return nil
 }
