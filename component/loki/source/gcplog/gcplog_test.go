@@ -41,7 +41,7 @@ func TestPush(t *testing.T) {
 	args.PushTarget = &gt.PushConfig{
 		Server: server.Config{
 			HTTPListenAddress: "localhost",
-			HTTPListenPort: port,
+			HTTPListenPort:    port,
 			// assign random grpc port
 			GRPCListenPort: 0,
 		},
