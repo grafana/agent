@@ -13,16 +13,14 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
+	"github.com/grafana/loki/pkg/logproto"
 	herokuEncoding "github.com/heroku/x/logplex/encoding"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
-
-	"github.com/grafana/agent/component/common/loki"
-	fnet "github.com/grafana/agent/component/common/net"
-
-	"github.com/grafana/loki/pkg/logproto"
 )
 
 const ReservedLabelTenantID = "__tenant_id__"
@@ -48,7 +46,7 @@ type HerokuTarget struct {
 	server         *fnet.TargetServer
 }
 
-// NewTarget creates a brand new Heroku Drain target, capable of receiving logs from a Heroku application through an HTTP drain.
+// NewHerokuTarget creates a brand new Heroku Drain target, capable of receiving logs from a Heroku application through an HTTP drain.
 func NewHerokuTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, relabel []*relabel.Config, config *HerokuDrainTargetConfig, reg prometheus.Registerer) (*HerokuTarget, error) {
 	wrappedLogger := log.With(logger, "component", "heroku_drain")
 
