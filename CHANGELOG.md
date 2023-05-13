@@ -36,6 +36,8 @@ Main (unreleased)
 
 ### Enhancements
 
+- Support ability to add optional custom headers to `loki.write` endpoint block (@aos)
+
 - Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
   components will now export a target containing an internal HTTP address.
   `prometheus.scrape`, when given that internal HTTP address, will connect to
