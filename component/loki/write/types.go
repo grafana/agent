@@ -22,6 +22,7 @@ type EndpointOptions struct {
 	BatchWait         time.Duration           `river:"batch_wait,attr,optional"`
 	BatchSize         units.Base2Bytes        `river:"batch_size,attr,optional"`
 	RemoteTimeout     time.Duration           `river:"remote_timeout,attr,optional"`
+	Headers           map[string]string       `river:"headers,attr,optional"`
 	MinBackoff        time.Duration           `river:"min_backoff_period,attr,optional"`  // start backoff at this level
 	MaxBackoff        time.Duration           `river:"max_backoff_period,attr,optional"`  // increase exponentially to this level
 	MaxBackoffRetries int                     `river:"max_backoff_retries,attr,optional"` // give up after this many; zero means infinite retries
@@ -76,6 +77,7 @@ func (args Arguments) convertClientConfigs() []client.Config {
 		cc := client.Config{
 			Name:      cfg.Name,
 			URL:       flagext.URLValue{URL: url},
+			Headers:   cfg.Headers,
 			BatchWait: cfg.BatchWait,
 			BatchSize: int(cfg.BatchSize),
 			Client:    *cfg.HTTPClientConfig.Convert(),
