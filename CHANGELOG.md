@@ -52,6 +52,10 @@ Main (unreleased)
 
 - Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
 
+- Embed Google Fonts on Flow UI (@jkroepke)
+
+- Enable Content-Security-Policies on Flow UI (@jkroepke)
+
 ### Bugfixes
 
 - Fix an issue where defining `logging` or `tracing` blocks inside of a module
