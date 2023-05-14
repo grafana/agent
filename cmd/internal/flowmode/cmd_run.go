@@ -41,11 +41,12 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		inMemoryAddr:     "agent.internal:12345",
-		httpListenAddr:   "127.0.0.1:12345",
-		storagePath:      "data-agent/",
-		uiPrefix:         "/",
-		disableReporting: false,
+		inMemoryAddr:      "agent.internal:12345",
+		httpListenAddr:    "127.0.0.1:12345",
+		storagePath:       "data-agent/",
+		uiPrefix:          "/",
+		disableReporting:  false,
+		enableGoProfiling: true,
 	}
 
 	cmd := &cobra.Command{
@@ -95,18 +96,21 @@ depending on the nature of the reload error.
 		StringVar(&r.clusterJoinAddr, "cluster.join-addresses", r.clusterJoinAddr, "Comma-separated list of addresses to join the cluster at")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
+	cmd.Flags().
+		BoolVar(&r.enableGoProfiling, "enable-go-profiling", r.enableGoProfiling, "Enable /debug/pprof profiling endpoints.")
 	return cmd
 }
 
 type flowRun struct {
-	inMemoryAddr     string
-	httpListenAddr   string
-	storagePath      string
-	uiPrefix         string
-	disableReporting bool
-	clusterEnabled   bool
-	clusterAdvAddr   string
-	clusterJoinAddr  string
+	inMemoryAddr      string
+	httpListenAddr    string
+	storagePath       string
+	uiPrefix          string
+	enableGoProfiling bool
+	disableReporting  bool
+	clusterEnabled    bool
+	clusterAdvAddr    string
+	clusterJoinAddr   string
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -220,7 +224,9 @@ func (fr *flowRun) Run(configFile string) error {
 		))
 
 		r.Handle("/metrics", promhttp.Handler())
-		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+		if fr.enableGoProfiling {
+			r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+		}
 		r.PathPrefix("/api/v0/component/{id}/").Handler(f.ComponentHandler())
 
 		// Register routes for the clusterer.
