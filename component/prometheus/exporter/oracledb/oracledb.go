@@ -1,6 +1,10 @@
 package oracledb
 
 import (
+	"errors"
+	"fmt"
+	"net/url"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
@@ -30,6 +34,11 @@ var DefaultArguments = Arguments{
 	QueryTimeout: 5,
 }
 
+var (
+	errNoConnectionString = errors.New("no connection string was provided")
+	errNoHostname         = errors.New("no hostname in connection string")
+)
+
 // Arguments controls the oracledb exporter.
 type Arguments struct {
 	ConnectionString rivertypes.Secret `river:"connection_string,attr"`
@@ -43,7 +52,30 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*a = DefaultArguments
 
 	type args Arguments
-	return f((*args)(a))
+	if err := f((*args)(a)); err != nil {
+		return err
+	}
+	return a.Validate()
+}
+
+func (a *Arguments) Validate() error {
+	if a.ConnectionString == "" {
+		return errNoConnectionString
+	}
+	u, err := url.Parse(string(a.ConnectionString))
+	if err != nil {
+		return fmt.Errorf("unable to parse connection string: %w", err)
+	}
+
+	if u.Scheme != "oracle" {
+		return fmt.Errorf("unexpected scheme of type '%s'. Was expecting 'oracle': %w", u.Scheme, err)
+	}
+
+	// hostname is required for identification
+	if u.Hostname() == "" {
+		return errNoHostname
+	}
+	return nil
 }
 
 func (a *Arguments) Convert() *oracledb_exporter.Config {

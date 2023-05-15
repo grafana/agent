@@ -1,6 +1,7 @@
 package oracledb
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/grafana/agent/pkg/integrations/oracledb_exporter"
@@ -30,6 +31,67 @@ func TestRiverUnmarshal(t *testing.T) {
 	}
 
 	require.Equal(t, expected, args)
+}
+
+func TestArgumentsValidate(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    Arguments
+		wantErr bool
+		err     error
+	}{
+		{
+			name: "no connection string",
+			args: Arguments{
+				ConnectionString: rivertypes.Secret(""),
+			},
+			wantErr: true,
+			err:     errNoConnectionString,
+		},
+		{
+			name: "unable to parse connection string",
+			args: Arguments{
+				ConnectionString: rivertypes.Secret("oracle://user	password@localhost:1521/orcl.localnet"),
+			},
+			wantErr: true,
+			err:     errors.New("unable to parse connection string:"),
+		},
+		{
+			name: "unexpected scheme",
+			args: Arguments{
+				ConnectionString: rivertypes.Secret("notoracle://user:password@localhost:1521/orcl.localnet"),
+			},
+			wantErr: true,
+			err:     errors.New("unexpected scheme of type"),
+		},
+		{
+			name: "no host name",
+			args: Arguments{
+				ConnectionString: rivertypes.Secret("oracle://user:password@:1521/orcl.localnet"),
+			},
+			wantErr: true,
+			err:     errNoHostname,
+		},
+		{
+			name: "valid",
+			args: Arguments{
+				ConnectionString: rivertypes.Secret("oracle://user:password@localhost:1521/orcl.localnet"),
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.args.Validate()
+			if tt.wantErr {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.err.Error())
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestConvert(t *testing.T) {
