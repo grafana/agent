@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/grafana/agent/pkg/util/zapadapter"
 	"net/url"
 	"strings"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	"github.com/grafana/agent/pkg/util/zapadapter"
 )
 
 func init() {
