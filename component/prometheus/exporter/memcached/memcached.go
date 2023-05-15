@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
@@ -14,13 +15,21 @@ func init() {
 		Name:    "prometheus.exporter.memcached",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "memcached", ""),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "memcached", customizeTarget),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
 	a := args.(Arguments)
 	return a.Convert().NewIntegration(opts.Logger)
+}
+
+func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
+	a := args.(Arguments)
+	target := baseTarget
+
+	target["instance"] = a.Address
+	return []discovery.Target{target}
 }
 
 // DefaultArguments holds the default arguments for the prometheus.exporter.memcached component.

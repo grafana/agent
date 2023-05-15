@@ -13,7 +13,7 @@ func init() {
 		Name:    "prometheus.exporter.process",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createIntegration, "process", ""),
+		Build:   exporter.New(createIntegration, "process"),
 	})
 }
 

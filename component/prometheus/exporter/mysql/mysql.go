@@ -1,7 +1,11 @@
 package mysql
 
 import (
+	"fmt"
+
+	"github.com/go-sql-driver/mysql"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
@@ -14,13 +18,33 @@ func init() {
 		Name:    "prometheus.exporter.mysql",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "mysql", ""),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "mysql", customizeTarget),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
 	a := args.(Arguments)
 	return a.Convert().NewIntegration(opts.Logger)
+}
+
+func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
+	a := args.(Arguments)
+	target := baseTarget
+
+	m, err := mysql.ParseDSN(string(a.DataSourceName))
+	if err != nil {
+		return []discovery.Target{target}
+	}
+
+	if m.Addr == "" {
+		m.Addr = "localhost:3306"
+	}
+	if m.Net == "" {
+		m.Net = "tcp"
+	}
+
+	target["instance"] = fmt.Sprintf("%s(%s)/%s", m.Net, m.Addr, m.DBName)
+	return []discovery.Target{target}
 }
 
 // DefaultArguments holds the default settings for the mysqld_exporter integration.

@@ -30,22 +30,23 @@ type Component struct {
 
 	reload chan struct{}
 
-	creator         Creator
-	multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target
-	baseTarget      discovery.Target
+	creator           Creator
+	targetBuilderFunc func(discovery.Target, component.Arguments) []discovery.Target
+	baseTarget        discovery.Target
 
 	exporter       integrations.Integration
 	metricsHandler http.Handler
 }
 
 // New creates a new exporter component.
-func New(creator Creator, name string, instance string) func(component.Options, component.Arguments) (component.Component, error) {
-	return newExporter(creator, name, instance, nil)
+func New(creator Creator, name string) func(component.Options, component.Arguments) (component.Component, error) {
+	return newExporter(creator, name, nil)
 }
 
-// NewMultiTarget creates a new exporter component that supports multiple targets.
-func NewMultiTarget(creator Creator, name string, instance string, multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
-	return newExporter(creator, name, instance, multiTargetFunc)
+// NewWithTargetBuilder creates a new exporter component with a custom target builder function. It can be used to expand
+// a set of targets from a single one, or to customize the labels of the targets.
+func NewWithTargetBuilder(creator Creator, name string, targetBuilderFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
+	return newExporter(creator, name, targetBuilderFunc)
 }
 
 // Run implements component.Component.
@@ -90,10 +91,10 @@ func (c *Component) Update(args component.Arguments) error {
 	c.exporter = exporter
 
 	var targets []discovery.Target
-	if c.multiTargetFunc == nil {
+	if c.targetBuilderFunc == nil {
 		targets = []discovery.Target{c.baseTarget}
 	} else {
-		targets = c.multiTargetFunc(c.baseTarget, args)
+		targets = c.targetBuilderFunc(c.baseTarget, args)
 	}
 
 	c.opts.OnStateChange(Exports{
@@ -114,18 +115,16 @@ func (c *Component) Handler() http.Handler {
 	return c.metricsHandler
 }
 
-func newExporter(creator Creator, name string, instance string, multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
+func newExporter(creator Creator, name string, targetBuilderFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
 	return func(opts component.Options, args component.Arguments) (component.Component, error) {
 		c := &Component{
-			opts:            opts,
-			reload:          make(chan struct{}, 1),
-			creator:         creator,
-			multiTargetFunc: multiTargetFunc,
+			opts:              opts,
+			reload:            make(chan struct{}, 1),
+			creator:           creator,
+			targetBuilderFunc: targetBuilderFunc,
 		}
 		jobName := fmt.Sprintf("integrations/%s", name)
-		if instance == "" {
-			instance = defaultInstance()
-		}
+		instance := defaultInstance()
 
 		c.baseTarget = discovery.Target{
 			model.AddressLabel:                  opts.HTTPListenAddr,

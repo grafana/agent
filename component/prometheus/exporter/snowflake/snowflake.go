@@ -2,6 +2,7 @@ package snowflake
 
 import (
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
@@ -14,13 +15,21 @@ func init() {
 		Name:    "prometheus.exporter.snowflake",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "snowflake", ""),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "snowflake", customizeTarget),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
 	a := args.(Arguments)
 	return a.Convert().NewIntegration(opts.Logger)
+}
+
+func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
+	a := args.(Arguments)
+	target := baseTarget
+
+	target["instance"] = a.AccountName
+	return []discovery.Target{target}
 }
 
 // DefaultArguments holds the default settings for the snowflake exporter
