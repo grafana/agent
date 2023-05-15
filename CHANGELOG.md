@@ -18,6 +18,8 @@ Main (unreleased)
 
 - Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
 
+- Prometheus exporters in Flow mode now set the `instance` label to a value similar to the one they used to have in Static mode (<hostname> by default, customized by some integrations). (@jcreixell)
+
 ### Features
 
 - New Grafana Agent Flow components:
