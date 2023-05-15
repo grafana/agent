@@ -4,6 +4,7 @@ package net
 
 import (
 	"flag"
+	"math"
 	"time"
 
 	weaveworks "github.com/weaveworks/common/server"
@@ -12,6 +13,10 @@ import (
 const (
 	DefaultHTTPPort = 8080
 	DefaultGRPCPort = 8081
+
+	// defaults inherited from weaveworks
+	DurationInfinity = time.Duration(math.MaxInt64)
+	Size4MB          = 4 << 20
 )
 
 // ServerConfig is a River configuration that allows one to configure a weaveworks.Server. It
@@ -76,6 +81,7 @@ func (g *GRPCConfig) Into(c *weaveworks.Config) {
 }
 
 func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
+	*c = newDefaults()
 	type config ServerConfig
 	if err := f((*config)(c)); err != nil {
 		return err
@@ -86,29 +92,50 @@ func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
 
 // Convert converts the River-based ServerConfig into a weaveworks.Config object.
 func (c *ServerConfig) Convert() weaveworks.Config {
-	cfg := newDefaultConfig()
+	cfg := newWeaveworksDefaultConfig()
 	if c.HTTP != nil {
 		c.HTTP.Into(&cfg)
 	}
 	if c.GRPC != nil {
 		c.GRPC.Into(&cfg)
 	}
-	// If set, override. Don't allow a zero-value since it configure a context.WithTimeout, so the user should at least
-	// give a >0 value to it
-	if c.GracefulShutdownTimeout != 0 {
-		cfg.ServerGracefulShutdownTimeout = c.GracefulShutdownTimeout
-	}
+	cfg.ServerGracefulShutdownTimeout = c.GracefulShutdownTimeout
 	return cfg
 }
 
-// newDefaultConfig creates a new weaveworks.Config object with some overridden defaults.
-func newDefaultConfig() weaveworks.Config {
+// newWeaveworksDefaultConfig creates a new weaveworks.Config object with some overridden defaults.
+func newWeaveworksDefaultConfig() weaveworks.Config {
 	c := weaveworks.Config{}
 	c.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
-	c.HTTPListenPort = DefaultHTTPPort
-	c.GRPCListenPort = DefaultGRPCPort
 	// By default, do not register instrumentation since every metric is later registered
 	// inside a custom register
 	c.RegisterInstrumentation = false
 	return c
+}
+
+// newDefaults creates a new ServerConfig with defaults applied. Not that some are inherited from
+// weaveworks, but copied in our config model to make the overriding logic simpler.
+func newDefaults() ServerConfig {
+	return ServerConfig{
+		HTTP: &HTTPConfig{
+			ListenAddress:      "",
+			ListenPort:         DefaultHTTPPort,
+			ConnLimit:          0,
+			ServerReadTimeout:  30 * time.Second,
+			ServerWriteTimeout: 30 * time.Second,
+			ServerIdleTimeout:  120 * time.Second,
+		},
+		GRPC: &GRPCConfig{
+			ListenAddress:              "",
+			ListenPort:                 DefaultGRPCPort,
+			ConnLimit:                  0,
+			MaxConnectionAge:           DurationInfinity,
+			MaxConnectionAgeGrace:      DurationInfinity,
+			MaxConnectionIdle:          DurationInfinity,
+			ServerMaxConcurrentStreams: 100,
+			ServerMaxSendMsg:           Size4MB,
+			ServerMaxRecvMsg:           Size4MB,
+		},
+		GracefulShutdownTimeout: 30 * time.Second,
+	}
 }
