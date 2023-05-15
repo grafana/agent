@@ -12,11 +12,11 @@ import (
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/ckit/memconn"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
-	"github.com/rfratto/ckit/memconn"
 	"github.com/stretchr/testify/require"
 )
 

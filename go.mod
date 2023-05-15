@@ -140,7 +140,6 @@ require (
 	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f
 	github.com/prometheus/statsd_exporter v0.22.8
-	github.com/rfratto/ckit v0.0.0-20230413073832-e0725e49faea
 	github.com/rs/cors v1.8.3
 	github.com/shirou/gopsutil/v3 v3.22.9
 	github.com/sijms/go-ora/v2 v2.7.3
@@ -199,6 +198,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.14.6
 	sigs.k8s.io/yaml v1.3.0
 )
+
+require github.com/grafana/ckit v0.0.0-20230515163951-391c3b3fb0f1
 
 require (
 	cloud.google.com/go v0.107.0 // indirect
