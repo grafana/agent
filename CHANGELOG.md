@@ -56,6 +56,9 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fix `loki.source.(gcplog|heroku)` `http` and `grpc` blocks were overriding defaults with zero-values
+  on non present fields. (@thepalbi)
+
 - Fix an issue where defining `logging` or `tracing` blocks inside of a module
   would generate a panic instead of returning an error. (@erikbaranowski)
 
