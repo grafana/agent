@@ -51,6 +51,7 @@ require (
 	github.com/google/renameio/v2 v2.0.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
+	github.com/grafana/ckit v0.0.0-20230516123031-0cbbd63d3fac
 	github.com/grafana/cloudflare-go v0.0.0-20230110200409-c627cf6792f2
 	github.com/grafana/dskit v0.0.0-20230201083518-528d8a7d52f2
 	github.com/grafana/go-gelf/v2 v2.0.1
@@ -170,7 +171,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v0.33.0
 	go.opentelemetry.io/otel/trace v1.15.0
 	go.opentelemetry.io/proto/otlp v0.19.0
-	go.uber.org/atomic v1.10.0
+	go.uber.org/atomic v1.11.0
 	go.uber.org/goleak v1.2.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.24.0
@@ -198,8 +199,6 @@ require (
 	sigs.k8s.io/controller-runtime v0.14.6
 	sigs.k8s.io/yaml v1.3.0
 )
-
-require github.com/grafana/ckit v0.0.0-20230515163951-391c3b3fb0f1
 
 require (
 	cloud.google.com/go v0.107.0 // indirect
