@@ -2,7 +2,7 @@ package common
 
 import (
 	"github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	promconfig "github.com/prometheus/common/config"
 )
 
