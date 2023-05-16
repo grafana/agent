@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"path"
 	"sync"
 
@@ -29,9 +30,9 @@ type Component struct {
 
 	reload chan struct{}
 
-	creator         Creator
-	multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target
-	baseTarget      discovery.Target
+	creator           Creator
+	targetBuilderFunc func(discovery.Target, component.Arguments) []discovery.Target
+	baseTarget        discovery.Target
 
 	exporter       integrations.Integration
 	metricsHandler http.Handler
@@ -42,37 +43,10 @@ func New(creator Creator, name string) func(component.Options, component.Argumen
 	return newExporter(creator, name, nil)
 }
 
-// NewMultiTarget creates a new exporter component that supports multiple targets.
-func NewMultiTarget(creator Creator, name string, multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
-	return newExporter(creator, name, multiTargetFunc)
-}
-
-func newExporter(creator Creator, name string, multiTargetFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
-	return func(opts component.Options, args component.Arguments) (component.Component, error) {
-		c := &Component{
-			opts:            opts,
-			reload:          make(chan struct{}, 1),
-			creator:         creator,
-			multiTargetFunc: multiTargetFunc,
-		}
-		jobName := fmt.Sprintf("integrations/%s", name)
-		c.baseTarget = discovery.Target{
-			model.AddressLabel:                  opts.HTTPListenAddr,
-			model.SchemeLabel:                   "http",
-			model.MetricsPathLabel:              path.Join(opts.HTTPPath, "metrics"),
-			"instance":                          opts.ID,
-			"job":                               jobName,
-			"__meta_agent_integration_name":     jobName,
-			"__meta_agent_integration_instance": opts.ID,
-		}
-
-		// Call to Update() to set the output once at the start.
-		if err := c.Update(args); err != nil {
-			return nil, err
-		}
-
-		return c, nil
-	}
+// NewWithTargetBuilder creates a new exporter component with a custom target builder function. It can be used to expand
+// a set of targets from a single one, or to customize the labels of the targets.
+func NewWithTargetBuilder(creator Creator, name string, targetBuilderFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
+	return newExporter(creator, name, targetBuilderFunc)
 }
 
 // Run implements component.Component.
@@ -117,10 +91,10 @@ func (c *Component) Update(args component.Arguments) error {
 	c.exporter = exporter
 
 	var targets []discovery.Target
-	if c.multiTargetFunc == nil {
+	if c.targetBuilderFunc == nil {
 		targets = []discovery.Target{c.baseTarget}
 	} else {
-		targets = c.multiTargetFunc(c.baseTarget, args)
+		targets = c.targetBuilderFunc(c.baseTarget, args)
 	}
 
 	c.opts.OnStateChange(Exports{
@@ -132,6 +106,45 @@ func (c *Component) Update(args component.Arguments) error {
 	default:
 	}
 	return err
+}
+
+// Handler serves metrics endpoint from the integration implementation.
+func (c *Component) Handler() http.Handler {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	return c.metricsHandler
+}
+
+func newExporter(creator Creator, name string, targetBuilderFunc func(discovery.Target, component.Arguments) []discovery.Target) func(component.Options, component.Arguments) (component.Component, error) {
+	return func(opts component.Options, args component.Arguments) (component.Component, error) {
+		c := &Component{
+			opts:              opts,
+			reload:            make(chan struct{}, 1),
+			creator:           creator,
+			targetBuilderFunc: targetBuilderFunc,
+		}
+		jobName := fmt.Sprintf("integrations/%s", name)
+		instance := defaultInstance()
+
+		c.baseTarget = discovery.Target{
+			model.AddressLabel:                  opts.HTTPListenAddr,
+			model.SchemeLabel:                   "http",
+			model.MetricsPathLabel:              path.Join(opts.HTTPPath, "metrics"),
+			"instance":                          instance,
+			"job":                               jobName,
+			"__meta_agent_integration_name":     jobName,
+			"__meta_agent_integration_instance": instance,
+			"__meta_agent_integration_id":       opts.ID,
+			"__meta_agent_hostname":             instance,
+		}
+
+		// Call to Update() to set the output once at the start.
+		if err := c.Update(args); err != nil {
+			return nil, err
+		}
+
+		return c, nil
+	}
 }
 
 // get the http handler once and save it, so we don't create extra garbage
@@ -146,9 +159,18 @@ func (c *Component) getHttpHandler(integration integrations.Integration) http.Ha
 	return h
 }
 
-// Handler serves metrics endpoint from the integration implementation.
-func (c *Component) Handler() http.Handler {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	return c.metricsHandler
+// defaultInstance retrieves the hostname identifying the machine the process is
+// running on. It will return the value of $HOSTNAME, if defined, and fall
+// back to Go's os.Hostname. If that fails, it will return "unknown".
+func defaultInstance() string {
+	hostname := os.Getenv("HOSTNAME")
+	if hostname != "" {
+		return hostname
+	}
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "unknown"
+	}
+	return hostname
 }
