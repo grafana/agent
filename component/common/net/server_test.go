@@ -3,30 +3,27 @@ package net
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"testing"
 
-	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTargetServer(t *testing.T) {
 	// dependencies
-	w := log.NewSyncWriter(os.Stderr)
-	logger := log.NewLogfmtLogger(w)
 	reg := prometheus.NewRegistry()
-
-	ts, err := NewTargetServer(logger, "test_namespace", reg, &ServerConfig{})
+	ts, err := NewTargetServer(util.TestLogger(t), "test_namespace", reg, &ServerConfig{})
 	require.NoError(t, err)
 
-	ts.MountAndRun(func(router *mux.Router) {
+	err = ts.MountAndRun(func(router *mux.Router) {
 		router.Methods("GET").Path("/hello").Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}))
 	})
+	require.NoError(t, err)
 	defer ts.StopAndShutdown()
 
 	// test mounted endpoint
@@ -42,4 +39,17 @@ func TestTargetServer(t *testing.T) {
 	for _, m := range metrics {
 		require.True(t, strings.HasPrefix(m.GetName(), "test_namespace"))
 	}
+}
+
+func TestTargetServer_NilConfig(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	ts, err := NewTargetServer(util.TestLogger(t), "test_namespace", reg, nil)
+	require.NoError(t, err)
+
+	err = ts.MountAndRun(func(router *mux.Router) {})
+	require.NoError(t, err)
+	defer ts.StopAndShutdown()
+
+	require.Equal(t, "[::]:8080", ts.HTTPListenAddr())
+	// not asserting over grpc port since a random should have been assigned
 }

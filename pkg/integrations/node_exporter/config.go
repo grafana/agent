@@ -319,8 +319,11 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 	}
 
 	if collectors[CollectorDiskstats] {
-		flags.add("--collector.diskstats.device-include", c.DiskStatsDeviceInclude)
-		flags.add("--collector.diskstats.device-exclude", c.DiskStatsDeviceExclude)
+		if c.DiskStatsDeviceInclude != "" {
+			flags.add("--collector.diskstats.device-include", c.DiskStatsDeviceInclude)
+		} else {
+			flags.add("--collector.diskstats.device-exclude", c.DiskStatsDeviceExclude)
+		}
 	}
 
 	if collectors[CollectorEthtool] {

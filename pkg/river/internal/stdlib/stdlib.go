@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 )
 
 // Identifiers holds a list of stdlib identifiers by name. All interface{}
@@ -19,6 +20,10 @@ var Identifiers = map[string]interface{}{
 	"constants": constants,
 
 	"env": os.Getenv,
+
+	"nonsensitive": func(secret rivertypes.Secret) string {
+		return string(secret)
+	},
 
 	// concat is implemented as a raw function so it can bypass allocations
 	// converting arguments into []interface{}. concat is optimized to allow it

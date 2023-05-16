@@ -28,6 +28,7 @@ type Arguments struct {
 	HTTPClientConfig   config.HTTPClientConfig `river:",squash"`
 	NamespaceDiscovery NamespaceDiscovery      `river:"namespaces,block,optional"`
 	Selectors          []SelectorConfig        `river:"selectors,block,optional"`
+	AttachMetadata     AttachMetadataConfig    `river:"attach_metadata,block,optional"`
 }
 
 // DefaultConfig holds defaults for SDConfig.
@@ -61,6 +62,7 @@ func (args *Arguments) Convert() *promk8s.SDConfig {
 		HTTPClientConfig:   *args.HTTPClientConfig.Convert(),
 		NamespaceDiscovery: *args.NamespaceDiscovery.convert(),
 		Selectors:          selectors,
+		AttachMetadata:     *args.AttachMetadata.convert(),
 	}
 }
 
@@ -89,6 +91,16 @@ func (sc *SelectorConfig) convert() *promk8s.SelectorConfig {
 		Role:  promk8s.Role(sc.Role),
 		Label: sc.Label,
 		Field: sc.Field,
+	}
+}
+
+type AttachMetadataConfig struct {
+	Node bool `river:"node,attr,optional"`
+}
+
+func (am *AttachMetadataConfig) convert() *promk8s.AttachMetadataConfig {
+	return &promk8s.AttachMetadataConfig{
+		Node: am.Node,
 	}
 }
 

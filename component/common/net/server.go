@@ -23,6 +23,7 @@ type TargetServer struct {
 }
 
 // NewTargetServer creates a new TargetServer, applying some defaults to the server configuration.
+// If provided config is nil, a default configuration will be used instead.
 func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.Registerer, config *ServerConfig) (*TargetServer, error) {
 	if !model.IsValidMetricName(model.LabelValue(metricsNamespace)) {
 		return nil, fmt.Errorf("metrics namespace is not prometheus compatiible: %s", metricsNamespace)
@@ -33,8 +34,12 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 		metricsNamespace: metricsNamespace,
 	}
 
+	if config == nil {
+		config = defaultServerConfig()
+	}
+
 	// convert from River into the weaveworks config
-	serverCfg := config.Convert()
+	serverCfg := config.convert()
 	// Set the config to the new combined config.
 	// Avoid logging entire received request on failures
 	serverCfg.ExcludeRequestInLog = true

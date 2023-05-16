@@ -16,6 +16,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo
 	_ "github.com/grafana/agent/component/loki/process"                             // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                             // Import loki.relabel
+	_ "github.com/grafana/agent/component/loki/source/api"                          // Import loki.source.api
 	_ "github.com/grafana/agent/component/loki/source/azure_event_hubs"             // Import loki.source.azure_event_hubs
 	_ "github.com/grafana/agent/component/loki/source/cloudflare"                   // Import loki.source.cloudflare
 	_ "github.com/grafana/agent/component/loki/source/docker"                       // Import loki.source.docker
@@ -64,19 +65,24 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"               // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"               // Import prometheus.exporter.github
 	_ "github.com/grafana/agent/component/prometheus/exporter/memcached"            // Import prometheus.exporter.memcached
+	_ "github.com/grafana/agent/component/prometheus/exporter/mssql"                // Import prometheus.exporter.mssql
 	_ "github.com/grafana/agent/component/prometheus/exporter/mysql"                // Import prometheus.exporter.mysql
+	_ "github.com/grafana/agent/component/prometheus/exporter/oracledb"             // Import prometheus.exporter.oracledb
 	_ "github.com/grafana/agent/component/prometheus/exporter/postgres"             // Import prometheus.exporter.postgres
 	_ "github.com/grafana/agent/component/prometheus/exporter/process"              // Import prometheus.exporter.process
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"                // Import prometheus.exporter.redis
 	_ "github.com/grafana/agent/component/prometheus/exporter/snmp"                 // Import prometheus.exporter.snmp
+	_ "github.com/grafana/agent/component/prometheus/exporter/snowflake"            // Import prometheus.exporter.snowflake
 	_ "github.com/grafana/agent/component/prometheus/exporter/statsd"               // Import prometheus.exporter.statsd
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"                 // Import prometheus.exporter.unix
 	_ "github.com/grafana/agent/component/prometheus/exporter/windows"              // Import prometheus.exporter.windows
 	_ "github.com/grafana/agent/component/prometheus/operator/podmonitors"          // Import prometheus.operator.podmonitors
 	_ "github.com/grafana/agent/component/prometheus/operator/servicemonitors"      // Import prometheus.operator.servicemonitors
+	_ "github.com/grafana/agent/component/prometheus/receive_http"                  // Import prometheus.receive_http
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape
 	_ "github.com/grafana/agent/component/remote/http"                              // Import remote.http
 	_ "github.com/grafana/agent/component/remote/s3"                                // Import remote.s3
+	_ "github.com/grafana/agent/component/remote/vault"                             // Import remote.vault
 )

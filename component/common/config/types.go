@@ -9,7 +9,7 @@ import (
 
 	"github.com/grafana/agent/pkg/river"
 
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/prometheus/common/config"
 )
 

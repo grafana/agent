@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/ckit/advertise"
 	"github.com/hashicorp/go-discover"
-	"github.com/rfratto/ckit/advertise"
 	"github.com/stretchr/testify/require"
 )
 
