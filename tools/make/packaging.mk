@@ -49,7 +49,7 @@ dist/grafana-agent-linux-ppc64le: generate-ui
 
 dist/grafana-agent-linux-s390x: GO_TAGS += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-s390x: GOOS    := linux
-dist/grafana-agent-linux-s390x: GOARCH  := ppc64le
+dist/grafana-agent-linux-s390x: GOARCH  := s390x
 dist/grafana-agent-linux-s390x: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
@@ -166,7 +166,7 @@ dist.temp/grafana-agent-flow-linux-ppc64le: generate-ui
 
 dist.temp/grafana-agent-flow-linux-s390x: GO_TAGS += builtinassets promtail_journal_enabled
 dist.temp/grafana-agent-flow-linux-s390x: GOOS    := linux
-dist.temp/grafana-agent-flow-linux-s390x: GOARCH  := ppc64le
+dist.temp/grafana-agent-flow-linux-s390x: GOARCH  := s390x
 dist.temp/grafana-agent-flow-linux-s390x: generate-ui
 	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
