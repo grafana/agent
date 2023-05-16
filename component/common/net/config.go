@@ -84,6 +84,8 @@ func (g *GRPCConfig) Into(c *weaveworks.Config) {
 }
 
 func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
+	// when unmarshalling, use our defaults to cover cases in which just some of the http/grpc
+	// block attributes are configured
 	*c = *DefaultServerConfig()
 	type config ServerConfig
 	if err := f((*config)(c)); err != nil {
@@ -96,6 +98,8 @@ func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
 // Convert converts the River-based ServerConfig into a weaveworks.Config object.
 func (c *ServerConfig) Convert() weaveworks.Config {
 	cfg := newWeaveworksDefaultConfig()
+	// use the configured http/grpc blocks, and if not, use a mixin of our defaults, and
+	// weaveworks's as a fallback
 	if c.HTTP != nil {
 		c.HTTP.Into(&cfg)
 	} else {
@@ -120,8 +124,8 @@ func newWeaveworksDefaultConfig() weaveworks.Config {
 	return c
 }
 
-// DefaultServerConfig creates a new ServerConfig with defaults applied. Not that some are inherited from
-// weaveworks, but copied in our config model to make the overriding logic simpler.
+// DefaultServerConfig creates a new ServerConfig with defaults applied. Note that some are inherited from
+// weaveworks, but copied in our config model to make the mixin logic simpler.
 func DefaultServerConfig() *ServerConfig {
 	return &ServerConfig{
 		HTTP: &HTTPConfig{
