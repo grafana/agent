@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/ghodss/yaml" // Used for CRD compatibility instead of gopkg.in/yaml.v2
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/hashicorp/go-multierror"
@@ -14,6 +13,7 @@ import (
 	"github.com/prometheus/prometheus/model/rulefmt"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
+	"sigs.k8s.io/yaml" // Used for CRD compatibility instead of gopkg.in/yaml.v2
 )
 
 // This type must be hashable, so it is kept simple. The indexer will maintain a

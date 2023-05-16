@@ -231,6 +231,7 @@ LogsClientSpec defines the client integration for logs, indicating which Loki se
 |`batchWait`<br/>_string_|  Maximum amount of time to wait before sending a batch, even if that batch isn&#39;t full.  |
 |`batchSize`<br/>_int_|  Maximum batch size (in bytes) of logs to accumulate before sending the batch to Loki.  |
 |`basicAuth`<br/>_[github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.BasicAuth](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.BasicAuth)_|  BasicAuth for the Loki server.  |
+|`oauth2`<br/>_[github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.OAuth2](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.OAuth2)_|  Oauth2 for URL  |
 |`bearerToken`<br/>_string_|  BearerToken used for remote_write.  |
 |`bearerTokenFile`<br/>_string_|  BearerTokenFile used to read bearer token.  |
 |`proxyUrl`<br/>_string_|  ProxyURL to proxy requests through. Optional.  |

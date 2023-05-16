@@ -38,14 +38,16 @@ Main (unreleased)
 
 ### Enhancements
 
+- Support ability to add optional custom headers to `loki.write` endpoint block (@aos)
+
 - Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
   components will now export a target containing an internal HTTP address.
   `prometheus.scrape`, when given that internal HTTP address, will connect to
   the server in-memory, bypassing the network stack. Use the new
   `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
-
 - Disable node_exporter on Windows systems (@jkroepke)
+- Operator support for OAuth 2.0 Client in LogsClientSpec (@DavidSpek)
 
 - Support `clustering` block in `phlare.scrape` components to distribute
   targets amongst clustered agents. (@rfratto)
@@ -70,6 +72,8 @@ Main (unreleased)
 - Add `agent_wal_out_of_order_samples_total` metric to track samples received
   out of order. (@rfratto)
 
+- Use Go 1.20.4 for builds. (@tpaschalis)
+
 v0.33.2 (2023-05-11)
 --------------------
 
@@ -84,9 +88,12 @@ v0.33.2 (2023-05-11)
 - Fix an issue with the grafana/agent windows docker image entrypoint
   not targeting the right location for the config. (@erikbaranowski)
 
-- Fix issue where the the `node_exporter` integration and
+- Fix issue where the `node_exporter` integration and
   `prometheus.exporter.unix` `diskstat_device_include` component could not set
   the allowlist field for the diskstat collector. (@tpaschalis)
+
+- Fix an issue in `loki.source.heroku` where updating the `labels` or `use_incoming_timestamp`
+  would not take effect. (@thampiotr)
 
 - Flow: Fix an issue within S3 Module where the S3 path was not parsed correctly when the
   path consists of a parent directory. (@jastisriradheshyam)

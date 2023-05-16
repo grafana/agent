@@ -12,10 +12,15 @@ local parseField(name) = (
     orig: name,
   }
   else if numParts > 1 && numParts <= 4 && parts[0] == 'block' then {
+    // Format is either:
+    //
+    // * block NAME index
+    // * block NAME LABEL index
+
     type: 'block',
-    index: std.parseInt(parts[1]),
-    name: parts[2],
-    label: if numParts == 4 then parts[3] else '',
+    name: parts[1],
+    label: if numParts == 4 then parts[2] else '',
+    index: if numParts == 4 then std.parseInt(parts[3]) else std.parseInt(parts[2]),
     orig: name,
   } else (
     error 'invalid field name %s' % name
