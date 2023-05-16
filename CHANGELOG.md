@@ -18,6 +18,8 @@ Main (unreleased)
 
 - Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
 
+- Prometheus exporters in Flow mode now set the `instance` label to a value similar to the one they used to have in Static mode (<hostname> by default, customized by some integrations). (@jcreixell)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -55,6 +57,8 @@ Main (unreleased)
 - Delete stale series after a single WAL truncate instead of two. (@rfratto)
 
 - Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
+
+- Update azure-metrics-exporter to v0.0.0-20230502203721-b2bfd97b5313 (@kgeckhart)
 
 ### Bugfixes
 
