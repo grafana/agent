@@ -46,6 +46,7 @@ func runCommand() *cobra.Command {
 		storagePath:      "data-agent/",
 		uiPrefix:         "/",
 		disableReporting: false,
+		enablePprof:      true,
 	}
 
 	cmd := &cobra.Command{
@@ -88,6 +89,8 @@ depending on the nature of the reload error.
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
 	cmd.Flags().
+		BoolVar(&r.enablePprof, "server.http.enable-pprof", r.enablePprof, "Enable /debug/pprof profiling endpoints.")
+	cmd.Flags().
 		BoolVar(&r.clusterEnabled, "cluster.enabled", r.clusterEnabled, "Start in clustered mode")
 	cmd.Flags().
 		StringVar(&r.clusterJoinAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
@@ -103,6 +106,7 @@ type flowRun struct {
 	httpListenAddr   string
 	storagePath      string
 	uiPrefix         string
+	enablePprof      bool
 	disableReporting bool
 	clusterEnabled   bool
 	clusterAdvAddr   string
@@ -220,7 +224,9 @@ func (fr *flowRun) Run(configFile string) error {
 		))
 
 		r.Handle("/metrics", promhttp.Handler())
-		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+		if fr.enablePprof {
+			r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+		}
 		r.PathPrefix("/api/v0/component/{id}/").Handler(f.ComponentHandler())
 
 		// Register routes for the clusterer.
