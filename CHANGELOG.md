@@ -58,6 +58,10 @@ Main (unreleased)
 
 - Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
 
+- Embed Google Fonts on Flow UI (@jkroepke)
+
+- Enable Content-Security-Policies on Flow UI (@jkroepke)
+  
 - Update azure-metrics-exporter to v0.0.0-20230502203721-b2bfd97b5313 (@kgeckhart)
 
 - Update azidentity dependency to v1.3.0. (@akselleirv)
