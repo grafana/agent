@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCustomizeTargetValid(t *testing.T) {
+func TestCustomizeTarget_Valid(t *testing.T) {
 	args := Arguments{
 		ApacheAddr: "http://localhost/server-status?auto",
 	}

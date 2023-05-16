@@ -90,7 +90,7 @@ func TestParsePostgresURL(t *testing.T) {
 	require.Equal(t, actual, expected)
 }
 
-func TestCustomizeTargetValid(t *testing.T) {
+func TestCustomizeTarget_Valid(t *testing.T) {
 	args := Arguments{
 		DataSourceNames: []rivertypes.Secret{rivertypes.Secret("postgresql://username:password@localhost:5432/database?sslmode=disable")},
 	}
@@ -101,7 +101,7 @@ func TestCustomizeTargetValid(t *testing.T) {
 	require.Equal(t, "postgresql://localhost:5432/database", newTargets[0]["instance"])
 }
 
-func TestCustomizeTargetInvalid(t *testing.T) {
+func TestCustomizeTarget_Invalid(t *testing.T) {
 	args := Arguments{
 		DataSourceNames: []rivertypes.Secret{rivertypes.Secret("invalid_ds@localhost:5432/database?sslmode=disable")},
 	}

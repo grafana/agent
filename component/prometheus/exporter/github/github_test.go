@@ -45,7 +45,7 @@ func TestConvert(t *testing.T) {
 	require.Equal(t, "https://some-other-api.github.com", res.APIURL)
 }
 
-func TestCustomizeTargetValid(t *testing.T) {
+func TestCustomizeTarget_Valid(t *testing.T) {
 	args := Arguments{
 		APIURL: "https://some-other-api.github.com",
 	}

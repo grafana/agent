@@ -126,7 +126,7 @@ func TestConvert(t *testing.T) {
 	require.Equal(t, expected, *res)
 }
 
-func TestCustomizeTargetValid(t *testing.T) {
+func TestCustomizeTarget_Valid(t *testing.T) {
 	args := Arguments{
 		ConnectionString: rivertypes.Secret("sqlserver://user:pass@localhost:1433"),
 	}
@@ -137,7 +137,7 @@ func TestCustomizeTargetValid(t *testing.T) {
 	require.Equal(t, "localhost:1433", newTargets[0]["instance"])
 }
 
-func TestCustomizeTargetInvalid(t *testing.T) {
+func TestCustomizeTarget_Invalid(t *testing.T) {
 	args := Arguments{
 		ConnectionString: rivertypes.Secret("bad_cs:pass@localhost:1433"),
 	}

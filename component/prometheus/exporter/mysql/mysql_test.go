@@ -163,7 +163,7 @@ func TestValidate_InvalidDataSource(t *testing.T) {
 	require.Error(t, args.Validate())
 }
 
-func TestCustomizeTargetValid(t *testing.T) {
+func TestCustomizeTarget_Valid(t *testing.T) {
 	args := Arguments{
 		DataSourceName: rivertypes.Secret("root:secret_password@tcp(localhost:3306)/mydb"),
 	}
@@ -174,7 +174,7 @@ func TestCustomizeTargetValid(t *testing.T) {
 	require.Equal(t, "tcp(localhost:3306)/mydb", newTargets[0]["instance"])
 }
 
-func TestCustomizeTargetInvalid(t *testing.T) {
+func TestCustomizeTarget_Invalid(t *testing.T) {
 	args := Arguments{
 		DataSourceName: rivertypes.Secret("root:secret_password@invalid/mydb"),
 	}
