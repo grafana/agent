@@ -36,8 +36,6 @@ func Test(t *testing.T) {
 
 			t.Run(caseName, func(t *testing.T) {
 				testConverter(t, inputBytes, expectBytes)
-				testConverter2(t, inputBytes, expectBytes)
-				// testConverter3(t, inputBytes, expectBytes)
 			})
 		}
 
@@ -49,22 +47,11 @@ func testConverter(t *testing.T, input, expect []byte) {
 	t.Helper()
 
 	actual, err := prometheusconvert.Convert(input)
-	require.NoError(t, err)
-	require.Equal(t, string(expect), string(actual)+"\n")
-}
 
-func testConverter2(t *testing.T, input, expect []byte) {
-	t.Helper()
+	// Hey, this let's me save the test output so it's easier to generate as functionality gets added.
+	// Very nice, delete before merge.
+	os.WriteFile("/mnt/c/workspace/convert-out.river", actual, 0644)
 
-	actual, err := prometheusconvert.Convert2(input)
-	require.NoError(t, err)
-	require.Equal(t, string(expect), string(actual)+"\n")
-}
-
-func testConverter3(t *testing.T, input, expect []byte) {
-	t.Helper()
-
-	actual, err := prometheusconvert.Convert3(input)
 	require.NoError(t, err)
 	require.Equal(t, string(expect), string(actual)+"\n")
 }

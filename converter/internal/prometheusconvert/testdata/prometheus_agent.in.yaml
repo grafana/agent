@@ -14,4 +14,7 @@ scrape_configs:
       - targets: ["localhost:9091"]
 
 remote_write:
-  - url: "http://remote-write-url"
+  - name: "remote1"
+    url: "http://remote-write-url1"
+  - name: "remote2"
+    url: "http://remote-write-url2"
