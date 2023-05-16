@@ -19,6 +19,9 @@ const (
 	Size4MB          = 4 << 20
 )
 
+// Use to populate defaults if some block is not configured
+var defaultServerConfig = DefaultServerConfig()
+
 // ServerConfig is a River configuration that allows one to configure a weaveworks.Server. It
 // exposes a subset of the available configurations.
 type ServerConfig struct {
@@ -81,7 +84,7 @@ func (g *GRPCConfig) Into(c *weaveworks.Config) {
 }
 
 func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	*c = newDefaults()
+	*c = *DefaultServerConfig()
 	type config ServerConfig
 	if err := f((*config)(c)); err != nil {
 		return err
@@ -95,9 +98,13 @@ func (c *ServerConfig) Convert() weaveworks.Config {
 	cfg := newWeaveworksDefaultConfig()
 	if c.HTTP != nil {
 		c.HTTP.Into(&cfg)
+	} else {
+		defaultServerConfig.HTTP.Into(&cfg)
 	}
 	if c.GRPC != nil {
 		c.GRPC.Into(&cfg)
+	} else {
+		defaultServerConfig.GRPC.Into(&cfg)
 	}
 	cfg.ServerGracefulShutdownTimeout = c.GracefulShutdownTimeout
 	return cfg
@@ -113,10 +120,10 @@ func newWeaveworksDefaultConfig() weaveworks.Config {
 	return c
 }
 
-// newDefaults creates a new ServerConfig with defaults applied. Not that some are inherited from
+// DefaultServerConfig creates a new ServerConfig with defaults applied. Not that some are inherited from
 // weaveworks, but copied in our config model to make the overriding logic simpler.
-func newDefaults() ServerConfig {
-	return ServerConfig{
+func DefaultServerConfig() *ServerConfig {
+	return &ServerConfig{
 		HTTP: &HTTPConfig{
 			ListenAddress:      "",
 			ListenPort:         DefaultHTTPPort,
