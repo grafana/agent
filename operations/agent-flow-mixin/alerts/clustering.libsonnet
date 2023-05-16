@@ -29,8 +29,8 @@ alert.newGroup(
     // Standard Deviation of Lamport clock time between nodes is too high
     alert.newRule(
       'ClusterLamportClockDrift',
-      'stddev by (cluster, namespace) (cluster_node_lamport_time) != 0',
-      "Cluster nodes' lamport clocks are not converging.",
+      'stddev by (cluster, namespace) (cluster_node_lamport_time) > 4',
+      'Cluster nodes\' lamport clocks are not converging.',
       '5m'
     ),
 
@@ -48,7 +48,7 @@ alert.newGroup(
     alert.newRule(
       'ClusterLamportClockStuck',
       'sum by (cluster, namespace, instance) (rate(cluster_node_lamport_time[2m])) == 0',
-      "Cluster nodes's lamport clocks is not progressing.",
+      'Cluster nodes\'s lamport clocks is not progressing.',
       '5m',
     ),
 
@@ -65,6 +65,17 @@ alert.newGroup(
       'ClusterNodeStuckTerminating',
       'sum by (cluster, namespace, instance) (cluster_node_peers{state="terminating"}) > 0',
       'Cluster node stuck in Terminating state.',
+      '5m',
+    ),
+
+    alert.newRule(
+      'ClusterConfigurationDrift',
+      |||
+        sum by (cluster, namespace) (cluster_node_info)
+        !=
+        on (cluster, namespace) group_left avg by (cluster, namespace) ((count by (cluster, namespace, sha256) (agent_config_hash)))
+      |||,
+      'Cluster nodes are not using the same configuration file.',
       '5m',
     ),
 
