@@ -71,6 +71,9 @@ Main (unreleased)
 - Fix an issue where build artifacts for IBM S390x were being built with the
   GOARCH value for the PPC64 instead. (tpaschalis)
 
+- Fix an issue where the Grafana Agent Flow RPM used the wrong path for the
+  environment file, preventing the service from loading. (@rfratto)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
@@ -110,7 +113,7 @@ v0.33.2 (2023-05-11)
   was created, and prevented a fresh process from being able to deliver metrics
   at all. (@rfratto)
 
-- Fix an issue where the `loki.source.kubernetes` component could lead to 
+- Fix an issue where the `loki.source.kubernetes` component could lead to
   the Agent crashing due to a race condition. (@tpaschalis)
 
 ### Other changes
