@@ -10,8 +10,6 @@ import (
 	weaveworks "github.com/weaveworks/common/server"
 )
 
-const size4mb = 4 * 1024 * 1024
-
 func TestConfig(t *testing.T) {
 	type testcase struct {
 		raw         string
@@ -31,8 +29,8 @@ func TestConfig(t *testing.T) {
 				require.False(t, config.RegisterInstrumentation)
 				require.Equal(t, time.Second*30, config.ServerGracefulShutdownTimeout)
 
-				require.Equal(t, size4mb, config.GRPCServerMaxSendMsgSize)
-				require.Equal(t, size4mb, config.GPRCServerMaxRecvMsgSize)
+				require.Equal(t, size4MB, config.GRPCServerMaxSendMsgSize)
+				require.Equal(t, size4MB, config.GPRCServerMaxRecvMsgSize)
 			},
 		},
 		"overriding defaults": {
@@ -79,7 +77,7 @@ func TestConfig(t *testing.T) {
 				require.Equal(t, "0.0.0.0", config.GRPCListenAddress)
 				require.Equal(t, 10, config.GRPCServerMaxSendMsgSize)
 				// this should have the default applied
-				require.Equal(t, size4mb, config.GPRCServerMaxRecvMsgSize)
+				require.Equal(t, size4MB, config.GPRCServerMaxRecvMsgSize)
 
 				require.Equal(t, time.Minute, config.ServerGracefulShutdownTimeout)
 			},
@@ -134,7 +132,7 @@ func TestConfig(t *testing.T) {
 			cfg := ServerConfig{}
 			err := river.Unmarshal([]byte(tc.raw), &cfg)
 			require.Equal(t, tc.errExpected, err != nil)
-			wConfig := cfg.Convert()
+			wConfig := cfg.convert()
 			tc.assert(t, wConfig)
 		})
 	}

@@ -12,15 +12,14 @@ import (
 
 const (
 	DefaultHTTPPort = 8080
-	DefaultGRPCPort = 8081
+
+	// using zero as default grpc port to assing random free port when not configured
+	DefaultGRPCPort = 0
 
 	// defaults inherited from weaveworks
 	durationInfinity = time.Duration(math.MaxInt64)
 	size4MB          = 4 << 20
 )
-
-// Use to populate defaults if some block is not configured
-var defaultServerConfig = DefaultServerConfig()
 
 // ServerConfig is a River configuration that allows one to configure a weaveworks.Server. It
 // exposes a subset of the available configurations.
@@ -86,7 +85,7 @@ func (g *GRPCConfig) Into(c *weaveworks.Config) {
 func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
 	// when unmarshalling, use our defaults to cover cases in which just some of the http/grpc
 	// block attributes are configured
-	*c = *DefaultServerConfig()
+	*c = *defaultServerConfig()
 	type config ServerConfig
 	if err := f((*config)(c)); err != nil {
 		return err
@@ -96,19 +95,19 @@ func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
 }
 
 // Convert converts the River-based ServerConfig into a weaveworks.Config object.
-func (c *ServerConfig) Convert() weaveworks.Config {
+func (c *ServerConfig) convert() weaveworks.Config {
 	cfg := newWeaveworksDefaultConfig()
 	// use the configured http/grpc blocks, and if not, use a mixin of our defaults, and
 	// weaveworks's as a fallback
 	if c.HTTP != nil {
 		c.HTTP.Into(&cfg)
 	} else {
-		defaultServerConfig.HTTP.Into(&cfg)
+		defaultServerConfig().HTTP.Into(&cfg)
 	}
 	if c.GRPC != nil {
 		c.GRPC.Into(&cfg)
 	} else {
-		defaultServerConfig.GRPC.Into(&cfg)
+		defaultServerConfig().GRPC.Into(&cfg)
 	}
 	cfg.ServerGracefulShutdownTimeout = c.GracefulShutdownTimeout
 	return cfg
@@ -124,9 +123,9 @@ func newWeaveworksDefaultConfig() weaveworks.Config {
 	return c
 }
 
-// DefaultServerConfig creates a new ServerConfig with defaults applied. Note that some are inherited from
+// defaultServerConfig creates a new ServerConfig with defaults applied. Note that some are inherited from
 // weaveworks, but copied in our config model to make the mixin logic simpler.
-func DefaultServerConfig() *ServerConfig {
+func defaultServerConfig() *ServerConfig {
 	return &ServerConfig{
 		HTTP: &HTTPConfig{
 			ListenAddress:      "",
