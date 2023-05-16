@@ -15,8 +15,8 @@ const (
 	DefaultGRPCPort = 8081
 
 	// defaults inherited from weaveworks
-	DurationInfinity = time.Duration(math.MaxInt64)
-	Size4MB          = 4 << 20
+	durationInfinity = time.Duration(math.MaxInt64)
+	size4MB          = 4 << 20
 )
 
 // Use to populate defaults if some block is not configured
@@ -136,12 +136,12 @@ func DefaultServerConfig() *ServerConfig {
 			ListenAddress:              "",
 			ListenPort:                 DefaultGRPCPort,
 			ConnLimit:                  0,
-			MaxConnectionAge:           DurationInfinity,
-			MaxConnectionAgeGrace:      DurationInfinity,
-			MaxConnectionIdle:          DurationInfinity,
+			MaxConnectionAge:           durationInfinity,
+			MaxConnectionAgeGrace:      durationInfinity,
+			MaxConnectionIdle:          durationInfinity,
 			ServerMaxConcurrentStreams: 100,
-			ServerMaxSendMsg:           Size4MB,
-			ServerMaxRecvMsg:           Size4MB,
+			ServerMaxSendMsg:           size4MB,
+			ServerMaxRecvMsg:           size4MB,
 		},
 		GracefulShutdownTimeout: 30 * time.Second,
 	}

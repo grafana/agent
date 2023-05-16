@@ -78,7 +78,7 @@ configs:
       tls_config:
           insecure_skip_verify: true
   spanmetrics:
-    handler_endpoint: 0.0.0.0:9090
+    handler_endpoint: 0.0.0.0:8888
     const_labels:
       key1: "value1"
       key2: "value2"
