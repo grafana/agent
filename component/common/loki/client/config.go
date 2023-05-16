@@ -28,6 +28,7 @@ const (
 type Config struct {
 	Name      string `yaml:"name,omitempty"`
 	URL       flagext.URLValue
+	Headers   map[string]string `yaml:"headers,omitempty"`
 	BatchWait time.Duration
 	BatchSize int
 
