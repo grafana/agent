@@ -105,7 +105,7 @@ otelcol.exporter.otlp "default" {
 
 To use Tempo with basic-auth, which is the case with GrafanaCloud Tempo, you must use the [otelcol.auth.basic][] component. For example, you can get the Tempo config from the “details” page of Tempo in the [GrafanaCloud Portal][]:
 
-TODO: Insert Tempo Config pic
+![](../../../assets/getting-started/tempo-config.png)
 
 ```river
 otelcol.exporter.otlp "grafana_cloud_tempo" {
@@ -142,7 +142,7 @@ prometheus.remote_write "default" {
 
 To use Prometheus with basic-auth, which is the case with GrafanaCloud Prometheus, you have to configure the [prometheus.remote_write][] component. For example, you can get the Prometheus config from the “details” page of Prometheus in the [GrafanaCloud Portal][]:
 
-TODO: Insert Prometheus Config pic
+![](../../../assets/getting-started/prometheus-config.png)
 
 ```river
 otelcol.exporter.prometheus "grafana_cloud_prometheus" {
@@ -178,7 +178,7 @@ loki.write "default" {
 
 To use Loki with basic-auth, which is the case with GrafanaCloud Loki, you must configure the [loki.write][] component. For example, you can get the Loki config from the “details” page of Loki in the [GrafanaCloud Portal][]:
 
-TODO: Insert Loki Config pic
+![](../../../assets/getting-started/loki-config.png)
 
 ```river
 otelcol.exporter.loki "grafana_cloud_loki" {
@@ -305,4 +305,4 @@ ts=2023-05-09T09:37:15.304234Z component=otelcol.receiver.otlp.default level=inf
 
 You can now check the pipeline graphically by visiting http://localhost:12345/graph
 
-TODO: Insert graph image
+![](../../../assets/getting-started/otlp-lgtm-graph.png)
