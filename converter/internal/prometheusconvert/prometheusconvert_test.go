@@ -1,8 +1,7 @@
-//go:build linux
-
 package prometheusconvert_test
 
 import (
+	"bytes"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -50,10 +49,12 @@ func testConverter(t *testing.T, input, expect []byte) {
 
 	actual, err := prometheusconvert.Convert(input)
 
-	// Hey, this let's me save the test output so it's easier to generate as functionality gets added.
-	// Very nice, delete before merge.
-	os.WriteFile("/mnt/c/workspace/convert-out.river", actual, 0644)
-
 	require.NoError(t, err)
-	require.Equal(t, string(expect), string(actual)+"\n")
+	require.Equal(t, string(normalizeLineEndings(expect)), string(normalizeLineEndings(actual))+"\n")
+}
+
+func normalizeLineEndings(data []byte) []byte {
+	// Replace '\r\n' with '\n'
+	normalized := bytes.ReplaceAll(data, []byte{'\r', '\n'}, []byte{'\n'})
+	return normalized
 }
