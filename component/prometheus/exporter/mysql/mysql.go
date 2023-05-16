@@ -136,11 +136,22 @@ type MySQLUser struct {
 }
 
 // UnmarshalRiver implements River unmarshalling for Config.
-func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultArguments
+func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*a = DefaultArguments
 
 	type args Arguments
-	return f((*args)(c))
+	if err := f((*args)(a)); err != nil {
+		return err
+	}
+	return a.Validate()
+}
+
+func (a *Arguments) Validate() error {
+	_, err := mysql.ParseDSN(string(a.DataSourceName))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *Arguments) Convert() *mysqld_exporter.Config {
