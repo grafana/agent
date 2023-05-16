@@ -60,6 +60,8 @@ Main (unreleased)
 
 - Update azure-metrics-exporter to v0.0.0-20230502203721-b2bfd97b5313 (@kgeckhart)
 
+- Update azidentity dependency to v1.3.0. (@akselleirv)
+
 ### Bugfixes
 
 - Fix an issue where defining `logging` or `tracing` blocks inside of a module
