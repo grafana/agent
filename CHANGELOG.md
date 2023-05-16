@@ -62,6 +62,9 @@ Main (unreleased)
 - Fix an issue where not specifying either `http` nor `grpc` blocks could result
   in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
 
+- Fix an issue where build artifacts for IBM S390x were being built with the
+  GOARCH value for the PPC64 instead. (tpaschalis)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
