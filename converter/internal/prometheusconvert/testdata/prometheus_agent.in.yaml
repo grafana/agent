@@ -9,6 +9,9 @@ scrape_configs:
     scrape_timeout: 5s
     static_configs:
       - targets: ["localhost:9090"]
+    basic_auth:
+      username: 'user'
+      password: 'pass'
   - job_name: "prometheus2"
     static_configs:
       - targets: ["localhost:9091"]
