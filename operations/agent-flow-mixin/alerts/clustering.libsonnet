@@ -26,7 +26,7 @@ alert.newGroup(
       '5m',
     ),
 
-    // Standard Deviation of Lamport clock time between nodes is too high
+    // Standard Deviation of Lamport clock time between nodes is too high.
     alert.newRule(
       'ClusterLamportClockDrift',
       'stddev by (cluster, namespace) (cluster_node_lamport_time) > 4',
@@ -68,6 +68,7 @@ alert.newGroup(
       '5m',
     ),
 
+    // Nodes are not using the same configuration file.
     alert.newRule(
       'ClusterConfigurationDrift',
       |||
