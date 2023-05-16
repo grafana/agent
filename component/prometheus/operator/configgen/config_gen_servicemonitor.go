@@ -63,7 +63,7 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 		cfg.HTTPClientConfig.EnableHTTP2 = *ep.EnableHttp2
 	}
 	if ep.TLSConfig != nil {
-		if cfg.HTTPClientConfig.TLSConfig, err = cg.generateSafeTLS(ep.TLSConfig.SafeTLSConfig); err != nil {
+		if cfg.HTTPClientConfig.TLSConfig, err = cg.generateSafeTLS(ep.TLSConfig.SafeTLSConfig, m.Namespace); err != nil {
 			return nil, err
 		}
 	}

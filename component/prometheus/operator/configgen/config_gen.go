@@ -3,7 +3,6 @@ package configgen
 // SEE https://github.com/prometheus-operator/prometheus-operator/blob/aa8222d7e9b66e9293ed11c9291ea70173021029/pkg/prometheus/promcfg.go
 
 import (
-	"fmt"
 	"regexp"
 
 	k8sConfig "github.com/grafana/agent/component/common/kubernetes"
@@ -15,7 +14,8 @@ import (
 )
 
 type ConfigGenerator struct {
-	Client *k8sConfig.ClientArguments
+	Client  *k8sConfig.ClientArguments
+	Secrets SecretFetcher
 }
 
 var (
@@ -65,18 +65,29 @@ func (cg *ConfigGenerator) generateK8SSDConfig(namespaceSelector promopv1.Namesp
 	return cfg
 }
 
-func (cg *ConfigGenerator) generateSafeTLS(tls promopv1.SafeTLSConfig) (commonConfig.TLSConfig, error) {
+func (cg *ConfigGenerator) generateSafeTLS(tls promopv1.SafeTLSConfig, namespace string) (commonConfig.TLSConfig, error) {
 	tc := commonConfig.TLSConfig{}
 	tc.InsecureSkipVerify = tls.InsecureSkipVerify
-
+	var err error
+	var value string
 	if tls.CA.Secret != nil || tls.CA.ConfigMap != nil {
-		return tc, fmt.Errorf("loading ca certs no supported yet")
+		tc.CA, err = cg.Secrets.SecretOrConfigMapValue(namespace, tls.CA)
+		if err != nil {
+			return tc, err
+		}
 	}
 	if tls.Cert.Secret != nil || tls.Cert.ConfigMap != nil {
-		return tc, fmt.Errorf("loading tls certs no supported yet")
+		tc.Cert, err = cg.Secrets.SecretOrConfigMapValue(namespace, tls.Cert)
+		if err != nil {
+			return tc, err
+		}
 	}
 	if tls.KeySecret != nil {
-		return tc, fmt.Errorf("loading tls certs no supported yet")
+		value, err = cg.Secrets.GetSecretValue(namespace, tls.KeySecret.Name, tls.KeySecret.Key)
+		if err != nil {
+			return tc, err
+		}
+		tc.Key = commonConfig.Secret(value)
 	}
 	if tls.ServerName != "" {
 		tc.ServerName = tls.ServerName
