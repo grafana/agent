@@ -18,7 +18,7 @@ Grafana Agent Flow.
 > [upgrade-guide-static]: {{< relref "../static/upgrade-guide.md" >}}
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 
-## v0.33.1 
+## v0.33
 
 ### Symbolic links in Docker containers removed
 
@@ -26,7 +26,7 @@ We've removed the deprecated symbolic links to `/bin/agent*` in Docker
 containers, as planned in v0.31. In case you're setting a custom entrypoint,
 use the new binaries that are prefixed with `/bin/grafana*`.
 
-## v0.32.0
+## v0.32
 
 ### Breaking change: `http_client_config` Flow blocks merged with parent blocks
 
@@ -173,7 +173,7 @@ environment variable to enable Flow mode has been removed.
 
 To enable Flow mode, set the `AGENT_MODE` environment variable to `flow`.
 
-## v0.31.0
+## v0.31
 
 ### Breaking change: binary names are now prefixed with `grafana-`
 
@@ -190,7 +190,7 @@ Symbolic links will be removed in v0.33. Custom entrypoints must be
 updated prior to v0.33 to use the new binaries before the symbolic links get
 removed.
 
-## v0.30.0
+## v0.30
 
 ### Deprecation: `EXPERIMENTAL_ENABLE_FLOW` environment variable changed
 
@@ -201,7 +201,7 @@ As part of graduating Grafana Agent Flow to beta, the
 Setting `EXPERIMENTAL_ENABLE_FLOW` to `1` or `true` is now deprecated and
 support for it will be removed for the v0.32 release.
 
-## v0.29.0
+## v0.29
 
 ### Deprecation: binary names will be prefixed with `grafana-` in v0.31.0
 
