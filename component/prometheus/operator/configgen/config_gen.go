@@ -83,7 +83,7 @@ func (cg *ConfigGenerator) generateSafeTLS(tls promopv1.SafeTLSConfig, namespace
 		}
 	}
 	if tls.KeySecret != nil {
-		value, err = cg.Secrets.GetSecretValue(namespace, tls.KeySecret.Name, tls.KeySecret.Key)
+		value, err = cg.Secrets.GetSecretValue(namespace, *tls.KeySecret)
 		if err != nil {
 			return tc, err
 		}

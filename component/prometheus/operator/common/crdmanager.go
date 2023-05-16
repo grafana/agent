@@ -211,19 +211,20 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 
 		return err
 	}
+	const resync = 5 * time.Minute
 	switch c.kind {
 	case KindPodMonitor:
-		_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
+		_, err = informer.AddEventHandlerWithResyncPeriod((toolscache.ResourceEventHandlerFuncs{
 			AddFunc:    c.onAddPodMonitor,
 			UpdateFunc: c.onUpdatePodMonitor,
 			DeleteFunc: c.onDeletePodMonitor,
-		}))
+		}), resync)
 	case KindServiceMonitor:
-		_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
+		_, err = informer.AddEventHandlerWithResyncPeriod((toolscache.ResourceEventHandlerFuncs{
 			AddFunc:    c.onAddServiceMonitor,
 			UpdateFunc: c.onUpdateServiceMonitor,
 			DeleteFunc: c.onDeleteServiceMonitor,
-		}))
+		}), resync)
 	default:
 		return fmt.Errorf("unknown kind to configure Informers: %s", c.kind)
 	}

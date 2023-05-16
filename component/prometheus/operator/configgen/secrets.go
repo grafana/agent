@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
 type SecretFetcher interface {
-	GetSecretValue(namespace, name, field string) (string, error)
-	GetConfigMapValue(namespace, name, field string) (string, error)
+	GetSecretValue(namespace string, sec corev1.SecretKeySelector) (string, error)
+	GetConfigMapValue(namespace string, cm corev1.ConfigMapKeySelector) (string, error)
 	SecretOrConfigMapValue(namespace string, socm promopv1.SecretOrConfigMap) (string, error)
 }
 
@@ -31,13 +32,13 @@ func NewSecretManager(client *kubernetes.Clientset) SecretFetcher {
 	}
 }
 
-func (s *secretManager) GetSecretValue(namespace, name, field string) (string, error) {
-	key := fmt.Sprintf("%s/%s", namespace, name)
+func (s *secretManager) GetSecretValue(namespace string, sec corev1.SecretKeySelector) (string, error) {
+	key := fmt.Sprintf("%s/%s", namespace, sec.Name)
 	var data map[string][]byte
 	if m, ok := s.secretCache[key]; ok {
 		data = m
 	} else {
-		secret, err := s.client.CoreV1().Secrets(namespace).Get(context.Background(), name, v1.GetOptions{})
+		secret, err := s.client.CoreV1().Secrets(namespace).Get(context.Background(), sec.Name, v1.GetOptions{})
 		if err != nil {
 			return "", err
 		}
@@ -45,37 +46,37 @@ func (s *secretManager) GetSecretValue(namespace, name, field string) (string, e
 		s.secretCache[key] = data
 	}
 
-	if dat, ok := data[field]; ok {
+	if dat, ok := data[sec.Key]; ok {
 		return string(dat), nil
 	} else {
-		return "", fmt.Errorf("secret %s/%s has no field %s", namespace, name, field)
+		return "", fmt.Errorf("secret %s/%s has no field %s", namespace, sec.Name, sec.Key)
 	}
 }
 
-func (s *secretManager) GetConfigMapValue(namespace, name, field string) (string, error) {
-	key := fmt.Sprintf("%s/%s", namespace, name)
+func (s *secretManager) GetConfigMapValue(namespace string, cm corev1.ConfigMapKeySelector) (string, error) {
+	key := fmt.Sprintf("%s/%s", namespace, cm.Name)
 	var data map[string]string
 	if m, ok := s.configCache[key]; ok {
 		data = m
 	} else {
-		cMap, err := s.client.CoreV1().ConfigMaps(namespace).Get(context.Background(), name, v1.GetOptions{})
+		cMap, err := s.client.CoreV1().ConfigMaps(namespace).Get(context.Background(), cm.Name, v1.GetOptions{})
 		if err != nil {
 			return "", err
 		}
 		data = cMap.Data
 		s.configCache[key] = data
 	}
-	if dat, ok := data[field]; ok {
+	if dat, ok := data[cm.Key]; ok {
 		return dat, nil
 	} else {
-		return "", fmt.Errorf("configmap %s/%s has no field %s", namespace, name, field)
+		return "", fmt.Errorf("configmap %s/%s has no field %s", namespace, cm.Name, cm.Key)
 	}
 }
 
 func (s *secretManager) SecretOrConfigMapValue(namespace string, socm promopv1.SecretOrConfigMap) (string, error) {
 	if socm.Secret != nil {
-		return s.GetSecretValue(namespace, socm.Secret.Name, socm.Secret.Key)
+		return s.GetSecretValue(namespace, *socm.Secret)
 	} else if socm.ConfigMap != nil {
-		return s.GetConfigMapValue(namespace, socm.ConfigMap.Name, socm.ConfigMap.Key)
+		return s.GetConfigMapValue(namespace, *socm.ConfigMap)
 	}
 }

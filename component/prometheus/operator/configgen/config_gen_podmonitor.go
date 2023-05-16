@@ -77,7 +77,11 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 		}
 	}
 	if ep.BearerTokenSecret.Name != "" {
-		return nil, fmt.Errorf("bearer tokens in podmonitors not supported yet: %w", err)
+		val, err := cg.Secrets.GetSecretValue(m.Namespace, ep.BearerTokenSecret)
+		if err != nil {
+			return nil, err
+		}
+		cfg.HTTPClientConfig.BearerToken = commonConfig.Secret(val)
 	}
 	if ep.BasicAuth != nil {
 		return nil, fmt.Errorf("basic auth in podmonitors not supported yet: %w", err)
