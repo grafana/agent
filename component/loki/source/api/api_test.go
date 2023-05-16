@@ -169,6 +169,8 @@ func TestLokiSourceAPI_FanOut(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
+	defer comp.(*Component).stop()
+
 	lokiClient := newTestLokiClient(t, args, opts)
 	defer lokiClient.Stop()
 
