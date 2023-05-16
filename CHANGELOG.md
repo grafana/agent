@@ -36,14 +36,16 @@ Main (unreleased)
 
 ### Enhancements
 
+- Support ability to add optional custom headers to `loki.write` endpoint block (@aos)
+
 - Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
   components will now export a target containing an internal HTTP address.
   `prometheus.scrape`, when given that internal HTTP address, will connect to
   the server in-memory, bypassing the network stack. Use the new
   `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
-
 - Disable node_exporter on Windows systems (@jkroepke)
+- Operator support for OAuth 2.0 Client in LogsClientSpec (@DavidSpek)
 
 - Support `clustering` block in `phlare.scrape` components to distribute
   targets amongst clustered agents. (@rfratto)
@@ -69,6 +71,8 @@ Main (unreleased)
 
 - Add `agent_wal_out_of_order_samples_total` metric to track samples received
   out of order. (@rfratto)
+
+- Use Go 1.20.4 for builds. (@tpaschalis)
 
 v0.33.2 (2023-05-11)
 --------------------

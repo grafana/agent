@@ -14,10 +14,10 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/ckit"
+	"github.com/grafana/ckit/peer"
+	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/rfratto/ckit"
-	"github.com/rfratto/ckit/peer"
-	"github.com/rfratto/ckit/shard"
 	"golang.org/x/net/http2"
 )
 
@@ -28,7 +28,7 @@ type Node interface {
 	// allowing for short-circuiting logic to connect directly to the local node
 	// instead of using the network.
 	//
-	// Callers can use github.com/rfratto/ckit/shard.StringKey or
+	// Callers can use github.com/grafana/ckit/shard.StringKey or
 	// shard.NewKeyBuilder to create a key.
 	Lookup(key shard.Key, replicationFactor int, op shard.Op) ([]peer.Peer, error)
 

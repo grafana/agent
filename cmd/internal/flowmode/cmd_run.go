@@ -14,7 +14,7 @@ import (
 
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
-	"github.com/rfratto/ckit/memconn"
+	"github.com/grafana/ckit/memconn"
 	"go.opentelemetry.io/otel"
 	"golang.org/x/exp/maps"
 	"golang.org/x/net/http2"
