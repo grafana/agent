@@ -81,7 +81,7 @@ func (r *reconciler) newIntegrationsDeployment(
 	}
 
 	level.Info(l).Log("msg", "reconciling integrations Deployment", "deploy", key)
-	err = clientutil.CreateOrUpdateDeployment(ctx, r.Client, deploy)
+	err = clientutil.CreateOrUpdateDeployment(ctx, r.Client, deploy, l)
 	if err != nil {
 		return fmt.Errorf("failed to reconcile integrations Deployment: %w", err)
 	}
@@ -114,7 +114,7 @@ func (r *reconciler) newIntegrationsDaemonSet(
 	}
 
 	level.Info(l).Log("msg", "reconciling integrations DaemonSet", "ds", key)
-	err = clientutil.CreateOrUpdateDaemonSet(ctx, r.Client, ds)
+	err = clientutil.CreateOrUpdateDaemonSet(ctx, r.Client, ds, l)
 	if err != nil {
 		return fmt.Errorf("failed to reconcile integrations DaemonSet: %w", err)
 	}

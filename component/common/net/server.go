@@ -35,11 +35,11 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 	}
 
 	if config == nil {
-		config = &ServerConfig{}
+		config = defaultServerConfig()
 	}
 
 	// convert from River into the weaveworks config
-	serverCfg := config.Convert()
+	serverCfg := config.convert()
 	// Set the config to the new combined config.
 	// Avoid logging entire received request on failures
 	serverCfg.ExcludeRequestInLog = true

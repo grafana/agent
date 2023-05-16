@@ -37,7 +37,7 @@ func TestConfig_ToScrapeSettings(t *testing.T) {
 		Aggregations:    []string{"MiNimUm"},
 		MetricTemplate:  "name_template_me",
 		HelpTemplate:    "help_template_me",
-		TagLabels:       []string{"tag_me"},
+
 		//Should not be set
 		Name:          "",
 		MetricTop:     nil,

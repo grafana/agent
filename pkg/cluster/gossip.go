@@ -10,14 +10,14 @@ import (
 	"os"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/ckit"
+	"github.com/grafana/ckit/advertise"
+	"github.com/grafana/ckit/peer"
+	"github.com/grafana/ckit/shard"
 	"github.com/grafana/dskit/flagext"
 	"github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/k8s"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/rfratto/ckit"
-	"github.com/rfratto/ckit/advertise"
-	"github.com/rfratto/ckit/peer"
-	"github.com/rfratto/ckit/shard"
 	"go.uber.org/atomic"
 )
 
