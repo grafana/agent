@@ -135,6 +135,7 @@ func newExporter(creator Creator, name string, targetBuilderFunc func(discovery.
 			"__meta_agent_integration_name":     jobName,
 			"__meta_agent_integration_instance": instance,
 			"__meta_agent_integration_id":       opts.ID,
+			"__meta_agent_hostname":             instance,
 		}
 
 		// Call to Update() to set the output once at the start.
