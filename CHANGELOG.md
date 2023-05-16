@@ -44,8 +44,8 @@ Main (unreleased)
   the server in-memory, bypassing the network stack. Use the new
   `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
-
 - Disable node_exporter on Windows systems (@jkroepke)
+- Operator support for OAuth 2.0 Client in LogsClientSpec (@DavidSpek)
 
 - Support `clustering` block in `phlare.scrape` components to distribute
   targets amongst clustered agents. (@rfratto)
