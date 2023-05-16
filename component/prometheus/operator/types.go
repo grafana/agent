@@ -1,6 +1,7 @@
 package operator
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/grafana/agent/component/common/config"
@@ -24,6 +25,10 @@ type Arguments struct {
 	LabelSelector *config.LabelSelector `river:"selector,block,optional"`
 
 	Clustering Clustering `river:"clustering,block,optional"`
+}
+
+func (a Arguments) Equals(b *Arguments) bool {
+	return reflect.DeepEqual(a, b)
 }
 
 // Clustering holds values that configure clustering-specific behavior.

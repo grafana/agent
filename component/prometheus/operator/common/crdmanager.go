@@ -37,12 +37,13 @@ const informerSyncTimeout = 10 * time.Second
 // crdManager is all of the fields required to run a crd based component.
 // on update, this entire thing should be recreated and restarted
 type crdManager struct {
-	mut              sync.Mutex
-	discoveryConfigs map[string]discovery.Configs
-	scrapeConfigs    map[string]*config.ScrapeConfig
-	debugInfo        map[string]*operator.DiscoveredResource
-	discoveryManager *discovery.Manager
-	scrapeManager    *scrape.Manager
+	mut               sync.Mutex
+	discoveryConfigs  map[string]discovery.Configs
+	scrapeConfigs     map[string]*config.ScrapeConfig
+	debugInfo         map[string]*operator.DiscoveredResource
+	discoveryManager  *discovery.Manager
+	scrapeManager     *scrape.Manager
+	clusteringUpdated chan struct{}
 
 	opts      component.Options
 	logger    log.Logger
@@ -64,13 +65,14 @@ func newCrdManager(opts component.Options, logger log.Logger, args *operator.Arg
 		panic(fmt.Sprintf("Unknown kind for crdManager: %s", kind))
 	}
 	return &crdManager{
-		opts:             opts,
-		logger:           logger,
-		args:             args,
-		discoveryConfigs: map[string]discovery.Configs{},
-		scrapeConfigs:    map[string]*config.ScrapeConfig{},
-		debugInfo:        map[string]*operator.DiscoveredResource{},
-		kind:             kind,
+		opts:              opts,
+		logger:            logger,
+		args:              args,
+		discoveryConfigs:  map[string]discovery.Configs{},
+		scrapeConfigs:     map[string]*config.ScrapeConfig{},
+		debugInfo:         map[string]*operator.DiscoveredResource{},
+		kind:              kind,
+		clusteringUpdated: make(chan struct{}, 1),
 	}
 }
 
@@ -107,18 +109,33 @@ func (c *crdManager) Run(ctx context.Context) error {
 		}
 	}()
 
+	var cachedTargets map[string][]*targetgroup.Group
 	// Start the target discovery loop to update the scrape manager with new targets.
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case m := <-c.discoveryManager.SyncCh():
+			cachedTargets = m
 			if c.args.Clustering.Enabled {
 				m = filterTargets(m, c.opts.Clusterer.Node)
 			}
 			targetSetsChan <- m
-
+		case <-c.clusteringUpdated:
+			// if clustering updates while running, just re-filter the targets and pass them
+			// into scrape manager again, instead of reloading everything
+			if c.args.Clustering.Enabled {
+				targetSetsChan <- filterTargets(cachedTargets, c.opts.Clusterer.Node)
+			}
 		}
+
+	}
+}
+
+func (c *crdManager) ClusteringUpdated() {
+	select {
+	case c.clusteringUpdated <- struct{}{}:
+	default:
 	}
 }
 
