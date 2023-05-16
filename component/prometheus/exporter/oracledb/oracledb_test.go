@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/oracledb_exporter"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/river/rivertypes"
@@ -111,4 +112,28 @@ func TestConvert(t *testing.T) {
 		QueryTimeout:     DefaultArguments.QueryTimeout,
 	}
 	require.Equal(t, expected, *res)
+}
+
+func TestCustomizeTarget_Valid(t *testing.T) {
+	args := Arguments{
+		ConnectionString: rivertypes.Secret("oracle://user:password@localhost:1521/orcl.localnet"),
+	}
+
+	baseTarget := discovery.Target{}
+	newTargets := customizeTarget(baseTarget, args)
+	require.Equal(t, 1, len(newTargets))
+	require.Equal(t, "localhost:1521", newTargets[0]["instance"])
+}
+
+func TestCustomizeTarget_Invalid(t *testing.T) {
+	args := Arguments{
+		ConnectionString: rivertypes.Secret("bad_cs:pass@localhost:1521"),
+	}
+
+	baseTarget := discovery.Target{
+		"instance": "default instance",
+	}
+	newTargets := customizeTarget(baseTarget, args)
+	require.Equal(t, 1, len(newTargets))
+	require.Equal(t, "default instance", newTargets[0]["instance"])
 }
