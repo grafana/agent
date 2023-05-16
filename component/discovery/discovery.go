@@ -8,10 +8,10 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/model/labels"
-	"github.com/rfratto/ckit/shard"
 )
 
 // Target refers to a singular discovered endpoint found by a discovery

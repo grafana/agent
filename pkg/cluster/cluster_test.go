@@ -3,8 +3,8 @@ package cluster
 import (
 	"testing"
 
-	"github.com/rfratto/ckit/peer"
-	"github.com/rfratto/ckit/shard"
+	"github.com/grafana/ckit/peer"
+	"github.com/grafana/ckit/shard"
 	"github.com/stretchr/testify/require"
 )
 

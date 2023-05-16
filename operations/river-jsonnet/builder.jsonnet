@@ -7,8 +7,8 @@ local utils = import './internal/utils.jsonnet';
   // block returns the field name that should be used for River blocks.
   block(name, label='', index=0)::
     if label == ''
-    then ('block %d %s' % [index, name])
-    else ('block %d %s %s' % [index, name, label]),
+    then ('block %s %d' % [name, index])
+    else ('block %s %s %d' % [name, label, index]),
 
   // expr returns an object which represents a literal River expression.
   expr(lit):: {
