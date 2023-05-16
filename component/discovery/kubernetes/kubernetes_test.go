@@ -33,3 +33,16 @@ func TestBadRiverConfig(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
 }
+
+func TestAttachMetadata(t *testing.T) {
+	var exampleRiverConfig = `
+        role = "pod"
+    attach_metadata {
+	    node = true
+    }
+`
+
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.NoError(t, err)
+}

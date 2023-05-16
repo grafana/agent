@@ -37,6 +37,8 @@ Main (unreleased)
 
 
 ### Enhancements
+- Support to attach node metadata to pods and endpoints targets in
+  `discovery.kubernetes`. (@laurovenancio)
 
 - Support ability to add optional custom headers to `loki.write` endpoint block (@aos)
 
