@@ -19,7 +19,7 @@ $ echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com st
 ```
 Otherwise, with the deprecated apt-key command:
 ```shell
-$ echo "deb https://apt.grafana.com stable main" | sudo sudo tee /etc/apt/sources.list.d/grafana.list
+$ echo "deb https://apt.grafana.com stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
 $ wget -q -O - https://apt.grafana.com/gpg.key | apt-key add -
 ```
 2. After you add the repository, update package list:
