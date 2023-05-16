@@ -58,9 +58,18 @@ Main (unreleased)
 
 - Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
 
+- Embed Google Fonts on Flow UI (@jkroepke)
+
+- Enable Content-Security-Policies on Flow UI (@jkroepke)
+  
 - Update azure-metrics-exporter to v0.0.0-20230502203721-b2bfd97b5313 (@kgeckhart)
 
+- Update azidentity dependency to v1.3.0. (@akselleirv)
+
 ### Bugfixes
+
+- Fix `loki.source.(gcplog|heroku)` `http` and `grpc` blocks were overriding defaults with zero-values
+  on non-present fields. (@thepalbi)
 
 - Fix an issue where defining `logging` or `tracing` blocks inside of a module
   would generate a panic instead of returning an error. (@erikbaranowski)
@@ -70,6 +79,9 @@ Main (unreleased)
 
 - Fix an issue where build artifacts for IBM S390x were being built with the
   GOARCH value for the PPC64 instead. (tpaschalis)
+
+- Fix an issue where the Grafana Agent Flow RPM used the wrong path for the
+  environment file, preventing the service from loading. (@rfratto)
 
 ### Other changes
 
@@ -110,7 +122,7 @@ v0.33.2 (2023-05-11)
   was created, and prevented a fresh process from being able to deliver metrics
   at all. (@rfratto)
 
-- Fix an issue where the `loki.source.kubernetes` component could lead to 
+- Fix an issue where the `loki.source.kubernetes` component could lead to
   the Agent crashing due to a race condition. (@tpaschalis)
 
 ### Other changes

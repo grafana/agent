@@ -51,5 +51,5 @@ func TestTargetServer_NilConfig(t *testing.T) {
 	defer ts.StopAndShutdown()
 
 	require.Equal(t, "[::]:8080", ts.HTTPListenAddr())
-	require.Equal(t, "[::]:8081", ts.GRPCListenAddr())
+	// not asserting over grpc port since a random should have been assigned
 }
