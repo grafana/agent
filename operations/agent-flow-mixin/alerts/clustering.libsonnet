@@ -72,9 +72,9 @@ alert.newGroup(
     alert.newRule(
       'ClusterConfigurationDrift',
       |||
-        sum by (cluster, namespace) (cluster_node_info)
-        !=
-        on (cluster, namespace) group_left avg by (cluster, namespace) ((count by (cluster, namespace, sha256) (agent_config_hash)))
+        count without (sha256) ( 
+            max by (cluster, namespace, sha256) (agent_config_hash and on(cluster, namespace) cluster_node_info)
+        ) > 1 
       |||,
       'Cluster nodes are not using the same configuration file.',
       '5m',
