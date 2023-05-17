@@ -77,7 +77,6 @@ func NewPullTarget(
 	config *PullConfig,
 	clientOptions ...option.ClientOption,
 ) (*pullTarget, error) {
-
 	ctx, cancel := context.WithCancel(context.Background())
 	ps, err := pubsub.NewClient(ctx, config.ProjectID, clientOptions...)
 	if err != nil {
