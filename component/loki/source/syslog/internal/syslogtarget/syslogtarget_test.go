@@ -15,8 +15,9 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component/loki/source/syslog/internal/fake"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/syslog/syslogparser"
 	"github.com/influxdata/go-syslog/v3"
@@ -310,7 +311,7 @@ func Benchmark_SyslogTarget(b *testing.B) {
 	} {
 		tt := tt
 		b.Run(tt.name, func(b *testing.B) {
-			client := fake.New(func() {})
+			client := fake.NewClient(func() {})
 
 			metrics := NewMetrics(nil)
 			tgt, _ := NewSyslogTarget(metrics, log.NewNopLogger(), client, []*relabel.Config{}, &scrapeconfig.SyslogTargetConfig{
@@ -372,7 +373,7 @@ func TestSyslogTarget(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			w := log.NewSyncWriter(os.Stderr)
 			logger := log.NewLogfmtLogger(w)
-			client := fake.New(func() {})
+			client := fake.NewClient(func() {})
 
 			metrics := NewMetrics(nil)
 			tgt, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{
@@ -487,7 +488,7 @@ func TestSyslogTarget_RFC5424Messages(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			w := log.NewSyncWriter(os.Stderr)
 			logger := log.NewLogfmtLogger(w)
-			client := fake.New(func() {})
+			client := fake.NewClient(func() {})
 
 			metrics := NewMetrics(nil)
 			tgt, err := NewSyslogTarget(metrics, logger, client, []*relabel.Config{}, &scrapeconfig.SyslogTargetConfig{
@@ -537,7 +538,7 @@ func TestSyslogTarget_RFC5424Messages(t *testing.T) {
 func TestSyslogTarget_TLSConfigWithoutServerCertificate(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
-	client := fake.New(func() {})
+	client := fake.NewClient(func() {})
 
 	metrics := NewMetrics(nil)
 	_, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{
@@ -552,7 +553,7 @@ func TestSyslogTarget_TLSConfigWithoutServerCertificate(t *testing.T) {
 func TestSyslogTarget_TLSConfigWithoutServerKey(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
-	client := fake.New(func() {})
+	client := fake.NewClient(func() {})
 
 	metrics := NewMetrics(nil)
 	_, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{
@@ -591,7 +592,7 @@ func testSyslogTargetWithTLS(t *testing.T, fmtFunc formatFunc) {
 
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
-	client := fake.New(func() {})
+	client := fake.NewClient(func() {})
 
 	metrics := NewMetrics(nil)
 	tgt, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{
@@ -723,7 +724,7 @@ func testSyslogTargetWithTLSVerifyClientCertificate(t *testing.T, fmtFunc format
 
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
-	client := fake.New(func() {})
+	client := fake.NewClient(func() {})
 
 	metrics := NewMetrics(nil)
 	tgt, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{
@@ -801,7 +802,7 @@ func testSyslogTargetWithTLSVerifyClientCertificate(t *testing.T, fmtFunc format
 func TestSyslogTarget_InvalidData(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
-	client := fake.New(func() {})
+	client := fake.NewClient(func() {})
 	metrics := NewMetrics(nil)
 
 	tgt, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{
@@ -832,7 +833,7 @@ func TestSyslogTarget_InvalidData(t *testing.T) {
 func TestSyslogTarget_NonUTF8Message(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
-	client := fake.New(func() {})
+	client := fake.NewClient(func() {})
 	metrics := NewMetrics(nil)
 
 	tgt, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{
@@ -870,7 +871,7 @@ func TestSyslogTarget_NonUTF8Message(t *testing.T) {
 func TestSyslogTarget_IdleTimeout(t *testing.T) {
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
-	client := fake.New(func() {})
+	client := fake.NewClient(func() {})
 	metrics := NewMetrics(nil)
 
 	tgt, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{

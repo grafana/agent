@@ -1,7 +1,12 @@
 package blackbox
 
 import (
+	"errors"
+	"fmt"
 	"time"
+
+	blackbox_config "github.com/prometheus/blackbox_exporter/config"
+	"gopkg.in/yaml.v2"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
@@ -15,7 +20,7 @@ func init() {
 		Name:    "prometheus.exporter.blackbox",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.NewMultiTarget(createExporter, "blackbox", buildBlackboxTargets),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
 	})
 }
 
@@ -76,9 +81,11 @@ func (t TargetBlock) Convert() []blackbox_exporter.BlackboxTarget {
 }
 
 type Arguments struct {
-	ConfigFile         string        `river:"config_file,attr"`
+	ConfigFile         string        `river:"config_file,attr,optional"`
+	Config             string        `river:"config,attr,optional"`
 	Targets            TargetBlock   `river:"target,block"`
 	ProbeTimeoutOffset time.Duration `river:"probe_timeout_offset,attr,optional"`
+	ConfigStruct       blackbox_config.Config
 }
 
 // UnmarshalRiver implements River unmarshalling for Arguments.
@@ -86,13 +93,27 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	*a = DefaultArguments
 
 	type args Arguments
-	return f((*args)(a))
+	if err := f((*args)(a)); err != nil {
+		return err
+	}
+
+	if a.ConfigFile != "" && a.Config != "" {
+		return errors.New("config and config_file are mutually exclusive")
+	}
+
+	err := yaml.UnmarshalStrict([]byte(a.Config), &a.ConfigStruct)
+	if err != nil {
+		return fmt.Errorf("invalid backbox_exporter config: %s", err)
+	}
+
+	return nil
 }
 
 // Convert converts the component's Arguments to the integration's Config.
 func (a *Arguments) Convert() *blackbox_exporter.Config {
 	return &blackbox_exporter.Config{
 		BlackboxConfigFile: a.ConfigFile,
+		BlackboxConfig:     a.ConfigStruct,
 		BlackboxTargets:    a.Targets.Convert(),
 		ProbeTimeoutOffset: a.ProbeTimeoutOffset.Seconds(),
 	}

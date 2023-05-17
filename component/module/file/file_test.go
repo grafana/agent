@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -22,12 +23,12 @@ func TestModule(t *testing.T) {
 	os.WriteFile(debugLevelFilePath, []byte("info"), 0664)
 
 	tt := []struct {
-		name                              string
-		moduleContents                    string
-		expectedHealthType                component.HealthType
-		expectedHealthMessagePrefix       string
-		expectedModuleHealthType          component.HealthType
-		expectedModuleHealthMessagePrefix string
+		name                                   string
+		moduleContents                         string
+		expectedHealthType                     component.HealthType
+		expectedHealthMessagePrefix            string
+		expectedManagedFileHealthType          component.HealthType
+		expectedManagedFileHealthMessagePrefix string
 	}{
 		{
 			name: "Good Module",
@@ -38,8 +39,8 @@ func TestModule(t *testing.T) {
 			expectedHealthType:          component.HealthTypeHealthy,
 			expectedHealthMessagePrefix: "module content loaded",
 
-			expectedModuleHealthType:          component.HealthTypeHealthy,
-			expectedModuleHealthMessagePrefix: "read file",
+			expectedManagedFileHealthType:          component.HealthTypeHealthy,
+			expectedManagedFileHealthMessagePrefix: "read file",
 		},
 	}
 
@@ -51,6 +52,7 @@ func TestModule(t *testing.T) {
 			opts := component.Options{
 				ID:            "module.file.test",
 				Logger:        util.TestFlowLogger(t),
+				Clusterer:     noOpClusterer(),
 				Registerer:    prometheus.NewRegistry(),
 				OnStateChange: func(e component.Exports) {},
 				DataPath:      t.TempDir(),
@@ -65,13 +67,21 @@ func TestModule(t *testing.T) {
 			require.NoError(t, err)
 
 			go c.Run(context.Background())
-			time.Sleep(200 * time.Millisecond)
+			require.Eventually(
+				t,
+				func() bool { return tc.expectedHealthType == c.CurrentHealth().Health },
+				5*time.Second,
+				50*time.Millisecond,
+				"did not reach required health status before timeout: %v != %v",
+				tc.expectedHealthType,
+				c.CurrentHealth().Health,
+			)
 
 			require.Equal(t, tc.expectedHealthType, c.CurrentHealth().Health)
-			require.True(t, strings.HasPrefix(c.CurrentHealth().Message, tc.expectedHealthMessagePrefix))
+			requirePrefix(t, c.CurrentHealth().Message, tc.expectedHealthMessagePrefix)
 
-			require.Equal(t, tc.expectedModuleHealthType, c.managedLocalFile.CurrentHealth().Health)
-			require.True(t, strings.HasPrefix(c.managedLocalFile.CurrentHealth().Message, tc.expectedModuleHealthMessagePrefix))
+			require.Equal(t, tc.expectedManagedFileHealthType, c.managedLocalFile.CurrentHealth().Health)
+			requirePrefix(t, c.managedLocalFile.CurrentHealth().Message, tc.expectedManagedFileHealthMessagePrefix)
 		})
 	}
 }
@@ -97,6 +107,16 @@ func TestBadFile(t *testing.T) {
 			moduleContents:        "",
 			expectedErrorContains: `failed to read file:`,
 		},
+		{
+			name:                  "Logging in Module",
+			moduleContents:        "logging {}",
+			expectedErrorContains: `logging block not allowed inside a module`,
+		},
+		{
+			name:                  "Tracing in Module",
+			moduleContents:        "tracing {}",
+			expectedErrorContains: `tracing block not allowed inside a module`,
+		},
 	}
 
 	for _, tc := range tt {
@@ -114,6 +134,7 @@ func TestBadFile(t *testing.T) {
 			opts := component.Options{
 				ID:            "module.file.test",
 				Logger:        util.TestFlowLogger(t),
+				Clusterer:     noOpClusterer(),
 				Registerer:    prometheus.NewRegistry(),
 				OnStateChange: func(e component.Exports) {},
 				DataPath:      t.TempDir(),
@@ -131,4 +152,18 @@ func riverEscape(filePath string) string {
 	}
 
 	return filePath
+}
+
+func requirePrefix(t *testing.T, s string, prefix string) {
+	require.True(
+		t,
+		strings.HasPrefix(s, prefix),
+		"expected '%v' to have '%v' prefix",
+		s,
+		prefix,
+	)
+}
+
+func noOpClusterer() *cluster.Clusterer {
+	return &cluster.Clusterer{Node: cluster.NewLocalNode("")}
 }

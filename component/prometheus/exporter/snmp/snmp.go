@@ -6,9 +6,9 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 )
 
@@ -17,7 +17,7 @@ func init() {
 		Name:    "prometheus.exporter.snmp",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.NewMultiTarget(createExporter, "snmp", buildSNMPTargets),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "snmp", buildSNMPTargets),
 	})
 }
 

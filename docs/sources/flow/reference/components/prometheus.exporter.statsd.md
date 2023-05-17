@@ -17,7 +17,7 @@ The `prometheus.exporter.statsd` component embeds
 
 ```river
 prometheus.exporter.statsd "LABEL" {
-    
+
 }
 ```
 
@@ -44,14 +44,14 @@ Name | Type | Description | Default | Required
 `parse_signalfx_tags`                             | `string`       | Parse SignalFX style tags. | `true`| no
 
 At least one of `listen_udp`, `listen_tcp`, or `listen_unixgram` should be enabled.
-For details on how to use the mapping config file, please check the official 
+For details on how to use the mapping config file, please check the official
 [statsd_exporter docs](https://github.com/prometheus/statsd_exporter#metric-mapping-and-configuration).
-Please make sure the kernel parameter `net.core.rmem_max` is set to a value greater 
+Please make sure the kernel parameter `net.core.rmem_max` is set to a value greater
 than the value specified in `read_buffer`.
 
 ### Blocks
 
-The `prometheus.exporter.statsd` component does not support any blocks, and is configured 
+The `prometheus.exporter.statsd` component does not support any blocks, and is configured
 fully through arguments.
 
 ## Exported fields
@@ -64,6 +64,12 @@ Name      | Type                | Description
 For example, the `targets` could either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
+
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
 
 ## Component health
 

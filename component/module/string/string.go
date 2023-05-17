@@ -6,7 +6,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 )
 
 func init() {
@@ -28,7 +28,7 @@ type Arguments struct {
 	Content rivertypes.OptionalSecret `river:"content,attr"`
 
 	// Arguments to pass into the module.
-	Arguments map[string]any `river:"arguments,attr,optional"`
+	Arguments map[string]any `river:"arguments,block,optional"`
 }
 
 // Component implements the module.string component.

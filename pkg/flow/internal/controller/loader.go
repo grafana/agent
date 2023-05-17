@@ -14,7 +14,8 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/ckit"
+	"github.com/grafana/ckit/peer"
 	"github.com/hashicorp/go-multierror"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -56,6 +57,28 @@ func NewLoader(globals ComponentGlobals) *Loader {
 	if globals.Registerer != nil {
 		globals.Registerer.MustRegister(cc)
 	}
+
+	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
+		tracer := l.tracer.Tracer("")
+		spanCtx, span := tracer.Start(context.Background(), "ClusterStateChange", trace.WithSpanKind(trace.SpanKindInternal))
+		defer span.End()
+		for _, cmp := range l.Components() {
+			if cc, ok := cmp.managed.(component.ClusteredComponent); ok {
+				if cc.ClusterUpdatesRegistration() {
+					_, span := tracer.Start(spanCtx, "ClusteredComponentReevaluation", trace.WithSpanKind(trace.SpanKindInternal))
+					span.SetAttributes(attribute.String("node_id", cmp.NodeID()))
+					defer span.End()
+
+					err := cmp.Reevaluate()
+					if err != nil {
+						level.Error(globals.Logger).Log("msg", "failed to reevaluate component", "componentID", cmp.NodeID(), "err", err)
+					}
+				}
+			}
+		}
+		return true
+	}))
+
 	return l
 }
 
@@ -71,14 +94,19 @@ func NewLoader(globals ComponentGlobals) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
 	l.cm.controllerEvaluation.Set(1)
 	defer l.cm.controllerEvaluation.Set(0)
 
-	newGraph, diags := l.loadNewGraph(parentScope, componentBlocks, configBlocks)
+	for key, value := range args {
+		l.cache.CacheModuleArgument(key, value)
+	}
+	l.cache.SyncModuleArgs(args)
+
+	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks)
 	if diags.HasErrors() {
 		return diags
 	}
@@ -121,7 +149,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 			components = append(components, c)
 			componentIDs = append(componentIDs, c.ID())
 
-			if err = l.evaluate(logger, parentScope, c); err != nil {
+			if err = l.evaluate(logger, c); err != nil {
 				var evalDiags diag.Diagnostics
 				if errors.As(err, &evalDiags) {
 					diags = append(diags, evalDiags...)
@@ -135,7 +163,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 				}
 			}
 		case BlockNode:
-			if err = l.evaluate(logger, parentScope, c); err != nil {
+			if err = l.evaluate(logger, c); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to evaluate node for config block: %s", err),
@@ -144,8 +172,7 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 				})
 			}
 			if exp, ok := n.(*ExportConfigNode); ok {
-				name, val := exp.NameAndValue()
-				l.cache.CacheModuleExportValue(name, val)
+				l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
 			}
 		}
 
@@ -172,17 +199,17 @@ func (l *Loader) Apply(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, 
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 	// Fill our graph with config blocks.
-	diags := l.populateConfigBlockNodes(&g, configBlocks)
+	diags := l.populateConfigBlockNodes(args, &g, configBlocks)
 
 	// Fill our graph with components.
 	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks)
 	diags = append(diags, componentNodeDiags...)
 
 	// Write up the edges of the graph
-	wireDiags := l.wireGraphEdges(parentScope, &g)
+	wireDiags := l.wireGraphEdges(&g)
 	diags = append(diags, wireDiags...)
 
 	// Validate graph to detect cycles
@@ -202,39 +229,47 @@ func (l *Loader) loadNewGraph(parentScope *vm.Scope, componentBlocks []*ast.Bloc
 }
 
 // populateConfigBlockNodes adds any config blocks to the graph.
-func (l *Loader) populateConfigBlockNodes(g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
 	var (
-		diags    diag.Diagnostics
-		blockMap = make(map[string]*ast.BlockStmt, len(configBlocks))
+		diags   diag.Diagnostics
+		nodeMap = NewConfigNodeMap()
 	)
 
 	for _, block := range configBlocks {
-		id := BlockComponentID(block).String()
+		node, newConfigNodeDiags := NewConfigNode(block, l.globals)
+		diags = append(diags, newConfigNodeDiags...)
 
-		if orig, redefined := blockMap[id]; redefined {
+		if g.GetByID(node.NodeID()) != nil {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("Config block %s already declared at %s", id, ast.StartPos(orig).Position()),
-				StartPos: block.NamePos.Position(),
-				EndPos:   block.NamePos.Add(len(id) - 1).Position(),
+				Message:  fmt.Sprintf("%q block already declared", node.NodeID()),
+				StartPos: ast.StartPos(block).Position(),
+				EndPos:   ast.EndPos(block).Position(),
 			})
+
 			continue
 		}
-		blockMap[id] = block
 
-		c, newConfigNodeDiags := NewConfigNode(block, l.globals, l.isModule())
-		diags = append(diags, newConfigNodeDiags...)
-		g.Add(c)
+		nodeMapDiags := nodeMap.Append(node)
+		diags = append(diags, nodeMapDiags...)
+		if diags.HasErrors() {
+			continue
+		}
+
+		g.Add(node)
 	}
 
+	validateDiags := nodeMap.Validate(l.isModule(), args)
+	diags = append(diags, validateDiags...)
+
 	// If a logging config block is not provided, we create an empty node which uses defaults.
-	if _, ok := blockMap[loggingBlockID]; !ok && !l.isModule() {
+	if nodeMap.logging == nil && !l.isModule() {
 		c := NewDefaultLoggingConfigNode(l.globals)
 		g.Add(c)
 	}
 
 	// If a tracing config block is not provided, we create an empty node which uses defaults.
-	if _, ok := blockMap[tracingBlockID]; !ok && !l.isModule() {
+	if nodeMap.tracing == nil && !l.isModule() {
 		c := NewDefaulTracingConfigNode(l.globals)
 		g.Add(c)
 	}
@@ -321,11 +356,11 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 }
 
 // Wire up all the related nodes
-func (l *Loader) wireGraphEdges(parent *vm.Scope, g *dag.Graph) diag.Diagnostics {
+func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
-		refs, nodeDiags := ComponentReferences(parent, n, g)
+		refs, nodeDiags := ComponentReferences(n, g)
 		for _, ref := range refs {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
 		}
@@ -338,7 +373,7 @@ func (l *Loader) wireGraphEdges(parent *vm.Scope, g *dag.Graph) diag.Diagnostics
 // Variables returns the Variables the Loader exposes for other Flow components
 // to reference.
 func (l *Loader) Variables() map[string]interface{} {
-	return l.cache.BuildContext(nil).Variables
+	return l.cache.BuildContext().Variables
 }
 
 // Components returns the current set of loaded components.
@@ -370,7 +405,7 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
+func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 	tracer := l.tracer.Tracer("")
 
 	l.mut.RLock()
@@ -413,10 +448,9 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 
 		switch n := n.(type) {
 		case BlockNode:
-			err = l.evaluate(logger, parentScope, n)
+			err = l.evaluate(logger, n)
 			if exp, ok := n.(*ExportConfigNode); ok {
-				name, val := exp.NameAndValue()
-				l.cache.CacheModuleExportValue(name, val)
+				l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
 			}
 		}
 
@@ -438,8 +472,8 @@ func (l *Loader) EvaluateDependencies(parentScope *vm.Scope, c *ComponentNode) {
 
 // evaluate constructs the final context for the BlockNode and
 // evaluates it. mut must be held when calling evaluate.
-func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, bn BlockNode) error {
-	ectx := l.cache.BuildContext(parent)
+func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
+	ectx := l.cache.BuildContext()
 	err := bn.Evaluate(ectx)
 
 	switch c := bn.(type) {
@@ -448,6 +482,14 @@ func (l *Loader) evaluate(logger log.Logger, parent *vm.Scope, bn BlockNode) err
 		// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
 		l.cache.CacheArguments(c.ID(), c.Arguments())
 		l.cache.CacheExports(c.ID(), c.Exports())
+	case *ArgumentConfigNode:
+		if _, found := l.cache.moduleArguments[c.Label()]; !found {
+			if c.Optional() {
+				l.cache.CacheModuleArgument(c.Label(), c.Default())
+			} else {
+				err = fmt.Errorf("missing required argument %q to module", c.Label())
+			}
+		}
 	}
 
 	if err != nil {

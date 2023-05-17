@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.10.0](https://img.shields.io/badge/Version-0.10.0-informational?style=flat-square) ![AppVersion: v0.32.1](https://img.shields.io/badge/AppVersion-v0.32.1-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.14.0](https://img.shields.io/badge/Version-0.14.0-informational?style=flat-square) ![AppVersion: v0.33.2](https://img.shields.io/badge/AppVersion-v0.33.2-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -98,6 +98,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | rbac.create | bool | `true` | Whether to create RBAC resources for the agent. |
 | service.annotations | object | `{}` |  |
 | service.clusterIP | string | `""` | Cluster IP, can be set to None, empty "" or an IP address |
+| service.enabled | bool | `true` | Creates a Service for the controller's pods. |
 | service.type | string | `"ClusterIP"` | Service type |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the created service account. |
 | serviceAccount.create | bool | `true` | Whether to create a service account for the Grafana Agent deployment. |

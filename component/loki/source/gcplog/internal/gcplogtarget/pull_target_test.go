@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
 	"cloud.google.com/go/pubsub"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component/loki/source/gcplog/internal/fake"
 	"github.com/grafana/dskit/backoff"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -107,7 +108,7 @@ func testPullTarget(t *testing.T) *testContext {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	sub := newFakeSubscription()
-	promClient := fake.New(func() {})
+	promClient := fake.NewClient(func() {})
 	target := &PullTarget{
 		metrics:       NewMetrics(prometheus.NewRegistry()),
 		logger:        log.NewNopLogger(),

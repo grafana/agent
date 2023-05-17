@@ -7,8 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus/prometheus/storage"
-
 	"github.com/alecthomas/units"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
@@ -17,10 +15,12 @@ import (
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
+	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
+	"github.com/prometheus/prometheus/storage"
 )
 
 func init() {
@@ -81,6 +81,14 @@ type Arguments struct {
 
 	// Scrape Options
 	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
+
+	Clustering Clustering `river:"clustering,block,optional"`
+}
+
+// Clustering holds values that configure clustering-specific behavior.
+type Clustering struct {
+	// TODO(@tpaschalis) Move this block to a shared place for all components using clustering.
+	Enabled bool `river:"enabled,attr"`
 }
 
 // DefaultArguments defines the default settings for a scrape job.
@@ -128,7 +136,12 @@ var (
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
-	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
+	scrapeOptions := &scrape.Options{
+		ExtraMetrics: args.ExtraMetrics,
+		HTTPClientOptions: []config_util.HTTPClientOption{
+			config_util.WithDialContextFunc(o.DialFunc),
+		},
+	}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
@@ -178,12 +191,17 @@ func (c *Component) Run(ctx context.Context) error {
 			var (
 				tgs     = c.args.Targets
 				jobName = c.opts.ID
+				cl      = c.args.Clustering.Enabled
 			)
 			if c.args.JobName != "" {
 				jobName = c.args.JobName
 			}
 			c.mut.RUnlock()
-			promTargets := c.componentTargetsToProm(jobName, tgs)
+
+			// NOTE(@tpaschalis) First approach, manually building the
+			// 'clustered' targets implementation every time.
+			ct := discovery.NewDistributedTargets(cl, c.opts.Clusterer.Node, tgs)
+			promTargets := c.componentTargetsToProm(jobName, ct.Get())
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -302,6 +320,13 @@ func (c *Component) DebugInfo() interface{} {
 	return ScraperStatus{
 		TargetStatus: BuildTargetStatuses(c.scraper.TargetsActive()),
 	}
+}
+
+// ClusterUpdatesRegistration implements component.ClusterComponent.
+func (c *Component) ClusterUpdatesRegistration() bool {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.args.Clustering.Enabled
 }
 
 func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {

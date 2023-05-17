@@ -176,7 +176,7 @@ whenever the agent's configuration file changes.
 An agent-wide cluster is always available, even if the local agent is not
 connected to any remote agents.
 
-The cluster will initially use [rfratto/ckit][ckit], an extremely light
+The cluster will initially use [grafana/ckit][ckit], an extremely light
 clustering toolkit that uses gossip for peer discovery and health checking. A
 hash ring is locally deterministically calculated based on known peers.
 
@@ -274,6 +274,6 @@ also enable alerting on config desync.
 [#875]: https://github.com/grafana/agent/issues/875
 [#888]: https://github.com/grafana/agent/issues/888
 [per-target sharding]: https://docs.google.com/document/d/1JI804iaut6bKvZprOydes3Gb5Awo_J0sX-3ORlyc5l0
-[ckit]: https://github.com/rfratto/ckit
+[ckit]: https://github.com/grafana/ckit
 [go-discover]: https://github.com/hashicorp/go-discover
 [#1121]: https://github.com/grafana/agent/issues/1121

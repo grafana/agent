@@ -48,17 +48,16 @@ package flow
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"net"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/flow/internal/stdlib"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -82,6 +81,10 @@ type Options struct {
 	// nil.
 	Tracer *tracing.Tracer
 
+	// Clusterer for implementing distributed behavior among components running
+	// on different nodes.
+	Clusterer *cluster.Clusterer
+
 	// Directory where components can write data. Constructed components will be
 	// given a subdirectory of DataPath using the local ID of the component.
 	//
@@ -102,9 +105,8 @@ type Options struct {
 	// different value for HTTPPathPrefix to prevent components from colliding.
 	HTTPPathPrefix string
 
-	// HTTPListenAddr is the base address that the server is listening on.
-	// The controller does not itself listen here, but some components
-	// need to know this to set the correct targets.
+	// HTTPListenAddr is the base address (host:port) where component APIs are
+	// exposed to other components.
 	HTTPListenAddr string
 
 	// OnExportsChange is called when the exports of the controller change.
@@ -112,13 +114,18 @@ type Options struct {
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
 	// loaded config file.
 	OnExportsChange func(exports map[string]any)
+
+	// DialFunc is a function to use for components to properly connect to
+	// HTTPListenAddr. If nil, DialFunc defaults to (&net.Dialer{}).DialContext.
+	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
 }
 
 // Flow is the Flow system.
 type Flow struct {
-	log    *logging.Logger
-	tracer *tracing.Tracer
-	opts   Options
+	log       *logging.Logger
+	tracer    *tracing.Tracer
+	clusterer *cluster.Clusterer
+	opts      Options
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -134,8 +141,9 @@ type Flow struct {
 // the controller.
 func New(o Options) *Flow {
 	var (
-		log    = logging.New(o.LogSink)
-		tracer = o.Tracer
+		log       = logging.New(o.LogSink)
+		tracer    = o.Tracer
+		clusterer = o.Clusterer
 	)
 
 	if tracer == nil {
@@ -147,6 +155,11 @@ func New(o Options) *Flow {
 		}
 	}
 
+	dialFunc := o.DialFunc
+	if dialFunc == nil {
+		dialFunc = (&net.Dialer{}).DialContext
+	}
+
 	var (
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
@@ -154,6 +167,7 @@ func New(o Options) *Flow {
 			LogSink:       o.LogSink,
 			Logger:        log,
 			TraceProvider: tracer,
+			Clusterer:     clusterer,
 			DataPath:      o.DataPath,
 			OnComponentUpdate: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
@@ -163,15 +177,16 @@ func New(o Options) *Flow {
 			Registerer:      o.Reg,
 			HTTPPathPrefix:  o.HTTPPathPrefix,
 			HTTPListenAddr:  o.HTTPListenAddr,
+			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
 		})
 	)
-
 	return &Flow{
 		log:    log,
 		tracer: tracer,
 		opts:   o,
 
+		clusterer:   clusterer,
 		updateQueue: queue,
 		sched:       sched,
 		loader:      loader,
@@ -202,7 +217,7 @@ func (c *Flow) Run(ctx context.Context) {
 				}
 
 				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				c.loader.EvaluateDependencies(nil, updated)
+				c.loader.EvaluateDependencies(updated)
 			}
 
 		case <-c.loadFinished:
@@ -231,34 +246,7 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 	c.loadMut.Lock()
 	defer c.loadMut.Unlock()
 
-	// Fill out the values for the scope so that argument.NAME.value can be used
-	// to reference expressions.
-	evaluatedArgs := make(map[string]any, len(file.Arguments))
-
-	// TODO(rfratto): error on unrecognized args.
-	for _, arg := range file.Arguments {
-		val := arg.Default
-
-		if setVal, ok := args[arg.Name]; !ok && !arg.Optional {
-			return fmt.Errorf("required argument %q not set", arg.Name)
-		} else if ok {
-			val = setVal
-		}
-
-		evaluatedArgs[arg.Name] = map[string]any{"value": val}
-	}
-
-	argumentScope := &vm.Scope{
-		// The top scope is the Flow-specific stdlib.
-		Parent: &vm.Scope{
-			Variables: stdlib.Identifiers,
-		},
-		Variables: map[string]interface{}{
-			"argument": evaluatedArgs,
-		},
-	}
-
-	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks)
+	diags := c.loader.Apply(args, file.Components, file.ConfigBlocks)
 	if !c.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

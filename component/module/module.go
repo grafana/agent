@@ -29,7 +29,7 @@ type ModuleComponent struct {
 // Exports holds values which are exported from the run module.
 type Exports struct {
 	// Exports exported from the running module.
-	Exports map[string]any `river:"exports,attr"`
+	Exports map[string]any `river:"exports,block"`
 }
 
 // NewModuleComponent initializes a new ModuleComponent.
@@ -46,6 +46,7 @@ func NewModuleComponent(o component.Options) *ModuleComponent {
 			LogSink:      logging.LoggerSink(o.Logger),
 			Tracer:       flowTracer,
 			Reg:          flowRegistry,
+			Clusterer:    o.Clusterer,
 
 			DataPath:       o.DataPath,
 			HTTPPathPrefix: o.HTTPPath,
@@ -61,7 +62,7 @@ func NewModuleComponent(o component.Options) *ModuleComponent {
 // LoadFlowContent loads the flow controller with the current component content. It
 // will set the component health in addition to return the error so that the consumer
 // can rely on either or both.
-func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue string) error {
+func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue string) error {
 	f, err := flow.ReadFile(c.opts.ID, []byte(contentValue))
 	if err != nil {
 		c.setHealth(component.Health{
@@ -73,7 +74,7 @@ func (c *ModuleComponent) LoadFlowContent(arguments map[string]any, contentValue
 		return err
 	}
 
-	err = c.ctrl.LoadFile(f, arguments)
+	err = c.ctrl.LoadFile(f, args)
 	if err != nil {
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,

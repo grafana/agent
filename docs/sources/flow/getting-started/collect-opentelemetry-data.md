@@ -104,7 +104,7 @@ data using OTLP, complete the following steps:
     2. Add the following line inside of the `client` block of your
        `otelcol.exporter.otlp` component:
 
-       ```
+       ```river
        auth = otelcol.auth.basic.BASIC_AUTH_LABEL.handler
        ```
 

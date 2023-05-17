@@ -15,7 +15,7 @@ labels:
 The `prometheus.exporter.postgres` component embeds
 [postgres_exporter](https://github.com/prometheus-community/postgres_exporter) for collecting metrics from a postgres database.
 
-Multiple `prometheus.exporter.postgres` components can be specified by giving them different 
+Multiple `prometheus.exporter.postgres` components can be specified by giving them different
 labels.
 
 ## Usage
@@ -33,12 +33,12 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `data_source_names`                  | `list(secret)`      | Specifies the Postgres server(s) to connect to.  |         | yes
 `disable_settings_metrics`           | `bool`              | Disables collection of metrics from pg_settings. | `false` | no
-`disable_default_metrics`            | `bool`              | When `true`, only exposes metrics supplied from `custom_queries_path`. | `false` | no
+`disable_default_metrics`            | `bool`              | When `true`, only exposes metrics supplied from `custom_queries_config_path`. | `false` | no
 `custom_queries_config_path`         | `string`            | Path to YAML file containing custom queries to expose as metrics. | "" | no
 
 The format for connection strings in `data_source_names` can be found in the [official postgresql documentation](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING).
 
-See examples for the `custom_queries_path` file in the [postgres_exporter repository](https://github.com/prometheus-community/postgres_exporter/blob/master/queries.yaml).
+See examples for the `custom_queries_config_path` file in the [postgres_exporter repository](https://github.com/prometheus-community/postgres_exporter/blob/master/queries.yaml).
 
 **NOTE**: There are a number of environment variables that are not recommended for use, as they will affect _all_ `prometheus.exporter.postgres` components. A full list can be found in the [postgres_exporter repository](https://github.com/prometheus-community/postgres_exporter#environment-variables).
 
@@ -76,6 +76,12 @@ Name      | Type                | Description
 For example, `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
+
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
 
 ## Component health
 
@@ -130,9 +136,9 @@ prometheus.exporter.postgres "example" {
     enabled = true
     database_allowlist = ["frontend_app", "backend_app"]
   }
-  
-  disable_default_metrics = true
-  custom_queries_path     = "/etc/agent/custom-postgres-metrics.yaml"
+
+  disable_default_metrics    = true
+  custom_queries_config_path = "/etc/agent/custom-postgres-metrics.yaml"
 }
 
 prometheus.scrape "default" {
@@ -153,7 +159,7 @@ for the `secrets` database.
 prometheus.exporter.postgres "example" {
   data_source_names       = ["postgresql://username:password@localhost:5432/database_name?sslmode=disable"]
 
-  // The database_denylist field will filter out those databases from the list of databases to scrape, 
+  // The database_denylist field will filter out those databases from the list of databases to scrape,
   // meaning that all databases *except* these will be scraped.
   //
   // In this example it will scrape all databases except for the one named 'secrets'.

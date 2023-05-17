@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/config"
 
@@ -17,8 +19,6 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/grafana/agent/component/loki/source/internal/kafkafake"
 )
 
 func Test_TopicDiscovery(t *testing.T) {
@@ -66,7 +66,7 @@ func Test_TopicDiscovery(t *testing.T) {
 		}
 		group.mut.Unlock()
 		return reflect.DeepEqual([]string{"topic1"}, group.GetTopics())
-	}, 200*time.Millisecond, time.Millisecond, "expected topics: %v, got: %v", []string{"topic1"}, group.GetTopics())
+	}, time.Second, time.Millisecond, "expected topics: %v, got: %v", []string{"topic1"}, group.GetTopics())
 
 	client.UpdateTopics([]string{"topic1", "topic2"})
 
@@ -77,7 +77,7 @@ func Test_TopicDiscovery(t *testing.T) {
 		}
 		group.mut.Unlock()
 		return reflect.DeepEqual([]string{"topic1", "topic2"}, group.GetTopics())
-	}, 200*time.Millisecond, time.Millisecond, "expected topics: %v, got: %v", []string{"topic1", "topic2"}, group.GetTopics())
+	}, time.Second, time.Millisecond, "expected topics: %v, got: %v", []string{"topic1", "topic2"}, group.GetTopics())
 
 	require.NoError(t, ts.Stop())
 	require.True(t, closed)
@@ -87,7 +87,7 @@ func Test_NewTarget(t *testing.T) {
 	ts := &TargetSyncer{
 		logger: log.NewNopLogger(),
 		reg:    prometheus.DefaultRegisterer,
-		client: kafkafake.New(func() {}),
+		client: fake.NewClient(func() {}),
 		cfg: Config{
 			RelabelConfigs: []*relabel.Config{
 				{
@@ -217,7 +217,7 @@ func Test_withAuthentication(t *testing.T) {
 			ServerName:         "example.com",
 			InsecureSkipVerify: true,
 		}
-		expectedTLSConf, _ = createTLSConfig(config.TLSConfig{
+		expectedTLSConf, _ = config.NewTLSConfig(&config.TLSConfig{
 			CAFile:             "testdata/example.com.ca.pem",
 			CertFile:           "testdata/example.com.pem",
 			KeyFile:            "testdata/example.com-key.pem",
