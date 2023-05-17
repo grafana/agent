@@ -99,6 +99,9 @@ Main (unreleased)
 
 - Use Go 1.20.4 for builds. (@tpaschalis)
 
+- Integrate the new ExceptionContext which was recently added to the Faro Web-SDK in the
+  app_agent_receiver Payload. (@codecapitano)
+
 v0.33.2 (2023-05-11)
 --------------------
 
