@@ -129,6 +129,21 @@ func (cg *ConfigGenerator) generateOath2(oa promopv1.OAuth2, namespace string) (
 	}, nil
 }
 
+func (cg *ConfigGenerator) generateAuthorization(a promopv1.SafeAuthorization, namespace string) (*commonConfig.Authorization, error) {
+
+	auth := &commonConfig.Authorization{
+		Type: a.Type,
+	}
+	if a.Credentials != nil {
+		creds, err := cg.Secrets.GetSecretValue(namespace, *a.Credentials)
+		if err != nil {
+			return nil, err
+		}
+		auth.Credentials = commonConfig.Secret(creds)
+	}
+	return auth, nil
+}
+
 type relabeler struct {
 	configs []*relabel.Config
 }

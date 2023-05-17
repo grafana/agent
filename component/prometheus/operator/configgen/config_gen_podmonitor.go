@@ -95,7 +95,12 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 			return nil, err
 		}
 	}
-	// TODO: Add support for ep.Authorization
+	if ep.Authorization != nil {
+		cfg.HTTPClientConfig.Authorization, err = cg.generateAuthorization(*ep.Authorization, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	relabels := cg.initRelabelings()
 	if ep.FilterRunning == nil || *ep.FilterRunning {

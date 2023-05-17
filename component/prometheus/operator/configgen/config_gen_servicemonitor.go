@@ -86,7 +86,12 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 			return nil, err
 		}
 	}
-	// TODO: Add support for ep.Authorization
+	if ep.Authorization != nil {
+		cfg.HTTPClientConfig.Authorization, err = cg.generateAuthorization(*ep.Authorization, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	relabels := cg.initRelabelings()
 
