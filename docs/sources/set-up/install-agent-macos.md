@@ -29,10 +29,10 @@ Use Homebrew to install the most recent released version of Grafana using the Ho
 
     ```
     mkdir -p $(brew --prefix)/etc/grafana-agent/
-    touch $(brew --prefix)/etc/grafana-agent/config.yml
+    touch $(brew --prefix)/etc/grafana-agent/config.yaml
     ```
 
-1. Modify `config.yml` with your configuration requirements. 
+1. Modify `config.yaml` with your configuration requirements. 
 
     See [Configure Grafana Agent for details]({{< relref "../configuration/" >}}). 
   
