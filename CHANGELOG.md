@@ -84,6 +84,9 @@ Main (unreleased)
 - Fix an issue where the Grafana Agent Flow RPM used the wrong path for the
   environment file, preventing the service from loading. (@rfratto)
 
+- Fix an issue where the cluster advertise address was overwriting the join
+  addresses. (@laurovenancio)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
