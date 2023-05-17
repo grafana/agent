@@ -1,14 +1,7 @@
 package gcplogtarget
 
-// This code is copied from Promtail. The gcplogtarget package is used to
-// configure and run the targets that can read log entries from cloud resource
-// logs like bucket logs, load balancer logs, and Kubernetes cluster logs
-// from GCP.
-
 import (
-	"flag"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -16,19 +9,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
+	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
 
 	"github.com/go-kit/log"
+	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/common/server"
-
-	lokiClient "github.com/grafana/loki/clients/pkg/promtail/client"
-	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
-	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/gcplog"
 )
 
 const localhost = "127.0.0.1"
@@ -164,21 +155,31 @@ func TestPushTarget(t *testing.T) {
 		outerName := t.Name()
 		t.Run(name, func(t *testing.T) {
 			// Create fake promtail client
-			eh := fake.New(func() {})
+			eh := fake.NewClient(func() {})
 			defer eh.Stop()
 
-			serverConfig, port, err := getServerConfigWithAvailablePort()
-			require.NoError(t, err, "error generating server config or finding open port")
-			config := &scrapeconfig.GcplogTargetConfig{
-				Server:               serverConfig,
-				Labels:               tc.args.Labels,
+			port, err := freeport.GetFreePort()
+			require.NoError(t, err)
+			lbls := make(map[string]string, len(tc.args.Labels))
+			for k, v := range tc.args.Labels {
+				lbls[string(k)] = string(v)
+			}
+			config := &PushConfig{
+				Labels:               lbls,
 				UseIncomingTimestamp: false,
-				SubscriptionType:     "push",
+				Server: &fnet.ServerConfig{
+					HTTP: &fnet.HTTPConfig{
+						ListenAddress: "localhost",
+						ListenPort:    port,
+					},
+					// assign random grpc port
+					GRPC: &fnet.GRPCConfig{ListenPort: 0},
+				},
 			}
 
 			prometheus.DefaultRegisterer = prometheus.NewRegistry()
-			metrics := gcplog.NewMetrics(prometheus.DefaultRegisterer)
-			pt, err := gcplog.NewGCPLogTarget(metrics, logger, eh, tc.args.RelabelConfigs, outerName+"_test_job", config)
+			metrics := NewMetrics(prometheus.DefaultRegisterer)
+			pt, err := NewPushTarget(metrics, logger, eh, outerName+"_test_job", config, tc.args.RelabelConfigs, nil)
 			require.NoError(t, err)
 			defer func() {
 				_ = pt.Stop()
@@ -198,7 +199,7 @@ func TestPushTarget(t *testing.T) {
 
 			waitForMessages(eh)
 
-			// Make sure we didn't timeout
+			// Make sure we didn't time out
 			require.Equal(t, 1, len(eh.Received()))
 
 			require.Equal(t, len(eh.Received()), len(tc.expectedEntries), "expected to receive equal amount of expected label sets")
@@ -226,21 +227,28 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
-	serverConfig, port, err := getServerConfigWithAvailablePort()
+	port, err := freeport.GetFreePort()
+	require.NoError(t, err)
 	require.NoError(t, err, "error generating server config or finding open port")
-	config := &scrapeconfig.GcplogTargetConfig{
-		Server:               serverConfig,
+	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		SubscriptionType:     "push",
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
-	metrics := gcplog.NewMetrics(prometheus.DefaultRegisterer)
-	pt, err := gcplog.NewGCPLogTarget(metrics, logger, eh, nil, t.Name()+"_test_job", config)
+	metrics := NewMetrics(prometheus.DefaultRegisterer)
+	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, nil, nil)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()
@@ -257,7 +265,7 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 
 	waitForMessages(eh)
 
-	// Make sure we didn't timeout
+	// Make sure we didn't time out
 	require.Equal(t, 1, len(eh.Received()))
 
 	expectedTs, err := time.Parse(time.RFC3339Nano, "2022-09-06T18:07:42.363113Z")
@@ -270,20 +278,26 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
-	serverConfig, port, err := getServerConfigWithAvailablePort()
-	require.NoError(t, err, "error generating server config or finding open port")
-	config := &scrapeconfig.GcplogTargetConfig{
-		Server:               serverConfig,
+	port, err := freeport.GetFreePort()
+	require.NoError(t, err)
+	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		SubscriptionType:     "push",
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
-	metrics := gcplog.NewMetrics(prometheus.DefaultRegisterer)
+	metrics := NewMetrics(prometheus.DefaultRegisterer)
 	tenantIDRelabelConfig := []*relabel.Config{
 		{
 			SourceLabels: model.LabelNames{"__tenant_id__"},
@@ -293,7 +307,7 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 			Action:       relabel.Replace,
 		},
 	}
-	pt, err := gcplog.NewGCPLogTarget(metrics, logger, eh, tenantIDRelabelConfig, t.Name()+"_test_job", config)
+	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, tenantIDRelabelConfig, nil)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()
@@ -311,10 +325,10 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 
 	waitForMessages(eh)
 
-	// Make sure we didn't timeout
+	// Make sure we didn't time out
 	require.Equal(t, 1, len(eh.Received()))
 
-	require.Equal(t, model.LabelValue("42"), eh.Received()[0].Labels[lokiClient.ReservedLabelTenantID])
+	require.Equal(t, model.LabelValue("42"), eh.Received()[0].Labels[ReservedLabelTenantID])
 	require.Equal(t, model.LabelValue("42"), eh.Received()[0].Labels["tenant_id"])
 }
 
@@ -323,20 +337,26 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
-	serverConfig, port, err := getServerConfigWithAvailablePort()
-	require.NoError(t, err, "error generating server config or finding open port")
-	config := &scrapeconfig.GcplogTargetConfig{
-		Server:           serverConfig,
-		Labels:           nil,
-		SubscriptionType: "push",
+	port, err := freeport.GetFreePort()
+	require.NoError(t, err)
+	config := &PushConfig{
+		Labels: nil,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
-	metrics := gcplog.NewMetrics(prometheus.DefaultRegisterer)
-	pt, err := gcplog.NewGCPLogTarget(metrics, logger, eh, nil, t.Name()+"_test_job", config)
+	metrics := NewMetrics(prometheus.DefaultRegisterer)
+	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, nil, nil)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()
@@ -379,19 +399,19 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 	}
 }
 
-// blockingEntryHandler implements an api.EntryHandler that has no space in it's receive channel, blocking when an api.Entry
-// is sent down the pipe.
+// blockingEntryHandler implements an loki.EntryHandler that has no space in
+// it's receive channel, blocking when an loki.Entry is sent down the pipe.
 type blockingEntryHandler struct {
-	ch   chan api.Entry
+	ch   chan loki.Entry
 	once sync.Once
 }
 
 func newBlockingEntryHandler() *blockingEntryHandler {
-	filledChannel := make(chan api.Entry)
+	filledChannel := make(chan loki.Entry)
 	return &blockingEntryHandler{ch: filledChannel}
 }
 
-func (t *blockingEntryHandler) Chan() chan<- api.Entry {
+func (t *blockingEntryHandler) Chan() chan<- loki.Entry {
 	return t.ch
 }
 
@@ -406,18 +426,24 @@ func TestPushTarget_UsePushTimeout(t *testing.T) {
 	eh := newBlockingEntryHandler()
 	defer eh.Stop()
 
-	serverConfig, port, err := getServerConfigWithAvailablePort()
-	require.NoError(t, err, "error generating server config or finding open port")
-	config := &scrapeconfig.GcplogTargetConfig{
-		Server:               serverConfig,
+	port, err := freeport.GetFreePort()
+	require.NoError(t, err)
+	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		SubscriptionType:     "push",
 		PushTimeout:          time.Second,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
-	metrics := gcplog.NewMetrics(prometheus.DefaultRegisterer)
+	metrics := NewMetrics(prometheus.DefaultRegisterer)
 	tenantIDRelabelConfig := []*relabel.Config{
 		{
 			SourceLabels: model.LabelNames{"__tenant_id__"},
@@ -427,7 +453,7 @@ func TestPushTarget_UsePushTimeout(t *testing.T) {
 			Action:       relabel.Replace,
 		},
 	}
-	pt, err := gcplog.NewGCPLogTarget(metrics, logger, eh, tenantIDRelabelConfig, t.Name()+"_test_job", config)
+	pt, err := NewPushTarget(metrics, logger, eh, t.Name()+"_test_job", config, tenantIDRelabelConfig, nil)
 	require.NoError(t, err)
 	defer func() {
 		_ = pt.Stop()
@@ -446,30 +472,4 @@ func waitForMessages(eh *fake.Client) {
 		time.Sleep(1 * time.Millisecond)
 		countdown--
 	}
-}
-
-func getServerConfigWithAvailablePort() (cfg server.Config, port int, err error) {
-	// Get a randomly available port by open and closing a TCP socket
-	addr, err := net.ResolveTCPAddr("tcp", localhost+":0")
-	if err != nil {
-		return
-	}
-	l, err := net.ListenTCP("tcp", addr)
-	if err != nil {
-		return
-	}
-	port = l.Addr().(*net.TCPAddr).Port
-	err = l.Close()
-	if err != nil {
-		return
-	}
-
-	// Adjust some of the defaults
-	cfg.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
-	cfg.HTTPListenAddress = localhost
-	cfg.HTTPListenPort = port
-	cfg.GRPCListenAddress = localhost
-	cfg.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
-
-	return
 }

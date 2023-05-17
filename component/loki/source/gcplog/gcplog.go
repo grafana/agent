@@ -139,7 +139,7 @@ func (c *Component) Update(args component.Arguments) error {
 	if newArgs.PullTarget != nil {
 		// TODO(@tpaschalis) Are there any options from "google.golang.org/api/option"
 		// we should expose as configuration and pass here?
-		t, err := gt.NewPullTarget(c.metrics, c.opts.Logger, entryHandler, rcs, jobName, newArgs.PullTarget)
+		t, err := gt.NewPullTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PullTarget, rcs)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to create gcplog target with provided config", "err", err)
 			return err
@@ -154,7 +154,7 @@ func (c *Component) Update(args component.Arguments) error {
 		registry := prometheus.NewRegistry()
 		c.serverMetrics.SetCollector(registry)
 
-		t, err := gt.NewPushTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PushTarget, rcs)
+		t, err := gt.NewPushTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PushTarget, rcs, registry)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to create gcplog target with provided config", "err", err)
 			return err

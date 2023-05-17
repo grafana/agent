@@ -1,10 +1,5 @@
 package gcplogtarget
 
-// This code is copied from Promtail. The gcplogtarget package is used to
-// configure and run the targets that can read log entries from cloud resource
-// logs like bucket logs, load balancer logs, and Kubernetes cluster logs
-// from GCP.
-
 import (
 	"testing"
 )

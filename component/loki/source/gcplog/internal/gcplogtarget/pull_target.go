@@ -4,11 +4,6 @@ package gcplogtarget
 // configure and run the targets that can read log entries from cloud resource
 // logs like bucket logs, load balancer logs, and Kubernetes cluster logs
 // from GCP.
-// /!\ But
-// - newPullTarget is transform to NewPullTarget
-// - scrapeconfig import is deleted
-// - import 'github.com/grafana/agent/component/common/loki' is added, and api.* is replace by loki.*
-// - change return 'pullTarget.Details', from `interface{}' to 'map[string]string'
 
 import (
 	"context"
@@ -24,25 +19,11 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"google.golang.org/api/option"
-
-	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 )
 
-var defaultBackoff = backoff.Config{
-	MinBackoff: 1 * time.Second,
-	MaxBackoff: 10 * time.Second,
-	MaxRetries: 0, // Retry forever
-}
-
-// pubsubSubscription allows us to mock pubsub for testing
-type pubsubSubscription interface {
-	Receive(ctx context.Context, f func(context.Context, *pubsub.Message)) error
-}
-
-// pullTarget represents the target specific to GCP project, with a pull subscription type.
-// It collects logs from GCP and push it to Loki.
-// nolint:revive
-type pullTarget struct {
+// PullTarget represents a target that scrapes logs from a GCP project id and
+// subscription and converts them to Loki log entries.
+type PullTarget struct {
 	metrics       *Metrics
 	logger        log.Logger
 	handler       loki.EntryHandler
@@ -62,21 +43,20 @@ type pullTarget struct {
 	msgs chan *pubsub.Message
 }
 
-// NewPullTarget returns the new instance of pullTarget for
-// the given `project-id`. It scraps logs from the GCP project
-// and push it Loki via given `loki.EntryHandler.`
-// It starts the `run` loop to consume log entries that can be
-// stopped via `target.Stop()`
-// nolint:revive,govet
-func NewPullTarget(
-	metrics *Metrics,
-	logger log.Logger,
-	handler loki.EntryHandler,
-	relabel []*relabel.Config,
-	jobName string,
-	config *PullConfig,
-	clientOptions ...option.ClientOption,
-) (*pullTarget, error) {
+// TODO(@tpaschalis) Expose this as River configuration in the future.
+var defaultBackoff = backoff.Config{
+	MinBackoff: 1 * time.Second,
+	MaxBackoff: 10 * time.Second,
+	MaxRetries: 0, // Retry forever
+}
+
+// pubsubSubscription allows us to mock pubsub for testing
+type pubsubSubscription interface {
+	Receive(ctx context.Context, f func(context.Context, *pubsub.Message)) error
+}
+
+// NewPullTarget returns the new instance of PullTarget.
+func NewPullTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PullConfig, relabel []*relabel.Config, clientOptions ...option.ClientOption) (*PullTarget, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ps, err := pubsub.NewClient(ctx, config.ProjectID, clientOptions...)
 	if err != nil {
@@ -84,7 +64,7 @@ func NewPullTarget(
 		return nil, err
 	}
 
-	target := &pullTarget{
+	target := &PullTarget{
 		metrics:       metrics,
 		logger:        logger,
 		handler:       handler,
@@ -100,25 +80,32 @@ func NewPullTarget(
 	}
 
 	go func() {
-		_ = target.run()
+		err := target.run()
+		if err != nil {
+			level.Error(logger).Log("msg", "loki.source.gcplog pull target shutdown with error", "err", err)
+		}
 	}()
 
 	return target, nil
 }
 
-func (t *pullTarget) run() error {
+func (t *PullTarget) run() error {
 	t.wg.Add(1)
 	defer t.wg.Done()
 
 	go t.consumeSubscription()
+
+	lbls := make(model.LabelSet, len(t.config.Labels))
+	for k, v := range t.config.Labels {
+		lbls[model.LabelName(k)] = model.LabelValue(v)
+	}
 
 	for {
 		select {
 		case <-t.ctx.Done():
 			return t.ctx.Err()
 		case m := <-t.msgs:
-			entry, err := parseGCPLogsEntry(m.Data, t.config.Labels, nil, t.config.UseIncomingTimestamp, t.config.UseFullLine, t.relabelConfig)
-
+			entry, err := parseGCPLogsEntry(m.Data, lbls, nil, t.config.UseIncomingTimestamp, t.relabelConfig)
 			if err != nil {
 				level.Error(t.logger).Log("event", "error formating log entry", "cause", err)
 				m.Ack()
@@ -131,7 +118,7 @@ func (t *pullTarget) run() error {
 	}
 }
 
-func (t *pullTarget) consumeSubscription() {
+func (t *PullTarget) consumeSubscription() {
 	// NOTE(kavi): `cancel` the context as exiting from this goroutine should stop main `run` loop
 	// It makesense as no more messages will be received.
 	defer t.cancel()
@@ -150,31 +137,25 @@ func (t *pullTarget) consumeSubscription() {
 	}
 }
 
-func (t *pullTarget) Type() target.TargetType {
-	return target.GcplogTargetType
+// Labels return the model.LabelSet that the target applies to log entries.
+func (t *PullTarget) Labels() model.LabelSet {
+	lbls := make(model.LabelSet, len(t.config.Labels))
+	for k, v := range t.config.Labels {
+		lbls[model.LabelName(k)] = model.LabelValue(v)
+	}
+	return lbls
 }
 
-func (t *pullTarget) Ready() bool {
-	// Return true just like all other targets.
-	// Rationale is gcplog scraping shouldn't stop because of some transient timeout errors.
-	// This transient failure can cause promtail readyness probe to fail which may prevent pod from starting.
-	// We have metrics now to track if scraping failed (`gcplog_target_last_success_scrape`).
-	return true
+// Details returns some debug information about the target.
+func (t *PullTarget) Details() map[string]string {
+	return map[string]string{
+		"strategy": "pull",
+		"labels":   t.Labels().String(),
+	}
 }
 
-func (t *pullTarget) DiscoveredLabels() model.LabelSet {
-	return nil
-}
-
-func (t *pullTarget) Labels() model.LabelSet {
-	return t.config.Labels
-}
-
-func (t *pullTarget) Details() map[string]string {
-	return nil
-}
-
-func (t *pullTarget) Stop() error {
+// Stop shuts the target down.
+func (t *PullTarget) Stop() error {
 	t.cancel()
 	t.wg.Wait()
 	t.handler.Stop()
