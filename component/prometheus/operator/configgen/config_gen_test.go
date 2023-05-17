@@ -14,7 +14,6 @@ import (
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
-	k8sv1 "k8s.io/api/core/v1"
 )
 
 var (
@@ -153,18 +152,18 @@ func (f *fakeSecrets) SecretOrConfigMapValue(namespace string, socm promopv1.Sec
 }
 
 // convenience functions for generating references
-func s(name, key string) *k8sv1.SecretKeySelector {
-	return &k8sv1.SecretKeySelector{
+func s(name, key string) *corev1.SecretKeySelector {
+	return &corev1.SecretKeySelector{
 		Key: key,
-		LocalObjectReference: k8sv1.LocalObjectReference{
+		LocalObjectReference: corev1.LocalObjectReference{
 			Name: name,
 		},
 	}
 }
-func cm(name, key string) *k8sv1.ConfigMapKeySelector {
-	return &k8sv1.ConfigMapKeySelector{
+func cm(name, key string) *corev1.ConfigMapKeySelector {
+	return &corev1.ConfigMapKeySelector{
 		Key: key,
-		LocalObjectReference: k8sv1.LocalObjectReference{
+		LocalObjectReference: corev1.LocalObjectReference{
 			Name: name,
 		},
 	}
@@ -253,7 +252,34 @@ func TestGenerateSafeTLSConfig(t *testing.T) {
 }
 
 func TestGenerateBasicAuth(t *testing.T) {
-
+	un := s("s", "un")
+	pw := s("s", "pw")
+	tests := []struct {
+		name     string
+		ba       promopv1.BasicAuth
+		hasErr   bool
+		username string
+		password promConfig.Secret
+	}{
+		{
+			name: "empty",
+			ba: promopv1.BasicAuth{
+				Username: *un,
+				Password: *pw,
+			},
+			hasErr:   false,
+			username: "secret/ns/s/un",
+			password: "secret/ns/s/pw",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := configGen.generateBasicAuth(tt.ba, "ns")
+			assert.Equal(t, tt.hasErr, err != nil)
+			assert.Equal(t, tt.password, got.Password)
+			assert.Equal(t, tt.username, got.Username)
+		})
+	}
 }
 
 func TestRelabelerAdd(t *testing.T) {
