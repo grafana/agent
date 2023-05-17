@@ -1,6 +1,7 @@
 package configgen
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -12,11 +13,14 @@ import (
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
 	k8sv1 "k8s.io/api/core/v1"
 )
 
 var (
-	configGen = &ConfigGenerator{}
+	configGen = &ConfigGenerator{
+		Secrets: &fakeSecrets{},
+	}
 )
 
 func TestGenerateK8SSDConfig(t *testing.T) {
@@ -133,12 +137,47 @@ func TestGenerateK8SSDConfig(t *testing.T) {
 	}
 }
 
+type fakeSecrets struct{}
+
+func (f *fakeSecrets) GetSecretValue(namespace string, sec corev1.SecretKeySelector) (string, error) {
+	return fmt.Sprintf("secret/%s/%s/%s", namespace, sec.Name, sec.Key), nil
+}
+func (f *fakeSecrets) GetConfigMapValue(namespace string, cm corev1.ConfigMapKeySelector) (string, error) {
+	return fmt.Sprintf("cm/%s/%s/%s", namespace, cm.Name, cm.Key), nil
+}
+func (f *fakeSecrets) SecretOrConfigMapValue(namespace string, socm promopv1.SecretOrConfigMap) (string, error) {
+	if socm.Secret != nil {
+		return f.GetSecretValue(namespace, *socm.Secret)
+	}
+	return f.GetConfigMapValue(namespace, *socm.ConfigMap)
+}
+
+// convenience functions for generating references
+func s(name, key string) *k8sv1.SecretKeySelector {
+	return &k8sv1.SecretKeySelector{
+		Key: key,
+		LocalObjectReference: k8sv1.LocalObjectReference{
+			Name: name,
+		},
+	}
+}
+func cm(name, key string) *k8sv1.ConfigMapKeySelector {
+	return &k8sv1.ConfigMapKeySelector{
+		Key: key,
+		LocalObjectReference: k8sv1.LocalObjectReference{
+			Name: name,
+		},
+	}
+}
 func TestGenerateSafeTLSConfig(t *testing.T) {
 	tests := []struct {
 		name       string
 		tlsConfig  promopv1.SafeTLSConfig
 		hasErr     bool
 		serverName string
+		ca         string
+		cert       string
+		key        promConfig.Secret
 	}{
 		{
 			name: "empty",
@@ -153,56 +192,68 @@ func TestGenerateSafeTLSConfig(t *testing.T) {
 			name: "ca_file",
 			tlsConfig: promopv1.SafeTLSConfig{
 				InsecureSkipVerify: true,
-				CA:                 promopv1.SecretOrConfigMap{Secret: &k8sv1.SecretKeySelector{Key: "ca_file"}},
+				CA:                 promopv1.SecretOrConfigMap{Secret: s("secrets", "ca_file")},
 			},
-			hasErr:     true,
+			hasErr:     false,
 			serverName: "",
+			ca:         "secret/ns/secrets/ca_file",
 		},
 		{
 			name: "ca_file",
 			tlsConfig: promopv1.SafeTLSConfig{
 				InsecureSkipVerify: true,
-				CA:                 promopv1.SecretOrConfigMap{ConfigMap: &k8sv1.ConfigMapKeySelector{Key: "ca_file"}},
+				CA:                 promopv1.SecretOrConfigMap{ConfigMap: cm("non-secrets", "ca_file")},
 			},
-			hasErr:     true,
+			hasErr:     false,
 			serverName: "",
+			ca:         "cm/ns/non-secrets/ca_file",
 		},
 		{
 			name: "cert_file",
 			tlsConfig: promopv1.SafeTLSConfig{
 				InsecureSkipVerify: true,
-				Cert:               promopv1.SecretOrConfigMap{Secret: &k8sv1.SecretKeySelector{Key: "cert_file"}},
+				Cert:               promopv1.SecretOrConfigMap{Secret: s("secrets", "cert_file")},
 			},
-			hasErr:     true,
+			hasErr:     false,
 			serverName: "",
+			cert:       "secret/ns/secrets/cert_file",
 		},
 		{
 			name: "cert_file",
 			tlsConfig: promopv1.SafeTLSConfig{
 				InsecureSkipVerify: true,
-				Cert:               promopv1.SecretOrConfigMap{ConfigMap: &k8sv1.ConfigMapKeySelector{Key: "cert_file"}},
+				Cert:               promopv1.SecretOrConfigMap{ConfigMap: cm("non-secrets", "cert_file")},
 			},
-			hasErr:     true,
+			hasErr:     false,
 			serverName: "",
+			cert:       "cm/ns/non-secrets/cert_file",
 		},
 		{
 			name: "key_file",
 			tlsConfig: promopv1.SafeTLSConfig{
 				InsecureSkipVerify: true,
-				KeySecret:          &k8sv1.SecretKeySelector{Key: "key_file"},
+				KeySecret:          s("secrets", "key_file"),
 			},
-			hasErr:     true,
+			hasErr:     false,
 			serverName: "",
+			key:        "secret/ns/secrets/key_file",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := configGen.generateSafeTLS(tt.tlsConfig)
+			got, err := configGen.generateSafeTLS(tt.tlsConfig, "ns")
 			assert.Equal(t, tt.hasErr, err != nil)
 			assert.True(t, got.InsecureSkipVerify)
 			assert.Equal(t, tt.serverName, got.ServerName)
+			assert.Equal(t, tt.ca, got.CA)
+			assert.Equal(t, tt.cert, got.Cert)
+			assert.Equal(t, tt.key, got.Key)
 		})
 	}
+}
+
+func TestGenerateBasicAuth(t *testing.T) {
+
 }
 
 func TestRelabelerAdd(t *testing.T) {
