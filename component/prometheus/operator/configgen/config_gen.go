@@ -95,6 +95,40 @@ func (cg *ConfigGenerator) generateSafeTLS(tls promopv1.SafeTLSConfig, namespace
 	return tc, nil
 }
 
+func (cg *ConfigGenerator) generateBasicAuth(auth promopv1.BasicAuth, namespace string) (*commonConfig.BasicAuth, error) {
+	un, err := cg.Secrets.GetSecretValue(namespace, auth.Username)
+	if err != nil {
+		return nil, err
+	}
+	pw, err := cg.Secrets.GetSecretValue(namespace, auth.Password)
+	if err != nil {
+		return nil, err
+	}
+	return &commonConfig.BasicAuth{
+		Username: un,
+		Password: commonConfig.Secret(pw),
+	}, nil
+}
+
+func (cg *ConfigGenerator) generateOath2(oa promopv1.OAuth2, namespace string) (*commonConfig.OAuth2, error) {
+
+	clid, err := cg.Secrets.SecretOrConfigMapValue(namespace, oa.ClientID)
+	if err != nil {
+		return nil, err
+	}
+	clisecret, err := cg.Secrets.GetSecretValue(namespace, oa.ClientSecret)
+	if err != nil {
+		return nil, err
+	}
+	return &commonConfig.OAuth2{
+		Scopes:         oa.Scopes,
+		TokenURL:       oa.TokenURL,
+		EndpointParams: oa.EndpointParams,
+		ClientID:       clid,
+		ClientSecret:   commonConfig.Secret(clisecret),
+	}, nil
+}
+
 type relabeler struct {
 	configs []*relabel.Config
 }

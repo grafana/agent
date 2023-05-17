@@ -84,9 +84,18 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 		cfg.HTTPClientConfig.BearerToken = commonConfig.Secret(val)
 	}
 	if ep.BasicAuth != nil {
-		return nil, fmt.Errorf("basic auth in podmonitors not supported yet: %w", err)
+		cfg.HTTPClientConfig.BasicAuth, err = cg.generateBasicAuth(*ep.BasicAuth, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
 	}
-	// TODO: Add support for ep.OAuth2 and ep.Authorization
+	if ep.OAuth2 != nil {
+		cfg.HTTPClientConfig.OAuth2, err = cg.generateOath2(*ep.OAuth2, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// TODO: Add support for ep.Authorization
 
 	relabels := cg.initRelabelings()
 	if ep.FilterRunning == nil || *ep.FilterRunning {

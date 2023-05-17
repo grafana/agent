@@ -68,12 +68,25 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 		}
 	}
 	if ep.BearerTokenSecret.Name != "" {
-		return nil, fmt.Errorf("bearer tokens in serviceMonitors not supported yet: %w", err)
+		val, err := cg.Secrets.GetSecretValue(m.Namespace, ep.BearerTokenSecret)
+		if err != nil {
+			return nil, err
+		}
+		cfg.HTTPClientConfig.BearerToken = commonConfig.Secret(val)
 	}
 	if ep.BasicAuth != nil {
-		return nil, fmt.Errorf("basic auth in serviceMonitors not supported yet: %w", err)
+		cfg.HTTPClientConfig.BasicAuth, err = cg.generateBasicAuth(*ep.BasicAuth, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
 	}
-	// TODO: Add support for ep.OAuth2 and ep.Authorization
+	if ep.OAuth2 != nil {
+		cfg.HTTPClientConfig.OAuth2, err = cg.generateOath2(*ep.OAuth2, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// TODO: Add support for ep.Authorization
 
 	relabels := cg.initRelabelings()
 
