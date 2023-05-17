@@ -65,7 +65,7 @@ func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandle
 }
 
 func (p *PushTarget) push(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
+	defer func() { _ = r.Body.Close() }()
 
 	// Create no-op context.WithTimeout returns to simplify logic
 	ctx := r.Context()
@@ -79,20 +79,20 @@ func (p *PushTarget) push(w http.ResponseWriter, r *http.Request) {
 	bs, err := io.ReadAll(r.Body)
 	if err != nil {
 		p.metrics.gcpPushErrors.WithLabelValues("read_error").Inc()
-		level.Warn(p.logger).Log("msg", "failed to read incoming gcp push request", "err", err.Error())
+		_ = level.Warn(p.logger).Log("msg", "failed to read incoming gcp push request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	err = json.Unmarshal(bs, &pushMessage)
 	if err != nil {
 		p.metrics.gcpPushErrors.WithLabelValues("format").Inc()
-		level.Warn(p.logger).Log("msg", "failed to unmarshall gcp push request", "err", err.Error())
+		_ = level.Warn(p.logger).Log("msg", "failed to unmarshall gcp push request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if err = pushMessage.Validate(); err != nil {
 		p.metrics.gcpPushErrors.WithLabelValues("invalid_message").Inc()
-		level.Warn(p.logger).Log("msg", "invalid gcp push request", "err", err.Error())
+		_ = level.Warn(p.logger).Log("msg", "invalid gcp push request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -100,18 +100,18 @@ func (p *PushTarget) push(w http.ResponseWriter, r *http.Request) {
 	entry, err := translate(pushMessage, p.Labels(), p.config.UseIncomingTimestamp, p.config.UseFullLine, p.relabelConfigs, r.Header.Get("X-Scope-OrgID"))
 	if err != nil {
 		p.metrics.gcpPushErrors.WithLabelValues("translation").Inc()
-		level.Warn(p.logger).Log("msg", "failed to translate gcp push request", "err", err.Error())
+		_ = level.Warn(p.logger).Log("msg", "failed to translate gcp push request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	level.Debug(p.logger).Log("msg", fmt.Sprintf("Received line: %s", entry.Line))
+	_ = level.Debug(p.logger).Log("msg", fmt.Sprintf("Received line: %s", entry.Line))
 
 	if err := p.doSendEntry(ctx, entry); err != nil {
 		// NOTE: timeout errors can be tracked with from the metrics exposed by
 		// the spun weaveworks server.
 		// loki.source.gcplog.componentid_push_target_request_duration_seconds_count{status_code="503"}
-		level.Warn(p.logger).Log("msg", "error sending log entry", "err", err.Error())
+		_ = level.Warn(p.logger).Log("msg", "error sending log entry", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		return
 	}
@@ -150,7 +150,7 @@ func (p *PushTarget) Details() map[string]string {
 
 // Stop shuts down the push target.
 func (p *PushTarget) Stop() error {
-	level.Info(p.logger).Log("msg", "stopping gcp push target", "job", p.jobName)
+	_ = level.Info(p.logger).Log("msg", "stopping gcp push target", "job", p.jobName)
 	p.server.StopAndShutdown()
 	p.handler.Stop()
 	return nil
