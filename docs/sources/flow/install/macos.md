@@ -130,7 +130,7 @@ To expose the UI to other machines, complete the following steps:
 
 ### Viewing Grafana Agent Flow logs
 
-By default, logs are written to `$(brew --prefix)/var/log/grafana-agent.log` and
+By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
 `$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
 
 If you followed [Configuring the Grafana Agent Flow service](#configuring-the-grafana-agent-flow-service)

@@ -28,6 +28,9 @@ func TestConfig(t *testing.T) {
 				require.Equal(t, "", config.GRPCListenAddress)
 				require.False(t, config.RegisterInstrumentation)
 				require.Equal(t, time.Second*30, config.ServerGracefulShutdownTimeout)
+
+				require.Equal(t, size4MB, config.GRPCServerMaxSendMsgSize)
+				require.Equal(t, size4MB, config.GPRCServerMaxRecvMsgSize)
 			},
 		},
 		"overriding defaults": {
@@ -44,6 +47,37 @@ func TestConfig(t *testing.T) {
 				require.Equal(t, "0.0.0.0", config.HTTPListenAddress)
 				require.Equal(t, 10, config.HTTPConnLimit)
 				require.Equal(t, time.Second*10, config.HTTPServerWriteTimeout)
+
+				require.Equal(t, time.Minute, config.ServerGracefulShutdownTimeout)
+			},
+		},
+		"overriding just some defaults": {
+			raw: `
+			graceful_shutdown_timeout = "1m"
+			http {
+				listen_port = 8080
+				listen_address = "0.0.0.0"
+				conn_limit = 10
+			}
+			grpc {
+				listen_port = 8080
+				listen_address = "0.0.0.0"
+				server_max_send_msg_size = 10
+			}`,
+			assert: func(t *testing.T, config weaveworks.Config) {
+				// these should be overridden
+				require.Equal(t, 8080, config.HTTPListenPort)
+				require.Equal(t, "0.0.0.0", config.HTTPListenAddress)
+				require.Equal(t, 10, config.HTTPConnLimit)
+				// this should have the default applied
+				require.Equal(t, 30*time.Second, config.HTTPServerReadTimeout)
+
+				// these should be overridden
+				require.Equal(t, 8080, config.GRPCListenPort)
+				require.Equal(t, "0.0.0.0", config.GRPCListenAddress)
+				require.Equal(t, 10, config.GRPCServerMaxSendMsgSize)
+				// this should have the default applied
+				require.Equal(t, size4MB, config.GPRCServerMaxRecvMsgSize)
 
 				require.Equal(t, time.Minute, config.ServerGracefulShutdownTimeout)
 			},
@@ -98,7 +132,7 @@ func TestConfig(t *testing.T) {
 			cfg := ServerConfig{}
 			err := river.Unmarshal([]byte(tc.raw), &cfg)
 			require.Equal(t, tc.errExpected, err != nil)
-			wConfig := cfg.Convert()
+			wConfig := cfg.convert()
 			tc.assert(t, wConfig)
 		})
 	}

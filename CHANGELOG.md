@@ -18,6 +18,8 @@ Main (unreleased)
 
 - Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
 
+- Prometheus exporters in Flow mode now set the `instance` label to a value similar to the one they used to have in Static mode (<hostname> by default, customized by some integrations). (@jcreixell)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -28,6 +30,7 @@ Main (unreleased)
   - `remote.vault` retrieves a secret from Vault. (@rfratto)
   - `prometheus.exporter.snowflake` collects metrics from a snowflake database (@jonathanWamsley)
   - `prometheus.exporter.mssql` collects metrics from Microsoft SQL Server (@jonathanwamsley)
+  - `prometheus.exporter.oracledb` collects metrics from oracledb (@jonathanwamsley)
 
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
@@ -35,6 +38,10 @@ Main (unreleased)
 
 
 ### Enhancements
+- Support to attach node metadata to pods and endpoints targets in
+  `discovery.kubernetes`. (@laurovenancio)
+
+- Support ability to add optional custom headers to `loki.write` endpoint block (@aos)
 
 - Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
   components will now export a target containing an internal HTTP address.
@@ -42,8 +49,8 @@ Main (unreleased)
   the server in-memory, bypassing the network stack. Use the new
   `--server.http.memory-addr` flag to customize which address is used for
   in-memory traffic. (@rfratto)
-
 - Disable node_exporter on Windows systems (@jkroepke)
+- Operator support for OAuth 2.0 Client in LogsClientSpec (@DavidSpek)
 
 - Support `clustering` block in `phlare.scrape` components to distribute
   targets amongst clustered agents. (@rfratto)
@@ -52,13 +59,30 @@ Main (unreleased)
 
 - Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
 
+- Embed Google Fonts on Flow UI (@jkroepke)
+
+- Enable Content-Security-Policies on Flow UI (@jkroepke)
+  
+- Update azure-metrics-exporter to v0.0.0-20230502203721-b2bfd97b5313 (@kgeckhart)
+
+- Update azidentity dependency to v1.3.0. (@akselleirv)
+
 ### Bugfixes
+
+- Fix `loki.source.(gcplog|heroku)` `http` and `grpc` blocks were overriding defaults with zero-values
+  on non-present fields. (@thepalbi)
 
 - Fix an issue where defining `logging` or `tracing` blocks inside of a module
   would generate a panic instead of returning an error. (@erikbaranowski)
 
 - Fix an issue where not specifying either `http` nor `grpc` blocks could result
   in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
+
+- Fix an issue where build artifacts for IBM S390x were being built with the
+  GOARCH value for the PPC64 instead. (tpaschalis)
+
+- Fix an issue where the Grafana Agent Flow RPM used the wrong path for the
+  environment file, preventing the service from loading. (@rfratto)
 
 ### Other changes
 
@@ -67,6 +91,10 @@ Main (unreleased)
 
 - Add `agent_wal_out_of_order_samples_total` metric to track samples received
   out of order. (@rfratto)
+
+- Add CLI flag `--server.http.enable-pprof` to grafana-agent-flow to conditionally enable `/debug/pprof` endpoints (@jkroepke)
+
+- Use Go 1.20.4 for builds. (@tpaschalis)
 
 v0.33.2 (2023-05-11)
 --------------------
@@ -97,7 +125,7 @@ v0.33.2 (2023-05-11)
   was created, and prevented a fresh process from being able to deliver metrics
   at all. (@rfratto)
 
-- Fix an issue where the `loki.source.kubernetes` component could lead to 
+- Fix an issue where the `loki.source.kubernetes` component could lead to
   the Agent crashing due to a race condition. (@tpaschalis)
 
 ### Other changes

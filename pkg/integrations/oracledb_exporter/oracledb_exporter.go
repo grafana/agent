@@ -1,4 +1,4 @@
-package oracledbexporter
+package oracledb_exporter
 
 import (
 	"errors"
