@@ -9,11 +9,9 @@ package gcplogtarget
 // - replace "fake.New" with "fake.NewClient"
 // - replace "crapeconfig.GcplogTargetConfig" with "PullConfig"
 // - remove import scrapeconfig
-// - replace import 'github.com/pkg/errors' with 'errors'
 
 import (
 	"context"
-	"errors"
 	"io"
 	"testing"
 	"time"
@@ -21,6 +19,8 @@ import (
 	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/grafana/dskit/backoff"
+	"github.com/pkg/errors"
+
 	"cloud.google.com/go/pubsub"
 	"github.com/go-kit/log"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
