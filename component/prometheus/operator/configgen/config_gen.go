@@ -110,7 +110,7 @@ func (cg *ConfigGenerator) generateBasicAuth(auth promopv1.BasicAuth, namespace 
 	}, nil
 }
 
-func (cg *ConfigGenerator) generateOath2(oa promopv1.OAuth2, namespace string) (*commonConfig.OAuth2, error) {
+func (cg *ConfigGenerator) generateOauth2(oa promopv1.OAuth2, namespace string) (*commonConfig.OAuth2, error) {
 
 	clid, err := cg.Secrets.SecretOrConfigMapValue(namespace, oa.ClientID)
 	if err != nil {

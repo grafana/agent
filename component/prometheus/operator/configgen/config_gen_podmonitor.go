@@ -90,7 +90,7 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 		}
 	}
 	if ep.OAuth2 != nil {
-		cfg.HTTPClientConfig.OAuth2, err = cg.generateOath2(*ep.OAuth2, m.Namespace)
+		cfg.HTTPClientConfig.OAuth2, err = cg.generateOauth2(*ep.OAuth2, m.Namespace)
 		if err != nil {
 			return nil, err
 		}
