@@ -54,7 +54,6 @@ func testConverter(t *testing.T, input, expect []byte) {
 
 	require.NoError(t, err)
 	require.Equal(t, string(normalizeLineEndings(expect)), string(normalizeLineEndings(actual))+"\n")
-
 }
 
 // Replace '\r\n' with '\n'
