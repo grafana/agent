@@ -13,10 +13,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/grafana/agent/component/common/loki"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/grafana/agent/component/common/loki"
 
 	lokiClient "github.com/grafana/loki/clients/pkg/promtail/client"
 

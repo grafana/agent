@@ -13,11 +13,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/grafana/agent/component/common/loki"
 	json "github.com/json-iterator/go"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/grafana/agent/component/common/loki"
 
 	"github.com/grafana/loki/pkg/logproto"
 )

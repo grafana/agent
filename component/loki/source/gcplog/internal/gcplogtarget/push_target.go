@@ -20,9 +20,9 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/common/loki"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/server"
 
