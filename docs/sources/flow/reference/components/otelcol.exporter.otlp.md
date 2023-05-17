@@ -107,8 +107,10 @@ server.
 
 {{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
 
-> **NOTE**: `otelcol.exporter.otlp` uses gRPC, which disallows sending sensitive credentials (like `auth`) over an insecure channel for security reasons.
-> If you need to send sensitive credentials over non-TLS connections (via the `insecure` argument), you may want to use `otelcol.exporter.otlphttp` instead.
+> **NOTE**: `otelcol.exporter.otlp` uses gRPC, which disallows sending sensitive credentials (like `auth`) over insecure channels for security reasons.
+> If you need to send sensitive credentials over non-TLS connections (via the `insecure` argument), you may want to use [otelcol.exporter.otlphttp][] instead.
+
+[otelcol.exporter.otlphttp]: {{< relref "./otelcol.exporter.otlphttp.md" >}}
 
 ### keepalive block
 
