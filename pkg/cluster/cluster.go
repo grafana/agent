@@ -190,7 +190,7 @@ func (c *Clusterer) Start() error {
 	case *localNode:
 		return nil // no-op, always ready
 	case *GossipNode:
-		err := node.Start()
+		err := node.Start() // TODO(@tpaschalis) Should we backoff and retry before moving on to the fallback here?
 		if err != nil {
 			level.Debug(node.log).Log("msg", "failed to connect to peers; bootstrapping a new cluster")
 			node.cfg.JoinPeers = nil
@@ -219,7 +219,8 @@ func (c *Clusterer) Start() error {
 		}))
 		return nil
 	default:
-		panic("cluster: unreachable")
+		msg := fmt.Sprintf("node type: %T", c.Node)
+		panic("cluster: unreachable:" + msg)
 	}
 }
 
