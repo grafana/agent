@@ -7,7 +7,8 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-## Main (unreleased)
+Main (unreleased)
+-----------------
 
 ### Breaking changes
 
@@ -22,7 +23,6 @@ internal API changes are not present.
 ### Features
 
 - New Grafana Agent Flow components:
-
   - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
@@ -35,6 +35,7 @@ internal API changes are not present.
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
   - `nonsensitive` converts a River secret back into a string. (@rfratto)
+
 
 ### Enhancements
 - Support to attach node metadata to pods and endpoints targets in
@@ -98,7 +99,8 @@ internal API changes are not present.
 - Integrate the new ExceptionContext which was recently added to the Faro Web-SDK in the
   app_agent_receiver Payload. (@codecapitano)
 
-## v0.33.2 (2023-05-11)
+v0.33.2 (2023-05-11)
+--------------------
 
 ### Bugfixes
 
@@ -134,7 +136,8 @@ internal API changes are not present.
 - The `phlare.scrape` Flow component `fetch profile failed` log has been set to
   `debug` instead of `error`. (@erikbaranowski)
 
-## v0.33.1 (2023-05-01)
+v0.33.1 (2023-05-01)
+--------------------
 
 ### Bugfixes
 
@@ -158,7 +161,8 @@ internal API changes are not present.
 
 - Support Bundles report the status of discovered log targets. (@tpaschalis)
 
-## v0.33.0 (2023-04-25)
+v0.33.0 (2023-04-25)
+--------------------
 
 ### Breaking changes
 
@@ -167,7 +171,7 @@ internal API changes are not present.
   compiler issues are resolved and 32-bit ARM builds are stable. (@rfratto)
 
 - Agent Management: `agent_management.api_url` config field has been replaced by
-  `agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
+`agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
 
 - Agent Management: `agent_management.protocol` config field now allows defining "http" and "https" explicitly. Previously, "http" was previously used for both, with the actual protocol used inferred from the api url, which led to confusion. When upgrading, make sure to set to "https" when replacing `api_url` with `host`. (@jcreixell)
 
@@ -215,7 +219,8 @@ internal API changes are not present.
     the targets they reference. (@captncraig, @marctc, @jcreixell)
   - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
-  - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki` components. (@akselleirv)
+  - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other   `loki` components. (@akselleirv)
+
 
 - Add support for Flow-specific system packages:
 
@@ -350,7 +355,8 @@ internal API changes are not present.
 - Update prometheus.remote_write defaults to match new prometheus
   remote-write defaults. (@erikbaranowski)
 
-## v0.32.1 (2023-03-06)
+v0.32.1 (2023-03-06)
+--------------------
 
 ### Bugfixes
 
@@ -365,7 +371,8 @@ internal API changes are not present.
   defaulted incorrectly to the container name, causing tailers to never
   restart. (@rfratto)
 
-## v0.32.0 (2023-02-28)
+v0.32.0 (2023-02-28)
+--------------------
 
 ### Breaking changes
 
@@ -514,7 +521,8 @@ internal API changes are not present.
   - `phlare.scrape` is explicitly marked as beta.
   - `phlare.write` is explicitly marked as beta.
 
-## v0.31.3 (2023-02-13)
+v0.31.3 (2023-02-13)
+--------------------
 
 ### Bugfixes
 
@@ -525,14 +533,16 @@ internal API changes are not present.
 - `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
   as a sensitive field. (@rfratto)
 
-## v0.31.2 (2023-02-08)
+v0.31.2 (2023-02-08)
+--------------------
 
 ### Other changes
 
 - In the Agent Operator, upgrade the `prometheus-config-reloader` dependency
   from version 0.47.0 to version 0.62.0. (@ptodev)
 
-## v0.31.1 (2023-02-06)
+v0.31.1 (2023-02-06)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -547,7 +557,8 @@ internal API changes are not present.
 - Support Go 1.20 for builds. Official release binaries are still produced
   using Go 1.19. (@rfratto)
 
-## v0.31.0 (2023-01-31)
+v0.31.0 (2023-01-31)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -642,7 +653,8 @@ internal API changes are not present.
 
 - New windows containers for agent and agentctl. These can be found moving forward with the ${Version}-windows tags for grafana/agent and grafana/agentctl docker images (@erikbaranowski)
 
-## v0.30.2 (2023-01-11)
+v0.30.2 (2023-01-11)
+--------------------
 
 ### Bugfixes
 
@@ -658,7 +670,8 @@ internal API changes are not present.
 - Operator: Fix the handling of the enableHttp2 field as a boolean in
   `pod_monitor` and `service_monitor` templates. (@tpaschalis)
 
-## v0.30.1 (2022-12-23)
+v0.30.1 (2022-12-23)
+--------------------
 
 ### Bugfixes
 
@@ -666,7 +679,8 @@ internal API changes are not present.
 
 - Fix issue where some traces' metrics where not collected. (@marctc)
 
-## v0.30.0 (2022-12-20)
+v0.30.0 (2022-12-20)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -771,7 +785,8 @@ internal API changes are not present.
 
 - Grafana Agent Flow has graduated from experimental to beta.
 
-## v0.29.0 (2022-11-08)
+v0.29.0 (2022-11-08)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -896,7 +911,8 @@ internal API changes are not present.
 
 - Use Go 1.19.3 for builds. (@rfratto)
 
-## v0.28.1 (2022-11-03)
+v0.28.1 (2022-11-03)
+--------------------
 
 ### Security
 
@@ -905,7 +921,8 @@ internal API changes are not present.
   vulnerable to these issues, but the base image has been updated to remove the
   report from image scanners. (@rfratto)
 
-## v0.28.0 (2022-09-29)
+v0.28.0 (2022-09-29)
+--------------------
 
 ### Features
 
@@ -930,7 +947,8 @@ internal API changes are not present.
 
 - Add metrics for config reloads and config hash (@jcreixell)
 
-## v0.27.1 (2022-09-09)
+v0.27.1 (2022-09-09)
+--------------------
 
 > **NOTE**: ARMv6 Docker images are no longer being published.
 >
@@ -944,7 +962,8 @@ internal API changes are not present.
 
 - Switch docker image base from debian to ubuntu. (@captncraig)
 
-## v0.27.0 (2022-09-01)
+v0.27.0 (2022-09-01)
+--------------------
 
 ### Features
 
@@ -970,7 +989,7 @@ internal API changes are not present.
 ### Bugfixes
 
 - Tracing: Fixed issue with the PromSD processor using the `connection` method to discover the IP
-  address. It was failing to match because the port number was included in the address string. (@jphx)
+  address.  It was failing to match because the port number was included in the address string. (@jphx)
 
 - Register prometheus discovery metrics. (@mattdurham)
 
@@ -988,7 +1007,8 @@ internal API changes are not present.
 
 - It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
 
-## v0.26.1 (2022-07-25)
+v0.26.1 (2022-07-25)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -1004,7 +1024,8 @@ internal API changes are not present.
 
 - Build the Linux/AMD64 artifacts using the opt-out flag for the ebpf_exporter. (@tpaschalis)
 
-## v0.26.0 (2022-07-18)
+v0.26.0 (2022-07-18)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -1036,7 +1057,8 @@ internal API changes are not present.
 
 - Fix mongodb exporter so that it now collects all metrics. (@mattdurham)
 
-## v0.25.1 (2022-06-16)
+v0.25.1 (2022-06-16)
+--------------------
 
 ### Bugfixes
 
@@ -1044,7 +1066,8 @@ internal API changes are not present.
 
 - Unwrap replayWAL error before attempting corruption repair. (@rlankfo)
 
-## v0.25.0 (2022-06-06)
+v0.25.0 (2022-06-06)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -1090,7 +1113,7 @@ internal API changes are not present.
 
 ### Bugfixes
 
-- Scraping service was not honoring the new server grpc flags `server.grpc.address`. (@mattdurham)
+- Scraping service was not honoring the new server grpc flags `server.grpc.address`.  (@mattdurham)
 
 ### Other changes
 
@@ -1100,14 +1123,15 @@ internal API changes are not present.
 - Use Go 1.18 for builds. (@rfratto)
 
 - Add `metrics` prefix to the url of list instances endpoint (`GET
-/agent/api/v1/instances`) and list targets endpoint (`GET
-/agent/api/v1/metrics/targets`). (@marctc)
+  /agent/api/v1/instances`) and list targets endpoint (`GET
+  /agent/api/v1/metrics/targets`). (@marctc)
 
 - Add extra identifying labels (`job`, `instance`, `agent_hostname`) to eventhandler integration. (@hjet)
 
 - Add `extra_labels` configuration to eventhandler integration. (@hjet)
 
-## v0.24.2 (2022-05-02)
+v0.24.2 (2022-05-02)
+--------------------
 
 ### Bugfixes
 
@@ -1117,7 +1141,8 @@ internal API changes are not present.
 
 - Update version of node_exporter to include additional metrics for osx. (@v-zhuravlev)
 
-## v0.24.1 (2022-04-14)
+v0.24.1 (2022-04-14)
+--------------------
 
 ### Bugfixes
 
@@ -1142,7 +1167,8 @@ internal API changes are not present.
 - Embed timezone data to enable Promtail pipelines using the `location` field
   on Windows machines. (@tpaschalis)
 
-## v0.24.0 (2022-04-07)
+v0.24.0 (2022-04-07)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -1273,7 +1299,7 @@ internal API changes are not present.
   custom Secrets will now be mounted at
   `/var/lib/grafana-agent/extra-secrets/<secret name>` and custom ConfigMaps
   will now be mounted at `/var/lib/grafana-agent/extra-configmaps/<configmap
-name>`. This is not a breaking change as it was previously impossible to
+  name>`. This is not a breaking change as it was previously impossible to
   properly provide these custom mounts. (@rfratto)
 
 - Flags accidentally prefixed with `-metrics.service..` (two `.` in a row) have
@@ -1287,7 +1313,8 @@ name>`. This is not a breaking change as it was previously impossible to
   will now default to `data-agent/`, the same default WAL directory as
   Prometheus Agent. (@rfratto)
 
-## v0.23.0 (2022-02-10)
+v0.23.0 (2022-02-10)
+--------------------
 
 ### Enhancements
 
@@ -1332,7 +1359,8 @@ name>`. This is not a breaking change as it was previously impossible to
 
 - Disable `machine-id` journal vol by default in sample logs manifest (@hjet)
 
-## v0.22.0 (2022-01-13)
+v0.22.0 (2022-01-13)
+--------------------
 
 > This release has deprecations. Please read entries carefully and consult
 > the [upgrade guide][] for specific instructions.
@@ -1419,7 +1447,8 @@ name>`. This is not a breaking change as it was previously impossible to
 
 - Remove log-level flag from systemd unit file (@jpkrohling)
 
-## v0.21.2 (2021-12-08)
+v0.21.2 (2021-12-08)
+--------------------
 
 ### Security fixes
 
@@ -1433,7 +1462,8 @@ name>`. This is not a breaking change as it was previously impossible to
   `--config.enable-read-api` flag at the command line to opt in to these
   endpoints.
 
-## v0.21.1 (2021-11-18)
+v0.21.1 (2021-11-18)
+--------------------
 
 ### Bugfixes
 
@@ -1452,7 +1482,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - Metrics: Only run WAL cleaner when metrics are being used and a WAL is
   configured. (@rfratto)
 
-## v0.21.0 (2021-11-17)
+v0.21.0 (2021-11-17)
+--------------------
 
 ### Enhancements
 
@@ -1486,7 +1517,8 @@ name>`. This is not a breaking change as it was previously impossible to
 
 - Traces: Changed service graphs store implementation to improve CPU performance (@mapno)
 
-## v0.20.1 (2021-12-08)
+v0.20.1 (2021-12-08)
+--------------------
 
 > _NOTE_: The fixes in this patch are only present in v0.20.1 and >=v0.21.2.
 
@@ -1502,7 +1534,8 @@ name>`. This is not a breaking change as it was previously impossible to
   `--config.enable-read-api` flag at the command line to opt in to these
   endpoints.
 
-## v0.20.0 (2021-10-28)
+v0.20.0 (2021-10-28)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -1534,7 +1567,7 @@ name>`. This is not a breaking change as it was previously impossible to
 
 - Updated elasticsearch_exporter to v1.2.1 (@gaantunes)
 
-- Add remote write to silent Windows Installer (@mattdurham)
+- Add remote write to silent Windows Installer  (@mattdurham)
 
 - Updated mongodb_exporter to v0.20.7 (@rfratto)
 
@@ -1575,7 +1608,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - The windows_exporter now disables the textfile collector by default.
   (@rfratto)
 
-## v0.19.0 (2021-09-29)
+v0.19.0 (2021-09-29)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -1637,7 +1671,7 @@ name>`. This is not a breaking change as it was previously impossible to
 - Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
 - Add HOSTNAME environment variable to service file to allow for expanding the
-  $HOSTNAME variable in agent config. (@dfrankel33)
+  $HOSTNAME variable in agent config.  (@dfrankel33)
 
 - Update jsonnet-libs to 1.21 for Kubernetes 1.21+ compatability. (@MurzNN)
 
@@ -1677,7 +1711,8 @@ name>`. This is not a breaking change as it was previously impossible to
 
 - Standardize scrape_interval to 1m in examples. (@mattdurham)
 
-## v0.18.4 (2021-09-14)
+v0.18.4 (2021-09-14)
+--------------------
 
 ### Enhancements
 
@@ -1691,7 +1726,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - Scraping service: Ensure that a reshard is scheduled every reshard
   interval. (@rfratto)
 
-## v0.18.3 (2021-09-08)
+v0.18.3 (2021-09-08)
+--------------------
 
 ### Bugfixes
 
@@ -1712,19 +1748,22 @@ name>`. This is not a breaking change as it was previously impossible to
 - Scraping service: prevent more than one refresh from being queued at a time.
   (@rfratto)
 
-## v0.18.2 (2021-08-12)
+v0.18.2 (2021-08-12)
+--------------------
 
 ### Bugfixes
 
 - Honor the prefix and remove prefix from consul list results (@mattdurham)
 
-## v0.18.1 (2021-08-09)
+v0.18.1 (2021-08-09)
+--------------------
 
 ### Bugfixes
 
 - Reduce number of consul calls when ran in scrape service mode (@mattdurham)
 
-## v0.18.0 (2021-07-29)
+v0.18.0 (2021-07-29)
+--------------------
 
 ### Features
 
@@ -1743,7 +1782,8 @@ name>`. This is not a breaking change as it was previously impossible to
 
 - Enabled flag for integrations is not being honored. (@mattdurham)
 
-## v0.17.0 (2021-07-15)
+v0.17.0 (2021-07-15)
+--------------------
 
 ### Features
 
@@ -1755,14 +1795,16 @@ name>`. This is not a breaking change as it was previously impossible to
 - Fix race condition that may occur and result in a panic when initializing
   scraping service cluster. (@rfratto)
 
-## v0.16.1 (2021-06-22)
+v0.16.1 (2021-06-22)
+--------------------
 
 ### Bugfixes
 
 - Fix issue where replaying a WAL caused incorrect metrics to be sent over
   remote write. (@rfratto)
 
-## v0.16.0 (2021-06-17)
+v0.16.0 (2021-06-17)
+--------------------
 
 ### Features
 
@@ -1783,7 +1825,8 @@ name>`. This is not a breaking change as it was previously impossible to
   that target had gone down for long enough that its series were removed from
   the in-memory cache (2 GC cycles). (@rfratto)
 
-## v0.15.0 (2021-06-03)
+v0.15.0 (2021-06-03)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -1824,7 +1867,8 @@ name>`. This is not a breaking change as it was previously impossible to
 
 - Intentionally order tracing processors. (@joe-elliott)
 
-## v0.14.0 (2021-05-24)
+v0.14.0 (2021-05-24)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -1867,7 +1911,7 @@ name>`. This is not a breaking change as it was previously impossible to
   against the main HTTP server. Instead, two new command-line flags have been
   added: `--reload-addr` and `--reload-port`. These will launch a
   `/-/reload`-only HTTP server that can be used to safely reload the Agent's
-  state. (@rfratto)
+  state.  (@rfratto)
 
 - Add a /-/config endpoint. This endpoint will return the current configuration
   file with defaults applied that the Agent has loaded from disk. (@rfratto)
@@ -1939,7 +1983,8 @@ name>`. This is not a breaking change as it was previously impossible to
 
 - Add `tempo_spanmetrics` namespace in spanmetrics (@mapno)
 
-## v0.13.1 (2021-04-09)
+v0.13.1 (2021-04-09)
+--------------------
 
 ### Bugfixes
 
@@ -1947,7 +1992,8 @@ name>`. This is not a breaking change as it was previously impossible to
   label set with duplicate labels, mirroring the behavior of Prometheus.
   (@rfratto)
 
-## v0.13.0 (2021-02-25)
+v0.13.0 (2021-02-25)
+--------------------
 
 > The primary branch name has changed from `master` to `main`. You may have to
 > update your local checkouts of the repository to point at the new branch name.
@@ -1986,7 +2032,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - Add the ability to read and serve HTTPS integration metrics when given a set
   certificates (@mattdurham)
 
-## v0.12.0 (2021-02-05)
+v0.12.0 (2021-02-05)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -2022,7 +2069,7 @@ name>`. This is not a breaking change as it was previously impossible to
 - Scraping service: Unhealthy Agents in the ring will no longer cause job
   distribution to fail. (@rfratto)
 
-- Scraping service: Cortex ring metrics (prefixed with cortex*ring*) will now
+- Scraping service: Cortex ring metrics (prefixed with cortex_ring_) will now
   be registered for tracking the state of the hash ring. (@rfratto)
 
 - Scraping service: instance config ownership is now determined by the hash of
@@ -2040,7 +2087,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - `agentctl config-check` will now work correctly when the supplied config file
   contains integrations. (@hoenn)
 
-## v0.11.0 (2021-01-20)
+v0.11.0 (2021-01-20)
+--------------------
 
 ### Features
 
@@ -2068,7 +2116,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - The K8s manifests will no longer include the `default/kubernetes` job twice
   in both the DaemonSet and the Deployment. (@rfratto)
 
-## v0.10.0 (2021-01-13)
+v0.10.0 (2021-01-13)
+--------------------
 
 ### Features
 
@@ -2105,14 +2154,16 @@ name>`. This is not a breaking change as it was previously impossible to
   This was prevented by accidentally writing to a readonly volume mount.
   (@rfratto)
 
-## v0.9.1 (2021-01-04)
+v0.9.1 (2021-01-04)
+-------------------
 
 ### Enhancements
 
 - agentctl will now be installed by the rpm and deb packages as
   `grafana-agentctl`. (@rfratto)
 
-## v0.9.0 (2020-12-10)
+v0.9.0 (2020-12-10)
+-------------------
 
 ### Features
 
@@ -2161,7 +2212,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - The User-Agent header sent for logs will now be `GrafanaCloudAgent/<version>`
   (@rfratto)
 
-## v0.8.0 (2020-11-06)
+v0.8.0 (2020-11-06)
+-------------------
 
 ### Features
 
@@ -2187,7 +2239,8 @@ name>`. This is not a breaking change as it was previously impossible to
   rather than just logging a generic message saying that retrieving the config
   has failed. (@rfratto)
 
-## v0.7.2 (2020-10-29)
+v0.7.2 (2020-10-29)
+-------------------
 
 ### Enhancements
 
@@ -2210,13 +2263,15 @@ name>`. This is not a breaking change as it was previously impossible to
 - Fix issue where the `push_config` for Tempo field was expected to be
   `remote_write`. `push_config` now works as expected. (@rfratto)
 
-## v0.7.1 (2020-10-23)
+v0.7.1 (2020-10-23)
+-------------------
 
 ### Bugfixes
 
 - Fix issue where ARM binaries were not published with the GitHub release.
 
-## v0.7.0 (2020-10-23)
+v0.7.0 (2020-10-23)
+-------------------
 
 ### Features
 
@@ -2258,7 +2313,8 @@ name>`. This is not a breaking change as it was previously impossible to
   computed by remote_write. This change should not negatively affect existing
   users. (@rfratto)
 
-## v0.6.1 (2020-04-11)
+v0.6.1 (2020-04-11)
+-------------------
 
 ### Bugfixes
 
@@ -2271,7 +2327,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - Fix deadlock that slowly prevents the Agent from scraping targets at a high
   scrape volume. (@rfratto)
 
-## v0.6.0 (2020-09-04)
+v0.6.0 (2020-09-04)
+-------------------
 
 ### Breaking Changes
 
@@ -2320,7 +2377,7 @@ name>`. This is not a breaking change as it was previously impossible to
 - The subsystems of the Agent (`prometheus`, `loki`) are now made optional.
   Enabling integrations also implicitly enables the associated subsystem. For
   example, enabling the `agent` or `node_exporter` integration will force the
-  `prometheus` subsystem to be enabled. (@rfratto)
+  `prometheus` subsystem to be enabled.  (@rfratto)
 
 ### Bugfixes
 
@@ -2344,7 +2401,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - Fix a panic that may occur during shutdown if the WAL is closed in the middle
   of the WAL being truncated. (@rfratto)
 
-## v0.5.0 (2020-08-12)
+v0.5.0 (2020-08-12)
+-------------------
 
 ### Features
 
@@ -2381,7 +2439,8 @@ name>`. This is not a breaking change as it was previously impossible to
   needing to manually set the blocklist and allowlist of filesystems.
   (@rfratto)
 
-## v0.4.0 (2020-06-18)
+v0.4.0 (2020-06-18)
+-------------------
 
 ### Features
 
@@ -2408,7 +2467,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - Enable agent host_filter in the Tanka configs, which was disabled by default
   by mistake. (@rfratto)
 
-## v0.3.2 (2020-05-29)
+v0.3.2 (2020-05-29)
+-------------------
 
 ### Features
 
@@ -2448,7 +2508,8 @@ name>`. This is not a breaking change as it was previously impossible to
   correctly show the pod name of the Agent instead of the exporter name.
   (@rfratto)
 
-## v0.3.1 (2020-05-20)
+v0.3.1 (2020-05-20)
+-------------------
 
 ### Features
 
@@ -2468,7 +2529,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - `agentctl` and the config API will now validate that the YAML they receive
   are valid instance configs. (@rfratto)
 
-## v0.3.0 (2020-05-13)
+v0.3.0 (2020-05-13)
+-------------------
 
 ### Features
 
@@ -2495,7 +2557,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - The Grafana Agent Tanka Mixins now are placed in an "Agent" folder within
   Grafana. (@cyriltovena)
 
-## v0.2.0 (2020-04-09)
+v0.2.0 (2020-04-09)
+-------------------
 
 ### Features
 
@@ -2505,7 +2568,6 @@ name>`. This is not a breaking change as it was previously impossible to
   (@gotjosh)
 
   These metrics are available to monitor metadata being sent:
-
   - `prometheus_remote_storage_succeeded_metadata_total`
   - `prometheus_remote_storage_failed_metadata_total`
   - `prometheus_remote_storage_retried_metadata_total`
@@ -2525,7 +2587,8 @@ name>`. This is not a breaking change as it was previously impossible to
 - Enabling host_filter will now allow metrics from node role Kubernetes service
   discovery to be scraped properly (e.g., cAdvisor, Kubelet). (@rfratto)
 
-## v0.1.1 (2020-03-16)
+v0.1.1 (2020-03-16)
+-------------------
 
 ### Other changes
 
@@ -2535,7 +2598,8 @@ name>`. This is not a breaking change as it was previously impossible to
 
 - Pass through release tag to `docker build` (@rfratto)
 
-## v0.1.0 (2020-03-16)
+v0.1.0 (2020-03-16)
+-------------------
 
 > First release!
 
