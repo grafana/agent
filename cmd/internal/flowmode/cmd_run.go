@@ -14,12 +14,16 @@ import (
 
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
+	"github.com/grafana/ckit/memconn"
 	"go.opentelemetry.io/otel"
 	"golang.org/x/exp/maps"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -37,10 +41,12 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
+		inMemoryAddr:     "agent.internal:12345",
 		httpListenAddr:   "127.0.0.1:12345",
 		storagePath:      "data-agent/",
 		uiPrefix:         "/",
 		disableReporting: false,
+		enablePprof:      true,
 	}
 
 	cmd := &cobra.Command{
@@ -78,19 +84,33 @@ depending on the nature of the reload error.
 	}
 
 	cmd.Flags().
-		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "address to listen for HTTP traffic on")
+		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "Address to listen for HTTP traffic on")
+	cmd.Flags().StringVar(&r.inMemoryAddr, "server.http.memory-addr", r.inMemoryAddr, "Address to listen for in-memory HTTP traffic on. Change if it collides with a real address")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
+	cmd.Flags().
+		BoolVar(&r.enablePprof, "server.http.enable-pprof", r.enablePprof, "Enable /debug/pprof profiling endpoints.")
+	cmd.Flags().
+		BoolVar(&r.clusterEnabled, "cluster.enabled", r.clusterEnabled, "Start in clustered mode")
+	cmd.Flags().
+		StringVar(&r.clusterJoinAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
+	cmd.Flags().
+		StringVar(&r.clusterJoinAddr, "cluster.join-addresses", r.clusterJoinAddr, "Comma-separated list of addresses to join the cluster at")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	return cmd
 }
 
 type flowRun struct {
+	inMemoryAddr     string
 	httpListenAddr   string
 	storagePath      string
 	uiPrefix         string
+	enablePprof      bool
 	disableReporting bool
+	clusterEnabled   bool
+	clusterAdvAddr   string
+	clusterJoinAddr  string
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -138,13 +158,32 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
+	clusterer, err := cluster.New(l, reg, fr.clusterEnabled, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr)
+	if err != nil {
+		return fmt.Errorf("building clusterer: %w", err)
+	}
+
+	// In-memory listener, used for inner HTTP traffic without the network.
+	memLis := memconn.NewListener(nil)
+
 	f := flow.New(flow.Options{
 		LogSink:        logSink,
 		Tracer:         t,
+		Clusterer:      clusterer,
 		DataPath:       fr.storagePath,
 		Reg:            reg,
 		HTTPPathPrefix: "/api/v0/component/",
-		HTTPListenAddr: fr.httpListenAddr,
+		HTTPListenAddr: fr.inMemoryAddr,
+
+		// Send requests to fr.inMemoryAddr directly to our in-memory listener.
+		DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
+			switch address {
+			case fr.inMemoryAddr:
+				return memLis.DialContext(ctx)
+			default:
+				return (&net.Dialer{}).DialContext(ctx, network, address)
+			}
+		},
 	})
 
 	reload := func() error {
@@ -172,7 +211,8 @@ func (fr *flowRun) Run(configFile string) error {
 
 	// HTTP server
 	{
-		lis, err := net.Listen("tcp", fr.httpListenAddr)
+		// Network listener.
+		netLis, err := net.Listen("tcp", fr.httpListenAddr)
 		if err != nil {
 			return fmt.Errorf("failed to listen on %s: %w", fr.httpListenAddr, err)
 		}
@@ -184,8 +224,14 @@ func (fr *flowRun) Run(configFile string) error {
 		))
 
 		r.Handle("/metrics", promhttp.Handler())
-		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+		if fr.enablePprof {
+			r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
+		}
 		r.PathPrefix("/api/v0/component/{id}/").Handler(f.ComponentHandler())
+
+		// Register routes for the clusterer.
+		cr, ch := clusterer.Node.Handler()
+		r.PathPrefix(cr).Handler(ch)
 
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, _ *http.Request) {
 			if f.Ready() {
@@ -217,18 +263,22 @@ func (fr *flowRun) Run(configFile string) error {
 		// will take precedence over anything else mapped in uiPrefix.
 		ui.RegisterRoutes(fr.uiPrefix, r)
 
-		srv := &http.Server{Handler: r}
+		srv := &http.Server{Handler: h2c.NewHandler(r, &http2.Server{})}
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			defer cancel()
+		level.Info(l).Log("msg", "now listening for http traffic", "addr", fr.httpListenAddr)
 
-			level.Info(l).Log("msg", "now listening for http traffic", "addr", fr.httpListenAddr)
-			if err := srv.Serve(lis); err != nil {
-				level.Info(l).Log("msg", "http server closed", "err", err)
-			}
-		}()
+		listeners := []net.Listener{netLis, memLis}
+		for _, lis := range listeners {
+			wg.Add(1)
+			go func(lis net.Listener) {
+				defer wg.Done()
+				defer cancel()
+
+				if err := srv.Serve(lis); err != nil {
+					level.Info(l).Log("msg", "http server closed", "addr", lis.Addr(), "err", err)
+				}
+			}(lis)
+		}
 
 		defer func() { _ = srv.Shutdown(ctx) }()
 	}

@@ -1,8 +1,8 @@
 ---
-title: Install Grafana Agent Operator with Helm
+title: Install the Operator with Helm
 weight: 100
 ---
-# Install Grafana Agent Operator with Helm
+# Install the Operator with Helm
 
 In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator). To learn how to deploy Agent Operator without using Helm, see [Install Grafana Agent Operator]({{< relref "./getting-started.md" >}}).
 

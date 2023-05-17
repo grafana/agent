@@ -23,7 +23,7 @@ FROM alpine:3.17 as helm
 RUN apk add --no-cache helm
 
 # Dependency: Go and Go dependencies
-FROM golang:1.20.3-bullseye as golang
+FROM golang:1.20.4-bullseye as golang
 
 # Keep in sync with cmd/grafana-agent-operator/DEVELOPERS.md
 ENV CONTROLLER_GEN_VERSION v0.9.2
@@ -76,7 +76,7 @@ RUN apt-get update                                \
       build-essential file zip unzip gettext git  \
       musl libsystemd-dev nsis                    \
       rpm ruby ruby-dev rubygems                  \
-      protobuf-compiler libprotobuf-dev           \
+      protobuf-compiler libprotobuf-dev yamllint  \
  && gem install --no-document fpm                 \
  && rm -rf /var/lib/apt/lists/*
 

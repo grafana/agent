@@ -70,9 +70,9 @@ local.file "my_module" {
 module.string "my_module" {
   content = local.file.my_module.content
 
-  arguments = {
-    MODULE_ARGUMENT_NAME_1 = MODULE_ARGUMENT_VALUE_1,
-    MODULE_ARGUMENT_NAME_2 = MODULE_ARGUMENT_VALUE_2,
+  arguments {
+    MODULE_ARGUMENT_NAME_1 = MODULE_ARGUMENT_VALUE_1
+    MODULE_ARGUMENT_NAME_2 = MODULE_ARGUMENT_VALUE_2
     // ...
   }
 }
@@ -114,26 +114,23 @@ export "filter_input" {
 }
 ```
 
-It can then be used as a processing step before writing logs to Loki:
+The module above can be saved to a file and then used as a processing step 
+before writing logs to Loki:
 
 ```river
 loki.source.file "self" {
   targets = LOG_TARGETS
 
   // Forward collected logs to the input of our filter.
-  forward_to = [module.string.filter.exports.logs_input]
+  forward_to = [module.file.log_filter.exports.filter_input]
 }
 
-local.file "log_filter" {
+module.file "log_filter" {
   filename = "/path/to/modules/log_filter.river"
-}
 
-module.string "log_filter" {
-  content = local.file.log_filter.content
-
-  arguments = {
-    // Configure the filter to forward filtered logs to loki.echo below.
-    logs_output = [loki.write.default.receiver],
+  arguments {
+    // Configure the filter to forward filtered logs to loki.write below.
+    write_to = [loki.write.default.receiver],
   }
 }
 

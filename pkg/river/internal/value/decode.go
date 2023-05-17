@@ -386,19 +386,8 @@ func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 		return nil
 
 	case TypeNumber:
-		switch val.Number().Kind() {
-		case NumberKindFloat:
-			var v float64
-			ptr = reflect.ValueOf(&v)
-		case NumberKindInt:
-			var v int
-			ptr = reflect.ValueOf(&v)
-		case NumberKindUint:
-			var v uint
-			ptr = reflect.ValueOf(&v)
-		default:
-			panic("river/value: unreachable")
-		}
+		var v = val.Number().Float()
+		ptr = reflect.ValueOf(&v)
 
 	case TypeArray:
 		var v []interface{}
@@ -419,6 +408,14 @@ func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 	case TypeFunction, TypeCapsule:
 		// Functions and capsules must be directly assigned since there's no
 		// "generic" representation for either.
+		//
+		// We retain the pointer if we were given a pointer.
+
+		if val.rv.CanAddr() {
+			into.Set(val.rv.Addr())
+			return nil
+		}
+
 		into.Set(val.rv)
 		return nil
 

@@ -8,13 +8,14 @@ import (
 	"sync"
 	"time"
 
+	"context"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/prometheus/client_golang/prometheus"
-	"golang.org/x/net/context"
 )
 
 func init() {
@@ -221,8 +222,8 @@ func (s *S3) handleContentPolling(newContent string, err error) {
 // getPathBucketAndFile takes the path and splits it into a bucket and file.
 func getPathBucketAndFile(path string) (bucket, file string) {
 	parts := strings.Split(path, "/")
-	file = parts[len(parts)-1]
-	bucket = strings.Join(parts[:len(parts)-1], "/")
+	file = strings.Join(parts[3:], "/")
+	bucket = strings.Join(parts[:3], "/")
 	bucket = strings.ReplaceAll(bucket, "s3://", "")
 	return
 }

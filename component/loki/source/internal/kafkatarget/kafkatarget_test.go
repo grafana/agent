@@ -11,8 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
 	"github.com/Shopify/sarama"
-	"github.com/grafana/agent/component/loki/source/internal/kafkafake"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
@@ -168,7 +169,7 @@ func Test_TargetRun(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			session, claim := &testSession{}, newTestClaim("footopic", 10, 12)
 			var closed bool
-			fc := kafkafake.New(
+			fc := fake.NewClient(
 				func() {
 					closed = true
 				},

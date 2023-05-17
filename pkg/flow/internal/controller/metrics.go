@@ -44,7 +44,7 @@ func newControllerCollector(l *Loader) prometheus.Collector {
 	return &controllerCollector{
 		l: l,
 		runningComponentsTotal: prometheus.NewDesc(
-			"agent_component_controller_running_components_total",
+			"agent_component_controller_running_components",
 			"Total number of running components.",
 			[]string{"health_type"},
 			nil,

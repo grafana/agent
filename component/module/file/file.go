@@ -10,8 +10,8 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/local/file"
 	"github.com/grafana/agent/component/module"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 )
 
 func init() {
@@ -31,7 +31,7 @@ type Arguments struct {
 	LocalFileArguments file.Arguments `river:",squash"`
 
 	// Arguments to pass into the module.
-	Arguments map[string]any `river:"arguments,attr,optional"`
+	Arguments map[string]any `river:"arguments,block,optional"`
 }
 
 var _ river.Unmarshaler = (*Arguments)(nil)
@@ -154,7 +154,16 @@ func (c *Component) Handler() http.Handler {
 
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
-	return c.mod.CurrentHealth()
+	leastHealthy := component.LeastHealthy(
+		c.managedLocalFile.CurrentHealth(),
+		c.mod.CurrentHealth(),
+	)
+
+	// if both components are healthy - return c.mod's health, so we can have a stable Health.Message.
+	if leastHealthy.Health == component.HealthTypeHealthy {
+		return c.mod.CurrentHealth()
+	}
+	return leastHealthy
 }
 
 // getArgs is a goroutine safe way to get args

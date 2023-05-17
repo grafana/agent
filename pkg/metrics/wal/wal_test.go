@@ -230,7 +230,7 @@ func TestStorage_ExistingWAL_RefID(t *testing.T) {
 	require.NoError(t, err)
 	defer require.NoError(t, s.Close())
 
-	require.Equal(t, uint64(len(payload)), s.ref.Load(), "cached ref ID should be equal to the number of series written")
+	require.Equal(t, uint64(len(payload)), s.nextRef.Load(), "cached ref ID should be equal to the number of series written")
 }
 
 func TestStorage_Truncate(t *testing.T) {

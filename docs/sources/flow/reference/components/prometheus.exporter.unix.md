@@ -116,8 +116,8 @@ Name | Type | Description | Default | Required
 ### disk block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`device_exclude` | `string` | Regexp of devices to exclude for diskstats (mutually exclusive with `device_include`). | `"^(ram\|loop\|fd\|(h\|s\|v\|xv)d[a-z]\|nvme\\d+n\\d+p)\\d+$"` | no
-`device_include` | `string` | Regexp of devices to include for diskstats (mutually exclusive with `device_exclude`). | | no
+`device_exclude` | `string` | Regexp of devices to exclude for diskstats. | `"^(ram\|loop\|fd\|(h\|s\|v\|xv)d[a-z]\|nvme\\d+n\\d+p)\\d+$"` | no
+`device_include` | `string` | Regexp of devices to include for diskstats. If set, `device_exclude` is ignored.  | | no
 
 ### ethtool block
 Name | Type | Description | Default | Required
@@ -242,6 +242,12 @@ Name      | Type                | Description
 For example, the `targets` could either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
+
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
 
 ## Component health
 

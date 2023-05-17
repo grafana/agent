@@ -5,7 +5,6 @@ package herokutarget
 // to other loki components.
 
 import (
-	"flag"
 	"fmt"
 	"net"
 	"net/http"
@@ -15,14 +14,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
 	"github.com/go-kit/log"
 	"github.com/google/uuid"
-	"github.com/grafana/agent/component/loki/source/heroku/internal/fake"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/common/server"
+
+	fnet "github.com/grafana/agent/component/common/net"
 )
 
 const localhost = "127.0.0.1"
@@ -269,7 +270,7 @@ func TestHerokuDrainTarget(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			// Create fake promtail client
-			eh := fake.New(func() {})
+			eh := fake.NewClient(func() {})
 			defer eh.Stop()
 
 			serverConfig, port, err := getServerConfigWithAvailablePort()
@@ -330,7 +331,7 @@ func TestHerokuDrainTarget_UseIncomingTimestamp(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	serverConfig, port, err := getServerConfigWithAvailablePort()
@@ -373,7 +374,7 @@ func TestHerokuDrainTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	serverConfig, port, err := getServerConfigWithAvailablePort()
@@ -428,7 +429,7 @@ func waitForMessages(eh *fake.Client) {
 	}
 }
 
-func getServerConfigWithAvailablePort() (cfg server.Config, port int, err error) {
+func getServerConfigWithAvailablePort() (cfg *fnet.ServerConfig, port int, err error) {
 	// Get a randomly available port by open and closing a TCP socket
 	addr, err := net.ResolveTCPAddr("tcp", localhost+":0")
 	if err != nil {
@@ -444,12 +445,14 @@ func getServerConfigWithAvailablePort() (cfg server.Config, port int, err error)
 		return
 	}
 
-	// Adjust some of the defaults
-	cfg.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
-	cfg.HTTPListenAddress = localhost
-	cfg.HTTPListenPort = port
-	cfg.GRPCListenAddress = localhost
-	cfg.GRPCListenPort = 0 // Not testing GRPC, a random port will be assigned
+	cfg = &fnet.ServerConfig{
+		HTTP: &fnet.HTTPConfig{
+			ListenAddress: localhost,
+			ListenPort:    port,
+		},
+		// assign random grpc port
+		GRPC: &fnet.GRPCConfig{ListenPort: 0},
+	}
 
 	return
 }

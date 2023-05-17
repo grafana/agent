@@ -6,19 +6,19 @@ import (
 	"io"
 	stdlog "log"
 	"net"
+	"net/http"
 	"os"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/ckit"
+	"github.com/grafana/ckit/advertise"
+	"github.com/grafana/ckit/peer"
+	"github.com/grafana/ckit/shard"
 	"github.com/grafana/dskit/flagext"
 	"github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/k8s"
-	"github.com/rfratto/ckit"
-	"github.com/rfratto/ckit/advertise"
-	"github.com/rfratto/ckit/clientpool"
-	"github.com/rfratto/ckit/peer"
-	"github.com/rfratto/ckit/shard"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
-	"google.golang.org/grpc"
 )
 
 // extraDiscoverProviders used in tests.
@@ -67,9 +67,6 @@ type GossipConfig struct {
 	// Discover peers to connect to using go-discover. Mutually exclusive with
 	// JoinPeers.
 	DiscoverPeers string
-
-	// Client pool to use for connecting to peers.
-	Pool *clientpool.Pool
 }
 
 // DefaultGossipConfig holds default GossipConfig options.
@@ -166,12 +163,13 @@ type GossipNode struct {
 	started atomic.Bool
 }
 
-// NewGossipNode creates an unstarted GossipNode. The GossipNode will register
-// itself as a gRPC service to srv. GossipConfig is expected to be valid and
-// have already had ApplyDefaults called on it.
+// NewGossipNode creates an unstarted GossipNode. The GossipNode will use the
+// passed http.Client to create a new HTTP/2-compatible Transport that can
+// communicate with other nodes over HTTP/2. GossipConfig is expected to be
+// valid and have already had ApplyDefaults called on it.
 //
 // GossipNode operations are unavailable until the node is started.
-func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode, error) {
+func NewGossipNode(l log.Logger, reg prometheus.Registerer, cli *http.Client, c *GossipConfig) (*GossipNode, error) {
 	if l == nil {
 		l = log.NewNopLogger()
 	}
@@ -183,13 +181,13 @@ func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode
 		AdvertiseAddr: c.AdvertiseAddr,
 		Sharder:       sharder,
 		Log:           l,
-		Pool:          c.Pool,
 	}
 
-	inner, err := ckit.NewNode(srv, ckitConfig)
+	inner, err := ckit.NewNode(cli, ckitConfig)
 	if err != nil {
 		return nil, err
 	}
+	reg.MustRegister(inner.Metrics())
 
 	return &GossipNode{
 		cfg:       c,
@@ -241,6 +239,11 @@ func (n *GossipNode) Observe(o ckit.Observer) {
 // Peers returns the current set of Peers.
 func (n *GossipNode) Peers() []peer.Peer {
 	return n.innerNode.Peers()
+}
+
+// Handler returns the base route and HTTP handlers to register for this node.
+func (n *GossipNode) Handler() (string, http.Handler) {
+	return n.innerNode.Handler()
 }
 
 // Start starts the node. Start will connect to peers if configured to do so.
