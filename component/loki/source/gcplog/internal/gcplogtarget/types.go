@@ -19,7 +19,7 @@ type PullConfig struct {
 	Subscription         string            `river:"subscription,attr"`
 	Labels               map[string]string `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool              `river:"use_incoming_timestamp,attr,optional"`
-	UseFullLine          bool              `river:"use_full_line,optional"`
+	UseFullLine          bool              `river:"use_full_line,attr,optional"`
 }
 
 // PushConfig configures a GCPLog target with the 'push' strategy.
@@ -28,7 +28,7 @@ type PushConfig struct {
 	PushTimeout          time.Duration      `river:"push_timeout,attr,optional"`
 	Labels               map[string]string  `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool               `river:"use_incoming_timestamp,attr,optional"`
-	UseFullLine          bool               `river:"use_full_line,optional"`
+	UseFullLine          bool               `river:"use_full_line,attr,optional"`
 }
 
 // UnmarshalRiver implements the unmarshaller
