@@ -42,7 +42,7 @@ server:
 metrics:
   wal_directory: /tmp/agent
   global:
-    scrape_interval: 15s
+    scrape_interval: 60s
     remote_write:
     - url: https://prometheus-us-central1.grafana.net/api/prom/push
       basic_auth:
