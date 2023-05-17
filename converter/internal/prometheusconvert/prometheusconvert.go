@@ -12,6 +12,23 @@ import (
 )
 
 // Convert implements a Prometheus config converter.
+//
+// TODO...
+// The implementation of this API is a work in progress.
+// Additional components must be implemented:
+//
+//	prometheus.relabel
+//	discovery.azure
+//	discovery.consul
+//	discovery.digitalocean
+//	discovery.dns
+//	discovery.docker
+//	discovery.ec2
+//	discovery.file
+//	discovery.gce
+//	discovery.kubernetes
+//	discovery.lightsail
+//	discovery.relabel
 func Convert(in []byte) ([]byte, error) {
 	promConfig, err := promconfig.Load(string(in), false, log.NewNopLogger())
 	if err != nil {
@@ -19,7 +36,7 @@ func Convert(in []byte) ([]byte, error) {
 	}
 	f := builder.NewFile()
 
-	remoteWriteArgs := toRemotewriteArguments(promConfig.RemoteWriteConfigs)
+	remoteWriteArgs := toRemotewriteArguments(promConfig)
 	remoteWriteBlock := builder.NewBlock([]string{"prometheus", "remote_write"}, "default")
 	remoteWriteBlock.Body().AppendFrom(remoteWriteArgs)
 	f.Body().AppendBlock(remoteWriteBlock)

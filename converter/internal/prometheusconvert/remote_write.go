@@ -7,11 +7,11 @@ import (
 	promconfig "github.com/prometheus/prometheus/config"
 )
 
-func toRemotewriteArguments(remoteWriteConfigs []*promconfig.RemoteWriteConfig) *remotewrite.Arguments {
+func toRemotewriteArguments(promConfig *promconfig.Config) *remotewrite.Arguments {
 	return &remotewrite.Arguments{
-		ExternalLabels: map[string]string{},
-		Endpoints:      getEndpointOptions(remoteWriteConfigs),
-		WALOptions:     remotewrite.WALOptions{},
+		ExternalLabels: promConfig.GlobalConfig.ExternalLabels.Map(),
+		Endpoints:      getEndpointOptions(promConfig.RemoteWriteConfigs),
+		WALOptions:     remotewrite.DefaultWALOptions,
 	}
 }
 

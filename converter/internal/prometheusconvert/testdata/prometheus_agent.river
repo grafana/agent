@@ -1,5 +1,7 @@
 prometheus.remote_write "default" {
-	external_labels = {}
+	external_labels = {
+		cluster = "prod",
+	}
 
 	endpoint {
 		name             = "remote1"
@@ -47,6 +49,12 @@ prometheus.remote_write "default" {
 			send_interval        = "1m0s"
 			max_samples_per_send = 500
 		}
+	}
+
+	wal {
+		truncate_frequency = "2h0m0s"
+		min_keepalive_time = "5m0s"
+		max_keepalive_time = "8h0m0s"
 	}
 }
 

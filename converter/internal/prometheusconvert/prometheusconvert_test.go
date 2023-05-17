@@ -57,8 +57,8 @@ func testConverter(t *testing.T, input, expect []byte) {
 
 }
 
+// Replace '\r\n' with '\n'
 func normalizeLineEndings(data []byte) []byte {
-	// Replace '\r\n' with '\n'
 	normalized := bytes.ReplaceAll(data, []byte{'\r', '\n'}, []byte{'\n'})
 	return normalized
 }
