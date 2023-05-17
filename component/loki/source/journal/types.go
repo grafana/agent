@@ -5,7 +5,6 @@ import (
 
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/prometheus/common/model"
 )
 
 // Arguments are the arguments for the component.
@@ -16,7 +15,7 @@ type Arguments struct {
 	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 	Matches      string              `river:"matches,attr,optional"`
 	Receivers    []loki.LogsReceiver `river:"forward_to,attr"`
-	Labels       model.LabelSet      `river:"labels,attr,optional"`
+	Labels       map[string]string   `river:"labels,attr,optional"`
 }
 
 func defaultArgs() Arguments {
