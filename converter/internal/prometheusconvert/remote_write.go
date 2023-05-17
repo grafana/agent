@@ -1,14 +1,13 @@
-package remote_write
+package prometheusconvert
 
 import (
 	"time"
 
 	"github.com/grafana/agent/component/prometheus/remotewrite"
-	"github.com/grafana/agent/converter/internal/prometheusconvert/common"
 	promconfig "github.com/prometheus/prometheus/config"
 )
 
-func Reconvert(remoteWriteConfigs []*promconfig.RemoteWriteConfig) *remotewrite.Arguments {
+func toRemotewriteArguments(remoteWriteConfigs []*promconfig.RemoteWriteConfig) *remotewrite.Arguments {
 	return &remotewrite.Arguments{
 		ExternalLabels: map[string]string{},
 		Endpoints:      getEndpointOptions(remoteWriteConfigs),
@@ -27,9 +26,9 @@ func getEndpointOptions(remoteWriteConfigs []*promconfig.RemoteWriteConfig) []*r
 			Headers:              remoteWriteConfig.Headers,
 			SendExemplars:        remoteWriteConfig.SendExemplars,
 			SendNativeHistograms: remoteWriteConfig.SendNativeHistograms,
-			HTTPClientConfig:     common.ReconvertHttpClientConfig(&remoteWriteConfig.HTTPClientConfig),
-			QueueOptions:         reconvertQueueConfig(&remoteWriteConfig.QueueConfig),
-			MetadataOptions:      reconvertMetadataConfig(&remoteWriteConfig.MetadataConfig),
+			HTTPClientConfig:     toHttpClientConfig(&remoteWriteConfig.HTTPClientConfig),
+			QueueOptions:         toQueueOptions(&remoteWriteConfig.QueueConfig),
+			MetadataOptions:      toMetadataOptions(&remoteWriteConfig.MetadataConfig),
 		}
 
 		endpoints = append(endpoints, endpoint)
@@ -38,7 +37,7 @@ func getEndpointOptions(remoteWriteConfigs []*promconfig.RemoteWriteConfig) []*r
 	return endpoints
 }
 
-func reconvertQueueConfig(queueConfig *promconfig.QueueConfig) *remotewrite.QueueOptions {
+func toQueueOptions(queueConfig *promconfig.QueueConfig) *remotewrite.QueueOptions {
 	return &remotewrite.QueueOptions{
 		Capacity:          queueConfig.Capacity,
 		MaxShards:         queueConfig.MaxShards,
@@ -51,7 +50,7 @@ func reconvertQueueConfig(queueConfig *promconfig.QueueConfig) *remotewrite.Queu
 	}
 }
 
-func reconvertMetadataConfig(metadataConfig *promconfig.MetadataConfig) *remotewrite.MetadataOptions {
+func toMetadataOptions(metadataConfig *promconfig.MetadataConfig) *remotewrite.MetadataOptions {
 	return &remotewrite.MetadataOptions{
 		Send:              metadataConfig.Send,
 		SendInterval:      time.Duration(metadataConfig.SendInterval),

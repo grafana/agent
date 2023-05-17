@@ -1,4 +1,4 @@
-package common
+package prometheusconvert
 
 import (
 	"github.com/grafana/agent/component/common/config"
@@ -6,25 +6,25 @@ import (
 	promconfig "github.com/prometheus/common/config"
 )
 
-func ReconvertHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) *config.HTTPClientConfig {
+func toHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) *config.HTTPClientConfig {
 	if httpClientConfig == nil {
 		return nil
 	}
 
 	return &config.HTTPClientConfig{
-		BasicAuth:       ReconvertBasicAuth(httpClientConfig.BasicAuth),
-		Authorization:   ReconvertAuthorization(httpClientConfig.Authorization),
-		OAuth2:          ReconvertOAuth2(httpClientConfig.OAuth2),
+		BasicAuth:       toBasicAuth(httpClientConfig.BasicAuth),
+		Authorization:   toAuthorization(httpClientConfig.Authorization),
+		OAuth2:          toOAuth2(httpClientConfig.OAuth2),
 		BearerToken:     rivertypes.Secret(httpClientConfig.BearerToken),
 		BearerTokenFile: httpClientConfig.BearerTokenFile,
 		ProxyURL:        config.URL(httpClientConfig.ProxyURL),
-		TLSConfig:       *ReconvertTLSConfig(&httpClientConfig.TLSConfig),
+		TLSConfig:       *toTLSConfig(&httpClientConfig.TLSConfig),
 		FollowRedirects: httpClientConfig.FollowRedirects,
 		EnableHTTP2:     httpClientConfig.EnableHTTP2,
 	}
 }
 
-func ReconvertBasicAuth(basicAuth *promconfig.BasicAuth) *config.BasicAuth {
+func toBasicAuth(basicAuth *promconfig.BasicAuth) *config.BasicAuth {
 	if basicAuth == nil {
 		return nil
 	}
@@ -36,7 +36,7 @@ func ReconvertBasicAuth(basicAuth *promconfig.BasicAuth) *config.BasicAuth {
 	}
 }
 
-func ReconvertAuthorization(authorization *promconfig.Authorization) *config.Authorization {
+func toAuthorization(authorization *promconfig.Authorization) *config.Authorization {
 	if authorization == nil {
 		return nil
 	}
@@ -48,7 +48,7 @@ func ReconvertAuthorization(authorization *promconfig.Authorization) *config.Aut
 	}
 }
 
-func ReconvertOAuth2(oAuth2 *promconfig.OAuth2) *config.OAuth2Config {
+func toOAuth2(oAuth2 *promconfig.OAuth2) *config.OAuth2Config {
 	if oAuth2 == nil {
 		return nil
 	}
@@ -61,11 +61,11 @@ func ReconvertOAuth2(oAuth2 *promconfig.OAuth2) *config.OAuth2Config {
 		TokenURL:         oAuth2.TokenURL,
 		EndpointParams:   oAuth2.EndpointParams,
 		ProxyURL:         config.URL(oAuth2.ProxyURL),
-		TLSConfig:        ReconvertTLSConfig(&oAuth2.TLSConfig),
+		TLSConfig:        toTLSConfig(&oAuth2.TLSConfig),
 	}
 }
 
-func ReconvertTLSConfig(tlsConfig *promconfig.TLSConfig) *config.TLSConfig {
+func toTLSConfig(tlsConfig *promconfig.TLSConfig) *config.TLSConfig {
 	if tlsConfig == nil {
 		return nil
 	}

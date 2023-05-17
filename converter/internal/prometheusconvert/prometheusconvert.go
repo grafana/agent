@@ -8,9 +8,6 @@ import (
 	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
 
-	"github.com/grafana/agent/converter/internal/prometheusconvert/remote_write"
-	"github.com/grafana/agent/converter/internal/prometheusconvert/scrape"
-
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 )
 
@@ -22,13 +19,13 @@ func Convert(in []byte) ([]byte, error) {
 	}
 	f := builder.NewFile()
 
-	remoteWriteArgs := remote_write.Reconvert(promConfig.RemoteWriteConfigs)
+	remoteWriteArgs := toRemotewriteArguments(promConfig.RemoteWriteConfigs)
 	remoteWriteBlock := builder.NewBlock([]string{"prometheus", "remote_write"}, "default")
 	remoteWriteBlock.Body().AppendFrom(remoteWriteArgs)
 	f.Body().AppendBlock(remoteWriteBlock)
 
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		scrapeArgs := scrape.Reconvert(scrapeConfig)
+		scrapeArgs := toScrapeArguments(scrapeConfig)
 
 		scrapeBlock := builder.NewBlock([]string{"prometheus", "scrape"}, scrapeArgs.JobName)
 		scrapeBlock.Body().AppendFrom(scrapeArgs)

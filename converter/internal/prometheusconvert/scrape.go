@@ -1,17 +1,16 @@
-package scrape
+package prometheusconvert
 
 import (
 	"time"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/scrape"
-	"github.com/grafana/agent/converter/internal/prometheusconvert/common"
 	promconfig "github.com/prometheus/prometheus/config"
 	promdiscovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/storage"
 )
 
-func Reconvert(scrapeConfig *promconfig.ScrapeConfig) *scrape.Arguments {
+func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig) *scrape.Arguments {
 	if scrapeConfig == nil {
 		return nil
 	}
@@ -33,7 +32,7 @@ func Reconvert(scrapeConfig *promconfig.ScrapeConfig) *scrape.Arguments {
 		LabelLimit:            scrapeConfig.LabelLimit,
 		LabelNameLengthLimit:  scrapeConfig.LabelNameLengthLimit,
 		LabelValueLengthLimit: scrapeConfig.LabelValueLengthLimit,
-		HTTPClientConfig:      *common.ReconvertHttpClientConfig(&scrapeConfig.HTTPClientConfig),
+		HTTPClientConfig:      *toHttpClientConfig(&scrapeConfig.HTTPClientConfig),
 		ExtraMetrics:          false,
 		Clustering:            scrape.Clustering{Enabled: false},
 	}
