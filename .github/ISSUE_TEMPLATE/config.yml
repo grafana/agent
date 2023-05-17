@@ -1,3 +1,5 @@
+# NOTE(rfratto): this file *must* have the .yml extension otherwise GitHub doesn't 
+# recognize it.
 blank_issues_enabled: true
 contact_links:
   - name: Grafana Agent community support
