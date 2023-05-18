@@ -89,6 +89,8 @@ Main (unreleased)
 - Fix an issue where the cluster advertise address was overwriting the join
   addresses. (@laurovenancio)
 
+- Fix targets deduplication when clustering mode is enabled. (@laurovenancio)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
