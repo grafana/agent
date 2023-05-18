@@ -11,7 +11,7 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 	m := metrics{}
 	m.errors = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "loki_source_awsfirehose_parsing_errors",
-		Help: "Number of parsing errors while receiving AWS Firehose messages",
+		Help: "Number of parsing errors while receiving AWS Firehose messages. This includes things like reading the HTTP body, json decoding, etc.",
 	}, []string{"reason"})
 
 	m.recordsReceived = prometheus.NewCounterVec(prometheus.CounterOpts{

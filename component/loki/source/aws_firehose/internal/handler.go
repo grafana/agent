@@ -99,23 +99,30 @@ func NewHandler(sender Sender, logger log.Logger, reg prometheus.Registerer) *Ha
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	var err error
 	defer req.Body.Close()
 	level.Info(h.logger).Log("msg", "handling request")
+
+	var bodyReader io.Reader = req.Body
+	// firehose allows the user to configure gzip content-encoding, in that case
+	// decompress in the reader during unmarshalling
+	if req.Header.Get("Content-Encoding") == "gzip" {
+		bodyReader, err = gzip.NewReader(req.Body)
+		if err != nil {
+			h.metrics.errors.WithLabelValues("pre_read").Inc()
+			level.Error(h.logger).Log("msg", "failed to create gzip reader", "err", err.Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
 
 	// todo(pablo): use headers as labels
 
 	firehoseReq := FirehoseRequest{}
 
-	bs, err := io.ReadAll(req.Body)
+	err = json.NewDecoder(bodyReader).Decode(&firehoseReq)
 	if err != nil {
-		h.metrics.errors.WithLabelValues("read_error").Inc()
-		level.Error(h.logger).Log("msg", "failed to read incoming request", "err", err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	err = json.Unmarshal(bs, &firehoseReq)
-	if err != nil {
-		h.metrics.errors.WithLabelValues("format").Inc()
+		h.metrics.errors.WithLabelValues("read_or_format").Inc()
 		level.Error(h.logger).Log("msg", "failed to unmarshall request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
