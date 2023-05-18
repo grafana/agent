@@ -111,7 +111,6 @@ func (cg *ConfigGenerator) generateBasicAuth(auth promopv1.BasicAuth, namespace 
 }
 
 func (cg *ConfigGenerator) generateOauth2(oa promopv1.OAuth2, namespace string) (*commonConfig.OAuth2, error) {
-
 	clid, err := cg.Secrets.SecretOrConfigMapValue(namespace, oa.ClientID)
 	if err != nil {
 		return nil, err
@@ -130,7 +129,6 @@ func (cg *ConfigGenerator) generateOauth2(oa promopv1.OAuth2, namespace string) 
 }
 
 func (cg *ConfigGenerator) generateAuthorization(a promopv1.SafeAuthorization, namespace string) (*commonConfig.Authorization, error) {
-
 	auth := &commonConfig.Authorization{
 		Type: a.Type,
 	}

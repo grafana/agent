@@ -75,7 +75,6 @@ func newCrdManager(opts component.Options, logger log.Logger, args *operator.Arg
 }
 
 func (c *crdManager) Run(ctx context.Context) error {
-
 	restConfig, err := c.args.Client.BuildRESTConfig(c.logger)
 	if err != nil {
 		return fmt.Errorf("creating rest config: %w", err)
