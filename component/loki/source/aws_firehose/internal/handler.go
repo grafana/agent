@@ -76,7 +76,7 @@ type RecordOrigin string
 
 const (
 	OriginCloudwatchLogs RecordOrigin = "cloudwatch-logs"
-	OriginDirectPut                   = "direct-put"
+	OriginDirectPUT                   = "direct-put"
 	OriginUnknown                     = "unknown"
 )
 
@@ -127,7 +127,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		decodedRecord, _, err := h.decodeRecord(rec.Data)
 
 		// todo(pablo): use the decoded type for something, maybe inject as label
-	
+
 		if err != nil {
 			h.metrics.errors.WithLabelValues("decode").Inc()
 			level.Error(h.logger).Log("msg", "failed to decode request record", "err", err.Error())
@@ -181,7 +181,7 @@ func (h *Handler) decodeRecord(rec string) ([]byte, RecordOrigin, error) {
 	if !(decodedRec[0] == gzipID1 && decodedRec[1] == gzipID2 && // the first two represent the 1f8b magic bytes
 		decodedRec[2] == gzipDeflate) { // the third byte represents the gzip compression method DEFLATE
 		// no gzip, return decoded data
-		return decodedRec, OriginDirectPut, nil
+		return decodedRec, OriginDirectPUT, nil
 	}
 
 	gzipReader, err := gzip.NewReader(bytes.NewReader(decodedRec))
