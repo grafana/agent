@@ -8,10 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/component/prometheus/remotewrite"
+	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/stretchr/testify/require"
 )
 
@@ -79,9 +81,13 @@ func TestFlowParsing(t *testing.T) {
 				file, err := flow.ReadFile(path, inputBytes)
 				require.NoError(t, err)
 
-				f := flow.New(testOptions(t))
-				err = f.LoadFile(file, nil)
-				require.NoError(t, err)
+				if len(file.ConfigBlocks) > 0 {
+					require.FailNow(t, "This test doesn't support config blocks")
+				}
+
+				for _, node := range file.Components {
+					evalBlock(t, node)
+				}
 			})
 		}
 
@@ -89,18 +95,20 @@ func TestFlowParsing(t *testing.T) {
 	})
 }
 
-func testOptions(t *testing.T) flow.Options {
-	t.Helper()
+func evalBlock(t *testing.T, block *ast.BlockStmt) {
+	var err error
+	eval := vm.New(block.Body)
 
-	s, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
-	require.NoError(t, err)
-
-	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
-
-	return flow.Options{
-		LogSink:   s,
-		DataPath:  t.TempDir(),
-		Reg:       nil,
-		Clusterer: c,
+	switch block.GetBlockName() {
+	case "prometheus.scrape":
+		var args scrape.Arguments
+		err = eval.Evaluate(nil, &args)
+	case "prometheus.remote_write":
+		var args remotewrite.Arguments
+		err = eval.Evaluate(nil, &args)
+	default:
+		require.FailNow(t, "This test doesn't support "+block.GetBlockName())
 	}
+
+	require.NoError(t, err)
 }
