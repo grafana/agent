@@ -102,7 +102,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 	level.Info(h.logger).Log("msg", "handling request")
 
-	// todo(pablo): handle if the request has gzip content encoding
 	// todo(pablo): use headers as labels
 
 	firehoseReq := FirehoseRequest{}

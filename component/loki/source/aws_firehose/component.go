@@ -144,6 +144,9 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	if err = c.server.MountAndRun(func(router *mux.Router) {
+		// todo(pablo): handle if the request has gzip content encoding
+		// for this wrap the handler in one that if the header is content encoding gzip,
+		// first uncompress and delegate to the child
 		router.Path("/awsfirehose/api/v1/push").Methods("POST").Handler(c.handler)
 	}); err != nil {
 		return err
