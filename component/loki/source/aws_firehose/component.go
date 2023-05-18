@@ -1,23 +1,17 @@
 package aws_firehose
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	fnet "github.com/grafana/agent/component/common/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/loki/source/aws_firehose/internal"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/relabel"
-	"io"
-	"net/http"
 	"reflect"
 	"strings"
 	"sync"
@@ -56,9 +50,10 @@ type Component struct {
 	mut    sync.RWMutex
 	fanout []loki.LogsReceiver
 
-	// handler is the main destination where the TargetServer writes received log entries to
-	handler loki.LogsReceiver
-	rbs     []*relabel.Config
+	// destination is the main destination where the TargetServer writes received log entries to
+	destination loki.LogsReceiver
+	handler     *internal.Handler
+	rbs         []*relabel.Config
 
 	server *fnet.TargetServer
 
@@ -67,23 +62,23 @@ type Component struct {
 
 	// utils
 	serverMetrics *util.UncheckedCollector
-	metrics       *metrics
 	logger        log.Logger
 }
 
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:          o,
-		handler:       make(loki.LogsReceiver),
+		destination:   make(loki.LogsReceiver),
 		fanout:        args.ForwardTo,
 		serverMetrics: util.NewUncheckedCollector(nil),
 
-		// todo(pablo): should use unchecked collector here?
-		metrics: newMetrics(o.Registerer),
-		logger:  log.With(o.Logger, "component", "aws_firehose_logs"),
+		logger: log.With(o.Logger, "component", "aws_firehose_logs"),
 	}
 
 	o.Registerer.MustRegister(c.serverMetrics)
+
+	// todo(pablo): should use unchecked collector here?
+	c.handler = internal.NewHandler(c, c.logger, o.Registerer)
 
 	if err := c.Update(args); err != nil {
 		return nil, err
@@ -103,7 +98,7 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.destination:
 			c.mut.RLock()
 			for _, receiver := range c.fanout {
 				receiver <- entry
@@ -147,13 +142,18 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	if err = c.server.MountAndRun(func(router *mux.Router) {
-		router.Path("/api/v1/aws-firehose").Methods("POST").Handler(http.HandlerFunc(c.handle))
+		router.Path("/api/v1/aws-firehose").Methods("POST").Handler(c.handler)
 	}); err != nil {
 		return err
 	}
 
 	c.args = newArgs
 	return nil
+}
+
+// Send implements internal.Sender so that the component is able to receive logs decoded by the handler.
+func (c *Component) Send(ctx context.Context, entry loki.Entry) {
+	c.destination <- entry
 }
 
 // shutdownServer will shut down the currently used server.
@@ -163,83 +163,4 @@ func (c *Component) shutdownServer() {
 		c.server.StopAndShutdown()
 		c.server = nil
 	}
-}
-
-type FirehoseRequest struct {
-	RequestID string           `json:"requestId"`
-	Timestamp int64            `json:"timestamp"`
-	Records   []FirehoseRecord `json:"records"`
-}
-
-type FirehoseRecord struct {
-	Data string `json:"data"`
-}
-
-func (c *Component) handle(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	firehoseReq := FirehoseRequest{}
-
-	bs, err := io.ReadAll(r.Body)
-	if err != nil {
-		c.metrics.errors.WithLabelValues("read_error").Inc()
-		level.Warn(c.logger).Log("msg", "failed to read incoming request", "err", err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	err = json.Unmarshal(bs, &firehoseReq)
-	if err != nil {
-		c.metrics.errors.WithLabelValues("format").Inc()
-		level.Warn(c.logger).Log("msg", "failed to unmarshall request", "err", err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	for _, rec := range firehoseReq.Records {
-		decodedRec, err := base64.StdEncoding.DecodeString(rec.Data)
-		if err != nil {
-			// handle
-		}
-		gzipReader, err := gzip.NewReader(bytes.NewReader(decodedRec))
-		if err != nil {
-			// handle
-		}
-		var sb strings.Builder
-		if _, err := io.Copy(&sb, gzipReader); err != nil {
-			// handle
-		}
-
-		//
-		if err := gzipReader.Close(); err != nil {
-			level.Error(c.logger).Log("msg", "failed to close gzip reader")
-		}
-	}
-	//if err = pushMessage.Validate(); err != nil {
-	//	p.metrics.gcpPushErrors.WithLabelValues("invalid_message").Inc()
-	//	level.Warn(p.logger).Log("msg", "invalid gcp push request", "err", err.Error())
-	//	http.Error(w, err.Error(), http.StatusBadRequest)
-	//	return
-	//}
-
-	//entry, err := translate(pushMessage, p.Labels(), p.config.UseIncomingTimestamp, p.relabelConfigs, r.Header.Get("X-Scope-OrgID"))
-	//if err != nil {
-	//	p.metrics.gcpPushErrors.WithLabelValues("translation").Inc()
-	//	level.Warn(p.logger).Log("msg", "failed to translate gcp push request", "err", err.Error())
-	//	http.Error(w, err.Error(), http.StatusBadRequest)
-	//	return
-	//}
-	//
-	//level.Debug(p.logger).Log("msg", fmt.Sprintf("Received line: %s", entry.Line))
-	//
-	//if err := p.doSendEntry(ctx, entry); err != nil {
-	//	// NOTE: timeout errors can be tracked with from the metrics exposed by
-	//	// the spun weaveworks server.
-	//	// loki.source.gcplog.componentid_push_target_request_duration_seconds_count{status_code="503"}
-	//	level.Warn(p.logger).Log("msg", "error sending log entry", "err", err.Error())
-	//	http.Error(w, err.Error(), http.StatusServiceUnavailable)
-	//	return
-	//}
-	//
-	c.metrics.entriesReceived.WithLabelValues().Inc()
-	w.WriteHeader(http.StatusNoContent)
 }

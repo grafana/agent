@@ -1,10 +1,10 @@
-package aws_firehose
+package internal
 
 import "github.com/prometheus/client_golang/prometheus"
 
 type metrics struct {
 	errors          *prometheus.CounterVec
-	entriesReceived *prometheus.CounterVec
+	recordsReceived *prometheus.CounterVec
 }
 
 func newMetrics(reg prometheus.Registerer) *metrics {
@@ -14,15 +14,15 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 		Help: "Number of parsing errors while receiving AWS Firehose messages",
 	}, []string{"reason"})
 
-	m.entriesReceived = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "loki_source_awsfirehose_entries_received",
-		Help: "Number of entries received from AWS Firehose",
+	m.recordsReceived = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "loki_source_awsfirehose_records_received",
+		Help: "Number of records received from AWS Firehose",
 	}, []string{})
 
 	if reg != nil {
 		reg.MustRegister(
 			m.errors,
-			m.entriesReceived,
+			m.recordsReceived,
 		)
 	}
 
