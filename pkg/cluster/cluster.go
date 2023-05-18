@@ -212,6 +212,17 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 	return res, nil
 }
 
+// Stop stops the Clusterer.
+func (c *Clusterer) Stop() error {
+	switch node := c.Node.(type) {
+	case *GossipNode:
+		return node.Stop()
+	}
+
+	// Nothing to do for unrecognized types.
+	return nil
+}
+
 func deadlineDuration(ctx context.Context) (d time.Duration, ok bool) {
 	if t, ok := ctx.Deadline(); ok {
 		return time.Until(t), true

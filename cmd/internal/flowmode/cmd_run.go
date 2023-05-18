@@ -162,6 +162,12 @@ func (fr *flowRun) Run(configFile string) error {
 	if err != nil {
 		return fmt.Errorf("building clusterer: %w", err)
 	}
+	defer func() {
+		err := clusterer.Stop()
+		if err != nil {
+			level.Error(l).Log("msg", "failed to terminate clusterer", "err", err)
+		}
+	}()
 
 	// In-memory listener, used for inner HTTP traffic without the network.
 	memLis := memconn.NewListener(nil)
