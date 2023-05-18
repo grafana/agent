@@ -185,7 +185,7 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 // For the gossipNode implementation, Start will attempt to connect to the
 // configured list of peers; if this fails it will fall back to bootstrapping a
 // new cluster of its own.
-func (c *Clusterer) Start() error {
+func (c *Clusterer) Start(ctx context.Context) error {
 	switch node := c.Node.(type) {
 	case *localNode:
 		return nil // no-op, always ready
@@ -204,7 +204,9 @@ func (c *Clusterer) Start() error {
 		// Nodes initially join in the Viewer state. We can move to the
 		// Participant state to signal that we wish to participate in reading
 		// or writing data.
-		err = node.ChangeState(context.Background(), peer.StateParticipant)
+		ctx, ccl := context.WithTimeout(ctx, 5*time.Second)
+		defer ccl()
+		err = node.ChangeState(ctx, peer.StateParticipant)
 		if err != nil {
 			return err
 		}
