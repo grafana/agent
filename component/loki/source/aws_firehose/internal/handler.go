@@ -100,6 +100,7 @@ func NewHandler(sender Sender, logger log.Logger, reg prometheus.Registerer) *Ha
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
+	level.Info(h.logger).Log("msg", "handling request")
 
 	firehoseReq := FirehoseRequest{}
 
