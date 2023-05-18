@@ -102,6 +102,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 	level.Info(h.logger).Log("msg", "handling request")
 
+	// todo(pablo): handle if the request has gzip content encoding
+	// todo(pablo): use headers as labels
+
 	firehoseReq := FirehoseRequest{}
 
 	bs, err := io.ReadAll(req.Body)
@@ -122,6 +125,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// todo(pablo): should parallize this?
 	for _, rec := range firehoseReq.Records {
 		decodedRecord, _, err := h.decodeRecord(rec.Data)
+
+		// todo(pablo): use the decoded type for something, maybe inject as label
+	
 		if err != nil {
 			h.metrics.errors.WithLabelValues("decode").Inc()
 			level.Error(h.logger).Log("msg", "failed to decode request record", "err", err.Error())
