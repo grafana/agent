@@ -8,7 +8,7 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment
+    kind: {{ .Values.controller.type  }}
     name: {{ include "grafana-agent.fullname" . }}
   {{- with .Values.controller.autoscaling }}
   minReplicas: {{ .minReplicas }}

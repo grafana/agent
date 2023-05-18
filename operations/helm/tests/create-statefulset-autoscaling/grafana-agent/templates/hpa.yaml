@@ -13,7 +13,7 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment
+    kind: statefulset
     name: grafana-agent
   minReplicas: 1
   maxReplicas: 5
