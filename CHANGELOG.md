@@ -67,6 +67,8 @@ Main (unreleased)
 
 - Update azidentity dependency to v1.3.0. (@akselleirv)
 
+- Add custom labels to journal entries in `loki.source.journal` (@sbhrule15)
+
 ### Bugfixes
 
 - Fix `loki.source.(gcplog|heroku)` `http` and `grpc` blocks were overriding defaults with zero-values
