@@ -177,39 +177,64 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 		return nil, err
 	}
 
-	// Attempt to start the Node by connecting to the peers in gossipConfig.
-	// If we cannot connect to any peers, fall back to bootstrapping a new
-	// cluster by ourselves.
-	err = gossipNode.Start()
-	if err != nil {
-		level.Debug(log).Log("msg", "failed to connect to peers; bootstrapping a new cluster")
-		gossipConfig.JoinPeers = nil
-		err = gossipNode.Start()
+	return &Clusterer{Node: gossipNode}, nil
+}
+
+// Start starts the node.
+// For the localNode implementation, this is a no-op.
+// For the gossipNode implementation, Start will attempt to connect to the
+// configured list of peers; if this fails it will fall back to bootstrapping a
+// new cluster of its own.
+func (c *Clusterer) Start(ctx context.Context) error {
+	switch node := c.Node.(type) {
+	case *localNode:
+		return nil // no-op, always ready
+	case *GossipNode:
+		err := node.Start() // TODO(@tpaschalis) Should we backoff and retry before moving on to the fallback here?
 		if err != nil {
-			return nil, err
+			level.Debug(node.log).Log("msg", "failed to connect to peers; bootstrapping a new cluster")
+			node.cfg.JoinPeers = nil
+			err = node.Start()
+			if err != nil {
+				return err
+			}
 		}
+
+		// We now have either joined or started a new cluster.
+		// Nodes initially join in the Viewer state. We can move to the
+		// Participant state to signal that we wish to participate in reading
+		// or writing data.
+		ctx, ccl := context.WithTimeout(ctx, 5*time.Second)
+		defer ccl()
+		err = node.ChangeState(ctx, peer.StateParticipant)
+		if err != nil {
+			return err
+		}
+
+		node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
+			names := make([]string, len(peers))
+			for i, p := range peers {
+				names[i] = p.Name
+			}
+			level.Info(node.log).Log("msg", "peers changed", "new_peers", strings.Join(names, ","))
+			return true
+		}))
+		return nil
+	default:
+		msg := fmt.Sprintf("node type: %T", c.Node)
+		panic("cluster: unreachable:" + msg)
+	}
+}
+
+// Stop stops the Clusterer.
+func (c *Clusterer) Stop() error {
+	switch node := c.Node.(type) {
+	case *GossipNode:
+		return node.Stop()
 	}
 
-	// Nodes initially join the cluster in the Viewer state. We can move to the
-	// Participant state to signal that we wish to participate in reading or
-	// writing data.
-	err = gossipNode.ChangeState(context.Background(), peer.StateParticipant)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &Clusterer{Node: gossipNode}
-
-	gossipNode.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
-		names := make([]string, len(peers))
-		for i, p := range peers {
-			names[i] = p.Name
-		}
-		level.Info(log).Log("msg", "peers changed", "new_peers", strings.Join(names, ","))
-		return true
-	}))
-
-	return res, nil
+	// Nothing to do for unrecognized types.
+	return nil
 }
 
 func deadlineDuration(ctx context.Context) (d time.Duration, ok bool) {

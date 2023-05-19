@@ -71,6 +71,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.autoscaling.targetCPUUtilizationPercentage | int | `0` | Average CPU utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetCPUUtilizationPercentage` to 0 will disable CPU scaling. |
 | controller.autoscaling.targetMemoryUtilizationPercentage | int | `80` | Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetMemoryUtilizationPercentage` to 0 will disable Memory scaling. |
 | controller.dnsPolicy | string | `"ClusterFirst"` | Configures the DNS policy for the pod. https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy |
+| controller.enableStatefulSetAutoDeletePVC | bool | `false` | Whether to enable automatic deletion of stale PVCs due to a scale down operation, when controller.type is 'statefulset'. |
 | controller.hostNetwork | bool | `false` | Configures Pods to use the host network. When set to true, the ports that will be used must be specified. |
 | controller.podAnnotations | object | `{}` | Extra pod annotations to add. |
 | controller.podLabels | object | `{}` | Extra pod labels to add. |
@@ -166,15 +167,24 @@ components like [discovery.kubernetes][] to work properly.
 
 ### controller.autoscaling
 
-`controller.autoscaling.enabled` enables the creation of a HorizontalPodAutoscaler. It is only used when `controller.type` is set to `deployment`.
+`controller.autoscaling.enabled` enables the creation of a HorizontalPodAutoscaler. It is only used when `controller.type` is set to `deployment` or `statefulset`.
 
 `controller.autoscaling` is intended to be used with an
-[app_agent_receiver-configured][app_agent_receiver] Grafana Agent.
+[app_agent_receiver-configured][app_agent_receiver] Grafana Agent or for
+[clustered][] mode.
 
 > **WARNING**: Using `controller.autoscaling` for any other Grafana Agent
 > configuration could lead to redundant or double telemetry collection.
 
 [app_agent_receiver]: https://grafana.com/docs/agent/latest/configuration/integrations/integrations-next/app-agent-receiver-config/
+[clustered]: https://grafana.com/docs/agent/latest/flow/reference/cli/run/#clustered-mode-experimental
+
+When using autoscaling with a StatefulSet controller and have enabled
+volumeClaimTemplates to be created alongside the StatefulSet, it is possible to
+leak up to `maxReplicas` PVCs when the HPA is scaling down. If you're on
+Kubernetes version `>=1.23-0` and your cluster has the
+`StatefulSetAutoDeletePVC` feature gate enabled, you can set
+`enableStatefulSetAutoDeletePVC` to true to automatically delete stale PVCs.
 
 ## Collecting logs from other containers
 
