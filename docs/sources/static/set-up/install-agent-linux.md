@@ -65,8 +65,8 @@ Install Grafana Agent and get it up and running on Linux.
 1. Open a terminal and run the following to install Grafana's package repository:
 
    ```shell
-   wget -q -O ~/Downloads/gpg.key https://apt.grafana.com/gpg.key
-   sudo rpm --import ~/Downloads/gpg.key
+   wget -q -O gpg.key https://apt.grafana.com/gpg.key
+   sudo rpm --import gpg.key
    sudo zypper addrepo https://rpm.grafana.com grafana
    ```
 
