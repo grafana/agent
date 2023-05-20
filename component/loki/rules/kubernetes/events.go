@@ -203,10 +203,12 @@ func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]rulefmt.Ru
 		return nil, err
 	}
 
-	groups, errs := rulefmt.Parse(buf)
-	if len(errs) > 0 {
-		return nil, multierror.Append(nil, errs...)
-	}
+	groups, _ := rulefmt.Parse(buf)
+
+	// Disable looking for errors, loki queries won't be valid prometheus queries, but still want the similar information
+	//if len(errs) > 0 {
+	//	return nil, multierror.Append(nil, errs...)
+	//}
 
 	return groups.Groups, nil
 }
@@ -249,7 +251,8 @@ func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []
 // stored in loki. This function, along with isManagedNamespace, is used to
 // determine if a rule CRD is managed by the agent.
 func lokiNamespaceForRuleCRD(prefix string, pr *promv1.PrometheusRule) string {
-	return fmt.Sprintf("%s/%s/%s/%s", prefix, pr.Namespace, pr.Name, pr.UID)
+	// Set to - to separate, loki doesn't support prefixpath like mimir ruler does
+	return fmt.Sprintf("%s-%s-%s-%s", prefix, pr.Namespace, pr.Name, pr.UID)
 }
 
 // isManagedLokiNamespace returns true if the namespace is managed by the agent.
@@ -260,7 +263,8 @@ func isManagedLokiNamespace(prefix, namespace string) bool {
 	namePart := `.+`
 	uuidPart := `[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}`
 	managedNamespaceRegex := regexp.MustCompile(
-		fmt.Sprintf("^%s/%s/%s/%s$", prefixPart, namespacePart, namePart, uuidPart),
+		// Set to - to separate, loki doesn't support prefixpath like mimir ruler does
+		fmt.Sprintf("^%s-%s-%s-%s$", prefixPart, namespacePart, namePart, uuidPart),
 	)
 	return managedNamespaceRegex.MatchString(namespace)
 }

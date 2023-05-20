@@ -29,7 +29,6 @@ func (r *LokiClient) CreateRuleGroup(ctx context.Context, namespace string, rg r
 	if err != nil {
 		return err
 	}
-
 	res.Body.Close()
 
 	return nil

@@ -191,7 +191,7 @@ rules with the `agent` label set to `yes` are included.
 
 ```river
 loki.rules.kubernetes "local" {
-    address = "loki:8080"
+    address = "loki:3100"
     tenant_id = "team-a"
 
     rule_namespace_selector {
@@ -213,7 +213,7 @@ rules to Grafana Cloud.
 
 ```river
 loki.rules.kubernetes "default" {
-    address = "GRAFANA_CLOUD_METRICS_URL"
+    address = "GRAFANA_CLOUD_URL"
     basic_auth {
         username = "GRAFANA_CLOUD_USER"
         password = "GRAFANA_CLOUD_API_KEY"

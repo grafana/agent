@@ -123,8 +123,9 @@ func checkResponse(r *http.Response) error {
 		errMsg = fmt.Sprintf("server returned HTTP status %s: %s", r.Status, msg)
 	}
 
+	// Loki ruler currently if there are no rules throws a 404, issue has been created to track that
 	if r.StatusCode == http.StatusNotFound {
-		return ErrResourceNotFound
+		return nil
 	}
 
 	return errors.New(errMsg)
