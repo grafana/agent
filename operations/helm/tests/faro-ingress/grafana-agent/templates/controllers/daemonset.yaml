@@ -44,6 +44,7 @@ spec:
               name: http-metrics
             - containerPort: 12347
               name: faro
+              protocol: TCP
           readinessProbe:
             httpGet:
               path: /-/ready

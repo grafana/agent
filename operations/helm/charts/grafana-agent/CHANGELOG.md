@@ -14,6 +14,8 @@ Unreleased
 
 - Add HPA support for Deployments and StatefulSets. (@tpaschalis)
 
+- Make the Faro port optional. (@tpaschalis)
+
 0.14.0 (2023-05-11)
 -------------------
 
