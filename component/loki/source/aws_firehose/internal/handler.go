@@ -205,6 +205,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	sendAPIResponse(w, firehoseReq.RequestID, "", http.StatusOK)
 }
 
+// handleCloudwatchLogsRecord explodes the cloudwatch logs record into each log message. Also, it adds all properties
+// sent in the envelope as internal labels, available for relabel.
 func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, commonLabels labels.Labels) error {
 	cwRecord := CloudwatchLogsRecord{}
 	if err := json.Unmarshal(data, &cwRecord); err != nil {
@@ -232,8 +234,7 @@ func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, c
 	return nil
 }
 
-// postProcessLabels drops not relabeled internal labels, and also drops them if
-// the label name or value are not prometheus-valid.
+// postProcessLabels applies relabels, then drops not relabeled internal and invalid labels.
 func (h *Handler) postProcessLabels(lbs labels.Labels) model.LabelSet {
 	// apply relabel rules if any
 	if len(h.relabelRules) > 0 {

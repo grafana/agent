@@ -51,9 +51,17 @@ type response struct {
 
 func TestHandler(t *testing.T) {
 	type testcase struct {
-		Body     string
+		// TenantID configures the X-Scope-OrgID header in the test request when present.
+		TenantID string
+
+		// Body is the payload of the request.
+		Body string
+
+		// Relabels are the relabeling rules configured on Handler.
 		Relabels []*relabel.Config
-		Assert   func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry)
+
+		// Assert is the main assertion function ran after the request is successful.
+		Assert func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry)
 	}
 
 	tests := map[string]testcase{
@@ -66,6 +74,24 @@ func TestHandler(t *testing.T) {
 				require.Equal(t, 200, res.Code)
 				require.Equal(t, "a1af4300-6c09-4916-ba8f-12f336176246", r.RequestID)
 				require.Len(t, entries, 3)
+				for _, e := range entries {
+					// only add special tenant label if present
+					require.NotContains(t, e.Labels, "__tenant_id__")
+				}
+			},
+		},
+		"direct put data, with tenant ID": {
+			Body:     readTestData(t, "testdata/DirectPUT.json"),
+			TenantID: "20",
+			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
+				r := response{}
+				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
+
+				require.Equal(t, 200, res.Code)
+				require.Len(t, entries, 3)
+				for _, e := range entries {
+					require.Equal(t, "20", string(e.Labels["__tenant_id__"]))
+				}
 			},
 		},
 		"direct put data, relabeling req id and source arn": {
@@ -124,6 +150,23 @@ func TestHandler(t *testing.T) {
 				require.Len(t, entries, 14)
 				// assert that all expected lines were seen
 				assertCloudwatchDataContents(t, res, entries, append(cwLambdaLogMessages, cwLambdaControlMessage)...)
+				for _, e := range entries {
+					// only add special tenant label if present
+					require.NotContains(t, e.Labels, "__tenant_id__")
+				}
+			},
+		},
+		"cloudwatch logs-subscription data, with tenant ID": {
+			Body:     readTestData(t, "testdata/CloudwatchLogsLambda_justControlMessage.json"),
+			TenantID: "20",
+			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
+				r := response{}
+				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
+
+				require.Equal(t, 200, res.Code)
+
+				require.Len(t, entries, 1)
+				require.Equal(t, "20", string(entries[0].Labels["__tenant_id__"]))
 			},
 		},
 		"cloudwatch logs-subscription data, relabeling control message": {
@@ -215,6 +258,9 @@ func TestHandler(t *testing.T) {
 				req.Header.Set("X-Amz-Firehose-Source-Arn", testSourceARN)
 				req.Header.Set("X-Amz-Firehose-Protocol-Version", "1.0")
 				req.Header.Set("User-Agent", "Amazon Kinesis Data Firehose Agent/1.0")
+				if tc.TenantID != "" {
+					req.Header.Set("X-Scope-OrgID", tc.TenantID)
+				}
 				require.NoError(t, err)
 
 				// Also content-encoding header needs to be set
