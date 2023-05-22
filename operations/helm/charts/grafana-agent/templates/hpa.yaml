@@ -1,4 +1,4 @@
-{{- if and (eq .Values.controller.type "deployment") .Values.controller.autoscaling.enabled }}
+{{- if and (or (eq .Values.controller.type "deployment") (eq .Values.controller.type "statefulset" ))  .Values.controller.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -8,7 +8,7 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment
+    kind: {{ .Values.controller.type  }}
     name: {{ include "grafana-agent.fullname" . }}
   {{- with .Values.controller.autoscaling }}
   minReplicas: {{ .minReplicas }}

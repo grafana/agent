@@ -36,8 +36,6 @@
   ports:
     - containerPort: {{ .Values.agent.listenPort }}
       name: http-metrics
-    - containerPort: {{ .Values.agent.faroPort }}
-      name: faro
     {{- range $portMap := .Values.agent.extraPorts }}
     - containerPort: {{ $portMap.targetPort }}
       {{- if $portMap.hostPort }}

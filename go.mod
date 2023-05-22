@@ -51,7 +51,7 @@ require (
 	github.com/google/renameio/v2 v2.0.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
-	github.com/grafana/ckit v0.0.0-20230516123031-0cbbd63d3fac
+	github.com/grafana/ckit v0.0.0-20230518140533-fbd338b33964
 	github.com/grafana/cloudflare-go v0.0.0-20230110200409-c627cf6792f2
 	github.com/grafana/dskit v0.0.0-20230201083518-528d8a7d52f2
 	github.com/grafana/go-gelf/v2 v2.0.1
