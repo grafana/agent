@@ -22,3 +22,15 @@
 
   float: right;
 }
+
+.idColumn {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.idName {
+  width: 80%;
+  word-wrap: break-word;
+  display: inline-block;
+}

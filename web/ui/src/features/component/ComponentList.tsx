@@ -16,19 +16,19 @@ interface ComponentListProps {
 const TABLEHEADERS = ['Health', 'ID'];
 
 const ComponentList = ({ components }: ComponentListProps) => {
-  const tableStyles = { width: '100px' };
+  const tableStyles = { width: '130px' };
 
   /**
    * Custom renderer for table data
    */
   const renderTableData = () => {
     return components.map(({ health, id }) => (
-      <tr key={id} style={{ lineHeight: '2' }}>
+      <tr key={id} style={{ lineHeight: '2.5' }}>
         <td>
           <HealthLabel health={health.state} />
         </td>
-        <td>
-          <span>{id}</span>
+        <td className={styles.idColumn}>
+          <span className={styles.idName}>{id}</span>
           <NavLink to={'/component/' + id} className={styles.viewButton}>
             View
           </NavLink>
