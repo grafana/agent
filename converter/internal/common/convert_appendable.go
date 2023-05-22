@@ -1,8 +1,6 @@
 package common
 
 import (
-	"context"
-
 	"github.com/grafana/agent/pkg/river/token"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/prometheus/storage"
@@ -18,8 +16,7 @@ type ConvertAppendable struct {
 	Expr string // The specific string to return during tokenization.
 }
 
-func (f ConvertAppendable) Appender(ctx context.Context) storage.Appender { return nil }
-func (f ConvertAppendable) RiverCapsule()                                 {}
+func (f ConvertAppendable) RiverCapsule() {}
 func (f ConvertAppendable) RiverTokenize() []builder.Token {
 	return []builder.Token{{
 		Tok: token.STRING,
