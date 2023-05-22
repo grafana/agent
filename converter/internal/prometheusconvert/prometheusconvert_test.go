@@ -1,4 +1,4 @@
-package prometheusconvert_test
+package prometheusconvert
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,7 +46,7 @@ func TestConvert(t *testing.T) {
 func testConverter(t *testing.T, input, expect []byte) {
 	t.Helper()
 
-	actual, err := prometheusconvert.Convert(input)
+	actual, err := Convert(input)
 
 	require.NoError(t, err)
 	require.Equal(t, string(normalizeLineEndings(expect)), string(normalizeLineEndings(actual))+"\n")

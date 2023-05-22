@@ -10,14 +10,14 @@ import (
 	"github.com/prometheus/prometheus/storage"
 )
 
-func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig) *scrape.Arguments {
+func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig, forwardTo []storage.Appendable) *scrape.Arguments {
 	if scrapeConfig == nil {
 		return nil
 	}
 
 	return &scrape.Arguments{
 		Targets:               getTargets(scrapeConfig),
-		ForwardTo:             []storage.Appendable{}, // TODO
+		ForwardTo:             forwardTo,
 		JobName:               scrapeConfig.JobName,
 		HonorLabels:           scrapeConfig.HonorLabels,
 		HonorTimestamps:       scrapeConfig.HonorTimestamps,
