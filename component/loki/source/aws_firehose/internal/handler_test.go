@@ -120,7 +120,59 @@ func TestHandler(t *testing.T) {
 
 				require.Equal(t, 200, res.Code)
 				require.Equal(t, "86208cf6-2bcc-47e6-9010-02ca9f44a025", r.RequestID)
-				require.Len(t, entries, 2)
+
+				require.Len(t, entries, 14)
+				// assert that all expected lines were seen
+				assertCloudwatchDataContents(t, res, entries, append(cwLambdaLogMessages, cwLambdaControlMessage)...)
+			},
+		},
+		"cloudwatch logs-subscription data, relabeling control message": {
+			Body: readTestData(t, "testdata/CloudwatchLogsLambda_justControlMessage.json"),
+			Relabels: []*relabel.Config{
+				keepLabelRule("__aws_owner", "aws_owner"),
+				keepLabelRule("__aws_cw_msg_type", "msg_type"),
+			},
+			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
+				r := response{}
+				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
+
+				require.Equal(t, 200, res.Code)
+				require.Equal(t, "86208cf6-2bcc-47e6-9010-02ca9f44a025", r.RequestID)
+
+				require.Len(t, entries, 1)
+				// assert that all expected lines were seen
+				assertCloudwatchDataContents(t, res, entries, cwLambdaControlMessage)
+
+				require.Equal(t, "CloudwatchLogs", string(entries[0].Labels["aws_owner"]))
+				require.Equal(t, "CONTROL_MESSAGE", string(entries[0].Labels["msg_type"]))
+			},
+		},
+		"cloudwatch logs-subscription data, relabeling log messages": {
+			Body: readTestData(t, "testdata/CloudwatchLogsLambda_justLogMessages.json"),
+			Relabels: []*relabel.Config{
+				keepLabelRule("__aws_owner", "aws_owner"),
+				keepLabelRule("__aws_cw_log_group", "log_group"),
+				keepLabelRule("__aws_cw_log_stream", "log_stream"),
+				keepLabelRule("__aws_cw_matched_filters", "filters"),
+				keepLabelRule("__aws_cw_msg_type", "msg_type"),
+			},
+			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
+				r := response{}
+				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
+
+				require.Equal(t, 200, res.Code)
+				require.Equal(t, "86208cf6-2bcc-47e6-9010-02ca9f44a025", r.RequestID)
+
+				require.Len(t, entries, 13)
+				// assert that all expected lines were seen
+				assertCloudwatchDataContents(t, res, entries, cwLambdaLogMessages...)
+
+				require.Equal(t, "366620023056", string(entries[0].Labels["aws_owner"]))
+				require.Equal(t, "DATA_MESSAGE", string(entries[0].Labels["msg_type"]))
+				require.Equal(t, "/aws/lambda/logging-lambda", string(entries[0].Labels["log_group"]))
+				require.Equal(t, "/aws/lambda/logging-lambda", string(entries[0].Labels["log_group"]))
+				require.Equal(t, "2023/05/18/[$LATEST]405d340d30f844c4ad376392489343f5", string(entries[0].Labels["log_stream"]))
+				require.Equal(t, "test_lambdafunction_logfilter", string(entries[0].Labels["filters"]))
 			},
 		},
 		"non json payload": {
@@ -176,5 +228,48 @@ func TestHandler(t *testing.T) {
 				tc.Assert(t, recorder, testReceiver.entries)
 			})
 		}
+	}
+}
+
+const cwLambdaControlMessage = `CWL CONTROL MESSAGE: Checking health of destination Firehose.`
+
+var cwLambdaLogMessages = []string{
+	"INIT_START Runtime Version: nodejs:18.v6\tRuntime Version ARN: arn:aws:lambda:us-east-2::runtime:813a1c9d8f27c16e2f3288da6255eac7867411c306ae9cf76498bb320eddded2\n",
+	"START RequestId: 632d3270-354e-4504-96e1-e3a74218c002 Version: $LATEST\n",
+	"2023-05-18T15:33:23.822Z\t632d3270-354e-4504-96e1-e3a74218c002\tINFO\thello i'm a lambda and its 1684424003821\n",
+	"END RequestId: 632d3270-354e-4504-96e1-e3a74218c002\n",
+	"REPORT RequestId: 632d3270-354e-4504-96e1-e3a74218c002\tDuration: 37.18 ms\tBilled Duration: 38 ms\tMemory Size: 128 MB\tMax Memory Used: 65 MB\tInit Duration: 177.89 ms\t\n",
+	"START RequestId: 261fbfb2-8a5f-4977-b6a6-e701a622ee16 Version: $LATEST\n",
+	"2023-05-18T15:33:25.708Z\t261fbfb2-8a5f-4977-b6a6-e701a622ee16\tINFO\thello i'm a lambda and its 1684424005707\n",
+	"END RequestId: 261fbfb2-8a5f-4977-b6a6-e701a622ee16\n",
+	"REPORT RequestId: 261fbfb2-8a5f-4977-b6a6-e701a622ee16\tDuration: 11.61 ms\tBilled Duration: 12 ms\tMemory Size: 128 MB\tMax Memory Used: 66 MB\t\n",
+	"START RequestId: 921a2a6d-5bd1-4797-8400-4688494b664b Version: $LATEST\n",
+	"2023-05-18T15:33:27.493Z\t921a2a6d-5bd1-4797-8400-4688494b664b\tINFO\thello i'm a lambda and its 1684424007493\n",
+	"END RequestId: 921a2a6d-5bd1-4797-8400-4688494b664b\n",
+	"REPORT RequestId: 921a2a6d-5bd1-4797-8400-4688494b664b\tDuration: 1.74 ms\tBilled Duration: 2 ms\tMemory Size: 128 MB\tMax Memory Used: 66 MB\t\n",
+}
+
+func assertCloudwatchDataContents(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry, expectedLines ...string) {
+	var seen = make(map[string]bool)
+	for _, l := range expectedLines {
+		seen[l] = false
+	}
+
+	for _, entry := range entries {
+		seen[entry.Line] = true
+	}
+
+	for line, wasSeen := range seen {
+		require.True(t, wasSeen, "line '%s' was not seen", line)
+	}
+}
+
+func keepLabelRule(src, dst string) *relabel.Config {
+	return &relabel.Config{
+		SourceLabels: model.LabelNames{model.LabelName(src)},
+		Regex:        relabel.MustNewRegexp("(.*)"),
+		Replacement:  "$1",
+		TargetLabel:  dst,
+		Action:       relabel.Replace,
 	}
 }

@@ -48,7 +48,7 @@ type FirehoseRecord struct {
 	Data string `json:"data"`
 }
 
-type CloudwatchLogsData struct {
+type CloudwatchLogsRecord struct {
 	// Owner is the AWS Account ID of the originating log data
 	Owner string `json:"owner"`
 
@@ -159,9 +159,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// todo(pablo): should parallelize this?
 	for _, rec := range firehoseReq.Records {
 		decodedRecord, recordType, err := h.decodeRecord(rec.Data)
-
-		// todo(pablo): use the decoded type for something, maybe inject as label
-
 		if err != nil {
 			h.metrics.errors.WithLabelValues("decode").Inc()
 			level.Error(h.logger).Log("msg", "failed to decode request record", "err", err.Error())
@@ -176,43 +173,92 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 		h.metrics.recordsReceived.WithLabelValues(string(recordType)).Inc()
 
-		// todo(pablo): if cloudwatch logs we can do further decoding
-		processedLbls := h.relabel(commonLabels.Labels(nil))
-		entryLabels := make(model.LabelSet)
-		for _, lbl := range processedLbls {
-			// if internal label and not reserved, drop
-			if strings.HasPrefix(lbl.Name, "__") && lbl.Name != lokiClient.ReservedLabelTenantID {
-				continue
-			}
-
-			// ignore invalid labels
-			if !model.LabelName(lbl.Name).IsValid() || !model.LabelValue(lbl.Value).IsValid() {
-				continue
-			}
-
-			entryLabels[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
-		}
-
 		// todo(pablo): add use incoming timestamp option
 
-		h.sender.Send(req.Context(), loki.Entry{
-			Labels: entryLabels,
-			Entry: logproto.Entry{
-				Timestamp: time.Now(),
-				Line:      string(decodedRecord),
-			},
-		})
+		switch recordType {
+		case OriginDirectPUT:
+			h.sender.Send(req.Context(), loki.Entry{
+				Labels: h.postProcessLabels(commonLabels.Labels(nil)),
+				Entry: logproto.Entry{
+					Timestamp: time.Now(),
+					Line:      string(decodedRecord),
+				},
+			})
+		case OriginCloudwatchLogs:
+			err = h.handleCloudwatchLogsRecord(req.Context(), decodedRecord, commonLabels.Labels(nil))
+		}
+		if err != nil {
+			h.metrics.errors.WithLabelValues("handle_cw").Inc()
+			level.Error(h.logger).Log("msg", "failed to handle cloudwatch record", "err", err.Error())
+			sendAPIResponse(w, firehoseReq.RequestID, "failed to handle cloudwatch record", http.StatusBadRequest)
+
+			// todo(pablo): is ok this below?
+			// since all individual data record are packed in a bigger record, responding an error
+			// here will mean we'll get the same individual record on the retry. Continue processing
+			// the rest.
+			return
+		}
+
+		// todo(pablo): if cloudwatch logs we can do further decoding
 	}
 
 	sendAPIResponse(w, firehoseReq.RequestID, "", http.StatusOK)
 }
 
+func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, commonLabels labels.Labels) error {
+	cwRecord := CloudwatchLogsRecord{}
+	if err := json.Unmarshal(data, &cwRecord); err != nil {
+		return err
+	}
+
+	cwLogsLabels := labels.NewBuilder(commonLabels)
+	cwLogsLabels.Set("__aws_owner", cwRecord.Owner)
+	cwLogsLabels.Set("__aws_cw_log_group", cwRecord.LogGroup)
+	cwLogsLabels.Set("__aws_cw_log_stream", cwRecord.LogStream)
+	cwLogsLabels.Set("__aws_cw_matched_filters", strings.Join(cwRecord.SubscriptionFilters, ","))
+	cwLogsLabels.Set("__aws_cw_msg_type", cwRecord.MessageType)
+
+	for _, event := range cwRecord.LogEvents {
+		// todo(pablo): add use incoming timestamp option
+
+		h.sender.Send(ctx, loki.Entry{
+			Labels: h.postProcessLabels(cwLogsLabels.Labels(nil)),
+			Entry: logproto.Entry{
+				Timestamp: time.Now(),
+				Line:      event.Message,
+			},
+		})
+	}
+	return nil
+}
+
+// postProcessLabels drops not relabeled internal labels, and also drops them if
+// the label name or value are not prometheus-valid.
+func (h *Handler) postProcessLabels(lbs labels.Labels) model.LabelSet {
+	// apply relabel rules if any
+	if len(h.relabelRules) > 0 {
+		lbs, _ = relabel.Process(lbs, h.relabelRules...)
+	}
+
+	entryLabels := make(model.LabelSet)
+	for _, lbl := range lbs {
+		// if internal label and not reserved, drop
+		if strings.HasPrefix(lbl.Name, "__") && lbl.Name != lokiClient.ReservedLabelTenantID {
+			continue
+		}
+
+		// ignore invalid labels
+		if !model.LabelName(lbl.Name).IsValid() || !model.LabelValue(lbl.Value).IsValid() {
+			continue
+		}
+
+		entryLabels[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
+	}
+	return entryLabels
+}
+
 // relabel applies the relabel rules if any is configured.
 func (h *Handler) relabel(lbs labels.Labels) (res labels.Labels) {
-	res = lbs
-	if len(h.relabelRules) > 0 {
-		res, _ = relabel.Process(res, h.relabelRules...)
-	}
 	return
 }
 
