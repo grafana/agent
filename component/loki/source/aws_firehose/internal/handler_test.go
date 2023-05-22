@@ -1,14 +1,17 @@
 package internal
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"encoding/json"
 	"fmt"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/klauspost/compress/gzip"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -71,20 +74,45 @@ func TestHandler(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			w := log.NewSyncWriter(os.Stderr)
-			logger := log.NewLogfmtLogger(w)
+		for _, gzipContentEncoding := range []bool{true, false} {
+			suffix := ""
+			if gzipContentEncoding {
+				suffix = " - with gzip content encoding"
+			}
+			t.Run(fmt.Sprintf("%s%s", name, suffix), func(t *testing.T) {
+				w := log.NewSyncWriter(os.Stderr)
+				logger := log.NewLogfmtLogger(w)
 
-			testReceiver := &receiver{entries: make([]loki.Entry, 0)}
-			handler := NewHandler(testReceiver, logger, prometheus.NewRegistry())
+				testReceiver := &receiver{entries: make([]loki.Entry, 0)}
+				handler := NewHandler(testReceiver, logger, prometheus.NewRegistry())
 
-			req, err := http.NewRequest("POST", "http://test", strings.NewReader(tc.Body))
-			require.NoError(t, err)
+				bs := bytes.NewBuffer(nil)
+				var bodyReader io.Reader = strings.NewReader(tc.Body)
 
-			recorder := httptest.NewRecorder()
-			handler.ServeHTTP(recorder, req)
-			// delegate assertions
-			tc.Assert(t, recorder, testReceiver.entries)
-		})
+				// if testing gzip content encoding, use the following read/writer chain
+				// to compress the body: string reader -> gzip writer -> bytes buffer
+				// after that use the same bytes buffer as reader
+				if gzipContentEncoding {
+					gzipWriter := gzip.NewWriter(bs)
+					_, err := io.Copy(gzipWriter, bodyReader)
+					require.NoError(t, err)
+					require.NoError(t, gzipWriter.Close())
+					bodyReader = bs
+				}
+
+				req, err := http.NewRequest("POST", "http://test", bodyReader)
+				require.NoError(t, err)
+
+				// Also content-encoding header needs to be set
+				if gzipContentEncoding {
+					req.Header.Set("Content-Encoding", "gzip")
+				}
+
+				recorder := httptest.NewRecorder()
+				handler.ServeHTTP(recorder, req)
+				// delegate assertions
+				tc.Assert(t, recorder, testReceiver.entries)
+			})
+		}
 	}
 }
