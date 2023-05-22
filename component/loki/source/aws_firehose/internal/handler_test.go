@@ -6,20 +6,22 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"github.com/go-kit/log"
-	"github.com/grafana/agent/component/common/loki"
-	"github.com/klauspost/compress/gzip"
-	"github.com/prometheus/client_golang/prometheus"
-	dto "github.com/prometheus/client_model/go"
-	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/model/relabel"
-	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/go-kit/log"
+	"github.com/klauspost/compress/gzip"
+	"github.com/prometheus/client_golang/prometheus"
+	dto "github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/stretchr/testify/require"
+
+	"github.com/grafana/agent/component/common/loki"
 )
 
 const (
@@ -336,7 +338,7 @@ var cwLambdaLogMessages = []string{
 	"REPORT RequestId: 921a2a6d-5bd1-4797-8400-4688494b664b\tDuration: 1.74 ms\tBilled Duration: 2 ms\tMemory Size: 128 MB\tMax Memory Used: 66 MB\t\n",
 }
 
-func assertCloudwatchDataContents(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry, expectedLines ...string) {
+func assertCloudwatchDataContents(t *testing.T, _ *httptest.ResponseRecorder, entries []loki.Entry, expectedLines ...string) {
 	var seen = make(map[string]bool)
 	for _, l := range expectedLines {
 		seen[l] = false

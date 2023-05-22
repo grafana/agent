@@ -8,19 +8,21 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/common/loki"
-	lokiClient "github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
-	"io"
-	"net/http"
-	"strings"
-	"time"
+
+	"github.com/grafana/agent/component/common/loki"
+	lokiClient "github.com/grafana/agent/component/common/loki/client"
 )
 
 const (
@@ -84,8 +86,8 @@ type RecordOrigin string
 
 const (
 	OriginCloudwatchLogs RecordOrigin = "cloudwatch-logs"
-	OriginDirectPUT                   = "direct-put"
-	OriginUnknown                     = "unknown"
+	OriginDirectPUT      RecordOrigin = "direct-put"
+	OriginUnknown        RecordOrigin = "unknown"
 )
 
 // Sender is an interface that decouples the Firehose request handler from the destination where read loki entries
@@ -247,11 +249,6 @@ func (h *Handler) postProcessLabels(lbs labels.Labels) model.LabelSet {
 	return entryLabels
 }
 
-// relabel applies the relabel rules if any is configured.
-func (h *Handler) relabel(lbs labels.Labels) (res labels.Labels) {
-	return
-}
-
 // sendAPIResponse responds to AWS Firehose API in the expected response format. To simplify error handling,
 // it uses a string template instead of marshalling a struct.
 func sendAPIResponse(w http.ResponseWriter, firehoseID, errMsg string, status int) {
@@ -263,7 +260,6 @@ func sendAPIResponse(w http.ResponseWriter, firehoseID, errMsg string, status in
 	} else {
 		_, _ = w.Write([]byte(fmt.Sprintf(successResponseTemplate, firehoseID, timestamp)))
 	}
-	return
 }
 
 // decodeRecord handled the decoding of the base-64 encoded records. It handles the special case of CloudWatch

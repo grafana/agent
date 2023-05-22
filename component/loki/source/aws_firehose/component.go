@@ -2,19 +2,21 @@ package aws_firehose
 
 import (
 	"context"
+	"reflect"
+	"strings"
+	"sync"
+
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/prometheus/model/relabel"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	fnet "github.com/grafana/agent/component/common/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/aws_firehose/internal"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/prometheus/model/relabel"
-	"reflect"
-	"strings"
-	"sync"
 )
 
 func init() {

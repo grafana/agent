@@ -3,19 +3,21 @@ package aws_firehose
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/grafana/regexp"
+	"github.com/phayes/freeport"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	fnet "github.com/grafana/agent/component/common/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/regexp"
-	"github.com/phayes/freeport"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/stretchr/testify/require"
-	"net/http"
-	"strings"
-	"testing"
-	"time"
 )
 
 // singleDirectPUTData contains a single record in the firehose request, that it mimics being sent with the DirectPUT API
