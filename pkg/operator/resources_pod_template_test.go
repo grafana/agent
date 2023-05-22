@@ -41,7 +41,7 @@ func Test_generatePodTemplate(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, DefaultAgentBaseImage+":vX.Y.Z", tmpl.Spec.Containers[1].Image)
 		// version label should not be set in selectors, since that is immutable
-		require.NotContains(t, selectors, versionLabelName)
+		require.NotContains(t, selectors.MatchLabels, versionLabelName)
 	})
 
 	t.Run("security ctx does not contain privileged", func(t *testing.T) {
