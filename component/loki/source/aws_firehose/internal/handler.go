@@ -11,10 +11,15 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
+	lokiClient "github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/relabel"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -91,17 +96,19 @@ type Sender interface {
 
 // Handler implements a http.Handler that is able to receive records from a Firehose HTTP destination.
 type Handler struct {
-	metrics *metrics
-	logger  log.Logger
-	sender  Sender
+	metrics      *metrics
+	logger       log.Logger
+	sender       Sender
+	relabelRules []*relabel.Config
 }
 
 // NewHandler creates a new handler.
-func NewHandler(sender Sender, logger log.Logger, reg prometheus.Registerer) *Handler {
+func NewHandler(sender Sender, logger log.Logger, reg prometheus.Registerer, rbs []*relabel.Config) *Handler {
 	return &Handler{
-		metrics: newMetrics(reg),
-		logger:  logger,
-		sender:  sender,
+		metrics:      newMetrics(reg),
+		logger:       logger,
+		sender:       sender,
+		relabelRules: rbs,
 	}
 }
 
@@ -138,6 +145,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// common labels contains all record-wide labels
+	commonLabels := labels.NewBuilder(nil)
+	commonLabels.Set("__aws_firehose_request_id", req.Header.Get("X-Amz-Firehose-Request-Id"))
+	commonLabels.Set("__aws_firehose_source_arn", req.Header.Get("X-Amz-Firehose-Source-Arn"))
+
+	// if present, use the tenantID header
+	tenantHeader := req.Header.Get("X-Scope-OrgID")
+	if tenantHeader != "" {
+		commonLabels.Set(lokiClient.ReservedLabelTenantID, tenantHeader)
+	}
+
 	// todo(pablo): should parallelize this?
 	for _, rec := range firehoseReq.Records {
 		decodedRecord, recordType, err := h.decodeRecord(rec.Data)
@@ -159,9 +177,26 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		h.metrics.recordsReceived.WithLabelValues(string(recordType)).Inc()
 
 		// todo(pablo): if cloudwatch logs we can do further decoding
+		processedLbls := h.relabel(commonLabels.Labels(nil))
+		entryLabels := make(model.LabelSet)
+		for _, lbl := range processedLbls {
+			// if internal label and not reserved, drop
+			if strings.HasPrefix(lbl.Name, "__") && lbl.Name != lokiClient.ReservedLabelTenantID {
+				continue
+			}
+
+			// ignore invalid labels
+			if !model.LabelName(lbl.Name).IsValid() || !model.LabelValue(lbl.Value).IsValid() {
+				continue
+			}
+
+			entryLabels[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
+		}
+
+		// todo(pablo): add use incoming timestamp option
 
 		h.sender.Send(req.Context(), loki.Entry{
-			Labels: nil,
+			Labels: entryLabels,
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),
 				Line:      string(decodedRecord),
@@ -170,6 +205,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	sendAPIResponse(w, firehoseReq.RequestID, "", http.StatusOK)
+}
+
+// relabel applies the relabel rules if any is configured.
+func (h *Handler) relabel(lbs labels.Labels) (res labels.Labels) {
+	res = lbs
+	if len(h.relabelRules) > 0 {
+		res, _ = relabel.Process(res, h.relabelRules...)
+	}
+	return
 }
 
 // sendAPIResponse responds to AWS Firehose API in the expected response format. To simplify error handling,

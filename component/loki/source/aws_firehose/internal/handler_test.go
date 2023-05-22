@@ -10,6 +10,8 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/klauspost/compress/gzip"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
@@ -17,6 +19,11 @@ import (
 	"os"
 	"strings"
 	"testing"
+)
+
+const (
+	testRequestID = "86208cf6-2bcc-47e6-9010-02ca9f44a025"
+	testSourceARN = "arn:aws:firehose:us-east-2:123:deliverystream/aws_firehose_test_stream"
 )
 
 //go:embed testdata/*
@@ -44,8 +51,9 @@ type response struct {
 
 func TestHandler(t *testing.T) {
 	type testcase struct {
-		Body   string
-		Assert func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry)
+		Body     string
+		Relabels []*relabel.Config
+		Assert   func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry)
 	}
 
 	tests := map[string]testcase{
@@ -58,6 +66,38 @@ func TestHandler(t *testing.T) {
 				require.Equal(t, 200, res.Code)
 				require.Equal(t, "a1af4300-6c09-4916-ba8f-12f336176246", r.RequestID)
 				require.Len(t, entries, 3)
+			},
+		},
+		"direct put data, relabeling req id and source arn": {
+			Body: readTestData(t, "testdata/DirectPUT.json"),
+			Relabels: []*relabel.Config{
+				{
+					SourceLabels: model.LabelNames{"__aws_firehose_request_id"},
+					Regex:        relabel.MustNewRegexp("(.*)"),
+					Replacement:  "$1",
+					TargetLabel:  "aws_request_id",
+					Action:       relabel.Replace,
+				},
+				{
+					SourceLabels: model.LabelNames{"__aws_firehose_source_arn"},
+					Regex:        relabel.MustNewRegexp("(.*)"),
+					Replacement:  "$1",
+					TargetLabel:  "aws_source_arn",
+					Action:       relabel.Replace,
+				},
+			},
+			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
+				r := response{}
+				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
+
+				require.Equal(t, 200, res.Code)
+				require.Equal(t, "a1af4300-6c09-4916-ba8f-12f336176246", r.RequestID)
+				require.Len(t, entries, 3)
+
+				for _, e := range entries {
+					require.Equal(t, testRequestID, string(e.Labels["aws_request_id"]))
+					require.Equal(t, testSourceARN, string(e.Labels["aws_source_arn"]))
+				}
 			},
 		},
 		"direct put data with non JSON data": {
@@ -102,7 +142,7 @@ func TestHandler(t *testing.T) {
 				logger := log.NewLogfmtLogger(w)
 
 				testReceiver := &receiver{entries: make([]loki.Entry, 0)}
-				handler := NewHandler(testReceiver, logger, prometheus.NewRegistry())
+				handler := NewHandler(testReceiver, logger, prometheus.NewRegistry(), tc.Relabels)
 
 				bs := bytes.NewBuffer(nil)
 				var bodyReader io.Reader = strings.NewReader(tc.Body)
@@ -119,6 +159,10 @@ func TestHandler(t *testing.T) {
 				}
 
 				req, err := http.NewRequest("POST", "http://test", bodyReader)
+				req.Header.Set("X-Amz-Firehose-Request-Id", testRequestID)
+				req.Header.Set("X-Amz-Firehose-Source-Arn", testSourceARN)
+				req.Header.Set("X-Amz-Firehose-Protocol-Version", "1.0")
+				req.Header.Set("User-Agent", "Amazon Kinesis Data Firehose Agent/1.0")
 				require.NoError(t, err)
 
 				// Also content-encoding header needs to be set

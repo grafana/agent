@@ -52,7 +52,6 @@ type Component struct {
 
 	// destination is the main destination where the TargetServer writes received log entries to
 	destination loki.LogsReceiver
-	handler     *internal.Handler
 	rbs         []*relabel.Config
 
 	server *fnet.TargetServer
@@ -76,9 +75,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 
 	o.Registerer.MustRegister(c.serverMetrics)
-
-	// todo(pablo): should use unchecked collector here?
-	c.handler = internal.NewHandler(c, c.logger, o.Registerer)
 
 	if err := c.Update(args); err != nil {
 		return nil, err
@@ -142,7 +138,10 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	if err = c.server.MountAndRun(func(router *mux.Router) {
-		router.Path("/awsfirehose/api/v1/push").Methods("POST").Handler(c.handler)
+		// re-create handler when server is re-computed
+		// todo(pablo): should use unchecked collector here?
+		handler := internal.NewHandler(c, c.logger, c.opts.Registerer, c.rbs)
+		router.Path("/awsfirehose/api/v1/push").Methods("POST").Handler(handler)
 	}); err != nil {
 		return err
 	}
