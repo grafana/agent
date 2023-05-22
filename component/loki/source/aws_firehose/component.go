@@ -3,7 +3,6 @@ package aws_firehose
 import (
 	"context"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
@@ -100,7 +99,6 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.destination:
-			level.Info(c.logger).Log("msg", "about to acquire lock")
 			c.mut.RLock()
 			for _, receiver := range c.fanout {
 				receiver <- entry
@@ -144,9 +142,6 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	if err = c.server.MountAndRun(func(router *mux.Router) {
-		// todo(pablo): handle if the request has gzip content encoding
-		// for this wrap the handler in one that if the header is content encoding gzip,
-		// first uncompress and delegate to the child
 		router.Path("/awsfirehose/api/v1/push").Methods("POST").Handler(c.handler)
 	}); err != nil {
 		return err

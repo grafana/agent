@@ -128,7 +128,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// todo(pablo): should parallize this?
+	// todo(pablo): should parallelize this?
 	for _, rec := range firehoseReq.Records {
 		decodedRecord, _, err := h.decodeRecord(rec.Data)
 
