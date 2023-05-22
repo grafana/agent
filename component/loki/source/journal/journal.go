@@ -120,10 +120,18 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 func convertArgs(job string, a Arguments) *scrapeconfig.JournalTargetConfig {
+	labels := model.LabelSet{
+		model.LabelName("job"): model.LabelValue(job),
+	}
+
+	for k, v := range a.Labels {
+		labels[model.LabelName(k)] = model.LabelValue(v)
+	}
+
 	return &scrapeconfig.JournalTargetConfig{
 		MaxAge:  a.MaxAge.String(),
 		JSON:    a.FormatAsJson,
-		Labels:  model.LabelSet{"job": model.LabelValue(job)},
+		Labels:  labels,
 		Path:    a.Path,
 		Matches: a.Matches,
 	}
