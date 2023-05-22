@@ -213,10 +213,18 @@ func metricsPodTemplateOptions(name string, d gragent.Deployment, shard int32) p
 }
 
 func metadataFromPodTemplate(name string, d gragent.Deployment, tmpl core_v1.PodTemplateSpec) meta_v1.ObjectMeta {
+	labels := make(map[string]string, len(tmpl.Labels))
+	for k, v := range tmpl.Labels {
+		// do not put version label on the statefulset, as that will prevent us from updating it
+		// in the future. Statefulset labels are immutable.
+		if k != "app.kubernetes.io/version" {
+			labels[k] = v
+		}
+	}
 	return meta_v1.ObjectMeta{
 		Name:        name,
 		Namespace:   d.Agent.Namespace,
-		Labels:      tmpl.Labels,
+		Labels:      labels,
 		Annotations: prepareAnnotations(d.Agent.Annotations),
 		OwnerReferences: []meta_v1.OwnerReference{{
 			APIVersion:         d.Agent.APIVersion,
