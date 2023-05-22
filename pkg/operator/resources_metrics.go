@@ -25,6 +25,7 @@ var (
 	minReplicas                 int32 = 1
 	managedByOperatorLabel            = "app.kubernetes.io/managed-by"
 	managedByOperatorLabelValue       = "grafana-agent-operator"
+	versionLabelName                  = "app.kubernetes.io/version"
 	managedByOperatorLabels           = map[string]string{
 		managedByOperatorLabel: managedByOperatorLabelValue,
 	}
@@ -217,7 +218,7 @@ func metadataFromPodTemplate(name string, d gragent.Deployment, tmpl core_v1.Pod
 	for k, v := range tmpl.Labels {
 		// do not put version label on the statefulset, as that will prevent us from updating it
 		// in the future. Statefulset labels are immutable.
-		if k != "app.kubernetes.io/version" {
+		if k != versionLabelName {
 			labels[k] = v
 		}
 	}
