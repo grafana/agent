@@ -8,9 +8,9 @@ import (
 	"github.com/prometheus/prometheus/storage"
 )
 
-// ConvertAppendable implements both the builder.Tokenizer and
-// storage.Appendable interfaces. This allows us to set component.Arguments
-// that leverage storage.Appendable with an implementation that can be
+// ConvertAppendable implements both the [builder.Tokenizer] and
+// [storage.Appendable] interfaces. This allows us to set component.Arguments
+// that leverage [storage.Appendable] with an implementation that can be
 // tokenized as a specific string.
 type ConvertAppendable struct {
 	storage.Appendable
