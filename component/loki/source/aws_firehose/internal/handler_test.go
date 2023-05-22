@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/klauspost/compress/gzip"
 	"github.com/prometheus/client_golang/prometheus"
+	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
@@ -62,11 +63,14 @@ func TestHandler(t *testing.T) {
 
 		// Assert is the main assertion function ran after the request is successful.
 		Assert func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry)
+
+		// AssertMetrics is an optional assertion over the collected metrics
+		AssertMetrics func(t *testing.T, m []*dto.MetricFamily)
 	}
 
 	tests := map[string]testcase{
 		"direct put data": {
-			Body: readTestData(t, "testdata/DirectPUT.json"),
+			Body: readTestData(t, "testdata/direct_put.json"),
 			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
 				r := response{}
 				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
@@ -81,7 +85,7 @@ func TestHandler(t *testing.T) {
 			},
 		},
 		"direct put data, with tenant ID": {
-			Body:     readTestData(t, "testdata/DirectPUT.json"),
+			Body:     readTestData(t, "testdata/direct_put.json"),
 			TenantID: "20",
 			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
 				r := response{}
@@ -95,7 +99,7 @@ func TestHandler(t *testing.T) {
 			},
 		},
 		"direct put data, relabeling req id and source arn": {
-			Body: readTestData(t, "testdata/DirectPUT.json"),
+			Body: readTestData(t, "testdata/direct_put.json"),
 			Relabels: []*relabel.Config{
 				{
 					SourceLabels: model.LabelNames{"__aws_firehose_request_id"},
@@ -127,7 +131,7 @@ func TestHandler(t *testing.T) {
 			},
 		},
 		"direct put data with non JSON data": {
-			Body: readTestData(t, "testdata/DirectPUT_nonJSONData.json"),
+			Body: readTestData(t, "testdata/direct_put_with_non_json_message.json"),
 			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
 				r := response{}
 				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
@@ -139,7 +143,7 @@ func TestHandler(t *testing.T) {
 			},
 		},
 		"cloudwatch logs-subscription data": {
-			Body: readTestData(t, "testdata/CloudwatchLogsLambda.json"),
+			Body: readTestData(t, "testdata/cw_logs_mixed.json"),
 			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
 				r := response{}
 				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
@@ -157,7 +161,7 @@ func TestHandler(t *testing.T) {
 			},
 		},
 		"cloudwatch logs-subscription data, with tenant ID": {
-			Body:     readTestData(t, "testdata/CloudwatchLogsLambda_justControlMessage.json"),
+			Body:     readTestData(t, "testdata/cw_logs_with_only_control_messages.json"),
 			TenantID: "20",
 			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
 				r := response{}
@@ -170,7 +174,7 @@ func TestHandler(t *testing.T) {
 			},
 		},
 		"cloudwatch logs-subscription data, relabeling control message": {
-			Body: readTestData(t, "testdata/CloudwatchLogsLambda_justControlMessage.json"),
+			Body: readTestData(t, "testdata/cw_logs_with_only_control_messages.json"),
 			Relabels: []*relabel.Config{
 				keepLabelRule("__aws_owner", "aws_owner"),
 				keepLabelRule("__aws_cw_msg_type", "msg_type"),
@@ -191,7 +195,7 @@ func TestHandler(t *testing.T) {
 			},
 		},
 		"cloudwatch logs-subscription data, relabeling log messages": {
-			Body: readTestData(t, "testdata/CloudwatchLogsLambda_justLogMessages.json"),
+			Body: readTestData(t, "testdata/cw_logs_with_only_data_messages.json"),
 			Relabels: []*relabel.Config{
 				keepLabelRule("__aws_owner", "aws_owner"),
 				keepLabelRule("__aws_cw_log_group", "log_group"),
@@ -224,6 +228,35 @@ func TestHandler(t *testing.T) {
 				require.Equal(t, 400, res.Code)
 			},
 		},
+		"cloudwatch logs control message, and invalid gzipped data": {
+			Body: readTestData(t, "testdata/cw_logs_control_and_bad_records.json"),
+			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
+				r := response{}
+				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
+
+				require.Equal(t, 200, res.Code)
+				require.Equal(t, "86208cf6-2bcc-47e6-9010-02ca9f44a025", r.RequestID)
+
+				require.Len(t, entries, 1)
+				// assert that all expected lines were seen
+				assertCloudwatchDataContents(t, res, entries, cwLambdaControlMessage)
+			},
+			AssertMetrics: func(t *testing.T, ms []*dto.MetricFamily) {
+				found := false
+				for _, m := range ms {
+					if *m.Name == "loki_source_awsfirehose_record_errors" {
+						found = true
+						require.Len(t, m.Metric, 1)
+						require.Equal(t, float64(1), *m.Metric[0].Counter.Value)
+						require.Len(t, m.Metric[0].Label, 1)
+						lb := m.Metric[0].Label[0]
+						require.Equal(t, "reason", *lb.Name)
+						require.Equal(t, "base64-decode", *lb.Value)
+					}
+				}
+				require.True(t, found)
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -237,7 +270,8 @@ func TestHandler(t *testing.T) {
 				logger := log.NewLogfmtLogger(w)
 
 				testReceiver := &receiver{entries: make([]loki.Entry, 0)}
-				handler := NewHandler(testReceiver, logger, prometheus.NewRegistry(), tc.Relabels)
+				registry := prometheus.NewRegistry()
+				handler := NewHandler(testReceiver, logger, registry, tc.Relabels)
 
 				bs := bytes.NewBuffer(nil)
 				var bodyReader io.Reader = strings.NewReader(tc.Body)
@@ -270,8 +304,15 @@ func TestHandler(t *testing.T) {
 
 				recorder := httptest.NewRecorder()
 				handler.ServeHTTP(recorder, req)
+
 				// delegate assertions
 				tc.Assert(t, recorder, testReceiver.entries)
+
+				if tc.AssertMetrics != nil {
+					gatheredMetrics, err := registry.Gather()
+					require.NoError(t, err)
+					tc.AssertMetrics(t, gatheredMetrics)
+				}
 			})
 		}
 	}

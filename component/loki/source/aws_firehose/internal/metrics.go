@@ -1,17 +1,27 @@
 package internal
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+)
 
 type metrics struct {
-	errors          *prometheus.CounterVec
-	recordsReceived *prometheus.CounterVec
+	errorsAPIRequest *prometheus.CounterVec
+	recordsReceived  *prometheus.CounterVec
+	errorsRecord     *prometheus.CounterVec
+	batchSize        *prometheus.HistogramVec
 }
 
 func newMetrics(reg prometheus.Registerer) *metrics {
 	m := metrics{}
-	m.errors = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "loki_source_awsfirehose_errors",
-		Help: "Number of errors while receiving AWS Firehose messages. This includes things like reading the HTTP body, json decoding, etc.",
+	m.errorsAPIRequest = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "loki_source_awsfirehose_request_errors",
+		Help: "Number of errors while receiving AWS Firehose API requests",
+	}, []string{"reason"})
+
+	m.errorsRecord = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "loki_source_awsfirehose_record_errors",
+		Help: "Number of errors while decoding AWS Firehose records",
 	}, []string{"reason"})
 
 	m.recordsReceived = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -19,10 +29,17 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 		Help: "Number of records received from AWS Firehose",
 	}, []string{"type"})
 
+	m.batchSize = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name: "loki_source_awsfirehose_batch_size",
+		Help: "AWS Firehose received batch size in number of records",
+	}, nil)
+
 	if reg != nil {
 		reg.MustRegister(
-			m.errors,
+			m.errorsAPIRequest,
 			m.recordsReceived,
+			m.errorsRecord,
+			m.batchSize,
 		)
 	}
 

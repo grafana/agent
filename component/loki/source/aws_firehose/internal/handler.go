@@ -124,22 +124,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.Header.Get("Content-Encoding") == "gzip" {
 		bodyReader, err = gzip.NewReader(req.Body)
 		if err != nil {
-			h.metrics.errors.WithLabelValues("pre_read").Inc()
+			h.metrics.errorsAPIRequest.WithLabelValues("pre_read").Inc()
 			level.Error(h.logger).Log("msg", "failed to create gzip reader", "err", err.Error())
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 	}
 
-	// todo(pablo): use headers as labels
-	// X-Amz-Firehose-Request-Id
-	// X-Amz-Firehose-Source-Arn
-
 	firehoseReq := FirehoseRequest{}
-
 	err = json.NewDecoder(bodyReader).Decode(&firehoseReq)
 	if err != nil {
-		h.metrics.errors.WithLabelValues("read_or_format").Inc()
+		h.metrics.errorsAPIRequest.WithLabelValues("read_or_format").Inc()
 		level.Error(h.logger).Log("msg", "failed to unmarshall request", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -156,19 +151,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		commonLabels.Set(lokiClient.ReservedLabelTenantID, tenantHeader)
 	}
 
-	// todo(pablo): should parallelize this?
+	h.metrics.batchSize.WithLabelValues().Observe(float64(len(firehoseReq.Records)))
+
 	for _, rec := range firehoseReq.Records {
+		// cleanup err since it might have failed in the previous iteration
+		err = nil
+
 		decodedRecord, recordType, err := h.decodeRecord(rec.Data)
 		if err != nil {
-			h.metrics.errors.WithLabelValues("decode").Inc()
+			h.metrics.errorsRecord.WithLabelValues(getReason(err)).Inc()
 			level.Error(h.logger).Log("msg", "failed to decode request record", "err", err.Error())
-			sendAPIResponse(w, firehoseReq.RequestID, "failed to decode record", http.StatusBadRequest)
-
-			// todo(pablo): is ok this below?
-			// since all individual data record are packed in a bigger record, responding an error
-			// here will mean we'll get the same individual record on the retry. Continue processing
-			// the rest.
-			return
+			continue
 		}
 
 		h.metrics.recordsReceived.WithLabelValues(string(recordType)).Inc()
@@ -188,18 +181,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			err = h.handleCloudwatchLogsRecord(req.Context(), decodedRecord, commonLabels.Labels(nil))
 		}
 		if err != nil {
-			h.metrics.errors.WithLabelValues("handle_cw").Inc()
+			h.metrics.errorsRecord.WithLabelValues(getReason(err)).Inc()
 			level.Error(h.logger).Log("msg", "failed to handle cloudwatch record", "err", err.Error())
-			sendAPIResponse(w, firehoseReq.RequestID, "failed to handle cloudwatch record", http.StatusBadRequest)
-
-			// todo(pablo): is ok this below?
-			// since all individual data record are packed in a bigger record, responding an error
-			// here will mean we'll get the same individual record on the retry. Continue processing
-			// the rest.
-			return
+			continue
 		}
-
-		// todo(pablo): if cloudwatch logs we can do further decoding
 	}
 
 	sendAPIResponse(w, firehoseReq.RequestID, "", http.StatusOK)
@@ -210,7 +195,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, commonLabels labels.Labels) error {
 	cwRecord := CloudwatchLogsRecord{}
 	if err := json.Unmarshal(data, &cwRecord); err != nil {
-		return err
+		return errWithReason{
+			err:    err,
+			reason: "cw-json-decode",
+		}
 	}
 
 	cwLogsLabels := labels.NewBuilder(commonLabels)
@@ -231,6 +219,7 @@ func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, c
 			},
 		})
 	}
+
 	return nil
 }
 
@@ -279,10 +268,14 @@ func sendAPIResponse(w http.ResponseWriter, firehoseID, errMsg string, status in
 
 // decodeRecord handled the decoding of the base-64 encoded records. It handles the special case of CloudWatch
 // log records, which are always gzipped before base-64 encoded.
+// See https://docs.aws.amazon.com/firehose/latest/dev/writing-with-cloudwatch-logs.html for details.
 func (h *Handler) decodeRecord(rec string) ([]byte, RecordOrigin, error) {
 	decodedRec, err := base64.StdEncoding.DecodeString(rec)
 	if err != nil {
-		return nil, OriginUnknown, fmt.Errorf("error base64-decoding record: %w", err)
+		return nil, OriginUnknown, errWithReason{
+			err:    err,
+			reason: "base64-decode",
+		}
 	}
 
 	// Using the same header check as the gzip library, but inlining the check to avoid unnecessary boilerplate
@@ -303,7 +296,10 @@ func (h *Handler) decodeRecord(rec string) ([]byte, RecordOrigin, error) {
 
 	b := bytes.Buffer{}
 	if _, err := io.Copy(bufio.NewWriter(&b), gzipReader); err != nil {
-		return nil, OriginCloudwatchLogs, fmt.Errorf("error reading gzipped bytes: %w", err)
+		return nil, OriginCloudwatchLogs, errWithReason{
+			err:    err,
+			reason: "gzip-deflate",
+		}
 	}
 
 	return b.Bytes(), OriginCloudwatchLogs, nil
