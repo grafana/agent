@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/regexp"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -16,19 +15,21 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	fnet "github.com/grafana/agent/component/common/net"
-	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/pkg/util"
 )
 
-// singleDirectPUTData contains a single record in the firehose request, that it mimics being sent with the DirectPUT API
-const singleDirectPUTData = `{"requestId":"a1af4300-6c09-4916-ba8f-12f336176246","timestamp":1684422829730,"records":[{"data":"eyJDSEFOR0UiOi0wLjIzLCJQUklDRSI6NC44LCJUSUNLRVJfU1lNQk9MIjoiTkdDIiwiU0VDVE9SIjoiSEVBTFRIQ0FSRSJ9"}]}`
+const singleRecordRequest = `{"requestId":"a1af4300-6c09-4916-ba8f-12f336176246","timestamp":1684422829730,"records":[{"data":"eyJDSEFOR0UiOi0wLjIzLCJQUklDRSI6NC44LCJUSUNLRVJfU1lNQk9MIjoiTkdDIiwiU0VDVE9SIjoiSEVBTFRIQ0FSRSJ9"}]}`
+
 const expectedRecord = "{\"CHANGE\":-0.23,\"PRICE\":4.8,\"TICKER_SYMBOL\":\"NGC\",\"SECTOR\":\"HEALTHCARE\"}"
 
+// receiver implements a simple routine that receives loki.Entry from a channel and
+// stores them in a slice for later assertion.
 type receiver struct {
 	ch       chan loki.Entry
 	received []loki.Entry
 }
 
+// newReceiver creates a new receiver.
 func newReceiver(ch chan loki.Entry) *receiver {
 	return &receiver{
 		ch:       ch,
@@ -36,6 +37,7 @@ func newReceiver(ch chan loki.Entry) *receiver {
 	}
 }
 
+// run runs the main receiver routine, until the passed context is canceled.
 func (r *receiver) run(ctx context.Context) {
 	for {
 		select {
@@ -76,7 +78,6 @@ func TestComponent(t *testing.T) {
 		GRPC: &fnet.GRPCConfig{ListenPort: 0},
 	}
 	args.ForwardTo = []loki.LogsReceiver{ch1, ch2}
-	args.RelabelRules = exportedRules
 
 	// Create and run the component.
 	c, err := New(opts, args)
@@ -89,7 +90,7 @@ func TestComponent(t *testing.T) {
 	// small wait for server start
 	time.Sleep(200 * time.Millisecond)
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://localhost:%d/awsfirehose/api/v1/push", port), strings.NewReader(singleDirectPUTData))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://localhost:%d/awsfirehose/api/v1/push", port), strings.NewReader(singleRecordRequest))
 	require.NoError(t, err)
 
 	// create client with timeout
@@ -112,29 +113,4 @@ func TestComponent(t *testing.T) {
 	require.Len(t, r2.received, 1)
 	require.JSONEq(t, expectedRecord, r1.received[0].Line)
 	require.JSONEq(t, expectedRecord, r2.received[0].Line)
-}
-
-var exportedRules = flow_relabel.Rules{
-	{
-		SourceLabels: []string{"__gcp_message_id"},
-		Regex:        mustNewRegexp("(.*)"),
-		Action:       flow_relabel.Replace,
-		Replacement:  "$1",
-		TargetLabel:  "message_id",
-	},
-	{
-		SourceLabels: []string{"__gcp_resource_type"},
-		Regex:        mustNewRegexp("(.*)"),
-		Action:       flow_relabel.Replace,
-		Replacement:  "$1",
-		TargetLabel:  "resource_type",
-	},
-}
-
-func mustNewRegexp(s string) flow_relabel.Regexp {
-	re, err := regexp.Compile("^(?:" + s + ")$")
-	if err != nil {
-		panic(err)
-	}
-	return flow_relabel.Regexp{Regexp: re}
 }

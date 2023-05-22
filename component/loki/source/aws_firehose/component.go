@@ -47,6 +47,7 @@ func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
 	return nil
 }
 
+// Component is the main type for the `loki.source.awsfirehose` component.
 type Component struct {
 	// mut controls concurrent access to fanout
 	mut    sync.RWMutex
@@ -66,6 +67,7 @@ type Component struct {
 	logger        log.Logger
 }
 
+// New creates a new Component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:          o,
@@ -85,6 +87,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	return c, nil
 }
 
+// Run starts a routine forwards received message to each destination component.
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
 		c.mut.Lock()
@@ -106,6 +109,7 @@ func (c *Component) Run(ctx context.Context) error {
 	}
 }
 
+// Update updates the component with a new configuration, restarting the server if needed.
 func (c *Component) Update(args component.Arguments) error {
 	var err error
 	c.mut.Lock()

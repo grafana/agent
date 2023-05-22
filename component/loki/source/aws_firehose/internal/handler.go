@@ -34,54 +34,7 @@ const (
 	errorResponseTemplate   = `{"requestId": "%s", "timestamp": %d, "errorMessage": "%s"}`
 )
 
-type FirehoseRequest struct {
-	RequestID string           `json:"requestId"`
-	Timestamp int64            `json:"timestamp"`
-	Records   []FirehoseRecord `json:"records"`
-}
-
-type FirehoseResponse struct {
-	RequestID    string `json:"requestId"`
-	Timestamp    int64  `json:"timestamp"`
-	ErrorMessage string `json:"errorMessage,omitempty"`
-}
-
-type FirehoseRecord struct {
-	Data string `json:"data"`
-}
-
-type CloudwatchLogsRecord struct {
-	// Owner is the AWS Account ID of the originating log data
-	Owner string `json:"owner"`
-
-	// LogGroup is the log group name of the originating log data
-	LogGroup string `json:"logGroup"`
-
-	// LogStream is the log stream of the originating log data
-	LogStream string `json:"logStream"`
-
-	// SubscriptionFilters is the list of subscription filter names
-	// that matched with the originating log data
-	SubscriptionFilters []string `json:"subscriptionFilters"`
-
-	// MessageType describes the type of LogEvents this record carries.
-	// Data messages will use the "DATA_MESSAGE" type. Sometimes CloudWatch
-	// Logs may emit Kinesis Data Streams records with a "CONTROL_MESSAGE" type,
-	// mainly for checking if the destination is reachable.
-	MessageType string `json:"messageType"`
-
-	// LogEvents contains the actual log data.
-	LogEvents []CloudwatchLogEvent `json:"logEvents"`
-}
-
-type CloudwatchLogEvent struct {
-	// ID is a unique id for each log event.
-	ID string `json:"id"`
-
-	Timestamp int64  `json:"timestamp"`
-	Message   string `json:"message"`
-}
-
+// RecordOrigin is a type that tells from which origin the data received from AWS Firehose comes.
 type RecordOrigin string
 
 const (
@@ -192,39 +145,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	sendAPIResponse(w, firehoseReq.RequestID, "", http.StatusOK)
 }
 
-// handleCloudwatchLogsRecord explodes the cloudwatch logs record into each log message. Also, it adds all properties
-// sent in the envelope as internal labels, available for relabel.
-func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, commonLabels labels.Labels) error {
-	cwRecord := CloudwatchLogsRecord{}
-	if err := json.Unmarshal(data, &cwRecord); err != nil {
-		return errWithReason{
-			err:    err,
-			reason: "cw-json-decode",
-		}
-	}
-
-	cwLogsLabels := labels.NewBuilder(commonLabels)
-	cwLogsLabels.Set("__aws_owner", cwRecord.Owner)
-	cwLogsLabels.Set("__aws_cw_log_group", cwRecord.LogGroup)
-	cwLogsLabels.Set("__aws_cw_log_stream", cwRecord.LogStream)
-	cwLogsLabels.Set("__aws_cw_matched_filters", strings.Join(cwRecord.SubscriptionFilters, ","))
-	cwLogsLabels.Set("__aws_cw_msg_type", cwRecord.MessageType)
-
-	for _, event := range cwRecord.LogEvents {
-		// todo(pablo): add use incoming timestamp option
-
-		h.sender.Send(ctx, loki.Entry{
-			Labels: h.postProcessLabels(cwLogsLabels.Labels(nil)),
-			Entry: logproto.Entry{
-				Timestamp: time.Now(),
-				Line:      event.Message,
-			},
-		})
-	}
-
-	return nil
-}
-
 // postProcessLabels applies relabels, then drops not relabeled internal and invalid labels.
 func (h *Handler) postProcessLabels(lbs labels.Labels) model.LabelSet {
 	// apply relabel rules if any
@@ -299,4 +219,37 @@ func (h *Handler) decodeRecord(rec string) ([]byte, RecordOrigin, error) {
 	}
 
 	return b.Bytes(), OriginCloudwatchLogs, nil
+}
+
+// handleCloudwatchLogsRecord explodes the cloudwatch logs record into each log message. Also, it adds all properties
+// sent in the envelope as internal labels, available for relabel.
+func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, commonLabels labels.Labels) error {
+	cwRecord := CloudwatchLogsRecord{}
+	if err := json.Unmarshal(data, &cwRecord); err != nil {
+		return errWithReason{
+			err:    err,
+			reason: "cw-json-decode",
+		}
+	}
+
+	cwLogsLabels := labels.NewBuilder(commonLabels)
+	cwLogsLabels.Set("__aws_owner", cwRecord.Owner)
+	cwLogsLabels.Set("__aws_cw_log_group", cwRecord.LogGroup)
+	cwLogsLabels.Set("__aws_cw_log_stream", cwRecord.LogStream)
+	cwLogsLabels.Set("__aws_cw_matched_filters", strings.Join(cwRecord.SubscriptionFilters, ","))
+	cwLogsLabels.Set("__aws_cw_msg_type", cwRecord.MessageType)
+
+	for _, event := range cwRecord.LogEvents {
+		// todo(pablo): add use incoming timestamp option
+
+		h.sender.Send(ctx, loki.Entry{
+			Labels: h.postProcessLabels(cwLogsLabels.Labels(nil)),
+			Entry: logproto.Entry{
+				Timestamp: time.Now(),
+				Line:      event.Message,
+			},
+		})
+	}
+
+	return nil
 }
