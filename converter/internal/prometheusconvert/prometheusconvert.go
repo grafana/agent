@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 )
@@ -34,6 +36,7 @@ func Convert(in []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	f := builder.NewFile()
 
 	remoteWriteArgs := toRemotewriteArguments(promConfig)
@@ -41,8 +44,10 @@ func Convert(in []byte) ([]byte, error) {
 	remoteWriteBlock.Body().AppendFrom(remoteWriteArgs)
 	f.Body().AppendBlock(remoteWriteBlock)
 
+	forwardTo := make([]storage.Appendable, 0)
+	forwardTo = append(forwardTo, common.ConvertAppendable{Expr: "prometheus.remote_write.default.receiver"})
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		scrapeArgs := toScrapeArguments(scrapeConfig)
+		scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo)
 
 		scrapeBlock := builder.NewBlock([]string{"prometheus", "scrape"}, scrapeArgs.JobName)
 		scrapeBlock.Body().AppendFrom(scrapeArgs)
