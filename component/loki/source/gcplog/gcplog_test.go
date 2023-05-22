@@ -14,13 +14,12 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	gt "github.com/grafana/agent/component/loki/source/gcplog/internal/gcplogtarget"
 
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/regexp"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
-
-	"github.com/grafana/agent/pkg/util"
 )
 
 // TODO (@tpaschalis) We can't test this easily as there's no way to inject
@@ -59,7 +58,7 @@ func TestPush(t *testing.T) {
 	c, err := New(opts, args)
 	require.NoError(t, err)
 
-	go func() { _ = c.Run(context.Background()) }()
+	go c.Run(context.Background())
 	time.Sleep(200 * time.Millisecond)
 
 	// Create a GCP PushRequest and send it to the launched server.

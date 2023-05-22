@@ -91,11 +91,11 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
-		_ = level.Info(c.opts.Logger).Log("msg", "loki.source.gcplog component shutting down, stopping the targets")
+		level.Info(c.opts.Logger).Log("msg", "loki.source.gcplog component shutting down, stopping the targets")
 		c.mut.RLock()
 		err := c.target.Stop()
 		if err != nil {
-			_ = level.Error(c.opts.Logger).Log("msg", "error while stopping gcplog target", "err", err)
+			level.Error(c.opts.Logger).Log("msg", "error while stopping gcplog target", "err", err)
 		}
 		c.mut.RUnlock()
 	}()
@@ -130,7 +130,7 @@ func (c *Component) Update(args component.Arguments) error {
 	if c.target != nil {
 		err := c.target.Stop()
 		if err != nil {
-			_ = level.Error(c.opts.Logger).Log("msg", "error while stopping gcplog target", "err", err)
+			level.Error(c.opts.Logger).Log("msg", "error while stopping gcplog target", "err", err)
 		}
 	}
 	entryHandler := loki.NewEntryHandler(c.handler, func() {})
@@ -141,7 +141,7 @@ func (c *Component) Update(args component.Arguments) error {
 		// we should expose as configuration and pass here?
 		t, err := gt.NewPullTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PullTarget, rcs)
 		if err != nil {
-			_ = level.Error(c.opts.Logger).Log("msg", "failed to create gcplog target with provided config", "err", err)
+			level.Error(c.opts.Logger).Log("msg", "failed to create gcplog target with provided config", "err", err)
 			return err
 		}
 		c.target = t
@@ -156,7 +156,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 		t, err := gt.NewPushTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PushTarget, rcs, registry)
 		if err != nil {
-			_ = level.Error(c.opts.Logger).Log("msg", "failed to create gcplog target with provided config", "err", err)
+			level.Error(c.opts.Logger).Log("msg", "failed to create gcplog target with provided config", "err", err)
 			return err
 		}
 		c.target = t

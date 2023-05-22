@@ -108,7 +108,7 @@ func (t *PullTarget) run() error {
 		case m := <-t.msgs:
 			entry, err := parseGCPLogsEntry(m.Data, lbls, nil, t.config.UseIncomingTimestamp, t.config.UseFullLine, t.relabelConfig)
 			if err != nil {
-				_ = level.Error(t.logger).Log("event", "error formating log entry", "cause", err)
+				level.Error(t.logger).Log("event", "error formating log entry", "cause", err)
 				m.Ack()
 				break
 			}
@@ -130,7 +130,7 @@ func (t *PullTarget) consumeSubscription() {
 			t.backoff.Reset()
 		})
 		if err != nil {
-			_ = level.Error(t.logger).Log("msg", "failed to receive pubsub messages", "error", err)
+			level.Error(t.logger).Log("msg", "failed to receive pubsub messages", "error", err)
 			t.metrics.gcplogErrors.WithLabelValues(t.config.ProjectID).Inc()
 			t.metrics.gcplogTargetLastSuccessScrape.WithLabelValues(t.config.ProjectID, t.config.Subscription).SetToCurrentTime()
 			t.backoff.Wait()
@@ -160,6 +160,6 @@ func (t *PullTarget) Stop() error {
 	t.cancel()
 	t.wg.Wait()
 	t.handler.Stop()
-	_ = t.ps.Close()
+	t.ps.Close()
 	return nil
 }
