@@ -60,6 +60,18 @@ func TestHandler(t *testing.T) {
 				require.Len(t, entries, 3)
 			},
 		},
+		"direct put data with non JSON data": {
+			Body: readTestData(t, "testdata/DirectPUT_nonJSONData.json"),
+			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
+				r := response{}
+				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
+
+				require.Equal(t, 200, res.Code)
+				require.Equal(t, "aa9febd3-d9d0-45a2-9032-294078d926d5", r.RequestID)
+				require.Equal(t, "hola esto es una prueba", entries[0].Line)
+				require.Len(t, entries, 1)
+			},
+		},
 		"cloudwatch logs-subscription data": {
 			Body: readTestData(t, "testdata/CloudwatchLogsLambda.json"),
 			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
@@ -69,6 +81,12 @@ func TestHandler(t *testing.T) {
 				require.Equal(t, 200, res.Code)
 				require.Equal(t, "86208cf6-2bcc-47e6-9010-02ca9f44a025", r.RequestID)
 				require.Len(t, entries, 2)
+			},
+		},
+		"non json payload": {
+			Body: `{`,
+			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
+				require.Equal(t, 400, res.Code)
 			},
 		},
 	}

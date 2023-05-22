@@ -125,6 +125,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// todo(pablo): use headers as labels
+	// X-Amz-Firehose-Request-Id
+	// X-Amz-Firehose-Source-Arn
 
 	firehoseReq := FirehoseRequest{}
 
