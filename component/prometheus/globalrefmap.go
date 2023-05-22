@@ -20,7 +20,7 @@ var staleDuration = time.Minute * 10
 
 // GlobalRefMap allows conversion from remote_write refids to global refs ids that everything else can use
 type GlobalRefMap struct {
-	mut                sync.Mutex
+	mut                sync.RWMutex
 	globalRefID        uint64
 	mappings           map[string]*remoteWriteMapping
 	labelsHashToGlobal map[uint64]uint64
@@ -96,8 +96,8 @@ func (g *GlobalRefMap) GetOrAddGlobalRefID(l labels.Labels) uint64 {
 
 // GetGlobalRefID returns the global refid for a component local combo, or 0 if not found
 func (g *GlobalRefMap) GetGlobalRefID(componentID string, localRefID uint64) uint64 {
-	g.mut.Lock()
-	defer g.mut.Unlock()
+	g.mut.RLock()
+	defer g.mut.RUnlock()
 
 	m, found := g.mappings[componentID]
 	if !found {
@@ -109,8 +109,8 @@ func (g *GlobalRefMap) GetGlobalRefID(componentID string, localRefID uint64) uin
 
 // GetLocalRefID returns the local refid for a component global combo, or 0 if not found
 func (g *GlobalRefMap) GetLocalRefID(componentID string, globalRefID uint64) uint64 {
-	g.mut.Lock()
-	defer g.mut.Unlock()
+	g.mut.RLock()
+	defer g.mut.RUnlock()
 
 	m, found := g.mappings[componentID]
 	if !found {
