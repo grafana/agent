@@ -43,8 +43,6 @@ spec:
           ports:
             - containerPort: 80
               name: http-metrics
-            - containerPort: 12347
-              name: faro
           readinessProbe:
             httpGet:
               path: /-/ready

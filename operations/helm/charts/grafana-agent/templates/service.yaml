@@ -21,10 +21,6 @@ spec:
       port: {{ .Values.agent.listenPort }}
       targetPort: {{ .Values.agent.listenPort }}
       protocol: "TCP"
-    - name: faro
-      port: {{ .Values.agent.faroPort }}
-      targetPort: {{ .Values.agent.faroPort }}
-      protocol: "TCP"
 {{- range $portMap := .Values.agent.extraPorts }}
     - name: {{ $portMap.name }}
       port: {{ $portMap.port }}
