@@ -157,7 +157,7 @@ func generatePodTemplate(
 		podAnnotations = map[string]string{}
 		podLabels      = map[string]string{
 			// version can be a pod label, but should not go in selectors
-			versionLabelName: clientutil.SanitizeVolumeName(build.Version) + "aaa",
+			versionLabelName: clientutil.SanitizeVolumeName(build.Version),
 		}
 		podSelectorLabels = map[string]string{
 			"app.kubernetes.io/name":     "grafana-agent",
