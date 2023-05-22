@@ -1,0 +1,5 @@
+# Test rendering of the chart with the controller explicitly set to StatefulSet and autoscaling enabled.
+controller:
+  type: statefulset
+  autoscaling:
+    enabled: true
