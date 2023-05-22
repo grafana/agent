@@ -17,7 +17,7 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 	m.recordsReceived = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "loki_source_awsfirehose_records_received",
 		Help: "Number of records received from AWS Firehose",
-	}, []string{})
+	}, []string{"type"})
 
 	if reg != nil {
 		reg.MustRegister(

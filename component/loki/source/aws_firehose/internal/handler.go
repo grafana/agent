@@ -22,6 +22,9 @@ const (
 	gzipID1     = 0x1f
 	gzipID2     = 0x8b
 	gzipDeflate = 8
+
+	successResponseTemplate = `{"requestId": "%s", "timestamp": %d}`
+	errorResponseTemplate   = `{"requestId": "%s", "timestamp": %d, "errorMessage": "%s"}`
 )
 
 type FirehoseRequest struct {
@@ -80,16 +83,20 @@ const (
 	OriginUnknown                     = "unknown"
 )
 
+// Sender is an interface that decouples the Firehose request handler from the destination where read loki entries
+// should be written to.
 type Sender interface {
 	Send(ctx context.Context, entry loki.Entry)
 }
 
+// Handler implements a http.Handler that is able to receive records from a Firehose HTTP destination.
 type Handler struct {
 	metrics *metrics
 	logger  log.Logger
 	sender  Sender
 }
 
+// NewHandler creates a new handler.
 func NewHandler(sender Sender, logger log.Logger, reg prometheus.Registerer) *Handler {
 	return &Handler{
 		metrics: newMetrics(reg),
@@ -98,6 +105,7 @@ func NewHandler(sender Sender, logger log.Logger, reg prometheus.Registerer) *Ha
 	}
 }
 
+// ServeHTTP satisfies the http.Handler interface.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var err error
 	defer req.Body.Close()
@@ -130,14 +138,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// todo(pablo): should parallelize this?
 	for _, rec := range firehoseReq.Records {
-		decodedRecord, _, err := h.decodeRecord(rec.Data)
+		decodedRecord, recordType, err := h.decodeRecord(rec.Data)
 
 		// todo(pablo): use the decoded type for something, maybe inject as label
 
 		if err != nil {
 			h.metrics.errors.WithLabelValues("decode").Inc()
 			level.Error(h.logger).Log("msg", "failed to decode request record", "err", err.Error())
-			h.respondError(w, firehoseReq.RequestID, "failed to decode record", http.StatusBadRequest)
+			sendAPIResponse(w, firehoseReq.RequestID, "failed to decode record", http.StatusBadRequest)
 
 			// todo(pablo): is ok this below?
 			// since all individual data record are packed in a bigger record, responding an error
@@ -146,7 +154,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		h.metrics.recordsReceived.WithLabelValues().Inc()
+		h.metrics.recordsReceived.WithLabelValues(string(recordType)).Inc()
 
 		// todo(pablo): if cloudwatch logs we can do further decoding
 
@@ -159,21 +167,25 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		})
 	}
 
-	// since the response type is rather simple, use string interpolation to marshall it
-	w.Write([]byte(fmt.Sprintf(successResponseTemplate, firehoseReq.RequestID, time.Now().Unix())))
+	sendAPIResponse(w, firehoseReq.RequestID, "", http.StatusOK)
 }
 
-const successResponseTemplate = `{"requestId": "%s", "timestamp": %d}`
-const errorResponseTemplate = `{"requestId": "%s", "timestamp": %d, "errorMessage": "%s"}`
-
-func (h *Handler) respondError(w http.ResponseWriter, firehoseID, errMsg string, status int) {
+// sendAPIResponse responds to AWS Firehose API in the expected response format. To simplify error handling,
+// it uses a string template instead of marshalling a struct.
+func sendAPIResponse(w http.ResponseWriter, firehoseID, errMsg string, status int) {
 	timestamp := time.Now().Unix()
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	// since the response type is rather simple, use string interpolation to marshall it
-	w.Write([]byte(fmt.Sprintf(errorResponseTemplate, firehoseID, timestamp, errMsg)))
+	if errMsg != "" {
+		_, _ = w.Write([]byte(fmt.Sprintf(errorResponseTemplate, firehoseID, timestamp, errMsg)))
+	} else {
+		_, _ = w.Write([]byte(fmt.Sprintf(successResponseTemplate, firehoseID, timestamp)))
+	}
 	return
 }
 
+// decodeRecord handled the decoding of the base-64 encoded records. It handles the special case of CloudWatch
+// log records, which are always gzipped before base-64 encoded.
 func (h *Handler) decodeRecord(rec string) ([]byte, RecordOrigin, error) {
 	decodedRec, err := base64.StdEncoding.DecodeString(rec)
 	if err != nil {
@@ -200,6 +212,6 @@ func (h *Handler) decodeRecord(rec string) ([]byte, RecordOrigin, error) {
 	if _, err := io.Copy(bufio.NewWriter(&b), gzipReader); err != nil {
 		return nil, OriginCloudwatchLogs, fmt.Errorf("error reading gzipped bytes: %w", err)
 	}
-	return b.Bytes(), OriginCloudwatchLogs, nil
 
+	return b.Bytes(), OriginCloudwatchLogs, nil
 }

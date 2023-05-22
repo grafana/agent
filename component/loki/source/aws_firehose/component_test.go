@@ -20,6 +20,7 @@ import (
 
 // singleDirectPUTData contains a single record in the firehose request, that it mimics being sent with the DirectPUT API
 const singleDirectPUTData = `{"requestId":"a1af4300-6c09-4916-ba8f-12f336176246","timestamp":1684422829730,"records":[{"data":"eyJDSEFOR0UiOi0wLjIzLCJQUklDRSI6NC44LCJUSUNLRVJfU1lNQk9MIjoiTkdDIiwiU0VDVE9SIjoiSEVBTFRIQ0FSRSJ9"}]}`
+const expectedRecord = "{\"CHANGE\":-0.23,\"PRICE\":4.8,\"TICKER_SYMBOL\":\"NGC\",\"SECTOR\":\"HEALTHCARE\"}"
 
 type receiver struct {
 	ch       chan loki.Entry
@@ -98,8 +99,6 @@ func TestComponent(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, res.StatusCode)
 
-	wantRecord := "{\"CHANGE\":-0.23,\"PRICE\":4.8,\"TICKER_SYMBOL\":\"NGC\",\"SECTOR\":\"HEALTHCARE\"}"
-
 	require.Eventually(t, func() bool {
 		return len(r1.received) == 1 && len(r2.received) == 1
 	}, time.Second*10, time.Second, "timed out waiting for receivers to get all messages")
@@ -109,8 +108,8 @@ func TestComponent(t *testing.T) {
 	// r1 and r2 should have received one entry each
 	require.Len(t, r1.received, 1)
 	require.Len(t, r2.received, 1)
-	require.JSONEq(t, wantRecord, r1.received[0].Line)
-	require.JSONEq(t, wantRecord, r2.received[0].Line)
+	require.JSONEq(t, expectedRecord, r1.received[0].Line)
+	require.JSONEq(t, expectedRecord, r2.received[0].Line)
 }
 
 var exportedRules = flow_relabel.Rules{
