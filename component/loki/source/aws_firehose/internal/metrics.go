@@ -2,7 +2,6 @@ package internal
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 type metrics struct {
@@ -29,7 +28,7 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 		Help: "Number of records received from AWS Firehose",
 	}, []string{"type"})
 
-	m.batchSize = promauto.NewHistogramVec(prometheus.HistogramOpts{
+	m.batchSize = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name: "loki_source_awsfirehose_batch_size",
 		Help: "AWS Firehose received batch size in number of records",
 	}, nil)

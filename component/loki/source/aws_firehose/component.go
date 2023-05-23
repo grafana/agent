@@ -36,17 +36,6 @@ type Arguments struct {
 	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
-func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
-	*a = Arguments{}
-	type arguments Arguments
-	err := f((*arguments)(a))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Component is the main type for the `loki.source.awsfirehose` component.
 type Component struct {
 	// mut controls concurrent access to fanout
@@ -118,35 +107,48 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 	c.fanout = newArgs.ForwardTo
 
+	var newRelabels []*relabel.Config = nil
+	var relabelRulesChanged = false
+
 	// todo(pablo): is it a good practice to keep a reference to the arguments in the
 	// component struct, used for comparing here rather than destructuring them?
 	if newArgs.RelabelRules != nil && len(newArgs.RelabelRules) > 0 {
-		c.rbs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
+		relabelRulesChanged = true
+		newRelabels = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
+	} else if c.rbs != nil && len(c.rbs) > 0 && (newArgs.RelabelRules == nil || len(newArgs.RelabelRules) == 0) {
+		// nil out relabel rules if they need to be cleared
+		relabelRulesChanged = true
 	}
 
+	// Since the handler is created ad-hoc for the server, and the handler depends on the relabels
+	// consider this as a cause for server restart as well. Much simpler than adding a lock on the
+	// handler and doing the relabel rules change on the fly
 	serverNeedsUpdate := !reflect.DeepEqual(c.args.Server, newArgs.Server)
-	if !serverNeedsUpdate {
+	if !serverNeedsUpdate && !relabelRulesChanged {
 		c.args = newArgs
 		return nil
 	}
 
 	c.shutdownServer()
 
+	// update relabel rules in component if needed
+	if relabelRulesChanged {
+		c.rbs = newRelabels
+	}
+
 	jobName := strings.Replace(c.opts.ID, ".", "_", -1)
 
 	registry := prometheus.NewRegistry()
 	c.serverMetrics.SetCollector(registry)
 
-	wlog := log.With(c.logger, "component", "aws_firehose_logs")
-	c.server, err = fnet.NewTargetServer(wlog, jobName, registry, newArgs.Server)
+	c.server, err = fnet.NewTargetServer(c.logger, jobName, registry, newArgs.Server)
 	if err != nil {
 		return err
 	}
 
 	if err = c.server.MountAndRun(func(router *mux.Router) {
 		// re-create handler when server is re-computed
-		// todo(pablo): should use unchecked collector here?
-		handler := internal.NewHandler(c, c.logger, c.opts.Registerer, c.rbs)
+		handler := internal.NewHandler(c, c.logger, registry, c.rbs)
 		router.Path("/awsfirehose/api/v1/push").Methods("POST").Handler(handler)
 	}); err != nil {
 		return err
