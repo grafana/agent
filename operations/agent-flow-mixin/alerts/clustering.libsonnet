@@ -30,7 +30,7 @@ alert.newGroup(
     alert.newRule(
       'ClusterLamportClockDrift',
       'stddev by (cluster, namespace) (cluster_node_lamport_time) > 4',
-      'Cluster nodes\' lamport clocks are not converging.',
+      "Cluster nodes' lamport clocks are not converging.",
       '5m'
     ),
 
@@ -48,7 +48,7 @@ alert.newGroup(
     alert.newRule(
       'ClusterLamportClockStuck',
       'sum by (cluster, namespace, instance) (rate(cluster_node_lamport_time[2m])) == 0',
-      'Cluster nodes\'s lamport clocks is not progressing.',
+      "Cluster nodes's lamport clocks is not progressing.",
       '5m',
     ),
 
@@ -57,7 +57,7 @@ alert.newGroup(
       'ClusterNodeNameConflict',
       'sum by (cluster, namespace) (rate(cluster_node_gossip_received_events_total{event="node_conflict"}[2m])) > 0',
       'A node tried to join the cluster with a name conflicting with an existing peer.',
-      '5m',
+      '10m',
     ),
 
     // Node stuck in Terminating state.
