@@ -2,55 +2,73 @@ package prometheusconvert_test
 
 import (
 	"bytes"
-	"io/fs"
 	"os"
-	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
+	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	promSuffix = ".yaml"
-	flowSuffix = ".river"
-)
-
 func TestConvert(t *testing.T) {
-	filepath.WalkDir("testdata", func(path string, d fs.DirEntry, _ error) error {
-		if d.IsDir() {
-			return nil
-		}
+	tt := []struct {
+		name          string
+		inputFile     string
+		outputFile    string
+		expectedDiags diag.Diagnostics
+	}{
+		{
+			name:          "prometheus_agent",
+			inputFile:     "prometheus_agent.yaml",
+			outputFile:    "prometheus_agent.river",
+			expectedDiags: nil,
+		},
+		{
+			name:       "prometheus_agent_unsupported",
+			inputFile:  "prometheus_agent_unsupported.yaml",
+			outputFile: "prometheus_agent.river",
+			expectedDiags: diag.Diagnostics{
+				diag.Diagnostic{
+					Severity: diag.SeverityLevelWarn,
+					Message:  "unsupported nomad_sd_config was provided",
+				}},
+		},
+		{
+			name:      "prometheus_agent_bad_config",
+			inputFile: "prometheus_agent_bad_config.yaml",
+			expectedDiags: diag.Diagnostics{
+				diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  "yaml: unmarshal errors:\n  line 7: field not_a_thing not found in type config.plain",
+				}},
+		},
+		{
+			name:      "prometheus_agent_broken_yaml",
+			inputFile: "prometheus_agent_broken_yaml.yaml",
+			expectedDiags: diag.Diagnostics{
+				diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  "yaml: line 18: did not find expected key",
+				}},
+		},
+	}
 
-		if strings.HasSuffix(path, promSuffix) {
-			inputFile := path
-			expectFile := strings.TrimSuffix(path, promSuffix) + flowSuffix
-
-			inputBytes, err := os.ReadFile(inputFile)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			inputBytes, err := os.ReadFile("testdata/" + tc.inputFile)
 			require.NoError(t, err)
-			expectBytes, err := os.ReadFile(expectFile)
-			require.NoError(t, err)
 
-			caseName := filepath.Base(path)
-			caseName = strings.TrimSuffix(caseName, promSuffix)
+			actual, diags := prometheusconvert.Convert(inputBytes)
+			require.Equal(t, tc.expectedDiags, diags)
 
-			t.Run(caseName, func(t *testing.T) {
-				testConverter(t, inputBytes, expectBytes)
-			})
-		}
-
-		return nil
-	})
-}
-
-func testConverter(t *testing.T, input, expect []byte) {
-	t.Helper()
-
-	actual, err := prometheusconvert.Convert(input)
-
-	require.NoError(t, err)
-	require.Equal(t, string(normalizeLineEndings(expect)), string(normalizeLineEndings(actual))+"\n")
+			// If we expect errors, don't try to validate the output for this test
+			if !tc.expectedDiags.HasErrors() {
+				outputBytes, err := os.ReadFile("testdata/" + tc.outputFile)
+				require.NoError(t, err)
+				require.Equal(t, string(normalizeLineEndings(outputBytes)), string(normalizeLineEndings(actual))+"\n")
+			}
+		})
+	}
 }
 
 // Replace '\r\n' with '\n'
