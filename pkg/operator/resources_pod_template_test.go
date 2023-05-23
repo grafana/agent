@@ -37,11 +37,11 @@ func Test_generatePodTemplate(t *testing.T) {
 			},
 		}
 
-		tmpl, selectors, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
+		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
 		require.NoError(t, err)
 		require.Equal(t, DefaultAgentBaseImage+":vX.Y.Z", tmpl.Spec.Containers[1].Image)
 	})
-	
+
 	t.Run("does not set version label in spec selector", func(t *testing.T) {
 		deploy := gragent.Deployment{
 			Agent: &gragent.GrafanaAgent{
