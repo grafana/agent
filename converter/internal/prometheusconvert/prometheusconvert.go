@@ -40,13 +40,13 @@ func Convert(in []byte) ([]byte, error) {
 	f := builder.NewFile()
 
 	remoteWriteArgs := toRemotewriteArguments(promConfig)
-	common.AppendBlock(f, []string{"prometheus", "remote_write"}, "default", remoteWriteArgs)
+	common.AppendBlockWithOverride(f, []string{"prometheus", "remote_write"}, "default", remoteWriteArgs)
 
 	forwardTo := make([]storage.Appendable, 0)
 	forwardTo = append(forwardTo, common.ConvertAppendable{Expr: "prometheus.remote_write.default.receiver"})
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
 		scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo)
-		common.AppendBlock(f, []string{"prometheus", "scrape"}, scrapeArgs.JobName, scrapeArgs)
+		common.AppendBlockWithOverride(f, []string{"prometheus", "scrape"}, scrapeArgs.JobName, scrapeArgs)
 	}
 
 	var buf bytes.Buffer
