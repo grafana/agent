@@ -343,3 +343,48 @@ func TestBuilder_GoEncode_Tokenizer(t *testing.T) {
 		require.Equal(t, expect, string(f.Bytes()))
 	})
 }
+
+func TestBuilder_ValueOverrideHook(t *testing.T) {
+	type InnerBlock struct {
+		AnotherField string `river:"another_field,attr"`
+	}
+
+	type Structure struct {
+		Field string `river:"field,attr"`
+
+		Block       InnerBlock   `river:"block,block"`
+		OtherBlocks []InnerBlock `river:"other_block,block"`
+	}
+
+	f := builder.NewFile()
+	f.Body().SetValueOverrideHook(func(val interface{}) interface{} {
+		return "some other value"
+	})
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+
+		Block: InnerBlock{AnotherField: "some_value"},
+		OtherBlocks: []InnerBlock{
+			{AnotherField: "some_value"},
+			{AnotherField: "some_value"},
+		},
+	})
+
+	expect := format(t, `
+		field = "some other value"
+	
+		block {
+			another_field = "some other value"
+		}
+
+		other_block {
+			another_field = "some other value"
+		}
+
+		other_block {
+			another_field = "some other value"
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}

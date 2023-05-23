@@ -31,7 +31,7 @@ local cluster_node_filename = 'agent-cluster-node.json';
         panel.withPosition({ h: 9, w: 8, x: 0, y: 0 }) +
         panel.withQueries([
           panel.newInstantQuery(
-            expr='count(cluster_node_info)'
+            expr='count(cluster_node_info{cluster="$cluster", namespace="$namespace"})'
           ),
         ])
       ),
@@ -44,7 +44,7 @@ local cluster_node_filename = 'agent-cluster-node.json';
         panel.withPosition({ h: 9, w: 16, x: 8, y: 0 }) +
         panel.withQueries([
           panel.newInstantQuery(
-            expr='cluster_node_info',
+            expr='cluster_node_info{cluster="$cluster", namespace="$namespace"}',
             format='table',
           ),
         ]) +
@@ -124,8 +124,8 @@ local cluster_node_filename = 'agent-cluster-node.json';
           panel.newInstantQuery(
             expr=|||
               clamp((
-                sum(stddev by (state) (cluster_node_peers) != 0) or
-                (sum(abs(sum without (state) (cluster_node_peers)) - scalar(count(cluster_node_info)) != 0))
+                sum(stddev by (state) (cluster_node_peers{cluster="$cluster", namespace="$namespace"}) != 0) or
+                (sum(abs(sum without (state) (cluster_node_peers{cluster="$cluster", namespace="$namespace"})) - scalar(count(cluster_node_info{cluster="$cluster", namespace="$namespace"})) != 0))
                 ),
                 1, 1
               )
@@ -193,8 +193,8 @@ local cluster_node_filename = 'agent-cluster-node.json';
           panel.newQuery(
             expr=|||
               ceil(clamp((
-                sum(stddev by (state) (cluster_node_peers)) or
-                (sum(abs(sum without (state) (cluster_node_peers)) - scalar(count(cluster_node_info))))
+                sum(stddev by (state) (cluster_node_peers{cluster="$cluster", namespace="$namespace"})) or
+                (sum(abs(sum without (state) (cluster_node_peers{cluster="$cluster", namespace="$namespace"})) - scalar(count(cluster_node_info{cluster="$cluster", namespace="$namespace"}))))
                 ),
                 0, 1
               ))

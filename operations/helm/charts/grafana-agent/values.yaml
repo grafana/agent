@@ -27,11 +27,9 @@ agent:
   # -- Address to listen for traffic on. 0.0.0.0 exposes the UI to other
   # containers.
   listenAddr: 0.0.0.0
+
   # -- Port to listen for traffic on.
   listenPort: 80
-
-  # -- Port to listen for faro traffic on.
-  faroPort: 12347
 
   # -- Enables sending Grafana Labs anonymous usage stats to help improve Grafana
   # Agent.
@@ -48,6 +46,10 @@ agent:
 
   # -- Extra ports to expose on the Agent
   extraPorts: []
+  # - name: "faro"
+  #   port: 12347
+  #   targetPort: 12347
+  #   protocol: "TCP"
 
   mounts:
     # -- Mount /var/log from the host into the container for log collection.
@@ -179,6 +181,7 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   labels: {}
   path: /
+  faroPort: 12347
 
   # pathType is only for k8s >= 1.1=
   pathType: Prefix

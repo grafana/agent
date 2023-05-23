@@ -5,8 +5,10 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 )
@@ -34,20 +36,17 @@ func Convert(in []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	f := builder.NewFile()
 
 	remoteWriteArgs := toRemotewriteArguments(promConfig)
-	remoteWriteBlock := builder.NewBlock([]string{"prometheus", "remote_write"}, "default")
-	remoteWriteBlock.Body().AppendFrom(remoteWriteArgs)
-	f.Body().AppendBlock(remoteWriteBlock)
+	common.AppendBlockWithOverride(f, []string{"prometheus", "remote_write"}, "default", remoteWriteArgs)
 
+	forwardTo := make([]storage.Appendable, 0)
+	forwardTo = append(forwardTo, common.ConvertAppendable{Expr: "prometheus.remote_write.default.receiver"})
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		scrapeArgs := toScrapeArguments(scrapeConfig)
-
-		scrapeBlock := builder.NewBlock([]string{"prometheus", "scrape"}, scrapeArgs.JobName)
-		scrapeBlock.Body().AppendFrom(scrapeArgs)
-
-		f.Body().AppendBlock(scrapeBlock)
+		scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo)
+		common.AppendBlockWithOverride(f, []string{"prometheus", "scrape"}, scrapeArgs.JobName, scrapeArgs)
 	}
 
 	var buf bytes.Buffer
