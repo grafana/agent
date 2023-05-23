@@ -71,6 +71,7 @@ prometheus.scrape "prometheus1" {
 
 	basic_auth {
 		username = "user"
+		password = "pass"
 	}
 	follow_redirects = true
 	enable_http2     = true
