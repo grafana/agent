@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"reflect"
 	"strings"
 
@@ -28,9 +29,39 @@ var (
 	parsedNames = map[string]parsedName{}
 )
 
+// ModuleController is a mechanism responsible for allowing components to create other components via modules.
+type ModuleController interface {
+	// NewModule creates a new, un-started Module.
+	NewModule(id string, export ExportFunc) Module
+}
+
+// Module is a controller for running components within a Module.
+type Module interface {
+	// LoadConfig parses River config and loads it into the Module.
+	// LoadConfig can be called multiple times, and called prior to
+	// [Module.Run].
+	LoadConfig(config []byte, args map[string]any) error
+
+	// Run starts the Module. No components within the Module
+	// will be run until Run is called.
+	//
+	// Run blocks until the provided context is canceled.
+	Run(context.Context)
+
+	// ComponentHandler returns an HTTP handler which exposes endpoints of
+	// components managed by the Module.
+	ComponentHandler() http.Handler
+}
+
+// ExportFunc is used for onExport of the Module
+type ExportFunc func(exports map[string]any)
+
 // Options are provided to a component when it is being constructed. Options
 // are static for the lifetime of a component.
 type Options struct {
+	// ModuleController allows for the creation of modules.
+	ModuleController ModuleController
+
 	// ID of the component. Guaranteed to be globally unique across all running
 	// components.
 	ID string
