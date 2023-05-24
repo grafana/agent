@@ -10,6 +10,7 @@
   background: none;
   background-color: rgb(56, 133, 220);
   color: #ffffff;
+  margin-left: auto;
 
   border: 1px solid rgb(56, 133, 220);
   border-radius: 3px;
@@ -19,8 +20,6 @@
   padding: 0px 15px;
   line-height: 24px;
   font-size: 0.8em;
-
-  float: right;
 }
 
 .idColumn {
