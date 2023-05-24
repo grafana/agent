@@ -29,13 +29,27 @@ const (
 // because of mismatched functionality, an error is returned with no resulting
 // config. If the conversion completed successfully but generated warnings, an
 // error is returned alongside the resulting config.
-func Convert(in []byte, kind Input) ([]byte, common.Diagnostics) {
+func Convert(in []byte, kind Input) ([]byte, Diagnostics) {
 	switch kind {
 	case InputPrometheus:
-		return prometheusconvert.Convert(in)
+		value, diags := prometheusconvert.Convert(in)
+		return value, convertToDiagnostics(diags)
 	}
 
 	var diags common.Diagnostics
 	diags.Add(common.SeverityLevelError, fmt.Sprintf("unrecognized kind %q", kind))
-	return nil, diags
+	return nil, convertToDiagnostics(diags)
+}
+
+// Diagnostic is an alias for common.Diagnostic in the public API
+type Diagnostic = common.Diagnostic
+
+// Diagnostics is an alias for common.Diagnostics in the public API
+type Diagnostics = common.Diagnostics
+
+// ConvertToDiagnostics converts a common.Diagnostics to Diagnostics
+func convertToDiagnostics(diags common.Diagnostics) Diagnostics {
+	var convertedDiags Diagnostics
+	convertedDiags = append(convertedDiags, diags...)
+	return convertedDiags
 }
