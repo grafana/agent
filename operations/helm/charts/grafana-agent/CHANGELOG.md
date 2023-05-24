@@ -16,6 +16,9 @@ Unreleased
 
 - Make the Faro port optional. (@tpaschalis)
 
+- Rename the deprecated `serviceAccount` alias to to `serviceAccountName` in
+  pod template. This is a no-op for existing deployments. (@tpaschalis)
+
 0.14.0 (2023-05-11)
 -------------------
 
