@@ -91,6 +91,8 @@ Main (unreleased)
 
 - Fix targets deduplication when clustering mode is enabled. (@laurovenancio)
 
+- Fix issue in operator where any version update will restart all agent pods simultaneously. (@captncraig)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
