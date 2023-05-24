@@ -10,7 +10,7 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  serviceAccount: {{ include "grafana-agent.serviceAccountName" . }}
+  serviceAccountName: {{ include "grafana-agent.serviceAccountName" . }}
   {{- with .Values.image.pullSecrets }}
   imagePullSecrets:
     {{- toYaml . | nindent 4 }}
