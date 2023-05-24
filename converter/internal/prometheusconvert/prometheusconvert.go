@@ -6,13 +6,12 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
-	"github.com/prometheus/prometheus/discovery/nomad"
 )
 
 // Convert implements a Prometheus config converter.
@@ -33,15 +32,12 @@ import (
 //	discovery.kubernetes
 //	discovery.lightsail
 //	discovery.relabel
-func Convert(in []byte) ([]byte, diag.Diagnostics) {
-	var diags diag.Diagnostics
+func Convert(in []byte) ([]byte, common.Diagnostics) {
+	var diags common.Diagnostics
 
 	promConfig, err := promconfig.Load(string(in), false, log.NewNopLogger())
 	if err != nil {
-		diags.Add(diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  err.Error(),
-		})
+		diags.Add(common.SeverityLevelError, err.Error())
 		return nil, diags
 	}
 
@@ -61,10 +57,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
-		diags.Add(diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  fmt.Sprintf("failed to render Flow config: %s", err.Error()),
-		})
+		diags.Add(common.SeverityLevelError, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
 		return nil, diags
 	}
 	return buf.Bytes(), diags
@@ -72,18 +65,16 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 // ValidateUnsupported will traverse the Prometheus Config and return warnings
 // for any config we knowingly do not support.
-func ValidateUnsupported(promConfig *promconfig.Config) diag.Diagnostics {
-	var diags diag.Diagnostics
+func ValidateUnsupported(promConfig *promconfig.Config) common.Diagnostics {
+	var diags common.Diagnostics
 
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
 		for _, sdConfig := range scrapeConfig.ServiceDiscoveryConfigs {
 			switch sdConfig.(type) {
-			case *nomad.SDConfig:
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelWarn,
-					Message:  "unsupported nomad_sd_config was provided",
-				})
+			case discovery.StaticConfig:
+				continue
 			default:
+				diags.Add(common.SeverityLevelWarn, fmt.Sprintf("unsupported %s was provided", sdConfig.Name()))
 			}
 		}
 	}

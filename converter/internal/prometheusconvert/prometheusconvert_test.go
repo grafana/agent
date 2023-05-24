@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +37,7 @@ func TestConvert(t *testing.T) {
 			t.Run(caseName, func(t *testing.T) {
 				actual, diags := prometheusconvert.Convert(inputBytes)
 
-				expectedDiags := diag.Diagnostics(nil)
+				expectedDiags := common.Diagnostics(nil)
 				errorFile := strings.TrimSuffix(path, promSuffix) + errorsSuffix
 				if _, err := os.Stat(errorFile); err == nil {
 					errorBytes, err := os.ReadFile(errorFile)
@@ -66,8 +66,8 @@ func normalizeLineEndings(data []byte) []byte {
 	return normalized
 }
 
-func parseErrors(t *testing.T, errors []byte) diag.Diagnostics {
-	var diags diag.Diagnostics
+func parseErrors(t *testing.T, errors []byte) common.Diagnostics {
+	var diags common.Diagnostics
 
 	errorsString := string(normalizeLineEndings(errors))
 	splitErrors := strings.Split(errorsString, "\n")
@@ -83,10 +83,7 @@ func parseErrors(t *testing.T, errors []byte) diag.Diagnostics {
 		// Some error messages have \n in them and need this
 		errorMessage := strings.ReplaceAll(parsedError[1], "\\n", "\n")
 
-		diags.Add(diag.Diagnostic{
-			Severity: diag.Severity(severity),
-			Message:  errorMessage,
-		})
+		diags.Add(common.Severity(severity), errorMessage)
 	}
 
 	return diags
