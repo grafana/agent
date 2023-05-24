@@ -2,7 +2,11 @@ package prometheusconvert_test
 
 import (
 	"bytes"
+	"io/fs"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
@@ -10,69 +14,80 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestConvert(t *testing.T) {
-	tt := []struct {
-		name          string
-		inputFile     string
-		outputFile    string
-		expectedDiags diag.Diagnostics
-	}{
-		{
-			name:          "prometheus_agent",
-			inputFile:     "prometheus_agent.yaml",
-			outputFile:    "prometheus_agent.river",
-			expectedDiags: nil,
-		},
-		{
-			name:       "prometheus_agent_unsupported",
-			inputFile:  "prometheus_agent_unsupported.yaml",
-			outputFile: "prometheus_agent.river",
-			expectedDiags: diag.Diagnostics{
-				diag.Diagnostic{
-					Severity: diag.SeverityLevelWarn,
-					Message:  "unsupported nomad_sd_config was provided",
-				}},
-		},
-		{
-			name:      "prometheus_agent_bad_config",
-			inputFile: "prometheus_agent_bad_config.yaml",
-			expectedDiags: diag.Diagnostics{
-				diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  "yaml: unmarshal errors:\n  line 7: field not_a_thing not found in type config.plain",
-				}},
-		},
-		{
-			name:      "prometheus_agent_broken_yaml",
-			inputFile: "prometheus_agent_broken_yaml.yaml",
-			expectedDiags: diag.Diagnostics{
-				diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  "yaml: line 18: did not find expected key",
-				}},
-		},
-	}
+const (
+	promSuffix   = ".yaml"
+	flowSuffix   = ".river"
+	errorsSuffix = ".errors"
+)
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			inputBytes, err := os.ReadFile("testdata/" + tc.inputFile)
+func TestConvert(t *testing.T) {
+	filepath.WalkDir("testdata", func(path string, d fs.DirEntry, _ error) error {
+		if d.IsDir() {
+			return nil
+		}
+
+		if strings.HasSuffix(path, promSuffix) {
+			inputFile := path
+			inputBytes, err := os.ReadFile(inputFile)
 			require.NoError(t, err)
 
-			actual, diags := prometheusconvert.Convert(inputBytes)
-			require.Equal(t, tc.expectedDiags, diags)
+			caseName := filepath.Base(path)
+			caseName = strings.TrimSuffix(caseName, promSuffix)
 
-			// If we expect errors, don't try to validate the output for this test
-			if !tc.expectedDiags.HasErrors() {
-				outputBytes, err := os.ReadFile("testdata/" + tc.outputFile)
-				require.NoError(t, err)
-				require.Equal(t, string(normalizeLineEndings(outputBytes)), string(normalizeLineEndings(actual))+"\n")
-			}
-		})
-	}
+			t.Run(caseName, func(t *testing.T) {
+				actual, diags := prometheusconvert.Convert(inputBytes)
+
+				expectedDiags := diag.Diagnostics(nil)
+				errorFile := strings.TrimSuffix(path, promSuffix) + errorsSuffix
+				if _, err := os.Stat(errorFile); err == nil {
+					errorBytes, err := os.ReadFile(errorFile)
+					require.NoError(t, err)
+					expectedDiags = parseErrors(t, errorBytes)
+				}
+
+				require.Equal(t, expectedDiags, diags)
+
+				outputFile := strings.TrimSuffix(path, promSuffix) + flowSuffix
+				if _, err := os.Stat(outputFile); err == nil {
+					outputBytes, err := os.ReadFile(outputFile)
+					require.NoError(t, err)
+					require.Equal(t, string(normalizeLineEndings(outputBytes)), string(normalizeLineEndings(actual)))
+				}
+			})
+		}
+
+		return nil
+	})
 }
 
 // Replace '\r\n' with '\n'
 func normalizeLineEndings(data []byte) []byte {
 	normalized := bytes.ReplaceAll(data, []byte{'\r', '\n'}, []byte{'\n'})
 	return normalized
+}
+
+func parseErrors(t *testing.T, errors []byte) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	errorsString := string(normalizeLineEndings(errors))
+	splitErrors := strings.Split(errorsString, "\n")
+	for _, error := range splitErrors {
+		parsedError := strings.Split(error, " | ")
+		if len(parsedError) != 2 {
+			require.FailNow(t, "invalid error format")
+		}
+
+		severity, err := strconv.ParseInt(parsedError[0], 10, 8)
+		require.NoError(t, err)
+
+		// Some error messages have \n in them and need this
+		errorMessage := strings.ReplaceAll(parsedError[1], "\\n", "\n")
+
+		diags.Add(diag.Diagnostic{
+			Severity: diag.Severity(severity),
+			Message:  errorMessage,
+		})
+	}
+
+	return diags
 }
