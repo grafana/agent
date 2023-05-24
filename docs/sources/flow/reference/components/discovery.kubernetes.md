@@ -127,6 +127,8 @@ The following labels are included for discovered pods:
   `InitContainer`.
 * `__meta_kubernetes_pod_container_name`: Name of the container the target
   address points to.
+* `__meta_kubernetes_pod_container_id`: ID of the container the target address
+  points to. The ID is in the form `<type>://<container_id>`.
 * `__meta_kubernetes_pod_container_image`: The image the container is using.
 * `__meta_kubernetes_pod_container_port_name`: Name of the container port.
 * `__meta_kubernetes_pod_container_port_number`: Number of the container port.
