@@ -5,11 +5,11 @@ aliases:
 - ../../set-up/install-agent-linux/
 ---
 
-## Install static mode on Linux
+# Install static mode on Linux
 
 Install Grafana Agent and get it up and running on Linux.
 
-### Install on Debian or Ubuntu
+## Install on Debian or Ubuntu
 
 1. Open a terminal and run the following command to install Grafana’s package repository:
 
@@ -31,7 +31,7 @@ Install Grafana Agent and get it up and running on Linux.
    sudo apt-get install grafana-agent
    ```
 
-### Install on RedHat, RHEL, or Fedora
+## Install on RedHat, RHEL, or Fedora
 
 1. Create `/etc/yum.repos.d/grafana.repo` with the following content:
 
@@ -60,7 +60,7 @@ Install Grafana Agent and get it up and running on Linux.
    sudo yum install grafana-agent
    ```
 
-### Install on SUSE or openSUSE
+## Install on SUSE or openSUSE
 
 1. Open a terminal and run the following to install Grafana's package repository:
 
@@ -77,11 +77,11 @@ Install Grafana Agent and get it up and running on Linux.
    sudo zypper install grafana-agent
    ```
 
-### Operation guide
+## Operation guide
 
 The Grafana Agent is configured as a [systemd](https://systemd.io/) service.
 
-#### Start the Agent
+### Start the Agent
 
 To run Grafana Agent, run the following in a terminal:
 
@@ -95,7 +95,7 @@ To check the status of Grafana Agent, run the following command in a terminal:
    sudo systemctl status grafana-agent
    ```
 
-#### Run Grafana Agent on startup
+### Run Grafana Agent on startup
 
 To automatically run Grafana Agent Flow when the system starts, run the following command in a terminal:
 
@@ -103,7 +103,7 @@ To automatically run Grafana Agent Flow when the system starts, run the followin
    sudo systemctl enable grafana-agent.service
    ```
 
-#### Configuring Grafana Agent
+### Configuring Grafana Agent
 
 To configure Grafana Agent when installed on Linux, perform the following steps:
 
@@ -115,7 +115,7 @@ To configure Grafana Agent when installed on Linux, perform the following steps:
    sudo systemctl reload grafana-agent
    ```
 
-#### View Grafana Agent logs
+### View Grafana Agent logs
 
 Logs of Grafana Agent can be found by running the following command in a terminal:
 
