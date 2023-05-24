@@ -1,97 +1,124 @@
 ---
-title: Install static mode on Linux
+title: Linux
 weight: 115
 aliases:
 - ../../set-up/install-agent-linux/
 ---
 
-## Install static mode on Linux
+# Install static mode on Linux
 
 Install Grafana Agent and get it up and running on Linux.
 
-### Install on Debian or Ubuntu
+## Install on Debian or Ubuntu
 
-1.  If your distribution supports the signed-by option, open a terminal and enter:
-```shell
-$ sudo mkdir -p /etc/apt/keyrings/
-$ wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
-$ echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
-```
-Otherwise, with the deprecated apt-key command:
-```shell
-$ echo "deb https://apt.grafana.com stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
-$ wget -q -O - https://apt.grafana.com/gpg.key | apt-key add -
-```
-2. After you add the repository, update package list:
-```shell
-sudo apt-get update
-```
-3. Install Grafana Agent:
-```shell
-sudo apt-get install grafana-agent
-```
-### Install on RPM-based Linux (CentOS, Fedora, OpenSuse, Red Hat)
+1. Open a terminal and run the following command to install Grafana’s package repository:
 
-1. Manually create a new `.repo` file inside `/etc/yum.repos.d` using a text editor:
-```shell
-$ sudo nano /etc/yum.repos.d/grafana.repo
-[grafana]
-name=grafana
-baseurl=https://rpm.grafana.com
-repo_gpgcheck=1
-enabled=1
-gpgcheck=1
-gpgkey=https://rpm.grafana.com/gpg.key
-sslverify=1
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt
-```
-2. Verify that the repository is properly configured using `yum-config-manager`:
-```shell
-yum-config-manager grafana
-```
-3. Install Grafana Agent:
-```shell
-sudo yum install grafana-agent
-```
+   ```shell
+   sudo mkdir -p /etc/apt/keyrings/
+   wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
+   echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
+   ```
 
-### Operation guide
+1. Update the repositories:
 
-The Grafana Agent will be configured a [systemd](https://systemd.io/) service after using the installation methods
-explained in the previous sections.
+   ```shell
+   sudo apt-get update
+   ```
 
-#### Start the Agent
+1. Install Grafana Agent:
 
-To run the service you just need to type:
-```shell
-sudo systemctl start grafana-agent
-```
+   ```shell
+   sudo apt-get install grafana-agent
+   ```
 
-You can check the status of the running agent typing:
-```shell
-sudo systemctl status grafana-agent
-```
+## Install on RedHat, RHEL, or Fedora
 
-Alternately, you can configure the Grafana Agent to restart at boot:
-```shell
-sudo systemctl enable grafana-agent.service
-```
+1. Create `/etc/yum.repos.d/grafana.repo` with the following content:
 
-#### Editing the Agent's config file
+   ```shell
+   sudo nano /etc/yum.repos.d/grafana.repo
+   [grafana]
+   name=grafana
+   baseurl=https://rpm.grafana.com
+   repo_gpgcheck=1
+   enabled=1
+   gpgcheck=1
+   gpgkey=https://rpm.grafana.com/gpg.key
+   sslverify=1
+   sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+   ```
 
-By default, the config file is located in `/etc/grafana-agent.yaml`. After editing the file
-with the desired config, you need to restart the agent running:
-```shell
-sudo systemctl restart grafana-agent
-```
+1. Verify that the repository is properly configured using `yum-config-manager`:
 
-#### Check the logs of running Agent
+   ```shell
+   yum-config-manager grafana
+   ```
 
-You can check the logs of running agent typing:
+1. Install Grafana Agent:
 
-```shell
-sudo journalctl -u grafana-agent
+   ```shell
+   sudo yum install grafana-agent
+   ```
 
-Sep 02 14:33:28 grafana systemd[1]: Started Monitoring system and forwarder.
-Sep 02 14:33:28 grafana grafana-agent[1633180]: ts=2022-09-02T12:33:28Z level=info caller=traces/traces.go:143 msg="Traces Logger I>
-Sep 02 14:37:45 grafana systemd[1]: Stopping Monitoring system and forwarder...
-```
+## Install on SUSE or openSUSE
+
+1. Open a terminal and run the following to install Grafana's package repository:
+
+   ```shell
+   wget -q -O gpg.key https://apt.grafana.com/gpg.key
+   sudo rpm --import gpg.key
+   sudo zypper addrepo https://rpm.grafana.com grafana
+   ```
+
+1. Update the repository and install Grafana Agent:
+
+   ```shell
+   sudo zypper update
+   sudo zypper install grafana-agent
+   ```
+
+## Operation guide
+
+The Grafana Agent is configured as a [systemd](https://systemd.io/) service.
+
+### Start the Agent
+
+To run Grafana Agent, run the following in a terminal:
+
+   ```shell
+   sudo systemctl start grafana-agent
+   ```
+
+To check the status of Grafana Agent, run the following command in a terminal:
+
+   ```shell
+   sudo systemctl status grafana-agent
+   ```
+
+### Run Grafana Agent on startup
+
+To automatically run Grafana Agent Flow when the system starts, run the following command in a terminal:
+
+   ```shell
+   sudo systemctl enable grafana-agent.service
+   ```
+
+### Configuring Grafana Agent
+
+To configure Grafana Agent when installed on Linux, perform the following steps:
+
+1. Edit the default configuration file at `/etc/grafana-agent.yaml`. 
+
+1. Run the following command in a terminal to reload the configuration file:
+
+   ```shell
+   sudo systemctl reload grafana-agent
+   ```
+
+### View Grafana Agent logs
+
+Logs of Grafana Agent can be found by running the following command in a terminal:
+
+   ```shell
+   sudo journalctl -u grafana-agent
+   ```
