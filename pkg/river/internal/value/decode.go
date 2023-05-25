@@ -397,15 +397,17 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 // decodeAny is invoked by decode when into is an interface{}. We assign the
 // interface{} a known type based on the River value being decoded:
 //
-//	Null values:   nil
-//	Number values: float64, int, or uint depending on the underlying Go type
-//	               of the River value
-//	Arrays:        []interface{}
-//	Objects:       map[string]interface{}
-//	Bool:          bool
-//	String:        string
-//	Function:      Passthrough of the underlying function value
-//	Capsule:       Passthrough of the underlying capsule value
+//		Null values:           nil
+//		Integer values:        int64, uint64 or float64, in this order of preference;
+//	                           If the number overflows an int64 then we try uint64,
+//	                           and if that also overflows we try a float64.
+//		Floating point values: float64
+//		Arrays:                []interface{}
+//		Objects:               map[string]interface{}
+//		Bool:                  bool
+//		String:                string
+//		Function:              Passthrough of the underlying function value
+//		Capsule:               Passthrough of the underlying capsule value
 //
 // In the cases where we do not pass through the underlying value, we create a
 // value of that type, recursively call decode to populate that new value, and
@@ -419,8 +421,20 @@ func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 		return nil
 
 	case TypeNumber:
-		var v = val.Number().Float()
-		ptr = reflect.ValueOf(&v)
+
+		switch val.Number().Kind() {
+		case NumberKindFloat:
+			var v float64
+			ptr = reflect.ValueOf(&v)
+		case NumberKindUint:
+			var v uint64
+			ptr = reflect.ValueOf(&v)
+		case NumberKindInt:
+			var v int64
+			ptr = reflect.ValueOf(&v)
+		default:
+			panic("river/value: unreachable")
+		}
 
 	case TypeArray:
 		var v []interface{}

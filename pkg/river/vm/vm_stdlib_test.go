@@ -21,7 +21,7 @@ func TestVM_Stdlib(t *testing.T) {
 		expect interface{}
 	}{
 		{"env", `env("TEST_VAR")`, string("Hello!")},
-		{"concat", `concat([true, "foo"], [], [false, 1])`, []interface{}{true, "foo", false, float64(1)}},
+		{"concat", `concat([true, "foo"], [], [false, 1])`, []interface{}{true, "foo", false, int64(1)}},
 		{"json_decode object", `json_decode("{\"foo\": \"bar\"}")`, map[string]interface{}{"foo": "bar"}},
 		{"json_decode array", `json_decode("[0, 1, 2]")`, []interface{}{float64(0), float64(1), float64(2)}},
 		{"json_decode nil field", `json_decode("{\"foo\": null}")`, map[string]interface{}{"foo": nil}},
