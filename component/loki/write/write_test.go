@@ -6,10 +6,13 @@ import (
 	"math"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/discovery"
+	lsf "github.com/grafana/agent/component/loki/source/file"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
@@ -111,5 +114,90 @@ func Test(t *testing.T) {
 		require.Len(t, req.Streams[0].Entries, 2)
 		require.Equal(t, req.Streams[0].Entries[0].Line, logEntry.Line)
 		require.Equal(t, req.Streams[0].Entries[1].Line, logEntry.Line)
+	}
+}
+
+func TestEntrySentToTwoWriteComponents(t *testing.T) {
+	ch := make(chan logproto.PushRequest, 2)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var pushReq logproto.PushRequest
+		require.NoError(t, loki_util.ParseProtoReader(context.Background(), r.Body, int(r.ContentLength), math.MaxInt32, &pushReq, loki_util.RawSnappy))
+		ch <- pushReq
+	}))
+	defer srv.Close()
+
+	// Set up two different loki.write components.
+	cfg1 := fmt.Sprintf(`
+		endpoint {
+			url        = "%s"
+		}
+		external_labels = { "lbl" = "foo" }
+	`, srv.URL)
+	cfg2 := fmt.Sprintf(`
+		endpoint {
+			url        = "%s"
+		}
+		external_labels = { "lbl" = "bar" }
+	`, srv.URL)
+	var args1, args2 Arguments
+	require.NoError(t, river.Unmarshal([]byte(cfg1), &args1))
+	require.NoError(t, river.Unmarshal([]byte(cfg2), &args2))
+
+	// Set up and start the component.
+	tc1, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.write")
+	require.NoError(t, err)
+	tc2, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.write")
+	require.NoError(t, err)
+	go func() {
+		require.NoError(t, tc1.Run(componenttest.TestContext(t), args1))
+	}()
+	go func() {
+		require.NoError(t, tc2.Run(componenttest.TestContext(t), args2))
+	}()
+	require.NoError(t, tc1.WaitExports(time.Second))
+	require.NoError(t, tc2.WaitExports(time.Second))
+
+	// Create a file to log to.
+	f, err := os.CreateTemp(t.TempDir(), "example")
+	require.NoError(t, err)
+	defer f.Close()
+
+	// Create and start a component that will read from that file and fan out to both components.
+	ctrl, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.source.file")
+	require.NoError(t, err)
+
+	go func() {
+		err := ctrl.Run(context.Background(), lsf.Arguments{
+			Targets: []discovery.Target{{"__path__": f.Name(), "somelbl": "somevalue"}},
+			ForwardTo: []loki.LogsReceiver{
+				tc1.Exports().(Exports).Receiver,
+				tc2.Exports().(Exports).Receiver,
+			},
+		})
+		require.NoError(t, err)
+	}()
+	ctrl.WaitRunning(time.Minute)
+
+	// Write a line to the file.
+	_, err = f.Write([]byte("writing some text\n"))
+	require.NoError(t, err)
+
+	wantLabelSet := model.LabelSet{
+		"filename": model.LabelValue(f.Name()),
+		"somelbl":  "somevalue",
+	}
+
+	// The two entries have been received with their
+	for i := 0; i < 2; i++ {
+		s := []model.LabelValue{"foo", "bar"}
+		select {
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "failed waiting for logs")
+		case req := <-ch:
+			require.Len(t, req.Streams, 1)
+			require.Equal(t, req.Streams[0].Labels, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": s[i]}).String())
+			require.Len(t, req.Streams[0].Entries, 1)
+			require.Equal(t, req.Streams[0].Entries[0].Line, "writing some text")
+		}
 	}
 }

@@ -131,7 +131,7 @@ func (c *Component) handleIn(ctx context.Context, wg *sync.WaitGroup) {
 			select {
 			case <-ctx.Done():
 				return
-			case c.processIn <- entry:
+			case c.processIn <- entry.Clone():
 				// no-op
 			}
 			c.mut.RUnlock()
