@@ -48,7 +48,7 @@ If you are using `remote_write` you must enable Windows Exporter and set the glo
 
 ## Verify the installation
 
-1. Makee sure you can access `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/metrics/targets`.
+1. Make sure you can access `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/metrics/targets`.
 1. Optional: You can adjust `C:\Program Files\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, restart the Grafana Agent service to load changes to the configuration.
 
 Existing configuration files are kept when re-installing or upgrading the Grafana Agent.
