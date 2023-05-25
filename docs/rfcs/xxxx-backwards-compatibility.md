@@ -63,7 +63,9 @@ releases: 
     Agent as a binary.  
 
   - It allows us to get in the habit of being deliberate around when something
-    should be consumable downstream.
+    should be consumable downstream, and will help us strengthen our skills
+    with designing good APIs in general. Ideally, this helps us get better at
+    writing Go code _and_ writing Flow components.
 
   - It will help train us to more easily recognize when any kind of change is
     breaking. 
