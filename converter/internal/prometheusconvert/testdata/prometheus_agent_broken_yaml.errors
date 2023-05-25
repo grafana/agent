@@ -1,1 +1,1 @@
-2 | yaml: line 18: did not find expected key
+2 | failed to parse Prometheus config: yaml: line 18: did not find expected key
