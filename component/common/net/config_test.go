@@ -5,10 +5,30 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	weaveworks "github.com/weaveworks/common/server"
 
 	"github.com/grafana/agent/pkg/river"
-	weaveworks "github.com/weaveworks/common/server"
 )
+
+// testArguments mimics an arguments type used by a component, applying the defaults to ServerConfig
+// from it's UnmarshalRiver implementation, since the block is squashed.
+type testArguments struct {
+	Server *ServerConfig `river:",squash"`
+}
+
+func (t *testArguments) UnmarshalRiver(f func(v interface{}) error) error {
+	// apply server defaults from here since the fields are squashed
+	*t = testArguments{
+		Server: DefaultServerConfig(),
+	}
+
+	type args testArguments
+	err := f((*args)(t))
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func TestConfig(t *testing.T) {
 	type testcase struct {
@@ -129,10 +149,10 @@ func TestConfig(t *testing.T) {
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			cfg := ServerConfig{}
-			err := river.Unmarshal([]byte(tc.raw), &cfg)
+			args := testArguments{}
+			err := river.Unmarshal([]byte(tc.raw), &args)
 			require.Equal(t, tc.errExpected, err != nil)
-			wConfig := cfg.convert()
+			wConfig := args.Server.convert()
 			tc.assert(t, wConfig)
 		})
 	}

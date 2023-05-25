@@ -33,6 +33,11 @@ type PushConfig struct {
 
 // UnmarshalRiver implements the unmarshaller
 func (p *PushConfig) UnmarshalRiver(f func(v interface{}) error) error {
+	// apply server defaults from here since the fields are squashed
+	*p = PushConfig{
+		Server: fnet.DefaultServerConfig(),
+	}
+
 	type pushCfg PushConfig
 	err := f((*pushCfg)(p))
 	if err != nil {
