@@ -31,7 +31,7 @@ You can install Grafana Agent on Microsoft Windows.
 1. Run the following command in PowerShell or Command Prompt:
 
    ```shell
-   <path_to_installer>/grafana-agent-flow-installer.exe /S
+   PATH_TO_INSTALLER/grafana-agent-flow-installer.exe /S
    ```
 ## Silent installation with `remote_write`
 
