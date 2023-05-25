@@ -32,13 +32,12 @@ const (
 func Convert(in []byte, kind Input) ([]byte, Diagnostics) {
 	switch kind {
 	case InputPrometheus:
-		value, diags := prometheusconvert.Convert(in)
-		return value, convertToDiagnostics(diags)
+		return prometheusconvert.Convert(in)
 	}
 
 	var diags common.Diagnostics
 	diags.Add(common.SeverityLevelError, fmt.Sprintf("unrecognized kind %q", kind))
-	return nil, convertToDiagnostics(diags)
+	return nil, diags
 }
 
 // Diagnostic is an alias for common.Diagnostic in the public API
@@ -46,10 +45,3 @@ type Diagnostic = common.Diagnostic
 
 // Diagnostics is an alias for common.Diagnostics in the public API
 type Diagnostics = common.Diagnostics
-
-// ConvertToDiagnostics converts a common.Diagnostics to Diagnostics
-func convertToDiagnostics(diags common.Diagnostics) Diagnostics {
-	var convertedDiags Diagnostics
-	convertedDiags = append(convertedDiags, diags...)
-	return convertedDiags
-}
