@@ -93,6 +93,9 @@ Main (unreleased)
 
 - Fix issue in operator where any version update will restart all agent pods simultaneously. (@captncraig)
 
+- Fix an issue where `loki.source.journald` did not create the positions
+  directory with the appropriate permissions. (@tpaschalis)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
