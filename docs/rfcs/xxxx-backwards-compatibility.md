@@ -52,8 +52,8 @@ releases: 
   having to make changes to their code.
 
   This means that names, signatures, and meanings may not change; a function
-  called Calculate may not be changed from adding two numbers to subtracting
-  two numbers instead.
+  called Calculate may not be changed from returning the sum of two numbers to
+  returning the difference of two numbers.
 
   Protecting Go packaged with backwards compatibility is expected to be a
   contentious proposal. However, it has positive benefits: 
