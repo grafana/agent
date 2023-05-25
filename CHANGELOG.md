@@ -96,6 +96,9 @@ Main (unreleased)
 - Fix an issue where `loki.source.journald` did not create the positions
   directory with the appropriate permissions. (@tpaschalis)
 
+- Fix an issue where fanning out log entries to multiple `loki.process`
+  components lead to a race condition. (@tpaschalis)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
