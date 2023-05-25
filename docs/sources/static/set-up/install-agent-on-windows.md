@@ -63,7 +63,7 @@ If you change the location of the configuration file, ensure you complete the fo
 1. Run the following in an elevated prompt, replacing `<new_path>` with the full path holding `agent-config.yaml`:
 
 ```shell
-sc config "Grafana Agent" binpath= "<installed_directory>\agent-windows-amd64.exe -config.file=\"<new_path>\agent-config.yaml\""
+sc config "Grafana Agent" binpath= "INSTALLED_DIRECTORY\agent-windows-amd64.exe -config.file=\"<new_path>\agent-config.yaml\""
 ```
 
 ## Uninstall Grafana Agent
