@@ -131,8 +131,12 @@ func (c *Component) handleIn(ctx context.Context, wg *sync.WaitGroup) {
 			select {
 			case <-ctx.Done():
 				return
-			case c.processIn <- entry:
+			case c.processIn <- entry.Clone():
 				// no-op
+				// TODO(@tpaschalis) Instead of calling Clone() at the
+				// component's entrypoint here, we can try a copy-on-write
+				// approach instead, so that the copy only gets made on the
+				// first stage that needs to modify the entry's labels.
 			}
 			c.mut.RUnlock()
 		}
