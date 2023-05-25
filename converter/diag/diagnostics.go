@@ -1,6 +1,6 @@
-// Package common exposes error types used throughout converter and a method to
+// Package diag exposes error types used throughout converter and a method to
 // pretty-print them to the screen.
-package common
+package diag
 
 // Severity denotes the severity level of a diagnostic. The zero value of
 // severity is invalid.

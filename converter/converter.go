@@ -5,7 +5,7 @@ package converter
 import (
 	"fmt"
 
-	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 )
 
@@ -29,19 +29,13 @@ const (
 // because of mismatched functionality, an error is returned with no resulting
 // config. If the conversion completed successfully but generated warnings, an
 // error is returned alongside the resulting config.
-func Convert(in []byte, kind Input) ([]byte, Diagnostics) {
+func Convert(in []byte, kind Input) ([]byte, diag.Diagnostics) {
 	switch kind {
 	case InputPrometheus:
 		return prometheusconvert.Convert(in)
 	}
 
-	var diags common.Diagnostics
-	diags.Add(common.SeverityLevelError, fmt.Sprintf("unrecognized kind %q", kind))
+	var diags diag.Diagnostics
+	diags.Add(diag.SeverityLevelError, fmt.Sprintf("unrecognized kind %q", kind))
 	return nil, diags
 }
-
-// Diagnostic is an alias for common.Diagnostic in the public API
-type Diagnostic = common.Diagnostic
-
-// Diagnostics is an alias for common.Diagnostics in the public API
-type Diagnostics = common.Diagnostics

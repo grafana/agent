@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
@@ -32,12 +33,12 @@ import (
 //	discovery.kubernetes
 //	discovery.lightsail
 //	discovery.relabel
-func Convert(in []byte) ([]byte, common.Diagnostics) {
-	var diags common.Diagnostics
+func Convert(in []byte) ([]byte, diag.Diagnostics) {
+	var diags diag.Diagnostics
 
 	promConfig, err := promconfig.Load(string(in), false, log.NewNopLogger())
 	if err != nil {
-		diags.Add(common.SeverityLevelError, fmt.Sprintf("failed to parse Prometheus config: %s", err))
+		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to parse Prometheus config: %s", err))
 		return nil, diags
 	}
 
@@ -57,7 +58,7 @@ func Convert(in []byte) ([]byte, common.Diagnostics) {
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
-		diags.Add(common.SeverityLevelError, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
+		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
 		return nil, diags
 	}
 	return buf.Bytes(), diags
@@ -65,8 +66,8 @@ func Convert(in []byte) ([]byte, common.Diagnostics) {
 
 // ValidateUnsupported will traverse the Prometheus Config and return warnings
 // for any config we knowingly do not support.
-func ValidateUnsupported(promConfig *promconfig.Config) common.Diagnostics {
-	var diags common.Diagnostics
+func ValidateUnsupported(promConfig *promconfig.Config) diag.Diagnostics {
+	var diags diag.Diagnostics
 
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
 		for _, sdConfig := range scrapeConfig.ServiceDiscoveryConfigs {
@@ -74,7 +75,7 @@ func ValidateUnsupported(promConfig *promconfig.Config) common.Diagnostics {
 			case discovery.StaticConfig:
 				continue
 			default:
-				diags.Add(common.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", sdConfig.Name()))
+				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", sdConfig.Name()))
 			}
 		}
 	}
