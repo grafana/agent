@@ -45,6 +45,11 @@ type Component struct {
 
 // New creates a new  component.
 func New(o component.Options, args Arguments) (component.Component, error) {
+	err := os.MkdirAll(o.DataPath, 0750)
+	if err != nil {
+		return nil, err
+	}
+
 	positionsFile, err := positions.New(o.Logger, positions.Config{
 		SyncPeriod:        10 * time.Second,
 		PositionsFile:     filepath.Join(o.DataPath, "positions.yml"),
@@ -54,10 +59,7 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = os.MkdirAll(o.DataPath, 0644)
-	if err != nil {
-		return nil, err
-	}
+
 	c := &Component{
 		metrics:   target.NewMetrics(o.Registerer),
 		o:         o,
