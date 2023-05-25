@@ -5,6 +5,7 @@ package converter
 import (
 	"fmt"
 
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 )
 
@@ -28,10 +29,13 @@ const (
 // because of mismatched functionality, an error is returned with no resulting
 // config. If the conversion completed successfully but generated warnings, an
 // error is returned alongside the resulting config.
-func Convert(in []byte, kind Input) ([]byte, error) {
+func Convert(in []byte, kind Input) ([]byte, diag.Diagnostics) {
 	switch kind {
 	case InputPrometheus:
 		return prometheusconvert.Convert(in)
 	}
-	return nil, fmt.Errorf("unrecognized kind %q", kind)
+
+	var diags diag.Diagnostics
+	diags.Add(diag.SeverityLevelError, fmt.Sprintf("unrecognized kind %q", kind))
+	return nil, diags
 }
