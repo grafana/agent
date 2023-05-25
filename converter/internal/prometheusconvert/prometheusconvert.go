@@ -37,7 +37,7 @@ func Convert(in []byte) ([]byte, common.Diagnostics) {
 
 	promConfig, err := promconfig.Load(string(in), false, log.NewNopLogger())
 	if err != nil {
-		diags.Add(common.SeverityLevelError, err.Error())
+		diags.Add(common.SeverityLevelError, fmt.Sprintf("failed to parse Prometheus config: %s", err))
 		return nil, diags
 	}
 
@@ -74,7 +74,7 @@ func ValidateUnsupported(promConfig *promconfig.Config) common.Diagnostics {
 			case discovery.StaticConfig:
 				continue
 			default:
-				diags.Add(common.SeverityLevelWarn, fmt.Sprintf("unsupported %s was provided", sdConfig.Name()))
+				diags.Add(common.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", sdConfig.Name()))
 			}
 		}
 	}
