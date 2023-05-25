@@ -2,7 +2,7 @@
 
 * Date: 2023-05-25
 * Author: Robert Fratto (@rfratto)
-* PR: TODO
+* PR: [grafana/agent#3981](https://github.com/grafana/agent/pull/3981)
 * Status: Draft
 
 Grafana Agent has been following [semantic versioning](https://semver.org/)
