@@ -1,61 +1,60 @@
 ---
-title: Run static mode on Docker
+title: Docker
 weight: 110
 aliases:
 - ../../set-up/install-agent-docker/
 ---
 
-## Run static mode on Docker
+## Install Grafana Agent on Docker
 
-Install Grafana Agent and get it up and running on Docker.
+Grafana Agent Flow is available as Docker images on the following platforms:
+
+* [Linux containers][] for AMD64 and ARM64 machines.
+* [Windows containers][] for AMD64 machines.
+
+[Linux containers]: #run-agent-in-a-linux-container
+[Windows containers]: #run-agent-in-a-windows-container
 
 ### Before you begin
 
- - Ensure that you have Docker installed.
- - Ensure that you have created a configuration file. In the case of Docker, you install and run the Grafana Agent with a single command. You therefore need to create a configuration file before running Grafana Agent on Docker. For more information on creating a configuration file, refer to [Create a configuration file]({{< relref "../configuration/create-config-file/" >}}).
+ - Ensure that [Docker][] is installed and running on your machine.
+ - Ensure that you have an existing Grafana Agent configuration file. 
+   You start Grafana Agent on Docker with a single command. You must [create a configuration file]({{< relref "../configuration/create-config-file/" >}}) before you start the Grafana Agent on Docker.
 
+[Docker]: https://docker.io
 ### Run Agent in a Linux Container
 
-1. Copy and paste the following commands into your command line.
-```
-docker run \
-  -v /tmp/agent:/etc/agent/data \
-  -v /path/to/config.yaml:/etc/agent/agent.yaml \
-  grafana/agent:v0.33.2
-```
+1. Run the following command in a terminal:
 
-2. Replace `/tmp/agent` with the folder you want to store WAL data in.
+   ```
+   docker run \
+     -v WAL_DATA_DIRECTORY:/etc/agent/data \
+     -v CONFIG_FILE_PATH:/etc/agent/agent.yaml \
+     grafana/agent:v0.33.2
+   ```
+   
+   - Replace `CONFIG_FILE_PATH` with the configuration file path on your host system.
+   - Replace `WAL_DATA_DIRECTORY` with the directory where your metrics are stored before they are sent to Prometheus. Old WAL data is cleaned up every hour and is used for recovery if the process crashes.
 
-    WAL data is where metrics are stored before they are sent to Prometheus. Old WAL data is cleaned up every hour and is used for recovery if the process happens to crash.
-
-3. Replace `/path/to/config.yaml` with a path pointing to a valid configuration file.
-
-Note that using paths on your host machine must be exposed to the Docker
-container through a bind mount for the flags to work properly.
+     {{% admonition type="note" %}}The paths on your host machine must be exposed to the Docker container through a bind mount for the flags to work properly.{{%/admonition %}}
 
 ### Run Agent in a Windows Container
 
 1. Copy and paste the following commands into your command line.
-    ```
-    docker run ^
-      -v c:\grafana-agent-data:c:\etc\grafana-agent\data ^
-      -v c:\workspace\config\grafana-agent:c:\etc\grafana-agent ^
-      grafana/agent:v0.33.2-windows
-    ```
 
-2. Replace `c:\grafana-agent-data` with the folder you want to store WAL data in.
+   ```
+   docker run ^
+     -v c:\grafana-agent-data:c:\etc\grafana-agent\data ^
+     -v CONFIG_FILE_PATH:c:\etc\grafana-agent ^
+     grafana/agent:v0.33.2-windows
+   ```
+   - Replace `CONFIG_FILE_PATH` with the configuration file path on your host system.
+   - Replace `WAL_DATA_DIRECTORY` with the directory where your metrics are stored before they are sent to Prometheus. Old WAL data is cleaned up every hour and is used for recovery if the process crashes.
 
-    WAL data is where metrics are stored before they are sent to Prometheus. Old WAL data is cleaned up every hour and is used for recovery if the process happens to crash.
-
-3. Replace `c:\workspace\config\grafana-agent` with a path containing to a valid configuration file. The config file must be named grafana-agent.yaml inside the directory.
-
-Note that using paths on your host machine must be exposed to the Docker
-container through a bind mount for the flags to work properly.
+   {{% admonition type="note" %}}
+   The paths on your host machine must be exposed to the Docker container through a bind mount for the flags to work properly. 
+   {{%/admonition %}}
 
 ### Result
 
 Docker containers run the Grafana Agent using this configuration file.
-
-
-
-
