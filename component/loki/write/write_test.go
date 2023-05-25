@@ -118,13 +118,19 @@ func Test(t *testing.T) {
 }
 
 func TestEntrySentToTwoWriteComponents(t *testing.T) {
-	ch := make(chan logproto.PushRequest, 2)
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ch1, ch2 := make(chan logproto.PushRequest), make(chan logproto.PushRequest)
+	srv1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var pushReq logproto.PushRequest
 		require.NoError(t, loki_util.ParseProtoReader(context.Background(), r.Body, int(r.ContentLength), math.MaxInt32, &pushReq, loki_util.RawSnappy))
-		ch <- pushReq
+		ch1 <- pushReq
 	}))
-	defer srv.Close()
+	srv2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var pushReq logproto.PushRequest
+		require.NoError(t, loki_util.ParseProtoReader(context.Background(), r.Body, int(r.ContentLength), math.MaxInt32, &pushReq, loki_util.RawSnappy))
+		ch2 <- pushReq
+	}))
+	defer srv1.Close()
+	defer srv2.Close()
 
 	// Set up two different loki.write components.
 	cfg1 := fmt.Sprintf(`
@@ -132,13 +138,13 @@ func TestEntrySentToTwoWriteComponents(t *testing.T) {
 			url        = "%s"
 		}
 		external_labels = { "lbl" = "foo" }
-	`, srv.URL)
+	`, srv1.URL)
 	cfg2 := fmt.Sprintf(`
 		endpoint {
 			url        = "%s"
 		}
 		external_labels = { "lbl" = "bar" }
-	`, srv.URL)
+	`, srv2.URL)
 	var args1, args2 Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg1), &args1))
 	require.NoError(t, river.Unmarshal([]byte(cfg2), &args2))
@@ -189,13 +195,17 @@ func TestEntrySentToTwoWriteComponents(t *testing.T) {
 
 	// The two entries have been received with their
 	for i := 0; i < 2; i++ {
-		s := []model.LabelValue{"foo", "bar"}
 		select {
 		case <-time.After(2 * time.Second):
 			require.FailNow(t, "failed waiting for logs")
-		case req := <-ch:
+		case req := <-ch1:
 			require.Len(t, req.Streams, 1)
-			require.Equal(t, req.Streams[0].Labels, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": s[i]}).String())
+			require.Equal(t, req.Streams[0].Labels, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": "foo"}).String())
+			require.Len(t, req.Streams[0].Entries, 1)
+			require.Equal(t, req.Streams[0].Entries[0].Line, "writing some text")
+		case req := <-ch2:
+			require.Len(t, req.Streams, 1)
+			require.Equal(t, req.Streams[0].Labels, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": "bar"}).String())
 			require.Len(t, req.Streams[0].Entries, 1)
 			require.Equal(t, req.Streams[0].Entries[0].Line, "writing some text")
 		}
