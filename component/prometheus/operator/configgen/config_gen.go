@@ -132,6 +132,9 @@ func (cg *ConfigGenerator) generateAuthorization(a promopv1.SafeAuthorization, n
 	auth := &commonConfig.Authorization{
 		Type: a.Type,
 	}
+	if auth.Type == "" {
+		auth.Type = "Bearer"
+	}
 	if a.Credentials != nil {
 		creds, err := cg.Secrets.GetSecretValue(namespace, *a.Credentials)
 		if err != nil {

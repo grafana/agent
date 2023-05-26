@@ -282,6 +282,87 @@ func TestGenerateBasicAuth(t *testing.T) {
 	}
 }
 
+func TestGenerateOauth2(t *testing.T) {
+	cidSecret := promopv1.SecretOrConfigMap{Secret: s("oa", "cid")}
+	cidCMap := promopv1.SecretOrConfigMap{ConfigMap: cm("oa", "cid")}
+	cSecret := s("oa", "csecret")
+	tests := []struct {
+		name   string
+		oa2    promopv1.OAuth2
+		hasErr bool
+		id     string
+		secret promConfig.Secret
+	}{
+		{
+			name: "id from secret",
+			oa2: promopv1.OAuth2{
+				ClientID:     cidSecret,
+				ClientSecret: *cSecret,
+			},
+			hasErr: false,
+			id:     "secret/ns/oa/cid",
+			secret: "secret/ns/oa/csecret",
+		},
+		{
+			name: "id from config map",
+			oa2: promopv1.OAuth2{
+				ClientID:     cidCMap,
+				ClientSecret: *cSecret,
+			},
+			hasErr: false,
+			id:     "cm/ns/oa/cid",
+			secret: "secret/ns/oa/csecret",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := configGen.generateOauth2(tt.oa2, "ns")
+			assert.Equal(t, tt.hasErr, err != nil)
+			assert.Equal(t, tt.id, got.ClientID)
+			assert.Equal(t, tt.secret, got.ClientSecret)
+		})
+	}
+}
+
+func TestGenerateAuthorization(t *testing.T) {
+	pw := s("s", "pw")
+	tests := []struct {
+		name   string
+		auth   promopv1.SafeAuthorization
+		hasErr bool
+		creds  promConfig.Secret
+		Type   string
+	}{
+		{
+			name: "empty",
+			auth: promopv1.SafeAuthorization{
+				Credentials: pw,
+			},
+			hasErr: false,
+			creds:  "secret/ns/s/pw",
+			Type:   "Bearer",
+		},
+		{
+			name: "type provided",
+			auth: promopv1.SafeAuthorization{
+				Credentials: pw,
+				Type:        "Foo",
+			},
+			hasErr: false,
+			creds:  "secret/ns/s/pw",
+			Type:   "Foo",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := configGen.generateAuthorization(tt.auth, "ns")
+			assert.Equal(t, tt.hasErr, err != nil)
+			assert.Equal(t, tt.creds, got.Credentials)
+			assert.Equal(t, tt.Type, got.Type)
+		})
+	}
+}
+
 func TestRelabelerAdd(t *testing.T) {
 	relabeler := &relabeler{}
 
