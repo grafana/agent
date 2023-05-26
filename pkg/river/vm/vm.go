@@ -85,16 +85,47 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		rv = rv.Addr()
 	}
 
+	return vm.evaluateBlockOrBodyDefault(scope, assoc, node, rv)
+}
+
+func (vm *Evaluator) evaluateBlockOrBodyDefault(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
+	if ru, ok := rv.Interface().(value.Defaulter); ok {
+		ru.SetToDefault()
+	}
+
+	return vm.evaluateBlockOrBodyUnmarshal(scope, assoc, node, rv)
+}
+
+func (vm *Evaluator) evaluateBlockOrBodyUnmarshal(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
 	if ru, ok := rv.Interface().(value.Unmarshaler); ok {
 		return ru.UnmarshalRiver(func(v interface{}) error {
 			rv := reflect.ValueOf(v)
 			if rv.Kind() != reflect.Pointer {
 				panic(fmt.Sprintf("river/vm: expected pointer, got %s", rv.Kind()))
+			} else {
+				return vm.evaluateBlockOrBodyValidate(scope, assoc, node, rv, true)
 			}
-			return vm.evaluateBlockOrBody(scope, assoc, node, rv.Elem())
 		})
 	}
 
+	return vm.evaluateBlockOrBodyValidate(scope, assoc, node, rv, false)
+}
+
+func (vm *Evaluator) evaluateBlockOrBodyValidate(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value, decodeElem bool) error {
+	if ru, ok := rv.Interface().(value.Validator); ok {
+		if err := ru.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if decodeElem {
+		return vm.evaluateBlockOrBodyDecode(scope, assoc, node, rv.Elem())
+	}
+
+	return vm.evaluateBlockOrBodyDecode(scope, assoc, node, rv)
+}
+
+func (vm *Evaluator) evaluateBlockOrBodyDecode(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
 	// Fully deference rv and allocate pointers as necessary.
 	for rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {

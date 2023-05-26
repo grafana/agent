@@ -63,7 +63,10 @@ func TestBadRiverConfig(t *testing.T) {
 
 	// Make sure the squashed HTTPClientConfig Validate function is being utilized correctly
 	var args Arguments
+	args.SetToDefault()
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.NoError(t, err)
+	err = args.Validate()
 	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
 }
 
@@ -75,7 +78,8 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	nilReceivers := []storage.Appendable{nil, nil}
 
-	args := DefaultArguments
+	var args Arguments
+	args.SetToDefault()
 	args.ForwardTo = nilReceivers
 
 	s, err := New(opts, args)

@@ -10,11 +10,25 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 )
 
+// The Defaulter interface allows a type to implement default functionality
+// in River evaluation.
+type Defaulter interface {
+	// SetToDefault is called when evaluating a block or body to set the value
+	// to its defaults.
+	SetToDefault()
+}
+
 // Unmarshaler is a custom type which can be used to hook into the decoder.
 type Unmarshaler interface {
 	// UnmarshalRiver is called when decoding a value. f should be invoked to
 	// continue decoding with a value to decode into.
 	UnmarshalRiver(f func(v interface{}) error) error
+}
+
+type Validator interface {
+	// Validate is called when evaluating a block or body to enforce the
+	// value is valid.
+	Validate() error
 }
 
 // Decode assigns a Value val to a Go pointer target. Pointers will be

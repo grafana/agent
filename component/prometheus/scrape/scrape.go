@@ -91,27 +91,26 @@ type Clustering struct {
 	Enabled bool `river:"enabled,attr"`
 }
 
-// DefaultArguments defines the default settings for a scrape job.
-var DefaultArguments = Arguments{
-	MetricsPath:      "/metrics",
-	Scheme:           "http",
-	HonorLabels:      false,
-	HonorTimestamps:  true,
-	HTTPClientConfig: component_config.DefaultHTTPClientConfig,
-	ScrapeInterval:   1 * time.Minute,  // From config.DefaultGlobalConfig
-	ScrapeTimeout:    10 * time.Second, // From config.DefaultGlobalConfig
+// SetToDefault implements river.Defaulter.
+func (arg *Arguments) SetToDefault() {
+	*arg = Arguments{
+		MetricsPath:      "/metrics",
+		Scheme:           "http",
+		HonorLabels:      false,
+		HonorTimestamps:  true,
+		HTTPClientConfig: component_config.DefaultHTTPClientConfig,
+		ScrapeInterval:   1 * time.Minute,  // From config.DefaultGlobalConfig
+		ScrapeTimeout:    10 * time.Second, // From config.DefaultGlobalConfig
+	}
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
 func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*arg = DefaultArguments
+	return f(arg)
+}
 
-	type args Arguments
-	err := f((*args)(arg))
-	if err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (arg *Arguments) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	return arg.HTTPClientConfig.Validate()
 }
