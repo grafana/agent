@@ -12,19 +12,18 @@ Grafana Agent is available as a Docker image on the following platforms:
 * [Linux][]
 * [Windows][]
 
-[Linux]: #run-agent-in-a-linux-container
-[Windows]: #run-agent-in-a-windows-container
+[Linux]: #run-a-linux-docker-container
+[Windows]: #run-a-windows-docker-container
 
 ## Before you begin
 
  - Ensure that [Docker][] is installed and running on your machine.
- - Ensure that you have created a Grafana Agent [configuration file][].
+ - Ensure that you have created a Grafana Agent [configuration file]({{< relref "../configuration/create-config-file/" >}}).
 
-[configuration file]: ({{< relref "../configuration/create-config-file/" >}})
 [Docker]: https://docker.io
-## Run Agent in a Linux container
+## Run a Linux Docker container
 
-1. Run the following command in a terminal:
+1. To install a Grafana Agent Docker container on Linux, run the following command in a terminal:
 
    ```
    docker run \
@@ -38,9 +37,9 @@ Grafana Agent is available as a Docker image on the following platforms:
 
      {{% admonition type="note" %}}The paths on your host machine must be exposed to the Docker container through a bind mount for the flags to work properly.{{%/admonition %}}
 
-## Run Agent in a Windows container
+## Run a Windows Docker container
 
-1. Run the following command in a terminal:
+1. To install a Grafana Agent Docker container onWindows, run the following command in a terminal:
 
    ```
    docker run ^
