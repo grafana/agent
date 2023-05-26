@@ -128,9 +128,12 @@ Name       | Type           | Description                                       
 
 The `operator` argument should be one of the following strings:
 
-* `"in"`
-* `"notin"`
-* `"exists"`
+* `"In"`
+* `"NotIn"`
+* `"Exists"`
+* `"DoesNotExist"`
+
+When using the `operator` `"Exists"` or `"DoesNotExist"`, omit `values`.
 
 ### basic_auth block
 
