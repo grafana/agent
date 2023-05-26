@@ -7,7 +7,7 @@ aliases:
 
 # Install Grafana Agent on Docker
 
-Grafana Agent is available as a Docker image on the following platforms:
+Grafana Agent is available as a Docker container image on the following platforms:
 
 * [Linux][]
 * [Windows][]
@@ -45,7 +45,7 @@ Grafana Agent is available as a Docker image on the following platforms:
 
    ```
    docker run ^
-     -v c:\grafana-agent-data:c:\etc\grafana-agent\data ^
+     -v WAL_DATA_DIRECTORY:c:\etc\grafana-agent\data ^
      -v CONFIG_FILE_PATH:c:\etc\grafana-agent ^
      grafana/agent:v0.33.2-windows
    ```
