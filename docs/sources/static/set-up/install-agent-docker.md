@@ -33,10 +33,10 @@ Grafana Agent is available as a Docker container image on the following platform
    ```
    
    - Replace `CONFIG_FILE_PATH` with the configuration file path on your Linux host system.
-   - Replace `WAL_DATA_DIRECTORY` with the directory where your metrics are stored before they are sent to Prometheus. Old WAL data is cleaned up every hour and is used for recovery if the process crashes.
+   - Replace `WAL_DATA_DIRECTORY` with the directory used to store your metrics before sending them to Prometheus. Old WAL data is cleaned up every hour and is used for recovery if the process crashes.
 
      {{% admonition type="note" %}}
-     The paths on your Linux host must be exposed to the Docker container through a bind mount for the flags to work properly.
+     For the flags to work correctly, you must expose the paths on your Linux host to the Docker container through a bind mount.
      {{%/admonition %}}
 
 ## Run a Windows Docker container
@@ -51,10 +51,10 @@ Grafana Agent is available as a Docker container image on the following platform
    ```
 
    - Replace `CONFIG_FILE_PATH` with the configuration file path on your Windows host system.
-   - Replace `WAL_DATA_DIRECTORY` with the directory where your metrics are stored before they are sent to Prometheus. Old WAL data is cleaned up every hour and is used for recovery if the process crashes.
+   - Replace `WAL_DATA_DIRECTORY` with the directory used to store your metrics before sending them to Prometheus. Old WAL data is cleaned up every hour and is used for recovery if the process crashes.
 
    {{% admonition type="note" %}}
-   The paths on your Windows host must be exposed to the Docker container through a bind mount for the flags to work properly. 
+   For the flags to work correctly, you must expose the paths on your Windows host to the Docker container through a bind mount. 
    {{%/admonition %}}
 
 ## Result
