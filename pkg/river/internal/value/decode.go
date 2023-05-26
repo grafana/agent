@@ -25,6 +25,8 @@ type Unmarshaler interface {
 	UnmarshalRiver(f func(v interface{}) error) error
 }
 
+// The Validator interface allows a type to implement validation functionality
+// in River evaluation.
 type Validator interface {
 	// Validate is called when evaluating a block or body to enforce the
 	// value is valid.
