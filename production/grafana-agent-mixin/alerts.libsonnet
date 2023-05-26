@@ -396,7 +396,6 @@ local _config = config._config;
             alert: 'AgentManagementFallbackToEmptyConfig',
             expr: |||
               sum(rate(agent_management_config_fallbacks_total{fallback_to="empty_config"}[10m])) by (%(group_by_cluster)s) > 0
-                > 0
             ||| % _config,
             'for': '30m',
             labels: {
