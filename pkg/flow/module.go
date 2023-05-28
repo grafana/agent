@@ -2,6 +2,7 @@ package flow
 
 import (
 	"context"
+	"github.com/grafana/agent/pkg/flow/tracing"
 	"net/http"
 	"path"
 	"sync"
@@ -12,7 +13,6 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/web/api"
 	"github.com/prometheus/client_golang/prometheus"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type module struct {
@@ -45,9 +45,10 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 	if c.f == nil {
 		f := New(Options{
 			ControllerID:   c.o.ID,
-			Tracer:         nil,
-			Clusterer:      c.f.clusterer,
+			Tracer:         c.o.Tracer,
+			Clusterer:      c.o.Clusterer,
 			Reg:            c.o.Reg,
+			Logger:         c.o.Logger,
 			DataPath:       c.o.DataPath,
 			HTTPPathPrefix: c.o.HTTPPath,
 			HTTPListenAddr: c.o.HTTPListenAddr,
@@ -101,7 +102,7 @@ type moduleControllerOptions struct {
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
-	Tracer trace.TracerProvider
+	Tracer *tracing.Tracer
 
 	// Clusterer for implementing distributed behavior among components running
 	// on different nodes.

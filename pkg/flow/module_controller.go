@@ -13,11 +13,11 @@ var (
 )
 
 // newModuleController is the entrypoint into creating module instances.
-/*func newModuleController(o *moduleControllerOptions) component.ModuleController {
-	return &module{
+func newModuleController(o *moduleControllerOptions) component.ModuleController {
+	return &moduleController{
 		o: o,
 	}
-}*/
+}
 
 // NewModule creates a new, unstarted Module.
 func (m *moduleController) NewModule(id string, export component.ExportFunc) component.Module {

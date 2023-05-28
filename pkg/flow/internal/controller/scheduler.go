@@ -9,6 +9,8 @@ import (
 // RunnableNode is any dag.Node which can also be run.
 type RunnableNode interface {
 	NodeID() string
+	// GlobalNodeID is Global ID + NodeID.
+	GlobalNodeID() string
 	Run(ctx context.Context) error
 }
 

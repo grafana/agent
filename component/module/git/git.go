@@ -242,7 +242,7 @@ func (c *Component) CurrentHealth() component.Health {
 
 // Handler implements component.HTTPComponent.
 func (c *Component) Handler() http.Handler {
-	return c.mod.Handler()
+	return c.mod.HTTPHandler()
 }
 
 // DebugInfo implements component.DebugComponent.

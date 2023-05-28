@@ -7,6 +7,9 @@ import "fmt"
 type Node interface {
 	// NodeID returns the display name of the Node.
 	NodeID() string
+	// GlobalNodeID returns a globally unique node, parent + node id.
+	// Primarily used for logging or when you absolutely need the global id.
+	GlobalNodeID() string
 }
 
 // Edge is a directed connection between two Nodes.

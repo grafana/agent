@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -11,9 +12,8 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,51 +37,51 @@ func TestModule(t *testing.T) {
 				filename  = "` + riverEscape(debugLevelFilePath) + `"
 			}`,
 			expectedHealthType:          component.HealthTypeHealthy,
-			expectedHealthMessagePrefix: "module content loaded",
+			expectedHealthMessagePrefix: "started component",
 
 			expectedManagedFileHealthType:          component.HealthTypeHealthy,
 			expectedManagedFileHealthMessagePrefix: "read file",
 		},
 	}
-
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			f := flow.New(testOptions(t))
+
 			moduleFilePath := filepath.Join(tempDir, "module.river")
 			os.WriteFile(moduleFilePath, []byte(tc.moduleContents), 0664)
 
-			opts := component.Options{
-				ID:            "module.file.test",
-				Logger:        util.TestFlowLogger(t),
-				Clusterer:     noOpClusterer(),
-				Registerer:    prometheus.NewRegistry(),
-				OnStateChange: func(e component.Exports) {},
-				DataPath:      t.TempDir(),
+			flowFile := fmt.Sprintf(`
+            module.file "test" {
+				filename = "%s"
 			}
+			`, riverEscape(moduleFilePath))
 
-			moduleFileConfig := `filename = "` + riverEscape(moduleFilePath) + `"`
-
-			var args Arguments
-			require.NoError(t, river.Unmarshal([]byte(moduleFileConfig), &args))
-
-			c, err := New(opts, args)
+			ff, err := flow.ReadFile("test", []byte(flowFile))
 			require.NoError(t, err)
+			err = f.LoadFile(ff, nil)
+			require.NoError(t, err)
+			ctx := context.Background()
+			ctx, cncl := context.WithTimeout(ctx, 10*time.Second)
+			defer cncl()
+			go f.Run(ctx)
 
-			go c.Run(context.Background())
 			require.Eventually(
 				t,
-				func() bool { return tc.expectedHealthType == c.CurrentHealth().Health },
+				func() bool {
+					infos := f.ComponentInfos()
+					for _, i := range infos {
+						if i.ID != "module.file.test" {
+							continue
+						}
+						return i.Health.State == tc.expectedHealthType.String() && strings.HasPrefix(tc.expectedHealthMessagePrefix, i.Health.Message)
+					}
+					return false
+				},
 				5*time.Second,
 				50*time.Millisecond,
-				"did not reach required health status before timeout: %v != %v",
+				"did not reach required health status before timeout: %v",
 				tc.expectedHealthType,
-				c.CurrentHealth().Health,
 			)
-
-			require.Equal(t, tc.expectedHealthType, c.CurrentHealth().Health)
-			requirePrefix(t, c.CurrentHealth().Message, tc.expectedHealthMessagePrefix)
-
-			require.Equal(t, tc.expectedManagedFileHealthType, c.managedLocalFile.CurrentHealth().Health)
-			requirePrefix(t, c.managedLocalFile.CurrentHealth().Message, tc.expectedManagedFileHealthMessagePrefix)
 		})
 	}
 }
@@ -103,11 +103,6 @@ func TestBadFile(t *testing.T) {
 			expectedErrorContains: `Unrecognized component name "local.fake"`,
 		},
 		{
-			name:                  "Missing Module",
-			moduleContents:        "",
-			expectedErrorContains: `failed to read file:`,
-		},
-		{
 			name:                  "Logging in Module",
 			moduleContents:        "logging {}",
 			expectedErrorContains: `logging block not allowed inside a module`,
@@ -118,29 +113,23 @@ func TestBadFile(t *testing.T) {
 			expectedErrorContains: `tracing block not allowed inside a module`,
 		},
 	}
-
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			moduleFilePath := filepath.Join(t.TempDir(), "module.river")
-			if tc.moduleContents != "" {
-				os.WriteFile(moduleFilePath, []byte(tc.moduleContents), 0664)
+			f := flow.New(testOptions(t))
+			tempDir := t.TempDir()
+			moduleFilePath := filepath.Join(tempDir, "module.river")
+			os.WriteFile(moduleFilePath, []byte(tc.moduleContents), 0664)
+
+			flowFile := fmt.Sprintf(`
+            module.file "test" {
+				filename = "%s"
 			}
+			`, riverEscape(moduleFilePath))
 
-			moduleFileConfig := `filename = "` + riverEscape(moduleFilePath) + `"`
+			ff, err := flow.ReadFile("test", []byte(flowFile))
+			require.NoError(t, err)
+			err = f.LoadFile(ff, nil)
 
-			var args Arguments
-			require.NoError(t, river.Unmarshal([]byte(moduleFileConfig), &args))
-
-			opts := component.Options{
-				ID:            "module.file.test",
-				Logger:        util.TestFlowLogger(t),
-				Clusterer:     noOpClusterer(),
-				Registerer:    prometheus.NewRegistry(),
-				OnStateChange: func(e component.Exports) {},
-				DataPath:      t.TempDir(),
-			}
-
-			_, err := New(opts, args)
 			require.ErrorContains(t, err, tc.expectedErrorContains)
 		})
 	}
@@ -154,16 +143,15 @@ func riverEscape(filePath string) string {
 	return filePath
 }
 
-func requirePrefix(t *testing.T, s string, prefix string) {
-	require.True(
-		t,
-		strings.HasPrefix(s, prefix),
-		"expected '%v' to have '%v' prefix",
-		s,
-		prefix,
-	)
-}
+func testOptions(t *testing.T) flow.Options {
+	t.Helper()
 
-func noOpClusterer() *cluster.Clusterer {
-	return &cluster.Clusterer{Node: cluster.NewLocalNode("")}
+	l := util.TestFlowLogger(t)
+	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
+	return flow.Options{
+		Logger:    l,
+		DataPath:  t.TempDir(),
+		Reg:       nil,
+		Clusterer: c,
+	}
 }

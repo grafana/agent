@@ -72,9 +72,9 @@ type Options struct {
 	// components in telemetry data.
 	ControllerID string
 
-	// LogSink to use for controller logs and components. A no-op logger will be
+	// Logger to use for controller logs and components. A no-op logger will be
 	// created if this is nil.
-	LogSink *logging.Sink
+	Logger *logging.Logger
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
@@ -140,7 +140,7 @@ type Flow struct {
 // the controller.
 func New(o Options) *Flow {
 	var (
-		log       = logging.New(o.LogSink)
+		log       = o.Logger
 		tracer    = o.Tracer
 		clusterer = o.Clusterer
 	)
@@ -159,11 +159,19 @@ func New(o Options) *Flow {
 		dialFunc = (&net.Dialer{}).DialContext
 	}
 
+	moduleController := newModuleController(&moduleControllerOptions{
+		Logger:         log,
+		Tracer:         tracer,
+		Clusterer:      clusterer,
+		Reg:            o.Reg,
+		DataPath:       o.DataPath,
+		HTTPListenAddr: o.HTTPListenAddr,
+		HTTPPath:       o.HTTPPathPrefix,
+	})
 	var (
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
-			LogSink:       o.LogSink,
 			Logger:        log,
 			TraceProvider: tracer,
 			Clusterer:     clusterer,
@@ -172,12 +180,13 @@ func New(o Options) *Flow {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-			OnExportsChange: o.OnExportsChange,
-			Registerer:      o.Reg,
-			HTTPPathPrefix:  o.HTTPPathPrefix,
-			HTTPListenAddr:  o.HTTPListenAddr,
-			DialFunc:        dialFunc,
-			ControllerID:    o.ControllerID,
+			OnExportsChange:  o.OnExportsChange,
+			Registerer:       o.Reg,
+			HTTPPathPrefix:   o.HTTPPathPrefix,
+			HTTPListenAddr:   o.HTTPListenAddr,
+			DialFunc:         dialFunc,
+			ControllerID:     o.ControllerID,
+			ModuleController: moduleController,
 		})
 	)
 	return &Flow{
@@ -215,7 +224,7 @@ func (c *Flow) Run(ctx context.Context) {
 					break
 				}
 
-				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
+				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.GlobalNodeID())
 				c.loader.EvaluateDependencies(updated)
 			}
 

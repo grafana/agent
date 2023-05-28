@@ -29,13 +29,13 @@ func TestFlowLogger(t require.TestingT) *logging.Logger {
 		t.Helper()
 	}
 
-	sink, err := logging.WriterSink(os.Stderr, logging.SinkOptions{
+	l, err := logging.New(os.Stderr, logging.Options{
 		Level:  logging.LevelDebug,
 		Format: logging.FormatLogfmt,
 	})
 	require.NoError(t, err)
+	return l
 
-	return logging.New(sink)
 }
 
 // testTimestamp is a log.Valuer that returns the timestamp

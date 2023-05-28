@@ -1,4 +1,4 @@
-package controller
+package tracing
 
 import (
 	"context"
@@ -11,9 +11,9 @@ var (
 	componentIDAttributeKey = "grafana_agent.component_id"
 )
 
-// wrapTracer returns a new trace.TracerProvider which will inject the provided
+// WrapTracer returns a new trace.TracerProvider which will inject the provided
 // componentID as an attribute to each span.
-func wrapTracer(inner trace.TracerProvider, componentID string) trace.TracerProvider {
+func WrapTracer(inner trace.TracerProvider, componentID string) trace.TracerProvider {
 	return &wrappedProvider{
 		inner: inner,
 		id:    componentID,

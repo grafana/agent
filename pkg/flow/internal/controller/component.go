@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/grafana/agent/pkg/flow/tracing"
 	"net"
 	"net/http"
 	"path"
@@ -13,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
@@ -63,7 +65,6 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	LogSink           *logging.Sink                // Sink used for Logging.
 	Logger            *logging.Logger              // Logger shared between all managed components.
 	TraceProvider     trace.TracerProvider         // Tracer shared between all managed components.
 	Clusterer         *cluster.Clusterer           // Clusterer shared between all managed components.
@@ -75,6 +76,16 @@ type ComponentGlobals struct {
 	HTTPListenAddr    string                       // Base address for server
 	DialFunc          DialFunc                     // Function to connect to HTTPListenAddr.
 	ControllerID      string                       // ID of controller.
+	ModuleController  component.ModuleController   // Module Controller used to instantiate modules.
+}
+
+// GenerateGlobalID generates a global id from an input node id.
+func (cg ComponentGlobals) GenerateGlobalID(id string) string {
+	globalID := id
+	if cg.ControllerID != "" {
+		globalID = path.Join(cg.ControllerID, globalID)
+	}
+	return globalID
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -180,13 +191,14 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 
 	wrapped := newWrappedRegisterer()
 	cn.register = wrapped
+
 	return component.Options{
 		ID:     globalID,
-		Logger: logging.New(logging.LoggerSink(globals.Logger), logging.WithComponentID(cn.nodeID)),
+		Logger: log.With(globals.Logger, "component", globalID),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": globalID,
 		}, wrapped),
-		Tracer:    wrapTracer(globals.TraceProvider, globalID),
+		Tracer:    tracing.WrapTracer(globals.TraceProvider, globalID),
 		Clusterer: globals.Clusterer,
 
 		DataPath:       filepath.Join(globals.DataPath, cn.nodeID),
@@ -194,7 +206,8 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		DialFunc:       globals.DialFunc,
 		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
 
-		OnStateChange: cn.setExports,
+		OnStateChange:    cn.setExports,
+		ModuleController: globals.ModuleController,
 	}
 }
 
@@ -218,6 +231,9 @@ func (cn *ComponentNode) ComponentName() string { return cn.componentName }
 // NodeID is the string representation of the component's ID from its River
 // block.
 func (cn *ComponentNode) NodeID() string { return cn.nodeID }
+
+// GlobalNodeID returns the parent + nodeid of the component. It is guaranteed to be unique across all dags.
+func (cn *ComponentNode) GlobalNodeID() string { return cn.managedOpts.ID }
 
 // UpdateBlock updates the River block used to construct arguments for the
 // managed component. The new block isn't used until the next time Evaluate is
@@ -393,10 +409,10 @@ func (cn *ComponentNode) Exports() component.Exports {
 // same type as the registered exports type of the managed component.
 func (cn *ComponentNode) setExports(e component.Exports) {
 	if cn.exportsType == nil {
-		panic(fmt.Sprintf("Component %s called OnStateChange but never registered an Exports type", cn.nodeID))
+		panic(fmt.Sprintf("Component %s called OnStateChange but never registered an Exports type", cn.GlobalNodeID()))
 	}
 	if reflect.TypeOf(e) != cn.exportsType {
-		panic(fmt.Sprintf("Component %s changed Exports types from %T to %T", cn.nodeID, cn.reg.Exports, e))
+		panic(fmt.Sprintf("Component %s changed Exports types from %T to %T", cn.GlobalNodeID(), cn.reg.Exports, e))
 	}
 
 	// Some components may aggressively reexport values even though no exposed

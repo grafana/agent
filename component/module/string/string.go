@@ -67,9 +67,8 @@ func (c *Component) Update(args component.Arguments) error {
 	return c.mod.LoadFlowContent(newArgs.Arguments, newArgs.Content.Value)
 }
 
-// Handler implements component.HTTPComponent.
 func (c *Component) Handler() http.Handler {
-	return c.mod.Handler()
+	return c.mod.HTTPHandler()
 }
 
 // CurrentHealth implements component.HealthComponent.

@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/go-kit/kit/log"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
 )
 
+var _ BlockNode = (*LoggingConfigNode)(nil)
+
 type LoggingConfigNode struct {
 	nodeID        string
 	componentName string
-	logSink       *logging.Sink // Sink used for Logging.
+	l             log.Logger
+	globalNodeID  string
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
@@ -25,7 +29,8 @@ func NewLoggingConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *Loggi
 	return &LoggingConfigNode{
 		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),
-		logSink:       globals.LogSink,
+		l:             globals.Logger,
+		globalNodeID:  globals.GenerateGlobalID(BlockComponentID(block).String()),
 
 		block: block,
 		eval:  vm.New(block.Body),
@@ -38,7 +43,7 @@ func NewDefaultLoggingConfigNode(globals ComponentGlobals) *LoggingConfigNode {
 	return &LoggingConfigNode{
 		nodeID:        loggingBlockID,
 		componentName: loggingBlockID,
-		logSink:       globals.LogSink,
+		l:             globals.Logger,
 
 		block: nil,
 		eval:  nil,
@@ -54,14 +59,14 @@ func NewDefaultLoggingConfigNode(globals ComponentGlobals) *LoggingConfigNode {
 func (cn *LoggingConfigNode) Evaluate(scope *vm.Scope) error {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
-	args := logging.DefaultSinkOptions
+	args := logging.DefaultOptions
 	if cn.eval != nil {
 		if err := cn.eval.Evaluate(scope, &args); err != nil {
 			return fmt.Errorf("decoding River: %w", err)
 		}
 	}
 
-	if err := cn.logSink.Update(args); err != nil {
+	if err := cn.l.(*logging.Logger).Update(args); err != nil {
 		return fmt.Errorf("could not update logger: %w", err)
 	}
 
@@ -77,3 +82,6 @@ func (cn *LoggingConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *LoggingConfigNode) NodeID() string { return cn.nodeID }
+
+// GlobalNodeID returns a globally unique id across all DAGs.
+func (cn *LoggingConfigNode) GlobalNodeID() string { return cn.globalNodeID }

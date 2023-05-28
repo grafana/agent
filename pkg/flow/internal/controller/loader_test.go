@@ -3,6 +3,7 @@ package controller_test
 import (
 	"errors"
 	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -65,9 +66,9 @@ func TestLoader(t *testing.T) {
 	}
 
 	newGlobals := func() controller.ComponentGlobals {
+		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
 		return controller.ComponentGlobals{
-			LogSink:           noOpSink(),
-			Logger:            logging.New(nil),
+			Logger:            l,
 			TraceProvider:     trace.NewNoopTracerProvider(),
 			Clusterer:         noOpClusterer(),
 			DataPath:          t.TempDir(),
@@ -208,9 +209,9 @@ func TestScopeWithFailingComponent(t *testing.T) {
 		}
 	`
 	newGlobals := func() controller.ComponentGlobals {
+		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
 		return controller.ComponentGlobals{
-			LogSink:           noOpSink(),
-			Logger:            logging.New(nil),
+			Logger:            l,
 			TraceProvider:     trace.NewNoopTracerProvider(),
 			DataPath:          t.TempDir(),
 			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
@@ -226,8 +227,8 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
 }
 
-func noOpSink() *logging.Sink {
-	s, _ := logging.WriterSink(io.Discard, logging.DefaultSinkOptions)
+func noOpSink() *logging.Logger {
+	s, _ := logging.New(io.Discard, logging.DefaultOptions)
 	return s
 }
 

@@ -1,6 +1,8 @@
 package controller
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 // controllerMetrics contains the metrics for components controller
 type controllerMetrics struct {
@@ -11,18 +13,20 @@ type controllerMetrics struct {
 }
 
 // newControllerMetrics inits the metrics for the components controller
-func newControllerMetrics(r prometheus.Registerer) *controllerMetrics {
+func newControllerMetrics(r prometheus.Registerer, id string) *controllerMetrics {
 	cm := controllerMetrics{r: r}
 
 	cm.controllerEvaluation = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "agent_component_controller_evaluating",
-		Help: "Tracks if the controller is currently in the middle of a graph evaluation",
+		Name:        "agent_component_controller_evaluating",
+		Help:        "Tracks if the controller is currently in the middle of a graph evaluation",
+		ConstLabels: map[string]string{"controller_id": id},
 	})
 
 	cm.componentEvaluationTime = prometheus.NewHistogram(
 		prometheus.HistogramOpts{
-			Name: "agent_component_evaluation_seconds",
-			Help: "Time spent performing component evaluation",
+			Name:        "agent_component_evaluation_seconds",
+			Help:        "Time spent performing component evaluation",
+			ConstLabels: map[string]string{"controller_id": id},
 		},
 	)
 
@@ -40,14 +44,14 @@ type controllerCollector struct {
 	runningComponentsTotal *prometheus.Desc
 }
 
-func newControllerCollector(l *Loader) prometheus.Collector {
+func newControllerCollector(l *Loader, id string) prometheus.Collector {
 	return &controllerCollector{
 		l: l,
 		runningComponentsTotal: prometheus.NewDesc(
 			"agent_component_controller_running_components",
 			"Total number of running components.",
 			[]string{"health_type"},
-			nil,
+			map[string]string{"controller_id": id},
 		),
 	}
 }

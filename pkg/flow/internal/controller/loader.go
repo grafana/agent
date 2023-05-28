@@ -51,9 +51,9 @@ func NewLoader(globals ComponentGlobals) *Loader {
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
-		cm:            newControllerMetrics(globals.Registerer),
+		cm:            newControllerMetrics(globals.Registerer, globals.ControllerID),
 	}
-	cc := newControllerCollector(l)
+	cc := newControllerCollector(l, globals.ControllerID)
 	if globals.Registerer != nil {
 		globals.Registerer.MustRegister(cc)
 	}
@@ -66,12 +66,12 @@ func NewLoader(globals ComponentGlobals) *Loader {
 			if cc, ok := cmp.managed.(component.ClusteredComponent); ok {
 				if cc.ClusterUpdatesRegistration() {
 					_, span := tracer.Start(spanCtx, "ClusteredComponentReevaluation", trace.WithSpanKind(trace.SpanKindInternal))
-					span.SetAttributes(attribute.String("node_id", cmp.NodeID()))
+					span.SetAttributes(attribute.String("node_id", cmp.GlobalNodeID()))
 					defer span.End()
 
 					err := cmp.Reevaluate()
 					if err != nil {
-						level.Error(globals.Logger).Log("msg", "failed to reevaluate component", "componentID", cmp.NodeID(), "err", err)
+						level.Error(globals.Logger).Log("msg", "failed to reevaluate component", "componentID", cmp.GlobalNodeID(), "err", err)
 					}
 				}
 			}
@@ -134,12 +134,12 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	// Evaluate all the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
 		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
-		span.SetAttributes(attribute.String("node_id", n.NodeID()))
+		span.SetAttributes(attribute.String("node_id", n.GlobalNodeID()))
 		defer span.End()
 
 		start := time.Now()
 		defer func() {
-			level.Info(logger).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", time.Since(start))
+			level.Info(logger).Log("msg", "finished node evaluation", "node_id", n.GlobalNodeID(), "duration", time.Since(start))
 		}()
 
 		var err error
@@ -416,7 +416,7 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 	start := time.Now()
 
 	spanCtx, span := tracer.Start(context.Background(), "GraphEvaluatePartial", trace.WithSpanKind(trace.SpanKindInternal))
-	span.SetAttributes(attribute.String("initiator", c.NodeID()))
+	span.SetAttributes(attribute.String("initiator", c.GlobalNodeID()))
 	defer span.End()
 
 	logger := log.With(l.log, "trace_id", span.SpanContext().TraceID())
@@ -441,7 +441,7 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 		}
 
 		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
-		span.SetAttributes(attribute.String("node_id", n.NodeID()))
+		span.SetAttributes(attribute.String("node_id", n.GlobalNodeID()))
 		defer span.End()
 
 		var err error
@@ -493,7 +493,7 @@ func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 	}
 
 	if err != nil {
-		level.Error(logger).Log("msg", "failed to evaluate config", "node", bn.NodeID(), "err", err)
+		level.Error(logger).Log("msg", "failed to evaluate config", "node", bn.GlobalNodeID(), "err", err)
 		return err
 	}
 	return nil

@@ -120,11 +120,10 @@ func (fr *flowRun) Run(configFile string) error {
 		return fmt.Errorf("file argument not provided")
 	}
 
-	logSink, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
+	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
-	l := logging.New(logSink)
 
 	t, err := tracing.New(tracing.DefaultOptions)
 	if err != nil {
@@ -163,7 +162,7 @@ func (fr *flowRun) Run(configFile string) error {
 	memLis := memconn.NewListener(nil)
 
 	f := flow.New(flow.Options{
-		LogSink:        logSink,
+		Logger:         l,
 		Tracer:         t,
 		Clusterer:      clusterer,
 		DataPath:       fr.storagePath,

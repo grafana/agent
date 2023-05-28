@@ -14,11 +14,14 @@ type TracingConfigNode struct {
 	nodeID        string
 	componentName string
 	traceProvider trace.TracerProvider // Tracer shared between all managed components.
+	globalID      string
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
 	eval  *vm.Evaluator
 }
+
+var _ BlockNode = (*TracingConfigNode)(nil)
 
 // NewTracingConfigNode creates a new TracingConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
@@ -27,6 +30,7 @@ func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *Traci
 		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),
 		traceProvider: globals.TraceProvider,
+		globalID:      globals.GenerateGlobalID(BlockComponentID(block).String()),
 
 		block: block,
 		eval:  vm.New(block.Body),
@@ -82,3 +86,6 @@ func (cn *TracingConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *TracingConfigNode) NodeID() string { return cn.nodeID }
+
+// GlobalNodeID returns a globally unique id across all DAGs.
+func (cn *TracingConfigNode) GlobalNodeID() string { return cn.globalID }
