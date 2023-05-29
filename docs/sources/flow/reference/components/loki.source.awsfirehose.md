@@ -4,16 +4,47 @@ title: loki.source.awsfirehose
 
 # loki.source.awsfirehose
 
-`loki.source.awsfirehose` receives log entries over HTTP from [AWS Firehose](https://docs.aws.amazon.com/firehose/latest/dev/what-is-this-service.html)
+`loki.source.awsfirehose` receives log entries over HTTP
+from [AWS Firehose](https://docs.aws.amazon.com/firehose/latest/dev/what-is-this-service.html)
 and forwards them to other `loki.*` components.
 
-The HTTP API exposed is compatible with [Firehose HTTP Delivery API](https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html).
+The HTTP API exposed is compatible
+with [Firehose HTTP Delivery API](https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html).
 Since the API model that AWS Firehose uses to deliver data over HTTP, the same delivery stream can be used to ship data
 from different origins such as:
 
 - [AWS CloudWatch logs](https://docs.aws.amazon.com/firehose/latest/dev/writing-with-cloudwatch-logs.html)
 - [AWS CloudWatch events](https://docs.aws.amazon.com/firehose/latest/dev/writing-with-cloudwatch-events.html)
 - Custom data through [DirectPUT requests](https://docs.aws.amazon.com/firehose/latest/dev/writing-with-sdk.html)
+
+The component uses a heuristic to try to decode as much information as possible from each log record, falling back to writing
+to loki the raw line. The decoding goes as follows:
+- AWS Firehose sends batched requests
+- Each individual record is treated individually
+- For `record` received in each request:
+  - If the `record` comes from a [CloudWatch logs subscription filter](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#DestinationKinesisExample), it will be further decoded and each logging event will be written to Loki individually
+  - If not, the whole record is written raw to Loki
+
+The component exposes some internal labels, available for re-labeling. The following tables describes internal labels available
+in records coming from any source.
+
+| Name                        | Description                                                                                                                                                                                         | Example                                                                  |
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| `__aws_firehose_request_id` | Firehose request ID.                                                                                                                                                                                | `a1af4300-6c09-4916-ba8f-12f336176246`                                   |
+| `__aws_firehose_source_arn` | Firehose delivery stream ARN.                                                                                                                                                                       | `arn:aws:firehose:us-east-2:123:deliverystream/aws_firehose_test_stream` |
+
+If the source of the Firehose record is CloudWatch logs, the request is further decoded and enriched with even more labels,
+exposed as follows:
+
+| Name                        | Description                                                                                                                                                                                         | Example                                                                  |
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| `__aws_owner`               | The AWS Account ID of the originating log data.                                                                                                                                                     | `111111111111`                                                           |
+| `__aws_cw_log_group`        | The log group name of the originating log data.                                                                                                                                                     | `CloudTrail/logs`                                                        |
+| `__aws_cw_log_stream`       | The log stream name of the originating log data.                                                                                                                                                    | `111111111111_CloudTrail/logs_us-east-1`                                 |
+| `__aws_cw_matched_filters`  | The list of subscription filter names that matched with the originating log data. The list is encoded as a comma-separated list.                                                                    | `Destination,Destination2`                                               |
+| `__aws_cw_msg_type`         | Data messages will use the `DATA_MESSAGE` type. Sometimes CloudWatch Logs may emit Kinesis Data Streams records with a `CONTROL_MESSAGE` type, mainly for checking if the destination is reachable. | `DATA_MESSAGE`                                                           |
+
+See [Examples](#example) for a full example configuration on how to enrich each log entry with these labels.
 
 ## Usage
 
@@ -29,17 +60,18 @@ loki.source.awsfirehose "LABEL" {
 
 The component will start HTTP server on the configured port and address with the following endpoints:
 
-- `/awsfirehose/api/v1/push` - accepting `POST` requests compatible with [AWS Firehose HTTP Specifications](https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html).
+- `/awsfirehose/api/v1/push` - accepting `POST` requests compatible
+  with [AWS Firehose HTTP Specifications](https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html).
 
 ## Arguments
 
 `loki.source.awsfirehose` supports the following arguments:
 
- Name                     | Type                 | Description                                                | Default | Required
---------------------------|----------------------|------------------------------------------------------------|---------|----------
- `forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes
- `use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from request. | `false` | no
- `relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                  | `{}`    | no
+| Name                     | Type                 | Description                                                | Default | Required |
+ |--------------------------|----------------------|------------------------------------------------------------|---------|----------|
+| `forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes      |
+| `use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from request. | `false` | no       |
+| `relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                  | `{}`    | no       |
 
 The `relabel_rules` field can make use of the `rules` export value from a
 [`loki.relabel`][loki.relabel] component to apply one or more relabeling rules to log entries before they're forwarded
@@ -51,10 +83,10 @@ to the list of receivers in `forward_to`.
 
 The following blocks are supported inside the definition of `loki.source.awsfirehose`:
 
- Hierarchy | Name     | Description                                        | Required
------------|----------|----------------------------------------------------|----------
- `http`    | [http][] | Configures the HTTP server that receives requests. | no
- `grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no
+| Hierarchy | Name     | Description                                        | Required |
+ |-----------|----------|----------------------------------------------------|----------|
+| `http`    | [http][] | Configures the HTTP server that receives requests. | no       |
+| `grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no       |
 
 [http]: #http
 
@@ -111,5 +143,46 @@ loki.source.awsfirehose "loki_fh_receiver" {
     forward_to = [
         loki.write.local.receiver,
     ]
+}
+```
+
+As another example, if we are receiving records that are originated from a CloudWatch logs subscription, we can enrich each
+received entry by re-labeling internal labels. The following configuration builds upon the one above, but keeps the origin
+log stream and group as `log_stream` and `log_group` respectively.
+
+```river
+loki.write "local" {
+    endpoint {
+        url = "http://loki:3100/api/v1/push"
+        basic_auth {
+            username = "<your username>"
+            password_file = "<your password file>"
+        }
+    }
+}
+
+loki.source.awsfirehose "loki_fh_receiver" {
+    http {
+        listen_address = "0.0.0.0"
+        listen_port = 9999
+    }
+    forward_to = [
+        loki.write.local.receiver,
+    ]
+    relabel_rules = loki.relabel.logging_origin.rules
+}
+
+loki.relabel "logging_origin" {
+  rule {
+    action = "replace"
+    source_labels = ["__aws_cw_log_group"]
+    target_label = "log_group"
+  }
+  rule {
+    action = "replace"
+    source_labels = ["__aws_cw_log_stream"]
+    target_label = "log_stream"
+  }
+  forward_to = []
 }
 ```
