@@ -10,15 +10,16 @@ and forwards them to other `loki.*` components.
 
 The HTTP API exposed is compatible
 with [Firehose HTTP Delivery API](https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html).
-Since the API model that AWS Firehose uses to deliver data over HTTP, the same delivery stream can be used to ship data
-from different origins such as:
+Since the API model that AWS Firehose uses to deliver data over HTTP is generic enough, the same component can be used
+to receive data from multiple origins:
 
 - [AWS CloudWatch logs](https://docs.aws.amazon.com/firehose/latest/dev/writing-with-cloudwatch-logs.html)
 - [AWS CloudWatch events](https://docs.aws.amazon.com/firehose/latest/dev/writing-with-cloudwatch-events.html)
 - Custom data through [DirectPUT requests](https://docs.aws.amazon.com/firehose/latest/dev/writing-with-sdk.html)
 
 The component uses a heuristic to try to decode as much information as possible from each log record, falling back to writing
-to loki the raw line. The decoding goes as follows:
+to Loki the raw line. The decoding process goes as follows:
+
 - AWS Firehose sends batched requests
 - Each individual record is treated individually
 - For `record` received in each request:
