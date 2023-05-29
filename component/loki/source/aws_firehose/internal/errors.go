@@ -7,7 +7,7 @@ type errWithReason struct {
 	// err is the original error.
 	err error
 
-	// reason provides an error cause identifier that can be used in metrics `reason` labels.
+	// reason provides an error cause identifier that can be used in Metrics `reason` labels.
 	reason string
 }
 

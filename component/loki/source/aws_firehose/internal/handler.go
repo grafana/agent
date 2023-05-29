@@ -16,7 +16,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/loki/pkg/logproto"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -51,16 +50,16 @@ type Sender interface {
 
 // Handler implements a http.Handler that is able to receive records from a Firehose HTTP destination.
 type Handler struct {
-	metrics      *metrics
+	metrics      *Metrics
 	logger       log.Logger
 	sender       Sender
 	relabelRules []*relabel.Config
 }
 
 // NewHandler creates a new handler.
-func NewHandler(sender Sender, logger log.Logger, reg prometheus.Registerer, rbs []*relabel.Config) *Handler {
+func NewHandler(sender Sender, logger log.Logger, metrics *Metrics, rbs []*relabel.Config) *Handler {
 	return &Handler{
-		metrics:      newMetrics(reg),
+		metrics:      metrics,
 		logger:       logger,
 		sender:       sender,
 		relabelRules: rbs,

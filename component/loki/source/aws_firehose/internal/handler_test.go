@@ -273,7 +273,7 @@ func TestHandler(t *testing.T) {
 
 				testReceiver := &receiver{entries: make([]loki.Entry, 0)}
 				registry := prometheus.NewRegistry()
-				handler := NewHandler(testReceiver, logger, registry, tc.Relabels)
+				handler := NewHandler(testReceiver, logger, NewMetrics(registry), tc.Relabels)
 
 				bs := bytes.NewBuffer(nil)
 				var bodyReader io.Reader = strings.NewReader(tc.Body)

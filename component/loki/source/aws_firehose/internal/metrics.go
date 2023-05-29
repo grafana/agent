@@ -4,15 +4,15 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type metrics struct {
+type Metrics struct {
 	errorsAPIRequest *prometheus.CounterVec
 	recordsReceived  *prometheus.CounterVec
 	errorsRecord     *prometheus.CounterVec
 	batchSize        *prometheus.HistogramVec
 }
 
-func newMetrics(reg prometheus.Registerer) *metrics {
-	m := metrics{}
+func NewMetrics(reg prometheus.Registerer) *Metrics {
+	m := Metrics{}
 	m.errorsAPIRequest = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "loki_source_awsfirehose_request_errors",
 		Help: "Number of errors while receiving AWS Firehose API requests",

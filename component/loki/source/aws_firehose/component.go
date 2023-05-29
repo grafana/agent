@@ -65,17 +65,19 @@ type Component struct {
 	args Arguments
 
 	// utils
-	serverMetrics *util.UncheckedCollector
-	logger        log.Logger
+	serverMetrics  *util.UncheckedCollector
+	handlerMetrics *internal.Metrics
+	logger         log.Logger
 }
 
 // New creates a new Component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
-		opts:          o,
-		destination:   make(loki.LogsReceiver),
-		fanout:        args.ForwardTo,
-		serverMetrics: util.NewUncheckedCollector(nil),
+		opts:           o,
+		destination:    make(loki.LogsReceiver),
+		fanout:         args.ForwardTo,
+		serverMetrics:  util.NewUncheckedCollector(nil),
+		handlerMetrics: internal.NewMetrics(o.Registerer),
 
 		logger: log.With(o.Logger, "component", "aws_firehose_logs"),
 	}
@@ -161,7 +163,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	if err = c.server.MountAndRun(func(router *mux.Router) {
 		// re-create handler when server is re-computed
-		handler := internal.NewHandler(c, c.logger, registry, c.rbs)
+		handler := internal.NewHandler(c, c.logger, c.handlerMetrics, c.rbs)
 		router.Path("/awsfirehose/api/v1/push").Methods("POST").Handler(handler)
 	}); err != nil {
 		return err
