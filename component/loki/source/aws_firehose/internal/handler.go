@@ -31,6 +31,8 @@ const (
 
 	successResponseTemplate = `{"requestId": "%s", "timestamp": %d}`
 	errorResponseTemplate   = `{"requestId": "%s", "timestamp": %d, "errorMessage": "%s"}`
+
+	millisecondsPerSecond = 1000
 )
 
 // RecordOrigin is a type that tells from which origin the data received from AWS Firehose comes.
@@ -50,19 +52,21 @@ type Sender interface {
 
 // Handler implements a http.Handler that is able to receive records from a Firehose HTTP destination.
 type Handler struct {
-	metrics      *Metrics
-	logger       log.Logger
-	sender       Sender
-	relabelRules []*relabel.Config
+	metrics       *Metrics
+	logger        log.Logger
+	sender        Sender
+	relabelRules  []*relabel.Config
+	useIncomingTs bool
 }
 
 // NewHandler creates a new handler.
-func NewHandler(sender Sender, logger log.Logger, metrics *Metrics, rbs []*relabel.Config) *Handler {
+func NewHandler(sender Sender, logger log.Logger, metrics *Metrics, rbs []*relabel.Config, useIncomingTs bool) *Handler {
 	return &Handler{
-		metrics:      metrics,
-		logger:       logger,
-		sender:       sender,
-		relabelRules: rbs,
+		metrics:       metrics,
+		logger:        logger,
+		sender:        sender,
+		relabelRules:  rbs,
+		useIncomingTs: useIncomingTs,
 	}
 }
 
@@ -118,21 +122,24 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			continue
 		}
 
-		h.metrics.recordsReceived.WithLabelValues(string(recordType)).Inc()
+		ts := time.Now()
+		if h.useIncomingTs {
+			ts = time.Unix(firehoseReq.Timestamp/millisecondsPerSecond, 0)
+		}
 
-		// todo(pablo): add use incoming timestamp option
+		h.metrics.recordsReceived.WithLabelValues(string(recordType)).Inc()
 
 		switch recordType {
 		case OriginDirectPUT:
 			h.sender.Send(req.Context(), loki.Entry{
 				Labels: h.postProcessLabels(commonLabels.Labels(nil)),
 				Entry: logproto.Entry{
-					Timestamp: time.Now(),
+					Timestamp: ts,
 					Line:      string(decodedRecord),
 				},
 			})
 		case OriginCloudwatchLogs:
-			err = h.handleCloudwatchLogsRecord(req.Context(), decodedRecord, commonLabels.Labels(nil))
+			err = h.handleCloudwatchLogsRecord(req.Context(), decodedRecord, commonLabels.Labels(nil), ts)
 		}
 		if err != nil {
 			h.metrics.errorsRecord.WithLabelValues(getReason(err)).Inc()
@@ -222,7 +229,7 @@ func (h *Handler) decodeRecord(rec string) ([]byte, RecordOrigin, error) {
 
 // handleCloudwatchLogsRecord explodes the cloudwatch logs record into each log message. Also, it adds all properties
 // sent in the envelope as internal labels, available for relabel.
-func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, commonLabels labels.Labels) error {
+func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, commonLabels labels.Labels, timestamp time.Time) error {
 	cwRecord := CloudwatchLogsRecord{}
 	if err := json.Unmarshal(data, &cwRecord); err != nil {
 		return errWithReason{
@@ -239,12 +246,10 @@ func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, c
 	cwLogsLabels.Set("__aws_cw_msg_type", cwRecord.MessageType)
 
 	for _, event := range cwRecord.LogEvents {
-		// todo(pablo): add use incoming timestamp option
-
 		h.sender.Send(ctx, loki.Entry{
 			Labels: h.postProcessLabels(cwLogsLabels.Labels(nil)),
 			Entry: logproto.Entry{
-				Timestamp: time.Now(),
+				Timestamp: timestamp,
 				Line:      event.Message,
 			},
 		})

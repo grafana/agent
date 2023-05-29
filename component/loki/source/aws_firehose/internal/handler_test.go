@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/klauspost/compress/gzip"
@@ -27,6 +28,9 @@ import (
 const (
 	testRequestID = "86208cf6-2bcc-47e6-9010-02ca9f44a025"
 	testSourceARN = "arn:aws:firehose:us-east-2:123:deliverystream/aws_firehose_test_stream"
+
+	directPutRequestTimestamp = 1684422829730
+	cwRequestTimestamp        = 1684424042901
 )
 
 //go:embed testdata/*
@@ -56,6 +60,9 @@ func TestHandler(t *testing.T) {
 	type testcase struct {
 		// TenantID configures the X-Scope-OrgID header in the test request when present.
 		TenantID string
+
+		// UseIncomingTs configures the handler under test to use or not the incoming request timestamp
+		UseIncomingTs bool
 
 		// Body is the payload of the request.
 		Body string
@@ -144,6 +151,22 @@ func TestHandler(t *testing.T) {
 				require.Len(t, entries, 1)
 			},
 		},
+		"direct put data, using incoming timestamp": {
+			Body:          readTestData(t, "testdata/direct_put.json"),
+			UseIncomingTs: true,
+			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
+				r := response{}
+				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
+
+				require.Equal(t, 200, res.Code)
+				require.Equal(t, "a1af4300-6c09-4916-ba8f-12f336176246", r.RequestID)
+				require.Len(t, entries, 3)
+				expectedTimestamp := time.Unix(directPutRequestTimestamp/1000, 0)
+				for _, e := range entries {
+					require.Equal(t, expectedTimestamp, e.Timestamp, "timestamp is other than expected")
+				}
+			},
+		},
 		"cloudwatch logs-subscription data": {
 			Body: readTestData(t, "testdata/cw_logs_mixed.json"),
 			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
@@ -159,6 +182,23 @@ func TestHandler(t *testing.T) {
 				for _, e := range entries {
 					// only add special tenant label if present
 					require.NotContains(t, e.Labels, "__tenant_id__")
+				}
+			},
+		},
+		"cloudwatch logs-subscription data, using incoming timestamp": {
+			Body:          readTestData(t, "testdata/cw_logs_mixed.json"),
+			UseIncomingTs: true,
+			Assert: func(t *testing.T, res *httptest.ResponseRecorder, entries []loki.Entry) {
+				r := response{}
+				require.NoError(t, json.Unmarshal(res.Body.Bytes(), &r))
+
+				require.Equal(t, 200, res.Code)
+				require.Equal(t, "86208cf6-2bcc-47e6-9010-02ca9f44a025", r.RequestID)
+
+				require.Len(t, entries, 14)
+				expectedTimestamp := time.Unix(cwRequestTimestamp/1000, 0)
+				for _, e := range entries {
+					require.Equal(t, expectedTimestamp, e.Timestamp, "timestamp is other than expected")
 				}
 			},
 		},
@@ -273,7 +313,7 @@ func TestHandler(t *testing.T) {
 
 				testReceiver := &receiver{entries: make([]loki.Entry, 0)}
 				registry := prometheus.NewRegistry()
-				handler := NewHandler(testReceiver, logger, NewMetrics(registry), tc.Relabels)
+				handler := NewHandler(testReceiver, logger, NewMetrics(registry), tc.Relabels, tc.UseIncomingTs)
 
 				bs := bytes.NewBuffer(nil)
 				var bodyReader io.Reader = strings.NewReader(tc.Body)

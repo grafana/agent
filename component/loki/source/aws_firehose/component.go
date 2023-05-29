@@ -31,9 +31,10 @@ func init() {
 }
 
 type Arguments struct {
-	Server       *fnet.ServerConfig  `river:",squash"`
-	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
-	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+	Server               *fnet.ServerConfig  `river:",squash"`
+	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
+	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
+	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
 func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
@@ -123,23 +124,24 @@ func (c *Component) Update(args component.Arguments) error {
 	c.fanout = newArgs.ForwardTo
 
 	var newRelabels []*relabel.Config = nil
-	var relabelRulesChanged = false
+	// first condition to consider if the handler needs to be updated is if the UseIncomingTimestamp field
+	// changed
+	var handlerNeedsUpdate = c.args.UseIncomingTimestamp != newArgs.UseIncomingTimestamp
 
-	// todo(pablo): is it a good practice to keep a reference to the arguments in the
-	// component struct, used for comparing here rather than destructuring them?
+	// then, if the relabel rules changed
 	if newArgs.RelabelRules != nil && len(newArgs.RelabelRules) > 0 {
-		relabelRulesChanged = true
+		handlerNeedsUpdate = true
 		newRelabels = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
 	} else if c.rbs != nil && len(c.rbs) > 0 && (newArgs.RelabelRules == nil || len(newArgs.RelabelRules) == 0) {
 		// nil out relabel rules if they need to be cleared
-		relabelRulesChanged = true
+		handlerNeedsUpdate = true
 	}
 
 	// Since the handler is created ad-hoc for the server, and the handler depends on the relabels
 	// consider this as a cause for server restart as well. Much simpler than adding a lock on the
 	// handler and doing the relabel rules change on the fly
 	serverNeedsUpdate := !reflect.DeepEqual(c.args.Server, newArgs.Server)
-	if !serverNeedsUpdate && !relabelRulesChanged {
+	if !serverNeedsUpdate && !handlerNeedsUpdate {
 		c.args = newArgs
 		return nil
 	}
@@ -147,7 +149,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.shutdownServer()
 
 	// update relabel rules in component if needed
-	if relabelRulesChanged {
+	if handlerNeedsUpdate {
 		c.rbs = newRelabels
 	}
 
@@ -163,7 +165,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	if err = c.server.MountAndRun(func(router *mux.Router) {
 		// re-create handler when server is re-computed
-		handler := internal.NewHandler(c, c.logger, c.handlerMetrics, c.rbs)
+		handler := internal.NewHandler(c, c.logger, c.handlerMetrics, c.rbs, newArgs.UseIncomingTimestamp)
 		router.Path("/awsfirehose/api/v1/push").Methods("POST").Handler(handler)
 	}); err != nil {
 		return err
