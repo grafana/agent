@@ -1,32 +1,49 @@
 ---
-title: Install static mode on other systems
+title: Other systems
 weight: 140
 aliases:
 - ../../set-up/install-agent-binary/
 ---
 
-## Install static mode on other systems
+# Install Grafana Agent on other systems
 
-Install Grafana Agent and get it up and running using a binary file.
+Grafana Agent Flow is distributed as plain binaries for various systems:
 
-### Overview
+* Linux: AMD64, ARM64, PPC64, S390X
+* Windows: AMD64
+* macOS: AMD64, ARM64
+
+## Overview
 Binary executables are provided for the most common operating systems. Choose the binary from the Assets list on the Releases page that matches your operating system.
 
-ppc64le builds are currently considered secondary release targets and do not have the same level of support and testing as other platforms.
+ppc64le builds are considered secondary release targets and do not have the same level of support and testing as other platforms.
 
-### Steps
+## Download Grafana Agent
 
-1. Navigate to [Releases](https://github.com/grafana/agent/releases).
-
-   This page includes instructions for downloading static binaries that are published with every release. These releases contain binary executables for Windows, Linux and macOS.
-
+1. Navigate to the current Grafan Agent [releases](https://github.com/grafana/agent/releases).
 1. Scroll down to the **Assets** section.
-1. Download the version that matches your operating system.
+1. Download the version that matches your operating system and machine’s architecture.
 1. Extract the package contents into a directory.
-1. Enter `chmod +x “file name”` in your command line to check that it is executable.
+1. If you are running Linux or macOS run the following command in a terminal:
 
+   ```shell
+   chmod +x EXTRATCED_BINARY
+   ```
 
+## Configure Grafana Agent
 
+Refer to [Create a configuration file]({{< relref "../configuration/create-config-file/" >}}) for information about editing or creating a configuration file.
 
+## Run Grafana Agent
 
+1. If you are running Linux or macOS run the following command in a terminal:
 
+   ```shell
+   EXTRACTED_BINARY -config.file CONFIG_FILE
+   ```
+
+TODO: When you run in Linux... is this just stand-alone and not a systemd service? How can  you set up Linux to launch on boot (like a systemd service)? What about macOS.. anything different here?
+
+1. If you are running Windows, 
+
+TODO: how do you run Agent in Windows if you download the binary vs installer.
