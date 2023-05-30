@@ -47,6 +47,9 @@ releases: 
   continue to be able to use the same set of dashboards we provide when
   upgrading minor releases.    
 
+  - Official dashboards are dashboards in the repository's `operations/`
+    [directory](../../operations/).
+
 - **Externally importable Go packages**. If a user is importing our code as a
   dependency, they should be able to upgrade to a new minor release without
   having to make changes to their code.
@@ -55,7 +58,7 @@ releases: 
   called Calculate may not be changed from returning the sum of two numbers to
   returning the difference of two numbers.
 
-  Protecting Go packaged with backwards compatibility is expected to be a
+  Protecting Go packages with backwards compatibility is expected to be a
   contentious proposal. However, it has positive benefits: 
 
   - It makes us good open-source citizens, allowing people to use Grafana Agent
@@ -94,7 +97,7 @@ version:
 - Security: a breaking change may be made if a security fix requires making a
   breaking change. 
 
-- Non-versioned network APIs: Internal network APIs, such as the internal API
+- Non-versioned network APIs: internal network APIs, such as the internal API
   used to drive the Flow web UI, are not subject to backwards compatibility
   guarantees.
 
@@ -106,7 +109,7 @@ version:
   upstream dependency introduces a breaking change, we may be required to make
   a breaking change to our public API as well.   
 
-- Other telemetry data: Metrics, logs, and traces may change between releases.
+- Other telemetry data: metrics, logs, and traces may change between releases.
   Only telemetry data which is used in official dashboards is protected under
   backwards compatibility.
 
@@ -117,11 +120,11 @@ as it means finding creative ways to iterate without making breaking changes
 immediately. Here are some example strategies one could use to avoid making a
 breaking change:
 
-- Keep things internal: The easiest route is to just not expose things
+- Keep things internal: the easiest route is to just not expose things
   publicly. For example, put Go code in `internal/` packages, or use unexported
   methods or types.
 
-- Rely on deprecations: If a publicly exposed thing must be changed, consider
+- Rely on deprecations: if a publicly exposed thing must be changed, consider
   deprecating it.
 
   - Instead of removing something, consider making it a no-operation and adding
