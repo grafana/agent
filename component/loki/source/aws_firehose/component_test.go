@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,6 +31,7 @@ const expectedRecord = "{\"CHANGE\":-0.23,\"PRICE\":4.8,\"TICKER_SYMBOL\":\"NGC\
 type receiver struct {
 	ch       chan loki.Entry
 	received []loki.Entry
+	mux      sync.RWMutex
 }
 
 // newReceiver creates a new receiver.
@@ -47,7 +49,9 @@ func (r *receiver) run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case e := <-r.ch:
+			r.mux.Lock()
 			r.received = append(r.received, e)
+			r.mux.Unlock()
 		}
 	}
 }
@@ -106,12 +110,24 @@ func TestComponent(t *testing.T) {
 	require.Equal(t, http.StatusOK, res.StatusCode)
 
 	require.Eventually(t, func() bool {
+		r1.mux.RLock()
+		r2.mux.RLock()
+		defer func() {
+			r1.mux.RUnlock()
+			r2.mux.RUnlock()
+		}()
 		return len(r1.received) == 1 && len(r2.received) == 1
 	}, time.Second*10, time.Second, "timed out waiting for receivers to get all messages")
 
 	cancelReceivers()
 
 	// r1 and r2 should have received one entry each
+	r1.mux.RLock()
+	r2.mux.RLock()
+	defer func() {
+		r1.mux.RUnlock()
+		r2.mux.RUnlock()
+	}()
 	require.Len(t, r1.received, 1)
 	require.Len(t, r2.received, 1)
 	require.JSONEq(t, expectedRecord, r1.received[0].Line)
@@ -190,12 +206,16 @@ func TestComponent_UpdateWithNewArguments(t *testing.T) {
 	require.Equal(t, http.StatusOK, res.StatusCode)
 
 	require.Eventually(t, func() bool {
+		r1.mux.RLock()
+		defer r1.mux.RUnlock()
 		return len(r1.received) == 1
 	}, time.Second*10, time.Second, "timed out waiting for receivers to get all messages")
 
+	r1.mux.RLock()
 	require.Len(t, r1.received, 1)
 	require.JSONEq(t, expectedRecord, r1.received[0].Line)
 	require.Equal(t, "testarn", string(r1.received[0].Labels["source_arn"]))
+	r1.mux.RUnlock()
 
 	//
 	// create new config without relabels, and adding a new forward
@@ -229,9 +249,21 @@ func TestComponent_UpdateWithNewArguments(t *testing.T) {
 	require.Equal(t, http.StatusOK, res.StatusCode)
 
 	require.Eventually(t, func() bool {
+		r1.mux.RLock()
+		r2.mux.RLock()
+		defer func() {
+			r1.mux.RUnlock()
+			r2.mux.RUnlock()
+		}()
 		return len(r1.received) == 1 && len(r2.received) == 1
 	}, time.Second*10, time.Second, "timed out waiting for receivers to get all messages")
 
+	r1.mux.RLock()
+	r2.mux.RLock()
+	defer func() {
+		r1.mux.RUnlock()
+		r2.mux.RUnlock()
+	}()
 	require.Len(t, r1.received, 1)
 	require.Len(t, r2.received, 1)
 	require.JSONEq(t, expectedRecord, r1.received[0].Line)
