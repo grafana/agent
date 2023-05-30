@@ -138,7 +138,6 @@ func (c *crdManager) DebugInfo() interface{} {
 
 // runInformers starts all the informers that are required to discover CRDs.
 func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) error {
-
 	scheme := runtime.NewScheme()
 	for _, add := range []func(*runtime.Scheme) error{
 		promopv1.AddToScheme,
