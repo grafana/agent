@@ -133,7 +133,7 @@ The `operator` argument should be one of the following strings:
 * `"Exists"`
 * `"DoesNotExist"`
 
-When using the `operator` `"Exists"` or `"DoesNotExist"`, omit `values`.
+The `values` argument must not be provided when `operator` is set to `"Exists"` or `"DoesNotExist"`.
 
 ### basic_auth block
 
