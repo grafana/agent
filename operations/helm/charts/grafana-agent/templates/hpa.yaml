@@ -14,18 +14,21 @@ spec:
   minReplicas: {{ .minReplicas }}
   maxReplicas: {{ .maxReplicas }}
   metrics:
-    {{- with .targetCPUUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: {{ . }}
-    {{- end }}
+    # Changing the order of the metrics will cause ArgoCD to go into a sync loop
+    # memory needs to be first.
+    # More info in: https://github.com/argoproj/argo-cd/issues/1079
     {{- with .targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ . }}
+    {{- end }}
+    {{- with .targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
         target:
           type: Utilization
           averageUtilization: {{ . }}
