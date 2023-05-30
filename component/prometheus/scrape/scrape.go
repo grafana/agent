@@ -104,11 +104,6 @@ func (arg *Arguments) SetToDefault() {
 	}
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	return f(arg)
-}
-
 // Validate implements river.Validator.
 func (arg *Arguments) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise

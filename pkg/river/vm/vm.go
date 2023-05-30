@@ -55,13 +55,13 @@ func (vm *Evaluator) Evaluate(scope *Scope, v interface{}) (err error) {
 		if rv.Kind() != reflect.Pointer {
 			panic(fmt.Sprintf("river/vm: expected pointer, got %s", rv.Kind()))
 		}
-		return vm.evaluateBlockOrBody(scope, assoc, node, rv)
+		return vm.evaluateBlockOrBody(scope, assoc, node, rv, true)
 	case *ast.File:
 		rv := reflect.ValueOf(v)
 		if rv.Kind() != reflect.Pointer {
 			panic(fmt.Sprintf("river/vm: expected pointer, got %s", rv.Kind()))
 		}
-		return vm.evaluateBlockOrBody(scope, assoc, node.Body, rv)
+		return vm.evaluateBlockOrBody(scope, assoc, node.Body, rv, true)
 	default:
 		expr, ok := node.(ast.Expr)
 		if !ok {
@@ -75,7 +75,7 @@ func (vm *Evaluator) Evaluate(scope *Scope, v interface{}) (err error) {
 	}
 }
 
-func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
+func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value, tryUnmarshal bool) error {
 	// TODO(rfratto): the errors returned by this function are missing context to
 	// be able to print line numbers. We need to return decorated error types.
 
@@ -85,44 +85,39 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		rv = rv.Addr()
 	}
 
-	return vm.evaluateBlockOrBodyDefault(scope, assoc, node, rv)
-}
-
-func (vm *Evaluator) evaluateBlockOrBodyDefault(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
-	if ru, ok := rv.Interface().(value.Defaulter); ok {
-		ru.SetToDefault()
+	if tryUnmarshal {
+		if err, unmarshaled := vm.evaluateBlockOrBodyUnmarshalRiver(scope, assoc, node, rv); unmarshaled || err != nil {
+			return err
+		}
 	}
 
-	return vm.evaluateBlockOrBodyUnmarshal(scope, assoc, node, rv)
+	vm.evaluateBlockOrBodyDefaults(rv)
+	if err := vm.evaluateBlockOrBodyDecode(scope, assoc, node, rv); err != nil {
+		return err
+	}
+
+	return vm.evaluateBlockOrBodyValidate(rv)
 }
 
-func (vm *Evaluator) evaluateBlockOrBodyUnmarshal(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
+func (vm *Evaluator) evaluateBlockOrBodyUnmarshalRiver(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) (error, bool) {
 	if ru, ok := rv.Interface().(value.Unmarshaler); ok {
 		return ru.UnmarshalRiver(func(v interface{}) error {
 			rv := reflect.ValueOf(v)
 			if rv.Kind() != reflect.Pointer {
 				panic(fmt.Sprintf("river/vm: expected pointer, got %s", rv.Kind()))
 			} else {
-				return vm.evaluateBlockOrBodyValidate(scope, assoc, node, rv, true)
+				return vm.evaluateBlockOrBody(scope, assoc, node, rv.Elem(), false)
 			}
-		})
+		}), true
 	}
 
-	return vm.evaluateBlockOrBodyValidate(scope, assoc, node, rv, false)
+	return nil, false
 }
 
-func (vm *Evaluator) evaluateBlockOrBodyValidate(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value, decodeElem bool) error {
-	if ru, ok := rv.Interface().(value.Validator); ok {
-		if err := ru.Validate(); err != nil {
-			return err
-		}
+func (vm *Evaluator) evaluateBlockOrBodyDefaults(rv reflect.Value) {
+	if ru, ok := rv.Interface().(value.Defaulter); ok {
+		ru.SetToDefault()
 	}
-
-	if decodeElem {
-		return vm.evaluateBlockOrBodyDecode(scope, assoc, node, rv.Elem())
-	}
-
-	return vm.evaluateBlockOrBodyDecode(scope, assoc, node, rv)
 }
 
 func (vm *Evaluator) evaluateBlockOrBodyDecode(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
@@ -172,6 +167,16 @@ func (vm *Evaluator) evaluateBlockOrBodyDecode(scope *Scope, assoc map[value.Val
 		TagInfo: ti,
 	}
 	return sd.Decode(stmts, rv)
+}
+
+func (vm *Evaluator) evaluateBlockOrBodyValidate(rv reflect.Value) error {
+	if ru, ok := rv.Interface().(value.Validator); ok {
+		if err := ru.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // evaluateMap evaluates a block or a body into a map.
