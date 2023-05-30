@@ -55,7 +55,9 @@ prometheus.exporter.blackbox "example" {
   - The name used in the second parameter of `exporter.New` when defining the `Build` function it's important as it will define the label `job` in the form of `integrations/<name>`.
   - Avoid creating components with `Singleton: true` as it will make it impossible to run multiple instances of the exporter. 
 
-- If the exporter follows the multi-target pattern, add a function to define Prometheus discovery targets and use `exporter.NewMultiTarget` for the `Build` param of the `component.Register` function.
+- If the exporter follows the multi-target pattern, add a function to define Prometheus discovery targets and use `exporter.NewWithTargetBuilder` for the `Build` param of the `component.Register` function.
+
+- If the exporter implements a custom `InstanceKey`, add a function to customize the value of the instance label and use `exporter.NewWithTargetBuilder` for the `Build` param of the `component.Register` function.
 
 - Define `UnmarshalRiver` function to unmarshal the arguments from the river config into the `Arguments` struct. Please, add a test to validate the unmarshalling covering as many cases as possible.
 

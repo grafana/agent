@@ -120,7 +120,7 @@ snippets:
     config: |
       metrics_scrape_configs:
       - job_name: 'prometheus'
-        scrape_interval: 15s
+        scrape_interval: 60s
         static_configs:
         - targets: ['localhost:9090']
       logs_scrape_configs:

@@ -15,6 +15,7 @@ type Arguments struct {
 	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 	Matches      string              `river:"matches,attr,optional"`
 	Receivers    []loki.LogsReceiver `river:"forward_to,attr"`
+	Labels       map[string]string   `river:"labels,attr,optional"`
 }
 
 func defaultArgs() Arguments {

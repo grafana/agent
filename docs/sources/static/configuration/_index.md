@@ -16,7 +16,7 @@ The YAML file is used to configure settings which are dynamic and can be
 changed at runtime. The command-line flags then configure things which cannot
 change at runtime, such as the listen port for the HTTP server.
 
-This file describes the YAML configuration, which is usually in a file named `agent.yaml`.
+This file describes the YAML configuration, which is usually in a file named `config.yaml`.
 
 - [server_config]({{< relref "./server-config" >}})
 - [metrics_config]({{< relref "./metrics-config" >}})
@@ -102,7 +102,7 @@ Generic placeholders are defined as follows:
 - `<string>`: a regular string
 - `<secret>`: a regular string that is a secret, such as a password
 
-Support contents and default values of `agent.yaml`:
+Support contents and default values of `config.yaml`:
 
 ```yaml
 # Configures the server of the Agent used to enable self-scraping.

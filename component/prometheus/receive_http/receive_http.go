@@ -33,6 +33,19 @@ type Arguments struct {
 	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 }
 
+func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+	*a = Arguments{
+		Server: fnet.DefaultServerConfig(),
+	}
+
+	type args Arguments
+	err := f((*args)(a))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 type Component struct {
 	opts               component.Options
 	handler            http.Handler
