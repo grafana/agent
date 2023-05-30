@@ -35,7 +35,7 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 	}
 
 	if config == nil {
-		config = defaultServerConfig()
+		config = DefaultServerConfig()
 	}
 
 	// convert from River into the weaveworks config

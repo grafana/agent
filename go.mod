@@ -51,7 +51,7 @@ require (
 	github.com/google/renameio/v2 v2.0.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
-	github.com/grafana/ckit v0.0.0-20230516123031-0cbbd63d3fac
+	github.com/grafana/ckit v0.0.0-20230518140533-fbd338b33964
 	github.com/grafana/cloudflare-go v0.0.0-20230110200409-c627cf6792f2
 	github.com/grafana/dskit v0.0.0-20230201083518-528d8a7d52f2
 	github.com/grafana/go-gelf/v2 v2.0.1
@@ -132,7 +132,7 @@ require (
 	github.com/prometheus/blackbox_exporter v0.22.1-0.20220920154026-3446984d6a6e
 	github.com/prometheus/client_golang v1.15.1
 	github.com/prometheus/client_model v0.4.0
-	github.com/prometheus/common v0.42.0
+	github.com/prometheus/common v0.43.1-0.20230511220707-2f0f5c4b6d95
 	github.com/prometheus/consul_exporter v0.8.0
 	github.com/prometheus/memcached_exporter v0.10.0
 	github.com/prometheus/mysqld_exporter v0.14.0
@@ -144,7 +144,7 @@ require (
 	github.com/rs/cors v1.8.3
 	github.com/shirou/gopsutil/v3 v3.22.9
 	github.com/sijms/go-ora/v2 v2.7.3
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.2
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
 	github.com/testcontainers/testcontainers-go v0.19.0
@@ -177,7 +177,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.8.0
 	golang.org/x/exp v0.0.0-20230124195608-d38c7dcee874
-	golang.org/x/net v0.9.0
+	golang.org/x/net v0.10.0
 	golang.org/x/oauth2 v0.7.0
 	golang.org/x/sys v0.8.0
 	golang.org/x/text v0.9.0
@@ -486,7 +486,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.63.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.63.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.1.0-rc2 // indirect
+	github.com/opencontainers/image-spec v1.1.0-rc3 // indirect
 	github.com/opencontainers/runc v1.1.5 // indirect
 	github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417 // indirect
 	github.com/opencontainers/selinux v1.10.2 // indirect
@@ -578,7 +578,7 @@ require (
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20230209150437-ee73d164e760 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
-	golang.org/x/term v0.7.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
@@ -691,9 +691,6 @@ replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.202
 // TODO(rfratto): remove once a new version of node_exporter is available that
 // uses a newer version of procfs.
 replace github.com/prometheus/procfs => github.com/prometheus/procfs v0.8.0
-
-// TODO(rfratto): remove once prometheus/common#472 is merged.
-replace github.com/prometheus/common => github.com/grafana/prometheus-common v0.39.1-0.20230411174203-bcb00f1c26d7
 
 // TODO(mattdurham): this is so you can debug on windows, when PR is merged into perflib, can you use that
 // and eventually remove if windows_exporter shifts to it. https://github.com/leoluk/perflib_exporter/pull/43

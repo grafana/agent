@@ -32,6 +32,8 @@ Here's a list of the available actions, along with a brief description of their 
 * `labelkeep` - Matches `regex` against all label names. Any labels that don't match are removed from the metric's label set.
 * `keepequal` - Drop targets for which the concatenated `source_labels` do not match `target_label`.
 * `dropequal` - Drop targets for which the concatenated `source_labels` do match `target_label`.
+* `lowercase` - Sets `target_label` to the lowercase form of the concatenated `source_labels`.
+* `uppercase` - Sets `target_label` to the uppercase form of the concatenated `source_labels`.
 
 Finally, note that the regex capture groups can be referred to using either the
 `$CAPTURE_GROUP_NUMBER` or `${CAPTURE_GROUP_NUMBER}` notation.

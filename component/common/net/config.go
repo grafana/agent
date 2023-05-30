@@ -82,18 +82,6 @@ func (g *GRPCConfig) Into(c *weaveworks.Config) {
 	c.GPRCServerMaxConcurrentStreams = g.ServerMaxConcurrentStreams
 }
 
-func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	// when unmarshalling, use our defaults to cover cases in which just some of the http/grpc
-	// block attributes are configured
-	*c = *defaultServerConfig()
-	type config ServerConfig
-	if err := f((*config)(c)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Convert converts the River-based ServerConfig into a weaveworks.Config object.
 func (c *ServerConfig) convert() weaveworks.Config {
 	cfg := newWeaveworksDefaultConfig()
@@ -102,12 +90,12 @@ func (c *ServerConfig) convert() weaveworks.Config {
 	if c.HTTP != nil {
 		c.HTTP.Into(&cfg)
 	} else {
-		defaultServerConfig().HTTP.Into(&cfg)
+		DefaultServerConfig().HTTP.Into(&cfg)
 	}
 	if c.GRPC != nil {
 		c.GRPC.Into(&cfg)
 	} else {
-		defaultServerConfig().GRPC.Into(&cfg)
+		DefaultServerConfig().GRPC.Into(&cfg)
 	}
 	cfg.ServerGracefulShutdownTimeout = c.GracefulShutdownTimeout
 	return cfg
@@ -123,9 +111,9 @@ func newWeaveworksDefaultConfig() weaveworks.Config {
 	return c
 }
 
-// defaultServerConfig creates a new ServerConfig with defaults applied. Note that some are inherited from
+// DefaultServerConfig creates a new ServerConfig with defaults applied. Note that some are inherited from
 // weaveworks, but copied in our config model to make the mixin logic simpler.
-func defaultServerConfig() *ServerConfig {
+func DefaultServerConfig() *ServerConfig {
 	return &ServerConfig{
 		HTTP: &HTTPConfig{
 			ListenAddress:      "",

@@ -62,10 +62,12 @@ Main (unreleased)
 - Embed Google Fonts on Flow UI (@jkroepke)
 
 - Enable Content-Security-Policies on Flow UI (@jkroepke)
-  
+
 - Update azure-metrics-exporter to v0.0.0-20230502203721-b2bfd97b5313 (@kgeckhart)
 
 - Update azidentity dependency to v1.3.0. (@akselleirv)
+
+- Add custom labels to journal entries in `loki.source.journal` (@sbhrule15)
 
 ### Bugfixes
 
@@ -84,6 +86,19 @@ Main (unreleased)
 - Fix an issue where the Grafana Agent Flow RPM used the wrong path for the
   environment file, preventing the service from loading. (@rfratto)
 
+- Fix an issue where the cluster advertise address was overwriting the join
+  addresses. (@laurovenancio)
+
+- Fix targets deduplication when clustering mode is enabled. (@laurovenancio)
+
+- Fix issue in operator where any version update will restart all agent pods simultaneously. (@captncraig)
+
+- Fix an issue where `loki.source.journald` did not create the positions
+  directory with the appropriate permissions. (@tpaschalis)
+
+- Fix an issue where fanning out log entries to multiple `loki.process`
+  components lead to a race condition. (@tpaschalis)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
@@ -95,6 +110,16 @@ Main (unreleased)
 - Add CLI flag `--server.http.enable-pprof` to grafana-agent-flow to conditionally enable `/debug/pprof` endpoints (@jkroepke)
 
 - Use Go 1.20.4 for builds. (@tpaschalis)
+
+- Integrate the new ExceptionContext which was recently added to the Faro Web-SDK in the
+  app_agent_receiver Payload. (@codecapitano)
+
+- Flow clustering: clusters will now use 512 tokens per node for distributing
+  work, leading to better distribution. However, rolling out this change will
+  cause some incorrerct or missing assignments until all nodes are updated. (@rfratto)
+
+- Change the Docker base image for Linux containers to `ubuntu:lunar`.
+  (@rfratto)
 
 v0.33.2 (2023-05-11)
 --------------------

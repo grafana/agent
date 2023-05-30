@@ -76,7 +76,17 @@ func (f *File) Bytes() []byte {
 // Body is a list of block and attribute statements. A Body cannot be manually
 // created, but is retrieved from a File or Block.
 type Body struct {
-	nodes []tokenNode
+	nodes             []tokenNode
+	valueOverrideHook ValueOverrideHook
+}
+
+type ValueOverrideHook = func(val interface{}) interface{}
+
+// SetValueOverrideHook sets a hook to override the value that will be token
+// encoded. The hook can mutate the value to be encoded or should return it
+// unmodified. This hook can be skipped by leaving it nil or setting it to nil.
+func (b *Body) SetValueOverrideHook(valueOverrideHook ValueOverrideHook) {
+	b.valueOverrideHook = valueOverrideHook
 }
 
 // A tokenNode is a structural element which can be converted into a set of
@@ -188,6 +198,7 @@ func (b *Body) encodeField(prefix []string, field rivertags.Field, fieldValue re
 			// It shouldn't be possible to have a required block which is unset, but
 			// we'll encode something anyway.
 			inner := NewBlock(fullName, "")
+			inner.body.SetValueOverrideHook(b.valueOverrideHook)
 			b.AppendBlock(inner)
 
 		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
@@ -202,6 +213,7 @@ func (b *Body) encodeField(prefix []string, field rivertags.Field, fieldValue re
 
 		case fieldValue.Kind() == reflect.Struct:
 			inner := NewBlock(fullName, getBlockLabel(fieldValue))
+			inner.body.SetValueOverrideHook(b.valueOverrideHook)
 			inner.Body().encodeFields(fieldValue)
 			b.AppendBlock(inner)
 		}
@@ -289,7 +301,12 @@ func (b *Body) getOrCreateAttribute(name string) *attribute {
 // Attributes will be written out in the order they were initially crated.
 func (b *Body) SetAttributeValue(name string, goValue interface{}) {
 	attr := b.getOrCreateAttribute(name)
-	attr.RawTokens = tokenEncode(goValue)
+
+	if b.valueOverrideHook != nil {
+		attr.RawTokens = tokenEncode(b.valueOverrideHook(goValue))
+	} else {
+		attr.RawTokens = tokenEncode(goValue)
+	}
 }
 
 type attribute struct {
