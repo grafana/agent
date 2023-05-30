@@ -63,10 +63,7 @@ func TestBadRiverConfig(t *testing.T) {
 
 	// Make sure the squashed HTTPClientConfig Validate function is being utilized correctly
 	var args Arguments
-	args.SetToDefault()
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
-	require.NoError(t, err)
-	err = args.Validate()
 	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
 }
 
