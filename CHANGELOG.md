@@ -69,6 +69,8 @@ Main (unreleased)
 
 - Add custom labels to journal entries in `loki.source.journal` (@sbhrule15)
 
+- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
+
 ### Bugfixes
 
 - Fix `loki.source.(gcplog|heroku)` `http` and `grpc` blocks were overriding defaults with zero-values
