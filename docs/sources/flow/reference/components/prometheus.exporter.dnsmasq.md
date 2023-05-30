@@ -20,7 +20,7 @@ All arguments are optional. Omitted fields take their default values.
 Name          | Type     | Description                          | Default                          | Required
 ------------- | -------- | ------------------------------------ | -------------------------------- | --------
 `address`     | `string` | The address of the dnsmasq server.   | `"localhost:53"`                 | no
-`leases_path` | `string` | The path to the dnsmasq leases file. | `"/var/lib/misc/dnsmasq.leases"` | no
+`leases_file` | `string` | The path to the dnsmasq leases file. | `"/var/lib/misc/dnsmasq.leases"` | no
 
 ## Exported fields
 The following fields are exported and can be referenced by other components.
