@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
     make smoke
 
-FROM ubuntu:kinetic
+FROM ubuntu:lunar
 
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 

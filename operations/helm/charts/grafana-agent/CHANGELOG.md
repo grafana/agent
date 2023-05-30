@@ -10,7 +10,7 @@ internal API changes are not present.
 Unreleased
 ----------
 
-## Enhancements 
+### Enhancements 
 
 - Add HPA support for Deployments and StatefulSets. (@tpaschalis)
 
@@ -18,6 +18,11 @@ Unreleased
 
 - Rename the deprecated `serviceAccount` alias to `serviceAccountName` in
   pod template. This is a no-op change. (@tpaschalis)
+
+### Bugfixes
+
+- Only set the deployment replicas when autoscaling is disabled. (@tiithansen)
+- Reorder HPA `spec.metrics` to avoid endless sync loop in ArgoCD. (@tiithansen)
 
 0.14.0 (2023-05-11)
 -------------------

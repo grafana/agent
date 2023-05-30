@@ -118,6 +118,9 @@ Main (unreleased)
   work, leading to better distribution. However, rolling out this change will
   cause some incorrerct or missing assignments until all nodes are updated. (@rfratto)
 
+- Change the Docker base image for Linux containers to `ubuntu:lunar`.
+  (@rfratto)
+
 v0.33.2 (2023-05-11)
 --------------------
 

@@ -5,10 +5,28 @@ import (
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/scrape"
+	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
 	promdiscovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/storage"
 )
+
+func appendScrape(f *builder.File, scrapeConfigs []*promconfig.ScrapeConfig, forwardTo []storage.Appendable) {
+	var scrapeForwardTo []storage.Appendable
+	for _, scrapeConfig := range scrapeConfigs {
+		relabelExports := appendRelabel(f, scrapeConfig.RelabelConfigs, forwardTo, scrapeConfig.JobName)
+
+		if relabelExports != nil {
+			scrapeForwardTo = []storage.Appendable{relabelExports.Receiver}
+		} else {
+			scrapeForwardTo = forwardTo
+		}
+
+		scrapeArgs := toScrapeArguments(scrapeConfig, scrapeForwardTo)
+		common.AppendBlockWithOverride(f, []string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
+	}
+}
 
 func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig, forwardTo []storage.Appendable) *scrape.Arguments {
 	if scrapeConfig == nil {
