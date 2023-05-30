@@ -24,9 +24,7 @@ Ensure that [Homebrew][] is installed on your machine.
    brew install grafana-agent
    ```
 
-    The brew install command downloads Grafana Agent and installs it at:
-    - `/usr/local/Cellar/grafana-agent/VERSION` (Homebrew v2)
-    - `/opt/homebrew/Cellar/grafana-agent/VERSION` (Homebrew v3)
+    The brew install command downloads Grafana Agent and installs it at `/opt/homebrew/Cellar/grafana-agent/VERSION`.
     
     By default, Grafana Agent logs are located in `/opt/homebrew/var/log/`.
 
