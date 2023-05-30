@@ -14,6 +14,9 @@ spec:
   minReplicas: {{ .minReplicas }}
   maxReplicas: {{ .maxReplicas }}
   metrics:
+    # Changing the order of the metrics will cause ArgoCD to go into a sync loop
+    # memory needs to be first.
+    # More info in: https://github.com/argoproj/argo-cd/issues/1079
     {{- with .targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
