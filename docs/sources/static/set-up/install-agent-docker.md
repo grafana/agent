@@ -5,7 +5,7 @@ aliases:
 - ../../set-up/install-agent-docker/
 ---
 
-# Install Grafana Agent on Docker
+# Run Grafana Agent in a Docker container
 
 Grafana Agent is available as a Docker container image on the following platforms:
 
