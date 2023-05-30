@@ -1,23 +1,23 @@
 ---
-title: phlare.scrape
+title: pyroscope.scrape
 labels:
   stage: beta
 ---
 
-# phlare.scrape
+# pyroscope.scrape
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
-`phlare.scrape` configures a [pprof] scraping job for a given set of
+`pyroscope.scrape` configures a [pprof] scraping job for a given set of
 `targets`. The scraped performance profiles are forwarded to the list of receivers passed in
 `forward_to`.
 
-Multiple `phlare.scrape` components can be specified by giving them different labels.
+Multiple `pyroscope.scrape` components can be specified by giving them different labels.
 
 ## Usage
 
 ```river
-phlare.scrape "LABEL" {
+pyroscope.scrape "LABEL" {
   targets    = TARGET_LIST
   forward_to = RECEIVER_LIST
 }
@@ -67,7 +67,7 @@ Name | Type | Description | Default | Required
 
 ## Blocks
 
-The following blocks are supported inside the definition of `phlare.scrape`:
+The following blocks are supported inside the definition of `pyroscope.scrape`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -258,7 +258,7 @@ Name | Type | Description | Default | Required
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
 When the agent is running in [clustered mode][], and `enabled` is set to true,
-then this `phlare.scrape` component instance opts-in to participating in the
+then this `pyroscope.scrape` component instance opts-in to participating in the
 cluster to distribute scrape load between all cluster nodes.
 
 Clustering causes the set of targets to be locally filtered down to a unique
@@ -276,26 +276,26 @@ If the agent is _not_ running in clustered mode, this block is a no-op.
 
 ## Exported fields
 
-`phlare.scrape` does not export any fields that can be referenced by other
+`pyroscope.scrape` does not export any fields that can be referenced by other
 components.
 
 ## Component health
 
-`phlare.scrape` is only reported as unhealthy if given an invalid
+`pyroscope.scrape` is only reported as unhealthy if given an invalid
 configuration.
 
 ## Debug information
 
-`phlare.scrape` reports the status of the last scrape for each configured
+`pyroscope.scrape` reports the status of the last scrape for each configured
 scrape job on the component's debug endpoint.
 
 ## Debug metrics
 
-* `phlare_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
+* `pyroscope_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
 
 ## Scraping behavior
 
-The `phlare.scrape` component borrows the scraping behavior of Prometheus.
+The `pyroscope.scrape` component borrows the scraping behavior of Prometheus.
 Prometheus, and by extension, this component, uses a pull model for scraping
 profiles from a given set of _targets_.
 Each scrape target is defined as a set of key-value pairs called _labels_.
@@ -318,7 +318,7 @@ to each receiver listed in the component's `forward_to` argument.
 Labels coming from targets, that start with a double underscore `__` are
 treated as _internal_, and are removed prior to scraping.
 
-The `phlare.scrape` component regards a scrape as successful if it
+The `pyroscope.scrape` component regards a scrape as successful if it
 responded with an HTTP `200 OK` status code and returned a body of valid [pprof] profile.
 
 If the scrape request fails, the component's debug UI section contains more
@@ -335,16 +335,16 @@ instance              | The `__address__` or `<host>:<port>` of the scrape targe
 
 ## Example
 
-The following example sets up the scrape job with certain attributes (profiling config, targets) and lets it scrape two local applications (the Agent itself and Phlare).
+The following example sets up the scrape job with certain attributes (profiling config, targets) and lets it scrape two local applications (the Agent itself and Pyroscope).
 The exposed profiles are sent over to the provided list of receivers, as defined by other components.
 
 ```river
-phlare.scrape "local" {
+pyroscope.scrape "local" {
   targets    = [
-    {"__address__" = "localhost:4100", "app"="phlare"},
+    {"__address__" = "localhost:4100", "app"="pyroscope"},
     {"__address__" = "localhost:12345", "app"="agent"},
   ]
-  forward_to = [phlare.write.local.receiver]
+  forward_to = [pyroscope.write.local.receiver]
   profiling_config {
     profile.fgprof {
       enabled = true
