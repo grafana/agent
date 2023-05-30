@@ -9,10 +9,6 @@ aliases:
 
 You can use Homebrew to install Grafana Agent on macOS.
 
-{{% admonition type="note" %}}
-You can also install Grafana Agent on macOS using the macOS binary.
-{{%/admonition %}}
-
 ## Before you begin
 
 Ensure that [Homebrew][] is installed on your machine.
