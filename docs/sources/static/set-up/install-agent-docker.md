@@ -23,7 +23,7 @@ Grafana Agent is available as a Docker container image on the following platform
 [Docker]: https://docker.io
 ## Run a Linux Docker container
 
-1. To install a Grafana Agent Docker container on Linux, run the following command in a terminal:
+1. To run a Grafana Agent Docker container on Linux, run the following command in a terminal:
 
    ```
    docker run \
@@ -41,7 +41,7 @@ Grafana Agent is available as a Docker container image on the following platform
 
 ## Run a Windows Docker container
 
-1. To install a Grafana Agent Docker container on Windows, run the following command in a Windows command prompt:
+1. To run a Grafana Agent Docker container on Windows, run the following command in a Windows command prompt:
 
    ```
    docker run ^
