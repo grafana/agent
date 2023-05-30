@@ -13,24 +13,24 @@ type metrics struct {
 func newMetrics(reg prometheus.Registerer) *metrics {
 	m := &metrics{
 		sentBytes: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "phlare_write_sent_bytes_total",
-			Help: "Total number of compressed bytes sent to Phlare.",
+			Name: "pyroscope_write_sent_bytes_total",
+			Help: "Total number of compressed bytes sent to Pyroscope.",
 		}, []string{"endpoint"}),
 		droppedBytes: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "phlare_write_dropped_bytes_total",
-			Help: "Total number of compressed bytes dropped by Phlare.",
+			Name: "pyroscope_write_dropped_bytes_total",
+			Help: "Total number of compressed bytes dropped by Pyroscope.",
 		}, []string{"endpoint"}),
 		sentProfiles: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "phlare_write_sent_profiles_total",
-			Help: "Total number of profiles sent to Phlare.",
+			Name: "pyroscope_write_sent_profiles_total",
+			Help: "Total number of profiles sent to Pyroscope.",
 		}, []string{"endpoint"}),
 		droppedProfiles: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "phlare_write_dropped_profiles_total",
-			Help: "Total number of profiles dropped by Phlare.",
+			Name: "pyroscope_write_dropped_profiles_total",
+			Help: "Total number of profiles dropped by Pyroscope.",
 		}, []string{"endpoint"}),
 		retries: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "phlare_write_retries_total",
-			Help: "Total number of retries to Phlare.",
+			Name: "pyroscope_write_retries_total",
+			Help: "Total number of retries to Pyroscope.",
 		}, []string{"endpoint"}),
 	}
 

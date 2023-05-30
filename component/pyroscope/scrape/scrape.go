@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/pyroscope"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 
 	"github.com/grafana/agent/component"
 	component_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/phlare"
 	"github.com/grafana/agent/component/prometheus/scrape"
 )
 
@@ -29,7 +29,7 @@ const (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "phlare.scrape",
+		Name: "pyroscope.scrape",
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -41,8 +41,8 @@ func init() {
 // Arguments holds values which are used to configure the pprof.scrape
 // component.
 type Arguments struct {
-	Targets   []discovery.Target  `river:"targets,attr"`
-	ForwardTo []phlare.Appendable `river:"forward_to,attr"`
+	Targets   []discovery.Target     `river:"targets,attr"`
+	ForwardTo []pyroscope.Appendable `river:"forward_to,attr"`
 
 	// The job name to override the job label with.
 	JobName string `river:"job_name,attr,optional"`
@@ -218,14 +218,14 @@ type Component struct {
 	mut        sync.RWMutex
 	args       Arguments
 	scraper    *Manager
-	appendable *phlare.Fanout
+	appendable *pyroscope.Fanout
 }
 
 var _ component.Component = (*Component)(nil)
 
 // New creates a new pprof.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	flowAppendable := phlare.NewFanout(args.ForwardTo, o.ID, o.Registerer)
+	flowAppendable := pyroscope.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	scraper := NewManager(flowAppendable, o.Logger)
 	c := &Component{
 		opts:          o,

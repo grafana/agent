@@ -1,4 +1,4 @@
-package phlare
+package pyroscope
 
 import (
 	"context"
@@ -40,8 +40,8 @@ type Fanout struct {
 // NewFanout creates a fanout appendable.
 func NewFanout(children []Appendable, componentID string, register prometheus.Registerer) *Fanout {
 	wl := prometheus.NewHistogram(prometheus.HistogramOpts{
-		Name: "phlare_fanout_latency",
-		Help: "Write latency for sending to phlare profiles",
+		Name: "pyroscope_fanout_latency",
+		Help: "Write latency for sending to pyroscope profiles",
 	})
 	_ = register.Register(wl)
 	return &Fanout{
