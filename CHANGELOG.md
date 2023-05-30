@@ -14,6 +14,8 @@ Main (unreleased)
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
 
+- Integrations: Introduce the `squid` integration. (@armstrmi)
+
 ### Enhancements
 
 - `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)

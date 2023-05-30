@@ -1,0 +1,1 @@
+package squid_exporter

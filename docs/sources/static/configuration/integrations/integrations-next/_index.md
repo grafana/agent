@@ -130,6 +130,9 @@ integrations:
   apache_http_configs:
     [- <apache_http_config>]
 
+  squid_configs:
+    [- <squid_config> ...]
+
   vsphere_configs:
     [- <vsphere_config>]
 ```
