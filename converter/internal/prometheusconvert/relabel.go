@@ -30,9 +30,7 @@ func toRelabelArguments(relabelConfigs []*promrelabel.Config, forwardTo []storag
 	}
 
 	var metricRelabelConfigs []*flow_relabel.Config
-
 	for _, relabelConfig := range relabelConfigs {
-
 		sourceLabels := make([]string, len(relabelConfig.SourceLabels))
 		for i, sourceLabel := range relabelConfig.SourceLabels {
 			sourceLabels[i] = string(sourceLabel)
