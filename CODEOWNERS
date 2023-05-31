@@ -13,6 +13,10 @@
 # pull request.
 * @grafana/grafana-agent-core-maintainers
 
+# CHANGELOG.md has shared ownership with the respective owners of the specific
+# code for the PR being opened.
+/CHANGELOG.md
+
 # Binaries:
 /cmd/grafana-agent-operator/  @grafana/grafana-agent-operator-maintainers
 
