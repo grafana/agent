@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -13,12 +14,12 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
-	"github.com/grafana/ckit/shard"
 	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -157,7 +158,7 @@ func filterTargets(m map[string][]*targetgroup.Group, node cluster.Node) map[str
 			// We should not need to include the group's common labels, as long
 			// as each node does this consistently.
 			for _, t := range group.Targets {
-				peers, err := node.Lookup(shard.StringKey(t.String()), 1, shard.OpReadWrite)
+				peers, err := node.Lookup(shard.StringKey(nonMetaLabelString(t)), 1, shard.OpReadWrite)
 				if err != nil {
 					// This can only fail in case we ask for more owners than the
 					// available peers. This should never happen, but in any case we fall
@@ -172,6 +173,18 @@ func filterTargets(m map[string][]*targetgroup.Group, node cluster.Node) map[str
 		}
 	}
 	return m2
+}
+
+// nonMetaLabelString returns a string representation of the given label set, excluding meta labels.
+func nonMetaLabelString(l model.LabelSet) string {
+	lstrs := make([]string, 0, len(l))
+	for l, v := range l {
+		if !strings.HasPrefix(string(l), model.MetaLabelPrefix) {
+			lstrs = append(lstrs, fmt.Sprintf("%s=%q", l, v))
+		}
+	}
+	sort.Strings(lstrs)
+	return fmt.Sprintf("{%s}", strings.Join(lstrs, ", "))
 }
 
 // DebugInfo returns debug information for the CRDManager.
