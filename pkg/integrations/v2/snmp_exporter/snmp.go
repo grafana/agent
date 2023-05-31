@@ -1,13 +1,13 @@
-package snmp_exporter
+package snmp_exporter_v2
 
 import (
 	"context"
 	"fmt"
 	"net/http"
 	"path"
-	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/autoscrape"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
@@ -17,16 +17,12 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/snmp_exporter/collector"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 )
 
 type snmpHandler struct {
 	cfg     *Config
-	modules *snmp_config.Config
+	snmpCfg *snmp_config.Config
 	log     log.Logger
 }
 
@@ -72,6 +68,11 @@ func (sh *snmpHandler) Targets(ep integrations.Endpoint) []*targetgroup.Group {
 			})
 		}
 
+		if t.Auth != "" {
+			labelSet = labelSet.Merge(model.LabelSet{
+				"__param_auth": model.LabelValue(t.Auth),
+			})
+		}
 		group.Targets = append(group.Targets, labelSet)
 	}
 
@@ -100,7 +101,7 @@ func (sh *snmpHandler) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeC
 
 func (sh *snmpHandler) Handler(prefix string) (http.Handler, error) {
 	r := mux.NewRouter()
-	r.Handle(path.Join(prefix, "metrics"), sh.createHandler(sh.cfg.SnmpTargets))
+	r.Handle(path.Join(prefix, "metrics"), sh.createHandler())
 
 	return r, nil
 }
@@ -117,172 +118,9 @@ func (sh *snmpHandler) RunIntegration(ctx context.Context) error {
 	return nil
 }
 
-func (sh *snmpHandler) createHandler(targets []SNMPTarget) http.HandlerFunc {
-	snmpTargets := make(map[string]SNMPTarget)
-	for _, target := range targets {
-		snmpTargets[target.Name] = target
-	}
-
+func (sh *snmpHandler) createHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger := sh.log
-		query := r.URL.Query()
-		targetName := query.Get("target")
+		snmp_exporter.Handler(w, r, sh.log, sh.snmpCfg, sh.cfg.SnmpTargets, sh.cfg.WalkParams)
 
-		var target string
-		if len(query["target"]) != 1 || targetName == "" {
-			http.Error(w, "'target' parameter must be specified once", 400)
-			return
-		}
-
-		t, ok := snmpTargets[targetName]
-		if ok {
-			target = t.Target
-		} else {
-			target = targetName
-		}
-
-		var moduleName string
-		if query.Has("module") {
-			if len(query["module"]) > 1 {
-				http.Error(w, "'module' parameter must only be specified once", 400)
-				return
-			}
-			moduleName = query.Get("module")
-		} else {
-			moduleName = t.Module
-		}
-
-		if moduleName == "" {
-			moduleName = "if_mib"
-		}
-
-		module, ok := (*sh.modules)[moduleName]
-		if !ok {
-			http.Error(w, fmt.Sprintf("Unknown module '%s'", moduleName), 400)
-			return
-		}
-
-		// override module connection details with custom walk params if provided
-		var walkParams string
-		if query.Has("walk_params") {
-			if len(query["walk_params"]) > 1 {
-				http.Error(w, "'walk_params' parameter must only be specified once", 400)
-				return
-			}
-			walkParams = query.Get("walk_params")
-		} else {
-			walkParams = t.WalkParams
-		}
-
-		if walkParams != "" {
-			if wp, ok := sh.cfg.WalkParams[walkParams]; ok {
-				// module.WalkParams = wp
-				if wp.Version != 0 {
-					module.WalkParams.Version = wp.Version
-				}
-				if wp.MaxRepetitions != 0 {
-					module.WalkParams.MaxRepetitions = wp.MaxRepetitions
-				}
-				if wp.Retries != 0 {
-					module.WalkParams.Retries = wp.Retries
-				}
-				if wp.Timeout != 0 {
-					module.WalkParams.Timeout = wp.Timeout
-				}
-				module.WalkParams.Auth = wp.Auth
-			} else {
-				http.Error(w, fmt.Sprintf("Unknown walk_params '%s'", walkParams), 400)
-				return
-			}
-			logger = log.With(logger, "module", moduleName, "target", target, "walk_params", walkParams)
-		} else {
-			logger = log.With(logger, "module", moduleName, "target", target)
-		}
-		level.Debug(logger).Log("msg", "Starting scrape")
-
-		start := time.Now()
-		registry := prometheus.NewRegistry()
-		c := collector.New(r.Context(), target, module, logger)
-		registry.MustRegister(c)
-		// Delegate http serving to Prometheus client library, which will call collector.Collect.
-		h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
-		h.ServeHTTP(w, r)
-
-		duration := time.Since(start).Seconds()
-		level.Debug(logger).Log("msg", "Finished scrape", "duration_seconds", duration)
 	}
-}
-
-func (sh *snmpHandler) handler(w http.ResponseWriter, r *http.Request) {
-	logger := sh.log
-
-	query := r.URL.Query()
-
-	target := query.Get("target")
-	if len(query["target"]) != 1 || target == "" {
-		http.Error(w, "'target' parameter must be specified once", 400)
-		return
-	}
-
-	moduleName := query.Get("module")
-	if len(query["module"]) > 1 {
-		http.Error(w, "'module' parameter must only be specified once", 400)
-		return
-	}
-	if moduleName == "" {
-		moduleName = "if_mib"
-	}
-
-	module, ok := (*sh.modules)[moduleName]
-	if !ok {
-		http.Error(w, fmt.Sprintf("Unknown module '%s'", moduleName), 400)
-		return
-	}
-
-	// override module connection details with custom walk params if provided
-	walkParams := query.Get("walk_params")
-	if len(query["walk_params"]) > 1 {
-		http.Error(w, "'walk_params' parameter must only be specified once", 400)
-		return
-	}
-
-	if walkParams != "" {
-		if wp, ok := sh.cfg.WalkParams[walkParams]; ok {
-			// module.WalkParams = wp
-			if wp.Version != 0 {
-				module.WalkParams.Version = wp.Version
-			}
-			if wp.MaxRepetitions != 0 {
-				module.WalkParams.MaxRepetitions = wp.MaxRepetitions
-			}
-			if wp.Retries != 0 {
-				module.WalkParams.Retries = wp.Retries
-			}
-			if wp.Timeout != 0 {
-				module.WalkParams.Timeout = wp.Timeout
-			}
-			module.WalkParams.Auth = wp.Auth
-		} else {
-			http.Error(w, fmt.Sprintf("Unknown walk_params '%s'", walkParams), 400)
-			return
-		}
-		logger = log.With(logger, "module", moduleName, "target", target, "walk_params", walkParams)
-	} else {
-		logger = log.With(logger, "module", moduleName, "target", target)
-	}
-	level.Debug(logger).Log("msg", "Starting scrape")
-
-	start := time.Now()
-	registry := prometheus.NewRegistry()
-	c := collector.New(r.Context(), target, module, logger)
-	registry.MustRegister(c)
-	// Delegate http serving to Prometheus client library, which will call collector.Collect.
-	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
-	h.ServeHTTP(w, r)
-	duration := time.Since(start).Seconds()
-	level.Debug(logger).Log("msg", "Finished scrape", "duration_seconds", duration)
-}
-
-func (sh snmpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	sh.handler(w, r)
 }

@@ -26,6 +26,7 @@ type SNMPTarget struct {
 	Name       string `yaml:"name"`
 	Target     string `yaml:"address"`
 	Module     string `yaml:"module"`
+	Auth       string `yaml:"auth"`
 	WalkParams string `yaml:"walk_params,omitempty"`
 }
 
@@ -65,20 +66,10 @@ func init() {
 
 // New creates a new snmp_exporter integration
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	var modules *snmp_config.Config
-	var err error
-	if c.SnmpConfigFile != "" {
-		modules, err = snmp_config.LoadFile(c.SnmpConfigFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load snmp config from file %v: %w", c.SnmpConfigFile, err)
-		}
-	} else {
-		modules, err = snmp_common.LoadEmbeddedConfig()
-		if err != nil {
-			return nil, fmt.Errorf("failed to load embedded snmp config: %w", err)
-		}
+	snmpCfg, err := LoadSNMPConfig(c.SnmpConfigFile)
+	if err != nil {
+		return nil, err
 	}
-
 	// The `name` and `address` fields are mandatory for the SNMP targets are mandatory.
 	// Enforce this check and fail the creation of the integration if they're missing.
 	for _, target := range c.SnmpTargets {
@@ -89,7 +80,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 
 	sh := &snmpHandler{
 		cfg:     c,
-		modules: modules,
+		snmpCfg: snmpCfg,
 		log:     log,
 	}
 	integration := &Integration{
@@ -97,6 +88,25 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	return integration, nil
+}
+
+// LoadSNMPConfig loads the SNMP configuration from the given file. If the file is empty, it will
+// load the embedded configuration.
+func LoadSNMPConfig(snmpConfigFile string) (*snmp_config.Config, error) {
+	var snmpCfg *snmp_config.Config
+	var err error
+	if snmpConfigFile != "" {
+		snmpCfg, err = snmp_config.LoadFile(snmpConfigFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load snmp config from file %v: %w", snmpConfigFile, err)
+		}
+	} else {
+		snmpCfg, err = snmp_common.LoadEmbeddedConfig()
+		if err != nil {
+			return nil, fmt.Errorf("failed to load embedded snmp config: %w", err)
+		}
+	}
+	return snmpCfg, nil
 }
 
 // Integration is the SNMP integration. The integration scrapes metrics
@@ -126,6 +136,9 @@ func (i *Integration) ScrapeConfigs() []config.ScrapeConfig {
 		queryParams.Add("target", target.Target)
 		if target.Module != "" {
 			queryParams.Add("module", target.Module)
+		}
+		if target.Auth != "" {
+			queryParams.Add("auth", target.Auth)
 		}
 		if target.WalkParams != "" {
 			queryParams.Add("walk_params", target.WalkParams)

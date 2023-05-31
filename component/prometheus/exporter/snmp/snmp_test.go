@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/pkg/river"
 
 	"github.com/prometheus/common/model"
-	snmp_config "github.com/prometheus/snmp_exporter/config"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,6 +19,7 @@ func TestUnmarshalRiver(t *testing.T) {
 			address = "192.168.1.2"
 			module = "if_mib"
 			walk_params = "public"
+			auth = "public_v2"
 		}
 		target "network_router_2" {
 			address = "192.168.1.3"
@@ -27,16 +27,10 @@ func TestUnmarshalRiver(t *testing.T) {
 			walk_params = "private"
 		}
 		walk_param "private" {
-			version = "2"
-			auth {
-				community = "secret"
-			}
+			retries = 1
 		}
 		walk_param "public" {
-			version = "2"
-			auth {
-				community = "public"
-			}
+			retries = 2
 		}		
 `
 	var args Arguments
@@ -58,17 +52,16 @@ func TestUnmarshalRiver(t *testing.T) {
 	require.Equal(t, 2, len(args.WalkParams))
 
 	require.Contains(t, "private", args.WalkParams[0].Name)
-	require.Contains(t, "secret", args.WalkParams[0].Auth.Community)
-
+	require.Equal(t, 1, args.WalkParams[0].Retries)
 	require.Contains(t, "public", args.WalkParams[1].Name)
-	require.Contains(t, "public", args.WalkParams[1].Auth.Community)
+	require.Equal(t, 2, args.WalkParams[1].Retries)
 }
 
 func TestConvertConfig(t *testing.T) {
 	args := Arguments{
 		ConfigFile: "modules.yml",
 		Targets:    TargetBlock{{Name: "network_switch_1", Target: "192.168.1.2", Module: "if_mib"}},
-		WalkParams: WalkParams{{Name: "public", Version: 2, Auth: Auth{Community: "public"}}},
+		WalkParams: WalkParams{{Name: "public", Retries: 2}},
 	}
 
 	res := args.Convert()
@@ -82,6 +75,7 @@ func TestConvertTargets(t *testing.T) {
 		Name:   "network_switch_1",
 		Target: "192.168.1.2",
 		Module: "if_mib",
+		Auth:   "public_v2",
 	}}
 
 	res := targets.Convert()
@@ -89,54 +83,33 @@ func TestConvertTargets(t *testing.T) {
 	require.Equal(t, "network_switch_1", res[0].Name)
 	require.Equal(t, "192.168.1.2", res[0].Target)
 	require.Equal(t, "if_mib", res[0].Module)
+	require.Equal(t, "public_v2", res[0].Auth)
 }
 
 func TestConvertWalkParams(t *testing.T) {
+	retries := 3
 	walkParams := WalkParams{{
 		Name:                    "public",
-		Version:                 2,
 		MaxRepetitions:          uint32(10),
-		Retries:                 3,
+		Retries:                 retries,
 		Timeout:                 time.Duration(5),
 		UseUnconnectedUDPSocket: true,
 	}}
 
 	res := walkParams.Convert()
 	require.Equal(t, 1, len(res))
-	require.Equal(t, 2, res["public"].Version)
 	require.Equal(t, uint32(10), res["public"].MaxRepetitions)
-	require.Equal(t, 3, res["public"].Retries)
+	require.Equal(t, &retries, res["public"].Retries)
 	require.Equal(t, time.Duration(5), res["public"].Timeout)
 	require.Equal(t, true, res["public"].UseUnconnectedUDPSocket)
-}
-
-func TestConvertAuth(t *testing.T) {
-	auth := Auth{
-		Community:     "public",
-		SecurityLevel: "authPriv",
-		Username:      "user",
-		AuthProtocol:  "MD5",
-		PrivProtocol:  "DES",
-		Password:      "password",
-		PrivPassword:  "password",
-		ContextName:   "context",
-	}
-	res := auth.Convert()
-	require.Equal(t, snmp_config.Secret("public"), res.Community)
-	require.Equal(t, "authPriv", res.SecurityLevel)
-	require.Equal(t, "user", res.Username)
-	require.Equal(t, "MD5", res.AuthProtocol)
-	require.Equal(t, "DES", res.PrivProtocol)
-	require.Equal(t, snmp_config.Secret("password"), res.Password)
-	require.Equal(t, snmp_config.Secret("password"), res.PrivPassword)
-	require.Equal(t, "context", res.ContextName)
 }
 
 func TestBuildSNMPTargets(t *testing.T) {
 	baseArgs := Arguments{
 		ConfigFile: "modules.yml",
-		Targets:    TargetBlock{{Name: "network_switch_1", Target: "192.168.1.2", Module: "if_mib", WalkParams: "public"}},
-		WalkParams: WalkParams{{Name: "public", Version: 2, Auth: Auth{Community: "public"}}},
+		Targets: TargetBlock{{Name: "network_switch_1", Target: "192.168.1.2", Module: "if_mib",
+			WalkParams: "public", Auth: "public_v2"}},
+		WalkParams: WalkParams{{Name: "public", Retries: 2}},
 	}
 	baseTarget := discovery.Target{
 		model.SchemeLabel:                   "http",
@@ -153,4 +126,5 @@ func TestBuildSNMPTargets(t *testing.T) {
 	require.Equal(t, "192.168.1.2", targets[0]["__param_target"])
 	require.Equal(t, "if_mib", targets[0]["__param_module"])
 	require.Equal(t, "public", targets[0]["__param_walk_params"])
+	require.Equal(t, "public_v2", targets[0]["__param_auth"])
 }

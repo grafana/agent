@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
-	"github.com/grafana/agent/pkg/river/rivertypes"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 )
 
@@ -45,6 +44,9 @@ func buildSNMPTargets(baseTarget discovery.Target, args component.Arguments) []d
 		if tgt.WalkParams != "" {
 			target["__param_walk_params"] = tgt.WalkParams
 		}
+		if tgt.Auth != "" {
+			target["__param_auth"] = tgt.Auth
+		}
 
 		targets = append(targets, target)
 	}
@@ -57,6 +59,7 @@ type SNMPTarget struct {
 	Name       string `river:",label"`
 	Target     string `river:"address,attr"`
 	Module     string `river:"module,attr,optional"`
+	Auth       string `river:"auth,attr,optional"`
 	WalkParams string `river:"walk_params,attr,optional"`
 }
 
@@ -70,44 +73,18 @@ func (t TargetBlock) Convert() []snmp_exporter.SNMPTarget {
 			Name:       target.Name,
 			Target:     target.Target,
 			Module:     target.Module,
+			Auth:       target.Auth,
 			WalkParams: target.WalkParams,
 		})
 	}
 	return targets
 }
 
-type Auth struct {
-	Community     rivertypes.Secret `river:"community,attr,optional"`
-	SecurityLevel string            `river:"security_level,attr,optional"`
-	Username      string            `river:"username,attr,optional"`
-	Password      rivertypes.Secret `river:"password,attr,optional"`
-	AuthProtocol  string            `river:"auth_protocol,attr,optional"`
-	PrivProtocol  string            `river:"priv_protocol,attr,optional"`
-	PrivPassword  rivertypes.Secret `river:"priv_password,attr,optional"`
-	ContextName   string            `river:"context_name,attr,optional"`
-}
-
-// Convert converts the component's Auth to the integration's Auth.
-func (a Auth) Convert() snmp_config.Auth {
-	return snmp_config.Auth{
-		Community:     snmp_config.Secret(a.Community),
-		SecurityLevel: a.SecurityLevel,
-		Username:      a.Username,
-		Password:      snmp_config.Secret(a.Password),
-		AuthProtocol:  a.AuthProtocol,
-		PrivProtocol:  a.PrivProtocol,
-		PrivPassword:  snmp_config.Secret(a.PrivPassword),
-		ContextName:   a.ContextName,
-	}
-}
-
 type WalkParam struct {
 	Name                    string        `river:",label"`
-	Version                 int           `river:"version,attr,optional"`
 	MaxRepetitions          uint32        `river:"max_repetitions,attr,optional"`
 	Retries                 int           `river:"retries,attr,optional"`
 	Timeout                 time.Duration `river:"timeout,attr,optional"`
-	Auth                    Auth          `river:"auth,block,optional"`
 	UseUnconnectedUDPSocket bool          `river:"use_unconnected_udp_socket,attr,optional"`
 }
 
@@ -118,11 +95,9 @@ func (w WalkParams) Convert() map[string]snmp_config.WalkParams {
 	walkParams := make(map[string]snmp_config.WalkParams)
 	for _, walkParam := range w {
 		walkParams[walkParam.Name] = snmp_config.WalkParams{
-			Version:                 walkParam.Version,
 			MaxRepetitions:          walkParam.MaxRepetitions,
-			Retries:                 walkParam.Retries,
+			Retries:                 &walkParam.Retries,
 			Timeout:                 walkParam.Timeout,
-			Auth:                    walkParam.Auth.Convert(),
 			UseUnconnectedUDPSocket: walkParam.UseUnconnectedUDPSocket,
 		}
 	}

@@ -1,11 +1,9 @@
 // Package snmp_exporter embeds https://github.com/prometheus/snmp_exporter
-package snmp_exporter
+package snmp_exporter_v2
 
 import (
-	"fmt"
-
 	"github.com/go-kit/log"
-	snmp_common "github.com/grafana/agent/pkg/integrations/snmp_exporter/common"
+	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
@@ -21,18 +19,10 @@ var DefaultConfig = Config{
 type Config struct {
 	WalkParams     map[string]snmp_config.WalkParams `yaml:"walk_params,omitempty"`
 	SnmpConfigFile string                            `yaml:"config_file,omitempty"`
-	SnmpTargets    []SNMPTarget                      `yaml:"snmp_targets"`
+	SnmpTargets    []snmp_exporter.SNMPTarget        `yaml:"snmp_targets"`
 	Common         common.MetricsConfig              `yaml:",inline"`
 
 	globals integrations_v2.Globals
-}
-
-// SNMPTarget defines a target device to be used by the integration.
-type SNMPTarget struct {
-	Name       string `yaml:"name"`
-	Target     string `yaml:"address"`
-	Module     string `yaml:"module"`
-	WalkParams string `yaml:"walk_params,omitempty"`
 }
 
 // ApplyDefaults applies the integration's default configuration.
@@ -51,23 +41,14 @@ func (c *Config) Identifier(globals integrations_v2.Globals) (string, error) {
 
 // NewIntegration creates a new SNMP integration.
 func (c *Config) NewIntegration(log log.Logger, globals integrations_v2.Globals) (integrations_v2.Integration, error) {
-	var modules *snmp_config.Config
-	var err error
-	if c.SnmpConfigFile != "" {
-		modules, err = snmp_config.LoadFile(c.SnmpConfigFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to load snmp config from file %v: %w", c.SnmpConfigFile, err)
-		}
-	} else {
-		modules, err = snmp_common.LoadEmbeddedConfig()
-		if err != nil {
-			return nil, fmt.Errorf("failed to load embedded snmp config: %w", err)
-		}
+	snmpCfg, err := snmp_exporter.LoadSNMPConfig(c.SnmpConfigFile)
+	if err != nil {
+		return nil, err
 	}
 	c.globals = globals
 	sh := &snmpHandler{
 		cfg:     c,
-		modules: modules,
+		snmpCfg: snmpCfg,
 		log:     log,
 	}
 	return sh, nil
