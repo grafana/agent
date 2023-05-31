@@ -71,7 +71,7 @@ The component will start HTTP server on the configured port and address with the
 | Name                     | Type                 | Description                                                | Default | Required |
  |--------------------------|----------------------|------------------------------------------------------------|---------|----------|
 | `forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes      |
-| `use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from request. | `false` | no       |
+| `use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from the request. | `false` | no       |
 | `relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                  | `{}`    | no       |
 
 The `relabel_rules` field can make use of the `rules` export value from a
@@ -111,13 +111,15 @@ The following blocks are supported inside the definition of `loki.source.awsfire
 
 ## Debug metrics
 
-The following are some of the metrics that are exposed when this component is used. Note that the metrics include labels
-such as `status_code` where relevant, which can be used to measure request success rates.
+The following are some of the metrics that are exposed when this component is used. 
+{{% admonition type="note" %}}
+The metrics include labels  such as `status_code` where relevant, which you can use to measure request success rates.
+{{%/admonition %}}
 
 - `loki_source_awsfirehose_request_errors` (counter): Count of errors while receiving a request.
 - `loki_source_awsfirehose_record_errors` (counter): Count of errors while decoding an individual record.
 - `loki_source_awsfirehose_records_received` (counter): Count of records received.
-- `loki_source_awsfirehose_batch_size` (histogram): Size (in units) of number of records received per request.
+- `loki_source_awsfirehose_batch_size` (histogram): Size (in units) of the number of records received per request.
 
 ## Example
 
