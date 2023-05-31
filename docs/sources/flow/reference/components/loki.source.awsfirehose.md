@@ -42,10 +42,10 @@ exposed as follows:
 | `__aws_owner`               | The AWS Account ID of the originating log data.                                                                                                                                                     | `111111111111`                                                           |
 | `__aws_cw_log_group`        | The log group name of the originating log data.                                                                                                                                                     | `CloudTrail/logs`                                                        |
 | `__aws_cw_log_stream`       | The log stream name of the originating log data.                                                                                                                                                    | `111111111111_CloudTrail/logs_us-east-1`                                 |
-| `__aws_cw_matched_filters`  | The list of subscription filter names that matched with the originating log data. The list is encoded as a comma-separated list.                                                                    | `Destination,Destination2`                                               |
+| `__aws_cw_matched_filters`  | The list of subscription filter names that match the originating log data. The list is encoded as a comma-separated list.                                                                    | `Destination,Destination2`                                               |
 | `__aws_cw_msg_type`         | Data messages will use the `DATA_MESSAGE` type. Sometimes CloudWatch Logs may emit Kinesis Data Streams records with a `CONTROL_MESSAGE` type, mainly for checking if the destination is reachable. | `DATA_MESSAGE`                                                           |
 
-See [Examples](#example) for a full example configuration on how to enrich each log entry with these labels.
+See [Examples](#example) for a full example configuration showing how to enrich each log entry with these labels.
 
 ## Usage
 
