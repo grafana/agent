@@ -99,6 +99,8 @@ Main (unreleased)
 - Fix an issue where fanning out log entries to multiple `loki.process`
   components lead to a race condition. (@tpaschalis)
 
+- Fix panic in `prometheus.operator.servicemonitors` from relabel rules without certain defaults. (@captncraig)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
