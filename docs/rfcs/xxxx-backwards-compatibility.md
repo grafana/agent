@@ -12,9 +12,9 @@ the project is on trajectory to have a 1.0 release. 
 In the context of semantic versioning, a 1.0 release indicates that future
 minor releases have backwards compatibility with older minor releases in the
 same major release; version 1.1 is backwards compatible with version 1.0.
-Having major releases signals to users when they can upgrade with more
-confidence (minor releases) and when an upgrade may take more time (new major
-releases). 
+Having major and minor releases signals to users when an upgrade may take more
+time (major releases) and when they can upgrade with more confidence (minor
+releases).
 
 However, Grafana Agent is a large project, with a large surface area for what
 may be considered part of the backwards compatibility guarantees. This proposal
@@ -30,15 +30,16 @@ compatibility. 
 
 Backwards compatibility means that a user can upgrade their version of Grafana
 Agent without needing to make any changes with the way they interact with
-Grafana Agent. 
+Grafana Agent, provided that interaction is within scope of being covered by
+backwards compatibility.
 
 ### Scope of backwards compatibility   
 
 The following will be protected by backwards compatibility between minor
 releases: 
 
-- **User configuration**, including configuration files and the command-line
-  interface. 
+- **User configuration**, including configuration file syntax and the
+  command-line interface. 
 
 - **Versioned network APIs**, if any versioned APIs are introduced prior to the
   1.0 release.
@@ -94,6 +95,13 @@ It's impossible to guarantee that full backwards compatibility is achieved.
 There are some exceptions which may cause a breaking change without a new major
 version:
 
+- Non-stable functionality: Functionality which is explicitly marked as
+  non-stable (for example, experimental or beta) are exempt from backwards
+  compatibility between minor releases.
+
+  Non-stable functionality should be backwards compatible between patch
+  releases, unless a breaking change is required for that patch release.
+
 - Security: a breaking change may be made if a security fix requires making a
   breaking change. 
 
@@ -147,7 +155,13 @@ We will attempt to limit new major versions no more than once every 12 calendar
 months. This means that if Grafana Agent 1.0 was hypothetically released on
 August 4th, Grafana Agent 2.0 should not be released until at least August 4th
 of the following year. This is best-effort; if a new major release is required
-earlier, then one should be published. 
+earlier, then we should not prevent ourselves from publishing such a release.
+
+> **NOTE**: Here, "publishing a release" refers to creating a new versioned
+> release associated with a Git tag and a GitHub release.
+>
+> Maintainers are free to queue breaking changes for the next major release in
+> a branch at will.
 
 Major releases should be aligned with breaking changes to the public API and
 not used as a way to hype a release. If hyping releases is required, there
