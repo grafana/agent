@@ -9,7 +9,7 @@ from [AWS Firehose](https://docs.aws.amazon.com/firehose/latest/dev/what-is-this
 and forwards them to other `loki.*` components.
 
 The HTTP API exposed is compatible
-with [Firehose HTTP Delivery API](https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html).
+with the [Firehose HTTP Delivery API](https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html).
 Since the API model that AWS Firehose uses to deliver data over HTTP is generic enough, the same component can be used
 to receive data from multiple origins:
 
@@ -17,16 +17,16 @@ to receive data from multiple origins:
 - [AWS CloudWatch events](https://docs.aws.amazon.com/firehose/latest/dev/writing-with-cloudwatch-events.html)
 - Custom data through [DirectPUT requests](https://docs.aws.amazon.com/firehose/latest/dev/writing-with-sdk.html)
 
-The component uses a heuristic to try to decode as much information as possible from each log record, falling back to writing
-to Loki the raw line. The decoding process goes as follows:
+The component uses a heuristic to try to decode as much information as possible from each log record, and it falls back to writing
+the raw records to Loki. The decoding process goes as follows:
 
 - AWS Firehose sends batched requests
-- Each individual record is treated individually
-- For `record` received in each request:
-  - If the `record` comes from a [CloudWatch logs subscription filter](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#DestinationKinesisExample), it will be further decoded and each logging event will be written to Loki individually
-  - If not, the whole record is written raw to Loki
+- Each record is treated individually
+- For each `record` received in each request:
+  - If the `record` comes from a [CloudWatch logs subscription filter](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#DestinationKinesisExample), it is decoded and each logging event is written to Loki
+  - All other records are written raw to Loki
 
-The component exposes some internal labels, available for re-labeling. The following tables describes internal labels available
+The component exposes some internal labels, available for relabeling. The following tables describes internal labels available
 in records coming from any source.
 
 | Name                        | Description                                                                                                                                                                                         | Example                                                                  |
@@ -59,7 +59,7 @@ loki.source.awsfirehose "LABEL" {
 }
 ```
 
-The component will start HTTP server on the configured port and address with the following endpoints:
+The component will start an HTTP server on the configured port and address with the following endpoints:
 
 - `/awsfirehose/api/v1/push` - accepting `POST` requests compatible
   with [AWS Firehose HTTP Specifications](https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html).
