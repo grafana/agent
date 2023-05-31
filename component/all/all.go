@@ -17,6 +17,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/process"                             // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                             // Import loki.relabel
 	_ "github.com/grafana/agent/component/loki/source/api"                          // Import loki.source.api
+	_ "github.com/grafana/agent/component/loki/source/aws_firehose"                 // Import loki.source.awsfirehose
 	_ "github.com/grafana/agent/component/loki/source/azure_event_hubs"             // Import loki.source.azure_event_hubs
 	_ "github.com/grafana/agent/component/loki/source/cloudflare"                   // Import loki.source.cloudflare
 	_ "github.com/grafana/agent/component/loki/source/docker"                       // Import loki.source.docker
@@ -58,8 +59,6 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/receiver/otlp"                    // Import otelcol.receiver.otlp
 	_ "github.com/grafana/agent/component/otelcol/receiver/prometheus"              // Import otelcol.receiver.prometheus
 	_ "github.com/grafana/agent/component/otelcol/receiver/zipkin"                  // Import otelcol.receiver.zipkin
-	_ "github.com/grafana/agent/component/phlare/scrape"                            // Import phlare.scrape
-	_ "github.com/grafana/agent/component/phlare/write"                             // Import phlare.write
 	_ "github.com/grafana/agent/component/prometheus/exporter/apache"               // Import prometheus.exporter.apache
 	_ "github.com/grafana/agent/component/prometheus/exporter/blackbox"             // Import prometheus.exporter.blackbox
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"               // Import prometheus.exporter.consul
@@ -82,6 +81,8 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape
+	_ "github.com/grafana/agent/component/pyroscope/scrape"                         // Import pyroscope.scrape
+	_ "github.com/grafana/agent/component/pyroscope/write"                          // Import pyroscope.write
 	_ "github.com/grafana/agent/component/remote/http"                              // Import remote.http
 	_ "github.com/grafana/agent/component/remote/s3"                                // Import remote.s3
 	_ "github.com/grafana/agent/component/remote/vault"                             // Import remote.vault

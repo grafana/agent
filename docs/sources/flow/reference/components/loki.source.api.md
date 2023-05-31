@@ -49,7 +49,7 @@ The `relabel_rules` field can make use of the `rules` export value from a
 
 ## Blocks
 
-The following blocks are supported inside the definition of `loki.source.heroku`:
+The following blocks are supported inside the definition of `loki.source.api`:
 
  Hierarchy | Name     | Description                                        | Required 
 -----------|----------|----------------------------------------------------|----------

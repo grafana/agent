@@ -22,6 +22,7 @@ Unreleased
 ### Bugfixes
 
 - Only set the deployment replicas when autoscaling is disabled. (@tiithansen)
+- Reorder HPA `spec.metrics` to avoid endless sync loop in ArgoCD. (@tiithansen)
 
 0.14.0 (2023-05-11)
 -------------------

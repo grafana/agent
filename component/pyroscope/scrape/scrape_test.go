@@ -11,8 +11,8 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/phlare"
 	"github.com/grafana/agent/component/prometheus/scrape"
+	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
@@ -46,7 +46,7 @@ func TestComponent(t *testing.T) {
 	require.Empty(t, c.appendable.Children())
 	require.Empty(t, c.DebugInfo().(scrape.ScraperStatus).TargetStatus)
 
-	arg.ForwardTo = []phlare.Appendable{phlare.NoopAppendable}
+	arg.ForwardTo = []pyroscope.Appendable{pyroscope.NoopAppendable}
 	arg.Targets = []discovery.Target{
 		{
 			model.AddressLabel: "foo",

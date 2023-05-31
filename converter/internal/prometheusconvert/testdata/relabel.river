@@ -1,0 +1,115 @@
+prometheus.remote_write "default" {
+	external_labels = {
+		cluster = "prod",
+	}
+
+	endpoint {
+		name             = "remote1"
+		url              = "http://remote-write-url1"
+		remote_timeout   = "30s"
+		follow_redirects = true
+		enable_http2     = true
+
+		queue_config {
+			capacity             = 2500
+			max_shards           = 200
+			min_shards           = 1
+			max_samples_per_send = 500
+			batch_send_deadline  = "5s"
+			min_backoff          = "30ms"
+			max_backoff          = "5s"
+		}
+
+		metadata_config {
+			send                 = true
+			send_interval        = "1m0s"
+			max_samples_per_send = 500
+		}
+	}
+
+	endpoint {
+		name             = "remote2"
+		url              = "http://remote-write-url2"
+		remote_timeout   = "30s"
+		follow_redirects = true
+		enable_http2     = true
+
+		queue_config {
+			capacity             = 2500
+			max_shards           = 200
+			min_shards           = 1
+			max_samples_per_send = 500
+			batch_send_deadline  = "5s"
+			min_backoff          = "30ms"
+			max_backoff          = "5s"
+		}
+
+		metadata_config {
+			send                 = true
+			send_interval        = "1m0s"
+			max_samples_per_send = 500
+		}
+	}
+
+	wal {
+		truncate_frequency = "2h0m0s"
+		min_keepalive_time = "5m0s"
+		max_keepalive_time = "8h0m0s"
+	}
+}
+
+prometheus.scrape "prometheus1" {
+	targets = [{
+		__address__ = "localhost:9090",
+	}]
+	forward_to      = [prometheus.remote_write.default.receiver]
+	job_name        = "prometheus1"
+	scrape_interval = "10s"
+	scrape_timeout  = "5s"
+	metrics_path    = "/metrics"
+	scheme          = "http"
+
+	basic_auth {
+		username = "user"
+		password = "pass"
+	}
+	follow_redirects = true
+	enable_http2     = true
+}
+
+prometheus.relabel "prometheus2" {
+	forward_to = [prometheus.remote_write.default.receiver]
+
+	rule {
+		source_labels = ["__address1__"]
+		separator     = ";"
+		regex         = "^(?:(.*))$"
+		target_label  = "__param_target1"
+		replacement   = "$1"
+		action        = "replace"
+	}
+
+	rule {
+		source_labels = ["__address2__"]
+		separator     = ";"
+		regex         = "^(?:(.*))$"
+		target_label  = "__param_target2"
+		replacement   = "$1"
+		action        = "replace"
+	}
+}
+
+prometheus.scrape "prometheus2" {
+	targets = [{
+		__address__ = "localhost:9091",
+	}]
+	forward_to       = [prometheus.relabel.prometheus2.receiver]
+	job_name         = "prometheus2"
+	honor_timestamps = true
+	scrape_interval  = "1m0s"
+	scrape_timeout   = "10s"
+	metrics_path     = "/metrics"
+	scheme           = "http"
+	follow_redirects = true
+	enable_http2     = true
+}
