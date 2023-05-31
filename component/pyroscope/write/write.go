@@ -9,6 +9,7 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/pyroscope"
 	"github.com/oklog/run"
 	commonconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -17,7 +18,6 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/phlare"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/dskit/backoff"
 	pushv1 "github.com/grafana/phlare/api/gen/proto/go/push/v1"
@@ -35,7 +35,7 @@ var (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "phlare.write",
+		Name:    "pyroscope.write",
 		Args:    Arguments{},
 		Exports: Exports{},
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
@@ -44,7 +44,7 @@ func init() {
 	})
 }
 
-// Arguments represents the input state of the phlare.write
+// Arguments represents the input state of the pyroscope.write
 // component.
 type Arguments struct {
 	ExternalLabels map[string]string  `river:"external_labels,attr,optional"`
@@ -60,7 +60,7 @@ func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // EndpointOptions describes an individual location for where profiles
-// should be delivered to using the Phlare push API.
+// should be delivered to using the Pyroscope push API.
 type EndpointOptions struct {
 	Name              string                   `river:"name,attr,optional"`
 	URL               string                   `river:"url,attr"`
@@ -102,19 +102,19 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 	return nil
 }
 
-// Component is the phlare.write component.
+// Component is the pyroscope.write component.
 type Component struct {
 	opts    component.Options
 	cfg     Arguments
 	metrics *metrics
 }
 
-// Exports are the set of fields exposed by the phlare.write component.
+// Exports are the set of fields exposed by the pyroscope.write component.
 type Exports struct {
-	Receiver phlare.Appendable `river:"receiver,attr"`
+	Receiver pyroscope.Appendable `river:"receiver,attr"`
 }
 
-// NewComponent creates a new phlare.write component.
+// NewComponent creates a new pyroscope.write component.
 func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	metrics := newMetrics(o.Registerer)
 	receiver, err := NewFanOut(o, c, metrics)
@@ -142,7 +142,7 @@ func (c *Component) Run(ctx context.Context) error {
 // Update implements Component.
 func (c *Component) Update(newConfig component.Arguments) error {
 	c.cfg = newConfig.(Arguments)
-	level.Debug(c.opts.Logger).Log("msg", "updating phlare.write config", "old", c.cfg, "new", newConfig)
+	level.Debug(c.opts.Logger).Log("msg", "updating pyroscope.write config", "old", c.cfg, "new", newConfig)
 	receiver, err := NewFanOut(c.opts, newConfig.(Arguments), c.metrics)
 	if err != nil {
 		return err
@@ -269,13 +269,13 @@ func requestSize(req *connect.Request[pushv1.PushRequest]) (int64, int64) {
 	return size, profiles
 }
 
-// Append implements the phlare.Appendable interface.
-func (f *fanOutClient) Appender() phlare.Appender {
+// Append implements the pyroscope.Appendable interface.
+func (f *fanOutClient) Appender() pyroscope.Appender {
 	return f
 }
 
 // Append implements the Appender interface.
-func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []*phlare.RawSample) error {
+func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []*pyroscope.RawSample) error {
 	// todo(ctovena): we should probably pool the label pair arrays and label builder to avoid allocs.
 	var (
 		protoLabels  = make([]*typesv1.LabelPair, 0, len(lbs)+len(f.config.ExternalLabels))

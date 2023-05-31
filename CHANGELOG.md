@@ -19,6 +19,8 @@ Main (unreleased)
 - Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
 
 - Prometheus exporters in Flow mode now set the `instance` label to a value similar to the one they used to have in Static mode (<hostname> by default, customized by some integrations). (@jcreixell)
+ 
+- `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`. (@korniltsev)
 
 ### Features
 
@@ -100,6 +102,10 @@ Main (unreleased)
 - Fix an issue where fanning out log entries to multiple `loki.process`
   components lead to a race condition. (@tpaschalis)
 
+- Fix panic in `prometheus.operator.servicemonitors` from relabel rules without certain defaults. (@captncraig)
+
+- Fix issue in modules export cache throwing uncomparable errors. (@mattdurham)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
@@ -118,6 +124,9 @@ Main (unreleased)
 - Flow clustering: clusters will now use 512 tokens per node for distributing
   work, leading to better distribution. However, rolling out this change will
   cause some incorrerct or missing assignments until all nodes are updated. (@rfratto)
+
+- Change the Docker base image for Linux containers to `ubuntu:lunar`.
+  (@rfratto)
 
 v0.33.2 (2023-05-11)
 --------------------

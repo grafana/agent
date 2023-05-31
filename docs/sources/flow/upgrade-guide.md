@@ -18,6 +18,44 @@ Grafana Agent Flow.
 > [upgrade-guide-static]: {{< relref "../static/upgrade-guide.md" >}}
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 
+## v0.34
+
+### Breaking change: `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`
+
+Old configuration example:
+
+```river
+phlare.write "staging" {
+  endpoint {
+    url = "http://phlare:4100"
+  }
+}
+
+phlare.scrape "default" {
+  targets = [
+    {"__address__" = "agent:12345", "app"="agent"},
+  ]
+  forward_to = [phlare.write.staging.receiver]
+}
+```
+
+New configuration example:
+
+```river
+pyroscope.write "staging" {
+  endpoint {
+    url = "http://pyroscope:4100"
+  }
+}
+
+pyroscope.scrape "default" {
+  targets = [
+    {"__address__" = "agent:12345", "app"="agent"},
+  ]
+  forward_to = [pyroscope.write.staging.receiver]
+}
+```
+
 ## v0.33
 
 ### Symbolic links in Docker containers removed
