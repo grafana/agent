@@ -1,25 +1,25 @@
 ---
-title: phlare.write
+title: pyroscope.write
 labels:
   stage: beta
 ---
 
-# phlare.write
+# pyroscope.write
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
-`phlare.write` receives performance profiles from other components and forwards them
-to a series of user-supplied endpoints using [Phlare' Push API](https://grafana.com/oss/phlare/).
+`pyroscope.write` receives performance profiles from other components and forwards them
+to a series of user-supplied endpoints using [Pyroscope' Push API](https://grafana.com/oss/phlare/).
 
-Multiple `phlare.write` components can be specified by giving them
+Multiple `pyroscope.write` components can be specified by giving them
 different labels.
 
 ## Usage
 
 ```river
-phlare.write "LABEL" {
+pyroscope.write "LABEL" {
   endpoint {
-    url = PHLARE_URL
+    url = PYROSCOPE_URL
 
     ...
   }
@@ -39,7 +39,7 @@ Name | Type | Description | Default | Required
 ## Blocks
 
 The following blocks are supported inside the definition of
-`phlare.write`:
+`pyroscope.write`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -119,22 +119,22 @@ Name | Type | Description
 
 ## Component health
 
-`phlare.write` is only reported as unhealthy if given an invalid
+`pyroscope.write` is only reported as unhealthy if given an invalid
 configuration. In those cases, exported fields are kept at their last healthy
 values.
 
 ## Debug information
 
-`phlare.write` does not expose any component-specific debug
+`pyroscope.write` does not expose any component-specific debug
 information.
 
 ## Example
 
 ```river
-phlare.write "staging" {
-  // Send metrics to a locally running Phlare instance.
+pyroscope.write "staging" {
+  // Send metrics to a locally running Pyroscope instance.
   endpoint {
-    url = "http://phlare:4100"
+    url = "http://pyroscope:4100"
     headers = {
       "X-Scope-Org-ID" = "squad-1",
     }
@@ -145,11 +145,11 @@ phlare.write "staging" {
 }
 
 
-phlare.scrape "default" {
+pyroscope.scrape "default" {
   targets = [
-    {"__address__" = "phlare:4100", "app"="phlare"},
+    {"__address__" = "pyroscope:4100", "app"="pyroscope"},
     {"__address__" = "agent:12345", "app"="agent"},
   ]
-  forward_to = [phlare.write.staging.receiver]
+  forward_to = [pyroscope.write.staging.receiver]
 }
 ```

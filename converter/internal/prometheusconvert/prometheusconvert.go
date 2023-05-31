@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/converter/diag"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
@@ -21,7 +20,6 @@ import (
 // The implementation of this API is a work in progress.
 // Additional components must be implemented:
 //
-//	prometheus.relabel
 //	discovery.azure
 //	discovery.consul
 //	discovery.digitalocean
@@ -45,16 +43,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	diags = ValidateUnsupported(promConfig)
 
 	f := builder.NewFile()
-
-	remoteWriteArgs := toRemotewriteArguments(promConfig)
-	common.AppendBlockWithOverride(f, []string{"prometheus", "remote_write"}, "default", remoteWriteArgs)
-
-	forwardTo := make([]storage.Appendable, 0)
-	forwardTo = append(forwardTo, common.ConvertAppendable{Expr: "prometheus.remote_write.default.receiver"})
-	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo)
-		common.AppendBlockWithOverride(f, []string{"prometheus", "scrape"}, scrapeArgs.JobName, scrapeArgs)
-	}
+	AppendAll(f, promConfig)
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -81,4 +70,11 @@ func ValidateUnsupported(promConfig *promconfig.Config) diag.Diagnostics {
 	}
 
 	return diags
+}
+
+// AppendAll analyzes the entire prometheus config in memory and transforms it
+// into Flow Arguments. It then appends each argument to the file builder.
+func AppendAll(f *builder.File, promConfig *promconfig.Config) {
+	remoteWriteExports := appendRemoteWrite(f, promConfig)
+	appendScrape(f, promConfig.ScrapeConfigs, []storage.Appendable{remoteWriteExports.Receiver})
 }

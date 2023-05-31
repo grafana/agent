@@ -11,7 +11,7 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/phlare"
+	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	pushv1 "github.com/grafana/phlare/api/gen/proto/go/push/v1"
@@ -79,7 +79,7 @@ func Test_Write_FanOut(t *testing.T) {
 			s.Close()
 		}
 	}()
-	createReceiver := func(t *testing.T, arg Arguments) phlare.Appendable {
+	createReceiver := func(t *testing.T, arg Arguments) pyroscope.Appendable {
 		t.Helper()
 		var wg sync.WaitGroup
 		wg.Add(1)
@@ -110,7 +110,7 @@ func Test_Write_FanOut(t *testing.T) {
 			"__type__": "type",
 			"job":      "foo",
 			"foo":      "bar",
-		}), []*phlare.RawSample{
+		}), []*pyroscope.RawSample{
 			{RawProfile: []byte("pprofraw")},
 		})
 		require.EqualErrorf(t, err, "unknown: test", "expected error to be test")
@@ -126,7 +126,7 @@ func Test_Write_FanOut(t *testing.T) {
 			"__type__": "type",
 			"job":      "foo",
 			"foo":      "bar",
-		}), []*phlare.RawSample{
+		}), []*pyroscope.RawSample{
 			{RawProfile: []byte("pprofraw")},
 		})
 		require.NoError(t, err)
@@ -143,7 +143,7 @@ func Test_Write_FanOut(t *testing.T) {
 			"__type__": "type",
 			"job":      "foo",
 			"foo":      "bar",
-		}), []*phlare.RawSample{
+		}), []*pyroscope.RawSample{
 			{RawProfile: []byte("pprofraw")},
 		})
 		require.Error(t, err)
@@ -177,7 +177,7 @@ func Test_Write_Update(t *testing.T) {
 	// First one is a noop
 	err = export.Receiver.Appender().Append(context.Background(), labels.FromMap(map[string]string{
 		"__name__": "test",
-	}), []*phlare.RawSample{
+	}), []*pyroscope.RawSample{
 		{RawProfile: []byte("pprofraw")},
 	})
 	require.NoError(t, err)
@@ -201,7 +201,7 @@ func Test_Write_Update(t *testing.T) {
 	wg.Wait()
 	err = export.Receiver.Appender().Append(context.Background(), labels.FromMap(map[string]string{
 		"__name__": "test",
-	}), []*phlare.RawSample{
+	}), []*pyroscope.RawSample{
 		{RawProfile: []byte("pprofraw")},
 	})
 	require.NoError(t, err)

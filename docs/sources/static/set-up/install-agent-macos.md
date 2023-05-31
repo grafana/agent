@@ -1,34 +1,34 @@
 ---
-title: Install static mode on macOS
+title: macOS
 weight: 130
 aliases:
 - ../../set-up/install-agent-macos/
 ---
 
-## Install static mode on macOS
+# Install Grafana Agent on macOS
 
-Install Grafana Agent and get it up and running on macOS.
+You can use Homebrew to install Grafana Agent on macOS.
 
-> **Note:** If you intend to ship your data to Grafana Cloud, you can set up Grafana Agent using a Grafana Cloud integration. See [how to install an integration](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/) and details about the [macOS integration](/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-macos-node/).
+## Before you begin
 
-### Overview
-Use Homebrew to install the most recent released version of Grafana using the Homebrew package. You can also install Grafana Agent on macOS using the macOS binary.
+Ensure that [Homebrew][] is installed on your machine.
 
-### Steps
+[Homebrew]: https://brew.sh
 
-1. Open a terminal and enter:
+## Install Grafana Agent with Homebrew
+
+1. Open a terminal and run the following commands:
 
    ```
    brew update
    brew install grafana-agent
    ```
 
-    The brew page downloads and enters the files into:
-    - /usr/local/Cellar/grafana-agent/[version] (Homebrew v2)
-    - /opt/homebrew/Cellar/grafana-agent/[version] (Homebrew v3)
-    - Grafana Agent logs should be located in `/opt/homebrew/var/log/` though this path may differ depending on the version of Homebrew.
+    The brew install command downloads Grafana Agent and installs it at `/opt/homebrew/Cellar/grafana-agent/VERSION`.
+    
+    Grafana Agent logs are in `/opt/homebrew/var/log/` by default.
 
-1. Run the following commands:
+1. Open a terminal and run the following commands:
 
     ```
     mkdir -p $(brew --prefix)/etc/grafana-agent/
@@ -37,9 +37,9 @@ Use Homebrew to install the most recent released version of Grafana using the Ho
 
 1. Modify `config.yml` with your configuration requirements.
 
-    See [Configure Grafana Agent for details]({{< relref "../configuration/" >}}).
+    Refer to [Configure Grafana Agent]({{< relref "../configuration/" >}}) for informatuon about the Agent configuration .
 
-1. Start Grafana Agent using the command:
+1. Open a terminal and run the following command to start Grafana Agent:
 
     ` brew services start grafana-agent`
 
@@ -47,13 +47,10 @@ Use Homebrew to install the most recent released version of Grafana using the Ho
     - stdout: `$(brew --prefix)/var/log/grafana-agent.log`
     - stderr: `$(brew --prefix)/var/log/grafana-agent.err.log`
 
-1. Enter the following command to upgrade Grafana Agent:
+1. Open a terminal and run the following command to upgrade Grafana Agent:
 
     `brew upgrade grafana-agent`.
 
-
-
-
-
-
-
+{{% admonition type="note" %}}
+To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud integration. Refer to [how to install an integration](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/) and [macOS integration](/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-macos-node/).
+{{%/admonition %}}
