@@ -87,4 +87,5 @@ func sortSlice(nodeSets [][]Node) [][]Node {
 
 type stringNode string
 
-func (s stringNode) NodeID() string { return string(s) }
+func (s stringNode) NodeID() string       { return string(s) }
+func (s stringNode) GlobalNodeID() string { return string(s) }

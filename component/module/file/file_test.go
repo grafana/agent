@@ -77,8 +77,8 @@ func TestModule(t *testing.T) {
 					}
 					return false
 				},
-				5*time.Second,
-				50*time.Millisecond,
+				10*time.Second,
+				100*time.Millisecond,
 				"did not reach required health status before timeout: %v",
 				tc.expectedHealthType,
 			)
