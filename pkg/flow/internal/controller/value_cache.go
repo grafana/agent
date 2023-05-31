@@ -87,7 +87,7 @@ func (vc *valueCache) CacheModuleExportValue(name string, value any) {
 	v, found := vc.moduleExports[name]
 	if !found {
 		vc.moduleChangedIndex++
-	} else if reflect.DeepEqual(v, value) {
+	} else if !reflect.DeepEqual(v, value) {
 		vc.moduleChangedIndex++
 	}
 
