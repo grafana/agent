@@ -113,7 +113,9 @@ func TestExportValueCacheUncomparable(t *testing.T) {
 	// This test for an uncomparable error that is triggered when you do a simple `v == v2` comparison,
 	// instead using deep equals does a smarter approach.
 	vc.CacheModuleExportValue("t2", test{TM: map[string]string{}})
+	index := vc.ExportChangeIndex()
 	vc.CacheModuleExportValue("t2", test{TM: map[string]string{}})
+	require.Equal(t, index, vc.moduleChangedIndex)
 }
 
 func TestModuleArgumentCache(t *testing.T) {
