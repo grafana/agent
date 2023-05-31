@@ -105,6 +105,17 @@ func TestExportValueCache(t *testing.T) {
 	require.True(t, vc.ExportChangeIndex() != index)
 }
 
+func TestExportValueCacheUncomparable(t *testing.T) {
+	vc := newValueCache()
+	type test struct {
+		TM map[string]string
+	}
+	// This test for an uncomparable error that is triggered when you do a simple `v == v2` comparison,
+	// instead using deep equals does a smarter approach.
+	vc.CacheModuleExportValue("t2", test{TM: map[string]string{}})
+	vc.CacheModuleExportValue("t2", test{TM: map[string]string{}})
+}
+
 func TestModuleArgumentCache(t *testing.T) {
 	tt := []struct {
 		name     string

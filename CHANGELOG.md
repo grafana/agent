@@ -103,6 +103,8 @@ Main (unreleased)
 
 - Fix panic in `prometheus.operator.servicemonitors` from relabel rules without certain defaults. (@captncraig)
 
+- Fix issue in modules export cache throwing uncomparable errors. (@mattdurham)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
