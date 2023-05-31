@@ -114,28 +114,18 @@ func (r *relabeler) addFromV1(cfgs ...*promopv1.RelabelConfig) (err error) {
 		for _, l := range c.SourceLabels {
 			cfg.SourceLabels = append(cfg.SourceLabels, model.LabelName(l))
 		}
-		if c.Separator != "" {
-			cfg.Separator = c.Separator
-		}
-		if c.TargetLabel != "" {
-			cfg.TargetLabel = c.TargetLabel
-		}
+		cfg.Separator = c.Separator
+		cfg.TargetLabel = c.TargetLabel
 		if c.Regex != "" {
 			cfg.Regex, err = relabel.NewRegexp(c.Regex)
 			if err != nil {
 				return err
 			}
 		}
-		if c.Modulus != 0 {
-			cfg.Modulus = c.Modulus
-		}
-		if c.Replacement != "" {
-			cfg.Replacement = c.Replacement
-		}
-		if c.Action != "" {
-			cfg.Action = relabel.Action(c.Action)
-		}
-		r.configs = append(r.configs, cfg)
+		cfg.Modulus = c.Modulus
+		cfg.Replacement = c.Replacement
+		cfg.Action = relabel.Action(c.Action)
+		r.add(cfg)
 	}
 	return nil
 }
