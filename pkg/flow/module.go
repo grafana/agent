@@ -2,7 +2,6 @@ package flow
 
 import (
 	"context"
-	"github.com/grafana/agent/pkg/flow/tracing"
 	"net/http"
 	"path"
 	"sync"
@@ -11,6 +10,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/web/api"
 	"github.com/prometheus/client_golang/prometheus"
 )

@@ -35,7 +35,6 @@ func TestFlowLogger(t require.TestingT) *logging.Logger {
 	})
 	require.NoError(t, err)
 	return l
-
 }
 
 // testTimestamp is a log.Valuer that returns the timestamp

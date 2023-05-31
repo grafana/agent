@@ -2,7 +2,6 @@ package controller_test
 
 import (
 	"errors"
-	"io"
 	"os"
 	"strings"
 	"testing"
@@ -225,11 +224,6 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
-}
-
-func noOpSink() *logging.Logger {
-	s, _ := logging.New(io.Discard, logging.DefaultOptions)
-	return s
 }
 
 func noOpClusterer() *cluster.Clusterer {
