@@ -19,7 +19,7 @@ Main (unreleased)
 - Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
 
 - Prometheus exporters in Flow mode now set the `instance` label to a value similar to the one they used to have in Static mode (<hostname> by default, customized by some integrations). (@jcreixell)
- 
+
 - `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`. (@korniltsev)
 
 ### Features
@@ -104,6 +104,8 @@ Main (unreleased)
 - Fix panic in `prometheus.operator.servicemonitors` from relabel rules without certain defaults. (@captncraig)
 
 - Fix issue in modules export cache throwing uncomparable errors. (@mattdurham)
+
+- Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
 
 ### Other changes
 
