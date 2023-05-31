@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"path"
 	"sync"
 
 	"github.com/grafana/agent/pkg/river/ast"
@@ -27,15 +26,12 @@ var _ BlockNode = (*ArgumentConfigNode)(nil)
 // NewArgumentConfigNode creates a new ArgumentConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
 func NewArgumentConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *ArgumentConfigNode {
-	globalID := BlockComponentID(block).String()
-	if globals.ControllerID != "" {
-		globalID = path.Join(globals.ControllerID, globalID)
-	}
+	nodeid := BlockComponentID(block).String()
 	return &ArgumentConfigNode{
 		label:         block.Label,
-		nodeID:        BlockComponentID(block).String(),
+		nodeID:        nodeid,
 		componentName: block.GetBlockName(),
-		globalID:      globalID,
+		globalID:      globals.GenerateGlobalID(nodeid),
 
 		block: block,
 		eval:  vm.New(block.Body),
@@ -92,4 +88,5 @@ func (cn *ArgumentConfigNode) Block() *ast.BlockStmt {
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ArgumentConfigNode) NodeID() string { return cn.nodeID }
 
-func (cn *ArgumentConfigNode) GlobalNodeID() string { return cn.nodeID }
+// GlobalNodeID returns a globally unique id across all DAGs.
+func (cn *ArgumentConfigNode) GlobalNodeID() string { return cn.globalID }

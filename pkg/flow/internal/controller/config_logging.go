@@ -26,11 +26,12 @@ type LoggingConfigNode struct {
 // NewLoggingConfigNode creates a new LoggingConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
 func NewLoggingConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *LoggingConfigNode {
+	nodeid := BlockComponentID(block).String()
 	return &LoggingConfigNode{
-		nodeID:        BlockComponentID(block).String(),
+		nodeID:        nodeid,
 		componentName: block.GetBlockName(),
 		l:             globals.Logger,
-		globalNodeID:  globals.GenerateGlobalID(BlockComponentID(block).String()),
+		globalNodeID:  globals.GenerateGlobalID(nodeid),
 
 		block: block,
 		eval:  vm.New(block.Body),

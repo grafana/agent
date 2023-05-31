@@ -9,7 +9,8 @@ import (
 // RunnableNode is any dag.Node which can also be run.
 type RunnableNode interface {
 	NodeID() string
-	// GlobalNodeID is Global ID + NodeID.
+	// GlobalNodeID returns a globally unique node, parent + node id.
+	// Primarily used for logging or when you absolutely need the global id.
 	GlobalNodeID() string
 	Run(ctx context.Context) error
 }
