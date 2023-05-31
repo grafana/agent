@@ -41,6 +41,7 @@ type FloatHistogram struct {
 }
 
 type Metadata struct {
+	Name        string
 	GlobalRefID uint64
 	Meta        metadata.Metadata
 }

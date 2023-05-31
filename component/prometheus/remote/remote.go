@@ -52,7 +52,7 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	if err != nil {
 		return nil, err
 	}
-	met := newQueueManagerMetrics(o.Registerer, "", "")
+	met := newQueueManagerMetrics(o.Registerer, "", wr.Endpoint())
 
 	qm := NewQueueManager(
 		met,
@@ -64,11 +64,10 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 		remoteFlushDeadline,
 		&maxTimestamp{
 			Gauge: prometheus.NewGauge(prometheus.GaugeOpts{
-				Namespace:   "prometheus",
-				Subsystem:   "remote_storage",
-				Name:        "highest_timestamp_in_seconds",
-				Help:        "Highest timestamp that has come into the remote storage via the Appender interface, in seconds since epoch.",
-				ConstLabels: map[string]string{"component_id": o.ID},
+				Namespace: "prometheus",
+				Subsystem: "remote_storage",
+				Name:      "highest_timestamp_in_seconds",
+				Help:      "Highest timestamp that has come into the remote storage via the Appender interface, in seconds since epoch.",
 			})},
 		true,
 		true,
@@ -81,11 +80,14 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 }
 
 func (c *Component) Run(ctx context.Context) error {
+	defer c.qm.Stop()
+	_ = <-ctx.Done()
 	return nil
 }
 
 func (c *Component) Update(args component.Arguments) error {
 	c.args = args.(Arguments)
+	// If arguments change we need to rebuild the whole thing
 	return nil
 }
 

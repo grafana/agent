@@ -59,12 +59,40 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 }
 
 func (c *Component) Run(ctx context.Context) error {
-	return nil
+	ticker := time.NewTicker(1 * time.Second)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+
+			// TODO check to see if anything needs to be written
+		}
+	}
 }
 
 func (c *Component) Update(args component.Arguments) error {
 	c.args = args.(Arguments)
+	c.opts.OnStateChange(Exports{Receiver: c})
 	return nil
+}
+
+// Appender returns a new appender for the storage. The implementation
+// can choose whether or not to use the context, for deadlines or to check
+// for errors.
+func (c *Component) Appender(ctx context.Context) storage.Appender {
+	return newAppender(c)
+}
+
+func (c *Component) hasData() bool {
+	k, err := c.db.AllKeys("metrics")
+	if err != nil {
+		return true
+	}
+	if len(k) > 0 {
+		return true
+	}
+	return false
 }
 
 func (c *Component) commit(a *appender) {

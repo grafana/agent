@@ -27,10 +27,8 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/textparse"
 	"github.com/prometheus/prometheus/prompb"
-	"github.com/prometheus/prometheus/scrape"
 	promremote "github.com/prometheus/prometheus/storage/remote"
 	"github.com/prometheus/prometheus/tsdb/chunks"
-	"github.com/prometheus/prometheus/tsdb/record"
 )
 
 // WriteClient defines an interface for sending a batch of samples to an
@@ -43,6 +41,8 @@ type WriteClient interface {
 	// Endpoint is the remote read or write endpoint for the storage client.
 	Endpoint() string
 }
+
+var _ prometheus.WriteTo = (*QueueManager)(nil)
 
 // QueueManager manages a queue of samples to be sent to the Storage
 // indicated by the provided WriteClient. Implements writeTo interface
@@ -119,31 +119,27 @@ func NewQueueManager(
 		highestRecvTimestamp: highestRecvTimestamp,
 		watcher:              watcher,
 	}
-	watcher.SetWriteTo(t)
+	//	watcher.SetWriteTo(t)
 
 	t.shards = t.newShards()
 
 	return t
 }
 
-func (t *QueueManager) SeriesReset(segmentNum int) {}
-
-func (t *QueueManager) StoreSeries([]record.RefSeries, int) {}
-
-func (t *QueueManager) UpdateSeriesSegment([]record.RefSeries, int) {}
-
 // AppendMetadata sends metadata the remote storage. Metadata is sent in batches, but is not parallelized.
-func (t *QueueManager) AppendMetadata(ctx context.Context, metadata []scrape.MetricMetadata) {
+func (t *QueueManager) AppendMetadata(metadata []prometheus.Metadata) {
 	mm := make([]prompb.MetricMetadata, 0, len(metadata))
 	for _, entry := range metadata {
 		mm = append(mm, prompb.MetricMetadata{
-			MetricFamilyName: entry.Metric,
-			Help:             entry.Help,
-			Type:             metricTypeToMetricTypeProto(entry.Type),
-			Unit:             entry.Unit,
+			MetricFamilyName: entry.Name,
+			Help:             entry.Meta.Help,
+			Type:             metricTypeToMetricTypeProto(entry.Meta.Type),
+			Unit:             entry.Meta.Unit,
 		})
 	}
-
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(t.cfg.BatchSendDeadline))
+	defer cancel()
 	pBuf := proto.NewBuffer(nil)
 	numSends := int(math.Ceil(float64(len(metadata)) / float64(t.mcfg.MaxSamplesPerSend)))
 	for i := 0; i < numSends; i++ {
@@ -205,7 +201,7 @@ func (t *QueueManager) sendMetadataWithBackoff(ctx context.Context, metadata []p
 
 // Append queues a sample to be sent to the remote storage. Blocks until all samples are
 // enqueued on their shards or a shutdown signal is received.
-func (t *QueueManager) Append(samples []record.RefSample) bool {
+func (t *QueueManager) Append(samples []prometheus.Sample) bool {
 outer:
 	for _, s := range samples {
 		// Start with a very small backoff. This should not be t.cfg.MinBackoff
@@ -219,10 +215,10 @@ outer:
 				return false
 			default:
 			}
-			if t.shards.enqueue(s.Ref, timeSeries{
-				seriesLabels: t.lblCache.GetLabels(uint64(s.Ref)),
-				timestamp:    s.T,
-				value:        s.V,
+			if t.shards.enqueue(chunks.HeadSeriesRef(s.GlobalRefID), timeSeries{
+				seriesLabels: t.lblCache.GetLabels(s.GlobalRefID),
+				timestamp:    s.Timestamp,
+				value:        s.Value,
 				sType:        tSample,
 			}) {
 				continue outer
@@ -241,7 +237,7 @@ outer:
 	return true
 }
 
-func (t *QueueManager) AppendExemplars(exemplars []record.RefExemplar) bool {
+func (t *QueueManager) AppendExemplars(exemplars []prometheus.Exemplar) bool {
 	if !t.sendExemplars {
 		return true
 	}
@@ -256,11 +252,11 @@ outer:
 				return false
 			default:
 			}
-			if t.shards.enqueue(e.Ref, timeSeries{
-				seriesLabels:   t.lblCache.GetLabels(uint64(e.Ref)),
-				timestamp:      e.T,
-				value:          e.V,
-				exemplarLabels: e.Labels,
+			if t.shards.enqueue(chunks.HeadSeriesRef(e.GlobalRefID), timeSeries{
+				seriesLabels:   t.lblCache.GetLabels(e.GlobalRefID),
+				timestamp:      e.Timestamp,
+				value:          e.Value,
+				exemplarLabels: e.L,
 				sType:          tExemplar,
 			}) {
 				continue outer
@@ -277,7 +273,7 @@ outer:
 	return true
 }
 
-func (t *QueueManager) AppendHistograms(histograms []record.RefHistogramSample) bool {
+func (t *QueueManager) AppendHistograms(histograms []prometheus.Histogram) bool {
 	if !t.sendNativeHistograms {
 		return true
 	}
@@ -292,10 +288,10 @@ outer:
 				return false
 			default:
 			}
-			if t.shards.enqueue(h.Ref, timeSeries{
-				seriesLabels: t.lblCache.GetLabels(uint64(h.Ref)),
-				timestamp:    h.T,
-				histogram:    h.H,
+			if t.shards.enqueue(chunks.HeadSeriesRef(h.GlobalRefID), timeSeries{
+				seriesLabels: t.lblCache.GetLabels(h.GlobalRefID),
+				timestamp:    h.Timestamp,
+				histogram:    h.Value,
 				sType:        tHistogram,
 			}) {
 				continue outer
@@ -312,7 +308,7 @@ outer:
 	return true
 }
 
-func (t *QueueManager) AppendFloatHistograms(floatHistograms []record.RefFloatHistogramSample) bool {
+func (t *QueueManager) AppendFloatHistograms(floatHistograms []prometheus.FloatHistogram) bool {
 	if !t.sendNativeHistograms {
 		return true
 	}
@@ -327,10 +323,10 @@ outer:
 				return false
 			default:
 			}
-			if t.shards.enqueue(h.Ref, timeSeries{
-				seriesLabels:   t.lblCache.GetLabels(uint64(h.Ref)),
-				timestamp:      h.T,
-				floatHistogram: h.FH,
+			if t.shards.enqueue(chunks.HeadSeriesRef(h.GlobalRefID), timeSeries{
+				seriesLabels:   t.lblCache.GetLabels(h.GlobalRefID),
+				timestamp:      h.Timestamp,
+				floatHistogram: h.Value,
 				sType:          tFloatHistogram,
 			}) {
 				continue outer

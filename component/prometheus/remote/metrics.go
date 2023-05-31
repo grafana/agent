@@ -36,13 +36,16 @@ type queueManagerMetrics struct {
 	maxSamplesPerSend      prometheus.Gauge
 }
 
+var namespace = "prometheus"
+var subsystem = "remote_write"
+
 func newQueueManagerMetrics(r prometheus.Registerer, rn, e string) *queueManagerMetrics {
 	m := &queueManagerMetrics{
 		reg: r,
 	}
 	constLabels := prometheus.Labels{
-		remoteName: rn,
-		endpoint:   e,
+		"remote":   rn,
+		"endpoint": e,
 	}
 
 	m.samplesTotal = prometheus.NewCounter(prometheus.CounterOpts{
