@@ -26,7 +26,7 @@ Ensure that [Homebrew][] is installed on your machine.
 
     The brew install command downloads Grafana Agent and installs it at `/opt/homebrew/Cellar/grafana-agent/VERSION`.
     
-    By default, Grafana Agent logs are located in `/opt/homebrew/var/log/`.
+    Grafana Agent logs are in `/opt/homebrew/var/log/` by default.
 
 1. Open a terminal and run the following commands:
 
@@ -52,5 +52,5 @@ Ensure that [Homebrew][] is installed on your machine.
     `brew upgrade grafana-agent`.
 
 {{% admonition type="note" %}}
-If you want to send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud integration. Refer to [how to install an integration](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/) and [macOS integration](/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-macos-node/).
+To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud integration. Refer to [how to install an integration](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/) and [macOS integration](/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-macos-node/).
 {{%/admonition %}}
