@@ -1,4 +1,4 @@
-package phlare
+package pyroscope
 
 import (
 	"context"
