@@ -147,9 +147,9 @@ loki.source.awsfirehose "loki_fh_receiver" {
 }
 ```
 
-As another example, if we are receiving records that are originated from a CloudWatch logs subscription, we can enrich each
-received entry by re-labeling internal labels. The following configuration builds upon the one above, but keeps the origin
-log stream and group as `log_stream` and `log_group` respectively.
+As another example, if you are receiving records that originated from a CloudWatch logs subscription, you can enrich each
+received entry by relabeling internal labels. The following configuration builds upon the one above but keeps the origin
+log stream and group as `log_stream` and `log_group`, respectively.
 
 ```river
 loki.write "local" {
