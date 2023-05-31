@@ -69,10 +69,8 @@ func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus
 			if err != nil {
 				return nil, err
 			}
-			collector, err = registerOrReuse(registry, collector)
-			if err != nil {
-				return nil, err
-			}
+			// It is safe to .MustRegister here because the metric created above is unchecked.
+			registry.MustRegister(collector)
 			metrics[cfg.Counter.Name] = cfgCollector{cfg: cfg, collector: collector}
 		case cfg.Gauge != nil:
 			customPrefix := ""
@@ -85,10 +83,8 @@ func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus
 			if err != nil {
 				return nil, err
 			}
-			collector, err = registerOrReuse(registry, collector)
-			if err != nil {
-				return nil, err
-			}
+			// It is safe to .MustRegister here because the metric created above is unchecked.
+			registry.MustRegister(collector)
 			metrics[cfg.Gauge.Name] = cfgCollector{cfg: cfg, collector: collector}
 		case cfg.Histogram != nil:
 			customPrefix := ""
@@ -101,10 +97,8 @@ func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus
 			if err != nil {
 				return nil, err
 			}
-			collector, err = registerOrReuse(registry, collector)
-			if err != nil {
-				return nil, err
-			}
+			// It is safe to .MustRegister here because the metric created above is unchecked.
+			registry.MustRegister(collector)
 			metrics[cfg.Histogram.Name] = cfgCollector{cfg: cfg, collector: collector}
 		default:
 			return nil, fmt.Errorf("undefined stage type in '%v', exiting", cfg)
@@ -115,17 +109,6 @@ func newMetricStage(logger log.Logger, config MetricsConfig, registry prometheus
 		cfg:     config,
 		metrics: metrics,
 	}), nil
-}
-
-func registerOrReuse(registerer prometheus.Registerer, c prometheus.Collector) (prometheus.Collector, error) {
-	err := registerer.Register(c)
-	if err == nil {
-		return c, nil
-	}
-	if previous, ok := err.(prometheus.AlreadyRegisteredError); ok {
-		return previous.ExistingCollector, nil
-	}
-	return nil, err
 }
 
 // metricStage creates and updates prometheus metrics based on extracted pipeline data
