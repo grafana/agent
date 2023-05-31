@@ -16,12 +16,14 @@ Main (unreleased)
 - The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
 
 ### Features
+
 - New Grafana Agent Flow components:
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
 
 - Added new Grafana Agent Flow components:
   - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
+ 
 - Added coalesce function to river stdlib. (@jkroepke)
 
 ### Enhancements
@@ -62,6 +64,8 @@ Main (unreleased)
 - Fix issue where the the `node_exporter` integration and
   `prometheus.exporter.unix` `diskstat_device_include` component could not set
   the allowlist field for the diskstat collector. (@tpaschalis)
+
+- Fix issue with metrics and traces in modules. (@mattdurham)
 
 ### Other changes
 
