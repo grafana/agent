@@ -12,12 +12,12 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/pyroscope"
 	commonconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/util/pool"
 	"golang.org/x/net/context/ctxhttp"
 
-	"github.com/grafana/agent/component/phlare"
 	"github.com/grafana/agent/pkg/build"
 )
 
@@ -31,14 +31,14 @@ type scrapePool struct {
 
 	logger       log.Logger
 	scrapeClient *http.Client
-	appendable   phlare.Appendable
+	appendable   pyroscope.Appendable
 
 	mtx            sync.RWMutex
 	activeTargets  map[uint64]*scrapeLoop
 	droppedTargets []*Target
 }
 
-func newScrapePool(cfg Arguments, appendable phlare.Appendable, logger log.Logger) (*scrapePool, error) {
+func newScrapePool(cfg Arguments, appendable pyroscope.Appendable, logger log.Logger) (*scrapePool, error) {
 	scrapeClient, err := commonconfig.NewClientFromConfig(*cfg.HTTPClientConfig.Convert(), cfg.JobName)
 	if err != nil {
 		return nil, err
@@ -164,7 +164,7 @@ type scrapeLoop struct {
 	lastScrapeSize int
 
 	scrapeClient *http.Client
-	appendable   phlare.Appendable
+	appendable   pyroscope.Appendable
 
 	req               *http.Request
 	logger            log.Logger
@@ -174,7 +174,7 @@ type scrapeLoop struct {
 	wg                sync.WaitGroup
 }
 
-func newScrapeLoop(t *Target, scrapeClient *http.Client, appendable phlare.Appendable, interval, timeout time.Duration, logger log.Logger) *scrapeLoop {
+func newScrapeLoop(t *Target, scrapeClient *http.Client, appendable pyroscope.Appendable, interval, timeout time.Duration, logger log.Logger) *scrapeLoop {
 	return &scrapeLoop{
 		Target:       t,
 		logger:       logger,
@@ -238,7 +238,7 @@ func (t *scrapeLoop) scrape() {
 	if len(b) > 0 {
 		t.lastScrapeSize = len(b)
 	}
-	if err := t.appendable.Appender().Append(context.Background(), t.labels, []*phlare.RawSample{{RawProfile: b}}); err != nil {
+	if err := t.appendable.Appender().Append(context.Background(), t.labels, []*pyroscope.RawSample{{RawProfile: b}}); err != nil {
 		level.Error(t.logger).Log("msg", "push failed", "labels", t.Labels().String(), "err", err)
 		t.updateTargetStatus(start, err)
 		return
