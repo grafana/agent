@@ -112,6 +112,8 @@ v0.34.0-rc.0 (2023-06-01)
 
 - Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
 
+- Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr) 
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
