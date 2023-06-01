@@ -245,7 +245,9 @@ func TestDecode_CustomTypes(t *testing.T) {
 	t.Run("object to Unmarshaler", func(t *testing.T) {
 		var actual customUnmarshaler
 		require.NoError(t, value.Decode(value.Object(nil), &actual))
-		require.True(t, actual.Called, "UnmarshalRiver was not invoked")
+		require.True(t, actual.UnmarshalCalled, "UnmarshalRiver was not invoked")
+		require.True(t, actual.DefaultCalled, "SetToDefault was not invoked")
+		require.True(t, actual.ValidateCalled, "Validate was not invoked")
 	})
 
 	t.Run("TextMarshaler to TextUnmarshaler", func(t *testing.T) {
@@ -285,14 +287,25 @@ func TestDecode_CustomTypes(t *testing.T) {
 }
 
 type customUnmarshaler struct {
-	Called bool `river:"called,attr,optional"`
+	UnmarshalCalled bool `river:"unmarshal_called,attr,optional"`
+	DefaultCalled   bool `river:"default_called,attr,optional"`
+	ValidateCalled  bool `river:"validate_called,attr,optional"`
 }
 
 func (cu *customUnmarshaler) UnmarshalRiver(f func(interface{}) error) error {
-	cu.Called = true
+	cu.UnmarshalCalled = true
+	return f((*customUnmarshalerTarget)(cu))
+}
 
-	type s customUnmarshaler
-	return f((*s)(cu))
+type customUnmarshalerTarget customUnmarshaler
+
+func (s *customUnmarshalerTarget) SetToDefault() {
+	s.DefaultCalled = true
+}
+
+func (s *customUnmarshalerTarget) Validate() error {
+	s.ValidateCalled = true
+	return nil
 }
 
 type textEnumType bool
