@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.34.0-rc.0 (2023-06-01)
+--------------------
+
 ### Breaking changes
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
@@ -33,6 +36,7 @@ Main (unreleased)
   - `prometheus.exporter.snowflake` collects metrics from a snowflake database (@jonathanWamsley)
   - `prometheus.exporter.mssql` collects metrics from Microsoft SQL Server (@jonathanwamsley)
   - `prometheus.exporter.oracledb` collects metrics from oracledb (@jonathanwamsley)
+  - `prometheus.exporter.dnsmasq` collects metrics from a dnsmasq server. (@spartan0x117)
   - `loki.source.awsfirehose` - receive Loki log entries from AWS Firehose via HTTP (@thepalbi)
 
 - Added new functions to the River standard library:
