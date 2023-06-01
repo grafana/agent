@@ -86,7 +86,19 @@ type decoder struct {
 	makeCopy bool
 }
 
-func (d *decoder) decode(val Value, into reflect.Value) error {
+func (d *decoder) decode(val Value, into reflect.Value) (err error) {
+	// If everything has decoded successfully, run Validate if implemented.
+	defer func() {
+		if err == nil {
+			if into.CanAddr() && into.Addr().Type().Implements(goRiverValidator) {
+				err = into.Addr().Interface().(Validator).Validate()
+
+			} else if into.Type().Implements(goRiverValidator) {
+				err = into.Interface().(Validator).Validate()
+			}
+		}
+	}()
+
 	// Store the raw value from val and try to address it so we can do underlying
 	// type match assignment.
 	rawValue := val.rv
@@ -142,10 +154,8 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 		return err
 	}
 
-	if into.CanAddr() {
-		if into.Addr().Type().Implements(goRiverDefaulter) {
-			into.Addr().Interface().(Defaulter).SetToDefault()
-		}
+	if into.CanAddr() && into.Addr().Type().Implements(goRiverDefaulter) {
+		into.Addr().Interface().(Defaulter).SetToDefault()
 	} else if into.Type().Implements(goRiverDefaulter) {
 		into.Interface().(Defaulter).SetToDefault()
 	}
@@ -164,16 +174,16 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 	switch {
 	case val.rv.Type() == goByteSlice && into.Type() == goString: // []byte -> string
 		into.Set(val.rv.Convert(goString))
-		return validate(into)
+		return nil
 	case val.rv.Type() == goString && into.Type() == goByteSlice: // string -> []byte
 		into.Set(val.rv.Convert(goByteSlice))
-		return validate(into)
+		return nil
 	case convVal.Type() != targetType:
 		converted, err := tryCapsuleConvert(convVal, into, targetType)
 		if err != nil {
 			return err
 		} else if converted {
-			return validate(into)
+			return nil
 		}
 
 		convVal, err = convertValue(convVal, targetType)
@@ -187,25 +197,19 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 	switch convVal.Type() {
 	case TypeNumber:
 		into.Set(convertGoNumber(convVal.Number(), into.Type()))
-		return validate(into)
+		return nil
 	case TypeString:
 		// Call convVal.Text() to get the final string value, since convVal.rv
 		// might not be a string.
 		into.Set(reflect.ValueOf(convVal.Text()))
-		return validate(into)
+		return nil
 	case TypeBool:
 		into.Set(reflect.ValueOf(convVal.Bool()))
-		return validate(into)
+		return nil
 	case TypeArray:
-		if err := d.decodeArray(convVal, into); err != nil {
-			return err
-		}
-		return validate(into)
+		return d.decodeArray(convVal, into)
 	case TypeObject:
-		if err := d.decodeObject(convVal, into); err != nil {
-			return err
-		}
-		return validate(into)
+		return d.decodeObject(convVal, into)
 	case TypeFunction:
 		// The Go types for two functions must be the same.
 		//
@@ -213,7 +217,7 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 		// creating an adapter between the two functions.
 		if convVal.rv.Type() == into.Type() {
 			into.Set(convVal.rv)
-			return validate(into)
+			return nil
 		}
 
 		return Error{
@@ -224,14 +228,14 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 		// The Go types for the capsules must be the same or able to be converted.
 		if convVal.rv.Type() == into.Type() {
 			into.Set(convVal.rv)
-			return validate(into)
+			return nil
 		}
 
 		converted, err := tryCapsuleConvert(convVal, into, targetType)
 		if err != nil {
 			return err
 		} else if converted {
-			return validate(into)
+			return nil
 		}
 
 		// TODO(rfratto): return a TypeError for this instead. TypeError isn't
@@ -245,18 +249,6 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 	default:
 		panic("river/value: unexpected kind " + convVal.Type().String())
 	}
-}
-
-func validate(into reflect.Value) error {
-	if into.CanAddr() {
-		if into.Addr().Type().Implements(goRiverValidator) {
-			return into.Addr().Interface().(Validator).Validate()
-		}
-	} else if into.Type().Implements(goRiverValidator) {
-		return into.Interface().(Validator).Validate()
-	}
-
-	return nil
 }
 
 // canDirectlyAssign returns true if the `from` type can be directly asssigned
