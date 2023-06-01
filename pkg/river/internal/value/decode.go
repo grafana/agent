@@ -92,7 +92,6 @@ func (d *decoder) decode(val Value, into reflect.Value) (err error) {
 		if err == nil {
 			if into.CanAddr() && into.Addr().Type().Implements(goRiverValidator) {
 				err = into.Addr().Interface().(Validator).Validate()
-
 			} else if into.Type().Implements(goRiverValidator) {
 				err = into.Interface().(Validator).Validate()
 			}
