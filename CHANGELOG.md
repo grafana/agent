@@ -8,7 +8,7 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 v0.34.0-rc.0 (2023-06-01)
---------------------
+-------------------------
 
 ### Breaking changes
 
