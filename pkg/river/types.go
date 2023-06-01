@@ -32,7 +32,8 @@ type Unmarshaler interface {
 // in River evaluation.
 type Defaulter interface {
 	// SetToDefault is called when evaluating a block or body to set the value
-	// to its defaults.
+	// to its defaults. SetToDefault will not be called on types which are
+	// squashed into the parent struct using `river:",squash"`.
 	SetToDefault()
 }
 
@@ -40,7 +41,8 @@ type Defaulter interface {
 // in River evaluation.
 type Validator interface {
 	// Validate is called when evaluating a block or body to enforce the
-	// value is valid.
+	// value is valid. Validate will not be called on types which are
+	// squashed into the parent struct using `river:",squash"`.
 	Validate() error
 }
 

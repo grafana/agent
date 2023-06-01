@@ -25,11 +25,11 @@ var (
 	goCapsule         = reflect.TypeOf((*Capsule)(nil)).Elem()
 	goDuration        = reflect.TypeOf((time.Duration)(0))
 	goDurationPtr     = reflect.TypeOf((*time.Duration)(nil))
-	// goRiverDefaulter  = reflect.TypeOf((*Defaulter)(nil)).Elem()
-	goRiverDecoder = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
-	// goRiverValidator  = reflect.TypeOf((*Validator)(nil)).Elem()
-	goRawRiverFunc = reflect.TypeOf((RawFunction)(nil))
-	goRiverValue   = reflect.TypeOf(Null)
+	goRiverDefaulter  = reflect.TypeOf((*Defaulter)(nil)).Elem()
+	goRiverDecoder    = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
+	goRiverValidator  = reflect.TypeOf((*Validator)(nil)).Elem()
+	goRawRiverFunc    = reflect.TypeOf((RawFunction)(nil))
+	goRiverValue      = reflect.TypeOf(Null)
 )
 
 // NOTE(rfratto): This package is extremely sensitive to performance, so

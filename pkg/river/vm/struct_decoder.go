@@ -231,7 +231,7 @@ func (st *structDecoder) decodeNormalBlock(fullName string, block *ast.BlockStmt
 			panic("river/vm: block not found in index lookup table")
 		}
 		decodeElement := prepareDecodeValue(decodeField.Index(blockIndex))
-		err := st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeElement, true)
+		err := st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeElement)
 		if err != nil {
 			// TODO(rfratto): get error as diagnostics.
 			return err
@@ -257,7 +257,7 @@ func (st *structDecoder) decodeNormalBlock(fullName string, block *ast.BlockStmt
 			panic("river/vm: block not found in index lookup table")
 		}
 		decodeElement := prepareDecodeValue(decodeField.Index(blockIndex))
-		err := st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeElement, true)
+		err := st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeElement)
 		if err != nil {
 			// TODO(rfratto): get error as diagnostics.
 			return err
@@ -273,7 +273,7 @@ func (st *structDecoder) decodeNormalBlock(fullName string, block *ast.BlockStmt
 			}}
 		}
 
-		err := st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeField, true)
+		err := st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeField)
 		if err != nil {
 			// TODO(rfratto): get error as diagnostics.
 			return err
@@ -319,5 +319,5 @@ func (st *structDecoder) decodeEnumBlock(fullName string, block *ast.BlockStmt, 
 	decodeBlock := prepareDecodeValue(enumBlock)
 
 	// Decode into the block field.
-	return st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeBlock, true)
+	return st.VM.evaluateBlockOrBody(st.Scope, st.Assoc, block, decodeBlock)
 }

@@ -142,6 +142,14 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 		return err
 	}
 
+	if into.CanAddr() {
+		if into.Addr().Type().Implements(goRiverDefaulter) {
+			into.Addr().Interface().(Defaulter).SetToDefault()
+		}
+	} else if into.Type().Implements(goRiverDefaulter) {
+		into.Interface().(Defaulter).SetToDefault()
+	}
+
 	targetType := RiverType(into.Type())
 
 	// Track a value to use for decoding. This value will be updated if
@@ -156,16 +164,16 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 	switch {
 	case val.rv.Type() == goByteSlice && into.Type() == goString: // []byte -> string
 		into.Set(val.rv.Convert(goString))
-		return nil
+		return validate(into)
 	case val.rv.Type() == goString && into.Type() == goByteSlice: // string -> []byte
 		into.Set(val.rv.Convert(goByteSlice))
-		return nil
+		return validate(into)
 	case convVal.Type() != targetType:
 		converted, err := tryCapsuleConvert(convVal, into, targetType)
 		if err != nil {
 			return err
 		} else if converted {
-			return nil
+			return validate(into)
 		}
 
 		convVal, err = convertValue(convVal, targetType)
@@ -179,19 +187,25 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 	switch convVal.Type() {
 	case TypeNumber:
 		into.Set(convertGoNumber(convVal.Number(), into.Type()))
-		return nil
+		return validate(into)
 	case TypeString:
 		// Call convVal.Text() to get the final string value, since convVal.rv
 		// might not be a string.
 		into.Set(reflect.ValueOf(convVal.Text()))
-		return nil
+		return validate(into)
 	case TypeBool:
 		into.Set(reflect.ValueOf(convVal.Bool()))
-		return nil
+		return validate(into)
 	case TypeArray:
-		return d.decodeArray(convVal, into)
+		if err := d.decodeArray(convVal, into); err != nil {
+			return err
+		}
+		return validate(into)
 	case TypeObject:
-		return d.decodeObject(convVal, into)
+		if err := d.decodeObject(convVal, into); err != nil {
+			return err
+		}
+		return validate(into)
 	case TypeFunction:
 		// The Go types for two functions must be the same.
 		//
@@ -199,7 +213,7 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 		// creating an adapter between the two functions.
 		if convVal.rv.Type() == into.Type() {
 			into.Set(convVal.rv)
-			return nil
+			return validate(into)
 		}
 
 		return Error{
@@ -210,14 +224,14 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 		// The Go types for the capsules must be the same or able to be converted.
 		if convVal.rv.Type() == into.Type() {
 			into.Set(convVal.rv)
-			return nil
+			return validate(into)
 		}
 
 		converted, err := tryCapsuleConvert(convVal, into, targetType)
 		if err != nil {
 			return err
 		} else if converted {
-			return nil
+			return validate(into)
 		}
 
 		// TODO(rfratto): return a TypeError for this instead. TypeError isn't
@@ -231,6 +245,18 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 	default:
 		panic("river/value: unexpected kind " + convVal.Type().String())
 	}
+}
+
+func validate(into reflect.Value) error {
+	if into.CanAddr() {
+		if into.Addr().Type().Implements(goRiverValidator) {
+			return into.Addr().Interface().(Validator).Validate()
+		}
+	} else if into.Type().Implements(goRiverValidator) {
+		return into.Interface().(Validator).Validate()
+	}
+
+	return nil
 }
 
 // canDirectlyAssign returns true if the `from` type can be directly asssigned
