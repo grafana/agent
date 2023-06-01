@@ -34,10 +34,12 @@ Main (unreleased)
   - `prometheus.exporter.mssql` collects metrics from Microsoft SQL Server (@jonathanwamsley)
   - `prometheus.exporter.oracledb` collects metrics from oracledb (@jonathanwamsley)
   - `loki.source.awsfirehose` - receive Loki log entries from AWS Firehose via HTTP (@thepalbi)
+  - `phlare.ebpf` collects system-wide performance profiles from the current host (@korniltsev)
 
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
   - `nonsensitive` converts a River secret back into a string. (@rfratto)
+  - `regex_quote` escapes regular expression metacharacters. (@korniltsev)
 
 
 ### Enhancements
