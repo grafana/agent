@@ -1,7 +1,7 @@
 ---
 title: squid_config
 aliases:
-- ../../../configuration/integrations/oracledb-config/
+- ../../../configuration/integrations/squid-config/
 ---
 
 # squid_config
@@ -57,16 +57,16 @@ Full reference of options:
   # The connection string used to connect to the OracleDB instance in the format
   # of oracle://<MONITOR_USER>:<PASSWORD>@<HOST>:<PORT>/<SERVICE>.
   # i.e. "oracle://user:password@localhost:1521/orcl.localnet"
-  [connection_string: <string>]
+  [hostname: <string>]
 
   # The maximum amount of connections of the exporter allowed to be idle.
-  [max_idle_connections: <int>]
+  [port: <int>]
   # The maximum amount of connections allowed to be open by the exporter.
-  [max_open_connections: <int>]
+  [login: <string>]
 
   # The number of seconds that will act as the query timeout when the exporter is querying against
   # the OracleDB instance.
-  [query_timeout: <int> | default = 5]
+  [password: <string> | default = "password"]
 ```
 
 ## Configuration example
@@ -75,7 +75,6 @@ Full reference of options:
 integrations:
   squid:
     enabled: true
-    connection_string: oracle://user:password@localhost:1521/orcl.localnet
     metric_scrape_interval: 1m
     scrape_interval: 1m
     scrape_timeout: 1m

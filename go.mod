@@ -504,6 +504,7 @@ require (
 	github.com/percona/percona-toolkit v0.0.0-20211210121818-b2860eee3152 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
+	github.com/pires/go-proxyproto v0.7.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
 	github.com/prometheus-community/prom-label-proxy v0.5.0 // indirect
