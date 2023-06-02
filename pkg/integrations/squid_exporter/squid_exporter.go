@@ -2,6 +2,7 @@ package squid_exporter
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"strconv"
 
@@ -17,20 +18,48 @@ import (
 // DefaultConfig is the default config for the squid integration
 var DefaultConfig = Config{
 	Address:  "localhost:3128",
-	Login:    "",
+	Username: "",
 	Password: "",
 }
 
 var (
-	// 	errNoConnectionString = errors.New("no connection string was provided")
+	errNoAddress  = errors.New("no address was provided")
 	errNoHostname = errors.New("no hostname in provided address")
+	errNoPort     = errors.New("no port in provided address")
 )
 
 // Config is the configuration for the squid integration
 type Config struct {
 	Address  string `yaml:"address"`
-	Login    string `yaml:"username"`
+	Username string `yaml:"username"`
 	Password string `yaml:"password"`
+	Host     string
+	Port     int
+}
+
+func (c *Config) validate() error {
+	if c.Address == "" {
+		return errNoAddress
+	}
+
+	host, scheme, err := net.SplitHostPort(c.Address)
+	if err != nil {
+		return err
+	}
+
+	if host == "" {
+		return errNoHostname
+	}
+	c.Host = host
+
+	if scheme == "" {
+		return errNoPort
+	}
+
+	port, _ := strconv.Atoi(scheme)
+	c.Port = port
+
+	return nil
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -64,20 +93,16 @@ func init() {
 // New creates a new squid integration. The integration scrapes metrics
 // from an Squid exporter running with the https://github.com/boynux/squid-exporter
 func New(c *Config) (integrations.Integration, error) {
-	cfg := c
 	se.ExtractServiceTimes = true
-
-	host, scheme, err := net.SplitHostPort(cfg.Address)
-	if err != nil {
-		return nil, err
+	if err := c.validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
-	port, _ := strconv.Atoi(scheme)
 
 	seExporter := se.New(&se.CollectorConfig{
-		Hostname: host,
-		Port:     port,
-		Login:    cfg.Login,
-		Password: cfg.Password,
+		Hostname: c.Host,
+		Port:     c.Port,
+		Login:    c.Username,
+		Password: c.Password,
 	})
 
 	prometheus.MustRegister(seExporter)

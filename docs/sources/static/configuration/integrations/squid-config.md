@@ -8,13 +8,13 @@ aliases:
 
 The `squid_config` block configures the `squid` integration,
 which is an embedded version of a forked version of the
-[`oracledb_exporter`](https://github.com/observiq/oracledb_exporter). This allows the collection of third party [OracleDB](https://www.oracle.com/database/) metrics.
+[`Squid_exporter`](https://github.com/observiq/squid_exporter). This allows the collection of third party [Squid](http://www.squid-cache.org/) metrics.
 
 Full reference of options:
 
 ```yaml
-  # Enables the oracledb integration, allowing the Agent to automatically
-  # collect metrics for the specified oracledb instance.
+  # Enables the Squid integration, allowing the Agent to automatically
+  # collect metrics for the specified Squid instance.
   [enabled: <boolean> | default = false]
 
   # Sets an explicit value for the instance label when the integration is
@@ -24,9 +24,9 @@ Full reference of options:
   [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the oracledb integration is run but not scraped and thus not
+  # the Squid integration is run but not scraped and thus not
   # remote-written. Metrics for the integration are exposed at
-  # /integrations/oracledb/metrics and can be scraped by an external
+  # /integrations/squid/metrics and can be scraped by an external
   # process.
   [scrape_integration: <boolean> | default = <integrations_config.scrape_integrations>]
 
@@ -54,18 +54,15 @@ Full reference of options:
   # Exporter-specific configuration options
   #
 
-  # The connection string used to connect to the OracleDB instance in the format
-  # of oracle://<MONITOR_USER>:<PASSWORD>@<HOST>:<PORT>/<SERVICE>.
-  # i.e. "oracle://user:password@localhost:1521/orcl.localnet"
-  [hostname: <string>]
+  # The address used to connect to the Squid instance in the format
+  # of <HOST>:<PORT>.
+  # i.e. "localhost:3128"
+  [address: <string>]
 
-  # The maximum amount of connections of the exporter allowed to be idle.
-  [port: <int>]
-  # The maximum amount of connections allowed to be open by the exporter.
-  [login: <string>]
+  # The username for squid instance.
+  [username: <string>]
 
-  # The number of seconds that will act as the query timeout when the exporter is querying against
-  # the OracleDB instance.
+  # The password for username above.
   [password: <string> | default = "password"]
 ```
 
@@ -75,10 +72,8 @@ Full reference of options:
 integrations:
   squid:
     enabled: true
-    metric_scrape_interval: 1m
+    address: localhost:3128
     scrape_interval: 1m
-    scrape_timeout: 1m
-    scrape_integration: true
 metrics:
   wal_directory: /tmp/grafana-agent-wal
 server:

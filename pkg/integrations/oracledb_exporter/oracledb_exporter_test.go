@@ -108,5 +108,5 @@ func TestConfig_InstanceKey(t *testing.T) {
 	ik := "agent-key"
 	id, err := c.InstanceKey(ik)
 	require.NoError(t, err)
-	require.Equal(t, "localhost:3128", id)
+	require.Equal(t, "localhost:1521", id)
 }
