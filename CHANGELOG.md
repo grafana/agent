@@ -12,7 +12,7 @@ v0.34.0-rc.1 (2023-06-02)
 
 ### Bugs
 
-- Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham)
+- Fix issue where using exporters inside modules failed due to not passing the in-memory address dialer. (@mattdurham)
 
 v0.34.0-rc.0 (2023-06-01)
 -------------------------
