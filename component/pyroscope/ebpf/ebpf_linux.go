@@ -131,10 +131,9 @@ func (c *Component) Run(ctx context.Context) error {
 
 func (c *Component) updateTargetFinder() {
 	c.targetFinder.SetTargets(sd.Options{
-		DefaultServiceName: c.getDefaultServiceName(),
-		Targets:            c.args.Targets,
-		DefaultTarget:      c.args.DefaultTarget,
-		TargetsOnly:        c.args.TargetsOnly,
+		Targets:       c.args.Targets,
+		DefaultTarget: c.args.DefaultTarget,
+		TargetsOnly:   c.args.TargetsOnly,
 	})
 }
 
@@ -171,12 +170,4 @@ func (c *Component) reset() error {
 		}
 	}
 	return nil
-}
-
-func (c *Component) getDefaultServiceName() string {
-	serviceName := c.options.ID
-	if c.args.ServiceName != "" {
-		serviceName = c.args.ServiceName
-	}
-	return serviceName
 }

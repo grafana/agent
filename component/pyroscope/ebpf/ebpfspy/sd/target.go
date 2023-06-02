@@ -1,6 +1,7 @@
 package sd
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/go-kit/log"
@@ -12,9 +13,10 @@ import (
 )
 
 const (
-	labelContainerID = "__container_id__"
-	labelServiceName = "service_name"
-	metricValue      = "process_cpu"
+	labelContainerID    = "__container_id__"
+	labelServiceName    = "service_name"
+	labelServiceNameK8s = "__meta_kubernetes_pod_annotation_pyroscope_io_service_name"
+	metricValue         = "process_cpu"
 )
 
 type Target struct {
@@ -24,7 +26,15 @@ type Target struct {
 	fingerprintCalculated bool
 }
 
-func NewTarget(cid containerID, defaultServiceName string, target discovery.Target) *Target {
+func NewTarget(cid containerID, target discovery.Target) (*Target, error) {
+	serviceName := target[labelServiceName]
+	if serviceName == "" {
+		serviceName = target[labelServiceNameK8s]
+		if serviceName == "" {
+			return nil, errors.New("no service_name label")
+		}
+	}
+
 	lset := make(map[string]string, len(target))
 	for k, v := range target {
 		if strings.HasPrefix(k, model.ReservedLabelPrefix) && k != labels.MetricName {
@@ -36,14 +46,14 @@ func NewTarget(cid containerID, defaultServiceName string, target discovery.Targ
 		lset[labels.MetricName] = metricValue
 	}
 	if lset[labelServiceName] == "" {
-		lset[labelServiceName] = defaultServiceName
+		lset[labelServiceName] = serviceName
 	}
 	if cid != "" {
 		lset[labelContainerID] = string(cid)
 	}
 	return &Target{
 		labels: labels.FromMap(lset),
-	}
+	}, nil
 }
 
 func (t *Target) Labels() (uint64, labels.Labels) {
@@ -72,19 +82,28 @@ func NewTargetFinder(l log.Logger) *TargetFinder {
 }
 
 type Options struct {
-	DefaultServiceName string
-	Targets            []discovery.Target
-	TargetsOnly        bool
-	DefaultTarget      discovery.Target
+	Targets       []discovery.Target
+	TargetsOnly   bool
+	DefaultTarget discovery.Target
 }
 
 func (s *TargetFinder) SetTargets(opts Options) {
+	_ = level.Debug(s.l).Log("msg", "set targets", "count", len(opts.Targets))
 	containerID2Target := make(map[containerID]*Target)
 	for _, target := range opts.Targets {
 		cid := containerIDFromTarget(target)
 		if cid != "" {
-			defaultServiceName := defaultServiceName(opts.DefaultServiceName, target)
-			containerID2Target[cid] = NewTarget(cid, defaultServiceName, target)
+			t, err := NewTarget(cid, target)
+			if err != nil {
+				_ = level.Error(s.l).Log(
+					"msg", "target skipped",
+					"target", target.Labels().String(),
+					"err", err,
+				)
+				continue
+			}
+			_ = level.Debug(s.l).Log("created target", t.labels.String())
+			containerID2Target[cid] = t
 		}
 	}
 	if len(opts.Targets) > 0 && len(containerID2Target) == 0 {
@@ -94,8 +113,19 @@ func (s *TargetFinder) SetTargets(opts Options) {
 	if opts.TargetsOnly {
 		s.defaultTarget = nil
 	} else {
-		s.defaultTarget = NewTarget("", opts.DefaultServiceName, opts.DefaultTarget)
+		t, err := NewTarget("", opts.DefaultTarget)
+		if err != nil {
+			_ = level.Error(s.l).Log(
+				"msg", "default target skipped",
+				"target", opts.DefaultTarget,
+				"err", err,
+			)
+			s.defaultTarget = nil
+		} else {
+			s.defaultTarget = t
+		}
 	}
+	_ = level.Debug(s.l).Log("msg", "created targets", "count", len(s.cid2target))
 }
 
 func (s *TargetFinder) FindTarget(pid uint32) *Target {
@@ -133,24 +163,4 @@ func containerIDFromTarget(target discovery.Target) containerID {
 		return containerID(cid)
 	}
 	return ""
-}
-
-func defaultServiceName(fallback string, target discovery.Target) string {
-	serviceName := target[labelServiceName]
-	if serviceName != "" {
-		return serviceName
-	}
-
-	k8sNamespace := target["__meta_kubernetes_namespace"]
-	k8sPod := target["__meta_kubernetes_pod_name"]
-	if k8sNamespace != "" && k8sPod != "" {
-		return k8sNamespace + "/" + k8sPod
-	}
-
-	dockerContainerName := target["__meta_docker_container_name"]
-	if dockerContainerName != "" {
-		return dockerContainerName
-	}
-
-	return fallback
 }
