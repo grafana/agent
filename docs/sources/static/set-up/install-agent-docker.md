@@ -29,7 +29,7 @@ Grafana Agent is available as a Docker container image on the following platform
    docker run \
      -v WAL_DATA_DIRECTORY:/etc/agent/data \
      -v CONFIG_FILE_PATH:/etc/agent/agent.yaml \
-     grafana/agent:v0.34.0-rc.0
+     grafana/agent:v0.34.0-rc.1
    ```
    
    - Replace `CONFIG_FILE_PATH` with the configuration file path on your Linux host system.
@@ -47,7 +47,7 @@ Grafana Agent is available as a Docker container image on the following platform
    docker run ^
      -v WAL_DATA_DIRECTORY:c:\etc\grafana-agent\data ^
      -v CONFIG_FILE_PATH:c:\etc\grafana-agent ^
-     grafana/agent:v0.34.0-rc.0-windows
+     grafana/agent:v0.34.0-rc.1-windows
    ```
 
    - Replace `CONFIG_FILE_PATH` with the configuration file path on your Windows host system.
