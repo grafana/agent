@@ -12,8 +12,6 @@ Unreleased
 
 ### Enhancements
 
-- Add error value hashing to Faro collector. (@eskirk)
-
 - Add HPA support for Deployments and StatefulSets. (@tpaschalis)
 
 - Make the Faro port optional. (@tpaschalis)

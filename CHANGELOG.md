@@ -38,6 +38,9 @@ Main (unreleased)
 
 
 ### Enhancements
+
+- Add error value hashing to Faro collector. (@eskirk)
+
 - Support to attach node metadata to pods and endpoints targets in
   `discovery.kubernetes`. (@laurovenancio)
 
