@@ -117,7 +117,7 @@ func (s *TargetFinder) SetTargets(opts Options) {
 		if err != nil {
 			_ = level.Error(s.l).Log(
 				"msg", "default target skipped",
-				"target", opts.DefaultTarget,
+				"target", opts.DefaultTarget.Labels().String(),
 				"err", err,
 			)
 			s.defaultTarget = nil
