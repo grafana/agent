@@ -6,3 +6,4 @@ production environments. Please send PRs to add or remove organizations.
 * Cerner Enterprise Hosting
 * [Embark Studios](https://www.embark.dev/)
 * [Grafana Labs](https://grafana.com)
+* [PITS Global Data Recovery Services](https://www.pitsdatarecovery.net/)
