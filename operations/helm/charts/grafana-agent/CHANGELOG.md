@@ -10,7 +10,9 @@ internal API changes are not present.
 Unreleased
 ----------
 
-### Enhancements 
+### Enhancements
+
+- Add error value hashing to Faro collector. (@eskirk)
 
 - Add HPA support for Deployments and StatefulSets. (@tpaschalis)
 
