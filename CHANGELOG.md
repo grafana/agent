@@ -8,7 +8,11 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 Main (unreleased)
------------------
+----------------- 
+
+### Features
+
+- Integrations: Introduce the `squid` integration. (@armstrmi)
 
 ### Features
 
