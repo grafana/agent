@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
@@ -109,15 +110,20 @@ func (c *Component) Run(ctx context.Context) error {
 			case <-ctx.Done():
 				return nil
 			case newArgs := <-c.argsUpdate:
+				level.Debug(c.options.Logger).Log("msg", "args update ")
 				c.args = newArgs
 				c.updateTargetFinder()
 				c.appendable.UpdateChildren(newArgs.ForwardTo)
 				if c.args.CollectInterval != collectInterval {
+					level.Debug(c.options.Logger).Log("msg", "reset timer to ", c.args.CollectInterval)
 					t.Reset(c.args.CollectInterval)
 					collectInterval = c.args.CollectInterval
 				}
+				level.Debug(c.options.Logger).Log("msg", "args update done")
 			case <-t.C:
+				level.Debug(c.options.Logger).Log("msg", "reset")
 				err := c.reset()
+				level.Debug(c.options.Logger).Log("msg", "reset done")
 				if err != nil {
 					return err
 				}
@@ -146,16 +152,23 @@ func (c *Component) Update(args component.Arguments) error {
 func (c *Component) reset() error {
 	args := c.args
 	builders := ebpfspy2.NewProfileBuilders(args.SampleRate)
+	cnt := 0
 	err := c.session.Reset(func(target *sd.Target, stack []string, value uint64, pid uint32) error {
+		cnt++
 		labelsHash, labels := target.Labels()
 		builder := builders.BuilderForTarget(labelsHash, labels)
 		builder.AddSample(stack, value)
 		return nil
 	})
+	level.Debug(c.options.Logger).Log("msg", "ebpf session reset done, building pprofs...")
 	if err != nil {
 		return fmt.Errorf("ebpf session reset %w", err)
 	}
 	for _, builder := range builders.Builders {
+		level.Debug(c.options.Logger).Log(
+			"msg", "ppof building",
+			"target", builder.Labels.String(),
+		)
 		var buf bytes.Buffer
 		err := builder.Profile.Write(&buf)
 		if err != nil {
@@ -163,8 +176,16 @@ func (c *Component) reset() error {
 		}
 		appender := c.appendable.Appender()
 		samples := []*pyroscope.RawSample{{RawProfile: buf.Bytes()}}
-
+		level.Debug(c.options.Logger).Log(
+			"msg", "ppof append",
+			"target", builder.Labels.String(),
+		)
 		err = appender.Append(context.Background(), builder.Labels, samples)
+		level.Debug(c.options.Logger).Log(
+			"msg", "ppof appended",
+			"target", builder.Labels.String(),
+			"res", err,
+		)
 		if err != nil {
 			return fmt.Errorf("ebpf profile write %w", err)
 		}
