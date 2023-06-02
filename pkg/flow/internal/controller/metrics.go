@@ -6,15 +6,13 @@ import (
 
 // controllerMetrics contains the metrics for components controller
 type controllerMetrics struct {
-	r prometheus.Registerer
-
 	controllerEvaluation    prometheus.Gauge
 	componentEvaluationTime prometheus.Histogram
 }
 
 // newControllerMetrics inits the metrics for the components controller
-func newControllerMetrics(r prometheus.Registerer, id string) *controllerMetrics {
-	cm := controllerMetrics{r: r}
+func newControllerMetrics(id string) *controllerMetrics {
+	cm := &controllerMetrics{}
 
 	cm.controllerEvaluation = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name:        "agent_component_controller_evaluating",
@@ -29,14 +27,17 @@ func newControllerMetrics(r prometheus.Registerer, id string) *controllerMetrics
 			ConstLabels: map[string]string{"controller_id": id},
 		},
 	)
+	return cm
+}
 
-	if r != nil {
-		r.MustRegister(
-			cm.controllerEvaluation,
-			cm.componentEvaluationTime,
-		)
-	}
-	return &cm
+func (cm *controllerMetrics) Collect(ch chan<- prometheus.Metric) {
+	cm.componentEvaluationTime.Collect(ch)
+	cm.controllerEvaluation.Collect(ch)
+}
+
+func (cm *controllerMetrics) Describe(ch chan<- *prometheus.Desc) {
+	cm.componentEvaluationTime.Describe(ch)
+	cm.componentEvaluationTime.Describe(ch)
 }
 
 type controllerCollector struct {
@@ -44,7 +45,7 @@ type controllerCollector struct {
 	runningComponentsTotal *prometheus.Desc
 }
 
-func newControllerCollector(l *Loader, id string) prometheus.Collector {
+func newControllerCollector(l *Loader, id string) *controllerCollector {
 	return &controllerCollector{
 		l: l,
 		runningComponentsTotal: prometheus.NewDesc(

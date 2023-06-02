@@ -232,9 +232,6 @@ func (cn *ComponentNode) ComponentName() string { return cn.componentName }
 // block.
 func (cn *ComponentNode) NodeID() string { return cn.nodeID }
 
-// GlobalNodeID returns the parent + nodeid of the component. It is guaranteed to be unique across all dags.
-func (cn *ComponentNode) GlobalNodeID() string { return cn.managedOpts.ID }
-
 // UpdateBlock updates the River block used to construct arguments for the
 // managed component. The new block isn't used until the next time Evaluate is
 // invoked.
@@ -409,10 +406,10 @@ func (cn *ComponentNode) Exports() component.Exports {
 // same type as the registered exports type of the managed component.
 func (cn *ComponentNode) setExports(e component.Exports) {
 	if cn.exportsType == nil {
-		panic(fmt.Sprintf("Component %s called OnStateChange but never registered an Exports type", cn.GlobalNodeID()))
+		panic(fmt.Sprintf("Component %s called OnStateChange but never registered an Exports type", cn.reg.Name))
 	}
 	if reflect.TypeOf(e) != cn.exportsType {
-		panic(fmt.Sprintf("Component %s changed Exports types from %T to %T", cn.GlobalNodeID(), cn.reg.Exports, e))
+		panic(fmt.Sprintf("Component %s changed Exports types from %T to %T", cn.reg.Name, cn.reg.Exports, e))
 	}
 
 	// Some components may aggressively reexport values even though no exposed

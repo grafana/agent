@@ -159,7 +159,7 @@ func New(o Options) *Flow {
 		dialFunc = (&net.Dialer{}).DialContext
 	}
 
-	moduleController := newModuleController(&moduleControllerOptions{
+	mc := newModuleController(&moduleControllerOptions{
 		Logger:         log,
 		Tracer:         tracer,
 		Clusterer:      clusterer,
@@ -186,7 +186,7 @@ func New(o Options) *Flow {
 			HTTPListenAddr:   o.HTTPListenAddr,
 			DialFunc:         dialFunc,
 			ControllerID:     o.ControllerID,
-			ModuleController: moduleController,
+			ModuleController: mc,
 		})
 	)
 	return &Flow{
@@ -207,6 +207,7 @@ func New(o Options) *Flow {
 // canceled. Run must only be called once.
 func (c *Flow) Run(ctx context.Context) {
 	defer c.sched.Close()
+	defer c.loader.Cleanup()
 	defer level.Debug(c.log).Log("msg", "flow controller exiting")
 
 	for {
@@ -224,7 +225,7 @@ func (c *Flow) Run(ctx context.Context) {
 					break
 				}
 
-				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.GlobalNodeID())
+				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
 				c.loader.EvaluateDependencies(updated)
 			}
 

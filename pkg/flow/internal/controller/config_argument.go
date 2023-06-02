@@ -12,7 +12,6 @@ type ArgumentConfigNode struct {
 	label         string
 	nodeID        string
 	componentName string
-	globalID      string
 
 	mut          sync.RWMutex
 	block        *ast.BlockStmt // Current River blocks to derive config from
@@ -26,12 +25,10 @@ var _ BlockNode = (*ArgumentConfigNode)(nil)
 // NewArgumentConfigNode creates a new ArgumentConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
 func NewArgumentConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *ArgumentConfigNode {
-	nodeid := BlockComponentID(block).String()
 	return &ArgumentConfigNode{
 		label:         block.Label,
-		nodeID:        nodeid,
+		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),
-		globalID:      globals.GenerateGlobalID(nodeid),
 
 		block: block,
 		eval:  vm.New(block.Body),
@@ -87,6 +84,3 @@ func (cn *ArgumentConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ArgumentConfigNode) NodeID() string { return cn.nodeID }
-
-// GlobalNodeID returns a globally unique id across all DAGs.
-func (cn *ArgumentConfigNode) GlobalNodeID() string { return cn.globalID }

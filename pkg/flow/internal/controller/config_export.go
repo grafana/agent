@@ -12,7 +12,6 @@ type ExportConfigNode struct {
 	label         string
 	nodeID        string
 	componentName string
-	globalID      string
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
@@ -29,7 +28,6 @@ func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *Export
 		label:         block.Label,
 		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),
-		globalID:      globals.GenerateGlobalID(BlockComponentID(block).String()),
 
 		block: block,
 		eval:  vm.New(block.Body),
@@ -76,6 +74,3 @@ func (cn *ExportConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ExportConfigNode) NodeID() string { return cn.nodeID }
-
-// GlobalNodeID returns a globally unique id across all DAGs.
-func (cn *ExportConfigNode) GlobalNodeID() string { return cn.globalID }

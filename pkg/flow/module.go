@@ -15,6 +15,30 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+type moduleController struct {
+	o *moduleControllerOptions
+}
+
+var (
+	_ component.ModuleController = (*moduleController)(nil)
+)
+
+// newModuleController is the entrypoint into creating module instances.
+func newModuleController(o *moduleControllerOptions) component.ModuleController {
+	return &moduleController{
+		o: o,
+	}
+}
+
+// NewModule creates a new, unstarted Module.
+func (m *moduleController) NewModule(id string, export component.ExportFunc) component.Module {
+	return newModule(&moduleOptions{
+		ID:                      id,
+		export:                  export,
+		moduleControllerOptions: m.o,
+	})
+}
+
 type module struct {
 	mut sync.Mutex
 	f   *Flow

@@ -61,11 +61,11 @@ Main (unreleased)
 - Fix an issue with the grafana/agent windows docker image entrypoint
   not targeting the right location for the config. (@erikbaranowski)
 
-- Fix issue where the the `node_exporter` integration and
+- Fix issue where the `node_exporter` integration and
   `prometheus.exporter.unix` `diskstat_device_include` component could not set
   the allowlist field for the diskstat collector. (@tpaschalis)
 
-- Fix issue with metrics and traces in modules. (@mattdurham)
+- Metrics and traces will now be recorded from components within modules. (@mattdurham)
 
 ### Other changes
 

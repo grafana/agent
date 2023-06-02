@@ -363,8 +363,6 @@ func (c *client) sendBatch(tenantID string, batch *batch) {
 				}
 			}
 			return
-		} else {
-			level.Error(c.logger).Log("err", err)
 		}
 
 		// Only retry 429s, 500s and connection-level errors.

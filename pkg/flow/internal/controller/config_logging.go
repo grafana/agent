@@ -16,7 +16,6 @@ type LoggingConfigNode struct {
 	nodeID        string
 	componentName string
 	l             log.Logger
-	globalNodeID  string
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
@@ -26,12 +25,10 @@ type LoggingConfigNode struct {
 // NewLoggingConfigNode creates a new LoggingConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
 func NewLoggingConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *LoggingConfigNode {
-	nodeid := BlockComponentID(block).String()
 	return &LoggingConfigNode{
-		nodeID:        nodeid,
+		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),
 		l:             globals.Logger,
-		globalNodeID:  globals.GenerateGlobalID(nodeid),
 
 		block: block,
 		eval:  vm.New(block.Body),
@@ -83,6 +80,3 @@ func (cn *LoggingConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *LoggingConfigNode) NodeID() string { return cn.nodeID }
-
-// GlobalNodeID returns a globally unique id across all DAGs.
-func (cn *LoggingConfigNode) GlobalNodeID() string { return cn.globalNodeID }
