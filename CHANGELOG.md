@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugs
+
+- Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham)
+
 v0.34.0-rc.0 (2023-06-01)
 --------------------
 
@@ -113,8 +117,6 @@ v0.34.0-rc.0 (2023-06-01)
 - Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
 
 - Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr) 
-
-- Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham) 
 
 ### Other changes
 
