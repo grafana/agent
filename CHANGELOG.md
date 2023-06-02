@@ -114,7 +114,7 @@ v0.34.0-rc.0 (2023-06-01)
 
 - Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr) 
 
-- Fix issue where using exports in modules failed due to not passing the in-memory address dialer. (@mattdurham) 
+- Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham) 
 
 ### Other changes
 
