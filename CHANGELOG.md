@@ -10,6 +10,9 @@ internal API changes are not present.
 v0.34.0-rc.1 (2023-06-02)
 -------------------------
 
+v0.34.0-rc.1 (2023-06-02)
+--------------------
+
 ### Bugs
 
 - Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham)
