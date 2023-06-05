@@ -33,12 +33,9 @@ type Exports struct {
 // DefaultArguments defines the default settings for log scraping.
 var DefaultArguments = Arguments{}
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*arg = DefaultArguments
-
-	type args Arguments
-	return f((*args)(arg))
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
+	*args = DefaultArguments
 }
 
 var (

@@ -144,17 +144,9 @@ var DefaultProfilingConfig = ProfilingConfig{
 	},
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies defaults before
-// unmarshaling.
-func (cfg *ProfilingConfig) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (cfg *ProfilingConfig) SetToDefault() {
 	*cfg = DefaultProfilingConfig
-
-	type args ProfilingConfig
-	if err := f((*args)(cfg)); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 type ProfilingTarget struct {

@@ -51,12 +51,9 @@ type Arguments struct {
 	Endpoints      []*EndpointOptions `river:"endpoint,block,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (rc *Arguments) SetToDefault() {
 	*rc = DefaultArguments()
-
-	type config Arguments
-	return f((*config)(rc))
 }
 
 // EndpointOptions describes an individual location for where profiles

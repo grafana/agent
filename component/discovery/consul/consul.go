@@ -52,14 +52,13 @@ var DefaultArguments = Arguments{
 	RefreshInterval: 30 * time.Second,
 }
 
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-	type arguments Arguments
-	err := f((*arguments)(args))
-	if err != nil {
-		return err
-	}
+}
 
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.RefreshInterval <= 0 {
 		return fmt.Errorf("refresh_interval must be greater than 0")
 	}
