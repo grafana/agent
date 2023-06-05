@@ -20,6 +20,7 @@ func TestConfigValidate(t *testing.T) {
 			name: "valid",
 			getConfig: func() Config {
 				c := DefaultConfig
+				c.Address = "squid-service.sample-apps.svc.cluster.local:3128"
 				return c
 			},
 		},
@@ -39,7 +40,6 @@ func TestConfigValidate(t *testing.T) {
 				c.Address = "localhost:"
 				return c
 			},
-			expectedErr: errNoPort,
 		},
 		{
 			name: "no empty config",

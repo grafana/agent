@@ -9,7 +9,7 @@ import (
 	se "github.com/boynux/squid-exporter/collector"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/prometheus/client_golang/prometheus"
+	config_util "github.com/prometheus/common/config"
 
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
@@ -23,16 +23,18 @@ var DefaultConfig = Config{
 }
 
 var (
+	// default squid port
+	defaultPort = 3128
+
 	errNoAddress  = errors.New("no address was provided")
 	errNoHostname = errors.New("no hostname in provided address")
-	errNoPort     = errors.New("no port in provided address")
 )
 
 // Config is the configuration for the squid integration
 type Config struct {
-	Address  string `yaml:"address"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Address  string             `yaml:"address"`
+	Username string             `yaml:"username"`
+	Password config_util.Secret `yaml:"password"`
 	Host     string
 	Port     int
 }
@@ -42,7 +44,7 @@ func (c *Config) validate() error {
 		return errNoAddress
 	}
 
-	host, scheme, err := net.SplitHostPort(c.Address)
+	host, port, err := net.SplitHostPort(c.Address)
 	if err != nil {
 		return err
 	}
@@ -52,14 +54,19 @@ func (c *Config) validate() error {
 	}
 	c.Host = host
 
-	if scheme == "" {
-		return errNoPort
+	// if user does not provide a port # for the address, the default
+	// squid port will be supplemented.
+	if port == "" {
+		c.Port = defaultPort
+		return nil
 	}
 
-	port, _ := strconv.Atoi(scheme)
-	c.Port = port
-
-	return nil
+	if sp, err := strconv.Atoi(port); err != nil {
+		return err
+	} else {
+		c.Port = sp
+		return nil
+	}
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -81,7 +88,7 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 }
 
 // NewIntegration returns the Squid Exporter Integration
-func (c *Config) NewIntegration(_ log.Logger) (integrations.Integration, error) {
+func (c *Config) NewIntegration(log log.Logger) (integrations.Integration, error) {
 	return New(c)
 }
 
@@ -102,10 +109,8 @@ func New(c *Config) (integrations.Integration, error) {
 		Hostname: c.Host,
 		Port:     c.Port,
 		Login:    c.Username,
-		Password: c.Password,
+		Password: string(c.Password),
 	})
-
-	prometheus.MustRegister(seExporter)
 
 	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(seExporter)), nil
 }
