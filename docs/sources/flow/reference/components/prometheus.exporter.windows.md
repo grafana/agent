@@ -32,10 +32,10 @@ prometheus.exporter.windows "LABEL" {
 The following arguments can be used to configure the exporter's behavior.
 All arguments are optional. Omitted fields take their default values.
 
-| Name                 | Type       | Description                               | Default | Required |
-|----------------------|------------|-------------------------------------------|---------|----------|
-| `enabled_collectors` | `string`   | List of collectors to enable.             |         | no       |
-| `timeout`            | `duration` | Configure timeout for collecting metrics. | `4m`    | no       |
+| Name                 | Type             | Description                               | Default | Required |
+|----------------------|------------------|-------------------------------------------|---------|----------|
+| `enabled_collectors` | `list(string)`   | List of collectors to enable.             | `["cpu","cs","logical_disk","net","os","service","system"]` | no       |
+| `timeout`            | `duration`       | Configure timeout for collecting metrics. | `4m`    | no       |
 
 `enabled_collectors` defines a hand-picked list of enabled-by-default
 collectors. If set, anything not provided in that list is disabled by
@@ -49,7 +49,7 @@ The following blocks are supported inside the definition of
 Hierarchy      | Name               | Description                              | Required
 ---------------|--------------------|------------------------------------------|----------
 dfsr           | [dfsr][]           | Configures the iis collector.            | no       
-exchange       | [exchange][]       | Configures the exchange collector.        | no
+exchange       | [exchange][]       | Configures the exchange collector.       | no
 iis            | [iis][]            | Configures the iis collector.            | no
 logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no       
 msmq           | [msmq][]           | Configures the msmq collector.           | no
@@ -77,13 +77,13 @@ text_file      | [text_file][]      | Configures the text_file collector.      |
 ### dfsr block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`source_enabled` | `list(string)` | Comma-seperated list of DFSR Perflib sources to use. | `["connection","folder","volume"]` | no
+`source_enabled` | `list(string)` | Comma-separated list of DFSR Perflib sources to use. | `["connection","folder","volume"]` | no
 
 
 ### exchange block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`enabled_list` | `list(string)` | Comma-separated list of collectors to use. | `["cpu", "cs", "logical_disk", "net", "os", "service", "system"]` | no
+`enabled_list` | `string` | Comma-separated list of collectors to use. | `""` | no
 
 The collectors specified by `enabled_list` can include the following:
 
