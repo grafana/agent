@@ -13,6 +13,10 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 )
 
+const (
+	LabelNameDelta = "__delta__"
+)
+
 var deltaProfiles map[string][]fastdelta.ValueType = map[string][]fastdelta.ValueType{
 	pprofMemory: {
 		{Type: "alloc_objects", Unit: "count"},
@@ -54,6 +58,9 @@ type deltaAppender struct {
 	buf bytes.Buffer
 	gzr gzip.Reader
 	gzw *gzip.Writer
+
+	// true if we have seen at least one sample
+	initialized bool
 }
 
 func (d *deltaAppender) reset() {
@@ -61,13 +68,21 @@ func (d *deltaAppender) reset() {
 	d.gzw.Reset(&d.buf)
 }
 
-func (d *deltaAppender) Append(ctx context.Context, labels labels.Labels, samples []*pyroscope.RawSample) error {
+func (d *deltaAppender) Append(ctx context.Context, lbs labels.Labels, samples []*pyroscope.RawSample) error {
+	// Notify the server that this profile is a delta profile and we don't need to compute the delta again.
+	lbsBuilder := labels.NewBuilder(lbs)
+	lbsBuilder.Set(LabelNameDelta, "false")
 	for _, sample := range samples {
 		data, err := d.computeDelta(sample.RawProfile)
 		if err != nil {
 			return err
 		}
-		if err := d.appender.Append(ctx, labels, []*pyroscope.RawSample{{RawProfile: data}}); err != nil {
+		// The first sample should be skipped because we don't have a previous sample to compute delta with.
+		if !d.initialized {
+			d.initialized = true
+			continue
+		}
+		if err := d.appender.Append(ctx, lbsBuilder.Labels(nil), []*pyroscope.RawSample{{RawProfile: data}}); err != nil {
 			return err
 		}
 	}
