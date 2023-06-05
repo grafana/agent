@@ -83,7 +83,7 @@ Name | Type     | Description | Default | Required
 ### exchange block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`enabled_list` | `string` | Comma-separated list of collectors to use. | `[]` | no
+`enabled_list` | `string` | Comma-separated list of collectors to use. | `""` | no
 
 The collectors specified by `enabled_list` can include the following:
 
