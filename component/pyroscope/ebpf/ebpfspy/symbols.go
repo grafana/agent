@@ -10,32 +10,30 @@ import (
 	"os"
 
 	"github.com/go-kit/log"
-	symtab2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
-	"github.com/pyroscope-io/pyroscope/pkg/util/genericlru"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
+	lru "github.com/hashicorp/golang-lru/v2"
 )
 
 type symbolCacheEntry struct {
-	symbolTable symtab2.SymbolTable
+	symbolTable symtab.SymbolTable
 	roundNumber int
 }
 type pidKey uint32
 
 type symbolCache struct {
-	pid2Cache *genericlru.GenericLRU[pidKey, symbolCacheEntry]
-	kallsyms  symbolCacheEntry
-	elfCache  *symtab2.ElfCache
-	logger    log.Logger
+	pidCache *lru.Cache[pidKey, *symbolCacheEntry]
+	elfCache *symtab.ElfCache
+	kallsyms symbolCacheEntry
+	logger   log.Logger
 }
 
 func newSymbolCache(logger log.Logger, pidCacheSize int, elfCacheSize int) (*symbolCache, error) {
-	pid2Cache, err := genericlru.NewGenericLRU[pidKey, symbolCacheEntry](pidCacheSize, func(pid pidKey, e *symbolCacheEntry) {
-
-	})
+	pid2Cache, err := lru.New[pidKey, *symbolCacheEntry](pidCacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("create pid symbol cache %w", err)
 	}
 
-	elfCache, err := symtab2.NewElfCache(elfCacheSize)
+	elfCache, err := symtab.NewElfCache(elfCacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("create elf cache %w", err)
 	}
@@ -44,19 +42,19 @@ func newSymbolCache(logger log.Logger, pidCacheSize int, elfCacheSize int) (*sym
 	if err != nil {
 		return nil, fmt.Errorf("read kallsyms %w", err)
 	}
-	kallsyms, err := symtab2.NewKallsyms(kallsymsData)
+	kallsyms, err := symtab.NewKallsyms(kallsymsData)
 	if err != nil {
 		return nil, fmt.Errorf("create kallsyms %w ", err)
 	}
 	return &symbolCache{
-		logger:    logger,
-		pid2Cache: pid2Cache,
-		kallsyms:  symbolCacheEntry{symbolTable: kallsyms},
-		elfCache:  elfCache,
+		logger:   logger,
+		pidCache: pid2Cache,
+		kallsyms: symbolCacheEntry{symbolTable: kallsyms},
+		elfCache: elfCache,
 	}, nil
 }
 
-func (sc *symbolCache) resolve(pid uint32, addr uint64, roundNumber int) *symtab2.Symbol {
+func (sc *symbolCache) resolve(pid uint32, addr uint64, roundNumber int) *symtab.Symbol {
 	e := sc.getOrCreateCacheEntry(pidKey(pid))
 	staleCheck := false
 	if roundNumber != e.roundNumber {
@@ -74,18 +72,23 @@ func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
 		return &sc.kallsyms
 	}
 
-	if cache, ok := sc.pid2Cache.Get(pid); ok {
+	if cache, ok := sc.pidCache.Get(pid); ok {
 		return cache
 	}
 
-	symbolTable := symtab2.NewProcTable(sc.logger, symtab2.ProcTableOptions{
+	symbolTable := symtab.NewProcTable(sc.logger, symtab.ProcTableOptions{
 		Pid: int(pid),
-		ElfTableOptions: symtab2.ElfTableOptions{
+		ElfTableOptions: symtab.ElfTableOptions{
 			UseDebugFiles: true,
 			ElfCache:      sc.elfCache,
 		},
 	})
 	e := &symbolCacheEntry{symbolTable: symbolTable}
-	sc.pid2Cache.Add(pid, e)
+	sc.pidCache.Add(pid, e)
 	return e
+}
+
+func (sc *symbolCache) resize(pidCacheSize int, elfCacheSize int) {
+	sc.pidCache.Resize(pidCacheSize)
+	sc.elfCache.Resize(elfCacheSize)
 }

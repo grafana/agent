@@ -2,10 +2,12 @@ package sd
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 
@@ -69,25 +71,30 @@ type containerID string
 type TargetFinder struct {
 	l          log.Logger
 	cid2target map[containerID]*Target
-	// todo make it configurable lru
-	pid2cid       map[uint32]containerID
-	defaultTarget *Target
+
+	containerIDCache *lru.Cache[uint32, containerID]
+	defaultTarget    *Target
 }
 
-func NewTargetFinder(l log.Logger) *TargetFinder {
-	return &TargetFinder{
-		l:       l,
-		pid2cid: make(map[uint32]containerID),
+func NewTargetFinder(l log.Logger, containerIdCacheSize int) (*TargetFinder, error) {
+	containerIDCache, err := lru.New[uint32, containerID](containerIdCacheSize)
+	if err != nil {
+		return nil, fmt.Errorf("containerIDCache create: %w", err)
 	}
+	return &TargetFinder{
+		l:                l,
+		containerIDCache: containerIDCache,
+	}, nil
 }
 
-type Options struct {
-	Targets       []discovery.Target
-	TargetsOnly   bool
-	DefaultTarget discovery.Target
+type TargetsOptions struct {
+	Targets            []discovery.Target
+	TargetsOnly        bool
+	DefaultTarget      discovery.Target
+	ContainerCacheSize int
 }
 
-func (s *TargetFinder) SetTargets(opts Options) {
+func (s *TargetFinder) SetTargets(opts TargetsOptions) {
 	_ = level.Debug(s.l).Log("msg", "set targets", "count", len(opts.Targets))
 	containerID2Target := make(map[containerID]*Target)
 	for _, target := range opts.Targets {
@@ -102,7 +109,7 @@ func (s *TargetFinder) SetTargets(opts Options) {
 				)
 				continue
 			}
-			_ = level.Debug(s.l).Log("created target", t.labels.String())
+			//_ = level.Debug(s.l).Log("created target", t.labels.String())
 			containerID2Target[cid] = t
 		}
 	}
@@ -137,16 +144,18 @@ func (s *TargetFinder) FindTarget(pid uint32) *Target {
 }
 
 func (s *TargetFinder) findTarget(pid uint32) *Target {
-	cid, ok := s.pid2cid[pid]
+	cid, ok := s.containerIDCache.Get(pid)
 	if ok && cid != "" {
 		return s.cid2target[cid]
 	}
-	if len(s.pid2cid) > 1024 { // todo make it configurable lru
-		s.pid2cid = make(map[uint32]containerID)
-	}
+
 	cid = getContainerIDFromPID(pid)
-	s.pid2cid[pid] = cid
+	s.containerIDCache.Add(pid, cid)
 	return s.cid2target[cid]
+}
+
+func (s *TargetFinder) ResizeContainerIDCache(size int) {
+	s.containerIDCache.Resize(size)
 }
 
 func containerIDFromTarget(target discovery.Target) containerID {

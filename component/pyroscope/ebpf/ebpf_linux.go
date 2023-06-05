@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/agent/component/pyroscope"
 	ebpfspy2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
-
 	"github.com/oklog/run"
 )
 
@@ -31,12 +30,15 @@ func init() {
 
 func New(o component.Options, args Arguments) (component.Component, error) {
 	flowAppendable := pyroscope.NewFanout(args.ForwardTo, o.ID, o.Registerer)
-	tf := sd.NewTargetFinder(o.Logger)
+	tf, err := sd.NewTargetFinder(o.Logger, args.ContainerIDCacheSize)
+	if err != nil {
+		return nil, fmt.Errorf("target finder create: %w", err)
+	}
 
 	session, err := ebpfspy2.NewSession(
 		o.Logger,
 		tf,
-		uint32(args.SampleRate),
+		args.SampleRate,
 		args.PidCacheSize,
 		args.ElfCacheSize,
 	)
@@ -56,16 +58,15 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 }
 
 type Arguments struct {
-	ForwardTo       []pyroscope.Appendable `river:"forward_to,attr"`
-	Targets         []discovery.Target     `river:"targets,attr,optional"`
-	DefaultTarget   discovery.Target       `river:"default_target,attr,optional"`
-	KubernetesNode  string                 `river:"kubernetes_node,attr,optional"`
-	TargetsOnly     bool                   `river:"targets_only,attr,optional"`
-	ServiceName     string                 `river:"service_name,attr,optional"`
-	CollectInterval time.Duration          `river:"collect_interval,attr,optional"`
-	SampleRate      int                    `river:"sample_rate,attr,optional"`
-	PidCacheSize    int                    `river:"pid_cache_size,attr,optional"`
-	ElfCacheSize    int                    `river:"elf_cache_size,attr,optional"`
+	ForwardTo            []pyroscope.Appendable `river:"forward_to,attr"`
+	Targets              []discovery.Target     `river:"targets,attr,optional"`
+	DefaultTarget        discovery.Target       `river:"default_target,attr,optional"`
+	TargetsOnly          bool                   `river:"targets_only,attr,optional"`
+	CollectInterval      time.Duration          `river:"collect_interval,attr,optional"`
+	SampleRate           int                    `river:"sample_rate,attr,optional"`
+	PidCacheSize         int                    `river:"pid_cache_size,attr,optional"`
+	ElfCacheSize         int                    `river:"elf_cache_size,attr,optional"`
+	ContainerIDCacheSize int                    `river:"container_id_cache_size,attr,optional"`
 }
 
 func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
@@ -76,11 +77,12 @@ func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 
 func defaultArguments() Arguments {
 	return Arguments{
-		CollectInterval: 10 * time.Second,
-		SampleRate:      100,
-		PidCacheSize:    64,
-		ElfCacheSize:    128,
-		TargetsOnly:     false,
+		CollectInterval:      10 * time.Second,
+		SampleRate:           100,
+		PidCacheSize:         32,
+		ContainerIDCacheSize: 64,
+		ElfCacheSize:         128,
+		TargetsOnly:          true,
 	}
 }
 
@@ -110,20 +112,17 @@ func (c *Component) Run(ctx context.Context) error {
 			case <-ctx.Done():
 				return nil
 			case newArgs := <-c.argsUpdate:
-				level.Debug(c.options.Logger).Log("msg", "args update ")
 				c.args = newArgs
 				c.updateTargetFinder()
+				c.session.UpdateCacheSizes(c.args.PidCacheSize, c.args.ElfCacheSize)
+				c.session.UpdateSampleRate(c.args.SampleRate)
 				c.appendable.UpdateChildren(newArgs.ForwardTo)
 				if c.args.CollectInterval != collectInterval {
-					level.Debug(c.options.Logger).Log("msg", "reset timer to ", c.args.CollectInterval)
 					t.Reset(c.args.CollectInterval)
 					collectInterval = c.args.CollectInterval
 				}
-				level.Debug(c.options.Logger).Log("msg", "args update done")
 			case <-t.C:
-				level.Debug(c.options.Logger).Log("msg", "reset")
 				err := c.reset()
-				level.Debug(c.options.Logger).Log("msg", "reset done")
 				if err != nil {
 					return err
 				}
@@ -136,11 +135,12 @@ func (c *Component) Run(ctx context.Context) error {
 }
 
 func (c *Component) updateTargetFinder() {
-	c.targetFinder.SetTargets(sd.Options{
+	c.targetFinder.SetTargets(sd.TargetsOptions{
 		Targets:       c.args.Targets,
 		DefaultTarget: c.args.DefaultTarget,
 		TargetsOnly:   c.args.TargetsOnly,
 	})
+	c.targetFinder.ResizeContainerIDCache(c.args.ContainerIDCacheSize)
 }
 
 func (c *Component) Update(args component.Arguments) error {
@@ -152,23 +152,15 @@ func (c *Component) Update(args component.Arguments) error {
 func (c *Component) reset() error {
 	args := c.args
 	builders := ebpfspy2.NewProfileBuilders(args.SampleRate)
-	cnt := 0
-	err := c.session.Reset(func(target *sd.Target, stack []string, value uint64, pid uint32) error {
-		cnt++
+	err := c.session.Reset(func(target *sd.Target, stack []string, value uint64, pid uint32) {
 		labelsHash, labels := target.Labels()
 		builder := builders.BuilderForTarget(labelsHash, labels)
 		builder.AddSample(stack, value)
-		return nil
 	})
-	level.Debug(c.options.Logger).Log("msg", "ebpf session reset done, building pprofs...", "cnt", cnt)
 	if err != nil {
 		return fmt.Errorf("ebpf session reset %w", err)
 	}
 	for _, builder := range builders.Builders {
-		level.Debug(c.options.Logger).Log(
-			"msg", "ppof building",
-			"target", builder.Labels.String(),
-		)
 		var buf bytes.Buffer
 		err := builder.Profile.Write(&buf)
 		if err != nil {
@@ -176,20 +168,10 @@ func (c *Component) reset() error {
 		}
 		appender := c.appendable.Appender()
 		samples := []*pyroscope.RawSample{{RawProfile: buf.Bytes()}}
-		level.Debug(c.options.Logger).Log(
-			"msg", "ppof append",
-			"target", builder.Labels.String(),
-			"pprof", buf.Len(),
-			"samples", len(builder.Profile.Sample),
-		)
 		err = appender.Append(context.Background(), builder.Labels, samples)
-		level.Debug(c.options.Logger).Log(
-			"msg", "ppof appended",
-			"target", builder.Labels.String(),
-			"res", err,
-		)
 		if err != nil {
-			return fmt.Errorf("ebpf profile write %w", err)
+			level.Error(c.options.Logger).Log("msg", "ebpf pprof write", "err", err)
+			continue
 		}
 	}
 	return nil

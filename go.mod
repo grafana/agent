@@ -67,6 +67,7 @@ require (
 	github.com/hashicorp/go-discover v0.0.0-20220105235006-b95dfa40aaed
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.6.0
+	github.com/hashicorp/golang-lru/v2 v2.0.2
 	github.com/hashicorp/vault/api v1.7.2
 	github.com/hashicorp/vault/api/auth/approle v0.2.0
 	github.com/hashicorp/vault/api/auth/aws v0.2.0
@@ -203,6 +204,7 @@ require (
 require (
 	github.com/cilium/ebpf v0.9.3
 	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b
+	github.com/klauspost/compress v1.15.15
 	github.com/pyroscope-io/pyroscope v0.37.2
 )
 
@@ -434,7 +436,6 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
-	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/knadh/koanf v1.4.4 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20220921171641-a4b6fa1dd06b // indirect
 	github.com/krallistic/kazoo-go v0.0.0-20170526135507-a15279744f4e // indirect

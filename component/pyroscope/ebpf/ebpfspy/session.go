@@ -10,7 +10,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"reflect"
-	"sync"
 	"unsafe"
 
 	"github.com/cilium/ebpf"
@@ -25,12 +24,11 @@ import (
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang -cflags "-O2 -Wall -fpie -Wno-unused-variable -Wno-unused-function" profile bpf/profile.bpf.c -- -I./bpf/libbpf -I./bpf/vmlinux/
 
 type Session struct {
-	logger           log.Logger
-	pid              int
-	sampleRate       uint32
-	pidCacheSize     int
-	elfCacheSize     int
-	serviceDiscovery *sd.TargetFinder
+	logger     log.Logger
+	pid        int
+	sampleRate int
+
+	targetFinder *sd.TargetFinder
 
 	perfEvents []*perfEvent
 
@@ -38,15 +36,13 @@ type Session struct {
 
 	bpf profileObjects
 
-	modMutex sync.Mutex
-
 	roundNumber int
 }
 
 func NewSession(
 	logger log.Logger,
 	serviceDiscovery *sd.TargetFinder,
-	sampleRate uint32,
+	sampleRate int,
 	pidCacheSize int,
 	elfCacheSize int,
 ) (*Session, error) {
@@ -57,13 +53,11 @@ func NewSession(
 	}
 
 	return &Session{
-		logger:           logger,
-		pid:              -1,
-		symCache:         symCache,
-		sampleRate:       sampleRate,
-		pidCacheSize:     pidCacheSize,
-		elfCacheSize:     elfCacheSize,
-		serviceDiscovery: serviceDiscovery,
+		logger:       logger,
+		pid:          -1,
+		symCache:     symCache,
+		sampleRate:   sampleRate,
+		targetFinder: serviceDiscovery,
 	}, nil
 }
 
@@ -75,9 +69,6 @@ func (s *Session) Start() error {
 	}); err != nil {
 		return err
 	}
-
-	s.modMutex.Lock()
-	defer s.modMutex.Unlock()
 
 	opts := &ebpf.CollectionOptions{}
 	if err := loadProfileObjects(&s.bpf, opts); err != nil {
@@ -92,11 +83,8 @@ func (s *Session) Start() error {
 	return nil
 }
 
-func (s *Session) Reset(cb func(t *sd.Target, stack []string, value uint64, pid uint32) error) error {
+func (s *Session) Reset(cb func(t *sd.Target, stack []string, value uint64, pid uint32)) error {
 	level.Debug(s.logger).Log("msg", "ebpf session reset")
-	s.modMutex.Lock()
-	defer s.modMutex.Unlock()
-
 	s.roundNumber += 1
 
 	keys, values, batch, err := s.getCountsMapValues()
@@ -124,7 +112,7 @@ func (s *Session) Reset(cb func(t *sd.Target, stack []string, value uint64, pid 
 		if ck.KernStack >= 0 {
 			knownStacks[uint32(ck.KernStack)] = true
 		}
-		labels := s.serviceDiscovery.FindTarget(ck.Pid)
+		labels := s.targetFinder.FindTarget(ck.Pid)
 		if labels == nil {
 			continue
 		}
@@ -147,10 +135,7 @@ func (s *Session) Reset(cb func(t *sd.Target, stack []string, value uint64, pid 
 		s.walkStack(&sb, it.uStack, it.pid)
 		s.walkStack(&sb, it.kStack, 0)
 		reverse(sb.stack)
-		err = cb(it.labels, sb.stack, uint64(it.count), it.pid)
-		if err != nil {
-			return err
-		}
+		cb(it.labels, sb.stack, uint64(it.count), it.pid)
 	}
 	if err = s.clearCountsMap(keys, batch); err != nil {
 		return fmt.Errorf("clear counts map %w", err)
@@ -165,6 +150,7 @@ func (s *Session) Stop() {
 	for _, pe := range s.perfEvents {
 		_ = pe.Close()
 	}
+	s.perfEvents = nil
 	s.bpf.Close()
 }
 
@@ -240,6 +226,25 @@ func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 	for _, s := range stackFrames {
 		sb.append(s)
 	}
+}
+
+func (s *Session) UpdateCacheSizes(
+	pidCacheSize int,
+	elfCacheSize int) {
+	s.symCache.resize(pidCacheSize, elfCacheSize)
+}
+
+func (s *Session) UpdateSampleRate(sampleRate int) error {
+	if s.sampleRate == sampleRate {
+		return nil
+	}
+	s.Stop()
+	err := s.Start()
+	if err != nil {
+		return err
+	}
+	s.sampleRate = sampleRate
+	return nil
 }
 
 func reverse(s []string) {

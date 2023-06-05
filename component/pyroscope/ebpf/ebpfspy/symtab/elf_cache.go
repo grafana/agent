@@ -1,10 +1,12 @@
 package symtab
 
-import "github.com/pyroscope-io/pyroscope/pkg/util/genericlru"
+import (
+	lru "github.com/hashicorp/golang-lru/v2"
+)
 
 type ElfCache struct {
-	buildID2Symbols *genericlru.GenericLRU[string, elfCacheEntry]
-	stat2Symbols    *genericlru.GenericLRU[stat, elfCacheEntry]
+	buildID2Symbols *lru.Cache[string, *elfCacheEntry]
+	stat2Symbols    *lru.Cache[stat, *elfCacheEntry]
 }
 
 type elfCacheEntry struct {
@@ -12,11 +14,11 @@ type elfCacheEntry struct {
 }
 
 func NewElfCache(sz int) (*ElfCache, error) {
-	buildID2Symbols, err := genericlru.NewGenericLRU[string, elfCacheEntry](sz, func(k string, v *elfCacheEntry) {})
+	buildID2Symbols, err := lru.New[string, *elfCacheEntry](sz)
 	if err != nil {
 		return nil, err
 	}
-	stat2Symbols, err := genericlru.NewGenericLRU[stat, elfCacheEntry](sz, func(k stat, v *elfCacheEntry) {})
+	stat2Symbols, err := lru.New[stat, *elfCacheEntry](sz)
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +62,11 @@ func (e *ElfCache) CacheByStat(s stat, symbols []Symbol) {
 		return
 	}
 	e.stat2Symbols.Add(s, &elfCacheEntry{symbols: symbols})
+}
+
+func (e *ElfCache) Resize(size int) {
+	e.stat2Symbols.Resize(size)
+	e.buildID2Symbols.Resize(size)
 }
 
 func (s *stat) isNil() bool {
