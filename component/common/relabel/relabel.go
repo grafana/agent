@@ -2,6 +2,7 @@ package relabel
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/grafana/regexp"
 	"github.com/prometheus/common/model"
@@ -118,17 +119,20 @@ var DefaultRelabelConfig = Config{
 	Replacement: "$1",
 }
 
+// SetToDefault implements river.Defaulter.
+func (c *Config) SetToDefault() {
+	*c = Config{
+		Action:      Replace,
+		Separator:   ";",
+		Regex:       mustNewRegexp("(.*)"),
+		Replacement: "$1",
+	}
+}
+
 var relabelTarget = regexp.MustCompile(`^(?:(?:[a-zA-Z_]|\$(?:\{\w+\}|\w+))+\w*)+$`)
 
 // UnmarshalRiver implements river.Unmarshaler.
-func (rc *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*rc = DefaultRelabelConfig
-
-	type relabelConfig Config
-	if err := f((*relabelConfig)(rc)); err != nil {
-		return err
-	}
-
+func (rc *Config) Validate() error {
 	if rc.Action == "" {
 		return fmt.Errorf("relabel action cannot be empty")
 	}
@@ -166,7 +170,7 @@ func (rc *Config) UnmarshalRiver(f func(interface{}) error) error {
 	}
 
 	if rc.Action == KeepEqual || rc.Action == DropEqual {
-		if rc.Regex != DefaultRelabelConfig.Regex ||
+		if !reflect.DeepEqual(*rc.Regex.Regexp, *DefaultRelabelConfig.Regex.Regexp) ||
 			rc.Modulus != DefaultRelabelConfig.Modulus ||
 			rc.Separator != DefaultRelabelConfig.Separator ||
 			rc.Replacement != DefaultRelabelConfig.Replacement {

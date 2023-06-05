@@ -75,6 +75,8 @@ func TestParseConfig(t *testing.T) {
 			t.Parallel()
 			var cfg Config
 			err := river.Unmarshal([]byte(tt.cfg), &cfg)
+			cfg.SetToDefault()
+			cfg.Validate()
 			if tt.expectErr {
 				require.Error(t, err)
 			} else {

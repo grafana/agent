@@ -66,15 +66,11 @@ prometheus.scrape "prometheus1" {
 	job_name        = "prometheus1"
 	scrape_interval = "10s"
 	scrape_timeout  = "5s"
-	metrics_path    = "/metrics"
-	scheme          = "http"
 
 	basic_auth {
 		username = "user"
 		password = "pass"
 	}
-	follow_redirects = true
-	enable_http2     = true
 }
 
 prometheus.relabel "prometheus2" {
@@ -82,20 +78,14 @@ prometheus.relabel "prometheus2" {
 
 	rule {
 		source_labels = ["__address1__"]
-		separator     = ";"
 		regex         = "^(?:(.*))$"
 		target_label  = "__param_target1"
-		replacement   = "$1"
-		action        = "replace"
 	}
 
 	rule {
 		source_labels = ["__address2__"]
-		separator     = ";"
 		regex         = "^(?:(.*))$"
 		target_label  = "__param_target2"
-		replacement   = "$1"
-		action        = "replace"
 	}
 }
 
@@ -103,13 +93,6 @@ prometheus.scrape "prometheus2" {
 	targets = [{
 		__address__ = "localhost:9091",
 	}]
-	forward_to       = [prometheus.relabel.prometheus2.receiver]
-	job_name         = "prometheus2"
-	honor_timestamps = true
-	scrape_interval  = "1m0s"
-	scrape_timeout   = "10s"
-	metrics_path     = "/metrics"
-	scheme           = "http"
-	follow_redirects = true
-	enable_http2     = true
+	forward_to = [prometheus.relabel.prometheus2.receiver]
+	job_name   = "prometheus2"
 }

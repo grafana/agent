@@ -11,6 +11,7 @@ import (
 
 	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
+	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/token"
 )
 
@@ -165,7 +166,96 @@ func (b *Body) encodeFields(rv reflect.Value) {
 		panic(fmt.Sprintf("river/token/builder: can only encode struct values to bodies, got %s", rv.Type()))
 	}
 
+	// var goRiverDefaulter = reflect.TypeOf((*value.Defaulter)(nil)).Elem()
+	// if rv.CanAddr() && rv.Addr().Type().Implements(goRiverDefaulter) {
+	// 	// rvType := rv.Addr().Type()
+	// 	// newRvPointer := reflect.New(rvType).Elem().Interface()
+	// 	// reflectRv := value.FromRaw(reflect.ValueOf(newRvPointer))
+	// 	// zeroValue := reflect.Zero(rvType)
+	// 	// newRvPointer.Elem().Set(zeroValue)
+	// 	// newRv := newRvPointer.Elem().Interface()
+	// 	// reflectRv := reflect.ValueOf(newRv)
+
+	// 	// rvType := rv.Addr().Type()
+	// 	// result := reflect.New(rvType).Elem().Interface()
+	// 	// input := reflect.New(rvType).Elem().Interface()
+
+	// 	// inputEnc := value.Encode(input)
+
+	// 	// var goRiverDefaulter = reflect.TypeOf((*value.Defaulter)(nil)).Elem()
+	// 	// if inputEnc.Type()(goRiverDefaulter) {
+	// 	// 	inputEnc.Interface().(value.Defaulter).SetToDefault()
+	// 	// }
+
+	// 	// value.Decode(inputEnc, &result)
+
+	// 	// fmt.Print("test")
+
+	// 	// var goRiverDefaulter = reflect.TypeOf((*value.Defaulter)(nil)).Elem()
+	// 	// if reflectRv.Type().Implements(goRiverDefaulter) {
+	// 	// 	reflectRv.Interface().(value.Defaulter).SetToDefault()
+	// 	// }
+
+	// 	// riverTypes.
+	// 	// 	reflectRv.Interface()
+	// 	// reflectRv.Elem().MapRange().Value()
+
+	// 	// if compareRu, ok := newRv.(*value.Defaulter); ok {
+	// 	// 	// compareRu.SetToDefault()
+	// 	// 	if reflect.DeepEqual(compareRu, rv.Addr()) {
+	// 	// 		return
+	// 	// 	}
+	// 	// }
+	// }
+
+	// var goRiverDefaulter = reflect.TypeOf((*value.Defaulter)(nil)).Elem()
+	// if rv.CanAddr() && rv.Addr().Type().Implements(goRiverDefaulter) {
+	// 	clone := rv
+	// 	clone.Addr().Interface().(value.Defaulter).SetToDefault()
+	// 	if reflect.DeepEqual(rv, clone) {
+	// 		return
+	// 	}
+	// }
+
 	fields := rivertags.Get(rv.Type())
+
+	var goRiverDefaulter = reflect.TypeOf((*value.Defaulter)(nil)).Elem()
+	if rv.CanAddr() && rv.Addr().Type().Implements(goRiverDefaulter) {
+		clone := reflect.New(rv.Type()).Elem()
+		clone.Set(rv)
+		clone.Addr().Interface().(value.Defaulter).SetToDefault()
+		// cloneUse := clone.Interface().(value.Defaulter)
+		// cloneUse.SetToDefault()
+
+		for _, field := range fields {
+			fieldVal := reflectutil.Get(rv, field)
+			fieldValDefault := reflectutil.Get(clone, field)
+
+			// if fieldVal.Comparable() && fieldValDefault.Comparable() && fieldVal.Interface() == fieldValDefault.Interface() {
+			if field.IsOptional() && fieldVal.Comparable() && fieldValDefault.Comparable() && fieldVal.Equal(fieldValDefault) {
+				continue
+			}
+
+			// var goRiverDefaulter = reflect.TypeOf((*value.Defaulter)(nil)).Elem()
+			// if fieldVal.CanAddr() && fieldVal.Addr().Type().Implements(goRiverDefaulter) {
+			// 	clone := fieldVal
+			// 	clone.Addr().Interface().(value.Defaulter).SetToDefault()
+			// 	if reflect.DeepEqual(fieldVal, clone) {
+			// 		continue
+			// 	}
+			// } else if fieldVal.Type().Implements(goRiverDefaulter) {
+			// 	clone := fieldVal
+			// 	clone.Interface().(value.Defaulter).SetToDefault()
+			// 	if reflect.DeepEqual(fieldVal, clone) {
+			// 		continue
+			// 	}
+			// }
+
+			b.encodeField(nil, field, fieldVal)
+		}
+
+		return
+	}
 
 	for _, field := range fields {
 		fieldVal := reflectutil.Get(rv, field)
