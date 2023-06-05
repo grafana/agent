@@ -2,6 +2,9 @@
 
 run:
   timeout: 5m
+  skip-dirs:
+    - component/pyroscope/scrape/fastdelta
+    - component/pyroscope/scrape/pproflite
 
 output:
   sort-results: true
