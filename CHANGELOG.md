@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
+
 v0.34.0-rc.1 (2023-06-02)
 --------------------
 
@@ -50,8 +54,8 @@ v0.34.0-rc.0 (2023-06-01)
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
   - `nonsensitive` converts a River secret back into a string. (@rfratto)
 
-
 ### Enhancements
+
 - Support to attach node metadata to pods and endpoints targets in
   `discovery.kubernetes`. (@laurovenancio)
 
@@ -119,7 +123,7 @@ v0.34.0-rc.0 (2023-06-01)
 
 - Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
 
-- Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr) 
+- Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr)
 
 ### Other changes
 
@@ -264,7 +268,6 @@ v0.33.0 (2023-04-25)
   - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
   - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other   `loki` components. (@akselleirv)
-
 
 - Add support for Flow-specific system packages:
 
