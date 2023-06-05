@@ -175,7 +175,6 @@ type scrapeLoop struct {
 }
 
 func newScrapeLoop(t *Target, scrapeClient *http.Client, appendable pyroscope.Appendable, interval, timeout time.Duration, logger log.Logger) *scrapeLoop {
-	// todo AppenderFor() should be called here
 	return &scrapeLoop{
 		Target:       t,
 		logger:       logger,
