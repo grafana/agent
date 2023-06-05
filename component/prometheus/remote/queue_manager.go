@@ -127,7 +127,7 @@ func NewQueueManager(
 }
 
 // AppendMetadata sends metadata the remote storage. Metadata is sent in batches, but is not parallelized.
-func (t *QueueManager) AppendMetadata(metadata []prometheus.Metadata) {
+func (t *QueueManager) AppendMetadata(metadata []prometheus.Metadata) bool {
 	mm := make([]prompb.MetricMetadata, 0, len(metadata))
 	for _, entry := range metadata {
 		mm = append(mm, prompb.MetricMetadata{
@@ -153,6 +153,7 @@ func (t *QueueManager) AppendMetadata(metadata []prometheus.Metadata) {
 			level.Error(t.logger).Log("msg", "non-recoverable error while sending metadata", "count", last-(i*t.mcfg.MaxSamplesPerSend), "err", err)
 		}
 	}
+	return true
 }
 
 func (t *QueueManager) sendMetadataWithBackoff(ctx context.Context, metadata []prompb.MetricMetadata, pBuf *proto.Buffer) error {
