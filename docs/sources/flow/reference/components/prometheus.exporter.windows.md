@@ -77,7 +77,7 @@ text_file      | [text_file][]      | Configures the text_file collector.      |
 ### dfsr block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`source_enabled` | `list(string)` | Comma-seperated list of DFSR Perflib sources to use. | `["connection","folder","volume"]` | no
+`source_enabled` | `list(string)` | Comma-separated list of DFSR Perflib sources to use. | `["connection","folder","volume"]` | no
 
 
 ### exchange block
