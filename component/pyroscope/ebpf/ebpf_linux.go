@@ -160,7 +160,7 @@ func (c *Component) reset() error {
 		builder.AddSample(stack, value)
 		return nil
 	})
-	level.Debug(c.options.Logger).Log("msg", "ebpf session reset done, building pprofs...")
+	level.Debug(c.options.Logger).Log("msg", "ebpf session reset done, building pprofs...", "cnt", cnt)
 	if err != nil {
 		return fmt.Errorf("ebpf session reset %w", err)
 	}
@@ -179,6 +179,8 @@ func (c *Component) reset() error {
 		level.Debug(c.options.Logger).Log(
 			"msg", "ppof append",
 			"target", builder.Labels.String(),
+			"pprof", buf.Len(),
+			"samples", len(builder.Profile.Sample),
 		)
 		err = appender.Append(context.Background(), builder.Labels, samples)
 		level.Debug(c.options.Logger).Log(
