@@ -20,7 +20,7 @@ The Grafana Agent developers and community are expected to follow the values def
 
 ## Projects
 
-Each project must have a [`MAINTAINERS.md`][maintainers] file with at least one maintainer. Where a project has a release process, access and documentation should be such that more than one person can perform a release. Where a project has a release process, access and documentation should be such that more than one person can perform a release. Releases should be announced on the [GitHub Discussions][discussions] page. Any new projects should be first proposed on the [team mailing list][team] following the voting procedures listed below.
+Each project must have a [`MAINTAINERS.md`][maintainers] file with at least one maintainer. Where a project has a release process, access and documentation should be such that more than one person can perform a release. Where a project has a release process, access and documentation should be such that more than one person can perform a release. Releases should be announced on the [Grafana Community][community] page. Any new projects should be first proposed on the [team mailing list][team] following the voting procedures listed below.
 
 ## Decision making
 
@@ -156,4 +156,4 @@ If needed, we reserve the right to publicly announce removal.
 [maintainers]: https://github.com/grafana/agent/blob/main/MAINTAINERS.md
 [rough]: https://tools.ietf.org/html/rfc7282
 [team]: https://groups.google.com/forum/#!forum/grafana-agent-team
-[discussions]: https://github.com/grafana/agent/discussions
+[community]: https://community.grafana.com/c/support/grafana-agent

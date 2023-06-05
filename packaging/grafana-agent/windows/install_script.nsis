@@ -5,7 +5,7 @@ Unicode true
 !define APPNAME "Grafana Agent"
 !define DESCRIPTION "The Grafana Agent collects observability data and sends it to a compatible remote write endpoint"
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
-!define HELPURL "https://github.com/grafana/agent/discussions" # "Support Information" link
+!define HELPURL "https://community.grafana.com/c/support/grafana-agent" # "Support Information" link
 !define UPDATEURL "https://github.com/grafana/agent/releases" # "Product Updates" link
 !define ABOUTURL "https://github.com/grafana/agent" # "Publisher" link
 
