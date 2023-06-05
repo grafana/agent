@@ -132,6 +132,10 @@ func (b *Body) AppendBlock(block *Block) {
 // Body. If any value reachable from goValue implements Tokenizer, the printed
 // tokens will instead be retrieved by calling the RiverTokenize method.
 //
+// Optional attributes and blocks may be trimmed. If the goValue implements
+// Defaulter, any values matching the defaults will be trimmed. If not, any
+// values matching the golang defaults will be trimmed.
+//
 // goValue must be a struct or a pointer to a struct that contains River struct
 // tags.
 func (b *Body) AppendFrom(goValue interface{}) {
@@ -167,29 +171,21 @@ func (b *Body) encodeFields(rv reflect.Value) {
 	}
 
 	fields := rivertags.Get(rv.Type())
+	clone := reflect.New(rv.Type()).Elem()
 
 	var goRiverDefaulter = reflect.TypeOf((*value.Defaulter)(nil)).Elem()
 	if rv.CanAddr() && rv.Addr().Type().Implements(goRiverDefaulter) {
-		clone := reflect.New(rv.Type()).Elem()
-		clone.Set(rv)
 		clone.Addr().Interface().(value.Defaulter).SetToDefault()
-
-		for _, field := range fields {
-			fieldVal := reflectutil.Get(rv, field)
-			fieldValDefault := reflectutil.Get(clone, field)
-
-			if field.IsOptional() && fieldVal.Comparable() && fieldValDefault.Comparable() && fieldVal.Equal(fieldValDefault) {
-				continue
-			}
-
-			b.encodeField(nil, field, fieldVal)
-		}
-
-		return
 	}
 
 	for _, field := range fields {
 		fieldVal := reflectutil.Get(rv, field)
+		fieldValDefault := reflectutil.Get(clone, field)
+
+		if field.IsOptional() && fieldVal.Comparable() && fieldVal.Equal(fieldValDefault) {
+			continue
+		}
+
 		b.encodeField(nil, field, fieldVal)
 	}
 }
