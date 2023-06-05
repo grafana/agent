@@ -26,7 +26,7 @@ type HTTPClientConfig struct {
 	EnableHTTP2     bool              `river:"enable_http2,attr,optional"`
 }
 
-// UnmarshalRiver implements the umarshaller
+// SetToDefault implements the river.Defaulter
 func (h *HTTPClientConfig) SetToDefault() {
 	*h = DefaultHTTPClientConfig
 }

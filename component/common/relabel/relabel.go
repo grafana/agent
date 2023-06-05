@@ -131,7 +131,7 @@ func (c *Config) SetToDefault() {
 
 var relabelTarget = regexp.MustCompile(`^(?:(?:[a-zA-Z_]|\$(?:\{\w+\}|\w+))+\w*)+$`)
 
-// UnmarshalRiver implements river.Unmarshaler.
+// Validate implements river.Validator.
 func (rc *Config) Validate() error {
 	if rc.Action == "" {
 		return fmt.Errorf("relabel action cannot be empty")

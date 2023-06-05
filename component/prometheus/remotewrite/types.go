@@ -54,7 +54,7 @@ type Arguments struct {
 	WALOptions     WALOptions         `river:"wal,block,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
+// SetToDefault implements river.Defaulter.
 func (rc *Arguments) SetToDefault() {
 	*rc = DefaultArguments
 }
