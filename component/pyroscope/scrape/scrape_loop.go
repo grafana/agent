@@ -164,7 +164,7 @@ type scrapeLoop struct {
 	lastScrapeSize int
 
 	scrapeClient *http.Client
-	appendable   pyroscope.Appendable
+	appender     pyroscope.Appender
 
 	req               *http.Request
 	logger            log.Logger
@@ -175,11 +175,12 @@ type scrapeLoop struct {
 }
 
 func newScrapeLoop(t *Target, scrapeClient *http.Client, appendable pyroscope.Appendable, interval, timeout time.Duration, logger log.Logger) *scrapeLoop {
+	// todo AppenderFor() should be called here
 	return &scrapeLoop{
 		Target:       t,
 		logger:       logger,
 		scrapeClient: scrapeClient,
-		appendable:   appendable,
+		appender:     NewDeltaAppender(appendable.Appender(), t.labels),
 		interval:     interval,
 		timeout:      timeout,
 	}
@@ -238,7 +239,7 @@ func (t *scrapeLoop) scrape() {
 	if len(b) > 0 {
 		t.lastScrapeSize = len(b)
 	}
-	if err := t.appendable.Appender().Append(context.Background(), t.labels, []*pyroscope.RawSample{{RawProfile: b}}); err != nil {
+	if err := t.appender.Append(context.Background(), t.labels, []*pyroscope.RawSample{{RawProfile: b}}); err != nil {
 		level.Error(t.logger).Log("msg", "push failed", "labels", t.Labels().String(), "err", err)
 		t.updateTargetStatus(start, err)
 		return
