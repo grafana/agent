@@ -73,6 +73,7 @@ type EndpointOptions struct {
 	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
 }
 
+// SetToDefault implements river.Defaulter.
 func (r *EndpointOptions) SetToDefault() {
 	*r = EndpointOptions{
 		RemoteTimeout:    30 * time.Second,
@@ -81,7 +82,7 @@ func (r *EndpointOptions) SetToDefault() {
 	}
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
+// Validate implements river.Validator.
 func (r *EndpointOptions) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	if r.HTTPClientConfig != nil {
@@ -103,7 +104,7 @@ type QueueOptions struct {
 	RetryOnHTTP429    bool          `river:"retry_on_http_429,attr,optional"`
 }
 
-// UnmarshalRiver allows injecting of default values
+// SetToDefault implements river.Defaulter.
 func (r *QueueOptions) SetToDefault() {
 	*r = DefaultQueueOptions
 }
@@ -133,7 +134,7 @@ type MetadataOptions struct {
 	MaxSamplesPerSend int           `river:"max_samples_per_send,attr,optional"`
 }
 
-// SetToDefault allows injecting of default values
+// SetToDefault implements river.Defaulter.
 func (o *MetadataOptions) SetToDefault() {
 	*o = DefaultMetadataOptions
 }
@@ -157,12 +158,12 @@ type WALOptions struct {
 	MaxKeepaliveTime  time.Duration `river:"max_keepalive_time,attr,optional"`
 }
 
-// SetToDefault allows injecting of default values
+// SetToDefault implements river.Defaulter.
 func (o *WALOptions) SetToDefault() {
 	*o = DefaultWALOptions
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
+// Validate implements river.Validator.
 func (o *WALOptions) Validate() error {
 	switch {
 	case o.TruncateFrequency == 0:
