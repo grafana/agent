@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
-	ebpfspy2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
+	ebpfspy "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
 	"github.com/oklog/run"
 )
@@ -35,12 +35,18 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 		return nil, fmt.Errorf("target finder create: %w", err)
 	}
 
-	session, err := ebpfspy2.NewSession(
+	session, err := ebpfspy.NewSession(
 		o.Logger,
 		tf,
 		args.SampleRate,
-		args.PidCacheSize,
-		args.ElfCacheSize,
+		ebpfspy.CacheOptions{
+			PidCacheSize: args.PidCacheSize,
+			ElfCacheSize: args.ElfCacheSize,
+		},
+		ebpfspy.ProfileOptions{
+			CollectUser:   args.CollectUserProfile,
+			CollectKernel: args.CollectKernelProfile,
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("ebpf session create: %w", err)
@@ -67,6 +73,8 @@ type Arguments struct {
 	PidCacheSize         int                    `river:"pid_cache_size,attr,optional"`
 	ElfCacheSize         int                    `river:"elf_cache_size,attr,optional"`
 	ContainerIDCacheSize int                    `river:"container_id_cache_size,attr,optional"`
+	CollectUserProfile   bool                   `river:"collect_user_profile,attr,optional"`
+	CollectKernelProfile bool                   `river:"collect_kernel_profile,attr,optional"`
 }
 
 func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
@@ -83,6 +91,8 @@ func defaultArguments() Arguments {
 		ContainerIDCacheSize: 64,
 		ElfCacheSize:         128,
 		TargetsOnly:          true,
+		CollectUserProfile:   true,
+		CollectKernelProfile: true,
 	}
 }
 
@@ -92,7 +102,7 @@ type Component struct {
 	argsUpdate   chan Arguments
 	appendable   *pyroscope.Fanout
 	targetFinder *sd.TargetFinder
-	session      *ebpfspy2.Session
+	session      *ebpfspy.Session
 }
 
 func (c *Component) Run(ctx context.Context) error {
@@ -114,8 +124,14 @@ func (c *Component) Run(ctx context.Context) error {
 			case newArgs := <-c.argsUpdate:
 				c.args = newArgs
 				c.updateTargetFinder()
-				c.session.UpdateCacheSizes(c.args.PidCacheSize, c.args.ElfCacheSize)
-				c.session.UpdateSampleRate(c.args.SampleRate)
+				c.session.UpdateCacheOptions(ebpfspy.CacheOptions{
+					PidCacheSize: c.args.PidCacheSize,
+					ElfCacheSize: c.args.ElfCacheSize,
+				})
+				err := c.session.UpdateSampleRate(c.args.SampleRate)
+				if err != nil {
+					return nil
+				}
 				c.appendable.UpdateChildren(newArgs.ForwardTo)
 				if c.args.CollectInterval != collectInterval {
 					t.Reset(c.args.CollectInterval)
@@ -151,7 +167,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 func (c *Component) reset() error {
 	args := c.args
-	builders := ebpfspy2.NewProfileBuilders(args.SampleRate)
+	builders := ebpfspy.NewProfileBuilders(args.SampleRate)
 	err := c.session.Reset(func(target *sd.Target, stack []string, value uint64, pid uint32) {
 		labelsHash, labels := target.Labels()
 		builder := builders.BuilderForTarget(labelsHash, labels)

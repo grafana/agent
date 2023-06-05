@@ -27,13 +27,13 @@ type symbolCache struct {
 	logger   log.Logger
 }
 
-func newSymbolCache(logger log.Logger, pidCacheSize int, elfCacheSize int) (*symbolCache, error) {
-	pid2Cache, err := lru.New[pidKey, *symbolCacheEntry](pidCacheSize)
+func newSymbolCache(logger log.Logger, options CacheOptions) (*symbolCache, error) {
+	pid2Cache, err := lru.New[pidKey, *symbolCacheEntry](options.PidCacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("create pid symbol cache %w", err)
 	}
 
-	elfCache, err := symtab.NewElfCache(elfCacheSize)
+	elfCache, err := symtab.NewElfCache(options.ElfCacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("create elf cache %w", err)
 	}
@@ -88,7 +88,7 @@ func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
 	return e
 }
 
-func (sc *symbolCache) resize(pidCacheSize int, elfCacheSize int) {
-	sc.pidCache.Resize(pidCacheSize)
-	sc.elfCache.Resize(elfCacheSize)
+func (sc *symbolCache) updateOptions(options CacheOptions) {
+	sc.pidCache.Resize(options.PidCacheSize)
+	sc.elfCache.Resize(options.ElfCacheSize)
 }

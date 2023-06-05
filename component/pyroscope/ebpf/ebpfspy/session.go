@@ -23,6 +23,16 @@ import (
 //go:generate make -C bpf get-headers
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang -cflags "-O2 -Wall -fpie -Wno-unused-variable -Wno-unused-function" profile bpf/profile.bpf.c -- -I./bpf/libbpf -I./bpf/vmlinux/
 
+type ProfileOptions struct {
+	CollectUser   bool
+	CollectKernel bool
+}
+
+type CacheOptions struct {
+	PidCacheSize int
+	ElfCacheSize int
+}
+
 type Session struct {
 	logger     log.Logger
 	pid        int
@@ -36,6 +46,8 @@ type Session struct {
 
 	bpf profileObjects
 
+	ProfileOptions
+
 	roundNumber int
 }
 
@@ -43,21 +55,22 @@ func NewSession(
 	logger log.Logger,
 	serviceDiscovery *sd.TargetFinder,
 	sampleRate int,
-	pidCacheSize int,
-	elfCacheSize int,
+	cacheOptions CacheOptions,
+	profileOptions ProfileOptions,
 ) (*Session, error) {
 
-	symCache, err := newSymbolCache(logger, pidCacheSize, elfCacheSize)
+	symCache, err := newSymbolCache(logger, cacheOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Session{
-		logger:       logger,
-		pid:          -1,
-		symCache:     symCache,
-		sampleRate:   sampleRate,
-		targetFinder: serviceDiscovery,
+		logger:         logger,
+		pid:            -1,
+		symCache:       symCache,
+		sampleRate:     sampleRate,
+		targetFinder:   serviceDiscovery,
+		ProfileOptions: profileOptions,
 	}, nil
 }
 
@@ -132,8 +145,12 @@ func (s *Session) Reset(cb func(t *sd.Target, stack []string, value uint64, pid 
 	for _, it := range sfs {
 		sb.rest()
 		sb.append(it.comm)
-		s.walkStack(&sb, it.uStack, it.pid)
-		s.walkStack(&sb, it.kStack, 0)
+		if s.ProfileOptions.CollectUser {
+			s.walkStack(&sb, it.uStack, it.pid)
+		}
+		if s.ProfileOptions.CollectKernel {
+			s.walkStack(&sb, it.kStack, 0)
+		}
 		reverse(sb.stack)
 		cb(it.labels, sb.stack, uint64(it.count), it.pid)
 	}
@@ -228,10 +245,8 @@ func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 	}
 }
 
-func (s *Session) UpdateCacheSizes(
-	pidCacheSize int,
-	elfCacheSize int) {
-	s.symCache.resize(pidCacheSize, elfCacheSize)
+func (s *Session) UpdateCacheOptions(options CacheOptions) {
+	s.symCache.updateOptions(options)
 }
 
 func (s *Session) UpdateSampleRate(sampleRate int) error {
@@ -241,10 +256,14 @@ func (s *Session) UpdateSampleRate(sampleRate int) error {
 	s.Stop()
 	err := s.Start()
 	if err != nil {
-		return err
+		return fmt.Errorf("ebpf restart: %w", err)
 	}
 	s.sampleRate = sampleRate
 	return nil
+}
+
+func (s *Session) UpdateProfileOptions(options ProfileOptions) {
+	s.ProfileOptions = options
 }
 
 func reverse(s []string) {
