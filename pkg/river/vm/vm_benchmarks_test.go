@@ -1,6 +1,8 @@
 package vm_test
 
 import (
+	"fmt"
+	"math"
 	"reflect"
 	"testing"
 
@@ -77,6 +79,11 @@ func BenchmarkExprs(b *testing.B) {
 		// Unary
 		{"unary not", `!true`, bool(false)},
 		{"unary neg", `-15`, int(-15)},
+		{"unary float", `-15.0`, float64(-15.0)},
+		{"unary int64", fmt.Sprintf("%v", math.MaxInt64), math.MaxInt64},
+		{"unary uint64", fmt.Sprintf("%v", uint64(math.MaxInt64)+1), uint64(math.MaxInt64) + 1},
+		// math.MaxUint64 + 1 = 18446744073709551616
+		{"unary float64 from overflowing uint", "18446744073709551616", float64(18446744073709551616)},
 	}
 
 	for _, tc := range tt {
@@ -92,7 +99,7 @@ func BenchmarkExprs(b *testing.B) {
 
 			for i := 0; i < b.N; i++ {
 				vPtr := reflect.New(expectType).Interface()
-				_ = eval.Evaluate(scope, vPtr)
+				require.NoError(b, eval.Evaluate(scope, vPtr))
 			}
 		})
 	}

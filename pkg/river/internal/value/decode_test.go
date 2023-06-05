@@ -664,33 +664,42 @@ func TestDecode_KnownTypes_Any(t *testing.T) {
 		input  any
 		expect any
 	}{
-		// All numbers must decode to float64.
-		{int(15), int64(15)},
-		{int8(15), int64(15)},
-		{int16(15), int64(15)},
-		{int32(15), int64(15)},
-		{int64(15), int64(15)},
-		{uint(15), uint64(15)},
-		{uint8(15), uint64(15)},
-		{uint16(15), uint64(15)},
-		{uint32(15), uint64(15)},
-		{uint64(15), uint64(15)},
+		// expect "int"
+		{int(0), int(0)},
+		{int(-1), int(-1)},
+		{int(15), int(15)},
+		{int8(15), int(15)},
+		{int16(15), int(15)},
+		{int32(15), int(15)},
+		{int64(15), int(15)},
+		{uint(0), int(0)},
+		{uint(15), int(15)},
+		{uint8(15), int(15)},
+		{uint16(15), int(15)},
+		{uint32(15), int(15)},
+		{uint64(15), int(15)},
+		{int64(math.MinInt64), int(math.MinInt64)},
+		{int64(math.MaxInt64), int(math.MaxInt64)},
+		// expect "uint"
+		{uint64(math.MaxInt64 + 1), uint64(math.MaxInt64 + 1)},
 		{uint64(math.MaxUint64), uint64(math.MaxUint64)},
+		// expect "float"
 		{float32(2.5), float64(2.5)},
 		{float64(2.5), float64(2.5)},
 		{float64(math.MinInt64) - 10, float64(math.MinInt64) - 10},
+		{float64(math.MaxInt64) + 10, float64(math.MaxInt64) + 10},
 
 		{bool(true), bool(true)},
 		{string("Hello"), string("Hello")},
 
 		{
 			input:  []int{1, 2, 3},
-			expect: []any{int64(1), int64(2), int64(3)},
+			expect: []any{int(1), int(2), int(3)},
 		},
 
 		{
 			input:  map[string]int{"number": 15},
-			expect: map[string]any{"number": int64(15)},
+			expect: map[string]any{"number": int(15)},
 		},
 		{
 			input: struct {

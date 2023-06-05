@@ -141,10 +141,10 @@ func TestVM_Block_Attributes(t *testing.T) {
 			val             string
 			expectedValType reflect.Kind
 		}{
-			{testName: "test_int_1", val: "15", expectedValType: reflect.Int64},
-			{testName: "test_int_2", val: "-15", expectedValType: reflect.Int64},
-			{testName: "test_int_3", val: fmt.Sprintf("%v", math.MaxInt64), expectedValType: reflect.Int64},
-			{testName: "test_int_4", val: fmt.Sprintf("%v", math.MinInt64), expectedValType: reflect.Int64},
+			{testName: "test_int_1", val: "15", expectedValType: reflect.Int},
+			{testName: "test_int_2", val: "-15", expectedValType: reflect.Int},
+			{testName: "test_int_3", val: fmt.Sprintf("%v", math.MaxInt64), expectedValType: reflect.Int},
+			{testName: "test_int_4", val: fmt.Sprintf("%v", math.MinInt64), expectedValType: reflect.Int},
 			{testName: "test_uint_1", val: fmt.Sprintf("%v", uint64(math.MaxInt64)+1), expectedValType: reflect.Uint64},
 			{testName: "test_uint_2", val: fmt.Sprintf("%v", uint64(math.MaxUint64)), expectedValType: reflect.Uint64},
 			{testName: "test_float_1", val: fmt.Sprintf("%v9", math.MinInt64), expectedValType: reflect.Float64},
@@ -690,7 +690,7 @@ func TestVM_Block_UnmarshalToMap(t *testing.T) {
 			`,
 			expect: OuterBlock{
 				Settings: map[string]interface{}{
-					"field_a": int64(12345),
+					"field_a": int(12345),
 					"field_b": "helloworld",
 				},
 			},
@@ -759,7 +759,7 @@ func TestVM_Block_UnmarshalToAny(t *testing.T) {
 	require.NoError(t, eval.Evaluate(nil, &actual))
 
 	expect := map[string]interface{}{
-		"field_a": int64(12345),
+		"field_a": int(12345),
 		"field_b": "helloworld",
 	}
 	require.Equal(t, expect, actual.Settings)
