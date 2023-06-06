@@ -149,6 +149,7 @@ discovery.docker "linux" {
 }
 
 discovery.relabel "local_containers" {
+  targets = discovery.docker.linux.targets
   rule {
     action = "replace"
     source_labels = ["__meta_docker_container_name"]
