@@ -27,7 +27,7 @@ ppc64le builds are considered secondary release targets and do not have the same
 1. If you are running Linux or macOS run the following command in a terminal:
 
    ```shell
-   chmod +x EXTRATCED_BINARY
+   chmod +x EXTRACTED_BINARY
    ```
 
 ## Configure Grafana Agent
