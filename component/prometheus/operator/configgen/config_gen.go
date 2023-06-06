@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	k8sConfig "github.com/grafana/agent/component/common/kubernetes"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -14,8 +15,9 @@ import (
 )
 
 type ConfigGenerator struct {
-	Client  *k8sConfig.ClientArguments
-	Secrets SecretFetcher
+	Client                   *k8sConfig.ClientArguments
+	Secrets                  SecretFetcher
+	AdditionalRelabelConfigs []*flow_relabel.Config
 }
 
 var (
@@ -210,6 +212,12 @@ func (r *relabeler) addFromV1(cfgs ...*promopv1.RelabelConfig) (err error) {
 
 func (cg *ConfigGenerator) initRelabelings() relabeler {
 	r := relabeler{}
+	// first add any relabelings from the component config
+	if len(cg.AdditionalRelabelConfigs) > 0 {
+		for _, c := range flow_relabel.ComponentToPromRelabelConfigs(cg.AdditionalRelabelConfigs) {
+			r.add(c)
+		}
+	}
 	// Relabel prometheus job name into a meta label
 	r.add(&relabel.Config{
 		SourceLabels: model.LabelNames{"job"},

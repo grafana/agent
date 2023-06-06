@@ -12,7 +12,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/ckit/shard"
@@ -349,8 +348,9 @@ func (c *crdManager) addDebugInfo(ns string, name string, err error) {
 func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 	var err error
 	gen := configgen.ConfigGenerator{
-		Secrets: configgen.NewSecretManager(c.client),
-		Client:  &c.args.Client,
+		Secrets:                  configgen.NewSecretManager(c.client),
+		Client:                   &c.args.Client,
+		AdditionalRelabelConfigs: c.args.RelabelConfigs,
 	}
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
 		var scrapeConfig *config.ScrapeConfig
@@ -359,9 +359,6 @@ func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 			// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <podmonitor>`.
 			level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error generating scrapeconfig from podmonitor")
 			break
-		}
-		if len(c.args.RelabelConfigs) > 0 {
-			scrapeConfig.RelabelConfigs = append(scrapeConfig.RelabelConfigs, flow_relabel.ComponentToPromRelabelConfigs(c.args.RelabelConfigs)...)
 		}
 		c.mut.Lock()
 		c.discoveryConfigs[scrapeConfig.JobName] = scrapeConfig.ServiceDiscoveryConfigs
@@ -400,8 +397,9 @@ func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 	var err error
 	gen := configgen.ConfigGenerator{
-		Secrets: configgen.NewSecretManager(c.client),
-		Client:  &c.args.Client,
+		Secrets:                  configgen.NewSecretManager(c.client),
+		Client:                   &c.args.Client,
+		AdditionalRelabelConfigs: c.args.RelabelConfigs,
 	}
 	for i, ep := range sm.Spec.Endpoints {
 		var scrapeConfig *config.ScrapeConfig
@@ -410,9 +408,6 @@ func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 			// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <servicemonitor>`.
 			level.Error(c.logger).Log("name", sm.Name, "err", err, "msg", "error generating scrapeconfig from serviceMonitor")
 			break
-		}
-		if len(c.args.RelabelConfigs) > 0 {
-			scrapeConfig.RelabelConfigs = append(scrapeConfig.RelabelConfigs, flow_relabel.ComponentToPromRelabelConfigs(c.args.RelabelConfigs)...)
 		}
 		c.mut.Lock()
 		c.discoveryConfigs[scrapeConfig.JobName] = scrapeConfig.ServiceDiscoveryConfigs
