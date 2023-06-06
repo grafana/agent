@@ -4,8 +4,19 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/prometheus/remotewrite"
+	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
 )
+
+func appendRemoteWrite(f *builder.File, promConfig *promconfig.Config) *remotewrite.Exports {
+	remoteWriteArgs := toRemotewriteArguments(promConfig)
+	common.AppendBlockWithOverride(f, []string{"prometheus", "remote_write"}, "default", remoteWriteArgs)
+
+	return &remotewrite.Exports{
+		Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write.default.receiver"},
+	}
+}
 
 func toRemotewriteArguments(promConfig *promconfig.Config) *remotewrite.Arguments {
 	return &remotewrite.Arguments{

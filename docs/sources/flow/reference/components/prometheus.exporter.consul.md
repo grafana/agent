@@ -11,7 +11,7 @@ title: prometheus.exporter.​consul
 
 # prometheus.exporter.consul
 The `prometheus.exporter.consul` component embeds
-[consul_exporter](github.com/prometheus/consul_exporter) for collecting metrics from a consul instal.
+[consul_exporter](github.com/prometheus/consul_exporter) for collecting metrics from a consul install.
 
 ## Usage
 

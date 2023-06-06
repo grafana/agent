@@ -10,6 +10,18 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.34.0-rc.1 (2023-06-02)
+--------------------
+
+### Bugfixes
+
+- Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham)
+
+- Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr)
+
+v0.34.0-rc.0 (2023-06-01)
+--------------------
+
 ### Breaking changes
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
@@ -19,6 +31,8 @@ Main (unreleased)
 - Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
 
 - Prometheus exporters in Flow mode now set the `instance` label to a value similar to the one they used to have in Static mode (<hostname> by default, customized by some integrations). (@jcreixell)
+
+- `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`. (@korniltsev)
 
 ### Features
 
@@ -31,6 +45,8 @@ Main (unreleased)
   - `prometheus.exporter.snowflake` collects metrics from a snowflake database (@jonathanWamsley)
   - `prometheus.exporter.mssql` collects metrics from Microsoft SQL Server (@jonathanwamsley)
   - `prometheus.exporter.oracledb` collects metrics from oracledb (@jonathanwamsley)
+  - `prometheus.exporter.dnsmasq` collects metrics from a dnsmasq server. (@spartan0x117)
+  - `loki.source.awsfirehose` - receive Loki log entries from AWS Firehose via HTTP (@thepalbi)
 
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
@@ -101,6 +117,12 @@ Main (unreleased)
 
 - Fix an issue where fanning out log entries to multiple `loki.process`
   components lead to a race condition. (@tpaschalis)
+
+- Fix panic in `prometheus.operator.servicemonitors` from relabel rules without certain defaults. (@captncraig)
+
+- Fix issue in modules export cache throwing uncomparable errors. (@mattdurham)
+
+- Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
 
 ### Other changes
 

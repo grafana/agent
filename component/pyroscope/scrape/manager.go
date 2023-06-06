@@ -7,9 +7,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/pyroscope"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
-
-	"github.com/grafana/agent/component/phlare"
 )
 
 var reloadInterval = 5 * time.Second
@@ -18,7 +17,7 @@ type Manager struct {
 	logger log.Logger
 
 	graceShut  chan struct{}
-	appendable phlare.Appendable
+	appendable pyroscope.Appendable
 
 	mtxScrape     sync.Mutex // Guards the fields below.
 	config        Arguments
@@ -28,7 +27,7 @@ type Manager struct {
 	triggerReload chan struct{}
 }
 
-func NewManager(appendable phlare.Appendable, logger log.Logger) *Manager {
+func NewManager(appendable pyroscope.Appendable, logger log.Logger) *Manager {
 	if logger == nil {
 		logger = log.NewNopLogger()
 	}
