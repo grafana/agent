@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/grafana/agent/pkg/river"
-
 	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/prometheus/common/config"
 )
@@ -28,18 +26,9 @@ type HTTPClientConfig struct {
 	EnableHTTP2     bool              `river:"enable_http2,attr,optional"`
 }
 
-// UnmarshalRiver implements the umarshaller
-func (h *HTTPClientConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	*h = HTTPClientConfig{
-		FollowRedirects: true,
-		EnableHTTP2:     true,
-	}
-	type config HTTPClientConfig
-	if err := f((*config)(h)); err != nil {
-		return err
-	}
-
-	return h.Validate()
+// SetToDefault implements the river.Defaulter
+func (h *HTTPClientConfig) SetToDefault() {
+	*h = DefaultHTTPClientConfig
 }
 
 // Validate returns an error if h is invalid.
@@ -136,8 +125,6 @@ var DefaultHTTPClientConfig = HTTPClientConfig{
 	FollowRedirects: true,
 	EnableHTTP2:     true,
 }
-
-var _ river.Unmarshaler = (*HTTPClientConfig)(nil)
 
 // BasicAuth configures Basic HTTP authentication credentials.
 type BasicAuth struct {

@@ -11,8 +11,11 @@ import (
 
 	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
+	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/token"
 )
+
+var goRiverDefaulter = reflect.TypeOf((*value.Defaulter)(nil)).Elem()
 
 // An Expr represents a single River expression.
 type Expr struct {
@@ -131,6 +134,11 @@ func (b *Body) AppendBlock(block *Block) {
 // Body. If any value reachable from goValue implements Tokenizer, the printed
 // tokens will instead be retrieved by calling the RiverTokenize method.
 //
+// Optional attributes and blocks set to default values are trimmed.
+// If goValue implements Defaulter, default values are retrieved by
+// calling SetToDefault against a copy. Otherwise, default values are
+// the zero value of the respective Go types.
+//
 // goValue must be a struct or a pointer to a struct that contains River struct
 // tags.
 func (b *Body) AppendFrom(goValue interface{}) {
@@ -166,9 +174,19 @@ func (b *Body) encodeFields(rv reflect.Value) {
 	}
 
 	fields := rivertags.Get(rv.Type())
+	defaults := reflect.New(rv.Type()).Elem()
+	if defaults.CanAddr() && defaults.Addr().Type().Implements(goRiverDefaulter) {
+		defaults.Addr().Interface().(value.Defaulter).SetToDefault()
+	}
 
 	for _, field := range fields {
 		fieldVal := reflectutil.Get(rv, field)
+		fieldValDefault := reflectutil.Get(defaults, field)
+
+		if field.IsOptional() && fieldVal.Comparable() && fieldVal.Equal(fieldValDefault) {
+			continue
+		}
+
 		b.encodeField(nil, field, fieldVal)
 	}
 }
