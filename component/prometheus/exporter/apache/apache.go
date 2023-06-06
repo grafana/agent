@@ -42,7 +42,6 @@ var DefaultArguments = Arguments{
 	ApacheAddr:         "http://localhost/server-status?auto",
 	ApacheHostOverride: "",
 	ApacheInsecure:     false,
-	ClusteringEnabled:  false,
 }
 
 // Arguments controls the apache exporter.
@@ -50,7 +49,6 @@ type Arguments struct {
 	ApacheAddr         string `river:"scrape_uri,attr,optional"`
 	ApacheHostOverride string `river:"host_override,attr,optional"`
 	ApacheInsecure     bool   `river:"insecure,attr,optional"`
-	ClusteringEnabled  bool   `river:"clustering_enabled,attr,optional"`
 }
 
 // UnmarshalRiver implements River unmarshalling for Arguments.
