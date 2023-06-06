@@ -7,6 +7,13 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.34.0-rc.2 (2023-06-06)
+--------------------
+
+### Enhancements
+
+- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
+
 v0.34.0-rc.1 (2023-06-02)
 --------------------
 
