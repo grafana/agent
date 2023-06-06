@@ -10,11 +10,27 @@ import (
 	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 )
 
+// The Defaulter interface allows a type to implement default functionality
+// in River evaluation.
+type Defaulter interface {
+	// SetToDefault is called when evaluating a block or body to set the value
+	// to its defaults.
+	SetToDefault()
+}
+
 // Unmarshaler is a custom type which can be used to hook into the decoder.
 type Unmarshaler interface {
 	// UnmarshalRiver is called when decoding a value. f should be invoked to
 	// continue decoding with a value to decode into.
 	UnmarshalRiver(f func(v interface{}) error) error
+}
+
+// The Validator interface allows a type to implement validation functionality
+// in River evaluation.
+type Validator interface {
+	// Validate is called when evaluating a block or body to enforce the
+	// value is valid.
+	Validate() error
 }
 
 // Decode assigns a Value val to a Go pointer target. Pointers will be
@@ -70,7 +86,18 @@ type decoder struct {
 	makeCopy bool
 }
 
-func (d *decoder) decode(val Value, into reflect.Value) error {
+func (d *decoder) decode(val Value, into reflect.Value) (err error) {
+	// If everything has decoded successfully, run Validate if implemented.
+	defer func() {
+		if err == nil {
+			if into.CanAddr() && into.Addr().Type().Implements(goRiverValidator) {
+				err = into.Addr().Interface().(Validator).Validate()
+			} else if into.Type().Implements(goRiverValidator) {
+				err = into.Interface().(Validator).Validate()
+			}
+		}
+	}()
+
 	// Store the raw value from val and try to address it so we can do underlying
 	// type match assignment.
 	rawValue := val.rv
@@ -124,6 +151,12 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 		return d.decodeAny(val, into)
 	} else if ok, err := d.decodeFromInterface(val, into); ok {
 		return err
+	}
+
+	if into.CanAddr() && into.Addr().Type().Implements(goRiverDefaulter) {
+		into.Addr().Interface().(Defaulter).SetToDefault()
+	} else if into.Type().Implements(goRiverDefaulter) {
+		into.Interface().(Defaulter).SetToDefault()
 	}
 
 	targetType := RiverType(into.Type())

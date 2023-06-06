@@ -21,7 +21,11 @@ Operator | Description
 `%`      | Computes the remainder after dividing two numbers.
 `^`      | Raises the number to the specified power.
 
-The `+` operator can also be used for string concatenation.
+## String operators
+
+Operator | Description
+-------- | -----------
+`+`      | Concatenate two strings.
 
 ## Comparison operators
 
