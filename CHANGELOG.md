@@ -10,6 +10,15 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.34.0-rc.1 (2023-06-02)
+--------------------
+
+### Bugfixes
+
+- Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham)
+
+- Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr)
+
 v0.34.0-rc.0 (2023-06-01)
 --------------------
 
@@ -45,6 +54,9 @@ v0.34.0-rc.0 (2023-06-01)
 
 
 ### Enhancements
+
+- Add error value hashing to Faro collector. (@eskirk)
+
 - Support to attach node metadata to pods and endpoints targets in
   `discovery.kubernetes`. (@laurovenancio)
 
@@ -111,8 +123,6 @@ v0.34.0-rc.0 (2023-06-01)
 - Fix issue in modules export cache throwing uncomparable errors. (@mattdurham)
 
 - Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
-
-- Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr) 
 
 ### Other changes
 
