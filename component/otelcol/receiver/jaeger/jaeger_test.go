@@ -58,7 +58,10 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		var args jaeger.Arguments
 		require.NoError(t, river.Unmarshal([]byte(in), &args))
 
-		require.Equal(t, jaeger.DefaultArguments.Protocols.GRPC, args.Protocols.GRPC)
+		defaults := &jaeger.GRPC{}
+		defaults.SetToDefault()
+
+		require.Equal(t, defaults, args.Protocols.GRPC)
 		require.Nil(t, args.Protocols.ThriftHTTP)
 		require.Nil(t, args.Protocols.ThriftBinary)
 		require.Nil(t, args.Protocols.ThriftCompact)
@@ -73,8 +76,11 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		var args jaeger.Arguments
 		require.NoError(t, river.Unmarshal([]byte(in), &args))
 
+		defaults := &jaeger.ThriftHTTP{}
+		defaults.SetToDefault()
+
 		require.Nil(t, args.Protocols.GRPC)
-		require.Equal(t, jaeger.DefaultArguments.Protocols.ThriftHTTP, args.Protocols.ThriftHTTP)
+		require.Equal(t, defaults, args.Protocols.ThriftHTTP)
 		require.Nil(t, args.Protocols.ThriftBinary)
 		require.Nil(t, args.Protocols.ThriftCompact)
 	})
@@ -88,9 +94,12 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		var args jaeger.Arguments
 		require.NoError(t, river.Unmarshal([]byte(in), &args))
 
+		defaults := &jaeger.ThriftBinary{}
+		defaults.SetToDefault()
+
 		require.Nil(t, args.Protocols.GRPC)
 		require.Nil(t, args.Protocols.ThriftHTTP)
-		require.Equal(t, jaeger.DefaultArguments.Protocols.ThriftBinary, args.Protocols.ThriftBinary)
+		require.Equal(t, defaults, args.Protocols.ThriftBinary)
 		require.Nil(t, args.Protocols.ThriftCompact)
 	})
 
@@ -103,10 +112,13 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		var args jaeger.Arguments
 		require.NoError(t, river.Unmarshal([]byte(in), &args))
 
+		defaults := &jaeger.ThriftCompact{}
+		defaults.SetToDefault()
+
 		require.Nil(t, args.Protocols.GRPC)
 		require.Nil(t, args.Protocols.ThriftHTTP)
 		require.Nil(t, args.Protocols.ThriftBinary)
-		require.Equal(t, jaeger.DefaultArguments.Protocols.ThriftCompact, args.Protocols.ThriftCompact)
+		require.Equal(t, defaults, args.Protocols.ThriftCompact)
 	})
 }
 
