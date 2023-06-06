@@ -58,6 +58,7 @@ service        | [service][]        | Configures the service collector.        |
 smtp           | [smtp][]           | Configures the smtp collector.           | no
 text_file      | [text_file][]      | Configures the text_file collector.      | no
 
+[dfsr]: #dfsr-block
 [exchange]: #exchange-block
 [iis]: #iis-block
 [text_file]: #textfile-block
