@@ -5,9 +5,9 @@ aliases:
 - ../../set-up/install-agent-binary/
 ---
 
-# Install Grafana Agent static mode on other systems
+# Install static mode on other systems
 
-Grafana Agent is distributed as plain binaries for the following systems:
+You can use the standalone binary to install Grafana Agent in static mode on the following systems:
 
 * Linux: AMD64, ARM64, PPC64, S390X
 * Windows: AMD64
@@ -15,7 +15,11 @@ Grafana Agent is distributed as plain binaries for the following systems:
 
 ## Overview
 
-Binary executables are provided for the most common operating systems. Choose the binary from the Assets list on the Releases page that matches your operating system.
+Binary executables are available for the most common operating systems. Choose the binary from the Assets list on the Releases page that matches your operating system. The binary executable will run Grafana Agent in standalone mode. If you want to run Grafana Agent as a service, refer to the installation instructions for:
+
+* [Linux]({{< relref "install-agent-linux.md"}})
+* [macOS]({{< relref "install-agent-macos.md"}})
+* [Windows]({{< relref "install-agent-on-windows.md"}})
 
 ppc64le builds are considered secondary release targets and do not have the same level of support and testing as other platforms.
 
@@ -37,8 +41,8 @@ Refer to [Create a configuration file]({{< relref "../configuration/create-confi
 
 ## Run Grafana Agent
 
-1. Open a terminal on Linux or macOS, or  a command prompt on Windows.
-1. Run the following command to start Grafana Agent:
+1. Open a terminal on Linux or macOS, or open a command prompt on Windows.
+1. Run the following command to start Grafana Agent in static mode:
 
    ```shell
    EXTRACTED_BINARY -config.file CONFIG_FILE

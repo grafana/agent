@@ -5,9 +5,9 @@ aliases:
 - ../../set-up/install-agent-macos/
 ---
 
-# Install Grafana Agent on macOS
+# Install static mode on macOS
 
-You can use Homebrew to install Grafana Agent on macOS.
+You can install Grafana Agent in static mode on macOS.
 
 ## Before you begin
 
