@@ -29,9 +29,10 @@ prometheus.exporter.windows "LABEL" {
 The following arguments can be used to configure the exporter's behavior.
 All arguments are optional. Omitted fields take their default values.
 
-| Name                       | Type           | Description                                                   | Default | Required |
-|----------------------------|----------------|---------------------------------------------------------------|---------|----------|
-| `enabled_collectors`       | string`        | List of collectors to enable.                                |         | no       |
+| Name                 | Type             | Description                               | Default | Required |
+|----------------------|------------------|-------------------------------------------|---------|----------|
+| `enabled_collectors` | `list(string)`   | List of collectors to enable.             | `["cpu","cs","logical_disk","net","os","service","system"]` | no       |
+| `timeout`            | `duration`       | Configure timeout for collecting metrics. | `4m`    | no       |
 
 `enabled_collectors` defines a hand-picked list of enabled-by-default
 collectors. If set, anything not provided in that list is disabled by
@@ -42,19 +43,22 @@ default. See the [Collectors list](#collectors-list) for the default set.
 The following blocks are supported inside the definition of
 `prometheus.exporter.windows` to configure collector-specific options:
 
-Hierarchy    | Name             | Description                            | Required 
--------------|------------------|----------------------------------------|----------
-exchange     | [exchange][]     | Configures the exchange collector.     | no       
-iis          | [iis][]          | Configures the iis collector.          | no       
-text_file    | [text_file][]    | Configures the text_file collector.    | no       
-smtp         | [smtp][]         | Configures the smtp collector.         | no       
-service      | [service][]      | Configures the service collector.      | no       
-process      | [process][]      | Configures the process collector.      | no       
-network      | [network][]      | Configures the network collector.      | no       
-mssql        | [mssql][]        | Configures the mssql collector.        | no       
-msmq         | [msmq][]         | Configures the msmq collector.         | no       
-logical_disk | [logical_disk][] | Configures the logical_disk collector. | no       
+Hierarchy      | Name               | Description                              | Required
+---------------|--------------------|------------------------------------------|----------
+dfsr           | [dfsr][]           | Configures the iis collector.            | no       
+exchange       | [exchange][]       | Configures the exchange collector.       | no
+iis            | [iis][]            | Configures the iis collector.            | no
+logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no       
+msmq           | [msmq][]           | Configures the msmq collector.           | no
+mssql          | [mssql][]          | Configures the mssql collector.          | no
+network        | [network][]        | Configures the network collector.        | no
+process        | [process][]        | Configures the process collector.        | no
+scheduled_task | [scheduled_task][] | Configures the scheduled_task collector. | no
+service        | [service][]        | Configures the service collector.        | no
+smtp           | [smtp][]           | Configures the smtp collector.           | no
+text_file      | [text_file][]      | Configures the text_file collector.      | no
 
+[dfsr]: #dfsr-block
 [exchange]: #exchange-block
 [iis]: #iis-block
 [text_file]: #textfile-block
@@ -66,10 +70,16 @@ logical_disk | [logical_disk][] | Configures the logical_disk collector. | no
 [msmq]: #msmq-block
 [logical_disk]: #logicaldisk-block
 
+### dfsr block
+Name | Type     | Description | Default | Required
+---- |----------| ----------- | ------- | --------
+`source_enabled` | `list(string)` | Comma-separated list of DFSR Perflib sources to use. | `["connection","folder","volume"]` | no
+
+
 ### exchange block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`enabled_list` | `list(string)` | Comma-separated list of collectors to use. | `["cpu", "cs", "logical_disk", "net", "os", "service", "system"]` | no
+`enabled_list` | `string` | Comma-separated list of collectors to use. | `""` | no
 
 The collectors specified by `enabled_list` can include the following:
 
