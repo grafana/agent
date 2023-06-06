@@ -20,7 +20,7 @@ ppc64le builds are considered secondary release targets and do not have the same
 
 ## Download Grafana Agent
 
-1. Navigate to the current Grafan Agent [releases](https://github.com/grafana/agent/releases).
+1. Navigate to the current Grafana Agent [releases](https://github.com/grafana/agent/releases).
 1. Scroll down to the **Assets** section.
 1. Download the version that matches your operating system and machine’s architecture.
 1. Extract the package contents into a directory.
