@@ -48,7 +48,7 @@ The following blocks are supported inside the definition of
 
 Hierarchy      | Name               | Description                              | Required
 ---------------|--------------------|------------------------------------------|----------
-dfsr           | [dfsr][]           | Configures the iis collector.            | no       
+dfsr           | [dfsr][]           | Configures the dfsr collector.           | no       
 exchange       | [exchange][]       | Configures the exchange collector.       | no
 iis            | [iis][]            | Configures the iis collector.            | no
 logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no       
