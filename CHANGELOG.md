@@ -14,6 +14,10 @@ Main (unreleased)
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
 
+### Enhancements
+
+- Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
+
 v0.34.0-rc.1 (2023-06-02)
 --------------------
 
