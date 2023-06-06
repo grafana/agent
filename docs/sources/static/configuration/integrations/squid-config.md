@@ -7,7 +7,7 @@ aliases:
 # squid_config
 
 The `squid_config` block configures the `squid` integration,
-which is an embedded version of a forked version of the [`Squid_exporter`](https://github.com/boynux/squid-exporter). This allows the collection of third party [Squid](http://www.squid-cache.org/) metrics.
+which is an embedded version of a forked version of the [`Squid_exporter`](https://github.com/boynux/squid-exporter). This integration allows you to collect third-party [Squid](http://www.squid-cache.org/) metrics.
 
 Full reference of options:
 
