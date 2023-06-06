@@ -20,7 +20,6 @@ func TestConfigValidate(t *testing.T) {
 			name: "valid",
 			getConfig: func() Config {
 				c := DefaultConfig
-				c.Address = "squid-service.sample-apps.svc.cluster.local:3128"
 				return c
 			},
 		},
