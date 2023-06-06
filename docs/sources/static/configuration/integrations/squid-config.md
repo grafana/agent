@@ -7,8 +7,7 @@ aliases:
 # squid_config
 
 The `squid_config` block configures the `squid` integration,
-which is an embedded version of a forked version of the
-[`Squid_exporter`](https://github.com/observiq/squid_exporter). This allows the collection of third party [Squid](http://www.squid-cache.org/) metrics.
+which is an embedded version of a forked version of the [`Squid_exporter`](https://github.com/boynux/squid-exporter). This allows the collection of third party [Squid](http://www.squid-cache.org/) metrics.
 
 Full reference of options:
 
@@ -63,7 +62,7 @@ Full reference of options:
   [username: <string>]
 
   # The password for username above.
-  [password: <string> | default = "password"]
+  [password: <string>]
 ```
 
 ## Configuration example
@@ -74,6 +73,8 @@ integrations:
     enabled: true
     address: localhost:3128
     scrape_interval: 1m
+    scrape_timeout: 1m
+    scrape_integration: true
 metrics:
   wal_directory: /tmp/grafana-agent-wal
 server:
