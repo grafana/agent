@@ -16,7 +16,14 @@ Main (unreleased)
 
 ### Enhancements
 
+- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
+
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
+
+### Bugfixes
+
+- Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
+  proxying requests. (@mattdurham)
 
 v0.34.0-rc.1 (2023-06-02)
 --------------------
@@ -26,6 +33,8 @@ v0.34.0-rc.1 (2023-06-02)
 - Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham)
 
 - Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr)
+
+- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
 
 v0.34.0-rc.0 (2023-06-01)
 --------------------

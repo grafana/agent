@@ -231,17 +231,6 @@ type TLSConfig struct {
 	MinVersion         TLSVersion        `river:"min_version,attr,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler and reports whether the
-// unmarshaled TLSConfig is valid.
-func (t *TLSConfig) UnmarshalRiver(f func(interface{}) error) error {
-	type tlsConfig TLSConfig
-	if err := f((*tlsConfig)(t)); err != nil {
-		return err
-	}
-
-	return t.Validate()
-}
-
 // Convert converts our type to the native prometheus type
 func (t *TLSConfig) Convert() *config.TLSConfig {
 	if t == nil {
