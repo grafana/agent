@@ -96,6 +96,32 @@ func encodeFieldAsStatements(prefix []string, field rivertags.Field, fieldValue 
 				Body: nil,
 			}}
 
+		case fieldValue.Kind() == reflect.Map:
+			// Iterate over the map and add each element as an attribute into it.
+
+			if fieldValue.Type().Key().Kind() != reflect.String {
+				panic("river/encoding/riverjson: unsupported map type for block; expected map[string]T, got " + fieldValue.Type().String())
+			}
+
+			statements := []jsonStatement{}
+
+			iter := fieldValue.MapRange()
+			for iter.Next() {
+				mapKey, mapValue := iter.Key(), iter.Value()
+
+				statements = append(statements, jsonAttr{
+					Name:  mapKey.String(),
+					Type:  "attr",
+					Value: buildJSONValue(value.FromRaw(mapValue)),
+				})
+			}
+
+			return []jsonStatement{jsonBlock{
+				Name: strings.Join(fullName, "."),
+				Type: "block",
+				Body: statements,
+			}}
+
 		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
 			statements := []jsonStatement{}
 

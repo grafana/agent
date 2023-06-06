@@ -288,3 +288,24 @@ func (d *defaultsBlock) SetToDefault() {
 		Age:  35,
 	}
 }
+
+func TestMapBlocks(t *testing.T) {
+	type block struct {
+		Value map[string]any `river:"block,block,optional"`
+	}
+	val := block{Value: map[string]any{"field": "value"}}
+
+	expect := `[{
+		"name": "block",
+		"type": "block",
+		"body": [{
+			"name": "field",
+			"type": "attr",
+			"value": { "type": "string", "value": "value" }
+		}]
+	}]`
+
+	bb, err := riverjson.MarshalBody(val)
+	require.NoError(t, err)
+	require.JSONEq(t, expect, string(bb))
+}
