@@ -62,6 +62,14 @@ configuration.
 ## Debug metrics
 
 * `pyroscope_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
+* `pyroscope_ebpf_pid_cache_hit_total` (counter): Total number of ebpf symbolizer pid cache hit.
+* `pyroscope_ebpf_pid_cache_miss_total` (counter): Total number of ebpf symbolizer pid cache miss.
+* `pyroscope_ebpf_elf_cache_build_id_hit_total` (counter): Total number of ebpf symbolizer elf cache (build-id) hit.
+* `pyroscope_ebpf_elf_cache_build_id_miss_total` (counter): Total number of ebpf symbolizer elf cache (build-id) miss.
+* `pyroscope_ebpf_elf_cache_stat_hit_total` (counter): Total number of ebpf symbolizer elf cache (stat) hit.
+* `pyroscope_ebpf_elf_cache_stat_miss_total` (counter): Total number of ebpf symbolizer elf cache (stat) miss.
+* `pyroscope_ebpf_container_id_cache_hit_total` (counter): Total number of ebpf target finder container id cache hit.
+* `pyroscope_ebpf_container_id_cache_miss_total` (counter): Total number of ebpf target finder container id cache miss.
 
 ## Profile collecting behavior
 
