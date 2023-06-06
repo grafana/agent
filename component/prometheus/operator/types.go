@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/kubernetes"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	apiv1 "k8s.io/api/core/v1"
@@ -25,6 +26,8 @@ type Arguments struct {
 	LabelSelector *config.LabelSelector `river:"selector,block,optional"`
 
 	Clustering Clustering `river:"clustering,block,optional"`
+
+	RelabelConfigs []*flow_relabel.Config `river:"relabel,block,optional"`
 }
 
 func (a Arguments) Equals(b *Arguments) bool {
@@ -53,7 +56,6 @@ func (args *Arguments) Validate() error {
 	if len(args.Namespaces) == 0 {
 		args.Namespaces = []string{apiv1.NamespaceAll}
 	}
-
 	return nil
 }
 

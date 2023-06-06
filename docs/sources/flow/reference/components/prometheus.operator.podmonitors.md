@@ -47,6 +47,7 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the Kubernetes API. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
+relabel | [relabel][] | Relabeling rules to apply to discovered targets. | no
 selector | [selector][] | Label selector for which PodMonitors to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which PodMonitors to discover. | no
 
@@ -61,6 +62,7 @@ inside a `client` block.
 [tls_config]: #tls_config-block
 [selector]: #selector-block
 [match_expression]: #match_expression-block
+[relabel]: #relabel-block
 
 ### client block
 
@@ -101,6 +103,10 @@ Name | Type | Description | Default | Required
 ### tls_config block
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+
+### relabel block
+
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
 
 ### selector block
 
@@ -188,6 +194,29 @@ prometheus.operator.podmonitors "pods" {
             operator = "In"
             values = ["ops"]
         }
+    }
+}
+```
+
+This example will apply additional relabel rules to discovered targets for hashmod sharding. Here we are have 5 shards, and an environment variable is set up to give our current agent's shard.
+
+```river
+prometheus.operator.podmonitors "pods" {
+    forward_to = [prometheus.remote_write.staging.receiver]
+    relabel {
+      action = "hashmod"
+      modulus = 5
+      source_labels = ["__address__"]
+      target_label = "__tmp_hash"
+    }
+    relabel {
+      action = "keep"
+      regex = env("HASHMOD_SHARD")
+      source_labels = ["__tmp_hash"]
+    }
+    relabel {
+      action = "labeldrop"
+      regex = "__tmp_hash"
     }
 }
 ```

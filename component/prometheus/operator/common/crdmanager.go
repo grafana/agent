@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/ckit/shard"
@@ -352,16 +353,19 @@ func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 		Client:  &c.args.Client,
 	}
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
-		var pmc *config.ScrapeConfig
-		pmc, err = gen.GeneratePodMonitorConfig(pm, ep, i)
+		var scrapeConfig *config.ScrapeConfig
+		scrapeConfig, err = gen.GeneratePodMonitorConfig(pm, ep, i)
 		if err != nil {
 			// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <podmonitor>`.
 			level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error generating scrapeconfig from podmonitor")
 			break
 		}
+		if len(c.args.RelabelConfigs) > 0 {
+			scrapeConfig.RelabelConfigs = append(scrapeConfig.RelabelConfigs, flow_relabel.ComponentToPromRelabelConfigs(c.args.RelabelConfigs)...)
+		}
 		c.mut.Lock()
-		c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
-		c.scrapeConfigs[pmc.JobName] = pmc
+		c.discoveryConfigs[scrapeConfig.JobName] = scrapeConfig.ServiceDiscoveryConfigs
+		c.scrapeConfigs[scrapeConfig.JobName] = scrapeConfig
 		c.mut.Unlock()
 	}
 	if err != nil {
@@ -400,16 +404,19 @@ func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 		Client:  &c.args.Client,
 	}
 	for i, ep := range sm.Spec.Endpoints {
-		var pmc *config.ScrapeConfig
-		pmc, err = gen.GenerateServiceMonitorConfig(sm, ep, i)
+		var scrapeConfig *config.ScrapeConfig
+		scrapeConfig, err = gen.GenerateServiceMonitorConfig(sm, ep, i)
 		if err != nil {
 			// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <servicemonitor>`.
 			level.Error(c.logger).Log("name", sm.Name, "err", err, "msg", "error generating scrapeconfig from serviceMonitor")
 			break
 		}
+		if len(c.args.RelabelConfigs) > 0 {
+			scrapeConfig.RelabelConfigs = append(scrapeConfig.RelabelConfigs, flow_relabel.ComponentToPromRelabelConfigs(c.args.RelabelConfigs)...)
+		}
 		c.mut.Lock()
-		c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
-		c.scrapeConfigs[pmc.JobName] = pmc
+		c.discoveryConfigs[scrapeConfig.JobName] = scrapeConfig.ServiceDiscoveryConfigs
+		c.scrapeConfigs[scrapeConfig.JobName] = scrapeConfig
 		c.mut.Unlock()
 	}
 	if err != nil {
