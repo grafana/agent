@@ -81,16 +81,13 @@ func GetDefaultEndpointOptions() EndpointOptions {
 	return defaultEndpointOptions
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (r *EndpointOptions) SetToDefault() {
 	*r = GetDefaultEndpointOptions()
+}
 
-	type arguments EndpointOptions
-	err := f((*arguments)(r))
-	if err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (r *EndpointOptions) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	if r.HTTPClientConfig != nil {
 		return r.HTTPClientConfig.Validate()
