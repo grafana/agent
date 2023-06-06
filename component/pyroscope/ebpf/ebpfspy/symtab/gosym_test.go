@@ -20,7 +20,7 @@ func TestGoSymSelfTest(t *testing.T) {
 		t.Fatalf("failed to create symtab %v", err)
 	}
 	sym := symtab.Resolve(uint64(ptr))
-	expectedSym := "github.com/grafana/agent/component/phlare/ebpf/ebpfspy/symtab.TestGoSymSelfTest"
+	expectedSym := "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab.TestGoSymSelfTest"
 	require.NotNil(t, sym)
 	require.Equal(t, expectedSym, sym.Name)
 	require.Equal(t, uint64(ptr), sym.Start)
