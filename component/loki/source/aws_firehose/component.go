@@ -37,17 +37,11 @@ type Arguments struct {
 	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
-func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = Arguments{
 		Server: fnet.DefaultServerConfig(),
 	}
-
-	type args Arguments
-	err := f((*args)(a))
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // Component is the main type for the `loki.source.awsfirehose` component.

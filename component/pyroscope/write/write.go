@@ -51,12 +51,9 @@ type Arguments struct {
 	Endpoints      []*EndpointOptions `river:"endpoint,block,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (rc *Arguments) SetToDefault() {
 	*rc = DefaultArguments()
-
-	type config Arguments
-	return f((*config)(rc))
 }
 
 // EndpointOptions describes an individual location for where profiles
@@ -84,16 +81,13 @@ func GetDefaultEndpointOptions() EndpointOptions {
 	return defaultEndpointOptions
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (r *EndpointOptions) SetToDefault() {
 	*r = GetDefaultEndpointOptions()
+}
 
-	type arguments EndpointOptions
-	err := f((*arguments)(r))
-	if err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (r *EndpointOptions) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	if r.HTTPClientConfig != nil {
 		return r.HTTPClientConfig.Validate()

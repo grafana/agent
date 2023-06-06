@@ -38,19 +38,11 @@ type Arguments struct {
 	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
-	// apply server defaults from here since the fields are squashed
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = Arguments{
 		Server: fnet.DefaultServerConfig(),
 	}
-
-	type args Arguments
-	err := f((*args)(a))
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // Component implements the loki.source.heroku component.

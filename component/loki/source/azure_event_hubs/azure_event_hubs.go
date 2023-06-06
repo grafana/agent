@@ -61,13 +61,13 @@ func getDefault() Arguments {
 	}
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = getDefault()
-	type arguments Arguments
-	if err := f((*arguments)(a)); err != nil {
-		return err
-	}
+}
+
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
 	return a.validateAssignor()
 }
 
@@ -142,7 +142,7 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	entryHandler := loki.NewEntryHandler(c.handler, func() {})
-	t, err := kt.NewSyncer(c.opts.Registerer, c.opts.Logger, cfg, entryHandler, &parser.AzureEventHubsTargetMessageParser{
+	t, err := kt.NewSyncer(c.opts.Logger, cfg, entryHandler, &parser.AzureEventHubsTargetMessageParser{
 		DisallowCustomMessages: newArgs.DisallowCustomMessages,
 	})
 	if err != nil {

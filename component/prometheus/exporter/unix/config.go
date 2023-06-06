@@ -153,12 +153,9 @@ func (a *Arguments) Convert() *node_integration.Config {
 	}
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	return f((*args)(a))
 }
 
 // PowersupplyConfig contains config specific to the powersupply collector.

@@ -56,17 +56,12 @@ type Arguments struct {
 	Timeout            time.Duration     `river:"timeout,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Arguments.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	if err := f((*args)(a)); err != nil {
-		return err
-	}
-	return a.Validate()
 }
 
+// Validate implements river.Validator.
 func (a *Arguments) Validate() error {
 	if a.MaxOpenConnections < 1 {
 		return errors.New("max_open_connections must be at least 1")

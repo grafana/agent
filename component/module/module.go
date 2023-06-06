@@ -55,6 +55,7 @@ func NewModuleComponent(o component.Options) *ModuleComponent {
 			OnExportsChange: func(exports map[string]any) {
 				o.OnStateChange(Exports{Exports: exports})
 			},
+			DialFunc: o.DialFunc,
 		}),
 	}
 }
