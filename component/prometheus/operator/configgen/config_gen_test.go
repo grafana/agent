@@ -289,36 +289,6 @@ func TestGenerateTLSConfig(t *testing.T) {
 			hasErr:   false,
 			insecure: true,
 		},
-		// {
-		// 	name: "cert_file",
-		// 	tlsConfig: promopv1.SafeTLSConfig{
-		// 		InsecureSkipVerify: true,
-		// 		Cert:               promopv1.SecretOrConfigMap{Secret: s("secrets", "cert_file")},
-		// 	},
-		// 	hasErr:     false,
-		// 	serverName: "",
-		// 	cert:       "secret/ns/secrets/cert_file",
-		// },
-		// {
-		// 	name: "cert_file",
-		// 	tlsConfig: promopv1.SafeTLSConfig{
-		// 		InsecureSkipVerify: true,
-		// 		Cert:               promopv1.SecretOrConfigMap{ConfigMap: cm("non-secrets", "cert_file")},
-		// 	},
-		// 	hasErr:     false,
-		// 	serverName: "",
-		// 	cert:       "cm/ns/non-secrets/cert_file",
-		// },
-		// {
-		// 	name: "key_file",
-		// 	tlsConfig: promopv1.SafeTLSConfig{
-		// 		InsecureSkipVerify: true,
-		// 		KeySecret:          s("secrets", "key_file"),
-		// 	},
-		// 	hasErr:     false,
-		// 	serverName: "",
-		// 	key:        "secret/ns/secrets/key_file",
-		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
