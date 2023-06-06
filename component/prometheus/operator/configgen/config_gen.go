@@ -95,6 +95,23 @@ func (cg *ConfigGenerator) generateSafeTLS(tls promopv1.SafeTLSConfig, namespace
 	return tc, nil
 }
 
+func (cg *ConfigGenerator) generateTLSConfig(tls promopv1.TLSConfig, namespace string) (commonConfig.TLSConfig, error) {
+	tc, err := cg.generateSafeTLS(tls.SafeTLSConfig, namespace)
+	if err != nil {
+		return tc, err
+	}
+	if tls.CAFile != "" {
+		tc.CAFile = tls.CAFile
+	}
+	if tls.CertFile != "" {
+		tc.CertFile = tls.CertFile
+	}
+	if tls.KeyFile != "" {
+		tc.KeyFile = tls.KeyFile
+	}
+	return tc, nil
+}
+
 func (cg *ConfigGenerator) generateBasicAuth(auth promopv1.BasicAuth, namespace string) (*commonConfig.BasicAuth, error) {
 	un, err := cg.Secrets.GetSecretValue(namespace, auth.Username)
 	if err != nil {

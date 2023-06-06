@@ -251,6 +251,87 @@ func TestGenerateSafeTLSConfig(t *testing.T) {
 	}
 }
 
+func TestGenerateTLSConfig(t *testing.T) {
+	tests := []struct {
+		name      string
+		tlsConfig promopv1.TLSConfig
+		hasErr    bool
+		caFile    string
+		certFile  string
+		keyFile   string
+		insecure  bool
+	}{
+		{
+			name:      "empty",
+			tlsConfig: promopv1.TLSConfig{},
+			hasErr:    false,
+		},
+		{
+			name: "all_fields",
+			tlsConfig: promopv1.TLSConfig{
+				SafeTLSConfig: promopv1.SafeTLSConfig{},
+				CAFile:        "ca_file",
+				KeyFile:       "key_file",
+				CertFile:      "cert_file",
+			},
+			hasErr:   false,
+			keyFile:  "key_file",
+			caFile:   "ca_file",
+			certFile: "cert_file",
+		},
+		{
+			name: "safe gets set",
+			tlsConfig: promopv1.TLSConfig{
+				SafeTLSConfig: promopv1.SafeTLSConfig{
+					InsecureSkipVerify: true,
+				},
+			},
+			hasErr:   false,
+			insecure: true,
+		},
+		// {
+		// 	name: "cert_file",
+		// 	tlsConfig: promopv1.SafeTLSConfig{
+		// 		InsecureSkipVerify: true,
+		// 		Cert:               promopv1.SecretOrConfigMap{Secret: s("secrets", "cert_file")},
+		// 	},
+		// 	hasErr:     false,
+		// 	serverName: "",
+		// 	cert:       "secret/ns/secrets/cert_file",
+		// },
+		// {
+		// 	name: "cert_file",
+		// 	tlsConfig: promopv1.SafeTLSConfig{
+		// 		InsecureSkipVerify: true,
+		// 		Cert:               promopv1.SecretOrConfigMap{ConfigMap: cm("non-secrets", "cert_file")},
+		// 	},
+		// 	hasErr:     false,
+		// 	serverName: "",
+		// 	cert:       "cm/ns/non-secrets/cert_file",
+		// },
+		// {
+		// 	name: "key_file",
+		// 	tlsConfig: promopv1.SafeTLSConfig{
+		// 		InsecureSkipVerify: true,
+		// 		KeySecret:          s("secrets", "key_file"),
+		// 	},
+		// 	hasErr:     false,
+		// 	serverName: "",
+		// 	key:        "secret/ns/secrets/key_file",
+		// },
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := configGen.generateTLSConfig(tt.tlsConfig, "ns")
+			assert.Equal(t, tt.hasErr, err != nil)
+			assert.Equal(t, tt.insecure, got.InsecureSkipVerify)
+			assert.Equal(t, tt.caFile, got.CAFile)
+			assert.Equal(t, tt.certFile, got.CertFile)
+			assert.Equal(t, tt.keyFile, got.KeyFile)
+		})
+	}
+}
+
 func TestGenerateBasicAuth(t *testing.T) {
 	un := s("s", "un")
 	pw := s("s", "pw")

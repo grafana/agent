@@ -14,6 +14,10 @@ Main (unreleased)
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
 
+### Enhancements
+
+- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
@@ -97,8 +101,6 @@ v0.34.0-rc.0 (2023-06-01)
 - Update azidentity dependency to v1.3.0. (@akselleirv)
 
 - Add custom labels to journal entries in `loki.source.journal` (@sbhrule15)
-
-- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
 
 ### Bugfixes
 
