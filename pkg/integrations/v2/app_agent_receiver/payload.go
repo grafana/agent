@@ -3,11 +3,14 @@ package app_agent_receiver
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+
+	"github.com/zeebo/xxh3"
 )
 
 // Payload is the body of the receiver request
@@ -45,11 +48,12 @@ type Stacktrace struct {
 
 // Exception struct controls all the data regarding an exception
 type Exception struct {
-	Type       string       `json:"type,omitempty"`
-	Value      string       `json:"value,omitempty"`
-	Stacktrace *Stacktrace  `json:"stacktrace,omitempty"`
-	Timestamp  time.Time    `json:"timestamp"`
-	Trace      TraceContext `json:"trace,omitempty"`
+	Type       string           `json:"type,omitempty"`
+	Value      string           `json:"value,omitempty"`
+	Stacktrace *Stacktrace      `json:"stacktrace,omitempty"`
+	Timestamp  time.Time        `json:"timestamp"`
+	Trace      TraceContext     `json:"trace,omitempty"`
+	Context    ExceptionContext `json:"context,omitempty"`
 }
 
 // Message string is concatenating of the Exception.Type and Exception.Value
@@ -76,9 +80,15 @@ func (e Exception) KeyVal() *KeyVal {
 	KeyValAdd(kv, "type", e.Type)
 	KeyValAdd(kv, "value", e.Value)
 	KeyValAdd(kv, "stacktrace", e.String())
+	KeyValAdd(kv, "hash", strconv.FormatUint(xxh3.HashString(e.Value), 10))
+	MergeKeyValWithPrefix(kv, KeyValFromMap(e.Context), "context_")
 	MergeKeyVal(kv, e.Trace.KeyVal())
 	return kv
 }
+
+// ExceptionContext is a string to string map structure that
+// represents the context of an exception
+type ExceptionContext map[string]string
 
 // TraceContext holds trace id and span id associated to an entity (log, exception, measurement...).
 type TraceContext struct {

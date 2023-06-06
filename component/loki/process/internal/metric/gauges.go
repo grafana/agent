@@ -38,15 +38,13 @@ type GaugeConfig struct {
 	Action string `river:"action,attr"`
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (g *GaugeConfig) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (g *GaugeConfig) SetToDefault() {
 	*g = DefaultGaugeConfig
-	type gauge GaugeConfig
-	err := f((*gauge)(g))
-	if err != nil {
-		return err
-	}
+}
 
+// Validate implements river.Validator.
+func (g *GaugeConfig) Validate() error {
 	if g.MaxIdle < 1*time.Second {
 		return fmt.Errorf("max_idle_duration must be greater or equal than 1s")
 	}

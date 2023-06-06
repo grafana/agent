@@ -1,5 +1,6 @@
 name: Feature request
 description: Suggest an idea to be added to Grafana Agent.
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:

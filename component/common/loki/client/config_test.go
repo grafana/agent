@@ -31,6 +31,8 @@ backoff_config:
 batchwait: 5s
 batchsize: 204800
 timeout: 5s
+headers:
+  name: value
 `
 
 func Test_Config(t *testing.T) {
@@ -61,6 +63,9 @@ func Test_Config(t *testing.T) {
 			Config{
 				URL: flagext.URLValue{
 					URL: u,
+				},
+				Headers: map[string]string{
+					"name": "value",
 				},
 				BackoffConfig: backoff.Config{
 					MaxBackoff: 1 * time.Minute,

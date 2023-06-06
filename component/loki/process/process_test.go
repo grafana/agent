@@ -2,12 +2,16 @@ package process
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/loki/process/internal/stages"
+	lsf "github.com/grafana/agent/component/loki/source/file"
+	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
@@ -298,6 +302,86 @@ stage.labels {
 			require.Equal(t, wantLogline, logEntry.Line)
 			require.Equal(t, wantTimestamp, logEntry.Timestamp)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "failed waiting for log line")
+		}
+	}
+}
+
+func TestEntrySentToTwoProcessComponents(t *testing.T) {
+	// Set up two different loki.process components.
+	stg1 := `
+forward_to = []
+stage.static_labels {
+    values = { "lbl" = "foo" }
+}
+`
+	stg2 := `
+forward_to = []
+stage.static_labels {
+    values = { "lbl" = "bar" }
+}
+`
+
+	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
+	var args1, args2 Arguments
+	require.NoError(t, river.Unmarshal([]byte(stg1), &args1))
+	require.NoError(t, river.Unmarshal([]byte(stg2), &args2))
+	args1.ForwardTo = []loki.LogsReceiver{ch1}
+	args2.ForwardTo = []loki.LogsReceiver{ch2}
+
+	// Start the loki.process components.
+	tc1, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.process")
+	require.NoError(t, err)
+	tc2, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.process")
+	require.NoError(t, err)
+	go func() { require.NoError(t, tc1.Run(componenttest.TestContext(t), args1)) }()
+	go func() { require.NoError(t, tc2.Run(componenttest.TestContext(t), args2)) }()
+	require.NoError(t, tc1.WaitExports(time.Second))
+	require.NoError(t, tc2.WaitExports(time.Second))
+
+	// Create a file to log to.
+	f, err := os.CreateTemp(t.TempDir(), "example")
+	require.NoError(t, err)
+	defer f.Close()
+
+	// Create and start a component that will read from that file and fan out to both components.
+	ctrl, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.source.file")
+	require.NoError(t, err)
+
+	go func() {
+		err := ctrl.Run(context.Background(), lsf.Arguments{
+			Targets: []discovery.Target{{"__path__": f.Name(), "somelbl": "somevalue"}},
+			ForwardTo: []loki.LogsReceiver{
+				tc1.Exports().(Exports).Receiver,
+				tc2.Exports().(Exports).Receiver,
+			},
+		})
+		require.NoError(t, err)
+	}()
+	ctrl.WaitRunning(time.Minute)
+
+	// Write a line to the file.
+	_, err = f.Write([]byte("writing some text\n"))
+	require.NoError(t, err)
+
+	wantLabelSet := model.LabelSet{
+		"filename": model.LabelValue(f.Name()),
+		"somelbl":  "somevalue",
+	}
+
+	// The lines were received after processing by each component, with no
+	// race condition between them.
+	for i := 0; i < 2; i++ {
+		select {
+		case logEntry := <-ch1:
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "writing some text", logEntry.Line)
+			require.Equal(t, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": "foo"}), logEntry.Labels)
+		case logEntry := <-ch2:
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "writing some text", logEntry.Line)
+			require.Equal(t, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": "bar"}), logEntry.Labels)
 		case <-time.After(5 * time.Second):
 			require.FailNow(t, "failed waiting for log line")
 		}

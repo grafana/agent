@@ -624,7 +624,9 @@ func TestVM_Block_Unmarshaler(t *testing.T) {
 
 	var actual OuterBlock
 	require.NoError(t, eval.Evaluate(nil, &actual))
-	require.True(t, actual.Settings.Called, "UnmarshalRiver did not get invoked")
+	require.True(t, actual.Settings.UnmarshalCalled, "UnmarshalRiver did not get invoked")
+	require.True(t, actual.Settings.DefaultCalled, "SetToDefault did not get invoked")
+	require.True(t, actual.Settings.ValidateCalled, "Validate did not get invoked")
 }
 
 func TestVM_Block_UnmarshalToMap(t *testing.T) {
@@ -727,13 +729,25 @@ type Setting struct {
 	FieldA string `river:"field_a,attr"`
 	FieldB string `river:"field_b,attr"`
 
-	Called bool
+	UnmarshalCalled bool
+	DefaultCalled   bool
+	ValidateCalled  bool
 }
 
 func (s *Setting) UnmarshalRiver(f func(interface{}) error) error {
-	s.Called = true
-	type setting Setting
-	return f((*setting)(s))
+	s.UnmarshalCalled = true
+	return f((*settingUnmarshalTarget)(s))
+}
+
+type settingUnmarshalTarget Setting
+
+func (s *settingUnmarshalTarget) SetToDefault() {
+	s.DefaultCalled = true
+}
+
+func (s *settingUnmarshalTarget) Validate() error {
+	s.ValidateCalled = true
+	return nil
 }
 
 func parseBlock(t *testing.T, input string) *ast.BlockStmt {

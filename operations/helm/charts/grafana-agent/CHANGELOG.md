@@ -10,6 +10,28 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Add HPA support for Deployments and StatefulSets. (@tpaschalis)
+
+- Make the Faro port optional. (@tpaschalis)
+
+- Rename the deprecated `serviceAccount` alias to `serviceAccountName` in
+  pod template. This is a no-op change. (@tpaschalis)
+
+### Bugfixes
+
+- Only set the deployment replicas when autoscaling is disabled. (@tiithansen)
+- Reorder HPA `spec.metrics` to avoid endless sync loop in ArgoCD. (@tiithansen)
+
+0.14.0 (2023-05-11)
+-------------------
+
+### Enhancements
+
+- Add a toggle for enabling/disabling the Service. (@tpaschalis)
+
+- Update Grafana Agent version to v0.33.2. (@rfratto)
 
 0.13.0 (2023-05-01)
 -------------------

@@ -68,6 +68,7 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 	require.Len(t, payload.Exceptions[0].Stacktrace.Frames, 26)
 	require.Equal(t, "Error", payload.Exceptions[0].Type)
 	require.Equal(t, "Cannot read property 'find' of undefined", payload.Exceptions[0].Value)
+	require.EqualValues(t, ExceptionContext{"ReactError": "Annoying Error", "component": "ReactErrorBoundary"}, payload.Exceptions[0].Context)
 
 	require.Equal(t, []Log{
 		{

@@ -44,7 +44,7 @@ func (c Comparer) Compare(families []*dto.MetricFamily, expect string) error {
 		buf bytes.Buffer
 	)
 	if c.OpenMetrics {
-		enc = expfmt.NewEncoder(&buf, expfmt.FmtOpenMetrics)
+		enc = expfmt.NewEncoder(&buf, expfmt.FmtOpenMetrics_1_0_0)
 	} else {
 		enc = expfmt.NewEncoder(&buf, expfmt.FmtText)
 	}

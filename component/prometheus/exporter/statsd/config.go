@@ -77,12 +77,9 @@ func (c *Arguments) Convert() (*statsd_exporter.Config, error) {
 	}, nil
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type args Arguments
-	return f((*args)(c))
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultConfig
 }
 
 // function to read a yaml file from a path and convert it to a mapper.MappingConfig

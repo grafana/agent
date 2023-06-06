@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
@@ -18,13 +19,21 @@ func init() {
 		Name:    "prometheus.exporter.redis",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "redis"),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "redis", customizeTarget),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
 	a := args.(Arguments)
 	return a.Convert().NewIntegration(opts.Logger)
+}
+
+func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
+	a := args.(Arguments)
+	target := baseTarget
+
+	target["instance"] = a.RedisAddr
+	return []discovery.Target{target}
 }
 
 // DefaultArguments holds non-zero default options for Arguments when it is
@@ -78,17 +87,12 @@ type Arguments struct {
 	SkipTLSVerification     bool              `river:"skip_tls_verification,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	if err := f((*args)(a)); err != nil {
-		return err
-	}
-	return a.Validate()
 }
 
+// Validate implements river.Validator.
 func (a *Arguments) Validate() error {
 	if a.ScriptPath != "" && len(a.ScriptPaths) > 0 {
 		return fmt.Errorf("only one of script_path and script_paths should be specified")

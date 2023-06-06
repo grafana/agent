@@ -6,16 +6,15 @@ import (
 	"sync"
 
 	"github.com/go-kit/log/level"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/model"
-	"github.com/prometheus/prometheus/model/relabel"
-
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	fnet "github.com/grafana/agent/component/common/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	ht "github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/relabel"
 )
 
 func init() {
@@ -37,6 +36,13 @@ type Arguments struct {
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
 	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+}
+
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = Arguments{
+		Server: fnet.DefaultServerConfig(),
+	}
 }
 
 // Component implements the loki.source.heroku component.
@@ -118,7 +124,11 @@ func (c *Component) Update(args component.Arguments) error {
 		rcs = flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelRules)
 	}
 
-	if listenerChanged(c.args.Server, newArgs.Server) || relabelRulesChanged(c.args.RelabelRules, newArgs.RelabelRules) {
+	restartRequired := changed(c.args.Server, newArgs.Server) ||
+		changed(c.args.RelabelRules, newArgs.RelabelRules) ||
+		changed(c.args.Labels, newArgs.Labels) ||
+		c.args.UseIncomingTimestamp != newArgs.UseIncomingTimestamp
+	if restartRequired {
 		if c.target != nil {
 			err := c.target.Stop()
 			if err != nil {
@@ -166,7 +176,7 @@ func (c *Component) DebugInfo() interface{} {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	var res readerDebugInfo = readerDebugInfo{
+	var res = readerDebugInfo{
 		Ready:   c.target.Ready(),
 		Address: c.target.HTTPListenAddress(),
 	}
@@ -179,9 +189,6 @@ type readerDebugInfo struct {
 	Address string `river:"address,attr"`
 }
 
-func listenerChanged(prev, next *fnet.ServerConfig) bool {
-	return !reflect.DeepEqual(prev, next)
-}
-func relabelRulesChanged(prev, next flow_relabel.Rules) bool {
+func changed(prev, next any) bool {
 	return !reflect.DeepEqual(prev, next)
 }

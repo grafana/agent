@@ -18,7 +18,7 @@ Static mode Kubernetes operator.
 > [upgrade-guide-static]: {{< relref "../static/upgrade-guide.md" >}}
 > [upgrade-guide-flow]: {{< relref "../flow/upgrade-guide.md" >}}
 
-## v0.33.1
+## v0.33
 
 ### Symbolic links in Docker containers removed
 
@@ -26,7 +26,7 @@ We've removed the deprecated symbolic links to `/bin/agent*` in Docker
 containers, as planned in v0.31. In case you're setting a custom entrypoint,
 use the new binaries that are prefixed with `/bin/grafana*`.
 
-## v0.31.0
+## v0.31
 
 ### Breaking change: binary names are now prefixed with `grafana-`
 
@@ -43,7 +43,7 @@ Symbolic links will be removed in v0.33. Custom entrypoints must be
 updated prior to v0.33 to use the new binaries before the symbolic links get
 removed.
 
-## v0.29.0
+## v0.29
 
 ### Deprecation: binary names will be prefixed with `grafana-` in v0.31.0
 
@@ -55,14 +55,14 @@ include symbolic links from the old binary names to the new binary names.
 
 There is no action to take at this time.
 
-## v0.24.0
+## v0.24
 
 ### Breaking change: Grafana Agent Operator supported Agent versions
 
 The v0.24.0 release of Grafana Agent Operator can no longer deploy versions of
 Grafana Agent prior to v0.24.0.
 
-## v0.19.0
+## v0.19
 
 ### Rename of Prometheus to Metrics (Breaking change)
 

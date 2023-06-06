@@ -68,15 +68,13 @@ func (a *Arguments) client() (*vault.Client, error) {
 	return vault.NewClient(cfg)
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(a)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
 	if len(a.Auth) == 0 {
 		return fmt.Errorf("exactly one auth.* block must be specified; found none")
 	} else if len(a.Auth) > 1 {

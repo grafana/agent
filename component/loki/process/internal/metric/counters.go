@@ -34,15 +34,13 @@ var DefaultCounterConfig = CounterConfig{
 	MaxIdle: 5 * time.Minute,
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (c *CounterConfig) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (c *CounterConfig) SetToDefault() {
 	*c = DefaultCounterConfig
-	type counter CounterConfig
-	err := f((*counter)(c))
-	if err != nil {
-		return err
-	}
+}
 
+// Validate implements river.Validator.
+func (c *CounterConfig) Validate() error {
 	if c.MaxIdle < 1*time.Second {
 		return fmt.Errorf("max_idle_duration must be greater or equal than 1s")
 	}

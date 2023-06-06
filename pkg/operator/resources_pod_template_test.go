@@ -42,6 +42,21 @@ func Test_generatePodTemplate(t *testing.T) {
 		require.Equal(t, DefaultAgentBaseImage+":vX.Y.Z", tmpl.Spec.Containers[1].Image)
 	})
 
+	t.Run("does not set version label in spec selector", func(t *testing.T) {
+		deploy := gragent.Deployment{
+			Agent: &gragent.GrafanaAgent{
+				ObjectMeta: v1.ObjectMeta{Name: name, Namespace: name},
+			},
+		}
+
+		tmpl, selectors, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
+		require.NoError(t, err)
+
+		// version label should not be set in selectors, since that is immutable
+		require.NotContains(t, selectors.MatchLabels, versionLabelName)
+		require.Contains(t, tmpl.ObjectMeta.Labels, versionLabelName)
+	})
+
 	t.Run("security ctx does not contain privileged", func(t *testing.T) {
 		deploy := gragent.Deployment{
 			Agent: &gragent.GrafanaAgent{
