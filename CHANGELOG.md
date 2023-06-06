@@ -14,6 +14,11 @@ Main (unreleased)
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
 
+### Bugfixes
+
+- Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
+  proxying requests. (@mattdurham)
+
 v0.34.0-rc.1 (2023-06-02)
 --------------------
 
