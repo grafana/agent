@@ -15,9 +15,10 @@ import (
 	"github.com/cilium/ebpf"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
 	"github.com/pyroscope-io/pyroscope/pkg/agent/ebpfspy/cpuonline"
 	"golang.org/x/sys/unix"
+
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
 )
 
 //go:generate make -C bpf get-headers
@@ -259,6 +260,10 @@ func (s *Session) UpdateSampleRate(sampleRate int) error {
 	if s.sampleRate == sampleRate {
 		return nil
 	}
+	_ = level.Debug(s.logger).Log(
+		"updated sample rate", sampleRate,
+		"old sample rate", s.sampleRate,
+	)
 	s.Stop()
 	err := s.Start()
 	if err != nil {
