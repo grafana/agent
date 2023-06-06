@@ -23,6 +23,8 @@ v0.34.0-rc.1 (2023-06-02)
 
 - Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr)
 
+- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
+
 v0.34.0-rc.0 (2023-06-01)
 --------------------
 
