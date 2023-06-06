@@ -7,12 +7,28 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.34.0-rc.2 (2023-06-06)
+--------------------
+
+### Enhancements
+
+- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
+
+### Bugfixes
+
+- Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
+  proxying requests. (@mattdurham)
+
+- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
+
 v0.34.0-rc.1 (2023-06-02)
 --------------------
 
-### Bugs
+### Bugfixes
 
 - Fix issue where using exporters inside modules failed due to not passing the in-memory address dialer. (@mattdurham)
+
+
 
 v0.34.0-rc.0 (2023-06-01)
 -------------------------

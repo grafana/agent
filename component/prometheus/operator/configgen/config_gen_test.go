@@ -1,6 +1,7 @@
 package configgen
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -12,11 +13,13 @@ import (
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/assert"
-	k8sv1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 var (
-	configGen = &ConfigGenerator{}
+	configGen = &ConfigGenerator{
+		Secrets: &fakeSecrets{},
+	}
 )
 
 func TestGenerateK8SSDConfig(t *testing.T) {
@@ -133,12 +136,47 @@ func TestGenerateK8SSDConfig(t *testing.T) {
 	}
 }
 
+type fakeSecrets struct{}
+
+func (f *fakeSecrets) GetSecretValue(namespace string, sec corev1.SecretKeySelector) (string, error) {
+	return fmt.Sprintf("secret/%s/%s/%s", namespace, sec.Name, sec.Key), nil
+}
+func (f *fakeSecrets) GetConfigMapValue(namespace string, cm corev1.ConfigMapKeySelector) (string, error) {
+	return fmt.Sprintf("cm/%s/%s/%s", namespace, cm.Name, cm.Key), nil
+}
+func (f *fakeSecrets) SecretOrConfigMapValue(namespace string, socm promopv1.SecretOrConfigMap) (string, error) {
+	if socm.Secret != nil {
+		return f.GetSecretValue(namespace, *socm.Secret)
+	}
+	return f.GetConfigMapValue(namespace, *socm.ConfigMap)
+}
+
+// convenience functions for generating references
+func s(name, key string) *corev1.SecretKeySelector {
+	return &corev1.SecretKeySelector{
+		Key: key,
+		LocalObjectReference: corev1.LocalObjectReference{
+			Name: name,
+		},
+	}
+}
+func cm(name, key string) *corev1.ConfigMapKeySelector {
+	return &corev1.ConfigMapKeySelector{
+		Key: key,
+		LocalObjectReference: corev1.LocalObjectReference{
+			Name: name,
+		},
+	}
+}
 func TestGenerateSafeTLSConfig(t *testing.T) {
 	tests := []struct {
 		name       string
 		tlsConfig  promopv1.SafeTLSConfig
 		hasErr     bool
 		serverName string
+		ca         string
+		cert       string
+		key        promConfig.Secret
 	}{
 		{
 			name: "empty",
@@ -153,54 +191,225 @@ func TestGenerateSafeTLSConfig(t *testing.T) {
 			name: "ca_file",
 			tlsConfig: promopv1.SafeTLSConfig{
 				InsecureSkipVerify: true,
-				CA:                 promopv1.SecretOrConfigMap{Secret: &k8sv1.SecretKeySelector{Key: "ca_file"}},
+				CA:                 promopv1.SecretOrConfigMap{Secret: s("secrets", "ca_file")},
 			},
-			hasErr:     true,
+			hasErr:     false,
 			serverName: "",
+			ca:         "secret/ns/secrets/ca_file",
 		},
 		{
 			name: "ca_file",
 			tlsConfig: promopv1.SafeTLSConfig{
 				InsecureSkipVerify: true,
-				CA:                 promopv1.SecretOrConfigMap{ConfigMap: &k8sv1.ConfigMapKeySelector{Key: "ca_file"}},
+				CA:                 promopv1.SecretOrConfigMap{ConfigMap: cm("non-secrets", "ca_file")},
 			},
-			hasErr:     true,
+			hasErr:     false,
 			serverName: "",
+			ca:         "cm/ns/non-secrets/ca_file",
 		},
 		{
 			name: "cert_file",
 			tlsConfig: promopv1.SafeTLSConfig{
 				InsecureSkipVerify: true,
-				Cert:               promopv1.SecretOrConfigMap{Secret: &k8sv1.SecretKeySelector{Key: "cert_file"}},
+				Cert:               promopv1.SecretOrConfigMap{Secret: s("secrets", "cert_file")},
 			},
-			hasErr:     true,
+			hasErr:     false,
 			serverName: "",
+			cert:       "secret/ns/secrets/cert_file",
 		},
 		{
 			name: "cert_file",
 			tlsConfig: promopv1.SafeTLSConfig{
 				InsecureSkipVerify: true,
-				Cert:               promopv1.SecretOrConfigMap{ConfigMap: &k8sv1.ConfigMapKeySelector{Key: "cert_file"}},
+				Cert:               promopv1.SecretOrConfigMap{ConfigMap: cm("non-secrets", "cert_file")},
 			},
-			hasErr:     true,
+			hasErr:     false,
 			serverName: "",
+			cert:       "cm/ns/non-secrets/cert_file",
 		},
 		{
 			name: "key_file",
 			tlsConfig: promopv1.SafeTLSConfig{
 				InsecureSkipVerify: true,
-				KeySecret:          &k8sv1.SecretKeySelector{Key: "key_file"},
+				KeySecret:          s("secrets", "key_file"),
 			},
-			hasErr:     true,
+			hasErr:     false,
 			serverName: "",
+			key:        "secret/ns/secrets/key_file",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := configGen.generateSafeTLS(tt.tlsConfig)
+			got, err := configGen.generateSafeTLS(tt.tlsConfig, "ns")
 			assert.Equal(t, tt.hasErr, err != nil)
 			assert.True(t, got.InsecureSkipVerify)
 			assert.Equal(t, tt.serverName, got.ServerName)
+			assert.Equal(t, tt.ca, got.CA)
+			assert.Equal(t, tt.cert, got.Cert)
+			assert.Equal(t, tt.key, got.Key)
+		})
+	}
+}
+
+func TestGenerateTLSConfig(t *testing.T) {
+	tests := []struct {
+		name      string
+		tlsConfig promopv1.TLSConfig
+		hasErr    bool
+		caFile    string
+		certFile  string
+		keyFile   string
+		insecure  bool
+	}{
+		{
+			name:      "empty",
+			tlsConfig: promopv1.TLSConfig{},
+			hasErr:    false,
+		},
+		{
+			name: "all_fields",
+			tlsConfig: promopv1.TLSConfig{
+				SafeTLSConfig: promopv1.SafeTLSConfig{},
+				CAFile:        "ca_file",
+				KeyFile:       "key_file",
+				CertFile:      "cert_file",
+			},
+			hasErr:   false,
+			keyFile:  "key_file",
+			caFile:   "ca_file",
+			certFile: "cert_file",
+		},
+		{
+			name: "safe gets set",
+			tlsConfig: promopv1.TLSConfig{
+				SafeTLSConfig: promopv1.SafeTLSConfig{
+					InsecureSkipVerify: true,
+				},
+			},
+			hasErr:   false,
+			insecure: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := configGen.generateTLSConfig(tt.tlsConfig, "ns")
+			assert.Equal(t, tt.hasErr, err != nil)
+			assert.Equal(t, tt.insecure, got.InsecureSkipVerify)
+			assert.Equal(t, tt.caFile, got.CAFile)
+			assert.Equal(t, tt.certFile, got.CertFile)
+			assert.Equal(t, tt.keyFile, got.KeyFile)
+		})
+	}
+}
+
+func TestGenerateBasicAuth(t *testing.T) {
+	un := s("s", "un")
+	pw := s("s", "pw")
+	tests := []struct {
+		name     string
+		ba       promopv1.BasicAuth
+		hasErr   bool
+		username string
+		password promConfig.Secret
+	}{
+		{
+			name: "empty",
+			ba: promopv1.BasicAuth{
+				Username: *un,
+				Password: *pw,
+			},
+			hasErr:   false,
+			username: "secret/ns/s/un",
+			password: "secret/ns/s/pw",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := configGen.generateBasicAuth(tt.ba, "ns")
+			assert.Equal(t, tt.hasErr, err != nil)
+			assert.Equal(t, tt.password, got.Password)
+			assert.Equal(t, tt.username, got.Username)
+		})
+	}
+}
+
+func TestGenerateOauth2(t *testing.T) {
+	cidSecret := promopv1.SecretOrConfigMap{Secret: s("oa", "cid")}
+	cidCMap := promopv1.SecretOrConfigMap{ConfigMap: cm("oa", "cid")}
+	cSecret := s("oa", "csecret")
+	tests := []struct {
+		name   string
+		oa2    promopv1.OAuth2
+		hasErr bool
+		id     string
+		secret promConfig.Secret
+	}{
+		{
+			name: "id from secret",
+			oa2: promopv1.OAuth2{
+				ClientID:     cidSecret,
+				ClientSecret: *cSecret,
+			},
+			hasErr: false,
+			id:     "secret/ns/oa/cid",
+			secret: "secret/ns/oa/csecret",
+		},
+		{
+			name: "id from config map",
+			oa2: promopv1.OAuth2{
+				ClientID:     cidCMap,
+				ClientSecret: *cSecret,
+			},
+			hasErr: false,
+			id:     "cm/ns/oa/cid",
+			secret: "secret/ns/oa/csecret",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := configGen.generateOauth2(tt.oa2, "ns")
+			assert.Equal(t, tt.hasErr, err != nil)
+			assert.Equal(t, tt.id, got.ClientID)
+			assert.Equal(t, tt.secret, got.ClientSecret)
+		})
+	}
+}
+
+func TestGenerateAuthorization(t *testing.T) {
+	pw := s("s", "pw")
+	tests := []struct {
+		name   string
+		auth   promopv1.SafeAuthorization
+		hasErr bool
+		creds  promConfig.Secret
+		Type   string
+	}{
+		{
+			name: "empty",
+			auth: promopv1.SafeAuthorization{
+				Credentials: pw,
+			},
+			hasErr: false,
+			creds:  "secret/ns/s/pw",
+			Type:   "Bearer",
+		},
+		{
+			name: "type provided",
+			auth: promopv1.SafeAuthorization{
+				Credentials: pw,
+				Type:        "Foo",
+			},
+			hasErr: false,
+			creds:  "secret/ns/s/pw",
+			Type:   "Foo",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := configGen.generateAuthorization(tt.auth, "ns")
+			assert.Equal(t, tt.hasErr, err != nil)
+			assert.Equal(t, tt.creds, got.Credentials)
+			assert.Equal(t, tt.Type, got.Type)
 		})
 	}
 }
