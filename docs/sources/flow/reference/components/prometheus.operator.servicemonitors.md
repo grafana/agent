@@ -199,7 +199,7 @@ prometheus.operator.servicemonitors "services" {
 }
 ```
 
-This example will apply additional relabel rules to discovered targets for hashmod sharding. Here we are have 5 shards, and an environment variable is set up to give our current agent's shard.
+This example will apply additional relabel rules to discovered targets for hashmod sharding. Here we have five shards, and an environment variable provides our current agent's shard.
 
 ```river
 prometheus.operator.servicemonitors "services" {
