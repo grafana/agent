@@ -10,7 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Bugs
+### Features
+
+- The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
+
+### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
@@ -23,6 +27,8 @@ v0.34.0-rc.1 (2023-06-02)
 - Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham)
 
 - Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr)
+
+- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
 
 v0.34.0-rc.0 (2023-06-01)
 --------------------
@@ -56,7 +62,6 @@ v0.34.0-rc.0 (2023-06-01)
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
   - `nonsensitive` converts a River secret back into a string. (@rfratto)
-
 
 ### Enhancements
 
@@ -272,7 +277,6 @@ v0.33.0 (2023-04-25)
   - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
   - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other   `loki` components. (@akselleirv)
-
 
 - Add support for Flow-specific system packages:
 

@@ -3,6 +3,7 @@ package dnsmasq
 import (
 	"testing"
 
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/assert"
@@ -46,4 +47,15 @@ func TestConvert(t *testing.T) {
 	}
 
 	assert.Equal(t, expected, riverArguments.Convert())
+}
+
+func TestCustomizeTarget(t *testing.T) {
+	args := Arguments{
+		Address: "localhost:53",
+	}
+
+	baseTarget := discovery.Target{}
+	newTargets := customizeTarget(baseTarget, args)
+	assert.Equal(t, 1, len(newTargets))
+	assert.Equal(t, "localhost:53", newTargets[0]["instance"])
 }
