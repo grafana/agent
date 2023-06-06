@@ -25,12 +25,13 @@ type Arguments struct {
 
 // Client implements specific AWS configuration options
 type Client struct {
-	AccessKey    string            `river:"key,attr,optional"`
-	Secret       rivertypes.Secret `river:"secret,attr,optional"`
-	Endpoint     string            `river:"endpoint,attr,optional"`
-	DisableSSL   bool              `river:"disable_ssl,attr,optional"`
-	UsePathStyle bool              `river:"use_path_style,attr,optional"`
-	Region       string            `river:"region,attr,optional"`
+	AccessKey     string            `river:"key,attr,optional"`
+	Secret        rivertypes.Secret `river:"secret,attr,optional"`
+	Endpoint      string            `river:"endpoint,attr,optional"`
+	DisableSSL    bool              `river:"disable_ssl,attr,optional"`
+	UsePathStyle  bool              `river:"use_path_style,attr,optional"`
+	Region        string            `river:"region,attr,optional"`
+	SigningRegion string            `river:"signing_region,attr,optional"`
 }
 
 const minimumPollFrequency = 30 * time.Second
