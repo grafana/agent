@@ -71,9 +71,6 @@ func TestMallocResolve(t *testing.T) {
 	gosym.Refresh()
 	malloc := testHelperGetMalloc()
 	res := gosym.Resolve(uint64(malloc))
-	if res == nil {
-		t.Fatalf("expected malloc sym, got %v", res)
-	}
 	if !strings.Contains(res.Name, "malloc") {
 		t.Errorf("expected malloc got %s", res.Name)
 	}
