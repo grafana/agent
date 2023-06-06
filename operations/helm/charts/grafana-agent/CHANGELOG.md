@@ -10,7 +10,7 @@ internal API changes are not present.
 Unreleased
 ----------
 
-### Enhancements 
+### Enhancements
 
 - Add HPA support for Deployments and StatefulSets. (@tpaschalis)
 

@@ -89,7 +89,7 @@ type ComponentNode struct {
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg               component.Registration
 	managedOpts       component.Options
-	register          *wrappedRegisterer
+	registry          *prometheus.Registry
 	exportsType       reflect.Type
 	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
 
@@ -178,14 +178,13 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		globalID = path.Join(globals.ControllerID, cn.nodeID)
 	}
 
-	wrapped := newWrappedRegisterer()
-	cn.register = wrapped
+	cn.registry = prometheus.NewRegistry()
 	return component.Options{
 		ID:     globalID,
 		Logger: logging.New(logging.LoggerSink(globals.Logger), logging.WithComponentID(cn.nodeID)),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": globalID,
-		}, wrapped),
+		}, cn.registry),
 		Tracer:    wrapTracer(globals.TraceProvider, globalID),
 		Clusterer: globals.Clusterer,
 
