@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 	lru "github.com/hashicorp/golang-lru/v2"
 )
@@ -25,15 +26,16 @@ type symbolCache struct {
 	elfCache *symtab.ElfCache
 	kallsyms symbolCacheEntry
 	logger   log.Logger
+	metrics  *metrics.Metrics
 }
 
-func newSymbolCache(logger log.Logger, options CacheOptions) (*symbolCache, error) {
+func newSymbolCache(logger log.Logger, options CacheOptions, metrics *metrics.Metrics) (*symbolCache, error) {
 	pid2Cache, err := lru.New[pidKey, *symbolCacheEntry](options.PidCacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("create pid symbol cache %w", err)
 	}
 
-	elfCache, err := symtab.NewElfCache(options.ElfCacheSize)
+	elfCache, err := symtab.NewElfCache(options.ElfCacheSize, metrics)
 	if err != nil {
 		return nil, fmt.Errorf("create elf cache %w", err)
 	}
@@ -48,6 +50,7 @@ func newSymbolCache(logger log.Logger, options CacheOptions) (*symbolCache, erro
 	}
 	return &symbolCache{
 		logger:   logger,
+		metrics:  metrics,
 		pidCache: pid2Cache,
 		kallsyms: symbolCacheEntry{symbolTable: kallsyms},
 		elfCache: elfCache,
@@ -73,8 +76,10 @@ func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
 	}
 
 	if cache, ok := sc.pidCache.Get(pid); ok {
+		sc.metrics.PidCacheHit.Inc()
 		return cache
 	}
+	sc.metrics.PidCacheMiss.Inc()
 
 	symbolTable := symtab.NewProcTable(sc.logger, symtab.ProcTableOptions{
 		Pid: int(pid),
@@ -83,7 +88,7 @@ func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
 			ElfCache:      sc.elfCache,
 		},
 	})
-	e := &symbolCacheEntry{symbolTable: symbolTable}
+	e := &symbolCacheEntry{symbolTable: symbolTable, roundNumber: -1}
 	sc.pidCache.Add(pid, e)
 	return e
 }

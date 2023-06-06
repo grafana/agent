@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
 	ebpfspy "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
 	"github.com/oklog/run"
 )
@@ -30,14 +31,18 @@ func init() {
 
 func New(o component.Options, args Arguments) (component.Component, error) {
 	flowAppendable := pyroscope.NewFanout(args.ForwardTo, o.ID, o.Registerer)
-	tf, err := sd.NewTargetFinder(o.Logger, args.ContainerIDCacheSize)
+
+	ms := metrics.NewMetrics(o.Registerer)
+
+	tf, err := sd.NewTargetFinder(o.Logger, args.ContainerIDCacheSize, ms)
 	if err != nil {
-		return nil, fmt.Errorf("target finder create: %w", err)
+		return nil, fmt.Errorf("ebpf target finder create: %w", err)
 	}
 
 	session, err := ebpfspy.NewSession(
 		o.Logger,
 		tf,
+		ms,
 		args.SampleRate,
 		ebpfspy.CacheOptions{
 			PidCacheSize: args.PidCacheSize,

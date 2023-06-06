@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
@@ -74,9 +75,10 @@ type TargetFinder struct {
 
 	containerIDCache *lru.Cache[uint32, containerID]
 	defaultTarget    *Target
+	metrics          *metrics.Metrics
 }
 
-func NewTargetFinder(l log.Logger, containerIdCacheSize int) (*TargetFinder, error) {
+func NewTargetFinder(l log.Logger, containerIdCacheSize int, metrics *metrics.Metrics) (*TargetFinder, error) {
 	containerIDCache, err := lru.New[uint32, containerID](containerIdCacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("containerIDCache create: %w", err)
@@ -84,6 +86,7 @@ func NewTargetFinder(l log.Logger, containerIdCacheSize int) (*TargetFinder, err
 	return &TargetFinder{
 		l:                l,
 		containerIDCache: containerIDCache,
+		metrics:          metrics,
 	}, nil
 }
 
@@ -146,8 +149,10 @@ func (s *TargetFinder) FindTarget(pid uint32) *Target {
 func (s *TargetFinder) findTarget(pid uint32) *Target {
 	cid, ok := s.containerIDCache.Get(pid)
 	if ok && cid != "" {
+		s.metrics.ContainerIDCacheHit.Inc()
 		return s.cid2target[cid]
 	}
+	s.metrics.ContainerIDCacheMiss.Inc()
 
 	cid = getContainerIDFromPID(pid)
 	s.containerIDCache.Add(pid, cid)

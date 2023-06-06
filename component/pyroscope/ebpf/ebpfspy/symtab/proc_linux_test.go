@@ -8,13 +8,14 @@ import (
 	"testing"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 )
 
 // "same file check relies on file inode, which we check only in linux"
 func TestSameFileNoBuildID(t *testing.T) {
-	elfCache, _ := NewElfCache(32)
+	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
 	nobuildid1, err := NewElfTable(logger, ".", "testdata/elfs/elf.nobuildid",
 		ElfTableOptions{
@@ -56,7 +57,7 @@ func TestSameFileNoBuildID(t *testing.T) {
 }
 
 func TestMallocResolve(t *testing.T) {
-	elfCache, _ := NewElfCache(32)
+	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
 	gosym := NewProcTable(logger, ProcTableOptions{
 		Pid: os.Getpid(),

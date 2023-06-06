@@ -3,12 +3,13 @@ package symtab
 import (
 	"testing"
 
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/pkg/util"
 )
 
 func TestElfCacheStrippedEmpty(t *testing.T) {
 	logger := util.TestLogger(t)
-	elfCache, _ := NewElfCache(32)
+	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
 	stripped, err := NewElfTable(logger, ".", "testdata/elfs/elf.stripped",
 		ElfTableOptions{
 			UseDebugFiles: false,
@@ -33,7 +34,7 @@ func TestElfCacheStrippedEmpty(t *testing.T) {
 }
 
 func TestElfCache(t *testing.T) {
-	elfCache, _ := NewElfCache(32)
+	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
 	debug, err := NewElfTable(logger, ".", "testdata/elfs/elf.debug",
 		ElfTableOptions{

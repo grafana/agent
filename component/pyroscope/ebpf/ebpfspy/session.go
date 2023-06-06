@@ -15,6 +15,7 @@ import (
 	"github.com/cilium/ebpf"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/pyroscope-io/pyroscope/pkg/agent/ebpfspy/cpuonline"
 	"golang.org/x/sys/unix"
 
@@ -55,12 +56,13 @@ type Session struct {
 func NewSession(
 	logger log.Logger,
 	serviceDiscovery *sd.TargetFinder,
+	metrics *metrics.Metrics,
 	sampleRate int,
 	cacheOptions CacheOptions,
 	profileOptions ProfileOptions,
 ) (*Session, error) {
 
-	symCache, err := newSymbolCache(logger, cacheOptions)
+	symCache, err := newSymbolCache(logger, cacheOptions, metrics)
 	if err != nil {
 		return nil, err
 	}
