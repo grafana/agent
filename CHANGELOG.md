@@ -71,7 +71,6 @@ v0.34.0-rc.0 (2023-06-01)
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
   - `nonsensitive` converts a River secret back into a string. (@rfratto)
 
-
 ### Enhancements
 
 - Add error value hashing to Faro collector. (@eskirk)
