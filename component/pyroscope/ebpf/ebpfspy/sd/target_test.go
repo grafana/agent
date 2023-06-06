@@ -3,6 +3,8 @@ package sd
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCGroupMatching(t *testing.T) {
@@ -48,13 +50,9 @@ func TestCGroupMatching(t *testing.T) {
 		t.Run(fmt.Sprintf("testcase %d %s", i, tc.cgroup), func(t *testing.T) {
 			cid := getContainerIDFromCGroup(tc.cgroup)
 			expected := tc.expectedID
-			if cid != expected {
-				t.Errorf("wrong cid %s != %s", cid, expected)
-			}
+			require.Equal(t, expected, cid)
 			cid = string(getContainerIDFromK8S(tc.containerID))
-			if cid != expected {
-				t.Errorf("wrong cid %s != %s", cid, expected)
-			}
+			require.Equal(t, expected, cid)
 		})
 	}
 }

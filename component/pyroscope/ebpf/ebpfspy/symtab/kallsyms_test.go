@@ -2,6 +2,8 @@ package symtab
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 var testdata = `ffffffff81000000 T _text
@@ -43,17 +45,10 @@ func TestKallsyms(t *testing.T) {
 	for _, testcase := range testcases {
 		resolved := kallsyms.Resolve(testcase.addr)
 		if testcase.name == "" {
-			if resolved.Name != "" {
-				t.Fatalf("expected nil, got %v", resolved)
-			}
+			require.Nil(t, resolved.Name)
 			return
 		}
-
-		if resolved.Name != testcase.name {
-			t.Fatalf("failed to resolve %v %v %v", testcase.addr, testcase.name, resolved)
-		}
-		if resolved.Module != testcase.mod {
-			t.Fatalf("failed to resolve %v %v %v", testcase.addr, testcase.name, resolved)
-		}
+		require.Equal(t, testcase.name, resolved.Name)
+		require.Equal(t, testcase.mod, resolved.Module)
 	}
 }

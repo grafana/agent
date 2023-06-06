@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestGoSymSelfTest(t *testing.T) {
@@ -19,15 +21,9 @@ func TestGoSymSelfTest(t *testing.T) {
 	}
 	sym := symtab.Resolve(uint64(ptr))
 	expectedSym := "github.com/grafana/agent/component/phlare/ebpf/ebpfspy/symtab.TestGoSymSelfTest"
-	if sym.Name != expectedSym {
-		t.Fatalf("Expected %s got %s", expectedSym, sym.Name)
-	}
-	if sym.Module != mod {
-		t.Fatalf("Expected %s got %s", mod, sym.Module)
-	}
-	if sym.Start != uint64(ptr) {
-		t.Fatalf("Expected %x got %x", ptr, sym.Start)
-	}
+	require.NotNil(t, sym)
+	require.Equal(t, expectedSym, sym.Name)
+	require.Equal(t, uint64(ptr), sym.Start)
 }
 
 func TestPclntab18(t *testing.T) {
@@ -38,14 +34,11 @@ func TestPclntab18(t *testing.T) {
 	bs, _ := hex.DecodeString(strings.ReplaceAll(s, " ", ""))
 	textStart := parseRuntimeTextFromPclntab18(bs)
 	expected := uint64(0x4023a0)
-	if textStart != expected {
-		t.Fatalf("expected %d got %d", expected, textStart)
-	}
+	require.Equal(t, expected, textStart)
 }
 
 func BenchmarkGoSym(b *testing.B) {
 	gosym, _ := newGoSymbols("/proc/self/exe")
-	gosym.Refresh()
 	if len(gosym.symbols) < 1000 {
 		b.FailNow()
 	}

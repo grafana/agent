@@ -80,13 +80,5 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 			Pathname:  "[vsyscall]",
 		},
 	}
-	if len(maps) != len(expected) {
-		t.Fatalf("expected %v got %v", expected, maps)
-	}
-	for i := range expected {
-		require.Equal(t, expected[i], maps[i])
-		//if !reflect.DeepEqual(expected[i], maps[i]) {
-		//	t.Fatalf("expected %v got %v", expected[i], maps[i])
-		//}
-	}
+	require.Equal(t, expected, maps)
 }

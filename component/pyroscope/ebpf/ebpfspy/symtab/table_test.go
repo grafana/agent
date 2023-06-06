@@ -2,6 +2,8 @@ package symtab
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSymTab(t *testing.T) {
@@ -13,18 +15,11 @@ func TestSymTab(t *testing.T) {
 	expect := func(t *testing.T, expected string, at uint64) {
 		resolved := sym.Resolve(at)
 		if expected == "" {
-			if resolved != nil {
-				t.Fatalf("expected nil, got %v", resolved)
-			}
+			require.Nil(t, resolved)
 			return
 		}
-		if resolved == nil {
-			t.Fatalf("failed to resolve %v %v %v", expected, at, resolved)
-		}
-		s := resolved.Name
-		if s != expected {
-			t.Fatalf("Expected %s got %s", expected, s)
-		}
+		require.NotNil(t, resolved)
+		require.Equal(t, expected, resolved.Name)
 	}
 	bases := []uint64{0, 0x4000}
 	testcases := []struct {

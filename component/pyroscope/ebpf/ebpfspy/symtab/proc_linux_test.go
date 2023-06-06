@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/stretchr/testify/require"
 )
 
 // "same file check relies on file inode, which we check only in linux"
@@ -50,12 +51,8 @@ func TestSameFileNoBuildID(t *testing.T) {
 			t.Errorf("failed to resolve from stripped elf %v got %v", sym, res)
 		}
 	}
-	if 1 != elfCache.stat2Symbols.Len() {
-		t.Errorf("expected a single stat entry in the cache, got %d", elfCache.stat2Symbols.Len())
-	}
-	if 0 != elfCache.buildID2Symbols.Len() {
-		t.Errorf("expected no buildID entris in the cache, got %d", elfCache.buildID2Symbols.Len())
-	}
+	require.Equal(t, 1, elfCache.stat2Symbols.Len())
+	require.Equal(t, 0, elfCache.buildID2Symbols.Len())
 }
 
 func TestMallocResolve(t *testing.T) {
@@ -71,9 +68,7 @@ func TestMallocResolve(t *testing.T) {
 	gosym.Refresh()
 	malloc := testHelperGetMalloc()
 	res := gosym.Resolve(uint64(malloc))
-	if !strings.Contains(res.Name, "malloc") {
-		t.Errorf("expected malloc got %s", res.Name)
-	}
+	require.Contains(t, res.Name, "malloc")
 	if !strings.Contains(res.Module, "/libc.so") && !strings.Contains(res.Module, "/libc-") {
 		t.Errorf("expected libc, got %v", res.Module)
 	}

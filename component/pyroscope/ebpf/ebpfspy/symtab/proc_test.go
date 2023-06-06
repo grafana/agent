@@ -61,9 +61,8 @@ func testProc(t *testing.T, maps string, data []procTestdata) {
 	m.refresh(maps)
 	for _, td := range data {
 		sym := m.Resolve(td.base + td.offset)
-		if sym.Name != td.name || !strings.Contains(sym.Module, td.elf) {
-			t.Errorf("failed to resolve %v (%v)", td, sym)
-		}
+		require.Equal(t, sym.Name, td.name)
+		require.Contains(t, sym.Module, td.elf)
 	}
 }
 
