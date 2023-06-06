@@ -233,9 +233,15 @@ func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 			break
 		}
 		sym := s.symCache.resolve(pid, ip, s.roundNumber)
-		name := "[unknown]"
-		if sym != nil && sym.Name != "" {
+		var name string
+		if sym.Name != "" {
 			name = sym.Name
+		} else {
+			if sym.Module != "" {
+				name = fmt.Sprintf("%s+%x", sym.Module, sym.Start)
+			} else {
+				name = "[unknown]"
+			}
 		}
 		stackFrames = append(stackFrames, name)
 	}

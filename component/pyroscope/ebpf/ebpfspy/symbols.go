@@ -54,7 +54,7 @@ func newSymbolCache(logger log.Logger, options CacheOptions) (*symbolCache, erro
 	}, nil
 }
 
-func (sc *symbolCache) resolve(pid uint32, addr uint64, roundNumber int) *symtab.Symbol {
+func (sc *symbolCache) resolve(pid uint32, addr uint64, roundNumber int) symtab.Symbol {
 	e := sc.getOrCreateCacheEntry(pidKey(pid))
 	staleCheck := false
 	if roundNumber != e.roundNumber {

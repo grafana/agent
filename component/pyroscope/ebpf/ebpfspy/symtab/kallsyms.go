@@ -75,5 +75,5 @@ func NewKallsyms(kallsyms []byte) (SymbolTable, error) {
 		}
 		syms = append(syms, Symbol{istart, string(name), string(mod)})
 	}
-	return NewSymTab(syms), nil
+	return NewSymbolTab(syms), nil
 }

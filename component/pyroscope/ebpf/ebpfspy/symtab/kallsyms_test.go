@@ -43,14 +43,12 @@ func TestKallsyms(t *testing.T) {
 	for _, testcase := range testcases {
 		resolved := kallsyms.Resolve(testcase.addr)
 		if testcase.name == "" {
-			if resolved != nil {
+			if resolved.Name != "" {
 				t.Fatalf("expected nil, got %v", resolved)
 			}
 			return
 		}
-		if resolved == nil {
-			t.Fatalf("failed to resolve %v %v %v", testcase.addr, testcase.name, resolved)
-		}
+
 		if resolved.Name != testcase.name {
 			t.Fatalf("failed to resolve %v %v %v", testcase.addr, testcase.name, resolved)
 		}

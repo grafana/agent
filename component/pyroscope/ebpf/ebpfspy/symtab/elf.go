@@ -15,6 +15,7 @@ import (
 )
 
 type ElfTable struct {
+	elfFilePath        string
 	table              *SymTab
 	base               uint64
 	typ                elf.Type
@@ -41,9 +42,10 @@ func NewElfTable(logger log.Logger, fs string, elfFilePath string, options ElfTa
 	}
 	defer elfFile.Close()
 	res := &ElfTable{
-		logger:   logger,
-		typ:      elfFile.Type,
-		elfCache: options.ElfCache,
+		elfFilePath: elfFilePath,
+		logger:      logger,
+		typ:         elfFile.Type,
+		elfCache:    options.ElfCache,
 	}
 	for _, prog := range elfFile.Progs {
 		if prog.Type == elf.PT_LOAD && (prog.ProgHeader.Flags&elf.PF_X != 0) {
@@ -121,12 +123,12 @@ func (t *ElfTable) load() {
 	t.loaded = true
 }
 
-func (t *ElfTable) Resolve(pc uint64) *Symbol {
+func (t *ElfTable) Resolve(pc uint64) *Sym {
 	t.load()
 	return t.table.Resolve(pc)
 }
 
-func getElfSymbols(elfPath string, elfFile *elf.File) []Symbol {
+func getElfSymbols(elfPath string, elfFile *elf.File) []Sym {
 	symtab := getELFSymbolsFromSymtab(elfPath, elfFile)
 	if len(symtab) > 0 {
 		return symtab
@@ -138,24 +140,24 @@ func getElfSymbols(elfPath string, elfFile *elf.File) []Symbol {
 	return pclntab
 }
 
-func getELFSymbolsFromSymtab(elfPath string, elfFile *elf.File) []Symbol {
+func getELFSymbolsFromSymtab(elfPath string, elfFile *elf.File) []Sym {
 	symtab, _ := elfFile.Symbols()
 	dynsym, _ := elfFile.DynamicSymbols()
-	var symbols []Symbol
+	var symbols []Sym
 	add := func(t []elf.Symbol) {
 		for _, sym := range t {
 			if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
-				symbols = append(symbols, Symbol{
-					Name:   sym.Name,
-					Start:  sym.Value,
-					Module: elfPath,
+				symbols = append(symbols, Sym{
+					Name:  sym.Name,
+					Start: sym.Value,
+					//Module: elfPath,
 				})
 			}
 		}
 	}
 	add(symtab)
 	add(dynsym)
-	slices.SortFunc(symbols, func(a, b Symbol) bool {
+	slices.SortFunc(symbols, func(a, b Sym) bool {
 		if a.Start == b.Start {
 			return strings.Compare(a.Name, b.Name) < 0
 		}

@@ -10,7 +10,7 @@ type ElfCache struct {
 }
 
 type elfCacheEntry struct {
-	symbols []Symbol
+	symbols []Sym
 }
 
 func NewElfCache(sz int) (*ElfCache, error) {
@@ -28,7 +28,7 @@ func NewElfCache(sz int) (*ElfCache, error) {
 	}, nil
 }
 
-func (e *ElfCache) GetSymbolsByBuildID(buildID string) []Symbol {
+func (e *ElfCache) GetSymbolsByBuildID(buildID string) []Sym {
 	if buildID == "" {
 		return nil
 	}
@@ -39,7 +39,7 @@ func (e *ElfCache) GetSymbolsByBuildID(buildID string) []Symbol {
 	return nil
 }
 
-func (e *ElfCache) GetSymbolsByStat(s stat) []Symbol {
+func (e *ElfCache) GetSymbolsByStat(s stat) []Sym {
 	if s.isNil() {
 		return nil
 	}
@@ -50,14 +50,14 @@ func (e *ElfCache) GetSymbolsByStat(s stat) []Symbol {
 	return nil
 }
 
-func (e *ElfCache) CacheByBuildID(buildID string, symbols []Symbol) {
+func (e *ElfCache) CacheByBuildID(buildID string, symbols []Sym) {
 	if buildID == "" || len(symbols) == 0 {
 		return
 	}
 	e.buildID2Symbols.Add(buildID, &elfCacheEntry{symbols: symbols})
 }
 
-func (e *ElfCache) CacheByStat(s stat, symbols []Symbol) {
+func (e *ElfCache) CacheByStat(s stat, symbols []Sym) {
 	if s.isNil() || len(symbols) == 0 {
 		return
 	}

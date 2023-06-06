@@ -5,10 +5,10 @@ import (
 )
 
 func TestSymTab(t *testing.T) {
-	sym := NewSymTab([]Symbol{
-		{0x1000, "0x1000", ""},
-		{0x1200, "0x1200", ""},
-		{0x1300, "0x1300", ""},
+	sym := NewSymTab([]Sym{
+		{0x1000, "0x1000"},
+		{0x1200, "0x1200"},
+		{0x1300, "0x1300"},
 	})
 	expect := func(t *testing.T, expected string, at uint64) {
 		resolved := sym.Resolve(at)

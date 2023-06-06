@@ -31,7 +31,7 @@ func newGoSymbols(file string) (*SymTab, error) {
 	return NewSymTab(symbols), nil
 }
 
-func getELFSymbolsFromPCLN(file string, obj *elf.File) ([]Symbol, error) {
+func getELFSymbolsFromPCLN(file string, obj *elf.File) ([]Sym, error) {
 	var gosymtab []byte
 	var err error
 	var pclntab []byte
@@ -71,12 +71,12 @@ func getELFSymbolsFromPCLN(file string, obj *elf.File) ([]Symbol, error) {
 		return nil, errors.New("gosymtab: no symbols found")
 	}
 
-	es := make([]Symbol, 0, len(table.Funcs))
+	es := make([]Sym, 0, len(table.Funcs))
 	for _, fun := range table.Funcs {
-		es = append(es, Symbol{Start: fun.Entry, Name: fun.Name, Module: file})
+		es = append(es, Sym{Start: fun.Entry, Name: fun.Name})
 	}
 
-	slices.SortFunc(es, func(a, b Symbol) bool {
+	slices.SortFunc(es, func(a, b Sym) bool {
 		return a.Start < b.Start
 	})
 	return es, nil

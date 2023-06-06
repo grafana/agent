@@ -5,13 +5,11 @@ import (
 	"encoding/hex"
 	"os"
 	"path"
-	"runtime"
 	"strings"
 	"testing"
 
-	"github.com/go-kit/log"
-
 	"github.com/grafana/agent/pkg/util"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTestdataMD5(t *testing.T) {
@@ -60,10 +58,10 @@ func testProc(t *testing.T, maps string, data []procTestdata) {
 		},
 	})
 	m.rootFS = path.Join(wd, "testdata")
-	m.refresh([]byte(maps))
+	m.refresh(maps)
 	for _, td := range data {
 		sym := m.Resolve(td.base + td.offset)
-		if sym == nil || sym.Name != td.name || !strings.ContainsAny(sym.Module, td.elf) {
+		if sym.Name != td.name || !strings.Contains(sym.Module, td.elf) {
 			t.Errorf("failed to resolve %v (%v)", td, sym)
 		}
 	}
@@ -209,54 +207,181 @@ func TestDebugFileDebugLink(t *testing.T) {
 ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
 `
 	var syms = []procTestdata{
-		{"iter", "elf.stripped", 0x1149, 0x559090826000},
-		{"main", "elf.stripped", 0x115e, 0x559090826000},
+		{"iter", "elf.debuglink", 0x1149, 0x559090826000},
+		{"main", "elf.debuglink", 0x115e, 0x559090826000},
 		{"lib_iter", "libexample.so", 0x1139, 0x7fd1c715b000},
 	}
 	testProc(t, maps, syms)
 }
 
-func TestMallocResolve(t *testing.T) {
-	if runtime.GOOS != "linux" {
-		t.Skip()
-		return
+func TestUnload(t *testing.T) {
+	maps := `559090826000-559090827000 r--p 00000000 09:00 9543482                    /elfs/elf.debuglink
+559090827000-559090828000 r-xp 00001000 09:00 9543482                    /elfs/elf.debuglink
+559090828000-559090829000 r--p 00002000 09:00 9543482                    /elfs/elf.debuglink
+559090829000-55909082b000 rw-p 00002000 09:00 9543482                    /elfs/elf.debuglink
+7fd1c6f27000-7fd1c6f2a000 rw-p 00000000 00:00 0 
+7fd1c6f2a000-7fd1c6f52000 r--p 00000000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c6f52000-7fd1c70e7000 r-xp 00028000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c70e7000-7fd1c713f000 r--p 001bd000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c713f000-7fd1c7143000 r--p 00214000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c7143000-7fd1c7145000 rw-p 00218000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c7145000-7fd1c7152000 rw-p 00000000 00:00 0 
+7fd1c715b000-7fd1c715c000 r--p 00000000 09:00 9543485                    /elfs/libexample.so
+7fd1c715c000-7fd1c715d000 r-xp 00001000 09:00 9543485                    /elfs/libexample.so
+7fd1c715d000-7fd1c715e000 r--p 00002000 09:00 9543485                    /elfs/libexample.so
+7fd1c715e000-7fd1c715f000 r--p 00002000 09:00 9543485                    /elfs/libexample.so
+7fd1c715f000-7fd1c7160000 rw-p 00003000 09:00 9543485                    /elfs/libexample.so
+7fd1c7160000-7fd1c7162000 rw-p 00000000 00:00 0 
+7fd1c7162000-7fd1c7164000 r--p 00000000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c7164000-7fd1c718e000 r-xp 00002000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c718e000-7fd1c7199000 r--p 0002c000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c719a000-7fd1c719c000 r--p 00037000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c719c000-7fd1c719e000 rw-p 00039000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fffd9b57000-7fffd9b78000 rw-p 00000000 00:00 0                          [stack]
+7fffd9bd2000-7fffd9bd6000 r--p 00000000 00:00 0                          [vvar]
+7fffd9bd6000-7fffd9bd8000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
+`
+	iterSym := procTestdata{"lib_iter", "libexample.so", 0x1139, 0x7fd1c715b000}
+	var syms = []procTestdata{
+		{"iter", "elf.debuglink", 0x1149, 0x559090826000},
+		{"main", "elf.debuglink", 0x115e, 0x559090826000},
+		iterSym,
 	}
 
+	wd, _ := os.Getwd()
 	elfCache, _ := NewElfCache(32)
 	logger := util.TestLogger(t)
-	gosym := NewProcTable(logger, ProcTableOptions{
-		Pid: os.Getpid(),
+	m := NewProcTable(logger, ProcTableOptions{
+		Pid: 239,
 		ElfTableOptions: ElfTableOptions{
-			UseDebugFiles: false,
+			UseDebugFiles: true,
 			ElfCache:      elfCache,
 		},
 	})
-	gosym.Refresh()
-	malloc := testHelperGetMalloc()
-	res := gosym.Resolve(uint64(malloc))
-	if res == nil {
-		t.Fatalf("expected malloc sym, got %v", res)
-	}
-	if !strings.Contains(res.Name, "malloc") {
-		t.Errorf("expected malloc got %s", res.Name)
-	}
-	if !strings.Contains(res.Module, "/libc.so") && !strings.Contains(res.Module, "/libc-") {
-		t.Errorf("expected libc, got %v", res.Module)
-	}
-}
-
-func BenchmarkProc(b *testing.B) {
-	gosym, _ := newGoSymbols("/proc/self/exe")
-	logger := log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
-	proc := NewProcTable(logger, ProcTableOptions{Pid: os.Getpid()})
-	proc.Refresh()
-	if len(gosym.symbols) < 1000 {
-		b.FailNow()
-	}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		for _, symbol := range gosym.symbols {
-			proc.Resolve(symbol.Start)
+	m.rootFS = path.Join(wd, "testdata")
+	m.refresh(maps)
+	for _, td := range syms {
+		sym := m.Resolve(td.base + td.offset)
+		if sym.Name != td.name || !strings.Contains(sym.Module, td.elf) {
+			t.Errorf("failed to resolve %v (%v)", td, sym)
 		}
 	}
+	maps = `559090826000-559090827000 r--p 00000000 09:00 9543482                    /elfs/elf.debuglink
+559090827000-559090828000 r-xp 00001000 09:00 9543482                    /elfs/elf.debuglink
+559090828000-559090829000 r--p 00002000 09:00 9543482                    /elfs/elf.debuglink
+559090829000-55909082b000 rw-p 00002000 09:00 9543482                    /elfs/elf.debuglink
+7fd1c6f27000-7fd1c6f2a000 rw-p 00000000 00:00 0 
+7fd1c6f2a000-7fd1c6f52000 r--p 00000000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c6f52000-7fd1c70e7000 r-xp 00028000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c70e7000-7fd1c713f000 r--p 001bd000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c713f000-7fd1c7143000 r--p 00214000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c7143000-7fd1c7145000 rw-p 00218000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c7145000-7fd1c7152000 rw-p 00000000 00:00 0
+7fd1c7162000-7fd1c7164000 r--p 00000000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c7164000-7fd1c718e000 r-xp 00002000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c718e000-7fd1c7199000 r--p 0002c000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c719a000-7fd1c719c000 r--p 00037000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c719c000-7fd1c719e000 rw-p 00039000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fffd9b57000-7fffd9b78000 rw-p 00000000 00:00 0                          [stack]
+7fffd9bd2000-7fffd9bd6000 r--p 00000000 00:00 0                          [vvar]
+7fffd9bd6000-7fffd9bd8000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
+`
+	require.Equal(t, 2, len(m.file2Table))
+	m.refresh(maps)
+	require.Equal(t, 1, len(m.file2Table))
+	sym := m.Resolve(iterSym.base + iterSym.offset)
+	require.Empty(t, sym.Name)
+	require.Empty(t, sym.Module)
+	require.Empty(t, sym.Start)
+}
+
+func TestInodeChange(t *testing.T) {
+	maps := `559090826000-559090827000 r--p 00000000 09:00 9543482                    /elfs/elf.debuglink
+559090827000-559090828000 r-xp 00001000 09:00 9543482                    /elfs/elf.debuglink
+559090828000-559090829000 r--p 00002000 09:00 9543482                    /elfs/elf.debuglink
+559090829000-55909082b000 rw-p 00002000 09:00 9543482                    /elfs/elf.debuglink
+7fd1c6f27000-7fd1c6f2a000 rw-p 00000000 00:00 0 
+7fd1c6f2a000-7fd1c6f52000 r--p 00000000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c6f52000-7fd1c70e7000 r-xp 00028000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c70e7000-7fd1c713f000 r--p 001bd000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c713f000-7fd1c7143000 r--p 00214000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c7143000-7fd1c7145000 rw-p 00218000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c7145000-7fd1c7152000 rw-p 00000000 00:00 0 
+7fd1c715b000-7fd1c715c000 r--p 00000000 09:00 9543485                    /elfs/libexample.so
+7fd1c715c000-7fd1c715d000 r-xp 00001000 09:00 9543485                    /elfs/libexample.so
+7fd1c715d000-7fd1c715e000 r--p 00002000 09:00 9543485                    /elfs/libexample.so
+7fd1c715e000-7fd1c715f000 r--p 00002000 09:00 9543485                    /elfs/libexample.so
+7fd1c715f000-7fd1c7160000 rw-p 00003000 09:00 9543485                    /elfs/libexample.so
+7fd1c7160000-7fd1c7162000 rw-p 00000000 00:00 0 
+7fd1c7162000-7fd1c7164000 r--p 00000000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c7164000-7fd1c718e000 r-xp 00002000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c718e000-7fd1c7199000 r--p 0002c000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c719a000-7fd1c719c000 r--p 00037000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c719c000-7fd1c719e000 rw-p 00039000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fffd9b57000-7fffd9b78000 rw-p 00000000 00:00 0                          [stack]
+7fffd9bd2000-7fffd9bd6000 r--p 00000000 00:00 0                          [vvar]
+7fffd9bd6000-7fffd9bd8000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
+`
+	iterSym := procTestdata{"lib_iter", "libexample.so", 0x1139, 0x7fd1c715b000}
+	var syms = []procTestdata{
+		{"iter", "elf.debuglink", 0x1149, 0x559090826000},
+		{"main", "elf.debuglink", 0x115e, 0x559090826000},
+		iterSym,
+	}
+
+	wd, _ := os.Getwd()
+	elfCache, _ := NewElfCache(32)
+	logger := util.TestLogger(t)
+	m := NewProcTable(logger, ProcTableOptions{
+		Pid: 239,
+		ElfTableOptions: ElfTableOptions{
+			UseDebugFiles: true,
+			ElfCache:      elfCache,
+		},
+	})
+	m.rootFS = path.Join(wd, "testdata")
+	m.refresh(maps)
+	for _, td := range syms {
+		sym := m.Resolve(td.base + td.offset)
+		if sym.Name != td.name || !strings.Contains(sym.Module, td.elf) {
+			t.Errorf("failed to resolve %v (%v)", td, sym)
+		}
+	}
+	maps = `559090826000-559090827000 r--p 00000000 09:00 9543482                    /elfs/elf.debuglink
+559090827000-559090828000 r-xp 00001000 09:00 9543482                    /elfs/elf.debuglink
+559090828000-559090829000 r--p 00002000 09:00 9543482                    /elfs/elf.debuglink
+559090829000-55909082b000 rw-p 00002000 09:00 9543482                    /elfs/elf.debuglink
+7fd1c6f27000-7fd1c6f2a000 rw-p 00000000 00:00 0 
+7fd1c6f2a000-7fd1c6f52000 r--p 00000000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c6f52000-7fd1c70e7000 r-xp 00028000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c70e7000-7fd1c713f000 r--p 001bd000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c713f000-7fd1c7143000 r--p 00214000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c7143000-7fd1c7145000 rw-p 00218000 09:00 533580                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7fd1c7145000-7fd1c7152000 rw-p 00000000 00:00 0 
+7fd1c715b000-7fd1c715c000 r--p 00000000 09:00 9543486                    /elfs/libexample.so
+7fd1c715c000-7fd1c715d000 r-xp 00001000 09:00 9543486                    /elfs/libexample.so
+7fd1c715d000-7fd1c715e000 r--p 00002000 09:00 9543486                    /elfs/libexample.so
+7fd1c715e000-7fd1c715f000 r--p 00002000 09:00 9543486                    /elfs/libexample.so
+7fd1c715f000-7fd1c7160000 rw-p 00003000 09:00 9543486                    /elfs/libexample.so
+7fd1c7160000-7fd1c7162000 rw-p 00000000 00:00 0 
+7fd1c7162000-7fd1c7164000 r--p 00000000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c7164000-7fd1c718e000 r-xp 00002000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c718e000-7fd1c7199000 r--p 0002c000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c719a000-7fd1c719c000 r--p 00037000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fd1c719c000-7fd1c719e000 rw-p 00039000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7fffd9b57000-7fffd9b78000 rw-p 00000000 00:00 0                          [stack]
+7fffd9bd2000-7fffd9bd6000 r--p 00000000 00:00 0                          [vvar]
+7fffd9bd6000-7fffd9bd8000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
+`
+	require.Equal(t, 2, len(m.file2Table))
+	m.refresh(maps)
+	require.Equal(t, 2, len(m.file2Table))
+	sym := m.Resolve(iterSym.base + iterSym.offset)
+	require.NotEmpty(t, sym.Name)
+	require.NotEmpty(t, sym.Module)
+	require.NotEmpty(t, sym.Start)
 }
