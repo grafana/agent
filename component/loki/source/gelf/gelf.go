@@ -103,16 +103,9 @@ func defaultArgs() Arguments {
 	}
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (r *Arguments) SetToDefault() {
 	*r = defaultArgs()
-
-	type arguments Arguments
-	if err := f((*arguments)(r)); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func convertConfig(a Arguments) *scrapeconfig.GelfTargetConfig {

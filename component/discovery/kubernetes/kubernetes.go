@@ -36,15 +36,13 @@ var DefaultConfig = Arguments{
 	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultConfig
-	type arguments Arguments
-	err := f((*arguments)(args))
-	if err != nil {
-		return err
-	}
+}
 
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	return args.HTTPClientConfig.Validate()
 }

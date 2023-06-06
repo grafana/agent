@@ -45,12 +45,9 @@ type Arguments struct {
 	LeasesFile string `river:"leases_file,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Arguments.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	return f((*args)(a))
 }
 
 func (a Arguments) Convert() *dnsmasq_exporter.Config {

@@ -124,12 +124,9 @@ type AutoDiscovery struct {
 	DatabaseDenylist  []string `river:"database_denylist,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Arguments.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	return f((*args)(a))
 }
 
 func (a *Arguments) Convert() *postgres_exporter.Config {

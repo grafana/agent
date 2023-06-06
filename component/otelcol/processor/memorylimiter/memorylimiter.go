@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
-	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
@@ -42,7 +41,6 @@ type Arguments struct {
 
 var (
 	_ processor.Arguments = Arguments{}
-	_ river.Unmarshaler   = (*Arguments)(nil)
 )
 
 // DefaultArguments holds default settings for Arguments.
@@ -54,16 +52,13 @@ var DefaultArguments = Arguments{
 	MemorySpikePercentage: 0,
 }
 
-// UnmarshalRiver implements river.Unmarshaler. It applies defaults to args and
-// validates settings provided by the user.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.CheckInterval <= 0 {
 		return fmt.Errorf("check_interval must be greater than zero")
 	}

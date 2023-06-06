@@ -4,12 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/grafana/agent/pkg/river"
-
 	"github.com/grafana/agent/pkg/river/rivertypes"
 )
-
-var _ river.Unmarshaler = (*Arguments)(nil)
 
 // Arguments implements the input for the S3 component.
 type Arguments struct {
@@ -41,14 +37,13 @@ var DefaultArguments = Arguments{
 	PollFrequency: 10 * time.Minute,
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-	type arguments Arguments
-	err := f((*arguments)(a))
-	if err != nil {
-		return err
-	}
+}
+
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
 	if a.PollFrequency <= minimumPollFrequency {
 		return fmt.Errorf("poll_frequency must be greater than 30s")
 	}
