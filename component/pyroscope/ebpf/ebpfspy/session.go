@@ -15,9 +15,10 @@ import (
 	"github.com/cilium/ebpf"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/pyroscope-io/pyroscope/pkg/agent/ebpfspy/cpuonline"
 	"golang.org/x/sys/unix"
+
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
 )
@@ -263,8 +264,8 @@ func (s *Session) UpdateSampleRate(sampleRate int) error {
 		return nil
 	}
 	_ = level.Debug(s.logger).Log(
-		"updated sample rate", sampleRate,
-		"old sample rate", s.sampleRate,
+		"sample_rate_new", sampleRate,
+		"sample_rate_old", s.sampleRate,
 	)
 	s.Stop()
 	err := s.Start()

@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/go-kit/log/level"
+	"github.com/oklog/run"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
 	ebpfspy "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
-	"github.com/oklog/run"
 )
 
 func init() {
@@ -165,8 +166,10 @@ func (c *Component) updateTargetFinder() {
 }
 
 func (c *Component) Update(args component.Arguments) error {
+	level.Info(c.options.Logger).Log("msg", "updating ebpf arguments")
 	newArgs := args.(Arguments)
 	c.argsUpdate <- newArgs
+	level.Info(c.options.Logger).Log("msg", "updating ebpf arguments done")
 	return nil
 }
 
