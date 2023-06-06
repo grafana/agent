@@ -219,6 +219,22 @@ func (b *Body) encodeField(prefix []string, field rivertags.Field, fieldValue re
 			inner.body.SetValueOverrideHook(b.valueOverrideHook)
 			b.AppendBlock(inner)
 
+		case fieldValue.Kind() == reflect.Map:
+			// Iterate over the map and add each element as an attribute into it.
+			if fieldValue.Type().Key().Kind() != reflect.String {
+				panic("river/token/builder: unsupported map type for block; expected map[string]T, got " + fieldValue.Type().String())
+			}
+
+			inner := NewBlock(fullName, "")
+			inner.body.SetValueOverrideHook(b.valueOverrideHook)
+			b.AppendBlock(inner)
+
+			iter := fieldValue.MapRange()
+			for iter.Next() {
+				mapKey, mapValue := iter.Key(), iter.Value()
+				inner.body.SetAttributeValue(mapKey.String(), mapValue.Interface())
+			}
+
 		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
 			for i := 0; i < fieldValue.Len(); i++ {
 				elem := fieldValue.Index(i)
