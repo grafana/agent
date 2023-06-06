@@ -15,7 +15,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/grafana/agent/component/pyroscope/scrape/fastdelta"
+	"github.com/grafana/agent/component/pyroscope/scrape/internal/fastdelta"
 )
 
 // FuzzDelta looks for inputs to delta which cause crashes. This is to account

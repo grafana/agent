@@ -8,7 +8,7 @@ import (
 	"io"
 
 	"github.com/grafana/agent/component/pyroscope"
-	"github.com/grafana/agent/component/pyroscope/scrape/fastdelta"
+	"github.com/grafana/agent/component/pyroscope/scrape/internal/fastdelta"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 )

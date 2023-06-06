@@ -10,7 +10,7 @@ import (
 
 	"github.com/spaolacci/murmur3"
 
-	"github.com/grafana/agent/component/pyroscope/scrape/pproflite"
+	"github.com/grafana/agent/component/pyroscope/scrape/internal/pproflite"
 )
 
 // As of Go 1.19, the Go heap profile has 4 values per sample, with 2 of them

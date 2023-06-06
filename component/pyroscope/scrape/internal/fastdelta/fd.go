@@ -67,7 +67,7 @@ import (
 
 	"github.com/spaolacci/murmur3"
 
-	"github.com/grafana/agent/component/pyroscope/scrape/pproflite"
+	"github.com/grafana/agent/component/pyroscope/scrape/internal/pproflite"
 )
 
 // ValueType describes the type and unit of a value.
