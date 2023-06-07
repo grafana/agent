@@ -13,7 +13,7 @@ import (
 // ModuleComponent holds the common properties for module components.
 type ModuleComponent struct {
 	opts component.Options
-	ctrl component.Module
+	mod  component.Module
 
 	mut    sync.RWMutex
 	health component.Health
@@ -31,7 +31,7 @@ func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 		opts: o,
 	}
 	var err error
-	c.ctrl, err = o.ModuleController.NewModule(o.ID, func(exports map[string]any) {
+	c.mod, err = o.ModuleController.NewModule(o.ID, func(exports map[string]any) {
 		c.opts.OnStateChange(Exports{Exports: exports})
 	})
 	return c, err
@@ -41,7 +41,7 @@ func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 // will set the component health in addition to return the error so that the consumer
 // can rely on either or both.
 func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue string) error {
-	err := c.ctrl.LoadConfig([]byte(contentValue), args)
+	err := c.mod.LoadConfig([]byte(contentValue), args)
 	if err != nil {
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
@@ -62,7 +62,7 @@ func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue stri
 
 // RunFlowController runs the flow controller that all module components start.
 func (c *ModuleComponent) RunFlowController(ctx context.Context) {
-	c.ctrl.Run(ctx)
+	c.mod.Run(ctx)
 }
 
 // CurrentHealth contains the implementation details for CurrentHealth in a module component.
@@ -74,7 +74,7 @@ func (c *ModuleComponent) CurrentHealth() component.Health {
 
 // HTTPHandler returns the underlying module handle for the UI.
 func (c *ModuleComponent) HTTPHandler() http.Handler {
-	return c.ctrl.ComponentHandler()
+	return c.mod.ComponentHandler()
 }
 
 // SetHealth contains the implementation details for setHealth in a module component.
