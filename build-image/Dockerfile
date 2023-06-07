@@ -46,7 +46,7 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
 
 # rfratto/viceroy contains C cross compilers can be used for our Cgo
 # dependencies.
-FROM rfratto/viceroy:v0.3.0
+FROM rfratto/viceroy:v0.4.0
 
 # Install NodeJS LTS. This is needed because the most recent version of NodeJS
 # from official Debian packages is v12, and we need LTS version v16.

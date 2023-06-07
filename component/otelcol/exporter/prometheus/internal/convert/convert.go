@@ -159,7 +159,9 @@ func (conv *Converter) getOrCreateResource(res pcommon.Resource) *memorySeries {
 	targetInfoLabels := labels.FromStrings(model.MetricNameLabel, "target_info")
 
 	var (
-		attrs = res.Attributes().Sort()
+		// There is no need to sort the attributes here.
+		// The call to lb.Labels below will sort them.
+		attrs = res.Attributes()
 
 		jobLabel      string
 		instanceLabel string
@@ -243,7 +245,9 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 	)
 
 	lb := labels.NewBuilder(scopeInfoLabels)
-	scope.Attributes().Sort().Range(func(k string, v pcommon.Value) bool {
+	// There is no need to sort the attributes here.
+	// The call to lb.Labels below will sort them.
+	scope.Attributes().Range(func(k string, v pcommon.Value) bool {
 		lb.Set(prometheus.NormalizeLabel(k), v.AsString())
 		return true
 	})
@@ -339,7 +343,9 @@ func (conv *Converter) getOrCreateSeries(res *memorySeries, scope *memorySeries,
 		lb.Set("otel_scope_version", scope.metadata[scopeVersionLabel])
 	}
 
-	attrs.Sort().Range(func(k string, v pcommon.Value) bool {
+	// There is no need to sort the attributes here.
+	// The call to lb.Labels below will sort them.
+	attrs.Range(func(k string, v pcommon.Value) bool {
 		lb.Set(prometheus.NormalizeLabel(k), v.AsString())
 		return true
 	})

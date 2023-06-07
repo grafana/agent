@@ -445,7 +445,7 @@ func Test_Hash(t *testing.T) {
 					},
 					{
 						"key": "user.email",
-						"value": { "stringValue": "36687c352204c27d9e228a9b34d00c8a1d36a000" }
+						"value": { "stringValue": "0925f997eb0d742678f66d2da134d15d842d57722af5f7605c4785cb5358831b" }
 					}]
 				}]
 			}]

@@ -6,48 +6,44 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"go.opencensus.io/stats/view"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/service/extensions"
-	"go.opentelemetry.io/collector/service/external/pipelines"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/collector/connector"
+	otelexporter "go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/featuregate"
+	"go.opentelemetry.io/collector/otelcol"
+	"go.opentelemetry.io/collector/processor"
+	"go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/collector/service"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
+	"github.com/grafana/agent/pkg/traces/internal/traceutils"
+	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
 	"github.com/grafana/agent/pkg/util"
+	prom_client "github.com/prometheus/client_golang/prometheus"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Instance wraps the OpenTelemetry collector to enable tracing pipelines
 type Instance struct {
-	mut         sync.Mutex
-	cfg         InstanceConfig
-	logger      *zap.Logger
-	metricViews []*view.View
+	mut    sync.Mutex
+	cfg    InstanceConfig
+	logger *zap.Logger
 
-	extensions *extensions.Extensions
-	pipelines  *pipelines.Pipelines
-	factories  component.Factories
+	factories otelcol.Factories
+	service   *service.Service
 }
 
-var _ component.Host = (*Instance)(nil)
-
 // NewInstance creates and starts an instance of tracing pipelines.
-func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
-	var err error
-
+func NewInstance(logsSubsystem *logs.Logs, reg prom_client.Registerer, cfg InstanceConfig, logger *zap.Logger, promInstanceManager instance.Manager) (*Instance, error) {
 	instance := &Instance{}
 	instance.logger = logger
-	instance.metricViews, err = newMetricViews(reg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create metric views: %w", err)
-	}
 
 	if err := instance.ApplyConfig(logsSubsystem, promInstanceManager, reg, cfg); err != nil {
 		return nil, err
@@ -56,7 +52,7 @@ func NewInstance(logsSubsystem *logs.Logs, reg prometheus.Registerer, cfg Instan
 }
 
 // ApplyConfig updates the configuration of the Instance.
-func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prometheus.Registerer, cfg InstanceConfig) error {
+func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager instance.Manager, reg prom_client.Registerer, cfg InstanceConfig) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -83,56 +79,21 @@ func (i *Instance) Stop() {
 	defer i.mut.Unlock()
 
 	i.stop()
-	view.Unregister(i.metricViews...)
 }
 
 func (i *Instance) stop() {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if i.extensions != nil {
-		err := i.extensions.NotifyPipelineNotReady()
+	if i.service != nil {
+		err := i.service.Shutdown(shutdownCtx)
 		if err != nil {
-			i.logger.Error("failed to notify extension of pipeline shutdown", zap.Error(err))
+			i.logger.Error("failed to stop Otel service", zap.Error(err))
 		}
 	}
-
-	dependencies := []struct {
-		name     string
-		shutdown func() error
-	}{
-		{
-			name: "pipelines",
-			shutdown: func() error {
-				if i.pipelines == nil {
-					return nil
-				}
-				return i.pipelines.ShutdownAll(shutdownCtx)
-			},
-		},
-		{
-			name: "extensions",
-			shutdown: func() error {
-				if i.extensions == nil {
-					return nil
-				}
-				return i.extensions.Shutdown(shutdownCtx)
-			},
-		},
-	}
-
-	for _, dep := range dependencies {
-		i.logger.Info(fmt.Sprintf("shutting down %s", dep.name))
-		if err := dep.shutdown(); err != nil {
-			i.logger.Error(fmt.Sprintf("failed to shutdown %s", dep.name), zap.Error(err))
-		}
-	}
-
-	i.pipelines = nil
-	i.extensions = nil
 }
 
-func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, logs *logs.Logs, instManager instance.Manager, reg prometheus.Registerer) error {
+func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, logs *logs.Logs, instManager instance.Manager, reg prom_client.Registerer) error {
 	// create component factories
 	otelConfig, err := cfg.otelConfig()
 	if err != nil {
@@ -160,15 +121,10 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		ctx = context.WithValue(ctx, contextkeys.Logs, logs)
 	}
 
-	if cfg.ServiceGraphs != nil {
-		ctx = context.WithValue(ctx, contextkeys.PrometheusRegisterer, reg)
-	}
-
 	factories, err := tracingFactories()
 	if err != nil {
 		return fmt.Errorf("failed to load tracing factories: %w", err)
 	}
-	i.factories = factories
 
 	appinfo := component.BuildInfo{
 		Command:     "agent",
@@ -176,52 +132,59 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		Version:     build.Version,
 	}
 
-	settings := component.TelemetrySettings{
-		Logger:         i.logger,
-		TracerProvider: trace.NewNoopTracerProvider(),
-		MeterProvider:  metric.NewNoopMeterProvider(),
-	}
-
-	// start extensions
-	i.extensions, err = extensions.New(ctx, extensions.Settings{
-		Telemetry: settings,
-		BuildInfo: appinfo,
-
-		Factories: factories.Extensions,
-		Configs:   otelConfig.Extensions,
-	}, otelConfig.Service.Extensions)
+	err = enableOtelFeatureGates(
+		"telemetry.useOtelForInternalMetrics",
+		"telemetry.disableHighCardinalityMetrics")
 	if err != nil {
-		i.logger.Error(fmt.Sprintf("failed to build extensions: %s", err.Error()))
-		return fmt.Errorf("failed to create extensions builder: %w", err)
+		return err
 	}
-	err = i.extensions.Start(ctx, i)
+
+	promExporter, err := traceutils.PromeheusExporter(reg)
 	if err != nil {
-		i.logger.Error(fmt.Sprintf("failed to start extensions: %s", err.Error()))
-		return fmt.Errorf("failed to start extensions: %w", err)
+		return fmt.Errorf("error creating otel prometheus exporter: %w", err)
 	}
 
-	i.pipelines, err = pipelines.Build(ctx, pipelines.Settings{
-		Telemetry: settings,
-		BuildInfo: appinfo,
-
-		ReceiverFactories:  factories.Receivers,
-		ReceiverConfigs:    otelConfig.Receivers,
-		ProcessorFactories: factories.Processors,
-		ProcessorConfigs:   otelConfig.Processors,
-		ExporterFactories:  factories.Exporters,
-		ExporterConfigs:    otelConfig.Exporters,
-
-		PipelineConfigs: otelConfig.Pipelines,
-	})
+	i.service, err = service.New(ctx, service.Settings{
+		BuildInfo:                appinfo,
+		Receivers:                receiver.NewBuilder(otelConfig.Receivers, factories.Receivers),
+		Processors:               processor.NewBuilder(otelConfig.Processors, factories.Processors),
+		Exporters:                otelexporter.NewBuilder(otelConfig.Exporters, factories.Exporters),
+		Connectors:               connector.NewBuilder(otelConfig.Connectors, factories.Connectors),
+		Extensions:               extension.NewBuilder(otelConfig.Extensions, factories.Extensions),
+		OtelMetricViews:          servicegraphprocessor.OtelMetricViews(),
+		OtelMetricReader:         *promExporter,
+		UseExternalMetricsServer: false,
+		TracerProvider:           trace.NewNoopTracerProvider(),
+		//TODO: Plug in an AsyncErrorChannel to shut down the Agent in case of a fatal event
+		LoggingOptions: []zap.Option{
+			zap.WrapCore(func(zapcore.Core) zapcore.Core {
+				return i.logger.Core()
+			}),
+		},
+	}, otelConfig.Service)
 	if err != nil {
-		return fmt.Errorf("failed to create pipelines: %w", err)
-	}
-	if err := i.pipelines.StartAll(ctx, i); err != nil {
-		i.logger.Error(fmt.Sprintf("failed to start pipelines: %s", err.Error()))
-		return fmt.Errorf("failed to start pipelines: %w", err)
+		return fmt.Errorf("failed to create Otel service: %w", err)
 	}
 
-	return i.extensions.NotifyPipelineReady()
+	err = i.service.Start(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to start Otel service: %w", err)
+	}
+
+	return err
+}
+
+func enableOtelFeatureGates(fgNames ...string) error {
+	fgReg := featuregate.GlobalRegistry()
+
+	for _, fg := range fgNames {
+		err := fgReg.Set(fg, true)
+		if err != nil {
+			return fmt.Errorf("error setting Otel feature gate: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // ReportFatalError implements component.Host
@@ -230,22 +193,11 @@ func (i *Instance) ReportFatalError(err error) {
 }
 
 // GetFactory implements component.Host
-func (i *Instance) GetFactory(kind component.Kind, componentType config.Type) component.Factory {
+func (i *Instance) GetFactory(kind component.Kind, componentType component.Type) component.Factory {
 	switch kind {
 	case component.KindReceiver:
 		return i.factories.Receivers[componentType]
 	default:
 		return nil
 	}
-}
-
-// GetExtensions implements component.Host
-func (i *Instance) GetExtensions() map[config.ComponentID]component.Extension {
-	return i.extensions.GetExtensions()
-}
-
-// GetExporters implements component.Host
-func (i *Instance) GetExporters() map[config.DataType]map[config.ComponentID]component.Exporter {
-	// SpanMetricsProcessor needs to get the configured exporters.
-	return i.pipelines.GetExporters()
 }

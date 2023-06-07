@@ -65,6 +65,7 @@ func (conv *Converter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 		ills := rls.At(i).ScopeLogs()
 		for j := 0; j < ills.Len(); j++ {
 			logs := ills.At(j).LogRecords()
+			scope := ills.At(j).Scope()
 			for k := 0; k < logs.Len(); k++ {
 				conv.metrics.entriesTotal.Inc()
 
@@ -92,7 +93,7 @@ func (conv *Converter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 				removeAttributes(log.Attributes(), mergedLabels)
 				removeAttributes(resource.Attributes(), mergedLabels)
 
-				entry, err := convertLogToLokiEntry(log, resource, format)
+				entry, err := convertLogToLokiEntry(log, resource, format, scope)
 				if err != nil {
 					level.Error(conv.log).Log("msg", "failed to convert log to loki entry", "err", err)
 					conv.metrics.entriesFailed.Inc()
