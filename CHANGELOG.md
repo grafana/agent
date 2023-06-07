@@ -51,6 +51,8 @@ v0.34.0-rc.0 (2023-06-01)
 
 - `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`. (@korniltsev)
 
+- `service_name` label is inferred from discovery meta labels in `pyroscope.scrape` (@korniltsev)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -103,6 +105,7 @@ v0.34.0-rc.0 (2023-06-01)
 - Update azidentity dependency to v1.3.0. (@akselleirv)
 
 - Add custom labels to journal entries in `loki.source.journal` (@sbhrule15)
+
 
 ### Bugfixes
 
