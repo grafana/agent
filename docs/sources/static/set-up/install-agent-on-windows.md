@@ -7,7 +7,7 @@ aliases:
 
 # Install static mode on Windows
 
-You can install Grafana Agent on Microsoft Windows.
+You can install Grafana Agent in static mode on Microsoft Windows.
 
 ## Download Grafana Agent for Windows
 
