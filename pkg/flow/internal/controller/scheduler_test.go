@@ -94,7 +94,6 @@ type fakeRunnable struct {
 var _ controller.RunnableNode = fakeRunnable{}
 
 func (fr fakeRunnable) NodeID() string                { return fr.ID }
-func (fr fakeRunnable) GlobalNodeID() string          { return fr.ID }
 func (fr fakeRunnable) Run(ctx context.Context) error { return fr.Component.Run(ctx) }
 
 type mockComponent struct {

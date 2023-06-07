@@ -79,15 +79,6 @@ type ComponentGlobals struct {
 	ModuleController  component.ModuleController   // Module Controller used to instantiate modules.
 }
 
-// GenerateGlobalID generates a global id from an input node id.
-func (cg ComponentGlobals) GenerateGlobalID(id string) string {
-	globalID := id
-	if cg.ControllerID != "" {
-		globalID = path.Join(cg.ControllerID, globalID)
-	}
-	return globalID
-}
-
 // ComponentNode is a controller node which manages a user-defined component.
 //
 // ComponentNode manages the underlying component and caches its current
