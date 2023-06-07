@@ -18,6 +18,7 @@ import (
 )
 
 type moduleController struct {
+	mut sync.Mutex
 	o   *moduleControllerOptions
 	ids map[string]struct{}
 }
@@ -36,6 +37,9 @@ func newModuleController(o *moduleControllerOptions) component.ModuleController 
 
 // NewModule creates a new, unstarted Module.
 func (m *moduleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
+	m.mut.Lock()
+	defer m.mut.Unlock()
+
 	if _, found := m.ids[id]; found {
 		return nil, fmt.Errorf("id %s already exists", id)
 	}
@@ -44,7 +48,15 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 		ID:                      id,
 		export:                  export,
 		moduleControllerOptions: m.o,
+		parent:                  m,
 	}), nil
+}
+
+func (m *moduleController) removeID(id string) {
+	m.mut.Lock()
+	defer m.mut.Unlock()
+
+	delete(m.ids, id)
 }
 
 type module struct {
@@ -56,6 +68,7 @@ type module struct {
 type moduleOptions struct {
 	ID     string
 	export component.ExportFunc
+	parent *moduleController
 	*moduleControllerOptions
 }
 
@@ -104,6 +117,7 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 //
 // Run blocks until the provided context is canceled.
 func (c *module) Run(ctx context.Context) {
+	defer c.o.parent.removeID(c.o.ID)
 	c.f.Run(ctx)
 }
 
