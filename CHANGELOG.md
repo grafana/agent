@@ -18,6 +18,8 @@ Main (unreleased)
 
 - `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
 
+- Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
