@@ -48,6 +48,12 @@ func (args Arguments) Convert() (otelconfig.Extension, error) {
 	return &res, nil
 }
 
+// Validate implements river.Validator.
+func (args Arguments) Validate() error {
+	_, err := args.Convert()
+	return err
+}
+
 // Extensions implements auth.Arguments.
 func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
 	return nil
