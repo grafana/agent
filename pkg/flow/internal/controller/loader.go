@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/grafana/agent/pkg/flow/tracing"
 	"sync"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/ckit"

@@ -196,7 +196,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": globalID,
 		}, cn.registry),
-			Tracer:    tracing.WrapTracer(globals.TraceProvider, globalID),
+		Tracer:    tracing.WrapTracer(globals.TraceProvider, globalID),
 		Clusterer: globals.Clusterer,
 
 		DataPath:       filepath.Join(globals.DataPath, cn.nodeID),

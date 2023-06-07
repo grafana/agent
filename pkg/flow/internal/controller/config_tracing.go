@@ -25,7 +25,6 @@ var _ BlockNode = (*TracingConfigNode)(nil)
 // NewTracingConfigNode creates a new TracingConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
 func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *TracingConfigNode {
-
 	return &TracingConfigNode{
 		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),

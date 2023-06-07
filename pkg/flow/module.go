@@ -3,7 +3,6 @@ package flow
 import (
 	"context"
 	"fmt"
-	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"net/http"
 	"path"
 	"sync"
@@ -11,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/web/api"

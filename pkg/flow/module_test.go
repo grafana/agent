@@ -1,12 +1,12 @@
 package flow
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestIDCollision(t *testing.T) {
-
 	nc := newModuleController(&moduleControllerOptions{
 		Logger:         nil,
 		Tracer:         nil,
