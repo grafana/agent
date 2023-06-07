@@ -75,11 +75,15 @@ var (
 
 // New creates a new module.git component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	m, err := module.NewModuleComponent(o)
+	if err != nil {
+		return nil, err
+	}
 	c := &Component{
 		opts: o,
 		log:  o.Logger,
 
-		mod: module.NewModuleComponent(o),
+		mod: m,
 
 		argsChanged: make(chan struct{}, 1),
 	}

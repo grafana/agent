@@ -12,7 +12,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
-	"github.com/grafana/agent/pkg/river/encoding"
 	"github.com/grafana/agent/web/api/apitypes"
 )
 

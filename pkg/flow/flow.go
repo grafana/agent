@@ -167,6 +167,7 @@ func New(o Options) *Flow {
 		DataPath:       o.DataPath,
 		HTTPListenAddr: o.HTTPListenAddr,
 		HTTPPath:       o.HTTPPathPrefix,
+		DialFunc:       o.DialFunc,
 	})
 	var (
 		queue  = controller.NewQueue()

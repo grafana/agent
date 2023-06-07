@@ -2,6 +2,8 @@ package flow
 
 import (
 	"context"
+	"fmt"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"net/http"
 	"path"
 	"sync"
@@ -16,7 +18,8 @@ import (
 )
 
 type moduleController struct {
-	o *moduleControllerOptions
+	o   *moduleControllerOptions
+	ids map[string]struct{}
 }
 
 var (
@@ -26,17 +29,22 @@ var (
 // newModuleController is the entrypoint into creating module instances.
 func newModuleController(o *moduleControllerOptions) component.ModuleController {
 	return &moduleController{
-		o: o,
+		o:   o,
+		ids: map[string]struct{}{},
 	}
 }
 
 // NewModule creates a new, unstarted Module.
-func (m *moduleController) NewModule(id string, export component.ExportFunc) component.Module {
+func (m *moduleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
+	if _, found := m.ids[id]; found {
+		return nil, fmt.Errorf("id %s already exists", id)
+	}
+	m.ids[id] = struct{}{}
 	return newModule(&moduleOptions{
 		ID:                      id,
 		export:                  export,
 		moduleControllerOptions: m.o,
-	})
+	}), nil
 }
 
 type module struct {
@@ -79,6 +87,7 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 			OnExportsChange: func(exports map[string]any) {
 				c.o.export(exports)
 			},
+			DialFunc: c.o.DialFunc,
 		})
 		c.f = f
 	}
@@ -149,4 +158,9 @@ type moduleControllerOptions struct {
 	// component. Requests received by a component handler will have this already
 	// trimmed off.
 	HTTPPath string
+
+	// DialFunc is a function for components to use to properly communicate to
+	// HTTPListenAddr. If set, components which send HTTP requests to
+	// HTTPListenAddr must use this function to establish connections.
+	controller.DialFunc
 }

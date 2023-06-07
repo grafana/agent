@@ -26,14 +26,15 @@ type Exports struct {
 }
 
 // NewModuleComponent initializes a new ModuleComponent.
-func NewModuleComponent(o component.Options) *ModuleComponent {
+func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 	c := &ModuleComponent{
 		opts: o,
 	}
-	c.ctrl = o.ModuleController.NewModule(o.ID, func(exports map[string]any) {
+	var err error
+	c.ctrl, err = o.ModuleController.NewModule(o.ID, func(exports map[string]any) {
 		c.opts.OnStateChange(Exports{Exports: exports})
 	})
-	return c
+	return c, err
 }
 
 // LoadFlowContent loads the flow controller with the current component content. It

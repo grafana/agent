@@ -60,14 +60,18 @@ var (
 
 // New creates a new module.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	m, err := module.NewModuleComponent(o)
+	if err != nil {
+		return nil, err
+	}
+
 	c := &Component{
 		opts: o,
-		mod:  module.NewModuleComponent(o),
+		mod:  m,
 		args: args,
 	}
 	defer c.isCreated.Store(true)
 
-	var err error
 	c.managedLocalFile, err = c.newManagedLocalComponent(o)
 	if err != nil {
 		return nil, err

@@ -22,14 +22,8 @@ var DefaultOptions = Options{
 	Format: FormatDefault,
 }
 
-var _ river.Unmarshaler = (*Options)(nil)
+var _ river.Defaulter = (*Options)(nil)
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (o *Options) UnmarshalRiver(f func(interface{}) error) error {
-	*o = DefaultOptions
-
-	type options Options
-	return f((*options)(o))
 // SetToDefault implements river.Defaulter.
 func (o *Options) SetToDefault() {
 	*o = DefaultOptions
