@@ -2,7 +2,7 @@
 
 This guide will walk you through the process of creating a new Prometheus exporter Flow component and best practices for implementing it. 
 
-It is required that the exporter has an existing [Agent integration](../sources/configuration/integrations/_index.md) in order to wrap it as a Flow component. In the future, we will drop this requirement and Flow components will expose the logic of the exporter directly.
+It is required that the exporter has an existing [Agent integration](../sources/static/configuration/integrations/_index.md) in order to wrap it as a Flow component. In the future, we will drop this requirement and Flow components will expose the logic of the exporter directly.
 
 Use the following exporters as a reference:
 - [process_exporter](../../component/prometheus/exporter/process/process.go) - [documentation](../sources/flow/reference/components/prometheus.exporter.process.md)
