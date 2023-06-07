@@ -288,6 +288,7 @@ func reverse(s []string) {
 
 func getComm(k *profileSampleKey) string {
 	res := ""
+	// todo remove unsafe
 	sh := (*reflect.StringHeader)(unsafe.Pointer(&res))
 	sh.Data = uintptr(unsafe.Pointer(&k.Comm[0]))
 	for _, c := range k.Comm {
