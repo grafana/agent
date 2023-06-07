@@ -3,11 +3,14 @@ package app_agent_receiver
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+
+	"github.com/zeebo/xxh3"
 )
 
 // Payload is the body of the receiver request
@@ -77,6 +80,7 @@ func (e Exception) KeyVal() *KeyVal {
 	KeyValAdd(kv, "type", e.Type)
 	KeyValAdd(kv, "value", e.Value)
 	KeyValAdd(kv, "stacktrace", e.String())
+	KeyValAdd(kv, "hash", strconv.FormatUint(xxh3.HashString(e.Value), 10))
 	MergeKeyValWithPrefix(kv, KeyValFromMap(e.Context), "context_")
 	MergeKeyVal(kv, e.Trace.KeyVal())
 	return kv

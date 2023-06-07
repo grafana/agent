@@ -59,7 +59,11 @@ prometheus.exporter.blackbox "example" {
 
 - If the exporter implements a custom `InstanceKey`, add a function to customize the value of the instance label and use `exporter.NewWithTargetBuilder` for the `Build` param of the `component.Register` function.
 
-- Define `UnmarshalRiver` function to unmarshal the arguments from the river config into the `Arguments` struct. Please, add a test to validate the unmarshalling covering as many cases as possible.
+- Define the `SetToDefault` function implementing river.Defaulter to specify the default arguments for the component.
+
+- Define the `Validate` function implementing river.Validator to specify any validation rules for the component arguments.
+
+- Add a test to validate the unmarshalling covering as many cases as possible.
 
 - Define a `Convert` function to convert nested structs to the ones that the integration uses. Please, also add a test to validate the conversion covering as many cases as possible.
 

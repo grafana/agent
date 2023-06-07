@@ -3,7 +3,6 @@ package configgen
 // SEE https://github.com/prometheus-operator/prometheus-operator/blob/aa8222d7e9b66e9293ed11c9291ea70173021029/pkg/prometheus/promcfg.go
 
 import (
-	"fmt"
 	"regexp"
 
 	k8sConfig "github.com/grafana/agent/component/common/kubernetes"
@@ -15,7 +14,8 @@ import (
 )
 
 type ConfigGenerator struct {
-	Client *k8sConfig.ClientArguments
+	Client  *k8sConfig.ClientArguments
+	Secrets SecretFetcher
 }
 
 var (
@@ -65,23 +65,101 @@ func (cg *ConfigGenerator) generateK8SSDConfig(namespaceSelector promopv1.Namesp
 	return cfg
 }
 
-func (cg *ConfigGenerator) generateSafeTLS(tls promopv1.SafeTLSConfig) (commonConfig.TLSConfig, error) {
+func (cg *ConfigGenerator) generateSafeTLS(tls promopv1.SafeTLSConfig, namespace string) (commonConfig.TLSConfig, error) {
 	tc := commonConfig.TLSConfig{}
 	tc.InsecureSkipVerify = tls.InsecureSkipVerify
-
+	var err error
+	var value string
 	if tls.CA.Secret != nil || tls.CA.ConfigMap != nil {
-		return tc, fmt.Errorf("loading ca certs no supported yet")
+		tc.CA, err = cg.Secrets.SecretOrConfigMapValue(namespace, tls.CA)
+		if err != nil {
+			return tc, err
+		}
 	}
 	if tls.Cert.Secret != nil || tls.Cert.ConfigMap != nil {
-		return tc, fmt.Errorf("loading tls certs no supported yet")
+		tc.Cert, err = cg.Secrets.SecretOrConfigMapValue(namespace, tls.Cert)
+		if err != nil {
+			return tc, err
+		}
 	}
 	if tls.KeySecret != nil {
-		return tc, fmt.Errorf("loading tls certs no supported yet")
+		value, err = cg.Secrets.GetSecretValue(namespace, *tls.KeySecret)
+		if err != nil {
+			return tc, err
+		}
+		tc.Key = commonConfig.Secret(value)
 	}
 	if tls.ServerName != "" {
 		tc.ServerName = tls.ServerName
 	}
 	return tc, nil
+}
+
+func (cg *ConfigGenerator) generateTLSConfig(tls promopv1.TLSConfig, namespace string) (commonConfig.TLSConfig, error) {
+	tc, err := cg.generateSafeTLS(tls.SafeTLSConfig, namespace)
+	if err != nil {
+		return tc, err
+	}
+	if tls.CAFile != "" {
+		tc.CAFile = tls.CAFile
+	}
+	if tls.CertFile != "" {
+		tc.CertFile = tls.CertFile
+	}
+	if tls.KeyFile != "" {
+		tc.KeyFile = tls.KeyFile
+	}
+	return tc, nil
+}
+
+func (cg *ConfigGenerator) generateBasicAuth(auth promopv1.BasicAuth, namespace string) (*commonConfig.BasicAuth, error) {
+	un, err := cg.Secrets.GetSecretValue(namespace, auth.Username)
+	if err != nil {
+		return nil, err
+	}
+	pw, err := cg.Secrets.GetSecretValue(namespace, auth.Password)
+	if err != nil {
+		return nil, err
+	}
+	return &commonConfig.BasicAuth{
+		Username: un,
+		Password: commonConfig.Secret(pw),
+	}, nil
+}
+
+func (cg *ConfigGenerator) generateOauth2(oa promopv1.OAuth2, namespace string) (*commonConfig.OAuth2, error) {
+	clid, err := cg.Secrets.SecretOrConfigMapValue(namespace, oa.ClientID)
+	if err != nil {
+		return nil, err
+	}
+	clisecret, err := cg.Secrets.GetSecretValue(namespace, oa.ClientSecret)
+	if err != nil {
+		return nil, err
+	}
+	return &commonConfig.OAuth2{
+		Scopes:         oa.Scopes,
+		TokenURL:       oa.TokenURL,
+		EndpointParams: oa.EndpointParams,
+		ClientID:       clid,
+		ClientSecret:   commonConfig.Secret(clisecret),
+	}, nil
+}
+
+func (cg *ConfigGenerator) generateAuthorization(a promopv1.SafeAuthorization, namespace string) (*commonConfig.Authorization, error) {
+	auth := &commonConfig.Authorization{
+		Type: a.Type,
+	}
+	if auth.Type == "" {
+		auth.Type = "Bearer"
+	}
+	if a.Credentials != nil {
+		creds, err := cg.Secrets.GetSecretValue(namespace, *a.Credentials)
+		if err != nil {
+			return nil, err
+		}
+		auth.Credentials = commonConfig.Secret(creds)
+	}
+	return auth, nil
 }
 
 type relabeler struct {

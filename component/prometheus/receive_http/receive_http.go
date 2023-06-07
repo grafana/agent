@@ -33,17 +33,11 @@ type Arguments struct {
 	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 }
 
-func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
-	*a = Arguments{
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
+	*args = Arguments{
 		Server: fnet.DefaultServerConfig(),
 	}
-
-	type args Arguments
-	err := f((*args)(a))
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 type Component struct {

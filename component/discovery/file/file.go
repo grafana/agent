@@ -61,11 +61,9 @@ func getDefault() Arguments {
 	return Arguments{SyncPeriod: 10 * time.Second}
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = getDefault()
-	type arguments Arguments
-	return f((*arguments)(a))
 }
 
 // Update satisfies the component interface.

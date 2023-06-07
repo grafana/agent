@@ -50,6 +50,7 @@ func (args Arguments) Convert() (otelconfig.Extension, error) {
 	return &res, nil
 }
 
+// UnmarshalRiver implements river.Unmarshaler.
 func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	type arguments Arguments
 	if err := f((*arguments)(args)); err != nil {

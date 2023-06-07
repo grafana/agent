@@ -37,15 +37,13 @@ var DefaultArguments = Arguments{
 	Type:            "SRV",
 }
 
-// UnmarshalRiver implements river.Unmarshaler, applying defaults and
-// validating the provided config.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	switch strings.ToUpper(args.Type) {
 	case "SRV":
 	case "A", "AAAA", "MX":

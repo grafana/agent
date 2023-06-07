@@ -388,3 +388,24 @@ func TestBuilder_ValueOverrideHook(t *testing.T) {
 
 	require.Equal(t, expect, string(f.Bytes()))
 }
+
+func TestBuilder_MapBlocks(t *testing.T) {
+	type block struct {
+		Value map[string]any `river:"block,block,optional"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(block{
+		Value: map[string]any{
+			"field": "value",
+		},
+	})
+
+	expect := format(t, `
+		block {
+			field = "value"
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
