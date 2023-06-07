@@ -17,6 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//TODO these tests should be reviewed to see if they are in the correct spot or should be testing
+// the controller/flow code instead of specific module loader.
+
 func TestModule(t *testing.T) {
 	tempDir := t.TempDir()
 	debugLevelFilePath := filepath.Join(tempDir, "debug_level.txt")

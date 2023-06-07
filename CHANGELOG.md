@@ -65,7 +65,7 @@ Main (unreleased)
   `prometheus.exporter.unix` `diskstat_device_include` component could not set
   the allowlist field for the diskstat collector. (@tpaschalis)
 
-- Metrics and traces will now be recorded from components within modules. (@mattdurham)
+- Fix issue where metrics and traces were not recorded from components within modules. (@mattdurham)
 
 ### Other changes
 
