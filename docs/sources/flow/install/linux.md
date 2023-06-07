@@ -125,7 +125,7 @@ To change the configuration file used by the service, perform the following step
 1. Edit the environment file for the service:
 
    * Debian-based systems: edit `/etc/default/grafana-agent-flow`
-   * RedHat ro SUSE-based systems: edit `/etc/sysconfig/grafana-agent-flow`
+   * RedHat or SUSE-based systems: edit `/etc/sysconfig/grafana-agent-flow`
 
 2. Change the contents of the `CONFIG_FILE` environment variable to point to
    the new configuration file to use.
