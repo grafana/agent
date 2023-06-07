@@ -4,6 +4,7 @@ package net
 
 import (
 	"flag"
+	"math"
 	"time"
 
 	weaveworks "github.com/weaveworks/common/server"
@@ -11,7 +12,13 @@ import (
 
 const (
 	DefaultHTTPPort = 8080
-	DefaultGRPCPort = 8081
+
+	// using zero as default grpc port to assing random free port when not configured
+	DefaultGRPCPort = 0
+
+	// defaults inherited from weaveworks
+	durationInfinity = time.Duration(math.MaxInt64)
+	size4MB          = 4 << 20
 )
 
 // ServerConfig is a River configuration that allows one to configure a weaveworks.Server. It
@@ -75,40 +82,58 @@ func (g *GRPCConfig) Into(c *weaveworks.Config) {
 	c.GPRCServerMaxConcurrentStreams = g.ServerMaxConcurrentStreams
 }
 
-func (c *ServerConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	type config ServerConfig
-	if err := f((*config)(c)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Convert converts the River-based ServerConfig into a weaveworks.Config object.
-func (c *ServerConfig) Convert() weaveworks.Config {
-	cfg := newDefaultConfig()
+func (c *ServerConfig) convert() weaveworks.Config {
+	cfg := newWeaveworksDefaultConfig()
+	// use the configured http/grpc blocks, and if not, use a mixin of our defaults, and
+	// weaveworks's as a fallback
 	if c.HTTP != nil {
 		c.HTTP.Into(&cfg)
+	} else {
+		DefaultServerConfig().HTTP.Into(&cfg)
 	}
 	if c.GRPC != nil {
 		c.GRPC.Into(&cfg)
+	} else {
+		DefaultServerConfig().GRPC.Into(&cfg)
 	}
-	// If set, override. Don't allow a zero-value since it configure a context.WithTimeout, so the user should at least
-	// give a >0 value to it
-	if c.GracefulShutdownTimeout != 0 {
-		cfg.ServerGracefulShutdownTimeout = c.GracefulShutdownTimeout
-	}
+	cfg.ServerGracefulShutdownTimeout = c.GracefulShutdownTimeout
 	return cfg
 }
 
-// newDefaultConfig creates a new weaveworks.Config object with some overridden defaults.
-func newDefaultConfig() weaveworks.Config {
+// newWeaveworksDefaultConfig creates a new weaveworks.Config object with some overridden defaults.
+func newWeaveworksDefaultConfig() weaveworks.Config {
 	c := weaveworks.Config{}
 	c.RegisterFlags(flag.NewFlagSet("empty", flag.ContinueOnError))
-	c.HTTPListenPort = DefaultHTTPPort
-	c.GRPCListenPort = DefaultGRPCPort
 	// By default, do not register instrumentation since every metric is later registered
 	// inside a custom register
 	c.RegisterInstrumentation = false
 	return c
+}
+
+// DefaultServerConfig creates a new ServerConfig with defaults applied. Note that some are inherited from
+// weaveworks, but copied in our config model to make the mixin logic simpler.
+func DefaultServerConfig() *ServerConfig {
+	return &ServerConfig{
+		HTTP: &HTTPConfig{
+			ListenAddress:      "",
+			ListenPort:         DefaultHTTPPort,
+			ConnLimit:          0,
+			ServerReadTimeout:  30 * time.Second,
+			ServerWriteTimeout: 30 * time.Second,
+			ServerIdleTimeout:  120 * time.Second,
+		},
+		GRPC: &GRPCConfig{
+			ListenAddress:              "",
+			ListenPort:                 DefaultGRPCPort,
+			ConnLimit:                  0,
+			MaxConnectionAge:           durationInfinity,
+			MaxConnectionAgeGrace:      durationInfinity,
+			MaxConnectionIdle:          durationInfinity,
+			ServerMaxConcurrentStreams: 100,
+			ServerMaxSendMsg:           size4MB,
+			ServerMaxRecvMsg:           size4MB,
+		},
+		GracefulShutdownTimeout: 30 * time.Second,
+	}
 }

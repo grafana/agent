@@ -12,7 +12,6 @@ import (
 	"github.com/prometheus/prometheus/config"
 
 	types "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/pkg/river"
 	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 )
@@ -45,8 +44,6 @@ var (
 		MinKeepaliveTime:  5 * time.Minute,
 		MaxKeepaliveTime:  8 * time.Hour,
 	}
-
-	_ river.Unmarshaler = (*QueueOptions)(nil)
 )
 
 // Arguments represents the input state of the prometheus.remote_write
@@ -57,12 +54,9 @@ type Arguments struct {
 	WALOptions     WALOptions         `river:"wal,block,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (rc *Arguments) SetToDefault() {
 	*rc = DefaultArguments
-
-	type config Arguments
-	return f((*config)(rc))
 }
 
 // EndpointOptions describes an individual location for where metrics in the WAL
@@ -79,26 +73,17 @@ type EndpointOptions struct {
 	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
 }
 
-func GetDefaultEndpointOptions() EndpointOptions {
-	var defaultEndpointOptions = EndpointOptions{
+// SetToDefault implements river.Defaulter.
+func (r *EndpointOptions) SetToDefault() {
+	*r = EndpointOptions{
 		RemoteTimeout:    30 * time.Second,
 		SendExemplars:    true,
 		HTTPClientConfig: types.CloneDefaultHTTPClientConfig(),
 	}
-
-	return defaultEndpointOptions
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = GetDefaultEndpointOptions()
-
-	type arguments EndpointOptions
-	err := f((*arguments)(r))
-	if err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (r *EndpointOptions) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	if r.HTTPClientConfig != nil {
 		return r.HTTPClientConfig.Validate()
@@ -119,12 +104,9 @@ type QueueOptions struct {
 	RetryOnHTTP429    bool          `river:"retry_on_http_429,attr,optional"`
 }
 
-// UnmarshalRiver allows injecting of default values
-func (r *QueueOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (r *QueueOptions) SetToDefault() {
 	*r = DefaultQueueOptions
-
-	type arguments QueueOptions
-	return f((*arguments)(r))
 }
 
 func (r *QueueOptions) toPrometheusType() config.QueueConfig {
@@ -152,12 +134,9 @@ type MetadataOptions struct {
 	MaxSamplesPerSend int           `river:"max_samples_per_send,attr,optional"`
 }
 
-// UnmarshalRiver allows injecting of default values
-func (o *MetadataOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (o *MetadataOptions) SetToDefault() {
 	*o = DefaultMetadataOptions
-
-	type options MetadataOptions
-	return f((*options)(o))
 }
 
 func (o *MetadataOptions) toPrometheusType() config.MetadataConfig {
@@ -179,15 +158,13 @@ type WALOptions struct {
 	MaxKeepaliveTime  time.Duration `river:"max_keepalive_time,attr,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (o *WALOptions) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (o *WALOptions) SetToDefault() {
 	*o = DefaultWALOptions
+}
 
-	type config WALOptions
-	if err := f((*config)(o)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (o *WALOptions) Validate() error {
 	switch {
 	case o.TruncateFrequency == 0:
 		return fmt.Errorf("truncate_frequency must not be 0")

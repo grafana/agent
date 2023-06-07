@@ -15,6 +15,7 @@ type Arguments struct {
 	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 	Matches      string              `river:"matches,attr,optional"`
 	Receivers    []loki.LogsReceiver `river:"forward_to,attr"`
+	Labels       map[string]string   `river:"labels,attr,optional"`
 }
 
 func defaultArgs() Arguments {
@@ -25,14 +26,7 @@ func defaultArgs() Arguments {
 	}
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (r *Arguments) SetToDefault() {
 	*r = defaultArgs()
-
-	type arguments Arguments
-	if err := f((*arguments)(r)); err != nil {
-		return err
-	}
-
-	return nil
 }

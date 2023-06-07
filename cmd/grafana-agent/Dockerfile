@@ -4,7 +4,7 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
-FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.25.0 as build
+FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.26.0 as build
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -28,7 +28,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     GO_TAGS="builtinassets promtail_journal_enabled" \
     make agent
 
-FROM ubuntu:kinetic
+FROM ubuntu:lunar
 
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 

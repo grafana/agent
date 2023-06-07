@@ -137,7 +137,7 @@ For example:
 ## Usage
 
 ```river
-phlare.scrape "LABEL" {
+pyroscope.scrape "LABEL" {
   targets    = TARGET_LIST
   forward_to = RECEIVER_LIST
 }

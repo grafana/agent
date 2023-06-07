@@ -97,7 +97,7 @@ func (p *PushTarget) push(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry, err := translate(pushMessage, p.Labels(), p.config.UseIncomingTimestamp, p.relabelConfigs, r.Header.Get("X-Scope-OrgID"))
+	entry, err := translate(pushMessage, p.Labels(), p.config.UseIncomingTimestamp, p.config.UseFullLine, p.relabelConfigs, r.Header.Get("X-Scope-OrgID"))
 	if err != nil {
 		p.metrics.gcpPushErrors.WithLabelValues("translation").Inc()
 		level.Warn(p.logger).Log("msg", "failed to translate gcp push request", "err", err.Error())

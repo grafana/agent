@@ -6,7 +6,7 @@ title: loki.source.api
 
 `loki.source.api` receives log entries over HTTP and forwards them to other `loki.*` components.
 
-The HTTP API exposed is compatible with [Loki push API][loki-push-api] and the `logproto` format. This means that other [`loki.write`][loki.write] components can be used as a client and send requests to `loki.source.api` and enables using the Agent as a proxy for logs.
+The HTTP API exposed is compatible with [Loki push API][loki-push-api] and the `logproto` format. This means that other [`loki.write`][loki.write] components can be used as a client and send requests to `loki.source.api` which enables using the Agent as a proxy for logs.
 
 [loki.write]: {{< relref "./loki.write.md" >}}
 [loki-push-api]: https://grafana.com/docs/loki/latest/api/#push-log-entries-to-loki
@@ -49,7 +49,7 @@ The `relabel_rules` field can make use of the `rules` export value from a
 
 ## Blocks
 
-The following blocks are supported inside the definition of `loki.source.heroku`:
+The following blocks are supported inside the definition of `loki.source.api`:
 
  Hierarchy | Name     | Description                                        | Required 
 -----------|----------|----------------------------------------------------|----------

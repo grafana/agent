@@ -51,12 +51,9 @@ type MatcherGroup struct {
 	CmdlineRules []string `river:"cmdline,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultArguments
-
-	type args Arguments
-	return f((*args)(c))
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultArguments
 }
 
 func (a *Arguments) Convert() *process_exporter.Config {

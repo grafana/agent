@@ -162,6 +162,12 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 						InsecureSkipVerify: true,
 					},
 				},
+				RelabelConfigs: []*promopv1.RelabelConfig{
+					{
+						SourceLabels: []promopv1.LabelName{"foo"},
+						TargetLabel:  "bar",
+					},
+				},
 			},
 			expectedRelabels: util.Untab(`
 				- source_labels: [job]
@@ -227,6 +233,8 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 				- target_label: endpoint
 				  replacement: metrics
 				  action: replace
+				- target_label: bar
+				  source_labels: [foo]
 			`),
 			expected: &config.ScrapeConfig{
 				JobName:         "serviceMonitor/operator/svcmonitor/1",

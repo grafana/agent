@@ -51,14 +51,16 @@ client | [client][] | Additional options for configuring the S3 client. | no
 
 The `client` block customizes options to connect to the S3 server.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`key` | `string` | Used to override default access key. | | no
-`secret` | `secret` | Used to override default secret value. | | no
-`endpoint` | `string` | Specifies a custom url to access, used generally for S3-compatible systems. | | no
-`disable_ssl` | `bool` | Used to disable SSL, generally used for testing. | | no
+Name | Type | Description                                                                             | Default | Required
+---- | ---- |-----------------------------------------------------------------------------------------| ------- | --------
+`key` | `string` | Used to override default access key.                                                    | | no
+`secret` | `secret` | Used to override default secret value.                                                  | | no
+`endpoint` | `string` | Specifies a custom url to access, used generally for S3-compatible systems.             | | no
+`disable_ssl` | `bool` | Used to disable SSL, generally used for testing.                                        | | no
 `use_path_style` | `string` | Path style is a deprecated setting that is generally enabled for S3 compatible systems. | `false` | no
-`region` | `string` | Used to override default region. | | no
+`region` | `string` | Used to override default region.                                                        | | no
+`signing_region` | `string` | Used to override the signing region when using a custom endpoint.                       | | no
+
 
 ## Exported fields
 
