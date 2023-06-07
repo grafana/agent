@@ -17,9 +17,9 @@ You can use the standalone binary to install Grafana Agent in static mode on the
 
 Binary executables are available for the most common operating systems. Choose the binary from the Assets list on the Releases page that matches your operating system. The binary executable will run Grafana Agent in standalone mode. If you want to run Grafana Agent as a service, refer to the installation instructions for:
 
-* [Linux]({{< relref "install-agent-linux.md" >}})
-* [macOS]({{< relref "install-agent-macos.md" >}})
-* [Windows]({{< relref "install-agent-on-windows.md" >}})
+* [Linux]({{< relref "./install-agent-linux.md" >}})
+* [macOS]({{< relref "./install-agent-macos.md" >}})
+* [Windows]({{< relref "./install-agent-on-windows.md" >}})
 
 ppc64le builds are considered secondary release targets and do not have the same level of support and testing as other platforms.
 
