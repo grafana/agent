@@ -45,5 +45,5 @@ Refer to [Create a configuration file]({{< relref "../configuration/create-confi
 1. Run the following command to start Grafana Agent in static mode:
 
    ```shell
-   EXTRACTED_BINARY -config.file CONFIG_FILE
+   EXTRACTED_BINARY -config.file CONFIG_FILE 
    ```
