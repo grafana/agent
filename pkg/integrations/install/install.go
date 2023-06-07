@@ -29,6 +29,7 @@ import (
 	_ "github.com/grafana/agent/pkg/integrations/redis_exporter"         // register redis_exporter
 	_ "github.com/grafana/agent/pkg/integrations/snmp_exporter"          // register snmp_exporter
 	_ "github.com/grafana/agent/pkg/integrations/snowflake_exporter"     // register snowflake_exporter
+	_ "github.com/grafana/agent/pkg/integrations/squid_exporter"         // register squid_exporter
 	_ "github.com/grafana/agent/pkg/integrations/statsd_exporter"        // register statsd_exporter
 	_ "github.com/grafana/agent/pkg/integrations/windows_exporter"       // register windows_exporter
 
