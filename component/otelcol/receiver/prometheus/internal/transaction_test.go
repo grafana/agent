@@ -26,12 +26,12 @@ import (
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/receiver/receivertest"
 )
 
 const (
@@ -61,25 +61,33 @@ var (
 )
 
 func TestTransactionCommitWithoutAdding(t *testing.T) {
-	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
+	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, receivertest.NewNopCreateSettings(), recv)
 	assert.NoError(t, tr.Commit())
 }
 
 func TestTransactionRollbackDoesNothing(t *testing.T) {
-	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
+	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, receivertest.NewNopCreateSettings(), recv)
 	assert.NoError(t, tr.Rollback())
 }
 
 func TestTransactionUpdateMetadataDoesNothing(t *testing.T) {
-	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
-	_, err := tr.UpdateMetadata(0, labels.New(), metadata.Metadata{})
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
+	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, receivertest.NewNopCreateSettings(), recv)
+	_, err = tr.UpdateMetadata(0, labels.New(), metadata.Metadata{})
 	assert.NoError(t, err)
 }
 
 func TestTransactionAppendNoTarget(t *testing.T) {
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
 	badLabels := labels.FromStrings(model.MetricNameLabel, "counter_test")
-	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
-	_, err := tr.Append(0, badLabels, time.Now().Unix()*1000, 1.0)
+	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, receivertest.NewNopCreateSettings(), recv)
+	_, err = tr.Append(0, badLabels, time.Now().Unix()*1000, 1.0)
 	assert.Error(t, err)
 }
 
@@ -88,16 +96,20 @@ func TestTransactionAppendNoMetricName(t *testing.T) {
 		model.InstanceLabel: "localhost:8080",
 		model.JobLabel:      "test2",
 	})
-	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
-	_, err := tr.Append(0, jobNotFoundLb, time.Now().Unix()*1000, 1.0)
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
+	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, receivertest.NewNopCreateSettings(), recv)
+	_, err = tr.Append(0, jobNotFoundLb, time.Now().Unix()*1000, 1.0)
 	assert.ErrorIs(t, err, errMetricNameNotFound)
 
 	assert.ErrorIs(t, tr.Commit(), errNoDataToBuild)
 }
 
 func TestTransactionAppendEmptyMetricName(t *testing.T) {
-	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
-	_, err := tr.Append(0, labels.FromMap(map[string]string{
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
+	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, consumertest.NewNop(), nil, receivertest.NewNopCreateSettings(), recv)
+	_, err = tr.Append(0, labels.FromMap(map[string]string{
 		model.InstanceLabel:   "localhost:8080",
 		model.JobLabel:        "test2",
 		model.MetricNameLabel: "",
@@ -107,8 +119,10 @@ func TestTransactionAppendEmptyMetricName(t *testing.T) {
 
 func TestTransactionAppendResource(t *testing.T) {
 	sink := new(consumertest.MetricsSink)
-	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, sink, nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
-	_, err := tr.Append(0, labels.FromMap(map[string]string{
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
+	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, sink, nil, receivertest.NewNopCreateSettings(), recv)
+	_, err = tr.Append(0, labels.FromMap(map[string]string{
 		model.InstanceLabel:   "localhost:8080",
 		model.JobLabel:        "test",
 		model.MetricNameLabel: "counter_test",
@@ -136,8 +150,10 @@ func TestTransactionCommitErrorWhenAdjusterError(t *testing.T) {
 	})
 	sink := new(consumertest.MetricsSink)
 	adjusterErr := errors.New("adjuster error")
-	tr := newTransaction(scrapeCtx, &errorAdjuster{err: adjusterErr}, sink, nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
-	_, err := tr.Append(0, goodLabels, time.Now().Unix()*1000, 1.0)
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
+	tr := newTransaction(scrapeCtx, &errorAdjuster{err: adjusterErr}, sink, nil, receivertest.NewNopCreateSettings(), recv)
+	_, err = tr.Append(0, goodLabels, time.Now().Unix()*1000, 1.0)
 	assert.NoError(t, err)
 	assert.ErrorIs(t, tr.Commit(), adjusterErr)
 }
@@ -145,7 +161,9 @@ func TestTransactionCommitErrorWhenAdjusterError(t *testing.T) {
 // Ensure that we reject duplicate label keys. See https://github.com/open-telemetry/wg-prometheus/issues/44.
 func TestTransactionAppendDuplicateLabels(t *testing.T) {
 	sink := new(consumertest.MetricsSink)
-	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, sink, nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
+	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, sink, nil, receivertest.NewNopCreateSettings(), recv)
 
 	dupLabels := labels.FromStrings(
 		model.InstanceLabel, "0.0.0.0:8855",
@@ -156,14 +174,16 @@ func TestTransactionAppendDuplicateLabels(t *testing.T) {
 		"z", "9",
 	)
 
-	_, err := tr.Append(0, dupLabels, 1917, 1.0)
+	_, err = tr.Append(0, dupLabels, 1917, 1.0)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), `invalid sample: non-unique label names: "a"`)
 }
 
 func TestTransactionAppendHistogramNoLe(t *testing.T) {
 	sink := new(consumertest.MetricsSink)
-	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, sink, nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
+	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, sink, nil, receivertest.NewNopCreateSettings(), recv)
 
 	goodLabels := labels.FromStrings(
 		model.InstanceLabel, "0.0.0.0:8855",
@@ -171,13 +191,15 @@ func TestTransactionAppendHistogramNoLe(t *testing.T) {
 		model.MetricNameLabel, "hist_test_bucket",
 	)
 
-	_, err := tr.Append(0, goodLabels, 1917, 1.0)
+	_, err = tr.Append(0, goodLabels, 1917, 1.0)
 	require.ErrorIs(t, err, errEmptyLeLabel)
 }
 
 func TestTransactionAppendSummaryNoQuantile(t *testing.T) {
 	sink := new(consumertest.MetricsSink)
-	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, sink, nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
+	recv, err := nopObsRecv()
+	assert.NoError(t, err)
+	tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, sink, nil, receivertest.NewNopCreateSettings(), recv)
 
 	goodLabels := labels.FromStrings(
 		model.InstanceLabel, "0.0.0.0:8855",
@@ -185,15 +207,15 @@ func TestTransactionAppendSummaryNoQuantile(t *testing.T) {
 		model.MetricNameLabel, "summary_test",
 	)
 
-	_, err := tr.Append(0, goodLabels, 1917, 1.0)
+	_, err = tr.Append(0, goodLabels, 1917, 1.0)
 	require.ErrorIs(t, err, errEmptyQuantileLabel)
 }
 
-func nopObsRecv() *obsreport.Receiver {
+func nopObsRecv() (*obsreport.Receiver, error) {
 	return obsreport.NewReceiver(obsreport.ReceiverSettings{
-		ReceiverID:             config.NewComponentID("prometheus"),
+		ReceiverID:             component.NewID("prometheus"),
 		Transport:              transport,
-		ReceiverCreateSettings: componenttest.NewNopReceiverCreateSettings(),
+		ReceiverCreateSettings: receivertest.NewNopCreateSettings(),
 	})
 }
 
@@ -1025,7 +1047,9 @@ func (tt buildTestData) run(t *testing.T) {
 	st := ts
 	for i, page := range tt.inputs {
 		sink := new(consumertest.MetricsSink)
-		tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, sink, nil, componenttest.NewNopReceiverCreateSettings(), nopObsRecv())
+		recv, err := nopObsRecv()
+		assert.NoError(t, err)
+		tr := newTransaction(scrapeCtx, &startTimeAdjuster{startTime: startTimestamp}, sink, nil, receivertest.NewNopCreateSettings(), recv)
 		for _, pt := range page.pts {
 			// set ts for testing
 			pt.t = st

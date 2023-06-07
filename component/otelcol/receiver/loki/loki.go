@@ -13,9 +13,9 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/adapter"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	loki_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/pdata/plog"
 )
 
 func init() {
@@ -83,11 +83,11 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver.Chan():
-			stanzaEntry := parsePromtailEntry(entry)
-			plogEntry := adapter.Convert(stanzaEntry)
+
+			logs := convertLokiEntryToPlog(entry)
 
 			// TODO(@tpaschalis) Is there any more handling to be done here?
-			err := c.logsSink.ConsumeLogs(ctx, plogEntry)
+			err := c.logsSink.ConsumeLogs(ctx, logs)
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "failed to consume log entries", "err", err)
 			}
@@ -106,34 +106,30 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	return nil
 }
 
-// parsePromtailEntry creates new stanza.Entry from promtail entry
-func parsePromtailEntry(inputEntry loki.Entry) *entry.Entry {
-	outputEntry := entry.New()
-	outputEntry.Body = inputEntry.Entry.Line
-	outputEntry.Timestamp = inputEntry.Entry.Timestamp
+// Create a new Otlp Logs entry from a Promtail entry
+func convertLokiEntryToPlog(lokiEntry loki.Entry) plog.Logs {
+	logs := plog.NewLogs()
+
+	lr := logs.ResourceLogs().AppendEmpty().ScopeLogs().AppendEmpty().LogRecords().AppendEmpty()
+
+	if filename, exists := lokiEntry.Labels["filename"]; exists {
+		filenameStr := string(filename)
+		// The `promtailreceiver` from the opentelemetry-collector-contrib
+		// repo adds these two labels based on these "semantic conventions
+		// for log media".
+		// https://opentelemetry.io/docs/reference/specification/logs/semantic_conventions/media/
+		// We're keeping them as well, but we're also adding the `filename`
+		// attribute so that it can be used from the
+		// `loki.attribute.labels` hint for when the opposite OTel -> Loki
+		// transformation happens.
+		lr.Attributes().PutStr("log.file.path", filenameStr)
+		lr.Attributes().PutStr("log.file.name", path.Base(filenameStr))
+	}
 
 	var lbls []string
-	for key, val := range inputEntry.Labels {
-		valStr := string(val)
+	for key := range lokiEntry.Labels {
 		keyStr := string(key)
-		switch key {
-		case "filename":
-			outputEntry.AddAttribute("filename", valStr)
-			lbls = append(lbls, "filename")
-			// The `promtailreceiver` from the opentelemetry-collector-contrib
-			// repo adds these two labels based on these "semantic conventions
-			// for log media".
-			// https://opentelemetry.io/docs/reference/specification/logs/semantic_conventions/media/
-			// We're keeping them as well, but we're also adding the `filename`
-			// attribute so that it can be used from the
-			// `loki.attribute.labels` hint for when the opposite OTel -> Loki
-			// transformation happens.
-			outputEntry.AddAttribute("log.file.path", valStr)
-			outputEntry.AddAttribute("log.file.name", path.Base(valStr))
-		default:
-			lbls = append(lbls, keyStr)
-			outputEntry.AddAttribute(keyStr, valStr)
-		}
+		lbls = append(lbls, keyStr)
 	}
 
 	if len(lbls) > 0 {
@@ -142,7 +138,10 @@ func parsePromtailEntry(inputEntry loki.Entry) *entry.Entry {
 		// re-define it.
 		// It is used to detect which attributes should be promoted to labels
 		// when transforming back from OTel -> Loki.
-		outputEntry.AddAttribute(hintAttributes, strings.Join(lbls, ","))
+		lr.Attributes().PutStr(hintAttributes, strings.Join(lbls, ","))
 	}
-	return outputEntry
+
+	loki_translator.ConvertEntryToLogRecord(&lokiEntry.Entry, &lr, lokiEntry.Labels, true)
+
+	return logs
 }

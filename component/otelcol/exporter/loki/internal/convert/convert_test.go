@@ -73,7 +73,7 @@ func TestConverter(t *testing.T) {
     }
   ]
 }`,
-			expectLine:      `{"body":"hello world","traceid":"0102030405060708090a0b0c0d0e0f10","spanid":"1112131415161718","severity":"Error","attributes":{"sdkVersion":"1.0.1"},"resources":{"host.name":"testHost"}}`,
+			expectLine:      `{"body":"hello world","traceid":"0102030405060708090a0b0c0d0e0f10","spanid":"1112131415161718","severity":"Error","attributes":{"sdkVersion":"1.0.1"},"resources":{"host.name":"testHost"},"instrumentation_scope":{"name":"name","version":"version"}}`,
 			expectLabels:    `{exporter="OTLP", level="ERROR"}`,
 			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
@@ -135,7 +135,7 @@ func TestConverter(t *testing.T) {
     }
   ]
 }`,
-			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost`,
+			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost instrumentation_scope_name=name instrumentation_scope_version=version`,
 			expectLabels:    `{exporter="OTLP", level="ERROR"}`,
 			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
@@ -197,7 +197,7 @@ func TestConverter(t *testing.T) {
     }
   ]
 }`,
-			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost`,
+			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost instrumentation_scope_name=name instrumentation_scope_version=version`,
 			expectLabels:    `{exporter="OTLP", level="ERROR"}`,
 			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
@@ -283,7 +283,7 @@ func TestConverter(t *testing.T) {
     }
   ]
 }`,
-			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost resource_mylabel_3=value_3`,
+			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost resource_mylabel_3=value_3 instrumentation_scope_name=name instrumentation_scope_version=version`,
 			expectLabels:    `{exporter="OTLP", level="ERROR", mylabel_1="value_1", mylabel_2="42"}`,
 			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
@@ -369,7 +369,7 @@ func TestConverter(t *testing.T) {
     }
   ]
 }`,
-			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 attribute_mylabel_3=value_3 resource_host.name=testHost`,
+			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 attribute_mylabel_3=value_3 resource_host.name=testHost instrumentation_scope_name=name instrumentation_scope_version=version`,
 			expectLabels:    `{exporter="OTLP", level="ERROR", mylabel_1="value_1", mylabel_2="42"}`,
 			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},
@@ -443,7 +443,7 @@ func TestConverter(t *testing.T) {
     }
   ]
 }`,
-			expectLine:      `{"body":"hello world","traceid":"0102030405060708090a0b0c0d0e0f10","spanid":"1112131415161718","severity":"Error","attributes":{"sdkVersion":"1.0.1"},"resources":{"host.name":"testHost"}}`,
+			expectLine:      `{"body":"hello world","traceid":"0102030405060708090a0b0c0d0e0f10","spanid":"1112131415161718","severity":"Error","attributes":{"sdkVersion":"1.0.1"},"resources":{"host.name":"testHost"},"instrumentation_scope":{"name":"name","version":"version"}}`,
 			expectLabels:    `{exporter="OTLP", level="ERROR", tenant.id="tenant_2"}`,
 			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
 		},

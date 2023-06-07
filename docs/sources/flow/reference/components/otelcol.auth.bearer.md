@@ -29,6 +29,10 @@ otelcol.auth.bearer "LABEL" {
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `token` | `secret` | Bearer token to use for authenticating requests. | | yes
+`scheme` | `string` | Authentication scheme name. | "Bearer" | no
+
+When sending the token, the value of `scheme` is prepended to the `token` value.
+The string is then sent out as either a header (in case of HTTP) or as metadata (in case of gRPC).
 
 ## Exported fields
 
@@ -49,8 +53,12 @@ configuration.
 
 ## Example
 
-This example configures [otelcol.exporter.otlp][] to use bearer token
-authentication:
+### Default scheme via gRPC transport
+
+The example below configures [otelcol.exporter.otlp][] to use a bearer token authentication.
+
+If we assume that the  value of the `API_KEY` environment variable is `SECRET_API_KEY`, then 
+the `Authorization` RPC metadata will be set to `Bearer SECRET_API_KEY`.
 
 ```river
 otelcol.exporter.otlp "example" {
@@ -65,4 +73,26 @@ otelcol.auth.bearer "creds" {
 }
 ```
 
+### Custom scheme via HTTP transport
+
+The example below configures [otelcol.exporter.otlphttp][] to use a bearer token authentication.
+
+If we assume that the  value of the `API_KEY` environment variable is `SECRET_API_KEY`, then 
+the `Authorization` HTTP header will be set to `MyScheme SECRET_API_KEY`.
+
+```river
+otelcol.exporter.otlphttp "example" {
+  client {
+    endpoint = "my-otlp-grpc-server:4317"
+    auth     = otelcol.auth.bearer.creds.handler
+  }
+}
+
+otelcol.auth.bearer "creds" {
+  token = env("API_KEY")
+  scheme = "MyScheme"
+}
+```
+
 [otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
+[otelcol.exporter.otlphttp]: {{< relref "./otelcol.exporter.otlphttp.md" >}}

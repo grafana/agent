@@ -28,11 +28,11 @@ import (
 	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
-	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/obsreport"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
+	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 )
 
@@ -58,7 +58,7 @@ func newTransaction(
 	metricAdjuster MetricsAdjuster,
 	sink consumer.Metrics,
 	externalLabels labels.Labels,
-	settings component.ReceiverCreateSettings,
+	settings receiver.CreateSettings,
 	obsrecv *obsreport.Receiver) *transaction {
 
 	return &transaction{

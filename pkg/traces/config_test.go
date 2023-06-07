@@ -9,9 +9,8 @@ import (
 	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/service/external/configunmarshaler"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/otelcol"
 	"gopkg.in/yaml.v2"
 )
 
@@ -321,6 +320,7 @@ receivers:
     protocols:
       grpc:
     remote_sampling:
+      host_endpoint: example:54321
       strategy_file: file_path
       tls:
         insecure: true
@@ -336,6 +336,7 @@ receivers:
     protocols:
       grpc:
     remote_sampling:
+      host_endpoint: example:54321
       strategy_file: file_path
       tls:
         insecure: true
@@ -1459,8 +1460,7 @@ service:
 			factories, err := tracingFactories()
 			require.NoError(t, err)
 
-			configMap := confmap.NewFromStringMap(otelMapStructure)
-			expectedConfig, err := configunmarshaler.Unmarshal(configMap, factories)
+			expectedConfig, err := otelcolConfigFromStringMap(otelMapStructure, &factories)
 			require.NoError(t, err)
 
 			// Exporters/Receivers/Processors in the config's service.Pipelines, as well as
@@ -1468,7 +1468,7 @@ service:
 			sortService(actualConfig)
 			sortService(expectedConfig)
 
-			assert.Equal(t, expectedConfig, actualConfig)
+			assert.Equal(t, *expectedConfig, *actualConfig)
 		})
 	}
 }
@@ -1478,7 +1478,7 @@ func TestProcessorOrder(t *testing.T) {
 	tt := []struct {
 		name               string
 		cfg                string
-		expectedProcessors map[string][]config.ComponentID
+		expectedProcessors map[component.ID][]component.ID
 	}{
 		{
 			name: "no processors",
@@ -1492,8 +1492,8 @@ remote_write:
     headers:
       x-some-header: Some value!
 `,
-			expectedProcessors: map[string][]config.ComponentID{
-				"traces": nil,
+			expectedProcessors: map[component.ID][]component.ID{
+				component.NewID("traces"): nil,
 			},
 		},
 		{
@@ -1536,16 +1536,16 @@ tail_sampling:
 service_graphs:
   enabled: true
 `,
-			expectedProcessors: map[string][]config.ComponentID{
-				"traces": {
-					config.NewComponentID("attributes"),
-					config.NewComponentID("spanmetrics"),
-					config.NewComponentID("service_graphs"),
-					config.NewComponentID("tail_sampling"),
-					config.NewComponentID("automatic_logging"),
-					config.NewComponentID("batch"),
+			expectedProcessors: map[component.ID][]component.ID{
+				component.NewID("traces"): {
+					component.NewID("attributes"),
+					component.NewID("spanmetrics"),
+					component.NewID("service_graphs"),
+					component.NewID("tail_sampling"),
+					component.NewID("automatic_logging"),
+					component.NewID("batch"),
 				},
-				spanMetricsPipelineName: nil,
+				component.NewIDWithName(spanMetricsPipelineType, spanMetricsPipelineName): nil,
 			},
 		},
 		{
@@ -1596,18 +1596,18 @@ load_balancing:
 service_graphs:
   enabled: true
 `,
-			expectedProcessors: map[string][]config.ComponentID{
-				"traces/0": {
-					config.NewComponentID("attributes"),
-					config.NewComponentID("spanmetrics"),
+			expectedProcessors: map[component.ID][]component.ID{
+				component.NewIDWithName("traces", "0"): {
+					component.NewID("attributes"),
+					component.NewID("spanmetrics"),
 				},
-				"traces/1": {
-					config.NewComponentID("service_graphs"),
-					config.NewComponentID("tail_sampling"),
-					config.NewComponentID("automatic_logging"),
-					config.NewComponentID("batch"),
+				component.NewIDWithName("traces", "1"): {
+					component.NewID("service_graphs"),
+					component.NewID("tail_sampling"),
+					component.NewID("automatic_logging"),
+					component.NewID("batch"),
 				},
-				spanMetricsPipelineName: nil,
+				component.NewIDWithName(spanMetricsPipelineType, spanMetricsPipelineName): nil,
 			},
 		},
 		{
@@ -1647,16 +1647,16 @@ load_balancing:
       hostname: agent
       port: 4318
 `,
-			expectedProcessors: map[string][]config.ComponentID{
-				"traces/0": {
-					config.NewComponentID("attributes"),
-					config.NewComponentID("spanmetrics"),
+			expectedProcessors: map[component.ID][]component.ID{
+				component.NewIDWithName("traces", "0"): {
+					component.NewID("attributes"),
+					component.NewID("spanmetrics"),
 				},
-				"traces/1": {
-					config.NewComponentID("automatic_logging"),
-					config.NewComponentID("batch"),
+				component.NewIDWithName("traces", "1"): {
+					component.NewID("automatic_logging"),
+					component.NewID("batch"),
 				},
-				spanMetricsPipelineName: nil,
+				component.NewIDWithName(spanMetricsPipelineType, spanMetricsPipelineName): nil,
 			},
 		},
 	}
@@ -1671,13 +1671,13 @@ load_balancing:
 			actualConfig, err := cfg.otelConfig()
 			require.NoError(t, err)
 
-			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
-			for k := range tc.expectedProcessors {
-				if len(tc.expectedProcessors[k]) > 0 {
-					componentID, err := config.NewComponentIDFromString(k)
-					require.NoError(t, err)
+			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Service.Pipelines))
+			for componentID := range tc.expectedProcessors {
+				if len(tc.expectedProcessors[componentID]) > 0 {
+					assert.NotNil(t, tc.expectedProcessors)
+					assert.NotNil(t, actualConfig.Service.Pipelines[componentID])
 
-					assert.Equal(t, tc.expectedProcessors[k], actualConfig.Pipelines[componentID].Processors)
+					assert.Equal(t, tc.expectedProcessors[componentID], actualConfig.Service.Pipelines[componentID].Processors)
 				}
 			}
 		})
@@ -1820,13 +1820,15 @@ func TestCreatingPushReceiver(t *testing.T) {
 receivers:
   jaeger:
     protocols:
-      grpc:`
+      grpc:
+remote_write:
+  - endpoint: example.com:12345`
 	cfg := InstanceConfig{}
 	err := yaml.Unmarshal([]byte(test), &cfg)
 	assert.Nil(t, err)
 	otel, err := cfg.otelConfig()
 	assert.Nil(t, err)
-	assert.Contains(t, otel.Service.Pipelines[config.NewComponentID("traces")].Receivers, config.NewComponentID(pushreceiver.TypeStr))
+	assert.Contains(t, otel.Service.Pipelines[component.NewID("traces")].Receivers, component.NewID(pushreceiver.TypeStr))
 }
 
 func TestUnmarshalYAMLEmptyOTLP(t *testing.T) {
@@ -1852,10 +1854,10 @@ receivers:
 
 // sortService is a helper function to lexicographically sort all
 // the possibly unsorted elements of a given cfg.Service
-func sortService(cfg *config.Config) {
+func sortService(cfg *otelcol.Config) {
 	sort.Slice(cfg.Service.Extensions, func(i, j int) bool { return cfg.Service.Extensions[i].String() > cfg.Service.Extensions[j].String() })
 
-	for _, pipeline := range cfg.Pipelines {
+	for _, pipeline := range cfg.Service.Pipelines {
 		sort.Slice(pipeline.Exporters, func(i, j int) bool { return pipeline.Exporters[i].String() > pipeline.Exporters[j].String() })
 		sort.Slice(pipeline.Receivers, func(i, j int) bool { return pipeline.Receivers[i].String() > pipeline.Receivers[j].String() })
 		sort.Slice(pipeline.Processors, func(i, j int) bool { return pipeline.Processors[i].String() > pipeline.Processors[j].String() })

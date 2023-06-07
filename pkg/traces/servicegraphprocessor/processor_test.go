@@ -7,13 +7,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/traces/contextkeys"
+	"github.com/grafana/agent/pkg/traces/internal/traceutils"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	otelprocessor "go.opentelemetry.io/collector/processor"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
 const (
@@ -43,12 +46,12 @@ func TestConsumeMetrics(t *testing.T) {
 				Wait: -time.Millisecond,
 			},
 			expectedMetrics: `
-				# HELP traces_service_graph_unpaired_spans_total Total count of unpaired spans
-				# TYPE traces_service_graph_unpaired_spans_total counter
-				traces_service_graph_unpaired_spans_total{client="",server="db"} 2
-				traces_service_graph_unpaired_spans_total{client="app",server=""} 3
-				traces_service_graph_unpaired_spans_total{client="lb",server=""} 3
-`,
+						# HELP traces_service_graph_unpaired_spans_total Total count of unpaired spans
+						# TYPE traces_service_graph_unpaired_spans_total counter
+						traces_service_graph_unpaired_spans_total{client="",server="db"} 2
+						traces_service_graph_unpaired_spans_total{client="app",server=""} 3
+						traces_service_graph_unpaired_spans_total{client="lb",server=""} 3
+		`,
 		},
 		{
 			name:           "max items in storeMap is reached",
@@ -72,13 +75,22 @@ func TestConsumeMetrics(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			p := newProcessor(&mockConsumer{}, tc.cfg)
+			reg := prometheus.NewRegistry()
+
+			processorSettings := otelprocessor.CreateSettings{
+				ID: component.NewID("FakeID"),
+				TelemetrySettings: component.TelemetrySettings{
+					MeterProvider: getTestMeterProvider(t, reg),
+				},
+				BuildInfo: component.BuildInfo{},
+			}
+			var err error
+			p, err := newProcessor(&mockConsumer{}, tc.cfg, processorSettings)
+			require.NoError(t, err)
+
 			close(p.closeCh) // Don't collect any edges, leave that to the test.
 
-			reg := prometheus.NewRegistry()
-			ctx := context.WithValue(context.Background(), contextkeys.PrometheusRegisterer, reg)
-
-			err := p.Start(ctx, nil)
+			err = p.Start(context.Background(), nil)
 			require.NoError(t, err)
 
 			traces := traceSamples(t, tc.sampleDataPath)
@@ -96,6 +108,17 @@ func TestConsumeMetrics(t *testing.T) {
 	}
 }
 
+func getTestMeterProvider(t *testing.T, reg prometheus.Registerer) *sdkmetric.MeterProvider {
+	promExporter, err := traceutils.PromeheusExporter(reg)
+	require.NoError(t, err)
+
+	mp := sdkmetric.NewMeterProvider(
+		sdkmetric.WithReader(promExporter),
+		sdkmetric.WithView(OtelMetricViews()...),
+	)
+
+	return mp
+}
 func traceSamples(t *testing.T, path string) ptrace.Traces {
 	b, err := os.ReadFile(path)
 	require.NoError(t, err)
