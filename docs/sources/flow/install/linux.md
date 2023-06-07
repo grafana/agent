@@ -5,7 +5,7 @@ weight: 300
 
 # Install Grafana Agent Flow on Linux systems
 
-You can install Grafana Agent Flow as a systemd service on Linux
+You can install Grafana Agent Flow as a systemd service on Linux.
 
 ## Install on Debian or Ubuntu
 
