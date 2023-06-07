@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter"
-	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
@@ -43,8 +42,6 @@ type Arguments struct {
 }
 
 var (
-	_ river.Unmarshaler  = (*Arguments)(nil)
-	_ river.Unmarshaler  = (*HTTPClientArguments)(nil)
 	_ exporter.Arguments = Arguments{}
 )
 
@@ -55,15 +52,9 @@ var DefaultArguments = Arguments{
 	Client: DefaultHTTPClientArguments,
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-	type arguments Arguments
-	err := f((*arguments)(args))
-	if err != nil {
-		return err
-	}
-	return args.Validate()
 }
 
 // Convert implements exporter.Arguments.
@@ -86,7 +77,7 @@ func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.Compone
 	return nil
 }
 
-// Validate returns an error if the configuration is invalid.
+// Validate implements river.Validator.
 func (args *Arguments) Validate() error {
 	if args.Client.Endpoint == "" && args.TracesEndpoint == "" && args.MetricsEndpoint == "" && args.LogsEndpoint == "" {
 		return errors.New("at least one endpoint must be specified")
@@ -114,9 +105,7 @@ var (
 	}
 )
 
-// UnmarshalRiver implements river.Unmarshaler and supplies defaults.
-func (args *HTTPClientArguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *HTTPClientArguments) SetToDefault() {
 	*args = DefaultHTTPClientArguments
-	type arguments HTTPClientArguments
-	return f((*arguments)(args))
 }

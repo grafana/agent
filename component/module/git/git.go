@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/component/module/git/internal/vcs"
-	"github.com/grafana/agent/pkg/river"
 )
 
 func init() {
@@ -46,15 +45,9 @@ var DefaultArguments = Arguments{
 	PullFrequency: time.Minute,
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler and applies default settings to
-// args.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Component implements the module.git component.

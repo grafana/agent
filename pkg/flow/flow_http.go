@@ -8,6 +8,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/grafana/agent/pkg/river/encoding/riverjson"
+
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/river/encoding"
@@ -63,19 +65,19 @@ func (f *Flow) ComponentJSON(w io.Writer, ci *apitypes.ComponentInfo) error {
 	}
 
 	var err error
-	args, err := encoding.ConvertRiverBodyToJSON(foundComponent.Arguments())
+	args, err := riverjson.MarshalBody(foundComponent.Arguments())
 	if err != nil {
 		return err
 	}
 	ci.Arguments = args
 
-	exports, err := encoding.ConvertRiverBodyToJSON(foundComponent.Exports())
+	exports, err := riverjson.MarshalBody(foundComponent.Exports())
 	if err != nil {
 		return err
 	}
 	ci.Exports = exports
 
-	debugInfo, err := encoding.ConvertRiverBodyToJSON(foundComponent.DebugInfo())
+	debugInfo, err := riverjson.MarshalBody(foundComponent.DebugInfo())
 	if err != nil {
 		return err
 	}

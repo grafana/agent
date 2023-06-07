@@ -14,8 +14,7 @@ import (
 	"github.com/grafana/agent/component"
 	common_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 )
 
@@ -53,17 +52,13 @@ var DefaultArguments = Arguments{
 	Method:        http.MethodGet,
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.PollFrequency <= 0 {
 		return fmt.Errorf("poll_frequency must be greater than 0")
 	}

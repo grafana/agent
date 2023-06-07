@@ -20,7 +20,7 @@ func init() {
 		Name:    "prometheus.exporter.blackbox",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.NewMultiTarget(createExporter, "blackbox", buildBlackboxTargets),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
 	})
 }
 
@@ -88,15 +88,13 @@ type Arguments struct {
 	ConfigStruct       blackbox_config.Config
 }
 
-// UnmarshalRiver implements River unmarshalling for Arguments.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
+}
 
-	type args Arguments
-	if err := f((*args)(a)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
 	if a.ConfigFile != "" && a.Config != "" {
 		return errors.New("config and config_file are mutually exclusive")
 	}

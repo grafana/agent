@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"reflect"
 	"sync"
 
 	"github.com/grafana/agent/component"
@@ -86,8 +87,7 @@ func (vc *valueCache) CacheModuleExportValue(name string, value any) {
 	v, found := vc.moduleExports[name]
 	if !found {
 		vc.moduleChangedIndex++
-	}
-	if v != value {
+	} else if !reflect.DeepEqual(v, value) {
 		vc.moduleChangedIndex++
 	}
 

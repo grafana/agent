@@ -10,14 +10,14 @@ import (
 	"os"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/ckit"
+	"github.com/grafana/ckit/advertise"
+	"github.com/grafana/ckit/peer"
+	"github.com/grafana/ckit/shard"
 	"github.com/grafana/dskit/flagext"
 	"github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/k8s"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/rfratto/ckit"
-	"github.com/rfratto/ckit/advertise"
-	"github.com/rfratto/ckit/peer"
-	"github.com/rfratto/ckit/shard"
 	"go.uber.org/atomic"
 )
 
@@ -28,20 +28,16 @@ var extraDiscoverProviders map[string]discover.Provider
 // the hash ring. All nodes must use the same value, otherwise they will have
 // different views of the ring and assign work differently.
 //
-// Using 256 tokens strikes a good balance between distribution accuracy and
-// memory consumption. A cluster of 1,000 nodes with 256 tokens per node
-// requires 6MB for the hash ring, while 12MB is used for 512 tokens per node.
+// Using 512 tokens strikes a good balance between distribution accuracy and
+// memory consumption. A cluster of 1,000 nodes with 512 tokens per node
+// requires 12MB for the hash ring.
 //
 // Distribution accuracy measures how close a node was to being responsible for
 // exactly 1/N keys during simulation. Simulation tests used a cluster of 10
 // nodes and hashing 100,000 random keys:
 //
-//	256 tokens per node: min 94.0%, median 96.3%, max 115.3%
-//	512 tokens per node: min 96.1%, median 99.9%, max 103.2%
-//
-// While 512 tokens per node is closer to perfect distribution, 256 tokens per
-// node is good enough, optimizing for lower memory usage.
-const tokensPerNode = 256
+//	512 tokens per node: min 96.1%, median 99.9%, max 103.2% (stddev: 197.9 hashes)
+const tokensPerNode = 512
 
 // GossipConfig controls clustering of Agents through gRPC-based gossip.
 // GossipConfig cannot be changed at runtime.

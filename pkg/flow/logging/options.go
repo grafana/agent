@@ -30,6 +30,9 @@ func (o *Options) UnmarshalRiver(f func(interface{}) error) error {
 
 	type options Options
 	return f((*options)(o))
+// SetToDefault implements river.Defaulter.
+func (o *Options) SetToDefault() {
+	*o = DefaultOptions
 }
 
 // Level represents how verbose logging should be.

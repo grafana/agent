@@ -100,7 +100,7 @@ type ComponentNode struct {
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg               component.Registration
 	managedOpts       component.Options
-	register          *wrappedRegisterer
+	registry          *prometheus.Registry
 	exportsType       reflect.Type
 	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
 
@@ -189,16 +189,14 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		globalID = path.Join(globals.ControllerID, cn.nodeID)
 	}
 
-	wrapped := newWrappedRegisterer()
-	cn.register = wrapped
-
+	cn.registry = prometheus.NewRegistry()
 	return component.Options{
 		ID:     globalID,
 		Logger: log.With(globals.Logger, "component", globalID),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": globalID,
-		}, wrapped),
-		Tracer:    tracing.WrapTracer(globals.TraceProvider, globalID),
+		}, cn.registry),
+			Tracer:    tracing.WrapTracer(globals.TraceProvider, globalID),
 		Clusterer: globals.Clusterer,
 
 		DataPath:       filepath.Join(globals.DataPath, cn.nodeID),
@@ -406,10 +404,10 @@ func (cn *ComponentNode) Exports() component.Exports {
 // same type as the registered exports type of the managed component.
 func (cn *ComponentNode) setExports(e component.Exports) {
 	if cn.exportsType == nil {
-		panic(fmt.Sprintf("Component %s called OnStateChange but never registered an Exports type", cn.reg.Name))
+		panic(fmt.Sprintf("Component %s called OnStateChange but never registered an Exports type", cn.nodeID))
 	}
 	if reflect.TypeOf(e) != cn.exportsType {
-		panic(fmt.Sprintf("Component %s changed Exports types from %T to %T", cn.reg.Name, cn.reg.Exports, e))
+		panic(fmt.Sprintf("Component %s changed Exports types from %T to %T", cn.nodeID, cn.reg.Exports, e))
 	}
 
 	// Some components may aggressively reexport values even though no exposed

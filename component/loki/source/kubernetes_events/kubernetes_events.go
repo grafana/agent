@@ -18,7 +18,6 @@ import (
 	"github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/runner"
 	"github.com/oklog/run"
 	"k8s.io/client-go/rest"
@@ -50,8 +49,6 @@ type Arguments struct {
 	Client kubernetes.ClientArguments `river:"client,block,optional"`
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
 // DefaultArguments holds default settings for loki.source.kubernetes_events.
 var DefaultArguments = Arguments{
 	JobName: "loki.source.kubernetes_events",
@@ -61,15 +58,13 @@ var DefaultArguments = Arguments{
 	},
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies defaults.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.JobName == "" {
 		return fmt.Errorf("job_name must not be an empty string")
 	}
