@@ -3,8 +3,8 @@
 package string
 
 import (
-	"bytes"
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -208,18 +208,25 @@ func testFile(t *testing.T, fmtFile string, componentToFind string, searchable [
 	defer cncl()
 	go f.Run(ctx)
 	time.Sleep(3 * time.Second)
-	infos := f.ComponentInfos()
-	for _, i := range infos {
-		if i.ID != componentToFind {
+
+	components := f.ListComponents(flow.ComponentDetailOptions{
+		GetHealth:    true,
+		GetArguments: true,
+		GetDebugInfo: true,
+		GetExports:   true,
+	})
+
+	for _, i := range components {
+		if i.ID.LocalID != componentToFind {
 			continue
 		}
-		buf := bytes.NewBuffer(nil)
-		err = f.ComponentJSON(buf, i)
+
+		bb, err := json.Marshal(i)
 		require.NoError(t, err)
 		// This ensures that although dummy is not used it still exists.
 		// And that multiple exports are displayed when only one of them is updating.
 		for _, s := range searchable {
-			require.True(t, strings.Contains(buf.String(), s))
+			require.Contains(t, string(bb), s)
 		}
 	}
 }
