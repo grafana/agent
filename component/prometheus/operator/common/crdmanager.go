@@ -55,11 +55,12 @@ type crdManager struct {
 const (
 	KindPodMonitor     string = "podMonitor"
 	KindServiceMonitor string = "serviceMonitor"
+	KindProbe          string = "probe"
 )
 
 func newCrdManager(opts component.Options, logger log.Logger, args *operator.Arguments, kind string) *crdManager {
 	switch kind {
-	case KindPodMonitor, KindServiceMonitor:
+	case KindPodMonitor, KindServiceMonitor, KindProbe:
 	default:
 		panic(fmt.Sprintf("Unknown kind for crdManager: %s", kind))
 	}
@@ -193,6 +194,8 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 		prototype = &promopv1.PodMonitor{}
 	case KindServiceMonitor:
 		prototype = &promopv1.ServiceMonitor{}
+	case KindProbe:
+		prototype = &promopv1.Probe{}
 	default:
 		return fmt.Errorf("unknown kind to configure Informers: %s", c.kind)
 	}
@@ -222,6 +225,12 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 			AddFunc:    c.onAddServiceMonitor,
 			UpdateFunc: c.onUpdateServiceMonitor,
 			DeleteFunc: c.onDeleteServiceMonitor,
+		}), resync)
+	case KindProbe:
+		_, err = informer.AddEventHandlerWithResyncPeriod((toolscache.ResourceEventHandlerFuncs{
+			AddFunc:    c.onAddProbe,
+			UpdateFunc: c.onUpdateProbe,
+			DeleteFunc: c.onDeleteProbe,
 		}), resync)
 	default:
 		return fmt.Errorf("unknown kind to configure Informers: %s", c.kind)
@@ -352,7 +361,7 @@ func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 
 func (c *crdManager) onAddServiceMonitor(obj interface{}) {
 	pm := obj.(*promopv1.ServiceMonitor)
-	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
+	level.Info(c.logger).Log("msg", "found service monitor", "name", pm.Name)
 	c.addServiceMonitor(pm)
 }
 func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
@@ -364,6 +373,52 @@ func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
 func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
 	pm := obj.(*promopv1.ServiceMonitor)
 	c.clearConfigs("serviceMonitor", pm.Namespace, pm.Name)
+	if err := c.apply(); err != nil {
+		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
+	}
+}
+
+func (c *crdManager) addProbe(p *promopv1.Probe) {
+	var err error
+	gen := configgen.ConfigGenerator{
+		Secrets: configgen.NewSecretManager(c.client),
+		Client:  &c.args.Client,
+	}
+	var pmc *config.ScrapeConfig
+	pmc, err = gen.GenerateProbeConfig(p)
+	if err != nil {
+		// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <probe>`.
+		level.Error(c.logger).Log("name", p.Name, "err", err, "msg", "error generating scrapeconfig from probe")
+	}
+	c.mut.Lock()
+	c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
+	c.scrapeConfigs[pmc.JobName] = pmc
+	c.mut.Unlock()
+
+	if err != nil {
+		c.addDebugInfo(p.Namespace, p.Name, err)
+		return
+	}
+	if err = c.apply(); err != nil {
+		level.Error(c.logger).Log("name", p.Name, "err", err, "msg", "error applying scrape configs from "+c.kind)
+	}
+	c.addDebugInfo(p.Namespace, p.Name, err)
+}
+
+func (c *crdManager) onAddProbe(obj interface{}) {
+	pm := obj.(*promopv1.Probe)
+	level.Info(c.logger).Log("msg", "found probe", "name", pm.Name)
+	c.addProbe(pm)
+}
+func (c *crdManager) onUpdateProbe(oldObj, newObj interface{}) {
+	pm := oldObj.(*promopv1.Probe)
+	c.clearConfigs("probe", pm.Namespace, pm.Name)
+	c.addProbe(newObj.(*promopv1.Probe))
+}
+
+func (c *crdManager) onDeleteProbe(obj interface{}) {
+	pm := obj.(*promopv1.Probe)
+	c.clearConfigs("probe", pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
 		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
 	}
