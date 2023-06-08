@@ -103,7 +103,7 @@ func (g *geoIPStage) Run(in chan Entry) chan Entry {
 		defer close(out)
 		defer g.close()
 		for e := range in {
-			g.process(e.Labels, e.Extracted, &e.Entry.Line)
+			g.process(e.Labels, e.Extracted)
 			out <- e
 		}
 	}()
@@ -115,7 +115,7 @@ func (g *geoIPStage) Name() string {
 	return StageTypeGeoIP
 }
 
-func (g *geoIPStage) process(labels model.LabelSet, extracted map[string]interface{}, entry *string) {
+func (g *geoIPStage) process(labels model.LabelSet, extracted map[string]interface{}) {
 	var ip net.IP
 	if g.cfgs.Source != nil {
 		if _, ok := extracted[*g.cfgs.Source]; !ok {
