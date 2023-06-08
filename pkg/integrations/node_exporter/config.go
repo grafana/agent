@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/procfs"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin/v2"
 )
 
 var (

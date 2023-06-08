@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin/v2"
 )
 
 // CollectorState represents the default state of the collector, where it can
