@@ -14,29 +14,20 @@ Main (unreleased)
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
 
+- Integrations: Introduce the `squid` integration. (@armstrmi)
+
 ### Enhancements
 
-- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
-
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
+
+- Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
 
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
 
-v0.34.0-rc.1 (2023-06-02)
---------------------
-
-### Bugfixes
-
-- Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham)
-
-- Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr)
-
-- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
-
-v0.34.0-rc.0 (2023-06-01)
+v0.34.0 (2023-06-08)
 --------------------
 
 ### Breaking changes
@@ -71,8 +62,6 @@ v0.34.0-rc.0 (2023-06-01)
 
 ### Enhancements
 
-- Add error value hashing to Faro collector. (@eskirk)
-
 - Support to attach node metadata to pods and endpoints targets in
   `discovery.kubernetes`. (@laurovenancio)
 
@@ -103,6 +92,8 @@ v0.34.0-rc.0 (2023-06-01)
 - Update azidentity dependency to v1.3.0. (@akselleirv)
 
 - Add custom labels to journal entries in `loki.source.journal` (@sbhrule15)
+
+- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
 
 ### Bugfixes
 
@@ -139,6 +130,13 @@ v0.34.0-rc.0 (2023-06-01)
 - Fix issue in modules export cache throwing uncomparable errors. (@mattdurham)
 
 - Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
+
+- Fix issue where using exporters inside modules failed due to not passing the in-memory address dialer. (@mattdurham)
+
+- Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
+  proxying requests. (@mattdurham)
+
+- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
 
 ### Other changes
 
