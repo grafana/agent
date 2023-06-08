@@ -22,6 +22,8 @@ Main (unreleased)
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
 
+- Modules no longer error when passed arguments they don't define. (@mattdurham)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when

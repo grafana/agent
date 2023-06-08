@@ -92,9 +92,6 @@ func (nodeMap *ConfigNodeMap) Validate(isInModule bool, args map[string]any) dia
 	newDiags := nodeMap.ValidateModuleConstraints(isInModule)
 	diags = append(diags, newDiags...)
 
-	newDiags = nodeMap.ValidateUnsupportedArguments(args)
-	diags = append(diags, newDiags...)
-
 	return diags
 }
 
@@ -139,24 +136,6 @@ func (nodeMap *ConfigNodeMap) ValidateModuleConstraints(isInModule bool) diag.Di
 			Message:  "export blocks only allowed inside a module",
 			StartPos: ast.StartPos(nodeMap.exportMap[key].Block()).Position(),
 			EndPos:   ast.EndPos(nodeMap.exportMap[key].Block()).Position(),
-		})
-	}
-
-	return diags
-}
-
-// ValidateUnsupportedArguments will validate each provided argument is
-// supported in the config.
-func (nodeMap *ConfigNodeMap) ValidateUnsupportedArguments(args map[string]any) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	for argName := range args {
-		if _, found := nodeMap.argumentMap[argName]; found {
-			continue
-		}
-		diags.Add(diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  fmt.Sprintf("Provided argument %q is not defined in the module", argName),
 		})
 	}
 

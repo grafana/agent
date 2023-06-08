@@ -120,13 +120,6 @@ func TestModule(t *testing.T) {
 			expectedErrorContains: "tracing block not allowed inside a module",
 		},
 		{
-			name:                  "Argument not defined in module source",
-			riverContent:          argumentModuleLoaderConfig + exportModuleLoaderConfig,
-			argumentModuleContent: `argument "different_argument" {}`,
-			exportModuleContent:   exportStringConfig,
-			expectedErrorContains: "Provided argument \"username\" is not defined in the module",
-		},
-		{
 			name: "Missing required argument",
 			riverContent: exportModuleLoaderConfig + `
 				local.file "args" { filename = "%arg" }
