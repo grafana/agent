@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net"
 	"reflect"
-	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -104,7 +103,7 @@ func (g *geoIPStage) Run(in chan Entry) chan Entry {
 		defer close(out)
 		defer g.close()
 		for e := range in {
-			g.process(e.Labels, e.Extracted, &e.Timestamp, &e.Entry.Line)
+			g.process(e.Labels, e.Extracted, &e.Entry.Line)
 			out <- e
 		}
 	}()
@@ -116,7 +115,7 @@ func (g *geoIPStage) Name() string {
 	return StageTypeGeoIP
 }
 
-func (g *geoIPStage) process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
+func (g *geoIPStage) process(labels model.LabelSet, extracted map[string]interface{}, entry *string) {
 	var ip net.IP
 	if g.cfgs.Source != nil {
 		if _, ok := extracted[*g.cfgs.Source]; !ok {
