@@ -13,44 +13,49 @@ You can install Grafana Agent in static mode on macOS.
 
 Ensure that [Homebrew][] is installed on your machine.
 
+{{% admonition type="note" %}}
+The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. You can verify this by opening a terminal and typing `brew --prefix`.
+{{% /admonition %}}
+
 [Homebrew]: https://brew.sh
 
-## Install Grafana Agent with Homebrew
+## Installing Grafana Agent with Homebrew
 
 1. Open a terminal and run the following commands:
 
-   ```
+   ```shell
    brew update
    brew install grafana-agent
    ```
 
-    The brew install command downloads Grafana Agent and installs it at `/opt/homebrew/Cellar/grafana-agent/VERSION`.
-    
-    Grafana Agent logs are in `/opt/homebrew/var/log/` by default.
+   Grafana Agent is installed by default at `$(brew --prefix)/Cellar/grafana-agent/VERSION`.
 
-1. Open a terminal and run the following commands:
+## Configuring Grafana Agent
 
-    ```
-    mkdir -p $(brew --prefix)/etc/grafana-agent/
+1. To create the Agent `config.yml` file, open a terminal and run the following command:
+
+    ```shell
     touch $(brew --prefix)/etc/grafana-agent/config.yml
     ```
 
-1. Modify `config.yml` with your configuration requirements.
+1. Edit `$(brew --prefix)/etc/grafana-agent/config.yml` and add the configuration blocks for your specific telemetry needs. Refer to [Configure Grafana Agent]({{< relref "../configuration/" >}}) for more information.
 
-    Refer to [Configure Grafana Agent]({{< relref "../configuration/" >}}) for information about the Agent configuration .
+## Starting Grafana Agent
 
 1. Open a terminal and run the following command to start Grafana Agent:
 
-    ` brew services start grafana-agent`
+    ```shell
+    brew services start grafana-agent
+    ```
 
-    For logs, see:
-    - stdout: `$(brew --prefix)/var/log/grafana-agent.log`
-    - stderr: `$(brew --prefix)/var/log/grafana-agent.err.log`
+## Viewing Grafana Agent Logs
+
+By default, logs are written to `$(brew --prefix)/var/log/grafana-agent.log` and `$(brew --prefix)/var/log/grafana-agent.err.log`.
+
+## Upgrading Grafana Agent
 
 1. Open a terminal and run the following command to upgrade Grafana Agent:
 
-    `brew upgrade grafana-agent`.
-
-{{% admonition type="note" %}}
-To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud integration. Refer to [how to install an integration](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/) and [macOS integration](/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-macos-node/).
-{{%/admonition %}}
+    ```shell
+    brew upgrade grafana-agent
+    ```
