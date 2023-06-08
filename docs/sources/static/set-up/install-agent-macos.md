@@ -37,7 +37,7 @@ Ensure that [Homebrew][] is installed on your machine.
 
 1. Modify `config.yml` with your configuration requirements.
 
-    Refer to [Configure Grafana Agent]({{< relref "../configuration/" >}}) for informatuon about the Agent configuration .
+    Refer to [Configure Grafana Agent]({{< relref "../configuration/" >}}) for information about the Agent configuration .
 
 1. Open a terminal and run the following command to start Grafana Agent:
 
