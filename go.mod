@@ -14,7 +14,7 @@ require (
 	github.com/Shopify/sarama v1.38.1
 	github.com/alecthomas/kingpin/v2 v2.3.2
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
-	github.com/aws/aws-sdk-go v1.44.187
+	github.com/aws/aws-sdk-go v1.44.278
 	github.com/aws/aws-sdk-go-v2 v1.17.2
 	github.com/aws/aws-sdk-go-v2/config v1.17.10
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.11
@@ -361,7 +361,7 @@ require (
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b // indirect
+	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
@@ -432,7 +432,6 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/karrick/godirwalk v1.16.1 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
-	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/klauspost/cpuid/v2 v2.1.0 // indirect
 	github.com/knadh/koanf v1.4.4 // indirect
 	github.com/kolo/xmlrpc v0.0.0-20220921171641-a4b6fa1dd06b // indirect
@@ -504,7 +503,6 @@ require (
 	github.com/percona/percona-toolkit v0.0.0-20211210121818-b2860eee3152 // indirect
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
-	github.com/pires/go-proxyproto v0.7.0
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
 	github.com/prometheus-community/prom-label-proxy v0.5.0 // indirect
@@ -514,7 +512,7 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/remeh/sizedwaitgroup v1.0.0 // indirect
 	github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03 // indirect
-	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052 // indirect
+	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
 	github.com/rivo/uniseg v0.4.2 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/safchain/ethtool v0.2.0 // indirect
@@ -535,7 +533,7 @@ require (
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/sony/gobreaker v0.5.0 // indirect
 	github.com/soundcloud/go-runit v0.0.0-20150630195641-06ad41a06c4a // indirect
-	github.com/spaolacci/murmur3 v1.1.0 // indirect
+	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -572,7 +570,7 @@ require (
 	github.com/xo/dburl v0.13.0 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	github.com/zeebo/xxh3 v1.0.2 // indirect
+	github.com/zeebo/xxh3 v1.0.2
 	go.etcd.io/etcd/api/v3 v3.5.6 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.6 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.6 // indirect
