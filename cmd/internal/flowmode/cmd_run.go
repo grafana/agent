@@ -355,12 +355,13 @@ func (fr *flowRun) Run(configFile string) error {
 // getEnabledComponentsFunc returns a function that gets the current enabled components
 func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	return func() map[string]interface{} {
-		infos := f.ComponentInfos()
-		components := map[string]struct{}{}
-		for _, info := range infos {
-			components[info.Name] = struct{}{}
+		components := f.ListComponents(flow.ComponentDetailOptions{})
+
+		componentNames := map[string]struct{}{}
+		for _, c := range components {
+			componentNames[c.Registration.Name] = struct{}{}
 		}
-		return map[string]interface{}{"enabled-components": maps.Keys(components)}
+		return map[string]interface{}{"enabled-components": maps.Keys(componentNames)}
 	}
 }
 
