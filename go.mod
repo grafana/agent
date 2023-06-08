@@ -207,6 +207,14 @@ require (
 )
 
 require (
+	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b
+	github.com/oschwald/geoip2-golang v1.8.0
+	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
+	github.com/spaolacci/murmur3 v1.1.0
+	github.com/zeebo/xxh3 v1.0.2
+)
+
+require (
 	cloud.google.com/go v0.107.0 // indirect
 	cloud.google.com/go/compute v1.14.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
@@ -497,7 +505,6 @@ require (
 	github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417 // indirect
 	github.com/opencontainers/selinux v1.10.2 // indirect
 	github.com/openzipkin/zipkin-go v0.4.1 // indirect
-	github.com/oschwald/geoip2-golang v1.8.0 // indirect
 	github.com/oschwald/maxminddb-golang v1.10.0 // indirect
 	github.com/ovh/go-ovh v1.3.0 // indirect
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c // indirect

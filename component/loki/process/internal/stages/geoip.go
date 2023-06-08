@@ -5,6 +5,7 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"reflect"
@@ -13,7 +14,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/oschwald/geoip2-golang"
-	"github.com/pkg/errors"
 	"github.com/prometheus/common/model"
 )
 
