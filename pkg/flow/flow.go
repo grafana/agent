@@ -197,40 +197,40 @@ func New(o Options) *Flow {
 
 // Run starts the Flow controller, blocking until the provided context is
 // canceled. Run must only be called once.
-func (c *Flow) Run(ctx context.Context) {
-	defer c.sched.Close()
-	defer level.Debug(c.log).Log("msg", "flow controller exiting")
+func (f *Flow) Run(ctx context.Context) {
+	defer f.sched.Close()
+	defer level.Debug(f.log).Log("msg", "flow controller exiting")
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
 
-		case <-c.updateQueue.Chan():
+		case <-f.updateQueue.Chan():
 			// We need to pop _everything_ from the queue and evaluate each of them.
 			// If we only pop a single element, other components may sit waiting for
 			// evaluation forever.
 			for {
-				updated := c.updateQueue.TryDequeue()
+				updated := f.updateQueue.TryDequeue()
 				if updated == nil {
 					break
 				}
 
-				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				c.loader.EvaluateDependencies(updated)
+				level.Debug(f.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
+				f.loader.EvaluateDependencies(updated)
 			}
 
-		case <-c.loadFinished:
-			level.Info(c.log).Log("msg", "scheduling loaded components")
+		case <-f.loadFinished:
+			level.Info(f.log).Log("msg", "scheduling loaded components")
 
-			components := c.loader.Components()
+			components := f.loader.Components()
 			runnables := make([]controller.RunnableNode, 0, len(components))
 			for _, uc := range components {
 				runnables = append(runnables, uc)
 			}
-			err := c.sched.Synchronize(runnables)
+			err := f.sched.Synchronize(runnables)
 			if err != nil {
-				level.Error(c.log).Log("msg", "failed to load components", "err", err)
+				level.Error(f.log).Log("msg", "failed to load components", "err", err)
 			}
 		}
 	}
@@ -242,20 +242,20 @@ func (c *Flow) Run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(file *File, args map[string]any) error {
-	c.loadMut.Lock()
-	defer c.loadMut.Unlock()
+func (f *Flow) LoadFile(file *File, args map[string]any) error {
+	f.loadMut.Lock()
+	defer f.loadMut.Unlock()
 
-	diags := c.loader.Apply(args, file.Components, file.ConfigBlocks)
-	if !c.loadedOnce.Load() && diags.HasErrors() {
+	diags := f.loader.Apply(args, file.Components, file.ConfigBlocks)
+	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
 		return diags
 	}
-	c.loadedOnce.Store(true)
+	f.loadedOnce.Store(true)
 
 	select {
-	case c.loadFinished <- struct{}{}:
+	case f.loadFinished <- struct{}{}:
 	default:
 		// A refresh is already scheduled
 	}
@@ -263,18 +263,18 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 }
 
 // Ready returns whether the Flow controller has finished its initial load.
-func (c *Flow) Ready() bool {
-	return c.loadedOnce.Load()
+func (f *Flow) Ready() bool {
+	return f.loadedOnce.Load()
 }
 
 // ComponentInfos returns the component infos.
-func (c *Flow) ComponentInfos() []*ComponentInfo {
-	c.loadMut.RLock()
-	defer c.loadMut.RUnlock()
+func (f *Flow) ComponentInfos() []*ComponentInfo {
+	f.loadMut.RLock()
+	defer f.loadMut.RUnlock()
 
-	cns := c.loader.Components()
+	cns := f.loader.Components()
 	infos := make([]*ComponentInfo, len(cns))
-	edges := c.loader.OriginalGraph().Edges()
+	edges := f.loader.OriginalGraph().Edges()
 	for i, com := range cns {
 		nn := newFromNode(com, edges)
 		infos[i] = nn
