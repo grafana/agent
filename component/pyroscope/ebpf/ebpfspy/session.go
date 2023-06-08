@@ -101,6 +101,7 @@ func (s *Session) Start() error {
 }
 
 func (s *Session) Reset(cb func(t *sd.Target, stack []string, value uint64, pid uint32)) error {
+	//defer s.symCache.Cleanup()
 	level.Debug(s.logger).Log("msg", "ebpf session reset")
 	s.roundNumber += 1
 

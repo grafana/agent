@@ -106,15 +106,12 @@ func (p *ProcTable) Resolve(pc uint64) Symbol {
 		return Symbol{}
 	}
 	s := t.Resolve(pc)
-	if s == nil {
-		moduleOffset := pc - t.base
+	moduleOffset := pc - t.base
+	if s == "" {
 		return Symbol{Start: moduleOffset, Module: r.mapRange.Pathname}
 	}
 
-	return Symbol{Start: s.Start, Name: s.Name, Module: r.mapRange.Pathname}
-}
-
-func (*ProcTable) Close() {
+	return Symbol{Start: moduleOffset, Name: s, Module: r.mapRange.Pathname}
 }
 
 func (p *ProcTable) createElfTable(m *elfRange) *ElfTable {
@@ -143,6 +140,12 @@ func (p *ProcTable) createElfTable(m *elfRange) *ElfTable {
 		"fs", p.rootFS,
 	)
 	return nil
+}
+
+func (p *ProcTable) Cleanup() {
+	for _, table := range p.file2Table {
+		table.Cleanup()
+	}
 }
 
 func (p *ProcTable) rebase(m *elfRange, e *ElfTable) bool {

@@ -25,7 +25,7 @@ func TestElf(t *testing.T) {
 	}
 	for _, sym := range syms {
 		res := tab.Resolve(sym.pc)
-		if res == nil || res.Name != sym.name {
+		if res != sym.name {
 			t.Errorf("failed to resolv %v got %v", sym, res)
 		}
 	}

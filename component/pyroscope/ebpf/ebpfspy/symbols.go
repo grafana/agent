@@ -70,6 +70,18 @@ func (sc *symbolCache) resolve(pid uint32, addr uint64, roundNumber int) symtab.
 	return e.symbolTable.Resolve(addr)
 }
 
+func (sc *symbolCache) Cleanup() {
+	keys := sc.pidCache.Keys()
+	for _, pid := range keys {
+		tab, ok := sc.pidCache.Peek(pid)
+		if !ok || tab == nil {
+			continue
+		}
+		tab.symbolTable.Cleanup()
+	}
+	sc.elfCache.Cleanup()
+}
+
 func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
 	if pid == 0 {
 		return &sc.kallsyms

@@ -55,6 +55,10 @@ func (t *SymbolTab) Refresh() {
 
 }
 
+func (t *SymbolTab) Cleanup() {
+
+}
+
 func (t *SymbolTab) Rebase(base uint64) {
 	t.base = base
 }

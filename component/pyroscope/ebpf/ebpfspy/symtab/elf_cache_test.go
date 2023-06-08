@@ -27,7 +27,7 @@ func TestElfCacheStrippedEmpty(t *testing.T) {
 	}
 	for _, sym := range syms {
 		res := stripped.Resolve(sym.pc)
-		if res != nil {
+		if res != "" {
 			t.Errorf("broken stripped elf ")
 		}
 	}
@@ -62,12 +62,12 @@ func TestElfCache(t *testing.T) {
 	}
 	for _, sym := range syms {
 		res := debug.Resolve(sym.pc)
-		if res == nil || res.Name != sym.name {
+		if res != sym.name {
 			t.Errorf("failed to resolve from debug elf %v got %v", sym, res)
 		}
 
 		res = stripped.Resolve(sym.pc)
-		if res == nil || res.Name != sym.name {
+		if res != sym.name {
 			t.Errorf("failed to resolve from stripped elf %v got %v", sym, res)
 		}
 	}

@@ -15,18 +15,21 @@ import (
 )
 
 type ElfTable struct {
-	elfFilePath        string
-	table              *SymTab
-	base               uint64
-	typ                elf.Type
-	executables        []elf.ProgHeader
+	elfFilePath string
+	table       SymbolNameResolver
+	base        uint64
+	typ         elf.Type
+	executables []elf.ProgHeader
+
 	buildID            string
-	loaded             bool
-	fs                 string
-	symbolFile         string
 	symbolFileFileInfo stat
-	elfCache           *ElfCache
-	logger             log.Logger
+
+	loaded     bool
+	fs         string
+	symbolFile string
+
+	elfCache *ElfCache
+	logger   log.Logger
 }
 
 type ElfTableOptions struct {
@@ -57,6 +60,7 @@ func NewElfTable(logger log.Logger, fs string, elfFilePath string, options ElfTa
 	symbolsFile := elfFilePath
 
 	if options.UseDebugFiles {
+		//todo move debug file lookup to load time
 		debugFile, fileInfo := findDebugFile(fs, elfFilePath, res.buildID, elfFile)
 		if debugFile != "" {
 			symbolsFile = debugFile
@@ -71,9 +75,6 @@ func NewElfTable(logger log.Logger, fs string, elfFilePath string, options ElfTa
 
 func (t *ElfTable) Rebase(base uint64) {
 	t.base = base
-	if t.table != nil {
-		t.table.Rebase(base)
-	}
 }
 
 func (t *ElfTable) load() {
@@ -81,7 +82,7 @@ func (t *ElfTable) load() {
 		return
 	}
 	symbols := t.elfCache.GetSymbolsByBuildID(t.buildID)
-	if len(symbols) == 0 {
+	if symbols == nil {
 		if t.symbolFileFileInfo.dev == 0 && t.symbolFileFileInfo.ino == 0 {
 			fileInfo, err := os.Stat(path.Join(t.fs, t.symbolFile))
 			if err == nil && fileInfo != nil {
@@ -90,10 +91,11 @@ func (t *ElfTable) load() {
 		}
 		symbols = t.elfCache.GetSymbolsByStat(t.symbolFileFileInfo)
 	}
-	if len(symbols) == 0 {
-		elfFile, err := elf.Open(path.Join(t.fs, t.symbolFile))
+	if symbols == nil {
+		fsSymbolFilePath := path.Join(t.fs, t.symbolFile)
+		elfFile, err := elf.Open(fsSymbolFilePath)
 		if err != nil {
-			t.table = NewSymTab(nil)
+			t.table = &noopSymbolNameResolver{}
 			t.loaded = true
 			return
 		}
@@ -106,10 +108,12 @@ func (t *ElfTable) load() {
 			"fs", t.fs,
 		)
 
-		symbols = getElfSymbols(t.symbolFile, elfFile)
+		//symbols = getElfSymbols(t.symbolFile, elfFile)
+		symbols = NewMMapedElfFile(fsSymbolFilePath, elfFile)
 
 		t.elfCache.CacheByBuildID(t.buildID, symbols)
 		t.elfCache.CacheByStat(t.symbolFileFileInfo, symbols)
+		t.table = symbols
 	} else {
 		level.Debug(t.logger).Log(
 			"msg", "get cached elf symbols",
@@ -117,28 +121,36 @@ func (t *ElfTable) load() {
 			"buildID", t.buildID,
 			"fs", t.fs,
 		)
+		t.table = symbols
 	}
-	t.table = NewSymTab(symbols)
-	t.table.Rebase(t.base)
+	//t.table.Rebase(t.base)
 	t.loaded = true
 }
 
-func (t *ElfTable) Resolve(pc uint64) *Sym {
+func (t *ElfTable) Resolve(pc uint64) string {
 	t.load()
+	pc -= t.base
 	return t.table.Resolve(pc)
 }
 
-func getElfSymbols(elfPath string, elfFile *elf.File) []Sym {
-	symtab := getELFSymbolsFromSymtab(elfPath, elfFile)
-	if len(symtab) > 0 {
-		return symtab
+func (t *ElfTable) Cleanup() {
+	if t.table != nil {
+		t.table.Cleanup()
 	}
-	pclntab, err := getELFSymbolsFromPCLN(elfPath, elfFile)
-	if err != nil {
-		return symtab
-	}
-	return pclntab
 }
+
+//func getElfSymbols(elfPath string, elfFile *elf.File) []Sym {
+//	symtab := getELFSymbolsFromSymtab(elfPath, elfFile)
+//	if len(symtab) > 0 {
+//		return symtab
+//	}
+//	//pclntab, err := getELFSymbolsFromPCLN(elfPath, elfFile)
+//	//if err != nil {
+//	//	return symtab
+//	//}
+//	//return pclntab
+//	return nil
+//}
 
 func getELFSymbolsFromSymtab(elfPath string, elfFile *elf.File) []Sym {
 	symtab, _ := elfFile.Symbols()
