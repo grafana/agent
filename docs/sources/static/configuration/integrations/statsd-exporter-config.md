@@ -112,4 +112,13 @@ Full reference of options:
 
   # Parse SignalFX style tags.
   [parse_signalfx_tags: <bool> | default = true]
+
+  # Optional: Relay address configuration. This setting, if provided,
+  # specifies the destination to forward your metrics.
+
+  # Note that it must be a UDP endpoint in the format 'host:port'.
+  [relay_address: <string>]
+
+  # Maximum relay output packet length to avoid fragmentation.
+  [relay_packet_length: <int> | default = 1400]
 ```

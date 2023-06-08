@@ -24,6 +24,8 @@ var (
 		parse_influxdb_tags = false
 		parse_librato_tags = false
 		parse_signalfx_tags = false
+		relay_addr = "localhost:7125"
+		relay_packet_length = 2000
 		`
 	duration1m, _ = time.ParseDuration("1m")
 )
@@ -47,6 +49,8 @@ func TestRiverUnmarshal(t *testing.T) {
 	require.Equal(t, false, args.ParseLibrato)
 	require.Equal(t, false, args.ParseSignalFX)
 	require.Equal(t, `./testdata/mapTest.yaml`, args.MappingConfig)
+	require.Equal(t, "localhost:7125", args.RelayAddr)
+	require.Equal(t, 2000, args.RelayPacketLength)
 }
 
 func TestConvert(t *testing.T) {
@@ -70,4 +74,6 @@ func TestConvert(t *testing.T) {
 	require.Equal(t, false, configStatsd.ParseInfluxDB)
 	require.Equal(t, false, configStatsd.ParseLibrato)
 	require.Equal(t, false, configStatsd.ParseSignalFX)
+	require.Equal(t, "localhost:7125", configStatsd.RelayAddr)
+	require.Equal(t, 2000, configStatsd.RelayPacketLength)
 }
