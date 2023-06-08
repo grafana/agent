@@ -1,11 +1,13 @@
 package flow
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/river/encoding/riverjson"
 )
 
 // ComponentID is a globally unique identifier for a component.
@@ -40,6 +42,55 @@ type ComponentDetail struct {
 	Arguments component.Arguments // Current arguments value of the component.
 	Exports   component.Exports   // Current exports value of the component.
 	DebugInfo interface{}         // Current debug info of the component.
+}
+
+// MarshalJSON returns a JSON representation of cd. The format of the
+// representation is not stable and is subject to change.
+func (cd *ComponentDetail) MarshalJSON() ([]byte, error) {
+	var (
+		references   = cd.References
+		referencedBy = cd.ReferencedBy
+
+		arguments, exports, debugInfo json.RawMessage
+		err                           error
+	)
+
+	if references == nil {
+		references = []string{}
+	}
+	if referencedBy == nil {
+		referencedBy = []string{}
+	}
+
+	arguments, err = riverjson.MarshalBody(cd.Arguments)
+	if err != nil {
+		return nil, err
+	}
+	exports, err = riverjson.MarshalBody(cd.Exports)
+	if err != nil {
+		return nil, err
+	}
+	debugInfo, err = riverjson.MarshalBody(cd.DebugInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(&ComponentInfo{
+		Name:         cd.Registration.Name,
+		Type:         "block",
+		ID:           cd.ID.LocalID, // TODO(rfratto): support getting component from module.
+		Label:        cd.Label,
+		References:   references,
+		ReferencedBy: referencedBy,
+		Health: &ComponentHealth{
+			State:       cd.Health.Health.String(),
+			Message:     cd.Health.Message,
+			UpdatedTime: cd.Health.UpdateTime,
+		},
+		Arguments: arguments,
+		Exports:   exports,
+		DebugInfo: debugInfo,
+	})
 }
 
 // ComponentDetailOptions is used by [Flow.ListComponents] and
