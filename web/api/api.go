@@ -29,7 +29,7 @@ func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
 // RegisterRoutes registers all the API's routes.
 func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
 	r.Handle(path.Join(urlPrefix, "/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
-	r.Handle(path.Join(urlPrefix, "/components/{id}"), httputil.CompressionHandler{Handler: f.listComponentHandler()})
+	r.Handle(path.Join(urlPrefix, "/components/{id}"), httputil.CompressionHandler{Handler: f.getComponentHandler()})
 }
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
@@ -44,7 +44,7 @@ func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 	}
 }
 
-func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
+func (f *FlowAPI) getComponentHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		infos := f.flow.ComponentInfos()
