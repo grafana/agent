@@ -3,6 +3,7 @@ package flow
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
@@ -47,6 +48,28 @@ type ComponentDetail struct {
 // MarshalJSON returns a JSON representation of cd. The format of the
 // representation is not stable and is subject to change.
 func (cd *ComponentDetail) MarshalJSON() ([]byte, error) {
+	type (
+		componentHealthJSON struct {
+			State       string    `json:"state"`
+			Message     string    `json:"message"`
+			UpdatedTime time.Time `json:"updatedTime"`
+		}
+
+		componentDetailJSON struct {
+			Name         string               `json:"name,omitempty"`
+			Type         string               `json:"type,omitempty"`
+			ID           string               `json:"id,omitempty"`
+			Label        string               `json:"label,omitempty"`
+			References   []string             `json:"referencesTo"`
+			ReferencedBy []string             `json:"referencedBy"`
+			Health       *componentHealthJSON `json:"health"`
+			Original     string               `json:"original"`
+			Arguments    json.RawMessage      `json:"arguments,omitempty"`
+			Exports      json.RawMessage      `json:"exports,omitempty"`
+			DebugInfo    json.RawMessage      `json:"debugInfo,omitempty"`
+		}
+	)
+
 	var (
 		references   = cd.References
 		referencedBy = cd.ReferencedBy
@@ -75,14 +98,14 @@ func (cd *ComponentDetail) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	return json.Marshal(&ComponentInfo{
+	return json.Marshal(&componentDetailJSON{
 		Name:         cd.Registration.Name,
 		Type:         "block",
 		ID:           cd.ID.LocalID, // TODO(rfratto): support getting component from module.
 		Label:        cd.Label,
 		References:   references,
 		ReferencedBy: referencedBy,
-		Health: &ComponentHealth{
+		Health: &componentHealthJSON{
 			State:       cd.Health.Health.String(),
 			Message:     cd.Health.Message,
 			UpdatedTime: cd.Health.UpdateTime,

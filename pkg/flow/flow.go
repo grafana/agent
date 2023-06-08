@@ -47,15 +47,12 @@ package flow
 
 import (
 	"context"
-	"encoding/json"
 	"net"
 	"sync"
-	"time"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
-	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/prometheus/client_golang/prometheus"
@@ -265,85 +262,4 @@ func (f *Flow) LoadFile(file *File, args map[string]any) error {
 // Ready returns whether the Flow controller has finished its initial load.
 func (f *Flow) Ready() bool {
 	return f.loadedOnce.Load()
-}
-
-// ComponentInfos returns the component infos.
-func (f *Flow) ComponentInfos() []*ComponentInfo {
-	f.loadMut.RLock()
-	defer f.loadMut.RUnlock()
-
-	cns := f.loader.Components()
-	infos := make([]*ComponentInfo, len(cns))
-	edges := f.loader.OriginalGraph().Edges()
-	for i, com := range cns {
-		nn := newFromNode(com, edges)
-		infos[i] = nn
-	}
-	return infos
-}
-
-func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo {
-	references := make([]string, 0)
-	referencedBy := make([]string, 0)
-	for _, e := range edges {
-		// Skip over any edge which isn't between two component nodes. This is a
-		// temporary workaround needed until there's the concept of configuration
-		// blocks from the API.
-		//
-		// Without this change, the graph fails to render when a configuration
-		// block is referenced in the graph.
-		//
-		// TODO(rfratto): add support for config block nodes in the API and UI.
-		if !isComponentNode(e.From) || !isComponentNode(e.To) {
-			continue
-		}
-
-		if e.From.NodeID() == cn.NodeID() {
-			references = append(references, e.To.NodeID())
-		} else if e.To.NodeID() == cn.NodeID() {
-			referencedBy = append(referencedBy, e.From.NodeID())
-		}
-	}
-	h := cn.CurrentHealth()
-	ci := &ComponentInfo{
-		Label:        cn.Label(),
-		ID:           cn.NodeID(),
-		Name:         cn.ComponentName(),
-		Type:         "block",
-		References:   references,
-		ReferencedBy: referencedBy,
-		Health: &ComponentHealth{
-			State:       h.Health.String(),
-			Message:     h.Message,
-			UpdatedTime: h.UpdateTime,
-		},
-	}
-	return ci
-}
-
-func isComponentNode(n dag.Node) bool {
-	_, ok := n.(*controller.ComponentNode)
-	return ok
-}
-
-// ComponentInfo represents a component in flow.
-type ComponentInfo struct {
-	Name         string           `json:"name,omitempty"`
-	Type         string           `json:"type,omitempty"`
-	ID           string           `json:"id,omitempty"`
-	Label        string           `json:"label,omitempty"`
-	References   []string         `json:"referencesTo"`
-	ReferencedBy []string         `json:"referencedBy"`
-	Health       *ComponentHealth `json:"health"`
-	Original     string           `json:"original"`
-	Arguments    json.RawMessage  `json:"arguments,omitempty"`
-	Exports      json.RawMessage  `json:"exports,omitempty"`
-	DebugInfo    json.RawMessage  `json:"debugInfo,omitempty"`
-}
-
-// ComponentHealth represents the health of a component.
-type ComponentHealth struct {
-	State       string    `json:"state"`
-	Message     string    `json:"message"`
-	UpdatedTime time.Time `json:"updatedTime"`
 }
