@@ -1366,24 +1366,6 @@ stage.timestamp {
 
 The `stage.geoip` inner block configures a processing stage that reads an ip address and populates the labelset with geoip fields. Maxmind’s GeoIP2 databse is used for the lookup.
 
-Populated fields for City db:
-
-- geoip_city_name
-- geoip_country_name
-- geoip_continet_name
-- geoip_continent_code
-- geoip_location_latitude
-- geoip_location_longitude
-- geoip_postal_code
-- geoip_timezone
-- geoip_subdivision_name
-- geoip_subdivision_code
-
-Populated fields for ASN (Autonomous System Number) db:
-
-- geoip_autonomous_system_number
-- geoip_autonomous_system_organization
-
 The following arguments are supported:
 
 | Name      | Type     | Description                                       | Default | Required |
