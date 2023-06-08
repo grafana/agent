@@ -12,6 +12,7 @@ import (
 )
 
 func Test(t *testing.T) {
+	t.Skip()
 	fs := []string{
 		"/Users/korniltsev/Downloads/dump/3026076/bin/external-secrets",
 		"/Users/korniltsev/Downloads/dump/1952222/bin/bash",

@@ -8,9 +8,10 @@ import (
 	"testing"
 
 	"github.com/go-kit/log"
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/stretchr/testify/require"
 )
 
 // "same file check relies on file inode, which we check only in linux"
@@ -43,14 +44,9 @@ func TestSameFileNoBuildID(t *testing.T) {
 	}
 	for _, sym := range syms {
 		res := nobuildid1.Resolve(sym.pc)
-		if res == nil || res.Name != sym.name {
-			t.Errorf("failed to resolve from debug elf %v got %v", sym, res)
-		}
-
+		require.Equal(t, sym.name, res)
 		res = nobuildid2.Resolve(sym.pc)
-		if res == nil || res.Name != sym.name {
-			t.Errorf("failed to resolve from stripped elf %v got %v", sym, res)
-		}
+		require.Equal(t, sym.name, res)
 	}
 	require.Equal(t, 1, elfCache.stat2Symbols.Len())
 	require.Equal(t, 0, elfCache.buildID2Symbols.Len())
