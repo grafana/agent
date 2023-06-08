@@ -24,6 +24,8 @@ var (
 		parse_influxdb_tags = false
 		parse_librato_tags = false
 		parse_signalfx_tags = false
+		relay_addr = "localhost:7125"
+		relay_packet_length = 2000
 		`
 	duration1m, _ = time.ParseDuration("1m")
 )
@@ -47,6 +49,8 @@ func TestRiverUnmarshal(t *testing.T) {
 	require.Equal(t, false, args.ParseLibrato)
 	require.Equal(t, false, args.ParseSignalFX)
 	require.Equal(t, `./testdata/mapTest.yaml`, args.MappingConfig)
+	require.Equal(t, "localhost:7125", args.RelayAddr)
+	require.Equal(t, 2000, args.RelayPacketLength)
 }
 
 func TestConvert(t *testing.T) {
@@ -58,21 +62,6 @@ func TestConvert(t *testing.T) {
 		configStatsd, err := args.Convert()
 		require.NoError(t, err)
 
-<<<<<<< HEAD
-	require.Equal(t, "1010", args.ListenUDP)
-	require.Equal(t, "1011", args.ListenTCP)
-	require.Equal(t, "unix", args.ListenUnixgram)
-	require.Equal(t, "prom", args.UnixSocketMode)
-	require.Equal(t, 1, args.ReadBuffer)
-	require.Equal(t, 2, args.CacheSize)
-	require.Equal(t, "random", args.CacheType)
-	require.Equal(t, 1000, args.EventQueueSize)
-	require.Equal(t, duration1m, configStatsd.EventFlushInterval)
-	require.Equal(t, true, configStatsd.ParseDogStatsd)
-	require.Equal(t, false, configStatsd.ParseInfluxDB)
-	require.Equal(t, false, configStatsd.ParseLibrato)
-	require.Equal(t, false, configStatsd.ParseSignalFX)
-=======
 		require.Equal(t, ":1010", args.ListenUDP)
 		require.Equal(t, ":1011", args.ListenTCP)
 		require.Equal(t, "unix", args.ListenUnixgram)
@@ -101,5 +90,4 @@ func TestConvert(t *testing.T) {
 
 		require.Nil(t, configStatsd.MappingConfig)
 	})
->>>>>>> d485da6dc... Fix several issues with statsd exporter (#4189)
 }

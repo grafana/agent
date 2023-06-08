@@ -42,6 +42,8 @@ Name | Type | Description | Default | Required
 `parse_influxdb_tags`                             | `string`       | Parse InfluxDB style tags. | `true`| no
 `parse_librato_tags`                              | `string`       | Parse Librato style tags. | `true`| no
 `parse_signalfx_tags`                             | `string`       | Parse SignalFX style tags. | `true`| no
+`relay_addr`                                      | `string`       | Relay address configuration (UDP endpoint in the format 'host:port'). | | no
+`relay_packet_length`                             | `int`          | Maximum relay output packet length to avoid fragmentation. | `1400` | no
 
 At least one of `listen_udp`, `listen_tcp`, or `listen_unixgram` should be enabled.
 For details on how to use the mapping config file, please check the official

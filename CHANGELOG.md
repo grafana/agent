@@ -13,6 +13,7 @@ v0.34.2 (2023-06-20)
 ### Enhancements
 
 - Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
+- Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
 
 ### Bugfixes
 
