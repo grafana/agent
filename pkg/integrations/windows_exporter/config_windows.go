@@ -12,7 +12,8 @@ func init() {
 	app := kingpin.New("", "")
 
 	// Register all flags from collector
-	collector.RegisterCollectorsFlags(app)
+	collectors := collector.CreateCollectors()
+	collector.RegisterCollectorsFlags(collectors, app)
 
 	_, err := app.Parse([]string{})
 	if err != nil {

@@ -14,17 +14,17 @@ import (
 
 // New creates a new windows_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+	collectors := collector.CreateCollectors()
 	windowsExporter := kingpin.New("", "")
-	collector.RegisterCollectorsFlags(windowsExporter)
-	c.toExporterConfig(windowsExporter)
-
+	collector.RegisterCollectorsFlags(collectors, windowsExporter)
 	if _, err := windowsExporter.Parse([]string{}); err != nil {
 		return nil, err
 	}
+	c.toExporterConfig(windowsExporter)
 
-	collector.RegisterCollectors()
+	collector.RegisterCollectors(collectors)
 	enabledCollectorNames := enabledCollectors(c.EnabledCollectors)
-	collectors, err := buildCollectors(enabledCollectorNames)
+	builtCollectors, err := buildCollectors(collectors, enabledCollectorNames)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(
 		// Hard-coded 4m timeout to represent the time a series goes stale.
 		// TODO: Make configurable if useful.
-		collector.NewPrometheus(4*time.Minute, collectors),
+		collector.NewPrometheus(4*time.Minute, builtCollectors),
 	)), nil
 }
 
@@ -59,11 +59,11 @@ func enabledCollectors(input string) []string {
 	return result
 }
 
-func buildCollectors(enabled []string) (map[string]collector.Collector, error) {
+func buildCollectors(colls map[string]*collector.CollectorInit, enabled []string) (map[string]collector.Collector, error) {
 	collectors := map[string]collector.Collector{}
 
 	for _, name := range enabled {
-		c, err := collector.Build(name)
+		c, err := collector.Build(colls, name)
 		if err != nil {
 			return nil, err
 		}
