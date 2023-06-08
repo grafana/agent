@@ -77,7 +77,7 @@ To install Grafana Agent Flow on SUSE or openSUSE, complete the following steps:
 
    ```shell
    sudo zypper update
-   sudo zypper install grafana-agent
+   sudo zypper install grafana-agent-flow
    ```
 
 ## Operation guide
