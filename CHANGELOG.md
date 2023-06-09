@@ -34,6 +34,8 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
+- Allow bearerTokenFile to be used in ServiceMonitors. (@captncraig)
+
 ### Other changes
 
 - Add logging to failed requests in `remote.http`. (@rfratto)
