@@ -13,9 +13,10 @@
 # pull request.
 * @grafana/grafana-agent-core-maintainers
 
-# CHANGELOG.md has shared ownership with the respective owners of the specific
-# code for the PR being opened.
+# Some directories have shared ownership with the respective owners of the
+# specific code for the PR being opened, so there's no CODEOWNERS.
 /CHANGELOG.md
+/component/all
 
 # Binaries:
 /cmd/grafana-agent-operator/  @grafana/grafana-agent-operator-maintainers
