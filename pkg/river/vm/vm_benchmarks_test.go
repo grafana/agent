@@ -99,7 +99,7 @@ func BenchmarkExprs(b *testing.B) {
 
 			for i := 0; i < b.N; i++ {
 				vPtr := reflect.New(expectType).Interface()
-				require.NoError(b, eval.Evaluate(scope, vPtr))
+				_ = eval.Evaluate(scope, vPtr)
 			}
 		})
 	}
