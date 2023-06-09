@@ -73,6 +73,7 @@ type TargetFinder struct {
 	l          log.Logger
 	cid2target map[containerID]*Target
 
+	// todo make it never evict during a reset
 	containerIDCache *lru.Cache[uint32, containerID]
 	defaultTarget    *Target
 	metrics          *metrics.Metrics

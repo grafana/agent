@@ -6,17 +6,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"runtime/pprof"
 	"time"
 
 	"github.com/go-kit/log/level"
-	"github.com/oklog/run"
-
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
 	ebpfspy "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
+	"github.com/oklog/run"
 )
 
 func init() {
@@ -94,7 +94,7 @@ func defaultArguments() Arguments {
 		CollectInterval:      10 * time.Second,
 		SampleRate:           100,
 		PidCacheSize:         32,
-		ContainerIDCacheSize: 64,
+		ContainerIDCacheSize: 512,
 		ElfCacheSize:         128,
 		TargetsOnly:          true,
 		CollectUserProfile:   true,
@@ -144,7 +144,13 @@ func (c *Component) Run(ctx context.Context) error {
 					collectInterval = c.args.CollectInterval
 				}
 			case <-t.C:
-				err := c.reset()
+				var err error
+				pprof.Do(
+					context.Background(),
+					pprof.Labels("ebpf", "reset"),
+					func(ctx context.Context) {
+						err = c.reset()
+					})
 				if err != nil {
 					return err
 				}
@@ -166,14 +172,13 @@ func (c *Component) updateTargetFinder() {
 }
 
 func (c *Component) Update(args component.Arguments) error {
-	level.Info(c.options.Logger).Log("msg", "updating ebpf arguments")
 	newArgs := args.(Arguments)
 	c.argsUpdate <- newArgs
-	level.Info(c.options.Logger).Log("msg", "updating ebpf arguments done")
 	return nil
 }
 
 func (c *Component) reset() error {
+	level.Debug(c.options.Logger).Log("msg", "ebpf  reset")
 	args := c.args
 	builders := ebpfspy.NewProfileBuilders(args.SampleRate)
 	err := c.session.Reset(func(target *sd.Target, stack []string, value uint64, pid uint32) {
@@ -181,6 +186,7 @@ func (c *Component) reset() error {
 		builder := builders.BuilderForTarget(labelsHash, labels)
 		builder.AddSample(stack, value)
 	})
+	level.Debug(c.options.Logger).Log("msg", "ebpf  reset done")
 	if err != nil {
 		return fmt.Errorf("ebpf session reset %w", err)
 	}
@@ -198,5 +204,6 @@ func (c *Component) reset() error {
 			continue
 		}
 	}
+	level.Debug(c.options.Logger).Log("msg", "ebpf append done")
 	return nil
 }

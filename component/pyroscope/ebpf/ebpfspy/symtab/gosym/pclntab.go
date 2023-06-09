@@ -226,8 +226,10 @@ func (t *LineTable) parsePclnTab() {
 }
 
 type FuncIndex struct {
-	Entry      uint64
-	End        uint64
+	Entry uint64
+	End   uint64
+	//todo we only use End for the last entry, consider moving it to a parent struct
+	// make sure sym[i].End == sym[i].Entry for all symtab versions
 	NameOffset uint32
 	// consider using len/name end as well
 }
