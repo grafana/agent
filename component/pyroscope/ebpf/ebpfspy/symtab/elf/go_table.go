@@ -17,7 +17,6 @@ type GoTable struct {
 }
 
 func (e *GoTable) Resolve(addr uint64) string {
-	//todo use the FuncEntry.End
 	if len(e.Symbols) == 0 {
 		return ""
 	}
@@ -29,6 +28,9 @@ func (e *GoTable) Resolve(addr uint64) string {
 	})
 	i--
 	sym := &e.Symbols[i]
+	if addr < sym.Entry || addr >= sym.End {
+		return ""
+	}
 	name, _ := e.goSymbolName(sym)
 	return name
 }
