@@ -96,8 +96,7 @@ func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
 	symbolTable := symtab.NewProcTable(sc.logger, symtab.ProcTableOptions{
 		Pid: int(pid),
 		ElfTableOptions: symtab.ElfTableOptions{
-			UseDebugFiles: true,
-			ElfCache:      sc.elfCache,
+			ElfCache: sc.elfCache,
 		},
 	})
 	e := &symbolCacheEntry{symbolTable: symbolTable, roundNumber: -1}

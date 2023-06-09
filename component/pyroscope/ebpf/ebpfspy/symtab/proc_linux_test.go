@@ -77,3 +77,11 @@ func BenchmarkProc(b *testing.B) {
 		}
 	}
 }
+
+func TestSelfGoSymbolsLazyComparison(t *testing.T) {
+	t.FailNow()
+}
+
+func TestSelfElfSymbolsLazyComparison(t *testing.T) {
+	t.FailNow()
+}
