@@ -18,7 +18,7 @@ func TestValues(t *testing.T) {
 		{
 			name:       "null",
 			input:      nil,
-			expectJSON: `{ "type": "null" }`,
+			expectJSON: `{ "type": "null", "value": null }`,
 		},
 		{
 			name:       "number",
