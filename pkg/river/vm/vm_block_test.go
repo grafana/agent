@@ -690,7 +690,7 @@ func TestVM_Block_UnmarshalToMap(t *testing.T) {
 			`,
 			expect: OuterBlock{
 				Settings: map[string]interface{}{
-					"field_a": int(12345),
+					"field_a": 12345,
 					"field_b": "helloworld",
 				},
 			},
@@ -759,7 +759,7 @@ func TestVM_Block_UnmarshalToAny(t *testing.T) {
 	require.NoError(t, eval.Evaluate(nil, &actual))
 
 	expect := map[string]interface{}{
-		"field_a": int(12345),
+		"field_a": 12345,
 		"field_b": "helloworld",
 	}
 	require.Equal(t, expect, actual.Settings)

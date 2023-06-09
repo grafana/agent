@@ -398,16 +398,16 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 // decodeAny is invoked by decode when into is an interface{}. We assign the
 // interface{} a known type based on the River value being decoded:
 //
-//			Null values:           nil
-//			Number values:         float64, int64, or uint64 depending on the underlying Go type
-//		                           of the River value. If the underlying type is not a float and the
-//	                               number fits within an "int", then an "int" will be used.
-//			Arrays:                []interface{}
-//			Objects:               map[string]interface{}
-//			Bool:                  bool
-//			String:                string
-//			Function:              Passthrough of the underlying function value
-//			Capsule:               Passthrough of the underlying capsule value
+//	Null values:           nil
+//	Number values:         float64, int64, or uint64 depending on the underlying Go type
+//	                       of the River value. If the underlying type is not a float and the
+//	                       number fits within an "int", then an "int" will be used.
+//	Arrays:                []interface{}
+//	Objects:               map[string]interface{}
+//	Bool:                  bool
+//	String:                string
+//	Function:              Passthrough of the underlying function value
+//	Capsule:               Passthrough of the underlying capsule value
 //
 // In the cases where we do not pass through the underlying value, we create a
 // value of that type, recursively call decode to populate that new value, and
