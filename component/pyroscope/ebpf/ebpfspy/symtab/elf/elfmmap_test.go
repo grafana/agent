@@ -3,7 +3,6 @@ package elf
 import (
 	"debug/elf"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 
@@ -17,65 +16,20 @@ type Sym struct { // dup to break import cycle
 }
 
 func Test(t *testing.T) {
-	//t.Skip()
 	fs := []string{
-		"/Users/korniltsev/Downloads/dump/3026076/bin/external-secrets",
-		"/Users/korniltsev/Downloads/dump/1952222/bin/bash",
-		"/Users/korniltsev/Downloads/dump/1720591/usr/local/bin/runsvdir",
-		"/Users/korniltsev/Downloads/dump/408549/usr/bin/promtail",
-		"/Users/korniltsev/Downloads/dump/5342/ip-masq-agent",
-		"/Users/korniltsev/Downloads/dump/2271859/usr/bin/grafana-agent",
-		"/Users/korniltsev/Downloads/dump/115664/usr/local/bin/node",
-		"/Users/korniltsev/Downloads/dump/2554161/usr/bin/cloudwatch-exporter",
-		"/Users/korniltsev/Downloads/dump/6785/usr/bin/cloud-backend-gateway",
-		"/Users/korniltsev/Downloads/dump/131427/usr/lib/jvm/java-1.8-openjdk/jre/bin/java",
-		"/Users/korniltsev/Downloads/dump/176439/bin/mysqld_exporter",
-		"/Users/korniltsev/Downloads/dump/197795/bin/agent",
-		"/Users/korniltsev/Downloads/dump/977178/home/ray/anaconda3/bin/python3.9",
-		"/Users/korniltsev/Downloads/dump/524479/cloud_sql_proxy",
-		"/Users/korniltsev/Downloads/dump/236969/app/conntrack-exporter",
-		"/Users/korniltsev/Downloads/dump/96262/usr/bin/auth-proxy",
-		"/Users/korniltsev/Downloads/dump/3658358/tempo",
-		"/Users/korniltsev/Downloads/dump/3875540/usr/bin/grafana-agent",
-		"/Users/korniltsev/Downloads/dump/187314/usr/sbin/collectd",
-		"/Users/korniltsev/Downloads/dump/168113/usr/sbin/nginx",
-		"/Users/korniltsev/Downloads/dump/119326/usr/sbin/collectd",
-		"/Users/korniltsev/Downloads/dump/792731/usr/sbin/nginx",
-		"/Users/korniltsev/Downloads/dump/5120/bin/node_exporter",
-		"/Users/korniltsev/Downloads/dump/482093/usr/bin/grafana-agent",
-		"/Users/korniltsev/Downloads/dump/861838/bin/mysqld_exporter",
-		"/Users/korniltsev/Downloads/dump/44296/usr/sbin/collectd",
-		"/Users/korniltsev/Downloads/dump/2618433/opt/bitnami/java/bin/java",
-		"/Users/korniltsev/Downloads/dump/1567047/grl-exporter",
-		"/Users/korniltsev/Downloads/dump/4085865/usr/local/bin/memcached",
-		"/Users/korniltsev/Downloads/dump/1055834/usr/bin/promtail",
-		"/Users/korniltsev/Downloads/dump/10386/bin/memcached_exporter",
-		"/Users/korniltsev/Downloads/dump/470140/usr/bin/promtail",
-		"/Users/korniltsev/Downloads/dump/114399/cloud_sql_proxy",
-		"/Users/korniltsev/Downloads/dump/4132246/usr/bin/enterprise-metrics",
-		"/Users/korniltsev/Downloads/dump/978887/usr/bin/cloud-backend-gateway",
-		"/Users/korniltsev/Downloads/dump/436714/usr/bin/promtail",
-		"/Users/korniltsev/Downloads/dump/3104561/usr/bin/loki-canary",
-		"/Users/korniltsev/Downloads/dump/316471/app/cmd/cainjector/cainjector.runfiles/com_github_jetstack_cert_manager/cmd/cainjector/cainjector_/cainjector",
-		"/Users/korniltsev/Downloads/dump/287987/usr/local/bin/crossplane-terraform-provider",
-		"/Users/korniltsev/Downloads/dump/4085904/bin/memcached_exporter",
+		"../testdata/elfs/elf",
+		"../testdata/elfs/libexample.so",
 	}
 	for _, f := range fs {
-
-		inspect(t, f)
+		testOneElfFile(t, f)
 	}
 
 }
 
-func inspect(t *testing.T, f string) {
-	fmt.Println()
-	fmt.Println(f)
-	ff, err2 := os.Open(f)
-	if err2 != nil {
-		panic(err2)
-	}
-	_ = ff
-	e, err := elf.NewFile(ff)
+func testOneElfFile(t *testing.T, f string) {
+	e, err := elf.Open(f)
+	require.NoError(t, err)
+	defer e.Close()
 
 	if err != nil {
 		fmt.Println(err)
@@ -106,13 +60,13 @@ func inspect(t *testing.T, f string) {
 			})
 		}
 	}
-	fmt.Printf("names len %d cnt %d\n", namesLength, count)
+	fmt.Printf("%s names len %d cnt %d\n", f, namesLength, count)
 
 	me, err := NewMMapedElfFile(f)
 	require.NoError(t, err)
 	defer me.Close()
 
-	tab, _ := me.ReadSymbols()
+	tab, _ := me.NewSymbolTable()
 	if tab == nil {
 		tab = &SymbolTable{}
 	}

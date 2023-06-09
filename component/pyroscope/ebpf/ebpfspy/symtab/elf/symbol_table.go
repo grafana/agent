@@ -43,7 +43,7 @@ func (e *SymbolTable) Cleanup() {
 	e.File.Close()
 }
 
-func (f *MMapedElfFile) ReadSymbols() (*SymbolTable, error) {
+func (f *MMapedElfFile) NewSymbolTable() (*SymbolTable, error) {
 	sym, err := f.getSymbols(elf.SHT_SYMTAB)
 	if err != nil && err != ErrNoSymbols {
 		return nil, err
@@ -63,7 +63,6 @@ func (f *MMapedElfFile) ReadSymbols() (*SymbolTable, error) {
 	sort.Slice(all, func(i, j int) bool {
 		return all[i].Value < all[j].Value
 	})
-	//f.Symbols = all
 	return &SymbolTable{Symbols: all, File: f}, nil
 }
 

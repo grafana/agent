@@ -9,6 +9,7 @@ import (
 	"path"
 
 	"github.com/go-kit/log"
+
 	elf2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 )
 
@@ -128,7 +129,7 @@ func (t *ElfTable) load() {
 		return
 	}
 
-	symbols, err = me.ReadSymbols()
+	symbols, err = me.NewSymbolTable()
 	if err != nil {
 		t.err = err
 		return
@@ -142,8 +143,8 @@ func (t *ElfTable) load() {
 }
 
 func (t *ElfTable) createSymbolTable(me *elf2.MMapedElfFile) (SymbolNameResolver, error) {
-	symTable, symErr := me.ReadSymbols()
-	goTable, goErr := me.ReadGoSymbols()
+	symTable, symErr := me.NewSymbolTable()
+	goTable, goErr := me.NewGoTable()
 	if symErr != nil && goErr != nil {
 		return nil, fmt.Errorf("s: %w g: %w", symErr, goErr)
 	}

@@ -49,7 +49,7 @@ var (
 	errGoSymbolsNotFound = errors.New("gosymtab: no go symbols found")
 )
 
-func (f *MMapedElfFile) ReadGoSymbols() (*GoTable, error) {
+func (f *MMapedElfFile) NewGoTable() (*GoTable, error) {
 	obj := f
 	var err error
 	var pclntabData []byte

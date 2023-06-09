@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 	"github.com/grafana/agent/pkg/util"
 )
 
@@ -78,10 +79,26 @@ func BenchmarkProc(b *testing.B) {
 	}
 }
 
-func TestSelfGoSymbolsLazyComparison(t *testing.T) {
-	t.FailNow()
-}
+func TestSelfElfSymbolsLazy(t *testing.T) {
+	f, err := os.Readlink("/proc/self/exe")
+	require.NoError(t, err)
 
-func TestSelfElfSymbolsLazyComparison(t *testing.T) {
-	t.FailNow()
+	expectedSymbols, err := newGoSymbols(f)
+	require.NoError(t, err)
+
+	me, err := elf.NewMMapedElfFile(f)
+	require.NoError(t, err)
+
+	symbolTable, err := me.NewSymbolTable()
+	require.NoError(t, err)
+
+	require.Greater(t, len(symbolTable.Symbols), 1000)
+
+	for _, symbol := range expectedSymbols.Symbols {
+		name := symbolTable.Resolve(symbol.Start)
+		require.NotEmpty(t, name)
+		//fmt.Println()
+		//fmt.Println(name)
+		//fmt.Println(symbol.Name)
+	}
 }
