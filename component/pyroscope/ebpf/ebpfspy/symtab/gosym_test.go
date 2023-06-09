@@ -1,24 +1,33 @@
+//go:build linux
+
 package symtab
 
 import (
+	"os"
 	"testing"
 
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 	"github.com/stretchr/testify/require"
+
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 )
 
-func Test(t *testing.T) { //todo remove or commit elf
-	elfPath := "/Users/korniltsev/Desktop/go_elf"
-	expectedSymbols, err := newGoSymbols(elfPath)
+func TestSelfGoSymbolComparison(t *testing.T) {
+	f, err := os.Readlink("/proc/self/exe")
 	require.NoError(t, err)
 
-	me, err := elf.NewMMapedElfFile(elfPath)
+	expectedSymbols, err := newGoSymbols(f)
 	require.NoError(t, err)
-	newTable, err := me.ReadGoSymbols()
+
+	me, err := elf.NewMMapedElfFile(f)
 	require.NoError(t, err)
+
+	goTable, err := me.ReadGoSymbols()
+	require.NoError(t, err)
+
+	require.Greater(t, len(expectedSymbols.Symbols), 1000)
 
 	for _, symbol := range expectedSymbols.Symbols {
-		name := newTable.Resolve(symbol.Start)
+		name := goTable.Resolve(symbol.Start)
 		require.Equal(t, symbol.Name, name)
 	}
 
