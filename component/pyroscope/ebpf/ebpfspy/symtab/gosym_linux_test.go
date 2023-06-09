@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	gosym2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gosym"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,7 +32,7 @@ func TestPclntab18(t *testing.T) {
 		" 60 00 00 00 00 00 00 00 c0 bb 00 00 00 00 00 00" +
 		" c0 c3 00 00 00 00 00 00 c0 df 00 00 00 00 00 00"
 	bs, _ := hex.DecodeString(strings.ReplaceAll(s, " ", ""))
-	textStart := parseRuntimeTextFromPclntab18(bs)
+	textStart := gosym2.ParseRuntimeTextFromPclntab18(bs)
 	expected := uint64(0x4023a0)
 	require.Equal(t, expected, textStart)
 }

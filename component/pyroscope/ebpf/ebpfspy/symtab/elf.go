@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/go-kit/log"
 	elf2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
-	"golang.org/x/exp/slices"
 )
 
 var (
@@ -160,7 +158,7 @@ func (t *ElfTable) Cleanup() {
 //	if len(symtab) > 0 {
 //		return symtab
 //	}
-//	//pclntab, err := getELFSymbolsFromPCLN(elfPath, elfFile)
+//	//pclntab, err := getGoSymbolsFromPCLN(elfPath, elfFile)
 //	//if err != nil {
 //	//	return symtab
 //	//}
@@ -168,31 +166,31 @@ func (t *ElfTable) Cleanup() {
 //	return nil
 //}
 
-func getELFSymbolsFromSymtab(elfPath string, elfFile *elf.File) []Sym {
-	symtab, _ := elfFile.Symbols()
-	dynsym, _ := elfFile.DynamicSymbols()
-	var symbols []Sym
-	add := func(t []elf.Symbol) {
-		for _, sym := range t {
-			if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
-				symbols = append(symbols, Sym{
-					Name:  sym.Name,
-					Start: sym.Value,
-					//Module: elfPath,
-				})
-			}
-		}
-	}
-	add(symtab)
-	add(dynsym)
-	slices.SortFunc(symbols, func(a, b Sym) bool {
-		if a.Start == b.Start {
-			return strings.Compare(a.Name, b.Name) < 0
-		}
-		return a.Start < b.Start
-	})
-	return symbols
-}
+//func getELFSymbolsFromSymtab(elfPath string, elfFile *elf.File) []Sym {
+//	symtab, _ := elfFile.Symbols()
+//	dynsym, _ := elfFile.DynamicSymbols()
+//	var symbols []Sym
+//	add := func(t []elf.Symbol) {
+//		for _, sym := range t {
+//			if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
+//				symbols = append(symbols, Sym{
+//					Name:  sym.Name,
+//					Start: sym.Value,
+//					//Module: elfPath,
+//				})
+//			}
+//		}
+//	}
+//	add(symtab)
+//	add(dynsym)
+//	slices.SortFunc(symbols, func(a, b Sym) bool {
+//		if a.Start == b.Start {
+//			return strings.Compare(a.Name, b.Name) < 0
+//		}
+//		return a.Start < b.Start
+//	})
+//	return symbols
+//}
 
 func getBuildID(elfFile *elf2.MMapedElfFile) (string, error) {
 	buildIDSection := elfFile.Section(".note.gnu.build-id")

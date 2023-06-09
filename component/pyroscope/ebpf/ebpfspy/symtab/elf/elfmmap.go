@@ -3,11 +3,9 @@ package elf
 import (
 	"bytes"
 	"debug/elf"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"os"
-	"sort"
 
 	"github.com/edsrzf/mmap-go"
 )
@@ -17,9 +15,10 @@ type MMapedElfFile struct {
 	Sections []elf.SectionHeader
 	Progs    []elf.ProgHeader
 
-	fpath    string
-	mmaped   mmap.MMap
-	openFile *os.File
+	fpath  string
+	err    error
+	mmaped mmap.MMap
+	fd     *os.File
 }
 
 func NewMMapedElfFile(fpath string) (*MMapedElfFile, error) {
@@ -61,30 +60,6 @@ func (f *MMapedElfFile) Section(name string) *elf.SectionHeader {
 	return nil
 }
 
-func (f *MMapedElfFile) ReadSymbols() (*SymbolTable, error) {
-	sym, err := f.getSymbols(elf.SHT_SYMTAB)
-	if err != nil && err != ErrNoSymbols {
-		return nil, err
-	}
-
-	dynsym, err := f.getSymbols(elf.SHT_DYNSYM)
-	if err != nil && err != ErrNoSymbols {
-		return nil, err
-	}
-	total := len(dynsym) + len(sym)
-	if total == 0 {
-		return nil, ErrNoSymbols
-	}
-	all := make([]ElfSymbolIndex, 0, total)
-	all = append(all, sym...)
-	all = append(all, dynsym...)
-	sort.Slice(all, func(i, j int) bool {
-		return all[i].Value < all[j].Value
-	})
-	//f.Symbols = all
-	return &SymbolTable{Symbols: all, File: f}, nil
-}
-
 func (f *MMapedElfFile) sectionByType(typ elf.SectionType) *elf.SectionHeader {
 	for i := range f.Sections {
 		s := &f.Sections[i]
@@ -93,117 +68,6 @@ func (f *MMapedElfFile) sectionByType(typ elf.SectionType) *elf.SectionHeader {
 		}
 	}
 	return nil
-}
-
-func (f *MMapedElfFile) getSymbols(typ elf.SectionType) ([]ElfSymbolIndex, error) {
-	switch f.Class {
-	case elf.ELFCLASS64:
-		return f.getSymbols64(typ)
-
-		//case elf.ELFCLASS32://todo
-		//	return f.getSymbols32(typ)
-	}
-
-	return nil, errors.New("not implemented")
-}
-
-// ErrNoSymbols is returned by File.Symbols and File.DynamicSymbols
-// if there is no such section in the File.
-var ErrNoSymbols = errors.New("no symbol section")
-
-//func (f *MMapedElfFile) getSymbols32(typ elf.SectionType) ([]elf.Symbol, error) {
-//	symtabSection := f.sectionByType(typ)
-//	if symtabSection == nil {
-//		return nil, ErrNoSymbols
-//	}
-//
-//	data, err := symtabSection.Data()
-//	if err != nil {
-//		return nil, fmt.Errorf("cannot load symbol section: %w", err)
-//	}
-//	symtab := bytes.NewReader(data)
-//	if symtab.Len()%elf.Sym32Size != 0 {
-//		return nil, errors.New("length of symbol section is not a multiple of SymSize")
-//	}
-//
-//	//strdata, err := f.stringTable(symtabSection.Link)
-//	//if err != nil {
-//	//	return nil, nil, fmt.Errorf("cannot load string table section: %w", err)
-//	//}
-//
-//	// The first entry is all zeros.
-//	var skip [elf.Sym32Size]byte
-//	symtab.Read(skip[:])
-//
-//	symbols := make([]elf.Symbol, symtab.Len()/elf.Sym32Size)
-//
-//	i := 0
-//	var sym elf.Sym32
-//	for symtab.Len() > 0 {
-//		binary.Read(symtab, f.ByteOrder, &sym)
-//		//str, _ := getString(strdata, int(sym.Name))
-//		//symbols[i].Name = str
-//		symbols[i].Info = sym.Info
-//		symbols[i].Other = sym.Other
-//		symbols[i].Section = elf.SectionIndex(sym.Shndx)
-//		symbols[i].Value = uint64(sym.Value)
-//		symbols[i].Size = uint64(sym.Size)
-//		i++
-//	}
-//
-//	return symbols, nil
-//}
-
-func (f *MMapedElfFile) getSymbols64(typ elf.SectionType) ([]ElfSymbolIndex, error) {
-	symtabSection := f.sectionByType(typ)
-	if symtabSection == nil {
-		return nil, ErrNoSymbols
-	}
-
-	data, err := f.SectionData(symtabSection)
-	if err != nil {
-		return nil, fmt.Errorf("cannot load symbol section: %w", err)
-	}
-	symtab := bytes.NewReader(data)
-	if symtab.Len()%elf.Sym64Size != 0 {
-		return nil, errors.New("length of symbol section is not a multiple of Sym64Size")
-	}
-
-	// The first entry is all zeros.
-	var skip [elf.Sym64Size]byte
-	symtab.Read(skip[:])
-
-	symbols := make([]ElfSymbolIndex, symtab.Len()/elf.Sym64Size)
-
-	var sym elf.Sym64
-	i := 0
-	for symtab.Len() > 0 {
-		binary.Read(symtab, f.ByteOrder, &sym)
-		if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
-			symbols[i].Value = sym.Value
-			symbols[i].SectionHeaderLink = symtabSection.Link
-			symbols[i].NameIndex = sym.Name
-			i++
-		}
-	}
-
-	return symbols[:i], nil
-}
-
-func (f *MMapedElfFile) symbolName(i *ElfSymbolIndex) (string, error) {
-	strSection, err := f.stringTable(i.SectionHeaderLink)
-	if err != nil {
-		return "", err
-	}
-	strdata, err := f.SectionData(strSection)
-	if err != nil {
-		return "", err
-	}
-	s, b := getString(strdata, int(i.NameIndex))
-	if !b {
-		return "", fmt.Errorf("elf getString")
-	}
-	return s, nil
 }
 
 func (f *MMapedElfFile) ensureOpen() error {
@@ -216,21 +80,26 @@ func (f *MMapedElfFile) ensureOpen() error {
 func (f *MMapedElfFile) Close() {
 	if f.mmaped != nil {
 		f.mmaped.Unmap()
-		f.openFile.Close()
-		f.openFile = nil
+		f.fd.Close()
+		f.fd = nil
 	}
 }
 func (f *MMapedElfFile) open() error {
-	//todo error flag to not retry
+	if f.err != nil {
+		return fmt.Errorf("failed previously %w", f.err)
+	}
 	fd, err := os.OpenFile(f.fpath, os.O_RDONLY, 0)
 	if err != nil {
+		f.err = err
 		return fmt.Errorf("open elf file %s %w", f.fpath, err)
 	}
 	mmaped, err := mmap.Map(fd, mmap.RDONLY, 0)
 	if err != nil {
+		fd.Close()
+		f.err = err
 		return fmt.Errorf("mmap elf file %s %w", f.fpath, err)
 	}
-	f.openFile = fd
+	f.fd = fd
 	f.mmaped = mmaped
 	return nil
 }

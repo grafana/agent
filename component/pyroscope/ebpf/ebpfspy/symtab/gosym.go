@@ -3,47 +3,42 @@ package symtab
 import (
 	"debug/elf"
 	"debug/gosym"
-	"encoding/binary"
 	"errors"
 	"fmt"
-	"os"
 
+	gosym2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gosym"
 	"golang.org/x/exp/slices"
 )
 
+//todo rename, move to gosym
+
 func newGoSymbols(file string) (*SymTab, error) {
-	f, err := os.Open(file)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		_ = f.Close()
-	}()
-	obj, err := elf.NewFile(f)
+	obj, err := elf.Open(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open elf file: %w", err)
 	}
+	defer obj.Close()
 
-	symbols, err := getELFSymbolsFromPCLN(file, obj)
+	symbols, err := getGoSymbolsFromPCLN(obj)
 	if err != nil {
 		return nil, err
 	}
 	return NewSymTab(symbols), nil
 }
 
-func getELFSymbolsFromPCLN(file string, obj *elf.File) ([]Sym, error) {
-	var gosymtab []byte
+func getGoSymbolsFromPCLN(obj *elf.File) ([]Sym, error) {
+	//var gosymtab []byte
 	var err error
 	var pclntab []byte
 	text := obj.Section(".text")
 	if text == nil {
 		return nil, errors.New("empty .text")
 	}
-	if sect := obj.Section(".gosymtab"); sect != nil {
-		if gosymtab, err = sect.Data(); err != nil {
-			return nil, err
-		}
-	}
+	//if sect := obj.Section(".gosymtab"); sect != nil {
+	//if gosymtab, err = sect.Data(); err != nil {
+	//	return nil, err
+	//}
+	//}
 	if sect := obj.Section(".gopclntab"); sect != nil {
 		if pclntab, err = sect.Data(); err != nil {
 			return nil, err
@@ -52,7 +47,7 @@ func getELFSymbolsFromPCLN(file string, obj *elf.File) ([]Sym, error) {
 		return nil, errors.New("empty .gopclntab")
 	}
 
-	textStart := parseRuntimeTextFromPclntab18(pclntab)
+	textStart := gosym2.ParseRuntimeTextFromPclntab18(pclntab)
 
 	if textStart == 0 {
 		// for older versions text.Addr is enough
@@ -63,7 +58,7 @@ func getELFSymbolsFromPCLN(file string, obj *elf.File) ([]Sym, error) {
 		return nil, fmt.Errorf(" runtime.text out of .text bounds %d %d %d", textStart, text.Addr, text.Size)
 	}
 	pcln := gosym.NewLineTable(pclntab, textStart)
-	table, err := gosym.NewTable(gosymtab, pcln)
+	table, err := gosym.NewTable(nil, pcln)
 	if err != nil {
 		return nil, err
 	}
@@ -80,34 +75,4 @@ func getELFSymbolsFromPCLN(file string, obj *elf.File) ([]Sym, error) {
 		return a.Start < b.Start
 	})
 	return es, nil
-}
-
-func parseRuntimeTextFromPclntab18(pclntab []byte) uint64 {
-	if len(pclntab) < 64 {
-		return 0
-	}
-	magic := binary.LittleEndian.Uint32(pclntab[0:4])
-	if magic == 0xFFFFFFF0 || magic == 0xFFFFFFF1 {
-		// https://github.com/golang/go/blob/go1.18/src/runtime/symtab.go#L395
-		// 0xFFFFFFF1 is the same
-		// https://github.com/golang/go/commit/0f8dffd0aa71ed996d32e77701ac5ec0bc7cde01
-		//type pcHeader struct {
-		//	magic          uint32  // 0xFFFFFFF0
-		//	pad1, pad2     uint8   // 0,0
-		//	minLC          uint8   // min instruction size
-		//	ptrSize        uint8   // size of a ptr in bytes
-		//	nfunc          int     // number of functions in the module
-		//	nfiles         uint    // number of entries in the file tab
-		//	textStart      uintptr // base for function entry PC offsets in this module, equal to moduledata.text
-		//	funcnameOffset uintptr // offset to the funcnametab variable from pcHeader
-		//	cuOffset       uintptr // offset to the cutab variable from pcHeader
-		//	filetabOffset  uintptr // offset to the filetab variable from pcHeader
-		//	pctabOffset    uintptr // offset to the pctab variable from pcHeader
-		//	pclnOffset     uintptr // offset to the pclntab variable from pcHeader
-		//}
-		textStart := binary.LittleEndian.Uint64(pclntab[24:32])
-		return textStart
-	}
-
-	return 0
 }
