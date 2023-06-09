@@ -78,6 +78,8 @@ func (c *Config) fromExporterConfig(app *kingpin.Application) {
 // toExporterConfig converts integration Configs into windows_exporter configs.
 func (c *Config) toExporterConfig(collectors map[string]*collector.CollectorInit) error {
 	for _, v := range collectors {
+		// Most collectors don't have settings so if its nil then pass on by.
+		// The windows_export functions ensure that if a setting is required it will be initialized.
 		if v.Settings == nil {
 			continue
 		}
@@ -130,20 +132,5 @@ func (c *Config) toExporterConfig(collectors map[string]*collector.CollectorInit
 			return fmt.Errorf("unknown windows exporter type %t", t)
 		}
 	}
-	return nil
-}
-
-var _ kingpin.Value = (*SValue)(nil)
-
-type SValue struct {
-	val string
-}
-
-func (S *SValue) String() string {
-	return S.val
-}
-
-func (S *SValue) Set(s string) error {
-	S.val = s
 	return nil
 }
