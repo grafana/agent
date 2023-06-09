@@ -75,6 +75,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"                // Import prometheus.exporter.redis
 	_ "github.com/grafana/agent/component/prometheus/exporter/snmp"                 // Import prometheus.exporter.snmp
 	_ "github.com/grafana/agent/component/prometheus/exporter/snowflake"            // Import prometheus.exporter.snowflake
+	_ "github.com/grafana/agent/component/prometheus/exporter/squid"            	// Import prometheus.exporter.squid
 	_ "github.com/grafana/agent/component/prometheus/exporter/statsd"               // Import prometheus.exporter.statsd
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"                 // Import prometheus.exporter.unix
 	_ "github.com/grafana/agent/component/prometheus/exporter/windows"              // Import prometheus.exporter.windows
