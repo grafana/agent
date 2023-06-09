@@ -34,6 +34,8 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
+- Allow bearerTokenFile to be used in ServiceMonitors. (@captncraig)
+
 - Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
 
 ### Other changes
