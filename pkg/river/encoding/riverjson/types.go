@@ -10,30 +10,30 @@ type (
 
 	// jsonBlock represents a River block as JSON. jsonBlock is a jsonStatement.
 	jsonBlock struct {
-		Name  string          `json:"name,omitempty"`
-		Type  string          `json:"type,omitempty"` // Always "block"
+		Name  string          `json:"name"`
+		Type  string          `json:"type"` // Always "block"
 		Label string          `json:"label,omitempty"`
-		Body  []jsonStatement `json:"body,omitempty"`
+		Body  []jsonStatement `json:"body"`
 	}
 
 	// jsonAttr represents a River attribute as JSON. jsonAttr is a
 	// jsonStatement.
 	jsonAttr struct {
-		Name  string    `json:"name,omitempty"`
-		Type  string    `json:"type,omitempty"` // Always "attr"
-		Value jsonValue `json:"value,omitempty"`
+		Name  string    `json:"name"`
+		Type  string    `json:"type"` // Always "attr"
+		Value jsonValue `json:"value"`
 	}
 
 	// jsonValue represents a single River value as JSON.
 	jsonValue struct {
-		Type  string      `json:"type,omitempty"`
-		Value interface{} `json:"value,omitempty"`
+		Type  string      `json:"type"`
+		Value interface{} `json:"value"`
 	}
 
 	// jsonObjectField represents a field within a River object.
 	jsonObjectField struct {
-		Key   string      `json:"key,omitempty"`
-		Value interface{} `json:"value,omitempty"`
+		Key   string      `json:"key"`
+		Value interface{} `json:"value"`
 	}
 )
 
