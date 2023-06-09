@@ -163,7 +163,6 @@ func TestVM_Block_Attributes(t *testing.T) {
 				err := eval.Evaluate(nil, &actual)
 				require.NoError(t, err)
 				require.Equal(t, tt.expectedValType.String(), reflect.TypeOf(actual.Anything).Kind().String())
-
 			})
 		}
 	})
