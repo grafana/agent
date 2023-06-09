@@ -1,4 +1,4 @@
-package symtab
+package elf
 
 import (
 	"debug/elf"
@@ -11,8 +11,13 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type Sym struct { // dup to break import cycle
+	Start uint64
+	Name  string
+}
+
 func Test(t *testing.T) {
-	t.Skip()
+	//t.Skip()
 	fs := []string{
 		"/Users/korniltsev/Downloads/dump/3026076/bin/external-secrets",
 		"/Users/korniltsev/Downloads/dump/1952222/bin/bash",
@@ -104,14 +109,17 @@ func inspect(t *testing.T, f string) {
 	fmt.Printf("names len %d cnt %d\n", namesLength, count)
 
 	me, err := NewMMapedElfFile(f)
-	defer me.close()
-
-	me.readSymbols()
 	require.NoError(t, err)
+	defer me.Close()
+
+	tab, _ := me.ReadSymbols()
+	if tab == nil {
+		tab = &SymbolTable{}
+	}
 	var mySymbols []Sym
 
-	for i := range me.symbols {
-		sym := &me.symbols[i]
+	for i := range tab.Symbols {
+		sym := &tab.Symbols[i]
 		name, _ := me.symbolName(sym)
 		mySymbols = append(mySymbols, Sym{
 			Name:  name,

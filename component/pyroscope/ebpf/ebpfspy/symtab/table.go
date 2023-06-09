@@ -5,16 +5,17 @@ import (
 )
 
 type SymTab struct {
-	symbols []Sym
+	Symbols []Sym
 	base    uint64
 }
+
 type Sym struct {
 	Start uint64
 	Name  string
 }
 
 func NewSymTab(symbols []Sym) *SymTab {
-	return &SymTab{symbols: symbols}
+	return &SymTab{Symbols: symbols}
 }
 
 func (t *SymTab) Rebase(base uint64) {
@@ -22,18 +23,21 @@ func (t *SymTab) Rebase(base uint64) {
 }
 
 func (t *SymTab) Resolve(addr uint64) *Sym {
-	if len(t.symbols) == 0 {
+	if len(t.Symbols) == 0 {
 		return nil
 	}
 	addr -= t.base
-	if addr < t.symbols[0].Start {
+	if addr < t.Symbols[0].Start {
 		return nil
 	}
-	i := sort.Search(len(t.symbols), func(i int) bool {
-		return addr < t.symbols[i].Start
+	i := sort.Search(len(t.Symbols), func(i int) bool {
+		return addr < t.Symbols[i].Start
 	})
 	i--
-	return &t.symbols[i]
+	return &t.Symbols[i]
+}
+func (t *SymTab) Length() int {
+	return len(t.Symbols)
 }
 
 type SymbolTab struct {

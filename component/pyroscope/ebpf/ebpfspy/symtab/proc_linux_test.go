@@ -67,12 +67,12 @@ func BenchmarkProc(b *testing.B) {
 	logger := log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
 	proc := NewProcTable(logger, ProcTableOptions{Pid: os.Getpid()})
 	proc.Refresh()
-	if len(gosym.symbols) < 1000 {
+	if len(gosym.Symbols) < 1000 {
 		b.FailNow()
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		for _, symbol := range gosym.symbols {
+		for _, symbol := range gosym.Symbols {
 			proc.Resolve(symbol.Start)
 		}
 	}

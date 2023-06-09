@@ -1,4 +1,4 @@
-package symtab
+package elf
 
 import (
 	"bytes"
@@ -17,16 +17,9 @@ type MMapedElfFile struct {
 	Sections []elf.SectionHeader
 	Progs    []elf.ProgHeader
 
-	symbols  []ElfSymbolIndex
 	fpath    string
 	mmaped   mmap.MMap
 	openFile *os.File
-}
-
-type ElfSymbolIndex struct {
-	SectionHeaderLink uint32
-	NameIndex         uint32
-	Value             uint64
 }
 
 func NewMMapedElfFile(fpath string) (*MMapedElfFile, error) {
@@ -35,12 +28,12 @@ func NewMMapedElfFile(fpath string) (*MMapedElfFile, error) {
 	}
 	err := res.ensureOpen()
 	if err != nil {
-		res.close()
+		res.Close()
 		return nil, err
 	}
 	elfFile, err := elf.NewFile(bytes.NewReader(res.mmaped))
 	if err != nil {
-		res.close()
+		res.Close()
 		return nil, err
 	}
 	progs := make([]elf.ProgHeader, 0, len(elfFile.Progs))
@@ -55,32 +48,7 @@ func NewMMapedElfFile(fpath string) (*MMapedElfFile, error) {
 	res.Progs = progs
 	res.Sections = sections
 
-	////// todo remove it from here, make it general purpose
-	//res.readSymbols()
-	//if len(res.symbols) == 0 {
-	//	res.close()
-	//}
 	return res, nil
-}
-
-func (e *MMapedElfFile) Resolve(addr uint64) string {
-	if len(e.symbols) == 0 {
-		return ""
-	}
-	if addr < e.symbols[0].Value {
-		return ""
-	}
-	i := sort.Search(len(e.symbols), func(i int) bool {
-		return addr < e.symbols[i].Value
-	})
-	i--
-	sym := &e.symbols[i]
-	name, _ := e.symbolName(sym)
-	return name
-}
-
-func (e *MMapedElfFile) Cleanup() {
-	e.close()
 }
 
 func (f *MMapedElfFile) Section(name string) *elf.SectionHeader {
@@ -93,19 +61,19 @@ func (f *MMapedElfFile) Section(name string) *elf.SectionHeader {
 	return nil
 }
 
-func (f *MMapedElfFile) readSymbols() error {
+func (f *MMapedElfFile) ReadSymbols() (*SymbolTable, error) {
 	sym, err := f.getSymbols(elf.SHT_SYMTAB)
 	if err != nil && err != ErrNoSymbols {
-		return err
+		return nil, err
 	}
 
 	dynsym, err := f.getSymbols(elf.SHT_DYNSYM)
 	if err != nil && err != ErrNoSymbols {
-		return err
+		return nil, err
 	}
 	total := len(dynsym) + len(sym)
 	if total == 0 {
-		return ErrNoSymbols
+		return nil, ErrNoSymbols
 	}
 	all := make([]ElfSymbolIndex, 0, total)
 	all = append(all, sym...)
@@ -113,8 +81,8 @@ func (f *MMapedElfFile) readSymbols() error {
 	sort.Slice(all, func(i, j int) bool {
 		return all[i].Value < all[j].Value
 	})
-	f.symbols = all
-	return nil
+	//f.Symbols = all
+	return &SymbolTable{Symbols: all, File: f}, nil
 }
 
 func (f *MMapedElfFile) sectionByType(typ elf.SectionType) *elf.SectionHeader {
@@ -245,7 +213,7 @@ func (f *MMapedElfFile) ensureOpen() error {
 	return f.open()
 }
 
-func (f *MMapedElfFile) close() {
+func (f *MMapedElfFile) Close() {
 	if f.mmaped != nil {
 		f.mmaped.Unmap()
 		f.openFile.Close()

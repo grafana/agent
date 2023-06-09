@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/go-kit/log"
+	elf2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 	"golang.org/x/exp/slices"
 )
 
@@ -50,7 +51,7 @@ func NewElfTable(logger log.Logger, procMap *ProcMap, fs string, elfFilePath str
 	return res
 }
 
-func (p *ElfTable) findBase(e *MMapedElfFile) bool {
+func (p *ElfTable) findBase(e *elf2.MMapedElfFile) bool {
 	m := p.procMap
 	if e.FileHeader.Type == elf.ET_EXEC {
 		p.base = 0
@@ -74,16 +75,12 @@ func (t *ElfTable) load() {
 	t.loaded = true
 	fsElfFilePath := path.Join(t.fs, t.elfFilePath)
 
-	me, err := NewMMapedElfFile(fsElfFilePath)
+	me, err := elf2.NewMMapedElfFile(fsElfFilePath)
 	if err != nil {
 		t.err = err
 		return
 	}
-	defer func() {
-		if t.table != me {
-			me.close()
-		}
-	}()
+	defer me.Close() // todo do not close if it is the selected elf
 
 	if !t.findBase(me) {
 		t.err = errElfBaseNotFound
@@ -115,36 +112,33 @@ func (t *ElfTable) load() {
 			t.table = symbols
 			return
 		}
-		debugMe, err := NewMMapedElfFile(path.Join(t.fs, debugFilePath))
+		debugMe, err := elf2.NewMMapedElfFile(path.Join(t.fs, debugFilePath))
 		if err != nil {
 			t.err = err
 			return
 		}
-		defer func() {
-			if t.table != debugMe {
-				debugMe.close()
-			}
-		}()
-		err = debugMe.readSymbols()
+		defer debugMe.Close() // todo do not close if it is the selected elf
+
+		symbols, err = debugMe.ReadSymbols()
 		if err != nil {
 			t.err = nil
 			return
 		}
-		t.table = debugMe
-		t.options.ElfCache.CacheByBuildID(buildID, debugMe)
-		t.options.ElfCache.CacheByStat(debugFileStat, debugMe)
+		t.table = symbols
+		t.options.ElfCache.CacheByBuildID(buildID, symbols)
+		t.options.ElfCache.CacheByStat(debugFileStat, symbols)
 		return
 	}
 
-	err = me.readSymbols()
+	symbols, err = me.ReadSymbols()
 	if err != nil {
 		t.err = err
 		return
 	}
 
-	t.options.ElfCache.CacheByBuildID(buildID, me)
-	t.options.ElfCache.CacheByStat(statFromFileInfo(fileInfo), me)
-	t.table = me
+	t.table = symbols
+	t.options.ElfCache.CacheByBuildID(buildID, symbols)
+	t.options.ElfCache.CacheByStat(statFromFileInfo(fileInfo), symbols)
 	return
 
 }
@@ -200,7 +194,7 @@ func getELFSymbolsFromSymtab(elfPath string, elfFile *elf.File) []Sym {
 	return symbols
 }
 
-func getBuildID(elfFile *MMapedElfFile) (string, error) {
+func getBuildID(elfFile *elf2.MMapedElfFile) (string, error) {
 	buildIDSection := elfFile.Section(".note.gnu.build-id")
 	if buildIDSection == nil {
 		return "", errNoBuildID
@@ -235,7 +229,7 @@ func (t *ElfTable) findDebugFileWithBuildID(buildID string) (string, stat) {
 	return "", stat{}
 }
 
-func (t *ElfTable) findDebugFile(buildID string, elfFile *MMapedElfFile) (string, stat) {
+func (t *ElfTable) findDebugFile(buildID string, elfFile *elf2.MMapedElfFile) (string, stat) {
 	// https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html
 	// So, for example, suppose you ask GDB to debug /usr/bin/ls, which has a debug link that specifies the file
 	// ls.debug, and a build ID whose value in hex is abcdef1234. If the list of the global debug directories
@@ -253,7 +247,7 @@ func (t *ElfTable) findDebugFile(buildID string, elfFile *MMapedElfFile) (string
 	return debugFile, fileInfo
 }
 
-func (t *ElfTable) findDebugFileWithDebugLink(elfFile *MMapedElfFile) (string, stat, error) {
+func (t *ElfTable) findDebugFileWithDebugLink(elfFile *elf2.MMapedElfFile) (string, stat, error) {
 	fs := t.fs
 	elfFilePath := t.elfFilePath
 	debugLinkSection := elfFile.Section(".gnu_debuglink")

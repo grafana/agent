@@ -6,17 +6,17 @@ import (
 )
 
 type ElfCache struct {
-	buildID2Symbols *lru.Cache[string, *MMapedElfFile]
-	stat2Symbols    *lru.Cache[stat, *MMapedElfFile]
+	buildID2Symbols *lru.Cache[string, SymbolNameResolver]
+	stat2Symbols    *lru.Cache[stat, SymbolNameResolver]
 	metrics         *metrics.Metrics
 }
 
 func NewElfCache(sz int, metrics *metrics.Metrics) (*ElfCache, error) {
-	buildID2Symbols, err := lru.New[string, *MMapedElfFile](sz)
+	buildID2Symbols, err := lru.New[string, SymbolNameResolver](sz)
 	if err != nil {
 		return nil, err
 	}
-	stat2Symbols, err := lru.New[stat, *MMapedElfFile](sz)
+	stat2Symbols, err := lru.New[stat, SymbolNameResolver](sz)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func NewElfCache(sz int, metrics *metrics.Metrics) (*ElfCache, error) {
 	}, nil
 }
 
-func (e *ElfCache) GetSymbolsByBuildID(buildID string) *MMapedElfFile {
+func (e *ElfCache) GetSymbolsByBuildID(buildID string) SymbolNameResolver {
 	if buildID == "" {
 		return nil
 	}
@@ -40,7 +40,7 @@ func (e *ElfCache) GetSymbolsByBuildID(buildID string) *MMapedElfFile {
 	return nil
 }
 
-func (e *ElfCache) GetSymbolsByStat(s stat) *MMapedElfFile {
+func (e *ElfCache) GetSymbolsByStat(s stat) SymbolNameResolver {
 	if s.isNil() {
 		return nil
 	}
@@ -53,15 +53,15 @@ func (e *ElfCache) GetSymbolsByStat(s stat) *MMapedElfFile {
 	return nil
 }
 
-func (e *ElfCache) CacheByBuildID(buildID string, v *MMapedElfFile) {
-	if buildID == "" || len(v.symbols) == 0 {
+func (e *ElfCache) CacheByBuildID(buildID string, v SymbolNameResolver) {
+	if buildID == "" || v == nil {
 		return
 	}
 	e.buildID2Symbols.Add(buildID, v)
 }
 
-func (e *ElfCache) CacheByStat(s stat, v *MMapedElfFile) {
-	if s.isNil() || len(v.symbols) == 0 {
+func (e *ElfCache) CacheByStat(s stat, v SymbolNameResolver) {
+	if s.isNil() || v == nil {
 		return
 	}
 	e.stat2Symbols.Add(s, v)
@@ -77,7 +77,7 @@ func (e *ElfCache) Cleanup() {
 	cleanup(e.stat2Symbols)
 }
 
-func cleanup[k comparable](m *lru.Cache[k, *MMapedElfFile]) {
+func cleanup[k comparable](m *lru.Cache[k, SymbolNameResolver]) {
 	keys := m.Keys()
 	for _, pid := range keys {
 		tab, ok := m.Peek(pid)
