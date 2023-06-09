@@ -6,10 +6,9 @@ import (
 	"github.com/grafana/agent/pkg/river/token/builder"
 )
 
-// ConvertAppendable implements both the [builder.Tokenizer] and
-// [storage.Appendable] interfaces. This allows us to set component.Arguments
-// that leverage [storage.Appendable] with an implementation that can be
-// tokenized as a specific string.
+// ConvertTargets implements [builder.Tokenizer]. This allows us to set
+// component.Arguments with an implementation that can be tokenized with
+// custom behaviour for converting.
 type ConvertTargets struct {
 	Targets []discovery.Target
 }
@@ -24,13 +23,17 @@ func (f ConvertTargets) RiverTokenize() []builder.Token {
 	}
 
 	// We are relying on each targetMap having exactly 1 target which we control
-	// from the calling converter code.
+	// from the upstream converter code. We panic below if not.
 	if len(f.Targets) > 1 {
 		toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: "concat"})
 		toks = append(toks, builder.Token{Tok: token.LPAREN, Lit: ""})
 	}
 
 	for ix, targetMap := range f.Targets {
+		if len(targetMap) != 1 {
+			panic("unexpected number of targets received on a target map")
+		}
+
 		for key, target := range targetMap {
 			if key == "__address__" {
 				toks = append(toks, builder.Token{Tok: token.LBRACK, Lit: ""})
