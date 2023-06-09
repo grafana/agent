@@ -11,10 +11,10 @@ You can install Grafana Agent in static mode on macOS.
 
 ## Before you begin
 
-Ensure that [Homebrew][] is installed on your machine.
+Ensure that [Homebrew][] is installed.
 
 {{% admonition type="note" %}}
-The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. You can verify the default prefix by opening a terminal and typing `brew --prefix`.
+The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. You can verify the default prefix for Homebrew on your computer by opening a terminal and typing `brew --prefix`.
 {{% /admonition %}}
 
 [Homebrew]: https://brew.sh
