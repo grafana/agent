@@ -61,8 +61,9 @@ By default, logs are written to the following locations:
 
 ## Upgrading Grafana Agent
 
-Open a terminal and run the following command to upgrade Grafana Agent:
+Open a terminal and run the following commands to upgrade and restart Grafana Agent:
 
 ```shell
 brew upgrade grafana-agent
+brew services restart grafana-agent
  ```
