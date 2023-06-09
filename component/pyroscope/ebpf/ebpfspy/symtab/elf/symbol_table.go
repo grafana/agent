@@ -71,8 +71,8 @@ func (f *MMapedElfFile) getSymbols(typ elf.SectionType) ([]SymbolIndex, error) {
 	case elf.ELFCLASS64:
 		return f.getSymbols64(typ)
 
-		//case elf.ELFCLASS32://todo
-		//	return f.getSymbols32(typ)
+	case elf.ELFCLASS32:
+		return f.getSymbols32(typ)
 	}
 
 	return nil, errors.New("not implemented")
@@ -109,6 +109,42 @@ func (f *MMapedElfFile) getSymbols64(typ elf.SectionType) ([]SymbolIndex, error)
 		binary.Read(symtab, f.ByteOrder, &sym)
 		if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
 			symbols[i].Value = sym.Value
+			symbols[i].SectionHeaderLink = symtabSection.Link
+			symbols[i].NameIndex = sym.Name
+			i++
+		}
+	}
+
+	return symbols[:i], nil
+}
+
+func (f *MMapedElfFile) getSymbols32(typ elf.SectionType) ([]SymbolIndex, error) {
+	symtabSection := f.sectionByType(typ)
+	if symtabSection == nil {
+		return nil, ErrNoSymbols
+	}
+
+	data, err := f.SectionData(symtabSection)
+	if err != nil {
+		return nil, fmt.Errorf("cannot load symbol section: %w", err)
+	}
+	symtab := bytes.NewReader(data)
+	if symtab.Len()%elf.Sym32Size != 0 {
+		return nil, errors.New("length of symbol section is not a multiple of Sym64Size")
+	}
+
+	// The first entry is all zeros.
+	var skip [elf.Sym32Size]byte
+	symtab.Read(skip[:])
+
+	symbols := make([]SymbolIndex, symtab.Len()/elf.Sym32Size)
+
+	var sym elf.Sym32
+	i := 0
+	for symtab.Len() > 0 {
+		binary.Read(symtab, f.ByteOrder, &sym)
+		if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
+			symbols[i].Value = uint64(sym.Value)
 			symbols[i].SectionHeaderLink = symtabSection.Link
 			symbols[i].NameIndex = sym.Name
 			i++
