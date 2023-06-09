@@ -1,5 +1,5 @@
 ---
-title: app_agent_config
+title: app_agent_receiver_config
 aliases:
 - ../../../../configuration/integrations/integrations-next/app-agent-receiver-config/
 ---
