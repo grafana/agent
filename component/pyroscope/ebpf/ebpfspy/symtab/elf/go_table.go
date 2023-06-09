@@ -17,10 +17,11 @@ type GoTable struct {
 }
 
 func (e *GoTable) Resolve(addr uint64) string {
+	//todo use the FuncEntry.End
 	if len(e.Symbols) == 0 {
 		return ""
 	}
-	if addr < e.Symbols[0].Entry {
+	if addr < e.Symbols[0].Entry || addr >= e.Symbols[len(e.Symbols)-1].End {
 		return ""
 	}
 	i := sort.Search(len(e.Symbols), func(i int) bool {
@@ -42,6 +43,7 @@ var (
 	errGoTooOld          = errors.New("gosymtab: go sym tab too old")
 	errGoParseFailed     = errors.New("gosymtab: go sym tab parse failed")
 	errGoFailed          = errors.New("gosymtab: go sym tab  failed")
+	errGoOOB             = fmt.Errorf("go table oob")
 	errGoSymbolsNotFound = errors.New("gosymtab: no go symbols found")
 )
 
@@ -100,6 +102,9 @@ func (f *GoTable) goSymbolName(sym *gosym2.FuncIndex) (string, error) {
 	gopclndata, err := f.File.SectionData(f.gopclnSection)
 	if err != nil {
 		return "", err
+	}
+	if int(f.funcNameOffset) >= len(gopclndata) {
+		return "", errGoOOB
 	}
 	funcnamedata := gopclndata[f.funcNameOffset:]
 	name, ok := getString(funcnamedata, int(sym.NameOffset))

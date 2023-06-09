@@ -35,7 +35,7 @@ func (e *SymbolTable) Resolve(addr uint64) string {
 	})
 	i--
 	sym := &e.Symbols[i]
-	name, _ := e.File.symbolName(sym)
+	name, _ := e.symbolName(sym)
 	return name
 }
 
@@ -119,12 +119,12 @@ func (f *MMapedElfFile) getSymbols64(typ elf.SectionType) ([]SymbolIndex, error)
 	return symbols[:i], nil
 }
 
-func (f *MMapedElfFile) symbolName(i *SymbolIndex) (string, error) {
-	strSection, err := f.stringTable(i.SectionHeaderLink)
+func (f *SymbolTable) symbolName(i *SymbolIndex) (string, error) {
+	strSection, err := f.File.stringTable(i.SectionHeaderLink)
 	if err != nil {
 		return "", err
 	}
-	strdata, err := f.SectionData(strSection)
+	strdata, err := f.File.SectionData(strSection)
 	if err != nil {
 		return "", err
 	}

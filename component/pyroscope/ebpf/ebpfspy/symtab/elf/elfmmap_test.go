@@ -120,7 +120,7 @@ func inspect(t *testing.T, f string) {
 
 	for i := range tab.Symbols {
 		sym := &tab.Symbols[i]
-		name, _ := me.symbolName(sym)
+		name, _ := tab.symbolName(sym)
 		mySymbols = append(mySymbols, Sym{
 			Name:  name,
 			Start: sym.Value,
