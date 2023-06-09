@@ -5,9 +5,14 @@ weight: 350
 
 # OpenTelemetry to Grafana stack
 
-In the [previous guide][], we learned how to ingest [OpenTelemetry][] data and export it to a different destination. This guide shows you how to send the ingested OpenTelemetry data to a Loki, Mimir, and Tempo stack.
+Grafana Agent Flow can be configured to collect [OpenTelemetry][]-compatible data and forward it to the Grafana stack
 
-[previous guide]: {{< relref "./collect-opentelemetry-data.md" >}}
+This topic describes how to:
+
+* Configure Agent to send your data to Loki
+* Configure agent to send your data to Tempo
+* Configure Agent to store your data in Mimir
+
 [OpenTelemetry]: https://opentelemetry.io
 
 
@@ -39,12 +44,15 @@ In the [previous guide][], we learned how to ingest [OpenTelemetry][] data and e
   Grafana Agent Flow.
 * Identify where Grafana Agent Flow will write received telemetry data.
 * Be familiar with the concept of [Components][] in Grafana Agent Flow.
+* Complete the [Collect open telemetry data][] getting started guide.
+
+[Collect open telemetry data]: {{< relref "./collect-opentelemetry-data.md" >}}
 
 [Components]: {{< relref "../concepts/components.md" >}}
 
 ## The Pipeline
 
-We start with the config from the previous guide:
+You can start with the Grafana Agent Flow configuration you created in the previous getting started guide:
 
 ```river
 otelcol.receiver.otlp "example" {
@@ -83,17 +91,18 @@ This represents the pipeline:
 Metrics, Logs, Traces: OTLP Receiver → batch processor → OTLP Exporter
 ```
 
-We will be implementing the following pipeline in this guide:
+You will implement the following pipelines to send your data to Loki, Tempo, and Mimir:
 
 ```
 Metrics: OTel → batch processor → prometheus remote write
 Logs: OTel → batch processor → Loki exporter
 Traces: OTel → batch processor → OTel exporter
 ```
+```
 
 ## Grafana Tempo
 
-[Grafana Tempo][] is an open-source, easy-to-use, scalable distributed tracing backend. Tempo can ingest OTLP directly, and we can use the OTLP exporter to send the traces to Tempo.
+[Grafana Tempo][] is an open-source, easy-to-use, scalable distributed tracing backend. Tempo can ingest OTLP directly, and you can use the OTLP exporter to send the traces to Tempo.
 
 ```river
 otelcol.exporter.otlp "default" {
@@ -103,7 +112,7 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-To use Tempo with basic-auth, which is the case with GrafanaCloud Tempo, you must use the [otelcol.auth.basic][] component. For example, you can get the Tempo config from the “details” page of Tempo in the [GrafanaCloud Portal][]:
+To use Tempo with basic-auth, which is the case with GrafanaCloud Tempo, you must use the [otelcol.auth.basic][] component. You can get the Tempo config from the Tempo **Details** page in the [GrafanaCloud Portal][]:
 
 ![](../../../assets/getting-started/tempo-config.png)
 
@@ -140,7 +149,7 @@ prometheus.remote_write "default" {
 }
 ```
 
-To use Prometheus with basic-auth, which is the case with GrafanaCloud Prometheus, you have to configure the [prometheus.remote_write][] component. For example, you can get the Prometheus config from the “details” page of Prometheus in the [GrafanaCloud Portal][]:
+To use Prometheus with basic-auth, which is the case with GrafanaCloud Prometheus, you have to configure the [prometheus.remote_write][] component. You can get the Prometheus config from the Prometheus **Details** page in the [GrafanaCloud Portal][]:
 
 ![](../../../assets/getting-started/prometheus-config.png)
 
@@ -176,7 +185,7 @@ loki.write "default" {
 }
 ```
 
-To use Loki with basic-auth, which is the case with GrafanaCloud Loki, you must configure the [loki.write][] component. For example, you can get the Loki config from the “details” page of Loki in the [GrafanaCloud Portal][]:
+To use Loki with basic-auth, which is the case with GrafanaCloud Loki, you must configure the [loki.write][] component. You can get the Loki config from the Loki **Details** page in the [GrafanaCloud Portal][]:
 
 ![](../../../assets/getting-started/loki-config.png)
 
