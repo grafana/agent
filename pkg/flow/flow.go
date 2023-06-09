@@ -47,11 +47,11 @@ package flow
 
 import (
 	"context"
-	"github.com/grafana/agent/component"
 	"net"
 	"sync"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
