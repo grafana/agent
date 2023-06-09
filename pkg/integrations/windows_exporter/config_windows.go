@@ -25,21 +25,25 @@ func init() {
 	}
 
 	// Map the configs with defaults applied to our default config.
-	DefaultConfig.fromExporterConfig(app)
+	DefaultConfig.setDefaults(app)
 }
 
+// getDefault works by getting the Flag values after being parsed, which sets the defaults.
+// The only default we differ on is the parent enabled-collectors, which we remove textfile.
 func getDefault(app *kingpin.Application, name string) string {
 	for _, f := range app.Model().Flags {
 		if f.Name != name {
 			continue
 		}
+		// Returns default value.
 		return f.String()
 	}
 	return ""
 }
 
-// fromExporterConfig converts windows_exporter configs into the integration Config.
-func (c *Config) fromExporterConfig(app *kingpin.Application) {
+// setDefaults converts windows_exporter configs into the integration Config.
+// This should ONLY be called from the DefaultConfig to generate the defaults.
+func (c *Config) setDefaults(app *kingpin.Application) {
 	c.Dfsr.SourcesEnabled = getDefault(app, collector.FlagDfsrEnabledCollectors)
 	c.Exchange.EnabledList = getDefault(app, collector.FlagExchangeCollectorsEnabled)
 	c.IIS.SiteBlackList = getDefault(app, collector.FlagIISSiteOldExclude)
