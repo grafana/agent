@@ -21,7 +21,7 @@ The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for
 
 ## Installing Grafana Agent with Homebrew
 
-1. Open a terminal and run the following commands:
+Open a terminal and run the following commands:
 
    ```shell
    brew update
@@ -46,7 +46,7 @@ To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud
 
 ## Starting Grafana Agent
 
-1. Open a terminal and run the following command to start Grafana Agent:
+Open a terminal and run the following command to start Grafana Agent:
 
     ```shell
     brew services start grafana-agent
@@ -58,7 +58,7 @@ By default, logs are written to `$(brew --prefix)/var/log/grafana-agent.log` and
 
 ## Upgrading Grafana Agent
 
-1. Open a terminal and run the following command to upgrade Grafana Agent:
+Open a terminal and run the following command to upgrade Grafana Agent:
 
     ```shell
     brew upgrade grafana-agent
