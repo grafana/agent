@@ -29,26 +29,38 @@ type ElfSymbolIndex struct {
 	Value             uint64
 }
 
-func NewMMapedElfFile(fpath string, f *elf.File) *MMapedElfFile {
-	progs := make([]elf.ProgHeader, 0, len(f.Progs))
-	sections := make([]elf.SectionHeader, 0, len(f.Sections))
-	for i := range f.Progs {
-		progs = append(progs, f.Progs[i].ProgHeader)
-	}
-	for i := range f.Sections {
-		sections = append(sections, f.Sections[i].SectionHeader)
-	}
+func NewMMapedElfFile(fpath string) (*MMapedElfFile, error) {
 	res := &MMapedElfFile{
-		FileHeader: f.FileHeader,
-		Progs:      progs,
-		Sections:   sections,
-		fpath:      fpath,
+		fpath: fpath,
 	}
-	res.readSymbols()
-	if len(res.symbols) == 0 {
+	err := res.ensureOpen()
+	if err != nil {
 		res.close()
+		return nil, err
 	}
-	return res
+	elfFile, err := elf.NewFile(bytes.NewReader(res.mmaped))
+	if err != nil {
+		res.close()
+		return nil, err
+	}
+	progs := make([]elf.ProgHeader, 0, len(elfFile.Progs))
+	sections := make([]elf.SectionHeader, 0, len(elfFile.Sections))
+	for i := range elfFile.Progs {
+		progs = append(progs, elfFile.Progs[i].ProgHeader)
+	}
+	for i := range elfFile.Sections {
+		sections = append(sections, elfFile.Sections[i].SectionHeader)
+	}
+	res.FileHeader = elfFile.FileHeader
+	res.Progs = progs
+	res.Sections = sections
+
+	////// todo remove it from here, make it general purpose
+	//res.readSymbols()
+	//if len(res.symbols) == 0 {
+	//	res.close()
+	//}
+	return res, nil
 }
 
 func (e *MMapedElfFile) Resolve(addr uint64) string {
@@ -71,6 +83,16 @@ func (e *MMapedElfFile) Cleanup() {
 	e.close()
 }
 
+func (f *MMapedElfFile) Section(name string) *elf.SectionHeader {
+	for i := range f.Sections {
+		s := &f.Sections[i]
+		if s.Name == name {
+			return s
+		}
+	}
+	return nil
+}
+
 func (f *MMapedElfFile) readSymbols() error {
 	sym, err := f.getSymbols(elf.SHT_SYMTAB)
 	if err != nil && err != ErrNoSymbols {
@@ -83,7 +105,7 @@ func (f *MMapedElfFile) readSymbols() error {
 	}
 	total := len(dynsym) + len(sym)
 	if total == 0 {
-		return nil
+		return ErrNoSymbols
 	}
 	all := make([]ElfSymbolIndex, 0, total)
 	all = append(all, sym...)
@@ -170,7 +192,7 @@ func (f *MMapedElfFile) getSymbols64(typ elf.SectionType) ([]ElfSymbolIndex, err
 		return nil, ErrNoSymbols
 	}
 
-	data, err := f.sectionData(symtabSection)
+	data, err := f.SectionData(symtabSection)
 	if err != nil {
 		return nil, fmt.Errorf("cannot load symbol section: %w", err)
 	}
@@ -205,7 +227,7 @@ func (f *MMapedElfFile) symbolName(i *ElfSymbolIndex) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	strdata, err := f.sectionData(strSection)
+	strdata, err := f.SectionData(strSection)
 	if err != nil {
 		return "", err
 	}
@@ -245,7 +267,7 @@ func (f *MMapedElfFile) open() error {
 	return nil
 }
 
-func (f *MMapedElfFile) sectionData(s *elf.SectionHeader) ([]byte, error) {
+func (f *MMapedElfFile) SectionData(s *elf.SectionHeader) ([]byte, error) {
 	if err := f.ensureOpen(); err != nil {
 		return nil, err
 	}

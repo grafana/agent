@@ -54,8 +54,7 @@ func testProc(t *testing.T, maps string, data []procTestdata) {
 	m := NewProcTable(logger, ProcTableOptions{
 		Pid: 239,
 		ElfTableOptions: ElfTableOptions{
-			UseDebugFiles: true,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		},
 	})
 	m.rootFS = path.Join(wd, "testdata")
@@ -255,8 +254,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 	m := NewProcTable(logger, ProcTableOptions{
 		Pid: 239,
 		ElfTableOptions: ElfTableOptions{
-			UseDebugFiles: true,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		},
 	})
 	m.rootFS = path.Join(wd, "testdata")
@@ -288,9 +286,9 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 7fffd9bd6000-7fffd9bd8000 r-xp 00000000 00:00 0                          [vdso]
 ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
 `
-	require.Equal(t, 2, len(m.file2Table))
+	require.Equal(t, 4, len(m.file2Table))
 	m.refresh(maps)
-	require.Equal(t, 1, len(m.file2Table))
+	require.Equal(t, 3, len(m.file2Table))
 	sym := m.Resolve(iterSym.base + iterSym.offset)
 	require.Empty(t, sym.Name)
 	require.Empty(t, sym.Module)
@@ -338,8 +336,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 	m := NewProcTable(logger, ProcTableOptions{
 		Pid: 239,
 		ElfTableOptions: ElfTableOptions{
-			UseDebugFiles: true,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		},
 	})
 	m.rootFS = path.Join(wd, "testdata")
@@ -377,9 +374,9 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 7fffd9bd6000-7fffd9bd8000 r-xp 00000000 00:00 0                          [vdso]
 ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
 `
-	require.Equal(t, 2, len(m.file2Table))
+	require.Equal(t, 4, len(m.file2Table))
 	m.refresh(maps)
-	require.Equal(t, 2, len(m.file2Table))
+	require.Equal(t, 4, len(m.file2Table))
 	sym := m.Resolve(iterSym.base + iterSym.offset)
 	require.NotEmpty(t, sym.Name)
 	require.NotEmpty(t, sym.Module)

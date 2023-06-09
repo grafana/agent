@@ -1,7 +1,6 @@
 package symtab
 
 import (
-	"debug/elf"
 	"fmt"
 	"os"
 	"path"
@@ -9,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"golang.org/x/exp/slices"
 )
 
@@ -60,6 +58,7 @@ func (p *ProcTable) refresh(procMaps string) {
 	if err != nil {
 		return
 	}
+
 	for _, m := range maps {
 		p.ranges = append(p.ranges, elfRange{
 			mapRange: m,
@@ -87,7 +86,7 @@ func (p *ProcTable) getElfTable(r *elfRange) *ElfTable {
 	f := r.mapRange.file()
 	e, ok := p.file2Table[f]
 	if !ok {
-		e = p.createElfTable(r)
+		e = p.createElfTable(r.mapRange)
 		if e != nil {
 			p.file2Table[f] = e
 		}
@@ -114,52 +113,18 @@ func (p *ProcTable) Resolve(pc uint64) Symbol {
 	return Symbol{Start: moduleOffset, Name: s, Module: r.mapRange.Pathname}
 }
 
-func (p *ProcTable) createElfTable(m *elfRange) *ElfTable {
-	if !strings.HasPrefix(m.mapRange.Pathname, "/") {
+func (p *ProcTable) createElfTable(m *ProcMap) *ElfTable {
+	if !strings.HasPrefix(m.Pathname, "/") {
 		return nil
 	}
-	file := m.mapRange.Pathname
-	e, err := NewElfTable(p.logger, p.rootFS, file, p.options.ElfTableOptions)
-
-	if err != nil {
-		level.Debug(p.logger).Log(
-			"msg", "elf table creation failed",
-			"err", err,
-			"file", file,
-			"fs", p.rootFS,
-		)
-		return nil
-	}
-
-	if p.rebase(m, e) {
-		return e
-	}
-	level.Error(p.logger).Log(
-		"msg", "failed to find a base for elf table",
-		"file", file,
-		"fs", p.rootFS,
-	)
-	return nil
+	e := NewElfTable(p.logger, m, p.rootFS, m.Pathname, p.options.ElfTableOptions)
+	return e
 }
 
 func (p *ProcTable) Cleanup() {
 	for _, table := range p.file2Table {
 		table.Cleanup()
 	}
-}
-
-func (p *ProcTable) rebase(m *elfRange, e *ElfTable) bool {
-	if e.typ == elf.ET_EXEC {
-		return true
-	}
-	for _, executable := range e.executables {
-		if uint64(m.mapRange.Offset) == executable.Off {
-			base := m.mapRange.StartAddr - executable.Vaddr
-			e.Rebase(base)
-			return true
-		}
-	}
-	return false
 }
 
 func binarySearchElfRange(e elfRange, pc uint64) int {

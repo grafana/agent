@@ -18,23 +18,15 @@ import (
 func TestSameFileNoBuildID(t *testing.T) {
 	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
-	nobuildid1, err := NewElfTable(logger, ".", "testdata/elfs/elf.nobuildid",
+	nobuildid1 := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "testdata/elfs/elf.nobuildid",
 		ElfTableOptions{
-			UseDebugFiles: false,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		})
-	if err != nil {
-		t.Fatal(err)
-	}
-	nobuildid2, err := NewElfTable(logger, ".", "testdata/elfs/elf.nobuildid",
-		ElfTableOptions{
-			UseDebugFiles: false,
-			ElfCache:      elfCache,
-		})
-	if err != nil {
-		t.Fatal(err)
-	}
 
+	nobuildid2 := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "testdata/elfs/elf.nobuildid",
+		ElfTableOptions{
+			ElfCache: elfCache,
+		})
 	syms := []struct {
 		name string
 		pc   uint64
@@ -58,8 +50,7 @@ func TestMallocResolve(t *testing.T) {
 	gosym := NewProcTable(logger, ProcTableOptions{
 		Pid: os.Getpid(),
 		ElfTableOptions: ElfTableOptions{
-			UseDebugFiles: false,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		},
 	})
 	gosym.Refresh()

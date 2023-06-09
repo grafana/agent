@@ -5,19 +5,18 @@ import (
 
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/stretchr/testify/require"
 )
 
 func TestElfCacheStrippedEmpty(t *testing.T) {
 	logger := util.TestLogger(t)
 	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
-	stripped, err := NewElfTable(logger, ".", "testdata/elfs/elf.stripped",
+	fs := "." // make it unable to find debug file by buildID
+	stripped := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, fs, "testdata/elfs/elf.stripped",
 		ElfTableOptions{
-			UseDebugFiles: false,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		})
-	if err != nil {
-		t.Fatal(err)
-	}
+
 	syms := []struct {
 		name string
 		pc   uint64
@@ -27,31 +26,23 @@ func TestElfCacheStrippedEmpty(t *testing.T) {
 	}
 	for _, sym := range syms {
 		res := stripped.Resolve(sym.pc)
-		if res != "" {
-			t.Errorf("broken stripped elf ")
-		}
+		require.Error(t, stripped.err)
+		require.Equal(t, "", res)
 	}
 }
 
 func TestElfCache(t *testing.T) {
 	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
-	debug, err := NewElfTable(logger, ".", "testdata/elfs/elf.debug",
+	debug := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "testdata/elfs/elf",
 		ElfTableOptions{
-			UseDebugFiles: false,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		})
-	if err != nil {
-		t.Fatal(err)
-	}
-	stripped, err := NewElfTable(logger, ".", "testdata/elfs/elf.stripped",
+
+	stripped := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "testdata/elfs/elf.stripped",
 		ElfTableOptions{
-			UseDebugFiles: false,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		})
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	syms := []struct {
 		name string
@@ -62,13 +53,10 @@ func TestElfCache(t *testing.T) {
 	}
 	for _, sym := range syms {
 		res := debug.Resolve(sym.pc)
-		if res != sym.name {
-			t.Errorf("failed to resolve from debug elf %v got %v", sym, res)
-		}
-
+		require.NoError(t, debug.err)
+		require.Equal(t, sym.name, res)
 		res = stripped.Resolve(sym.pc)
-		if res != sym.name {
-			t.Errorf("failed to resolve from stripped elf %v got %v", sym, res)
-		}
+		require.NoError(t, stripped.err)
+		require.Equal(t, sym.name, res)
 	}
 }

@@ -103,7 +103,11 @@ func inspect(t *testing.T, f string) {
 	}
 	fmt.Printf("names len %d cnt %d\n", namesLength, count)
 
-	me := NewMMapedElfFile(f, e)
+	me, err := NewMMapedElfFile(f)
+	defer me.close()
+
+	me.readSymbols()
+	require.NoError(t, err)
 	var mySymbols []Sym
 
 	for i := range me.symbols {

@@ -10,121 +10,143 @@ import (
 	"strings"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"golang.org/x/exp/slices"
 )
 
+var (
+	errNoBuildID       = fmt.Errorf(".note.gnu.build-id section not found")
+	errElfBaseNotFound = fmt.Errorf("elf base not found")
+	errNoDebugLink     = fmt.Errorf(".gnu_debuglink section not found")
+)
+
 type ElfTable struct {
+	fs string
+	//symbolFile  string
 	elfFilePath string
 	table       SymbolNameResolver
 	base        uint64
-	typ         elf.Type
-	executables []elf.ProgHeader
 
-	buildID            string
-	symbolFileFileInfo stat
+	loaded bool
+	err    error
 
-	loaded     bool
-	fs         string
-	symbolFile string
-
-	elfCache *ElfCache
-	logger   log.Logger
+	options ElfTableOptions
+	logger  log.Logger
+	procMap *ProcMap
 }
 
 type ElfTableOptions struct {
-	UseDebugFiles bool
-	ElfCache      *ElfCache
+	ElfCache *ElfCache
 }
 
-func NewElfTable(logger log.Logger, fs string, elfFilePath string, options ElfTableOptions) (*ElfTable, error) {
-	fsElfFilePath := path.Join(fs, elfFilePath)
-	elfFile, err := elf.Open(fsElfFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("open elf file %s: %w", fsElfFilePath, err)
-	}
-	defer elfFile.Close()
+func NewElfTable(logger log.Logger, procMap *ProcMap, fs string, elfFilePath string, options ElfTableOptions) *ElfTable {
 	res := &ElfTable{
+		procMap:     procMap,
+		fs:          fs,
 		elfFilePath: elfFilePath,
 		logger:      logger,
-		typ:         elfFile.Type,
-		elfCache:    options.ElfCache,
+		options:     options,
+		table:       &noopSymbolNameResolver{},
 	}
-	for _, prog := range elfFile.Progs {
-		if prog.Type == elf.PT_LOAD && (prog.ProgHeader.Flags&elf.PF_X != 0) {
-			res.executables = append(res.executables, prog.ProgHeader)
-		}
-	}
-	res.buildID, _ = getBuildID(elfFile)
-
-	symbolsFile := elfFilePath
-
-	if options.UseDebugFiles {
-		//todo move debug file lookup to load time
-		debugFile, fileInfo := findDebugFile(fs, elfFilePath, res.buildID, elfFile)
-		if debugFile != "" {
-			symbolsFile = debugFile
-			res.symbolFileFileInfo = fileInfo
-		}
-	}
-
-	res.fs = fs
-	res.symbolFile = symbolsFile
-	return res, nil
+	return res
 }
 
-func (t *ElfTable) Rebase(base uint64) {
-	t.base = base
+func (p *ElfTable) findBase(e *MMapedElfFile) bool {
+	m := p.procMap
+	if e.FileHeader.Type == elf.ET_EXEC {
+		p.base = 0
+		return true
+	}
+	for _, prog := range e.Progs {
+		if prog.Type == elf.PT_LOAD && (prog.Flags&elf.PF_X != 0) {
+			if uint64(m.Offset) == prog.Off {
+				p.base = m.StartAddr - prog.Vaddr
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (t *ElfTable) load() {
 	if t.loaded {
 		return
 	}
-	symbols := t.elfCache.GetSymbolsByBuildID(t.buildID)
-	if symbols == nil {
-		if t.symbolFileFileInfo.dev == 0 && t.symbolFileFileInfo.ino == 0 {
-			fileInfo, err := os.Stat(path.Join(t.fs, t.symbolFile))
-			if err == nil && fileInfo != nil {
-				t.symbolFileFileInfo = statFromFileInfo(fileInfo)
-			}
-		}
-		symbols = t.elfCache.GetSymbolsByStat(t.symbolFileFileInfo)
+	t.loaded = true
+	fsElfFilePath := path.Join(t.fs, t.elfFilePath)
+
+	me, err := NewMMapedElfFile(fsElfFilePath)
+	if err != nil {
+		t.err = err
+		return
 	}
-	if symbols == nil {
-		fsSymbolFilePath := path.Join(t.fs, t.symbolFile)
-		elfFile, err := elf.Open(fsSymbolFilePath)
-		if err != nil {
-			t.table = &noopSymbolNameResolver{}
-			t.loaded = true
+	defer func() {
+		if t.table != me {
+			me.close()
+		}
+	}()
+
+	if !t.findBase(me) {
+		t.err = errElfBaseNotFound
+		return
+	}
+	buildID, err := getBuildID(me)
+
+	symbols := t.options.ElfCache.GetSymbolsByBuildID(buildID)
+	if symbols != nil {
+		t.table = symbols
+		return
+	}
+
+	fileInfo, err := os.Stat(path.Join(t.fs, t.elfFilePath))
+	if err != nil {
+		t.err = err
+		return
+	}
+	symbols = t.options.ElfCache.GetSymbolsByStat(statFromFileInfo(fileInfo))
+	if symbols != nil {
+		t.table = symbols
+		return
+	}
+
+	debugFilePath, debugFileStat := t.findDebugFile(buildID, me)
+	if debugFilePath != "" {
+		symbols = t.options.ElfCache.GetSymbolsByStat(debugFileStat)
+		if symbols != nil {
+			t.table = symbols
 			return
 		}
-		defer elfFile.Close()
-
-		level.Debug(t.logger).Log(
-			"msg", "get elf symbols",
-			"symbolFile", t.symbolFile,
-			"buildID", t.buildID,
-			"fs", t.fs,
-		)
-
-		//symbols = getElfSymbols(t.symbolFile, elfFile)
-		symbols = NewMMapedElfFile(fsSymbolFilePath, elfFile)
-
-		t.elfCache.CacheByBuildID(t.buildID, symbols)
-		t.elfCache.CacheByStat(t.symbolFileFileInfo, symbols)
-		t.table = symbols
-	} else {
-		level.Debug(t.logger).Log(
-			"msg", "get cached elf symbols",
-			"symbolFile", t.symbolFile,
-			"buildID", t.buildID,
-			"fs", t.fs,
-		)
-		t.table = symbols
+		debugMe, err := NewMMapedElfFile(path.Join(t.fs, debugFilePath))
+		if err != nil {
+			t.err = err
+			return
+		}
+		defer func() {
+			if t.table != debugMe {
+				debugMe.close()
+			}
+		}()
+		err = debugMe.readSymbols()
+		if err != nil {
+			t.err = nil
+			return
+		}
+		t.table = debugMe
+		t.options.ElfCache.CacheByBuildID(buildID, debugMe)
+		t.options.ElfCache.CacheByStat(debugFileStat, debugMe)
+		return
 	}
-	//t.table.Rebase(t.base)
-	t.loaded = true
+
+	err = me.readSymbols()
+	if err != nil {
+		t.err = err
+		return
+	}
+
+	t.options.ElfCache.CacheByBuildID(buildID, me)
+	t.options.ElfCache.CacheByStat(statFromFileInfo(fileInfo), me)
+	t.table = me
+	return
+
 }
 
 func (t *ElfTable) Resolve(pc uint64) string {
@@ -178,12 +200,13 @@ func getELFSymbolsFromSymtab(elfPath string, elfFile *elf.File) []Sym {
 	return symbols
 }
 
-func getBuildID(elfFile *elf.File) (string, error) {
+func getBuildID(elfFile *MMapedElfFile) (string, error) {
 	buildIDSection := elfFile.Section(".note.gnu.build-id")
 	if buildIDSection == nil {
-		return "", fmt.Errorf(".note.gnu.build-id section not found")
+		return "", errNoBuildID
 	}
-	data, err := buildIDSection.Data()
+
+	data, err := elfFile.SectionData(buildIDSection)
 	if err != nil {
 		return "", fmt.Errorf("reading .note.gnu.build-id %w", err)
 	}
@@ -197,13 +220,13 @@ func getBuildID(elfFile *elf.File) (string, error) {
 	return buildID, nil
 }
 
-func findDebugFileWithBuildID(fs string, buildID string) (string, stat) {
+func (t *ElfTable) findDebugFileWithBuildID(buildID string) (string, stat) {
 	if len(buildID) < 3 {
 		return "", stat{}
 	}
 
 	debugFile := fmt.Sprintf("/usr/lib/debug/.build-id/%s/%s.debug", buildID[:2], buildID[2:])
-	fsDebugFile := path.Join(fs, debugFile)
+	fsDebugFile := path.Join(t.fs, debugFile)
 	fileInfo, err := os.Stat(fsDebugFile)
 	if err == nil {
 		return debugFile, statFromFileInfo(fileInfo)
@@ -212,7 +235,7 @@ func findDebugFileWithBuildID(fs string, buildID string) (string, stat) {
 	return "", stat{}
 }
 
-func findDebugFile(fs string, elfFilePath string, buildID string, elfFile *elf.File) (string, stat) {
+func (t *ElfTable) findDebugFile(buildID string, elfFile *MMapedElfFile) (string, stat) {
 	// https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html
 	// So, for example, suppose you ask GDB to debug /usr/bin/ls, which has a debug link that specifies the file
 	// ls.debug, and a build ID whose value in hex is abcdef1234. If the list of the global debug directories
@@ -222,20 +245,22 @@ func findDebugFile(fs string, elfFilePath string, buildID string, elfFile *elf.F
 	//- /usr/bin/ls.debug
 	//- /usr/bin/.debug/ls.debug
 	//- /usr/lib/debug/usr/bin/ls.debug.
-	debugFile, fileInfo := findDebugFileWithBuildID(fs, buildID)
+	debugFile, fileInfo := t.findDebugFileWithBuildID(buildID)
 	if debugFile != "" {
 		return debugFile, fileInfo
 	}
-	debugFile, fileInfo, _ = findDebugFileWithDebugLink(fs, elfFilePath, elfFile)
+	debugFile, fileInfo, _ = t.findDebugFileWithDebugLink(elfFile)
 	return debugFile, fileInfo
 }
 
-func findDebugFileWithDebugLink(fs string, elfFilePath string, elfFile *elf.File) (string, stat, error) {
+func (t *ElfTable) findDebugFileWithDebugLink(elfFile *MMapedElfFile) (string, stat, error) {
+	fs := t.fs
+	elfFilePath := t.elfFilePath
 	debugLinkSection := elfFile.Section(".gnu_debuglink")
 	if debugLinkSection == nil {
-		return "", stat{}, fmt.Errorf("")
+		return "", stat{}, errNoDebugLink
 	}
-	data, err := debugLinkSection.Data()
+	data, err := elfFile.SectionData(debugLinkSection)
 	if err != nil {
 		return "", stat{}, fmt.Errorf("reading .gnu_debuglink %w", err)
 	}
