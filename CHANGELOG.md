@@ -19,6 +19,8 @@ v0.34.1 (2023-06-12)
   could lead to propagating issues downstream to other components which expect
   the export to be non-empty. (@rfratto)
 
+- Allow `bearerTokenFile` field to be used in ServiceMonitors. (@captncraig)
+
 ### Other changes
 
 - Add logging to failed requests in `remote.http`. (@rfratto)

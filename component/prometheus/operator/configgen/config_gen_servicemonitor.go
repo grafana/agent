@@ -67,7 +67,9 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 			return nil, err
 		}
 	}
-	if ep.BearerTokenSecret.Name != "" {
+	if ep.BearerTokenFile != "" {
+		cfg.HTTPClientConfig.BearerTokenFile = ep.BearerTokenFile
+	} else if ep.BearerTokenSecret.Name != "" {
 		val, err := cg.Secrets.GetSecretValue(m.Namespace, ep.BearerTokenSecret)
 		if err != nil {
 			return nil, err
