@@ -71,9 +71,8 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 			case promdiscover.StaticConfig:
 				targets = append(targets, getScrapeTargets(sdc)...)
 			case *promazure.SDConfig:
-				_, newDiags := appendDiscoveryAzure(f, scrapeConfig.JobName, sdc)
-				// exports, newDiags := appendDiscoveryAzure(f, scrapeConfig.JobName, sdc)
-				// targets = append(targets, exports.Targets)
+				exports, newDiags := appendDiscoveryAzure(f, scrapeConfig.JobName, sdc)
+				targets = append(targets, exports.Targets...)
 				diags = append(diags, newDiags...)
 			default:
 				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))

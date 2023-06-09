@@ -20,9 +20,6 @@ scrape_configs:
         client_id: "client"
         client_secret: "secret"
   - job_name: "prometheus2"
-    static_configs:
-      - targets: ["localhost:9091"]
-  - job_name: "prometheus3"
     azure_sd_configs:
       - subscription_id: "subscription"
         tenant_id: "tenant"

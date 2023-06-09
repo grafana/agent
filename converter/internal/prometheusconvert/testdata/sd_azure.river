@@ -45,9 +45,10 @@ discovery.azure "prometheus1" {
 }
 
 prometheus.scrape "prometheus1" {
-	targets = [{
-		__address__ = "localhost:9090",
-	}]
+	targets = concat(discovery.azure.prometheus1.targets,
+		[{
+			__address__ = "localhost:9090",
+		}])
 	forward_to      = [prometheus.remote_write.default.receiver]
 	job_name        = "prometheus1"
 	scrape_interval = "10s"
@@ -59,15 +60,7 @@ prometheus.scrape "prometheus1" {
 	}
 }
 
-prometheus.scrape "prometheus2" {
-	targets = [{
-		__address__ = "localhost:9091",
-	}]
-	forward_to = [prometheus.remote_write.default.receiver]
-	job_name   = "prometheus2"
-}
-
-prometheus.relabel "prometheus3" {
+prometheus.relabel "prometheus2" {
 	forward_to = [prometheus.remote_write.default.receiver]
 
 	rule {
@@ -90,7 +83,7 @@ prometheus.relabel "prometheus3" {
 	}
 }
 
-discovery.azure "prometheus3" {
+discovery.azure "prometheus2" {
 	subscription_id = "subscription"
 
 	managed_identity {
@@ -100,8 +93,8 @@ discovery.azure "prometheus3" {
 	enable_http2 = true
 }
 
-prometheus.scrape "prometheus3" {
-	targets    = []
-	forward_to = [prometheus.relabel.prometheus3.receiver]
-	job_name   = "prometheus3"
+prometheus.scrape "prometheus2" {
+	targets    = discovery.azure.prometheus2.targets
+	forward_to = [prometheus.relabel.prometheus2.receiver]
+	job_name   = "prometheus2"
 }
