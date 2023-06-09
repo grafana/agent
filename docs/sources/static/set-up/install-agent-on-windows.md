@@ -7,7 +7,7 @@ aliases:
 
 # Install static mode on Windows
 
-You can install Grafana Agent on Microsoft Windows.
+You can install Grafana Agent in static mode on Microsoft Windows.
 
 ## Download Grafana Agent for Windows
 
@@ -31,7 +31,7 @@ You can install Grafana Agent on Microsoft Windows.
 1. Run the following command in PowerShell or Command Prompt:
 
    ```shell
-   PATH_TO_INSTALLER/grafana-agent-flow-installer.exe /S
+   PATH_TO_INSTALLER/grafana-agent-installer.exe /S
    ```
 ## Silent installation with `remote_write`
 
@@ -41,7 +41,7 @@ If you are using `remote_write` you must enable Windows Exporter and set the glo
 1. Run the following command in PowerShell or Command Prompt:
 
    ```shell
-   PATH_TO_INSTALLER/grafana-agent-flow-installer.exe /S /EnableExporter true /Username <username> /Password <password> /Url "http://example.com"
+   PATH_TO_INSTALLER/grafana-agent-installer.exe /S /EnableExporter true /Username <username> /Password <password> /Url "http://example.com"
    ```
 
    If you are using Powershell, make sure you use triple quotes `"""http://example.com"""` around the URL parameter.
