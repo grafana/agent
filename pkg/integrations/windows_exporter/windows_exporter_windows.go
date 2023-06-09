@@ -14,12 +14,13 @@ import (
 
 // New creates a new windows_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	// We need to a create a list of all the possible collectors.
+	// We need to create a list of all the possible collectors.
 	collectors := collector.CreateCollectors()
+	// We need to pass in kingpin so that the settings get created appropriately. Even though we arent going to use its output.
 	windowsExporter := kingpin.New("", "")
 	// We only need this to fill in the appropriate settings structs so we can override them.
 	collector.RegisterCollectorsFlags(collectors, windowsExporter)
-	// Override the settings structs with our own
+	// Override the settings structs generated from the kingping.app switch our own.
 	err := c.toExporterConfig(collectors)
 	if err != nil {
 		return nil, err

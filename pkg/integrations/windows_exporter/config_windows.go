@@ -9,6 +9,8 @@ import (
 
 // Populate defaults for all collector configs.
 func init() {
+	// TODO (@mattdurham) we should look at removing this init. I think it can become
+	// a function call now.
 	// Register flags from all collector configs to a fake integration and then
 	// parse an empty command line to force defaults to be populated.
 	app := kingpin.New("", "")

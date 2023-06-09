@@ -27,6 +27,8 @@ Main (unreleased)
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
 
+- Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
+
 v0.34.0 (2023-06-08)
 --------------------
 
