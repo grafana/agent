@@ -58,7 +58,7 @@ var DefaultConfig = Config{
 		Exclude: "",
 	},
 	Service: ServiceConfig{
-		UseApi: false,
+		UseApi: "",
 		Where:  "",
 	},
 	SMTP: SMTPConfig{
@@ -156,7 +156,7 @@ type SMTPConfig struct {
 
 // ServiceConfig handles settings for the windows_exporter service collector
 type ServiceConfig struct {
-	UseApi bool   `yaml:"use_api,omitempty"`
+	UseApi string `yaml:"use_api,omitempty"`
 	Where  string `yaml:"where_clause,omitempty"`
 }
 

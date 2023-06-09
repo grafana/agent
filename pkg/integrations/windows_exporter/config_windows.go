@@ -67,8 +67,7 @@ func (c *Config) fromExporterConfig(app *kingpin.Application) {
 	c.ScheduledTask.Exclude = getDefault(app, collector.FlagScheduledTaskExclude)
 	c.ScheduledTask.Include = getDefault(app, collector.FlagScheduledTaskInclude)
 	c.Service.Where = getDefault(app, collector.FlagServiceWhereClause)
-	useApi, _ := strconv.ParseBool(getDefault(app, collector.FlagServiceUseAPI))
-	c.Service.UseApi = useApi
+	c.Service.UseApi = getDefault(app, collector.FlagServiceUseAPI)
 	c.SMTP.BlackList = getDefault(app, collector.FlagSmtpServerOldExclude)
 	c.SMTP.WhiteList = getDefault(app, collector.FlagSmtpServerOldInclude)
 	c.SMTP.Exclude = getDefault(app, collector.FlagSmtpServerExclude)
@@ -114,7 +113,8 @@ func (c *Config) toExporterConfig(collectors map[string]*collector.CollectorInit
 			t.ProcessOldExclude = &c.Process.BlackList
 			t.ProcessOldInclude = &c.Process.WhiteList
 		case *collector.ServiceSettings:
-			t.UseAPI = &c.Service.UseApi
+			val, _ := strconv.ParseBool(c.Service.UseApi)
+			t.UseAPI = &val
 			t.ServiceWhereClause = &c.Service.Where
 		case *collector.SMTPSettings:
 			t.ServerInclude = &c.SMTP.Include
