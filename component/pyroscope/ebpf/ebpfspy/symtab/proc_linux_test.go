@@ -3,6 +3,7 @@
 package symtab
 
 import (
+	elf0 "debug/elf"
 	"os"
 	"strings"
 	"testing"
@@ -83,8 +84,9 @@ func TestSelfElfSymbolsLazy(t *testing.T) {
 	f, err := os.Readlink("/proc/self/exe")
 	require.NoError(t, err)
 
-	expectedSymbols, err := newGoSymbols(f)
+	e, err := elf0.Open(f)
 	require.NoError(t, err)
+	expectedSymbols := getELFSymbolsFromSymtab(e)
 
 	me, err := elf.NewMMapedElfFile(f)
 	require.NoError(t, err)
@@ -94,11 +96,12 @@ func TestSelfElfSymbolsLazy(t *testing.T) {
 
 	require.Greater(t, len(symbolTable.Symbols), 1000)
 
-	for _, symbol := range expectedSymbols.Symbols {
+	for j, symbol := range expectedSymbols {
+		_ = j
 		name := symbolTable.Resolve(symbol.Start)
-		require.NotEmpty(t, name)
-		//fmt.Println()
-		//fmt.Println(name)
-		//fmt.Println(symbol.Name)
+		if symbol.Name == "runtime.text" && name == "internal/cpu.Initialize" {
+			continue
+		}
+		require.Equal(t, symbol.Name, name)
 	}
 }

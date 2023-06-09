@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/go-kit/log"
+	"golang.org/x/exp/slices"
 
 	elf2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 )
@@ -129,7 +131,7 @@ func (t *ElfTable) load() {
 		return
 	}
 
-	symbols, err = me.NewSymbolTable()
+	symbols, err = t.createSymbolTable(me)
 	if err != nil {
 		t.err = err
 		return
@@ -276,4 +278,29 @@ func cString(bs []byte) string {
 		}
 	}
 	return string(bs[:i])
+}
+
+func getELFSymbolsFromSymtab(elfFile *elf.File) []Sym {
+	symtab, _ := elfFile.Symbols()
+	dynsym, _ := elfFile.DynamicSymbols()
+	var symbols []Sym
+	add := func(t []elf.Symbol) {
+		for _, sym := range t {
+			if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
+				symbols = append(symbols, Sym{
+					Name:  sym.Name,
+					Start: sym.Value,
+				})
+			}
+		}
+	}
+	add(symtab)
+	add(dynsym)
+	slices.SortFunc(symbols, func(a, b Sym) bool {
+		if a.Start == b.Start {
+			return strings.Compare(a.Name, b.Name) < 0
+		}
+		return a.Start < b.Start
+	})
+	return symbols
 }
