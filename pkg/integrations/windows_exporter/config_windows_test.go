@@ -29,14 +29,22 @@ enabled_collectors: "mssql,os,cpu"
 mssql:
   enabled_classes: "accessmethods,availreplica,bufman"
 `
+	cfg3 := `
+enabled_collectors: "mssql,os"
+mssql: {}  
+`
 	built1, total1 := testConfig(t, cfg1)
 	built2, total2 := testConfig(t, cfg2)
+	built3, total3 := testConfig(t, cfg3)
 	require.Len(t, built1, 2)
 	require.Len(t, built2, 3)
+	require.Len(t, built3, 2)
 	total1mssql := "accessmethods,availreplica"
 	require.True(t, *total1["mssql"].Settings.(*collector.MSSqlSettings).ClassesEnabled == total1mssql)
 	total2mssql := "accessmethods,availreplica,bufman"
 	require.True(t, *total2["mssql"].Settings.(*collector.MSSqlSettings).ClassesEnabled == total2mssql)
+	total3mssql := "accessmethods,availreplica,bufman,databases,dbreplica,genstats,locks,memmgr,sqlstats,sqlerrors,transactions,waitstats"
+	require.True(t, *total3["mssql"].Settings.(*collector.MSSqlSettings).ClassesEnabled == total3mssql)
 }
 
 func testConfig(t *testing.T, cfg string) (map[string]collector.Collector, map[string]*collector.Initializer) {
