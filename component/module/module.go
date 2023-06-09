@@ -31,7 +31,7 @@ func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 		opts: o,
 	}
 	var err error
-	c.mod, err = o.ModuleController.NewModule(o.ID, func(exports map[string]any) {
+	c.mod, err = o.ModuleController.NewModule("", func(exports map[string]any) {
 		c.opts.OnStateChange(Exports{Exports: exports})
 	})
 	return c, err

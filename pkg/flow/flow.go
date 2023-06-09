@@ -47,6 +47,7 @@ package flow
 
 import (
 	"context"
+	"github.com/grafana/agent/component"
 	"net"
 	"sync"
 
@@ -159,16 +160,6 @@ func New(o Options) *Flow {
 		dialFunc = (&net.Dialer{}).DialContext
 	}
 
-	mc := newModuleController(&moduleControllerOptions{
-		Logger:         log,
-		Tracer:         tracer,
-		Clusterer:      clusterer,
-		Reg:            o.Reg,
-		DataPath:       o.DataPath,
-		HTTPListenAddr: o.HTTPListenAddr,
-		HTTPPath:       o.HTTPPathPrefix,
-		DialFunc:       o.DialFunc,
-	})
 	var (
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
@@ -181,13 +172,25 @@ func New(o Options) *Flow {
 				// Changed components should be queued for reevaluation.
 				queue.Enqueue(cn)
 			},
-			OnExportsChange:  o.OnExportsChange,
-			Registerer:       o.Reg,
-			HTTPPathPrefix:   o.HTTPPathPrefix,
-			HTTPListenAddr:   o.HTTPListenAddr,
-			DialFunc:         dialFunc,
-			ControllerID:     o.ControllerID,
-			ModuleController: mc,
+			OnExportsChange: o.OnExportsChange,
+			Registerer:      o.Reg,
+			HTTPPathPrefix:  o.HTTPPathPrefix,
+			HTTPListenAddr:  o.HTTPListenAddr,
+			DialFunc:        dialFunc,
+			ControllerID:    o.ControllerID,
+			ModuleControllerFunc: func(id string) component.ModuleController {
+				return newModuleController(&moduleControllerOptions{
+					Logger:         log,
+					Tracer:         tracer,
+					Clusterer:      clusterer,
+					Reg:            o.Reg,
+					DataPath:       o.DataPath,
+					HTTPListenAddr: o.HTTPListenAddr,
+					HTTPPath:       o.HTTPPathPrefix,
+					DialFunc:       o.DialFunc,
+					ID:             id,
+				})
+			},
 		})
 	)
 	return &Flow{
