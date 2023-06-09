@@ -198,7 +198,7 @@ func (t SMTPConfig) Convert() windows_integration.SMTPConfig {
 
 // ServiceConfig handles settings for the windows_exporter service collector
 type ServiceConfig struct {
-	UseApi string `river:"use_api,attr,optional"`
+	UseApi bool   `river:"use_api,attr,optional"`
 	Where  string `river:"where_clause,attr,optional"`
 }
 

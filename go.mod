@@ -701,4 +701,4 @@ replace github.com/prometheus/procfs => github.com/prometheus/procfs v0.8.0
 replace github.com/leoluk/perflib_exporter => github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090
 
 // TODO(mattdurham): this is to allow defaults to propogate properly.
-replace github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230608211048-11eb7475fe6b
+replace github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230609001656-1424ff12496a

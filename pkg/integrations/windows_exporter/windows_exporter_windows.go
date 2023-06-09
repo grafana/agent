@@ -14,16 +14,21 @@ import (
 
 // New creates a new windows_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+	// We need to a create a list of all the possible collectors.
 	collectors := collector.CreateCollectors()
 	windowsExporter := kingpin.New("", "")
+	// We only need this to fill in the appropriate settings structs so we can override them.
 	collector.RegisterCollectorsFlags(collectors, windowsExporter)
-	if _, err := windowsExporter.Parse([]string{}); err != nil {
+	// Override the settings structs with our own
+	err := c.toExporterConfig(collectors)
+	if err != nil {
 		return nil, err
 	}
-	c.toExporterConfig(windowsExporter)
-
+	// Register the performance monitors
 	collector.RegisterCollectors(collectors)
+	// Filter down to the enabled collectors
 	enabledCollectorNames := enabledCollectors(c.EnabledCollectors)
+	// Finally build the collectors that we need to run.
 	builtCollectors, err := buildCollectors(collectors, enabledCollectorNames)
 	if err != nil {
 		return nil, err

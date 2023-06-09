@@ -1,8 +1,10 @@
 package windows_exporter //nolint:golint
 
 import (
+	"fmt"
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/prometheus-community/windows_exporter/collector"
+	"strconv"
 )
 
 // Populate defaults for all collector configs.
@@ -24,74 +26,122 @@ func init() {
 	DefaultConfig.fromExporterConfig(app)
 }
 
+func getDefault(app *kingpin.Application, name string) string {
+	for _, f := range app.Model().Flags {
+		if f.Name != name {
+			continue
+		}
+		return f.String()
+	}
+	return ""
+}
+
 // fromExporterConfig converts windows_exporter configs into the integration Config.
 func (c *Config) fromExporterConfig(app *kingpin.Application) {
-	c.Dfsr.SourcesEnabled = *app.GetFlag(collector.FlagDfsrEnabledCollectors).String()
-	c.Exchange.EnabledList = *app.GetFlag(collector.FlagExchangeCollectorsEnabled).String()
-	c.IIS.SiteBlackList = *app.GetFlag(collector.FlagIISSiteOldExclude).String()
-	c.IIS.SiteWhiteList = *app.GetFlag(collector.FlagIISSiteOldInclude).String()
-	c.IIS.AppBlackList = *app.GetFlag(collector.FlagIISAppOldExclude).String()
-	c.IIS.AppWhiteList = *app.GetFlag(collector.FlagIISAppOldInclude).String()
-	c.IIS.SiteExclude = *app.GetFlag(collector.FlagIISSiteExclude).String()
-	c.IIS.SiteInclude = *app.GetFlag(collector.FlagIISSiteInclude).String()
-	c.IIS.AppExclude = *app.GetFlag(collector.FlagIISAppExclude).String()
-	c.IIS.AppInclude = *app.GetFlag(collector.FlagIISAppInclude).String()
-	c.LogicalDisk.BlackList = *app.GetFlag(collector.FlagLogicalDiskVolumeOldExclude).String()
-	c.LogicalDisk.WhiteList = *app.GetFlag(collector.FlagLogicalDiskVolumeOldInclude).String()
-	c.LogicalDisk.Exclude = *app.GetFlag(collector.FlagLogicalDiskVolumeExclude).String()
-	c.LogicalDisk.Include = *app.GetFlag(collector.FlagLogicalDiskVolumeInclude).String()
-	c.MSMQ.Where = *app.GetFlag(collector.FlagMsmqWhereClause).String()
-	c.MSSQL.EnabledClasses = *app.GetFlag(collector.FlagMssqlEnabledCollectors).String()
-	c.Network.BlackList = *app.GetFlag(collector.FlagNicOldExclude).String()
-	c.Network.WhiteList = *app.GetFlag(collector.FlagNicOldInclude).String()
-	c.Network.Exclude = *app.GetFlag(collector.FlagNicExclude).String()
-	c.Network.Include = *app.GetFlag(collector.FlagNicInclude).String()
-	c.Process.BlackList = *app.GetFlag(collector.FlagProcessOldExclude).String()
-	c.Process.WhiteList = *app.GetFlag(collector.FlagProcessOldInclude).String()
-	c.Process.Exclude = *app.GetFlag(collector.FlagProcessExclude).String()
-	c.Process.Include = *app.GetFlag(collector.FlagProcessInclude).String()
-	c.ScheduledTask.Exclude = *app.GetFlag(collector.FlagScheduledTaskExclude).String()
-	c.ScheduledTask.Include = *app.GetFlag(collector.FlagScheduledTaskInclude).String()
-	c.Service.Where = *app.GetFlag(collector.FlagServiceWhereClause).String()
-	c.Service.UseApi = *app.GetFlag(collector.FlagServiceUseAPI).String()
-	c.SMTP.BlackList = *app.GetFlag(collector.FlagSmtpServerOldExclude).String()
-	c.SMTP.WhiteList = *app.GetFlag(collector.FlagSmtpServerOldInclude).String()
-	c.SMTP.Exclude = *app.GetFlag(collector.FlagSmtpServerExclude).String()
-	c.SMTP.Include = *app.GetFlag(collector.FlagSmtpServerInclude).String()
-	c.TextFile.TextFileDirectory = *app.GetFlag(collector.FlagTextFileDirectory).String()
+	c.Dfsr.SourcesEnabled = getDefault(app, collector.FlagDfsrEnabledCollectors)
+	c.Exchange.EnabledList = getDefault(app, collector.FlagExchangeCollectorsEnabled)
+	c.IIS.SiteBlackList = getDefault(app, collector.FlagIISSiteOldExclude)
+	c.IIS.SiteWhiteList = getDefault(app, collector.FlagIISSiteOldInclude)
+	c.IIS.AppBlackList = getDefault(app, collector.FlagIISAppOldExclude)
+	c.IIS.AppWhiteList = getDefault(app, collector.FlagIISAppOldInclude)
+	c.IIS.SiteExclude = getDefault(app, collector.FlagIISSiteExclude)
+	c.IIS.SiteInclude = getDefault(app, collector.FlagIISSiteInclude)
+	c.IIS.AppExclude = getDefault(app, collector.FlagIISAppExclude)
+	c.IIS.AppInclude = getDefault(app, collector.FlagIISAppInclude)
+	c.LogicalDisk.BlackList = getDefault(app, collector.FlagLogicalDiskVolumeOldExclude)
+	c.LogicalDisk.WhiteList = getDefault(app, collector.FlagLogicalDiskVolumeOldInclude)
+	c.LogicalDisk.Exclude = getDefault(app, collector.FlagLogicalDiskVolumeExclude)
+	c.LogicalDisk.Include = getDefault(app, collector.FlagLogicalDiskVolumeInclude)
+	c.MSMQ.Where = getDefault(app, collector.FlagMsmqWhereClause)
+	c.MSSQL.EnabledClasses = getDefault(app, collector.FlagMssqlEnabledCollectors)
+	c.Network.BlackList = getDefault(app, collector.FlagNicOldExclude)
+	c.Network.WhiteList = getDefault(app, collector.FlagNicOldInclude)
+	c.Network.Exclude = getDefault(app, collector.FlagNicExclude)
+	c.Network.Include = getDefault(app, collector.FlagNicInclude)
+	c.Process.BlackList = getDefault(app, collector.FlagProcessOldExclude)
+	c.Process.WhiteList = getDefault(app, collector.FlagProcessOldInclude)
+	c.Process.Exclude = getDefault(app, collector.FlagProcessExclude)
+	c.Process.Include = getDefault(app, collector.FlagProcessInclude)
+	c.ScheduledTask.Exclude = getDefault(app, collector.FlagScheduledTaskExclude)
+	c.ScheduledTask.Include = getDefault(app, collector.FlagScheduledTaskInclude)
+	c.Service.Where = getDefault(app, collector.FlagServiceWhereClause)
+	useApi, _ := strconv.ParseBool(getDefault(app, collector.FlagServiceUseAPI))
+	c.Service.UseApi = useApi
+	c.SMTP.BlackList = getDefault(app, collector.FlagSmtpServerOldExclude)
+	c.SMTP.WhiteList = getDefault(app, collector.FlagSmtpServerOldInclude)
+	c.SMTP.Exclude = getDefault(app, collector.FlagSmtpServerExclude)
+	c.SMTP.Include = getDefault(app, collector.FlagSmtpServerInclude)
+	c.TextFile.TextFileDirectory = getDefault(app, collector.FlagTextFileDirectory)
 }
 
 // toExporterConfig converts integration Configs into windows_exporter configs.
-func (c *Config) toExporterConfig(app *kingpin.Application) {
-	app.GetFlag(collector.FlagDfsrEnabledCollectors).StringVar(&c.Dfsr.SourcesEnabled)
-	app.GetFlag(collector.FlagExchangeCollectorsEnabled).StringVar(&c.Exchange.EnabledList)
-	app.GetFlag(collector.FlagIISSiteOldExclude).StringVar(&c.IIS.SiteBlackList)
-	app.GetFlag(collector.FlagIISSiteOldInclude).StringVar(&c.IIS.SiteWhiteList)
-	app.GetFlag(collector.FlagIISAppOldExclude).StringVar(&c.IIS.AppBlackList)
-	app.GetFlag(collector.FlagIISAppOldInclude).StringVar(&c.IIS.AppWhiteList)
-	app.GetFlag(collector.FlagIISSiteExclude).StringVar(&c.IIS.SiteExclude)
-	app.GetFlag(collector.FlagIISSiteInclude).StringVar(&c.IIS.SiteInclude)
-	app.GetFlag(collector.FlagIISAppExclude).StringVar(&c.IIS.AppExclude)
-	app.GetFlag(collector.FlagIISAppInclude).StringVar(&c.IIS.AppInclude)
-	app.GetFlag(collector.FlagLogicalDiskVolumeOldExclude).StringVar(&c.LogicalDisk.BlackList)
-	app.GetFlag(collector.FlagLogicalDiskVolumeOldInclude).StringVar(&c.LogicalDisk.WhiteList)
-	app.GetFlag(collector.FlagLogicalDiskVolumeExclude).StringVar(&c.LogicalDisk.Exclude)
-	app.GetFlag(collector.FlagLogicalDiskVolumeInclude).StringVar(&c.LogicalDisk.Include)
-	app.GetFlag(collector.FlagMsmqWhereClause).StringVar(&c.MSMQ.Where)
-	app.GetFlag(collector.FlagMssqlEnabledCollectors).StringVar(&c.MSSQL.EnabledClasses)
-	app.GetFlag(collector.FlagNicOldExclude).StringVar(&c.Network.BlackList)
-	app.GetFlag(collector.FlagNicOldInclude).StringVar(&c.Network.WhiteList)
-	app.GetFlag(collector.FlagNicExclude).StringVar(&c.Network.Exclude)
-	app.GetFlag(collector.FlagNicInclude).StringVar(&c.Network.Include)
-	app.GetFlag(collector.FlagProcessOldExclude).StringVar(&c.Process.BlackList)
-	app.GetFlag(collector.FlagProcessOldInclude).StringVar(&c.Process.WhiteList)
-	app.GetFlag(collector.FlagProcessExclude).StringVar(&c.Process.Exclude)
-	app.GetFlag(collector.FlagProcessInclude).StringVar(&c.Process.Include)
-	app.GetFlag(collector.FlagScheduledTaskExclude).StringVar(&c.Process.Exclude)
-	app.GetFlag(collector.FlagScheduledTaskInclude).StringVar(&c.Process.Include)
-	app.GetFlag(collector.FlagServiceWhereClause).StringVar(&c.Service.Where)
-	app.GetFlag(collector.FlagServiceUseAPI).StringVar(&c.Service.UseApi)
-	app.GetFlag(collector.FlagSmtpServerExclude).StringVar(&c.SMTP.Exclude)
-	app.GetFlag(collector.FlagNicInclude).StringVar(&c.SMTP.Include)
-	app.GetFlag(collector.FlagTextFileDirectory).StringVar(&c.TextFile.TextFileDirectory)
+func (c *Config) toExporterConfig(collectors map[string]*collector.CollectorInit) error {
+	for _, v := range collectors {
+		if v.Settings == nil {
+			continue
+		}
+		switch t := v.Settings.(type) {
+		case *collector.DFRSSettings:
+			t.DFRSEnabledCollectors = &c.Dfsr.SourcesEnabled
+		case *collector.DiskSettings:
+			t.VolumeInclude = &c.LogicalDisk.Include
+			t.VolumeExclude = &c.LogicalDisk.Exclude
+		case *collector.ExchangeSettings:
+			t.ArgExchangeCollectorsEnabled = &c.Exchange.EnabledList
+		case *collector.IISSettings:
+			t.AppInclude = &c.IIS.AppInclude
+			t.AppExclude = &c.IIS.AppExclude
+			t.OldAppExclude = &c.IIS.AppBlackList
+			t.OldAppInclude = &c.IIS.AppWhiteList
+			t.SiteExclude = &c.IIS.SiteExclude
+			t.SiteInclude = &c.IIS.SiteInclude
+			t.OldSiteExclude = &c.IIS.SiteBlackList
+			t.OldSiteInclude = &c.IIS.SiteWhiteList
+		case *collector.MSMQSettings:
+			t.MSMQWhereClause = &c.MSMQ.Where
+		case *collector.MSSqlSettings:
+			t.ClassesEnabled = &c.MSSQL.EnabledClasses
+		case *collector.NetSettings:
+			t.NicInclude = &c.Network.Include
+			t.NicExclude = &c.Network.Exclude
+			t.NicOldExclude = &c.Network.BlackList
+			t.NicOldInclude = &c.Network.WhiteList
+		case *collector.ProcessSettings:
+			t.ProcessExclude = &c.Process.Exclude
+			t.ProcessInclude = &c.Process.Include
+			t.ProcessOldExclude = &c.Process.BlackList
+			t.ProcessOldInclude = &c.Process.WhiteList
+		case *collector.ServiceSettings:
+			t.UseAPI = &c.Service.UseApi
+			t.ServiceWhereClause = &c.Service.Where
+		case *collector.SMTPSettings:
+			t.ServerInclude = &c.SMTP.Include
+			t.ServerExclude = &c.SMTP.Exclude
+			t.ServerOldExclude = &c.SMTP.BlackList
+			t.ServerOldInclude = &c.SMTP.WhiteList
+		case *collector.TaskSettings:
+			t.TaskInclude = &c.ScheduledTask.Include
+			t.TaskExclude = &c.ScheduledTask.Exclude
+		case *collector.TextSettings:
+			t.TextFileDirectory = &c.TextFile.TextFileDirectory
+		default:
+			return fmt.Errorf("unknown windows exporter type %t", t)
+		}
+	}
+	return nil
+}
+
+var _ kingpin.Value = (*SValue)(nil)
+
+type SValue struct {
+	val string
+}
+
+func (S *SValue) String() string {
+	return S.val
+}
+
+func (S *SValue) Set(s string) error {
+	S.val = s
+	return nil
 }
