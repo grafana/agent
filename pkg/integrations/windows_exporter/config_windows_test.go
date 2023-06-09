@@ -39,11 +39,11 @@ mssql:
 	require.True(t, *total2["mssql"].Settings.(*collector.MSSqlSettings).ClassesEnabled == total2mssql)
 }
 
-func testConfig(t *testing.T, cfg string) (map[string]collector.Collector, map[string]*collector.CollectorInit) {
+func testConfig(t *testing.T, cfg string) (map[string]collector.Collector, map[string]*collector.Initializer) {
 	c := DefaultConfig
 	err := yaml.Unmarshal([]byte(cfg), &c)
 	require.NoError(t, err)
-	collectors := collector.CreateCollectors()
+	collectors := collector.CreateInitializers()
 	windowsExporter := kingpin.New("", "")
 	// We only need this to fill in the appropriate settings structs so we can override them.
 	collector.RegisterCollectorsFlags(collectors, windowsExporter)
