@@ -14,7 +14,7 @@ You can install Grafana Agent in static mode on macOS.
 Ensure that [Homebrew][] is installed on your machine.
 
 {{% admonition type="note" %}}
-The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. You can verify this by opening a terminal and typing `brew --prefix`.
+The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. You can verify the default prefix by opening a terminal and typing `brew --prefix`.
 {{% /admonition %}}
 
 [Homebrew]: https://brew.sh
@@ -54,7 +54,7 @@ To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud
 
 ## Viewing Grafana Agent Logs
 
-By defualt, logs are written to `$(brew --prefix)/var/log/grafana-agent.log` and `$(brew --prefix)/var/log/grafana-agent.err.log`.
+By default, logs are written to `$(brew --prefix)/var/log/grafana-agent.log` and `$(brew --prefix)/var/log/grafana-agent.err.log`.
 
 ## Upgrading Grafana Agent
 
