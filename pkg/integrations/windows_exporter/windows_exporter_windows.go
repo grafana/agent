@@ -15,7 +15,7 @@ import (
 // New creates a new windows_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	// We need to create a list of all the possible collectors.
-	collectors := collector.CreateCollectors()
+	collectors := collector.CreateInitializers()
 	// We need to pass in kingpin so that the settings get created appropriately. Even though we arent going to use its output.
 	windowsExporter := kingpin.New("", "")
 	// We only need this to fill in the appropriate settings structs so we can override them.
@@ -65,7 +65,7 @@ func enabledCollectors(input string) []string {
 	return result
 }
 
-func buildCollectors(colls map[string]*collector.CollectorInit, enabled []string) (map[string]collector.Collector, error) {
+func buildCollectors(colls map[string]*collector.Initializer, enabled []string) (map[string]collector.Collector, error) {
 	collectors := map[string]collector.Collector{}
 
 	for _, name := range enabled {

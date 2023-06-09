@@ -16,7 +16,7 @@ func init() {
 	app := kingpin.New("", "")
 
 	// Register all flags from collector
-	collectors := collector.CreateCollectors()
+	collectors := collector.CreateInitializers()
 	collector.RegisterCollectorsFlags(collectors, app)
 
 	_, err := app.Parse([]string{})
@@ -80,7 +80,7 @@ func (c *Config) setDefaults(app *kingpin.Application) {
 }
 
 // toExporterConfig converts integration Configs into windows_exporter configs.
-func (c *Config) toExporterConfig(collectors map[string]*collector.CollectorInit) error {
+func (c *Config) toExporterConfig(collectors map[string]*collector.Initializer) error {
 	for _, v := range collectors {
 		// Most collectors don't have settings so if its nil then pass on by.
 		// The windows_export functions ensure that if a setting is required it will be initialized.
