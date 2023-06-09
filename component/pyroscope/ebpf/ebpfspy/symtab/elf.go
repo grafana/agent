@@ -117,9 +117,9 @@ func (t *ElfTable) load() {
 		}
 		defer debugMe.Close() // todo do not close if it is the selected elf
 
-		symbols, err = debugMe.ReadSymbols()
+		symbols, err = t.createSymbolTable(debugMe)
 		if err != nil {
-			t.err = nil
+			t.err = err
 			return
 		}
 		t.table = symbols
@@ -139,6 +139,27 @@ func (t *ElfTable) load() {
 	t.options.ElfCache.CacheByStat(statFromFileInfo(fileInfo), symbols)
 	return
 
+}
+
+func (t *ElfTable) createSymbolTable(me *elf2.MMapedElfFile) (SymbolNameResolver, error) {
+	symTable, symErr := me.ReadSymbols()
+	goTable, goErr := me.ReadGoSymbols()
+	if symErr != nil && goErr != nil {
+		return nil, fmt.Errorf("s: %w g: %w", symErr, goErr)
+	}
+	if symErr == nil && goErr == nil {
+		return &elf2.GoTableWithFallback{
+			GoTable:  goTable,
+			SymTable: symTable,
+		}, nil
+	}
+	if symErr == nil {
+		return symTable, nil
+	}
+	if goTable != nil {
+		return goTable, nil
+	}
+	panic("unreachable")
 }
 
 func (t *ElfTable) Resolve(pc uint64) string {

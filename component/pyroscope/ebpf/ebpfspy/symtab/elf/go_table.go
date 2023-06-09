@@ -108,3 +108,21 @@ func (f *GoTable) goSymbolName(sym *gosym2.FuncIndex) (string, error) {
 	}
 	return name, nil
 }
+
+type GoTableWithFallback struct {
+	GoTable  *GoTable
+	SymTable *SymbolTable
+}
+
+func (g *GoTableWithFallback) Resolve(addr uint64) string {
+	name := g.GoTable.Resolve(addr)
+	if name != "" {
+		return name
+	}
+	return g.SymTable.Resolve(addr)
+}
+
+func (g *GoTableWithFallback) Cleanup() {
+	g.GoTable.Cleanup()
+	g.SymTable.Cleanup() // second call is no op now, but call anyway just in case
+}
