@@ -32,6 +32,8 @@ Main (unreleased)
   could lead to propagating issues downstream to other components which expect
   the export to be non-empty. (@rfratto)
 
+- Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
+
 ### Other changes
 
 - Add logging to failed requests in `remote.http`. (@rfratto)
