@@ -2,17 +2,18 @@ package symtab
 
 import (
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 	lru "github.com/hashicorp/golang-lru/v2"
 )
 
 type ElfCache struct {
-	buildID2Symbols *lru.Cache[string, SymbolNameResolver]
+	buildID2Symbols *lru.Cache[elf.BuildID, SymbolNameResolver]
 	stat2Symbols    *lru.Cache[stat, SymbolNameResolver]
 	metrics         *metrics.Metrics
 }
 
 func NewElfCache(sz int, metrics *metrics.Metrics) (*ElfCache, error) {
-	buildID2Symbols, err := lru.New[string, SymbolNameResolver](sz)
+	buildID2Symbols, err := lru.New[elf.BuildID, SymbolNameResolver](sz)
 	if err != nil {
 		return nil, err
 	}
@@ -27,8 +28,8 @@ func NewElfCache(sz int, metrics *metrics.Metrics) (*ElfCache, error) {
 	}, nil
 }
 
-func (e *ElfCache) GetSymbolsByBuildID(buildID string) SymbolNameResolver {
-	if buildID == "" {
+func (e *ElfCache) GetSymbolsByBuildID(buildID elf.BuildID) SymbolNameResolver {
+	if buildID.Empty() {
 		return nil
 	}
 	entry, ok := e.buildID2Symbols.Get(buildID)
@@ -53,8 +54,8 @@ func (e *ElfCache) GetSymbolsByStat(s stat) SymbolNameResolver {
 	return nil
 }
 
-func (e *ElfCache) CacheByBuildID(buildID string, v SymbolNameResolver) {
-	if buildID == "" || v == nil {
+func (e *ElfCache) CacheByBuildID(buildID elf.BuildID, v SymbolNameResolver) {
+	if buildID.Empty() || v == nil {
 		return
 	}
 	e.buildID2Symbols.Add(buildID, v)

@@ -86,7 +86,7 @@ func TestSelfElfSymbolsLazy(t *testing.T) {
 
 	e, err := elf0.Open(f)
 	require.NoError(t, err)
-	expectedSymbols := getELFSymbolsFromSymtab(e)
+	expectedSymbols := elf.GetELFSymbolsFromSymtab(e)
 
 	me, err := elf.NewMMapedElfFile(f)
 	require.NoError(t, err)

@@ -10,11 +10,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type Sym struct { // dup to break import cycle
-	Start uint64
-	Name  string
-}
-
 func Test(t *testing.T) {
 	fs := []string{
 		"../testdata/elfs/elf",
@@ -35,32 +30,7 @@ func testOneElfFile(t *testing.T, f string) {
 		fmt.Println(err)
 		return
 	}
-	var genuineSymbols []Sym
-	symbols, _ := e.Symbols()
-	dynSymbols, _ := e.DynamicSymbols()
-	namesLength := 0
-	count := 0
-	for _, symbol := range symbols {
-		if symbol.Value != 0 && symbol.Info&0xf == byte(elf.STT_FUNC) {
-			namesLength += len(symbol.Name)
-			count += 1
-			genuineSymbols = append(genuineSymbols, Sym{
-				Name:  symbol.Name,
-				Start: symbol.Value,
-			})
-		}
-	}
-	for _, symbol := range dynSymbols {
-		if symbol.Value != 0 && symbol.Info&0xf == byte(elf.STT_FUNC) {
-			namesLength += len(symbol.Name)
-			count += 1
-			genuineSymbols = append(genuineSymbols, Sym{
-				Name:  symbol.Name,
-				Start: symbol.Value,
-			})
-		}
-	}
-	fmt.Printf("%s names len %d cnt %d\n", f, namesLength, count)
+	genuineSymbols := GetELFSymbolsFromSymtab(e)
 
 	me, err := NewMMapedElfFile(f)
 	require.NoError(t, err)
@@ -70,24 +40,23 @@ func testOneElfFile(t *testing.T, f string) {
 	if tab == nil {
 		tab = &SymbolTable{}
 	}
-	var mySymbols []Sym
+	var mySymbols []TestSym
 
 	for i := range tab.Symbols {
 		sym := &tab.Symbols[i]
 		name, _ := tab.symbolName(sym)
-		mySymbols = append(mySymbols, Sym{
+		mySymbols = append(mySymbols, TestSym{
 			Name:  name,
 			Start: sym.Value,
 		})
 	}
 
-	cmp := func(a, b Sym) bool {
+	cmp := func(a, b TestSym) bool {
 		if a.Start == b.Start {
 			return strings.Compare(a.Name, b.Name) < 0
 		}
 		return a.Start < b.Start
 	}
-	slices.SortFunc(genuineSymbols, cmp)
 	slices.SortFunc(mySymbols, cmp)
 	require.Equal(t, genuineSymbols, mySymbols)
 

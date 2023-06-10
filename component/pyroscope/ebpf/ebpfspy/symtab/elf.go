@@ -1,22 +1,16 @@
 package symtab
 
 import (
-	"bytes"
 	"debug/elf"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/go-kit/log"
-	"golang.org/x/exp/slices"
-
 	elf2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 )
 
 var (
-	errNoBuildID       = fmt.Errorf(".note.gnu.build-id section not found")
 	errElfBaseNotFound = fmt.Errorf("elf base not found")
 	errNoDebugLink     = fmt.Errorf(".gnu_debuglink section not found")
 )
@@ -87,7 +81,11 @@ func (t *ElfTable) load() {
 		t.err = errElfBaseNotFound
 		return
 	}
-	buildID, err := getBuildID(me)
+	buildID, err := me.BuildID()
+	if err != nil && err != elf2.ErrNoBuildIDSection {
+		t.err = err
+		return
+	}
 
 	symbols := t.options.ElfCache.GetSymbolsByBuildID(buildID)
 	if symbols != nil {
@@ -177,32 +175,13 @@ func (t *ElfTable) Cleanup() {
 	}
 }
 
-func getBuildID(elfFile *elf2.MMapedElfFile) (string, error) {
-	buildIDSection := elfFile.Section(".note.gnu.build-id")
-	if buildIDSection == nil {
-		return "", errNoBuildID
-	}
-
-	data, err := elfFile.SectionData(buildIDSection)
-	if err != nil {
-		return "", fmt.Errorf("reading .note.gnu.build-id %w", err)
-	}
-	if len(data) < 16 {
-		return "", fmt.Errorf(".note.gnu.build-id is too small")
-	}
-	if !bytes.Equal([]byte("GNU"), data[12:15]) {
-		return "", fmt.Errorf(".note.gnu.build-id is not a GNU build-id")
-	}
-	buildID := hex.EncodeToString(data[16:])
-	return buildID, nil
-}
-
-func (t *ElfTable) findDebugFileWithBuildID(buildID string) (string, stat) {
-	if len(buildID) < 3 {
+func (t *ElfTable) findDebugFileWithBuildID(buildID elf2.BuildID) (string, stat) {
+	id := buildID.ID()
+	if len(id) < 3 || !buildID.GNU() {
 		return "", stat{}
 	}
 
-	debugFile := fmt.Sprintf("/usr/lib/debug/.build-id/%s/%s.debug", buildID[:2], buildID[2:])
+	debugFile := fmt.Sprintf("/usr/lib/debug/.build-id/%s/%s.debug", id[:2], id[2:])
 	fsDebugFile := path.Join(t.fs, debugFile)
 	fileInfo, err := os.Stat(fsDebugFile)
 	if err == nil {
@@ -212,7 +191,7 @@ func (t *ElfTable) findDebugFileWithBuildID(buildID string) (string, stat) {
 	return "", stat{}
 }
 
-func (t *ElfTable) findDebugFile(buildID string, elfFile *elf2.MMapedElfFile) (string, stat) {
+func (t *ElfTable) findDebugFile(buildID elf2.BuildID, elfFile *elf2.MMapedElfFile) (string, stat) {
 	// https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html
 	// So, for example, suppose you ask GDB to debug /usr/bin/ls, which has a debug link that specifies the file
 	// ls.debug, and a build ID whose value in hex is abcdef1234. If the list of the global debug directories
@@ -278,29 +257,4 @@ func cString(bs []byte) string {
 		}
 	}
 	return string(bs[:i])
-}
-
-func getELFSymbolsFromSymtab(elfFile *elf.File) []Sym {
-	symtab, _ := elfFile.Symbols()
-	dynsym, _ := elfFile.DynamicSymbols()
-	var symbols []Sym
-	add := func(t []elf.Symbol) {
-		for _, sym := range t {
-			if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
-				symbols = append(symbols, Sym{
-					Name:  sym.Name,
-					Start: sym.Value,
-				})
-			}
-		}
-	}
-	add(symtab)
-	add(dynsym)
-	slices.SortFunc(symbols, func(a, b Sym) bool {
-		if a.Start == b.Start {
-			return strings.Compare(a.Name, b.Name) < 0
-		}
-		return a.Start < b.Start
-	})
-	return symbols
 }
