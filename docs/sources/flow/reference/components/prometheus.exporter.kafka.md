@@ -11,7 +11,7 @@ title: prometheus.exporter.kafka
 
 # prometheus.exporter.kafka
 The `prometheus.exporter.kafka` component embeds
-[kafka_exporter](https://github.com/davidmparrott/kafka_exporter/v2/exporter) for collecting metrics from a kafka server.
+[kafka_exporter](https://github.com/davidmparrott/kafka_exporter) for collecting metrics from a kafka server.
 
 ## Usage
 
