@@ -24,67 +24,47 @@ var DefaultArguments = Arguments{
 
 type Arguments struct {
 	Instance string `river:"instance,attr,optional"`
-	// Address array (host:port) of Kafka server
+
 	KafkaURIs []string `river:"kafka_uris,attr,optional"`
 
-	// Connect using SASL/PLAIN
 	UseSASL bool `river:"use_sasl,attr,optional"`
 
-	// Only set this to false if using a non-Kafka SASL proxy
 	UseSASLHandshake bool `river:"use_sasl_handshake,attr,optional"`
 
-	// SASL user name
 	SASLUsername string `river:"sasl_username,attr,optional"`
 
-	// SASL user password
 	SASLPassword config_util.Secret `river:"sasl_password,attr,optional"`
 
-	// The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
 	SASLMechanism string `river:"sasl_mechanism,attr,optional"`
 
-	// Connect using TLS
 	UseTLS bool `river:"use_tls,attr,optional"`
 
-	// The optional certificate authority file for TLS client authentication
 	CAFile string `river:"ca_file,attr,optional"`
 
-	// The optional certificate file for TLS client authentication
 	CertFile string `river:"cert_file,attr,optional"`
 
-	// The optional key file for TLS client authentication
 	KeyFile string `river:"key_file,attr,optional"`
 
-	// If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
 	InsecureSkipVerify bool `river:"insecure_skip_verify,attr,optional"`
 
-	// Kafka broker version
 	KafkaVersion string `river:"kafka_version,attr,optional"`
 
-	// if you need to use a group from zookeeper
 	UseZooKeeperLag bool `river:"use_zookeeper_lag,attr,optional"`
 
-	// Address array (hosts) of zookeeper server.
 	ZookeeperURIs []string `river:"zookeeper_uris,attr,optional"`
 
-	// Kafka cluster name
 	ClusterName string `river:"kafka_cluster_name,attr,optional"`
 
-	// Metadata refresh interval
 	MetadataRefreshInterval string `river:"metadata_refresh_interval,attr,optional"`
 
-	// If true, all scrapes will trigger kafka operations otherwise, they will share results. WARN: This should be disabled on large clusters
 	AllowConcurrent bool `river:"allow_concurrency,attr,optional"`
 
-	// Maximum number of offsets to store in the interpolation table for a partition
 	MaxOffsets int `river:"max_offsets,attr,optional"`
 
-	// How frequently should the interpolation table be pruned, in seconds
 	PruneIntervalSeconds int `river:"prune_interval_seconds,attr,optional"`
 
-	// Regex filter for topics to be monitored
 	TopicsFilter string `river:"topics_filter_regex,attr,optional"`
 
-	// Regex filter for consumer groups to be monitored
 	GroupFilter string `river:"groups_filter_regex,attr,optional"`
 }
 
