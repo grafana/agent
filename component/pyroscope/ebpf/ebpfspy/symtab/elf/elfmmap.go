@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/edsrzf/mmap-go"
 )
@@ -47,6 +48,7 @@ func NewMMapedElfFile(fpath string) (*MMapedElfFile, error) {
 	res.Progs = progs
 	res.Sections = sections
 
+	runtime.SetFinalizer(res, (*MMapedElfFile).Finalize)
 	return res, nil
 }
 
@@ -77,6 +79,12 @@ func (f *MMapedElfFile) ensureOpen() error {
 	return f.open()
 }
 
+func (f *MMapedElfFile) Finalize() {
+	if f.mmaped != nil {
+		println("ebpf mmaped elf not closed")
+	}
+	f.Close()
+}
 func (f *MMapedElfFile) Close() {
 	if f.mmaped != nil {
 		f.mmaped.Unmap()
