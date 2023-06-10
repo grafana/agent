@@ -33,6 +33,12 @@ Main (unreleased)
   could lead to propagating issues downstream to other components which expect
   the export to be non-empty. (@rfratto)
 
+- Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
+
+- Allow bearerTokenFile to be used in ServiceMonitors. (@captncraig)
+
+- Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
+
 ### Other changes
 
 - Add logging to failed requests in `remote.http`. (@rfratto)

@@ -1815,6 +1815,8 @@ github.com/grafana/tail v0.0.0-20230328181249-aa6682d7843a h1:ypBalFlWhbqP+60je3
 github.com/grafana/tail v0.0.0-20230328181249-aa6682d7843a/go.mod h1:7t5XR+2IA8P2qggOAHTj/GCZfoLBle3OvNSYh1VkRBU=
 github.com/grafana/vmware_exporter v0.0.4-beta h1:Tb8Edm/wDYh0Lvhm38HLNTlkflUrlPGB+jD+/hW4xHI=
 github.com/grafana/vmware_exporter v0.0.4-beta/go.mod h1:+SsUoWeCJ3nDm1gkw8xqBp4NNSUIrGVoEbnwJeeoIVU=
+github.com/grafana/windows_exporter v0.15.1-0.20230609142740-b47fa97c3c47 h1:0B4dYFrny1h51kdddXbvg6yHn8LAEfoYuxeQceV6uXw=
+github.com/grafana/windows_exporter v0.15.1-0.20230609142740-b47fa97c3c47/go.mod h1:VP/c/Xo6p/PRlSN5s7M2SGscCxLGFRHydjmk0WqxaHU=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=
 github.com/grobie/gomemcache v0.0.0-20201204163352-08d7c80fcac6 h1:vqwzYov9hrRoGAmy61um8mVteOCD0bEbKgXr1mmkTlI=
 github.com/grobie/gomemcache v0.0.0-20201204163352-08d7c80fcac6/go.mod h1:L69/dBlPQlWkcnU76WgcppK5e4rrxzQdi6LhLnK/ytA=
@@ -2226,7 +2228,6 @@ github.com/klauspost/compress v1.15.9/go.mod h1:PhcZ0MbTNciWF3rruxRgKxI5NkcHHrHU
 github.com/klauspost/compress v1.15.15 h1:EF27CXIuDsYJ6mmvtBRlEuB2UVOqHG1tAXgZ7yIO+lw=
 github.com/klauspost/compress v1.15.15/go.mod h1:ZcK2JAFqKOpnBlxcLsJzYfrS9X1akm9fHZNnD9+Vo/4=
 github.com/klauspost/cpuid v1.2.3/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
-github.com/klauspost/cpuid v1.3.1 h1:5JNjFYYQrZeKRJ0734q51WCEEn2huer72Dc7K+R/b6s=
 github.com/klauspost/cpuid v1.3.1/go.mod h1:bYW4mA6ZgKPob1/Dlai2LviZJO7KGI3uoWLd42rAQw4=
 github.com/klauspost/cpuid/v2 v2.1.0 h1:eyi1Ad2aNJMW95zcSbmGg7Cg6cq3ADwLpMAP96d8rF0=
 github.com/klauspost/cpuid/v2 v2.1.0/go.mod h1:RVVoqg1df56z8g3pUjL/3lE5UfnlrJX8tyFgg4nqhuY=
@@ -2752,8 +2753,6 @@ github.com/pierrec/lz4/v4 v4.1.8/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuR
 github.com/pierrec/lz4/v4 v4.1.15/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pierrec/lz4/v4 v4.1.17 h1:kV4Ip+/hUBC+8T6+2EgburRtkE9ef4nbY3f4dFhGjMc=
 github.com/pierrec/lz4/v4 v4.1.17/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
-github.com/pires/go-proxyproto v0.7.0 h1:IukmRewDQFWC7kfnb66CSomk2q/seBuilHBYFwyq0Hs=
-github.com/pires/go-proxyproto v0.7.0/go.mod h1:Vz/1JPY/OACxWGQNIRY2BeyDmpoaWmEP40O9LbuiFR4=
 github.com/pkg/browser v0.0.0-20210115035449-ce105d075bb4/go.mod h1:N6UoU20jOqggOuDwUaBQpluzLNDqif3kq9z2wpdYEfQ=
 github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 h1:KoWmjvw+nsYOo29YJK9vDA65RGE3NrOnUtO7a+RF9HU=
 github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8/go.mod h1:HKlIX3XHQyzLZPlr7++PzdhaXEj94dEiJgZDTsxEqUI=
@@ -2784,8 +2783,6 @@ github.com/prometheus-community/prom-label-proxy v0.5.0 h1:f9RqZ+xwznh/7XbTEr0LD
 github.com/prometheus-community/prom-label-proxy v0.5.0/go.mod h1:qiIPYa/ju9u4wq3LjvL3ofzd3jcyW0Rt5jkZ6QgF4nc=
 github.com/prometheus-community/stackdriver_exporter v0.13.0 h1:4h7v28foRJ4/RuchNZCYsoDp+CkF4Mp9nebtPzgil3g=
 github.com/prometheus-community/stackdriver_exporter v0.13.0/go.mod h1:ZFO015Mexz1xNHSvFjZFiIspYx6qhDg9Kre4LPUjO9s=
-github.com/prometheus-community/windows_exporter v0.0.0-20230507104622-79781c6d75fc h1:5HoXejMR9fh1Sh46I/pe/Y3M1vJpm5UvCSqWdBmUZHs=
-github.com/prometheus-community/windows_exporter v0.0.0-20230507104622-79781c6d75fc/go.mod h1:O3yNykuN8H0YOdVc4NEzs12Ugp4x2MgNhZvXHPkf7j8=
 github.com/prometheus-operator/prometheus-operator v0.62.0 h1:9pjQm5NgZrhJgLIapWxKJXeZ0hasBZ/ekWcyHnsldk0=
 github.com/prometheus-operator/prometheus-operator v0.62.0/go.mod h1:fyio1iC7r5NSFw/AQaNH8E+7N7embyY2W1ozINQRShw=
 github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.63.0 h1:efsW3CfymG5bZUpeIsYfdihB33YItCn7uHBOEbnHQG8=
@@ -2892,8 +2889,6 @@ github.com/renier/xmlrpc v0.0.0-20170708154548-ce4a1a486c03/go.mod h1:gRAiPF5C5N
 github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc h1:g196Usc63pWDzWallipxVhsEjDdh/+RLc/Oz7q3ihW4=
 github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc/go.mod h1:rMzeXFmWpS5JnfDANtpzbklRJY4pqZMJNN9/SJHAXPA=
 github.com/rhnvrm/simples3 v0.6.1/go.mod h1:Y+3vYm2V7Y4VijFoJHHTrja6OgPrJ2cBti8dPGkC3sA=
-github.com/richardartoul/molecule v1.0.0 h1:+LFA9cT7fn8KF39zy4dhOnwcOwRoqKiBkPqKqya+8+U=
-github.com/richardartoul/molecule v1.0.0/go.mod h1:uvX/8buq8uVeiZiFht+0lqSLBHF+uGV8BrTv8W/SIwk=
 github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052 h1:Qp27Idfgi6ACvFQat5+VJvlYToylpM/hcyLBI3WaKPA=
 github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052/go.mod h1:uvX/8buq8uVeiZiFht+0lqSLBHF+uGV8BrTv8W/SIwk=
 github.com/rivo/tview v0.0.0-20200219210816-cd38d7432498/go.mod h1:6lkG1x+13OShEf0EaOCaTQYyB7d5nSbb181KtjlS+84=
@@ -3250,6 +3245,7 @@ github.com/yusufpapurcu/wmi v1.2.2/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQ
 github.com/yvasiyarov/go-metrics v0.0.0-20140926110328-57bccd1ccd43/go.mod h1:aX5oPXxHm3bOH+xeAttToC8pqch2ScQN/JoXYupl6xs=
 github.com/yvasiyarov/gorelic v0.0.0-20141212073537-a9bba5b9ab50/go.mod h1:NUSPSUX/bi6SeDMUh6brw0nXpxHnc96TguQh0+r/ssA=
 github.com/yvasiyarov/newrelic_platform_go v0.0.0-20140908184405-b21fdbd4370f/go.mod h1:GlGEuHIJweS1mbCqG+7vt2nvWLzLLnRHbXz5JKd/Qbg=
+github.com/zeebo/assert v1.3.0 h1:g7C04CbJuIDKNPFHmsk4hwZDO5O+kntRxzaUoNXj+IQ=
 github.com/zeebo/xxh3 v1.0.2 h1:xZmwmqxHZA8AI603jOQ0tMqmBr9lPeFwGg6d+xy9DC0=
 github.com/zeebo/xxh3 v1.0.2/go.mod h1:5NWz9Sef7zIDm2JHfFlcQvNekmcEl9ekUZQQKCYaDcA=
 github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxtB1Q=
