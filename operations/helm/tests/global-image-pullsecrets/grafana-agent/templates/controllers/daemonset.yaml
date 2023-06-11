@@ -23,13 +23,15 @@ spec:
         app.kubernetes.io/instance: grafana-agent
     spec:
       serviceAccountName: grafana-agent
+      imagePullSecrets:
+        - name: global-cred
       containers:
         - name: grafana-agent
           image: docker.io/grafana/agent:v0.34.0
           imagePullPolicy: IfNotPresent
           args:
             - run
-            - /etc/agent/my-config.river
+            - /etc/agent/config.river
             - --storage.path=/tmp/agent
             - --server.http.listen-addr=0.0.0.0:80
           env:
@@ -63,4 +65,4 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: existing-config
+            name: grafana-agent

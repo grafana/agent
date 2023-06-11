@@ -25,11 +25,11 @@ spec:
       serviceAccountName: grafana-agent
       containers:
         - name: grafana-agent
-          image: docker.io/grafana/agent:v0.34.0
+          image: quay.io/grafana/agent:v0.34.0
           imagePullPolicy: IfNotPresent
           args:
             - run
-            - /etc/agent/my-config.river
+            - /etc/agent/config.river
             - --storage.path=/tmp/agent
             - --server.http.listen-addr=0.0.0.0:80
           env:
@@ -52,7 +52,7 @@ spec:
             - name: config
               mountPath: /etc/agent
         - name: config-reloader
-          image: docker.io/jimmidyson/configmap-reload:v0.8.0
+          image: quay.io/jimmidyson/configmap-reload:v0.8.0
           args:
             - --volume-dir=/etc/agent
             - --webhook-url=http://localhost:80/-/reload
@@ -63,4 +63,4 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: existing-config
+            name: grafana-agent
