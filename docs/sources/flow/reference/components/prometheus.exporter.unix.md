@@ -348,7 +348,7 @@ or disable collectors that are expensive to run.
 | `time`             | Exposes the current system time. | any | yes |
 | `timex`            | Exposes selected `adjtimex(2)` system call stats. | Linux | yes |
 | `udp_queues`       | Exposes UDP total lengths of the `rx_queue` and `tx_queue` from `/proc/net/udp` and `/proc/net/udp6`. | Linux | yes |
-| `uname`            | Exposes system information as provided by the uname system call. | Darwin, FreeBSD, Linux, OpenBSD | yes |
+| `uname`            | Exposes system information as provided by the uname system call. | Darwin, FreeBSD, Linux, OpenBSD, NetBSD | yes |
 | `vmstat`           | Exposes statistics from `/proc/vmstat`. | Linux | yes |
 | `wifi`             | Exposes WiFi device and station statistics. | Linux | no |
 | `xfs`              | Exposes XFS runtime statistics. | Linux (kernel 4.4+) | yes |
