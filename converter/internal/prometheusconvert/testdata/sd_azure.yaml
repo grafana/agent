@@ -35,7 +35,7 @@ scrape_configs:
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: 'localhost:9090'  # Replace with your Prometheus server's address
+        replacement: 'localhost:9090'
 
 remote_write:
   - name: "remote1"
