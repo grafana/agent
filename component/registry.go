@@ -48,7 +48,7 @@ type Module interface {
 	// will be run until Run is called.
 	//
 	// Run blocks until the provided context is canceled. The ID of a module as defined in
-	// ModulesController.NewModule will not be released until Run returns.
+	// ModuleController.NewModule will not be released until Run returns.
 	Run(context.Context)
 
 	// ComponentHandler returns an HTTP handler which exposes endpoints of
