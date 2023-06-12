@@ -1448,7 +1448,7 @@ loki.process "example" {
     }
 }
 ```
-All the labels except the ones listed under `label_drop` stage will be sent to Loki.
+All the labels except the ones listed under `label_drop` stage are sent to Loki.
 
 
 #### GeoIP with ASN (Autonomous System Number) database example
