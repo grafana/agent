@@ -50,6 +50,7 @@ type Session struct {
 	bpf profileObjects
 
 	ProfileOptions
+	roundNumber int
 }
 
 func NewSession(
@@ -102,6 +103,7 @@ func (s *Session) Reset(cb func(t *sd.Target, stack []string, value uint64, pid 
 	defer s.symCache.Cleanup()
 
 	s.symCache.NextRound()
+	s.roundNumber++
 
 	keys, values, batch, err := s.getCountsMapValues()
 	if err != nil {
