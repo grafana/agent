@@ -353,6 +353,27 @@ the Agent is running on is a no-op.
   perf_tracepoint:
     [- <string>]
 
+  # Disable perf hardware profilers.
+  [perf_disable_hardware_profilers: <boolean> | default = false]
+
+  # Perf hardware profilers that should be collected.
+  perf_hardware_profilers:
+    [- <string>]
+
+  # Disable perf software profilers.
+  [perf_disable_software_profilers: <boolean> | default = false]
+
+  # Perf software profilers that should be collected.
+  perf_software_profilers:
+    [- <string>]
+  
+  # Disable perf cache profilers.
+  [perf_disable_cache_profilers: <boolean> | default = false]
+
+  # Perf cache profilers that should be collected.
+  perf_cache_profilers:
+    [- <string>]
+
   # Regexp of power supplies to ignore for the powersupplyclass collector.
   [powersupply_ignored_supplies: <string> | default = "^$"]
 
