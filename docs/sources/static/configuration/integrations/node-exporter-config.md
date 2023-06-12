@@ -145,6 +145,7 @@ the Agent is running on is a no-op.
 | meminfo_numa     | Exposes memory statistics from /proc/meminfo_numa. | Linux | no |
 | mountstats       | Exposes filesystem statistics from /proc/self/mountstats. Exposes detailed NFS client statistics. | Linux | no |
 | netclass         | Exposes network interface info from /sys/class/net. | Linux | yes |
+| netisr           | Exposes netisr statistics. | FreeBSD | yes |
 | netdev           | Exposes network interface statistics such as bytes transferred. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
 | netstat          | Exposes network statistics from /proc/net/netstat. This is the same information as netstat -s. | Linux | yes |
 | network_route    | Exposes network route statistics. | Linux | no |

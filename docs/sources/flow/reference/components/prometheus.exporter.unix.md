@@ -312,6 +312,7 @@ or disable collectors that are expensive to run.
 | `mountstats`       | Exposes filesystem statistics from `/proc/self/mountstats`. Exposes detailed NFS client statistics. | Linux | no |
 | `netclass`         | Exposes network interface info from `/sys/class/net`. | Linux | yes |
 | `netdev`           | Exposes network interface statistics such as bytes transferred. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
+| `netisr`           | Exposes netisr statistics. | FreeBSD | yes |
 | `netstat`          | Exposes network statistics from `/proc/net/netstat`. This is the same information as `netstat -s`. | Linux | yes |
 | `network_route`    | Exposes network route statistics. | Linux | no |
 | `nfs`              | Exposes NFS client statistics from `/proc/net/rpc/nfs`. This is the same information as `nfsstat -c`. | Linux | yes |
