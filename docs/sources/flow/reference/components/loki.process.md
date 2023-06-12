@@ -1427,7 +1427,7 @@ loki.process "example" {
     }
 }
 ```
-Only the labels listed in the `values` list in `label_keep` stage will be sent to Loki.
+Only the labels listed in the `values` list in the `label_keep` stage are sent to Loki.
 
 label_drop example:
 
