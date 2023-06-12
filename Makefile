@@ -92,7 +92,7 @@
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
 ##   DOCKER_PLATFORM  Overrides platform to build Docker images for (defaults to host platform).
-##   GOEXPERIMENT     Used to enable features, most likely FIPS via GOEXPERIMENT=boringcrypt.
+##   GOEXPERIMENT     Used to enable features, most likely boringcrypt via GOEXPERIMENT=boringcrypt.
 
 include tools/make/*.mk
 
