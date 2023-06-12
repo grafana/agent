@@ -27,6 +27,9 @@ type Arguments struct {
 	ParseInfluxDB  bool `river:"parse_influxdb_tags,attr,optional"`
 	ParseLibrato   bool `river:"parse_librato_tags,attr,optional"`
 	ParseSignalFX  bool `river:"parse_signalfx_tags,attr,optional"`
+
+	RelayAddr         string `river:"relay_addr,attr,optional"`
+	RelayPacketLength int    `river:"relay_packet_length,attr,optional"`
 }
 
 // DefaultConfig holds non-zero default options for the Config when it is
@@ -49,6 +52,8 @@ var DefaultConfig = Arguments{
 	ParseInfluxDB:  statsd_exporter.DefaultConfig.ParseInfluxDB,
 	ParseLibrato:   statsd_exporter.DefaultConfig.ParseLibrato,
 	ParseSignalFX:  statsd_exporter.DefaultConfig.ParseSignalFX,
+
+	RelayPacketLength: statsd_exporter.DefaultConfig.RelayPacketLength,
 }
 
 // Convert gives a config suitable for use with github.com/grafana/agent/pkg/integrations/statsd_exporter.
@@ -73,6 +78,8 @@ func (c *Arguments) Convert() (*statsd_exporter.Config, error) {
 		ParseInfluxDB:       c.ParseInfluxDB,
 		ParseLibrato:        c.ParseLibrato,
 		ParseSignalFX:       c.ParseSignalFX,
+		RelayAddr:           c.RelayAddr,
+		RelayPacketLength:   c.RelayPacketLength,
 		MappingConfig:       mappingConfig,
 	}, nil
 }

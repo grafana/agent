@@ -7,7 +7,7 @@ aliases:
 
 # Install static mode on Linux
 
-Install Grafana Agent and get it up and running on Linux.
+You can install Grafana Agent in static mode on Linux.
 
 ## Install on Debian or Ubuntu
 
