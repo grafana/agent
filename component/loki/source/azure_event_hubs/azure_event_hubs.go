@@ -192,7 +192,7 @@ func (a *Arguments) Convert() (kt.Config, error) {
 			if err != nil {
 				return kt.Config{}, fmt.Errorf("unable to extract host from fully qualified namespace: %w", err)
 			}
-			a.Authentication.Scopes = []string{fmt.Sprintf("https://%s", host)}
+			a.Authentication.Scopes = []string{fmt.Sprintf("https://%s/.default", host)}
 		}
 
 		cfg.KafkaConfig.Authentication = kt.Authentication{

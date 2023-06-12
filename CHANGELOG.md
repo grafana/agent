@@ -14,29 +14,37 @@ Main (unreleased)
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
 
+- Integrations: Introduce the `squid` integration. (@armstrmi)
+
 ### Enhancements
 
-- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
-
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
+
+- Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
 
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
 
-v0.34.0-rc.1 (2023-06-02)
---------------------
+- Fix issue where `remote.http` did not fail early if the initial request
+  failed. This caused failed requests to initially export empty values, which
+  could lead to propagating issues downstream to other components which expect
+  the export to be non-empty. (@rfratto)
 
-### Bugfixes
+- Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
-- Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham)
+- Allow bearerTokenFile to be used in ServiceMonitors. (@captncraig)
 
-- Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr)
+- Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
 
-- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
+- `service_name` label is inferred from discovery meta labels in `pyroscope.scrape` (@korniltsev)
 
-v0.34.0-rc.0 (2023-06-01)
+### Other changes
+
+- Add logging to failed requests in `remote.http`. (@rfratto)
+
+v0.34.0 (2023-06-08)
 --------------------
 
 ### Breaking changes
@@ -50,8 +58,6 @@ v0.34.0-rc.0 (2023-06-01)
 - Prometheus exporters in Flow mode now set the `instance` label to a value similar to the one they used to have in Static mode (<hostname> by default, customized by some integrations). (@jcreixell)
 
 - `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`. (@korniltsev)
-
-- `service_name` label is inferred from discovery meta labels in `pyroscope.scrape` (@korniltsev)
 
 ### Features
 
@@ -72,8 +78,6 @@ v0.34.0-rc.0 (2023-06-01)
   - `nonsensitive` converts a River secret back into a string. (@rfratto)
 
 ### Enhancements
-
-- Add error value hashing to Faro collector. (@eskirk)
 
 - Support to attach node metadata to pods and endpoints targets in
   `discovery.kubernetes`. (@laurovenancio)
@@ -106,6 +110,7 @@ v0.34.0-rc.0 (2023-06-01)
 
 - Add custom labels to journal entries in `loki.source.journal` (@sbhrule15)
 
+- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
 
 ### Bugfixes
 
@@ -142,6 +147,13 @@ v0.34.0-rc.0 (2023-06-01)
 - Fix issue in modules export cache throwing uncomparable errors. (@mattdurham)
 
 - Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
+
+- Fix issue where using exporters inside modules failed due to not passing the in-memory address dialer. (@mattdurham)
+
+- Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
+  proxying requests. (@mattdurham)
+
+- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
 
 ### Other changes
 
