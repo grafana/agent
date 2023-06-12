@@ -126,10 +126,10 @@ type Config struct {
 	PerfCPUS                         string              `yaml:"perf_cpus,omitempty"`
 	PerfTracepoint                   flagext.StringSlice `yaml:"perf_tracepoint,omitempty"`
 	PerfDisableHardwareProfilers     bool                `yaml:"perf_disable_hardware_profilers,omitempty"`
-	PerfHardwareProfilers            flagext.StringSlice `yaml:"perf_hardware_profilers,omitempty"`
 	PerfDisableSoftwareProfilers     bool                `yaml:"perf_disable_software_profilers,omitempty"`
-	PerfSoftwareProfilers            flagext.StringSlice `yaml:"perf_software_profilers,omitempty"`
 	PerfDisableCacheProfilers        bool                `yaml:"perf_disable_cache_profilers,omitempty"`
+	PerfHardwareProfilers            flagext.StringSlice `yaml:"perf_hardware_profilers,omitempty"`
+	PerfSoftwareProfilers            flagext.StringSlice `yaml:"perf_software_profilers,omitempty"`
 	PerfCacheProfilers               flagext.StringSlice `yaml:"perf_cache_profilers,omitempty"`
 	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty"`
 	RunitServiceDir                  string              `yaml:"runit_service_dir,omitempty"`
