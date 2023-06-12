@@ -2,7 +2,6 @@ package elf
 
 import (
 	"debug/elf"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -17,10 +16,6 @@ func TestElfSymbolComparison(t *testing.T) {
 		require.NoError(t, err)
 		defer e.Close()
 
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
 		genuineSymbols := GetELFSymbolsFromSymtab(e)
 
 		me, err := NewMMapedElfFile(f)
@@ -33,12 +28,12 @@ func TestElfSymbolComparison(t *testing.T) {
 		}
 		var mySymbols []TestSym
 
-		for i := range tab.Symbols {
-			sym := &tab.Symbols[i]
-			name, _ := tab.symbolName(sym)
+		require.Equal(t, len(genuineSymbols), len(tab.Index.Names))
+		for i, symbol := range genuineSymbols {
+			name, _ := tab.symbolName(i)
 			mySymbols = append(mySymbols, TestSym{
 				Name:  name,
-				Start: sym.Value,
+				Start: symbol.Start,
 			})
 		}
 
@@ -69,7 +64,9 @@ func TestElfSymbolComparison(t *testing.T) {
 		"./testdata/elfs/go20-static",
 	}
 	for _, f := range fs {
-		testOneElfFile(t, f)
+		t.Run(f, func(t *testing.T) {
+			testOneElfFile(t, f)
+		})
 	}
 
 }

@@ -7,35 +7,53 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gosym"
 )
 
 // symbols from .symtab, .dynsym
 
 type SymbolIndex struct {
-	SectionHeaderLink uint32
-	NameIndex         uint32
-	Value             uint64
+	Name  Name
+	Value uint64
 }
 
+type SectionLinkIndex uint8
+
+var sectionTypeSym SectionLinkIndex = 0
+var sectionTypeDynSym SectionLinkIndex = 1
+
+type Name uint32
+
+func NewName(NameIndex uint32, linkIndex SectionLinkIndex) Name {
+	return Name((NameIndex & 0x7fffffff) | uint32(linkIndex)<<31)
+}
+
+func (n *Name) NameIndex() uint32 {
+	return uint32(*n) & 0x7fffffff
+}
+
+func (n *Name) LinkIndex() SectionLinkIndex {
+	return SectionLinkIndex(*n >> 31)
+}
+
+type FlatSymbolIndex struct {
+	Links  []uint32
+	Names  []Name
+	Values gosym.PCIndex
+}
 type SymbolTable struct {
-	// todo make it 3 separate tables
-	Symbols []SymbolIndex
-	File    *MMapedElfFile
+	Index FlatSymbolIndex
+	File  *MMapedElfFile
 }
 
 func (e *SymbolTable) Resolve(addr uint64) string {
-	if len(e.Symbols) == 0 {
+	if len(e.Index.Names) == 0 {
 		return ""
 	}
-	if addr < e.Symbols[0].Value {
-		return ""
-	}
-	i := sort.Search(len(e.Symbols), func(i int) bool {
-		return addr < e.Symbols[i].Value
-	})
-	i--
-	sym := &e.Symbols[i]
-	name, _ := e.symbolName(sym)
+	i := e.Index.Values.FindIndex(addr)
+
+	name, _ := e.symbolName(i)
 	return name
 }
 
@@ -44,12 +62,12 @@ func (e *SymbolTable) Cleanup() {
 }
 
 func (f *MMapedElfFile) NewSymbolTable() (*SymbolTable, error) {
-	sym, err := f.getSymbols(elf.SHT_SYMTAB)
+	sym, sectionSym, err := f.getSymbols(elf.SHT_SYMTAB)
 	if err != nil && err != ErrNoSymbols {
 		return nil, err
 	}
 
-	dynsym, err := f.getSymbols(elf.SHT_DYNSYM)
+	dynsym, sectionDynSym, err := f.getSymbols(elf.SHT_DYNSYM)
 	if err != nil && err != ErrNoSymbols {
 		return nil, err
 	}
@@ -57,16 +75,33 @@ func (f *MMapedElfFile) NewSymbolTable() (*SymbolTable, error) {
 	if total == 0 {
 		return nil, ErrNoSymbols
 	}
-	all := make([]SymbolIndex, 0, total)
+	all := make([]SymbolIndex, 0, total) // todo avoid allocation
 	all = append(all, sym...)
 	all = append(all, dynsym...)
+
 	sort.Slice(all, func(i, j int) bool {
+		if all[i].Value == all[j].Value {
+			return all[i].Name < all[j].Name
+		}
 		return all[i].Value < all[j].Value
 	})
-	return &SymbolTable{Symbols: all, File: f}, nil
+
+	res := &SymbolTable{Index: FlatSymbolIndex{
+		Links: []uint32{
+			sectionSym,    // should be at 0 - SectionTypeSym
+			sectionDynSym, // should be at 1 - SectionTypeDynSym
+		},
+		Names:  make([]Name, total),
+		Values: gosym.NewPCIndex(total),
+	}, File: f}
+	for i := range all {
+		res.Index.Names[i] = all[i].Name
+		res.Index.Values.Set(i, all[i].Value)
+	}
+	return res, nil
 }
 
-func (f *MMapedElfFile) getSymbols(typ elf.SectionType) ([]SymbolIndex, error) {
+func (f *MMapedElfFile) getSymbols(typ elf.SectionType) ([]SymbolIndex, uint32, error) {
 	switch f.Class {
 	case elf.ELFCLASS64:
 		return f.getSymbols64(typ)
@@ -75,26 +110,32 @@ func (f *MMapedElfFile) getSymbols(typ elf.SectionType) ([]SymbolIndex, error) {
 		return f.getSymbols32(typ)
 	}
 
-	return nil, errors.New("not implemented")
+	return nil, 0, errors.New("not implemented")
 }
 
 // ErrNoSymbols is returned by File.Symbols and File.DynamicSymbols
 // if there is no such section in the File.
 var ErrNoSymbols = errors.New("no symbol section")
 
-func (f *MMapedElfFile) getSymbols64(typ elf.SectionType) ([]SymbolIndex, error) {
+func (f *MMapedElfFile) getSymbols64(typ elf.SectionType) ([]SymbolIndex, uint32, error) {
 	symtabSection := f.sectionByType(typ)
 	if symtabSection == nil {
-		return nil, ErrNoSymbols
+		return nil, 0, ErrNoSymbols
+	}
+	var linkIndex SectionLinkIndex
+	if typ == elf.SHT_DYNSYM {
+		linkIndex = sectionTypeDynSym
+	} else {
+		linkIndex = sectionTypeSym
 	}
 
 	data, err := f.SectionData(symtabSection)
 	if err != nil {
-		return nil, fmt.Errorf("cannot load symbol section: %w", err)
+		return nil, 0, fmt.Errorf("cannot load symbol section: %w", err)
 	}
 	symtab := bytes.NewReader(data)
 	if symtab.Len()%elf.Sym64Size != 0 {
-		return nil, errors.New("length of symbol section is not a multiple of Sym64Size")
+		return nil, 0, errors.New("length of symbol section is not a multiple of Sym64Size")
 	}
 
 	// The first entry is all zeros.
@@ -109,28 +150,36 @@ func (f *MMapedElfFile) getSymbols64(typ elf.SectionType) ([]SymbolIndex, error)
 		binary.Read(symtab, f.ByteOrder, &sym)
 		if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
 			symbols[i].Value = sym.Value
-			symbols[i].SectionHeaderLink = symtabSection.Link
-			symbols[i].NameIndex = sym.Name
+			if sym.Name >= 0x7fffffff {
+				return nil, 0, fmt.Errorf("wrong sym name")
+			}
+			symbols[i].Name = NewName(sym.Name, linkIndex)
 			i++
 		}
 	}
 
-	return symbols[:i], nil
+	return symbols[:i], symtabSection.Link, nil
 }
 
-func (f *MMapedElfFile) getSymbols32(typ elf.SectionType) ([]SymbolIndex, error) {
+func (f *MMapedElfFile) getSymbols32(typ elf.SectionType) ([]SymbolIndex, uint32, error) {
 	symtabSection := f.sectionByType(typ)
 	if symtabSection == nil {
-		return nil, ErrNoSymbols
+		return nil, 0, ErrNoSymbols
+	}
+	var linkIndex SectionLinkIndex
+	if typ == elf.SHT_DYNSYM {
+		linkIndex = sectionTypeDynSym
+	} else {
+		linkIndex = sectionTypeSym
 	}
 
 	data, err := f.SectionData(symtabSection)
 	if err != nil {
-		return nil, fmt.Errorf("cannot load symbol section: %w", err)
+		return nil, 0, fmt.Errorf("cannot load symbol section: %w", err)
 	}
 	symtab := bytes.NewReader(data)
 	if symtab.Len()%elf.Sym32Size != 0 {
-		return nil, errors.New("length of symbol section is not a multiple of Sym64Size")
+		return nil, 0, errors.New("length of symbol section is not a multiple of Sym64Size")
 	}
 
 	// The first entry is all zeros.
@@ -145,17 +194,21 @@ func (f *MMapedElfFile) getSymbols32(typ elf.SectionType) ([]SymbolIndex, error)
 		binary.Read(symtab, f.ByteOrder, &sym)
 		if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
 			symbols[i].Value = uint64(sym.Value)
-			symbols[i].SectionHeaderLink = symtabSection.Link
-			symbols[i].NameIndex = sym.Name
+			if sym.Name >= 0x7fffffff {
+				return nil, 0, fmt.Errorf("wrong sym name")
+			}
+			symbols[i].Name = NewName(sym.Name, linkIndex)
 			i++
 		}
 	}
 
-	return symbols[:i], nil
+	return symbols[:i], symtabSection.Link, nil
 }
 
-func (f *SymbolTable) symbolName(i *SymbolIndex) (string, error) {
-	strSection, err := f.File.stringTable(i.SectionHeaderLink)
+func (f *SymbolTable) symbolName(idx int) (string, error) {
+	linkIndex := f.Index.Names[idx].LinkIndex()
+	SectionHeaderLink := f.Index.Links[linkIndex]
+	strSection, err := f.File.stringTable(uint32(SectionHeaderLink))
 	if err != nil {
 		return "", err
 	}
@@ -163,7 +216,8 @@ func (f *SymbolTable) symbolName(i *SymbolIndex) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	s, b := getString(strdata, int(i.NameIndex))
+	NameIndex := f.Index.Names[idx].NameIndex()
+	s, b := getString(strdata, int(NameIndex))
 	if !b {
 		return "", fmt.Errorf("elf getString")
 	}

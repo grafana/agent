@@ -5,6 +5,7 @@ import (
 
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/stretchr/testify/require"
 )
 
 func TestElf(t *testing.T) {
@@ -24,8 +25,7 @@ func TestElf(t *testing.T) {
 	}
 	for _, sym := range syms {
 		res := tab.Resolve(sym.pc)
-		if res != sym.name {
-			t.Errorf("failed to resolv %v got %v", sym, res)
-		}
+		require.Equal(t, res, sym.name)
+
 	}
 }
