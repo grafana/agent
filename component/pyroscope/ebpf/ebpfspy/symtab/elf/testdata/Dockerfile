@@ -14,18 +14,17 @@ RUN go build -ldflags="-extldflags=-static" -o hello-static hello.go
 FROM --platform=linux/amd64 golang:1.16 as go116
 ADD hello.go hello.go
 RUN go build hello.go
-RUN go build -ldflags="-extldflags=-static -T 122045790748672" -o hello-static hello.go
+RUN go build -ldflags="-extldflags=-static -T 4294963200" -o hello-static hello.go
 
 FROM --platform=linux/amd64 golang:1.18 as go118
 ADD hello.go hello.go
 RUN go build hello.go
-#todo change for entry64 tests
-RUN go build -ldflags="-extldflags=-static -T 122045790748672" -o hello-static hello.go
+RUN go build -ldflags="-extldflags=-static -T 1099511623680" -o hello-static hello.go
 
 FROM --platform=linux/amd64 golang:1.20 as go120
 ADD hello.go hello.go
 RUN go build hello.go
-RUN go build -ldflags="-extldflags=-static -T 122045790748672" -o hello-static hello.go
+RUN go build -ldflags="-extldflags=-static" -o hello-static hello.go
 
 FROM scratch
 COPY --from=builder elf elf.debug elf.stripped elf.debuglink elf.nopie elf.nobuildid libexample.so ./elfs/
