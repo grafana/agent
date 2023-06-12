@@ -12,7 +12,7 @@ func TestElfCacheStrippedEmpty(t *testing.T) {
 	logger := util.TestLogger(t)
 	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
 	fs := "." // make it unable to find debug file by buildID
-	stripped := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, fs, "testdata/elfs/elf.stripped",
+	stripped := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, fs, "elf/testdata/elfs/elf.stripped",
 		ElfTableOptions{
 			ElfCache: elfCache,
 		})
@@ -34,12 +34,12 @@ func TestElfCacheStrippedEmpty(t *testing.T) {
 func TestElfCache(t *testing.T) {
 	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
-	debug := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "testdata/elfs/elf",
+	debug := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "elf/testdata/elfs/elf",
 		ElfTableOptions{
 			ElfCache: elfCache,
 		})
 
-	stripped := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "testdata/elfs/elf.stripped",
+	stripped := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "elf/testdata/elfs/elf.stripped",
 		ElfTableOptions{
 			ElfCache: elfCache,
 		})

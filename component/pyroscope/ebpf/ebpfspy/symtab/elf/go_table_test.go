@@ -13,12 +13,7 @@ func TestSelfGoSymbolComparison(t *testing.T) {
 			require.Equal(t, symbol.Name, name)
 		}
 
-		var first uint64
-		if goTable.Index.Entry32 != nil {
-			first = uint64(goTable.Index.Entry32[0])
-		} else {
-			first = goTable.Index.Entry64[0]
-		}
+		first := goTable.Index.Entry.First()
 		name := goTable.Resolve(uint64(first) - 1)
 		require.Empty(t, name)
 		name = goTable.Resolve(goTable.Index.End)
@@ -54,13 +49,7 @@ func TestSelfGoSymbolComparison(t *testing.T) {
 			goTable, err := me.NewGoTable()
 
 			require.NoError(t, err)
-			if testcase.expect32 {
-				require.NotNil(t, goTable.Index.Entry32)
-				require.Nil(t, goTable.Index.Entry64)
-			} else {
-				require.NotNil(t, goTable.Index.Entry64)
-				require.Nil(t, goTable.Index.Entry32)
-			}
+			require.Equal(t, testcase.expect32, goTable.Index.Entry.Is32())
 
 			require.Greater(t, len(expectedSymbols), 1000)
 
@@ -69,18 +58,12 @@ func TestSelfGoSymbolComparison(t *testing.T) {
 			if testcase.expect32 {
 				goTable2 := &GoTable{}
 				*goTable2 = *goTable
-				goTable2.Index.Entry64 = make([]uint64, len(goTable.Index.Name))
-				for i := 0; i < len(goTable.Index.Name); i++ {
-					goTable2.Index.Entry64[i] = uint64(goTable2.Index.Entry32[i])
-				}
-				goTable2.Index.Entry32 = nil
+				goTable2.Index.Entry = goTable2.Index.Entry.PCIndex64()
+
+				require.False(t, goTable2.Index.Entry.Is32())
 				testGoSymbolTable(t, expectedSymbols, goTable)
 			}
 		})
 	}
 
-}
-
-func TestGoSymEntry64(t *testing.T) {
-	t.Fail()
 }

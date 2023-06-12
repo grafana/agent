@@ -26,7 +26,7 @@ func TestTestdataMD5(t *testing.T) {
 		{"b69d2a627f90ecac7868effa89a37c33", "libexample.so"},
 	}
 	for _, elf := range elfs {
-		data, err := os.ReadFile(path.Join("testdata", "elfs", elf.file))
+		data, err := os.ReadFile(path.Join("elf", "testdata", "elfs", elf.file))
 		if err != nil {
 			t.Errorf("failed to check md5 %v %v", elf, err)
 			continue
@@ -57,7 +57,7 @@ func testProc(t *testing.T, maps string, data []procTestdata) {
 			ElfCache: elfCache,
 		},
 	})
-	m.rootFS = path.Join(wd, "testdata")
+	m.rootFS = path.Join(wd, "elf", "testdata")
 	m.refresh(maps)
 	for _, td := range data {
 		sym := m.Resolve(td.base + td.offset)
@@ -257,7 +257,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 			ElfCache: elfCache,
 		},
 	})
-	m.rootFS = path.Join(wd, "testdata")
+	m.rootFS = path.Join(wd, "elf", "testdata")
 	m.refresh(maps)
 	for _, td := range syms {
 		sym := m.Resolve(td.base + td.offset)
@@ -339,7 +339,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 			ElfCache: elfCache,
 		},
 	})
-	m.rootFS = path.Join(wd, "testdata")
+	m.rootFS = path.Join(wd, "elf", "testdata")
 	m.refresh(maps)
 	for _, td := range syms {
 		sym := m.Resolve(td.base + td.offset)

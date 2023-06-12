@@ -20,12 +20,12 @@ import (
 func TestSameFileNoBuildID(t *testing.T) {
 	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
-	nobuildid1 := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "testdata/elfs/elf.nobuildid",
+	nobuildid1 := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, "./elf", "testdata/elfs/elf.nobuildid",
 		ElfTableOptions{
 			ElfCache: elfCache,
 		})
 
-	nobuildid2 := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "testdata/elfs/elf.nobuildid",
+	nobuildid2 := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, "./elf", "testdata/elfs/elf.nobuildid",
 		ElfTableOptions{
 			ElfCache: elfCache,
 		})
@@ -65,16 +65,16 @@ func TestMallocResolve(t *testing.T) {
 }
 
 func BenchmarkProc(b *testing.B) {
-	gosym, _ := newGoSymbols("/proc/self/exe")
+	gosym, _ := elf.GetGoSymbols("/proc/self/exe")
 	logger := log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
 	proc := NewProcTable(logger, ProcTableOptions{Pid: os.Getpid()})
 	proc.Refresh()
-	if len(gosym.Symbols) < 1000 {
+	if len(gosym) < 1000 {
 		b.FailNow()
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		for _, symbol := range gosym.Symbols {
+		for _, symbol := range gosym {
 			proc.Resolve(symbol.Start)
 		}
 	}
@@ -96,8 +96,7 @@ func TestSelfElfSymbolsLazy(t *testing.T) {
 
 	require.Greater(t, len(symbolTable.Symbols), 1000)
 
-	for j, symbol := range expectedSymbols {
-		_ = j
+	for _, symbol := range expectedSymbols {
 		name := symbolTable.Resolve(symbol.Start)
 		if symbol.Name == "runtime.text" && name == "internal/cpu.Initialize" {
 			continue

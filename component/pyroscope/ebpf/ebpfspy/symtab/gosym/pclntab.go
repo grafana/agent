@@ -11,7 +11,6 @@ package gosym
 import (
 	"bytes"
 	"encoding/binary"
-	"math"
 	"sort"
 	"sync"
 )
@@ -227,10 +226,9 @@ func (t *LineTable) parsePclnTab() {
 }
 
 type FlatFuncIndex struct {
-	Entry32 []uint32
-	Entry64 []uint64
-	Name    []uint32
-	End     uint64
+	Entry PCIndex
+	Name  []uint32
+	End   uint64
 }
 
 type FuncIndex struct {
@@ -254,28 +252,12 @@ func (t *LineTable) Go12Funcs() FlatFuncIndex {
 	ft := t.funcTab()
 	nfunc := ft.Count()
 	fi := FlatFuncIndex{
-		Entry32: make([]uint32, nfunc),
-		Name:    make([]uint32, nfunc),
+		Entry: NewPCIndex(nfunc),
+		Name:  make([]uint32, nfunc),
 	}
-	use32 := true
-
 	for i := 0; i < nfunc; i++ {
 		entry := ft.pc(i)
-		if use32 {
-			if entry >= math.MaxUint32 {
-				use32 = false
-				fi.Entry64 = make([]uint64, nfunc)
-				for j := 0; j < i; j++ {
-					fi.Entry64[j] = uint64(fi.Entry32[j])
-				}
-				fi.Entry32 = nil
-				fi.Entry64[i] = entry
-			} else {
-				fi.Entry32[i] = uint32(entry)
-			}
-		} else {
-			fi.Entry64[i] = entry
-		}
+		fi.Entry.Set(i, entry)
 		fi.End = ft.pc(i + 1)
 		info := t.funcData(uint32(i))
 		fi.Name[i] = info.nameOff()

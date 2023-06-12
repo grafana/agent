@@ -4,7 +4,6 @@ import (
 	"debug/elf"
 	"errors"
 	"fmt"
-	"sort"
 
 	gosym2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gosym"
 )
@@ -24,24 +23,10 @@ func (e *GoTable) Resolve(addr uint64) string {
 	if addr >= e.Index.End {
 		return ""
 	}
-	var i int
-	if e.Index.Entry32 != nil {
-		if addr < uint64(e.Index.Entry32[0]) {
-			return ""
-		}
-		i = sort.Search(n, func(i int) bool {
-			return addr < uint64(e.Index.Entry32[i])
-		})
-	} else {
-		if addr < e.Index.Entry64[0] {
-			return ""
-		}
-		i = sort.Search(n, func(i int) bool {
-			return addr < e.Index.Entry64[i]
-		})
+	i := e.Index.Entry.FindIndex(addr)
+	if i == -1 {
+		return ""
 	}
-	i--
-
 	name, _ := e.goSymbolName(i)
 	return name
 }
@@ -96,17 +81,16 @@ func (f *MMapedElfFile) NewGoTable() (*GoTable, error) {
 		return nil, errGoParseFailed
 	}
 	funcs := pcln.Go12Funcs()
-	if len(funcs.Name) == 0 {
+	if len(funcs.Name) == 0 || funcs.Entry.Length() == 0 || funcs.End == 0 {
 		return nil, errGoSymbolsNotFound
 	}
-	if funcs.Entry32 == nil && funcs.Entry64 == nil {
-		return nil, errGoParseFailed // this should not happen
-	}
-	if funcs.Entry32 != nil && funcs.Entry64 != nil {
-		return nil, errGoParseFailed // this should not happen
-	}
-	n := len(funcs.Entry32) + len(funcs.Entry64) // one of them is 0
-	if n != len(funcs.Name) {
+	//if funcs.Entry32 == nil && funcs.Entry64 == nil {
+	//	return nil, errGoParseFailed // this should not happen
+	//}
+	//if funcs.Entry32 != nil && funcs.Entry64 != nil {
+	//	return nil, errGoParseFailed // this should not happen
+	//}
+	if funcs.Entry.Length() != len(funcs.Name) {
 		return nil, errGoParseFailed // this should not happen
 	}
 
