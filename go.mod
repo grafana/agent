@@ -13,9 +13,6 @@ require (
 	github.com/PuerkitoBio/rehttp v1.1.0
 	github.com/Shopify/sarama v1.38.1
 	github.com/alecthomas/kingpin/v2 v2.3.2
-	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
-	github.com/spaolacci/murmur3 v1.1.0
-	github.com/zeebo/xxh3 v1.0.2
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
 	github.com/aws/aws-sdk-go v1.44.187
 	github.com/aws/aws-sdk-go-v2 v1.17.2
@@ -51,6 +48,7 @@ require (
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-jsonnet v0.18.0
+	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b // indirect
 	github.com/google/renameio/v2 v2.0.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
@@ -148,6 +146,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.9
 	github.com/sijms/go-ora/v2 v2.7.3
 	github.com/sirupsen/logrus v1.9.2
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
 	github.com/testcontainers/testcontainers-go v0.19.0
@@ -201,9 +200,10 @@ require (
 	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5
 	sigs.k8s.io/controller-runtime v0.14.6
 	sigs.k8s.io/yaml v1.3.0
-	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b
 
 )
+
+require github.com/klauspost/compress v1.15.15
 
 require (
 	cloud.google.com/go v0.107.0 // indirect
