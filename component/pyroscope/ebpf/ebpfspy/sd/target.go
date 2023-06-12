@@ -1,7 +1,6 @@
 package sd
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -32,10 +31,7 @@ type Target struct {
 func NewTarget(cid containerID, target discovery.Target) (*Target, error) {
 	serviceName := target[labelServiceName]
 	if serviceName == "" {
-		serviceName = target[labelServiceNameK8s]
-		if serviceName == "" {
-			return nil, errors.New("no service_name label")
-		}
+		serviceName = inferServiceName(target)
 	}
 
 	lset := make(map[string]string, len(target))
@@ -57,6 +53,23 @@ func NewTarget(cid containerID, target discovery.Target) (*Target, error) {
 	return &Target{
 		labels: labels.FromMap(lset),
 	}, nil
+}
+
+func inferServiceName(target discovery.Target) string {
+	k8sServiceName := target[labelServiceNameK8s]
+	if k8sServiceName != "" {
+		return k8sServiceName
+	}
+	k8sNamespace := target["__meta_kubernetes_namespace"]
+	k8sContainer := target["__meta_kubernetes_pod_container_name"]
+	if k8sNamespace != "" && k8sContainer != "" {
+		return fmt.Sprintf("%s/%s", k8sNamespace, k8sContainer)
+	}
+	dockerContainer := target["__meta_docker_container_name"]
+	if dockerContainer != "" {
+		return dockerContainer
+	}
+	return "unspecified"
 }
 
 func (t *Target) Labels() (uint64, labels.Labels) {
