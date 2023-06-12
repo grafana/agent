@@ -139,7 +139,7 @@ GO_LDFLAGS   := -X $(VPREFIX).Branch=$(GIT_BRANCH)                        \
                 -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 DEFAULT_FLAGS    := $(GO_FLAGS)
-DEBUG_GO_FLAGS   := -ldflags "$(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)" -gcflags "all=-N -l"
+DEBUG_GO_FLAGS   := -ldflags "$(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
 RELEASE_GO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
 
 ifeq ($(RELEASE_BUILD),1)
