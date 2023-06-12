@@ -39,13 +39,16 @@ func newModuleController(o *moduleControllerOptions) component.ModuleController 
 func (m *moduleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
-
 	if _, found := m.ids[id]; found {
 		return nil, fmt.Errorf("id %s already exists", id)
 	}
 	m.ids[id] = struct{}{}
+	fullPath := m.o.ID
+	if id != "" {
+		fullPath = path.Join(fullPath, id)
+	}
 	return newModule(&moduleOptions{
-		ID:                      id,
+		ID:                      fullPath,
 		export:                  export,
 		moduleControllerOptions: m.o,
 		parent:                  m,
@@ -177,4 +180,7 @@ type moduleControllerOptions struct {
 	// HTTPListenAddr. If set, components which send HTTP requests to
 	// HTTPListenAddr must use this function to establish connections.
 	controller.DialFunc
+
+	// ID is the attached components full ID.
+	ID string
 }

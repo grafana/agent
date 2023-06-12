@@ -65,18 +65,18 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	Logger            *logging.Logger              // Logger shared between all managed components.
-	TraceProvider     trace.TracerProvider         // Tracer shared between all managed components.
-	Clusterer         *cluster.Clusterer           // Clusterer shared between all managed components.
-	DataPath          string                       // Shared directory where component data may be stored
-	OnComponentUpdate func(cn *ComponentNode)      // Informs controller that we need to reevaluate
-	OnExportsChange   func(exports map[string]any) // Invoked when the managed component updated its exports
-	Registerer        prometheus.Registerer        // Registerer for serving agent and component metrics
-	HTTPPathPrefix    string                       // HTTP prefix for components.
-	HTTPListenAddr    string                       // Base address for server
-	DialFunc          DialFunc                     // Function to connect to HTTPListenAddr.
-	ControllerID      string                       // ID of controller.
-	ModuleController  component.ModuleController   // Module Controller used to instantiate modules.
+	Logger               *logging.Logger                            // Logger shared between all managed components.
+	TraceProvider        trace.TracerProvider                       // Tracer shared between all managed components.
+	Clusterer            *cluster.Clusterer                         // Clusterer shared between all managed components.
+	DataPath             string                                     // Shared directory where component data may be stored
+	OnComponentUpdate    func(cn *ComponentNode)                    // Informs controller that we need to reevaluate
+	OnExportsChange      func(exports map[string]any)               // Invoked when the managed component updated its exports
+	Registerer           prometheus.Registerer                      // Registerer for serving agent and component metrics
+	HTTPPathPrefix       string                                     // HTTP prefix for components.
+	HTTPListenAddr       string                                     // Base address for server
+	DialFunc             DialFunc                                   // Function to connect to HTTPListenAddr.
+	ControllerID         string                                     // ID of controller.
+	ModuleControllerFunc func(id string) component.ModuleController // Func to generate a module controller.
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -196,7 +196,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
 
 		OnStateChange:    cn.setExports,
-		ModuleController: globals.ModuleController,
+		ModuleController: globals.ModuleControllerFunc(globalID),
 	}
 }
 
