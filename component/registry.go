@@ -31,9 +31,9 @@ var (
 
 // ModuleController is a mechanism responsible for allowing components to create other components via modules.
 type ModuleController interface {
-	// NewModule creates a new, un-started Module. The id must be unique to the ModuleController.
-	// ID is appended to the global id of the calling component, and can be left blank.
-	// Though any id used needs to be unique for that component.
+	// NewModule creates a new, un-started Module with a given ID. Multiple calls to 
+	// NewModule must provide unique values for id. The empty string is a valid unique 
+	// value for id. 
 	NewModule(id string, export ExportFunc) (Module, error)
 }
 
