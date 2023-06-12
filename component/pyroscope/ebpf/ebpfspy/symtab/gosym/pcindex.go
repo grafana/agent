@@ -74,16 +74,22 @@ func (it *PCIndex) FindIndex(addr uint64) int {
 		return i
 	}
 	var i int
-	if addr < uint64(it.i64[0]) {
+	if addr < it.i64[0] {
 		return -1
 	}
 	i = sort.Search(n, func(i int) bool {
-		return addr < uint64(it.i64[i])
+		return addr < it.i64[i]
 	})
 	i--
 	return i
 }
 
+func (it *PCIndex) Value(idx int) uint64 {
+	if it.i32 != nil {
+		return uint64(it.i32[idx])
+	}
+	return it.i64[idx]
+}
 func (it *PCIndex) PCIndex64() PCIndex {
 	res := *it
 	if it.i64 != nil {

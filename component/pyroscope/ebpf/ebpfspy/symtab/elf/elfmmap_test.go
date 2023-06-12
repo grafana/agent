@@ -30,6 +30,7 @@ func TestElfSymbolComparison(t *testing.T) {
 
 		require.Equal(t, len(genuineSymbols), len(tab.Index.Names))
 		for i, symbol := range genuineSymbols {
+			require.Equal(t, symbol.Start, tab.Index.Values.Value(i))
 			name, _ := tab.symbolName(i)
 			mySymbols = append(mySymbols, TestSym{
 				Name:  name,
