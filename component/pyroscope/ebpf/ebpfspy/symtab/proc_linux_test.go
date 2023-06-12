@@ -94,7 +94,7 @@ func TestSelfElfSymbolsLazy(t *testing.T) {
 	symbolTable, err := me.NewSymbolTable()
 	require.NoError(t, err)
 
-	require.Greater(t, len(symbolTable.Symbols), 1000)
+	require.Greater(t, len(symbolTable.Index.Names), 1000)
 
 	for _, symbol := range expectedSymbols {
 		name := symbolTable.Resolve(symbol.Start)
