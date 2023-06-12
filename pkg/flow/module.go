@@ -39,14 +39,15 @@ func newModuleController(o *moduleControllerOptions) component.ModuleController 
 func (m *moduleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
-	if _, found := m.ids[id]; found {
-		return nil, fmt.Errorf("id %s already exists", id)
-	}
-	m.ids[id] = struct{}{}
 	fullPath := m.o.ID
 	if id != "" {
 		fullPath = path.Join(fullPath, id)
 	}
+	if _, found := m.ids[fullPath]; found {
+		return nil, fmt.Errorf("id %s already exists", id)
+	}
+	m.ids[fullPath] = struct{}{}
+
 	return newModule(&moduleOptions{
 		ID:                      fullPath,
 		export:                  export,

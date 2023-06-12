@@ -2,6 +2,7 @@ package flow
 
 import (
 	"context"
+	"github.com/prometheus/client_golang/prometheus"
 	"os"
 	"testing"
 	"time"
@@ -169,6 +170,7 @@ func TestIDCollision(t *testing.T) {
 		HTTPListenAddr: "",
 		HTTPPath:       "",
 		DialFunc:       nil,
+		ID:             "test",
 	})
 	m, err := nc.NewModule("t1", nil)
 	require.NoError(t, err)
@@ -176,6 +178,22 @@ func TestIDCollision(t *testing.T) {
 	m, err = nc.NewModule("t1", nil)
 	require.Error(t, err)
 	require.Nil(t, m)
+}
+
+func TestIDRemoval(t *testing.T) {
+	opts := testModuleControllerOptions(t)
+	opts.ID = "test"
+	nc := newModuleController(opts)
+	m, err := nc.NewModule("t1", func(exports map[string]any) {})
+	require.NoError(t, err)
+	err = m.LoadConfig([]byte(""), nil)
+	require.NoError(t, err)
+	require.NotNil(t, m)
+	ctx := context.Background()
+	ctx, cncl := context.WithTimeout(ctx, 1*time.Second)
+	defer cncl()
+	m.Run(ctx)
+	require.Len(t, nc.(*moduleController).ids, 0)
 }
 
 func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
@@ -189,7 +207,7 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	return &moduleControllerOptions{
 		Logger:    s,
 		DataPath:  t.TempDir(),
-		Reg:       nil,
+		Reg:       prometheus.NewRegistry(),
 		Clusterer: c,
 	}
 }
