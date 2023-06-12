@@ -52,7 +52,9 @@ func (e *SymbolTable) Resolve(addr uint64) string {
 		return ""
 	}
 	i := e.Index.Values.FindIndex(addr)
-
+	if i == -1 {
+		return ""
+	}
 	name, _ := e.symbolName(i)
 	return name
 }
