@@ -30,10 +30,12 @@ func (e *ElfCache) GetSymbolsByBuildID(buildID elf.BuildID) SymbolNameResolver {
 	}
 	entry, ok := e.buildID2Symbols.Get(buildID)
 	if ok && entry != nil {
-		e.metrics.ElfCacheBuildIDHit.Inc()
 		return entry
 	}
-	e.metrics.ElfCacheBuildIDMiss.Inc()
+	entry, ok = e.roundCache[buildID]
+	if ok && entry != nil {
+		return entry
+	}
 	return nil
 }
 
