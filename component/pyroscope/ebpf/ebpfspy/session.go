@@ -50,8 +50,6 @@ type Session struct {
 	bpf profileObjects
 
 	ProfileOptions
-
-	roundNumber int
 }
 
 func NewSession(
@@ -103,7 +101,7 @@ func (s *Session) Start() error {
 func (s *Session) Reset(cb func(t *sd.Target, stack []string, value uint64, pid uint32)) error {
 	defer s.symCache.Cleanup()
 
-	s.roundNumber += 1
+	s.symCache.NextRound()
 
 	keys, values, batch, err := s.getCountsMapValues()
 	if err != nil {
@@ -237,7 +235,7 @@ func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 		if ip == 0 {
 			break
 		}
-		sym := s.symCache.resolve(pid, ip, s.roundNumber)
+		sym := s.symCache.resolve(pid, ip)
 		var name string
 		if sym.Name != "" {
 			name = sym.Name

@@ -12,7 +12,6 @@ import (
 
 var (
 	errElfBaseNotFound = fmt.Errorf("elf base not found")
-	errNoDebugLink     = fmt.Errorf(".gnu_debuglink section not found")
 )
 
 type ElfTable struct {
@@ -93,24 +92,8 @@ func (t *ElfTable) load() {
 		return
 	}
 
-	fileInfo, err := os.Stat(path.Join(t.fs, t.elfFilePath))
-	if err != nil {
-		t.err = err
-		return
-	}
-	symbols = t.options.ElfCache.GetSymbolsByStat(statFromFileInfo(fileInfo))
-	if symbols != nil {
-		t.table = symbols
-		return
-	}
-
-	debugFilePath, debugFileStat := t.findDebugFile(buildID, me)
+	debugFilePath := t.findDebugFile(buildID, me)
 	if debugFilePath != "" {
-		symbols = t.options.ElfCache.GetSymbolsByStat(debugFileStat)
-		if symbols != nil {
-			t.table = symbols
-			return
-		}
 		debugMe, err := elf2.NewMMapedElfFile(path.Join(t.fs, debugFilePath))
 		if err != nil {
 			t.err = err
@@ -125,7 +108,6 @@ func (t *ElfTable) load() {
 		}
 		t.table = symbols
 		t.options.ElfCache.CacheByBuildID(buildID, symbols)
-		t.options.ElfCache.CacheByStat(debugFileStat, symbols)
 		return
 	}
 
@@ -137,7 +119,6 @@ func (t *ElfTable) load() {
 
 	t.table = symbols
 	t.options.ElfCache.CacheByBuildID(buildID, symbols)
-	t.options.ElfCache.CacheByStat(statFromFileInfo(fileInfo), symbols)
 	return
 
 }
@@ -175,23 +156,23 @@ func (t *ElfTable) Cleanup() {
 	}
 }
 
-func (t *ElfTable) findDebugFileWithBuildID(buildID elf2.BuildID) (string, stat) {
+func (t *ElfTable) findDebugFileWithBuildID(buildID elf2.BuildID) string {
 	id := buildID.ID()
 	if len(id) < 3 || !buildID.GNU() {
-		return "", stat{}
+		return ""
 	}
 
 	debugFile := fmt.Sprintf("/usr/lib/debug/.build-id/%s/%s.debug", id[:2], id[2:])
 	fsDebugFile := path.Join(t.fs, debugFile)
-	fileInfo, err := os.Stat(fsDebugFile)
+	_, err := os.Stat(fsDebugFile)
 	if err == nil {
-		return debugFile, statFromFileInfo(fileInfo)
+		return debugFile
 	}
 
-	return "", stat{}
+	return ""
 }
 
-func (t *ElfTable) findDebugFile(buildID elf2.BuildID, elfFile *elf2.MMapedElfFile) (string, stat) {
+func (t *ElfTable) findDebugFile(buildID elf2.BuildID, elfFile *elf2.MMapedElfFile) string {
 	// https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html
 	// So, for example, suppose you ask GDB to debug /usr/bin/ls, which has a debug link that specifies the file
 	// ls.debug, and a build ID whose value in hex is abcdef1234. If the list of the global debug directories
@@ -201,27 +182,27 @@ func (t *ElfTable) findDebugFile(buildID elf2.BuildID, elfFile *elf2.MMapedElfFi
 	//- /usr/bin/ls.debug
 	//- /usr/bin/.debug/ls.debug
 	//- /usr/lib/debug/usr/bin/ls.debug.
-	debugFile, fileInfo := t.findDebugFileWithBuildID(buildID)
+	debugFile := t.findDebugFileWithBuildID(buildID)
 	if debugFile != "" {
-		return debugFile, fileInfo
+		return debugFile
 	}
-	debugFile, fileInfo, _ = t.findDebugFileWithDebugLink(elfFile)
-	return debugFile, fileInfo
+	debugFile = t.findDebugFileWithDebugLink(elfFile)
+	return debugFile
 }
 
-func (t *ElfTable) findDebugFileWithDebugLink(elfFile *elf2.MMapedElfFile) (string, stat, error) {
+func (t *ElfTable) findDebugFileWithDebugLink(elfFile *elf2.MMapedElfFile) string {
 	fs := t.fs
 	elfFilePath := t.elfFilePath
 	debugLinkSection := elfFile.Section(".gnu_debuglink")
 	if debugLinkSection == nil {
-		return "", stat{}, errNoDebugLink
+		return ""
 	}
 	data, err := elfFile.SectionData(debugLinkSection)
 	if err != nil {
-		return "", stat{}, fmt.Errorf("reading .gnu_debuglink %w", err)
+		return ""
 	}
 	if len(data) < 6 {
-		return "", stat{}, fmt.Errorf(".gnu_debuglink is too small")
+		return ""
 	}
 	crc := data[len(data)-4:]
 	_ = crc
@@ -229,24 +210,24 @@ func (t *ElfTable) findDebugFileWithDebugLink(elfFile *elf2.MMapedElfFile) (stri
 
 	// /usr/bin/ls.debug
 	fsDebugFile := path.Join(path.Dir(elfFilePath), debugLink)
-	fileInfo, err := os.Stat(path.Join(fs, fsDebugFile))
+	_, err = os.Stat(path.Join(fs, fsDebugFile))
 	if err == nil {
-		return fsDebugFile, statFromFileInfo(fileInfo), nil
+		return fsDebugFile
 	}
 	// /usr/bin/.debug/ls.debug
 	fsDebugFile = path.Join(path.Dir(elfFilePath), ".debug", debugLink)
-	fileInfo, err = os.Stat(path.Join(fs, fsDebugFile))
+	_, err = os.Stat(path.Join(fs, fsDebugFile))
 	if err == nil {
-		return fsDebugFile, statFromFileInfo(fileInfo), nil
+		return fsDebugFile
 	}
 	// /usr/lib/debug/usr/bin/ls.debug.
 	fsDebugFile = path.Join("/usr/lib/debug", path.Dir(elfFilePath), debugLink)
-	fileInfo, err = os.Stat(path.Join(fs, fsDebugFile))
+	_, err = os.Stat(path.Join(fs, fsDebugFile))
 	if err == nil {
-		return fsDebugFile, statFromFileInfo(fileInfo), nil
+		return fsDebugFile
 	}
 
-	return "", stat{}, nil
+	return ""
 }
 
 func cString(bs []byte) string {

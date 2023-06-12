@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 )
@@ -21,7 +22,7 @@ type symbolCacheEntry struct {
 type pidKey uint32
 
 type symbolCache struct {
-	//pidCache   *lru.Cache[pidKey, *symbolCacheEntry]
+	round      int
 	roundCache map[pidKey]*symbolCacheEntry
 	elfCache   *symtab.ElfCache
 	kallsyms   symbolCacheEntry
@@ -30,11 +31,6 @@ type symbolCache struct {
 }
 
 func newSymbolCache(logger log.Logger, options CacheOptions, metrics *metrics.Metrics) (*symbolCache, error) {
-	//pid2Cache, err := lru.New[pidKey, *symbolCacheEntry](options.PidCacheSize)
-	//if err != nil {
-	//	return nil, fmt.Errorf("create pid symbol cache %w", err)
-	//}
-
 	elfCache, err := symtab.NewElfCache(options.ElfCacheSize, metrics)
 	if err != nil {
 		return nil, fmt.Errorf("create elf cache %w", err)
@@ -49,46 +45,46 @@ func newSymbolCache(logger log.Logger, options CacheOptions, metrics *metrics.Me
 		return nil, fmt.Errorf("create kallsyms %w ", err)
 	}
 	return &symbolCache{
-		logger:  logger,
-		metrics: metrics,
-		//pidCache: pid2Cache,
+		logger:     logger,
+		metrics:    metrics,
 		roundCache: make(map[pidKey]*symbolCacheEntry),
 		kallsyms:   symbolCacheEntry{symbolTable: kallsyms},
 		elfCache:   elfCache,
 	}, nil
 }
 
-func (sc *symbolCache) resolve(pid uint32, addr uint64, roundNumber int) symtab.Symbol {
+func (sc *symbolCache) NextRound() {
+	sc.round++
+}
+
+func (sc *symbolCache) resolve(pid uint32, addr uint64) symtab.Symbol {
 	e := sc.getOrCreateCacheEntry(pidKey(pid))
-	staleCheck := false
-	if roundNumber != e.roundNumber {
-		e.roundNumber = roundNumber
-		staleCheck = true
+	refresh := false
+	if e.roundNumber != sc.round {
+		e.roundNumber = sc.round
+		refresh = true
 	}
-	if staleCheck {
+	if refresh {
 		e.symbolTable.Refresh()
 	}
 	return e.symbolTable.Resolve(addr)
 }
 
 func (sc *symbolCache) Cleanup() {
-	//todo count usage and remove least used
-	// this may be optimized a bit
-	// an entry may be cleanup 2 times from roundCache, and pidCache,
-	for _, entry := range sc.roundCache {
-		entry.symbolTable.Cleanup()
-	}
-	//keys := sc.pidCache.Keys()
-	//for _, pid := range keys {
-	//	tab, ok := sc.pidCache.Peek(pid)
-	//	if !ok || tab == nil {
-	//		continue
-	//	}
-	//	tab.symbolTable.Cleanup()
-	//}
 	sc.elfCache.Cleanup()
 
+	prev := sc.roundCache
+	for _, entry := range prev {
+		entry.symbolTable.Cleanup()
+	}
+
 	sc.roundCache = make(map[pidKey]*symbolCacheEntry)
+	for key, entry := range prev {
+		if entry.roundNumber == sc.round {
+			sc.roundCache[key] = entry
+		}
+	}
+	level.Debug(sc.logger).Log("msg", "symbolCache cleanup", "was", len(prev), "now", len(sc.roundCache))
 }
 
 func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
@@ -100,12 +96,6 @@ func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
 		return cache
 	}
 
-	//if cache, ok := sc.pidCache.Get(pid); ok {
-	//	sc.metrics.PidCacheHit.Inc()
-	//	return cache
-	//}
-	//sc.metrics.PidCacheMiss.Inc()
-
 	symbolTable := symtab.NewProcTable(sc.logger, symtab.ProcTableOptions{
 		Pid: int(pid),
 		ElfTableOptions: symtab.ElfTableOptions{
@@ -113,7 +103,7 @@ func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
 		},
 	})
 	e := &symbolCacheEntry{symbolTable: symbolTable, roundNumber: -1}
-	//sc.pidCache.Add(pid, e)
+
 	sc.roundCache[pid] = e
 	return e
 }

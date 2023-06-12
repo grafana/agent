@@ -83,7 +83,6 @@ func (p *ProcTable) refresh(procMaps string) {
 		}
 	}
 	for _, f := range filesToDelete {
-		//p.file2Table[f].Cleanup()
 		delete(p.file2Table, f)
 	}
 }
