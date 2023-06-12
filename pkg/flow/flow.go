@@ -178,7 +178,7 @@ func New(o Options) *Flow {
 			HTTPListenAddr:  o.HTTPListenAddr,
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
-			ModuleControllerFunc: func(id string) component.ModuleController {
+			NewModuleController: func(id string) component.ModuleController {
 				return newModuleController(&moduleControllerOptions{
 					Logger:         log,
 					Tracer:         tracer,

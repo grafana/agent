@@ -31,9 +31,9 @@ var (
 
 // ModuleController is a mechanism responsible for allowing components to create other components via modules.
 type ModuleController interface {
-	// NewModule creates a new, un-started Module with a given ID. Multiple calls to 
-	// NewModule must provide unique values for id. The empty string is a valid unique 
-	// value for id. 
+	// NewModule creates a new, un-started Module with a given ID. Multiple calls to
+	// NewModule must provide unique values for id. The empty string is a valid unique
+	// value for id.
 	NewModule(id string, export ExportFunc) (Module, error)
 }
 
@@ -47,7 +47,8 @@ type Module interface {
 	// Run starts the Module. No components within the Module
 	// will be run until Run is called.
 	//
-	// Run blocks until the provided context is canceled.
+	// Run blocks until the provided context is canceled. The ID of a module as defined in
+	// ModulesController.NewModule will not be released until Run returns.
 	Run(context.Context)
 
 	// ComponentHandler returns an HTTP handler which exposes endpoints of
