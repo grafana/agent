@@ -40,7 +40,7 @@ The project must be updated to reference the upcoming release tag whenever a new
     git cherry-pick -x COMMIT_SHA
     ```
 
-    For a Release Candidate, delete the `Main (unreleased)` header and anything underneath it as part of the cherry-pick. Alternatively, do it after the cherry-pick is completed.
+    Delete the `Main (unreleased)` header and anything underneath it as part of the cherry-pick. Alternatively, do it after the cherry-pick is completed.
 
 6. Create a PR to merge to `release-VERSION_PREFIX` (must be merged before continuing).
 

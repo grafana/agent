@@ -116,8 +116,8 @@ Name | Type | Description | Default | Required
 ### disk block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`device_exclude` | `string` | Regexp of devices to exclude for diskstats (mutually exclusive with `device_include`). | `"^(ram\|loop\|fd\|(h\|s\|v\|xv)d[a-z]\|nvme\\d+n\\d+p)\\d+$"` | no
-`device_include` | `string` | Regexp of devices to include for diskstats (mutually exclusive with `device_exclude`). | | no
+`device_exclude` | `string` | Regexp of devices to exclude for diskstats. | `"^(ram\|loop\|fd\|(h\|s\|v\|xv)d[a-z]\|nvme\\d+n\\d+p)\\d+$"` | no
+`device_include` | `string` | Regexp of devices to include for diskstats. If set, `device_exclude` is ignored.  | | no
 
 ### ethtool block
 Name | Type | Description | Default | Required

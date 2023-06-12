@@ -14,7 +14,7 @@ If this is your first time using Grafana Agent, use one of the installation opti
 If you have already installed Grafana Agent on your machine, you can jump to the [Configure Grafana Agent]({{< relref "../configuration/_index.md" >}}) section.
 
 To get started with Grafana Agent Operator, refer to the Operator-specific
-[documentation](../operator/).
+[documentation](../../operator/_index.md).
 
 ## Installation options
 

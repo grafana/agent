@@ -33,6 +33,14 @@ type Entry struct {
 	logproto.Entry
 }
 
+// Clone returns a copy of the entry so that it can be safely fanned out.
+func (e *Entry) Clone() Entry {
+	return Entry{
+		Labels: e.Labels.Clone(),
+		Entry:  e.Entry,
+	}
+}
+
 // InstrumentedEntryHandler ...
 type InstrumentedEntryHandler interface {
 	EntryHandler

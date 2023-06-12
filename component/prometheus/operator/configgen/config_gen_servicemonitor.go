@@ -63,17 +63,37 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 		cfg.HTTPClientConfig.EnableHTTP2 = *ep.EnableHttp2
 	}
 	if ep.TLSConfig != nil {
-		if cfg.HTTPClientConfig.TLSConfig, err = cg.generateSafeTLS(ep.TLSConfig.SafeTLSConfig); err != nil {
+		if cfg.HTTPClientConfig.TLSConfig, err = cg.generateTLSConfig(*ep.TLSConfig, m.Namespace); err != nil {
 			return nil, err
 		}
 	}
-	if ep.BearerTokenSecret.Name != "" {
-		return nil, fmt.Errorf("bearer tokens in serviceMonitors not supported yet: %w", err)
+	if ep.BearerTokenFile != "" {
+		cfg.HTTPClientConfig.BearerTokenFile = ep.BearerTokenFile
+	} else if ep.BearerTokenSecret.Name != "" {
+		val, err := cg.Secrets.GetSecretValue(m.Namespace, ep.BearerTokenSecret)
+		if err != nil {
+			return nil, err
+		}
+		cfg.HTTPClientConfig.BearerToken = commonConfig.Secret(val)
 	}
 	if ep.BasicAuth != nil {
-		return nil, fmt.Errorf("basic auth in serviceMonitors not supported yet: %w", err)
+		cfg.HTTPClientConfig.BasicAuth, err = cg.generateBasicAuth(*ep.BasicAuth, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
 	}
-	// TODO: Add support for ep.OAuth2 and ep.Authorization
+	if ep.OAuth2 != nil {
+		cfg.HTTPClientConfig.OAuth2, err = cg.generateOauth2(*ep.OAuth2, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if ep.Authorization != nil {
+		cfg.HTTPClientConfig.Authorization, err = cg.generateAuthorization(*ep.Authorization, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	relabels := cg.initRelabelings()
 

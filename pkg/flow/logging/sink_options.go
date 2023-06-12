@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/river"
 )
 
 // SinkOptions is a set of options used to construct and configure a logging
@@ -29,14 +28,9 @@ var DefaultSinkOptions = SinkOptions{
 	IncludeTimestamps: true,
 }
 
-var _ river.Unmarshaler = (*SinkOptions)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (o *SinkOptions) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (o *SinkOptions) SetToDefault() {
 	*o = DefaultSinkOptions
-
-	type options SinkOptions
-	return f((*options)(o))
 }
 
 // Level represents how verbose logging should be.

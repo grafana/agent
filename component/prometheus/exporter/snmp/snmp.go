@@ -6,9 +6,9 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 )
 
@@ -17,7 +17,7 @@ func init() {
 		Name:    "prometheus.exporter.snmp",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.NewMultiTarget(createExporter, "snmp", buildSNMPTargets),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "snmp", buildSNMPTargets),
 	})
 }
 
@@ -133,12 +133,6 @@ type Arguments struct {
 	ConfigFile string      `river:"config_file,attr"`
 	Targets    TargetBlock `river:"target,block"`
 	WalkParams WalkParams  `river:"walk_param,block,optional"`
-}
-
-// UnmarshalRiver implements River unmarshalling for Arguments.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	type args Arguments
-	return f((*args)(a))
 }
 
 // Convert converts the component's Arguments to the integration's Config.

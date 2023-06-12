@@ -16,6 +16,8 @@ labels:
 
 The default configuration assumes the agent is running inside a Kubernetes cluster, and uses the in-cluster config to access the Kubernetes API. It can be run from outside the cluster by supplying connection info in the `client` block, but network level access to pods is required to scrape metrics from them.
 
+PodMonitors may reference secrets for authenticating to targets to scrape them. In these cases, the secrets are loaded and refreshed only when the PodMonitor is updated or when this component refreshes its' internal state, which happens on a 5-minute refresh cycle.
+
 ## Usage
 
 ```river

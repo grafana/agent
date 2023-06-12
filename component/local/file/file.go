@@ -12,8 +12,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 )
 
 // waitReadPeriod holds the time to wait before reading a file while the
@@ -56,14 +55,9 @@ var DefaultArguments = Arguments{
 	PollFrequency: time.Minute,
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(a))
 }
 
 // Exports holds values which are exported by the local.file component.

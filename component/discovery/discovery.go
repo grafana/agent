@@ -3,15 +3,17 @@ package discovery
 import (
 	"context"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/ckit/shard"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/model/labels"
-	"github.com/rfratto/ckit/shard"
 )
 
 // Target refers to a singular discovered endpoint found by a discovery
@@ -46,7 +48,7 @@ func (t *DistributedTargets) Get() []Target {
 	// TODO(@tpaschalis): Make sure OpReadWrite is the correct operation;
 	// eg. this determines how clustering behaves when nodes are shutting down.
 	for _, tgt := range t.targets {
-		peers, err := t.node.Lookup(shard.StringKey(tgt.Labels().String()), 1, shard.OpReadWrite)
+		peers, err := t.node.Lookup(shard.StringKey(tgt.NonMetaLabels().String()), 1, shard.OpReadWrite)
 		if err != nil {
 			// This can only fail in case we ask for more owners than the
 			// available peers. This will never happen, but in any case we fall
@@ -66,6 +68,17 @@ func (t Target) Labels() labels.Labels {
 	var lset labels.Labels
 	for k, v := range t {
 		lset = append(lset, labels.Label{Name: k, Value: v})
+	}
+	sort.Sort(lset)
+	return lset
+}
+
+func (t Target) NonMetaLabels() labels.Labels {
+	var lset labels.Labels
+	for k, v := range t {
+		if !strings.HasPrefix(k, model.MetaLabelPrefix) {
+			lset = append(lset, labels.Label{Name: k, Value: v})
+		}
 	}
 	sort.Sort(lset)
 	return lset

@@ -14,7 +14,7 @@ import (
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -135,7 +135,9 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 	// Override the endpoint.
 	if args.Options.Endpoint != "" {
 		endFunc := aws.EndpointResolverWithOptionsFunc(func(service, region string, _ ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{URL: args.Options.Endpoint}, nil
+			// The S3 compatible system used for testing with does not require signing region, so it's fine to be blank
+			// but when using a proxy to real S3 it needs to be injected.
+			return aws.Endpoint{URL: args.Options.Endpoint, SigningRegion: args.Options.SigningRegion}, nil
 		})
 		endResolver := aws_config.WithEndpointResolverWithOptions(endFunc)
 		configOptions = append(configOptions, endResolver)
@@ -222,8 +224,8 @@ func (s *S3) handleContentPolling(newContent string, err error) {
 // getPathBucketAndFile takes the path and splits it into a bucket and file.
 func getPathBucketAndFile(path string) (bucket, file string) {
 	parts := strings.Split(path, "/")
-	file = parts[len(parts)-1]
-	bucket = strings.Join(parts[:len(parts)-1], "/")
+	file = strings.Join(parts[3:], "/")
+	bucket = strings.Join(parts[:3], "/")
 	bucket = strings.ReplaceAll(bucket, "s3://", "")
 	return
 }

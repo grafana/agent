@@ -93,7 +93,7 @@ type Component interface {
 	// always match the struct type which the component registers.
 	//
 	// Update will be called concurrently with Run. The component must be able to
-	// gracefully handle updating its config will still running.
+	// gracefully handle updating its config while still running.
 	//
 	// An error may be returned if the provided config is invalid.
 	Update(args Arguments) error

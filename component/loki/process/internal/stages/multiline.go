@@ -15,7 +15,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
 )
@@ -41,18 +40,13 @@ var DefaultMultilineConfig = MultilineConfig{
 	MaxWaitTime: 3 * time.Second,
 }
 
-var _ river.Unmarshaler = (*MultilineConfig)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler, applying defaults and
-// validating the provided config.
-func (args *MultilineConfig) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *MultilineConfig) SetToDefault() {
 	*args = DefaultMultilineConfig
+}
 
-	type arguments MultilineConfig
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *MultilineConfig) Validate() error {
 	if args.MaxWaitTime <= 0 {
 		return fmt.Errorf("max_wait_time must be greater than 0")
 	}

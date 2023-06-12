@@ -19,7 +19,6 @@ import (
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/loki/source/kubernetes/kubetail"
-	"github.com/grafana/agent/pkg/river"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -44,8 +43,6 @@ type Arguments struct {
 	Client commonk8s.ClientArguments `river:"client,block,optional"`
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
 // DefaultArguments holds default settings for loki.source.kubernetes.
 var DefaultArguments = Arguments{
 	Client: commonk8s.ClientArguments{
@@ -53,12 +50,9 @@ var DefaultArguments = Arguments{
 	},
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies defaults.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Component implements the loki.source.kubernetes component.

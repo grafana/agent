@@ -1,4 +1,4 @@
-{{- if and (eq .Values.controller.type "deployment") .Values.controller.autoscaling.enabled }}
+{{- if and (or (eq .Values.controller.type "deployment") (eq .Values.controller.type "statefulset" ))  .Values.controller.autoscaling.enabled }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -8,24 +8,27 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment
+    kind: {{ .Values.controller.type  }}
     name: {{ include "grafana-agent.fullname" . }}
   {{- with .Values.controller.autoscaling }}
   minReplicas: {{ .minReplicas }}
   maxReplicas: {{ .maxReplicas }}
   metrics:
-    {{- with .targetCPUUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: {{ . }}
-    {{- end }}
+    # Changing the order of the metrics will cause ArgoCD to go into a sync loop
+    # memory needs to be first.
+    # More info in: https://github.com/argoproj/argo-cd/issues/1079
     {{- with .targetMemoryUtilizationPercentage }}
     - type: Resource
       resource:
         name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ . }}
+    {{- end }}
+    {{- with .targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
         target:
           type: Utilization
           averageUtilization: {{ . }}

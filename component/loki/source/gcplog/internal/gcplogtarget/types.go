@@ -19,6 +19,7 @@ type PullConfig struct {
 	Subscription         string            `river:"subscription,attr"`
 	Labels               map[string]string `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool              `river:"use_incoming_timestamp,attr,optional"`
+	UseFullLine          bool              `river:"use_full_line,attr,optional"`
 }
 
 // PushConfig configures a GCPLog target with the 'push' strategy.
@@ -27,15 +28,18 @@ type PushConfig struct {
 	PushTimeout          time.Duration      `river:"push_timeout,attr,optional"`
 	Labels               map[string]string  `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool               `river:"use_incoming_timestamp,attr,optional"`
+	UseFullLine          bool               `river:"use_full_line,attr,optional"`
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (p *PushConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	type pushCfg PushConfig
-	err := f((*pushCfg)(p))
-	if err != nil {
-		return err
+// SetToDefault implements river.Defaulter.
+func (p *PushConfig) SetToDefault() {
+	*p = PushConfig{
+		Server: fnet.DefaultServerConfig(),
 	}
+}
+
+// Validate implements river.Validator.
+func (p *PushConfig) Validate() error {
 	if p.PushTimeout < 0 {
 		return fmt.Errorf("push_timeout must be greater than zero")
 	}

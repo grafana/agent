@@ -13,7 +13,6 @@ import (
 	"github.com/grafana/agent/component/otelcol/exporter/prometheus/internal/convert"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/prometheus/prometheus/storage"
 )
 
@@ -37,8 +36,6 @@ type Arguments struct {
 	ForwardTo         []storage.Appendable `river:"forward_to,attr"`
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
 // DefaultArguments holds defaults values.
 var DefaultArguments = Arguments{
 	IncludeTargetInfo: true,
@@ -46,15 +43,13 @@ var DefaultArguments = Arguments{
 	GCFrequency:       5 * time.Minute,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies defaults.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.GCFrequency == 0 {
 		return fmt.Errorf("gc_frequency must be greater than 0")
 	}

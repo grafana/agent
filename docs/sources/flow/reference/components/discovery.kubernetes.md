@@ -127,6 +127,8 @@ The following labels are included for discovered pods:
   `InitContainer`.
 * `__meta_kubernetes_pod_container_name`: Name of the container the target
   address points to.
+* `__meta_kubernetes_pod_container_id`: ID of the container the target address
+  points to. The ID is in the form `<type>://<container_id>`.
 * `__meta_kubernetes_pod_container_image`: The image the container is using.
 * `__meta_kubernetes_pod_container_port_name`: Name of the container port.
 * `__meta_kubernetes_pod_container_port_number`: Number of the container port.
@@ -245,6 +247,7 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 namespaces | [namespaces][] | Information about which Kubernetes namespaces to search. | no
 selectors | [selectors][] | Information about which Kubernetes namespaces to search. | no
+attach_metadata | [attach_metadata][] | Optional metadata to attach to discovered targets. | no
 basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
 authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
@@ -256,6 +259,7 @@ an `oauth2` block.
 
 [namespaces]: #namespaces-block
 [selectors]: #selectors-block
+[attach_metadata]: #attach_metadata-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
@@ -296,6 +300,14 @@ selectors][] to learn more about the possible filters that can be used.
 [Field selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
 [Labels and selectros]: https://Kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
+
+### attach_metadata block
+The `attach_metadata` block allows to attach node metadata to discovered
+targets. Valid for roles: pod, endpoints, endpointslice.
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`node` | `bool`   | Attach node metadata. | | no
 
 ### basic_auth block
 

@@ -86,6 +86,16 @@
     },
   },
 
+  withCenteredAxis():: {
+    fieldConfig+: {
+      defaults+: {
+        custom+: {
+          axisCenteredZero: true,
+        },
+      },
+    },
+  },
+
   withPosition(pos):: { gridPos: pos },
   withDescription(desc):: { description: desc },
   withOptions(options):: { options: options },

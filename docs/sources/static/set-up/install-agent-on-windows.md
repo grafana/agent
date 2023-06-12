@@ -1,5 +1,5 @@
 ---
-title: Install static mode on Windows
+title: Windows
 weight: 120
 aliases:
 - ../../set-up/install-agent-on-windows/
@@ -7,42 +7,51 @@ aliases:
 
 # Install static mode on Windows
 
-Install Grafana Agent and get it up and running on Windows.
+You can install Grafana Agent in static mode on Microsoft Windows.
 
-## Steps
+## Download Grafana Agent for Windows
 
-1.  Navigate to [Releases](https://github.com/grafana/agent/releases).
-
-    This page includes instructions for downloading static binaries that are published with every release. These releases contain the plain binary alongside system packages for Windows, Red Hat, and Debian Linux.
+1. Navigate to the [latest release](https://github.com/grafana/agent/releases).
 1. Scroll down to the **Assets** section.
-1. Download `grafana-agent-installer.exe.zip`.
+1. Download the file called `grafana-agent-installer.exe.zip`.
 
    You can also download the `grafana-agent-installer.exe.zip` asset directly from https://github.com/grafana/agent/releases/latest/download/grafana-agent-installer.exe.zip
 
-    Grafana Agent is installed into the default directory `C:\Program Files\Grafana Agent`.
-    The [windows_exporter integration](https://github.com/prometheus-community/windows_exporter)
-    can be enabled with all default windows_exporter options.
+## Standard installation
 
-1. Check you can access `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/metrics/targets`.
+1. Unzip the downloaded file.
+1. Double-click on `grafana-agent-installer.exe` to install Grafana Agent.
 
+   Grafana Agent is installed into the default directory `C:\Program Files\Grafana Agent`.
+   The [windows_exporter integration](https://grafana.com/docs/agent/latest/static/configuration/integrations/windows-exporter-config) can be enabled with all default windows_exporter options.
 
+## Silent installation
 
-1. (Optional): You can adjust `C:\Program Files\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, restart the Grafana Agent service to load changes to the configuration.
+1. Unzip the downloaded file.
+1. Run the following command in PowerShell or Command Prompt:
 
-   Existing configuration files are kept when re-installing or upgrading the Grafana Agent.
+   ```shell
+   PATH_TO_INSTALLER/grafana-agent-installer.exe /S
+   ```
+## Silent installation with `remote_write`
 
-## Silent Installation
+If you are using `remote_write` you must enable Windows Exporter and set the global remote_write configuration. 
 
-You can install Grafana Agent using silent installation as follows.
+1. Unzip the downloaded file.
+1. Run the following command in PowerShell or Command Prompt:
 
-1. Enter the following in your command line.
-   `grafana-agent-installer.exe /S /EnableExporter true /Username xyz /Password password /Url "http://example.com" `
+   ```shell
+   PATH_TO_INSTALLER/grafana-agent-installer.exe /S /EnableExporter true /Username <username> /Password <password> /Url "http://example.com"
+   ```
 
-1. Set EnableExporter to enable Windows Exporter. The default is `false`.
-1. Enter a Username, Password, and URL to set the global remote_write configuration.
+   If you are using Powershell, make sure you use triple quotes `"""http://example.com"""` around the URL parameter.
 
-  You do not need to set username, password, and URL if you are not using remote_write.
-  If you are using powershell, use triple quotes `"""http://example.com"""` around the URL parameter around the url parameter.
+## Verify the installation
+
+1. Make sure you can access `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/metrics/targets`.
+1. Optional: You can adjust `C:\Program Files\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, restart the Grafana Agent service to load changes to the configuration.
+
+Existing configuration files are kept when re-installing or upgrading the Grafana Agent.
 
 ## Security
 
@@ -53,15 +62,15 @@ If you change the location of the configuration file, ensure you complete the fo
 1. Update the Grafana Agent service to load the new path.
 1. Run the following in an elevated prompt, replacing `<new_path>` with the full path holding `agent-config.yaml`:
 
-```
-sc config "Grafana Agent" binpath= "<installed_directory>\agent-windows-amd64.exe -config.file=\"<new_path>\agent-config.yaml\""
+```shell
+sc config "Grafana Agent" binpath= "INSTALLED_DIRECTORY\agent-windows-amd64.exe -config.file=\"<new_path>\agent-config.yaml\""
 ```
 
 ## Uninstall Grafana Agent
 
 If you installed Grafana Agent using the Windows installer, you can uninstall it using Windows' Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`.
 Uninstalling Grafana Agent will stop the service and remove it from disk. This includes any configuration files in the installation directory.
-Grafana Agent can also be silently uninstalled by executing `uninstall.exe /S` while running as Administrator.
+Grafana Agent can also be silently uninstalled by executing `uninstall.exe /S` as Administrator.
 
 ## Logs
 
@@ -96,4 +105,4 @@ logs:
             job: windows
 ```
 
-Additional windows_events configuration details can be found [here](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#windows_events).
+Refer to [windows_events](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#windows_events) for additional configuration details.

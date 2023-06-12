@@ -53,12 +53,12 @@ To deploy the `GrafanaAgent` resource:
       labels:
         app: grafana-agent
     spec:
-      image: grafana/agent:v0.33.1
+      image: grafana/agent:v0.34.0
       integrations:
         selector:
           matchLabels:
               agent: grafana-agent-integrations
-      image: grafana/agent:v0.33.1
+      image: grafana/agent:v0.34.0
       logLevel: info
       serviceAccountName: grafana-agent
       metrics:
