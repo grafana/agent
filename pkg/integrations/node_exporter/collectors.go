@@ -65,6 +65,7 @@ const (
 	CollectorNVME         = "nvme"
 	CollectorNetclass     = "netclass"
 	CollectorNetdev       = "netdev"
+	CollectorNetisr       = "netisr"
 	CollectorNetstat      = "netstat"
 	CollectorNetworkRoute = "network_route"
 	CollectorOS           = "os"
@@ -144,6 +145,7 @@ var Collectors = map[string]CollectorState{
 	CollectorNVME:         CollectorStateEnabled,
 	CollectorNetclass:     CollectorStateEnabled,
 	CollectorNetdev:       CollectorStateEnabled,
+	CollectorNetisr:       CollectorStateEnabled,
 	CollectorNetstat:      CollectorStateEnabled,
 	CollectorNetworkRoute: CollectorStateDisabled,
 	CollectorOS:           CollectorStateEnabled,
