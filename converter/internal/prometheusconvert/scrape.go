@@ -12,29 +12,18 @@ import (
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendScrape(f *builder.File, scrapeConfigs []*promconfig.ScrapeConfig, forwardTo []storage.Appendable) {
-	var scrapeForwardTo []storage.Appendable
-	for _, scrapeConfig := range scrapeConfigs {
-		relabelExports := appendRelabel(f, scrapeConfig.RelabelConfigs, forwardTo, scrapeConfig.JobName)
-
-		if relabelExports != nil {
-			scrapeForwardTo = []storage.Appendable{relabelExports.Receiver}
-		} else {
-			scrapeForwardTo = forwardTo
-		}
-
-		scrapeArgs := toScrapeArguments(scrapeConfig, scrapeForwardTo)
-		common.AppendBlockWithOverride(f, []string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
-	}
+func appendScrape(f *builder.File, scrapeConfig *promconfig.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) {
+	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
+	common.AppendBlockWithOverride(f, []string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
 }
 
-func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig, forwardTo []storage.Appendable) *scrape.Arguments {
+func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
 	if scrapeConfig == nil {
 		return nil
 	}
 
 	return &scrape.Arguments{
-		Targets:               getTargets(scrapeConfig),
+		Targets:               targets,
 		ForwardTo:             forwardTo,
 		JobName:               scrapeConfig.JobName,
 		HonorLabels:           scrapeConfig.HonorLabels,
@@ -56,18 +45,13 @@ func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig, forwardTo []storag
 	}
 }
 
-func getTargets(scrapeConfig *promconfig.ScrapeConfig) []discovery.Target {
+func getScrapeTargets(staticConfig promdiscovery.StaticConfig) []discovery.Target {
 	targets := []discovery.Target{}
 
-	for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
-		switch sdc := serviceDiscoveryConfig.(type) {
-		case promdiscovery.StaticConfig:
-			for _, target := range sdc {
-				for _, labelSet := range target.Targets {
-					for labelName, labelValue := range labelSet {
-						targets = append(targets, map[string]string{string(labelName): string(labelValue)})
-					}
-				}
+	for _, target := range staticConfig {
+		for _, labelSet := range target.Targets {
+			for labelName, labelValue := range labelSet {
+				targets = append(targets, map[string]string{string(labelName): string(labelValue)})
 			}
 		}
 	}
