@@ -25,6 +25,9 @@ Main (unreleased)
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
 
+- Fix issue where metrics and traces were not recorded from components within modules. (@mattdurham)
+
+
 v0.34.0-rc.1 (2023-06-02)
 --------------------
 
