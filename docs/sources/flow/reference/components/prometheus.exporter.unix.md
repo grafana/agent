@@ -290,7 +290,7 @@ or disable collectors that are expensive to run.
 | `btrfs`            | Exposes statistics on btrfs. | Linux | yes |
 | `buddyinfo`        | Exposes statistics of memory fragments as reported by `/proc/buddyinfo`. | Linux | no |
 | `conntrack`        | Shows conntrack statistics (does nothing if no `/proc/sys/net/netfilter/` present). | Linux | yes |
-| `cpu`              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris | yes |
+| `cpu`              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris, NetBSD | yes |
 | `cpufreq`          | Exposes CPU frequency statistics. | Linux, Solaris | yes |
 | `devstat`          | Exposes device statistics. | Dragonfly, FreeBSD | no |
 | `diskstats`        | Exposes disk I/O statistics. | Darwin, Linux, OpenBSD | yes |
