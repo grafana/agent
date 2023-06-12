@@ -2,6 +2,7 @@ package flow
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path"
 	"sync"
@@ -9,11 +10,57 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/web/api"
 	"github.com/prometheus/client_golang/prometheus"
-	"go.opentelemetry.io/otel/trace"
 )
+
+type moduleController struct {
+	mut sync.Mutex
+	o   *moduleControllerOptions
+	ids map[string]struct{}
+}
+
+var (
+	_ component.ModuleController = (*moduleController)(nil)
+)
+
+// newModuleController is the entrypoint into creating module instances.
+func newModuleController(o *moduleControllerOptions) component.ModuleController {
+	return &moduleController{
+		o:   o,
+		ids: map[string]struct{}{},
+	}
+}
+
+// NewModule creates a new, unstarted Module.
+func (m *moduleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
+	m.mut.Lock()
+	defer m.mut.Unlock()
+	if _, found := m.ids[id]; found {
+		return nil, fmt.Errorf("id %s already exists", id)
+	}
+	m.ids[id] = struct{}{}
+	fullPath := m.o.ID
+	if id != "" {
+		fullPath = path.Join(fullPath, id)
+	}
+	return newModule(&moduleOptions{
+		ID:                      fullPath,
+		export:                  export,
+		moduleControllerOptions: m.o,
+		parent:                  m,
+	}), nil
+}
+
+func (m *moduleController) removeID(id string) {
+	m.mut.Lock()
+	defer m.mut.Unlock()
+
+	delete(m.ids, id)
+}
 
 type module struct {
 	mut sync.Mutex
@@ -24,6 +71,7 @@ type module struct {
 type moduleOptions struct {
 	ID     string
 	export component.ExportFunc
+	parent *moduleController
 	*moduleControllerOptions
 }
 
@@ -45,15 +93,17 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 	if c.f == nil {
 		f := New(Options{
 			ControllerID:   c.o.ID,
-			Tracer:         nil,
-			Clusterer:      c.f.clusterer,
+			Tracer:         c.o.Tracer,
+			Clusterer:      c.o.Clusterer,
 			Reg:            c.o.Reg,
+			Logger:         c.o.Logger,
 			DataPath:       c.o.DataPath,
 			HTTPPathPrefix: c.o.HTTPPath,
 			HTTPListenAddr: c.o.HTTPListenAddr,
 			OnExportsChange: func(exports map[string]any) {
 				c.o.export(exports)
 			},
+			DialFunc: c.o.DialFunc,
 		})
 		c.f = f
 	}
@@ -70,6 +120,7 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 //
 // Run blocks until the provided context is canceled.
 func (c *module) Run(ctx context.Context) {
+	defer c.o.parent.removeID(c.o.ID)
 	c.f.Run(ctx)
 }
 
@@ -101,7 +152,7 @@ type moduleControllerOptions struct {
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
-	Tracer trace.TracerProvider
+	Tracer *tracing.Tracer
 
 	// Clusterer for implementing distributed behavior among components running
 	// on different nodes.
@@ -124,4 +175,12 @@ type moduleControllerOptions struct {
 	// component. Requests received by a component handler will have this already
 	// trimmed off.
 	HTTPPath string
+
+	// DialFunc is a function for components to use to properly communicate to
+	// HTTPListenAddr. If set, components which send HTTP requests to
+	// HTTPListenAddr must use this function to establish connections.
+	controller.DialFunc
+
+	// ID is the attached components full ID.
+	ID string
 }

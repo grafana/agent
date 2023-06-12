@@ -39,6 +39,8 @@ Main (unreleased)
 
 - Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
 
+- Fix issue where metrics and traces were not recorded from components within modules. (@mattdurham)
+
 ### Other changes
 
 - Add logging to failed requests in `remote.http`. (@rfratto)
