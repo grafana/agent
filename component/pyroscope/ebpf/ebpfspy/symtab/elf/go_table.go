@@ -10,28 +10,39 @@ import (
 )
 
 type GoTable struct {
-	Symbols        []gosym2.FuncIndex
+	Index          gosym2.FlatFuncIndex
 	File           *MMapedElfFile
 	gopclnSection  *elf.SectionHeader
 	funcNameOffset uint64
 }
 
 func (e *GoTable) Resolve(addr uint64) string {
-	if len(e.Symbols) == 0 {
+	n := len(e.Index.Name)
+	if n == 0 {
 		return ""
 	}
-	if addr < e.Symbols[0].Entry || addr >= e.Symbols[len(e.Symbols)-1].End {
+	if addr >= e.Index.End {
 		return ""
 	}
-	i := sort.Search(len(e.Symbols), func(i int) bool {
-		return addr < e.Symbols[i].Entry
-	})
+	var i int
+	if e.Index.Entry32 != nil {
+		if addr < uint64(e.Index.Entry32[0]) {
+			return ""
+		}
+		i = sort.Search(n, func(i int) bool {
+			return addr < uint64(e.Index.Entry32[i])
+		})
+	} else {
+		if addr < e.Index.Entry64[0] {
+			return ""
+		}
+		i = sort.Search(n, func(i int) bool {
+			return addr < e.Index.Entry64[i]
+		})
+	}
 	i--
-	sym := &e.Symbols[i]
-	if addr < sym.Entry || addr >= sym.End {
-		return ""
-	}
-	name, _ := e.goSymbolName(sym)
+
+	name, _ := e.goSymbolName(i)
 	return name
 }
 
@@ -85,22 +96,30 @@ func (f *MMapedElfFile) NewGoTable() (*GoTable, error) {
 		return nil, errGoParseFailed
 	}
 	funcs := pcln.Go12Funcs()
-	if len(funcs) == 0 {
+	if len(funcs.Name) == 0 {
 		return nil, errGoSymbolsNotFound
 	}
-	sort.Slice(funcs, func(i, j int) bool {
-		return funcs[i].Entry < funcs[j].Entry
-	})
+	if funcs.Entry32 == nil && funcs.Entry64 == nil {
+		return nil, errGoParseFailed // this should not happen
+	}
+	if funcs.Entry32 != nil && funcs.Entry64 != nil {
+		return nil, errGoParseFailed // this should not happen
+	}
+	n := len(funcs.Entry32) + len(funcs.Entry64) // one of them is 0
+	if n != len(funcs.Name) {
+		return nil, errGoParseFailed // this should not happen
+	}
+
 	funcNameOffset := pcln.FuncNameOffset()
 	return &GoTable{
-		Symbols:        funcs,
+		Index:          funcs,
 		File:           f,
 		gopclnSection:  pclntab,
 		funcNameOffset: funcNameOffset,
 	}, nil
 }
 
-func (f *GoTable) goSymbolName(sym *gosym2.FuncIndex) (string, error) {
+func (f *GoTable) goSymbolName(idx int) (string, error) {
 	gopclndata, err := f.File.SectionData(f.gopclnSection)
 	if err != nil {
 		return "", err
@@ -109,7 +128,11 @@ func (f *GoTable) goSymbolName(sym *gosym2.FuncIndex) (string, error) {
 		return "", errGoOOB
 	}
 	funcnamedata := gopclndata[f.funcNameOffset:]
-	name, ok := getString(funcnamedata, int(sym.NameOffset))
+	if idx >= len(f.Index.Name) {
+		return "", errGoOOB
+	}
+	nameOffset := f.Index.Name[idx]
+	name, ok := getString(funcnamedata, int(nameOffset))
 	if !ok {
 		return "", errGoFailed
 	}

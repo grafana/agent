@@ -36,6 +36,8 @@ LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 RUN <<EOF
   apt-get update
   apt-get install -qy libsystemd-dev tzdata ca-certificates
+  apt-get install -y golang
+  go install github.com/go-delve/delve/cmd/dlv@latest
 
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOF
@@ -44,5 +46,5 @@ COPY --from=build /src/agent/build/grafana-agent /bin/grafana-agent
 COPY cmd/grafana-agent/agent-local-config.yaml /etc/agent/agent.yaml
 
 
-ENTRYPOINT ["/bin/grafana-agent"]
-CMD ["--config.file=/etc/agent/agent.yaml", "--metrics.wal-directory=/etc/agent/data"]
+#ENTRYPOINT ["/bin/grafana-agent"]
+#CMD ["--config.file=/etc/agent/agent.yaml", "--metrics.wal-directory=/etc/agent/data"]

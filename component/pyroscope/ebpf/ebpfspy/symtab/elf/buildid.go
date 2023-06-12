@@ -14,6 +14,10 @@ type BuildID struct {
 func (b *BuildID) ID() string {
 	return b.id
 }
+
+func (b *BuildID) Type() string {
+	return b.typ
+}
 func GNUBuildID(s string) BuildID {
 	return BuildID{id: s, typ: "gnu"}
 }
@@ -63,7 +67,11 @@ func (elfFile *MMapedElfFile) GoBuildID() (BuildID, error) {
 	if err != nil {
 		return BuildID{}, fmt.Errorf("reading .note.go.buildid %w", err)
 	}
+	if len(data) < 17 {
+		return BuildID{}, fmt.Errorf(".note.gnu.build-id is too small")
+	}
 
+	data = data[16 : len(data)-1]
 	if len(data) < 40 || bytes.Count(data, goBuildIDSep) < 2 {
 		return BuildID{}, fmt.Errorf("wrong .note.go.buildid %s", elfFile.fpath)
 	}
