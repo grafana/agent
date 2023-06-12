@@ -13,7 +13,7 @@ it should be included or excluded for attribute modifications.
 > OpenTelemetry Collector `attributes` processor. Bug reports or feature requests
 > will be redirected to the upstream repository, if necessary.
 
-Multiple `otelcol.processor.attributes` components can be specified by giving them
+You can specify multiple `otelcol.processor.attributes` components by giving them
 different labels.
 
 ## Usage
@@ -41,13 +41,13 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 output | [output][] | Configures where to send received telemetry data. | yes
 action | [action][] | Actions to take on the attributes of incoming metrics/logs/traces. | no
-include | [include][] | Filter for data to be included to this processor's actions. | no
+include | [include][] | Filter for data included in this processor's actions. | no
 include > regexp | [regexp][] | Regex cache settings. | no
 include > attribute | [attribute][] | A list of attributes to match against. | no
 include > resource | [resource][] | A list of items to match the resources against. | no
 include > library | [library][] | A list of items to match the implementation library against. | no
 include > log_severity | [library][] | How to match against a log record's SeverityNumber, if defined. | no
-exclude | [exclude][] | Filter for data to be excluded from this processor's actions | no
+exclude | [exclude][] | Filter for data excluded from this processor's actions | no
 exclude > regexp | [regexp][] | Regex cache settings. | no
 exclude > attribute | [attribute][] | A list of attributes to match against. | no
 exclude > resource | [resource][] | A list of items to match the resources against. | no
@@ -57,7 +57,7 @@ exclude > log_severity | [log_severity][] | How to match against a log record's 
 The `>` symbol indicates deeper levels of nesting. For example, `include > attribute`
 refers to an `attribute` block defined inside an `include` block.
 
-If both and `include` block and an `exclude`block are specified, the `include` properties are checked before the `exclude` properties.
+If both an `include` block and an `exclude`block are specified, the `include` properties are checked before the `exclude` properties.
 
 [output]: #output-block
 [action]: #action-block
@@ -71,21 +71,21 @@ If both and `include` block and an `exclude`block are specified, the `include` p
 
 ### action block
 
-The `action` block configures how to modify the span, log or metric.
+The `action` block configures how to modify the span, log, or metric.
 
 The following attributes are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `key` | `string` | The attribute that the action relates to. |  | yes
-`action` | `string` | The type of action to be performed. |  | yes
+`action` | `string` | The type of action performed. |  | yes
 `value` | `any` | The value to populate for the key. |  | no
 `pattern` | `string` | A regex pattern. | `""` | no
-`from_attribute` | `string` | The attribute from the input data to use to populate the attribute value. | `""` | no
-`from_context` | `string` | The context value to use to populate the attribute value.  | `""` | no
+`from_attribute` | `string` | The attribute from the input data used to populate the attribute value. | `""` | no
+`from_context` | `string` | The context value used to populate the attribute value.  | `""` | no
 `converted_type` | `string` | The type to convert the attribute value to. | `""` | no
 
-The type of `value` must be either a number, string, or boolean.
+The `value` data type must be either a number, string, or boolean.
 
 The supported values for `action` are:
 
@@ -99,31 +99,35 @@ The supported values for `action` are:
     * The `key`attribute is required. It specifies the attribute to act upon.
     * One of the `value`, `from_attribute` or `from_context` attributes is required.
 
-* `upsert`: Either inserts a new attribute in input data where the key does not already exist, or updates an attribute in input data where the key does exist.
+* `upsert`: Either inserts a new attribute in input data where the key does not already exist 
+   or updates an attribute in input data where the key does exist.
 
     * The `key`attribute is required. It specifies the attribute to act upon.
     * One of the `value`, `from_attribute` or `from_context`attributes is required:
         * `value` specifies the value to populate for the key.
         * `from_attribute` specifies the attribute from the input data to use to populate
         the value. If the attribute doesn't exist, no action is performed.
-        * `from_context` specifies the context value to use to populate the attribute value.
+        * `from_context` specifies the context value used to populate the attribute value.
         If the key is prefixed with `metadata.`, the values are searched
-        in the receiver's transport protocol additional information like gRPC Metadata or HTTP Headers. 
+        in the receiver's transport protocol for additional information like gRPC Metadata or HTTP Headers. 
         If the key is prefixed with `auth.`, the values are searched
         in the authentication information set by the server authenticator. 
         Refer to the server authenticator's documentation part of your pipeline 
         for more information about which attributes are available.
         If the key doesn't exist, no action is performed.
-        If the key has multiple values the values will be joined with `;` separator.
+        If the key has multiple values the values will be joined with a `;` separator.
 
 * `hash`: Hashes (SHA1) an existing attribute value.
 
     * The `key` attribute and/or the `pattern` attributes is required.
 
-* `extract`: Extracts values using a regular expression rule from the input key to target keys specified in the rule. If a target key already exists, it will be overridden. Note: It behaves similar to the Span Processor `to_attributes` setting with the existing attribute as the source.
+* `extract`: Extracts values using a regular expression rule from the input key to target keys specified in the rule. 
+  If a target key already exists, it will be overridden. Note: It behaves similarly to the Span Processor `to_attributes` 
+  setting with the existing attribute as the source.
 
     * The `key` attribute is required. It specifies the attribute to extract values from. The value of `key` is NOT altered.
-    * The `pattern` attribute is required. It is the regex pattern used to extract attributes from the value of `key`. The submatchers must be named. If attributes already exist, they will be overwritten.
+    * The `pattern` attribute is required. It is the regex pattern used to extract attributes from the value of `key`. 
+      The submatchers must be named. If attributes already exist, they will be overwritten.
 
 * `convert`: Converts an existing attribute to a specified type.
 
@@ -136,35 +140,41 @@ The supported values for `action` are:
 
 ### include block
 
-The `include` block provides an option to include data being fed into the [action] blocks, based on the properties of a span, log, or metric records.
+The `include` block provides an option to include data being fed into the [action] blocks based on the properties of a span, log, or metric records.
 
 {{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" >}}
 
 One of the following is also required:
-* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity` and `metric_names` attributes are invalid.
-* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
-* For metrics, `metric_names` must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][], [resource][] and [library][] attributes are invalid.
+* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified 
+  with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity`, and `metric_names` attributes are invalid.
+* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be 
+  specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
+* For metrics, `metric_names` must be specified with a valid non-empty value for a valid configuration. The `span_names`, 
+  `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][], [resource][], and [library][] attributes are invalid.
 
 If the configuration includes filters which are specific to a particular signal type, it is best to include only that signal type in the component's output.
 For example, adding a `span_names` filter could cause the component to error if logs are configured in the component's outputs.
 
 ### exclude block
 
-The `exclude` blocks provides an option to exclude data from being fed into the [action] blocks, based on the properties of a span, log, or metric records.
+The `exclude` block provides an option to exclude data from being fed into the [action] blocks based on the properties of a span, log, or metric records.
 
 {{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" >}}
 
 One of the following is also required:
-* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity` and `metric_names` attributes are invalid.
-* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
-* For metrics, `metric_names` must be specified with a valid non-empty value for a valid configuration. The `span_names`, `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][], [resource][] and [library][] attributes are invalid.
+* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified 
+  with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity`, and `metric_names` attributes are invalid.
+* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be 
+  specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
+* For metrics, `metric_names` must be specified with a valid non-empty value for a valid configuration. The `span_names`, 
+  `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][], [resource][], and [library][] attributes are invalid.
 
 If the configuration includes filters which are specific to a particular signal type, it is best to include only that signal type in the component's output.
 For example, adding a `span_names` filter could cause the component to error if logs are configured in the component's outputs.
 
 ### regexp block
 
-This block is optional configuration for the `match_type` of `"regexp"`.
+This block is an optional configuration for the `match_type` of `"regexp"`.
 It configures a Least Recently Used (LRU) cache.
 
 The following arguments are supported:
@@ -195,7 +205,7 @@ Name | Type | Description | Default | Required
 `value` | `any` | The attribute value to match against. | | no
 
 If `value` is not set, any value will match.
-The type of `value` could be a number, a string or a boolean.
+The type of `value` could be a number, a string, or a boolean.
 
 ### resource block
 
@@ -444,7 +454,7 @@ otelcol.processor.attributes "default" {
 
 ### Excluding spans based on resources
 
-A "strict" `match_type` means that we must match the `resource` key/value pairs strictly.
+A "strict" `match_type` means that we must strictly match the `resource` key/value pairs.
 
 Note that the `resource` attribute is not used for metrics, which is why metrics are not configured
 in the component output.
@@ -475,7 +485,7 @@ otelcol.processor.attributes "default" {
 
 ### Excluding spans based on a specific library version
 
-A "strict" `match_type` means that we must match the `library` key/value pairs strictly.
+A "strict" `match_type` means that we must strictly match the `library` key/value pairs.
 
 Note that the `library` attribute is not used for metrics, which is why metrics are not configured
 in the component output.
@@ -548,7 +558,7 @@ otelcol.processor.attributes "default" {
 
 ### Including spans based on regex and attributes
 
-The following demonstrates how to process spans that have an attribute that matches a regexp patterns.
+The following demonstrates how to process spans with attributes that match a regexp pattern.
 This processor will obfuscate the "db.statement" attribute in spans where the "db.statement" attribute
 matches a regex pattern.
 
@@ -583,7 +593,7 @@ otelcol.processor.attributes "default" {
 
 ### Including spans based on regex of log body
 
-This processor will remove "token" attribute and will obfuscate "password"
+This processor will remove the "token" attribute and will obfuscate the "password"
 attribute in spans where the log body matches "AUTH.*".
 
 Note that due to the presence of the `log_bodies` attribute, this configuration works only for
@@ -613,7 +623,7 @@ otelcol.processor.attributes "default" {
 
 ### Including spans based on regex of log severity
 
-The following demonstrates how to process logs that have a severity level which is equal or higher to 
+The following demonstrates how to process logs that have a severity level which is equal to or higher than
 the level specified in the `log_severity` block. This processor will remove the "token" attribute and will 
 obfuscate the "password" attribute in logs where the severity is at least "INFO".
 
@@ -648,7 +658,7 @@ otelcol.processor.attributes "default" {
 ### Including spans based on regex of log severity text
 
 The following demonstrates how to process logs that have a severity text that match regexp
-patterns. This processor will remove "token" attribute and will obfuscate "password"
+patterns. This processor will remove the "token" attribute and will obfuscate the "password"
 attribute in logs where severity matches "info".
 
 Note that due to the presence of the `log_severity_texts` attribute, this configuration works only for
