@@ -1407,7 +1407,7 @@ Then the extracted `ip` value is given as source to geoip stage. The geoip stage
 - geoip_subdivision_name: Missouri
 - geoip_subdivision_code: MO
 
-If only a subset of these labels are required, you can chain the above pipeline with the `label_drop` or `label_keep` stage.
+If only a subset of these labels is required, you can chain the above pipeline with the `label_drop` or `label_keep` stage.
 
 label_keep example:
 ```
