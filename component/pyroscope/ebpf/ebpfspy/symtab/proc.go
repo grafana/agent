@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"golang.org/x/exp/slices"
 )
 
@@ -41,10 +40,6 @@ type elfRange struct {
 }
 
 func (p *ProcTable) Refresh() {
-	level.Debug(p.logger).Log("msg", "refresh", "fs", p.rootFS)
-	defer func() {
-		level.Debug(p.logger).Log("msg", "refresh", "fs", p.rootFS)
-	}()
 	procMaps, err := os.ReadFile(fmt.Sprintf("/proc/%d/maps", p.options.Pid))
 	if err != nil {
 		return // todo return err
