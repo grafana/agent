@@ -1364,7 +1364,7 @@ stage.timestamp {
 
 ### stage.geoip block
 
-The `stage.geoip` inner block configures a processing stage that reads an ip address and populates the labelset with geoip fields. Maxmind’s GeoIP2 databse is used for the lookup.
+The `stage.geoip` inner block configures a processing stage that reads an IP address and populates the labelset with geoip fields. Maxmind’s GeoIP2 database is used for the lookup.
 
 The following arguments are supported:
 
