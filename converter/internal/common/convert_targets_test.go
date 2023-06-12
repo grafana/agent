@@ -27,7 +27,7 @@ func TestOptionalSecret_Write(t *testing.T) {
 			value: common.ConvertTargets{
 				Targets: []discovery.Target{{}},
 			},
-			expect: `[]`,
+			expect: `[{}]`,
 		},
 		{
 			name: "__address__ key",

@@ -18,6 +18,8 @@ func appendDiscoveryAzure(f *builder.File, jobName string, sdConfig *promazure.S
 	discoveryAzureArgs, diags := toDiscoveryAzure(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "azure"}, jobName, discoveryAzureArgs)
 	return discovery.Exports{
+		// This target map will utilize a RiverTokenize that results in this
+		// component export rather than the standard discovery.Target RiverTokenize.
 		Targets: []discovery.Target{map[string]string{"discovery.azure." + jobName + ".targets": ""}},
 	}, diags
 }

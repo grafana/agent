@@ -12,6 +12,7 @@ import (
 	promdiscover "github.com/prometheus/prometheus/discovery"
 	promazure "github.com/prometheus/prometheus/discovery/azure"
 	promconsul "github.com/prometheus/prometheus/discovery/consul"
+	promdigitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
@@ -23,7 +24,6 @@ import (
 // The implementation of this API is a work in progress.
 // Additional components must be implemented:
 //
-//	discovery.digitalocean
 //	discovery.dns
 //	discovery.docker
 //	discovery.ec2
@@ -76,6 +76,10 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 				diags = append(diags, newDiags...)
 			case *promconsul.SDConfig:
 				exports, newDiags := appendDiscoveryConsul(f, scrapeConfig.JobName, sdc)
+				targets = append(targets, exports.Targets...)
+				diags = append(diags, newDiags...)
+			case *promdigitalocean.SDConfig:
+				exports, newDiags := appendDiscoveryDigitalOcean(f, scrapeConfig.JobName, sdc)
 				targets = append(targets, exports.Targets...)
 				diags = append(diags, newDiags...)
 			default:

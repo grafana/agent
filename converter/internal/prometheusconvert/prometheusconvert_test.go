@@ -36,6 +36,7 @@ func TestConvert(t *testing.T) {
 
 			t.Run(caseName, func(t *testing.T) {
 				actual, diags := prometheusconvert.Convert(inputBytes)
+				os.WriteFile("/home/erik/"+caseName+".river", actual, 0666)
 
 				expectedDiags := diag.Diagnostics(nil)
 				errorFile := strings.TrimSuffix(path, promSuffix) + errorsSuffix

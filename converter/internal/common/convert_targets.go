@@ -19,6 +19,7 @@ var _ river.Capsule = ConvertTargets{}
 
 func (f ConvertTargets) RiverCapsule() {}
 func (f ConvertTargets) RiverTokenize() []builder.Token {
+	expr := builder.NewExpr()
 	var toks []builder.Token
 
 	targetCount := 0
@@ -27,9 +28,8 @@ func (f ConvertTargets) RiverTokenize() []builder.Token {
 	}
 
 	if targetCount == 0 {
-		toks = append(toks, builder.Token{Tok: token.LBRACK})
-		toks = append(toks, builder.Token{Tok: token.RBRACK})
-		return toks
+		expr.SetValue(f.Targets)
+		return expr.Tokens()
 	}
 
 	if targetCount > 1 {
@@ -40,16 +40,8 @@ func (f ConvertTargets) RiverTokenize() []builder.Token {
 	for ix, targetMap := range f.Targets {
 		for key, target := range targetMap {
 			if key == "__address__" {
-				toks = append(toks, builder.Token{Tok: token.LBRACK})
-				toks = append(toks, builder.Token{Tok: token.LCURLY})
-				toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: "\n"})
-				toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: key})
-				toks = append(toks, builder.Token{Tok: token.ASSIGN})
-				toks = append(toks, builder.Token{Tok: token.STRING, Lit: `"` + target + `"`})
-				toks = append(toks, builder.Token{Tok: token.COMMA})
-				toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: "\n"})
-				toks = append(toks, builder.Token{Tok: token.RCURLY})
-				toks = append(toks, builder.Token{Tok: token.RBRACK})
+				expr.SetValue([]map[string]string{{key: target}})
+				toks = append(toks, expr.Tokens()...)
 			} else {
 				toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: key})
 			}

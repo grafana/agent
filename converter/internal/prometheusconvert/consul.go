@@ -16,6 +16,8 @@ func appendDiscoveryConsul(f *builder.File, jobName string, sdConfig *promconsul
 	discoveryConsulArgs, diags := toDiscoveryConsul(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "consul"}, jobName, discoveryConsulArgs)
 	return discovery.Exports{
+		// This target map will utilize a RiverTokenize that results in this
+		// component export rather than the standard discovery.Target RiverTokenize.
 		Targets: []discovery.Target{map[string]string{"discovery.consul." + jobName + ".targets": ""}},
 	}, diags
 }
