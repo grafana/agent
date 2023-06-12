@@ -20,6 +20,7 @@ func TestElf(t *testing.T) {
 		name string
 		pc   uint64
 	}{
+		{"", 0x0},
 		{"iter", 0x1149},
 		{"main", 0x115e},
 	}
