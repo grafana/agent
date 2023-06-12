@@ -156,14 +156,16 @@ func TestConvertMatchProperties(t *testing.T) {
 
 	for _, tt := range tests {
 		if matchConf := tt.inputMatchConfig.Exclude; matchConf != nil {
-			result := matchConf.Convert()
+			result, err := matchConf.Convert()
+			require.NoError(t, err)
 			require.Equal(t, tt.expectedMatchConfig["exclude"], result)
 		} else {
 			require.Empty(t, tt.expectedMatchConfig["exclude"])
 		}
 
 		if matchConf := tt.inputMatchConfig.Include; matchConf != nil {
-			result := matchConf.Convert()
+			result, err := matchConf.Convert()
+			require.NoError(t, err)
 			require.Equal(t, tt.expectedMatchConfig["include"], result)
 		} else {
 			require.Empty(t, tt.expectedMatchConfig["include"])

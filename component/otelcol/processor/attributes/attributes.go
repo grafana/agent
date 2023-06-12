@@ -2,6 +2,8 @@
 package attributes
 
 import (
+	"fmt"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
@@ -50,13 +52,21 @@ func (args Arguments) Convert() (otelconfig.Processor, error) {
 	}
 
 	if args.Match.Include != nil {
-		if matchConfig := args.Match.Include.Convert(); len(matchConfig) > 0 {
+		matchConfig, err := args.Match.Include.Convert()
+		if err != nil {
+			return nil, fmt.Errorf("error getting 'include' match properties: %w", err)
+		}
+		if len(matchConfig) > 0 {
 			input["include"] = matchConfig
 		}
 	}
 
 	if args.Match.Exclude != nil {
-		if matchConfig := args.Match.Exclude.Convert(); len(matchConfig) > 0 {
+		matchConfig, err := args.Match.Exclude.Convert()
+		if err != nil {
+			return nil, fmt.Errorf("error getting 'exclude' match properties: %w", err)
+		}
+		if len(matchConfig) > 0 {
 			input["exclude"] = matchConfig
 		}
 	}

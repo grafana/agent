@@ -25,14 +25,13 @@ type MatchProperties struct {
 	MatchType    string        `river:"match_type,attr"`
 	RegexpConfig *RegexpConfig `river:"regexp,block,optional"`
 
-	// Note: For spans, one of Services, SpanNames, Attributes, Resources or Libraries must be specified with a
+	// Note: For spans, one of Services, SpanNames, Attributes, Resources, or Libraries must be specified with a
 	// non-empty value for a valid configuration.
 
-	// For logs, one of LogNames, Attributes, Resources or Libraries must be specified with a
+	// For logs, one of LogBodies, LogSeverityTexts, LogSeverity, Attributes, Resources, or Libraries must be specified with a
 	// non-empty value for a valid configuration.
 
-	// For metrics, one of MetricNames, Expressions, or ResourceAttributes must be specified with a
-	// non-empty value for a valid configuration.
+	// For metrics, MetricNames must be specified with a non-empty value for a valid configuration.
 
 	// Services specify the list of items to match service name against.
 	// A match occurs if the span's service name matches at least one item in this list.
@@ -74,9 +73,9 @@ type MatchProperties struct {
 }
 
 // Convert converts args into the upstream type.
-func (args *MatchProperties) Convert() map[string]interface{} {
+func (args *MatchProperties) Convert() (map[string]interface{}, error) {
 	if args == nil {
-		return nil
+		return nil, nil
 	}
 
 	res := make(map[string]interface{})
@@ -107,7 +106,11 @@ func (args *MatchProperties) Convert() map[string]interface{} {
 		// The Otel config's field is called "log_severity_number" because it uses a number.
 		// The River config's field is called just "log_severity" because it uses a a textual
 		// representation of the log severity instead of a number.
-		res["log_severity_number"] = args.LogSeverity.convert()
+		logSevNum, err := args.LogSeverity.convert()
+		if err != nil {
+			return nil, err
+		}
+		res["log_severity_number"] = logSevNum
 	}
 
 	if len(args.MetricNames) > 0 {
@@ -130,7 +133,7 @@ func (args *MatchProperties) Convert() map[string]interface{} {
 		res["span_kinds"] = args.SpanKinds
 	}
 
-	return res
+	return res, nil
 }
 
 // Return an empty slice if the input slice is empty.
@@ -220,16 +223,16 @@ type LogSeverityNumberMatchProperties struct {
 	MatchUndefined bool `river:"match_undefined,attr"`
 }
 
-func (args LogSeverityNumberMatchProperties) convert() map[string]interface{} {
+func (args LogSeverityNumberMatchProperties) convert() (map[string]interface{}, error) {
 	numVal, exists := severityLevels[args.Min]
 	if !exists {
-		panic(fmt.Sprintf("No severity value for %q", args.Min))
+		return nil, fmt.Errorf(fmt.Sprintf("No severity value for %q", args.Min))
 	}
 
 	return map[string]interface{}{
 		"min":             numVal,
 		"match_undefined": args.MatchUndefined,
-	}
+	}, nil
 }
 
 type SeverityLevel string

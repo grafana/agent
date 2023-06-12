@@ -145,9 +145,9 @@ The `include` block provides an option to include data being fed into the [actio
 {{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" >}}
 
 One of the following is also required:
-* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified 
+* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][], or [library][] must be specified 
   with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity`, and `metric_names` attributes are invalid.
-* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be 
+* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][], or [library][] must be 
   specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
 * For metrics, `metric_names` must be specified with a valid non-empty value for a valid configuration. The `span_names`, 
   `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][], [resource][], and [library][] attributes are invalid.
@@ -162,9 +162,9 @@ The `exclude` block provides an option to exclude data from being fed into the [
 {{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" >}}
 
 One of the following is also required:
-* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][] or [library][] must be specified 
+* For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][], or [library][] must be specified 
   with a non-empty value for a valid configuration. The `log_bodies`, `log_severity_texts`, `log_severity`, and `metric_names` attributes are invalid.
-* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][] or [library][] must be 
+* For logs, one of `log_bodies`, `log_severity_texts`, `log_severity`, [attribute][], [resource][], or [library][] must be 
   specified with a non-empty value for a valid configuration. The `span_names`, `span_kinds`, `metric_names`, and `services` attributes are invalid.
 * For metrics, `metric_names` must be specified with a valid non-empty value for a valid configuration. The `span_names`, 
   `span_kinds`, `log_bodies`, `log_severity_texts`, `log_severity`, `services`, [attribute][], [resource][], and [library][] attributes are invalid.
