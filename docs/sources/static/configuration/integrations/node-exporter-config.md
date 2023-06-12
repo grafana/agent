@@ -164,6 +164,7 @@ the Agent is running on is a no-op.
 | schedstat        | Exposes task scheduler statistics from /proc/schedstat. | Linux | yes |
 | selinux          | Exposes SELinux statistics. | Linux | yes |
 | slabinfo         | Exposes slab statistics from `/proc/slabinfo`. | Linux | no |
+| softirqs         | Exposes detailed softirq statistics from `/proc/softirqs`. | Linux | no |
 | sockstat         | Exposes various statistics from /proc/net/sockstat. | Linux | yes |
 | softnet          | Exposes statistics from /proc/net/softnet_stat. | Linux | yes |
 | stat             | Exposes various statistics from /proc/stat. This includes boot time, forks and interrupts. | Linux | yes |

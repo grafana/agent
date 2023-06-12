@@ -335,6 +335,7 @@ or disable collectors that are expensive to run.
 | `runit`            | Exposes service status from runit. | any | no |
 | `schedstat`        | Exposes task scheduler statistics from `/proc/schedstat`. | Linux | yes |
 | `sockstat`         | Exposes various statistics from `/proc/net/sockstat`. | Linux | yes |
+| `softirqs`         | Exposes detailed softirq statistics from `/proc/softirqs`. | Linux | no |
 | `softnet`          | Exposes statistics from `/proc/net/softnet_stat`. | Linux | yes |
 | `stat`             | Exposes various statistics from `/proc/stat`. This includes boot time, forks and interrupts. | Linux | yes |
 | `supervisord`      | Exposes service status from supervisord. | any | no |
