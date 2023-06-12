@@ -13,6 +13,7 @@ Main (unreleased)
 ### Features
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
+ - Support `stage.geoip` in `loki.process`. (@akselleirv)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
 
