@@ -28,16 +28,21 @@ Main (unreleased)
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
 
+- Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
+
+v0.34.1 (2023-06-12)
+--------------------
+
+### Bugfixes
+
+- Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
+
 - Fix issue where `remote.http` did not fail early if the initial request
   failed. This caused failed requests to initially export empty values, which
   could lead to propagating issues downstream to other components which expect
   the export to be non-empty. (@rfratto)
 
-- Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
-
-- Allow bearerTokenFile to be used in ServiceMonitors. (@captncraig)
-
-- Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
+- Allow `bearerTokenFile` field to be used in ServiceMonitors. (@captncraig)
 
 ### Other changes
 
