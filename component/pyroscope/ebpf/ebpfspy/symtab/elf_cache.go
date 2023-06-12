@@ -8,6 +8,7 @@ import (
 
 type ElfCache struct {
 	buildID2Symbols *lru.Cache[elf.BuildID, SymbolNameResolver]
+	roundCache      map[elf.BuildID]SymbolNameResolver
 	metrics         *metrics.Metrics
 }
 
@@ -18,6 +19,7 @@ func NewElfCache(sz int, metrics *metrics.Metrics) (*ElfCache, error) {
 	}
 	return &ElfCache{
 		buildID2Symbols: buildID2Symbols,
+		roundCache:      make(map[elf.BuildID]SymbolNameResolver),
 		metrics:         metrics,
 	}, nil
 }
@@ -40,6 +42,7 @@ func (e *ElfCache) CacheByBuildID(buildID elf.BuildID, v SymbolNameResolver) {
 		return
 	}
 	e.buildID2Symbols.Add(buildID, v)
+	e.roundCache[buildID] = v
 }
 
 func (e *ElfCache) Resize(size int) {
@@ -55,9 +58,8 @@ func (e *ElfCache) Cleanup() {
 		}
 		tab.Cleanup()
 	}
-
-}
-
-func (s *stat) isNil() bool {
-	return s.dev == 0 && s.ino == 0
+	for _, resolver := range e.roundCache {
+		resolver.Cleanup()
+	}
+	e.roundCache = make(map[elf.BuildID]SymbolNameResolver)
 }
