@@ -313,7 +313,7 @@ or disable collectors that are expensive to run.
 | `loadavg`          | Exposes load average. | Darwin, Dragonfly, FreeBSD, Linux, NetBSD, OpenBSD, Solaris | yes |
 | `logind`           | Exposes session counts from logind. | Linux | no |
 | `mdadm`            | Exposes statistics about devices in `/proc/mdstat` (does nothing if no `/proc/mdstat` present). | Linux | yes |
-| `meminfo`          | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
+| `meminfo`          | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD, NetBSD | yes |
 | `meminfo_numa`     | Exposes memory statistics from `/proc/meminfo_numa`. | Linux | no |
 | `mountstats`       | Exposes filesystem statistics from `/proc/self/mountstats`. Exposes detailed NFS client statistics. | Linux | no |
 | `netclass`         | Exposes network interface info from `/sys/class/net`. | Linux | yes |
