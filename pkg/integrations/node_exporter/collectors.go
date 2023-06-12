@@ -78,6 +78,7 @@ const (
 	CollectorRunit        = "runit"
 	CollectorSchedstat    = "schedstat"
 	CollectorSockstat     = "sockstat"
+	CollectorSoftirqs     = "softirqs"
 	CollectorSoftnet      = "softnet"
 	CollectorStat         = "stat"
 	CollectorSupervisord  = "supervisord"
@@ -160,6 +161,7 @@ var Collectors = map[string]CollectorState{
 	CollectorSELinux:      CollectorStateEnabled,
 	CollectorSlabInfo:     CollectorStateDisabled,
 	CollectorSockstat:     CollectorStateEnabled,
+	CollectorSoftirqs:     CollectorStateDisabled,
 	CollectorSoftnet:      CollectorStateEnabled,
 	CollectorStat:         CollectorStateEnabled,
 	CollectorSupervisord:  CollectorStateDisabled,
