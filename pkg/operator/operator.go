@@ -18,7 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/hierarchy"
@@ -195,16 +194,16 @@ func New(l log.Logger, c *Config) (*Operator, error) {
 		Owns(&apps_v1.Deployment{}).
 		Owns(&core_v1.Secret{}).
 		Owns(&core_v1.Service{}).
-		Watches(&source.Kind{Type: &core_v1.Secret{}}, notifierHandler).
-		Watches(&source.Kind{Type: &gragent.LogsInstance{}}, notifierHandler).
-		Watches(&source.Kind{Type: &gragent.PodLogs{}}, notifierHandler).
-		Watches(&source.Kind{Type: &gragent.MetricsInstance{}}, notifierHandler).
-		Watches(&source.Kind{Type: &gragent.Integration{}}, notifierHandler).
-		Watches(&source.Kind{Type: &promop_v1.PodMonitor{}}, notifierHandler).
-		Watches(&source.Kind{Type: &promop_v1.Probe{}}, notifierHandler).
-		Watches(&source.Kind{Type: &promop_v1.ServiceMonitor{}}, notifierHandler).
-		Watches(&source.Kind{Type: &core_v1.Secret{}}, notifierHandler).
-		Watches(&source.Kind{Type: &core_v1.ConfigMap{}}, notifierHandler).
+		Watches(&core_v1.Secret{}, notifierHandler).
+		Watches(&gragent.LogsInstance{}, notifierHandler).
+		Watches(&gragent.PodLogs{}, notifierHandler).
+		Watches(&gragent.MetricsInstance{}, notifierHandler).
+		Watches(&gragent.Integration{}, notifierHandler).
+		Watches(&promop_v1.PodMonitor{}, notifierHandler).
+		Watches(&promop_v1.Probe{}, notifierHandler).
+		Watches(&promop_v1.ServiceMonitor{}, notifierHandler).
+		Watches(&core_v1.Secret{}, notifierHandler).
+		Watches(&core_v1.ConfigMap{}, notifierHandler).
 		Complete(&lazyAgentReconciler)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create GrafanaAgent controller: %w", err)
