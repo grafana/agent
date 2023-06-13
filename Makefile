@@ -31,12 +31,13 @@
 ##
 ## Targets for building Docker images:
 ##
-##   images          Builds all Docker images.
-##   agent-image     Builds agent Docker image.
-##   agentctl-image  Builds agentctl Docker image.
-##   operator-image  Builds operator Docker image.
-##   crow-image      Builds crow Docker image.
-##   smoke-image     Builds smoke test Docker image.
+##   images                   Builds all Docker images.
+##   agent-image              Builds agent Docker image.
+##   agent-image-boringcrypto Builds agent Docker image with boringcrypto.
+##   agentctl-image           Builds agentctl Docker image.
+##   operator-image           Builds operator Docker image.
+##   crow-image               Builds crow Docker image.
+##   smoke-image              Builds smoke test Docker image.
 ##
 ## Targets for packaging:
 ##
@@ -92,29 +93,30 @@
 ##   VERSION          Version to inject into built binaries.
 ##   GO_TAGS          Extra tags to use when building.
 ##   DOCKER_PLATFORM  Overrides platform to build Docker images for (defaults to host platform).
-##   GOEXPERIMENT     Used to enable features, most likely boringcrypt via GOEXPERIMENT=boringcrypt.
+##   GOEXPERIMENT     Used to enable features, most likely boringcrypto via GOEXPERIMENT=boringcrypto.
 
 include tools/make/*.mk
 
-AGENT_IMAGE      ?= grafana/agent:latest
-AGENTCTL_IMAGE   ?= grafana/agentctl:latest
-OPERATOR_IMAGE   ?= grafana/agent-operator:latest
-CROW_IMAGE       ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
-SMOKE_IMAGE      ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
-AGENT_BINARY     ?= build/grafana-agent
-FLOW_BINARY      ?= build/grafana-agent-flow
-SERVICE_BINARY   ?= build/grafana-agent-service
-AGENTCTL_BINARY  ?= build/grafana-agentctl
-OPERATOR_BINARY  ?= build/grafana-agent-operator
-CROW_BINARY      ?= build/agent-crow
-SMOKE_BINARY     ?= build/agent-smoke
-AGENTLINT_BINARY ?= build/agentlint
-GOOS             ?= $(shell go env GOOS)
-GOARCH           ?= $(shell go env GOARCH)
-GOARM            ?= $(shell go env GOARM)
-CGO_ENABLED      ?= 1
-RELEASE_BUILD    ?= 0
-GOEXPERIMENT     ?= $(shell go env GOEXPERIMENT)
+AGENT_IMAGE              ?= grafana/agent:latest
+AGENT_BORINGCRYPTO_IMAGE ?= grafana/agent-boringcrypto:latest
+AGENTCTL_IMAGE           ?= grafana/agentctl:latest
+OPERATOR_IMAGE           ?= grafana/agent-operator:latest
+CROW_IMAGE               ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
+SMOKE_IMAGE              ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
+AGENT_BINARY             ?= build/grafana-agent
+FLOW_BINARY              ?= build/grafana-agent-flow
+SERVICE_BINARY           ?= build/grafana-agent-service
+AGENTCTL_BINARY          ?= build/grafana-agentctl
+OPERATOR_BINARY          ?= build/grafana-agent-operator
+CROW_BINARY              ?= build/agent-crow
+SMOKE_BINARY             ?= build/agent-smoke
+AGENTLINT_BINARY         ?= build/agentlint
+GOOS                     ?= $(shell go env GOOS)
+GOARCH                   ?= $(shell go env GOARCH)
+GOARM                    ?= $(shell go env GOARM)
+CGO_ENABLED              ?= 1
+RELEASE_BUILD            ?= 0
+GOEXPERIMENT             ?= $(shell go env GOEXPERIMENT)
 
 # List of all environment variables which will propagate to the build
 # container. USE_CONTAINER must _not_ be included to avoid infinite recursion.
@@ -241,7 +243,7 @@ endif
 # Targets for building Docker images
 #
 
-DOCKER_FLAGS := --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg VERSION=$(VERSION)
+DOCKER_FLAGS := --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg VERSION=$(VERSION) 
 
 ifneq ($(DOCKER_PLATFORM),)
 DOCKER_FLAGS += --platform=$(DOCKER_PLATFORM)
@@ -253,7 +255,9 @@ images: agent-image agentctl-image operator-image crow-image smoke-image
 agent-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_IMAGE) -f cmd/grafana-agent/Dockerfile .
 agentctl-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENTCTL_IMAGE) -f cmd/grafana-agentctl/Dockerfile .
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) --build-arg GOEXPERIMENT=boringcrypto -t $(AGENT_IMAGE)-boringcrypto -f cmd/grafana-agentctl/Dockerfile .
+agent-boringcrypto-image:
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_BORINGCRYPTO_IMAGE) -f cmd/grafana-agent/DockerFile . 
 operator-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(OPERATOR_IMAGE) -f cmd/grafana-agent-operator/Dockerfile .
 crow-image:
@@ -362,6 +366,7 @@ info:
 	@printf "RELEASE_BUILD   = $(RELEASE_BUILD)\n"
 	@printf "VERSION         = $(VERSION)\n"
 	@printf "GO_TAGS         = $(GO_TAGS)\n"
+	@printf "GOEXPERIMENT    = $(GOEXPERIMENT)\n"
 
 # awk magic to print out the comment block at the top of this file.
 .PHONY: help
