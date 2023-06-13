@@ -263,7 +263,10 @@ func Unmarshal(in []byte, v interface{}) error {
 // following:
 //
 //   - bool, for River bools
-//   - float64, for River numbers
+//   - float64, for floating point River numbers
+//     and integers which are too big to fit in either of int/int64/uint64
+//   - int/int64/uint64, in this order of preference, for signed and unsigned
+//     River integer numbers, depending on how big they are
 //   - string, for River strings
 //   - []interface{}, for River arrays
 //   - map[string]interface{}, for River objects
