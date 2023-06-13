@@ -23,6 +23,8 @@ Main (unreleased)
 
 - Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
 
+- Tanka config: retain cAdvisor metrics for system processes (Kubelet, Containerd, etc.) (@bboreham)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
