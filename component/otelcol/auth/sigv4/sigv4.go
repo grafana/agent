@@ -3,7 +3,6 @@ package sigv4
 import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/auth"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
@@ -30,8 +29,7 @@ type Arguments struct {
 }
 
 var (
-	_ river.Unmarshaler = (*Arguments)(nil)
-	_ auth.Arguments    = Arguments{}
+	_ auth.Arguments = Arguments{}
 )
 
 // Convert implements auth.Arguments.
@@ -50,12 +48,8 @@ func (args Arguments) Convert() (otelconfig.Extension, error) {
 	return &res, nil
 }
 
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args Arguments) Validate() error {
 	_, err := args.Convert()
 	return err
 }

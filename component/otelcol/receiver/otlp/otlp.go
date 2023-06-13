@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
-	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -71,11 +70,6 @@ type (
 	HTTPServerArguments otelcol.HTTPServerArguments
 )
 
-var (
-	_ river.Unmarshaler = (*GRPCServerArguments)(nil)
-	_ river.Unmarshaler = (*HTTPServerArguments)(nil)
-)
-
 // Default server settings.
 var (
 	DefaultGRPCServerArguments = GRPCServerArguments{
@@ -91,16 +85,12 @@ var (
 	}
 )
 
-// UnmarshalRiver implements river.Unmarshaler and supplies defaults.
-func (args *GRPCServerArguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *GRPCServerArguments) SetToDefault() {
 	*args = DefaultGRPCServerArguments
-	type arguments GRPCServerArguments
-	return f((*arguments)(args))
 }
 
-// UnmarshalRiver implements river.Unmarshaler and supplies defaults.
-func (args *HTTPServerArguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *HTTPServerArguments) SetToDefault() {
 	*args = DefaultHTTPServerArguments
-	type arguments HTTPServerArguments
-	return f((*arguments)(args))
 }

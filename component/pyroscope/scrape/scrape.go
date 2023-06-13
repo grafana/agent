@@ -144,17 +144,9 @@ var DefaultProfilingConfig = ProfilingConfig{
 	},
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies defaults before
-// unmarshaling.
-func (cfg *ProfilingConfig) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (cfg *ProfilingConfig) SetToDefault() {
 	*cfg = DefaultProfilingConfig
-
-	type args ProfilingConfig
-	if err := f((*args)(cfg)); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 type ProfilingTarget struct {
@@ -183,15 +175,13 @@ func NewDefaultArguments() Arguments {
 	}
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (arg *Arguments) SetToDefault() {
 	*arg = NewDefaultArguments()
+}
 
-	type args Arguments
-	if err := f((*args)(arg)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (arg *Arguments) Validate() error {
 	if arg.ScrapeTimeout <= 0 {
 		return fmt.Errorf("scrape_timeout must be greater than 0")
 	}

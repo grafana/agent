@@ -110,11 +110,9 @@ var DefaultPackConfig = PackConfig{
 	IngestTimestamp: true,
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (p *PackConfig) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (p *PackConfig) SetToDefault() {
 	*p = DefaultPackConfig
-	type pc PackConfig
-	return f((*pc)(p))
 }
 
 // newPackStage creates a DropStage from config

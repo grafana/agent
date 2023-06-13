@@ -27,15 +27,13 @@ type HistogramConfig struct {
 	Buckets []float64 `river:"buckets,attr"`
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (h *HistogramConfig) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (h *HistogramConfig) SetToDefault() {
 	*h = DefaultHistogramConfig
-	type histogram HistogramConfig
-	err := f((*histogram)(h))
-	if err != nil {
-		return err
-	}
+}
 
+// Validate implements river.Validator.
+func (h *HistogramConfig) Validate() error {
 	if h.MaxIdle < 1*time.Second {
 		return fmt.Errorf("max_idle_duration must be greater or equal than 1s")
 	}

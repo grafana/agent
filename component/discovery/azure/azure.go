@@ -57,16 +57,12 @@ var DefaultArguments = Arguments{
 	RefreshInterval: 5 * time.Minute,
 }
 
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-	type arguments Arguments
-	err := f((*arguments)(a))
-	if err != nil {
-		return err
-	}
-	return a.Validate()
 }
 
+// Validate implements river.Validator.
 func (a *Arguments) Validate() error {
 	if a.OAuth == nil && a.ManagedIdentity == nil || a.OAuth != nil && a.ManagedIdentity != nil {
 		return fmt.Errorf("exactly one of oauth or managed_identity must be specified")

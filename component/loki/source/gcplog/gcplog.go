@@ -40,15 +40,13 @@ type Arguments struct {
 	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = Arguments{}
-	type arguments Arguments
-	err := f((*arguments)(a))
-	if err != nil {
-		return err
-	}
+}
 
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
 	if (a.PullTarget != nil) == (a.PushTarget != nil) {
 		return fmt.Errorf("exactly one of 'push' or 'pull' must be provided")
 	}

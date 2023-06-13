@@ -3,7 +3,6 @@ package otelcol
 import (
 	"time"
 
-	"github.com/grafana/agent/pkg/river"
 	otelexporterhelper "go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
@@ -16,8 +15,6 @@ type RetryArguments struct {
 	MaxElapsedTime  time.Duration `river:"max_elapsed_time,attr,optional"`
 }
 
-var _ river.Unmarshaler = (*RetryArguments)(nil)
-
 // DefaultRetryArguments holds default settings for RetryArguments.
 var DefaultRetryArguments = RetryArguments{
 	Enabled:         true,
@@ -26,11 +23,9 @@ var DefaultRetryArguments = RetryArguments{
 	MaxElapsedTime:  5 * time.Minute,
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *RetryArguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *RetryArguments) SetToDefault() {
 	*args = DefaultRetryArguments
-	type arguments RetryArguments
-	return f((*arguments)(args))
 }
 
 // Convert converts args into the upstream type.
