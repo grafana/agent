@@ -26,8 +26,6 @@ scrape_configs:
         client_id: "client"
         client_secret: "secret"
         proxy_url: "proxy"
-        no_proxy: "0.0.0.0"
-        proxy_from_environment: true
         follow_redirects: false
     relabel_configs:
       - source_labels: [__address__]

@@ -14,11 +14,11 @@ scrape_configs:
     basic_auth:
       username: 'user'
       password: 'pass'
-    docker_sd_configs:
-      - host: "unix:///var/run/docker.sock"
+    kubernetes_sd_configs:
+      - role: endpoints
   - job_name: "prometheus2"
-    docker_sd_configs:
-      - host: "unix:///var/run/docker.sock"
+    kubernetes_sd_configs:
+      - role: endpoints
     relabel_configs:
       - source_labels: [__meta_consul_tags]
         regex: .*,prometheus,.*

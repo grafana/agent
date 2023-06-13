@@ -19,14 +19,12 @@ scrape_configs:
         access_key: 'YOUR_ACCESS_KEY'
         secret_key: 'YOUR_SECRET_KEY'
         port: 8080
-        proxy_from_environment: true
   - job_name: "prometheus2"
     ec2_sd_configs:
       - region: 'us-east-1'
         access_key: 'YOUR_ACCESS_KEY'
         secret_key: 'YOUR_SECRET_KEY'
         port: 8080
-        proxy_from_environment: true
     relabel_configs:
       - source_labels: [__meta_consul_tags]
         regex: .*,prometheus,.*
