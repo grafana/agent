@@ -355,6 +355,15 @@ local gen_scrape_config(job_name, pod_uid) = {
         ],
 
         metric_relabel_configs: [
+          // Let system processes like kubelet survive the next rule by giving them a fake image.
+          {
+            source_labels: ['__name__', 'id'],
+            regex: 'container_([a-z_]+);/system.slice/(.+)',
+            target_label: 'image',
+            replacement: '$2',
+          },
+
+        metric_relabel_configs: [
           // Drop container_* metrics with no image.
           {
             source_labels: ['__name__', 'image'],

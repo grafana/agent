@@ -1,6 +1,7 @@
 package common
 
 import (
+	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/river/token"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/prometheus/storage"
@@ -16,6 +17,10 @@ type ConvertAppendable struct {
 	Expr string // The specific string to return during tokenization.
 }
 
+var _ storage.Appendable = (*ConvertAppendable)(nil)
+var _ builder.Tokenizer = ConvertAppendable{}
+var _ river.Capsule = ConvertTargets{}
+
 func (f ConvertAppendable) RiverCapsule() {}
 func (f ConvertAppendable) RiverTokenize() []builder.Token {
 	return []builder.Token{{
@@ -23,6 +28,3 @@ func (f ConvertAppendable) RiverTokenize() []builder.Token {
 		Lit: f.Expr,
 	}}
 }
-
-var _ storage.Appendable = (*ConvertAppendable)(nil)
-var _ builder.Tokenizer = ConvertAppendable{}
