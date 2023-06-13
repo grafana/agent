@@ -47,17 +47,17 @@ package flow
 
 import (
 	"context"
-	"encoding/json"
 	"net"
 	"sync"
-	"time"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/agent/web/api/apitypes"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -73,9 +73,9 @@ type Options struct {
 	// components in telemetry data.
 	ControllerID string
 
-	// LogSink to use for controller logs and components. A no-op logger will be
+	// Logger to use for controller logs and components. A no-op logger will be
 	// created if this is nil.
-	LogSink *logging.Sink
+	Logger *logging.Logger
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
@@ -141,7 +141,7 @@ type Flow struct {
 // the controller.
 func New(o Options) *Flow {
 	var (
-		log       = logging.New(o.LogSink)
+		log       = o.Logger
 		tracer    = o.Tracer
 		clusterer = o.Clusterer
 	)
@@ -164,7 +164,6 @@ func New(o Options) *Flow {
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
-			LogSink:       o.LogSink,
 			Logger:        log,
 			TraceProvider: tracer,
 			Clusterer:     clusterer,
@@ -179,6 +178,19 @@ func New(o Options) *Flow {
 			HTTPListenAddr:  o.HTTPListenAddr,
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
+			NewModuleController: func(id string) component.ModuleController {
+				return newModuleController(&moduleControllerOptions{
+					Logger:         log,
+					Tracer:         tracer,
+					Clusterer:      clusterer,
+					Reg:            o.Reg,
+					DataPath:       o.DataPath,
+					HTTPListenAddr: o.HTTPListenAddr,
+					HTTPPath:       o.HTTPPathPrefix,
+					DialFunc:       o.DialFunc,
+					ID:             id,
+				})
+			},
 		})
 	)
 	return &Flow{
@@ -199,6 +211,7 @@ func New(o Options) *Flow {
 // canceled. Run must only be called once.
 func (c *Flow) Run(ctx context.Context) {
 	defer c.sched.Close()
+	defer c.loader.Cleanup()
 	defer level.Debug(c.log).Log("msg", "flow controller exiting")
 
 	for {
@@ -268,12 +281,12 @@ func (c *Flow) Ready() bool {
 }
 
 // ComponentInfos returns the component infos.
-func (c *Flow) ComponentInfos() []*ComponentInfo {
+func (c *Flow) ComponentInfos() []*apitypes.ComponentInfo {
 	c.loadMut.RLock()
 	defer c.loadMut.RUnlock()
 
 	cns := c.loader.Components()
-	infos := make([]*ComponentInfo, len(cns))
+	infos := make([]*apitypes.ComponentInfo, len(cns))
 	edges := c.loader.OriginalGraph().Edges()
 	for i, com := range cns {
 		nn := newFromNode(com, edges)
@@ -282,7 +295,7 @@ func (c *Flow) ComponentInfos() []*ComponentInfo {
 	return infos
 }
 
-func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo {
+func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *apitypes.ComponentInfo {
 	references := make([]string, 0)
 	referencedBy := make([]string, 0)
 	for _, e := range edges {
@@ -305,14 +318,14 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 		}
 	}
 	h := cn.CurrentHealth()
-	ci := &ComponentInfo{
+	ci := &apitypes.ComponentInfo{
 		Label:        cn.Label(),
 		ID:           cn.NodeID(),
 		Name:         cn.ComponentName(),
 		Type:         "block",
 		References:   references,
 		ReferencedBy: referencedBy,
-		Health: &ComponentHealth{
+		Health: &apitypes.ComponentHealth{
 			State:       h.Health.String(),
 			Message:     h.Message,
 			UpdatedTime: h.UpdateTime,
@@ -324,26 +337,4 @@ func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo 
 func isComponentNode(n dag.Node) bool {
 	_, ok := n.(*controller.ComponentNode)
 	return ok
-}
-
-// ComponentInfo represents a component in flow.
-type ComponentInfo struct {
-	Name         string           `json:"name,omitempty"`
-	Type         string           `json:"type,omitempty"`
-	ID           string           `json:"id,omitempty"`
-	Label        string           `json:"label,omitempty"`
-	References   []string         `json:"referencesTo"`
-	ReferencedBy []string         `json:"referencedBy"`
-	Health       *ComponentHealth `json:"health"`
-	Original     string           `json:"original"`
-	Arguments    json.RawMessage  `json:"arguments,omitempty"`
-	Exports      json.RawMessage  `json:"exports,omitempty"`
-	DebugInfo    json.RawMessage  `json:"debugInfo,omitempty"`
-}
-
-// ComponentHealth represents the health of a component.
-type ComponentHealth struct {
-	State       string    `json:"state"`
-	Message     string    `json:"message"`
-	UpdatedTime time.Time `json:"updatedTime"`
 }

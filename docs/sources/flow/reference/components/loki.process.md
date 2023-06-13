@@ -36,36 +36,36 @@ loki.process "LABEL" {
 
 `loki.process` supports the following arguments:
 
-Name              | Type                 | Description                                      | Default | Required
------------------ | -------------------- | ------------------------------------------------ | ------- | --------
-`forward_to`      | `list(LogsReceiver)` | Where to forward log entries after processing. | | yes
+| Name         | Type                 | Description                                    | Default | Required |
+| ------------ | -------------------- | ---------------------------------------------- | ------- | -------- |
+| `forward_to` | `list(LogsReceiver)` | Where to forward log entries after processing. |         | yes      |
 
 ## Blocks
 
 The following blocks are supported inside the definition of `loki.process`:
 
-Hierarchy        | Block      | Description | Required
----------------- | ---------- | ----------- | --------
-stage.cri    | [stage.cri][]    | Configures a pre-defined CRI-format pipeline. | no
-stage.docker | [stage.docker][] | Configures a pre-defined Docker log format pipeline. | no
-stage.drop         | [stage.drop][]          | Configures a `drop` processing stage. | no
-stage.json   | [stage.json][]   | Configures a JSON processing stage.  | no
-stage.label_drop   | [stage.label_drop][]    | Configures a `label_drop` processing stage. | no
-stage.label_keep   | [stage.label_keep][]    | Configures a `label_keep` processing stage. | no
-stage.labels | [stage.labels][] | Configures a labels processing stage. | no
-stage.limit        | [stage.limit][]         | Configures a `limit` processing stage. | no
-stage.logfmt | [stage.logfmt][] | Configures a logfmt processing stage. | no
-stage.match        | [stage.match][]         | Configures a `match` processing stage. | no
-stage.metrics      | [stage.metrics][]       | Configures a `metrics` stage. | no
-stage.multiline    | [stage.multiline][]     | Configures a `multiline` processing stage. | no
-stage.output       | [stage.output][]        | Configures an `output` processing stage. | no
-stage.pack         | [stage.pack][]          | Configures a `pack` processing stage. | no
-stage.regex        | [stage.regex][]         | Configures a `regex` processing stage. | no
-stage.replace      | [stage.replace][]       | Configures a `replace` processing stage. | no
-stage.static_labels | [stage.static_labels][] | Configures a `static_labels` processing stage. | no
-stage.template     | [stage.template][]      | Configures a `template` processing stage. | no
-stage.tenant       | [stage.tenant][]        | Configures a `tenant` processing stage. | no
-stage.timestamp    | [stage.timestamp][]     | Configures a `timestamp` processing stage. | no
+| Hierarchy           | Block                   | Description                                          | Required |
+| ------------------- | ----------------------- | ---------------------------------------------------- | -------- |
+| stage.cri           | [stage.cri][]           | Configures a pre-defined CRI-format pipeline.        | no       |
+| stage.docker        | [stage.docker][]        | Configures a pre-defined Docker log format pipeline. | no       |
+| stage.drop          | [stage.drop][]          | Configures a `drop` processing stage.                | no       |
+| stage.json          | [stage.json][]          | Configures a JSON processing stage.                  | no       |
+| stage.label_drop    | [stage.label_drop][]    | Configures a `label_drop` processing stage.          | no       |
+| stage.label_keep    | [stage.label_keep][]    | Configures a `label_keep` processing stage.          | no       |
+| stage.labels        | [stage.labels][]        | Configures a labels processing stage.                | no       |
+| stage.limit         | [stage.limit][]         | Configures a `limit` processing stage.               | no       |
+| stage.logfmt        | [stage.logfmt][]        | Configures a logfmt processing stage.                | no       |
+| stage.match         | [stage.match][]         | Configures a `match` processing stage.               | no       |
+| stage.metrics       | [stage.metrics][]       | Configures a `metrics` stage.                        | no       |
+| stage.multiline     | [stage.multiline][]     | Configures a `multiline` processing stage.           | no       |
+| stage.output        | [stage.output][]        | Configures an `output` processing stage.             | no       |
+| stage.pack          | [stage.pack][]          | Configures a `pack` processing stage.                | no       |
+| stage.regex         | [stage.regex][]         | Configures a `regex` processing stage.               | no       |
+| stage.replace       | [stage.replace][]       | Configures a `replace` processing stage.             | no       |
+| stage.static_labels | [stage.static_labels][] | Configures a `static_labels` processing stage.       | no       |
+| stage.template      | [stage.template][]      | Configures a `template` processing stage.            | no       |
+| stage.tenant        | [stage.tenant][]        | Configures a `tenant` processing stage.              | no       |
+| stage.timestamp     | [stage.timestamp][]     | Configures a `timestamp` processing stage.           | no       |
 
 A user can provide any number of these stage blocks nested inside
 `loki.process`; these will run in order of appearance in the configuration
@@ -161,14 +161,14 @@ To drop entries with an OR clause, specify multiple `drop` blocks in sequence.
 
 The following arguments are supported:
 
-Name                  | Type       | Description                                           | Default   | Required
---------------------- | ---------- | ----------------------------------------------------- | --------- | --------
-`source`              | `string`   | Name from extracted data to parse. If empty or not defined, it uses the log message.    | `""` | no
-`expression`          | `string`   | A valid RE2 regular expression. | `""` | no
-`value`               | `string`   | If both `source` and `value` are specified, the stage drops lines where `value` exactly matches the source content. | `""` | no
-`older_than`          | `duration` | If specified, the stage drops lines whose timestamp is older than the current time minus this duration. | `""` | no
-`longer_than`         | `string`   | If specified, the stage drops lines whose size exceeds the configured value. | `""` | no
-`drop_counter_reason` | `string`   | A custom reason to report for dropped lines. | `"drop_stage"` | no
+| Name                  | Type       | Description                                                                                                         | Default        | Required |
+| --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------- | -------------- | -------- |
+| `source`              | `string`   | Name from extracted data to parse. If empty or not defined, it uses the log message.                                | `""`           | no       |
+| `expression`          | `string`   | A valid RE2 regular expression.                                                                                     | `""`           | no       |
+| `value`               | `string`   | If both `source` and `value` are specified, the stage drops lines where `value` exactly matches the source content. | `""`           | no       |
+| `older_than`          | `duration` | If specified, the stage drops lines whose timestamp is older than the current time minus this duration.             | `""`           | no       |
+| `longer_than`         | `string`   | If specified, the stage drops lines whose size exceeds the configured value.                                        | `""`           | no       |
+| `drop_counter_reason` | `string`   | A custom reason to report for dropped lines.                                                                        | `"drop_stage"` | no       |
 
 The `expression` field needs to be a RE2 regex string. If `source` is empty or
 not provided, the regex attempts to match the log line itself. If source is
@@ -223,11 +223,11 @@ values from them.
 
 The following arguments are supported:
 
-Name             | Type          | Description | Default | Required
----------------- | ------------- | ----------- | ------- | --------
-`expressions`    | `map(string)` | Key-value pairs of JMESPath expressions. | | yes
-`source`         | `string`      | Source of the data to parse as JSON. | `""` | no
-`drop_malformed` | `bool`        | Drop lines whose input cannot be parsed as valid JSON.| `false` | no
+| Name             | Type          | Description                                            | Default | Required |
+| ---------------- | ------------- | ------------------------------------------------------ | ------- | -------- |
+| `expressions`    | `map(string)` | Key-value pairs of JMESPath expressions.               |         | yes      |
+| `source`         | `string`      | Source of the data to parse as JSON.                   | `""`    | no       |
+| `drop_malformed` | `bool`        | Drop lines whose input cannot be parsed as valid JSON. | `false` | no       |
 
 When configuring a JSON stage, the `source` field defines the source of data to
 parse as JSON. By default, this is the log line itself, but it can also be a
@@ -275,9 +275,9 @@ from incoming log entries.
 
 The following arguments are supported:
 
-Name         | Type           | Description                                  | Default        | Required
------------- | -------------- | -------------------------------------------- | -------------- | --------
-`values`     | `list(string)` | Configures a `label_drop` processing stage.   | `{}`           | no
+| Name     | Type           | Description                                 | Default | Required |
+| -------- | -------------- | ------------------------------------------- | ------- | -------- |
+| `values` | `list(string)` | Configures a `label_drop` processing stage. | `{}`    | no       |
 
 ```river
 stage.label_drop {
@@ -292,9 +292,9 @@ label set of an incoming log entry down to a subset.
 
 The following arguments are supported:
 
-Name        | Type           | Description                                   | Default        | Required
------------ | -------------- | --------------------------------------------- | -------------- | --------
-`values`    | `list(string)` | Configures a `label_keep` processing stage.   | `{}`           | no
+| Name     | Type           | Description                                 | Default | Required |
+| -------- | -------------- | ------------------------------------------- | ------- | -------- |
+| `values` | `list(string)` | Configures a `label_keep` processing stage. | `{}`    | no       |
 
 
 ```river
@@ -310,9 +310,9 @@ data from the extracted values map and set new labels on incoming log entries.
 
 The following arguments are supported:
 
-Name                  | Type          | Description                               | Default        | Required
---------------------- | --------------| ----------------------------------------- | -------------- | --------
-`values`              | `map(string)` | Configures a `labels` processing stage.   | `{}`           | no
+| Name     | Type          | Description                             | Default | Required |
+| -------- | ------------- | --------------------------------------- | ------- | -------- |
+| `values` | `map(string)` | Configures a `labels` processing stage. | `{}`    | no       |
 
 In a labels stage, the map's keys define the label to set and the values are
 how to look them up. If the value is empty, it is inferred to be the same as
@@ -334,13 +334,13 @@ based on several options.
 
 The following arguments are supported:
 
-Name            | Type     | Description | Default | Required
---------------- | -------- | ----------- | ------- | --------
-`rate`          | `int`    | The maximum rate of lines per second that the stage forwards. | | yes
-`burst`         | `int`    | The cap in the quantity of burst lines that the stage forwards. | | yes
-`by_label_name` | `string` | The label to use when rate-limiting on a label name. | `""` | no
-`drop`          | `bool`   | Whether to discard or backpressure lines that exceed the rate limit. | `false` | no
-`max_distinct_labels` | `int` | The number of unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no
+| Name                  | Type     | Description                                                                      | Default | Required |
+| --------------------- | -------- | -------------------------------------------------------------------------------- | ------- | -------- |
+| `rate`                | `int`    | The maximum rate of lines per second that the stage forwards.                    |         | yes      |
+| `burst`               | `int`    | The cap in the quantity of burst lines that the stage forwards.                  |         | yes      |
+| `by_label_name`       | `string` | The label to use when rate-limiting on a label name.                             | `""`    | no       |
+| `drop`                | `bool`   | Whether to discard or backpressure lines that exceed the rate limit.             | `false` | no       |
+| `max_distinct_labels` | `int`    | The number of unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no       |
 
 The rate limiting is implemented as a "token bucket" of size `burst`, initially
 full and refilled at `rate` tokens per second. Each received log entry consumes one token from the bucket. When `drop` is set to true, incoming entries
@@ -378,10 +378,10 @@ lines as logfmt and extracts values from them.
 
 The following arguments are supported:
 
-Name       | Type          | Description | Default | Required
----------- | ------------- | ----------- | ------- | --------
-`mapping`  | `map(string)` | Key-value pairs of logmft fields to extract. | | yes
-`source`   | `string`      | Source of the data to parse as logfmt. | `""` | no
+| Name      | Type          | Description                                  | Default | Required |
+| --------- | ------------- | -------------------------------------------- | ------- | -------- |
+| `mapping` | `map(string)` | Key-value pairs of logmft fields to extract. |         | yes      |
+| `source`  | `string`      | Source of the data to parse as logfmt.       | `""`    | no       |
 
 
 The `source` field defines the source of data to parse as logfmt. When `source`
@@ -422,12 +422,12 @@ entry matches a configurable LogQL stream selector and filter expressions.
 
 The following arguments are supported:
 
-Name            | Type      | Description                                                         | Default | Required
---------------- | --------- | ------------------------------------------------------------------- | ------- | --------
-`selector`      | `string`  | The LogQL stream selector and filter expressions to use.            |         | yes
-`pipeline_name` | `string`  | A custom name to use for the nested pipeline.                       | `""`    | no
-`action`        | `string`  | The action to take when the selector matches the log line. Supported values are `"keep"` and `"drop"` | `"keep"` | no
-`drop_counter_reason` | `string` | A custom reason to report for dropped lines.                   | `"match_stage"` | no
+| Name                  | Type     | Description                                                                                           | Default         | Required |
+| --------------------- | -------- | ----------------------------------------------------------------------------------------------------- | --------------- | -------- |
+| `selector`            | `string` | The LogQL stream selector and filter expressions to use.                                              |                 | yes      |
+| `pipeline_name`       | `string` | A custom name to use for the nested pipeline.                                                         | `""`            | no       |
+| `action`              | `string` | The action to take when the selector matches the log line. Supported values are `"keep"` and `"drop"` | `"keep"`        | no       |
+| `drop_counter_reason` | `string` | A custom reason to report for dropped lines.                                                          | `"match_stage"` | no       |
 
 The `stage.match` block supports a number of `stage.*` inner blocks, like the top-level
 block. These are used to construct the nested set of stages to run if the
@@ -512,11 +512,11 @@ generated.
 
 The following blocks are supported inside the definition of `stage.metrics`:
 
-Hierarchy      | Block       | Description         | Required
--------------- | ----------- | ------------------- | --------
-metric.counter | [metric.counter][] | Defines a `counter` metric. | no
-metric.gauge   | [metric.gauge][]   | Defines a `gauge` metric. | no
-metric.histogram | [metric.histogram][] | Defines a `histogram` metric. | no
+| Hierarchy        | Block                | Description                   | Required |
+| ---------------- | -------------------- | ----------------------------- | -------- |
+| metric.counter   | [metric.counter][]   | Defines a `counter` metric.   | no       |
+| metric.gauge     | [metric.gauge][]     | Defines a `gauge` metric.     | no       |
+| metric.histogram | [metric.histogram][] | Defines a `histogram` metric. | no       |
 
 [metric.counter]: #metriccounter-block
 [metric.gauge]: #metricgauge-block
@@ -528,17 +528,17 @@ Defines a metric whose value only goes up.
 
 The following arguments are supported:
 
-Name            | Type       | Description | Default | Required
---------------- | ---------- | ----------- | ------- | --------
-`name`          | `string`   | The metric name. | | yes
-`action`        | `string`   | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`. | | yes
-`description`   | `string`   | The metric's description and help text. | `""` | no
-`source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""` | no
-`prefix`        | `string`   | The prefix to the metric name. | `"loki_process_custom_"` | no
-`idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed. | `"5m"` | no
-`value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`. | `""` | no
-`match_all`     | `bool`     | If set to true, all log lines are counted, without attemptng to match the `source` to the extracted map. | `false` | no
-`count_entry_bytes`     | `bool`     | If set to true, counts all log lines bytes. | `false` | no
+| Name                | Type       | Description                                                                                              | Default                  | Required |
+| ------------------- | ---------- | -------------------------------------------------------------------------------------------------------- | ------------------------ | -------- |
+| `name`              | `string`   | The metric name.                                                                                         |                          | yes      |
+| `action`            | `string`   | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`.                              |                          | yes      |
+| `description`       | `string`   | The metric's description and help text.                                                                  | `""`                     | no       |
+| `source`            | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name.                      | `""`                     | no       |
+| `prefix`            | `string`   | The prefix to the metric name.                                                                           | `"loki_process_custom_"` | no       |
+| `idle_duration`     | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.                        | `"5m"`                   | no       |
+| `value`             | `string`   | If set, the metric only changes if `source` exactly matches the `value`.                                 | `""`                     | no       |
+| `match_all`         | `bool`     | If set to true, all log lines are counted, without attemptng to match the `source` to the extracted map. | `false`                  | no       |
+| `count_entry_bytes` | `bool`     | If set to true, counts all log lines bytes.                                                              | `false`                  | no       |
 
 A counter cannot set both `match_all` to true _and_ a `value`.
 A counter cannot set `count_entry_bytes` without also setting `match_all=true`
@@ -553,15 +553,15 @@ Defines a gauge metric whose value can go up or down.
 
 The following arguments are supported:
 
-Name            | Type       | Description | Default | Required
---------------- | ---------- | ----------- | ------- | --------
-`name`          | `string`   | The metric name. | | yes
-`action`        | `string`   | The action to take. Valid actions are `inc` and `add`. | | yes
-`description`   | `string`   | The metric's description and help text. | `""` | no
-`source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""` | no
-`prefix`        | `string`   | The prefix to the metric name. | `"loki_process_custom_"` | no
-`idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed. | `"5m"` | no
-`value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`. | `""` | no
+| Name            | Type       | Description                                                                         | Default                  | Required |
+| --------------- | ---------- | ----------------------------------------------------------------------------------- | ------------------------ | -------- |
+| `name`          | `string`   | The metric name.                                                                    |                          | yes      |
+| `action`        | `string`   | The action to take. Valid actions are `inc` and `add`.                              |                          | yes      |
+| `description`   | `string`   | The metric's description and help text.                                             | `""`                     | no       |
+| `source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
+| `prefix`        | `string`   | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
+| `idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
+| `value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
 
 
 The valid `action` values are `inc`, `dec`, `set`, `add`, or `sub`.
@@ -576,15 +576,15 @@ Defines a histogram metric whose values are recorded in predefined buckets.
 
 The following arguments are supported:
 
-Name            | Type          | Description | Default | Required
---------------- | ------------- | ----------- | ------- | --------
-`name`          | `string`      | The metric name. | | yes
-`buckets`       | `list(float)` | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`. | | yes
-`description`   | `string`      | The metric's description and help text. | `""` | no
-`source`        | `string`      | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""` | no
-`prefix`        | `string`      | The prefix to the metric name. | `"loki_process_custom_"` | no
-`idle_duration` | `duration`    | Maximum amount of time to wait until the metric is marked as 'stale' and removed. | `"5m"` | no
-`value`         | `string`      | If set, the metric only changes if `source` exactly matches the `value`. | `""` | no
+| Name            | Type          | Description                                                                         | Default                  | Required |
+| --------------- | ------------- | ----------------------------------------------------------------------------------- | ------------------------ | -------- |
+| `name`          | `string`      | The metric name.                                                                    |                          | yes      |
+| `buckets`       | `list(float)` | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`.         |                          | yes      |
+| `description`   | `string`      | The metric's description and help text.                                             | `""`                     | no       |
+| `source`        | `string`      | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
+| `prefix`        | `string`      | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
+| `idle_duration` | `duration`    | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
+| `value`         | `string`      | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
 
 #### metrics behavior
 
@@ -703,11 +703,11 @@ passing it on to the next stage in the pipeline.
 
 The following arguments are supported:
 
-Name                | Type           | Description                                           | Default  | Required
-------------------- | -------------- | ----------------------------------------------------- | -------- | --------
-`firstline`         | `string`       | Name from extracted data to use for the log entry.    |          | yes
-`max_wait_time`     | `duration`     | The maximum time to wait for a multiline block.       |  `"3s"`  | no
-`max_lines`         | `int`          | The maximum number of lines a block can have.         |  `128`   | no
+| Name            | Type       | Description                                        | Default | Required |
+| --------------- | ---------- | -------------------------------------------------- | ------- | -------- |
+| `firstline`     | `string`   | Name from extracted data to use for the log entry. |         | yes      |
+| `max_wait_time` | `duration` | The maximum time to wait for a multiline block.    | `"3s"`  | no       |
+| `max_lines`     | `int`      | The maximum number of lines a block can have.      | `128`   | no       |
 
 
 A new block is identified by the RE2 regular expression passed in `firstline`.
@@ -762,9 +762,9 @@ to the next component.
 
 The following arguments are supported:
 
-Name                | Type           | Description                                           | Default   | Required
-------------------- | -------------- | ----------------------------------------------------- | --------- | --------
-`source`            | `string`       | Name from extracted data to use for the log entry.    |           | yes
+| Name     | Type     | Description                                        | Default | Required |
+| -------- | -------- | -------------------------------------------------- | ------- | -------- |
+| `source` | `string` | Name from extracted data to use for the log entry. |         | yes      |
 
 
 Let's see how this works for the following log line and three-stage pipeline:
@@ -802,10 +802,10 @@ entry with a JSON object that embeds extracted values and labels with it.
 
 The following arguments are supported:
 
-Name                  | Type            | Description                                           | Default   | Required
---------------------- | --------------- | ----------------------------------------------------- | --------- | --------
-`labels`              | `list(string)`  | The values from the extracted data and labels to pack with the log entry.    |  | yes
-`ingest_timestamp`    | `bool`          | Whether to replace the log entry timestamp with the time the `pack` stage runs.  | `true | no
+| Name               | Type           | Description                                                                     | Default | Required |
+| ------------------ | -------------- | ------------------------------------------------------------------------------- | ------- | -------- |
+| `labels`           | `list(string)` | The values from the extracted data and labels to pack with the log entry.       |         | yes      |
+| `ingest_timestamp` | `bool`         | Whether to replace the log entry timestamp with the time the `pack` stage runs. | `true   | no       |
 
 This stage lets you embed extracted values and labels together with the log
 line, by packing them into a JSON object. The original message is stored under
@@ -855,10 +855,10 @@ the shared extracted map of values.
 
 The following arguments are supported:
 
-Name          | Type      | Description                                                         | Default | Required
-------------- | --------- | ------------------------------------------------------------------- | ------- | --------
-`expression`  | `string`  | A valid RE2 regular expression. Each capture group must be named.   |         | yes
-`source`      | `string`  | Name from extracted data to parse. If empty, uses the log message.  | `""`    | no
+| Name         | Type     | Description                                                        | Default | Required |
+| ------------ | -------- | ------------------------------------------------------------------ | ------- | -------- |
+| `expression` | `string` | A valid RE2 regular expression. Each capture group must be named.  |         | yes      |
+| `source`     | `string` | Name from extracted data to parse. If empty, uses the log message. | `""`    | no       |
 
 
 The `expression` field needs to be a RE2 regex string. Every matched capture
@@ -924,11 +924,11 @@ the regex also support adding data into the shared extracted map.
 
 The following arguments are supported:
 
-Name           | Type      | Description                                        | Default   | Required
--------------- | --------- | -------------------------------------------------- | --------- | --------
-`expression`   | `string`  | Name from extracted data to use for the log entry. |           | yes
-`source`       | `string`  | Source of the data to parse. If empty, it uses the log message. | | no
-`replace`      | `string`  | Value replaced by the capture group.               |           | no
+| Name         | Type     | Description                                                     | Default | Required |
+| ------------ | -------- | --------------------------------------------------------------- | ------- | -------- |
+| `expression` | `string` | Name from extracted data to use for the log entry.              |         | yes      |
+| `source`     | `string` | Source of the data to parse. If empty, it uses the log message. |         | no       |
+| `replace`    | `string` | Value replaced by the capture group.                            |         | no       |
 
 
 The `source` field defines the source of data to parse using `expression`. When
@@ -1036,9 +1036,9 @@ that adds a static set of labels to incoming log entries.
 
 The following arguments are supported:
 
-Name         | Type          | Description                                      | Default        | Required
------------- | --------------| ------------------------------------------------ | -------------- | --------
-`values`     | `map(string)` | Configures a `static_labels` processing stage.   | `{}`           | no
+| Name     | Type          | Description                                    | Default | Required |
+| -------- | ------------- | ---------------------------------------------- | ------- | -------- |
+| `values` | `map(string)` | Configures a `static_labels` processing stage. | `{}`    | no       |
 
 
 ```river
@@ -1064,10 +1064,10 @@ The template stage can also create new keys in the extracted map.
 
 The following arguments are supported:
 
-Name       | Type      | Description                 | Default   | Required
----------- | --------- | --------------------------- | --------- | --------
-`source`   | `string`  | Name from extracted data to parse. If the key doesn't exist, a new entry is created.  |   | yes
-`template` | `string`  | Go template string to use.  |   | yes
+| Name       | Type     | Description                                                                          | Default | Required |
+| ---------- | -------- | ------------------------------------------------------------------------------------ | ------- | -------- |
+| `source`   | `string` | Name from extracted data to parse. If the key doesn't exist, a new entry is created. |         | yes      |
+| `template` | `string` | Go template string to use.                                                           |         | yes      |
 
 The template string can be any valid template that can be used by Go's `text/template`. It supports all functions from the [sprig package](http://masterminds.github.io/sprig/), as well as the following list of custom functions:
 ```
@@ -1226,11 +1226,11 @@ field in the extracted data map, a label, or a provided value.
 
 The following arguments are supported:
 
-Name      | Type      | Description                 | Default   | Required
---------- | --------- | --------------------------- | --------- | --------
-`label`   | `string`  | The label to set as tenant ID.  | `""`  | no
-`source`  | `string`  | The name from the extracted value to use as tenant ID.  | `""`  | no
-`value`   | `string`  | The value to set as the tenant ID.  | `""`  | no
+| Name     | Type     | Description                                            | Default | Required |
+| -------- | -------- | ------------------------------------------------------ | ------- | -------- |
+| `label`  | `string` | The label to set as tenant ID.                         | `""`    | no       |
+| `source` | `string` | The name from the extracted value to use as tenant ID. | `""`    | no       |
+| `value`  | `string` | The value to set as the tenant ID.                     | `""`    | no       |
 
 The block expects only one of `label`, `source` or `value` to be provided.
 
@@ -1271,13 +1271,13 @@ the log entry was scraped.
 
 The following arguments are supported:
 
-Name                | Type           | Description                                                 | Default   | Required
-------------------- | -------------- | ----------------------------------------------------------- | --------- | --------
-`source`            | `string`       | Name from extracted values map to use for the timestamp.    |           | yes
-`format`            | `string`       | Determines how to parse the source string.                  |           | yes
-`fallback_formats`  | `list(string)` | Fallback formats to try if the `format` field fails.        | `[]`      | no
-`location`          | `string`       | IANA Timezone Database location to use when parsing.        | `""`      | no
-`action_on_failure` | `string`       | What to do when the timestamp can't be extracted or parsed. | `"fudge"` | no
+| Name                | Type           | Description                                                 | Default   | Required |
+| ------------------- | -------------- | ----------------------------------------------------------- | --------- | -------- |
+| `source`            | `string`       | Name from extracted values map to use for the timestamp.    |           | yes      |
+| `format`            | `string`       | Determines how to parse the source string.                  |           | yes      |
+| `fallback_formats`  | `list(string)` | Fallback formats to try if the `format` field fails.        | `[]`      | no       |
+| `location`          | `string`       | IANA Timezone Database location to use when parsing.        | `""`      | no       |
+| `action_on_failure` | `string`       | What to do when the timestamp can't be extracted or parsed. | `"fudge"` | no       |
 
 The `source` field defines which value from the shared map of extracted values
 the stage should attempt to parse as a timestamp.
@@ -1321,20 +1321,20 @@ according to the system's clock.
 The following table shows the supported reference values to use when defining a
 custom format.
 
-Timestamp Component | Format value
-------------------- | --------------
-Year                | 06, 2006
-Month               | 1, 01, Jan, January
-Day                 | 2, 02, _2 (two digits right justified)
-Day of the week     | Mon, Monday
-Hour                | 3 (12-hour), 03 (12-hour zero prefixed), 15 (24-hour)
-Minute              | 4, 04
-Second              | 5, 05
-Fraction of second  | .000 (ms zero prefixed), .000000 (μs), .000000000 (ns), .999 (ms without trailing zeroes), .999999 (μs), .999999999 (ns)
-12-hour period      | pm, PM
-Timezone name       | MST
-Timezone offset     | -0700, -070000 (with seconds), -07, 07:00, -07:00:00 (with seconds)
-Timezone ISO-8601   | Z0700 (Z for UTC or time offset), Z070000, Z07, Z07:00, Z07:00:00
+| Timestamp Component | Format value                                                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Year                | 06, 2006                                                                                                                 |
+| Month               | 1, 01, Jan, January                                                                                                      |
+| Day                 | 2, 02, _2 (two digits right justified)                                                                                   |
+| Day of the week     | Mon, Monday                                                                                                              |
+| Hour                | 3 (12-hour), 03 (12-hour zero prefixed), 15 (24-hour)                                                                    |
+| Minute              | 4, 04                                                                                                                    |
+| Second              | 5, 05                                                                                                                    |
+| Fraction of second  | .000 (ms zero prefixed), .000000 (μs), .000000000 (ns), .999 (ms without trailing zeroes), .999999 (μs), .999999999 (ns) |
+| 12-hour period      | pm, PM                                                                                                                   |
+| Timezone name       | MST                                                                                                                      |
+| Timezone offset     | -0700, -070000 (with seconds), -07, 07:00, -07:00:00 (with seconds)                                                      |
+| Timezone ISO-8601   | Z0700 (Z for UTC or time offset), Z070000, Z07, Z07:00, Z07:00:00                                                        |
 
 The `fallback_formats` field defines one or more format fields to try and parse
 the timestamp with, if parsing with `format` fails.
@@ -1362,13 +1362,129 @@ stage.timestamp {
 }
 ```
 
+### stage.geoip block
+
+The `stage.geoip` inner block configures a processing stage that reads an IP address and populates the labelset with geoip fields. Maxmind’s GeoIP2 database is used for the lookup.
+
+The following arguments are supported:
+
+| Name      | Type     | Description                                       | Default | Required |
+| --------- | -------- | ------------------------------------------------- | ------- | -------- |
+| `db`      | `string` | Path to the Maxmind DB file.                      |         | yes      |
+| `source`  | `string` | IP from extracted data to parse.                  |         | yes      |
+| `db_type` | `string` | Maxmind DB type. Allowed values are "city", "asn" |         | yes      |
+
+
+#### GeoIP with City database example:
+
+```
+{"log":"log message","client_ip":"34.120.177.193"}
+
+loki.process "example" {
+	stage.json {
+		expressions = {ip = "client_ip"}
+	}
+
+	stage.geoip {
+		source  = "ip"
+		db      = "/path/to/db/GeoLite2-City.mmdb"
+		db_type = "city"
+	}
+}
+```
+
+The `json` stage extracts the IP address from the `client_ip` key in the log line. 
+Then the extracted `ip` value is given as source to geoip stage. The geoip stage performs a lookup on the IP and populates the following labels:
+
+- geoip_city_name: Kansas City
+- geoip_country_name: United States
+- geoip_continet_name: North America
+- geoip_continent_code: NA
+- geoip_location_latitude: "39.1027
+- geoip_location_longitude: -94.5778
+- geoip_postal_code: 64184
+- geoip_timezone: America/Chicago
+- geoip_subdivision_name: Missouri
+- geoip_subdivision_code: MO
+
+If only a subset of these labels is required, you can chain the above pipeline with the `label_drop` or `label_keep` stage.
+
+label_keep example:
+```
+loki.process "example" {
+	stage.json {
+		expressions = {ip = "client_ip"}
+	}
+
+	stage.geoip {
+		source  = "ip"
+		db      = "/path/to/db/GeoLite2-City.mmdb"
+		db_type = "city"
+	}
+
+    stage.label_keep {
+        values = [ "geoip_city_name", "geoip_country_name", "geoip_location_latitude", "geoip_location_longitude" ]
+    }
+}
+```
+Only the labels listed in the `values` list in the `label_keep` stage are sent to Loki.
+
+label_drop example:
+
+```
+loki.process "example" {
+	stage.json {
+		expressions = {ip = "client_ip"}
+	}
+
+	stage.geoip {
+		source  = "ip"
+		db      = "/path/to/db/GeoLite2-City.mmdb"
+		db_type = "city"
+	}
+
+    stage.label_drop {
+        values = [ "geoip_postal_code", "geoip_subdivision_code" ]
+    }
+}
+```
+All the labels except the ones listed under `label_drop` stage are sent to Loki.
+
+
+#### GeoIP with ASN (Autonomous System Number) database example
+
+```
+loki.process "example" {
+	stage.json {
+		expressions = {ip = "client_ip"}
+	}
+
+	stage.geoip {
+		source  = "ip"
+		db      = "/path/to/db/GeoIP2-ASN.mmdb"
+		db_type = "asn"
+	}
+
+    stage.label_drop {
+        values = [ "geoip_postal_code", "geoip_subdivision_code" ]
+    }
+}
+```
+
+The `json` stage extracts the IP address from the `client_ip` key in the log line. 
+Then the extracted `ip` value is given as source to geoip stage. The geoip stage performs a lookup on the IP and populates the following labels:
+
+- geoip_autonomous_system_number: 396982
+- geoip_autonomous_system_organization: GOOGLE-CLOUD-PLATFORM
+
+
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`receiver` | `LogsReceiver` | A value that other components can use to send log entries to.
+| Name       | Type           | Description                                                   |
+| ---------- | -------------- | ------------------------------------------------------------- |
+| `receiver` | `LogsReceiver` | A value that other components can use to send log entries to. |
 
 ## Component health
 

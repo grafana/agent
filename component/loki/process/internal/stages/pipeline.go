@@ -44,6 +44,7 @@ type StageConfig struct {
 	TenantConfig       *TenantConfig       `river:"tenant,block,optional"`
 	LimitConfig        *LimitConfig        `river:"limit,block,optional"`
 	MetricsConfig      *MetricsConfig      `river:"metrics,block,optional"`
+	GeoIPConfig        *GeoIPConfig        `river:"geoip,block,optional"`
 }
 
 var rateLimiter *rate.Limiter
