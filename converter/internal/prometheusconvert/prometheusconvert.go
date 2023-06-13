@@ -79,7 +79,7 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 			case *promdigitalocean.SDConfig:
 				exports, newDiags = appendDiscoveryDigitalOcean(f, scrapeConfig.JobName, sdc)
 			case *promdns.SDConfig:
-				exports, newDiags = appendDiscoveryDns(f, scrapeConfig.JobName, sdc)
+				exports = appendDiscoveryDns(f, scrapeConfig.JobName, sdc)
 			case *promdocker.DockerSDConfig:
 				exports, newDiags = appendDiscoveryDocker(f, scrapeConfig.JobName, sdc)
 			case *promaws.EC2SDConfig:
