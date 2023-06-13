@@ -17,6 +17,10 @@ Main (unreleased)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
 
+- Add boring crypto builds for Linux arm64 and x64. (@mattdurham)
+
+
+
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
@@ -76,7 +80,6 @@ v0.34.0 (2023-06-08)
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
   - `nonsensitive` converts a River secret back into a string. (@rfratto)
 
-- Add fips builds for arm64 and amd64 Linux. (@mattdurham)
 
 ### Enhancements
 
