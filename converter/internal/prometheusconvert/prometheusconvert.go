@@ -5,10 +5,12 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/discovery"
+	promdiscover "github.com/prometheus/prometheus/discovery"
+	promazure "github.com/prometheus/prometheus/discovery/azure"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
@@ -20,7 +22,6 @@ import (
 // The implementation of this API is a work in progress.
 // Additional components must be implemented:
 //
-//	discovery.azure
 //	discovery.consul
 //	discovery.digitalocean
 //	discovery.dns
@@ -40,10 +41,8 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 		return nil, diags
 	}
 
-	diags = ValidateUnsupported(promConfig)
-
 	f := builder.NewFile()
-	AppendAll(f, promConfig)
+	diags = AppendAll(f, promConfig)
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -53,28 +52,35 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	return buf.Bytes(), diags
 }
 
-// ValidateUnsupported will traverse the Prometheus Config and return warnings
-// for any config we knowingly do not support.
-func ValidateUnsupported(promConfig *promconfig.Config) diag.Diagnostics {
+// AppendAll analyzes the entire prometheus config in memory and transforms it
+// into Flow Arguments. It then appends each argument to the file builder.
+func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
+	remoteWriteExports := appendRemoteWrite(f, promConfig)
 
+	forwardTo := []storage.Appendable{remoteWriteExports.Receiver}
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		for _, sdConfig := range scrapeConfig.ServiceDiscoveryConfigs {
-			switch sdConfig.(type) {
-			case discovery.StaticConfig:
-				continue
+		relabelExports := appendRelabel(f, scrapeConfig.RelabelConfigs, forwardTo, scrapeConfig.JobName)
+		if relabelExports != nil {
+			forwardTo = []storage.Appendable{relabelExports.Receiver}
+		}
+
+		var targets []discovery.Target
+		for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
+			switch sdc := serviceDiscoveryConfig.(type) {
+			case promdiscover.StaticConfig:
+				targets = append(targets, getScrapeTargets(sdc)...)
+			case *promazure.SDConfig:
+				exports, newDiags := appendDiscoveryAzure(f, scrapeConfig.JobName, sdc)
+				targets = append(targets, exports.Targets...)
+				diags = append(diags, newDiags...)
 			default:
-				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", sdConfig.Name()))
+				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 			}
 		}
+
+		appendScrape(f, scrapeConfig, forwardTo, targets)
 	}
 
 	return diags
-}
-
-// AppendAll analyzes the entire prometheus config in memory and transforms it
-// into Flow Arguments. It then appends each argument to the file builder.
-func AppendAll(f *builder.File, promConfig *promconfig.Config) {
-	remoteWriteExports := appendRemoteWrite(f, promConfig)
-	appendScrape(f, promConfig.ScrapeConfigs, []storage.Appendable{remoteWriteExports.Receiver})
 }

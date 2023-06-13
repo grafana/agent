@@ -34,6 +34,7 @@
 /component/phlare/                  @grafana/grafana-agent-signals-maintainers
 /component/prometheus/              @grafana/grafana-agent-signals-maintainers
 /component/prometheus/exporter/     @grafana/grafana-agent-infrastructure-maintainers
+/component/prometheus/operator/     @grafana/grafana-agent-operator-maintainers
 /component/remote/                  @grafana/grafana-agent-infrastructure-maintainers
 
 # Static mode packages:

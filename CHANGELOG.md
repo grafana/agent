@@ -13,6 +13,7 @@ Main (unreleased)
 ### Features
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
+ - Support `stage.geoip` in `loki.process`. (@akselleirv)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
 
@@ -21,6 +22,8 @@ Main (unreleased)
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
 
 - Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
+
+- Tanka config: retain cAdvisor metrics for system processes (Kubelet, Containerd, etc.) (@bboreham)
 
 ### Bugfixes
 
