@@ -2,6 +2,7 @@ package common
 
 import (
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/pkg/river/token/builder"
 )
@@ -22,6 +23,10 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 		switch value := val.(type) {
 		case rivertypes.Secret:
 			return string(value)
+		case []discovery.Target:
+			return ConvertTargets{
+				Targets: value,
+			}
 		default:
 			return val
 		}
