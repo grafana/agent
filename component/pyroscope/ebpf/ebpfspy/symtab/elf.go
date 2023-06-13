@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	elf2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 )
 
@@ -112,6 +113,7 @@ func (t *ElfTable) load() {
 	}
 
 	symbols, err = t.createSymbolTable(me)
+	level.Debug(t.logger).Log("msg", "create symbol table", "f", me.FilePath())
 	if err != nil {
 		t.err = err
 		return

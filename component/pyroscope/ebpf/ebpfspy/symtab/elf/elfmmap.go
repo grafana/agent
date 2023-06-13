@@ -132,6 +132,10 @@ func (f *MMapedElfFile) stringTable(link uint32) (*elf.SectionHeader, error) {
 	return &f.Sections[link], nil
 }
 
+func (f *MMapedElfFile) FilePath() string {
+	return f.fpath
+}
+
 // getString extracts a string from an ELF string table.
 func getString(section []byte, start int) (string, bool) {
 	if start < 0 || start >= len(section) {
