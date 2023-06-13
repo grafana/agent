@@ -19,8 +19,6 @@ Main (unreleased)
 
 - Add boring crypto builds for Linux arm64 and x64. (@mattdurham)
 
-
-
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
