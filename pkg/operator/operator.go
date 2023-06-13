@@ -75,9 +75,9 @@ func (c *Config) registerFlags(f *flag.FlagSet) error {
 	f.Var(&c.Labels, "labels", "Labels to add to all created operator resources")
 	f.StringVar(&c.AgentSelector, "agent-selector", "", "Label selector to discover GrafanaAgent CRs. Defaults to all GrafanaAgent CRs.")
 
-	f.StringVar(&c.Controller.Namespace, "namespace", "", "Namespace to restrict the Operator to.")
-	f.StringVar(&c.Controller.Host, "listen-host", "", "Host to listen on. Empty string means all interfaces.")
-	f.IntVar(&c.Controller.Port, "listen-port", 9443, "Port to listen on.")
+	f.StringVar(&c.Controller.Namespace, "namespace", "", "Namespace to restrict the Operator to.")             // nolint:staticcheck
+	f.StringVar(&c.Controller.Host, "listen-host", "", "Host to listen on. Empty string means all interfaces.") // nolint:staticcheck
+	f.IntVar(&c.Controller.Port, "listen-port", 9443, "Port to listen on.")                                     // nolint:staticcheck
 	f.StringVar(&c.Controller.MetricsBindAddress, "metrics-listen-address", ":8080", "Address to expose Operator metrics on")
 	f.StringVar(&c.Controller.HealthProbeBindAddress, "health-listen-address", "", "Address to expose Operator health probes on")
 
