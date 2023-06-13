@@ -9,7 +9,7 @@ import (
 )
 
 func TestElf(t *testing.T) {
-	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
+	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
 	tab := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "elf/testdata/elfs/elf",
 		ElfTableOptions{

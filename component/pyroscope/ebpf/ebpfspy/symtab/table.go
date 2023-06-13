@@ -45,6 +45,10 @@ type SymbolTab struct {
 	base    uint64
 }
 
+func (t *SymbolTab) DebugString() string {
+	return "SymbolTab{TODO}"
+}
+
 type Symbol struct {
 	Start  uint64
 	Name   string

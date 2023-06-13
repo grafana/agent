@@ -15,24 +15,32 @@ type GoTable struct {
 	funcNameOffset uint64
 }
 
-func (e *GoTable) Resolve(addr uint64) string {
-	n := len(e.Index.Name)
+func (g *GoTable) Refresh() {
+
+}
+
+func (g *GoTable) DebugString() string {
+	return fmt.Sprintf("GoTable{ f = %s , sz = %d }", g.File.FilePath(), g.Index.Entry.Length())
+}
+
+func (g *GoTable) Resolve(addr uint64) string {
+	n := len(g.Index.Name)
 	if n == 0 {
 		return ""
 	}
-	if addr >= e.Index.End {
+	if addr >= g.Index.End {
 		return ""
 	}
-	i := e.Index.Entry.FindIndex(addr)
+	i := g.Index.Entry.FindIndex(addr)
 	if i == -1 {
 		return ""
 	}
-	name, _ := e.goSymbolName(i)
+	name, _ := g.goSymbolName(i)
 	return name
 }
 
-func (e *GoTable) Cleanup() {
-	e.File.Close()
+func (g *GoTable) Cleanup() {
+	g.File.Close()
 }
 
 var (
@@ -103,19 +111,19 @@ func (f *MMapedElfFile) NewGoTable() (*GoTable, error) {
 	}, nil
 }
 
-func (f *GoTable) goSymbolName(idx int) (string, error) {
-	gopclndata, err := f.File.SectionData(f.gopclnSection)
+func (g *GoTable) goSymbolName(idx int) (string, error) {
+	gopclndata, err := g.File.SectionData(g.gopclnSection)
 	if err != nil {
 		return "", err
 	}
-	if int(f.funcNameOffset) >= len(gopclndata) {
+	if int(g.funcNameOffset) >= len(gopclndata) {
 		return "", errGoOOB
 	}
-	funcnamedata := gopclndata[f.funcNameOffset:]
-	if idx >= len(f.Index.Name) {
+	funcnamedata := gopclndata[g.funcNameOffset:]
+	if idx >= len(g.Index.Name) {
 		return "", errGoOOB
 	}
-	nameOffset := f.Index.Name[idx]
+	nameOffset := g.Index.Name[idx]
 	name, ok := getString(funcnamedata, int(nameOffset))
 	if !ok {
 		return "", errGoFailed
@@ -126,6 +134,14 @@ func (f *GoTable) goSymbolName(idx int) (string, error) {
 type GoTableWithFallback struct {
 	GoTable  *GoTable
 	SymTable *SymbolTable
+}
+
+func (g *GoTableWithFallback) Refresh() {
+
+}
+
+func (g *GoTableWithFallback) DebugString() string {
+	return fmt.Sprintf("GoTableWithFallback{ %s | %s }", g.GoTable.DebugString(), g.SymTable.DebugString())
 }
 
 func (g *GoTableWithFallback) Resolve(addr uint64) string {

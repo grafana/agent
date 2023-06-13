@@ -19,6 +19,10 @@ type ProcTable struct {
 	rootFS     string
 }
 
+func (p *ProcTable) DebugString() string {
+	return "ProcTable{TODO}"
+}
+
 type ProcTableOptions struct {
 	Pid int
 	ElfTableOptions

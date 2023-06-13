@@ -92,6 +92,16 @@ func (t *ElfTable) load() {
 		t.table = symbols
 		return
 	}
+	fileInfo, err := os.Stat(fsElfFilePath)
+	if err != nil {
+		t.err = err
+		return
+	}
+	symbols = t.options.ElfCache.GetSymbolsByStat(statFromFileInfo(fileInfo))
+	if symbols != nil {
+		t.table = symbols
+		return
+	}
 
 	debugFilePath := t.findDebugFile(buildID, me)
 	if debugFilePath != "" {
@@ -121,6 +131,7 @@ func (t *ElfTable) load() {
 
 	t.table = symbols
 	t.options.ElfCache.CacheByBuildID(buildID, symbols)
+	t.options.ElfCache.CacheByStat(statFromFileInfo(fileInfo), symbols)
 	return
 
 }

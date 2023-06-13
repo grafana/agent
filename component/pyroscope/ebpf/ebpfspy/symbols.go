@@ -11,28 +11,23 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 )
 
-type symbolCacheEntry struct {
-	symbolTable symtab.SymbolTable
-	roundNumber int
-}
 type pidKey uint32
 
 type symbolCache struct {
-	round      int
-	roundCache map[pidKey]*symbolCacheEntry
-	elfCache   *symtab.ElfCache
-	kallsyms   symbolCacheEntry
-	logger     log.Logger
-	metrics    *metrics.Metrics
+	pidCache *symtab.GCache[pidKey, symtab.SymbolTable]
+
+	elfCache *symtab.ElfCache
+	kallsyms symtab.SymbolTable
+	logger   log.Logger
+	metrics  *metrics.Metrics
 }
 
 func newSymbolCache(logger log.Logger, options CacheOptions, metrics *metrics.Metrics) (*symbolCache, error) {
-	elfCache, err := symtab.NewElfCache(options.ElfCacheSize, metrics)
+	elfCache, err := symtab.NewElfCache(options.BuildIDCacheOptions, options.SameFileCacheOptions, metrics)
 	if err != nil {
 		return nil, fmt.Errorf("create elf cache %w", err)
 	}
@@ -45,75 +40,61 @@ func newSymbolCache(logger log.Logger, options CacheOptions, metrics *metrics.Me
 	if err != nil {
 		return nil, fmt.Errorf("create kallsyms %w ", err)
 	}
+	cache, err := symtab.NewGCache[pidKey, symtab.SymbolTable](options.PidCacheOptions)
+	if err != nil {
+		return nil, fmt.Errorf("create pid cache %w", err)
+	}
 	return &symbolCache{
-		logger:     logger,
-		metrics:    metrics,
-		roundCache: make(map[pidKey]*symbolCacheEntry),
-		kallsyms:   symbolCacheEntry{symbolTable: kallsyms},
-		elfCache:   elfCache,
+		logger:   logger,
+		metrics:  metrics,
+		pidCache: cache,
+		kallsyms: kallsyms,
+		elfCache: elfCache,
 	}, nil
 }
 
 func (sc *symbolCache) NextRound() {
-	sc.round++
+	sc.pidCache.NextRound()
+	sc.elfCache.NextRound()
 }
 
 func (sc *symbolCache) resolve(pid uint32, addr uint64) symtab.Symbol {
 	e := sc.getOrCreateCacheEntry(pidKey(pid))
-	refresh := false
-	if e.roundNumber != sc.round {
-		e.roundNumber = sc.round
-		refresh = true
-	}
-	if refresh {
-		e.symbolTable.Refresh()
-	}
-	return e.symbolTable.Resolve(addr)
+	return e.Resolve(addr)
 }
 
 func (sc *symbolCache) Cleanup() {
 	sc.elfCache.Cleanup()
 
-	prev := sc.roundCache
-	for _, entry := range prev {
-		entry.symbolTable.Cleanup()
-	}
+	sc.pidCache.Cleanup()
+	level.Debug(sc.logger).Log("buildIdCache", sc.elfCache.BuildIDCache.DebugString())
+	level.Debug(sc.logger).Log("sameFileCache", sc.elfCache.SameFileCache.DebugString())
+	level.Debug(sc.logger).Log("pidCache", sc.pidCache.DebugString())
 
-	sc.roundCache = make(map[pidKey]*symbolCacheEntry)
-	for key, entry := range prev {
-		if entry.roundNumber == sc.round {
-			sc.roundCache[key] = entry
-		} else {
-			level.Debug(sc.logger).Log("msg", "symbolCache removing pid",
-				"pid", key,
-				"now", entry.roundNumber)
-		}
-	}
-	level.Debug(sc.logger).Log("msg", "symbolCache cleanup", "was", len(prev), "now", len(sc.roundCache))
 }
 
-func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
+func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) symtab.SymbolTable {
 	if pid == 0 {
-		return &sc.kallsyms
+		return sc.kallsyms
+	}
+	cached := sc.pidCache.Get(pid)
+	if cached != nil {
+		return cached
 	}
 
-	if cache, ok := sc.roundCache[pid]; ok {
-		return cache
-	}
-
-	symbolTable := symtab.NewProcTable(sc.logger, symtab.ProcTableOptions{
+	level.Debug(sc.logger).Log("msg", "NewProcTable", "pid", pid)
+	fresh := symtab.NewProcTable(sc.logger, symtab.ProcTableOptions{
 		Pid: int(pid),
 		ElfTableOptions: symtab.ElfTableOptions{
 			ElfCache: sc.elfCache,
 		},
 	})
-	e := &symbolCacheEntry{symbolTable: symbolTable, roundNumber: -1}
 
-	sc.roundCache[pid] = e
-	return e
+	sc.pidCache.Cache(pid, fresh)
+	return fresh
 }
 
 func (sc *symbolCache) updateOptions(options CacheOptions) {
-	//sc.pidCache.Resize(options.PidCacheSize)
-	sc.elfCache.Resize(options.ElfCacheSize)
+	sc.pidCache.Update(options.PidCacheOptions)
+	sc.elfCache.Update(options.BuildIDCacheOptions, options.SameFileCacheOptions)
 }

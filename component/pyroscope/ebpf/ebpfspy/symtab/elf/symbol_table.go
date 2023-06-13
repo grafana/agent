@@ -47,6 +47,14 @@ type SymbolTable struct {
 	File  *MMapedElfFile
 }
 
+func (e *SymbolTable) Refresh() {
+
+}
+
+func (e *SymbolTable) DebugString() string {
+	return fmt.Sprintf("SymbolTable{ f = %s , sz = %d }", e.File.FilePath(), e.Index.Values.Length())
+}
+
 func (e *SymbolTable) Resolve(addr uint64) string {
 	if len(e.Index.Names) == 0 {
 		return ""

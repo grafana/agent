@@ -16,6 +16,7 @@ import (
 	ebpfspy "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 	"github.com/oklog/run"
 )
 
@@ -45,10 +46,7 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 		tf,
 		ms,
 		args.SampleRate,
-		ebpfspy.CacheOptions{
-			PidCacheSize: args.PidCacheSize,
-			ElfCacheSize: args.ElfCacheSize,
-		},
+		cacheOptionsFromArgs(args),
 		ebpfspy.ProfileOptions{
 			CollectUser:   args.CollectUserProfile,
 			CollectKernel: args.CollectKernelProfile,
@@ -77,7 +75,9 @@ type Arguments struct {
 	CollectInterval      time.Duration          `river:"collect_interval,attr,optional"`
 	SampleRate           int                    `river:"sample_rate,attr,optional"`
 	PidCacheSize         int                    `river:"pid_cache_size,attr,optional"`
-	ElfCacheSize         int                    `river:"elf_cache_size,attr,optional"`
+	BuildIDCacheSize     int                    `river:"build_id_cache_size,attr,optional"`
+	SameFileCacheSize    int                    `river:"same_file_cache_size,attr,optional"`
+	CacheRounds          int                    `river:"cache_rounds,attr,optional"`
 	ContainerIDCacheSize int                    `river:"container_id_cache_size,attr,optional"`
 	CollectUserProfile   bool                   `river:"collect_user_profile,attr,optional"`
 	CollectKernelProfile bool                   `river:"collect_kernel_profile,attr,optional"`
@@ -94,8 +94,10 @@ func defaultArguments() Arguments {
 		CollectInterval:      10 * time.Second,
 		SampleRate:           100,
 		PidCacheSize:         32,
-		ContainerIDCacheSize: 512,
-		ElfCacheSize:         128,
+		ContainerIDCacheSize: 1024,
+		BuildIDCacheSize:     64,
+		SameFileCacheSize:    8,
+		CacheRounds:          3,
 		TargetsOnly:          true,
 		CollectUserProfile:   true,
 		CollectKernelProfile: true,
@@ -130,10 +132,7 @@ func (c *Component) Run(ctx context.Context) error {
 			case newArgs := <-c.argsUpdate:
 				c.args = newArgs
 				c.updateTargetFinder()
-				c.session.UpdateCacheOptions(ebpfspy.CacheOptions{
-					PidCacheSize: c.args.PidCacheSize,
-					ElfCacheSize: c.args.ElfCacheSize,
-				})
+				c.session.UpdateCacheOptions(cacheOptionsFromArgs(c.args))
 				err := c.session.UpdateSampleRate(c.args.SampleRate)
 				if err != nil {
 					return nil
@@ -160,6 +159,23 @@ func (c *Component) Run(ctx context.Context) error {
 
 	})
 	return g.Run()
+}
+
+func cacheOptionsFromArgs(args Arguments) ebpfspy.CacheOptions {
+	return ebpfspy.CacheOptions{
+		PidCacheOptions: symtab.GCacheOptions{
+			Size:       args.PidCacheSize,
+			KeepRounds: args.CacheRounds,
+		},
+		BuildIDCacheOptions: symtab.GCacheOptions{
+			Size:       args.BuildIDCacheSize,
+			KeepRounds: args.CacheRounds,
+		},
+		SameFileCacheOptions: symtab.GCacheOptions{
+			Size:       args.SameFileCacheSize,
+			KeepRounds: args.CacheRounds,
+		},
+	}
 }
 
 func (c *Component) updateTargetFinder() {

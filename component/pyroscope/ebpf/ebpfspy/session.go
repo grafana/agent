@@ -15,6 +15,7 @@ import (
 	"github.com/cilium/ebpf"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 	"github.com/pyroscope-io/pyroscope/pkg/agent/ebpfspy/cpuonline"
 	"golang.org/x/sys/unix"
 
@@ -32,8 +33,9 @@ type ProfileOptions struct {
 }
 
 type CacheOptions struct {
-	PidCacheSize int
-	ElfCacheSize int
+	PidCacheOptions      symtab.GCacheOptions
+	BuildIDCacheOptions  symtab.GCacheOptions
+	SameFileCacheOptions symtab.GCacheOptions
 }
 
 type Session struct {
