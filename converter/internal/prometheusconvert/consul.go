@@ -18,7 +18,7 @@ func appendDiscoveryConsul(f *builder.File, jobName string, sdConfig *promconsul
 	return discovery.Exports{
 		// This target map will utilize a RiverTokenize that results in this
 		// component export rather than the standard discovery.Target RiverTokenize.
-		Targets: []discovery.Target{map[string]string{"discovery.consul." + jobName + ".targets": ""}},
+		Targets: []discovery.Target{map[string]string{"__expr__": "discovery.consul." + jobName + ".targets"}},
 	}, diags
 }
 
@@ -47,19 +47,5 @@ func toDiscoveryConsul(sdConfig *promconsul.SDConfig) (*consul.Arguments, diag.D
 }
 
 func validateDiscoveryConsul(sdConfig *promconsul.SDConfig) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if sdConfig.HTTPClientConfig.NoProxy != "" {
-		diags.Add(diag.SeverityLevelWarn, "unsupported consul service discovery config no_proxy was provided")
-	}
-
-	if sdConfig.HTTPClientConfig.ProxyFromEnvironment {
-		diags.Add(diag.SeverityLevelWarn, "unsupported consul service discovery config proxy_from_environment was provided")
-	}
-
-	if len(sdConfig.HTTPClientConfig.ProxyConnectHeader) > 0 {
-		diags.Add(diag.SeverityLevelWarn, "unsupported consul service discovery config proxy_connect_header was provided")
-	}
-
-	return diags
+	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }

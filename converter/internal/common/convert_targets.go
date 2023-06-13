@@ -39,11 +39,11 @@ func (f ConvertTargets) RiverTokenize() []builder.Token {
 
 	for ix, targetMap := range f.Targets {
 		for key, target := range targetMap {
-			if key == "__address__" {
+			if key == "__expr__" {
+				toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: target})
+			} else {
 				expr.SetValue([]map[string]string{{key: target}})
 				toks = append(toks, expr.Tokens()...)
-			} else {
-				toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: key})
 			}
 
 			if ix != len(f.Targets)-1 {

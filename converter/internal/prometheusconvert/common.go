@@ -2,6 +2,7 @@ package prometheusconvert
 
 import (
 	"github.com/grafana/agent/component/common/config"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/rivertypes"
 	promconfig "github.com/prometheus/common/config"
 )
@@ -22,6 +23,24 @@ func toHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) *config.H
 		FollowRedirects: httpClientConfig.FollowRedirects,
 		EnableHTTP2:     httpClientConfig.EnableHTTP2,
 	}
+}
+
+func validateHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if httpClientConfig.NoProxy != "" {
+		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config no_proxy was provided")
+	}
+
+	if httpClientConfig.ProxyFromEnvironment {
+		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config proxy_from_environment was provided")
+	}
+
+	if len(httpClientConfig.ProxyConnectHeader) > 0 {
+		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config proxy_connect_header was provided")
+	}
+
+	return diags
 }
 
 func toBasicAuth(basicAuth *promconfig.BasicAuth) *config.BasicAuth {

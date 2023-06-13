@@ -13,6 +13,7 @@ import (
 	promazure "github.com/prometheus/prometheus/discovery/azure"
 	promconsul "github.com/prometheus/prometheus/discovery/consul"
 	promdigitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
+	promdns "github.com/prometheus/prometheus/discovery/dns"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
@@ -80,6 +81,10 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 				diags = append(diags, newDiags...)
 			case *promdigitalocean.SDConfig:
 				exports, newDiags := appendDiscoveryDigitalOcean(f, scrapeConfig.JobName, sdc)
+				targets = append(targets, exports.Targets...)
+				diags = append(diags, newDiags...)
+			case *promdns.SDConfig:
+				exports, newDiags := appendDiscoveryDns(f, scrapeConfig.JobName, sdc)
 				targets = append(targets, exports.Targets...)
 				diags = append(diags, newDiags...)
 			default:

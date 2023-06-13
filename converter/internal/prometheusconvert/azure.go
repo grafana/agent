@@ -20,7 +20,7 @@ func appendDiscoveryAzure(f *builder.File, jobName string, sdConfig *promazure.S
 	return discovery.Exports{
 		// This target map will utilize a RiverTokenize that results in this
 		// component export rather than the standard discovery.Target RiverTokenize.
-		Targets: []discovery.Target{map[string]string{"discovery.azure." + jobName + ".targets": ""}},
+		Targets: []discovery.Target{map[string]string{"__expr__": "discovery.azure." + jobName + ".targets"}},
 	}, diags
 }
 
@@ -45,21 +45,7 @@ func toDiscoveryAzure(sdConfig *promazure.SDConfig) (*azure.Arguments, diag.Diag
 }
 
 func validateDiscoveryAzure(sdConfig *promazure.SDConfig) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if sdConfig.HTTPClientConfig.NoProxy != "" {
-		diags.Add(diag.SeverityLevelWarn, "unsupported azure service discovery config no_proxy was provided")
-	}
-
-	if sdConfig.HTTPClientConfig.ProxyFromEnvironment {
-		diags.Add(diag.SeverityLevelWarn, "unsupported azure service discovery config proxy_from_environment was provided")
-	}
-
-	if len(sdConfig.HTTPClientConfig.ProxyConnectHeader) > 0 {
-		diags.Add(diag.SeverityLevelWarn, "unsupported azure service discovery config proxy_connect_header was provided")
-	}
-
-	return diags
+	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toManagedIdentity(sdConfig *promazure.SDConfig) *azure.ManagedIdentity {
