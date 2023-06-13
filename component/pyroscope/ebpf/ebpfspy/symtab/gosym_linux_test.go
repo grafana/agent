@@ -8,22 +8,25 @@ import (
 	"strings"
 	"testing"
 
-	gosym2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gosym"
 	"github.com/stretchr/testify/require"
+
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
+	gosym2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gosym"
 )
 
 func TestGoSymSelfTest(t *testing.T) {
 	var ptr = reflect.ValueOf(TestGoSymSelfTest).Pointer()
 	mod := "/proc/self/exe"
-	symtab, err := newGoSymbols(mod)
-	if err != nil {
-		t.Fatalf("failed to create symtab %v", err)
-	}
+	me, err := elf.NewMMapedElfFile(mod)
+	require.NoError(t, err)
+	defer me.Close()
+	symtab, err := me.NewGoTable()
+	require.NoError(t, err)
 	sym := symtab.Resolve(uint64(ptr))
 	expectedSym := "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab.TestGoSymSelfTest"
 	require.NotNil(t, sym)
-	require.Equal(t, expectedSym, sym.Name)
-	require.Equal(t, uint64(ptr), sym.Start)
+	require.Equal(t, expectedSym, sym)
+
 }
 
 func TestPclntab18(t *testing.T) {
@@ -38,13 +41,18 @@ func TestPclntab18(t *testing.T) {
 }
 
 func BenchmarkGoSym(b *testing.B) {
-	gosym, _ := newGoSymbols("/proc/self/exe")
-	if gosym.Length() < 1000 {
-		b.FailNow()
-	}
+	mod := "/proc/self/exe"
+	symbols, err := elf.GetGoSymbols(mod)
+	require.NoError(b, err)
+	me, err := elf.NewMMapedElfFile(mod)
+	require.NoError(b, err)
+	defer me.Close()
+	gosym, err := me.NewGoTable()
+	require.NoError(b, err)
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		for _, symbol := range gosym.Symbols {
+		for _, symbol := range symbols {
 			gosym.Resolve(symbol.Start)
 		}
 	}

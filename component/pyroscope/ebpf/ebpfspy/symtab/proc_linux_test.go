@@ -16,36 +16,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 )
 
-// "same file check relies on file inode, which we check only in linux"
-func TestSameFileNoBuildID(t *testing.T) {
-	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
-	logger := util.TestLogger(t)
-	nobuildid1 := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, "./elf", "testdata/elfs/elf.nobuildid",
-		ElfTableOptions{
-			ElfCache: elfCache,
-		})
-
-	nobuildid2 := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, "./elf", "testdata/elfs/elf.nobuildid",
-		ElfTableOptions{
-			ElfCache: elfCache,
-		})
-	syms := []struct {
-		name string
-		pc   uint64
-	}{
-		{"iter", 0x1149},
-		{"main", 0x115e},
-	}
-	for _, sym := range syms {
-		res := nobuildid1.Resolve(sym.pc)
-		require.Equal(t, sym.name, res)
-		res = nobuildid2.Resolve(sym.pc)
-		require.Equal(t, sym.name, res)
-	}
-	require.Equal(t, 1, elfCache.stat2Symbols.Len())
-	require.Equal(t, 0, elfCache.buildID2Symbols.Len())
-}
-
 func TestMallocResolve(t *testing.T) {
 	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)

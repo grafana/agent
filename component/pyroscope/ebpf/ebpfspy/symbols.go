@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 )
@@ -82,6 +83,10 @@ func (sc *symbolCache) Cleanup() {
 	for key, entry := range prev {
 		if entry.roundNumber == sc.round {
 			sc.roundCache[key] = entry
+		} else {
+			level.Debug(sc.logger).Log("msg", "symbolCache removing pid",
+				"pid", key,
+				"now", entry.roundNumber)
 		}
 	}
 	level.Debug(sc.logger).Log("msg", "symbolCache cleanup", "was", len(prev), "now", len(sc.roundCache))
