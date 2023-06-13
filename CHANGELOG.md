@@ -64,6 +64,8 @@ Main (unreleased)
     cluster and scrape the targets they reference. (@captncraig)
   - `pyroscope.ebpf` collects system-wide performance profiles from the current
     host (@korniltsev)
+  - `otelcol.exporter.loadbalancing` - export traces and logs to multiple OTLP gRPC 
+    endpoints in a load-balanced way. (@ptodev)
 
 - New Grafana Agent Flow command line utilities:
 
