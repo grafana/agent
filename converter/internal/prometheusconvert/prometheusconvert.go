@@ -30,7 +30,6 @@ import (
 // Additional components must be implemented:
 //
 //	discovery.file
-//	discovery.lightsail
 //	discovery.relabel
 func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
