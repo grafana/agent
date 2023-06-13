@@ -30,7 +30,7 @@ scraping service mode.
 # setting.
 [log_format: <string> | default = "logfmt"]
 
-# TLS configuration for the HTTP server. Reuqired when the
+# TLS configuration for the HTTP server. Required when the
 # -server.http.tls-enabled flag is provided, ignored otherwise.
 [http_tls_config: <server_tls_config>]
 
