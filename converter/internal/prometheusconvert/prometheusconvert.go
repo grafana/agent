@@ -88,6 +88,8 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 				exports = appendDiscoveryGCE(f, scrapeConfig.JobName, sdc)
 			case *promkubernetes.SDConfig:
 				exports, newDiags = appendDiscoveryKubernetes(f, scrapeConfig.JobName, sdc)
+			case *promaws.LightsailSDConfig:
+				exports, newDiags = appendDiscoveryLightsail(f, scrapeConfig.JobName, sdc)
 			default:
 				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 			}
