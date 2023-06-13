@@ -10,10 +10,12 @@ import (
 	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
 	promdiscover "github.com/prometheus/prometheus/discovery"
+	promaws "github.com/prometheus/prometheus/discovery/aws"
 	promazure "github.com/prometheus/prometheus/discovery/azure"
 	promconsul "github.com/prometheus/prometheus/discovery/consul"
 	promdigitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 	promdns "github.com/prometheus/prometheus/discovery/dns"
+	promdocker "github.com/prometheus/prometheus/discovery/moby"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
@@ -25,9 +27,6 @@ import (
 // The implementation of this API is a work in progress.
 // Additional components must be implemented:
 //
-//	discovery.dns
-//	discovery.docker
-//	discovery.ec2
 //	discovery.file
 //	discovery.gce
 //	discovery.kubernetes
@@ -68,27 +67,30 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 
 		var targets []discovery.Target
 		for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
+			var exports discovery.Exports
+			var newDiags diag.Diagnostics
 			switch sdc := serviceDiscoveryConfig.(type) {
 			case promdiscover.StaticConfig:
 				targets = append(targets, getScrapeTargets(sdc)...)
 			case *promazure.SDConfig:
-				exports, newDiags := appendDiscoveryAzure(f, scrapeConfig.JobName, sdc)
-				targets = append(targets, exports.Targets...)
-				diags = append(diags, newDiags...)
+				exports, newDiags = appendDiscoveryAzure(f, scrapeConfig.JobName, sdc)
 			case *promconsul.SDConfig:
-				exports, newDiags := appendDiscoveryConsul(f, scrapeConfig.JobName, sdc)
-				targets = append(targets, exports.Targets...)
-				diags = append(diags, newDiags...)
+				exports, newDiags = appendDiscoveryConsul(f, scrapeConfig.JobName, sdc)
 			case *promdigitalocean.SDConfig:
-				exports, newDiags := appendDiscoveryDigitalOcean(f, scrapeConfig.JobName, sdc)
-				targets = append(targets, exports.Targets...)
-				diags = append(diags, newDiags...)
+				exports, newDiags = appendDiscoveryDigitalOcean(f, scrapeConfig.JobName, sdc)
 			case *promdns.SDConfig:
-				exports, newDiags := appendDiscoveryDns(f, scrapeConfig.JobName, sdc)
-				targets = append(targets, exports.Targets...)
-				diags = append(diags, newDiags...)
+				exports, newDiags = appendDiscoveryDns(f, scrapeConfig.JobName, sdc)
+			case *promdocker.DockerSDConfig:
+				exports, newDiags = appendDiscoveryDocker(f, scrapeConfig.JobName, sdc)
+			case *promaws.EC2SDConfig:
+				exports, newDiags = appendDiscoveryEC2(f, scrapeConfig.JobName, sdc)
 			default:
 				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
+			}
+
+			diags = append(diags, newDiags...)
+			if len(exports.Targets) > 0 {
+				targets = append(targets, exports.Targets...)
 			}
 		}
 
