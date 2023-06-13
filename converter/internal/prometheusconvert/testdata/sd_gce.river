@@ -1,0 +1,79 @@
+prometheus.remote_write "default" {
+	external_labels = {
+		cluster = "prod",
+	}
+
+	endpoint {
+		name = "remote1"
+		url  = "http://remote-write-url1"
+
+		queue_config {
+			capacity             = 2500
+			max_shards           = 200
+			max_samples_per_send = 500
+		}
+
+		metadata_config {
+			max_samples_per_send = 500
+		}
+	}
+
+	endpoint {
+		name = "remote2"
+		url  = "http://remote-write-url2"
+
+		queue_config {
+			capacity             = 2500
+			max_shards           = 200
+			max_samples_per_send = 500
+		}
+
+		metadata_config {
+			max_samples_per_send = 500
+		}
+	}
+}
+
+discovery.gce "prometheus1" {
+	project = "your-project-id"
+	zone    = "us-central1-a"
+	port    = 8080
+}
+
+prometheus.scrape "prometheus1" {
+	targets = concat(discovery.gce.prometheus1.targets,
+		[{
+			__address__ = "localhost:9090",
+		}])
+	forward_to      = [prometheus.remote_write.default.receiver]
+	job_name        = "prometheus1"
+	scrape_interval = "10s"
+	scrape_timeout  = "5s"
+
+	basic_auth {
+		username = "user"
+		password = "pass"
+	}
+}
+
+prometheus.relabel "prometheus2" {
+	forward_to = [prometheus.remote_write.default.receiver]
+
+	rule {
+		source_labels = ["__meta_consul_tags"]
+		regex         = "^(?:.*,prometheus,.*)$"
+		action        = "keep"
+	}
+}
+
+discovery.gce "prometheus2" {
+	project = "your-project-id"
+	zone    = "us-central1-a"
+	port    = 8080
+}
+
+prometheus.scrape "prometheus2" {
+	targets    = discovery.gce.prometheus2.targets
+	forward_to = [prometheus.relabel.prometheus2.receiver]
+	job_name   = "prometheus2"
+}

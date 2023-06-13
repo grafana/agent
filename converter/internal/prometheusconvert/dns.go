@@ -13,11 +13,7 @@ import (
 func appendDiscoveryDns(f *builder.File, jobName string, sdConfig *promdns.SDConfig) discovery.Exports {
 	discoveryDnsArgs := toDiscoveryDns(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "dns"}, jobName, discoveryDnsArgs)
-	return discovery.Exports{
-		// This target map will utilize a RiverTokenize that results in this
-		// component export rather than the standard discovery.Target RiverTokenize.
-		Targets: []discovery.Target{map[string]string{"__expr__": "discovery.dns." + jobName + ".targets"}},
-	}
+	return newDiscoverExports("discovery.dns." + jobName + ".targets")
 }
 
 func toDiscoveryDns(sdConfig *promdns.SDConfig) *dns.Arguments {

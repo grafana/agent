@@ -14,11 +14,7 @@ import (
 func appendDiscoveryDocker(f *builder.File, jobName string, sdConfig *promdocker.DockerSDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryDockerArgs, diags := toDiscoveryDocker(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "docker"}, jobName, discoveryDockerArgs)
-	return discovery.Exports{
-		// This target map will utilize a RiverTokenize that results in this
-		// component export rather than the standard discovery.Target RiverTokenize.
-		Targets: []discovery.Target{map[string]string{"__expr__": "discovery.docker." + jobName + ".targets"}},
-	}, diags
+	return newDiscoverExports("discovery.docker." + jobName + ".targets"), diags
 }
 
 func toDiscoveryDocker(sdConfig *promdocker.DockerSDConfig) (*docker.Arguments, diag.Diagnostics) {

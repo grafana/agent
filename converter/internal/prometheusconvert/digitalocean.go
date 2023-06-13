@@ -16,11 +16,7 @@ import (
 func appendDiscoveryDigitalOcean(f *builder.File, jobName string, sdConfig *promdigitalocean.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryDigitalOceanArgs, diags := toDiscoveryDigitalOcean(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "digitalocean"}, jobName, discoveryDigitalOceanArgs)
-	return discovery.Exports{
-		// This target map will utilize a RiverTokenize that results in this
-		// component export rather than the standard discovery.Target RiverTokenize.
-		Targets: []discovery.Target{map[string]string{"__expr__": "discovery.digitalocean." + jobName + ".targets"}},
-	}, diags
+	return newDiscoverExports("discovery.digitalocean." + jobName + ".targets"), diags
 }
 
 func toDiscoveryDigitalOcean(sdConfig *promdigitalocean.SDConfig) (*digitalocean.Arguments, diag.Diagnostics) {

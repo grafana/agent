@@ -15,6 +15,7 @@ import (
 	promconsul "github.com/prometheus/prometheus/discovery/consul"
 	promdigitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 	promdns "github.com/prometheus/prometheus/discovery/dns"
+	promgce "github.com/prometheus/prometheus/discovery/gce"
 	promdocker "github.com/prometheus/prometheus/discovery/moby"
 	"github.com/prometheus/prometheus/storage"
 
@@ -28,7 +29,6 @@ import (
 // Additional components must be implemented:
 //
 //	discovery.file
-//	discovery.gce
 //	discovery.kubernetes
 //	discovery.lightsail
 //	discovery.relabel
@@ -84,6 +84,8 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 				exports, newDiags = appendDiscoveryDocker(f, scrapeConfig.JobName, sdc)
 			case *promaws.EC2SDConfig:
 				exports, newDiags = appendDiscoveryEC2(f, scrapeConfig.JobName, sdc)
+			case *promgce.SDConfig:
+				exports = appendDiscoveryGCE(f, scrapeConfig.JobName, sdc)
 			default:
 				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 			}

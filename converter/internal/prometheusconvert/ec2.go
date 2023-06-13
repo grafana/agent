@@ -15,11 +15,7 @@ import (
 func appendDiscoveryEC2(f *builder.File, jobName string, sdConfig *promaws.EC2SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryec2Args, diags := toDiscoveryEC2(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "ec2"}, jobName, discoveryec2Args)
-	return discovery.Exports{
-		// This target map will utilize a RiverTokenize that results in this
-		// component export rather than the standard discovery.Target RiverTokenize.
-		Targets: []discovery.Target{map[string]string{"__expr__": "discovery.ec2." + jobName + ".targets"}},
-	}, diags
+	return newDiscoverExports("discovery.ec2." + jobName + ".targets"), diags
 }
 
 func toDiscoveryEC2(sdConfig *promaws.EC2SDConfig) (*aws.EC2Arguments, diag.Diagnostics) {

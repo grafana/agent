@@ -2,6 +2,7 @@ package prometheusconvert
 
 import (
 	"github.com/grafana/agent/component/common/config"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/rivertypes"
 	promconfig "github.com/prometheus/common/config"
@@ -25,6 +26,8 @@ func toHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) *config.H
 	}
 }
 
+// validateHttpClientConfig returns [diag.Diagnostics] for currently
+// unsupported Flow features available in Prometheus.
 func validateHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -99,5 +102,15 @@ func toTLSConfig(tlsConfig *promconfig.TLSConfig) *config.TLSConfig {
 		ServerName:         tlsConfig.ServerName,
 		InsecureSkipVerify: tlsConfig.InsecureSkipVerify,
 		MinVersion:         config.TLSVersion(tlsConfig.MinVersion),
+	}
+}
+
+// newDiscoverExports will return a new [discovery.Exports] with a specific
+// key for converter component exports. The argument will be tokenized
+// as a component export string rather than the standard [discovery.Target]
+// RiverTokenize.
+func newDiscoverExports(expr string) discovery.Exports {
+	return discovery.Exports{
+		Targets: []discovery.Target{map[string]string{"__expr__": expr}},
 	}
 }
