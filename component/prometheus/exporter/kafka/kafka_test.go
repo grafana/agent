@@ -1,11 +1,12 @@
 package kafka
 
 import (
+	"testing"
+
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestRiverUnmarshal(t *testing.T) {
