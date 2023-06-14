@@ -81,7 +81,7 @@ from `prometheus.exporter.squid`:
 
 ```river
 prometheus.exporter.squid "example" {
-  address = "<hostname>:<port>"
+  address = "localhost:3128"
 }
 
 // Configure a prometheus.scrape component to collect squid metrics.

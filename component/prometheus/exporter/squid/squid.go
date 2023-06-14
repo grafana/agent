@@ -1,6 +1,9 @@
 package squid
 
 import (
+	"errors"
+	"net"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
@@ -37,6 +40,12 @@ var DefaultArguments = Arguments{
 	SquidAddr: "localhost:3128",
 }
 
+var (
+	errNoAddress  = errors.New("no address was provided")
+	errNoHostname = errors.New("no hostname in provided address")
+	errNoPort     = errors.New("no port in provided address")
+)
+
 // Arguments controls the squid exporter.
 type Arguments struct {
 	SquidAddr     string            `river:"address,attr"`
@@ -47,6 +56,28 @@ type Arguments struct {
 // SetToDefault implements river.Defaulter.
 func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
+}
+
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
+	if a.SquidAddr == "" {
+		return errNoAddress
+	}
+
+	host, port, err := net.SplitHostPort(a.SquidAddr)
+	if err != nil {
+		return err
+	}
+
+	if host == "" {
+		return errNoHostname
+	}
+
+	if port == "" {
+		return errNoPort
+	}
+
+	return nil
 }
 
 func (a *Arguments) Convert() *squid_exporter.Config {

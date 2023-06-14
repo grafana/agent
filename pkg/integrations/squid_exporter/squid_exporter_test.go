@@ -19,14 +19,16 @@ func TestConfigValidate(t *testing.T) {
 		{
 			name: "valid",
 			getConfig: func() Config {
-				c := DefaultConfig
+				c := Config{
+					Address: "localhost:3128",
+				}
 				return c
 			},
 		},
 		{
 			name: "no hostname",
 			getConfig: func() Config {
-				c := DefaultConfig
+				c := Config{}
 				c.Address = ":3128"
 				return c
 			},
@@ -35,10 +37,11 @@ func TestConfigValidate(t *testing.T) {
 		{
 			name: "no port",
 			getConfig: func() Config {
-				c := DefaultConfig
+				c := Config{}
 				c.Address = "localhost:"
 				return c
 			},
+			expectedErr: errNoPort,
 		},
 		{
 			name: "no empty config",
@@ -55,7 +58,7 @@ func TestConfigValidate(t *testing.T) {
 		{
 			name: "invalid config",
 			getConfig: func() Config {
-				cfg := DefaultConfig
+				cfg := Config{}
 				cfg.Address = "a@#$%:asdf::12312"
 				return cfg
 			},
@@ -85,9 +88,7 @@ func TestConfig_UnmarshalYaml(t *testing.T) {
 		require.NoError(t, yaml.UnmarshalStrict([]byte(strConfig), &c))
 
 		require.Equal(t, Config{
-			Address:  "localhost:3182",
-			Username: "",
-			Password: "",
+			Address: "localhost:3182",
 		}, c)
 	})
 
@@ -111,7 +112,7 @@ password: "password"
 }
 
 func TestConfig_InstanceKey(t *testing.T) {
-	c := DefaultConfig
+	c := Config{}
 	c.Address = "localhost:3128"
 
 	ik := "agent-key"
@@ -122,7 +123,9 @@ func TestConfig_InstanceKey(t *testing.T) {
 
 func TestConfig_NewIntegration(t *testing.T) {
 	t.Run("integration with valid config", func(t *testing.T) {
-		c := DefaultConfig
+		c := Config{
+			Address: "localhost:3128",
+		}
 
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
 		require.NoError(t, err)
@@ -130,8 +133,7 @@ func TestConfig_NewIntegration(t *testing.T) {
 	})
 
 	t.Run("integration with invalid config", func(t *testing.T) {
-		c := DefaultConfig
-		c.Address = ""
+		c := Config{}
 
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
 		require.Nil(t, i)
