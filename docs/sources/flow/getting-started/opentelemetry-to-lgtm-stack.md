@@ -11,7 +11,7 @@ This topic describes how to:
 
 * Configure Agent to send your data to Loki
 * Configure agent to send your data to Tempo
-* Configure Agent to store your data in Mimir
+* Configure Agent to send your data to Mimir / Prometheus Remote Write
 
 [OpenTelemetry]: https://opentelemetry.io
 
@@ -44,7 +44,7 @@ This topic describes how to:
   Grafana Agent Flow.
 * Identify where Grafana Agent Flow will write received telemetry data.
 * Be familiar with the concept of [Components][] in Grafana Agent Flow.
-* Complete the [Collect open telemetry data][] getting started guide.
+* Complete the [Collect open telemetry data][] getting started guide. You will pick up from where that guide ended.
 
 [Collect open telemetry data]: {{< relref "./collect-opentelemetry-data.md" >}}
 
@@ -94,82 +94,10 @@ Metrics, Logs, Traces: OTLP Receiver → batch processor → OTLP Exporter
 You will implement the following pipelines to send your data to Loki, Tempo, and Mimir:
 
 ```
-Metrics: OTel → batch processor → prometheus remote write
+Metrics: OTel → batch processor → Prometheus remote write (Mimir)
 Logs: OTel → batch processor → Loki exporter
 Traces: OTel → batch processor → OTel exporter
 ```
-```
-
-## Grafana Tempo
-
-[Grafana Tempo][] is an open-source, easy-to-use, scalable distributed tracing backend. Tempo can ingest OTLP directly, and you can use the OTLP exporter to send the traces to Tempo.
-
-```river
-otelcol.exporter.otlp "default" {
-  client {
-    endpoint = "tempo-server:4317"
-  }
-}
-```
-
-To use Tempo with basic-auth, which is the case with GrafanaCloud Tempo, you must use the [otelcol.auth.basic][] component. You can get the Tempo config from the Tempo **Details** page in the [GrafanaCloud Portal][]:
-
-![](../../../assets/getting-started/tempo-config.png)
-
-```river
-otelcol.exporter.otlp "grafana_cloud_tempo" {
-	client {
-		endpoint = "tempo-us-central1.grafana.net:443"
-		auth     = otelcol.auth.basic.grafana_cloud_tempo.handler
-	}
-}
-
-otelcol.auth.basic "grafana_cloud_tempo" {
-	username = 4094
-	password = env("GRAFANA_CLOUD_API_KEY")
-}
-```
-
-[Grafana Tempo]: https://grafana.com/oss/tempo/
-[GrafanaCloud Portal]: https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/#your-grafana-cloud-stack 
-
-## Prometheus
-
-To send from OTLP to Prometheus, we do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component. The Agent’s Prometheus remote write is a more battle-tested implementation with a Write Ahead Log for resiliency.
-
-```river
-otelcol.exporter.prometheus "default" {
-	forward_to = [prometheus.remote_write.default.receiver]
-}
-
-prometheus.remote_write "default" {
-	endpoint {
-		url = "http://prometheus:9090/api/v1/write"
-	}
-}
-```
-
-To use Prometheus with basic-auth, which is the case with GrafanaCloud Prometheus, you have to configure the [prometheus.remote_write][] component. You can get the Prometheus config from the Prometheus **Details** page in the [GrafanaCloud Portal][]:
-
-![](../../../assets/getting-started/prometheus-config.png)
-
-```river
-otelcol.exporter.prometheus "grafana_cloud_prometheus" {
-        forward_to = [prometheus.remote_write.grafana_cloud_prometheus.receiver]
-    }
-
-prometheus.remote_write "grafana_cloud_prometheus" {
-    endpoint {
-        url = "https://prometheus-us-central1.grafana.net/api/prom/push"
-
-        basic_auth {
-            username = 12690
-            password = env("GRAFANA_CLOUD_API_KEY")
-        }
-    }
-}
-```
-
 ## Grafana Loki
 
 [Grafana Loki][] is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus. Similar to Prometheus, to send from OTLP to Loki, we will do a passthrough from the [otelcol.exporter.loki] component to [loki.write] component.
@@ -185,7 +113,7 @@ loki.write "default" {
 }
 ```
 
-To use Loki with basic-auth, which is the case with GrafanaCloud Loki, you must configure the [loki.write][] component. You can get the Loki config from the Loki **Details** page in the [GrafanaCloud Portal][]:
+To use Loki with basic-auth, which is required with GrafanaCloud Loki, you must configure the [loki.write][] component. You can get the Loki config from the Loki **Details** page in the [GrafanaCloud Portal][]:
 
 ![](../../../assets/getting-started/loki-config.png)
 
@@ -207,6 +135,79 @@ loki.write "grafana_cloud_loki" {
 ```
 
 [Grafana Loki]: https://grafana.com/oss/loki/
+
+## Grafana Tempo
+
+[Grafana Tempo][] is an open-source, easy-to-use, scalable distributed tracing backend. Tempo can ingest OTLP directly, and you can use the OTLP exporter to send the traces to Tempo.
+
+```river
+otelcol.exporter.otlp "default" {
+  client {
+    endpoint = "tempo-server:4317"
+  }
+}
+```
+
+To use Tempo with basic-auth, which is required with GrafanaCloud Tempo, you must use the [otelcol.auth.basic][] component. You can get the Tempo config from the Tempo **Details** page in the [GrafanaCloud Portal][]:
+
+![](../../../assets/getting-started/tempo-config.png)
+
+```river
+otelcol.exporter.otlp "grafana_cloud_tempo" {
+	client {
+		endpoint = "tempo-us-central1.grafana.net:443"
+		auth     = otelcol.auth.basic.grafana_cloud_tempo.handler
+	}
+}
+
+otelcol.auth.basic "grafana_cloud_tempo" {
+	username = 4094
+	password = env("GRAFANA_CLOUD_API_KEY")
+}
+```
+
+[Grafana Tempo]: https://grafana.com/oss/tempo/
+[GrafanaCloud Portal]: https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/#your-grafana-cloud-stack 
+
+## Grafana Mimir / Prometheus Remote Write
+
+[Prometheus Remote Write] is a popular metrics transmission protocol supported by most metrics system, including [Grafana Mimir] and GrafanaCloud. To send from OTLP to Prometheus, we do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component. The Agent’s Prometheus remote write is a more battle-tested implementation with a Write Ahead Log for resiliency.
+
+```river
+otelcol.exporter.prometheus "default" {
+	forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+	endpoint {
+		url = "http://prometheus:9090/api/v1/write"
+	}
+}
+```
+
+To use Prometheus with basic-auth, which is required with GrafanaCloud Prometheus, you have to configure the [prometheus.remote_write][] component. You can get the Prometheus config from the Prometheus **Details** page in the [GrafanaCloud Portal][]:
+
+![](../../../assets/getting-started/prometheus-config.png)
+
+```river
+otelcol.exporter.prometheus "grafana_cloud_prometheus" {
+        forward_to = [prometheus.remote_write.grafana_cloud_prometheus.receiver]
+    }
+
+prometheus.remote_write "grafana_cloud_prometheus" {
+    endpoint {
+        url = "https://prometheus-us-central1.grafana.net/api/prom/push"
+
+        basic_auth {
+            username = 12690
+            password = env("GRAFANA_CLOUD_API_KEY")
+        }
+    }
+}
+```
+
+[Prometheus Remote Write]: https://prometheus.io/docs/operating/integrations/#remote-endpoints-and-storage
+[Grafana Mimir]: https://grafana.com/oss/mimir/
 
 ## Putting it all together
 
