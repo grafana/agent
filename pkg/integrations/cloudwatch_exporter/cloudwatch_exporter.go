@@ -53,6 +53,9 @@ func (e *exporter) MetricsHandler() (http.Handler, error) {
 			yace.LabelsSnakeCase(labelsSnakeCase),
 			yace.CloudWatchAPIConcurrency(cloudWatchConcurrency),
 			yace.TaggingAPIConcurrency(tagConcurrency),
+			// Enable max-dimension-associator feature flag
+			// https://github.com/nerdswords/yet-another-cloudwatch-exporter/blob/master/docs/feature_flags.md#new-associator-algorithm
+			yace.EnableFeatureFlag(yaceConf.MaxDimensionsAssociator),
 		)
 		if err != nil {
 			e.logger.Error(err, "Error collecting cloudwatch metrics")
