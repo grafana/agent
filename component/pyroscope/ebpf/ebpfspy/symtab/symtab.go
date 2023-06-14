@@ -28,5 +28,5 @@ func (n *noopSymbolNameResolver) Cleanup() {
 
 }
 func (n *noopSymbolNameResolver) DebugString() string {
-	return "noopSymbolNameResolver"
+	return "noop{}"
 }

@@ -20,7 +20,18 @@ type ProcTable struct {
 }
 
 func (p *ProcTable) DebugString() string {
-	return "ProcTable{TODO}"
+	sb := strings.Builder{}
+	sb.WriteString("[ ")
+	i := 0
+	for _, e := range p.file2Table {
+		if i != 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(e.DebugString())
+		i++
+	}
+	sb.WriteString(" ]")
+	return fmt.Sprintf("ProcTable{ pid = %d, sz = %d, elfs =[ %s ] }", p.options.Pid, len(p.file2Table), sb.String())
 }
 
 type ProcTableOptions struct {

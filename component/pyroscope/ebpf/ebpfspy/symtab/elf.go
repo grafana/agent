@@ -252,3 +252,7 @@ func cString(bs []byte) string {
 	}
 	return string(bs[:i])
 }
+
+func (t *ElfTable) DebugString() string {
+	return t.table.DebugString()
+}
