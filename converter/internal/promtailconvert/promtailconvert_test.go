@@ -1,22 +1,22 @@
-package prometheusconvert_test
+package promtailconvert_test
 
 import (
 	"bytes"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/converter/diag"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
+	"github.com/grafana/agent/converter/internal/promtailconvert"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	promSuffix  = ".yaml"
-	flowSuffix  = ".river"
-	diagsSuffix = ".diags"
+	promSuffix   = ".yaml"
+	flowSuffix   = ".river"
+	errorsSuffix = ".errors"
 )
 
 func TestConvert(t *testing.T) {
@@ -34,29 +34,29 @@ func TestConvert(t *testing.T) {
 			caseName = strings.TrimSuffix(caseName, promSuffix)
 
 			t.Run(caseName, func(t *testing.T) {
-				actual, diags := prometheusconvert.Convert(inputBytes)
+				actual, diags := promtailconvert.Convert(inputBytes)
 
-				// Skip Info level diags for this testing
-				diags.RemoveDiagsBySeverity(diag.SeverityLevelInfo)
-
-				expectedDiags := parseDiags(t, path)
+				expectedErrors := parseErrors(t, path)
 				for ix, diag := range diags {
-					if len(expectedDiags) > ix {
-						require.Equal(t, expectedDiags[ix], diag.String())
+					if len(expectedErrors) > ix {
+						require.Equal(t, expectedErrors[ix], diag.String())
 					} else {
-						require.Fail(t, "unexpected diag count reach for diag: "+diag.String())
+						require.Fail(t, "unexpected error count reach for error: "+diag.String())
 					}
 				}
 
-				// If we expect more diags than we got
-				if len(expectedDiags) > len(diags) {
-					require.Fail(t, "missing expected diag: "+expectedDiags[len(diags)])
+				// If we expect more errors than we got
+				if len(expectedErrors) > len(diags) {
+					require.Fail(t, "missing expected error: "+expectedErrors[len(diags)])
 				}
 
 				outputFile := strings.TrimSuffix(path, promSuffix) + flowSuffix
 				if _, err := os.Stat(outputFile); err == nil {
 					outputBytes, err := os.ReadFile(outputFile)
 					require.NoError(t, err)
+					fmt.Println("============== ACTUAL =============")
+					fmt.Println(string(normalizeLineEndings(actual)))
+					fmt.Println("===================================")
 					require.Equal(t, string(normalizeLineEndings(outputBytes)), string(normalizeLineEndings(actual)))
 				}
 			})
@@ -72,20 +72,20 @@ func normalizeLineEndings(data []byte) []byte {
 	return normalized
 }
 
-func parseDiags(t *testing.T, path string) []string {
-	expectedDiags := []string{}
-	diagsFile := strings.TrimSuffix(path, promSuffix) + diagsSuffix
-	if _, err := os.Stat(diagsFile); err == nil {
-		errorBytes, err := os.ReadFile(diagsFile)
+func parseErrors(t *testing.T, path string) []string {
+	expectedErrors := []string{}
+	errorFile := strings.TrimSuffix(path, promSuffix) + errorsSuffix
+	if _, err := os.Stat(errorFile); err == nil {
+		errorBytes, err := os.ReadFile(errorFile)
 		require.NoError(t, err)
 		errorsString := string(normalizeLineEndings(errorBytes))
-		expectedDiags = strings.Split(errorsString, "\n")
+		expectedErrors = strings.Split(errorsString, "\n")
 
 		// Some error messages have \n in them and need this
-		for ix := range expectedDiags {
-			expectedDiags[ix] = strings.ReplaceAll(expectedDiags[ix], "\\n", "\n")
+		for ix := range expectedErrors {
+			expectedErrors[ix] = strings.ReplaceAll(expectedErrors[ix], "\\n", "\n")
 		}
 	}
 
-	return expectedDiags
+	return expectedErrors
 }

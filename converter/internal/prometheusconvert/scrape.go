@@ -24,7 +24,7 @@ func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.Scra
 }
 
 func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
+	return ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
 }
 
 func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
@@ -49,7 +49,7 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 		LabelLimit:            scrapeConfig.LabelLimit,
 		LabelNameLengthLimit:  scrapeConfig.LabelNameLengthLimit,
 		LabelValueLengthLimit: scrapeConfig.LabelValueLengthLimit,
-		HTTPClientConfig:      *toHttpClientConfig(&scrapeConfig.HTTPClientConfig),
+		HTTPClientConfig:      *ToHttpClientConfig(&scrapeConfig.HTTPClientConfig),
 		ExtraMetrics:          false,
 		Clustering:            scrape.Clustering{Enabled: false},
 	}

@@ -1,0 +1,52 @@
+discovery.kubernetes "fun_0" {
+	role            = "pod"
+	kubeconfig_file = "/home/toby/.kube/config"
+}
+
+discovery.kubernetes "fun_1" {
+	role            = "node"
+	kubeconfig_file = "/home/toby/.kube/config"
+}
+
+discovery.relabel "fun" {
+	targets = concat(
+		discovery.kubernetes.fun_0.targets,
+		discovery.kubernetes.fun_1.targets,
+	)
+
+	rule {
+		source_labels = ["__trail__"]
+		target_label  = "__path__"
+	}
+}
+
+discovery.file "fun" {
+	path_targets = discovery.relabel.fun.output
+}
+
+loki.process "fun" {
+	forward_to = [loki.write.default_0.receiver]
+
+	stage.json {
+		expressions = {
+			face = "smiley",
+			hand = "thumbs-up",
+		}
+		source         = "video"
+		drop_malformed = true
+	}
+}
+
+loki.source.file "fun" {
+	targets    = discovery.file.fun.targets
+	forward_to = [loki.process.fun.receiver]
+}
+
+loki.write "default_0" {
+	endpoint {
+		url              = "http://localhost/loki/api/v1/push"
+		follow_redirects = false
+		enable_http2     = false
+	}
+	external_labels = {}
+}
