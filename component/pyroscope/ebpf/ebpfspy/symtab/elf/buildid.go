@@ -76,6 +76,9 @@ func (elfFile *MMapedElfFile) GoBuildID() (BuildID, error) {
 		return BuildID{}, fmt.Errorf("wrong .note.go.buildid %s", elfFile.fpath)
 	}
 	id := string(data)
+	if id == "redacted" {
+		return BuildID{}, fmt.Errorf("blacklisted  .note.go.buildid %s", elfFile.fpath)
+	}
 	return GoBuildID(id), nil
 }
 
