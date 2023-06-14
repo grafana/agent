@@ -58,6 +58,7 @@ func (g *GCache[K, V]) Get(k K) V {
 	e, ok := g.lruCache.Get(k)
 	if ok && e != nil {
 		if e.round != g.round {
+			e.round = g.round
 			e.v.Refresh()
 		}
 		return e.v
@@ -65,6 +66,7 @@ func (g *GCache[K, V]) Get(k K) V {
 	e, ok = g.roundCache[k]
 	if ok && e != nil {
 		if e.round != g.round {
+			e.round = g.round
 			e.v.Refresh()
 		}
 		return e.v
@@ -103,7 +105,7 @@ func (g *GCache[K, V]) Cleanup() {
 	next := make(map[K]*entry[V])
 	for k, e := range prev {
 		e.v.Cleanup()
-		if e.round <= g.round-g.options.KeepRounds {
+		if e.round >= g.round-g.options.KeepRounds {
 			next[k] = e
 		}
 	}
