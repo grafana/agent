@@ -51,6 +51,7 @@ import (
 	"sync"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -70,9 +71,9 @@ type Options struct {
 	// components in telemetry data.
 	ControllerID string
 
-	// LogSink to use for controller logs and components. A no-op logger will be
+	// Logger to use for controller logs and components. A no-op logger will be
 	// created if this is nil.
-	LogSink *logging.Sink
+	Logger *logging.Logger
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
@@ -138,7 +139,7 @@ type Flow struct {
 // the controller.
 func New(o Options) *Flow {
 	var (
-		log       = logging.New(o.LogSink)
+		log       = o.Logger
 		tracer    = o.Tracer
 		clusterer = o.Clusterer
 	)
@@ -161,7 +162,6 @@ func New(o Options) *Flow {
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
 		loader = controller.NewLoader(controller.ComponentGlobals{
-			LogSink:       o.LogSink,
 			Logger:        log,
 			TraceProvider: tracer,
 			Clusterer:     clusterer,
@@ -176,6 +176,19 @@ func New(o Options) *Flow {
 			HTTPListenAddr:  o.HTTPListenAddr,
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
+			NewModuleController: func(id string) component.ModuleController {
+				return newModuleController(&moduleControllerOptions{
+					Logger:         log,
+					Tracer:         tracer,
+					Clusterer:      clusterer,
+					Reg:            o.Reg,
+					DataPath:       o.DataPath,
+					HTTPListenAddr: o.HTTPListenAddr,
+					HTTPPath:       o.HTTPPathPrefix,
+					DialFunc:       o.DialFunc,
+					ID:             id,
+				})
+			},
 		})
 	)
 	return &Flow{
@@ -196,6 +209,7 @@ func New(o Options) *Flow {
 // canceled. Run must only be called once.
 func (f *Flow) Run(ctx context.Context) {
 	defer f.sched.Close()
+	defer f.loader.Cleanup()
 	defer level.Debug(f.log).Log("msg", "flow controller exiting")
 
 	for {

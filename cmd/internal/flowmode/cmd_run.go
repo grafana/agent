@@ -12,6 +12,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
 	"github.com/grafana/ckit/memconn"
@@ -124,11 +125,10 @@ func (fr *flowRun) Run(configFile string) error {
 		return fmt.Errorf("file argument not provided")
 	}
 
-	logSink, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
+	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
-	l := logging.New(logSink)
 
 	t, err := tracing.New(tracing.DefaultOptions)
 	if err != nil {
@@ -173,7 +173,7 @@ func (fr *flowRun) Run(configFile string) error {
 	memLis := memconn.NewListener(nil)
 
 	f := flow.New(flow.Options{
-		LogSink:        logSink,
+		Logger:         l,
 		Tracer:         t,
 		Clusterer:      clusterer,
 		DataPath:       fr.storagePath,
@@ -262,7 +262,7 @@ func (fr *flowRun) Run(configFile string) error {
 		}).Methods(http.MethodGet, http.MethodPost)
 
 		// Register Routes must be the last
-		fa := api.NewFlowAPI(f, r)
+		fa := api.NewFlowAPI(f)
 		fa.RegisterRoutes(path.Join(fr.uiPrefix, "/api/v0/web"), r)
 
 		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
@@ -355,7 +355,7 @@ func (fr *flowRun) Run(configFile string) error {
 // getEnabledComponentsFunc returns a function that gets the current enabled components
 func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	return func() map[string]interface{} {
-		components := f.ListComponents(flow.ComponentDetailOptions{})
+		components := f.ListComponents(component.InfoOptions{})
 
 		componentNames := map[string]struct{}{}
 		for _, c := range components {

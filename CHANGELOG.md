@@ -14,31 +14,58 @@ Main (unreleased)
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
 
+- Support `stage.geoip` in `loki.process`. (@akselleirv)
+
 - Integrations: Introduce the `squid` integration. (@armstrmi)
+
+
+- New Grafana Agent Flow components:
+
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
+  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
+    components and modifies attributes of a span, log, or metric. (@ptodev)
+
 
 ### Enhancements
 
-- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
-
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
+
+- Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
+
+- Tanka config: retain cAdvisor metrics for system processes (Kubelet, Containerd, etc.) (@bboreham)
+
+- Update cAdvisor dependency to v0.47.0. (@jcreixell)
+
+- Upgrade and improve Cloudwatch exporter integration (@thepalbi)
 
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
 
-v0.34.0-rc.1 (2023-06-02)
+- Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
+
+v0.34.1 (2023-06-12)
 --------------------
 
 ### Bugfixes
 
-- Fix issue where using exporters in modules failed due to not passing the in-memory address dialer. (@mattdurham)
+- Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
 
-- Fix issue where updating some modules' config (e.g. `loki.process`) could lead to a panic. (@thampiotr)
+- Fix issue where `remote.http` did not fail early if the initial request
+  failed. This caused failed requests to initially export empty values, which
+  could lead to propagating issues downstream to other components which expect
+  the export to be non-empty. (@rfratto)
 
-- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
+- Allow `bearerTokenFile` field to be used in ServiceMonitors. (@captncraig)
 
-v0.34.0-rc.0 (2023-06-01)
+- Fix issue where metrics and traces were not recorded from components within modules. (@mattdurham)
+
+### Other changes
+
+- Add logging to failed requests in `remote.http`. (@rfratto)
+
+v0.34.0 (2023-06-08)
 --------------------
 
 ### Breaking changes
@@ -73,8 +100,6 @@ v0.34.0-rc.0 (2023-06-01)
 
 ### Enhancements
 
-- Add error value hashing to Faro collector. (@eskirk)
-
 - Support to attach node metadata to pods and endpoints targets in
   `discovery.kubernetes`. (@laurovenancio)
 
@@ -105,6 +130,8 @@ v0.34.0-rc.0 (2023-06-01)
 - Update azidentity dependency to v1.3.0. (@akselleirv)
 
 - Add custom labels to journal entries in `loki.source.journal` (@sbhrule15)
+
+- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
 
 ### Bugfixes
 
@@ -141,6 +168,13 @@ v0.34.0-rc.0 (2023-06-01)
 - Fix issue in modules export cache throwing uncomparable errors. (@mattdurham)
 
 - Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
+
+- Fix issue where using exporters inside modules failed due to not passing the in-memory address dialer. (@mattdurham)
+
+- Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
+  proxying requests. (@mattdurham)
+
+- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
 
 ### Other changes
 

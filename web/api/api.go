@@ -9,19 +9,25 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/prometheus/prometheus/util/httputil"
-
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/flow"
+	"github.com/grafana/agent/component"
+	"github.com/prometheus/prometheus/util/httputil"
 )
+
+// ComponentProvider provides the ability to introspect a flow components
+// in a read only manner.
+type ComponentProvider interface {
+	GetComponent(id component.ID, opts component.InfoOptions) (*component.Info, error)
+	ListComponents(opts component.InfoOptions) []*component.Info
+}
 
 // FlowAPI is a wrapper around the component API.
 type FlowAPI struct {
-	flow *flow.Flow
+	flow ComponentProvider
 }
 
 // NewFlowAPI instantiates a new Flow API.
-func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
+func NewFlowAPI(flow ComponentProvider) *FlowAPI {
 	return &FlowAPI{flow: flow}
 }
 
@@ -33,7 +39,7 @@ func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
-		components := f.flow.ListComponents(flow.ComponentDetailOptions{
+		components := f.flow.ListComponents(component.InfoOptions{
 			GetHealth: true,
 		})
 
@@ -51,10 +57,10 @@ func (f *FlowAPI) getComponentHandler() http.HandlerFunc {
 		vars := mux.Vars(r)
 		requestedComponent := vars["id"]
 
-		component, err := f.flow.GetComponent(flow.ComponentID{
+		component, err := f.flow.GetComponent(component.ID{
 			ModuleID: "", // TODO(rfratto): support getting component from module.
 			LocalID:  requestedComponent,
-		}, flow.ComponentDetailOptions{
+		}, component.InfoOptions{
 			GetHealth:    true,
 			GetArguments: true,
 			GetExports:   true,

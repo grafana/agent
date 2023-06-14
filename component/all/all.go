@@ -49,6 +49,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlphttp"                // Import otelcol.exporter.otlphttp
 	_ "github.com/grafana/agent/component/otelcol/exporter/prometheus"              // Import otelcol.exporter.prometheus
 	_ "github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling" // Import otelcol.extension.jaeger_remote_sampling
+	_ "github.com/grafana/agent/component/otelcol/processor/attributes"             // Import otelcol.processor.attributes
 	_ "github.com/grafana/agent/component/otelcol/processor/batch"                  // Import otelcol.processor.batch
 	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"          // Import otelcol.processor.memory_limiter
 	_ "github.com/grafana/agent/component/otelcol/processor/tail_sampling"          // Import otelcol.processor.tail_sampling
@@ -64,6 +65,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"               // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/dnsmasq"              // Import prometheus.exporter.dnsmasq
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"               // Import prometheus.exporter.github
+	_ "github.com/grafana/agent/component/prometheus/exporter/kafka"                // Import prometheus.exporter.kafka
 	_ "github.com/grafana/agent/component/prometheus/exporter/memcached"            // Import prometheus.exporter.memcached
 	_ "github.com/grafana/agent/component/prometheus/exporter/mssql"                // Import prometheus.exporter.mssql
 	_ "github.com/grafana/agent/component/prometheus/exporter/mysql"                // Import prometheus.exporter.mysql
