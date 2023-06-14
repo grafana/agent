@@ -13,11 +13,8 @@ require (
 	github.com/PuerkitoBio/rehttp v1.1.0
 	github.com/Shopify/sarama v1.38.1
 	github.com/alecthomas/kingpin/v2 v2.3.2
-	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
-	github.com/spaolacci/murmur3 v1.1.0
-	github.com/zeebo/xxh3 v1.0.2
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
-	github.com/aws/aws-sdk-go v1.44.187
+	github.com/aws/aws-sdk-go v1.44.249
 	github.com/aws/aws-sdk-go-v2 v1.17.2
 	github.com/aws/aws-sdk-go-v2/config v1.17.10
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.27.11
@@ -61,7 +58,7 @@ require (
 	github.com/grafana/go-gelf/v2 v2.0.1
 	github.com/grafana/loki v1.6.2-0.20230414223651-220cbdd4f172 // k146 branch
 	github.com/grafana/phlare/api v0.1.2
-	github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd
+	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/tail v0.0.0-20230328181249-aa6682d7843a
 	github.com/grafana/vmware_exporter v0.0.4-beta
@@ -96,7 +93,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
 	github.com/ncabatoff/process-exporter v0.7.10
-	github.com/nerdswords/yet-another-cloudwatch-exporter v0.44.0-alpha
+	github.com/nerdswords/yet-another-cloudwatch-exporter v0.51.0
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.49.0
@@ -185,7 +182,7 @@ require (
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.8.0
-	golang.org/x/exp v0.0.0-20230124195608-d38c7dcee874
+	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	golang.org/x/net v0.10.0
 	golang.org/x/oauth2 v0.7.0
 	golang.org/x/sys v0.8.0
@@ -207,7 +204,6 @@ require (
 	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5
 	sigs.k8s.io/controller-runtime v0.14.6
 	sigs.k8s.io/yaml v1.3.0
-	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b
 
 )
 

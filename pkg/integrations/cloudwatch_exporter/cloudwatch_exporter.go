@@ -7,8 +7,7 @@ import (
 	"github.com/go-kit/log"
 	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
-	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logger"
-	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
+	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logging"
 	yaceSess "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/session"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -44,25 +43,17 @@ func (e *exporter) MetricsHandler() (http.Handler, error) {
 		e.logger.Debug("Running collect in cloudwatch_exporter")
 
 		reg := prometheus.NewRegistry()
-		cwSemaphore := make(chan struct{}, cloudWatchConcurrency)
-		tagSemaphore := make(chan struct{}, tagConcurrency)
-		observedMetricLabels := map[string]yaceModel.LabelSet{}
 		yace.UpdateMetrics(
 			context.Background(),
+			e.logger,
 			e.scrapeConf,
 			reg,
-			metricsPerQuery,
-			labelsSnakeCase,
-			cwSemaphore,
-			tagSemaphore,
 			e.sessionCache,
-			observedMetricLabels,
-			e.logger,
+			yace.MetricsPerQuery(metricsPerQuery),
+			yace.LabelsSnakeCase(labelsSnakeCase),
+			yace.CloudWatchAPIConcurrency(cloudWatchConcurrency),
+			yace.TaggingAPIConcurrency(tagConcurrency),
 		)
-
-		// close concurrency channels
-		close(cwSemaphore)
-		close(tagSemaphore)
 
 		promhttp.HandlerFor(reg, promhttp.HandlerOpts{}).ServeHTTP(w, req)
 	})
