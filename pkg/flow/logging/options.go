@@ -5,32 +5,28 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/river"
 )
 
-// SinkOptions is a set of options used to construct and configure a logging
-// sink.
-type SinkOptions struct {
+// Options is a set of options used to construct and configure a Logger.
+type Options struct {
 	Level  Level  `river:"level,attr,optional"`
 	Format Format `river:"format,attr,optional"`
 
-	// IncludeTimestamps disables timestamps on log lines. It is not exposed as a
-	// river tag as it is only expected to be used during tests.
-	IncludeTimestamps bool
-
-	// TODO: attributes to forward logs to loki.* components.
+	// TODO: log sink parameter (e.g., to use the Windows Event logger)
 }
 
-// DefaultSinkOptions holds defaults for creating a logging sink.
-var DefaultSinkOptions = SinkOptions{
+// DefaultOptions holds defaults for creating a Logger.
+var DefaultOptions = Options{
 	Level:  LevelDefault,
 	Format: FormatDefault,
-
-	IncludeTimestamps: true,
 }
 
+var _ river.Defaulter = (*Options)(nil)
+
 // SetToDefault implements river.Defaulter.
-func (o *SinkOptions) SetToDefault() {
-	*o = DefaultSinkOptions
+func (o *Options) SetToDefault() {
+	*o = DefaultOptions
 }
 
 // Level represents how verbose logging should be.
