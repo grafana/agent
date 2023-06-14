@@ -36,6 +36,8 @@ Main (unreleased)
 
 - Update cAdvisor dependency to v0.47.0. (@jcreixell)
 
+- Upgrade and improve Cloudwatch exporter integration (@thepalbi)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
