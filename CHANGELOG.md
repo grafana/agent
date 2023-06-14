@@ -27,7 +27,7 @@ Main (unreleased)
 - Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
 
 - Tanka config: retain cAdvisor metrics for system processes (Kubelet, Containerd, etc.) (@bboreham)
-- 
+
 - Upgrade and improve Cloudwatch exporter integration (@thepalbi)
 
 ### Bugfixes
