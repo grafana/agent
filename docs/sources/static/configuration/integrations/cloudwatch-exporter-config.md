@@ -147,6 +147,9 @@ Configuration reference:
 
   # List of static jobs
   static: [ <static_job> ]
+
+  # Optional: Enable debug logging on CloudWatch exporter internals.
+  [debug: <boolean> | default = false]
 ```
 
 ### discovery_job
