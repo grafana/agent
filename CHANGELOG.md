@@ -14,11 +14,17 @@ Main (unreleased)
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
 
-- `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
-
 - Support `stage.geoip` in `loki.process`. (@akselleirv)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
+
+
+- New Grafana Agent Flow components:
+
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
+  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
+    components and modifies attributes of a span, log, or metric. (@ptodev)
+
 
 ### Enhancements
 
