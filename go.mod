@@ -13,9 +13,6 @@ require (
 	github.com/PuerkitoBio/rehttp v1.1.0
 	github.com/Shopify/sarama v1.38.1
 	github.com/alecthomas/kingpin/v2 v2.3.2
-	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
-	github.com/spaolacci/murmur3 v1.1.0
-	github.com/zeebo/xxh3 v1.0.2
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
 	github.com/aws/aws-sdk-go v1.44.187
 	github.com/aws/aws-sdk-go-v2 v1.17.2
@@ -47,7 +44,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.3
 	github.com/golang/snappy v0.0.4
-	github.com/google/cadvisor v0.44.0
+	github.com/google/cadvisor v0.47.0
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-jsonnet v0.18.0
@@ -207,7 +204,6 @@ require (
 	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5
 	sigs.k8s.io/controller-runtime v0.14.6
 	sigs.k8s.io/yaml v1.3.0
-	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b
 
 )
 
@@ -439,7 +435,7 @@ require (
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/jsimonetti/rtnetlink v1.3.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
-	github.com/karrick/godirwalk v1.16.1 // indirect
+	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.1.0 // indirect
 	github.com/knadh/koanf v1.4.4 // indirect
@@ -467,7 +463,6 @@ require (
 	github.com/mdlayher/wifi v0.0.0-20220330172155-a44c70b6d3c8 // indirect
 	github.com/microsoft/go-mssqldb v0.19.0 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
-	github.com/mindprince/gonvml v0.0.0-20190828220739-9ebdce4bb989 // indirect
 	github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -499,7 +494,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc3 // indirect
 	github.com/opencontainers/runc v1.1.5 // indirect
-	github.com/opencontainers/runtime-spec v1.0.3-0.20210326190908-1c3f411f0417 // indirect
+	github.com/opencontainers/runtime-spec v1.0.3-0.20220909204839-494a5a6aca78 // indirect
 	github.com/opencontainers/selinux v1.10.2 // indirect
 	github.com/openzipkin/zipkin-go v0.4.1 // indirect
 	github.com/oschwald/maxminddb-golang v1.10.0 // indirect
