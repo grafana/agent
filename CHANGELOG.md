@@ -28,6 +28,8 @@ Main (unreleased)
 
 - Tanka config: retain cAdvisor metrics for system processes (Kubelet, Containerd, etc.) (@bboreham)
 
+- Update cAdvisor dependency to v0.47.0. (@jcreixell)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
