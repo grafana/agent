@@ -43,7 +43,7 @@ func (e *exporter) MetricsHandler() (http.Handler, error) {
 		e.logger.Debug("Running collect in cloudwatch_exporter")
 
 		reg := prometheus.NewRegistry()
-		yace.UpdateMetrics(
+		err := yace.UpdateMetrics(
 			context.Background(),
 			e.logger,
 			e.scrapeConf,
@@ -54,6 +54,11 @@ func (e *exporter) MetricsHandler() (http.Handler, error) {
 			yace.CloudWatchAPIConcurrency(cloudWatchConcurrency),
 			yace.TaggingAPIConcurrency(tagConcurrency),
 		)
+		if err != nil {
+			e.logger.Error(err, "Error collecting cloudwatch metrics")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
 		promhttp.HandlerFor(reg, promhttp.HandlerOpts{}).ServeHTTP(w, req)
 	})
