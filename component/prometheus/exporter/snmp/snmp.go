@@ -135,12 +135,6 @@ type Arguments struct {
 	WalkParams WalkParams  `river:"walk_param,block,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Arguments.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	type args Arguments
-	return f((*args)(a))
-}
-
 // Convert converts the component's Arguments to the integration's Config.
 func (a *Arguments) Convert() *snmp_exporter.Config {
 	return &snmp_exporter.Config{

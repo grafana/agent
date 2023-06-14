@@ -79,17 +79,9 @@ var DefaultArguments = Arguments{
 	UseIncomingTimestamp: false,
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type kafkacfg Arguments
-	err := f((*kafkacfg)(a))
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Component implements the loki.source.kafka component.
@@ -166,7 +158,7 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	entryHandler := loki.NewEntryHandler(c.handler, func() {})
-	t, err := kt.NewSyncer(c.opts.Registerer, c.opts.Logger, newArgs.Convert(), entryHandler, &kt.KafkaTargetMessageParser{})
+	t, err := kt.NewSyncer(c.opts.Logger, newArgs.Convert(), entryHandler, &kt.KafkaTargetMessageParser{})
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "failed to create kafka client with provided config", "err", err)
 		return err

@@ -5,7 +5,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter"
-	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtelemetry"
@@ -33,7 +32,6 @@ type Arguments struct {
 }
 
 var (
-	_ river.Unmarshaler  = (*Arguments)(nil)
 	_ exporter.Arguments = Arguments{}
 )
 
@@ -44,11 +42,9 @@ var DefaultArguments = Arguments{
 	SamplingThereafter: 500,
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Convert implements exporter.Arguments.

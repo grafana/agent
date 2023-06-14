@@ -1,6 +1,9 @@
 package vm_test
 
 import (
+	"fmt"
+	"math"
+	"reflect"
 	"testing"
 
 	"github.com/grafana/agent/pkg/river/ast"
@@ -126,6 +129,42 @@ func TestVM_Block_Attributes(t *testing.T) {
 
 		err := eval.Evaluate(nil, &block{})
 		require.EqualError(t, err, `3:4: unrecognized attribute name "invalid"`)
+	})
+
+	t.Run("Tests decoding into an interface", func(t *testing.T) {
+		type block struct {
+			Anything interface{} `river:"anything,attr"`
+		}
+
+		tests := []struct {
+			testName        string
+			val             string
+			expectedValType reflect.Kind
+		}{
+			{testName: "test_int_1", val: "15", expectedValType: reflect.Int},
+			{testName: "test_int_2", val: "-15", expectedValType: reflect.Int},
+			{testName: "test_int_3", val: fmt.Sprintf("%v", math.MaxInt64), expectedValType: reflect.Int},
+			{testName: "test_int_4", val: fmt.Sprintf("%v", math.MinInt64), expectedValType: reflect.Int},
+			{testName: "test_uint_1", val: fmt.Sprintf("%v", uint64(math.MaxInt64)+1), expectedValType: reflect.Uint64},
+			{testName: "test_uint_2", val: fmt.Sprintf("%v", uint64(math.MaxUint64)), expectedValType: reflect.Uint64},
+			{testName: "test_float_1", val: fmt.Sprintf("%v9", math.MinInt64), expectedValType: reflect.Float64},
+			{testName: "test_float_2", val: fmt.Sprintf("%v9", uint64(math.MaxUint64)), expectedValType: reflect.Float64},
+			{testName: "test_float_3", val: "16.0", expectedValType: reflect.Float64},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.testName, func(t *testing.T) {
+				input := fmt.Sprintf(`some_block {
+					anything  = %s 
+				}`, tt.val)
+				eval := vm.New(parseBlock(t, input))
+
+				var actual block
+				err := eval.Evaluate(nil, &actual)
+				require.NoError(t, err)
+				require.Equal(t, tt.expectedValType.String(), reflect.TypeOf(actual.Anything).Kind().String())
+			})
+		}
 	})
 
 	t.Run("Supports arbitrarily nested struct pointer fields", func(t *testing.T) {
@@ -624,7 +663,9 @@ func TestVM_Block_Unmarshaler(t *testing.T) {
 
 	var actual OuterBlock
 	require.NoError(t, eval.Evaluate(nil, &actual))
-	require.True(t, actual.Settings.Called, "UnmarshalRiver did not get invoked")
+	require.True(t, actual.Settings.UnmarshalCalled, "UnmarshalRiver did not get invoked")
+	require.True(t, actual.Settings.DefaultCalled, "SetToDefault did not get invoked")
+	require.True(t, actual.Settings.ValidateCalled, "Validate did not get invoked")
 }
 
 func TestVM_Block_UnmarshalToMap(t *testing.T) {
@@ -648,7 +689,7 @@ func TestVM_Block_UnmarshalToMap(t *testing.T) {
 			`,
 			expect: OuterBlock{
 				Settings: map[string]interface{}{
-					"field_a": float64(12345),
+					"field_a": 12345,
 					"field_b": "helloworld",
 				},
 			},
@@ -717,7 +758,7 @@ func TestVM_Block_UnmarshalToAny(t *testing.T) {
 	require.NoError(t, eval.Evaluate(nil, &actual))
 
 	expect := map[string]interface{}{
-		"field_a": float64(12345),
+		"field_a": 12345,
 		"field_b": "helloworld",
 	}
 	require.Equal(t, expect, actual.Settings)
@@ -727,13 +768,25 @@ type Setting struct {
 	FieldA string `river:"field_a,attr"`
 	FieldB string `river:"field_b,attr"`
 
-	Called bool
+	UnmarshalCalled bool
+	DefaultCalled   bool
+	ValidateCalled  bool
 }
 
 func (s *Setting) UnmarshalRiver(f func(interface{}) error) error {
-	s.Called = true
-	type setting Setting
-	return f((*setting)(s))
+	s.UnmarshalCalled = true
+	return f((*settingUnmarshalTarget)(s))
+}
+
+type settingUnmarshalTarget Setting
+
+func (s *settingUnmarshalTarget) SetToDefault() {
+	s.DefaultCalled = true
+}
+
+func (s *settingUnmarshalTarget) Validate() error {
+	s.ValidateCalled = true
+	return nil
 }
 
 func parseBlock(t *testing.T, input string) *ast.BlockStmt {

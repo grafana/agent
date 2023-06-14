@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/ckit"
@@ -26,7 +26,7 @@ import (
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
-	log     *logging.Logger
+	log     log.Logger
 	tracer  trace.TracerProvider
 	globals ComponentGlobals
 
@@ -37,6 +37,7 @@ type Loader struct {
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
 	cm                *controllerMetrics
+	cc                *controllerCollector
 	moduleExportIndex int
 }
 
@@ -44,18 +45,20 @@ type Loader struct {
 // with co for their options.
 func NewLoader(globals ComponentGlobals) *Loader {
 	l := &Loader{
-		log:     globals.Logger,
-		tracer:  globals.TraceProvider,
+		log:     log.With(globals.Logger, "controller_id", globals.ControllerID),
+		tracer:  tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
 		globals: globals,
 
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
-		cm:            newControllerMetrics(globals.Registerer),
+		cm:            newControllerMetrics(globals.ControllerID),
 	}
-	cc := newControllerCollector(l)
+	l.cc = newControllerCollector(l, globals.ControllerID)
+
 	if globals.Registerer != nil {
-		globals.Registerer.MustRegister(cc)
+		globals.Registerer.MustRegister(l.cc)
+		globals.Registerer.MustRegister(l.cm)
 	}
 
 	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
@@ -71,7 +74,7 @@ func NewLoader(globals ComponentGlobals) *Loader {
 
 					err := cmp.Reevaluate()
 					if err != nil {
-						level.Error(globals.Logger).Log("msg", "failed to reevaluate component", "componentID", cmp.NodeID(), "err", err)
+						level.Error(l.log).Log("msg", "failed to reevaluate component", "componentID", cmp.NodeID(), "err", err)
 					}
 				}
 			}
@@ -131,6 +134,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}()
 
 	l.cache.ClearModuleExports()
+
 	// Evaluate all the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
 		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
@@ -196,6 +200,15 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 	}
 	return diags
+}
+
+// Cleanup unregisters any existing metrics.
+func (l *Loader) Cleanup() {
+	if l.globals.Registerer == nil {
+		return
+	}
+	l.globals.Registerer.Unregister(l.cm)
+	l.globals.Registerer.Unregister(l.cc)
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.

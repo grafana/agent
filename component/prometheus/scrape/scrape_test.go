@@ -75,7 +75,8 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	nilReceivers := []storage.Appendable{nil, nil}
 
-	args := DefaultArguments
+	var args Arguments
+	args.SetToDefault()
 	args.ForwardTo = nilReceivers
 
 	s, err := New(opts, args)

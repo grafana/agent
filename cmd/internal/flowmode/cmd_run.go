@@ -93,7 +93,7 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		BoolVar(&r.clusterEnabled, "cluster.enabled", r.clusterEnabled, "Start in clustered mode")
 	cmd.Flags().
-		StringVar(&r.clusterJoinAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
+		StringVar(&r.clusterAdvAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
 	cmd.Flags().
 		StringVar(&r.clusterJoinAddr, "cluster.join-addresses", r.clusterJoinAddr, "Comma-separated list of addresses to join the cluster at")
 	cmd.Flags().
@@ -124,11 +124,10 @@ func (fr *flowRun) Run(configFile string) error {
 		return fmt.Errorf("file argument not provided")
 	}
 
-	logSink, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
+	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
-	l := logging.New(logSink)
 
 	t, err := tracing.New(tracing.DefaultOptions)
 	if err != nil {
@@ -162,12 +161,18 @@ func (fr *flowRun) Run(configFile string) error {
 	if err != nil {
 		return fmt.Errorf("building clusterer: %w", err)
 	}
+	defer func() {
+		err := clusterer.Stop()
+		if err != nil {
+			level.Error(l).Log("msg", "failed to terminate clusterer", "err", err)
+		}
+	}()
 
 	// In-memory listener, used for inner HTTP traffic without the network.
 	memLis := memconn.NewListener(nil)
 
 	f := flow.New(flow.Options{
-		LogSink:        logSink,
+		Logger:         l,
 		Tracer:         t,
 		Clusterer:      clusterer,
 		DataPath:       fr.storagePath,
@@ -256,7 +261,7 @@ func (fr *flowRun) Run(configFile string) error {
 		}).Methods(http.MethodGet, http.MethodPost)
 
 		// Register Routes must be the last
-		fa := api.NewFlowAPI(f, r)
+		fa := api.NewFlowAPI(f)
 		fa.RegisterRoutes(path.Join(fr.uiPrefix, "/api/v0/web"), r)
 
 		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
@@ -295,6 +300,12 @@ func (fr *flowRun) Run(configFile string) error {
 				level.Error(l).Log("msg", "failed to start reporter", "err", err)
 			}
 		}()
+	}
+
+	// Start the Clusterer's Node implementation.
+	err = clusterer.Start(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to start the clusterer: %w", err)
 	}
 
 	// Perform the initial reload. This is done after starting the HTTP server so

@@ -34,6 +34,13 @@ type Arguments struct {
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 }
 
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = Arguments{
+		Server: fnet.DefaultServerConfig(),
+	}
+}
+
 func (a *Arguments) labelSet() model.LabelSet {
 	labelSet := make(model.LabelSet, len(a.Labels))
 	for k, v := range a.Labels {

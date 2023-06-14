@@ -4,23 +4,16 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"path"
 	"sync"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/flow/logging"
-	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/web/api"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 // ModuleComponent holds the common properties for module components.
 type ModuleComponent struct {
 	opts component.Options
-	ctrl *flow.Flow
+	mod  component.Module
 
 	mut    sync.RWMutex
 	health component.Health
@@ -33,48 +26,22 @@ type Exports struct {
 }
 
 // NewModuleComponent initializes a new ModuleComponent.
-func NewModuleComponent(o component.Options) *ModuleComponent {
-	// TODO(rfratto): replace these with a tracer/registry which properly
-	// propagates data back to the parent.
-	flowTracer, _ := tracing.New(tracing.DefaultOptions)
-	flowRegistry := prometheus.NewRegistry()
-
-	return &ModuleComponent{
+func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
+	c := &ModuleComponent{
 		opts: o,
-		ctrl: flow.New(flow.Options{
-			ControllerID: o.ID,
-			LogSink:      logging.LoggerSink(o.Logger),
-			Tracer:       flowTracer,
-			Reg:          flowRegistry,
-			Clusterer:    o.Clusterer,
-
-			DataPath:       o.DataPath,
-			HTTPPathPrefix: o.HTTPPath,
-			HTTPListenAddr: o.HTTPListenAddr,
-
-			OnExportsChange: func(exports map[string]any) {
-				o.OnStateChange(Exports{Exports: exports})
-			},
-		}),
 	}
+	var err error
+	c.mod, err = o.ModuleController.NewModule("", func(exports map[string]any) {
+		c.opts.OnStateChange(Exports{Exports: exports})
+	})
+	return c, err
 }
 
 // LoadFlowContent loads the flow controller with the current component content. It
 // will set the component health in addition to return the error so that the consumer
 // can rely on either or both.
 func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue string) error {
-	f, err := flow.ReadFile(c.opts.ID, []byte(contentValue))
-	if err != nil {
-		c.setHealth(component.Health{
-			Health:     component.HealthTypeUnhealthy,
-			Message:    fmt.Sprintf("failed to parse module content: %s", err),
-			UpdateTime: time.Now(),
-		})
-
-		return err
-	}
-
-	err = c.ctrl.LoadFile(f, args)
+	err := c.mod.LoadConfig([]byte(contentValue), args)
 	if err != nil {
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
@@ -95,7 +62,7 @@ func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue stri
 
 // RunFlowController runs the flow controller that all module components start.
 func (c *ModuleComponent) RunFlowController(ctx context.Context) {
-	c.ctrl.Run(ctx)
+	c.mod.Run(ctx)
 }
 
 // CurrentHealth contains the implementation details for CurrentHealth in a module component.
@@ -105,27 +72,14 @@ func (c *ModuleComponent) CurrentHealth() component.Health {
 	return c.health
 }
 
+// HTTPHandler returns the underlying module handle for the UI.
+func (c *ModuleComponent) HTTPHandler() http.Handler {
+	return c.mod.ComponentHandler()
+}
+
 // SetHealth contains the implementation details for setHealth in a module component.
 func (c *ModuleComponent) setHealth(h component.Health) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.health = h
-}
-
-// Handler contains the implementation details for Handler in a module component.
-func (c *ModuleComponent) Handler() http.Handler {
-	r := mux.NewRouter()
-
-	fa := api.NewFlowAPI(c.ctrl, r)
-	fa.RegisterRoutes("/", r)
-
-	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Re-add the full path to ensure that nested controllers propagate
-		// requests properly.
-		r.URL.Path = path.Join(c.opts.HTTPPath, r.URL.Path)
-
-		c.ctrl.ComponentHandler().ServeHTTP(w, r)
-	})
-
-	return r
 }

@@ -28,7 +28,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.33.2 \
+  grafana/agent:v0.34.1 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -42,7 +42,7 @@ server:
 metrics:
   wal_directory: /tmp/agent
   global:
-    scrape_interval: 15s
+    scrape_interval: 60s
     remote_write:
     - url: https://prometheus-us-central1.grafana.net/api/prom/push
       basic_auth:
@@ -67,7 +67,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.33.2
+  - image: grafana/agent:v0.34.1
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml

@@ -91,12 +91,9 @@ var DefaultAuthAppRole = AuthAppRole{
 	MountPath: "approle",
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (a *AuthAppRole) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *AuthAppRole) SetToDefault() {
 	*a = DefaultAuthAppRole
-
-	type authAppRole AuthAppRole
-	return f((*authAppRole)(a))
 }
 
 func (a *AuthAppRole) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
@@ -148,19 +145,12 @@ var DefaultAuthAWS = AuthAWS{
 	EC2SignatureType: "pkcs7",
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (a *AuthAWS) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *AuthAWS) SetToDefault() {
 	*a = DefaultAuthAWS
-
-	type authAWS AuthAWS
-	if err := f((*authAWS)(a)); err != nil {
-		return err
-	}
-
-	return a.Validate()
 }
 
-// Validate validates settings for AuthAWS.
+// Validate implements river.Validator.
 func (a *AuthAWS) Validate() error {
 	switch a.Type {
 	case "":
@@ -240,12 +230,9 @@ var DefaultAuthAzure = AuthAzure{
 	ResourceURL: "https://management.azure.com/",
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (a *AuthAzure) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *AuthAzure) SetToDefault() {
 	*a = DefaultAuthAzure
-
-	type authAzure AuthAzure
-	return f((*authAzure)(a))
 }
 
 func (a *AuthAzure) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
@@ -290,19 +277,12 @@ var DefaultAuthGCP = AuthGCP{
 	Type:      authGCPTypeGCE,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (a *AuthGCP) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *AuthGCP) SetToDefault() {
 	*a = DefaultAuthGCP
-
-	type authGCP AuthGCP
-	if err := f((*authGCP)(a)); err != nil {
-		return err
-	}
-
-	return a.Validate()
 }
 
-// Validate returns a non-nil error if AuthGCP is invalid.
+// Validate implements river.Validator.
 func (a *AuthGCP) Validate() error {
 	switch a.Type {
 	case authGCPTypeGCE:
@@ -361,12 +341,9 @@ var DefaultAuthKubernetes = AuthKubernetes{
 	ServiceAccountTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token",
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (a *AuthKubernetes) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *AuthKubernetes) SetToDefault() {
 	*a = DefaultAuthKubernetes
-
-	type authKubernetes AuthKubernetes
-	return f((*authKubernetes)(a))
 }
 
 func (a *AuthKubernetes) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
@@ -402,12 +379,9 @@ var DefaultAuthLDAP = AuthLDAP{
 	MountPath: "ldap",
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (a *AuthLDAP) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *AuthLDAP) SetToDefault() {
 	*a = DefaultAuthLDAP
-
-	type authLDAP AuthLDAP
-	return f((*authLDAP)(a))
 }
 
 func (a *AuthLDAP) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {
@@ -442,12 +416,9 @@ var DefaultAuthUserPass = AuthUserPass{
 	MountPath: "userpass",
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (a *AuthUserPass) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *AuthUserPass) SetToDefault() {
 	*a = DefaultAuthUserPass
-
-	type authUserPass AuthUserPass
-	return f((*authUserPass)(a))
 }
 
 func (a *AuthUserPass) vaultAuthenticate(ctx context.Context, cli *vault.Client) (*vault.Secret, error) {

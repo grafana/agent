@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/moby"
 )
@@ -59,18 +58,13 @@ var DefaultArguments = Arguments{
 	HTTPClientConfig:   config.DefaultHTTPClientConfig,
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler, applying defaults and
-// validating the provided config.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.Host == "" {
 		return fmt.Errorf("host attribute must not be empty")
 	} else if _, err := url.Parse(args.Host); err != nil {

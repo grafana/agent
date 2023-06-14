@@ -33,6 +33,13 @@ type Arguments struct {
 	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 }
 
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
+	*args = Arguments{
+		Server: fnet.DefaultServerConfig(),
+	}
+}
+
 type Component struct {
 	opts               component.Options
 	handler            http.Handler

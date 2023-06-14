@@ -2,7 +2,7 @@
 
 This guide will walk you through the process of creating a new Prometheus exporter Flow component and best practices for implementing it. 
 
-It is required that the exporter has an existing [Agent integration](../sources/configuration/integrations/_index.md) in order to wrap it as a Flow component. In the future, we will drop this requirement and Flow components will expose the logic of the exporter directly.
+It is required that the exporter has an existing [Agent integration](../sources/static/configuration/integrations/_index.md) in order to wrap it as a Flow component. In the future, we will drop this requirement and Flow components will expose the logic of the exporter directly.
 
 Use the following exporters as a reference:
 - [process_exporter](../../component/prometheus/exporter/process/process.go) - [documentation](../sources/flow/reference/components/prometheus.exporter.process.md)
@@ -55,9 +55,15 @@ prometheus.exporter.blackbox "example" {
   - The name used in the second parameter of `exporter.New` when defining the `Build` function it's important as it will define the label `job` in the form of `integrations/<name>`.
   - Avoid creating components with `Singleton: true` as it will make it impossible to run multiple instances of the exporter. 
 
-- If the exporter follows the multi-target pattern, add a function to define Prometheus discovery targets and use `exporter.NewMultiTarget` for the `Build` param of the `component.Register` function.
+- If the exporter follows the multi-target pattern, add a function to define Prometheus discovery targets and use `exporter.NewWithTargetBuilder` for the `Build` param of the `component.Register` function.
 
-- Define `UnmarshalRiver` function to unmarshal the arguments from the river config into the `Arguments` struct. Please, add a test to validate the unmarshalling covering as many cases as possible.
+- If the exporter implements a custom `InstanceKey`, add a function to customize the value of the instance label and use `exporter.NewWithTargetBuilder` for the `Build` param of the `component.Register` function.
+
+- Define the `SetToDefault` function implementing river.Defaulter to specify the default arguments for the component.
+
+- Define the `Validate` function implementing river.Validator to specify any validation rules for the component arguments.
+
+- Add a test to validate the unmarshalling covering as many cases as possible.
 
 - Define a `Convert` function to convert nested structs to the ones that the integration uses. Please, also add a test to validate the conversion covering as many cases as possible.
 

@@ -10,6 +10,60 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
+
+- Support `stage.geoip` in `loki.process`. (@akselleirv)
+
+- Integrations: Introduce the `squid` integration. (@armstrmi)
+
+
+- New Grafana Agent Flow components:
+
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
+  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
+    components and modifies attributes of a span, log, or metric. (@ptodev)
+
+
+### Enhancements
+
+- Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
+
+- Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
+
+- Tanka config: retain cAdvisor metrics for system processes (Kubelet, Containerd, etc.) (@bboreham)
+
+### Bugfixes
+
+- Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
+  proxying requests. (@mattdurham)
+
+- Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
+
+v0.34.1 (2023-06-12)
+--------------------
+
+### Bugfixes
+
+- Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
+
+- Fix issue where `remote.http` did not fail early if the initial request
+  failed. This caused failed requests to initially export empty values, which
+  could lead to propagating issues downstream to other components which expect
+  the export to be non-empty. (@rfratto)
+
+- Allow `bearerTokenFile` field to be used in ServiceMonitors. (@captncraig)
+
+- Fix issue where metrics and traces were not recorded from components within modules. (@mattdurham)
+
+### Other changes
+
+- Add logging to failed requests in `remote.http`. (@rfratto)
+
+v0.34.0 (2023-06-08)
+--------------------
+
 ### Breaking changes
 
 - The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
@@ -19,6 +73,8 @@ Main (unreleased)
 - Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
 
 - Prometheus exporters in Flow mode now set the `instance` label to a value similar to the one they used to have in Static mode (<hostname> by default, customized by some integrations). (@jcreixell)
+
+- `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`. (@korniltsev)
 
 ### Features
 
@@ -31,13 +87,15 @@ Main (unreleased)
   - `prometheus.exporter.snowflake` collects metrics from a snowflake database (@jonathanWamsley)
   - `prometheus.exporter.mssql` collects metrics from Microsoft SQL Server (@jonathanwamsley)
   - `prometheus.exporter.oracledb` collects metrics from oracledb (@jonathanwamsley)
+  - `prometheus.exporter.dnsmasq` collects metrics from a dnsmasq server. (@spartan0x117)
+  - `loki.source.awsfirehose` - receive Loki log entries from AWS Firehose via HTTP (@thepalbi)
 
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
   - `nonsensitive` converts a River secret back into a string. (@rfratto)
 
-
 ### Enhancements
+
 - Support to attach node metadata to pods and endpoints targets in
   `discovery.kubernetes`. (@laurovenancio)
 
@@ -62,10 +120,14 @@ Main (unreleased)
 - Embed Google Fonts on Flow UI (@jkroepke)
 
 - Enable Content-Security-Policies on Flow UI (@jkroepke)
-  
+
 - Update azure-metrics-exporter to v0.0.0-20230502203721-b2bfd97b5313 (@kgeckhart)
 
 - Update azidentity dependency to v1.3.0. (@akselleirv)
+
+- Add custom labels to journal entries in `loki.source.journal` (@sbhrule15)
+
+- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
 
 ### Bugfixes
 
@@ -84,6 +146,32 @@ Main (unreleased)
 - Fix an issue where the Grafana Agent Flow RPM used the wrong path for the
   environment file, preventing the service from loading. (@rfratto)
 
+- Fix an issue where the cluster advertise address was overwriting the join
+  addresses. (@laurovenancio)
+
+- Fix targets deduplication when clustering mode is enabled. (@laurovenancio)
+
+- Fix issue in operator where any version update will restart all agent pods simultaneously. (@captncraig)
+
+- Fix an issue where `loki.source.journald` did not create the positions
+  directory with the appropriate permissions. (@tpaschalis)
+
+- Fix an issue where fanning out log entries to multiple `loki.process`
+  components lead to a race condition. (@tpaschalis)
+
+- Fix panic in `prometheus.operator.servicemonitors` from relabel rules without certain defaults. (@captncraig)
+
+- Fix issue in modules export cache throwing uncomparable errors. (@mattdurham)
+
+- Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
+
+- Fix issue where using exporters inside modules failed due to not passing the in-memory address dialer. (@mattdurham)
+
+- Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
+  proxying requests. (@mattdurham)
+
+- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
+
 ### Other changes
 
 - Add metrics when clustering mode is enabled. (@rfratto)
@@ -95,6 +183,16 @@ Main (unreleased)
 - Add CLI flag `--server.http.enable-pprof` to grafana-agent-flow to conditionally enable `/debug/pprof` endpoints (@jkroepke)
 
 - Use Go 1.20.4 for builds. (@tpaschalis)
+
+- Integrate the new ExceptionContext which was recently added to the Faro Web-SDK in the
+  app_agent_receiver Payload. (@codecapitano)
+
+- Flow clustering: clusters will now use 512 tokens per node for distributing
+  work, leading to better distribution. However, rolling out this change will
+  cause some incorrerct or missing assignments until all nodes are updated. (@rfratto)
+
+- Change the Docker base image for Linux containers to `ubuntu:lunar`.
+  (@rfratto)
 
 v0.33.2 (2023-05-11)
 --------------------
@@ -217,7 +315,6 @@ v0.33.0 (2023-04-25)
   - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
   - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other   `loki` components. (@akselleirv)
-
 
 - Add support for Flow-specific system packages:
 

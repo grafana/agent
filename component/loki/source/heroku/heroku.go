@@ -38,6 +38,13 @@ type Arguments struct {
 	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
 }
 
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = Arguments{
+		Server: fnet.DefaultServerConfig(),
+	}
+}
+
 // Component implements the loki.source.heroku component.
 type Component struct {
 	opts          component.Options

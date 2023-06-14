@@ -6,7 +6,6 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/gce"
 )
@@ -40,18 +39,9 @@ var DefaultArguments = Arguments{
 	RefreshInterval: 60 * time.Second,
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler, applying defaults and
-// validating the provided config.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-	return nil
 }
 
 // Convert converts Arguments to the upstream Prometheus SD type.
