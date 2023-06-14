@@ -18,6 +18,7 @@ export DRONE_TAG=${DRONE_TAG:-}
 export DRONE_BRANCH=${DRONE_BRANCH:-}
 
 export AGENT_IMAGE=grafana/agent
+export AGENT_BORINGCRYPTO_IMAGE=grafana/agent-boringcrypto
 export AGENTCTL_IMAGE=grafana/agentctl
 export OPERATOR_IMAGE=grafana/agent-operator
 export SMOKE_IMAGE=us.gcr.io/kubernetes-dev/grafana/agent-smoke
@@ -68,6 +69,20 @@ case "$TARGET_CONTAINER" in
       .
     ;;
 
+  agent-boringcrypto)
+    docker buildx build --push        \
+      --platform $BUILD_PLATFORMS     \
+      --build-arg RELEASE_BUILD=1     \
+      --build-arg VERSION="$VERSION"  \
+      --build-arg GOEXPERIMENT=boringcrypto \
+      -t "$AGENT_IMAGE:$VERSION"      \
+      -t "$AGENT_IMAGE:$BRANCH_TAG"   \
+      -f cmd/grafana-agent/Dockerfile \
+      .
+    ;;
+
+
+
   agentctl)
     docker buildx build --push           \
       --platform $BUILD_PLATFORMS        \
@@ -113,7 +128,7 @@ case "$TARGET_CONTAINER" in
     ;;
 
   *)
-    echo "Usage: $0 agent|agentctl|agent-operator|smoke|crow"
+    echo "Usage: $0 agent|agent-boringcrypto|agentctl|agent-operator|smoke|crow"
     exit 1
     ;;
 esac
