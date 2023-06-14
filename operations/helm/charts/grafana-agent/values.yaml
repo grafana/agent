@@ -103,6 +103,8 @@ configReloader:
     tag: v0.8.0
   # -- Override the args passed to the container.
   customArgs: []
+  # -- Resource requests and limits to apply to the config reloader container.
+  resources: {}
 
 controller:
   # -- Type of controller to use for deploying Grafana Agent in the cluster.
