@@ -14,20 +14,13 @@ import (
 	"github.com/prometheus/prometheus/util/httputil"
 )
 
-// ComponentProvider provides the ability to introspect a flow components
-// in a read only manner.
-type ComponentProvider interface {
-	GetComponent(id component.ID, opts component.InfoOptions) (*component.Info, error)
-	ListComponents(opts component.InfoOptions) []*component.Info
-}
-
 // FlowAPI is a wrapper around the component API.
 type FlowAPI struct {
-	flow ComponentProvider
+	flow component.Provider
 }
 
 // NewFlowAPI instantiates a new Flow API.
-func NewFlowAPI(flow ComponentProvider) *FlowAPI {
+func NewFlowAPI(flow component.Provider) *FlowAPI {
 	return &FlowAPI{flow: flow}
 }
 

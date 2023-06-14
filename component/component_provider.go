@@ -7,10 +7,36 @@ import (
 	"github.com/grafana/agent/pkg/river/encoding/riverjson"
 )
 
+// A Provider is a system which exposes a list of running components.
+type Provider interface {
+	// GetComponent returns information about an individual running component
+	// given its global ID. The provided opts field configures how much detail to
+	// return; see [InfoOptions] for more information.
+	//
+	// GetComponent returns an error if a component is not found.
+	//
+	// BUG(rfratto): The ModuleID field in id is unused.
+	GetComponent(id ID, opts InfoOptions) (*Info, error)
+
+	// ListComponents returns the list of active components. The provided opts
+	// field configures how much detail to return; see [InfoOptions] for more
+	// information.
+	ListComponents(opts InfoOptions) []*Info
+}
+
 // ID is a globally unique identifier for a component.
 type ID struct {
 	ModuleID string // Unique ID of the module that the component is running in.
 	LocalID  string // Local ID of the component, unique to the module it is running in.
+}
+
+// InfoOptions is used by to determine how much information to return with
+// [Info].
+type InfoOptions struct {
+	GetHealth    bool // When true, sets the Health field of returned components.
+	GetArguments bool // When true, sets the Arguments field of returned components.
+	GetExports   bool // When true, sets the Exports field of returned components.
+	GetDebugInfo bool // When true, sets the DebugInfo field of returned components.
 }
 
 // String returns the "<ModuleID>/<LocalID>" string representation of the id.
@@ -112,13 +138,4 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 		Exports:   exports,
 		DebugInfo: debugInfo,
 	})
-}
-
-// InfoOptions is used by to determine how much information to return with
-// [Info].
-type InfoOptions struct {
-	GetHealth    bool // When true, sets the Health field of returned components.
-	GetArguments bool // When true, sets the Arguments field of returned components.
-	GetExports   bool // When true, sets the Exports field of returned components.
-	GetDebugInfo bool // When true, sets the DebugInfo field of returned components.
 }

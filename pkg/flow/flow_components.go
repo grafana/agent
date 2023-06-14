@@ -8,13 +8,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 )
 
-// GetComponent returns the detail on an individual component by its global ID.
-// The provided opts configures how much detail to return; see
-// [ComponentDetailOptions] for more information.
-//
-// GetComponent returns an error if a component is not found.
-//
-// BUG(rfratto): The ModuleID in the component ID is ignored.
+// GetComponent implements [component.Provider].
 func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*component.Info, error) {
 	f.loadMut.RLock()
 	defer f.loadMut.RUnlock()
@@ -37,9 +31,7 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 	return f.getComponentDetail(cn, graph, opts), nil
 }
 
-// ListComponents returns the list of active components. The provided opts
-// configures what components and to what detail they are returned; see
-// [ComponentDetailOptions] for more information.
+// ListComponents implements [component.Provider].
 func (f *Flow) ListComponents(opts component.InfoOptions) []*component.Info {
 	f.loadMut.RLock()
 	defer f.loadMut.RUnlock()
