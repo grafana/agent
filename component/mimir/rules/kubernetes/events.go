@@ -43,7 +43,7 @@ func newQueuedEventHandler(log log.Logger, queue workqueue.RateLimitingInterface
 }
 
 // OnAdd implements the cache.ResourceEventHandler interface.
-func (c *queuedEventHandler) OnAdd(obj interface{}) {
+func (c *queuedEventHandler) OnAdd(obj interface{}, _ bool) {
 	c.publishEvent(obj)
 }
 
