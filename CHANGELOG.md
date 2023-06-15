@@ -7,6 +7,13 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.34.2 (2023-06-20)
+--------------------
+
+### Breaking changes
+
+- Mongodb integration has been removed for the time being due to lincensing issues. (@jcreixell)
+
 v0.34.1 (2023-06-12)
 --------------------
 
