@@ -62,6 +62,10 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/agent
+          resources:
+            requests:
+              cpu: 1m
+              memory: 5Mi
       dnsPolicy: ClusterFirst
       volumes:
         - name: config
