@@ -77,7 +77,7 @@ func NewCluster(ctx context.Context, o Options) (cluster *Cluster, err error) {
 		// many resources exist, even if ClusterRun fails. If we never set our
 		// cluster return argument, we'll delete the k3s cluster. This also
 		// gracefully handles panics.
-		if cluster == nil {
+		if cluster == nil && container != nil {
 			_ = container.Terminate(ctx)
 		}
 	}()

@@ -38,12 +38,18 @@ Main (unreleased)
 
 - Upgrade and improve Cloudwatch exporter integration (@thepalbi)
 
+- Update `node_exporter` dependency to v1.6.0. (@spartan0x117)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
+
+### Other changes
+
+- Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
 
 v0.34.1 (2023-06-12)
 --------------------
