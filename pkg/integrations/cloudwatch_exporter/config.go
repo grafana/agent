@@ -119,7 +119,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
-	return newCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled, c.Debug), nil
+	return NewCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled, c.Debug), nil
 }
 
 // getHash calculates the MD5 hash of the yaml representation of the config
