@@ -145,14 +145,14 @@ func (g *geoIPStage) process(labels model.LabelSet, extracted map[string]interfa
 			level.Error(g.logger).Log("msg", "unable to get City record for the ip", "err", err, "ip", ip)
 			return
 		}
-		g.populateLabelsWithCityData(labels, record)
+		g.populateLabelsWithCityData(extracted, record)
 	case "asn":
 		record, err := g.db.ASN(ip)
 		if err != nil {
 			level.Error(g.logger).Log("msg", "unable to get ASN record for the ip", "err", err, "ip", ip)
 			return
 		}
-		g.populateLabelsWithASNData(labels, record)
+		g.populateLabelsWithASNData(extracted, record)
 	default:
 		level.Error(g.logger).Log("msg", "unknown database type")
 	}
@@ -164,59 +164,59 @@ func (g *geoIPStage) close() {
 	}
 }
 
-func (g *geoIPStage) populateLabelsWithCityData(labels model.LabelSet, record *geoip2.City) {
+func (g *geoIPStage) populateLabelsWithCityData(extracted map[string]interface{}, record *geoip2.City) {
 	for field, label := range fields {
 		switch field {
 		case CITYNAME:
 			cityName := record.City.Names["en"]
 			if cityName != "" {
-				labels[model.LabelName(label)] = model.LabelValue(cityName)
+				extracted[label] = cityName
 			}
 		case COUNTRYNAME:
 			contryName := record.Country.Names["en"]
 			if contryName != "" {
-				labels[model.LabelName(label)] = model.LabelValue(contryName)
+				extracted[label] = contryName
 			}
 		case CONTINENTNAME:
 			continentName := record.Continent.Names["en"]
 			if continentName != "" {
-				labels[model.LabelName(label)] = model.LabelValue(continentName)
+				extracted[label] = continentName
 			}
 		case CONTINENTCODE:
 			continentCode := record.Continent.Code
 			if continentCode != "" {
-				labels[model.LabelName(label)] = model.LabelValue(continentCode)
+				extracted[label] = continentCode
 			}
 		case POSTALCODE:
 			postalCode := record.Postal.Code
 			if postalCode != "" {
-				labels[model.LabelName(label)] = model.LabelValue(postalCode)
+				extracted[label] = postalCode
 			}
 		case TIMEZONE:
 			timezone := record.Location.TimeZone
 			if timezone != "" {
-				labels[model.LabelName(label)] = model.LabelValue(timezone)
+				extracted[label] = timezone
 			}
 		case LOCATION:
 			latitude := record.Location.Latitude
 			longitude := record.Location.Longitude
 			if latitude != 0 || longitude != 0 {
-				labels[model.LabelName(fmt.Sprintf("%s_latitude", label))] = model.LabelValue(fmt.Sprint(latitude))
-				labels[model.LabelName(fmt.Sprintf("%s_longitude", label))] = model.LabelValue(fmt.Sprint(longitude))
+				extracted[fmt.Sprintf("%s_latitude", label)] = latitude
+				extracted[fmt.Sprintf("%s_longitude", label)] = longitude
 			}
 		case SUBDIVISIONNAME:
 			if len(record.Subdivisions) > 0 {
 				// we get most specific subdivision https://dev.maxmind.com/release-note/most-specific-subdivision-attribute-added/
 				subdivisionName := record.Subdivisions[len(record.Subdivisions)-1].Names["en"]
 				if subdivisionName != "" {
-					labels[model.LabelName(label)] = model.LabelValue(subdivisionName)
+					extracted[label] = subdivisionName
 				}
 			}
 		case SUBDIVISIONCODE:
 			if len(record.Subdivisions) > 0 {
 				subdivisionCode := record.Subdivisions[len(record.Subdivisions)-1].IsoCode
 				if subdivisionCode != "" {
-					labels[model.LabelName(label)] = model.LabelValue(subdivisionCode)
+					extracted[label] = subdivisionCode
 				}
 			}
 		default:
@@ -225,13 +225,13 @@ func (g *geoIPStage) populateLabelsWithCityData(labels model.LabelSet, record *g
 	}
 }
 
-func (g *geoIPStage) populateLabelsWithASNData(labels model.LabelSet, record *geoip2.ASN) {
+func (g *geoIPStage) populateLabelsWithASNData(extracted map[string]interface{}, record *geoip2.ASN) {
 	autonomousSystemNumber := record.AutonomousSystemNumber
 	autonomousSystemOrganization := record.AutonomousSystemOrganization
 	if autonomousSystemNumber != 0 {
-		labels[model.LabelName("geoip_autonomous_system_number")] = model.LabelValue(fmt.Sprint(autonomousSystemNumber))
+		extracted["geoip_autonomous_system_number"] = autonomousSystemNumber
 	}
 	if autonomousSystemOrganization != "" {
-		labels[model.LabelName("geoip_autonomous_system_organization")] = model.LabelValue(autonomousSystemOrganization)
+		extracted["geoip_autonomous_system_organization"] = autonomousSystemOrganization
 	}
 }
