@@ -5,5 +5,5 @@ controller:
     enabled: true
 agent:
   resources:
-    requests: 
+    requests:
       memory: 100Mi
