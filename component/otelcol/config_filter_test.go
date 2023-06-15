@@ -6,6 +6,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"k8s.io/utils/pointer"
 )
 
@@ -77,7 +78,7 @@ func TestConvertMatchProperties(t *testing.T) {
 		},
 		"log_bodies": []string{"AUTH.*"},
 		"log_severity_number": map[string]interface{}{
-			"min":             int32(2),
+			"min":             plog.SeverityNumber(2),
 			"match_undefined": true,
 		},
 		"log_severity_texts": []string{
