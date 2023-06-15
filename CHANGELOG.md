@@ -49,7 +49,7 @@ Main (unreleased)
 
 ### Other changes
 
-- Mongodb integration has been disabled for the time being due to lincensing issues. (@jcreixell)
+- Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
 
 v0.34.1 (2023-06-12)
 --------------------
