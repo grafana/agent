@@ -7,8 +7,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-
-	"github.com/edsrzf/mmap-go"
+	"strings"
 )
 
 const useMMap = false
@@ -18,10 +17,9 @@ type MMapedElfFile struct {
 	Sections []elf.SectionHeader
 	Progs    []elf.ProgHeader
 
-	fpath  string
-	err    error
-	mmaped mmap.MMap
-	fd     *os.File
+	fpath string
+	err   error
+	fd    *os.File
 
 	stringCache map[int]string
 }
@@ -35,7 +33,7 @@ func NewMMapedElfFile(fpath string) (*MMapedElfFile, error) {
 		res.Close()
 		return nil, err
 	}
-	elfFile, err := elf.NewFile(bytes.NewReader(res.mmaped))
+	elfFile, err := elf.NewFile(res.fd)
 	if err != nil {
 		res.Close()
 		return nil, err
@@ -77,21 +75,20 @@ func (f *MMapedElfFile) sectionByType(typ elf.SectionType) *elf.SectionHeader {
 }
 
 func (f *MMapedElfFile) ensureOpen() error {
-	if f.mmaped != nil {
+	if f.fd != nil {
 		return nil
 	}
 	return f.open()
 }
 
 func (f *MMapedElfFile) Finalize() {
-	if f.mmaped != nil {
+	if f.fd != nil {
 		println("ebpf mmaped elf not closed")
 	}
 	f.Close()
 }
 func (f *MMapedElfFile) Close() {
-	if f.mmaped != nil {
-		f.mmaped.Unmap()
+	if f.fd != nil {
 		f.fd.Close()
 		f.fd = nil
 	}
@@ -106,14 +103,7 @@ func (f *MMapedElfFile) open() error {
 		f.err = err
 		return fmt.Errorf("open elf file %s %w", f.fpath, err)
 	}
-	mmaped, err := mmap.Map(fd, mmap.RDONLY, 0)
-	if err != nil {
-		fd.Close()
-		f.err = err
-		return fmt.Errorf("mmap elf file %s %w", f.fpath, err)
-	}
 	f.fd = fd
-	f.mmaped = mmaped
 	return nil
 }
 
@@ -121,13 +111,11 @@ func (f *MMapedElfFile) SectionData(s *elf.SectionHeader) ([]byte, error) {
 	if err := f.ensureOpen(); err != nil {
 		return nil, err
 	}
-	from := s.Offset
-	to := s.Offset + s.FileSize
-	if from > uint64(len(f.mmaped)) || to > uint64(len(f.mmaped)) {
-		return nil, fmt.Errorf("section oob %s %v", f.fpath, s)
+	res := make([]byte, s.Size)
+	if _, err := f.fd.ReadAt(res, int64(s.Offset)); err != nil {
+		return nil, err
 	}
-
-	return f.mmaped[from:to], nil
+	return res, nil
 }
 
 func (f *MMapedElfFile) stringTable(link uint32) (*elf.SectionHeader, error) {
@@ -149,19 +137,25 @@ func (f *MMapedElfFile) getString(start int) (string, bool) {
 	if s, ok := f.stringCache[start]; ok {
 		return s, true
 	}
-	section := f.mmaped
-	if start < 0 || start >= len(section) {
-		return "", false
-	}
-
-	for end := start; end < len(section); end++ {
-		if section[end] == 0 {
-			s := string(section[start:end])
+	const tmpBufSize = 128
+	var tmpBuf [tmpBufSize]byte
+	sb := strings.Builder{}
+	for i := 0; i < 10; i++ {
+		_, err := f.fd.ReadAt(tmpBuf[:], int64(start+i*tmpBufSize))
+		if err != nil {
+			return "", false
+		}
+		idx := bytes.IndexByte(tmpBuf[:], 0)
+		if idx >= 0 {
+			sb.Write(tmpBuf[:idx])
+			s := sb.String()
 			if f.stringCache == nil {
 				f.stringCache = make(map[int]string)
 			}
 			f.stringCache[start] = s
 			return s, true
+		} else {
+			sb.Write(tmpBuf[:])
 		}
 	}
 	return "", false

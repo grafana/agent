@@ -71,6 +71,11 @@ func TestSelfElfSymbolsLazy(t *testing.T) {
 		if symbol.Name == "runtime.text" && name == "internal/cpu.Initialize" {
 			continue
 		}
+		if name == "" {
+			symbolTable.Resolve(symbol.Start)
+
+		}
+
 		require.Equal(t, symbol.Name, name)
 	}
 }
