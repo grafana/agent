@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Allow requests to be set on the config reloader container. (@tpaschalis)
+
 0.15.0 (2023-06-08)
 -------------------
 
