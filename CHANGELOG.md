@@ -38,6 +38,8 @@ Main (unreleased)
 
 - Upgrade and improve Cloudwatch exporter integration (@thepalbi)
 
+- Update `node_exporter` dependency to v1.6.0. (@spartan0x117)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
