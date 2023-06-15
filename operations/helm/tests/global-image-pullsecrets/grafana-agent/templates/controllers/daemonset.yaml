@@ -23,6 +23,8 @@ spec:
         app.kubernetes.io/instance: grafana-agent
     spec:
       serviceAccountName: grafana-agent
+      imagePullSecrets:
+        - name: global-cred
       containers:
         - name: grafana-agent
           image: docker.io/grafana/agent:v0.34.0
@@ -64,14 +66,6 @@ spec:
               cpu: 1m
               memory: 5Mi
       dnsPolicy: ClusterFirst
-      tolerations:
-        - effect: NoSchedule
-          key: key1
-          operator: Equal
-          value: value1
-        - effect: NoSchedule
-          key: key2
-          operator: Exists
       volumes:
         - name: config
           configMap:

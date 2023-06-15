@@ -14,6 +14,8 @@ Unreleased
 
 - Allow requests to be set on the config reloader container. (@tpaschalis)
 
+- Allow users of the helm chart to configure the image registry either at the image level or globally. (@QuentinBisson)
+
 0.15.0 (2023-06-08)
 -------------------
 
