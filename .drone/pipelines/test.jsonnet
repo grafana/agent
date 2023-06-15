@@ -66,7 +66,7 @@ local pipelines = import '../util/pipelines.jsonnet';
 
   pipelines.linux('Test (Full)') {
     trigger: {
-      ref: ['refs/heads/main'],
+      event: ['pull_request'],
     },
     steps: [{
       name: 'Run Go tests',
