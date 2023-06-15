@@ -4,7 +4,7 @@ global:
     registry: quay.io
 
 image:
-  registry: docker.com # Invalid value by default
+  registry: docker.com   # Invalid value by default
 
 configReloader:
   image:
