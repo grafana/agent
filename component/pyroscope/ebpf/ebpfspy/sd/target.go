@@ -63,7 +63,7 @@ func inferServiceName(target discovery.Target) string {
 	k8sNamespace := target["__meta_kubernetes_namespace"]
 	k8sContainer := target["__meta_kubernetes_pod_container_name"]
 	if k8sNamespace != "" && k8sContainer != "" {
-		return fmt.Sprintf("%s/%s", k8sNamespace, k8sContainer)
+		return fmt.Sprintf("ebpf/%s/%s", k8sNamespace, k8sContainer)
 	}
 	dockerContainer := target["__meta_docker_container_name"]
 	if dockerContainer != "" {

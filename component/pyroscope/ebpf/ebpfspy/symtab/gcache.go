@@ -116,6 +116,7 @@ func (g *GCache[K, V]) Cleanup() {
 
 func (g *GCache[K, V]) DebugString() string {
 	sb := strings.Builder{}
+	sb.WriteString(fmt.Sprintf("lru %d | round %d ", g.lruCache.Len(), len(g.roundCache)))
 	sb.WriteString("[ ")
 	keys := g.lruCache.Keys()
 	for i, pid := range keys {
