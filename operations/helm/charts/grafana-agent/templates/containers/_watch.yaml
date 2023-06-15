@@ -13,5 +13,9 @@
   volumeMounts:
     - name: config
       mountPath: /etc/agent
+  {{- with .Values.configReloader.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- end }}
 {{- end -}}

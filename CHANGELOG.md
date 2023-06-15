@@ -47,6 +47,10 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
+### Breaking changes
+
+- Mongodb integration has been removed for the time being due to lincensing issues. (@jcreixell)
+
 v0.34.1 (2023-06-12)
 --------------------
 
