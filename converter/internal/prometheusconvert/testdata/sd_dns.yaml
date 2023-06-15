@@ -25,7 +25,7 @@ scrape_configs:
           - 'myapp.service.consul'
         type: 'AAAA'
         port: 8080
-    relabel_configs:
+    metric_relabel_configs:
       - source_labels: [__meta_consul_tags]
         regex: .*,prometheus,.*
         action: keep

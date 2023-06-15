@@ -25,7 +25,7 @@ scrape_configs:
         access_key: 'YOUR_ACCESS_KEY'
         secret_key: 'YOUR_SECRET_KEY'
         port: 8080
-    relabel_configs:
+    metric_relabel_configs:
       - source_labels: [__meta_consul_tags]
         regex: .*,prometheus,.*
         action: keep

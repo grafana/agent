@@ -111,6 +111,14 @@ func toTLSConfig(tlsConfig *promconfig.TLSConfig) *config.TLSConfig {
 // RiverTokenize.
 func newDiscoverExports(expr string) discovery.Exports {
 	return discovery.Exports{
-		Targets: []discovery.Target{map[string]string{"__expr__": expr}},
+		Targets: newDiscoveryTargets(expr),
 	}
+}
+
+// newDiscoveryTargets will return a new [[]discovery.Target] with a specific
+// key for converter component exports. The argument will be tokenized
+// as a component export string rather than the standard [discovery.Target]
+// RiverTokenize.
+func newDiscoveryTargets(expr string) []discovery.Target {
+	return []discovery.Target{map[string]string{"__expr__": expr}}
 }

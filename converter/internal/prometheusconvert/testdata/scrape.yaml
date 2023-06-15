@@ -11,6 +11,8 @@ scrape_configs:
     scrape_timeout: 5s
     static_configs:
       - targets: ["localhost:9090"]
+        labels:
+          app: 'foo'
     basic_auth:
       username: 'user'
       password: 'pass'

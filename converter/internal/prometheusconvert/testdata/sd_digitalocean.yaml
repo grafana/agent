@@ -16,10 +16,13 @@ scrape_configs:
       password: 'pass'
     digitalocean_sd_configs:
       - proxy_from_environment: true
+        basic_auth:
+          username: 'user'
+          password: 'pass'
   - job_name: "prometheus2"
     digitalocean_sd_configs:
       - proxy_from_environment: true
-    relabel_configs:
+    metric_relabel_configs:
       - source_labels: [__meta_consul_tags]
         regex: .*,prometheus,.*
         action: keep

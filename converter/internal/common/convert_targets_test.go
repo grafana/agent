@@ -27,7 +27,7 @@ func TestOptionalSecret_Write(t *testing.T) {
 			value: common.ConvertTargets{
 				Targets: []discovery.Target{{}},
 			},
-			expect: `[{}]`,
+			expect: ``,
 		},
 		{
 			name: "__address__ key",
@@ -39,15 +39,30 @@ func TestOptionalSecret_Write(t *testing.T) {
 }]`,
 		},
 		{
-			name: "multiple __address__ key",
+			name: "__address__ key label",
 			value: common.ConvertTargets{
-				Targets: []discovery.Target{{"__address__": "testing"}, {"__address__": "testing2"}},
+				Targets: []discovery.Target{{"__address__": "testing", "label": "value"}},
+			},
+			expect: `[{
+	__address__ = "testing",
+	label       = "value",
+}]`,
+		},
+		{
+			name: "multiple __address__ key label",
+			value: common.ConvertTargets{
+				Targets: []discovery.Target{
+					{"__address__": "testing", "label": "value"},
+					{"__address__": "testing2", "label": "value"},
+				},
 			},
 			expect: `concat([{
 	__address__ = "testing",
+	label       = "value",
 }],
 	[{
 		__address__ = "testing2",
+		label       = "value",
 	}])`,
 		},
 		{
@@ -68,10 +83,11 @@ func TestOptionalSecret_Write(t *testing.T) {
 		{
 			name: "both key types",
 			value: common.ConvertTargets{
-				Targets: []discovery.Target{{"__address__": "testing"}, {"__expr__": "testing2"}},
+				Targets: []discovery.Target{{"__address__": "testing", "label": "value"}, {"__expr__": "testing2"}},
 			},
 			expect: `concat([{
 	__address__ = "testing",
+	label       = "value",
 }],
 	testing2)`,
 		},

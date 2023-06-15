@@ -5,11 +5,9 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/stretchr/testify/require"
 )
@@ -36,16 +34,12 @@ func TestConvert(t *testing.T) {
 
 			t.Run(caseName, func(t *testing.T) {
 				actual, diags := prometheusconvert.Convert(inputBytes)
+				os.WriteFile("/home/erik/"+caseName+".river", actual, 0666)
 
-				expectedDiags := diag.Diagnostics(nil)
-				errorFile := strings.TrimSuffix(path, promSuffix) + errorsSuffix
-				if _, err := os.Stat(errorFile); err == nil {
-					errorBytes, err := os.ReadFile(errorFile)
-					require.NoError(t, err)
-					expectedDiags = parseErrors(t, errorBytes)
+				expectedErrors := parseErrors(t, path)
+				for ix, diag := range diags {
+					require.Equal(t, expectedErrors[ix], diag.String())
 				}
-
-				require.Equal(t, expectedDiags, diags)
 
 				outputFile := strings.TrimSuffix(path, promSuffix) + flowSuffix
 				if _, err := os.Stat(outputFile); err == nil {
@@ -66,25 +60,20 @@ func normalizeLineEndings(data []byte) []byte {
 	return normalized
 }
 
-func parseErrors(t *testing.T, errors []byte) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	errorsString := string(normalizeLineEndings(errors))
-	splitErrors := strings.Split(errorsString, "\n")
-	for _, error := range splitErrors {
-		parsedError := strings.Split(error, " | ")
-		if len(parsedError) != 2 {
-			require.FailNow(t, "invalid error format")
-		}
-
-		severity, err := strconv.ParseInt(parsedError[0], 10, 8)
+func parseErrors(t *testing.T, path string) []string {
+	expectedErrors := []string{}
+	errorFile := strings.TrimSuffix(path, promSuffix) + errorsSuffix
+	if _, err := os.Stat(errorFile); err == nil {
+		errorBytes, err := os.ReadFile(errorFile)
 		require.NoError(t, err)
+		errorsString := string(normalizeLineEndings(errorBytes))
+		expectedErrors = strings.Split(errorsString, "\n")
 
 		// Some error messages have \n in them and need this
-		errorMessage := strings.ReplaceAll(parsedError[1], "\\n", "\n")
-
-		diags.Add(diag.Severity(severity), errorMessage)
+		for ix := range expectedErrors {
+			expectedErrors[ix] = strings.ReplaceAll(expectedErrors[ix], "\\n", "\n")
+		}
 	}
 
-	return diags
+	return expectedErrors
 }

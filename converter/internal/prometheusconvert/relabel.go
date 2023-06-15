@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	// disc_relabel "github.com/grafana/agent/component/discovery/relabel"
 	"github.com/grafana/agent/component/prometheus/relabel"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
@@ -11,7 +12,7 @@ import (
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendRelabel(f *builder.File, relabelConfigs []*promrelabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
+func appendPrometheusRelabel(f *builder.File, relabelConfigs []*promrelabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
@@ -23,6 +24,19 @@ func appendRelabel(f *builder.File, relabelConfigs []*promrelabel.Config, forwar
 		Receiver: common.ConvertAppendable{Expr: fmt.Sprintf("prometheus.relabel.%s.receiver", label)},
 	}
 }
+
+// func appendDiscoveryRelabel(f *builder.File, relabelConfigs []*promrelabel.Config, forwardTo []storage.Appendable, label string) *disc_relabel.Exports {
+// 	if len(relabelConfigs) == 0 {
+// 		return nil
+// 	}
+
+// 	relabelArgs := toRelabelArguments(relabelConfigs, forwardTo)
+// 	common.AppendBlockWithOverride(f, []string{"discovery", "relabel"}, label, relabelArgs)
+
+// 	return &disc_relabel.Exports{
+// 		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.targets", label)),
+// 	}
+// }
 
 func toRelabelArguments(relabelConfigs []*promrelabel.Config, forwardTo []storage.Appendable) *relabel.Arguments {
 	if len(relabelConfigs) == 0 {

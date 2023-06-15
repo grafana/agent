@@ -29,7 +29,6 @@ import (
 // The implementation of this API is a work in progress.
 // Additional components must be implemented:
 //
-//	discovery.file
 //	discovery.relabel
 func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
@@ -55,16 +54,17 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 // into Flow Arguments. It then appends each argument to the file builder.
 func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
-	remoteWriteExports := appendRemoteWrite(f, promConfig)
+	remoteWriteExports := appendPrometheusRemoteWrite(f, promConfig)
 
 	forwardTo := []storage.Appendable{remoteWriteExports.Receiver}
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		relabelExports := appendRelabel(f, scrapeConfig.RelabelConfigs, forwardTo, scrapeConfig.JobName)
-		if relabelExports != nil {
-			forwardTo = []storage.Appendable{relabelExports.Receiver}
+		promRelabelExports := appendPrometheusRelabel(f, scrapeConfig.MetricRelabelConfigs, forwardTo, scrapeConfig.JobName)
+		if promRelabelExports != nil {
+			forwardTo = []storage.Appendable{promRelabelExports.Receiver}
 		}
 
 		var targets []discovery.Target
+		// var typeCount map[string]int
 		for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
 			var exports discovery.Exports
 			var newDiags diag.Diagnostics
@@ -99,7 +99,7 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 			}
 		}
 
-		appendScrape(f, scrapeConfig, forwardTo, targets)
+		appendPrometheusScrape(f, scrapeConfig, forwardTo, targets)
 	}
 
 	return diags

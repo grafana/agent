@@ -9,7 +9,7 @@ import (
 	promconfig "github.com/prometheus/prometheus/config"
 )
 
-func appendRemoteWrite(f *builder.File, promConfig *promconfig.Config) *remotewrite.Exports {
+func appendPrometheusRemoteWrite(f *builder.File, promConfig *promconfig.Config) *remotewrite.Exports {
 	remoteWriteArgs := toRemotewriteArguments(promConfig)
 	common.AppendBlockWithOverride(f, []string{"prometheus", "remote_write"}, "default", remoteWriteArgs)
 
