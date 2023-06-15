@@ -3052,10 +3052,10 @@ github.com/tencentcloud/tencentcloud-sdk-go v1.0.162/go.mod h1:asUz5BPXxgoPGaRgZ
 github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/kms v1.0.194/go.mod h1:yrBKWhChnDqNz1xuXdSbWXG56XawEq0G5j1lg4VwBD4=
 github.com/tencentyun/cos-go-sdk-v5 v0.7.31/go.mod h1:4E4+bQ2gBVJcgEC9Cufwylio4mXOct2iu05WjgEBx1o=
 github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9/go.mod h1:RHkNRtSLfOK7qBTHaeSX1D6BNpI3qw7NTxsmNr4RvN8=
-github.com/testcontainers/testcontainers-go v0.20.2-0.20230613144507-029fef7f7480 h1:pCwdY2BVnSEA85QzoK+NNhF11mDcCekGg7UlKWC45Gg=
-github.com/testcontainers/testcontainers-go v0.20.2-0.20230613144507-029fef7f7480/go.mod h1:c1ez3WVRHq7T/Aj+X3TIipFBwkBaNT5iNCY8+1b83Ng=
-github.com/testcontainers/testcontainers-go/modules/k3s v0.0.0-20230613144507-029fef7f7480 h1:ggqIrWL6xt5ArABCvvRkNN7ek+50B7otkDDzfoNbNA4=
-github.com/testcontainers/testcontainers-go/modules/k3s v0.0.0-20230613144507-029fef7f7480/go.mod h1:Pa91ahCbzRB6d9FBi6UAjurTEm7WmyBVeuklLkwAKKs=
+github.com/testcontainers/testcontainers-go v0.20.2-0.20230615142642-c175df34bd1d h1:HFijN6Qvpl+Cbt5M3lrFZcp4Gy+3RXUqn5+6lk9+/X8=
+github.com/testcontainers/testcontainers-go v0.20.2-0.20230615142642-c175df34bd1d/go.mod h1:c1ez3WVRHq7T/Aj+X3TIipFBwkBaNT5iNCY8+1b83Ng=
+github.com/testcontainers/testcontainers-go/modules/k3s v0.0.0-20230615142642-c175df34bd1d h1:KyYCHo9iBoQYw5AzcozD/77uNbFlRjTmMTA7QjSxHOQ=
+github.com/testcontainers/testcontainers-go/modules/k3s v0.0.0-20230615142642-c175df34bd1d/go.mod h1:Pa91ahCbzRB6d9FBi6UAjurTEm7WmyBVeuklLkwAKKs=
 github.com/tg123/go-htpasswd v1.2.0 h1:UKp34m9H467/xklxUxU15wKRru7fwXoTojtxg25ITF0=
 github.com/tg123/go-htpasswd v1.2.0/go.mod h1:h7IzlfpvIWnVJhNZ0nQ9HaFxHb7pn5uFJYLlEUJa2sM=
 github.com/thanos-io/thanos v0.19.1-0.20211126105533-c5505f5eaa7d/go.mod h1:sfnKJG7cDA41ixNL4gsTJEa3w9Qt8lwAjw+dqRMSDG0=

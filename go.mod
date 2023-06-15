@@ -150,8 +150,8 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.4
-	github.com/testcontainers/testcontainers-go v0.20.2-0.20230613144507-029fef7f7480
-	github.com/testcontainers/testcontainers-go/modules/k3s v0.0.0-20230613144507-029fef7f7480
+	github.com/testcontainers/testcontainers-go v0.20.2-0.20230615142642-c175df34bd1d
+	github.com/testcontainers/testcontainers-go/modules/k3s v0.0.0-20230615142642-c175df34bd1d
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/vincent-petithory/dataurl v1.0.0
 	github.com/weaveworks/common v0.0.0-20221201103051-7c2720a9024d
