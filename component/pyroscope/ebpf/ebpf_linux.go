@@ -202,10 +202,12 @@ func (c *Component) reset() error {
 		builder := builders.BuilderForTarget(labelsHash, labels)
 		builder.AddSample(stack, value)
 	})
-	level.Debug(c.options.Logger).Log("msg", "ebpf  reset done")
+
 	if err != nil {
 		return fmt.Errorf("ebpf session reset %w", err)
 	}
+	level.Debug(c.options.Logger).Log("msg", "ebpf  reset done", "profiles", len(builders.Builders))
+	bytesSent := 0
 	for _, builder := range builders.Builders {
 		var buf bytes.Buffer
 		err := builder.Profile.Write(&buf)
@@ -213,13 +215,15 @@ func (c *Component) reset() error {
 			return fmt.Errorf("ebpf profile encode %w", err)
 		}
 		appender := c.appendable.Appender()
-		samples := []*pyroscope.RawSample{{RawProfile: buf.Bytes()}}
+		rawProfile := buf.Bytes()
+		bytesSent += len(rawProfile)
+		samples := []*pyroscope.RawSample{{RawProfile: rawProfile}}
 		err = appender.Append(context.Background(), builder.Labels, samples)
 		if err != nil {
 			level.Error(c.options.Logger).Log("msg", "ebpf pprof write", "err", err)
 			continue
 		}
 	}
-	level.Debug(c.options.Logger).Log("msg", "ebpf append done")
+	level.Debug(c.options.Logger).Log("msg", "ebpf append done", "bytes_sent", bytesSent)
 	return nil
 }
