@@ -26,7 +26,7 @@ func TestTestdataMD5(t *testing.T) {
 		{"b69d2a627f90ecac7868effa89a37c33", "libexample.so"},
 	}
 	for _, elf := range elfs {
-		data, err := os.ReadFile(path.Join("testdata", "elfs", elf.file))
+		data, err := os.ReadFile(path.Join("elf", "testdata", "elfs", elf.file))
 		if err != nil {
 			t.Errorf("failed to check md5 %v %v", elf, err)
 			continue
@@ -49,16 +49,15 @@ type procTestdata struct {
 
 func testProc(t *testing.T, maps string, data []procTestdata) {
 	wd, _ := os.Getwd()
-	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
+	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
 	m := NewProcTable(logger, ProcTableOptions{
 		Pid: 239,
 		ElfTableOptions: ElfTableOptions{
-			UseDebugFiles: true,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		},
 	})
-	m.rootFS = path.Join(wd, "testdata")
+	m.rootFS = path.Join(wd, "elf", "testdata")
 	m.refresh(maps)
 	for _, td := range data {
 		sym := m.Resolve(td.base + td.offset)
@@ -250,16 +249,15 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 	}
 
 	wd, _ := os.Getwd()
-	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
+	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
 	m := NewProcTable(logger, ProcTableOptions{
 		Pid: 239,
 		ElfTableOptions: ElfTableOptions{
-			UseDebugFiles: true,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		},
 	})
-	m.rootFS = path.Join(wd, "testdata")
+	m.rootFS = path.Join(wd, "elf", "testdata")
 	m.refresh(maps)
 	for _, td := range syms {
 		sym := m.Resolve(td.base + td.offset)
@@ -288,9 +286,9 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 7fffd9bd6000-7fffd9bd8000 r-xp 00000000 00:00 0                          [vdso]
 ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
 `
-	require.Equal(t, 2, len(m.file2Table))
+	require.Equal(t, 4, len(m.file2Table))
 	m.refresh(maps)
-	require.Equal(t, 1, len(m.file2Table))
+	require.Equal(t, 3, len(m.file2Table))
 	sym := m.Resolve(iterSym.base + iterSym.offset)
 	require.Empty(t, sym.Name)
 	require.Empty(t, sym.Module)
@@ -333,16 +331,15 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 	}
 
 	wd, _ := os.Getwd()
-	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
+	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
 	m := NewProcTable(logger, ProcTableOptions{
 		Pid: 239,
 		ElfTableOptions: ElfTableOptions{
-			UseDebugFiles: true,
-			ElfCache:      elfCache,
+			ElfCache: elfCache,
 		},
 	})
-	m.rootFS = path.Join(wd, "testdata")
+	m.rootFS = path.Join(wd, "elf", "testdata")
 	m.refresh(maps)
 	for _, td := range syms {
 		sym := m.Resolve(td.base + td.offset)
@@ -377,9 +374,9 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 7fffd9bd6000-7fffd9bd8000 r-xp 00000000 00:00 0                          [vdso]
 ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
 `
-	require.Equal(t, 2, len(m.file2Table))
+	require.Equal(t, 4, len(m.file2Table))
 	m.refresh(maps)
-	require.Equal(t, 2, len(m.file2Table))
+	require.Equal(t, 4, len(m.file2Table))
 	sym := m.Resolve(iterSym.base + iterSym.offset)
 	require.NotEmpty(t, sym.Name)
 	require.NotEmpty(t, sym.Module)

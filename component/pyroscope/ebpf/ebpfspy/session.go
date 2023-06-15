@@ -15,6 +15,7 @@ import (
 	"github.com/cilium/ebpf"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 	"github.com/pyroscope-io/pyroscope/pkg/agent/ebpfspy/cpuonline"
 	"golang.org/x/sys/unix"
 
@@ -32,8 +33,9 @@ type ProfileOptions struct {
 }
 
 type CacheOptions struct {
-	PidCacheSize int
-	ElfCacheSize int
+	PidCacheOptions      symtab.GCacheOptions
+	BuildIDCacheOptions  symtab.GCacheOptions
+	SameFileCacheOptions symtab.GCacheOptions
 }
 
 type Session struct {
@@ -50,7 +52,6 @@ type Session struct {
 	bpf profileObjects
 
 	ProfileOptions
-
 	roundNumber int
 }
 
@@ -101,8 +102,10 @@ func (s *Session) Start() error {
 }
 
 func (s *Session) Reset(cb func(t *sd.Target, stack []string, value uint64, pid uint32)) error {
-	level.Debug(s.logger).Log("msg", "ebpf session reset")
-	s.roundNumber += 1
+	defer s.symCache.Cleanup()
+
+	s.symCache.NextRound()
+	s.roundNumber++
 
 	keys, values, batch, err := s.getCountsMapValues()
 	if err != nil {
@@ -236,7 +239,7 @@ func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 		if ip == 0 {
 			break
 		}
-		sym := s.symCache.resolve(pid, ip, s.roundNumber)
+		sym := s.symCache.resolve(pid, ip)
 		var name string
 		if sym.Name != "" {
 			name = sym.Name
@@ -288,6 +291,7 @@ func reverse(s []string) {
 
 func getComm(k *profileSampleKey) string {
 	res := ""
+	// todo remove unsafe
 	sh := (*reflect.StringHeader)(unsafe.Pointer(&res))
 	sh.Data = uintptr(unsafe.Pointer(&k.Comm[0]))
 	for _, c := range k.Comm {

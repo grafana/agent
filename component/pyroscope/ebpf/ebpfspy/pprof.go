@@ -52,7 +52,7 @@ type ProfileBuilder struct {
 
 func (p *ProfileBuilder) AddSample(stacktrace []string, value uint64) {
 	sample := &profile.Sample{
-		Value: []int64{int64(value)},
+		Value: []int64{int64(value) * p.Profile.Period},
 	}
 	for _, s := range stacktrace {
 		loc := p.addLocation(s)

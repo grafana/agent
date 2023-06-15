@@ -10,32 +10,24 @@ import (
 	"os"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
-	lru "github.com/hashicorp/golang-lru/v2"
 )
 
-type symbolCacheEntry struct {
-	symbolTable symtab.SymbolTable
-	roundNumber int
-}
 type pidKey uint32
 
 type symbolCache struct {
-	pidCache *lru.Cache[pidKey, *symbolCacheEntry]
+	pidCache *symtab.GCache[pidKey, symtab.SymbolTable]
+
 	elfCache *symtab.ElfCache
-	kallsyms symbolCacheEntry
+	kallsyms symtab.SymbolTable
 	logger   log.Logger
 	metrics  *metrics.Metrics
 }
 
 func newSymbolCache(logger log.Logger, options CacheOptions, metrics *metrics.Metrics) (*symbolCache, error) {
-	pid2Cache, err := lru.New[pidKey, *symbolCacheEntry](options.PidCacheSize)
-	if err != nil {
-		return nil, fmt.Errorf("create pid symbol cache %w", err)
-	}
-
-	elfCache, err := symtab.NewElfCache(options.ElfCacheSize, metrics)
+	elfCache, err := symtab.NewElfCache(options.BuildIDCacheOptions, options.SameFileCacheOptions, metrics)
 	if err != nil {
 		return nil, fmt.Errorf("create elf cache %w", err)
 	}
@@ -48,52 +40,61 @@ func newSymbolCache(logger log.Logger, options CacheOptions, metrics *metrics.Me
 	if err != nil {
 		return nil, fmt.Errorf("create kallsyms %w ", err)
 	}
+	cache, err := symtab.NewGCache[pidKey, symtab.SymbolTable](options.PidCacheOptions)
+	if err != nil {
+		return nil, fmt.Errorf("create pid cache %w", err)
+	}
 	return &symbolCache{
 		logger:   logger,
 		metrics:  metrics,
-		pidCache: pid2Cache,
-		kallsyms: symbolCacheEntry{symbolTable: kallsyms},
+		pidCache: cache,
+		kallsyms: kallsyms,
 		elfCache: elfCache,
 	}, nil
 }
 
-func (sc *symbolCache) resolve(pid uint32, addr uint64, roundNumber int) symtab.Symbol {
-	e := sc.getOrCreateCacheEntry(pidKey(pid))
-	staleCheck := false
-	if roundNumber != e.roundNumber {
-		e.roundNumber = roundNumber
-		staleCheck = true
-	}
-	if staleCheck {
-		e.symbolTable.Refresh()
-	}
-	return e.symbolTable.Resolve(addr)
+func (sc *symbolCache) NextRound() {
+	sc.pidCache.NextRound()
+	sc.elfCache.NextRound()
 }
 
-func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) *symbolCacheEntry {
+func (sc *symbolCache) resolve(pid uint32, addr uint64) symtab.Symbol {
+	e := sc.getOrCreateCacheEntry(pidKey(pid))
+	return e.Resolve(addr)
+}
+
+func (sc *symbolCache) Cleanup() {
+	sc.elfCache.Cleanup()
+
+	sc.pidCache.Cleanup()
+	level.Debug(sc.logger).Log("buildIdCache", sc.elfCache.BuildIDCache.DebugString())
+	level.Debug(sc.logger).Log("sameFileCache", sc.elfCache.SameFileCache.DebugString())
+	level.Debug(sc.logger).Log("pidCache", sc.pidCache.DebugString())
+
+}
+
+func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) symtab.SymbolTable {
 	if pid == 0 {
-		return &sc.kallsyms
+		return sc.kallsyms
+	}
+	cached := sc.pidCache.Get(pid)
+	if cached != nil {
+		return cached
 	}
 
-	if cache, ok := sc.pidCache.Get(pid); ok {
-		sc.metrics.PidCacheHit.Inc()
-		return cache
-	}
-	sc.metrics.PidCacheMiss.Inc()
-
-	symbolTable := symtab.NewProcTable(sc.logger, symtab.ProcTableOptions{
+	level.Debug(sc.logger).Log("msg", "NewProcTable", "pid", pid)
+	fresh := symtab.NewProcTable(sc.logger, symtab.ProcTableOptions{
 		Pid: int(pid),
 		ElfTableOptions: symtab.ElfTableOptions{
-			UseDebugFiles: true,
-			ElfCache:      sc.elfCache,
+			ElfCache: sc.elfCache,
 		},
 	})
-	e := &symbolCacheEntry{symbolTable: symbolTable, roundNumber: -1}
-	sc.pidCache.Add(pid, e)
-	return e
+
+	sc.pidCache.Cache(pid, fresh)
+	return fresh
 }
 
 func (sc *symbolCache) updateOptions(options CacheOptions) {
-	sc.pidCache.Resize(options.PidCacheSize)
-	sc.elfCache.Resize(options.ElfCacheSize)
+	sc.pidCache.Update(options.PidCacheOptions)
+	sc.elfCache.Update(options.BuildIDCacheOptions, options.SameFileCacheOptions)
 }

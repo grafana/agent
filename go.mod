@@ -203,6 +203,7 @@ require (
 
 require (
 	github.com/cilium/ebpf v0.9.3
+	github.com/edsrzf/mmap-go v1.1.0
 	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b
 	github.com/klauspost/compress v1.15.15
 	github.com/pyroscope-io/pyroscope v0.37.2
@@ -312,7 +313,6 @@ require (
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/edsrzf/mmap-go v1.1.0 // indirect
 	github.com/efficientgo/tools/core v0.0.0-20220817170617-6c25e3b627dd // indirect
 	github.com/elastic/go-sysinfo v1.8.1 // indirect
 	github.com/elastic/go-windows v1.0.1 // indirect

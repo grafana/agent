@@ -1,4 +1,4 @@
-//go:build linux
+//go:build unix
 
 package symtab
 
@@ -19,7 +19,7 @@ func statFromFileInfo(file os.FileInfo) stat {
 		return stat{}
 	}
 	return stat{
-		dev: sysStat.Dev,
+		dev: uint64(sysStat.Dev),
 		ino: sysStat.Ino,
 	}
 }

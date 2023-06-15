@@ -2,80 +2,61 @@ package symtab
 
 import (
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
-	lru "github.com/hashicorp/golang-lru/v2"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 )
 
 type ElfCache struct {
-	buildID2Symbols *lru.Cache[string, *elfCacheEntry]
-	stat2Symbols    *lru.Cache[stat, *elfCacheEntry]
-	metrics         *metrics.Metrics
+	BuildIDCache  *GCache[elf.BuildID, SymbolNameResolver]
+	SameFileCache *GCache[stat, SymbolNameResolver]
+
+	metrics *metrics.Metrics
 }
 
-type elfCacheEntry struct {
-	symbols []Sym
-}
-
-func NewElfCache(sz int, metrics *metrics.Metrics) (*ElfCache, error) {
-	buildID2Symbols, err := lru.New[string, *elfCacheEntry](sz)
+func NewElfCache(buildIDCacheOptions GCacheOptions, sameFileCacheOptions GCacheOptions, metrics *metrics.Metrics) (*ElfCache, error) {
+	buildIdCache, err := NewGCache[elf.BuildID, SymbolNameResolver](buildIDCacheOptions)
 	if err != nil {
 		return nil, err
 	}
-	stat2Symbols, err := lru.New[stat, *elfCacheEntry](sz)
+
+	statCache, err := NewGCache[stat, SymbolNameResolver](sameFileCacheOptions)
 	if err != nil {
 		return nil, err
 	}
 	return &ElfCache{
-		buildID2Symbols: buildID2Symbols,
-		stat2Symbols:    stat2Symbols,
-		metrics:         metrics,
+		BuildIDCache:  buildIdCache,
+		SameFileCache: statCache,
+
+		metrics: metrics,
 	}, nil
 }
 
-func (e *ElfCache) GetSymbolsByBuildID(buildID string) []Sym {
-	if buildID == "" {
-		return nil
-	}
-	entry, ok := e.buildID2Symbols.Get(buildID)
-	if ok && entry != nil {
-		e.metrics.ElfCacheBuildIDHit.Inc()
-		return entry.symbols
-	}
-	e.metrics.ElfCacheBuildIDMiss.Inc()
-	return nil
+func (e *ElfCache) GetSymbolsByBuildID(buildID elf.BuildID) SymbolNameResolver {
+	return e.BuildIDCache.Get(buildID)
 }
 
-func (e *ElfCache) GetSymbolsByStat(s stat) []Sym {
-	if s.isNil() {
-		return nil
-	}
-	entry, ok := e.stat2Symbols.Get(s)
-	if ok && entry != nil {
-		e.metrics.ElfCacheStatHit.Inc()
-		return entry.symbols
-	}
-	e.metrics.ElfCacheStatMiss.Inc()
-	return nil
+func (e *ElfCache) CacheByBuildID(buildID elf.BuildID, v SymbolNameResolver) {
+	e.BuildIDCache.Cache(buildID, v)
 }
 
-func (e *ElfCache) CacheByBuildID(buildID string, symbols []Sym) {
-	if buildID == "" || len(symbols) == 0 {
-		return
-	}
-	e.buildID2Symbols.Add(buildID, &elfCacheEntry{symbols: symbols})
+func (e *ElfCache) GetSymbolsByStat(s stat) SymbolNameResolver {
+	return e.SameFileCache.Get(s)
 }
 
-func (e *ElfCache) CacheByStat(s stat, symbols []Sym) {
-	if s.isNil() || len(symbols) == 0 {
-		return
-	}
-	e.stat2Symbols.Add(s, &elfCacheEntry{symbols: symbols})
+func (e *ElfCache) CacheByStat(s stat, v SymbolNameResolver) {
+	e.SameFileCache.Cache(s, v)
 }
 
-func (e *ElfCache) Resize(size int) {
-	e.stat2Symbols.Resize(size)
-	e.buildID2Symbols.Resize(size)
+func (e *ElfCache) Update(buildIDCacheOptions GCacheOptions, sameFileCacheOptions GCacheOptions) {
+	e.BuildIDCache.Update(buildIDCacheOptions)
+	e.SameFileCache.Update(sameFileCacheOptions)
 }
 
-func (s *stat) isNil() bool {
-	return s.dev == 0 && s.ino == 0
+func (e *ElfCache) NextRound() {
+	e.BuildIDCache.NextRound()
+	e.SameFileCache.NextRound()
+}
+
+func (e *ElfCache) Cleanup() {
+	e.BuildIDCache.Cleanup()
+	e.SameFileCache.Cleanup()
 }
