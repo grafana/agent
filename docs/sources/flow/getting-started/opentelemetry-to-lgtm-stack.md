@@ -86,7 +86,7 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-This represents the pipeline:
+The pipeline currently looks like this:
 ```
 Metrics, Logs, Traces: OTLP Receiver → batch processor → OTLP Exporter
 ```
