@@ -1,4 +1,6 @@
 {{- if and (or (eq .Values.controller.type "deployment") (eq .Values.controller.type "statefulset" ))  .Values.controller.autoscaling.enabled }}
+{{- $name := .Values.agent.resources.requests | required ".Values.agent.resources.requests is required when using autoscaling." -}}
+{{- $name := .Values.configReloader.resources.requests | required ".Values.configReloader.resources.requests is required when using autoscaling." -}}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
