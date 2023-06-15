@@ -231,15 +231,6 @@ type FlatFuncIndex struct {
 	End   uint64
 }
 
-type FuncIndex struct {
-	Entry uint64
-	End   uint64
-	//todo we only use End for the last entry, consider moving it to a parent struct
-	// make sure sym[i].End == sym[i].Entry for all symtab versions
-	NameOffset uint32
-	// consider using len/name end as well
-}
-
 // Go12Funcs returns a slice of Funcs derived from the Go 1.2+ pcln table.
 func (t *LineTable) Go12Funcs() FlatFuncIndex {
 	// Assume it is malformed and return nil on error.
