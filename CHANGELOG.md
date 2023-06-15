@@ -9,6 +9,9 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
+### Features
+- `pyroscope.ebpf` collects system-wide performance profiles from the current host (@korniltsev)
+
 
 v0.34.0-rc.1 (2023-06-02)
 --------------------
@@ -47,7 +50,6 @@ v0.34.0-rc.0 (2023-06-01)
   - `prometheus.exporter.oracledb` collects metrics from oracledb (@jonathanwamsley)
   - `prometheus.exporter.dnsmasq` collects metrics from a dnsmasq server. (@spartan0x117)
   - `loki.source.awsfirehose` - receive Loki log entries from AWS Firehose via HTTP (@thepalbi)
-  - `phlare.ebpf` collects system-wide performance profiles from the current host (@korniltsev)
 
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
