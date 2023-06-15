@@ -53,7 +53,7 @@ func init() {
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	// TODO(jcreixell): Re-implement conflicting bits and briong the exporter back
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "mongdb exporter has been removed for the time being due to licensing issues", http.StatusBadRequest)
+		http.Error(w, "mongdb exporter has been disabled for the time being due to licensing issues", http.StatusBadRequest)
 	})
 
 	return integrations.NewHandlerIntegration(c.Name(), handler), nil
