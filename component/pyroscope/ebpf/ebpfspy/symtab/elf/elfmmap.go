@@ -22,6 +22,8 @@ type MMapedElfFile struct {
 	err    error
 	mmaped mmap.MMap
 	fd     *os.File
+
+	stringCache map[int]string
 }
 
 func NewMMapedElfFile(fpath string) (*MMapedElfFile, error) {
@@ -93,6 +95,7 @@ func (f *MMapedElfFile) Close() {
 		f.fd.Close()
 		f.fd = nil
 	}
+	f.stringCache = nil
 }
 func (f *MMapedElfFile) open() error {
 	if f.err != nil {
@@ -143,6 +146,9 @@ func (f *MMapedElfFile) getString(start int) (string, bool) {
 	if err := f.ensureOpen(); err != nil {
 		return "", false
 	}
+	if s, ok := f.stringCache[start]; ok {
+		return s, true
+	}
 	section := f.mmaped
 	if start < 0 || start >= len(section) {
 		return "", false
@@ -150,7 +156,12 @@ func (f *MMapedElfFile) getString(start int) (string, bool) {
 
 	for end := start; end < len(section); end++ {
 		if section[end] == 0 {
-			return string(section[start:end]), true
+			s := string(section[start:end])
+			if f.stringCache == nil {
+				f.stringCache = make(map[int]string)
+			}
+			f.stringCache[start] = s
+			return s, true
 		}
 	}
 	return "", false
