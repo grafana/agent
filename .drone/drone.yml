@@ -198,8 +198,8 @@ steps:
   - name: docker
     path: /var/run/docker.sock
 trigger:
-  event:
-  - pull_request
+  ref:
+  - refs/heads/main
 type: docker
 volumes:
 - host:
@@ -1330,6 +1330,6 @@ kind: secret
 name: gpg_public_key
 ---
 kind: signature
-hmac: c7c4d4c12e8269cc7c36d4807522a2950c806e9a7422c07afd0c10249ce99d87
+hmac: 11a9c3f165ebc6d5296a2c48c079bf463b635a28d281916b0ceb47cc46ebe272
 
 ...
