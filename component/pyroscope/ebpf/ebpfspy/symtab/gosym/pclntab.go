@@ -9,9 +9,7 @@
 package gosym
 
 import (
-	"bytes"
 	"encoding/binary"
-	"sort"
 	"sync"
 )
 
@@ -256,19 +254,6 @@ func (t *LineTable) Go12Funcs() FlatFuncIndex {
 	return fi
 }
 
-// findFunc returns the funcData corresponding to the given program counter.
-func (t *LineTable) findFunc(pc uint64) funcData {
-	ft := t.funcTab()
-	if pc < ft.pc(0) || pc >= ft.pc(ft.Count()) {
-		return funcData{}
-	}
-	idx := sort.Search(int(t.nfunctab), func(i int) bool {
-		return ft.pc(i) > pc
-	})
-	idx--
-	return t.funcData(uint32(idx))
-}
-
 // readvarint reads, removes, and returns a varint from *pp.
 func (t *LineTable) readvarint(pp *[]byte) uint32 {
 	var v, shift uint32
@@ -283,13 +268,6 @@ func (t *LineTable) readvarint(pp *[]byte) uint32 {
 	}
 	*pp = p
 	return v
-}
-
-// funcName returns the name of the function found at off.
-func (t *LineTable) funcName(off uint32) string {
-	i := bytes.IndexByte(t.funcnametab[off:], 0)
-	s := string(t.funcnametab[off : off+uint32(i)])
-	return s
 }
 
 // functabFieldSize returns the size in bytes of a single functab field.
@@ -408,22 +386,6 @@ func (t *LineTable) step(p *[]byte, pc *uint64, val *int32, first bool) bool {
 	*pc += uint64(pcdelta)
 	*val += vdelta
 	return true
-}
-
-// pcvalue reports the value associated with the target pc.
-// off is the offset to the beginning of the pc-value table,
-// and entry is the start PC for the corresponding function.
-func (t *LineTable) pcvalue(off uint32, entry, targetpc uint64) int32 {
-	p := t.pctab[off:]
-
-	val := int32(-1)
-	pc := entry
-	for t.step(&p, &pc, &val, pc == entry) {
-		if targetpc < pc {
-			return val
-		}
-	}
-	return -1
 }
 
 func (t *LineTable) IsFailed() bool {
