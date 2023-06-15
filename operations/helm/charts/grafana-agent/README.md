@@ -63,7 +63,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | configReloader.enabled | bool | `true` | Enables automatically reloading when the agent config changes. |
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
 | configReloader.image.tag | string | `"v0.8.0"` | Tag of image to use for config reloading. |
-| configReloader.resources | object | `{}` | Resource requests and limits to apply to the config reloader container. |
+| configReloader.resources | object | `{"requests":{"cpu":"1m","memory":"5Mi"}}` | Resource requests and limits to apply to the config reloader container. |
 | controller.affinity | object | `{}` | Affinity configuration for pods. |
 | controller.autoscaling.enabled | bool | `false` | Creates a HorizontalPodAutoscaler for controller type deployment. |
 | controller.autoscaling.maxReplicas | int | `5` | The upper limit for the number of replicas to which the autoscaler can scale up. |
