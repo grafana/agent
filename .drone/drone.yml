@@ -367,6 +367,23 @@ trigger:
 type: docker
 ---
 kind: pipeline
+name: Build agent boringcrypto (Linux amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOEXPERIMENT=boringcrypto GOARM=
+    make agent
+  image: grafana/agent-build-image:0.26.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Build agent (Linux arm64)
 platform:
   arch: amd64
@@ -375,6 +392,23 @@ steps:
 - commands:
   - make generate-ui
   - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
+    make agent
+  image: grafana/agent-build-image:0.26.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent boringcrypto (Linux arm64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOEXPERIMENT=boringcrypto GOARM=
     make agent
   image: grafana/agent-build-image:0.26.0
   name: Build
