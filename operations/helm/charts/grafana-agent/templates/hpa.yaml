@@ -1,5 +1,5 @@
 {{- if and (or (eq .Values.controller.type "deployment") (eq .Values.controller.type "statefulset" ))  .Values.controller.autoscaling.enabled }}
-{{- if not (empty .targetMemoryUtilizationPercentage) }} 
+{{- if not (empty .targetMemoryUtilizationPercentage)}} 
   {{- $name := .Values.agent.resources.requests | required ".Values.agent.resources.requests is required when using autoscaling." -}}
   {{- $name := .Values.agent.resources.requests.memory | required ".Values.agent.resources.requests.memory is required when using autoscaling based on memory utilization." -}}
   {{- $name := .Values.configReloader.resources.requests  | required ".Values.configReloader.resources.requests is required when using autoscaling." -}}
