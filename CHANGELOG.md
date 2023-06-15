@@ -13,9 +13,18 @@ Main (unreleased)
 ### Features
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
- - Support `stage.geoip` in `loki.process`. (@akselleirv)
+
+- Support `stage.geoip` in `loki.process`. (@akselleirv)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
+
+
+- New Grafana Agent Flow components:
+
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
+  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
+    components and modifies attributes of a span, log, or metric. (@ptodev)
+
 
 ### Enhancements
 
@@ -25,21 +34,36 @@ Main (unreleased)
 
 - Tanka config: retain cAdvisor metrics for system processes (Kubelet, Containerd, etc.) (@bboreham)
 
+- Update cAdvisor dependency to v0.47.0. (@jcreixell)
+
+- Upgrade and improve Cloudwatch exporter integration (@thepalbi)
+
+- Update `node_exporter` dependency to v1.6.0. (@spartan0x117)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
+
+- Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
+
+### Other changes
+
+- Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
+
+v0.34.1 (2023-06-12)
+--------------------
+
+### Bugfixes
+
+- Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
 
 - Fix issue where `remote.http` did not fail early if the initial request
   failed. This caused failed requests to initially export empty values, which
   could lead to propagating issues downstream to other components which expect
   the export to be non-empty. (@rfratto)
 
-- Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
-
-- Allow bearerTokenFile to be used in ServiceMonitors. (@captncraig)
-
-- Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
+- Allow `bearerTokenFile` field to be used in ServiceMonitors. (@captncraig)
 
 - Fix issue where metrics and traces were not recorded from components within modules. (@mattdurham)
 

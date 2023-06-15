@@ -54,10 +54,8 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
-	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/web/api/apitypes"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -209,41 +207,41 @@ func New(o Options) *Flow {
 
 // Run starts the Flow controller, blocking until the provided context is
 // canceled. Run must only be called once.
-func (c *Flow) Run(ctx context.Context) {
-	defer c.sched.Close()
-	defer c.loader.Cleanup()
-	defer level.Debug(c.log).Log("msg", "flow controller exiting")
+func (f *Flow) Run(ctx context.Context) {
+	defer f.sched.Close()
+	defer f.loader.Cleanup()
+	defer level.Debug(f.log).Log("msg", "flow controller exiting")
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
 
-		case <-c.updateQueue.Chan():
+		case <-f.updateQueue.Chan():
 			// We need to pop _everything_ from the queue and evaluate each of them.
 			// If we only pop a single element, other components may sit waiting for
 			// evaluation forever.
 			for {
-				updated := c.updateQueue.TryDequeue()
+				updated := f.updateQueue.TryDequeue()
 				if updated == nil {
 					break
 				}
 
-				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				c.loader.EvaluateDependencies(updated)
+				level.Debug(f.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
+				f.loader.EvaluateDependencies(updated)
 			}
 
-		case <-c.loadFinished:
-			level.Info(c.log).Log("msg", "scheduling loaded components")
+		case <-f.loadFinished:
+			level.Info(f.log).Log("msg", "scheduling loaded components")
 
-			components := c.loader.Components()
+			components := f.loader.Components()
 			runnables := make([]controller.RunnableNode, 0, len(components))
 			for _, uc := range components {
 				runnables = append(runnables, uc)
 			}
-			err := c.sched.Synchronize(runnables)
+			err := f.sched.Synchronize(runnables)
 			if err != nil {
-				level.Error(c.log).Log("msg", "failed to load components", "err", err)
+				level.Error(f.log).Log("msg", "failed to load components", "err", err)
 			}
 		}
 	}
@@ -255,20 +253,20 @@ func (c *Flow) Run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(file *File, args map[string]any) error {
-	c.loadMut.Lock()
-	defer c.loadMut.Unlock()
+func (f *Flow) LoadFile(file *File, args map[string]any) error {
+	f.loadMut.Lock()
+	defer f.loadMut.Unlock()
 
-	diags := c.loader.Apply(args, file.Components, file.ConfigBlocks)
-	if !c.loadedOnce.Load() && diags.HasErrors() {
+	diags := f.loader.Apply(args, file.Components, file.ConfigBlocks)
+	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
 		return diags
 	}
-	c.loadedOnce.Store(true)
+	f.loadedOnce.Store(true)
 
 	select {
-	case c.loadFinished <- struct{}{}:
+	case f.loadFinished <- struct{}{}:
 	default:
 		// A refresh is already scheduled
 	}
@@ -276,65 +274,6 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 }
 
 // Ready returns whether the Flow controller has finished its initial load.
-func (c *Flow) Ready() bool {
-	return c.loadedOnce.Load()
-}
-
-// ComponentInfos returns the component infos.
-func (c *Flow) ComponentInfos() []*apitypes.ComponentInfo {
-	c.loadMut.RLock()
-	defer c.loadMut.RUnlock()
-
-	cns := c.loader.Components()
-	infos := make([]*apitypes.ComponentInfo, len(cns))
-	edges := c.loader.OriginalGraph().Edges()
-	for i, com := range cns {
-		nn := newFromNode(com, edges)
-		infos[i] = nn
-	}
-	return infos
-}
-
-func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *apitypes.ComponentInfo {
-	references := make([]string, 0)
-	referencedBy := make([]string, 0)
-	for _, e := range edges {
-		// Skip over any edge which isn't between two component nodes. This is a
-		// temporary workaround needed until there's the concept of configuration
-		// blocks from the API.
-		//
-		// Without this change, the graph fails to render when a configuration
-		// block is referenced in the graph.
-		//
-		// TODO(rfratto): add support for config block nodes in the API and UI.
-		if !isComponentNode(e.From) || !isComponentNode(e.To) {
-			continue
-		}
-
-		if e.From.NodeID() == cn.NodeID() {
-			references = append(references, e.To.NodeID())
-		} else if e.To.NodeID() == cn.NodeID() {
-			referencedBy = append(referencedBy, e.From.NodeID())
-		}
-	}
-	h := cn.CurrentHealth()
-	ci := &apitypes.ComponentInfo{
-		Label:        cn.Label(),
-		ID:           cn.NodeID(),
-		Name:         cn.ComponentName(),
-		Type:         "block",
-		References:   references,
-		ReferencedBy: referencedBy,
-		Health: &apitypes.ComponentHealth{
-			State:       h.Health.String(),
-			Message:     h.Message,
-			UpdatedTime: h.UpdateTime,
-		},
-	}
-	return ci
-}
-
-func isComponentNode(n dag.Node) bool {
-	_, ok := n.(*controller.ComponentNode)
-	return ok
+func (f *Flow) Ready() bool {
+	return f.loadedOnce.Load()
 }
