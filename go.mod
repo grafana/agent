@@ -690,3 +690,5 @@ replace github.com/leoluk/perflib_exporter => github.com/grafana/perflib_exporte
 
 // TODO(mattdurham): this is to allow defaults to propogate properly.
 replace github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230609142740-b47fa97c3c47
+
+replace github.com/testcontainers/testcontainers-go/modules/k3s => github.com/rfratto/testcontainers-go/modules/k3s v0.0.0-20230615001113-4e2d74f8405a
