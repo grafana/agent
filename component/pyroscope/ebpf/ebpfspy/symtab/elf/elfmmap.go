@@ -11,6 +11,8 @@ import (
 	"github.com/edsrzf/mmap-go"
 )
 
+const useMMap = false
+
 type MMapedElfFile struct {
 	elf.FileHeader
 	Sections []elf.SectionHeader
@@ -137,7 +139,11 @@ func (f *MMapedElfFile) FilePath() string {
 }
 
 // getString extracts a string from an ELF string table.
-func getString(section []byte, start int) (string, bool) {
+func (f *MMapedElfFile) getString(start int) (string, bool) {
+	if err := f.ensureOpen(); err != nil {
+		return "", false
+	}
+	section := f.mmaped
 	if start < 0 || start >= len(section) {
 		return "", false
 	}

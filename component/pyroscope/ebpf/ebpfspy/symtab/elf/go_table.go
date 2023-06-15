@@ -112,19 +112,13 @@ func (f *MMapedElfFile) NewGoTable() (*GoTable, error) {
 }
 
 func (g *GoTable) goSymbolName(idx int) (string, error) {
-	gopclndata, err := g.File.SectionData(g.gopclnSection)
-	if err != nil {
-		return "", err
-	}
-	if int(g.funcNameOffset) >= len(gopclndata) {
-		return "", errGoOOB
-	}
-	funcnamedata := gopclndata[g.funcNameOffset:]
+	offsetGpcln := g.gopclnSection.Offset
 	if idx >= len(g.Index.Name) {
 		return "", errGoOOB
 	}
-	nameOffset := g.Index.Name[idx]
-	name, ok := getString(funcnamedata, int(nameOffset))
+
+	offsetName := g.Index.Name[idx]
+	name, ok := g.File.getString(int(offsetGpcln) + int(g.funcNameOffset) + int(offsetName))
 	if !ok {
 		return "", errGoFailed
 	}

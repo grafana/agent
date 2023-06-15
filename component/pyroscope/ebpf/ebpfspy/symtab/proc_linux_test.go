@@ -17,7 +17,7 @@ import (
 )
 
 func TestMallocResolve(t *testing.T) {
-	elfCache, _ := NewElfCache(32, metrics.NewMetrics(nil))
+	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions, metrics.NewMetrics(nil))
 	logger := util.TestLogger(t)
 	gosym := NewProcTable(logger, ProcTableOptions{
 		Pid: os.Getpid(),

@@ -218,16 +218,12 @@ func (f *MMapedElfFile) getSymbols32(typ elf.SectionType) ([]SymbolIndex, uint32
 func (f *SymbolTable) symbolName(idx int) (string, error) {
 	linkIndex := f.Index.Names[idx].LinkIndex()
 	SectionHeaderLink := f.Index.Links[linkIndex]
-	strSection, err := f.File.stringTable(uint32(SectionHeaderLink))
-	if err != nil {
-		return "", err
-	}
-	strdata, err := f.File.SectionData(strSection)
+	strSection, err := f.File.stringTable(SectionHeaderLink)
 	if err != nil {
 		return "", err
 	}
 	NameIndex := f.Index.Names[idx].NameIndex()
-	s, b := getString(strdata, int(NameIndex))
+	s, b := f.File.getString(int(NameIndex) + int(strSection.Offset))
 	if !b {
 		return "", fmt.Errorf("elf getString")
 	}
