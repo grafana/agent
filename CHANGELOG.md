@@ -22,8 +22,6 @@ Main (unreleased)
 
 - Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
 
-- Allow users of the helm chart to configure the image registry either at the image level or globally. (@QuentinBisson)
-
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
