@@ -388,7 +388,7 @@ service_graphs:
   * [`otlpreceiver`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/1f5dd9f9a566a937ec15093ca3bc377fba86f5f9/receiver/otlpreceiver)
   * [`opencensusreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/receiver/opencensusreceiver)
   * [`zipkinreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/receiver/zipkinreceiver)
-* [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.34/configuration/configuration/#scrape_config)
+* [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#scrape_config)
 * [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/processor/spanmetricsprocessor/config.go#L38-L47)
 * [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/processor/spanmetricsprocessor/config.go#L38-L47)
 * [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/b2327211df976e0a57ef0425493448988772a16b/processor/tailsamplingprocessor)

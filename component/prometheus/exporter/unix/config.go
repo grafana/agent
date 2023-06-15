@@ -137,6 +137,12 @@ func (a *Arguments) Convert() *node_integration.Config {
 		NetstatFields:                    a.Netstat.Fields,
 		PerfCPUS:                         a.Perf.CPUS,
 		PerfTracepoint:                   a.Perf.Tracepoint,
+		PerfDisableHardwareProfilers:     a.Perf.DisableHardwareProfilers,
+		PerfHardwareProfilers:            a.Perf.HardwareProfilers,
+		PerfDisableSoftwareProfilers:     a.Perf.DisableSoftwareProfilers,
+		PerfSoftwareProfilers:            a.Perf.SoftwareProfilers,
+		PerfDisableCacheProfilers:        a.Perf.DisableCacheProfilers,
+		PerfCacheProfilers:               a.Perf.CacheProfilers,
 		PowersupplyIgnoredSupplies:       a.Powersupply.IgnoredSupplies,
 		RunitServiceDir:                  a.Runit.ServiceDir,
 		SupervisordURL:                   a.Supervisord.URL,
@@ -210,6 +216,14 @@ type NetstatConfig struct {
 type PerfConfig struct {
 	CPUS       string              `river:"cpus,attr,optional"`
 	Tracepoint flagext.StringSlice `river:"tracepoint,attr,optional"`
+
+	DisableHardwareProfilers bool `river:"disable_hardware_profilers,attr,optional"`
+	DisableSoftwareProfilers bool `river:"disable_software_profilers,attr,optional"`
+	DisableCacheProfilers    bool `river:"disable_cache_profilers,attr,optional"`
+
+	HardwareProfilers flagext.StringSlice `river:"hardware_profilers,attr,optional"`
+	SoftwareProfilers flagext.StringSlice `river:"software_profilers,attr,optional"`
+	CacheProfilers    flagext.StringSlice `river:"cache_profilers,attr,optional"`
 }
 
 // EthToolConfig contains config specific to the ethtool collector.

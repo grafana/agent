@@ -9,7 +9,7 @@ title: prometheus.receive_http
 The HTTP API exposed is compatible with [Prometheus `remote_write` API][prometheus-remote-write-docs]. This means that other [`prometheus.remote_write`][prometheus.remote_write] components can be used as a client and send requests to `prometheus.receive_http` which enables using the Agent as a proxy for prometheus metrics.
 
 [prometheus.remote_write]: {{< relref "./prometheus.remote_write.md" >}}
-[prometheus-remote-write-docs]: https://prometheus.io/docs/prometheus/latest/querying/api/#remote-write-receiver
+[prometheus-remote-write-docs]: https://prometheus.io/docs/prometheus/2.42/querying/api/#remote-write-receiver
 
 ## Usage
 

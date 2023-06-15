@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -16,7 +17,6 @@ import (
 	"github.com/prometheus/prometheus/model/textparse"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // TestNodeExporter runs an integration test for node_exporter, doing the
