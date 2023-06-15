@@ -5,13 +5,13 @@ weight: 350
 
 # OpenTelemetry to Grafana stack
 
-Grafana Agent Flow can be configured to collect [OpenTelemetry][]-compatible data and forward it to the Grafana stack
+You can configure Grafana Agent Flow to collect [OpenTelemetry][]-compatible data and forward it to the Grafana stack
 
 This topic describes how to:
 
 * Configure Agent to send your data to Loki
-* Configure agent to send your data to Tempo
-* Configure Agent to send your data to Mimir / Prometheus Remote Write
+* Configure Agent to send your data to Tempo
+* Configure Agent to send your data to Mimir or Prometheus Remote Write
 
 [OpenTelemetry]: https://opentelemetry.io
 
@@ -91,10 +91,10 @@ This represents the pipeline:
 Metrics, Logs, Traces: OTLP Receiver → batch processor → OTLP Exporter
 ```
 
-You will implement the following pipelines to send your data to Loki, Tempo, and Mimir:
+You will implement the following pipelines to send your data to Loki, Tempo, and Mimir or Prometheus:
 
 ```
-Metrics: OTel → batch processor → Prometheus remote write (Mimir)
+Metrics: OTel → batch processor → Mimir or Prometheus remote write
 Logs: OTel → batch processor → Loki exporter
 Traces: OTel → batch processor → OTel exporter
 ```
@@ -169,9 +169,9 @@ otelcol.auth.basic "grafana_cloud_tempo" {
 [Grafana Tempo]: https://grafana.com/oss/tempo/
 [GrafanaCloud Portal]: https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/#your-grafana-cloud-stack 
 
-## Grafana Mimir / Prometheus Remote Write
+## Grafana Mimir or Prometheus Remote Write
 
-[Prometheus Remote Write] is a popular metrics transmission protocol supported by most metrics system, including [Grafana Mimir] and GrafanaCloud. To send from OTLP to Prometheus, we do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component. The Agent’s Prometheus remote write is a more battle-tested implementation with a Write Ahead Log for resiliency.
+[Prometheus Remote Write][] is a popular metrics transmission protocol supported by most metrics systems, including [Grafana Mimir][] and GrafanaCloud. To send from OTLP to Prometheus, we do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component. The Prometheus remote write component in Agent is a robust protocol implementation, including a Write Ahead Log for resiliency.
 
 ```river
 otelcol.exporter.prometheus "default" {
@@ -211,7 +211,7 @@ prometheus.remote_write "grafana_cloud_prometheus" {
 
 ## Putting it all together
 
-Instead of referencing `otelcol.exporter.otlp.default.input` in the output of `otelcol.processor.batch`, we need to reference the three exporters we set up. The final config becomes:
+Instead of referencing `otelcol.exporter.otlp.default.input` in the output of `otelcol.processor.batch`, we need to reference the three exporters we set up. The final configuration becomes:
 
 ```river
 otelcol.receiver.otlp "example" {
