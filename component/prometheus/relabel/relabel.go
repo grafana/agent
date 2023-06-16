@@ -119,7 +119,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			}
 
 			newLbl := c.relabel(v, l)
-			if newLbl == nil {
+			if newLbl.IsEmpty() {
 				return 0, nil
 			}
 			c.metricsOutgoing.Inc()
@@ -131,7 +131,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			}
 
 			newLbl := c.relabel(0, l)
-			if newLbl == nil {
+			if newLbl.IsEmpty() {
 				return 0, nil
 			}
 			return next.AppendExemplar(0, newLbl, e)
@@ -142,7 +142,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			}
 
 			newLbl := c.relabel(0, l)
-			if newLbl == nil {
+			if newLbl.IsEmpty() {
 				return 0, nil
 			}
 			return next.UpdateMetadata(0, newLbl, m)
