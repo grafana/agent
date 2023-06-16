@@ -126,7 +126,6 @@ func (s *TargetFinder) SetTargets(opts TargetsOptions) {
 				)
 				continue
 			}
-			//_ = level.Debug(s.l).Log("created target", t.labels.String())
 			containerID2Target[cid] = t
 		}
 	}
