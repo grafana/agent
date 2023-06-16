@@ -47,6 +47,8 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
+- Fixes several issues with statsd exporter. (@jcreixell, @marctc)
+
 ### Other changes
 
 - Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)

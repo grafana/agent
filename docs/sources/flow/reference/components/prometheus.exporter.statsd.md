@@ -27,8 +27,8 @@ All arguments are optional. Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`listen_udp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
-`listen_tcp`                                      | `string`       | The TCP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
+`listen_udp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `:9125` | no
+`listen_tcp`                                      | `string`       | The TCP address on which to receive statsd metric lines. Use "" to disable it. | `:9125` | no
 `listen_unixgram`                                 | `string`       | The Unixgram socket path to receive statsd metric lines in datagram. Use "" to disable it. | | no
 `unix_socket_mode`                                | `string`       | The permission mode of the unix socket. | `755` | no
 `mapping_config_path`                             | `string`       | The path to a YAML mapping file used to translate specific dot-separated StatsD metrics into labeled Prometheus metrics. | | no
@@ -97,7 +97,7 @@ from `prometheus.exporter.statsd`:
 ```river
 prometheus.exporter.statsd "example" {
   listen_udp = ""
-  listen_tcp = "9125"
+  listen_tcp = ":9125"
   listen_unixgram = ""
   unix_socket_mode = "755"
   mapping_config_path = "mapTest.yaml"

@@ -53,11 +53,11 @@ var DefaultConfig = Config{
 
 // Config controls the statsd_exporter integration.
 type Config struct {
-	ListenUDP      string               `yaml:"listen_udp,omitempty"`
-	ListenTCP      string               `yaml:"listen_tcp,omitempty"`
-	ListenUnixgram string               `yaml:"listen_unixgram,omitempty"`
-	UnixSocketMode string               `yaml:"unix_socket_mode,omitempty"`
-	MappingConfig  *mapper.MetricMapper `yaml:"mapping_config,omitempty"`
+	ListenUDP      string `yaml:"listen_udp,omitempty"`
+	ListenTCP      string `yaml:"listen_tcp,omitempty"`
+	ListenUnixgram string `yaml:"listen_unixgram,omitempty"`
+	UnixSocketMode string `yaml:"unix_socket_mode,omitempty"`
+	MappingConfig  any    `yaml:"mapping_config,omitempty"`
 
 	ReadBuffer          int           `yaml:"read_buffer,omitempty"`
 	CacheSize           int           `yaml:"cache_size,omitempty"`
