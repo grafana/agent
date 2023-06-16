@@ -49,7 +49,7 @@ Main (unreleased)
 
 - Fix a bug where `prometheus.relabel` would not relabel correctly when there is a cache miss. (@thampiotr)
 
-- Fix a bug where `prometheus.relabel` would not relabel correctly the exemplars or metadata. (@tpaschalis)
+- Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
 
 ### Other changes
 
