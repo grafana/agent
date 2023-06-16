@@ -9,13 +9,13 @@ import (
 	_ "embed"
 	"encoding/binary"
 	"fmt"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gcache"
 	"reflect"
 	"unsafe"
 
 	"github.com/cilium/ebpf"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 	"github.com/pyroscope-io/pyroscope/pkg/agent/ebpfspy/cpuonline"
 	"golang.org/x/sys/unix"
 
@@ -33,9 +33,9 @@ type ProfileOptions struct {
 }
 
 type CacheOptions struct {
-	PidCacheOptions      gcache.GCacheOptions
-	BuildIDCacheOptions  gcache.GCacheOptions
-	SameFileCacheOptions gcache.GCacheOptions
+	PidCacheOptions      symtab.GCacheOptions
+	BuildIDCacheOptions  symtab.GCacheOptions
+	SameFileCacheOptions symtab.GCacheOptions
 }
 
 type Session struct {

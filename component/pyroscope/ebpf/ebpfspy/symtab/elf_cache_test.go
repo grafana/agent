@@ -1,7 +1,6 @@
 package symtab
 
 import (
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gcache"
 	"testing"
 
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
@@ -10,7 +9,7 @@ import (
 )
 
 var (
-	testCacheOptions = gcache.GCacheOptions{Size: 32, KeepRounds: 3}
+	testCacheOptions = GCacheOptions{32, 3}
 )
 
 func TestElfCacheStrippedEmpty(t *testing.T) {
@@ -64,8 +63,8 @@ func TestElfCacheBuildID(t *testing.T) {
 		require.NoError(t, stripped.err)
 		require.Equal(t, sym.name, res)
 	}
-	require.Equal(t, 1, elfCache.BuildIDCache.LRUCacheLen())
-	require.Equal(t, 1, elfCache.SameFileCache.LRUCacheLen())
+	require.Equal(t, 1, elfCache.BuildIDCache.lruCache.Len())
+	require.Equal(t, 1, elfCache.SameFileCache.lruCache.Len())
 }
 
 func TestElfCacheStat(t *testing.T) {
@@ -96,6 +95,6 @@ func TestElfCacheStat(t *testing.T) {
 		require.NoError(t, f2.err)
 		require.Equal(t, sym.name, res)
 	}
-	require.Equal(t, 0, elfCache.BuildIDCache.LRUCacheLen())
-	require.Equal(t, 1, elfCache.SameFileCache.LRUCacheLen())
+	require.Equal(t, 0, elfCache.BuildIDCache.lruCache.Len())
+	require.Equal(t, 1, elfCache.SameFileCache.lruCache.Len())
 }

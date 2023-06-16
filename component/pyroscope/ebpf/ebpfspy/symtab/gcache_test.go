@@ -1,4 +1,4 @@
-package gcache
+package symtab
 
 import (
 	"testing"

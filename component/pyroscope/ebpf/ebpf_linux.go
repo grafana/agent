@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gcache"
 	"runtime/pprof"
 	"time"
 
@@ -17,6 +16,7 @@ import (
 	ebpfspy "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 	"github.com/oklog/run"
 )
 
@@ -163,15 +163,15 @@ func (c *Component) Run(ctx context.Context) error {
 
 func cacheOptionsFromArgs(args Arguments) ebpfspy.CacheOptions {
 	return ebpfspy.CacheOptions{
-		PidCacheOptions: gcache.GCacheOptions{
+		PidCacheOptions: symtab.GCacheOptions{
 			Size:       args.PidCacheSize,
 			KeepRounds: args.CacheRounds,
 		},
-		BuildIDCacheOptions: gcache.GCacheOptions{
+		BuildIDCacheOptions: symtab.GCacheOptions{
 			Size:       args.BuildIDCacheSize,
 			KeepRounds: args.CacheRounds,
 		},
-		SameFileCacheOptions: gcache.GCacheOptions{
+		SameFileCacheOptions: symtab.GCacheOptions{
 			Size:       args.SameFileCacheSize,
 			KeepRounds: args.CacheRounds,
 		},

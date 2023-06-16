@@ -7,7 +7,6 @@ package ebpfspy
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gcache"
 	"os"
 
 	"github.com/go-kit/log"
@@ -19,7 +18,7 @@ import (
 type pidKey uint32
 
 type symbolCache struct {
-	pidCache *gcache.GCache[pidKey, symtab.SymbolTable]
+	pidCache *symtab.GCache[pidKey, symtab.SymbolTable]
 
 	elfCache *symtab.ElfCache
 	kallsyms symtab.SymbolTable
@@ -41,7 +40,7 @@ func newSymbolCache(logger log.Logger, options CacheOptions, metrics *metrics.Me
 	if err != nil {
 		return nil, fmt.Errorf("create kallsyms %w ", err)
 	}
-	cache, err := gcache.NewGCache[pidKey, symtab.SymbolTable](options.PidCacheOptions)
+	cache, err := symtab.NewGCache[pidKey, symtab.SymbolTable](options.PidCacheOptions)
 	if err != nil {
 		return nil, fmt.Errorf("create pid cache %w", err)
 	}

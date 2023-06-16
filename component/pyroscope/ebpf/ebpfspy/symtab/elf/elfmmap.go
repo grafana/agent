@@ -5,13 +5,13 @@ import (
 	"debug/elf"
 	"errors"
 	"fmt"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gcache"
 	"os"
 	"runtime"
 	"strings"
 )
 
-// todo rename
+const useMMap = false
+
 type MMapedElfFile struct {
 	elf.FileHeader
 	Sections []elf.SectionHeader
@@ -21,21 +21,7 @@ type MMapedElfFile struct {
 	err   error
 	fd    *os.File
 
-	stringCache *gcache.GCache[int, ELFString]
-}
-
-type ELFString string
-
-func (e ELFString) Refresh() {
-
-}
-
-func (e ELFString) Cleanup() {
-
-}
-
-func (e ELFString) DebugString() string {
-	return "ELFString"
+	stringCache map[int]string
 }
 
 func NewMMapedElfFile(fpath string) (*MMapedElfFile, error) {
@@ -63,10 +49,6 @@ func NewMMapedElfFile(fpath string) (*MMapedElfFile, error) {
 	res.FileHeader = elfFile.FileHeader
 	res.Progs = progs
 	res.Sections = sections
-	res.stringCache, _ = gcache.NewGCache[int, ELFString](gcache.GCacheOptions{
-		Size:       128,
-		KeepRounds: 2,
-	})
 
 	runtime.SetFinalizer(res, (*MMapedElfFile).Finalize)
 	return res, nil
@@ -110,7 +92,7 @@ func (f *MMapedElfFile) Close() {
 		f.fd.Close()
 		f.fd = nil
 	}
-	f.stringCache.Cleanup()
+	f.stringCache = nil
 }
 func (f *MMapedElfFile) open() error {
 	if f.err != nil {
@@ -152,11 +134,10 @@ func (f *MMapedElfFile) getString(start int) (string, bool) {
 	if err := f.ensureOpen(); err != nil {
 		return "", false
 	}
-
-	if s := f.stringCache.Get(start); s != "" {
-		return string(s), true
-	}
-	const tmpBufSize = 128
+	//if s, ok := f.stringCache[start]; ok {
+	//	return s, true
+	//}
+	const tmpBufSize = 256
 	var tmpBuf [tmpBufSize]byte
 	sb := strings.Builder{}
 	for i := 0; i < 10; i++ {
@@ -168,7 +149,10 @@ func (f *MMapedElfFile) getString(start int) (string, bool) {
 		if idx >= 0 {
 			sb.Write(tmpBuf[:idx])
 			s := sb.String()
-			f.stringCache.Cache(start, ELFString(s))
+			//if f.stringCache == nil {
+			//	f.stringCache = make(map[int]string)
+			//}
+			//f.stringCache[start] = s
 			return s, true
 		} else {
 			sb.Write(tmpBuf[:])

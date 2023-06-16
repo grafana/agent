@@ -1,4 +1,4 @@
-package gcache
+package symtab
 
 import (
 	"fmt"
@@ -22,7 +22,6 @@ type GCache[K comparable, V Resource] struct {
 
 	round int
 }
-
 type entry[V Resource] struct {
 	v     V
 	round int
@@ -50,15 +49,6 @@ func NewGCache[K comparable, V Resource](options GCacheOptions) (*GCache[K, V], 
 func (g *GCache[K, V]) NextRound() {
 	g.round++
 }
-
-func (g *GCache[K, V]) LRUCacheLen() int {
-	return g.lruCache.Len()
-}
-
-func (g *GCache[K, V]) RoundCacheLen() int {
-	return len(g.roundCache)
-}
-
 func (g *GCache[K, V]) Get(k K) V {
 	var zeroKey K
 	var zeroVal V
