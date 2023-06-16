@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"runtime/pprof"
 	"time"
 
 	"github.com/go-kit/log/level"
@@ -140,13 +139,7 @@ func (c *Component) Run(ctx context.Context) error {
 					collectInterval = c.args.CollectInterval
 				}
 			case <-t.C:
-				var err error
-				pprof.Do(
-					context.Background(),
-					pprof.Labels("ebpf", "reset"),
-					func(ctx context.Context) {
-						err = c.reset()
-					})
+				err := c.reset()
 				if err != nil {
 					return err
 				}
