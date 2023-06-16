@@ -162,7 +162,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			}
 			return next.UpdateMetadata(0, newLbl, m)
 		}),
-		prometheus.WithHistogramHook(func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
+		prometheus.WithHistogramHook(func(_ storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
@@ -171,7 +171,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			if newLbl.IsEmpty() {
 				return 0, nil
 			}
-			return next.AppendHistogram(ref, newLbl, t, h, fh)
+			return next.AppendHistogram(0, newLbl, t, h, fh)
 		}),
 	)
 
