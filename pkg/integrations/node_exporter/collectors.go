@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin/v2"
 )
 
 // CollectorState represents the default state of the collector, where it can
@@ -65,6 +65,7 @@ const (
 	CollectorNVME         = "nvme"
 	CollectorNetclass     = "netclass"
 	CollectorNetdev       = "netdev"
+	CollectorNetisr       = "netisr"
 	CollectorNetstat      = "netstat"
 	CollectorNetworkRoute = "network_route"
 	CollectorOS           = "os"
@@ -77,6 +78,7 @@ const (
 	CollectorRunit        = "runit"
 	CollectorSchedstat    = "schedstat"
 	CollectorSockstat     = "sockstat"
+	CollectorSoftirqs     = "softirqs"
 	CollectorSoftnet      = "softnet"
 	CollectorStat         = "stat"
 	CollectorSupervisord  = "supervisord"
@@ -144,6 +146,7 @@ var Collectors = map[string]CollectorState{
 	CollectorNVME:         CollectorStateEnabled,
 	CollectorNetclass:     CollectorStateEnabled,
 	CollectorNetdev:       CollectorStateEnabled,
+	CollectorNetisr:       CollectorStateEnabled,
 	CollectorNetstat:      CollectorStateEnabled,
 	CollectorNetworkRoute: CollectorStateDisabled,
 	CollectorOS:           CollectorStateEnabled,
@@ -158,6 +161,7 @@ var Collectors = map[string]CollectorState{
 	CollectorSELinux:      CollectorStateEnabled,
 	CollectorSlabInfo:     CollectorStateDisabled,
 	CollectorSockstat:     CollectorStateEnabled,
+	CollectorSoftirqs:     CollectorStateDisabled,
 	CollectorSoftnet:      CollectorStateEnabled,
 	CollectorStat:         CollectorStateEnabled,
 	CollectorSupervisord:  CollectorStateDisabled,
