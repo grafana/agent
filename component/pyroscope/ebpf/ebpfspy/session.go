@@ -246,7 +246,8 @@ func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 			name = sym.Name
 		} else {
 			if sym.Module != "" {
-				name = fmt.Sprintf("%s+%x", sym.Module, sym.Start)
+				//name = fmt.Sprintf("%s+%x", sym.Module, sym.Start) // todo expose an option to enable this
+				name = sym.Module
 			} else {
 				name = "[unknown]"
 			}
