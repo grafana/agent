@@ -59,6 +59,7 @@ type Component struct {
 	cacheHits        prometheus_client.Counter
 	cacheMisses      prometheus_client.Counter
 	cacheSize        prometheus_client.Gauge
+	cacheDeletes     prometheus_client.Counter
 	fanout           *prometheus.Fanout
 	exited           atomic.Bool
 
@@ -96,9 +97,13 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		Name: "agent_prometheus_relabel_cache_size",
 		Help: "Total size of relabel cache",
 	})
+	c.cacheDeletes = prometheus_client.NewCounter(prometheus_client.CounterOpts{
+		Name: "agent_prometheus_relabel_cache_deletes",
+		Help: "Total number of cache deletes",
+	})
 
 	var err error
-	for _, metric := range []prometheus_client.Collector{c.metricsProcessed, c.metricsOutgoing, c.cacheMisses, c.cacheHits, c.cacheSize} {
+	for _, metric := range []prometheus_client.Collector{c.metricsProcessed, c.metricsOutgoing, c.cacheMisses, c.cacheHits, c.cacheSize, c.cacheDeletes} {
 		err = o.Registerer.Register(metric)
 		if err != nil {
 			return nil, err
@@ -129,7 +134,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			if newLbl == nil {
 				return 0, nil
 			}
-			return next.AppendExemplar(0, l, e)
+			return next.AppendExemplar(0, newLbl, e)
 		}),
 		prometheus.WithMetadataHook(func(_ storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
@@ -140,7 +145,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			if newLbl == nil {
 				return 0, nil
 			}
-			return next.UpdateMetadata(0, l, m)
+			return next.UpdateMetadata(0, newLbl, m)
 		}),
 	)
 
@@ -184,7 +189,10 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	defer c.mut.RUnlock()
 
 	globalRef := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
-	var relabelled labels.Labels
+	var (
+		relabelled labels.Labels
+		keep       bool
+	)
 	newLbls, found := c.getFromCache(globalRef)
 	if found {
 		c.cacheHits.Inc()
@@ -195,7 +203,7 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	} else {
 		// Relabel against a copy of the labels to prevent modifying the original
 		// slice.
-		relabelled, keep := relabel.Process(lbls.Copy(), c.mrc...)
+		relabelled, keep = relabel.Process(lbls.Copy(), c.mrc...)
 		c.cacheMisses.Inc()
 		c.cacheSize.Inc()
 		c.addToCache(globalRef, relabelled, keep)
@@ -207,9 +215,6 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	if value.IsStaleNaN(val) {
 		c.cacheSize.Dec()
 		c.deleteFromCache(globalRef)
-	}
-	if relabelled == nil {
-		return nil
 	}
 	return relabelled
 }
@@ -225,7 +230,7 @@ func (c *Component) getFromCache(id uint64) (*labelAndID, bool) {
 func (c *Component) deleteFromCache(id uint64) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
-
+	c.cacheDeletes.Inc()
 	delete(c.cache, id)
 }
 
