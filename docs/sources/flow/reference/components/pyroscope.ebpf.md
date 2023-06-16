@@ -1,10 +1,10 @@
 ---
-title: phlare.ebpf
+title: pyroscope.ebpf
 labels:
   stage: beta
 ---
 
-# phlare.ebpf
+# pyroscope.ebpf
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 

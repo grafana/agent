@@ -37,15 +37,15 @@ var (
 	ErrNoBuildIDSection = fmt.Errorf("build ID section not found")
 )
 
-func (elfFile *MMapedElfFile) BuildID() (BuildID, error) {
-	id, err := elfFile.GNUBuildID()
+func (f *MMapedElfFile) BuildID() (BuildID, error) {
+	id, err := f.GNUBuildID()
 	if err != nil && err != ErrNoBuildIDSection {
 		return BuildID{}, err
 	}
 	if !id.Empty() {
 		return id, nil
 	}
-	id, err = elfFile.GoBuildID()
+	id, err = f.GoBuildID()
 	if err != nil && err != ErrNoBuildIDSection {
 		return BuildID{}, err
 	}
@@ -58,12 +58,12 @@ func (elfFile *MMapedElfFile) BuildID() (BuildID, error) {
 
 var goBuildIDSep = []byte("/")
 
-func (elfFile *MMapedElfFile) GoBuildID() (BuildID, error) {
-	buildIDSection := elfFile.Section(".note.go.buildid")
+func (f *MMapedElfFile) GoBuildID() (BuildID, error) {
+	buildIDSection := f.Section(".note.go.buildid")
 	if buildIDSection == nil {
 		return BuildID{}, ErrNoBuildIDSection
 	}
-	data, err := elfFile.SectionData(buildIDSection)
+	data, err := f.SectionData(buildIDSection)
 	if err != nil {
 		return BuildID{}, fmt.Errorf("reading .note.go.buildid %w", err)
 	}
@@ -73,22 +73,22 @@ func (elfFile *MMapedElfFile) GoBuildID() (BuildID, error) {
 
 	data = data[16 : len(data)-1]
 	if len(data) < 40 || bytes.Count(data, goBuildIDSep) < 2 {
-		return BuildID{}, fmt.Errorf("wrong .note.go.buildid %s", elfFile.fpath)
+		return BuildID{}, fmt.Errorf("wrong .note.go.buildid %s", f.fpath)
 	}
 	id := string(data)
 	if id == "redacted" {
-		return BuildID{}, fmt.Errorf("blacklisted  .note.go.buildid %s", elfFile.fpath)
+		return BuildID{}, fmt.Errorf("blacklisted  .note.go.buildid %s", f.fpath)
 	}
 	return GoBuildID(id), nil
 }
 
-func (elfFile *MMapedElfFile) GNUBuildID() (BuildID, error) {
-	buildIDSection := elfFile.Section(".note.gnu.build-id")
+func (f *MMapedElfFile) GNUBuildID() (BuildID, error) {
+	buildIDSection := f.Section(".note.gnu.build-id")
 	if buildIDSection == nil {
 		return BuildID{}, ErrNoBuildIDSection
 	}
 
-	data, err := elfFile.SectionData(buildIDSection)
+	data, err := f.SectionData(buildIDSection)
 	if err != nil {
 		return BuildID{}, fmt.Errorf("reading .note.gnu.build-id %w", err)
 	}
@@ -100,7 +100,7 @@ func (elfFile *MMapedElfFile) GNUBuildID() (BuildID, error) {
 	}
 	rawBuildID := data[16:]
 	if len(rawBuildID) < 20 {
-		return BuildID{}, fmt.Errorf(".note.gnu.build-id is too small %s", elfFile.fpath)
+		return BuildID{}, fmt.Errorf(".note.gnu.build-id is too small %s", f.fpath)
 	}
 	buildIDHex := hex.EncodeToString(rawBuildID)
 	return GNUBuildID(buildIDHex), nil

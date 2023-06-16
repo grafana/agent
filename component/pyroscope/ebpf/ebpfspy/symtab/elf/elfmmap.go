@@ -10,8 +10,6 @@ import (
 	"strings"
 )
 
-const useMMap = false
-
 type MMapedElfFile struct {
 	elf.FileHeader
 	Sections []elf.SectionHeader
