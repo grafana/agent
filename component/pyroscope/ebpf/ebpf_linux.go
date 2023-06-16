@@ -176,11 +176,9 @@ func cacheOptionsFromArgs(args Arguments) symtab.CacheOptions {
 
 func (c *Component) updateTargetFinder() {
 	c.targetFinder.SetTargets(sd.TargetsOptions{
-		Targets: c.args.Targets,
-		//DefaultTarget: nil,
-		//TargetsOnly:   true,
-		DefaultTarget: map[string]string{"service_name": "dev"}, // do not commit
-		TargetsOnly:   false,
+		Targets:       c.args.Targets,
+		DefaultTarget: nil,
+		TargetsOnly:   true,
 	})
 	c.targetFinder.ResizeContainerIDCache(c.args.ContainerIDCacheSize)
 }
