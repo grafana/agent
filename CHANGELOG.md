@@ -14,6 +14,8 @@ v0.34.2 (2023-06-20)
 
 - Mongodb integration has been removed for the time being due to lincensing issues. (@jcreixell)
 
+- Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
+
 ### Bugfixes
 
 - Fix a bug where `prometheus.relabel` would not correctly relabel when there is a cache miss. (@thampiotr)
