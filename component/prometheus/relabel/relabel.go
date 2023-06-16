@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
-	lru "github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru/v2"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
@@ -75,7 +75,7 @@ type Component struct {
 	exited           atomic.Bool
 
 	cacheMut sync.RWMutex
-	cache    *lru.Cache
+	cache    *lru.Cache[uint64, *labelAndID]
 }
 
 var (
@@ -84,7 +84,7 @@ var (
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	cache, err := lru.New(100_000)
+	cache, err := lru.New[uint64, *labelAndID](100_000)
 	if err != nil {
 		return nil, err
 	}
@@ -239,10 +239,7 @@ func (c *Component) getFromCache(id uint64) (*labelAndID, bool) {
 	defer c.cacheMut.RUnlock()
 
 	fm, found := c.cache.Get(id)
-	if fm == nil {
-		return nil, found
-	}
-	return fm.(*labelAndID), found
+	return fm, found
 }
 
 func (c *Component) deleteFromCache(id uint64) {
@@ -255,7 +252,7 @@ func (c *Component) deleteFromCache(id uint64) {
 func (c *Component) clearCache(cacheSize int) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
-	cache, _ := lru.New(cacheSize)
+	cache, _ := lru.New[uint64, *labelAndID](cacheSize)
 	c.cache = cache
 }
 
