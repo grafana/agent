@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-only
+
 #include "vmlinux.h"
 #include "bpf_helpers.h"
 #include "bpf_tracing.h"
@@ -64,4 +66,4 @@ int do_perf_event(struct bpf_perf_event_data *ctx)
 	return 0;
 }
 
-char _license[] SEC("license") = "GPL"; //todo
+char _license[] SEC("license") = "GPL";
