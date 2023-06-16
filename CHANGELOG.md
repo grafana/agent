@@ -54,8 +54,6 @@ v0.34.0-rc.0 (2023-06-01)
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
   - `nonsensitive` converts a River secret back into a string. (@rfratto)
-  - `regex_quote` escapes regular expression metacharacters. (@korniltsev)
-
 
 ### Enhancements
 - Support to attach node metadata to pods and endpoints targets in

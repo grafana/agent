@@ -3,11 +3,9 @@ package stdlib
 
 import (
 	"encoding/json"
-	"os"
-	"regexp"
-
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/rivertypes"
+	"os"
 )
 
 // Identifiers holds a list of stdlib identifiers by name. All interface{}
@@ -101,8 +99,4 @@ var Identifiers = map[string]interface{}{
 
 		return args[len(args)-1], nil
 	}),
-
-	"regex_quote": func(in string) (string, error) {
-		return regexp.QuoteMeta(in), nil
-	},
 }
