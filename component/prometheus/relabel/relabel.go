@@ -15,6 +15,7 @@ import (
 	lru "github.com/hashicorp/golang-lru/v2"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 
@@ -160,6 +161,17 @@ func New(o component.Options, args Arguments) (*Component, error) {
 				return 0, nil
 			}
 			return next.UpdateMetadata(0, newLbl, m)
+		}),
+		prometheus.WithHistogramHook(func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
+			if c.exited.Load() {
+				return 0, fmt.Errorf("%s has exited", o.ID)
+			}
+
+			newLbl := c.relabel(0, l)
+			if newLbl.IsEmpty() {
+				return 0, nil
+			}
+			return next.AppendHistogram(ref, newLbl, t, h, fh)
 		}),
 	)
 
