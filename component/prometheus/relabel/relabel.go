@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
+	lru "github.com/hashicorp/golang-lru"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
@@ -40,7 +41,17 @@ type Arguments struct {
 
 	// The relabelling rules to apply to each metric before it's forwarded.
 	MetricRelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
+
+	// Cache size to use for LRU cache.
+	//CacheSize int `river:"cache_size,attr,optional"`
 }
+
+// SetToDefault implements river.Defaulter.
+/*func (arg *Arguments) SetToDefault() {
+	*arg = Arguments{
+		CacheSize: 500_000,
+	}
+}*/
 
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
@@ -64,7 +75,7 @@ type Component struct {
 	exited           atomic.Bool
 
 	cacheMut sync.RWMutex
-	cache    map[uint64]*labelAndID
+	cache    *lru.Cache
 }
 
 var (
@@ -73,9 +84,13 @@ var (
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	cache, err := lru.New(100_000)
+	if err != nil {
+		return nil, err
+	}
 	c := &Component{
 		opts:  o,
-		cache: make(map[uint64]*labelAndID),
+		cache: cache,
 	}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
@@ -102,7 +117,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		Help: "Total number of cache deletes",
 	})
 
-	var err error
 	for _, metric := range []prometheus_client.Collector{c.metricsProcessed, c.metricsOutgoing, c.cacheMisses, c.cacheHits, c.cacheSize, c.cacheDeletes} {
 		err = o.Registerer.Register(metric)
 		if err != nil {
@@ -175,7 +189,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 
 	newArgs := args.(Arguments)
-	c.clearCache()
+	c.clearCache(100_000)
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
 	c.fanout.UpdateChildren(newArgs.ForwardTo)
 
@@ -205,7 +219,6 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 		// slice.
 		relabelled, keep = relabel.Process(lbls.Copy(), c.mrc...)
 		c.cacheMisses.Inc()
-		c.cacheSize.Inc()
 		c.addToCache(globalRef, relabelled, keep)
 	}
 
@@ -213,9 +226,11 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
 	// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
 	if value.IsStaleNaN(val) {
-		c.cacheSize.Dec()
 		c.deleteFromCache(globalRef)
 	}
+	// Set the cache size to the cache.len
+	// TODO(@mattdurham): Instead of setting this each time could collect on demand for better performance.
+	c.cacheSize.Set(float64(c.cache.Len()))
 	return relabelled
 }
 
@@ -223,22 +238,25 @@ func (c *Component) getFromCache(id uint64) (*labelAndID, bool) {
 	c.cacheMut.RLock()
 	defer c.cacheMut.RUnlock()
 
-	fm, found := c.cache[id]
-	return fm, found
+	fm, found := c.cache.Get(id)
+	if fm == nil {
+		return nil, found
+	}
+	return fm.(*labelAndID), found
 }
 
 func (c *Component) deleteFromCache(id uint64) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
 	c.cacheDeletes.Inc()
-	delete(c.cache, id)
+	c.cache.Remove(id)
 }
 
-func (c *Component) clearCache() {
+func (c *Component) clearCache(cacheSize int) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
-
-	c.cache = make(map[uint64]*labelAndID)
+	cache, _ := lru.New(cacheSize)
+	c.cache = cache
 }
 
 func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool) {
@@ -246,14 +264,14 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool)
 	defer c.cacheMut.Unlock()
 
 	if !keep {
-		c.cache[originalID] = nil
+		c.cache.Add(originalID, nil)
 		return
 	}
 	newGlobal := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
-	c.cache[originalID] = &labelAndID{
+	c.cache.Add(originalID, &labelAndID{
 		labels: lbls,
 		id:     newGlobal,
-	}
+	})
 }
 
 // labelAndID stores both the globalrefid for the label and the id itself. We store the id so that it doesn't have
