@@ -203,7 +203,7 @@ func (s *Session) attachPerfEvents() error {
 		return fmt.Errorf("get cpuonline: %w", err)
 	}
 	for _, cpu := range cpus {
-		pe, err := newPerfEvent(int(cpu), int(s.sampleRate))
+		pe, err := newPerfEvent(int(cpu), s.sampleRate)
 		if err != nil {
 			return fmt.Errorf("new perf event: %w", err)
 		}

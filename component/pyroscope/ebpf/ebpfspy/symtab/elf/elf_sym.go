@@ -66,14 +66,14 @@ func (f *MMapedElfFile) getSymbols64(typ elf.SectionType) ([]SymbolIndex, uint32
 
 	// The first entry is all zeros.
 	var skip [elf.Sym64Size]byte
-	symtab.Read(skip[:])
+	_, _ = symtab.Read(skip[:])
 
 	symbols := make([]SymbolIndex, symtab.Len()/elf.Sym64Size)
 
 	var sym elf.Sym64
 	i := 0
 	for symtab.Len() > 0 {
-		binary.Read(symtab, f.ByteOrder, &sym)
+		_ = binary.Read(symtab, f.ByteOrder, &sym)
 		if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
 			symbols[i].Value = sym.Value
 			if sym.Name >= 0x7fffffff {
@@ -110,14 +110,14 @@ func (f *MMapedElfFile) getSymbols32(typ elf.SectionType) ([]SymbolIndex, uint32
 
 	// The first entry is all zeros.
 	var skip [elf.Sym32Size]byte
-	symtab.Read(skip[:])
+	_, _ = symtab.Read(skip[:])
 
 	symbols := make([]SymbolIndex, symtab.Len()/elf.Sym32Size)
 
 	var sym elf.Sym32
 	i := 0
 	for symtab.Len() > 0 {
-		binary.Read(symtab, f.ByteOrder, &sym)
+		_ = binary.Read(symtab, f.ByteOrder, &sym)
 		if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
 			symbols[i].Value = uint64(sym.Value)
 			if sym.Name >= 0x7fffffff {

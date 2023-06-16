@@ -14,7 +14,7 @@ func TestSelfGoSymbolComparison(t *testing.T) {
 		}
 
 		first := goTable.Index.Entry.First()
-		name := goTable.Resolve(uint64(first) - 1)
+		name := goTable.Resolve(first - 1)
 		require.Empty(t, name)
 		name = goTable.Resolve(goTable.Index.End)
 		require.Empty(t, name)

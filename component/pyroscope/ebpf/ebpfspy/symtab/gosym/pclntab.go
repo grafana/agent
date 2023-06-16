@@ -262,22 +262,6 @@ func (t *LineTable) Go12Funcs() FlatFuncIndex {
 	return fi
 }
 
-// readvarint reads, removes, and returns a varint from *pp.
-func (t *LineTable) readvarint(pp *[]byte) uint32 {
-	var v, shift uint32
-	p := *pp
-	for shift = 0; ; shift += 7 {
-		b := p[0]
-		p = p[1:]
-		v |= (uint32(b) & 0x7F) << shift
-		if b&0x80 == 0 {
-			break
-		}
-	}
-	*pp = p
-	return v
-}
-
 // functabFieldSize returns the size in bytes of a single functab field.
 func (t *LineTable) functabFieldSize() int {
 	if t.version >= ver118 {
@@ -342,23 +326,7 @@ func (f funcData) IsZero() bool {
 	return f.t == nil && f.data == nil
 }
 
-// entryPC returns the func's entry PC.
-func (f *funcData) entryPC() uint64 {
-	// In Go 1.18, the first field of _func changed
-	// from a uintptr entry PC to a uint32 entry offset.
-	if f.t.version >= ver118 {
-		// TODO: support multiple text sections.
-		// See runtime/symtab.go:(*moduledata).textAddr.
-		return uint64(f.t.binary.Uint32(f.data)) + f.t.textStart
-	}
-	return f.t.uintptr(f.data)
-}
-
-func (f funcData) nameOff() uint32     { return f.field(1) }
-func (f funcData) deferreturn() uint32 { return f.field(3) }
-func (f funcData) pcfile() uint32      { return f.field(5) }
-func (f funcData) pcln() uint32        { return f.field(6) }
-func (f funcData) cuOffset() uint32    { return f.field(8) }
+func (f funcData) nameOff() uint32 { return f.field(1) }
 
 // field returns the nth field of the _func struct.
 // It panics if n == 0 or n > 9; for n == 0, call f.entryPC.
@@ -376,24 +344,6 @@ func (f funcData) field(n uint32) uint32 {
 	off := sz0 + (n-1)*4 // subsequent fields are 4 bytes each
 	data := f.data[off:]
 	return f.t.binary.Uint32(data)
-}
-
-// step advances to the next pc, value pair in the encoded table.
-func (t *LineTable) step(p *[]byte, pc *uint64, val *int32, first bool) bool {
-	uvdelta := t.readvarint(p)
-	if uvdelta == 0 && !first {
-		return false
-	}
-	if uvdelta&1 != 0 {
-		uvdelta = ^(uvdelta >> 1)
-	} else {
-		uvdelta >>= 1
-	}
-	vdelta := int32(uvdelta)
-	pcdelta := t.readvarint(p) * t.quantum
-	*pc += uint64(pcdelta)
-	*val += vdelta
-	return true
 }
 
 func (t *LineTable) IsFailed() bool {
