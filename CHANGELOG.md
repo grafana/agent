@@ -18,6 +18,8 @@ Main (unreleased)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
 
+- Support `stage.jsonmerge` in `loki.process`. (@akselleirv)
+
 
 - New Grafana Agent Flow components:
 

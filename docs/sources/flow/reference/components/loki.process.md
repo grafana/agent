@@ -1478,6 +1478,45 @@ Then the extracted `ip` value is given as source to geoip stage. The geoip stage
 - geoip_autonomous_system_organization: GOOGLE-CLOUD-PLATFORM
 
 
+### stage.jsonmerge block
+
+The `stage.jsonmerge` inner block configures a processing stage that merges .
+
+The following arguments are supported:
+
+| Name     | Type     | Description                                                           | Default | Required |
+| -------- | -------- | --------------------------------------------------------------------- | ------- | -------- |
+| `source` | `string` | Name from extracted data to parse. If empty, it uses the log message. |         | yes      |
+| `values` | `string` | The values to merge from the extracted map with the `source` value.   |         | yes      |
+| `output` | `string` | Name to use for the merged value in the extracted map.                |         | yes      |
+
+
+#### Example
+
+Log line: {"hello": {"nested":"object", "another": {"one": true} }, "something": [1, 2, 3]}
+
+Outputs: {"something": "[1,2,3]", "extracted_object": "{\"one\":true}" }
+
+```
+stage.json {
+    expressions = {extracted_object = "hello.another"}
+}
+
+stage.json {
+    expressions = {something = ""}
+}
+
+stage.jsonmerge {
+    source = "something"
+    values = ["extracted_object"]
+    output = "resultjson"
+}
+
+stage.output {
+    source = "resultjson"
+}
+```
+
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:

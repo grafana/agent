@@ -45,6 +45,7 @@ type StageConfig struct {
 	LimitConfig        *LimitConfig        `river:"limit,block,optional"`
 	MetricsConfig      *MetricsConfig      `river:"metrics,block,optional"`
 	GeoIPConfig        *GeoIPConfig        `river:"geoip,block,optional"`
+	JSONMergeConfig    *JSONMergeConfig    `river:"jsonmerge,block,optional"`
 }
 
 var rateLimiter *rate.Limiter

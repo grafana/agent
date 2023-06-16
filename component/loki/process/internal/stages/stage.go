@@ -40,6 +40,7 @@ const (
 	StageTypeLabelAllow   = "labelallow"
 	StageTypeStaticLabels = "static_labels"
 	StageTypeGeoIP        = "geoip"
+	StageTypeJSONMerge    = "jsonmerge"
 )
 
 // Processor takes an existing set of labels, timestamp and log entry and returns either a possibly mutated
@@ -216,7 +217,11 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-
+	case cfg.JSONMergeConfig != nil:
+		s, err = newJSONMergeStage(logger, *cfg.JSONMergeConfig)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		panic("unreachable; should have decoded into one of the StageConfig fields")
 	}
