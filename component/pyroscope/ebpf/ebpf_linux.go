@@ -91,8 +91,8 @@ func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 
 func defaultArguments() Arguments {
 	return Arguments{
-		CollectInterval:      10 * time.Second,
-		SampleRate:           100,
+		CollectInterval:      15 * time.Second,
+		SampleRate:           100, //todo consider lower prime default
 		PidCacheSize:         32,
 		ContainerIDCacheSize: 1024,
 		BuildIDCacheSize:     64,

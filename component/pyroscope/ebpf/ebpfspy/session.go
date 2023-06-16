@@ -9,6 +9,7 @@ import (
 	_ "embed"
 	"encoding/binary"
 	"fmt"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/cpuonline"
 	"reflect"
 	"unsafe"
 
@@ -16,7 +17,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
-	"github.com/pyroscope-io/pyroscope/pkg/agent/ebpfspy/cpuonline"
 	"golang.org/x/sys/unix"
 
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"

@@ -37,7 +37,7 @@ values.
 | `targets`                 | `list(map(string))`      | List of targets to group profiles by container id                      |         | no       |   
 | `default_target`          | `map(string)`            | Default target to use when a PID is not associated with a container id |         | no       |    
 | `targets_only`            | `bool`                   | A flag to ignore profiles not associated with a container id           | true    | no       |      
-| `collect_interval`        | `duration`               | How frequently to collect profiles                                     | `10s`   | no       |       
+| `collect_interval`        | `duration`               | How frequently to collect profiles                                     | `15s`   | no       |       
 | `sample_rate`             | `int`                    | How many times per second to collect profile samples                   | 100     | no       |     
 | `pid_cache_size`          | `int`                    | The size of the pid -> proc symbol table LRU cache                     | 32      | no       |      
 | `elf_cache_size`          | `int`                    | The size of the elf file -> symbols LRU cache                          | 128     | no       |       
