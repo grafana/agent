@@ -241,46 +241,40 @@ var (
 	_ encoding.TextUnmarshaler = (*SeverityLevel)(nil)
 )
 
-// The severity levels should be in sync with "opentelemetry-collector/pdata/plog/logs.go"
-var severityLevels = map[SeverityLevel]struct {
-	sevLevelNum     int32
-	otelLogLevelStr string
-}{
-	"TRACE":  {1, "Trace"},
-	"TRACE2": {2, "Trace2"},
-	"TRACE3": {3, "Trace3"},
-	"TRACE4": {4, "Trace4"},
-	"DEBUG":  {5, "Debug"},
-	"DEBUG2": {6, "Debug2"},
-	"DEBUG3": {7, "Debug3"},
-	"DEBUG4": {8, "Debug4"},
-	"INFO":   {9, "Info"},
-	"INFO2":  {10, "Info2"},
-	"INFO3":  {11, "Info3"},
-	"INFO4":  {12, "Info4"},
-	"WARN":   {13, "Warn"},
-	"WARN2":  {14, "Warn2"},
-	"WARN3":  {15, "Warn3"},
-	"WARN4":  {16, "Warn4"},
-	"ERROR":  {17, "Error"},
-	"ERROR2": {18, "Error2"},
-	"ERROR3": {19, "Error3"},
-	"ERROR4": {20, "Error4"},
-	"FATAL":  {21, "Fatal"},
-	"FATAL2": {22, "Fatal2"},
-	"FATAL3": {23, "Fatal3"},
-	"FATAL4": {24, "Fatal4"},
+// The severity levels should be in sync with "opentelemetry-collector/pdata/plog/severity_number.go"
+var severityLevels = map[SeverityLevel]plog.SeverityNumber{
+	"TRACE":  1,
+	"TRACE2": 2,
+	"TRACE3": 3,
+	"TRACE4": 4,
+	"DEBUG":  5,
+	"DEBUG2": 6,
+	"DEBUG3": 7,
+	"DEBUG4": 8,
+	"INFO":   9,
+	"INFO2":  10,
+	"INFO3":  11,
+	"INFO4":  12,
+	"WARN":   13,
+	"WARN2":  14,
+	"WARN3":  15,
+	"WARN4":  16,
+	"ERROR":  17,
+	"ERROR2": 18,
+	"ERROR3": 19,
+	"ERROR4": 20,
+	"FATAL":  21,
+	"FATAL2": 22,
+	"FATAL3": 23,
+	"FATAL4": 24,
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler for SeverityLevel.
 func (sl *SeverityLevel) UnmarshalText(text []byte) error {
-	if sevLevelInfo, exists := severityLevels[SeverityLevel(text)]; exists {
-		// Check if this is a valid plog severity number
-		plogInt := plog.SeverityNumber(sevLevelInfo.sevLevelNum)
-		if plogInt.String() == sevLevelInfo.otelLogLevelStr {
-			*sl = SeverityLevel(sevLevelInfo.otelLogLevelStr)
-			return nil
-		}
+	agentSevLevelStr := SeverityLevel(text)
+	if _, exists := severityLevels[agentSevLevelStr]; exists {
+		*sl = agentSevLevelStr
+		return nil
 	}
 	return fmt.Errorf("unrecognized severity level %q", string(text))
 }
