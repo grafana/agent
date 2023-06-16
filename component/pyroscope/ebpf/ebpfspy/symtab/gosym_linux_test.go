@@ -4,6 +4,7 @@ package symtab
 
 import (
 	"encoding/hex"
+	"math/rand"
 	"reflect"
 	"strings"
 	"testing"
@@ -41,7 +42,7 @@ func TestPclntab18(t *testing.T) {
 }
 
 func BenchmarkGoSym(b *testing.B) {
-	mod := "/proc/self/exe"
+	mod := "/home/korniltsev/Desktop/benchelf"
 	symbols, err := elf.GetGoSymbols(mod)
 	require.NoError(b, err)
 	me, err := elf.NewMMapedElfFile(mod)
@@ -50,10 +51,18 @@ func BenchmarkGoSym(b *testing.B) {
 	gosym, err := me.NewGoTable()
 	require.NoError(b, err)
 
+	var benchSymbols []elf.TestSym
+	const nsym = 1000
+	for i := 0; i < nsym; i++ {
+		rng := rand.Intn(len(symbols))
+		benchSymbols = append(benchSymbols, symbols[rng])
+	}
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		for _, symbol := range symbols {
-			gosym.Resolve(symbol.Start)
+		for i := range benchSymbols {
+			gosym.Resolve(benchSymbols[i].Start)
 		}
+		gosym.Cleanup()
 	}
 }

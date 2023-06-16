@@ -3,22 +3,23 @@ package symtab
 import (
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gcache"
 )
 
 type ElfCache struct {
-	BuildIDCache  *GCache[elf.BuildID, SymbolNameResolver]
-	SameFileCache *GCache[stat, SymbolNameResolver]
+	BuildIDCache  *gcache.GCache[elf.BuildID, SymbolNameResolver]
+	SameFileCache *gcache.GCache[stat, SymbolNameResolver]
 
 	metrics *metrics.Metrics
 }
 
-func NewElfCache(buildIDCacheOptions GCacheOptions, sameFileCacheOptions GCacheOptions, metrics *metrics.Metrics) (*ElfCache, error) {
-	buildIdCache, err := NewGCache[elf.BuildID, SymbolNameResolver](buildIDCacheOptions)
+func NewElfCache(buildIDCacheOptions gcache.GCacheOptions, sameFileCacheOptions gcache.GCacheOptions, metrics *metrics.Metrics) (*ElfCache, error) {
+	buildIdCache, err := gcache.NewGCache[elf.BuildID, SymbolNameResolver](buildIDCacheOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	statCache, err := NewGCache[stat, SymbolNameResolver](sameFileCacheOptions)
+	statCache, err := gcache.NewGCache[stat, SymbolNameResolver](sameFileCacheOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +47,7 @@ func (e *ElfCache) CacheByStat(s stat, v SymbolNameResolver) {
 	e.SameFileCache.Cache(s, v)
 }
 
-func (e *ElfCache) Update(buildIDCacheOptions GCacheOptions, sameFileCacheOptions GCacheOptions) {
+func (e *ElfCache) Update(buildIDCacheOptions gcache.GCacheOptions, sameFileCacheOptions gcache.GCacheOptions) {
 	e.BuildIDCache.Update(buildIDCacheOptions)
 	e.SameFileCache.Update(sameFileCacheOptions)
 }
