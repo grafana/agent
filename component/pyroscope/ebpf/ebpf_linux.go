@@ -70,8 +70,6 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 type Arguments struct {
 	ForwardTo            []pyroscope.Appendable `river:"forward_to,attr"`
 	Targets              []discovery.Target     `river:"targets,attr,optional"`
-	DefaultTarget        discovery.Target       `river:"default_target,attr,optional"`
-	TargetsOnly          bool                   `river:"targets_only,attr,optional"`
 	CollectInterval      time.Duration          `river:"collect_interval,attr,optional"`
 	SampleRate           int                    `river:"sample_rate,attr,optional"`
 	PidCacheSize         int                    `river:"pid_cache_size,attr,optional"`
@@ -98,7 +96,6 @@ func defaultArguments() Arguments {
 		BuildIDCacheSize:     64,
 		SameFileCacheSize:    8,
 		CacheRounds:          3,
-		TargetsOnly:          true,
 		CollectUserProfile:   true,
 		CollectKernelProfile: true,
 	}
@@ -181,8 +178,8 @@ func cacheOptionsFromArgs(args Arguments) ebpfspy.CacheOptions {
 func (c *Component) updateTargetFinder() {
 	c.targetFinder.SetTargets(sd.TargetsOptions{
 		Targets:       c.args.Targets,
-		DefaultTarget: c.args.DefaultTarget,
-		TargetsOnly:   c.args.TargetsOnly,
+		DefaultTarget: nil,
+		TargetsOnly:   true,
 	})
 	c.targetFinder.ResizeContainerIDCache(c.args.ContainerIDCacheSize)
 }

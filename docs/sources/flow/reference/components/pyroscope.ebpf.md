@@ -35,8 +35,6 @@ values.
 |---------------------------|--------------------------|------------------------------------------------------------------------|---------|----------|
 | `forward_to`              | `list(ProfilesReceiver)` | List of receivers to send collected profiles to.                       |         | yes      |  
 | `targets`                 | `list(map(string))`      | List of targets to group profiles by container id                      |         | no       |   
-| `default_target`          | `map(string)`            | Default target to use when a PID is not associated with a container id |         | no       |    
-| `targets_only`            | `bool`                   | A flag to ignore profiles not associated with a container id           | true    | no       |      
 | `collect_interval`        | `duration`               | How frequently to collect profiles                                     | `15s`   | no       |       
 | `sample_rate`             | `int`                    | How many times per second to collect profile samples                   | 97      | no       |     
 | `pid_cache_size`          | `int`                    | The size of the pid -> proc symbol table LRU cache                     | 32      | no       |      
