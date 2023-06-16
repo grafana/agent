@@ -184,7 +184,10 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	defer c.mut.RUnlock()
 
 	globalRef := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
-	var relabelled labels.Labels
+	var (
+		relabelled labels.Labels
+		keep       bool
+	)
 	newLbls, found := c.getFromCache(globalRef)
 	if found {
 		c.cacheHits.Inc()
@@ -195,7 +198,7 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	} else {
 		// Relabel against a copy of the labels to prevent modifying the original
 		// slice.
-		relabelled, keep := relabel.Process(lbls.Copy(), c.mrc...)
+		relabelled, keep = relabel.Process(lbls.Copy(), c.mrc...)
 		c.cacheMisses.Inc()
 		c.cacheSize.Inc()
 		c.addToCache(globalRef, relabelled, keep)
@@ -207,9 +210,6 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	if value.IsStaleNaN(val) {
 		c.cacheSize.Dec()
 		c.deleteFromCache(globalRef)
-	}
-	if relabelled == nil {
-		return nil
 	}
 	return relabelled
 }
