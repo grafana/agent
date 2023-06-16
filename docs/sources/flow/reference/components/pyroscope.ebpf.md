@@ -72,11 +72,11 @@ per second.
 The following labels are automatically injected to the collected profiles if not found and can help pin down a
 profiling target.
 
-| Label              | Description                                                                                                                                                                                            |
-|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `service_name`     | Pyroscope service name. It's automatically selected from discovery meta labels if possible. Otherwise defaults to the fully formed component name or a value from `pyroscope.ebpf.service_name` field. |
-| `__name__`         | pyroscope metric name. Defaults to `process_cpu`.                                                                                                                                                      |
-| `__container_id__` | The container ID derived from target.                                                                                                                                                                  |
+| Label              | Description                                                                                                                      |
+|--------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `service_name`     | Pyroscope service name. It's automatically selected from discovery meta labels if possible. Otherwise defaults to `unspecified`. |
+| `__name__`         | pyroscope metric name. Defaults to `process_cpu`.                                                                                |
+| `__container_id__` | The container ID derived from target.                                                                                            |
 
 ### Container ID
 
