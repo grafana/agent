@@ -162,10 +162,8 @@ func (s *TargetFinder) FindTarget(pid uint32) *Target {
 func (s *TargetFinder) findTarget(pid uint32) *Target {
 	cid, ok := s.containerIDCache.Get(pid)
 	if ok && cid != "" {
-		s.metrics.ContainerIDCacheHit.Inc()
 		return s.cid2target[cid]
 	}
-	s.metrics.ContainerIDCacheMiss.Inc()
 
 	cid = getContainerIDFromPID(pid)
 	s.containerIDCache.Add(pid, cid)
@@ -174,6 +172,23 @@ func (s *TargetFinder) findTarget(pid uint32) *Target {
 
 func (s *TargetFinder) ResizeContainerIDCache(size int) {
 	s.containerIDCache.Resize(size)
+}
+
+func (s *TargetFinder) DebugInfo() []string {
+	debugTargets := make([]string, 0, len(s.cid2target))
+	for _, target := range s.cid2target {
+		_, labels := target.Labels()
+		debugTargets = append(debugTargets, labels.String())
+	}
+	return debugTargets
+}
+
+func (s *TargetFinder) Targets() []*Target {
+	res := make([]*Target, 0, len(s.cid2target))
+	for _, target := range s.cid2target {
+		res = append(res, target)
+	}
+	return res
 }
 
 func containerIDFromTarget(target discovery.Target) containerID {

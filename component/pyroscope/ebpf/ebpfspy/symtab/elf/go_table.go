@@ -4,7 +4,6 @@ import (
 	"debug/elf"
 	"errors"
 	"fmt"
-
 	gosym2 "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/gosym"
 )
 
@@ -15,12 +14,20 @@ type GoTable struct {
 	funcNameOffset uint64
 }
 
-func (g *GoTable) Refresh() {
-
+func (g *GoTable) DebugInfo() SymTabDebugInfo {
+	return SymTabDebugInfo{
+		Name: "GoTable",
+		Size: len(g.Index.Name),
+		File: g.File.fpath,
+	}
 }
 
-func (g *GoTable) DebugString() string {
-	return fmt.Sprintf("GoTable{ f = %s , sz = %d }", g.File.FilePath(), g.Index.Entry.Length())
+func (g *GoTable) Size() int {
+	return len(g.Index.Name)
+}
+
+func (g *GoTable) Refresh() {
+
 }
 
 func (g *GoTable) Resolve(addr uint64) string {
@@ -130,12 +137,20 @@ type GoTableWithFallback struct {
 	SymTable *SymbolTable
 }
 
-func (g *GoTableWithFallback) Refresh() {
-
+func (g *GoTableWithFallback) DebugInfo() SymTabDebugInfo {
+	return SymTabDebugInfo{
+		Name: "GoTableWithFallback",
+		Size: g.GoTable.Size() + g.SymTable.Size(),
+		File: g.GoTable.File.fpath,
+	}
 }
 
-func (g *GoTableWithFallback) DebugString() string {
-	return fmt.Sprintf("GoTableWithFallback{ %s | %s }", g.GoTable.DebugString(), g.SymTable.DebugString())
+func (g *GoTableWithFallback) Size() int {
+	return g.GoTable.Size() + g.SymTable.Size()
+}
+
+func (g *GoTableWithFallback) Refresh() {
+
 }
 
 func (g *GoTableWithFallback) Resolve(addr uint64) string {

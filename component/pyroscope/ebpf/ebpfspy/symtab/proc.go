@@ -2,6 +2,7 @@ package symtab
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 	"os"
 	"path"
 	"strconv"
@@ -19,19 +20,26 @@ type ProcTable struct {
 	rootFS     string
 }
 
-func (p *ProcTable) DebugString() string {
-	sb := strings.Builder{}
-	sb.WriteString("[ ")
-	i := 0
-	for _, e := range p.file2Table {
-		if i != 0 {
-			sb.WriteString(", ")
-		}
-		sb.WriteString(e.DebugString())
-		i++
+type ProcTableDebugInfo struct {
+	ElfTables []elf.SymTabDebugInfo `river:"elfs,block,optional"`
+	//Ranges    []*ProcMap            `river:"vm_ranges,block,optional"`
+}
+
+func (p *ProcTable) DebugInfo() ProcTableDebugInfo {
+	res := ProcTableDebugInfo{
+		ElfTables: make([]elf.SymTabDebugInfo, 0, len(p.file2Table)),
+		//Ranges:    make([]*ProcMap, 0, len(p.ranges)),
 	}
-	sb.WriteString(" ]")
-	return fmt.Sprintf("ProcTable{ pid = %d, sz = %d, elfs =[ %s ] }", p.options.Pid, len(p.file2Table), sb.String())
+	for _, e := range p.file2Table {
+		d := e.table.DebugInfo()
+		if d.Size != 0 {
+			res.ElfTables = append(res.ElfTables, d)
+		}
+	}
+	//for _, r := range p.ranges {
+	//	res.Ranges = append(res.Ranges, r.mapRange)
+	//}
+	return res
 }
 
 type ProcTableOptions struct {

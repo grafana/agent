@@ -16,8 +16,7 @@ var (
 )
 
 type ElfTable struct {
-	fs string
-	//symbolFile  string
+	fs          string
 	elfFilePath string
 	table       SymbolNameResolver
 	base        uint64
@@ -46,16 +45,16 @@ func NewElfTable(logger log.Logger, procMap *ProcMap, fs string, elfFilePath str
 	return res
 }
 
-func (p *ElfTable) findBase(e *elf2.MMapedElfFile) bool {
-	m := p.procMap
+func (et *ElfTable) findBase(e *elf2.MMapedElfFile) bool {
+	m := et.procMap
 	if e.FileHeader.Type == elf.ET_EXEC {
-		p.base = 0
+		et.base = 0
 		return true
 	}
 	for _, prog := range e.Progs {
 		if prog.Type == elf.PT_LOAD && (prog.Flags&elf.PF_X != 0) {
 			if uint64(m.Offset) == prog.Off {
-				p.base = m.StartAddr - prog.Vaddr
+				et.base = m.StartAddr - prog.Vaddr
 				return true
 			}
 		}
@@ -63,79 +62,79 @@ func (p *ElfTable) findBase(e *elf2.MMapedElfFile) bool {
 	return false
 }
 
-func (t *ElfTable) load() {
-	if t.loaded {
+func (et *ElfTable) load() {
+	if et.loaded {
 		return
 	}
-	t.loaded = true
-	fsElfFilePath := path.Join(t.fs, t.elfFilePath)
+	et.loaded = true
+	fsElfFilePath := path.Join(et.fs, et.elfFilePath)
 
 	me, err := elf2.NewMMapedElfFile(fsElfFilePath)
 	if err != nil {
-		t.err = err
+		et.err = err
 		return
 	}
 	defer me.Close() // todo do not close if it is the selected elf
 
-	if !t.findBase(me) {
-		t.err = errElfBaseNotFound
+	if !et.findBase(me) {
+		et.err = errElfBaseNotFound
 		return
 	}
 	buildID, err := me.BuildID()
 	if err != nil && err != elf2.ErrNoBuildIDSection {
-		t.err = err
+		et.err = err
 		return
 	}
 
-	symbols := t.options.ElfCache.GetSymbolsByBuildID(buildID)
+	symbols := et.options.ElfCache.GetSymbolsByBuildID(buildID)
 	if symbols != nil {
-		t.table = symbols
+		et.table = symbols
 		return
 	}
 	fileInfo, err := os.Stat(fsElfFilePath)
 	if err != nil {
-		t.err = err
+		et.err = err
 		return
 	}
-	symbols = t.options.ElfCache.GetSymbolsByStat(statFromFileInfo(fileInfo))
+	symbols = et.options.ElfCache.GetSymbolsByStat(statFromFileInfo(fileInfo))
 	if symbols != nil {
-		t.table = symbols
+		et.table = symbols
 		return
 	}
 
-	debugFilePath := t.findDebugFile(buildID, me)
+	debugFilePath := et.findDebugFile(buildID, me)
 	if debugFilePath != "" {
-		debugMe, err := elf2.NewMMapedElfFile(path.Join(t.fs, debugFilePath))
+		debugMe, err := elf2.NewMMapedElfFile(path.Join(et.fs, debugFilePath))
 		if err != nil {
-			t.err = err
+			et.err = err
 			return
 		}
 		defer debugMe.Close() // todo do not close if it is the selected elf
 
-		symbols, err = t.createSymbolTable(debugMe)
+		symbols, err = et.createSymbolTable(debugMe)
 		if err != nil {
-			t.err = err
+			et.err = err
 			return
 		}
-		t.table = symbols
-		t.options.ElfCache.CacheByBuildID(buildID, symbols)
+		et.table = symbols
+		et.options.ElfCache.CacheByBuildID(buildID, symbols)
 		return
 	}
 
-	symbols, err = t.createSymbolTable(me)
-	level.Debug(t.logger).Log("msg", "create symbol table", "f", me.FilePath())
+	symbols, err = et.createSymbolTable(me)
+	level.Debug(et.logger).Log("msg", "create symbol table", "f", me.FilePath())
 	if err != nil {
-		t.err = err
+		et.err = err
 		return
 	}
 
-	t.table = symbols
-	t.options.ElfCache.CacheByBuildID(buildID, symbols)
-	t.options.ElfCache.CacheByStat(statFromFileInfo(fileInfo), symbols)
+	et.table = symbols
+	et.options.ElfCache.CacheByBuildID(buildID, symbols)
+	et.options.ElfCache.CacheByStat(statFromFileInfo(fileInfo), symbols)
 	return
 }
 
-func (t *ElfTable) createSymbolTable(me *elf2.MMapedElfFile) (SymbolNameResolver, error) {
+func (et *ElfTable) createSymbolTable(me *elf2.MMapedElfFile) (SymbolNameResolver, error) {
 	symTable, symErr := me.NewSymbolTable()
 	goTable, goErr := me.NewGoTable()
 	if symErr != nil && goErr != nil {
@@ -156,26 +155,26 @@ func (t *ElfTable) createSymbolTable(me *elf2.MMapedElfFile) (SymbolNameResolver
 	panic("unreachable")
 }
 
-func (t *ElfTable) Resolve(pc uint64) string {
-	t.load()
-	pc -= t.base
-	return t.table.Resolve(pc)
+func (et *ElfTable) Resolve(pc uint64) string {
+	et.load()
+	pc -= et.base
+	return et.table.Resolve(pc)
 }
 
-func (t *ElfTable) Cleanup() {
-	if t.table != nil {
-		t.table.Cleanup()
+func (et *ElfTable) Cleanup() {
+	if et.table != nil {
+		et.table.Cleanup()
 	}
 }
 
-func (t *ElfTable) findDebugFileWithBuildID(buildID elf2.BuildID) string {
+func (et *ElfTable) findDebugFileWithBuildID(buildID elf2.BuildID) string {
 	id := buildID.ID()
 	if len(id) < 3 || !buildID.GNU() {
 		return ""
 	}
 
 	debugFile := fmt.Sprintf("/usr/lib/debug/.build-id/%s/%s.debug", id[:2], id[2:])
-	fsDebugFile := path.Join(t.fs, debugFile)
+	fsDebugFile := path.Join(et.fs, debugFile)
 	_, err := os.Stat(fsDebugFile)
 	if err == nil {
 		return debugFile
@@ -184,7 +183,7 @@ func (t *ElfTable) findDebugFileWithBuildID(buildID elf2.BuildID) string {
 	return ""
 }
 
-func (t *ElfTable) findDebugFile(buildID elf2.BuildID, elfFile *elf2.MMapedElfFile) string {
+func (et *ElfTable) findDebugFile(buildID elf2.BuildID, elfFile *elf2.MMapedElfFile) string {
 	// https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html
 	// So, for example, suppose you ask GDB to debug /usr/bin/ls, which has a debug link that specifies the file
 	// ls.debug, and a build ID whose value in hex is abcdef1234. If the list of the global debug directories
@@ -194,17 +193,17 @@ func (t *ElfTable) findDebugFile(buildID elf2.BuildID, elfFile *elf2.MMapedElfFi
 	//- /usr/bin/ls.debug
 	//- /usr/bin/.debug/ls.debug
 	//- /usr/lib/debug/usr/bin/ls.debug.
-	debugFile := t.findDebugFileWithBuildID(buildID)
+	debugFile := et.findDebugFileWithBuildID(buildID)
 	if debugFile != "" {
 		return debugFile
 	}
-	debugFile = t.findDebugFileWithDebugLink(elfFile)
+	debugFile = et.findDebugFileWithDebugLink(elfFile)
 	return debugFile
 }
 
-func (t *ElfTable) findDebugFileWithDebugLink(elfFile *elf2.MMapedElfFile) string {
-	fs := t.fs
-	elfFilePath := t.elfFilePath
+func (et *ElfTable) findDebugFileWithDebugLink(elfFile *elf2.MMapedElfFile) string {
+	fs := et.fs
+	elfFilePath := et.elfFilePath
 	debugLinkSection := elfFile.Section(".gnu_debuglink")
 	if debugLinkSection == nil {
 		return ""
@@ -252,6 +251,11 @@ func cString(bs []byte) string {
 	return string(bs[:i])
 }
 
-func (t *ElfTable) DebugString() string {
-	return t.table.DebugString()
+type ElfDebugInfo struct {
+	SymbolsCount int    `river:"symbols_count,attr,optional"`
+	File         string `river:"file,attr,optional"`
+}
+
+func (et *ElfTable) DebugInfo() elf2.SymTabDebugInfo {
+	return et.table.DebugInfo()
 }

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-kit/log/level"
@@ -63,6 +64,7 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 		argsUpdate:   make(chan Arguments),
 	}
 	res.updateTargetFinder()
+	res.updateDebugInfo()
 	return res, nil
 }
 
@@ -107,6 +109,9 @@ type Component struct {
 	appendable   *pyroscope.Fanout
 	targetFinder *sd.TargetFinder
 	session      *ebpfspy.Session
+
+	debugInfo     DebugInfo
+	debugInfoLock sync.Mutex
 }
 
 func (c *Component) Run(ctx context.Context) error {
@@ -143,6 +148,7 @@ func (c *Component) Run(ctx context.Context) error {
 				if err != nil {
 					return err
 				}
+				c.updateDebugInfo()
 			}
 		}
 	}, func(error) {
@@ -151,8 +157,8 @@ func (c *Component) Run(ctx context.Context) error {
 	return g.Run()
 }
 
-func cacheOptionsFromArgs(args Arguments) ebpfspy.CacheOptions {
-	return ebpfspy.CacheOptions{
+func cacheOptionsFromArgs(args Arguments) symtab.CacheOptions {
+	return symtab.CacheOptions{
 		PidCacheOptions: symtab.GCacheOptions{
 			Size:       args.PidCacheSize,
 			KeepRounds: args.CacheRounds,
@@ -170,9 +176,11 @@ func cacheOptionsFromArgs(args Arguments) ebpfspy.CacheOptions {
 
 func (c *Component) updateTargetFinder() {
 	c.targetFinder.SetTargets(sd.TargetsOptions{
-		Targets:       c.args.Targets,
-		DefaultTarget: nil,
-		TargetsOnly:   true,
+		Targets: c.args.Targets,
+		//DefaultTarget: nil,
+		//TargetsOnly:   true,
+		DefaultTarget: map[string]string{"service_name": "dev"}, // do not commit
+		TargetsOnly:   false,
 	})
 	c.targetFinder.ResizeContainerIDCache(c.args.ContainerIDCacheSize)
 }
@@ -216,4 +224,28 @@ func (c *Component) reset() error {
 	}
 	level.Debug(c.options.Logger).Log("msg", "ebpf append done", "bytes_sent", bytesSent)
 	return nil
+}
+
+type DebugInfo struct {
+	Targets  []string                                          `river:"targets,block,optional"`
+	ElfCache symtab.ElfCacheDebugInfo                          `river:"elf_cache,attr,optional"`
+	PidCache symtab.GCacheDebugInfo[symtab.ProcTableDebugInfo] `river:"pid_cache,attr,optional"`
+}
+
+func (c *Component) DebugInfo() interface{} {
+	c.debugInfoLock.Lock()
+	defer c.debugInfoLock.Unlock()
+	return c.debugInfo
+}
+
+func (c *Component) updateDebugInfo() {
+	c.debugInfoLock.Lock()
+	defer c.debugInfoLock.Unlock()
+
+	c.debugInfo = DebugInfo{
+		Targets:  c.targetFinder.DebugInfo(),
+		ElfCache: c.session.ElfCacheDebugInfo(),
+		PidCache: c.session.PidCacheDebugInfo(),
+	}
+
 }

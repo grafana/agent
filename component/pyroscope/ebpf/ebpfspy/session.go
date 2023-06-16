@@ -33,12 +33,6 @@ type ProfileOptions struct {
 	CollectKernel bool
 }
 
-type CacheOptions struct {
-	PidCacheOptions      symtab.GCacheOptions
-	BuildIDCacheOptions  symtab.GCacheOptions
-	SameFileCacheOptions symtab.GCacheOptions
-}
-
 type Session struct {
 	logger     log.Logger
 	pid        int
@@ -48,7 +42,7 @@ type Session struct {
 
 	perfEvents []*perfEvent
 
-	symCache *symbolCache
+	symCache *symtab.SymbolCache
 
 	bpf profileObjects
 
@@ -61,11 +55,11 @@ func NewSession(
 	serviceDiscovery *sd.TargetFinder,
 	metrics *metrics.Metrics,
 	sampleRate int,
-	cacheOptions CacheOptions,
+	cacheOptions symtab.CacheOptions,
 	profileOptions ProfileOptions,
 ) (*Session, error) {
 
-	symCache, err := newSymbolCache(logger, cacheOptions, metrics)
+	symCache, err := symtab.NewSymbolCache(logger, cacheOptions, metrics)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +234,7 @@ func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 		if ip == 0 {
 			break
 		}
-		sym := s.symCache.resolve(pid, ip)
+		sym := s.symCache.Resolve(pid, ip)
 		var name string
 		if sym.Name != "" {
 			name = sym.Name
@@ -260,8 +254,8 @@ func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 	}
 }
 
-func (s *Session) UpdateCacheOptions(options CacheOptions) {
-	s.symCache.updateOptions(options)
+func (s *Session) UpdateCacheOptions(options symtab.CacheOptions) {
+	s.symCache.UpdateOptions(options)
 }
 
 func (s *Session) UpdateSampleRate(sampleRate int) error {
@@ -281,8 +275,16 @@ func (s *Session) UpdateSampleRate(sampleRate int) error {
 	return nil
 }
 
+func (s *Session) ElfCacheDebugInfo() symtab.ElfCacheDebugInfo {
+	return s.symCache.ElfCacheDebugInfo()
+}
+
 func (s *Session) UpdateProfileOptions(options ProfileOptions) {
 	s.ProfileOptions = options
+}
+
+func (s *Session) PidCacheDebugInfo() symtab.GCacheDebugInfo[symtab.ProcTableDebugInfo] {
+	return s.symCache.PidCacheDebugInfo()
 }
 
 func reverse(s []string) {

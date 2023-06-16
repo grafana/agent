@@ -7,7 +7,7 @@ import (
 
 type ElfCache struct {
 	BuildIDCache  *GCache[elf.BuildID, SymbolNameResolver]
-	SameFileCache *GCache[stat, SymbolNameResolver]
+	SameFileCache *GCache[Stat, SymbolNameResolver]
 
 	metrics *metrics.Metrics
 }
@@ -18,7 +18,7 @@ func NewElfCache(buildIDCacheOptions GCacheOptions, sameFileCacheOptions GCacheO
 		return nil, err
 	}
 
-	statCache, err := NewGCache[stat, SymbolNameResolver](sameFileCacheOptions)
+	statCache, err := NewGCache[Stat, SymbolNameResolver](sameFileCacheOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -38,11 +38,11 @@ func (e *ElfCache) CacheByBuildID(buildID elf.BuildID, v SymbolNameResolver) {
 	e.BuildIDCache.Cache(buildID, v)
 }
 
-func (e *ElfCache) GetSymbolsByStat(s stat) SymbolNameResolver {
+func (e *ElfCache) GetSymbolsByStat(s Stat) SymbolNameResolver {
 	return e.SameFileCache.Get(s)
 }
 
-func (e *ElfCache) CacheByStat(s stat, v SymbolNameResolver) {
+func (e *ElfCache) CacheByStat(s Stat, v SymbolNameResolver) {
 	e.SameFileCache.Cache(s, v)
 }
 
@@ -59,4 +59,24 @@ func (e *ElfCache) NextRound() {
 func (e *ElfCache) Cleanup() {
 	e.BuildIDCache.Cleanup()
 	e.SameFileCache.Cleanup()
+}
+
+type ElfCacheDebugInfo struct {
+	BuildIDCache  GCacheDebugInfo[elf.SymTabDebugInfo] `river:"build_id_cache,attr,optional"`
+	SameFileCache GCacheDebugInfo[elf.SymTabDebugInfo] `river:"same_file_cache,attr,optional"`
+}
+
+func (e *ElfCache) DebugInfo() ElfCacheDebugInfo {
+	return ElfCacheDebugInfo{
+		BuildIDCache: DebugInfo[elf.BuildID, SymbolNameResolver, elf.SymTabDebugInfo](
+			e.BuildIDCache,
+			func(v SymbolNameResolver) elf.SymTabDebugInfo {
+				return v.DebugInfo()
+			}),
+		SameFileCache: DebugInfo[Stat, SymbolNameResolver, elf.SymTabDebugInfo](
+			e.SameFileCache,
+			func(v SymbolNameResolver) elf.SymTabDebugInfo {
+				return v.DebugInfo()
+			}),
+	}
 }

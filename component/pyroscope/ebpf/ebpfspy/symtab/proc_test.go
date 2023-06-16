@@ -262,7 +262,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 	for _, td := range syms {
 		sym := m.Resolve(td.base + td.offset)
 		if sym.Name != td.name || !strings.Contains(sym.Module, td.elf) {
-			t.Errorf("failed to resolve %v (%v)", td, sym)
+			t.Errorf("failed to Resolve %v (%v)", td, sym)
 		}
 	}
 	maps = `559090826000-559090827000 r--p 00000000 09:00 9543482                    /elfs/elf.debuglink
@@ -344,7 +344,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 	for _, td := range syms {
 		sym := m.Resolve(td.base + td.offset)
 		if sym.Name != td.name || !strings.Contains(sym.Module, td.elf) {
-			t.Errorf("failed to resolve %v (%v)", td, sym)
+			t.Errorf("failed to Resolve %v (%v)", td, sym)
 		}
 	}
 	maps = `559090826000-559090827000 r--p 00000000 09:00 9543482                    /elfs/elf.debuglink

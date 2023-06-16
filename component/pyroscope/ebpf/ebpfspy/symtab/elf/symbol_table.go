@@ -44,28 +44,40 @@ type SymbolTable struct {
 	File  *MMapedElfFile
 }
 
-func (e *SymbolTable) Refresh() {
+func (st *SymbolTable) DebugInfo() SymTabDebugInfo {
+	return SymTabDebugInfo{
+		Name: "SymbolTable",
+		Size: len(st.Index.Names),
+		File: st.File.fpath,
+	}
+}
+
+func (st *SymbolTable) Size() int {
+	return len(st.Index.Names)
+}
+
+func (st *SymbolTable) Refresh() {
 
 }
 
-func (e *SymbolTable) DebugString() string {
-	return fmt.Sprintf("SymbolTable{ f = %s , sz = %d }", e.File.FilePath(), e.Index.Values.Length())
+func (st *SymbolTable) DebugString() string {
+	return fmt.Sprintf("SymbolTable{ f = %s , sz = %d }", st.File.FilePath(), st.Index.Values.Length())
 }
 
-func (e *SymbolTable) Resolve(addr uint64) string {
-	if len(e.Index.Names) == 0 {
+func (st *SymbolTable) Resolve(addr uint64) string {
+	if len(st.Index.Names) == 0 {
 		return ""
 	}
-	i := e.Index.Values.FindIndex(addr)
+	i := st.Index.Values.FindIndex(addr)
 	if i == -1 {
 		return ""
 	}
-	name, _ := e.symbolName(i)
+	name, _ := st.symbolName(i)
 	return name
 }
 
-func (e *SymbolTable) Cleanup() {
-	e.File.Close()
+func (st *SymbolTable) Cleanup() {
+	st.File.Close()
 }
 
 func (f *MMapedElfFile) NewSymbolTable() (*SymbolTable, error) {
@@ -108,17 +120,23 @@ func (f *MMapedElfFile) NewSymbolTable() (*SymbolTable, error) {
 	return res, nil
 }
 
-func (f *SymbolTable) symbolName(idx int) (string, error) {
-	linkIndex := f.Index.Names[idx].LinkIndex()
-	SectionHeaderLink := f.Index.Links[linkIndex]
-	strSection, err := f.File.stringTable(SectionHeaderLink)
+func (st *SymbolTable) symbolName(idx int) (string, error) {
+	linkIndex := st.Index.Names[idx].LinkIndex()
+	SectionHeaderLink := st.Index.Links[linkIndex]
+	strSection, err := st.File.stringTable(SectionHeaderLink)
 	if err != nil {
 		return "", err
 	}
-	NameIndex := f.Index.Names[idx].NameIndex()
-	s, b := f.File.getString(int(NameIndex) + int(strSection.Offset))
+	NameIndex := st.Index.Names[idx].NameIndex()
+	s, b := st.File.getString(int(NameIndex) + int(strSection.Offset))
 	if !b {
 		return "", fmt.Errorf("elf getString")
 	}
 	return s, nil
+}
+
+type SymTabDebugInfo struct {
+	Name string `river:"name,attr,optional"`
+	Size int    `river:"symbol_count,attr,optional"`
+	File string `river:"file,attr,optional"`
 }

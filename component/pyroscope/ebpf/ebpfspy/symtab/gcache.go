@@ -2,8 +2,6 @@ package symtab
 
 import (
 	"fmt"
-	"strings"
-
 	lru "github.com/hashicorp/golang-lru/v2"
 )
 
@@ -11,7 +9,6 @@ type Resource interface {
 	comparable
 	Refresh()
 	Cleanup()
-	DebugString() string
 }
 
 type GCache[K comparable, V Resource] struct {
@@ -114,21 +111,55 @@ func (g *GCache[K, V]) Cleanup() {
 	//level.Debug(sc.logger).Log("msg", "symbolCache cleanup", "was", len(prev), "now", len(sc.roundCache))
 }
 
-func (g *GCache[K, V]) DebugString() string {
-	sb := strings.Builder{}
-	sb.WriteString(fmt.Sprintf("lru %d | round %d ", g.lruCache.Len(), len(g.roundCache)))
-	sb.WriteString("[ ")
+func (g *GCache[K, V]) LRUSize() int {
+	return g.lruCache.Len()
+}
+
+func (g *GCache[K, V]) EachLRU(f func(k K, v V)) {
 	keys := g.lruCache.Keys()
-	for i, pid := range keys {
-		tab, ok := g.lruCache.Peek(pid)
-		if !ok || tab == nil {
+	for _, k := range keys {
+		e, ok := g.lruCache.Peek(k)
+		if !ok || e == nil {
 			continue
 		}
-		if i != 0 {
-			sb.WriteString(", ")
-		}
-		sb.WriteString(tab.v.DebugString())
+		f(k, e.v)
 	}
-	sb.WriteString(" ]")
-	return sb.String()
+}
+
+func (g *GCache[K, V]) RoundSize() int {
+	return len(g.roundCache)
+}
+
+func (g *GCache[K, V]) EachRound(f func(k K, v V)) {
+	keys := g.lruCache.Keys()
+	for _, k := range keys {
+		e, ok := g.lruCache.Peek(k)
+		if !ok || e == nil {
+			continue
+		}
+		f(k, e.v)
+	}
+}
+
+type GCacheDebugInfo[T any] struct {
+	LRUSize   int `river:"lru_size,attr,optional"`
+	RoundSize int `river:"round_size,attr,optional"`
+	LRU       []T `river:"lru_dump,block,optional"`
+	Round     []T `river:"round_dump,block,optional"`
+}
+
+func DebugInfo[K comparable, V Resource, D any](g *GCache[K, V], ff func(V) D) GCacheDebugInfo[D] {
+	res := GCacheDebugInfo[D]{
+		LRUSize:   g.LRUSize(),
+		RoundSize: g.RoundSize(),
+		LRU:       make([]D, 0, g.LRUSize()),
+		Round:     make([]D, 0, g.RoundSize()),
+	}
+	g.EachLRU(func(k K, v V) {
+		res.LRU = append(res.LRU, ff(v))
+	})
+	g.EachRound(func(k K, v V) {
+		res.Round = append(res.Round, ff(v))
+	})
+	return res
 }
