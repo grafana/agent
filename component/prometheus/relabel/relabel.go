@@ -59,6 +59,7 @@ type Component struct {
 	cacheHits        prometheus_client.Counter
 	cacheMisses      prometheus_client.Counter
 	cacheSize        prometheus_client.Gauge
+	cacheDeletes     prometheus_client.Counter
 	fanout           *prometheus.Fanout
 	exited           atomic.Bool
 
@@ -95,6 +96,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c.cacheSize = prometheus_client.NewGauge(prometheus_client.GaugeOpts{
 		Name: "agent_prometheus_relabel_cache_size",
 		Help: "Total size of relabel cache",
+	})
+	c.cacheDeletes = prometheus_client.NewCounter(prometheus_client.CounterOpts{
+		Name: "agent_prometheus_relabel_cache_deletes",
+		Help: "Total number of cache deletes",
 	})
 
 	var err error
@@ -225,7 +230,7 @@ func (c *Component) getFromCache(id uint64) (*labelAndID, bool) {
 func (c *Component) deleteFromCache(id uint64) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
-
+	c.cacheDeletes.Inc()
 	delete(c.cache, id)
 }
 
