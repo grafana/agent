@@ -40,6 +40,8 @@ Main (unreleased)
 
 - Update `node_exporter` dependency to v1.6.0. (@spartan0x117)
 
+- Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
