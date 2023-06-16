@@ -134,10 +134,10 @@ func (f *MMapedElfFile) getString(start int) (string, bool) {
 	if err := f.ensureOpen(); err != nil {
 		return "", false
 	}
-	//if s, ok := f.stringCache[start]; ok {
-	//	return s, true
-	//}
-	const tmpBufSize = 256
+	if s, ok := f.stringCache[start]; ok {
+		return s, true
+	}
+	const tmpBufSize = 128
 	var tmpBuf [tmpBufSize]byte
 	sb := strings.Builder{}
 	for i := 0; i < 10; i++ {
@@ -149,10 +149,10 @@ func (f *MMapedElfFile) getString(start int) (string, bool) {
 		if idx >= 0 {
 			sb.Write(tmpBuf[:idx])
 			s := sb.String()
-			//if f.stringCache == nil {
-			//	f.stringCache = make(map[int]string)
-			//}
-			//f.stringCache[start] = s
+			if f.stringCache == nil {
+				f.stringCache = make(map[int]string)
+			}
+			f.stringCache[start] = s
 			return s, true
 		} else {
 			sb.Write(tmpBuf[:])
