@@ -103,7 +103,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	})
 
 	var err error
-	for _, metric := range []prometheus_client.Collector{c.metricsProcessed, c.metricsOutgoing, c.cacheMisses, c.cacheHits, c.cacheSize} {
+	for _, metric := range []prometheus_client.Collector{c.metricsProcessed, c.metricsOutgoing, c.cacheMisses, c.cacheHits, c.cacheSize, c.cacheDeletes} {
 		err = o.Registerer.Register(metric)
 		if err != nil {
 			return nil, err
