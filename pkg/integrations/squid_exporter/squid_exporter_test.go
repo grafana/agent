@@ -32,7 +32,7 @@ func TestConfigValidate(t *testing.T) {
 				c.Address = ":3128"
 				return c
 			},
-			expectedErr: errNoHostname,
+			expectedErr: ErrNoHostname,
 		},
 		{
 			name: "no port",
@@ -41,7 +41,7 @@ func TestConfigValidate(t *testing.T) {
 				c.Address = "localhost:"
 				return c
 			},
-			expectedErr: errNoPort,
+			expectedErr: ErrNoPort,
 		},
 		{
 			name: "no empty config",
@@ -53,7 +53,7 @@ func TestConfigValidate(t *testing.T) {
 				}
 				return cfg
 			},
-			expectedErr: errNoAddress,
+			expectedErr: ErrNoAddress,
 		},
 		{
 			name: "invalid config",
@@ -94,10 +94,10 @@ func TestConfig_UnmarshalYaml(t *testing.T) {
 
 	t.Run("all values", func(t *testing.T) {
 		strConfig := `
-address: "localhost:3182"
-username: "user"
-password: "password"
-`
+		address: "localhost:3182"
+		username: "user"
+		password: "password"
+		`
 
 		var c Config
 

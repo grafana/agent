@@ -14,9 +14,9 @@ import (
 
 func TestRiverUnmarshal(t *testing.T) {
 	riverConfig := `
-	address = "some_address:port"
-	username     = "some_user"
-	password     = "some_password"
+	address  = "some_address:port"
+	username = "some_user"
+	password = "some_password"
 	`
 
 	var args Arguments
@@ -34,9 +34,9 @@ func TestRiverUnmarshal(t *testing.T) {
 
 func TestConvert(t *testing.T) {
 	riverConfig := `
-	address = "some_address:port"
-	username     = "some_user"
-	password     = "some_password"
+	address  = "some_address:port"
+	username = "some_user"
+	password = "some_password"
 	`
 	var args Arguments
 	err := river.Unmarshal([]byte(riverConfig), &args)
@@ -85,7 +85,7 @@ func TestConfigValidate(t *testing.T) {
 				c.SquidAddr = ":3128"
 				return c
 			},
-			expectedErr: errNoHostname,
+			expectedErr: squid_exporter.ErrNoHostname,
 		},
 		{
 			name: "no port",
@@ -94,7 +94,7 @@ func TestConfigValidate(t *testing.T) {
 				c.SquidAddr = "localhost:"
 				return c
 			},
-			expectedErr: errNoPort,
+			expectedErr: squid_exporter.ErrNoPort,
 		},
 		{
 			name: "no empty config",
@@ -106,7 +106,7 @@ func TestConfigValidate(t *testing.T) {
 				}
 				return cfg
 			},
-			expectedErr: errNoAddress,
+			expectedErr: squid_exporter.ErrNoAddress,
 		},
 		{
 			name: "invalid config",

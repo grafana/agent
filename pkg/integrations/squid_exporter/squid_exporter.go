@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	errNoAddress  = errors.New("no address was provided")
-	errNoHostname = errors.New("no hostname in provided address")
-	errNoPort     = errors.New("no port in provided address")
+	ErrNoAddress  = errors.New("no address was provided")
+	ErrNoHostname = errors.New("no hostname in provided address")
+	ErrNoPort     = errors.New("no port in provided address")
 )
 
 // Config is the configuration for the squid integration
@@ -32,7 +32,7 @@ type Config struct {
 
 func (c *Config) validate() error {
 	if c.Address == "" {
-		return errNoAddress
+		return ErrNoAddress
 	}
 
 	host, port, err := net.SplitHostPort(c.Address)
@@ -41,12 +41,12 @@ func (c *Config) validate() error {
 	}
 
 	if host == "" {
-		return errNoHostname
+		return ErrNoHostname
 	}
 	c.Host = host
 
 	if port == "" {
-		return errNoPort
+		return ErrNoPort
 	}
 
 	if sp, err := strconv.Atoi(port); err != nil {

@@ -11,21 +11,21 @@ title: prometheus.exporter.squid
 
 # prometheus.exporter.squid
 The `prometheus.exporter.squid` component embeds
-[squid_exporter](https://github.com/grafana/squid-prometheus-exporter) for collecting warehouse, database, table, and replication statistics from a squid account via HTTP for Prometheus consumption.
+[squid_exporter](https://github.com/boynux/squid-exporter) for collecting warehouse, database, table, and replication statistics from a squid account via HTTP for Prometheus consumption.
 
 ## Usage
 
 ```river
 prometheus.exporter.squid "LABEL" {
-    address = "<HOST>:<PORT>"
-    username =     "USERNAME"
-    password =     "PASSWORD"
+    address =   "<HOST>:<PORT>"
+    username =  "USERNAME"
+    password =  "PASSWORD"
 }
 ```
 
 ## Arguments
 
-The following arguments can be used to configure the exporter's behavior.
+You can use the following arguments to configure the exporter's behavior.
 Omitted fields take their default values.
 
 | Name           | Type     | Description                                           | Default          | Required |
