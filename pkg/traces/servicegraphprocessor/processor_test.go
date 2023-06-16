@@ -109,7 +109,7 @@ func TestConsumeMetrics(t *testing.T) {
 }
 
 func getTestMeterProvider(t *testing.T, reg prometheus.Registerer) *sdkmetric.MeterProvider {
-	promExporter, err := traceutils.PromeheusExporter(reg)
+	promExporter, err := traceutils.PrometheusExporter(reg)
 	require.NoError(t, err)
 
 	mp := sdkmetric.NewMeterProvider(

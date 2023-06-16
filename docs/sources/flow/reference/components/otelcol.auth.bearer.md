@@ -51,14 +51,14 @@ configuration.
 
 `otelcol.auth.bearer` does not expose any component-specific debug information.
 
-## Example
+## Examples
 
 ### Default scheme via gRPC transport
 
 The example below configures [otelcol.exporter.otlp][] to use a bearer token authentication.
 
-If we assume that the  value of the `API_KEY` environment variable is `SECRET_API_KEY`, then 
-the `Authorization` RPC metadata will be set to `Bearer SECRET_API_KEY`.
+If we assume that the value of the `API_KEY` environment variable is `SECRET_API_KEY`, then 
+the `Authorization` RPC metadata is set to `Bearer SECRET_API_KEY`.
 
 ```river
 otelcol.exporter.otlp "example" {
@@ -77,8 +77,8 @@ otelcol.auth.bearer "creds" {
 
 The example below configures [otelcol.exporter.otlphttp][] to use a bearer token authentication.
 
-If we assume that the  value of the `API_KEY` environment variable is `SECRET_API_KEY`, then 
-the `Authorization` HTTP header will be set to `MyScheme SECRET_API_KEY`.
+If we assume that the value of the `API_KEY` environment variable is `SECRET_API_KEY`, then 
+the `Authorization` HTTP header is set to `MyScheme SECRET_API_KEY`.
 
 ```river
 otelcol.exporter.otlphttp "example" {

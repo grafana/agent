@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configopaque"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
 	otelextension "go.opentelemetry.io/collector/extension"
 )
@@ -101,7 +100,7 @@ var (
 		IdleConnTimeout: &DefaultIdleConnTimeout,
 
 		Timeout:         30 * time.Second,
-		Headers:         map[string]configopaque.String{},
+		Headers:         map[string]string{},
 		Compression:     otelcol.CompressionTypeGzip,
 		ReadBufferSize:  0,
 		WriteBufferSize: 512 * 1024,

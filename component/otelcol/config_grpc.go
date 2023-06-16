@@ -137,11 +137,11 @@ type GRPCClientArguments struct {
 	TLS       TLSClientArguments        `river:"tls,block,optional"`
 	Keepalive *KeepaliveClientArguments `river:"keepalive,block,optional"`
 
-	ReadBufferSize  units.Base2Bytes               `river:"read_buffer_size,attr,optional"`
-	WriteBufferSize units.Base2Bytes               `river:"write_buffer_size,attr,optional"`
-	WaitForReady    bool                           `river:"wait_for_ready,attr,optional"`
-	Headers         map[string]configopaque.String `river:"headers,attr,optional"`
-	BalancerName    string                         `river:"balancer_name,attr,optional"`
+	ReadBufferSize  units.Base2Bytes  `river:"read_buffer_size,attr,optional"`
+	WriteBufferSize units.Base2Bytes  `river:"write_buffer_size,attr,optional"`
+	WaitForReady    bool              `river:"wait_for_ready,attr,optional"`
+	Headers         map[string]string `river:"headers,attr,optional"`
+	BalancerName    string            `river:"balancer_name,attr,optional"`
 
 	// Auth is a binding to an otelcol.auth.* component extension which handles
 	// authentication.
@@ -152,6 +152,11 @@ type GRPCClientArguments struct {
 func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 	if args == nil {
 		return nil
+	}
+
+	opaqueHeaders := make(map[string]configopaque.String)
+	for headerName, headerVal := range args.Headers {
+		opaqueHeaders[headerName] = configopaque.String(headerVal)
 	}
 
 	// Configure the authentication if args.Auth is set.
@@ -171,7 +176,7 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 		ReadBufferSize:  int(args.ReadBufferSize),
 		WriteBufferSize: int(args.WriteBufferSize),
 		WaitForReady:    args.WaitForReady,
-		Headers:         args.Headers,
+		Headers:         opaqueHeaders,
 		BalancerName:    args.BalancerName,
 
 		Auth: auth,
