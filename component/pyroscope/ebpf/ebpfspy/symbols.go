@@ -70,7 +70,6 @@ func (sc *symbolCache) Cleanup() {
 	level.Debug(sc.logger).Log("buildIdCache", sc.elfCache.BuildIDCache.DebugString())
 	level.Debug(sc.logger).Log("sameFileCache", sc.elfCache.SameFileCache.DebugString())
 	level.Debug(sc.logger).Log("pidCache", sc.pidCache.DebugString())
-
 }
 
 func (sc *symbolCache) getOrCreateCacheEntry(pid pidKey) symtab.SymbolTable {

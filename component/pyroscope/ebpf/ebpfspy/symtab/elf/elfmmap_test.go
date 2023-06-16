@@ -10,7 +10,6 @@ import (
 )
 
 func TestElfSymbolComparison(t *testing.T) {
-
 	testOneElfFile := func(t *testing.T, f string) {
 		e, err := elf.Open(f)
 		require.NoError(t, err)
@@ -47,7 +46,6 @@ func TestElfSymbolComparison(t *testing.T) {
 		slices.SortFunc(mySymbols, cmp)
 		slices.SortFunc(genuineSymbols, cmp)
 		require.Equal(t, genuineSymbols, mySymbols)
-
 	}
 
 	fs := []string{
@@ -69,5 +67,4 @@ func TestElfSymbolComparison(t *testing.T) {
 			testOneElfFile(t, f)
 		})
 	}
-
 }

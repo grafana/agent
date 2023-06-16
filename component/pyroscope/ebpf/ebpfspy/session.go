@@ -9,9 +9,10 @@ import (
 	_ "embed"
 	"encoding/binary"
 	"fmt"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/cpuonline"
 	"reflect"
 	"unsafe"
+
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/cpuonline"
 
 	"github.com/cilium/ebpf"
 	"github.com/go-kit/log"

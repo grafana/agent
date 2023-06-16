@@ -3,9 +3,10 @@ package stdlib
 
 import (
 	"encoding/json"
+	"os"
+
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	"os"
 )
 
 // Identifiers holds a list of stdlib identifiers by name. All interface{}

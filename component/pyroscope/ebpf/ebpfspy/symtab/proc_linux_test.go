@@ -73,7 +73,6 @@ func TestSelfElfSymbolsLazy(t *testing.T) {
 		}
 		if name == "" {
 			symbolTable.Resolve(symbol.Start)
-
 		}
 
 		require.Equal(t, symbol.Name, name)

@@ -27,6 +27,5 @@ func TestElf(t *testing.T) {
 	for _, sym := range syms {
 		res := tab.Resolve(sym.pc)
 		require.Equal(t, res, sym.name)
-
 	}
 }

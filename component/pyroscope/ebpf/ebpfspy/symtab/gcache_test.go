@@ -14,7 +14,6 @@ type mockResource struct {
 
 func (m *mockResource) Refresh() {
 	m.refresh++
-
 }
 
 func (m *mockResource) Cleanup() {
@@ -117,5 +116,4 @@ func TestGCache(t *testing.T) {
 	require.NotNil(t, res)
 	res = cache.Get("k5")
 	require.NotNil(t, res)
-
 }

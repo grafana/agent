@@ -138,7 +138,6 @@ func (t *LineTable) parsePclnTab() {
 			if r := recover(); r != nil {
 				t.failed = true
 			}
-
 		}()
 	}
 
@@ -146,6 +145,7 @@ func (t *LineTable) parsePclnTab() {
 	if len(t.Data) < 16 || t.Data[4] != 0 || t.Data[5] != 0 ||
 		(t.Data[6] != 1 && t.Data[6] != 2 && t.Data[6] != 4) || // pc quantum
 		(t.Data[7] != 4 && t.Data[7] != 8) { // pointer size
+
 		return
 	}
 

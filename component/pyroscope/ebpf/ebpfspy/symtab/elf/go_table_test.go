@@ -37,7 +37,6 @@ func TestSelfGoSymbolComparison(t *testing.T) {
 	}
 	for _, testcase := range ts {
 		t.Run(testcase.f, func(t *testing.T) {
-
 			expectedSymbols, err := GetGoSymbols(testcase.f)
 
 			require.NoError(t, err)
@@ -65,5 +64,4 @@ func TestSelfGoSymbolComparison(t *testing.T) {
 			}
 		})
 	}
-
 }

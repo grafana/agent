@@ -26,7 +26,6 @@ func TestGoSymSelfTest(t *testing.T) {
 	expectedSym := "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab.TestGoSymSelfTest"
 	require.NotNil(t, sym)
 	require.Equal(t, expectedSym, sym)
-
 }
 
 func TestPclntab18(t *testing.T) {
