@@ -51,7 +51,7 @@ configuration.
 
 `otelcol.auth.bearer` does not expose any component-specific debug information.
 
-## Example
+## Examples
 
 ### Default scheme via gRPC transport
 
