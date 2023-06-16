@@ -47,7 +47,9 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
-- Fix a bug where `prometheus.relabel` would not relabel correctly when there is a cache miss. (@thampiotr) 
+- Fix a bug where `prometheus.relabel` would not relabel correctly when there is a cache miss. (@thampiotr)
+
+- Fix a bug where `prometheus.relabel` would not relabel correctly the exemplars or metadata. (@tpaschalis)
 
 ### Other changes
 

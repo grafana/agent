@@ -129,7 +129,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			if newLbl == nil {
 				return 0, nil
 			}
-			return next.AppendExemplar(0, l, e)
+			return next.AppendExemplar(0, newLbl, e)
 		}),
 		prometheus.WithMetadataHook(func(_ storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
@@ -140,7 +140,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			if newLbl == nil {
 				return 0, nil
 			}
-			return next.UpdateMetadata(0, l, m)
+			return next.UpdateMetadata(0, newLbl, m)
 		}),
 	)
 
