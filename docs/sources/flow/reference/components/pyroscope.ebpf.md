@@ -28,20 +28,21 @@ pyroscope.ebpf "LABEL" {
 The component configures and starts a new ebpf profiling job to collect performance profiles from the current host.
 
 The following arguments can be used to configure a `pyroscope.ebpf`. Only the
-`forward_to` field is required and any omitted fields take their default
+`forward_to` and `targets` fields are required and any omitted fields take their default
 values.
 
-| Name                      | Type                     | Description                                                            | Default | Required |
-|---------------------------|--------------------------|------------------------------------------------------------------------|---------|----------|
-| `forward_to`              | `list(ProfilesReceiver)` | List of receivers to send collected profiles to.                       |         | yes      |  
-| `targets`                 | `list(map(string))`      | List of targets to group profiles by container id                      |         | no       |   
-| `collect_interval`        | `duration`               | How frequently to collect profiles                                     | `15s`   | no       |       
-| `sample_rate`             | `int`                    | How many times per second to collect profile samples                   | 97      | no       |     
-| `pid_cache_size`          | `int`                    | The size of the pid -> proc symbol table LRU cache                     | 32      | no       |      
-| `elf_cache_size`          | `int`                    | The size of the elf file -> symbols LRU cache                          | 128     | no       |       
-| `container_id_cache_size` | `int`                    | The size of the pid -> container ID  LRU cache                         | 64      | no       |       
-| `collect_user_profile`    | `bool`                   | A flag to enable/disable collection of userspace profiles              | true    | no       |       
-| `collect_kernel_profile`  | `bool`                   | A flag to enable/disable collection of kernelspace profiles            | true    | no       |       
+| Name                      | Type                     | Description                                                  | Default | Required |
+|---------------------------|--------------------------|--------------------------------------------------------------|---------|----------|
+| `forward_to`              | `list(ProfilesReceiver)` | List of receivers to send collected profiles to.             |         | yes      |  
+| `targets`                 | `list(map(string))`      | List of targets to group profiles by container id            |         | yes      |   
+| `collect_interval`        | `duration`               | How frequently to collect profiles                           | `15s`   | no       |       
+| `sample_rate`             | `int`                    | How many times per second to collect profile samples         | 97      | no       |     
+| `pid_cache_size`          | `int`                    | The size of the pid -> proc symbols table LRU cache          | 32      | no       |      
+| `build_id_cache_size`     | `int`                    | The size of the elf file build id -> symbols table LRU cache | 64      | no       |       
+| `same_file_cache_size`    | `int`                    | The size of the elf file -> symbols table LRU cache          | 8       | no       |       
+| `container_id_cache_size` | `int`                    | The size of the pid -> container ID table LRU cache          | 1024    | no       |       
+| `collect_user_profile`    | `bool`                   | A flag to enable/disable collection of userspace profiles    | true    | no       |       
+| `collect_kernel_profile`  | `bool`                   | A flag to enable/disable collection of kernelspace profiles  | true    | no       |       
 
 ## Exported fields
 
@@ -60,14 +61,7 @@ configuration.
 ## Debug metrics
 
 * `pyroscope_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
-* `pyroscope_ebpf_pid_cache_hit_total` (counter): Total number of ebpf symbolizer pid cache hit.
-* `pyroscope_ebpf_pid_cache_miss_total` (counter): Total number of ebpf symbolizer pid cache miss.
-* `pyroscope_ebpf_elf_cache_build_id_hit_total` (counter): Total number of ebpf symbolizer elf cache (build-id) hit.
-* `pyroscope_ebpf_elf_cache_build_id_miss_total` (counter): Total number of ebpf symbolizer elf cache (build-id) miss.
-* `pyroscope_ebpf_elf_cache_stat_hit_total` (counter): Total number of ebpf symbolizer elf cache (stat) hit.
-* `pyroscope_ebpf_elf_cache_stat_miss_total` (counter): Total number of ebpf symbolizer elf cache (stat) miss.
-* `pyroscope_ebpf_container_id_cache_hit_total` (counter): Total number of ebpf target finder container id cache hit.
-* `pyroscope_ebpf_container_id_cache_miss_total` (counter): Total number of ebpf target finder container id cache miss.
+  TODO
 
 ## Profile collecting behavior
 
@@ -93,15 +87,18 @@ and `__meta_kubernetes_pod_container_id` labels of a target against the `/proc/{
 If a corresponding container ID is found, the stack traces are aggregated per target based on the container ID.
 However, if a container ID is not identified, the stack trace is then associated with a `default_target`.
 
-If the `targets_only` is set to true, any stacktrace not associated with a listed target
-(i.e., those that would typically be associated with the default_target) are disregarded.
+Any stacktraces not associated with a listed target are disregarded.
 
 ### Service name
 
-The special label `service_name` is required and must always be present. If it's not provided, it is
-sourced from `__meta_kubernetes_pod_annotation_pyroscope_io_service_name` which is a
-`pyroscope.io/service_name` pod annotation. If `service_name` is not present, the target is considered as misconfigured
-and discarded.
+The special label `service_name` is required and must always be present. If it's not specified, it is
+attempted to be inferred from multiple sources:
+
+- `__meta_kubernetes_pod_annotation_pyroscope_io_service_name` which is a `pyroscope.io/service_name` pod annotation.
+- `__meta_kubernetes_namespace` and `__meta_kubernetes_pod_container_name`
+- `__meta_docker_container_name`
+
+If `service_name` is not specified and could not be inferred it is set to `unspecified`.
 
 ## Example
 
@@ -114,15 +111,15 @@ used as a Grafana agent helm chart. Service name is set to `{namespace}/{contain
 ```river
 discovery.kubernetes "all_pods" {
   role = "pod"
+  selectors {
+    field = "spec.nodeName=" + env("HOSTNAME")
+    role = "pod"
+  }
+
 }
 
 discovery.relabel "local_pods" {
   targets = discovery.kubernetes.all_pods.targets
-  rule {
-    action = "keep"
-    regex = env("HOSTNAME")
-    source_labels = ["__meta_kubernetes_pod_node_name"]
-  }
   rule {
     action = "replace"
     replacement = "${1}/${2}"
