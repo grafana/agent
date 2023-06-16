@@ -2,6 +2,11 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+// copied from here
+// https://github.com/golang/go/blob/go1.20.5/src/debug/gosym/pclntab.go
+// modified go12Funcs function to be exported return a FlatFuncIndex instead of []Func
+// added FuncNameOffset to export the funcnametabOffset
+
 /*
  * Line tables
  */
@@ -223,6 +228,9 @@ func (t *LineTable) parsePclnTab() {
 	}
 }
 
+// FlatFuncIndex
+// Entry contains a sorted array of function entry address, which is ued for binary search.
+// Name contains offsets into funcnametab, which is located in the .gopclntab section.
 type FlatFuncIndex struct {
 	Entry PCIndex
 	Name  []uint32
