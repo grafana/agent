@@ -127,14 +127,14 @@ Name | Type | Description | Default | Required
 
 ### queue block
 
-The `queue` block configures an in-memory buffer of batches before data is sent
+The `sending_queue` block configures an in-memory buffer of batches before data is sent
 to the gRPC server.
 
 {{< docs/shared lookup="flow/reference/components/otelcol-queue-block.md" source="agent" >}}
 
 ### retry block
 
-The `retry` block configures how failed requests to the gRPC server are
+The `retry_on_failure` block configures how failed requests to the gRPC server are
 retried.
 
 {{< docs/shared lookup="flow/reference/components/otelcol-retry-block.md" source="agent" >}}
