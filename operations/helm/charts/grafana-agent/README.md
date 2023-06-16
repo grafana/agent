@@ -61,6 +61,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.storagePath | string | `"/tmp/agent"` | Path to where Grafana Agent stores data (for example, the Write-Ahead Log). By default, data is lost between reboots. |
 | configReloader.customArgs | list | `[]` | Override the args passed to the container. |
 | configReloader.enabled | bool | `true` | Enables automatically reloading when the agent config changes. |
+| configReloader.image.registry | string | `"docker.io"` | Config reloader image registry (defaults to docker.io) |
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
 | configReloader.image.tag | string | `"v0.8.0"` | Tag of image to use for config reloading. |
 | configReloader.resources | object | `{"requests":{"cpu":"1m","memory":"5Mi"}}` | Resource requests and limits to apply to the config reloader container. |
@@ -83,8 +84,11 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.volumeClaimTemplates | list | `[]` | volumeClaimTemplates to add when controller.type is 'statefulset'. |
 | controller.volumes.extra | list | `[]` | Extra volumes to add to the Grafana Agent pod. |
 | fullnameOverride | string | `nil` | Overrides the chart's computed fullname. Used to change the full prefix of resource names. |
+| global.image.pullSecrets | list | `[]` | Optional set of global image pull secrets. |
+| global.image.registry | string | `""` | Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...) |
 | image.pullPolicy | string | `"IfNotPresent"` | Grafana Agent image pull policy. |
 | image.pullSecrets | list | `[]` | Optional set of image pull secrets. |
+| image.registry | string | `"docker.io"` | Grafana Agent image registry (defaults to docker.io) |
 | image.repository | string | `"grafana/agent"` | Grafana Agent image repository. |
 | image.tag | string | `nil` | Grafana Agent image tag. When empty, the Chart's appVersion is used. |
 | ingress.annotations | object | `{}` |  |
