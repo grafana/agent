@@ -87,17 +87,12 @@ type Arguments struct {
 	SkipTLSVerification     bool              `river:"skip_tls_verification,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	if err := f((*args)(a)); err != nil {
-		return err
-	}
-	return a.Validate()
 }
 
+// Validate implements river.Validator.
 func (a *Arguments) Validate() error {
 	if a.ScriptPath != "" && len(a.ScriptPaths) > 0 {
 		return fmt.Errorf("only one of script_path and script_paths should be specified")

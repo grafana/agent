@@ -49,15 +49,13 @@ func GetDefaultEndpointOptions() EndpointOptions {
 	return defaultEndpointOptions
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (r *EndpointOptions) SetToDefault() {
 	*r = GetDefaultEndpointOptions()
+}
 
-	type arguments EndpointOptions
-	if err := f((*arguments)(r)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (r *EndpointOptions) Validate() error {
 	if _, err := url.Parse(r.URL); err != nil {
 		return fmt.Errorf("failed to parse remote url %q: %w", r.URL, err)
 	}

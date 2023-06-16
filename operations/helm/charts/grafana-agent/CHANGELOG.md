@@ -10,7 +10,16 @@ internal API changes are not present.
 Unreleased
 ----------
 
-### Enhancements 
+### Enhancements
+
+- Allow requests to be set on the config reloader container. (@tpaschalis)
+
+0.15.0 (2023-06-08)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.34.0. (@captncraig)
 
 - Add HPA support for Deployments and StatefulSets. (@tpaschalis)
 
@@ -22,6 +31,7 @@ Unreleased
 ### Bugfixes
 
 - Only set the deployment replicas when autoscaling is disabled. (@tiithansen)
+
 - Reorder HPA `spec.metrics` to avoid endless sync loop in ArgoCD. (@tiithansen)
 
 0.14.0 (2023-05-11)

@@ -25,7 +25,7 @@ spec:
       serviceAccountName: grafana-agent
       containers:
         - name: grafana-agent
-          image: grafana/agent:v0.33.2
+          image: grafana/agent:v0.34.0
           imagePullPolicy: IfNotPresent
           args:
             - -config.file=/etc/agent/config.yaml
@@ -57,6 +57,10 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/agent
+          resources:
+            requests:
+              cpu: 1m
+              memory: 5Mi
       dnsPolicy: ClusterFirst
       volumes:
         - name: config

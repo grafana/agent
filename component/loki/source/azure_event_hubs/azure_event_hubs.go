@@ -61,13 +61,13 @@ func getDefault() Arguments {
 	}
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = getDefault()
-	type arguments Arguments
-	if err := f((*arguments)(a)); err != nil {
-		return err
-	}
+}
+
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
 	return a.validateAssignor()
 }
 
@@ -192,7 +192,7 @@ func (a *Arguments) Convert() (kt.Config, error) {
 			if err != nil {
 				return kt.Config{}, fmt.Errorf("unable to extract host from fully qualified namespace: %w", err)
 			}
-			a.Authentication.Scopes = []string{fmt.Sprintf("https://%s", host)}
+			a.Authentication.Scopes = []string{fmt.Sprintf("https://%s/.default", host)}
 		}
 
 		cfg.KafkaConfig.Authentication = kt.Authentication{

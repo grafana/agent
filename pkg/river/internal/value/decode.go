@@ -4,6 +4,7 @@ import (
 	"encoding"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"time"
 
@@ -398,8 +399,9 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 // interface{} a known type based on the River value being decoded:
 //
 //	Null values:   nil
-//	Number values: float64, int, or uint depending on the underlying Go type
-//	               of the River value
+//	Number values: float64, int, int64, or uint64.
+//	               If the underlying type is a float, always decode to a float64.
+//	               For non-floats the order of preference is int -> int64 -> uint64.
 //	Arrays:        []interface{}
 //	Objects:       map[string]interface{}
 //	Bool:          bool
@@ -419,8 +421,36 @@ func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 		return nil
 
 	case TypeNumber:
-		var v = val.Number().Float()
-		ptr = reflect.ValueOf(&v)
+
+		switch val.Number().Kind() {
+		case NumberKindFloat:
+			var v float64
+			ptr = reflect.ValueOf(&v)
+		case NumberKindUint:
+			uint64Val := val.Uint()
+			if uint64Val <= math.MaxInt {
+				var v int
+				ptr = reflect.ValueOf(&v)
+			} else if uint64Val <= math.MaxInt64 {
+				var v int64
+				ptr = reflect.ValueOf(&v)
+			} else {
+				var v uint64
+				ptr = reflect.ValueOf(&v)
+			}
+		case NumberKindInt:
+			int64Val := val.Int()
+			if math.MinInt <= int64Val && int64Val <= math.MaxInt {
+				var v int
+				ptr = reflect.ValueOf(&v)
+			} else {
+				var v int64
+				ptr = reflect.ValueOf(&v)
+			}
+
+		default:
+			panic("river/value: unreachable")
+		}
 
 	case TypeArray:
 		var v []interface{}

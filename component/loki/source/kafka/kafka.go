@@ -79,17 +79,9 @@ var DefaultArguments = Arguments{
 	UseIncomingTimestamp: false,
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type kafkacfg Arguments
-	err := f((*kafkacfg)(a))
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Component implements the loki.source.kafka component.
