@@ -10,6 +10,16 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- The algorithm for the "hash" action of `otelcol.processor.attributes` has changed.
+  The change was made in PR [#22831](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22831) of opentelemetry-collector-contrib. (@ptodev)
+
+- `otelcol.exporter.loki` now includes the instrumentation scope in its output. (@ptodev)
+
+- `otelcol.extension.jaeger_remote_sampling` removes the `\` HTTP endpoint. The `/sampling` endpoint is still functional.
+  The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib. (@ptodev)
+
 ### Features
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
@@ -17,7 +27,6 @@ Main (unreleased)
 - Support `stage.geoip` in `loki.process`. (@akselleirv)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
-
 
 - New Grafana Agent Flow components:
 
@@ -39,6 +48,8 @@ Main (unreleased)
 - Upgrade and improve Cloudwatch exporter integration (@thepalbi)
 
 - Update `node_exporter` dependency to v1.6.0. (@spartan0x117)
+
+- Update OpenTelemetry Collector dependencies from v0.63.0 to v0.79.0. (@ptodev)
 
 ### Bugfixes
 

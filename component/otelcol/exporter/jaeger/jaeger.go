@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/component/otelcol/exporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configopaque"
 	otelpexporterhelper "go.opentelemetry.io/collector/exporter/exporterhelper"
 	otelextension "go.opentelemetry.io/collector/extension"
 )
@@ -83,7 +82,7 @@ type GRPCClientArguments otelcol.GRPCClientArguments
 // DefaultGRPCClientArguments holds component-specific default settings for
 // GRPCClientArguments.
 var DefaultGRPCClientArguments = GRPCClientArguments{
-	Headers:         map[string]configopaque.String{},
+	Headers:         map[string]string{},
 	Compression:     otelcol.CompressionTypeGzip,
 	WriteBufferSize: 512 * 1024,
 }

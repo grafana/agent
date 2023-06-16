@@ -5,7 +5,7 @@ import (
 	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
 )
 
-func PromeheusExporter(reg prometheus.Registerer) (*otelprom.Exporter, error) {
+func PrometheusExporter(reg prometheus.Registerer) (*otelprom.Exporter, error) {
 	return otelprom.New(
 		otelprom.WithRegisterer(reg),
 		otelprom.WithoutUnits(),

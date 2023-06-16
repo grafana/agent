@@ -283,8 +283,6 @@ func TestCreateNodeAndResourcePromToOTLP(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got := CreateResource(tt.job, tt.instance, tt.sdLabels)
-			// It is no longer possible ot sort the attributes. For comparisons in tests we now use AsRaw():
-			// https://github.com/open-telemetry/opentelemetry-collector/pull/6989
 			require.Equal(t, tt.want.Attributes().AsRaw(), got.Attributes().AsRaw())
 			require.Equal(t, tt.want.DroppedAttributesCount(), got.DroppedAttributesCount())
 		})

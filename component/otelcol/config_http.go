@@ -8,7 +8,7 @@ import (
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfigauth "go.opentelemetry.io/collector/config/configauth"
 	otelconfighttp "go.opentelemetry.io/collector/config/confighttp"
-	otelconfigopaque "go.opentelemetry.io/collector/config/configopaque"
+	"go.opentelemetry.io/collector/config/configopaque"
 	otelextension "go.opentelemetry.io/collector/extension"
 )
 
@@ -80,10 +80,10 @@ type HTTPClientArguments struct {
 
 	TLS TLSClientArguments `river:"tls,block,optional"`
 
-	ReadBufferSize  units.Base2Bytes                   `river:"read_buffer_size,attr,optional"`
-	WriteBufferSize units.Base2Bytes                   `river:"write_buffer_size,attr,optional"`
-	Timeout         time.Duration                      `river:"timeout,attr,optional"`
-	Headers         map[string]otelconfigopaque.String `river:"headers,attr,optional"`
+	ReadBufferSize  units.Base2Bytes  `river:"read_buffer_size,attr,optional"`
+	WriteBufferSize units.Base2Bytes  `river:"write_buffer_size,attr,optional"`
+	Timeout         time.Duration     `river:"timeout,attr,optional"`
+	Headers         map[string]string `river:"headers,attr,optional"`
 	// CustomRoundTripper  func(next http.RoundTripper) (http.RoundTripper, error) TODO (@tpaschalis)
 	MaxIdleConns        *int           `river:"max_idle_conns,attr,optional"`
 	MaxIdleConnsPerHost *int           `river:"max_idle_conns_per_host,attr,optional"`
@@ -107,6 +107,11 @@ func (args *HTTPClientArguments) Convert() *otelconfighttp.HTTPClientSettings {
 		auth = &otelconfigauth.Authentication{AuthenticatorID: args.Auth.ID}
 	}
 
+	opaqueHeaders := make(map[string]configopaque.String)
+	for headerName, headerVal := range args.Headers {
+		opaqueHeaders[headerName] = configopaque.String(headerVal)
+	}
+
 	return &otelconfighttp.HTTPClientSettings{
 		Endpoint: args.Endpoint,
 
@@ -117,7 +122,7 @@ func (args *HTTPClientArguments) Convert() *otelconfighttp.HTTPClientSettings {
 		ReadBufferSize:  int(args.ReadBufferSize),
 		WriteBufferSize: int(args.WriteBufferSize),
 		Timeout:         args.Timeout,
-		Headers:         args.Headers,
+		Headers:         opaqueHeaders,
 		// CustomRoundTripper: func(http.RoundTripper) (http.RoundTripper, error) { panic("not implemented") }, TODO (@tpaschalis)
 		MaxIdleConns:        args.MaxIdleConns,
 		MaxIdleConnsPerHost: args.MaxIdleConnsPerHost,
