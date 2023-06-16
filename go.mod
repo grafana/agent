@@ -23,7 +23,7 @@ require (
 	github.com/buger/jsonparser v1.1.1
 	github.com/burningalchemist/sql_exporter v0.0.0-20221222155641-2ff59aa75200
 	github.com/cespare/xxhash/v2 v2.2.0
-	github.com/cilium/ebpf v0.9.3
+	github.com/cilium/ebpf v0.10.0
 	github.com/cloudflare/cloudflare-go v0.27.0
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/go-systemd/v22 v22.5.0
@@ -279,7 +279,6 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/checkpoint-restore/go-criu/v5 v5.3.0 // indirect
-	github.com/cilium/ebpf v0.10.0 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/cncf/xds/go v0.0.0-20220314180256-7f1daf1720fc // indirect
 	github.com/containerd/cgroups v1.1.0 // indirect
