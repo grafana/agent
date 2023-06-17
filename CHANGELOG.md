@@ -40,12 +40,18 @@ Main (unreleased)
 
 - Update `node_exporter` dependency to v1.6.0. (@spartan0x117)
 
+- Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
+
+- Fix a bug where `prometheus.relabel` would not correctly relabel when there is a cache miss. (@thampiotr)
+
+- Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
 
 ### Other changes
 
