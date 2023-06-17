@@ -42,6 +42,8 @@ Main (unreleased)
 
 - Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
 
+- Add deployment spec options for describe Prometheus Config Reloader image. (@alekseybb197)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
