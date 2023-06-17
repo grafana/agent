@@ -198,10 +198,19 @@ func generatePodTemplate(
 	}}
 	envVars = append(envVars, opts.ExtraEnvVars...)
 
+	useConfigReloaderVersion := d.Agent.Spec.ConfigReloaderVersion
+	if useConfigReloaderVersion == "" {
+		useConfigReloaderVersion = DefaultConfigReloaderVersion
+	}
+	imagePathConfigReloader := fmt.Sprintf("%s:%s", DefaultConfigReloaderBaseImage, useConfigReloaderVersion)
+	if d.Agent.Spec.ConfigReloaderImage != nil && *d.Agent.Spec.ConfigReloaderImage != "" {
+		imagePathConfigReloader = *d.Agent.Spec.ConfigReloaderImage
+	}
+
 	operatorContainers := []core_v1.Container{
 		{
 			Name:         "config-reloader",
-			Image:        "quay.io/prometheus-operator/prometheus-config-reloader:v0.62.0",
+			Image:        imagePathConfigReloader,
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &core_v1.SecurityContext{
