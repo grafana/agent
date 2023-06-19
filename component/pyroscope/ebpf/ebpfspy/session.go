@@ -247,18 +247,19 @@ func (s *session) getStack(stackId int64) []byte {
 	return res
 }
 
+// stack is an array of 127 uint64s, where each uint64 is an instruction pointer
 func (s *session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 	if len(stack) == 0 {
 		return
 	}
 	var stackFrames []string
 	for i := 0; i < 127; i++ {
-		it := stack[i*8 : i*8+8]
-		ip := binary.LittleEndian.Uint64(it)
-		if ip == 0 {
+		instructionPointerBytes := stack[i*8 : i*8+8]
+		instructionPointer := binary.LittleEndian.Uint64(instructionPointerBytes)
+		if instructionPointer == 0 {
 			break
 		}
-		sym := s.symCache.Resolve(pid, ip)
+		sym := s.symCache.Resolve(pid, instructionPointer)
 		var name string
 		if sym.Name != "" {
 			name = sym.Name
