@@ -141,25 +141,25 @@ func (g *GCache[K, V]) EachRound(f func(k K, v V)) {
 	}
 }
 
-type GCacheDebugInfo[K comparable, T any] struct {
-	LRUSize   int     `river:"lru_size,attr,optional"`
-	RoundSize int     `river:"round_size,attr,optional"`
-	LRU       map[K]T `river:"lru_dump,block,optional"`
-	Round     map[K]T `river:"round_dump,block,optional"`
+type GCacheDebugInfo[T any] struct {
+	LRUSize   int `river:"lru_size,attr,optional"`
+	RoundSize int `river:"round_size,attr,optional"`
+	LRU       []T `river:"lru_dump,block,optional"`
+	Round     []T `river:"round_dump,block,optional"`
 }
 
-func DebugInfo[K comparable, V Resource, D any](g *GCache[K, V], ff func(V) D) GCacheDebugInfo[K, D] {
-	res := GCacheDebugInfo[K, D]{
+func DebugInfo[K comparable, V Resource, D any](g *GCache[K, V], ff func(K, V) D) GCacheDebugInfo[D] {
+	res := GCacheDebugInfo[D]{
 		LRUSize:   g.LRUSize(),
 		RoundSize: g.RoundSize(),
-		LRU:       make(map[K]D),
-		Round:     make(map[K]D),
+		LRU:       make([]D, 0, g.LRUSize()),
+		Round:     make([]D, 0, g.RoundSize()),
 	}
 	g.EachLRU(func(k K, v V) {
-		res.LRU[k] = ff(v)
+		res.LRU = append(res.LRU, ff(k, v))
 	})
 	g.EachRound(func(k K, v V) {
-		res.Round[k] = ff(v)
+		res.Round = append(res.Round, ff(k, v))
 	})
 	return res
 }

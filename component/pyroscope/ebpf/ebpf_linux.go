@@ -176,9 +176,11 @@ func cacheOptionsFromArgs(args Arguments) symtab.CacheOptions {
 
 func (c *Component) updateTargetFinder() {
 	c.targetFinder.SetTargets(sd.TargetsOptions{
-		Targets:       c.args.Targets,
-		DefaultTarget: nil,
-		TargetsOnly:   true,
+		Targets: c.args.Targets,
+		//DefaultTarget: nil,
+		//TargetsOnly:   true,
+		DefaultTarget: map[string]string{"service_name": "ebpfspy"},
+		TargetsOnly:   false,
 	})
 	c.targetFinder.ResizeContainerIDCache(c.args.ContainerIDCacheSize)
 }
@@ -225,9 +227,9 @@ func (c *Component) reset() error {
 }
 
 type DebugInfo struct {
-	Targets  []string                                                         `river:"targets,block,optional"`
-	ElfCache symtab.ElfCacheDebugInfo                                         `river:"elf_cache,attr,optional"`
-	PidCache symtab.GCacheDebugInfo[symtab.PidKey, symtab.ProcTableDebugInfo] `river:"pid_cache,attr,optional"`
+	Targets  []string                                          `river:"targets,block,optional"`
+	ElfCache symtab.ElfCacheDebugInfo                          `river:"elf_cache,attr,optional"`
+	PidCache symtab.GCacheDebugInfo[symtab.ProcTableDebugInfo] `river:"pid_cache,attr,optional"`
 }
 
 func (c *Component) DebugInfo() interface{} {

@@ -42,9 +42,9 @@ type ProcMap struct {
 }
 
 type file struct {
-	dev   uint64
-	inode uint64
-	path  string
+	dev   uint64 `river:"dev,attr,optional"`
+	inode uint64 `river:"inode,attr,optional"`
+	path  string `river:"path,attr,optional"`
 }
 
 func (m *ProcMap) file() file {

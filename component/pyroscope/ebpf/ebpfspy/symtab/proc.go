@@ -21,19 +21,21 @@ type ProcTable struct {
 }
 
 type ProcTableDebugInfo struct {
-	ElfTables []elf.SymTabDebugInfo `river:"elfs,block,optional"`
-	Size      int                   `river:"size,attr,optional"`
+	ElfTables map[string]elf.SymTabDebugInfo `river:"elfs,block,optional"`
+	Size      int                            `river:"size,attr,optional"`
+	Pid       int                            `river:"pid,attr,optional"`
 }
 
 func (p *ProcTable) DebugInfo() ProcTableDebugInfo {
 	res := ProcTableDebugInfo{
+		Pid:       p.options.Pid,
 		Size:      len(p.file2Table),
-		ElfTables: make([]elf.SymTabDebugInfo, 0, len(p.file2Table)),
+		ElfTables: make(map[string]elf.SymTabDebugInfo),
 	}
-	for _, e := range p.file2Table {
+	for f, e := range p.file2Table {
 		d := e.table.DebugInfo()
 		if d.Size != 0 {
-			res.ElfTables = append(res.ElfTables, d)
+			res.ElfTables[fmt.Sprintf("%x %x %s", f.dev, f.inode, f.path)] = d
 		}
 	}
 	return res
