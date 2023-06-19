@@ -2,6 +2,7 @@ package symtab
 
 import (
 	"fmt"
+
 	lru "github.com/hashicorp/golang-lru/v2"
 )
 

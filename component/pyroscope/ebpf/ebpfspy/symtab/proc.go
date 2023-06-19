@@ -2,11 +2,12 @@ package symtab
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 
 	"github.com/go-kit/log"
 	"golang.org/x/exp/slices"

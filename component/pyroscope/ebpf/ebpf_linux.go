@@ -246,5 +246,4 @@ func (c *Component) updateDebugInfo() {
 		ElfCache: c.session.ElfCacheDebugInfo(),
 		PidCache: c.session.PidCacheDebugInfo(),
 	}
-
 }
