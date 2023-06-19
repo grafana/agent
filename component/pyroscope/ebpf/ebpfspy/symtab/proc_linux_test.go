@@ -8,13 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/pkg/fileutils"
-
 	"github.com/go-kit/log"
-	"github.com/stretchr/testify/require"
-
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMallocResolve(t *testing.T) {
@@ -53,9 +50,6 @@ func BenchmarkProc(b *testing.B) {
 
 func TestSelfElfSymbolsLazy(t *testing.T) {
 	f, err := os.Readlink("/proc/self/exe")
-	require.NoError(t, err)
-
-	_, err = fileutils.CopyFile(f, "/home/korniltsev/Desktop/test")
 	require.NoError(t, err)
 
 	e, err := elf0.Open(f)
