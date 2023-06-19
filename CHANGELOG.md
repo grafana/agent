@@ -22,7 +22,7 @@ v0.34.2 (2023-06-20)
 
 - Fix a bug where `prometheus.relabel` would not correctly relabel when there is a cache miss. (@thampiotr)
 - Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
-
+- Fixes several issues with statsd exporter. (@jcreixell, @marctc)
 
 v0.34.1 (2023-06-12)
 --------------------
