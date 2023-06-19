@@ -147,6 +147,7 @@ func (c *Component) Run(ctx context.Context) error {
 			case <-t.C:
 				err := c.CollectProfiles()
 				if err != nil {
+					c.metrics.ProfilingSessionsFailingTotal.Inc()
 					return err
 				}
 				c.updateDebugInfo()
