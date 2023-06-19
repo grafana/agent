@@ -177,8 +177,8 @@ func (tf *TargetFinder) ResizeContainerIDCache(size int) {
 func (tf *TargetFinder) DebugInfo() []string {
 	debugTargets := make([]string, 0, len(tf.cid2target))
 	for _, target := range tf.cid2target {
-		_, labels := target.Labels()
-		debugTargets = append(debugTargets, labels.String())
+		_, ls := target.Labels()
+		debugTargets = append(debugTargets, ls.String())
 	}
 	return debugTargets
 }
