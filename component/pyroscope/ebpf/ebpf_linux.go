@@ -144,7 +144,7 @@ func (c *Component) Run(ctx context.Context) error {
 					collectInterval = c.args.CollectInterval
 				}
 			case <-t.C:
-				err := c.reset()
+				err := c.CollectProfiles()
 				if err != nil {
 					return err
 				}
@@ -189,20 +189,20 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-func (c *Component) reset() error {
-	level.Debug(c.options.Logger).Log("msg", "ebpf  reset")
+func (c *Component) CollectProfiles() error {
+	level.Debug(c.options.Logger).Log("msg", "ebpf  CollectProfiles")
 	args := c.args
 	builders := ebpfspy.NewProfileBuilders(args.SampleRate)
-	err := c.session.Reset(func(target *sd.Target, stack []string, value uint64, pid uint32) {
+	err := c.session.CollectProfiles(func(target *sd.Target, stack []string, value uint64, pid uint32) {
 		labelsHash, labels := target.Labels()
 		builder := builders.BuilderForTarget(labelsHash, labels)
 		builder.AddSample(stack, value)
 	})
 
 	if err != nil {
-		return fmt.Errorf("ebpf session reset %w", err)
+		return fmt.Errorf("ebpf session CollectProfiles %w", err)
 	}
-	level.Debug(c.options.Logger).Log("msg", "ebpf  reset done", "profiles", len(builders.Builders))
+	level.Debug(c.options.Logger).Log("msg", "ebpf  CollectProfiles done", "profiles", len(builders.Builders))
 	bytesSent := 0
 	for _, builder := range builders.Builders {
 		var buf bytes.Buffer

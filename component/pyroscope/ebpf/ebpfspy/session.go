@@ -96,7 +96,7 @@ func (s *Session) Start() error {
 	return nil
 }
 
-func (s *Session) Reset(cb func(t *sd.Target, stack []string, value uint64, pid uint32)) error {
+func (s *Session) CollectProfiles(cb func(t *sd.Target, stack []string, value uint64, pid uint32)) error {
 	defer s.symCache.Cleanup()
 
 	s.symCache.NextRound()
