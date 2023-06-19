@@ -7,8 +7,8 @@ import (
 )
 
 type BuildID struct {
-	ID  string `river:"id,block,optional"`
-	Typ string `river:"typ,block,optional"`
+	ID  string
+	Typ string
 }
 
 func GNUBuildID(s string) BuildID {
