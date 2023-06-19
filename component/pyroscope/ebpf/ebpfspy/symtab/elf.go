@@ -167,7 +167,7 @@ func (et *ElfTable) Cleanup() {
 }
 
 func (et *ElfTable) findDebugFileWithBuildID(buildID elf2.BuildID) string {
-	id := buildID.ID()
+	id := buildID.ID
 	if len(id) < 3 || !buildID.GNU() {
 		return ""
 	}

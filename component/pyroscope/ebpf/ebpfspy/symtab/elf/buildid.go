@@ -7,30 +7,23 @@ import (
 )
 
 type BuildID struct {
-	id  string `river:"id,block,optional"`
-	typ string `river:"typ,block,optional"`
+	ID  string `river:"id,block,optional"`
+	Typ string `river:"typ,block,optional"`
 }
 
-func (b *BuildID) ID() string {
-	return b.id
-}
-
-func (b *BuildID) Type() string {
-	return b.typ
-}
 func GNUBuildID(s string) BuildID {
-	return BuildID{id: s, typ: "gnu"}
+	return BuildID{ID: s, Typ: "gnu"}
 }
 func GoBuildID(s string) BuildID {
-	return BuildID{id: s, typ: "go"}
+	return BuildID{ID: s, Typ: "go"}
 }
 
 func (b *BuildID) Empty() bool {
-	return b.id == "" || b.typ == ""
+	return b.ID == "" || b.Typ == ""
 }
 
 func (b *BuildID) GNU() bool {
-	return b.typ == "gnu"
+	return b.Typ == "gnu"
 }
 
 var (

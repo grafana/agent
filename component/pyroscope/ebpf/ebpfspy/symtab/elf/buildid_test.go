@@ -35,8 +35,8 @@ func TestGoBuildID(t *testing.T) {
 				require.Empty(t, id)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, testcase.id, id.ID())
-				require.Equal(t, testcase.typ, id.Type())
+				require.Equal(t, testcase.id, id.ID)
+				require.Equal(t, testcase.typ, id.Typ)
 			}
 		})
 	}

@@ -226,7 +226,7 @@ func (c *Component) CollectProfiles() error {
 }
 
 type DebugInfo struct {
-	Targets  []string                                          `river:"targets,block,optional"`
+	Targets  []string                                          `river:"targets,attr,optional"`
 	ElfCache symtab.ElfCacheDebugInfo                          `river:"elf_cache,attr,optional"`
 	PidCache symtab.GCacheDebugInfo[symtab.ProcTableDebugInfo] `river:"pid_cache,attr,optional"`
 }

@@ -8,8 +8,8 @@ import (
 )
 
 type Stat struct {
-	dev uint64 `river:"dev,block,optional"`
-	ino uint64 `river:"ino,block,optional"`
+	Dev   uint64 `river:"dev,block,optional"`
+	Inode uint64 `river:"ino,block,optional"`
 }
 
 func statFromFileInfo(file os.FileInfo) Stat {
@@ -19,7 +19,7 @@ func statFromFileInfo(file os.FileInfo) Stat {
 		return Stat{}
 	}
 	return Stat{
-		dev: uint64(sysStat.Dev),
-		ino: sysStat.Ino,
+		Dev:   uint64(sysStat.Dev),
+		Inode: sysStat.Ino,
 	}
 }
