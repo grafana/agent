@@ -578,6 +578,8 @@ require (
 
 require github.com/edsrzf/mmap-go v1.1.0 // indirect
 
+require github.com/samber/lo v1.38.1
+
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 // indirect
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect

@@ -12,15 +12,14 @@ import (
 	"reflect"
 	"unsafe"
 
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/cpuonline"
-
 	"github.com/cilium/ebpf"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
-	"golang.org/x/sys/unix"
-
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/cpuonline"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
+	"github.com/samber/lo"
+	"golang.org/x/sys/unix"
 )
 
 //go:generate make -C bpf get-headers
@@ -150,7 +149,7 @@ func (s *Session) CollectProfiles(cb func(t *sd.Target, stack []string, value ui
 		if s.ProfileOptions.CollectKernel {
 			s.walkStack(&sb, it.kStack, 0)
 		}
-		reverse(sb.stack)
+		lo.Reverse(sb.stack)
 		cb(it.labels, sb.stack, uint64(it.count), it.pid)
 	}
 	if err = s.clearCountsMap(keys, batch); err != nil {
@@ -245,7 +244,7 @@ func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 		}
 		stackFrames = append(stackFrames, name)
 	}
-	reverse(stackFrames)
+	lo.Reverse(stackFrames)
 	for _, s := range stackFrames {
 		sb.append(s)
 	}
@@ -282,12 +281,6 @@ func (s *Session) UpdateProfileOptions(options ProfileOptions) {
 
 func (s *Session) PidCacheDebugInfo() symtab.GCacheDebugInfo[symtab.ProcTableDebugInfo] {
 	return s.symCache.PidCacheDebugInfo()
-}
-
-func reverse(s []string) {
-	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
-	}
 }
 
 func getComm(k *profileSampleKey) string {
