@@ -111,7 +111,8 @@ func TestContextShutdown(t *testing.T) {
 	}
 	session.dataTarget, _ = sd.NewTarget("cid", map[string]string{"service_name": "foo"})
 	var g run.Group
-	ctx, _ := context.WithDeadline(context.Background(), time.Now().Add(time.Second*1))
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second*1))
+	defer cancel()
 	g.Add(func() error {
 		err = c.Run(ctx)
 		require.NoError(t, err)
@@ -132,7 +133,6 @@ func TestContextShutdown(t *testing.T) {
 	require.NoError(t, err)
 	require.Greater(t, session.collected, 5)
 	require.Equal(t, session.options.SampleRate, 4242)
-
 }
 
 func TestUnmarshalConfig(t *testing.T) {
@@ -159,7 +159,6 @@ collect_kernel_profile = false`), &arg)
 	require.Equal(t, 4, arg.CacheRounds)
 	require.Equal(t, true, arg.CollectUserProfile)
 	require.Equal(t, false, arg.CollectKernelProfile)
-
 }
 
 func TestUnmarshalBadConfig(t *testing.T) {
