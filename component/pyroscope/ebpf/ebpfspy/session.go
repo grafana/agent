@@ -9,11 +9,11 @@ import (
 	_ "embed"
 	"encoding/binary"
 	"fmt"
-	"github.com/cilium/ebpf/rlimit"
 	"reflect"
 	"unsafe"
 
 	"github.com/cilium/ebpf"
+	"github.com/cilium/ebpf/rlimit"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/cpuonline"
