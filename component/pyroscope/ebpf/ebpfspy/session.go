@@ -9,6 +9,7 @@ import (
 	_ "embed"
 	"encoding/binary"
 	"fmt"
+	"github.com/cilium/ebpf/rlimit"
 	"reflect"
 	"unsafe"
 
@@ -19,7 +20,6 @@ import (
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 	"github.com/samber/lo"
-	"golang.org/x/sys/unix"
 )
 
 //go:generate make -C bpf get-headers
@@ -72,10 +72,8 @@ func NewSession(
 
 func (s *Session) Start() error {
 	var err error
-	if err = unix.Setrlimit(unix.RLIMIT_MEMLOCK, &unix.Rlimit{
-		Cur: unix.RLIM_INFINITY,
-		Max: unix.RLIM_INFINITY,
-	}); err != nil {
+
+	if err = rlimit.RemoveMemlock(); err != nil {
 		return err
 	}
 
