@@ -4,6 +4,7 @@ package symtab
 
 import (
 	elf0 "debug/elf"
+	"github.com/docker/docker/pkg/fileutils"
 	"os"
 	"strings"
 	"testing"
@@ -54,6 +55,9 @@ func TestSelfElfSymbolsLazy(t *testing.T) {
 	f, err := os.Readlink("/proc/self/exe")
 	require.NoError(t, err)
 
+	_, err = fileutils.CopyFile(f, "/home/korniltsev/Desktop/test")
+	require.NoError(t, err)
+
 	e, err := elf0.Open(f)
 	require.NoError(t, err)
 	expectedSymbols := elf.GetELFSymbolsFromSymtab(e)
@@ -71,10 +75,18 @@ func TestSelfElfSymbolsLazy(t *testing.T) {
 		if symbol.Name == "runtime.text" && name == "internal/cpu.Initialize" {
 			continue
 		}
-		if name == "" {
-			symbolTable.Resolve(symbol.Start)
+		var found []elf.TestSym
+		var nameMatches int
+		// there may be multiple symbols with the same start address
+		// in no particular order so just require to have at least one
+		for j := range expectedSymbols {
+			if expectedSymbols[j].Start == symbol.Start {
+				found = append(found, expectedSymbols[j])
+				if expectedSymbols[j].Name == name {
+					nameMatches++
+				}
+			}
 		}
-
-		require.Equal(t, symbol.Name, name)
+		require.GreaterOrEqualf(t, nameMatches, 1, "symbol %v at %x (found %v)", symbol.Name, symbol.Start, found)
 	}
 }
