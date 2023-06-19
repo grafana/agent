@@ -56,12 +56,16 @@ configuration.
 
 ## Debug information
 
-`pyroscope.ebpf` does not expose any component-specific debug information.
+* `targets` currently tracked active targets.
+* `pid_cache` per process elf symbol tables and their sizes in symbols count.
+* `elf_cache` per build id and per same file symbol tables and their sizes in symbols count.
 
 ## Debug metrics
 
 * `pyroscope_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
-  TODO
+* `pyroscope_ebpf_active_targets` (gauge): Number of active targets tracked by ebpf component.
+* `pyroscope_ebpf_profiling_sessions_total` (counter): Number of profiling sessions completed by ebpf component.
+* `pyroscope_ebpf_pprofs_total` (counter): Number of pprof profiles collected by ebpf component.
 
 ## Profile collecting behavior
 
