@@ -82,7 +82,19 @@ func (t *Target) Labels() (uint64, labels.Labels) {
 
 type containerID string
 
-type TargetFinder struct {
+type TargetFinder interface {
+	FindTarget(pid uint32) *Target
+	DebugInfo() []string
+	Update(args TargetsOptions)
+}
+type TargetsOptions struct {
+	Targets            []discovery.Target
+	TargetsOnly        bool
+	DefaultTarget      discovery.Target
+	ContainerCacheSize int
+}
+
+type targetFinder struct {
 	l          log.Logger
 	cid2target map[containerID]*Target
 
@@ -92,26 +104,26 @@ type TargetFinder struct {
 	fs               fs.FS
 }
 
-func NewTargetFinder(fs fs.FS, l log.Logger, containerIdCacheSize int) (*TargetFinder, error) {
-	containerIDCache, err := lru.New[uint32, containerID](containerIdCacheSize)
+func (tf *targetFinder) Update(args TargetsOptions) {
+	tf.setTargets(args)
+	tf.resizeContainerIDCache(args.ContainerCacheSize)
+}
+
+func NewTargetFinder(fs fs.FS, l log.Logger, options TargetsOptions) (TargetFinder, error) {
+	containerIDCache, err := lru.New[uint32, containerID](options.ContainerCacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("containerIDCache create: %w", err)
 	}
-	return &TargetFinder{
+	res := &targetFinder{
 		l:                l,
 		containerIDCache: containerIDCache,
 		fs:               fs,
-	}, nil
+	}
+	res.setTargets(options)
+	return res, nil
 }
 
-type TargetsOptions struct {
-	Targets            []discovery.Target
-	TargetsOnly        bool
-	DefaultTarget      discovery.Target
-	ContainerCacheSize int
-}
-
-func (tf *TargetFinder) SetTargets(opts TargetsOptions) {
+func (tf *targetFinder) setTargets(opts TargetsOptions) {
 	_ = level.Debug(tf.l).Log("msg", "set targets", "count", len(opts.Targets))
 	containerID2Target := make(map[containerID]*Target)
 	for _, target := range opts.Targets {
@@ -151,7 +163,7 @@ func (tf *TargetFinder) SetTargets(opts TargetsOptions) {
 	_ = level.Debug(tf.l).Log("msg", "created targets", "count", len(tf.cid2target))
 }
 
-func (tf *TargetFinder) FindTarget(pid uint32) *Target {
+func (tf *targetFinder) FindTarget(pid uint32) *Target {
 	res := tf.findTarget(pid)
 	if res != nil {
 		return res
@@ -159,7 +171,7 @@ func (tf *TargetFinder) FindTarget(pid uint32) *Target {
 	return tf.defaultTarget
 }
 
-func (tf *TargetFinder) findTarget(pid uint32) *Target {
+func (tf *targetFinder) findTarget(pid uint32) *Target {
 	cid, ok := tf.containerIDCache.Get(pid)
 	if ok && cid != "" {
 		return tf.cid2target[cid]
@@ -170,11 +182,11 @@ func (tf *TargetFinder) findTarget(pid uint32) *Target {
 	return tf.cid2target[cid]
 }
 
-func (tf *TargetFinder) ResizeContainerIDCache(size int) {
+func (tf *targetFinder) resizeContainerIDCache(size int) {
 	tf.containerIDCache.Resize(size)
 }
 
-func (tf *TargetFinder) DebugInfo() []string {
+func (tf *targetFinder) DebugInfo() []string {
 	debugTargets := make([]string, 0, len(tf.cid2target))
 	for _, target := range tf.cid2target {
 		_, ls := target.Labels()
@@ -183,7 +195,7 @@ func (tf *TargetFinder) DebugInfo() []string {
 	return debugTargets
 }
 
-func (tf *TargetFinder) Targets() []*Target {
+func (tf *targetFinder) Targets() []*Target {
 	res := make([]*Target, 0, len(tf.cid2target))
 	for _, target := range tf.cid2target {
 		res = append(res, target)

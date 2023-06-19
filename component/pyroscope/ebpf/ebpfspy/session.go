@@ -25,17 +25,31 @@ import (
 //go:generate make -C bpf get-headers
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang -cflags "-O2 -Wall -fpie -Wno-unused-variable -Wno-unused-function" profile bpf/profile.bpf.c -- -I./bpf/libbpf -I./bpf/vmlinux/
 
-type ProfileOptions struct {
+type SessionOptions struct {
 	CollectUser   bool
 	CollectKernel bool
+	CacheOptions  symtab.CacheOptions
+	SampleRate    int
 }
 
-type Session struct {
-	logger     log.Logger
-	pid        int
-	sampleRate int
+type Session interface {
+	Start() error
+	Stop()
+	Update(SessionOptions) error
+	CollectProfiles(f func(target *sd.Target, stack []string, value uint64, pid uint32)) error
+	DebugInfo() interface{}
+}
 
-	targetFinder *sd.TargetFinder
+type SessionDebugInfo struct {
+	ElfCache symtab.ElfCacheDebugInfo                          `river:"elf_cache,attr,optional"`
+	PidCache symtab.GCacheDebugInfo[symtab.ProcTableDebugInfo] `river:"pid_cache,attr,optional"`
+}
+
+type session struct {
+	logger log.Logger
+	pid    int
+
+	targetFinder sd.TargetFinder
 
 	perfEvents []*perfEvent
 
@@ -43,34 +57,33 @@ type Session struct {
 
 	bpf profileObjects
 
-	ProfileOptions
+	options     SessionOptions
 	roundNumber int
 }
 
 func NewSession(
 	logger log.Logger,
-	serviceDiscovery *sd.TargetFinder,
-	sampleRate int,
-	cacheOptions symtab.CacheOptions,
-	profileOptions ProfileOptions,
-) (*Session, error) {
+	targetFinder sd.TargetFinder,
 
-	symCache, err := symtab.NewSymbolCache(logger, cacheOptions)
+	sessionOptions SessionOptions,
+) (Session, error) {
+
+	symCache, err := symtab.NewSymbolCache(logger, sessionOptions.CacheOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Session{
-		logger:         logger,
-		pid:            -1,
-		symCache:       symCache,
-		sampleRate:     sampleRate,
-		targetFinder:   serviceDiscovery,
-		ProfileOptions: profileOptions,
+	return &session{
+		logger:   logger,
+		pid:      -1,
+		symCache: symCache,
+
+		targetFinder: targetFinder,
+		options:      sessionOptions,
 	}, nil
 }
 
-func (s *Session) Start() error {
+func (s *session) Start() error {
 	var err error
 
 	if err = rlimit.RemoveMemlock(); err != nil {
@@ -90,7 +103,7 @@ func (s *Session) Start() error {
 	return nil
 }
 
-func (s *Session) CollectProfiles(cb func(t *sd.Target, stack []string, value uint64, pid uint32)) error {
+func (s *session) CollectProfiles(cb func(t *sd.Target, stack []string, value uint64, pid uint32)) error {
 	defer s.symCache.Cleanup()
 
 	s.symCache.NextRound()
@@ -141,10 +154,10 @@ func (s *Session) CollectProfiles(cb func(t *sd.Target, stack []string, value ui
 	for _, it := range sfs {
 		sb.rest()
 		sb.append(it.comm)
-		if s.ProfileOptions.CollectUser {
+		if s.options.CollectUser {
 			s.walkStack(&sb, it.uStack, it.pid)
 		}
-		if s.ProfileOptions.CollectKernel {
+		if s.options.CollectKernel {
 			s.walkStack(&sb, it.kStack, 0)
 		}
 		lo.Reverse(sb.stack)
@@ -159,7 +172,7 @@ func (s *Session) CollectProfiles(cb func(t *sd.Target, stack []string, value ui
 	return nil
 }
 
-func (s *Session) Stop() {
+func (s *session) Stop() {
 	for _, pe := range s.perfEvents {
 		_ = pe.Close()
 	}
@@ -167,7 +180,24 @@ func (s *Session) Stop() {
 	s.bpf.Close()
 }
 
-func (s *Session) initArgs() error {
+func (s *session) Update(options SessionOptions) error {
+	s.symCache.UpdateOptions(options.CacheOptions)
+	err := s.updateSampleRate(options.SampleRate)
+	if err != nil {
+		return err
+	}
+	s.options = options
+	return nil
+}
+
+func (s *session) DebugInfo() interface{} {
+	return SessionDebugInfo{
+		ElfCache: s.symCache.ElfCacheDebugInfo(),
+		PidCache: s.symCache.PidCacheDebugInfo(),
+	}
+}
+
+func (s *session) initArgs() error {
 	var zero uint32
 	var tgidFilter uint32
 	if s.pid <= 0 {
@@ -184,14 +214,14 @@ func (s *Session) initArgs() error {
 	return nil
 }
 
-func (s *Session) attachPerfEvents() error {
+func (s *session) attachPerfEvents() error {
 	var cpus []uint
 	var err error
 	if cpus, err = cpuonline.Get(); err != nil {
 		return fmt.Errorf("get cpuonline: %w", err)
 	}
 	for _, cpu := range cpus {
-		pe, err := newPerfEvent(int(cpu), s.sampleRate)
+		pe, err := newPerfEvent(int(cpu), s.options.SampleRate)
 		if err != nil {
 			return fmt.Errorf("new perf event: %w", err)
 		}
@@ -205,7 +235,7 @@ func (s *Session) attachPerfEvents() error {
 	return nil
 }
 
-func (s *Session) getStack(stackId int64) []byte {
+func (s *session) getStack(stackId int64) []byte {
 	if stackId < 0 {
 		return nil
 	}
@@ -217,7 +247,7 @@ func (s *Session) getStack(stackId int64) []byte {
 	return res
 }
 
-func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
+func (s *session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 	if len(stack) == 0 {
 		return
 	}
@@ -248,42 +278,28 @@ func (s *Session) walkStack(sb *stackBuilder, stack []byte, pid uint32) {
 	}
 }
 
-func (s *Session) UpdateCacheOptions(options symtab.CacheOptions) {
-	s.symCache.UpdateOptions(options)
-}
-
-func (s *Session) UpdateSampleRate(sampleRate int) error {
-	if s.sampleRate == sampleRate {
+func (s *session) updateSampleRate(sampleRate int) error {
+	if s.options.SampleRate == sampleRate {
 		return nil
 	}
 	_ = level.Debug(s.logger).Log(
 		"sample_rate_new", sampleRate,
-		"sample_rate_old", s.sampleRate,
+		"sample_rate_old", s.options.SampleRate,
 	)
 	s.Stop()
+	s.options.SampleRate = sampleRate
 	err := s.Start()
 	if err != nil {
 		return fmt.Errorf("ebpf restart: %w", err)
 	}
-	s.sampleRate = sampleRate
+
 	return nil
-}
-
-func (s *Session) ElfCacheDebugInfo() symtab.ElfCacheDebugInfo {
-	return s.symCache.ElfCacheDebugInfo()
-}
-
-func (s *Session) UpdateProfileOptions(options ProfileOptions) {
-	s.ProfileOptions = options
-}
-
-func (s *Session) PidCacheDebugInfo() symtab.GCacheDebugInfo[symtab.ProcTableDebugInfo] {
-	return s.symCache.PidCacheDebugInfo()
 }
 
 func getComm(k *profileSampleKey) string {
 	res := ""
 	// todo remove unsafe
+
 	sh := (*reflect.StringHeader)(unsafe.Pointer(&res))
 	sh.Data = uintptr(unsafe.Pointer(&k.Comm[0]))
 	for _, c := range k.Comm {

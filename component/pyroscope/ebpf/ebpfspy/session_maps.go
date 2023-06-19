@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-func (s *Session) getCountsMapValues() (keys []profileSampleKey, values []uint32, batch bool, err error) {
+func (s *session) getCountsMapValues() (keys []profileSampleKey, values []uint32, batch bool, err error) {
 	// try batch first
 	var (
 		m       = s.bpf.profileMaps.Counts
@@ -57,7 +57,7 @@ func (s *Session) getCountsMapValues() (keys []profileSampleKey, values []uint32
 	return resultKeys, resultValues, false, nil
 }
 
-func (s *Session) clearCountsMap(keys []profileSampleKey, batch bool) error {
+func (s *session) clearCountsMap(keys []profileSampleKey, batch bool) error {
 	if len(keys) == 0 {
 		return nil
 	}
@@ -79,7 +79,7 @@ func (s *Session) clearCountsMap(keys []profileSampleKey, batch bool) error {
 	return nil
 }
 
-func (s *Session) clearStacksMap(knownKeys map[uint32]bool) error {
+func (s *session) clearStacksMap(knownKeys map[uint32]bool) error {
 	m := s.bpf.Stacks
 	cnt := 0
 	errs := 0

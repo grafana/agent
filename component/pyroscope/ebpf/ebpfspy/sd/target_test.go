@@ -106,10 +106,7 @@ func TestTargetFinder(t *testing.T) {
 		[]byte("12:blkio:/kubepods/burstable/pod83ca8044-3e7c-457b-8647-a21dabad5079/57ac76ffc93d7e7735ca186bc67115656967fc8aecbe1f65526c4c48b033e6a5"))
 	require.NoError(t, err)
 
-	tf, err := NewTargetFinder(fs.root, util.TestLogger(t), 1024)
-	require.NoError(t, err)
-
-	tf.SetTargets(TargetsOptions{
+	options := TargetsOptions{
 		Targets: []discovery.Target{
 			map[string]string{
 				"__meta_kubernetes_pod_container_id":   "containerd://9a7c72f122922fe3445ba85ce72c507c8976c0f3d919403fda7c22dfe516f66f",
@@ -125,7 +122,10 @@ func TestTargetFinder(t *testing.T) {
 		TargetsOnly:        true,
 		DefaultTarget:      nil,
 		ContainerCacheSize: 1024,
-	})
+	}
+
+	tf, err := NewTargetFinder(fs.root, util.TestLogger(t), options)
+	require.NoError(t, err)
 
 	target := tf.FindTarget(1801264)
 	require.NotNil(t, target)

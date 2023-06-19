@@ -10,7 +10,7 @@ var (
 	cgroupContainerIDRe = regexp.MustCompile(`^.*/(?:.*-)?([0-9a-f]+)(?:\.|\s*$)`)
 )
 
-func (tf *TargetFinder) getContainerIDFromPID(pid uint32) containerID {
+func (tf *targetFinder) getContainerIDFromPID(pid uint32) containerID {
 	f, err := tf.fs.Open(fmt.Sprintf("proc/%d/cgroup", pid))
 	if err != nil {
 		return ""

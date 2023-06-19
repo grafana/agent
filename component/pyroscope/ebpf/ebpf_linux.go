@@ -26,45 +26,42 @@ func init() {
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return New(opts, args.(Arguments))
+			arguments := args.(Arguments)
+
+			targetFinder, err := sd.NewTargetFinder(os.DirFS("/"), opts.Logger, targetsOptionFromArgs(arguments))
+			if err != nil {
+				return nil, fmt.Errorf("ebpf target finder create: %w", err)
+			}
+
+			session, err := ebpfspy.NewSession(
+				opts.Logger,
+				targetFinder,
+				sessionOptionsFromArgs(arguments),
+			)
+			if err != nil {
+				return nil, fmt.Errorf("ebpf session create: %w", err)
+			}
+
+			return New(opts, arguments, session, targetFinder)
 		},
 	})
 }
 
-func New(o component.Options, args Arguments) (component.Component, error) {
+func New(o component.Options, args Arguments, session ebpfspy.Session, targetFinder sd.TargetFinder) (component.Component, error) {
 	flowAppendable := pyroscope.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 
-	metrics := NewMetrics(o.Registerer)
+	metrics := newMetrics(o.Registerer)
 
-	tf, err := sd.NewTargetFinder(os.DirFS("/"), o.Logger, args.ContainerIDCacheSize)
-	if err != nil {
-		return nil, fmt.Errorf("ebpf target finder create: %w", err)
-	}
-
-	session, err := ebpfspy.NewSession(
-		o.Logger,
-		tf,
-		args.SampleRate,
-		cacheOptionsFromArgs(args),
-		ebpfspy.ProfileOptions{
-			CollectUser:   args.CollectUserProfile,
-			CollectKernel: args.CollectKernelProfile,
-		},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("ebpf session create: %w", err)
-	}
 	res := &Component{
 		options:      o,
 		metrics:      metrics,
 		appendable:   flowAppendable,
 		args:         args,
-		targetFinder: tf,
+		targetFinder: targetFinder,
 		session:      session,
 		argsUpdate:   make(chan Arguments),
 	}
-	res.updateTargetFinder()
-	res.updateDebugInfo()
+	res.metrics.targetsActive.Set(float64(len(res.targetFinder.DebugInfo())))
 	return res, nil
 }
 
@@ -107,12 +104,12 @@ type Component struct {
 	args         Arguments
 	argsUpdate   chan Arguments
 	appendable   *pyroscope.Fanout
-	targetFinder *sd.TargetFinder
-	session      *ebpfspy.Session
+	targetFinder sd.TargetFinder
+	session      ebpfspy.Session
 
 	debugInfo     DebugInfo
 	debugInfoLock sync.Mutex
-	metrics       *Metrics
+	metrics       *metrics
 }
 
 func (c *Component) Run(ctx context.Context) error {
@@ -133,9 +130,9 @@ func (c *Component) Run(ctx context.Context) error {
 				return nil
 			case newArgs := <-c.argsUpdate:
 				c.args = newArgs
-				c.updateTargetFinder()
-				c.session.UpdateCacheOptions(cacheOptionsFromArgs(c.args))
-				err := c.session.UpdateSampleRate(c.args.SampleRate)
+				c.targetFinder.Update(targetsOptionFromArgs(c.args))
+				c.metrics.targetsActive.Set(float64(len(c.targetFinder.DebugInfo())))
+				err := c.session.Update(sessionOptionsFromArgs(c.args))
 				if err != nil {
 					return nil
 				}
@@ -145,9 +142,9 @@ func (c *Component) Run(ctx context.Context) error {
 					collectInterval = c.args.CollectInterval
 				}
 			case <-t.C:
-				err := c.CollectProfiles()
+				err := c.collectProfiles()
 				if err != nil {
-					c.metrics.ProfilingSessionsFailingTotal.Inc()
+					c.metrics.profilingSessionsFailingTotal.Inc()
 					return err
 				}
 				c.updateDebugInfo()
@@ -159,42 +156,21 @@ func (c *Component) Run(ctx context.Context) error {
 	return g.Run()
 }
 
-func cacheOptionsFromArgs(args Arguments) symtab.CacheOptions {
-	return symtab.CacheOptions{
-		PidCacheOptions: symtab.GCacheOptions{
-			Size:       args.PidCacheSize,
-			KeepRounds: args.CacheRounds,
-		},
-		BuildIDCacheOptions: symtab.GCacheOptions{
-			Size:       args.BuildIDCacheSize,
-			KeepRounds: args.CacheRounds,
-		},
-		SameFileCacheOptions: symtab.GCacheOptions{
-			Size:       args.SameFileCacheSize,
-			KeepRounds: args.CacheRounds,
-		},
-	}
-}
-
-func (c *Component) updateTargetFinder() {
-	c.targetFinder.SetTargets(sd.TargetsOptions{
-		Targets:       c.args.Targets,
-		DefaultTarget: nil,
-		TargetsOnly:   true,
-	})
-	c.targetFinder.ResizeContainerIDCache(c.args.ContainerIDCacheSize)
-	c.metrics.TargetsActive.Set(float64(len(c.targetFinder.Targets())))
-}
-
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 	c.argsUpdate <- newArgs
 	return nil
 }
 
-func (c *Component) CollectProfiles() error {
-	c.metrics.ProfilingSessionsTotal.Inc()
-	level.Debug(c.options.Logger).Log("msg", "ebpf  CollectProfiles")
+func (c *Component) DebugInfo() interface{} {
+	c.debugInfoLock.Lock()
+	defer c.debugInfoLock.Unlock()
+	return c.debugInfo
+}
+
+func (c *Component) collectProfiles() error {
+	c.metrics.profilingSessionsTotal.Inc()
+	level.Debug(c.options.Logger).Log("msg", "ebpf  collectProfiles")
 	args := c.args
 	builders := ebpfspy.NewProfileBuilders(args.SampleRate)
 	err := c.session.CollectProfiles(func(target *sd.Target, stack []string, value uint64, pid uint32) {
@@ -204,12 +180,12 @@ func (c *Component) CollectProfiles() error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("ebpf session CollectProfiles %w", err)
+		return fmt.Errorf("ebpf session collectProfiles %w", err)
 	}
-	level.Debug(c.options.Logger).Log("msg", "ebpf  CollectProfiles done", "profiles", len(builders.Builders))
+	level.Debug(c.options.Logger).Log("msg", "ebpf  collectProfiles done", "profiles", len(builders.Builders))
 	bytesSent := 0
 	for _, builder := range builders.Builders {
-		c.metrics.PprofsTotal.Inc()
+		c.metrics.pprofsTotal.Inc()
 		var buf bytes.Buffer
 		err := builder.Profile.Write(&buf)
 		if err != nil {
@@ -230,15 +206,8 @@ func (c *Component) CollectProfiles() error {
 }
 
 type DebugInfo struct {
-	Targets  []string                                          `river:"targets,attr,optional"`
-	ElfCache symtab.ElfCacheDebugInfo                          `river:"elf_cache,attr,optional"`
-	PidCache symtab.GCacheDebugInfo[symtab.ProcTableDebugInfo] `river:"pid_cache,attr,optional"`
-}
-
-func (c *Component) DebugInfo() interface{} {
-	c.debugInfoLock.Lock()
-	defer c.debugInfoLock.Unlock()
-	return c.debugInfo
+	Targets interface{} `river:"targets,attr,optional"`
+	Session interface{} `river:"session,attr,optional"`
 }
 
 func (c *Component) updateDebugInfo() {
@@ -246,8 +215,42 @@ func (c *Component) updateDebugInfo() {
 	defer c.debugInfoLock.Unlock()
 
 	c.debugInfo = DebugInfo{
-		Targets:  c.targetFinder.DebugInfo(),
-		ElfCache: c.session.ElfCacheDebugInfo(),
-		PidCache: c.session.PidCacheDebugInfo(),
+		Targets: c.targetFinder.DebugInfo(),
+		Session: c.session.DebugInfo(),
+	}
+}
+
+func targetsOptionFromArgs(args Arguments) sd.TargetsOptions {
+	return sd.TargetsOptions{
+		Targets:            args.Targets,
+		DefaultTarget:      nil,
+		TargetsOnly:        true,
+		ContainerCacheSize: args.ContainerIDCacheSize,
+	}
+}
+
+func cacheOptionsFromArgs(args Arguments) symtab.CacheOptions {
+	return symtab.CacheOptions{
+		PidCacheOptions: symtab.GCacheOptions{
+			Size:       args.PidCacheSize,
+			KeepRounds: args.CacheRounds,
+		},
+		BuildIDCacheOptions: symtab.GCacheOptions{
+			Size:       args.BuildIDCacheSize,
+			KeepRounds: args.CacheRounds,
+		},
+		SameFileCacheOptions: symtab.GCacheOptions{
+			Size:       args.SameFileCacheSize,
+			KeepRounds: args.CacheRounds,
+		},
+	}
+}
+
+func sessionOptionsFromArgs(args Arguments) ebpfspy.SessionOptions {
+	return ebpfspy.SessionOptions{
+		CollectUser:   args.CollectUserProfile,
+		CollectKernel: args.CollectKernelProfile,
+		SampleRate:    args.SampleRate,
+		CacheOptions:  cacheOptionsFromArgs(args),
 	}
 }
