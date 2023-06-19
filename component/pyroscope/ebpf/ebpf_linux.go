@@ -182,7 +182,7 @@ func (c *Component) collectProfiles() error {
 	if err != nil {
 		return fmt.Errorf("ebpf session collectProfiles %w", err)
 	}
-	level.Debug(c.options.Logger).Log("msg", "ebpf  collectProfiles done", "profiles", len(builders.Builders))
+	level.Debug(c.options.Logger).Log("msg", "ebpf collectProfiles done", "profiles", len(builders.Builders))
 	bytesSent := 0
 	for _, builder := range builders.Builders {
 		c.metrics.pprofsTotal.Inc()
