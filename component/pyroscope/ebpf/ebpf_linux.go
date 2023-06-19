@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -36,7 +37,7 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 
 	ms := metrics.NewMetrics(o.Registerer)
 
-	tf, err := sd.NewTargetFinder(o.Logger, args.ContainerIDCacheSize, ms)
+	tf, err := sd.NewTargetFinder(os.DirFS("/"), o.Logger, args.ContainerIDCacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("ebpf target finder create: %w", err)
 	}
