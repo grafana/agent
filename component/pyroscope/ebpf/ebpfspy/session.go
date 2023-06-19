@@ -20,8 +20,6 @@ import (
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 	"golang.org/x/sys/unix"
 
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
-
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
 )
 
@@ -53,13 +51,12 @@ type Session struct {
 func NewSession(
 	logger log.Logger,
 	serviceDiscovery *sd.TargetFinder,
-	metrics *metrics.Metrics,
 	sampleRate int,
 	cacheOptions symtab.CacheOptions,
 	profileOptions ProfileOptions,
 ) (*Session, error) {
 
-	symCache, err := symtab.NewSymbolCache(logger, cacheOptions, metrics)
+	symCache, err := symtab.NewSymbolCache(logger, cacheOptions)
 	if err != nil {
 		return nil, err
 	}

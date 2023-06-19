@@ -3,13 +3,12 @@ package symtab
 import (
 	"testing"
 
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 )
 
 func TestElf(t *testing.T) {
-	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions, metrics.NewMetrics(nil))
+	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions)
 	logger := util.TestLogger(t)
 	tab := NewElfTable(logger, &ProcMap{StartAddr: 0x1000, Offset: 0x1000}, ".", "elf/testdata/elfs/elf",
 		ElfTableOptions{

@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 )
 
 type PidKey uint32
@@ -22,7 +21,6 @@ type SymbolCache struct {
 	elfCache *ElfCache
 	kallsyms SymbolTable
 	logger   log.Logger
-	metrics  *metrics.Metrics
 }
 type CacheOptions struct {
 	PidCacheOptions      GCacheOptions
@@ -30,8 +28,8 @@ type CacheOptions struct {
 	SameFileCacheOptions GCacheOptions
 }
 
-func NewSymbolCache(logger log.Logger, options CacheOptions, metrics *metrics.Metrics) (*SymbolCache, error) {
-	elfCache, err := NewElfCache(options.BuildIDCacheOptions, options.SameFileCacheOptions, metrics)
+func NewSymbolCache(logger log.Logger, options CacheOptions) (*SymbolCache, error) {
+	elfCache, err := NewElfCache(options.BuildIDCacheOptions, options.SameFileCacheOptions)
 	if err != nil {
 		return nil, fmt.Errorf("create elf cache %w", err)
 	}
@@ -50,7 +48,6 @@ func NewSymbolCache(logger log.Logger, options CacheOptions, metrics *metrics.Me
 	}
 	return &SymbolCache{
 		logger:   logger,
-		metrics:  metrics,
 		pidCache: cache,
 		kallsyms: kallsyms,
 		elfCache: elfCache,

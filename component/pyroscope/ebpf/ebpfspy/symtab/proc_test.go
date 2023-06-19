@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 )
@@ -49,7 +48,7 @@ type procTestdata struct {
 
 func testProc(t *testing.T, maps string, data []procTestdata) {
 	wd, _ := os.Getwd()
-	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions, metrics.NewMetrics(nil))
+	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions)
 	logger := util.TestLogger(t)
 	m := NewProcTable(logger, ProcTableOptions{
 		Pid: 239,
@@ -251,7 +250,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 	}
 
 	wd, _ := os.Getwd()
-	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions, metrics.NewMetrics(nil))
+	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions)
 	logger := util.TestLogger(t)
 	m := NewProcTable(logger, ProcTableOptions{
 		Pid: 239,
@@ -334,7 +333,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 	}
 
 	wd, _ := os.Getwd()
-	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions, metrics.NewMetrics(nil))
+	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions)
 	logger := util.TestLogger(t)
 	m := NewProcTable(logger, ProcTableOptions{
 		Pid: 239,

@@ -12,13 +12,12 @@ import (
 	"github.com/go-kit/log"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 	"github.com/grafana/agent/pkg/util"
 )
 
 func TestMallocResolve(t *testing.T) {
-	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions, metrics.NewMetrics(nil))
+	elfCache, _ := NewElfCache(testCacheOptions, testCacheOptions)
 	logger := util.TestLogger(t)
 	gosym := NewProcTable(logger, ProcTableOptions{
 		Pid: os.Getpid(),

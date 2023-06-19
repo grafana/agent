@@ -1,18 +1,15 @@
 package symtab
 
 import (
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab/elf"
 )
 
 type ElfCache struct {
 	BuildIDCache  *GCache[elf.BuildID, SymbolNameResolver]
 	SameFileCache *GCache[Stat, SymbolNameResolver]
-
-	metrics *metrics.Metrics
 }
 
-func NewElfCache(buildIDCacheOptions GCacheOptions, sameFileCacheOptions GCacheOptions, metrics *metrics.Metrics) (*ElfCache, error) {
+func NewElfCache(buildIDCacheOptions GCacheOptions, sameFileCacheOptions GCacheOptions) (*ElfCache, error) {
 	buildIdCache, err := NewGCache[elf.BuildID, SymbolNameResolver](buildIDCacheOptions)
 	if err != nil {
 		return nil, err
@@ -24,10 +21,7 @@ func NewElfCache(buildIDCacheOptions GCacheOptions, sameFileCacheOptions GCacheO
 	}
 	return &ElfCache{
 		BuildIDCache:  buildIdCache,
-		SameFileCache: statCache,
-
-		metrics: metrics,
-	}, nil
+		SameFileCache: statCache}, nil
 }
 
 func (e *ElfCache) GetSymbolsByBuildID(buildID elf.BuildID) SymbolNameResolver {

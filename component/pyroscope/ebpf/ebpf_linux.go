@@ -15,7 +15,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
 	ebpfspy "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 	"github.com/oklog/run"
@@ -35,7 +34,7 @@ func init() {
 func New(o component.Options, args Arguments) (component.Component, error) {
 	flowAppendable := pyroscope.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 
-	ms := metrics.NewMetrics(o.Registerer)
+	metrics := NewMetrics(o.Registerer)
 
 	tf, err := sd.NewTargetFinder(os.DirFS("/"), o.Logger, args.ContainerIDCacheSize)
 	if err != nil {
@@ -45,7 +44,6 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 	session, err := ebpfspy.NewSession(
 		o.Logger,
 		tf,
-		ms,
 		args.SampleRate,
 		cacheOptionsFromArgs(args),
 		ebpfspy.ProfileOptions{
@@ -58,6 +56,7 @@ func New(o component.Options, args Arguments) (component.Component, error) {
 	}
 	res := &Component{
 		options:      o,
+		metrics:      metrics,
 		appendable:   flowAppendable,
 		args:         args,
 		targetFinder: tf,
@@ -113,6 +112,7 @@ type Component struct {
 
 	debugInfo     DebugInfo
 	debugInfoLock sync.Mutex
+	metrics       *Metrics
 }
 
 func (c *Component) Run(ctx context.Context) error {
@@ -182,6 +182,7 @@ func (c *Component) updateTargetFinder() {
 		TargetsOnly:   true,
 	})
 	c.targetFinder.ResizeContainerIDCache(c.args.ContainerIDCacheSize)
+	c.metrics.TargetsActive.Set(float64(len(c.targetFinder.Targets())))
 }
 
 func (c *Component) Update(args component.Arguments) error {
@@ -191,6 +192,7 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 func (c *Component) CollectProfiles() error {
+	c.metrics.ProfilingSessionsTotal.Inc()
 	level.Debug(c.options.Logger).Log("msg", "ebpf  CollectProfiles")
 	args := c.args
 	builders := ebpfspy.NewProfileBuilders(args.SampleRate)
@@ -206,6 +208,7 @@ func (c *Component) CollectProfiles() error {
 	level.Debug(c.options.Logger).Log("msg", "ebpf  CollectProfiles done", "profiles", len(builders.Builders))
 	bytesSent := 0
 	for _, builder := range builders.Builders {
+		c.metrics.PprofsTotal.Inc()
 		var buf bytes.Buffer
 		err := builder.Profile.Write(&buf)
 		if err != nil {
