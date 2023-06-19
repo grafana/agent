@@ -130,6 +130,15 @@ integrations:
 
   vsphere_configs:
     [- <vsphere_config>]
+
+  gcp_configs:
+    [- <gcp_config>]
+    
+  azure_configs:
+    [- <azure_config>]   
+    
+  cloudwatch_configs:
+    [- <cloudwatch_config>]    
 ```
 
 Note that most integrations are no longer configured with the `_exporter` name.
