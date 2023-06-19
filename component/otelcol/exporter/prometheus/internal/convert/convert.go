@@ -472,7 +472,9 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 
 		sort.Float64s(bounds)
 
-		// Calculate cumulative count value as Prometheus wants it
+		// Calculate cumulative count values. Prometheus expects cummulative bucket counts for histograms.
+		// This has nothing to do with temporality, it doesn't affect cummulative vs delta histograms, it
+		// simply matches the format of bucket counts expected by Prometheus.
 		var c uint64 = 0
 		for i := 0; i < len(bounds); i++ {
 			bound := bounds[i]
