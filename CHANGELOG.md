@@ -55,6 +55,8 @@ Main (unreleased)
 
 - Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
 
+- Fixes several issues with statsd exporter. (@jcreixell, @marctc)
+
 ### Other changes
 
 - Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
