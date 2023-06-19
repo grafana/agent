@@ -2,11 +2,11 @@ package sd
 
 import (
 	"fmt"
+	"io/fs"
 	"strings"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/metrics"
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
@@ -89,10 +89,10 @@ type TargetFinder struct {
 	// todo make it never evict during a reset
 	containerIDCache *lru.Cache[uint32, containerID]
 	defaultTarget    *Target
-	metrics          *metrics.Metrics
+	fs               fs.FS
 }
 
-func NewTargetFinder(l log.Logger, containerIdCacheSize int, metrics *metrics.Metrics) (*TargetFinder, error) {
+func NewTargetFinder(fs fs.FS, l log.Logger, containerIdCacheSize int) (*TargetFinder, error) {
 	containerIDCache, err := lru.New[uint32, containerID](containerIdCacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("containerIDCache create: %w", err)
@@ -100,7 +100,7 @@ func NewTargetFinder(l log.Logger, containerIdCacheSize int, metrics *metrics.Me
 	return &TargetFinder{
 		l:                l,
 		containerIDCache: containerIDCache,
-		metrics:          metrics,
+		fs:               fs,
 	}, nil
 }
 
@@ -111,15 +111,15 @@ type TargetsOptions struct {
 	ContainerCacheSize int
 }
 
-func (s *TargetFinder) SetTargets(opts TargetsOptions) {
-	_ = level.Debug(s.l).Log("msg", "set targets", "count", len(opts.Targets))
+func (tf *TargetFinder) SetTargets(opts TargetsOptions) {
+	_ = level.Debug(tf.l).Log("msg", "set targets", "count", len(opts.Targets))
 	containerID2Target := make(map[containerID]*Target)
 	for _, target := range opts.Targets {
 		cid := containerIDFromTarget(target)
 		if cid != "" {
 			t, err := NewTarget(cid, target)
 			if err != nil {
-				_ = level.Error(s.l).Log(
+				_ = level.Error(tf.l).Log(
 					"msg", "target skipped",
 					"target", target.Labels().String(),
 					"err", err,
@@ -130,62 +130,62 @@ func (s *TargetFinder) SetTargets(opts TargetsOptions) {
 		}
 	}
 	if len(opts.Targets) > 0 && len(containerID2Target) == 0 {
-		_ = level.Warn(s.l).Log("msg", "No container IDs found in targets")
+		_ = level.Warn(tf.l).Log("msg", "No container IDs found in targets")
 	}
-	s.cid2target = containerID2Target
+	tf.cid2target = containerID2Target
 	if opts.TargetsOnly {
-		s.defaultTarget = nil
+		tf.defaultTarget = nil
 	} else {
 		t, err := NewTarget("", opts.DefaultTarget)
 		if err != nil {
-			_ = level.Error(s.l).Log(
+			_ = level.Error(tf.l).Log(
 				"msg", "default target skipped",
 				"target", opts.DefaultTarget.Labels().String(),
 				"err", err,
 			)
-			s.defaultTarget = nil
+			tf.defaultTarget = nil
 		} else {
-			s.defaultTarget = t
+			tf.defaultTarget = t
 		}
 	}
-	_ = level.Debug(s.l).Log("msg", "created targets", "count", len(s.cid2target))
+	_ = level.Debug(tf.l).Log("msg", "created targets", "count", len(tf.cid2target))
 }
 
-func (s *TargetFinder) FindTarget(pid uint32) *Target {
-	res := s.findTarget(pid)
+func (tf *TargetFinder) FindTarget(pid uint32) *Target {
+	res := tf.findTarget(pid)
 	if res != nil {
 		return res
 	}
-	return s.defaultTarget
+	return tf.defaultTarget
 }
 
-func (s *TargetFinder) findTarget(pid uint32) *Target {
-	cid, ok := s.containerIDCache.Get(pid)
+func (tf *TargetFinder) findTarget(pid uint32) *Target {
+	cid, ok := tf.containerIDCache.Get(pid)
 	if ok && cid != "" {
-		return s.cid2target[cid]
+		return tf.cid2target[cid]
 	}
 
-	cid = getContainerIDFromPID(pid)
-	s.containerIDCache.Add(pid, cid)
-	return s.cid2target[cid]
+	cid = tf.getContainerIDFromPID(pid)
+	tf.containerIDCache.Add(pid, cid)
+	return tf.cid2target[cid]
 }
 
-func (s *TargetFinder) ResizeContainerIDCache(size int) {
-	s.containerIDCache.Resize(size)
+func (tf *TargetFinder) ResizeContainerIDCache(size int) {
+	tf.containerIDCache.Resize(size)
 }
 
-func (s *TargetFinder) DebugInfo() []string {
-	debugTargets := make([]string, 0, len(s.cid2target))
-	for _, target := range s.cid2target {
+func (tf *TargetFinder) DebugInfo() []string {
+	debugTargets := make([]string, 0, len(tf.cid2target))
+	for _, target := range tf.cid2target {
 		_, labels := target.Labels()
 		debugTargets = append(debugTargets, labels.String())
 	}
 	return debugTargets
 }
 
-func (s *TargetFinder) Targets() []*Target {
-	res := make([]*Target, 0, len(s.cid2target))
-	for _, target := range s.cid2target {
+func (tf *TargetFinder) Targets() []*Target {
+	res := make([]*Target, 0, len(tf.cid2target))
+	for _, target := range tf.cid2target {
 		res = append(res, target)
 	}
 	return res
