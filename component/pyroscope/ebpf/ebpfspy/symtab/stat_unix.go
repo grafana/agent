@@ -19,7 +19,7 @@ func statFromFileInfo(file os.FileInfo) Stat {
 		return Stat{}
 	}
 	return Stat{
-		dev: uint64(sysStat.Dev),
+		dev: sysStat.Dev,
 		ino: sysStat.Ino,
 	}
 }
