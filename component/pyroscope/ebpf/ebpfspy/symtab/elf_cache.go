@@ -62,8 +62,8 @@ func (e *ElfCache) Cleanup() {
 }
 
 type ElfCacheDebugInfo struct {
-	BuildIDCache  GCacheDebugInfo[elf.SymTabDebugInfo] `river:"build_id_cache,attr,optional"`
-	SameFileCache GCacheDebugInfo[elf.SymTabDebugInfo] `river:"same_file_cache,attr,optional"`
+	BuildIDCache  GCacheDebugInfo[elf.BuildID, elf.SymTabDebugInfo] `river:"build_id_cache,attr,optional"`
+	SameFileCache GCacheDebugInfo[Stat, elf.SymTabDebugInfo]        `river:"same_file_cache,attr,optional"`
 }
 
 func (e *ElfCache) DebugInfo() ElfCacheDebugInfo {

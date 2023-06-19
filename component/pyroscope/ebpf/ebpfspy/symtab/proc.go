@@ -22,13 +22,13 @@ type ProcTable struct {
 
 type ProcTableDebugInfo struct {
 	ElfTables []elf.SymTabDebugInfo `river:"elfs,block,optional"`
-	//Ranges    []*ProcMap            `river:"vm_ranges,block,optional"`
+	Size      int                   `river:"size,attr,optional"`
 }
 
 func (p *ProcTable) DebugInfo() ProcTableDebugInfo {
 	res := ProcTableDebugInfo{
+		Size:      len(p.file2Table),
 		ElfTables: make([]elf.SymTabDebugInfo, 0, len(p.file2Table)),
-		//Ranges:    make([]*ProcMap, 0, len(p.ranges)),
 	}
 	for _, e := range p.file2Table {
 		d := e.table.DebugInfo()
@@ -36,9 +36,6 @@ func (p *ProcTable) DebugInfo() ProcTableDebugInfo {
 			res.ElfTables = append(res.ElfTables, d)
 		}
 	}
-	//for _, r := range p.ranges {
-	//	res.Ranges = append(res.Ranges, r.mapRange)
-	//}
 	return res
 }
 

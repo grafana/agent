@@ -7,8 +7,8 @@ import (
 )
 
 type BuildID struct {
-	id  string
-	typ string
+	id  string `river:"id,block,optional"`
+	typ string `river:"typ,block,optional"`
 }
 
 func (b *BuildID) ID() string {

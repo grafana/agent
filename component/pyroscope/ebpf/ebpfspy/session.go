@@ -283,7 +283,7 @@ func (s *Session) UpdateProfileOptions(options ProfileOptions) {
 	s.ProfileOptions = options
 }
 
-func (s *Session) PidCacheDebugInfo() symtab.GCacheDebugInfo[symtab.ProcTableDebugInfo] {
+func (s *Session) PidCacheDebugInfo() symtab.GCacheDebugInfo[symtab.PidKey, symtab.ProcTableDebugInfo] {
 	return s.symCache.PidCacheDebugInfo()
 }
 

@@ -98,7 +98,7 @@ func (sc *SymbolCache) UpdateOptions(options CacheOptions) {
 	sc.elfCache.Update(options.BuildIDCacheOptions, options.SameFileCacheOptions)
 }
 
-func (sc *SymbolCache) PidCacheDebugInfo() GCacheDebugInfo[ProcTableDebugInfo] {
+func (sc *SymbolCache) PidCacheDebugInfo() GCacheDebugInfo[PidKey, ProcTableDebugInfo] {
 	return DebugInfo[PidKey, *ProcTable, ProcTableDebugInfo](
 		sc.pidCache,
 		func(v *ProcTable) ProcTableDebugInfo {
