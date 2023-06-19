@@ -238,28 +238,31 @@ type FlatFuncIndex struct {
 }
 
 // Go12Funcs returns a slice of Funcs derived from the Go 1.2+ pcln table.
-func (t *LineTable) Go12Funcs() FlatFuncIndex {
+func (t *LineTable) Go12Funcs() (res FlatFuncIndex) {
 	// Assume it is malformed and return nil on error.
 	if !disableRecover {
 		defer func() {
-			recover()
+			err := recover()
+			if err != nil {
+				res = FlatFuncIndex{}
+			}
 		}()
 	}
 
 	ft := t.funcTab()
 	nfunc := ft.Count()
-	fi := FlatFuncIndex{
+	res = FlatFuncIndex{
 		Entry: NewPCIndex(nfunc),
 		Name:  make([]uint32, nfunc),
 	}
 	for i := 0; i < nfunc; i++ {
 		entry := ft.pc(i)
-		fi.Entry.Set(i, entry)
-		fi.End = ft.pc(i + 1)
+		res.Entry.Set(i, entry)
+		res.End = ft.pc(i + 1)
 		info := t.funcData(uint32(i))
-		fi.Name[i] = info.nameOff()
+		res.Name[i] = info.nameOff()
 	}
-	return fi
+	return
 }
 
 // functabFieldSize returns the size in bytes of a single functab field.

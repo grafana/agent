@@ -178,6 +178,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 }
 
 func TestDebugFileDebugLink(t *testing.T) {
+	//nolint:goconst
 	maps := `559090826000-559090827000 r--p 00000000 09:00 9543482                    /elfs/elf.debuglink
 559090827000-559090828000 r-xp 00001000 09:00 9543482                    /elfs/elf.debuglink
 559090828000-559090829000 r--p 00002000 09:00 9543482                    /elfs/elf.debuglink
@@ -214,6 +215,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 }
 
 func TestUnload(t *testing.T) {
+	//nolint:goconst
 	maps := `559090826000-559090827000 r--p 00000000 09:00 9543482                    /elfs/elf.debuglink
 559090827000-559090828000 r-xp 00001000 09:00 9543482                    /elfs/elf.debuglink
 559090828000-559090829000 r--p 00002000 09:00 9543482                    /elfs/elf.debuglink
@@ -296,6 +298,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 }
 
 func TestInodeChange(t *testing.T) {
+	//nolint:goconst
 	maps := `559090826000-559090827000 r--p 00000000 09:00 9543482                    /elfs/elf.debuglink
 559090827000-559090828000 r-xp 00001000 09:00 9543482                    /elfs/elf.debuglink
 559090828000-559090829000 r--p 00002000 09:00 9543482                    /elfs/elf.debuglink
