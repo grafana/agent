@@ -4,10 +4,11 @@ package symtab
 
 import (
 	elf0 "debug/elf"
-	"github.com/docker/docker/pkg/fileutils"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/docker/docker/pkg/fileutils"
 
 	"github.com/go-kit/log"
 	"github.com/stretchr/testify/require"
