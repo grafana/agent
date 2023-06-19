@@ -463,7 +463,7 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 		// Sort the histogram by bounds ascending
 		bSize := int(math.Min(float64(dp.ExplicitBounds().Len()), float64(dp.BucketCounts().Len())))
 		buckets := make(map[float64]uint64, bSize)
-		bounds := make([]float64, bSize)
+		bounds := make([]float64, 0, bSize)
 		for i := 0; i < dp.ExplicitBounds().Len() && i < dp.BucketCounts().Len(); i++ {
 			bound := dp.ExplicitBounds().At(i)
 			buckets[bound] = dp.BucketCounts().At(i)
