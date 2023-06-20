@@ -6,13 +6,13 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
-	"go.uber.org/atomic"
 	"io"
 	"sync"
 	"time"
 
 	"github.com/google/pprof/profile"
 	"github.com/prometheus/prometheus/model/labels"
+	"go.uber.org/atomic"
 )
 
 var (

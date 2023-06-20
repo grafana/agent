@@ -5,7 +5,6 @@ package ebpf
 import (
 	"context"
 	"fmt"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/pprof"
 	"os"
 	"sync"
 	"time"
@@ -14,7 +13,8 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
-	ebpfspy "github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/pprof"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
 	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
 	"github.com/oklog/run"
