@@ -19,7 +19,7 @@ Make sure Docker is running.
 
 First, inside the `docs/` folder run `make check-cloudwatch-integration` to verify that the cloudwatch docs needs updating.
 
-If the check fails, then the doc supported services list should be updated. For that, run `make generate-cloudwatch-integration` to get the updated list, which should replace the old one [the docs](./sources/static/configuration/integrations/cloudwatch-exporter-config.md).
+If the check fails, then the doc supported services list should be updated. For that, run `make generate-cloudwatch-integration` to get the updated list, which should replace the old one in [the docs](./sources/static/configuration/integrations/cloudwatch-exporter-config.md).
 
 ### Community Projects
 
