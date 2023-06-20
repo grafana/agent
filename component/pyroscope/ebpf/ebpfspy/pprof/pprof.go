@@ -12,14 +12,11 @@ import (
 
 	"github.com/google/pprof/profile"
 	"github.com/prometheus/prometheus/model/labels"
-	"go.uber.org/atomic"
 )
 
 var (
-	gzipWriterPoolCounter atomic.Int64
-	gzipWriterPool        = sync.Pool{
+	gzipWriterPool = sync.Pool{
 		New: func() any {
-			gzipWriterPoolCounter.Inc()
 			res, err := gzip.NewWriterLevel(io.Discard, gzip.BestSpeed)
 			if err != nil {
 				panic(err)
@@ -44,12 +41,7 @@ func (b ProfileBuilders) BuilderForTarget(hash uint64, labels labels.Labels) *Pr
 		return res
 	}
 	buf := bytes.NewBuffer(nil)
-	prevCounter := gzipWriterPoolCounter.Load()
 	gzipWriter := gzipWriterPool.Get().(*gzip.Writer)
-	newCounter := gzipWriterPoolCounter.Load()
-	if prevCounter != newCounter {
-		fmt.Printf("------------>>> gzipWriterPoolCounter: %d %d\n", newCounter, prevCounter)
-	}
 	gzipWriter.Reset(buf)
 	builder := &ProfileBuilder{
 		buf:         buf,
