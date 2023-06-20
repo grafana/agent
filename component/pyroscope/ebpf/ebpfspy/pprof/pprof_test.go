@@ -2,12 +2,12 @@ package pprof
 
 import (
 	"bytes"
+	"testing"
+	"time"
+
 	"github.com/google/pprof/profile"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
-	"time"
-
-	"testing"
 )
 
 func TestBackAndForth(t *testing.T) {
