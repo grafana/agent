@@ -22,7 +22,7 @@ func (tf *targetFinder) getContainerIDFromPID(pid uint32) containerID {
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		line := scanner.Text()
+		line := scanner.Bytes()
 		cid := getContainerIDFromCGroup(line)
 		if cid != "" {
 			return containerID(cid)
@@ -31,10 +31,10 @@ func (tf *targetFinder) getContainerIDFromPID(pid uint32) containerID {
 	return ""
 }
 
-func getContainerIDFromCGroup(line string) string {
-	matches := cgroupContainerIDRe.FindStringSubmatch(line)
+func getContainerIDFromCGroup(line []byte) string {
+	matches := cgroupContainerIDRe.FindSubmatch(line)
 	if len(matches) <= 1 {
 		return ""
 	}
-	return matches[1]
+	return string(matches[1])
 }

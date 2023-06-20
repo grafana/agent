@@ -67,10 +67,10 @@ func (p *ProcTable) Refresh() {
 	if err != nil {
 		return // todo return err
 	}
-	p.refresh(string(procMaps))
+	p.refresh(procMaps)
 }
 
-func (p *ProcTable) refresh(procMaps string) {
+func (p *ProcTable) refresh(procMaps []byte) {
 	// todo support perf map files
 	for i := range p.ranges {
 		p.ranges[i].elfTable = nil

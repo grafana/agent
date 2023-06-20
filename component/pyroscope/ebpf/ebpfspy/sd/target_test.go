@@ -54,7 +54,7 @@ func TestCGroupMatching(t *testing.T) {
 	}
 	for i, tc := range testcases {
 		t.Run(fmt.Sprintf("testcase %d %s", i, tc.cgroup), func(t *testing.T) {
-			cid := getContainerIDFromCGroup(tc.cgroup)
+			cid := getContainerIDFromCGroup([]byte(tc.cgroup))
 			expected := tc.expectedID
 			require.Equal(t, expected, cid)
 			cid = string(getContainerIDFromK8S(tc.containerID))

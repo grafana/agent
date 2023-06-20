@@ -1,9 +1,11 @@
 package symtab
 
 import (
+	"bytes"
 	"fmt"
+	"reflect"
 	"strconv"
-	"strings"
+	"unsafe"
 
 	"golang.org/x/sys/unix"
 )
@@ -57,18 +59,20 @@ func (m *ProcMap) file() file {
 
 // parseDevice parses the device token of a line and converts it to a dev_t
 // (mkdev) like structure.
-func parseDevice(s string) (uint64, error) {
-	toks := strings.Split(s, ":")
-	if len(toks) < 2 {
+func parseDevice(s []byte) (uint64, error) {
+	i := bytes.IndexByte(s, ':')
+	if i == -1 {
 		return 0, fmt.Errorf("unexpected number of fields")
 	}
+	majorBytes := s[:i]
+	minorBytes := s[i+1:]
 
-	major, err := strconv.ParseUint(toks[0], 16, 0)
+	major, err := strconv.ParseUint(tokenToStringUnsafe(majorBytes), 16, 0)
 	if err != nil {
 		return 0, err
 	}
 
-	minor, err := strconv.ParseUint(toks[1], 16, 0)
+	minor, err := strconv.ParseUint(tokenToStringUnsafe(minorBytes), 16, 0)
 	if err != nil {
 		return 0, err
 	}
@@ -77,8 +81,8 @@ func parseDevice(s string) (uint64, error) {
 }
 
 // parseAddress converts a hex-string to a uintptr.
-func parseAddress(s string) (uint64, error) {
-	a, err := strconv.ParseUint(s, 16, 0)
+func parseAddress(s []byte) (uint64, error) {
+	a, err := strconv.ParseUint(tokenToStringUnsafe(s), 16, 0)
 	if err != nil {
 		return 0, err
 	}
@@ -87,18 +91,20 @@ func parseAddress(s string) (uint64, error) {
 }
 
 // parseAddresses parses the start-end address.
-func parseAddresses(s string) (uint64, uint64, error) {
-	toks := strings.Split(s, "-")
-	if len(toks) < 2 {
+func parseAddresses(s []byte) (uint64, uint64, error) {
+	i := bytes.IndexByte(s, '-')
+	if i == -1 {
 		return 0, 0, fmt.Errorf("invalid address")
 	}
+	saddrBytes := s[:i]
+	eaddrBytes := s[i+1:]
 
-	saddr, err := parseAddress(toks[0])
+	saddr, err := parseAddress(saddrBytes)
 	if err != nil {
 		return 0, 0, err
 	}
 
-	eaddr, err := parseAddress(toks[1])
+	eaddr, err := parseAddress(eaddrBytes)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -107,7 +113,7 @@ func parseAddresses(s string) (uint64, uint64, error) {
 }
 
 // parsePermissions parses a token and returns any that are set.
-func parsePermissions(s string) (*ProcMapPermissions, error) {
+func parsePermissions(s []byte) (*ProcMapPermissions, error) {
 	if len(s) < 4 {
 		return nil, fmt.Errorf("invalid permissions token")
 	}
@@ -133,41 +139,79 @@ func parsePermissions(s string) (*ProcMapPermissions, error) {
 
 // parseProcMap will attempt to parse a single line within a proc/[pid]/maps
 // buffer.
-func parseProcMap(text string) (*ProcMap, error) {
-	fields := strings.Fields(text)
-	if len(fields) < 5 {
-		return nil, fmt.Errorf("truncated procmap entry: %s", text)
+// 7f5822ebe000-7f5822ec0000 r--p 00000000 09:00 533429                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+// returns nil if entry is not executable
+func parseProcMap(line []byte) (*ProcMap, error) {
+	var i int
+	if i = bytes.IndexByte(line, ' '); i == -1 {
+		return nil, fmt.Errorf("invalid procmap entry: %s", line)
+	}
+	addresesBytes := line[:i]
+	line = line[i+1:]
+
+	if i = bytes.IndexByte(line, ' '); i == -1 {
+		return nil, fmt.Errorf("invalid procmap entry: %s", line)
+	}
+	permsBytes := line[:i]
+	line = line[i+1:]
+
+	if i = bytes.IndexByte(line, ' '); i == -1 {
+		return nil, fmt.Errorf("invalid procmap entry: %s", line)
+	}
+	offsetBytes := line[:i]
+	line = line[i+1:]
+
+	if i = bytes.IndexByte(line, ' '); i == -1 {
+		return nil, fmt.Errorf("invalid procmap entry: %s", line)
+	}
+	deviceBytes := line[:i]
+	line = line[i+1:]
+
+	var inodeBytes []byte
+	if i = bytes.IndexByte(line, ' '); i == -1 {
+		inodeBytes = line
+		line = nil
+	} else {
+		inodeBytes = line[:i]
+		line = line[i+1:]
 	}
 
-	saddr, eaddr, err := parseAddresses(fields[0])
+	perms, err := parsePermissions(permsBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	perms, err := parsePermissions(fields[1])
+	if !perms.Execute {
+		return nil, nil
+	}
+
+	saddr, eaddr, err := parseAddresses(addresesBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	offset, err := strconv.ParseInt(fields[2], 16, 0)
+	offset, err := strconv.ParseInt(tokenToStringUnsafe(offsetBytes), 16, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	device, err := parseDevice(fields[3])
+	device, err := parseDevice(deviceBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	inode, err := strconv.ParseUint(fields[4], 10, 0)
+	inode, err := strconv.ParseUint(tokenToStringUnsafe(inodeBytes), 10, 0)
 	if err != nil {
 		return nil, err
 	}
 
 	pathname := ""
 
-	if len(fields) >= 5 {
-		pathname = strings.Join(fields[5:], " ")
+	for len(line) > 0 && line[0] == ' ' {
+		line = line[1:]
+	}
+	if len(line) > 0 {
+		pathname = string(line)
 	}
 
 	return &ProcMap{
@@ -181,20 +225,40 @@ func parseProcMap(text string) (*ProcMap, error) {
 	}, nil
 }
 
-func parseProcMapsExecutableModules(procMaps string) ([]*ProcMap, error) {
+func parseProcMapsExecutableModules(procMaps []byte) ([]*ProcMap, error) {
 	var modules []*ProcMap
-	for _, line := range strings.Split(procMaps, "\n") {
-		if line == "" {
+	for len(procMaps) > 0 {
+		//_, line := range strings.Split(procMaps, "\n")
+		nl := bytes.IndexByte(procMaps, '\n')
+		var line []byte
+		if nl == -1 {
+			line = procMaps
+			procMaps = nil
+		} else {
+			line = procMaps[:nl]
+			procMaps = procMaps[nl+1:]
+		}
+		if len(line) == 0 {
 			continue
 		}
 		m, err := parseProcMap(line)
 		if err != nil {
 			return nil, err
 		}
-		if !m.Perms.Execute {
+		if m == nil { // not executable
 			continue
 		}
 		modules = append(modules, m)
 	}
 	return modules, nil
+}
+
+func tokenToStringUnsafe(tok []byte) string {
+	res := ""
+	// todo remove unsafe
+
+	sh := (*reflect.StringHeader)(unsafe.Pointer(&res))
+	sh.Data = uintptr(unsafe.Pointer(&tok[0]))
+	sh.Len = len(tok)
+	return res
 }

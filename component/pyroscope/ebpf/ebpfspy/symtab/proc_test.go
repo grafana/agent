@@ -57,7 +57,7 @@ func testProc(t *testing.T, maps string, data []procTestdata) {
 		},
 	})
 	m.rootFS = path.Join(wd, "elf", "testdata")
-	m.refresh(maps)
+	m.refresh([]byte(maps))
 	for _, td := range data {
 		sym := m.Resolve(td.base + td.offset)
 		require.Equal(t, sym.Name, td.name)
@@ -259,7 +259,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 		},
 	})
 	m.rootFS = path.Join(wd, "elf", "testdata")
-	m.refresh(maps)
+	m.refresh([]byte(maps))
 	for _, td := range syms {
 		sym := m.Resolve(td.base + td.offset)
 		if sym.Name != td.name || !strings.Contains(sym.Module, td.elf) {
@@ -288,7 +288,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
 `
 	require.Equal(t, 4, len(m.file2Table))
-	m.refresh(maps)
+	m.refresh([]byte(maps))
 	require.Equal(t, 3, len(m.file2Table))
 	sym := m.Resolve(iterSym.base + iterSym.offset)
 	require.Empty(t, sym.Name)
@@ -342,7 +342,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 		},
 	})
 	m.rootFS = path.Join(wd, "elf", "testdata")
-	m.refresh(maps)
+	m.refresh([]byte(maps))
 	for _, td := range syms {
 		sym := m.Resolve(td.base + td.offset)
 		if sym.Name != td.name || !strings.Contains(sym.Module, td.elf) {
@@ -377,7 +377,7 @@ ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsysca
 ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
 `
 	require.Equal(t, 4, len(m.file2Table))
-	m.refresh(maps)
+	m.refresh([]byte(maps))
 	require.Equal(t, 4, len(m.file2Table))
 	sym := m.Resolve(iterSym.base + iterSym.offset)
 	require.NotEmpty(t, sym.Name)
