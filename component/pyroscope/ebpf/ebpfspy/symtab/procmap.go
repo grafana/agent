@@ -228,7 +228,6 @@ func parseProcMap(line []byte) (*ProcMap, error) {
 func parseProcMapsExecutableModules(procMaps []byte) ([]*ProcMap, error) {
 	var modules []*ProcMap
 	for len(procMaps) > 0 {
-		//_, line := range strings.Split(procMaps, "\n")
 		nl := bytes.IndexByte(procMaps, '\n')
 		var line []byte
 		if nl == -1 {
