@@ -61,9 +61,25 @@ The following blocks are supported inside the definition of `module.git`:
 
 Hierarchy        | Block      | Description | Required
 ---------------- | ---------- | ----------- | --------
+basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the repo. | no
+ssh_key | [ssh_key][] | Configure a SSH Key for authenticating to the repo. | no
 arguments | [arguments][] | Arguments to pass to the module. | no
 
+[basic_auth]: #basic_auth-block
+[ssh_key]: #ssh_key-block
 [arguments]: #arguments-block
+
+### basic_auth block
+
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+
+### ssh_key block
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`username` | `string` | SSH username. | | no
+`keyfile` | `string` | SSH private key path. | | no
+`passphrase` | `secret` | Passphrase for SSH key if needed. | | no
 
 ### arguments block
 
@@ -113,7 +129,7 @@ and most recent load of the module was successful.
 
 `module.git` does not expose any component-specific debug metrics.
 
-## Example
+## Examples
 
 This example uses a module loaded from a Git repository which adds two numbers:
 
@@ -122,6 +138,44 @@ module.git "add" {
   repository = "https://github.com/rfratto/agent-modules.git"
   revision   = "main"
   path       = "add/module.river"
+
+  arguments {
+    a = 15
+    b = 45
+  }
+}
+```
+
+The same example as above using basic auth:
+```river
+module.git "add" {
+  repository = "https://github.com/rfratto/agent-modules.git"
+  revision   = "main"
+  path       = "add/module.river"
+
+  basic_auth {
+    username = "USERNAME"
+    password = "PASSWORD"
+  }
+
+  arguments {
+    a = 15
+    b = 45
+  }
+}
+```
+
+The same example as above using SSH Key auth:
+```river
+module.git "add" {
+  repository = "github.com:rfratto/agent-modules.git"
+  revision   = "main"
+  path       = "add/module.river"
+
+  ssh_key {
+    username = "git"
+    keyfile = "PATH/TO/SSH.KEY"
+  }
 
   arguments {
     a = 15
