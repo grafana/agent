@@ -7,24 +7,23 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
-	"sync"
 	"time"
 
 	"github.com/google/pprof/profile"
 	"github.com/prometheus/prometheus/model/labels"
 )
 
-var (
-	gzipWriterPool = sync.Pool{
-		New: func() any {
-			res, err := gzip.NewWriterLevel(io.Discard, gzip.BestSpeed)
-			if err != nil {
-				panic(err)
-			}
-			return res
-		},
-	}
-)
+//var (
+//	gzipWriterPool = sync.Pool{
+//		New: func() any {
+//			res, err := gzip.NewWriterLevel(io.Discard, gzip.BestSpeed)
+//			if err != nil {
+//				panic(err)
+//			}
+//			return res
+//		},
+//	}
+//)
 
 type ProfileBuilders struct {
 	Builders   map[uint64]*ProfileBuilder
@@ -41,8 +40,9 @@ func (b ProfileBuilders) BuilderForTarget(hash uint64, labels labels.Labels) *Pr
 		return res
 	}
 	buf := bytes.NewBuffer(nil)
-	gzipWriter := gzipWriterPool.Get().(*gzip.Writer)
-	gzipWriter.Reset(buf)
+	//gzipWriter := gzipWriterPool.Get().(*gzip.Writer)
+	//gzipWriter.Reset(buf)
+	gzipWriter, _ := gzip.NewWriterLevel(io.Discard, gzip.BestSpeed)
 	builder := &ProfileBuilder{
 		buf:         buf,
 		gzipWritter: gzipWriter,
@@ -123,10 +123,10 @@ func (p *ProfileBuilder) addFunction(function string) *profile.Function {
 }
 
 func (p *ProfileBuilder) Build() ([]byte, error) {
-	defer func() {
-		p.gzipWritter.Reset(io.Discard)
-		gzipWriterPool.Put(p.gzipWritter)
-	}()
+	//defer func() {
+	//	p.gzipWritter.Reset(io.Discard)
+	//	gzipWriterPool.Put(p.gzipWritter)
+	//}()
 	err := p.profile.WriteUncompressed(p.gzipWritter)
 	if err != nil {
 		return nil, fmt.Errorf("ebpf profile encode %w", err)
