@@ -1,6 +1,7 @@
 package cloudwatch
 
 import (
+	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"time"
@@ -19,6 +20,7 @@ var defaults = Arguments{
 	FIPSDisabled:          true,
 }
 
+// Arguments are the river based options to configure the embedded CloudWatch exporter.
 type Arguments struct {
 	STSRegion             string           `river:"sts_region,attr"`
 	FIPSDisabled          bool             `river:"fips_disabled,attr,optional"`
@@ -28,8 +30,9 @@ type Arguments struct {
 	Static                []StaticJob      `river:"static,block,optional"`
 }
 
-type TagsPerNamespace map[string][]string
+type TagsPerNamespace = cloudwatch_exporter.TagsPerNamespace
 
+// DiscoveryJob configures a discovery job for a given service.
 type DiscoveryJob struct {
 	Auth       RegionAndRoles `river:",squash"`
 	CustomTags Tags           `river:"custom_tags,attr,optional"`
@@ -38,8 +41,11 @@ type DiscoveryJob struct {
 	Metrics    []Metric       `river:"metric,block"`
 }
 
+// Tags represents a series of tags configured on an AWS resource. Each tag is a
+// key value pair in the dictionary.
 type Tags map[string]string
 
+// StaticJob will scrape metrics that match all defined dimensions.
 type StaticJob struct {
 	Name       string         `river:",label"`
 	Auth       RegionAndRoles `river:",squash"`
@@ -49,6 +55,8 @@ type StaticJob struct {
 	Metrics    []Metric       `river:"metric,block"`
 }
 
+// RegionAndRoles exposes for each supported job, the AWS regions and IAM roles in which the agent should perform the
+// scrape.
 type RegionAndRoles struct {
 	Regions []string `river:"regions,attr"`
 	Roles   []Role   `river:"roles,block,optional"`
@@ -59,6 +67,8 @@ type Role struct {
 	ExternalID string `river:"external_id,attr,optional"`
 }
 
+// Dimensions are the label values used to identify a unique metric stream in CloudWatch.
+// Each key value pair in the dictionary corresponds to a label value pair.
 type Dimensions map[string]string
 
 type Metric struct {
@@ -72,6 +82,9 @@ func (a *Arguments) SetToDefault() {
 	*a = defaults
 }
 
+// ConvertToYACE converts the river config into YACE config model. Note that the conversion is
+// not direct, some values have been opinionated to simplify the config model the agent exposes
+// for this integration.
 func ConvertToYACE(a Arguments) (yaceConf.ScrapeConf, error) {
 	var discoveryJobs []*yaceConf.Job
 	for _, job := range a.Discovery {
