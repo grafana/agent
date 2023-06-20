@@ -73,11 +73,11 @@ func (a *Arguments) SetToDefault() {
 }
 
 func ConvertToYACE(a Arguments) (yaceConf.ScrapeConf, error) {
-	discoveryJobs := []*yaceConf.Job{}
+	var discoveryJobs []*yaceConf.Job
 	for _, job := range a.Discovery {
 		discoveryJobs = append(discoveryJobs, toYACEDiscoveryJob(job))
 	}
-	staticJobs := []*yaceConf.Static{}
+	var staticJobs []*yaceConf.Static
 	for _, stat := range a.Static {
 		staticJobs = append(staticJobs, toYACEStaticJob(stat))
 	}
