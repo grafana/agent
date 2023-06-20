@@ -4,20 +4,20 @@ package pprof
 
 import (
 	"bytes"
-	"compress/gzip"
 	"fmt"
 	"io"
 	"sync"
 	"time"
 
 	"github.com/google/pprof/profile"
+	"github.com/klauspost/compress/gzip"
 	"github.com/prometheus/prometheus/model/labels"
 )
 
 var (
 	gzipWriterPool = sync.Pool{
 		New: func() any {
-			res, err := gzip.NewWriterLevel(io.Discard, gzip.DefaultCompression)
+			res, err := gzip.NewWriterLevel(io.Discard, gzip.BestSpeed)
 			if err != nil {
 				panic(err)
 			}
