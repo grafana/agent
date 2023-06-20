@@ -44,7 +44,7 @@ type Component struct {
 }
 
 // New creates a new  component.
-func New(o component.Options, args Arguments) (component.Component, error) {
+func New(o component.Options, args Arguments) (*Component, error) {
 	err := os.MkdirAll(o.DataPath, 0750)
 	if err != nil {
 		return nil, err

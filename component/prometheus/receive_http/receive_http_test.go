@@ -244,21 +244,20 @@ func TestServerRestarts(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			c, err := New(testOptions(t), tc.initialArgs)
+			comp, err := New(testOptions(t), tc.initialArgs)
 			require.NoError(t, err)
 
 			serverExit := make(chan error)
 			go func() {
-				serverExit <- c.Run(ctx)
+				serverExit <- comp.Run(ctx)
 			}()
 
-			comp := c.(*Component)
 			waitForServerToBeReady(t, comp.args)
 
 			initialServer := comp.server
 			require.NotNil(t, initialServer)
 
-			err = c.Update(tc.newArgs)
+			err = comp.Update(tc.newArgs)
 			require.NoError(t, err)
 
 			waitForServerToBeReady(t, comp.args)

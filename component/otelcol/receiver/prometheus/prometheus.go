@@ -30,7 +30,7 @@ func init() {
 		Exports: Exports{},
 
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
-			return NewComponent(o, a.(Arguments))
+			return New(o, a.(Arguments))
 		},
 	})
 }
@@ -59,8 +59,8 @@ type Component struct {
 
 var _ component.Component = (*Component)(nil)
 
-// NewComponent creates a new otelcol.receiver.prometheus component.
-func NewComponent(o component.Options, c Arguments) (*Component, error) {
+// New creates a new otelcol.receiver.prometheus component.
+func New(o component.Options, c Arguments) (*Component, error) {
 	res := &Component{
 		log:  o.Logger,
 		opts: o,
