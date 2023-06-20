@@ -18,6 +18,8 @@ Main (unreleased)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
 
+- Support custom fields in MMDB file for `stage.geoip`. (@akselleirv)
+
 
 - New Grafana Agent Flow components:
 
