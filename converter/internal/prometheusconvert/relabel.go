@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	// disc_relabel "github.com/grafana/agent/component/discovery/relabel"
+	"github.com/grafana/agent/component/discovery"
+	disc_relabel "github.com/grafana/agent/component/discovery/relabel"
 	"github.com/grafana/agent/component/prometheus/relabel"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
@@ -25,20 +26,38 @@ func appendPrometheusRelabel(f *builder.File, relabelConfigs []*promrelabel.Conf
 	}
 }
 
-// func appendDiscoveryRelabel(f *builder.File, relabelConfigs []*promrelabel.Config, forwardTo []storage.Appendable, label string) *disc_relabel.Exports {
-// 	if len(relabelConfigs) == 0 {
-// 		return nil
-// 	}
-
-// 	relabelArgs := toRelabelArguments(relabelConfigs, forwardTo)
-// 	common.AppendBlockWithOverride(f, []string{"discovery", "relabel"}, label, relabelArgs)
-
-// 	return &disc_relabel.Exports{
-// 		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.targets", label)),
-// 	}
-// }
-
 func toRelabelArguments(relabelConfigs []*promrelabel.Config, forwardTo []storage.Appendable) *relabel.Arguments {
+	if len(relabelConfigs) == 0 {
+		return nil
+	}
+
+	return &relabel.Arguments{
+		ForwardTo:            forwardTo,
+		MetricRelabelConfigs: toRelabelConfigs(relabelConfigs),
+	}
+}
+
+func appendDiscoveryRelabel(f *builder.File, relabelConfigs []*promrelabel.Config, label string, targets []discovery.Target) *disc_relabel.Exports {
+	if len(relabelConfigs) == 0 {
+		return nil
+	}
+
+	relabelArgs := toDiscoveryRelabelArguments(relabelConfigs, targets)
+	common.AppendBlockWithOverride(f, []string{"discovery", "relabel"}, label, relabelArgs)
+
+	return &disc_relabel.Exports{
+		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.targets", label)),
+	}
+}
+
+func toDiscoveryRelabelArguments(relabelConfigs []*promrelabel.Config, targets []discovery.Target) *disc_relabel.Arguments {
+	return &disc_relabel.Arguments{
+		Targets:        targets,
+		RelabelConfigs: toRelabelConfigs(relabelConfigs),
+	}
+}
+
+func toRelabelConfigs(relabelConfigs []*promrelabel.Config) []*flow_relabel.Config {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
@@ -61,8 +80,5 @@ func toRelabelArguments(relabelConfigs []*promrelabel.Config, forwardTo []storag
 		})
 	}
 
-	return &relabel.Arguments{
-		ForwardTo:            forwardTo,
-		MetricRelabelConfigs: metricRelabelConfigs,
-	}
+	return metricRelabelConfigs
 }

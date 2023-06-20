@@ -58,14 +58,15 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 	var diags diag.Diagnostics
 	remoteWriteExports := appendPrometheusRemoteWrite(f, promConfig)
 
-	forwardTo := []storage.Appendable{remoteWriteExports.Receiver}
+	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
+	scrapeForwardTo := remoteWriteForwardTo
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		promMetricsRelabelExports := appendPrometheusRelabel(f, scrapeConfig.MetricRelabelConfigs, forwardTo, scrapeConfig.JobName)
+		promMetricsRelabelExports := appendPrometheusRelabel(f, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, scrapeConfig.JobName)
 		if promMetricsRelabelExports != nil {
-			forwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
+			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
-		var targets []discovery.Target
+		var scrapeTargets []discovery.Target
 		var discoveryTargets []discovery.Target
 		labelCounts := make(map[string]int)
 		for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
@@ -73,7 +74,7 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 			var newDiags diag.Diagnostics
 			switch sdc := serviceDiscoveryConfig.(type) {
 			case promdiscover.StaticConfig:
-				targets = append(targets, getScrapeTargets(sdc)...)
+				scrapeTargets = append(scrapeTargets, getScrapeTargets(sdc)...)
 			case *promazure.SDConfig:
 				labelCounts["azure"]++
 				exports, newDiags = appendDiscoveryAzure(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["azure"]), sdc)
@@ -109,8 +110,14 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 			discoveryTargets = append(discoveryTargets, exports.Targets...)
 		}
 
-		scrapeTargets := append(targets, discoveryTargets...)
-		appendPrometheusScrape(f, scrapeConfig, forwardTo, scrapeTargets)
+		promDiscoveryRelabelExports := appendDiscoveryRelabel(f, scrapeConfig.RelabelConfigs, scrapeConfig.JobName, discoveryTargets)
+		if promDiscoveryRelabelExports != nil {
+			scrapeTargets = append(scrapeTargets, promDiscoveryRelabelExports.Output...)
+		} else {
+			scrapeTargets = append(scrapeTargets, discoveryTargets...)
+		}
+
+		appendPrometheusScrape(f, scrapeConfig, scrapeForwardTo, scrapeTargets)
 	}
 
 	return diags
