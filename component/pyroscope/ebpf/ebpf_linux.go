@@ -3,9 +3,9 @@
 package ebpf
 
 import (
-	"bytes"
 	"context"
 	"fmt"
+	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/pprof"
 	"os"
 	"sync"
 	"time"
@@ -172,7 +172,7 @@ func (c *Component) collectProfiles() error {
 	c.metrics.profilingSessionsTotal.Inc()
 	level.Debug(c.options.Logger).Log("msg", "ebpf  collectProfiles")
 	args := c.args
-	builders := ebpfspy.NewProfileBuilders(args.SampleRate)
+	builders := pprof.NewProfileBuilders(args.SampleRate)
 	err := c.session.CollectProfiles(func(target *sd.Target, stack []string, value uint64, pid uint32) {
 		labelsHash, labels := target.Labels()
 		builder := builders.BuilderForTarget(labelsHash, labels)
@@ -186,13 +186,12 @@ func (c *Component) collectProfiles() error {
 	bytesSent := 0
 	for _, builder := range builders.Builders {
 		c.metrics.pprofsTotal.Inc()
-		var buf bytes.Buffer
-		err := builder.Profile.Write(&buf)
+
+		rawProfile, err := builder.Build()
 		if err != nil {
 			return fmt.Errorf("ebpf profile encode %w", err)
 		}
 		appender := c.appendable.Appender()
-		rawProfile := buf.Bytes()
 		bytesSent += len(rawProfile)
 		samples := []*pyroscope.RawSample{{RawProfile: rawProfile}}
 		err = appender.Append(context.Background(), builder.Labels, samples)
