@@ -25,12 +25,6 @@ import (
 )
 
 // Convert implements a Prometheus config converter.
-//
-// TODO...
-// The implementation of this API is a work in progress.
-// Additional components must be implemented:
-//
-//	discovery.relabel
 func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -48,7 +42,14 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
 		return nil, diags
 	}
-	return buf.Bytes(), diags
+
+	if len(buf.Bytes()) > 0 {
+		prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
+		diags = append(diags, newDiags...)
+		return prettyByte, diags
+	}
+
+	return nil, diags
 }
 
 // AppendAll analyzes the entire prometheus config in memory and transforms it
@@ -59,12 +60,13 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 
 	forwardTo := []storage.Appendable{remoteWriteExports.Receiver}
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		promRelabelExports := appendPrometheusRelabel(f, scrapeConfig.MetricRelabelConfigs, forwardTo, scrapeConfig.JobName)
-		if promRelabelExports != nil {
-			forwardTo = []storage.Appendable{promRelabelExports.Receiver}
+		promMetricsRelabelExports := appendPrometheusRelabel(f, scrapeConfig.MetricRelabelConfigs, forwardTo, scrapeConfig.JobName)
+		if promMetricsRelabelExports != nil {
+			forwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
 		var targets []discovery.Target
+		var discoveryTargets []discovery.Target
 		labelCounts := make(map[string]int)
 		for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
 			var exports discovery.Exports
@@ -104,10 +106,11 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 			}
 
 			diags = append(diags, newDiags...)
-			targets = append(targets, exports.Targets...)
+			discoveryTargets = append(discoveryTargets, exports.Targets...)
 		}
 
-		appendPrometheusScrape(f, scrapeConfig, forwardTo, targets)
+		scrapeTargets := append(targets, discoveryTargets...)
+		appendPrometheusScrape(f, scrapeConfig, forwardTo, scrapeTargets)
 	}
 
 	return diags

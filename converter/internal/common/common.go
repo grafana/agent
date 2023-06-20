@@ -1,10 +1,15 @@
 package common
 
 import (
+	"bytes"
 	"fmt"
+
+	"github.com/grafana/agent/pkg/river/parser"
+	"github.com/grafana/agent/pkg/river/printer"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/pkg/river/token/builder"
 )
@@ -41,4 +46,31 @@ func GetUniqueLabel(label string, currentCount int) string {
 	}
 
 	return fmt.Sprintf("%s_%d", label, currentCount)
+}
+
+// prettyPrint attempts to pretty print the input slice. If prettyPrint fails,
+// the input slice is returned unmodified.
+func PrettyPrint(in []byte) ([]byte, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	// Return early if there was no file.
+	if len(in) == 0 {
+		return in, diags
+	}
+
+	f, err := parser.ParseFile("", in)
+	if err != nil {
+		diags.Add(diag.SeverityLevelWarn, err.Error())
+		return in, diags
+	}
+
+	var buf bytes.Buffer
+	if err := printer.Fprint(&buf, f); err != nil {
+		diags.Add(diag.SeverityLevelWarn, err.Error())
+		return in, diags
+	}
+
+	// Add a trailing newline at the end of the file, which is omitted by Fprint.
+	_, _ = buf.Write([]byte{'\n'})
+	return buf.Bytes(), nil
 }
