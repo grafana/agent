@@ -19,6 +19,8 @@ scrape_configs:
   - job_name: "prometheus2"
     static_configs:
       - targets: ["localhost:9091"]
+      - targets: ["localhost:9092"]
+      - targets: ["localhost:9093"]
 
 remote_write:
   - name: "remote1"

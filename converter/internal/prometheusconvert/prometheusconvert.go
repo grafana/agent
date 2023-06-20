@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	promconfig "github.com/prometheus/prometheus/config"
 	promdiscover "github.com/prometheus/prometheus/discovery"
@@ -64,7 +65,7 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 		}
 
 		var targets []discovery.Target
-		// var typeCount map[string]int
+		labelCounts := make(map[string]int)
 		for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
 			var exports discovery.Exports
 			var newDiags diag.Diagnostics
@@ -72,31 +73,38 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 			case promdiscover.StaticConfig:
 				targets = append(targets, getScrapeTargets(sdc)...)
 			case *promazure.SDConfig:
-				exports, newDiags = appendDiscoveryAzure(f, scrapeConfig.JobName, sdc)
+				labelCounts["azure"]++
+				exports, newDiags = appendDiscoveryAzure(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["azure"]), sdc)
 			case *promconsul.SDConfig:
-				exports, newDiags = appendDiscoveryConsul(f, scrapeConfig.JobName, sdc)
+				labelCounts["consul"]++
+				exports, newDiags = appendDiscoveryConsul(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["consul"]), sdc)
 			case *promdigitalocean.SDConfig:
-				exports, newDiags = appendDiscoveryDigitalOcean(f, scrapeConfig.JobName, sdc)
+				labelCounts["digitalocean"]++
+				exports, newDiags = appendDiscoveryDigitalOcean(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["digitalocean"]), sdc)
 			case *promdns.SDConfig:
-				exports = appendDiscoveryDns(f, scrapeConfig.JobName, sdc)
+				labelCounts["dns"]++
+				exports = appendDiscoveryDns(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["dns"]), sdc)
 			case *promdocker.DockerSDConfig:
-				exports, newDiags = appendDiscoveryDocker(f, scrapeConfig.JobName, sdc)
+				labelCounts["docker"]++
+				exports, newDiags = appendDiscoveryDocker(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["docker"]), sdc)
 			case *promaws.EC2SDConfig:
-				exports, newDiags = appendDiscoveryEC2(f, scrapeConfig.JobName, sdc)
+				labelCounts["ec2"]++
+				exports, newDiags = appendDiscoveryEC2(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["ec2"]), sdc)
 			case *promgce.SDConfig:
-				exports = appendDiscoveryGCE(f, scrapeConfig.JobName, sdc)
+				labelCounts["gce"]++
+				exports = appendDiscoveryGCE(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["gce"]), sdc)
 			case *promkubernetes.SDConfig:
-				exports, newDiags = appendDiscoveryKubernetes(f, scrapeConfig.JobName, sdc)
+				labelCounts["kubernetes"]++
+				exports, newDiags = appendDiscoveryKubernetes(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["kubernetes"]), sdc)
 			case *promaws.LightsailSDConfig:
-				exports, newDiags = appendDiscoveryLightsail(f, scrapeConfig.JobName, sdc)
+				labelCounts["lightsail"]++
+				exports, newDiags = appendDiscoveryLightsail(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["lightsail"]), sdc)
 			default:
 				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 			}
 
 			diags = append(diags, newDiags...)
-			if len(exports.Targets) > 0 {
-				targets = append(targets, exports.Targets...)
-			}
+			targets = append(targets, exports.Targets...)
 		}
 
 		appendPrometheusScrape(f, scrapeConfig, forwardTo, targets)

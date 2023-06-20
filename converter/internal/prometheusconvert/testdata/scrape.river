@@ -51,9 +51,15 @@ prometheus.scrape "prometheus1" {
 }
 
 prometheus.scrape "prometheus2" {
-	targets = [{
+	targets = concat([{
 		__address__ = "localhost:9091",
-	}]
+	}],
+		[{
+			__address__ = "localhost:9092",
+		}],
+		[{
+			__address__ = "localhost:9093",
+		}])
 	forward_to = [prometheus.remote_write.default.receiver]
 	job_name   = "prometheus2"
 }

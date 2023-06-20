@@ -1,6 +1,8 @@
 package common
 
 import (
+	"fmt"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/river/rivertypes"
@@ -31,4 +33,12 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 			return val
 		}
 	}
+}
+
+func GetUniqueLabel(label string, currentCount int) string {
+	if currentCount == 1 {
+		return label
+	}
+
+	return fmt.Sprintf("%s_%d", label, currentCount)
 }
