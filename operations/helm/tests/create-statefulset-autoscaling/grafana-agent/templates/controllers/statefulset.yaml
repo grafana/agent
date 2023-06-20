@@ -49,6 +49,9 @@ spec:
               port: 80
             initialDelaySeconds: 10
             timeoutSeconds: 1
+          resources:
+            requests:
+              memory: 100Mi
           volumeMounts:
             - name: config
               mountPath: /etc/agent

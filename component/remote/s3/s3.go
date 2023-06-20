@@ -29,8 +29,8 @@ func init() {
 	})
 }
 
-// S3 handles reading content from a file located in an S3-compatible system.
-type S3 struct {
+// Component handles reading content from a file located in an Component-compatible system.
+type Component struct {
 	mut     sync.Mutex
 	opts    component.Options
 	args    Arguments
@@ -44,12 +44,12 @@ type S3 struct {
 }
 
 var (
-	_ component.Component       = (*S3)(nil)
-	_ component.HealthComponent = (*S3)(nil)
+	_ component.Component       = (*Component)(nil)
+	_ component.HealthComponent = (*Component)(nil)
 )
 
 // New initializes the S3 component.
-func New(o component.Options, args Arguments) (*S3, error) {
+func New(o component.Options, args Arguments) (*Component, error) {
 	s3cfg, err := generateS3Config(args)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func New(o component.Options, args Arguments) (*S3, error) {
 	})
 
 	bucket, file := getPathBucketAndFile(args.Path)
-	s := &S3{
+	s := &Component{
 		opts:       o,
 		args:       args,
 		health:     component.Health{},
@@ -93,7 +93,7 @@ func New(o component.Options, args Arguments) (*S3, error) {
 }
 
 // Run activates the content handler and watcher.
-func (s *S3) Run(ctx context.Context) error {
+func (s *Component) Run(ctx context.Context) error {
 	go s.handleContentUpdate(ctx)
 	go s.watcher.run(ctx)
 	<-ctx.Done()
@@ -102,7 +102,7 @@ func (s *S3) Run(ctx context.Context) error {
 }
 
 // Update is called whenever the arguments have changed.
-func (s *S3) Update(args component.Arguments) error {
+func (s *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
 	s3cfg, err := generateS3Config(newArgs)
@@ -124,7 +124,7 @@ func (s *S3) Update(args component.Arguments) error {
 }
 
 // CurrentHealth returns the health of the component.
-func (s *S3) CurrentHealth() component.Health {
+func (s *Component) CurrentHealth() component.Health {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 	return s.health
@@ -186,7 +186,7 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 }
 
 // handleContentUpdate reads from the update and error channels setting as appropriate
-func (s *S3) handleContentUpdate(ctx context.Context) {
+func (s *Component) handleContentUpdate(ctx context.Context) {
 	for {
 		select {
 		case r := <-s.updateChan:
@@ -198,7 +198,7 @@ func (s *S3) handleContentUpdate(ctx context.Context) {
 	}
 }
 
-func (s *S3) handleContentPolling(newContent string, err error) {
+func (s *Component) handleContentPolling(newContent string, err error) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 

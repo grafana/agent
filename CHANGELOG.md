@@ -42,6 +42,8 @@ Main (unreleased)
 
 - Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
 
+- Enable `prometheus.relabel` to work with Prometheus' Native Histograms. (@tpaschalis)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
