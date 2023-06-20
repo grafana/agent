@@ -20,9 +20,7 @@ resources, or cause panics.
 package elf
 
 import (
-	"bytes"
 	"debug/elf"
-	"encoding/binary"
 	"errors"
 	"fmt"
 )
@@ -59,21 +57,30 @@ func (f *MMapedElfFile) getSymbols64(typ elf.SectionType) ([]SymbolIndex, uint32
 	if err != nil {
 		return nil, 0, fmt.Errorf("cannot load symbol section: %w", err)
 	}
-	symtab := bytes.NewReader(data)
-	if symtab.Len()%elf.Sym64Size != 0 {
+
+	if len(data)%elf.Sym64Size != 0 {
 		return nil, 0, errors.New("length of symbol section is not a multiple of Sym64Size")
 	}
 
 	// The first entry is all zeros.
-	var skip [elf.Sym64Size]byte
-	_, _ = symtab.Read(skip[:])
+	data = data[elf.Sym64Size:]
 
-	symbols := make([]SymbolIndex, symtab.Len()/elf.Sym64Size)
+	symbols := make([]SymbolIndex, len(data)/elf.Sym64Size)
 
-	var sym elf.Sym64
 	i := 0
-	for symtab.Len() > 0 {
-		_ = binary.Read(symtab, f.ByteOrder, &sym)
+	var sym elf.Sym64
+	for len(data) > 0 {
+		rawSym := data[:elf.Sym64Size]
+		data = data[elf.Sym64Size:]
+		sym = elf.Sym64{
+			Name: f.ByteOrder.Uint32(rawSym[:4]),
+			Info: rawSym[4],
+			//Other: rawSym[5],
+			//Shndx: f.ByteOrder.Uint16(rawSym[6:8]), // not used
+			Value: f.ByteOrder.Uint64(rawSym[8:16]),
+			//Size:  f.ByteOrder.Uint64(rawSym[16:24]), // not used
+		}
+
 		if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
 			symbols[i].Value = sym.Value
 			if sym.Name >= 0x7fffffff {
@@ -103,21 +110,30 @@ func (f *MMapedElfFile) getSymbols32(typ elf.SectionType) ([]SymbolIndex, uint32
 	if err != nil {
 		return nil, 0, fmt.Errorf("cannot load symbol section: %w", err)
 	}
-	symtab := bytes.NewReader(data)
-	if symtab.Len()%elf.Sym32Size != 0 {
+
+	if len(data)%elf.Sym32Size != 0 {
 		return nil, 0, errors.New("length of symbol section is not a multiple of Sym64Size")
 	}
 
 	// The first entry is all zeros.
-	var skip [elf.Sym32Size]byte
-	_, _ = symtab.Read(skip[:])
+	data = data[elf.Sym32Size:]
 
-	symbols := make([]SymbolIndex, symtab.Len()/elf.Sym32Size)
+	symbols := make([]SymbolIndex, len(data)/elf.Sym32Size)
 
-	var sym elf.Sym32
 	i := 0
-	for symtab.Len() > 0 {
-		_ = binary.Read(symtab, f.ByteOrder, &sym)
+	var sym elf.Sym32
+	for len(data) > 0 {
+		rawSym := data[:elf.Sym32Size]
+		data = data[elf.Sym32Size:]
+		sym = elf.Sym32{
+			Name:  f.ByteOrder.Uint32(rawSym[:4]),
+			Value: f.ByteOrder.Uint32(rawSym[4:8]),
+			//Size: f.ByteOrder.Uint32(rawSym[8:12]),
+			Info: rawSym[12],
+			//Other: rawSym[13],
+			//Shndx: f.ByteOrder.Uint16(rawSym[14:16]),
+		}
+
 		if sym.Value != 0 && sym.Info&0xf == byte(elf.STT_FUNC) {
 			symbols[i].Value = uint64(sym.Value)
 			if sym.Name >= 0x7fffffff {
