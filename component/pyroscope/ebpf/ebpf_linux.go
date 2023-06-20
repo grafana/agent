@@ -3,6 +3,7 @@
 package ebpf
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -187,10 +188,13 @@ func (c *Component) collectProfiles() error {
 	for _, builder := range builders.Builders {
 		c.metrics.pprofsTotal.Inc()
 
-		rawProfile, err := builder.Build()
+		buf := bytes.NewBuffer(nil)
+		_, err := builder.Write(buf)
 		if err != nil {
 			return fmt.Errorf("ebpf profile encode %w", err)
 		}
+		rawProfile := buf.Bytes()
+
 		appender := c.appendable.Appender()
 		bytesSent += len(rawProfile)
 		samples := []*pyroscope.RawSample{{RawProfile: rawProfile}}

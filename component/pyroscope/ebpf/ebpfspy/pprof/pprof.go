@@ -3,7 +3,6 @@
 package pprof
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"sync"
@@ -40,15 +39,11 @@ func (b ProfileBuilders) BuilderForTarget(hash uint64, labels labels.Labels) *Pr
 	if res != nil {
 		return res
 	}
-	buf := bytes.NewBuffer(nil)
-	gzipWriter := gzipWriterPool.Get().(*gzip.Writer)
-	gzipWriter.Reset(buf)
+
 	builder := &ProfileBuilder{
-		buf:         buf,
-		gzipWritter: gzipWriter,
-		locations:   make(map[string]*profile.Location),
-		functions:   make(map[string]*profile.Function),
-		Labels:      labels,
+		locations: make(map[string]*profile.Location),
+		functions: make(map[string]*profile.Function),
+		Labels:    labels,
 		profile: &profile.Profile{
 			Mapping: []*profile.Mapping{
 				{
@@ -66,12 +61,10 @@ func (b ProfileBuilders) BuilderForTarget(hash uint64, labels labels.Labels) *Pr
 }
 
 type ProfileBuilder struct {
-	locations   map[string]*profile.Location
-	functions   map[string]*profile.Function
-	profile     *profile.Profile
-	Labels      labels.Labels
-	buf         *bytes.Buffer
-	gzipWritter *gzip.Writer
+	locations map[string]*profile.Location
+	functions map[string]*profile.Function
+	profile   *profile.Profile
+	Labels    labels.Labels
 }
 
 func (p *ProfileBuilder) AddSample(stacktrace []string, value uint64) {
@@ -122,18 +115,20 @@ func (p *ProfileBuilder) addFunction(function string) *profile.Function {
 	return f
 }
 
-func (p *ProfileBuilder) Build() ([]byte, error) {
+func (p *ProfileBuilder) Write(dst io.Writer) (int64, error) {
+	gzipWriter := gzipWriterPool.Get().(*gzip.Writer)
+	gzipWriter.Reset(dst)
 	defer func() {
-		p.gzipWritter.Reset(io.Discard)
-		gzipWriterPool.Put(p.gzipWritter)
+		gzipWriter.Reset(io.Discard)
+		gzipWriterPool.Put(gzipWriter)
 	}()
-	err := p.profile.WriteUncompressed(p.gzipWritter)
+	err := p.profile.WriteUncompressed(gzipWriter)
 	if err != nil {
-		return nil, fmt.Errorf("ebpf profile encode %w", err)
+		return 0, fmt.Errorf("ebpf profile encode %w", err)
 	}
-	err = p.gzipWritter.Close()
+	err = gzipWriter.Close()
 	if err != nil {
-		return nil, fmt.Errorf("ebpf profile encode %w", err)
+		return 0, fmt.Errorf("ebpf profile encode %w", err)
 	}
-	return p.buf.Bytes(), nil
+	return 0, nil
 }
