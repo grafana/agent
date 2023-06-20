@@ -336,8 +336,11 @@ is exported to CloudWatch.
 The following is a list of AWS services that are supported in `cloudwatch_exporter` discovery jobs. When configuring a
 discovery job, the `type` field of each `discovery_job` must match either the desired job namespace or alias.
 
+- Namespace: `AWS/Usage` or Alias: `usage`
 - Namespace: `AWS/CertificateManager` or Alias: `acm`
+- Namespace: `AWS/ACMPrivateCA` or Alias: `acm-pca`
 - Namespace: `AmazonMWAA` or Alias: `airflow`
+- Namespace: `AWS/MWAA` or Alias: `mwaa`
 - Namespace: `AWS/ApplicationELB` or Alias: `alb`
 - Namespace: `AWS/AppStream` or Alias: `appstream`
 - Namespace: `AWS/Backup` or Alias: `backup`
@@ -378,6 +381,8 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/Kinesis` or Alias: `kinesis`
 - Namespace: `AWS/KinesisAnalytics` or Alias: `kinesis-analytics`
 - Namespace: `AWS/Lambda` or Alias: `lambda`
+- Namespace: `AWS/MediaConnect` or Alias: `mediaconnect`
+- Namespace: `AWS/MediaLive` or Alias: `medialive`
 - Namespace: `AWS/MediaTailor` or Alias: `mediatailor`
 - Namespace: `AWS/Neptune` or Alias: `neptune`
 - Namespace: `AWS/NetworkFirewall` or Alias: `nfw`
@@ -400,3 +405,5 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/VPN` or Alias: `vpn`
 - Namespace: `AWS/WAFV2` or Alias: `wafv2`
 - Namespace: `AWS/WorkSpaces` or Alias: `workspaces`
+- Namespace: `AWS/AOSS` or Alias: `aoss`
+
