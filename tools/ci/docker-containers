@@ -55,6 +55,7 @@ fi
 # Build all of our images.
 
 export BUILD_PLATFORMS=linux/amd64,linux/arm64,linux/ppc64le,linux/s390x
+export BUILD_PLATFORMS_BORINGCRYPTO=linux/amd64,linux/arm64
 
 
 case "$TARGET_CONTAINER" in
@@ -71,12 +72,12 @@ case "$TARGET_CONTAINER" in
 
   agent-boringcrypto)
     docker buildx build --push        \
-      --platform $BUILD_PLATFORMS     \
+      --platform $BUILD_PLATFORMS_BORINGCRYPTO     \
       --build-arg RELEASE_BUILD=1     \
       --build-arg VERSION="$VERSION"  \
       --build-arg GOEXPERIMENT=boringcrypto \
-      -t "$AGENT_IMAGE:$VERSION"      \
-      -t "$AGENT_IMAGE:$BRANCH_TAG"   \
+      -t "$AGENT_BORINGCRYPTO_IMAGE:$VERSION"      \
+      -t "$AGENT_BORINGCRYPTO_IMAGE:$BRANCH_TAG"   \
       -f cmd/grafana-agent/Dockerfile \
       .
     ;;

@@ -23,6 +23,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
@@ -138,6 +139,8 @@ func (fr *flowRun) Run(configFile string) error {
 	// use the tracer provider given to them so the appropriate attributes get
 	// injected.
 	otel.SetTracerProvider(t)
+
+	level.Info(l).Log("boringcrypto enabled", boringcrypto.Enabled)
 
 	// Immediately start the tracer.
 	go func() {
