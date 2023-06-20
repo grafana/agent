@@ -26,7 +26,8 @@ func (h *GitAuthConfig) Convert() transport.AuthMethod {
 	}
 
 	if h.SSHKey != nil {
-		return h.SSHKey.Convert()
+		key, _ := h.SSHKey.Convert()
+		return key
 	}
 	return nil
 }
@@ -54,14 +55,13 @@ type SSHKey struct {
 }
 
 // Convert converts our type to the native prometheus type
-func (s *SSHKey) Convert() (t transport.AuthMethod) {
+func (s *SSHKey) Convert() (transport.AuthMethod, error) {
 	if s == nil {
-		return nil
+		return nil, nil
 	}
 	publickeys, err := ssh.NewPublicKeysFromFile(s.Username, s.Keyfile, string(s.Passphrase))
 	if err != nil {
-		fmt.Sprintf("generate publickeys failed: %s\n", err.Error())
-		return
+		return nil, fmt.Errorf("Loading SSH keys failed: %s", err.Error())
 	}
-	return publickeys
+	return publickeys, nil
 }
