@@ -40,7 +40,7 @@ func init() {
 		Args:    Arguments{},
 		Exports: Exports{},
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
-			return NewComponent(o, c.(Arguments))
+			return New(o, c.(Arguments))
 		},
 	})
 }
@@ -61,8 +61,8 @@ type Component struct {
 	receiver *prometheus.Interceptor
 }
 
-// NewComponent creates a new prometheus.remote_write component.
-func NewComponent(o component.Options, c Arguments) (*Component, error) {
+// New creates a new prometheus.remote_write component.
+func New(o component.Options, c Arguments) (*Component, error) {
 	// Older versions of prometheus.remote_write used the subpath below, which
 	// added in too many extra unnecessary directories (since o.DataPath is
 	// already unique).

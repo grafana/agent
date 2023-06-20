@@ -42,6 +42,8 @@ Main (unreleased)
 
 - Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
 
+- Enable `prometheus.relabel` to work with Prometheus' Native Histograms. (@tpaschalis)
+
 - Update `dnsmasq_exporter` to last version. (@marctc)
 
 ### Bugfixes
