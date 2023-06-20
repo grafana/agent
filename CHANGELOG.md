@@ -44,6 +44,8 @@ Main (unreleased)
 
 - Enable `prometheus.relabel` to work with Prometheus' Native Histograms. (@tpaschalis)
 
+- Added basic and SSH key authentication support to `module.git`. (@djcode)  
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
