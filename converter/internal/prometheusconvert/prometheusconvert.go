@@ -54,6 +54,8 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 // AppendAll analyzes the entire prometheus config in memory and transforms it
 // into Flow Arguments. It then appends each argument to the file builder.
+// Exports from other components are correctly referenced to build the Flow
+// pipeline.
 func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 	remoteWriteExports := appendPrometheusRemoteWrite(f, promConfig)
@@ -66,49 +68,8 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
-		var scrapeTargets []discovery.Target
-		var discoveryTargets []discovery.Target
-		labelCounts := make(map[string]int)
-		for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
-			var exports discovery.Exports
-			var newDiags diag.Diagnostics
-			switch sdc := serviceDiscoveryConfig.(type) {
-			case promdiscover.StaticConfig:
-				scrapeTargets = append(scrapeTargets, getScrapeTargets(sdc)...)
-			case *promazure.SDConfig:
-				labelCounts["azure"]++
-				exports, newDiags = appendDiscoveryAzure(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["azure"]), sdc)
-			case *promconsul.SDConfig:
-				labelCounts["consul"]++
-				exports, newDiags = appendDiscoveryConsul(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["consul"]), sdc)
-			case *promdigitalocean.SDConfig:
-				labelCounts["digitalocean"]++
-				exports, newDiags = appendDiscoveryDigitalOcean(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["digitalocean"]), sdc)
-			case *promdns.SDConfig:
-				labelCounts["dns"]++
-				exports = appendDiscoveryDns(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["dns"]), sdc)
-			case *promdocker.DockerSDConfig:
-				labelCounts["docker"]++
-				exports, newDiags = appendDiscoveryDocker(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["docker"]), sdc)
-			case *promaws.EC2SDConfig:
-				labelCounts["ec2"]++
-				exports, newDiags = appendDiscoveryEC2(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["ec2"]), sdc)
-			case *promgce.SDConfig:
-				labelCounts["gce"]++
-				exports = appendDiscoveryGCE(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["gce"]), sdc)
-			case *promkubernetes.SDConfig:
-				labelCounts["kubernetes"]++
-				exports, newDiags = appendDiscoveryKubernetes(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["kubernetes"]), sdc)
-			case *promaws.LightsailSDConfig:
-				labelCounts["lightsail"]++
-				exports, newDiags = appendDiscoveryLightsail(f, common.GetUniqueLabel(scrapeConfig.JobName, labelCounts["lightsail"]), sdc)
-			default:
-				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
-			}
-
-			diags = append(diags, newDiags...)
-			discoveryTargets = append(discoveryTargets, exports.Targets...)
-		}
+		scrapeTargets, discoveryTargets, newDiags := appendServiceDiscoveryConfigs(f, scrapeConfig.ServiceDiscoveryConfigs, scrapeConfig.JobName)
+		diags = append(diags, newDiags...)
 
 		promDiscoveryRelabelExports := appendDiscoveryRelabel(f, scrapeConfig.RelabelConfigs, scrapeConfig.JobName, discoveryTargets)
 		if promDiscoveryRelabelExports != nil {
@@ -121,4 +82,56 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 	}
 
 	return diags
+}
+
+// appendServiceDiscoveryConfigs will loop through the service discovery
+// configs and append them to the file. This returns the scrape targets
+// and discovery targets as a result.
+func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig promdiscover.Configs, label string) ([]discovery.Target, []discovery.Target, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var scrapeTargets []discovery.Target
+	var discoveryTargets []discovery.Target
+	labelCounts := make(map[string]int)
+	for _, serviceDiscoveryConfig := range serviceDiscoveryConfig {
+		var exports discovery.Exports
+		var newDiags diag.Diagnostics
+		switch sdc := serviceDiscoveryConfig.(type) {
+		case promdiscover.StaticConfig:
+			scrapeTargets = append(scrapeTargets, getScrapeTargets(sdc)...)
+		case *promazure.SDConfig:
+			labelCounts["azure"]++
+			exports, newDiags = appendDiscoveryAzure(f, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
+		case *promconsul.SDConfig:
+			labelCounts["consul"]++
+			exports, newDiags = appendDiscoveryConsul(f, common.GetUniqueLabel(label, labelCounts["consul"]), sdc)
+		case *promdigitalocean.SDConfig:
+			labelCounts["digitalocean"]++
+			exports, newDiags = appendDiscoveryDigitalOcean(f, common.GetUniqueLabel(label, labelCounts["digitalocean"]), sdc)
+		case *promdns.SDConfig:
+			labelCounts["dns"]++
+			exports = appendDiscoveryDns(f, common.GetUniqueLabel(label, labelCounts["dns"]), sdc)
+		case *promdocker.DockerSDConfig:
+			labelCounts["docker"]++
+			exports, newDiags = appendDiscoveryDocker(f, common.GetUniqueLabel(label, labelCounts["docker"]), sdc)
+		case *promaws.EC2SDConfig:
+			labelCounts["ec2"]++
+			exports, newDiags = appendDiscoveryEC2(f, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
+		case *promgce.SDConfig:
+			labelCounts["gce"]++
+			exports = appendDiscoveryGCE(f, common.GetUniqueLabel(label, labelCounts["gce"]), sdc)
+		case *promkubernetes.SDConfig:
+			labelCounts["kubernetes"]++
+			exports, newDiags = appendDiscoveryKubernetes(f, common.GetUniqueLabel(label, labelCounts["kubernetes"]), sdc)
+		case *promaws.LightsailSDConfig:
+			labelCounts["lightsail"]++
+			exports, newDiags = appendDiscoveryLightsail(f, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
+		default:
+			diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
+		}
+
+		diags = append(diags, newDiags...)
+		discoveryTargets = append(discoveryTargets, exports.Targets...)
+	}
+
+	return scrapeTargets, discoveryTargets, diags
 }
