@@ -125,7 +125,7 @@ Name | Type | Description | Default | Required
 `ping_response_timeout` | `duration` | Time to wait before closing inactive connections if the server does not respond to a ping. | | no
 `ping_without_stream` | `boolean` | Send pings even if there is no active stream request. | | no
 
-### queue block
+### sending_queue block
 
 The `sending_queue` block configures an in-memory buffer of batches before data is sent
 to the gRPC server.
