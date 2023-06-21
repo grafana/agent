@@ -78,26 +78,26 @@ func validateGeoIPConfig(c GeoIPConfig) (map[string]*jmespath.JMESPath, error) {
 		return nil, ErrEmptyDBTypeGeoIPStageConfig
 	}
 
-	if c.CustomLookups != nil {
-		expressions := map[string]*jmespath.JMESPath{}
-		for key, expr := range c.CustomLookups {
-			var err error
-			jmes := expr
-
-			// If there is no expression, use the name as the expression.
-			if expr == "" {
-				jmes = key
-			}
-
-			expressions[key], err = jmespath.Compile(jmes)
-			if err != nil {
-				return nil, errors.New(ErrCouldNotCompileJMES)
-			}
-		}
-		return expressions, nil
+	if c.CustomLookups == nil {
+		return nil, nil
 	}
 
-	return nil, nil
+	expressions := map[string]*jmespath.JMESPath{}
+	for key, expr := range c.CustomLookups {
+		var err error
+		jmes := expr
+
+		// If there is no expression, use the name as the expression.
+		if expr == "" {
+			jmes = key
+		}
+
+		expressions[key], err = jmespath.Compile(jmes)
+		if err != nil {
+			return nil, errors.New(ErrCouldNotCompileJMES)
+		}
+	}
+	return expressions, nil
 }
 
 func newGeoIPStage(logger log.Logger, config GeoIPConfig) (Stage, error) {
