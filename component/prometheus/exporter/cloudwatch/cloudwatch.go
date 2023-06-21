@@ -2,6 +2,7 @@ package cloudwatch
 
 import (
 	"fmt"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
