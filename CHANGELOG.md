@@ -24,7 +24,7 @@ Main (unreleased)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
 
-- Add boring crypto builds for Linux arm64 and x64. (@mattdurham)
+- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
 
 ### Enhancements
 
