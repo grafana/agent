@@ -64,6 +64,9 @@ func (args Arguments) Convert() (otelconfig.Exporter, error) {
 		HTTPClientSettings: *(*otelcol.HTTPClientArguments)(&args.Client).Convert(),
 		QueueSettings:      *args.Queue.Convert(),
 		RetrySettings:      *args.Retry.Convert(),
+		TracesEndpoint:     args.TracesEndpoint,
+		MetricsEndpoint:    args.MetricsEndpoint,
+		LogsEndpoint:       args.MetricsEndpoint,
 	}, nil
 }
 

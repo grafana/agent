@@ -57,6 +57,8 @@ Main (unreleased)
 
 - Fixes several issues with statsd exporter. (@jcreixell, @marctc)
 
+- Fix bug where `otelcol.exporter.otlphttp` ignores configuration for TracesEndpoint/ MetricsEndpoint/ LogsEndpoint
+
 ### Other changes
 
 - Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
