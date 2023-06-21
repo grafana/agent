@@ -59,7 +59,7 @@ type StaticJob struct {
 // scrape.
 type RegionAndRoles struct {
 	Regions []string `river:"regions,attr"`
-	Roles   []Role   `river:"roles,block,optional"`
+	Roles   []Role   `river:"role,block,optional"`
 }
 
 type Role struct {
@@ -136,6 +136,11 @@ func (tags Tags) toYACE() []yaceModel.Tag {
 
 func toYACERoles(rs []Role) []yaceConf.Role {
 	yaceRoles := []yaceConf.Role{}
+	// YACE defaults to an empty role, which means the environment configured role is used
+	// https://github.com/nerdswords/yet-another-cloudwatch-exporter/blob/30aeceb2324763cdd024a1311045f83a09c1df36/pkg/config/config.go#L111
+	if len(rs) == 0 {
+		yaceRoles = append(yaceRoles, yaceConf.Role{})
+	}
 	for _, r := range rs {
 		yaceRoles = append(yaceRoles, yaceConf.Role{RoleArn: r.RoleArn, ExternalID: r.ExternalID})
 	}
