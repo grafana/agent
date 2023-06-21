@@ -11,7 +11,7 @@ title: prometheus.exporter.squid
 
 # prometheus.exporter.squid
 The `prometheus.exporter.squid` component embeds
-[squid_exporter](https://github.com/boynux/squid-exporter) for collecting warehouse, database, table, and replication statistics from a squid account via HTTP for Prometheus consumption.
+[squid_exporter](https://github.com/boynux/squid-exporter) for collecting metrics from a squid instance.
 
 ## Usage
 
