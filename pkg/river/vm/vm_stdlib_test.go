@@ -79,6 +79,32 @@ func TestStdlibCoalesce(t *testing.T) {
 	}
 }
 
+func TestStdlibJsonPath(t *testing.T) {
+	tt := []struct {
+		name   string
+		input  string
+		expect interface{}
+	}{
+		{"json_path with simple json", `json_path("{\"a\": \"b\"}", ".a")`, []string{"b"}},
+		{"json_path with simple json without results", `json_path("{\"a\": \"b\"}", ".nonexists")`, []string{}},
+		{"json_path with json array", `json_path("[{\"name\": \"Department\",\"value\": \"IT\"},{\"name\":\"ReferenceNumber\",\"value\":\"123456\"},{\"name\":\"TestStatus\",\"value\":\"Pending\"}]", "[?(@.name == \"Department\")].value")`, []string{"IT"}},
+		{"json_path with simple json and return first", `json_path("{\"a\": \"b\"}", ".a")[0]`, "b"},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			expr, err := parser.ParseExpression(tc.input)
+			require.NoError(t, err)
+
+			eval := vm.New(expr)
+
+			rv := reflect.New(reflect.TypeOf(tc.expect))
+			require.NoError(t, eval.Evaluate(nil, rv.Interface()))
+			require.Equal(t, tc.expect, rv.Elem().Interface())
+		})
+	}
+}
+
 func TestStdlib_Nonsensitive(t *testing.T) {
 	scope := &vm.Scope{
 		Variables: map[string]any{

@@ -26,6 +26,8 @@ Main (unreleased)
     components and modifies attributes of a span, log, or metric. (@ptodev)
 
 
+- Added json_path function to river stdlib. (@jkroepke)
+
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
