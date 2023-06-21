@@ -57,13 +57,31 @@ To uninstall Grafana Agent Flow on Debian or Ubuntu, run the following commands 
 
 To install Grafana Agent Flow on RHEL or Fedora, run the following commands in a terminal window.
 
-1. Import the GPG key and add the Grafana package repository:
+1. Import the GPG key:
 
    ```shell
    wget -q -O gpg.key https://rpm.grafana.com/gpg.key
    sudo rpm --import gpg.key
-   sudo dnf config-manager --add-repo https://rpm.grafana.com
-   sudo dnf config-manager --enable grafana
+   ```
+
+1. Create `/etc/yum.repos.d/grafana.repo` with the following content:
+
+   ```shell
+   [grafana]
+   name=grafana
+   baseurl=https://rpm.grafana.com
+   repo_gpgcheck=1
+   enabled=1
+   gpgcheck=1
+   gpgkey=https://rpm.grafana.com/gpg.key
+   sslverify=1
+   sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+   ```
+
+1. Optional. Verify the Grafana repository configuration:
+
+   ```shell
+   cat /etc/yum.repos.d/grafana.repo
    ```
 
 1. Install Grafana Agent Flow:
@@ -91,7 +109,7 @@ To uninstall Grafana Agent Flow on RHEL or Fedora, run the following commands in
 1. Optional. Remove the Grafana repository:
 
    ```shell
-   sudo rm -i /etc/yum.repos.d/grafana.repo
+   sudo rm -i /etc/yum.repos.d/rpm.grafana.repo
    ```
 
 ## Install on SUSE or openSUSE
