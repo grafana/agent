@@ -59,6 +59,7 @@ Main (unreleased)
 
 - Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 
+- Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
 ### Other changes
 
 - Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
