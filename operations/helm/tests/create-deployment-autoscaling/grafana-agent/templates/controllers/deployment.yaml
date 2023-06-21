@@ -25,7 +25,7 @@ spec:
       serviceAccountName: grafana-agent
       containers:
         - name: grafana-agent
-          image: docker.io/grafana/agent:v0.34.0
+          image: docker.io/grafana/agent:v0.34.2
           imagePullPolicy: IfNotPresent
           args:
             - run
@@ -48,6 +48,9 @@ spec:
               port: 80
             initialDelaySeconds: 10
             timeoutSeconds: 1
+          resources:
+            requests:
+              memory: 100Mi
           volumeMounts:
             - name: config
               mountPath: /etc/agent

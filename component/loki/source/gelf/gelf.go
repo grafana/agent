@@ -117,7 +117,7 @@ func convertConfig(a Arguments) *scrapeconfig.GelfTargetConfig {
 }
 
 // New creates a new gelf component.
-func New(o component.Options, args Arguments) (component.Component, error) {
+func New(o component.Options, args Arguments) (*Component, error) {
 	metrics := target.NewMetrics(o.Registerer)
 	c := &Component{
 		o:       o,
