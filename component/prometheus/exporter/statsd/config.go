@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
-	"github.com/prometheus/statsd_exporter/pkg/mapper"
+	"gopkg.in/yaml.v3"
 )
 
 type Arguments struct {
@@ -27,6 +27,9 @@ type Arguments struct {
 	ParseInfluxDB  bool `river:"parse_influxdb_tags,attr,optional"`
 	ParseLibrato   bool `river:"parse_librato_tags,attr,optional"`
 	ParseSignalFX  bool `river:"parse_signalfx_tags,attr,optional"`
+
+	RelayAddr         string `river:"relay_addr,attr,optional"`
+	RelayPacketLength int    `river:"relay_packet_length,attr,optional"`
 }
 
 // DefaultConfig holds non-zero default options for the Config when it is
@@ -49,13 +52,23 @@ var DefaultConfig = Arguments{
 	ParseInfluxDB:  statsd_exporter.DefaultConfig.ParseInfluxDB,
 	ParseLibrato:   statsd_exporter.DefaultConfig.ParseLibrato,
 	ParseSignalFX:  statsd_exporter.DefaultConfig.ParseSignalFX,
+
+	RelayPacketLength: statsd_exporter.DefaultConfig.RelayPacketLength,
 }
 
 // Convert gives a config suitable for use with github.com/grafana/agent/pkg/integrations/statsd_exporter.
 func (c *Arguments) Convert() (*statsd_exporter.Config, error) {
-	mappingConfig, err := readMappingFromYAML(c.MappingConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert statsd config: %w", err)
+	var (
+		mappingConfig any
+		err           error
+	)
+
+	if c.MappingConfig != "" {
+		mappingConfig, err = readMappingFile(c.MappingConfig)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert statsd config: %w", err)
+		}
 	}
 
 	return &statsd_exporter.Config{
@@ -73,6 +86,8 @@ func (c *Arguments) Convert() (*statsd_exporter.Config, error) {
 		ParseInfluxDB:       c.ParseInfluxDB,
 		ParseLibrato:        c.ParseLibrato,
 		ParseSignalFX:       c.ParseSignalFX,
+		RelayAddr:           c.RelayAddr,
+		RelayPacketLength:   c.RelayPacketLength,
 		MappingConfig:       mappingConfig,
 	}, nil
 }
@@ -85,24 +100,14 @@ func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	return f((*args)(c))
 }
 
-// function to read a yaml file from a path and convert it to a mapper.MappingConfig
-// this is used to convert the MappingConfig field in to a mapper.MappingConfig
-// which is used by the statsd_exporter
-func readMappingFromYAML(path string) (*mapper.MetricMapper, error) {
-	yfile, err := os.Open(path)
+func readMappingFile(path string) (any, error) {
+	file, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read mapping config file: %w", err)
 	}
 
-	yBytes := make([]byte, 0)
-	count, err := yfile.Read(yBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read mapping config file: %w", err)
-	}
-
-	statsdMapper := mapper.MetricMapper{}
-
-	err = statsdMapper.InitFromYAMLString(string(yBytes[:count]))
+	var statsdMapper any
+	err = yaml.Unmarshal(file, &statsdMapper)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load mapping config: %w", err)
 	}
