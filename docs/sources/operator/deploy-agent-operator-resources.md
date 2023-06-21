@@ -58,7 +58,6 @@ To deploy the `GrafanaAgent` resource:
         selector:
           matchLabels:
               agent: grafana-agent-integrations
-      image: grafana/agent:v0.34.1
       logLevel: info
       serviceAccountName: grafana-agent
       metrics:
