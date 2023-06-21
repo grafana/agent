@@ -33,7 +33,7 @@
 ##
 ##   images                   Builds all Docker images.
 ##   agent-image              Builds agent Docker image.
-##   agent-image-boringcrypto Builds agent Docker image with boringcrypto.
+##   agent-boringcrypto-image Builds agent Docker image with boringcrypto.
 ##   agentctl-image           Builds agentctl Docker image.
 ##   operator-image           Builds operator Docker image.
 ##   crow-image               Builds crow Docker image.
@@ -255,9 +255,9 @@ images: agent-image agentctl-image operator-image crow-image smoke-image
 agent-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_IMAGE) -f cmd/grafana-agent/Dockerfile .
 agentctl-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) --build-arg GOEXPERIMENT=boringcrypto -t $(AGENT_IMAGE)-boringcrypto -f cmd/grafana-agentctl/Dockerfile .
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENTCTL_IMAGE) -f cmd/grafana-agentctl/Dockerfile .
 agent-boringcrypto-image:
-	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_BORINGCRYPTO_IMAGE) -f cmd/grafana-agent/DockerFile . 
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) --build-arg GOEXPERIMENT=boringcrypto -t $(AGENT_BORINGCRYPTO_IMAGE) -f cmd/grafana-agent/Dockerfile .
 operator-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(OPERATOR_IMAGE) -f cmd/grafana-agent-operator/Dockerfile .
 crow-image:
