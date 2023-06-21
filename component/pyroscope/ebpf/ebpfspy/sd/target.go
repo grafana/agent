@@ -173,7 +173,7 @@ func (tf *targetFinder) FindTarget(pid uint32) *Target {
 
 func (tf *targetFinder) findTarget(pid uint32) *Target {
 	cid, ok := tf.containerIDCache.Get(pid)
-	if ok && cid != "" {
+	if ok {
 		return tf.cid2target[cid]
 	}
 
