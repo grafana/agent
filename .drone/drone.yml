@@ -921,7 +921,7 @@ steps:
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   failure: ignore
   image: grafana/agent-build-image:0.26.0
-  name: Configure QEMU1
+  name: Configure QEMU
   volumes:
   - name: docker
     path: /var/run/docker.sock
@@ -965,7 +965,7 @@ steps:
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   failure: ignore
   image: grafana/agent-build-image:0.26.0
-  name: Configure QEMU1
+  name: Configure QEMU
   volumes:
   - name: docker
     path: /var/run/docker.sock
@@ -1009,7 +1009,7 @@ steps:
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   failure: ignore
   image: grafana/agent-build-image:0.26.0
-  name: Configure QEMU1
+  name: Configure QEMU
   volumes:
   - name: docker
     path: /var/run/docker.sock
@@ -1053,7 +1053,7 @@ steps:
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   failure: ignore
   image: grafana/agent-build-image:0.26.0
-  name: Configure QEMU1
+  name: Configure QEMU
   volumes:
   - name: docker
     path: /var/run/docker.sock
@@ -1097,7 +1097,7 @@ steps:
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   failure: ignore
   image: grafana/agent-build-image:0.26.0
-  name: Configure QEMU1
+  name: Configure QEMU
   volumes:
   - name: docker
     path: /var/run/docker.sock
@@ -1141,7 +1141,7 @@ steps:
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   failure: ignore
   image: grafana/agent-build-image:0.26.0
-  name: Configure QEMU1
+  name: Configure QEMU
   volumes:
   - name: docker
     path: /var/run/docker.sock
@@ -1410,6 +1410,6 @@ kind: secret
 name: gpg_public_key
 ---
 kind: signature
-hmac: c705a64c73d0a40053fc8c23a8840519ba71ba97319e1ce19ac1f6b7e91974d9
+hmac: 65c6a64b5694063effa19b31f04af06b744c08f1f3ae191c3bb998a3abc1183a
 
 ...
