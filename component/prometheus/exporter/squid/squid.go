@@ -34,11 +34,6 @@ func customizeTarget(baseTarget discovery.Target, args component.Arguments) []di
 	return []discovery.Target{target}
 }
 
-// DefaultArguments holds the default settings for the squid exporter
-var DefaultArguments = Arguments{
-	SquidAddr: "localhost:3128",
-}
-
 // Arguments controls the squid exporter.
 type Arguments struct {
 	SquidAddr     string            `river:"address,attr"`
@@ -48,7 +43,7 @@ type Arguments struct {
 
 // SetToDefault implements river.Defaulter.
 func (a *Arguments) SetToDefault() {
-	*a = DefaultArguments
+	*a = Arguments{}
 }
 
 // Validate implements river.Validator.

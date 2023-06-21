@@ -94,10 +94,9 @@ func TestConfig_UnmarshalYaml(t *testing.T) {
 
 	t.Run("all values", func(t *testing.T) {
 		strConfig := `
-		address: "localhost:3182"
-		username: "user"
-		password: "password"
-		`
+address: "localhost:3182"
+username: "user"
+password: "password"`
 
 		var c Config
 
