@@ -18,12 +18,12 @@ Main (unreleased)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
 
-
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
+  - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
 
 
 ### Enhancements
