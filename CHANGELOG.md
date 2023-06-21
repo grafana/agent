@@ -57,6 +57,8 @@ Main (unreleased)
 
 - Fixes several issues with statsd exporter. (@jcreixell, @marctc)
 
+- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
+
 - Fix bug where `otelcol.exporter.otlphttp` ignores configuration for TracesEndpoint, MetricsEndpoint, and LogsEndpoint. (@SimoneFalzone)
 ### Other changes
 
