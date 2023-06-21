@@ -14,10 +14,10 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/pprof"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/sd"
-	"github.com/grafana/agent/component/pyroscope/ebpf/ebpfspy/symtab"
+	"github.com/grafana/phlare/ebpf"
+	"github.com/grafana/phlare/ebpf/pprof"
+	"github.com/grafana/phlare/ebpf/sd"
+	"github.com/grafana/phlare/ebpf/symtab"
 	"github.com/oklog/run"
 )
 
@@ -224,8 +224,12 @@ func (c *Component) updateDebugInfo() {
 }
 
 func targetsOptionFromArgs(args Arguments) sd.TargetsOptions {
+	targets := make([]sd.DiscoveryTarget, 0, len(args.Targets))
+	for _, t := range args.Targets {
+		targets = append(targets, sd.DiscoveryTarget(t))
+	}
 	return sd.TargetsOptions{
-		Targets:            args.Targets,
+		Targets:            targets,
 		DefaultTarget:      nil,
 		TargetsOnly:        true,
 		ContainerCacheSize: args.ContainerIDCacheSize,

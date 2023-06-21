@@ -23,7 +23,7 @@ require (
 	github.com/buger/jsonparser v1.1.1
 	github.com/burningalchemist/sql_exporter v0.0.0-20221222155641-2ff59aa75200
 	github.com/cespare/xxhash/v2 v2.2.0
-	github.com/cilium/ebpf v0.10.0
+	github.com/cilium/ebpf v0.10.0 // indirect
 	github.com/cloudflare/cloudflare-go v0.27.0
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/go-systemd/v22 v22.5.0
@@ -49,7 +49,7 @@ require (
 	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-jsonnet v0.18.0
-	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b
+	github.com/google/pprof v0.0.0-20230602150820-91b7bce49751
 	github.com/google/renameio/v2 v2.0.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
@@ -59,6 +59,7 @@ require (
 	github.com/grafana/go-gelf/v2 v2.0.1
 	github.com/grafana/loki v1.6.2-0.20230414223651-220cbdd4f172 // k146 branch
 	github.com/grafana/phlare/api v0.1.2
+	github.com/grafana/phlare/ebpf v0.0.0-20230621051909-4b349c19e379
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/tail v0.0.0-20230328181249-aa6682d7843a
@@ -578,7 +579,7 @@ require (
 
 require github.com/edsrzf/mmap-go v1.1.0 // indirect
 
-require github.com/samber/lo v1.38.1
+require github.com/samber/lo v1.38.1 // indirect
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 // indirect
