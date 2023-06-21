@@ -11,9 +11,13 @@ metadata:
     {{- end }}
 spec:
   serviceAccountName: {{ include "grafana-agent.serviceAccountName" . }}
-  {{- with .Values.image.pullSecrets }}
+  {{- if or .Values.global.image.pullSecrets .Values.image.pullSecrets }}
   imagePullSecrets:
-    {{- toYaml . | nindent 4 }}
+    {{- if .Values.global.image.pullSecrets }}
+    {{- toYaml .Values.global.image.pullSecrets | nindent 4 }}
+    {{- else }}
+    {{- toYaml .Values.image.pullSecrets | nindent 4 }}
+    {{- end }}
   {{- end }}
   containers:
     {{- include "grafana-agent.container" . | nindent 4 }}

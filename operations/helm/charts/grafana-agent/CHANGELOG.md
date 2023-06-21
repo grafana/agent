@@ -10,6 +10,19 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Allow requests to be set on the config reloader container. (@tpaschalis)
+
+- Allow users of the helm chart to configure the image registry either at the image level or globally. (@QuentinBisson)
+
+- Don't specify replica count for StatefulSets when autoscaling is enabled (@captncraig)
+
+### Other changes
+
+- Make the agent and config-reloader container resources required when using
+  autoscaling. (@tpaschalis)
+
 0.15.0 (2023-06-08)
 -------------------
 

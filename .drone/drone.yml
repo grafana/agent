@@ -218,8 +218,8 @@ steps:
   image: grafana/agent-build-image:0.26.0-windows
   name: Run Go tests
 trigger:
-  event:
-  - pull_request
+  ref:
+  - refs/heads/main
 type: docker
 ---
 kind: pipeline
@@ -1410,6 +1410,6 @@ kind: secret
 name: gpg_public_key
 ---
 kind: signature
-hmac: 65c6a64b5694063effa19b31f04af06b744c08f1f3ae191c3bb998a3abc1183a
+hmac: 10f649750837f839c9baf2a5eb304de674a1d2e8aceaea04ab8afef73d59d004
 
 ...

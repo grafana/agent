@@ -38,12 +38,31 @@ Main (unreleased)
 
 - Upgrade and improve Cloudwatch exporter integration (@thepalbi)
 
+- Update `node_exporter` dependency to v1.6.0. (@spartan0x117)
+
+- Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
+
+- Enable `prometheus.relabel` to work with Prometheus' Native Histograms. (@tpaschalis)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
+
+- Fix a bug where `prometheus.relabel` would not correctly relabel when there is a cache miss. (@thampiotr)
+
+- Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
+
+- Fixes several issues with statsd exporter. (@jcreixell, @marctc)
+
+- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
+
+- Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
+### Other changes
+
+- Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
 
 v0.34.1 (2023-06-12)
 --------------------

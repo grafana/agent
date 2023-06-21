@@ -104,20 +104,20 @@ type notifierEventHandler struct {
 
 var _ handler.EventHandler = (*notifierEventHandler)(nil)
 
-func (h *notifierEventHandler) Create(ev event.CreateEvent, q workqueue.RateLimitingInterface) {
+func (h *notifierEventHandler) Create(ctx context.Context, ev event.CreateEvent, q workqueue.RateLimitingInterface) {
 	h.handleEvent(ev.Object, q)
 }
 
-func (h *notifierEventHandler) Update(ev event.UpdateEvent, q workqueue.RateLimitingInterface) {
+func (h *notifierEventHandler) Update(ctx context.Context, ev event.UpdateEvent, q workqueue.RateLimitingInterface) {
 	h.handleEvent(ev.ObjectOld, q)
 	h.handleEvent(ev.ObjectNew, q)
 }
 
-func (h *notifierEventHandler) Delete(ev event.DeleteEvent, q workqueue.RateLimitingInterface) {
+func (h *notifierEventHandler) Delete(ctx context.Context, ev event.DeleteEvent, q workqueue.RateLimitingInterface) {
 	h.handleEvent(ev.Object, q)
 }
 
-func (h *notifierEventHandler) Generic(ev event.GenericEvent, q workqueue.RateLimitingInterface) {
+func (h *notifierEventHandler) Generic(ctx context.Context, ev event.GenericEvent, q workqueue.RateLimitingInterface) {
 	h.handleEvent(ev.Object, q)
 }
 
