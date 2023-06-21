@@ -132,7 +132,7 @@ to the gRPC server.
 
 {{< docs/shared lookup="flow/reference/components/otelcol-queue-block.md" source="agent" >}}
 
-### retry block
+### retry_on_failure block
 
 The `retry_on_failure` block configures how failed requests to the gRPC server are
 retried.
