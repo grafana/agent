@@ -111,7 +111,7 @@ func (r *QueueOptions) SetToDefault() {
 
 func (r *QueueOptions) toPrometheusType() config.QueueConfig {
 	if r == nil {
-		return config.DefaultQueueConfig
+		return DefaultQueueOptions.toPrometheusType()
 	}
 
 	return config.QueueConfig{
@@ -141,7 +141,7 @@ func (o *MetadataOptions) SetToDefault() {
 
 func (o *MetadataOptions) toPrometheusType() config.MetadataConfig {
 	if o == nil {
-		return config.DefaultMetadataConfig
+		return DefaultMetadataOptions.toPrometheusType()
 	}
 
 	return config.MetadataConfig{
