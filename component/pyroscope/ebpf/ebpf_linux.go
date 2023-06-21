@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
-	"github.com/grafana/phlare/ebpf"
+	ebpfspy "github.com/grafana/phlare/ebpf"
 	"github.com/grafana/phlare/ebpf/pprof"
 	"github.com/grafana/phlare/ebpf/sd"
 	"github.com/grafana/phlare/ebpf/symtab"

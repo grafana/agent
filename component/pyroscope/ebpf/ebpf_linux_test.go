@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/phlare/ebpf"
+	ebpfspy "github.com/grafana/phlare/ebpf"
 	"github.com/grafana/phlare/ebpf/sd"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
