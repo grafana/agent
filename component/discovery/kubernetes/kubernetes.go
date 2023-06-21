@@ -103,7 +103,7 @@ func (am *AttachMetadataConfig) convert() *promk8s.AttachMetadataConfig {
 }
 
 // New returns a new instance of a discovery.kubernetes component.
-func New(opts component.Options, args Arguments) (component.Component, error) {
+func New(opts component.Options, args Arguments) (*discovery.Component, error) {
 	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
 		newArgs := args.(Arguments)
 		return promk8s.New(opts.Logger, newArgs.Convert())

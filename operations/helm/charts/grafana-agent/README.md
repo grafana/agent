@@ -191,6 +191,11 @@ Kubernetes version `>=1.23-0` and your cluster has the
 `StatefulSetAutoDeletePVC` feature gate enabled, you can set
 `enableStatefulSetAutoDeletePVC` to true to automatically delete stale PVCs.
 
+Using `controller.autoscaling` requires the target metric (cpu/memory) to have
+its resource requests set up for both the agent and config-reloader containers
+so that the HPA can use them to calculate the replica count from the actual
+resource utilization.
+
 ## Collecting logs from other containers
 
 There are two ways to collect logs from other containers within the cluster
