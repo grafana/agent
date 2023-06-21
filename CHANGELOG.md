@@ -44,6 +44,8 @@ Main (unreleased)
 
 - Enable `prometheus.relabel` to work with Prometheus' Native Histograms. (@tpaschalis)
 
+- Update `dnsmasq_exporter` to last version. (@marctc)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
