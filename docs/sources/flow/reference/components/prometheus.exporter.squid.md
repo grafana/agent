@@ -18,8 +18,6 @@ The `prometheus.exporter.squid` component embeds
 ```river
 prometheus.exporter.squid "LABEL" {
     address =   "<HOST>:<PORT>"
-    username =  "USERNAME"
-    password =  "PASSWORD"
 }
 ```
 
