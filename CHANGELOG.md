@@ -66,6 +66,8 @@ Main (unreleased)
 
 - Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
 
+- Fix Deploy Operator Resources Example YAML Duplicate image (@ctlewis)
+
 v0.34.1 (2023-06-12)
 --------------------
 
