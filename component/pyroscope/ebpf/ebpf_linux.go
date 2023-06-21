@@ -69,6 +69,8 @@ func New(o component.Options, args Arguments, session ebpfspy.Session, targetFin
 type Arguments struct {
 	ForwardTo            []pyroscope.Appendable `river:"forward_to,attr"`
 	Targets              []discovery.Target     `river:"targets,attr,optional"`
+	DefaultTarget        discovery.Target       `river:"default_target,attr,optional"` // undocumented, keeping it until we have other sd
+	TargetsOnly          bool                   `river:"targets_only,attr,optional"`   // undocumented, keeping it until we have other sd
 	CollectInterval      time.Duration          `river:"collect_interval,attr,optional"`
 	SampleRate           int                    `river:"sample_rate,attr,optional"`
 	PidCacheSize         int                    `river:"pid_cache_size,attr,optional"`
@@ -97,6 +99,7 @@ func defaultArguments() Arguments {
 		CacheRounds:          3,
 		CollectUserProfile:   true,
 		CollectKernelProfile: true,
+		TargetsOnly:          true,
 	}
 }
 
@@ -230,8 +233,8 @@ func targetsOptionFromArgs(args Arguments) sd.TargetsOptions {
 	}
 	return sd.TargetsOptions{
 		Targets:            targets,
-		DefaultTarget:      nil,
-		TargetsOnly:        true,
+		DefaultTarget:      sd.DiscoveryTarget(args.DefaultTarget),
+		TargetsOnly:        args.TargetsOnly,
 		ContainerCacheSize: args.ContainerIDCacheSize,
 	}
 }
