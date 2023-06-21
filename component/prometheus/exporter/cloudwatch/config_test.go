@@ -1,11 +1,12 @@
 package cloudwatch
 
 import (
+	"testing"
+
 	"github.com/grafana/agent/pkg/river"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 var falsePtr = false
@@ -52,6 +53,7 @@ static "super_ec2_instance_id" {
 const discoveryJobConfig = `
 sts_region = "us-east-2"
 debug = true
+discovery_exported_tags = { "ec2" = ["name"] }
 discovery {
 	type = "sqs"
 	regions = ["us-east-2"]
@@ -145,6 +147,9 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 				APIVersion: "v1alpha1",
 				StsRegion:  "us-east-2",
 				Discovery: yaceConf.Discovery{
+					ExportedTagsOnMetrics: yaceModel.ExportedTagsOnMetrics{
+						"ec2": []string{"name"},
+					},
 					Jobs: []*yaceConf.Job{
 						{
 							Regions: []string{"us-east-2"},

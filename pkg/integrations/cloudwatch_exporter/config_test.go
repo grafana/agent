@@ -12,6 +12,7 @@ import (
 
 const configString = `
 sts_region: us-east-2
+discovery_exported_tags = { "ec2" = ["name"] }
 discovery:
   exported_tags:
     AWS/EC2:
