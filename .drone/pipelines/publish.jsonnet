@@ -17,7 +17,7 @@ local linux_containers_jobs = std.map(function(container) (
     steps: [{
       // We only need to run this once per machine, so it's OK if it fails. It
       // is also likely to fail when run in parallel on the same machine.
-      name: 'Configure QEMU1',
+      name: 'Configure QEMU',
       image: build_image.linux,
       failure: 'ignore',
       volumes: [{
