@@ -9,14 +9,12 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-
-	"github.com/grafana/agent/component/module/git/internal/vcs/auth"
 )
 
 type GitRepoOptions struct {
 	Repository string
 	Revision   string
-	Auth       auth.GitAuthConfig
+	Auth       GitAuthConfig
 }
 
 // GitRepo manages a Git repository for the purposes of retrieving a file from

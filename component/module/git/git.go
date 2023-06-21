@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/component/module/git/internal/vcs"
-	"github.com/grafana/agent/component/module/git/internal/vcs/auth"
 )
 
 func init() {
@@ -36,8 +35,8 @@ type Arguments struct {
 	Path          string        `river:"path,attr"`
 	PullFrequency time.Duration `river:"pull_frequency,attr,optional"`
 
-	Arguments     map[string]any     `river:"arguments,block,optional"`
-	GitAuthConfig auth.GitAuthConfig `river:",squash"`
+	Arguments     map[string]any    `river:"arguments,block,optional"`
+	GitAuthConfig vcs.GitAuthConfig `river:",squash"`
 }
 
 // DefaultArguments holds default settings for Arguments.
