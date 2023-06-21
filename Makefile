@@ -20,14 +20,15 @@
 ##
 ## Targets for building binaries:
 ##
-##   binaries       Compiles all binaries.
-##   agent          Compiles cmd/grafana-agent to $(AGENT_BINARY)
-##   agent-flow     Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
-##   agent-service  Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
-##   agentctl       Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
-##   operator       Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
-##   crow           Compiles tools/crow to $(CROW_BINARY)
-##   smoke          Compiles tools/smoke to $(SMOKE_BINARY)
+##   binaries                Compiles all binaries.
+##   agent          		 Compiles cmd/grafana-agent to $(AGENT_BINARY)
+##   agent-boringcrypto      Compiles cmd/grafana-agent with GOEXPERIMENT=boringcrypto to $(AGENT_BORINGCRYPTO_BINARY)
+##   agent-flow     		 Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
+##   agent-service  		 Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
+##   agentctl       		 Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
+##   operator       		 Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
+##   crow           		 Compiles tools/crow to $(CROW_BINARY)
+##   smoke          		 Compiles tools/smoke to $(SMOKE_BINARY)
 ##
 ## Targets for building Docker images:
 ##
@@ -71,60 +72,62 @@
 ##
 ## Environment variables:
 ##
-##   USE_CONTAINER    Set to 1 to enable proxying commands to build container
-##   AGENT_IMAGE      Image name:tag built by `make agent-image`
-##   AGENTCTL_IMAGE   Image name:tag built by `make agentctl-image`
-##   OPERATOR_IMAGE   Image name:tag built by `make operator-image`
-##   CROW_IMAGE       Image name:tag built by `make crow-image`
-##   SMOKE_IMAGE      Image name:tag built by `make smoke-image`
-##   BUILD_IMAGE      Image name:tag used by USE_CONTAINER=1
-##   AGENT_BINARY     Output path of `make agent` (default build/grafana-agent)
-##   FLOW_BINARY      Output path of `make agent-flow` (default build/grafana-agent-flow)
-##   SERVICE_BINARY   Output path of `make agent-service` (default build/grafana-agent-service)
-##   AGENTCTL_BINARY  Output path of `make agentctl` (default build/grafana-agentctl)
-##   OPERATOR_BINARY  Output path of `make operator` (default build/grafana-agent-operator)
-##   CROW_BINARY      Output path of `make crow` (default build/grafana-agent-crow)
-##   SMOKE_BINARY     Output path of `make smoke` (default build/grafana-agent-smoke)
-##   GOOS             Override OS to build binaries for
-##   GOARCH           Override target architecture to build binaries for
-##   GOARM            Override ARM version (6 or 7) when GOARCH=arm
-##   CGO_ENABLED      Set to 0 to disable Cgo for binaries.
-##   RELEASE_BUILD    Set to 1 to build release binaries.
-##   VERSION          Version to inject into built binaries.
-##   GO_TAGS          Extra tags to use when building.
-##   DOCKER_PLATFORM  Overrides platform to build Docker images for (defaults to host platform).
-##   GOEXPERIMENT     Used to enable features, most likely boringcrypto via GOEXPERIMENT=boringcrypto.
+##   USE_CONTAINER    			Set to 1 to enable proxying commands to build container
+##   AGENT_IMAGE      			Image name:tag built by `make agent-image`
+##   AGENTCTL_IMAGE   			Image name:tag built by `make agentctl-image`
+##   OPERATOR_IMAGE   			Image name:tag built by `make operator-image`
+##   CROW_IMAGE       			Image name:tag built by `make crow-image`
+##   SMOKE_IMAGE      			Image name:tag built by `make smoke-image`
+##   BUILD_IMAGE      			Image name:tag used by USE_CONTAINER=1
+##   AGENT_BINARY     			Output path of `make agent` (default build/grafana-agent)
+##   AGENT_BORINGCRYPTO_BINARY  Output path of `make agent-boringcrypto` (default build/grafana-agent-boringcrypto)
+##   FLOW_BINARY      			Output path of `make agent-flow` (default build/grafana-agent-flow)
+##   SERVICE_BINARY   			Output path of `make agent-service` (default build/grafana-agent-service)
+##   AGENTCTL_BINARY  			Output path of `make agentctl` (default build/grafana-agentctl)
+##   OPERATOR_BINARY  			Output path of `make operator` (default build/grafana-agent-operator)
+##   CROW_BINARY      			Output path of `make crow` (default build/grafana-agent-crow)
+##   SMOKE_BINARY     			Output path of `make smoke` (default build/grafana-agent-smoke)
+##   GOOS             			Override OS to build binaries for
+##   GOARCH           			Override target architecture to build binaries for
+##   GOARM            			Override ARM version (6 or 7) when GOARCH=arm
+##   CGO_ENABLED      			Set to 0 to disable Cgo for binaries.
+##   RELEASE_BUILD    			Set to 1 to build release binaries.
+##   VERSION          			Version to inject into built binaries.
+##   GO_TAGS          			Extra tags to use when building.
+##   DOCKER_PLATFORM  			Overrides platform to build Docker images for (defaults to host platform).
+##   GOEXPERIMENT     			Used to enable features, most likely boringcrypto via GOEXPERIMENT=boringcrypto.
 
 include tools/make/*.mk
 
-AGENT_IMAGE              ?= grafana/agent:latest
-AGENT_BORINGCRYPTO_IMAGE ?= grafana/agent-boringcrypto:latest
-AGENTCTL_IMAGE           ?= grafana/agentctl:latest
-OPERATOR_IMAGE           ?= grafana/agent-operator:latest
-CROW_IMAGE               ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
-SMOKE_IMAGE              ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
-AGENT_BINARY             ?= build/grafana-agent
-FLOW_BINARY              ?= build/grafana-agent-flow
-SERVICE_BINARY           ?= build/grafana-agent-service
-AGENTCTL_BINARY          ?= build/grafana-agentctl
-OPERATOR_BINARY          ?= build/grafana-agent-operator
-CROW_BINARY              ?= build/agent-crow
-SMOKE_BINARY             ?= build/agent-smoke
-AGENTLINT_BINARY         ?= build/agentlint
-GOOS                     ?= $(shell go env GOOS)
-GOARCH                   ?= $(shell go env GOARCH)
-GOARM                    ?= $(shell go env GOARM)
-CGO_ENABLED              ?= 1
-RELEASE_BUILD            ?= 0
-GOEXPERIMENT             ?= $(shell go env GOEXPERIMENT)
+AGENT_IMAGE              				?= grafana/agent:latest
+AGENT_BORINGCRYPTO_IMAGE 				?= grafana/agent-boringcrypto:latest
+AGENTCTL_IMAGE         				    ?= grafana/agentctl:latest
+OPERATOR_IMAGE      				    ?= grafana/agent-operator:latest
+CROW_IMAGE        				        ?= us.gcr.io/kubernetes-dev/grafana/agent-crow:latest
+SMOKE_IMAGE      				        ?= us.gcr.io/kubernetes-dev/grafana/agent-smoke:latest
+AGENT_BINARY             				?= build/grafana-agent
+AGENT_BORINGCRYPTO_BINARY  		        ?= build/grafana-agent-boringcrypto
+FLOW_BINARY              				?= build/grafana-agent-flow
+SERVICE_BINARY           				?= build/grafana-agent-service
+AGENTCTL_BINARY          				?= build/grafana-agentctl
+OPERATOR_BINARY          				?= build/grafana-agent-operator
+CROW_BINARY              				?= build/agent-crow
+SMOKE_BINARY             				?= build/agent-smoke
+AGENTLINT_BINARY         				?= build/agentlint
+GOOS                     				?= $(shell go env GOOS)
+GOARCH                   				?= $(shell go env GOARCH)
+GOARM                    				?= $(shell go env GOARM)
+CGO_ENABLED              				?= 1
+RELEASE_BUILD            				?= 0
+GOEXPERIMENT             				?= $(shell go env GOEXPERIMENT)
 
 # List of all environment variables which will propagate to the build
 # container. USE_CONTAINER must _not_ be included to avoid infinite recursion.
 PROPAGATE_VARS := \
 	AGENT_IMAGE AGENTCTL_IMAGE OPERATOR_IMAGE CROW_IMAGE SMOKE_IMAGE \
 	BUILD_IMAGE GOOS GOARCH GOARM CGO_ENABLED RELEASE_BUILD \
-	AGENT_BINARY FLOW_BINARY AGENTCTL_BINARY OPERATOR_BINARY CROW_BINARY SMOKE_BINARY \
-	VERSION GO_TAGS GOEXPERIMENT
+	AGENT_BINARY AGENT_BORINGCRYPTO_BINARY FLOW_BINARY AGENTCTL_BINARY OPERATOR_BINARY \
+	CROW_BINARY SMOKE_BINARY VERSION GO_TAGS GOEXPERIMENT
 
 #
 # Constants for targets
@@ -179,8 +182,8 @@ test-packages:
 # Targets for building binaries
 #
 
-.PHONY: binaries agent agent-flow agentctl operator crow smoke
-binaries: agent agent-flow agentctl operator crow smoke
+.PHONY: binaries agent agent-boringcrypto agent-flow agentctl operator crow smoke
+binaries: agent agent-boringcrypto agent-flow agentctl operator crow smoke
 
 agent:
 ifeq ($(USE_CONTAINER),1)
@@ -188,6 +191,14 @@ ifeq ($(USE_CONTAINER),1)
 else
 	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BINARY) ./cmd/grafana-agent
 endif
+
+agent-boringcrypto:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	$(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BORINGCRYPTO_BINARY) ./cmd/grafana-agent
+endif
+
 
 agent-flow:
 ifeq ($(USE_CONTAINER),1)
