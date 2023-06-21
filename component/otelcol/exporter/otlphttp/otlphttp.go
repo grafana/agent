@@ -66,7 +66,7 @@ func (args Arguments) Convert() (otelconfig.Exporter, error) {
 		RetrySettings:      *args.Retry.Convert(),
 		TracesEndpoint:     args.TracesEndpoint,
 		MetricsEndpoint:    args.MetricsEndpoint,
-		LogsEndpoint:       args.MetricsEndpoint,
+		LogsEndpoint:       args.LogsEndpoint,
 	}, nil
 }
 
