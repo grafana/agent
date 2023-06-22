@@ -24,7 +24,7 @@ Main (unreleased)
   - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
-
+  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
 
 ### Enhancements
 

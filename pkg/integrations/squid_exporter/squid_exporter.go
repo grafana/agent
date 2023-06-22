@@ -15,19 +15,10 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
-// DefaultConfig is the default config for the squid integration
-var DefaultConfig = Config{
-	Address:  "localhost:3128",
-	Username: "",
-	Password: "",
-}
-
 var (
-	// default squid port
-	defaultPort = 3128
-
-	errNoAddress  = errors.New("no address was provided")
-	errNoHostname = errors.New("no hostname in provided address")
+	ErrNoAddress  = errors.New("no address was provided")
+	ErrNoHostname = errors.New("no hostname in provided address")
+	ErrNoPort     = errors.New("no port in provided address")
 )
 
 // Config is the configuration for the squid integration
@@ -41,7 +32,7 @@ type Config struct {
 
 func (c *Config) validate() error {
 	if c.Address == "" {
-		return errNoAddress
+		return ErrNoAddress
 	}
 
 	host, port, err := net.SplitHostPort(c.Address)
@@ -50,15 +41,12 @@ func (c *Config) validate() error {
 	}
 
 	if host == "" {
-		return errNoHostname
+		return ErrNoHostname
 	}
 	c.Host = host
 
-	// if user does not provide a port # for the address, the default
-	// squid port will be supplemented.
 	if port == "" {
-		c.Port = defaultPort
-		return nil
+		return ErrNoPort
 	}
 
 	if sp, err := strconv.Atoi(port); err != nil {
@@ -71,7 +59,7 @@ func (c *Config) validate() error {
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
+	*c = Config{}
 
 	type plain Config
 	return unmarshal((*plain)(c))
