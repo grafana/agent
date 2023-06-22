@@ -12,6 +12,8 @@ The function expects 2 strings. First string is the json string to lookup values
 
 `json_path` always return a list of values. If the jsonpath expression does not match any values, an empty list is returned.
 
+A common use case of `json_path` is to decode and filter the output of a [`local.file`][] or [`remote.http`][] component to a River value.
+
 > Remember to escape double quotes when passing JSON string literals to `json_path`.
 >
 > For example, the JSON value `{"key": "value"}` is properly represented by the
@@ -34,3 +36,6 @@ The function expects 2 strings. First string is the json string to lookup values
 value
 
 ```
+
+[`local.file`]: {{< relref "../components/local.file.md" >}}
+[`remote.http`]: {{< relref "../components/remote.http.md" >}}
