@@ -1,5 +1,6 @@
 ---
-title: Install
+title: Install Grafana Agent Flow
+menuTitle: Install
 weight: 50
 aliases:
  - /docs/sources/flow/install/
@@ -7,6 +8,10 @@ aliases:
 
 # Install Grafana Agent Flow
 
-Distributions of Grafana Agent Flow are available for:
+You can install Grafana Agent Flow on Kubernetes, Docker, Linux, Windows, or macOS.
+
+{{% admonition type="note" %}}
+Installation of Grafana on other operating systems is possible, but is not recommended or supported.
+{{% /admonition %}}
 
 {{< section >}}

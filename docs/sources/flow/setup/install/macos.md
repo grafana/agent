@@ -1,5 +1,7 @@
 ---
-title: macOS
+description: Learn how to install Grafana Agent Flow on macOS
+title: Install Grafana Agent Flow on macOS
+menuTitle: macOS
 weight: 500
 aliases:
  - /docs/sources/flow/install/macos/

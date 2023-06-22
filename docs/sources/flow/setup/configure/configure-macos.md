@@ -1,5 +1,7 @@
 ---
-title: Configure on macOS
+description: Learn how to configure Grafana Agent Flow on macOS
+title: Configure Grafana Agent Flow on macOS
+menuTitle: macOS
 weight: 300
 ---
 
@@ -35,7 +37,7 @@ steps:
 
    This will open the Grafana Agent Flow Homebrew Formula in an editor.
 
-2. Modify the `service` section as desired to change things such as:
+1. Modify the `service` section as desired to change things such as:
 
    * The configuration file used by Grafana Agent Flow.
    * Flags passed to the Grafana Agent Flow binary.
@@ -43,14 +45,14 @@ steps:
 
    When done, save the resulting formula file.
 
-3. Reinstall the Grafana Agent Flow Formula by running the following command in
+1. Reinstall the Grafana Agent Flow Formula by running the following command in
    a terminal:
 
    ```shell
    brew reinstall grafana-agent-flow
    ```
 
-4. Restart the Grafana Agent Flow service by running the command in a terminal:
+1. Restart the Grafana Agent Flow service by running the command in a terminal:
 
    ```shell
    brew services restart grafana-agent-flow
@@ -64,7 +66,7 @@ the [UI for debugging][UI].
 
 To expose the UI to other machines, complete the following steps:
 
-1. Follow [Configuring the Grafana Agent Flow service](#configuring-the-grafana-agent-flow-service)
+1. Follow [Configure the Grafana Agent Flow service](#configure-the-grafana-agent-flow-service)
    to edit command line flags passed to Grafana Agent Flow, including the
    following customizations:
 

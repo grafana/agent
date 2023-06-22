@@ -1,5 +1,7 @@
 ---
-title: Docker
+description: Learn how to install GRafana Agent Flow on Docker
+title: Install Grafana Agent Flow on Docker
+menuTitle: Docker
 weight: 200
 aliases:
  - /docs/sources/flow/install/docker/

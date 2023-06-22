@@ -1,5 +1,7 @@
 ---
-title: Configure on Windows
+description: Learn how to configure Grafana Agent Flow on Windows
+title: Configure Grafana Agent Flow on Windows
+menuTitle: Windows
 weight: 400
 ---
 
@@ -12,10 +14,12 @@ steps:
    Flow\config.river`.
 1. Restart the Grafana Agent Flow service:
    1. Open the Windows Services manager (`services.msc`):
+
       1. Right click on the Start Menu icon.
       1. Click on **Run**.
       1. In the resulting dialog box, type `services.msc`.
       1. Click **OK**.
+
    1. Right click on the service called "Grafana Agent Flow".
    1. In the resulting dialog menu, click on All Tasks > Restart.
 
@@ -32,6 +36,7 @@ To change the set of command-line arguments passed to the Grafana Agent Flow
 binary, perform the following steps:
 
 1. Open the Registry Editor:
+
    1. Right click on the Start Menu icon.
    1. Click on **Run**.
    1. In the resulting dialog box, type `regedit`.
@@ -44,10 +49,12 @@ binary, perform the following steps:
    Grafana Agent Flow binary.
 1. Restart the Grafana Agent Flow service:
    1. Open the Windows Services manager (`services.msc`):
+
       1. Right click on the Start Menu icon.
       1. Click on **Run**.
       1. In the resulting dialog box, type `services.msc`.
       1. Click **OK**.
+
    1. Right click on the service called "Grafana Agent Flow".
    1. In the resulting dialog menu, click on All Tasks > Restart.
 

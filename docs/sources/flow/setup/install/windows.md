@@ -1,5 +1,7 @@
 ---
-title: Windows
+description: Learn how to install Grafana Agent Flow on Windows
+title: Install Grafana Agent Flow on Windows
+menuTitle: Windows
 weight: 400
 aliases:
  - /docs/sources/flow/install/windows/
@@ -7,7 +9,7 @@ aliases:
 
 # Install Grafana Agent Flow on Windows
 
-You can install Grafana Agent Flow on Microsoft Windows.
+You can install Grafana Agent Flow on Windows.
 
 ## Graphical install
 

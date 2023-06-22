@@ -1,5 +1,7 @@
 ---
-title: Configure
+description: Configure Grafana Agent Flow after it is installed
+title: Configure Grafana Agent Flow
+menuTitle: Configure
 weight: 150
 ---
 

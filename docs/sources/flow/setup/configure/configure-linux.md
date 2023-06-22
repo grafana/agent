@@ -1,5 +1,7 @@
 ---
-title: Configure on Linux
+description: Learn how to configure Grafana Agent Flow on Linux
+title: Configure Grafana Agent Flow on Linux
+menuTitle: Linux
 weight: 200
 ---
 
@@ -8,8 +10,7 @@ weight: 200
 To configure Grafana Agent Flow on Linux, perform the following steps:
 
 1. Edit the default configuration file at `/etc/grafana-agent-flow.river`.
-
-2. Run the following command in a terminal to reload the configuration file:
+1. Run the following command in a terminal to reload the configuration file:
 
    ```shell
    sudo systemctl reload grafana-agent-flow
@@ -22,10 +23,9 @@ To change the configuration file used by the service, perform the following step
    * Debian or Ubuntu: edit `/etc/default/grafana-agent-flow`
    * RHEL/Fedora or SUSE/openSUSE: edit `/etc/sysconfig/grafana-agent-flow`
 
-2. Change the contents of the `CONFIG_FILE` environment variable to point to
+1. Change the contents of the `CONFIG_FILE` environment variable to point to
    the new configuration file to use.
-
-3. Restart the Grafana Agent Flow service:
+1. Restart the Grafana Agent Flow service:
 
    ```shell
    sudo systemctl restart grafana-agent-flow
@@ -46,10 +46,9 @@ the following steps:
    * Debian-based systems: edit `/etc/default/grafana-agent-flow`
    * RedHat or SUSE-based systems: edit `/etc/sysconfig/grafana-agent-flow`
 
-2. Change the contents of the `CUSTOM_ARGS` environment variable to specify
+1. Change the contents of the `CUSTOM_ARGS` environment variable to specify
    command-line flags to pass.
-
-3. Restart the Grafana Agent Flow service:
+1. Restart the Grafana Agent Flow service:
 
    ```shell
    sudo systemctl restart grafana-agent-flow
@@ -68,7 +67,7 @@ the [UI for debugging][UI].
 
 To expose the UI to other machines, complete the following steps:
 
-1. Follow [Passing additional command-line flags](#passing-additional-command-line-flags)
+1. Follow [Pass additional command-line flags](#pass-additional-command-line-flags)
    to edit command line flags passed to Grafana Agent Flow, including the
    following customizations:
 

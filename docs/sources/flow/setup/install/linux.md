@@ -1,11 +1,13 @@
 ---
-title: Linux
+description: Learn how to install Grafana Agent Flow on Linux
+title: Install Grafana Agent Flow on Linux
+menuTitle: Linux
 weight: 300
 aliases:
  - /docs/sources/flow/install/linux/
 ---
 
-# Install Grafana Agent Flow on Linux systems
+# Install Grafana Agent Flow on Linux
 
 You can install Grafana Agent Flow as a systemd service on Linux.
 
