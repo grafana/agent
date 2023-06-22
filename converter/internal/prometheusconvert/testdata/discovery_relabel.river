@@ -27,8 +27,15 @@ discovery.relabel "prometheus1" {
 	}
 
 	rule {
-		source_labels = ["__address__"]
-		regex         = "^(?:(\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}):\\\\d+)$"
+		source_labels = ["__address2__"]
+		regex         = "^(?:\")$"
+		target_label  = "instance"
+		replacement   = "${1}"
+	}
+
+	rule {
+		source_labels = ["__address3__"]
+		regex         = "^(?:\")$"
 		target_label  = "instance"
 		replacement   = "${1}"
 	}
