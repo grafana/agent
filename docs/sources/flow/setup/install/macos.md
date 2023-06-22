@@ -1,6 +1,8 @@
 ---
 title: macOS
 weight: 500
+aliases:
+ - /docs/sources/flow/install/macos/
 ---
 
 # Install Grafana Agent Flow on macOS
@@ -27,7 +29,7 @@ To install Grafana Agent Flow on macOS, run the following commands in a terminal
    brew tap grafana/grafana
    ```
 
-2. Install Grafana Agent Flow:
+1. Install Grafana Agent Flow:
 
    ```shell
    brew install grafana-agent-flow
@@ -37,5 +39,5 @@ To install Grafana Agent Flow on macOS, run the following commands in a terminal
 To install Grafana Agent Flow on macOS, run the following command in a terminal window:
 
 ```shell
-   brew uninstall grafana-agent-flow
-   ```
+brew uninstall grafana-agent-flow
+```

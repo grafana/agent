@@ -1,6 +1,8 @@
 ---
 title: Windows
 weight: 400
+aliases:
+ - /docs/sources/flow/install/windows/
 ---
 
 # Install Grafana Agent Flow on Windows
@@ -34,3 +36,5 @@ You can install Grafana Agent Flow on Microsoft Windows.
    `C:\Users\Alexis\Downloads\grafana-agent-flow-installer.exe`.
 
 [latest]: https://github.com/grafana/agent/releases/latest
+
+## Uninstall

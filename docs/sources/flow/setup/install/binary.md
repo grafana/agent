@@ -1,6 +1,8 @@
 ---
 title: Other systems
 weight: 600
+aliases:
+ - /docs/sources/flow/install/binary/
 ---
 
 # Run Grafana Agent Flow on other systems

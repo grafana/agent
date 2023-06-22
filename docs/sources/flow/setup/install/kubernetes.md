@@ -1,6 +1,8 @@
 ---
 title: Kubernetes
 weight: 100
+aliases:
+ - /docs/sources/flow/install/kubernetes/
 ---
 
 ## Install Grafana Agent Flow on Kubernetes
