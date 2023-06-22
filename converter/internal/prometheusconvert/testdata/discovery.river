@@ -1,36 +1,3 @@
-prometheus.remote_write "default" {
-	endpoint {
-		name = "remote1"
-		url  = "http://remote-write-url1"
-
-		queue_config {
-			capacity             = 2500
-			max_shards           = 200
-			max_samples_per_send = 500
-		}
-
-		metadata_config {
-			max_samples_per_send = 500
-		}
-	}
-}
-
-prometheus.relabel "prometheus1" {
-	forward_to = [prometheus.remote_write.default.receiver]
-
-	rule {
-		source_labels = ["__metric_address1__"]
-		regex         = "^(?:(.*))$"
-		target_label  = "__metric_param_target1"
-	}
-
-	rule {
-		source_labels = ["__metric_address2__"]
-		regex         = "^(?:(.*))$"
-		target_label  = "__metric_param_target2"
-	}
-}
-
 discovery.azure "prometheus1" {
 	subscription_id = "subscription1"
 
@@ -75,4 +42,37 @@ prometheus.scrape "prometheus1" {
 	targets    = discovery.relabel.prometheus1.targets
 	forward_to = [prometheus.relabel.prometheus1.receiver]
 	job_name   = "prometheus1"
+}
+
+prometheus.relabel "prometheus1" {
+	forward_to = [prometheus.remote_write.default.receiver]
+
+	rule {
+		source_labels = ["__metric_address1__"]
+		regex         = "^(?:(.*))$"
+		target_label  = "__metric_param_target1"
+	}
+
+	rule {
+		source_labels = ["__metric_address2__"]
+		regex         = "^(?:(.*))$"
+		target_label  = "__metric_param_target2"
+	}
+}
+
+prometheus.remote_write "default" {
+	endpoint {
+		name = "remote1"
+		url  = "http://remote-write-url1"
+
+		queue_config {
+			capacity             = 2500
+			max_shards           = 200
+			max_samples_per_send = 500
+		}
+
+		metadata_config {
+			max_samples_per_send = 500
+		}
+	}
 }

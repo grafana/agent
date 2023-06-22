@@ -3,6 +3,7 @@ package prometheusconvert
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/discovery"
@@ -79,6 +80,8 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics
 		appendPrometheusScrape(f, scrapeConfig, scrapeForwardTo, scrapeTargets)
 	}
 
+	f.Body().StableSortNodes(getPromBlockHook(f))
+
 	return diags
 }
 
@@ -131,4 +134,46 @@ func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig prom_
 	}
 
 	return targets, diags
+}
+
+// getPromBlockHook returns a hook for sorting blocks
+// into a reasonable order for prometheus config.
+//
+// Order of blocks:
+// 1. Discovery component(s)
+// 2. Discovery relabel component(s) (if any)
+// 3. Prometheus scrape component(s)
+// 4. Prometheus relabel component(s) (if any)
+// 5. Prometheus remote_write
+func getPromBlockHook(f *builder.File) func(i, j int) bool {
+	return func(i, j int) bool {
+		iSortValue := blockToSortValue(f.Body().Nodes()[i])
+		jSortValue := blockToSortValue(f.Body().Nodes()[j])
+		return iSortValue < jSortValue
+	}
+}
+
+func blockToSortValue(block any) int {
+	switch block := block.(type) {
+	case *builder.Block:
+		if reflect.DeepEqual(block.Name, []string{"discovery", "relabel"}) {
+			return 1
+		}
+
+		if reflect.DeepEqual(block.Name, []string{"prometheus", "scrape"}) {
+			return 2
+		}
+
+		if reflect.DeepEqual(block.Name, []string{"prometheus", "relabel"}) {
+			return 3
+		}
+
+		if reflect.DeepEqual(block.Name, []string{"prometheus", "remote_write"}) {
+			return 4
+		}
+
+		return 0
+	}
+
+	return -1
 }

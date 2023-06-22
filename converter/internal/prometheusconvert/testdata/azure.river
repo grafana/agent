@@ -1,3 +1,38 @@
+discovery.azure "prometheus1" {
+	subscription_id = "subscription"
+
+	managed_identity {
+		client_id = "client"
+	}
+	follow_redirects = true
+	enable_http2     = true
+}
+
+discovery.azure "prometheus2" {
+	subscription_id = "subscription"
+
+	managed_identity {
+		client_id = "client"
+	}
+	proxy_url    = "proxy"
+	enable_http2 = true
+}
+
+prometheus.scrape "prometheus1" {
+	targets = concat(discovery.azure.prometheus1.targets,
+		[{
+			__address__ = "localhost:9090",
+		}])
+	forward_to = [prometheus.remote_write.default.receiver]
+	job_name   = "prometheus1"
+}
+
+prometheus.scrape "prometheus2" {
+	targets    = discovery.azure.prometheus2.targets
+	forward_to = [prometheus.remote_write.default.receiver]
+	job_name   = "prometheus2"
+}
+
 prometheus.remote_write "default" {
 	endpoint {
 		name = "remote1"
@@ -13,39 +48,4 @@ prometheus.remote_write "default" {
 			max_samples_per_send = 500
 		}
 	}
-}
-
-discovery.azure "prometheus1" {
-	subscription_id = "subscription"
-
-	managed_identity {
-		client_id = "client"
-	}
-	follow_redirects = true
-	enable_http2     = true
-}
-
-prometheus.scrape "prometheus1" {
-	targets = concat(discovery.azure.prometheus1.targets,
-		[{
-			__address__ = "localhost:9090",
-		}])
-	forward_to = [prometheus.remote_write.default.receiver]
-	job_name   = "prometheus1"
-}
-
-discovery.azure "prometheus2" {
-	subscription_id = "subscription"
-
-	managed_identity {
-		client_id = "client"
-	}
-	proxy_url    = "proxy"
-	enable_http2 = true
-}
-
-prometheus.scrape "prometheus2" {
-	targets    = discovery.azure.prometheus2.targets
-	forward_to = [prometheus.remote_write.default.receiver]
-	job_name   = "prometheus2"
 }
