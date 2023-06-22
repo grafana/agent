@@ -207,6 +207,17 @@ func getExportsType(reg component.Registration) reflect.Type {
 	return nil
 }
 
+// Registration returns the original registration of the component.
+func (cn *ComponentNode) Registration() component.Registration { return cn.reg }
+
+// Component returns the instance of the managed component. Component may be
+// nil if the ComponentNode has not been successfully evaluated yet.
+func (cn *ComponentNode) Component() component.Component {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.managed
+}
+
 // ID returns the component ID of the managed component from its River block.
 func (cn *ComponentNode) ID() ComponentID { return cn.id }
 

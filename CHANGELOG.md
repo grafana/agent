@@ -13,17 +13,36 @@ Main (unreleased)
 ### Features
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
- - Support `stage.geoip` in `loki.process`. (@akselleirv)
+
+- Support `stage.geoip` in `loki.process`. (@akselleirv)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
+
+
+- New Grafana Agent Flow components:
+
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
+  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
+    components and modifies attributes of a span, log, or metric. (@ptodev)
+  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
 
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
 
-- Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
-
 - Tanka config: retain cAdvisor metrics for system processes (Kubelet, Containerd, etc.) (@bboreham)
+
+- Update cAdvisor dependency to v0.47.0. (@jcreixell)
+
+- Upgrade and improve Cloudwatch exporter integration (@thepalbi)
+
+- Update `node_exporter` dependency to v1.6.0. (@spartan0x117)
+
+- Enable `prometheus.relabel` to work with Prometheus' Native Histograms. (@tpaschalis)
+
+- Update `dnsmasq_exporter` to last version. (@marctc)
+
+- Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
 
 ### Bugfixes
 
@@ -33,6 +52,28 @@ Main (unreleased)
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
 - Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
+- 
+- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
+
+- Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
+
+v0.34.2 (2023-06-20)
+--------------------
+
+### Enhancements
+
+- Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
+- Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
+
+### Bugfixes
+
+- Fix a bug where `prometheus.relabel` would not correctly relabel when there is a cache miss. (@thampiotr)
+- Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
+- Fixes several issues with statsd exporter. (@jcreixell, @marctc)
+
+### Other changes
+
+- Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
 
 v0.34.1 (2023-06-12)
 --------------------

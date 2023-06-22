@@ -154,12 +154,12 @@ func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) 
 	}
 	for _, ns := range c.args.Namespaces {
 		opts := cache.Options{
-			Scheme:    scheme,
-			Namespace: ns,
+			Scheme:     scheme,
+			Namespaces: []string{ns},
 		}
 
 		if ls != labels.Nothing() {
-			opts.DefaultSelector.Label = ls
+			opts.DefaultLabelSelector = ls
 		}
 		cache, err := cache.New(restConfig, opts)
 		if err != nil {

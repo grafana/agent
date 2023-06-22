@@ -3,3 +3,7 @@ controller:
   type: statefulset
   autoscaling:
     enabled: true
+agent:
+  resources:
+    requests:
+      memory: 100Mi

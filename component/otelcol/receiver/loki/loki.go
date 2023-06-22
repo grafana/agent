@@ -25,7 +25,7 @@ func init() {
 		Exports: Exports{},
 
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
-			return NewComponent(o, a.(Arguments))
+			return New(o, a.(Arguments))
 		},
 	})
 }
@@ -56,8 +56,8 @@ type Component struct {
 
 var _ component.Component = (*Component)(nil)
 
-// NewComponent creates a new otelcol.receiver.loki component.
-func NewComponent(o component.Options, c Arguments) (*Component, error) {
+// New creates a new otelcol.receiver.loki component.
+func New(o component.Options, c Arguments) (*Component, error) {
 	// TODO(@tpaschalis) Create a metrics struct to count
 	// total/successful/errored log entries?
 	res := &Component{

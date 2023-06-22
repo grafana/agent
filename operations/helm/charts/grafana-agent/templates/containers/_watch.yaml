@@ -1,7 +1,7 @@
 {{- define "grafana-agent.watch-container" -}}
 {{- if .Values.configReloader.enabled -}}
 - name: config-reloader
-  image: {{ .Values.configReloader.image.repository }}:{{ .Values.configReloader.image.tag }}
+  image: {{ .Values.global.image.registry | default .Values.configReloader.image.registry }}/{{ .Values.configReloader.image.repository }}:{{ .Values.configReloader.image.tag }}
   {{- if .Values.configReloader.customArgs }}
   args:
     {{- toYaml .Values.configReloader.customArgs | nindent 4 }}
@@ -13,5 +13,9 @@
   volumeMounts:
     - name: config
       mountPath: /etc/agent
+  {{- with .Values.configReloader.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- end }}
 {{- end -}}

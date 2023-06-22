@@ -3,11 +3,7 @@
 // This product includes software developed at Datadog (https://www.datadoghq.com/).
 // Copyright 2022 Datadog, Inc.
 
-// Reading the fuzz corpus from testdata/ during CI fails on Windows runners
-// using Go 1.18, due to carriage return/line feed issues. This is fixed in Go
-// 1.19 (see https://go.dev/cl/402074), but we can just skip these tests on Go
-// 1.18 + Windows.
-//go:build go1.19 || (!windows && go1.18)
+//go:build !windows
 
 package fastdelta_test
 

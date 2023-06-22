@@ -51,7 +51,7 @@ type Component struct {
 	server    *fnet.TargetServer
 }
 
-func New(opts component.Options, args Arguments) (component.Component, error) {
+func New(opts component.Options, args Arguments) (*Component, error) {
 	fanout := agentprom.NewFanout(args.ForwardTo, opts.ID, opts.Registerer)
 
 	uncheckedCollector := util.NewUncheckedCollector(nil)

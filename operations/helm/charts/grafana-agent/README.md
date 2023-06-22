@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.15.0](https://img.shields.io/badge/Version-0.15.0-informational?style=flat-square) ![AppVersion: v0.34.0](https://img.shields.io/badge/AppVersion-v0.34.0-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.16.0](https://img.shields.io/badge/Version-0.16.0-informational?style=flat-square) ![AppVersion: v0.34.2](https://img.shields.io/badge/AppVersion-v0.34.2-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -61,8 +61,10 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.storagePath | string | `"/tmp/agent"` | Path to where Grafana Agent stores data (for example, the Write-Ahead Log). By default, data is lost between reboots. |
 | configReloader.customArgs | list | `[]` | Override the args passed to the container. |
 | configReloader.enabled | bool | `true` | Enables automatically reloading when the agent config changes. |
+| configReloader.image.registry | string | `"docker.io"` | Config reloader image registry (defaults to docker.io) |
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
 | configReloader.image.tag | string | `"v0.8.0"` | Tag of image to use for config reloading. |
+| configReloader.resources | object | `{"requests":{"cpu":"1m","memory":"5Mi"}}` | Resource requests and limits to apply to the config reloader container. |
 | controller.affinity | object | `{}` | Affinity configuration for pods. |
 | controller.autoscaling.enabled | bool | `false` | Creates a HorizontalPodAutoscaler for controller type deployment. |
 | controller.autoscaling.maxReplicas | int | `5` | The upper limit for the number of replicas to which the autoscaler can scale up. |
@@ -82,8 +84,11 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.volumeClaimTemplates | list | `[]` | volumeClaimTemplates to add when controller.type is 'statefulset'. |
 | controller.volumes.extra | list | `[]` | Extra volumes to add to the Grafana Agent pod. |
 | fullnameOverride | string | `nil` | Overrides the chart's computed fullname. Used to change the full prefix of resource names. |
+| global.image.pullSecrets | list | `[]` | Optional set of global image pull secrets. |
+| global.image.registry | string | `""` | Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...) |
 | image.pullPolicy | string | `"IfNotPresent"` | Grafana Agent image pull policy. |
 | image.pullSecrets | list | `[]` | Optional set of image pull secrets. |
+| image.registry | string | `"docker.io"` | Grafana Agent image registry (defaults to docker.io) |
 | image.repository | string | `"grafana/agent"` | Grafana Agent image repository. |
 | image.tag | string | `nil` | Grafana Agent image tag. When empty, the Chart's appVersion is used. |
 | ingress.annotations | object | `{}` |  |
@@ -185,6 +190,11 @@ leak up to `maxReplicas` PVCs when the HPA is scaling down. If you're on
 Kubernetes version `>=1.23-0` and your cluster has the
 `StatefulSetAutoDeletePVC` feature gate enabled, you can set
 `enableStatefulSetAutoDeletePVC` to true to automatically delete stale PVCs.
+
+Using `controller.autoscaling` requires the target metric (cpu/memory) to have
+its resource requests set up for both the agent and config-reloader containers
+so that the HPA can use them to calculate the replica count from the actual
+resource utilization.
 
 ## Collecting logs from other containers
 
