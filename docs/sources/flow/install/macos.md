@@ -5,7 +5,11 @@ weight: 500
 
 # Install Grafana Agent Flow on macOS
 
-Grafana Agent Flow can be installed with Homebrew on Intel and Apple Silicon macOS machines.
+You can install Grafana Agent Flow with Homebrew on macOS.
+
+{{% admonition type="note" %}}
+The default prefix for Homebrew on Intel is /usr/local. The default prefix for Homebrew on Apple Silicon is /opt/Homebrew. You can verify the default prefix for Homebrew on your computer by opening a terminal and typing brew --prefix.
+{{% /admonition %}}
 
 ## Before you begin
 
@@ -27,4 +31,11 @@ To install Grafana Agent Flow on macOS, run the following commands in a terminal
 
    ```shell
    brew install grafana-agent-flow
+   ```
+## Uninstall
+
+To install Grafana Agent Flow on macOS, run the following command in a terminal window:
+
+```shell
+   brew uninstall grafana-agent-flow
    ```
