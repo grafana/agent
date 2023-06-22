@@ -10,10 +10,10 @@ import (
 	promgce "github.com/prometheus/prometheus/discovery/gce"
 )
 
-func appendDiscoveryGCE(f *builder.File, jobName string, sdConfig *promgce.SDConfig) discovery.Exports {
+func appendDiscoveryGCE(f *builder.File, label string, sdConfig *promgce.SDConfig) discovery.Exports {
 	discoveryGCEArgs := toDiscoveryGCE(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "gce"}, jobName, discoveryGCEArgs)
-	return newDiscoverExports("discovery.gce." + jobName + ".targets")
+	common.AppendBlockWithOverride(f, []string{"discovery", "gce"}, label, discoveryGCEArgs)
+	return newDiscoverExports("discovery.gce." + label + ".targets")
 }
 
 func toDiscoveryGCE(sdConfig *promgce.SDConfig) *gce.Arguments {

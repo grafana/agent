@@ -14,10 +14,10 @@ import (
 	promazure "github.com/prometheus/prometheus/discovery/azure"
 )
 
-func appendDiscoveryAzure(f *builder.File, jobName string, sdConfig *promazure.SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryAzure(f *builder.File, label string, sdConfig *promazure.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryAzureArgs, diags := toDiscoveryAzure(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "azure"}, jobName, discoveryAzureArgs)
-	return newDiscoverExports("discovery.azure." + jobName + ".targets"), diags
+	common.AppendBlockWithOverride(f, []string{"discovery", "azure"}, label, discoveryAzureArgs)
+	return newDiscoverExports("discovery.azure." + label + ".targets"), diags
 }
 
 func toDiscoveryAzure(sdConfig *promazure.SDConfig) (*azure.Arguments, diag.Diagnostics) {

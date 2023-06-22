@@ -15,10 +15,10 @@ import (
 	promdigitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 )
 
-func appendDiscoveryDigitalOcean(f *builder.File, jobName string, sdConfig *promdigitalocean.SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryDigitalOcean(f *builder.File, label string, sdConfig *promdigitalocean.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryDigitalOceanArgs, diags := toDiscoveryDigitalOcean(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "digitalocean"}, jobName, discoveryDigitalOceanArgs)
-	return newDiscoverExports("discovery.digitalocean." + jobName + ".targets"), diags
+	common.AppendBlockWithOverride(f, []string{"discovery", "digitalocean"}, label, discoveryDigitalOceanArgs)
+	return newDiscoverExports("discovery.digitalocean." + label + ".targets"), diags
 }
 
 func toDiscoveryDigitalOcean(sdConfig *promdigitalocean.SDConfig) (*digitalocean.Arguments, diag.Diagnostics) {

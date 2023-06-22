@@ -40,6 +40,8 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 	}
 }
 
+// GetUniqueLabel appends a counter to the input label if it is not the first.
+// The input label is 1-indexed.
 func GetUniqueLabel(label string, currentCount int) string {
 	if currentCount == 1 {
 		return label

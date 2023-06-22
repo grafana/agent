@@ -14,10 +14,10 @@ import (
 	promaws "github.com/prometheus/prometheus/discovery/aws"
 )
 
-func appendDiscoveryEC2(f *builder.File, jobName string, sdConfig *promaws.EC2SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryEC2(f *builder.File, label string, sdConfig *promaws.EC2SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryec2Args, diags := toDiscoveryEC2(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "ec2"}, jobName, discoveryec2Args)
-	return newDiscoverExports("discovery.ec2." + jobName + ".targets"), diags
+	common.AppendBlockWithOverride(f, []string{"discovery", "ec2"}, label, discoveryec2Args)
+	return newDiscoverExports("discovery.ec2." + label + ".targets"), diags
 }
 
 func toDiscoveryEC2(sdConfig *promaws.EC2SDConfig) (*aws.EC2Arguments, diag.Diagnostics) {

@@ -14,10 +14,10 @@ import (
 	promaws "github.com/prometheus/prometheus/discovery/aws"
 )
 
-func appendDiscoveryLightsail(f *builder.File, jobName string, sdConfig *promaws.LightsailSDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryLightsail(f *builder.File, label string, sdConfig *promaws.LightsailSDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoverylightsailArgs, diags := toDiscoveryLightsail(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "lightsail"}, jobName, discoverylightsailArgs)
-	return newDiscoverExports("discovery.lightsail." + jobName + ".targets"), diags
+	common.AppendBlockWithOverride(f, []string{"discovery", "lightsail"}, label, discoverylightsailArgs)
+	return newDiscoverExports("discovery.lightsail." + label + ".targets"), diags
 }
 
 func toDiscoveryLightsail(sdConfig *promaws.LightsailSDConfig) (*aws.LightsailArguments, diag.Diagnostics) {

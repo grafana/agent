@@ -10,10 +10,10 @@ import (
 	promdns "github.com/prometheus/prometheus/discovery/dns"
 )
 
-func appendDiscoveryDns(f *builder.File, jobName string, sdConfig *promdns.SDConfig) discovery.Exports {
+func appendDiscoveryDns(f *builder.File, label string, sdConfig *promdns.SDConfig) discovery.Exports {
 	discoveryDnsArgs := toDiscoveryDns(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "dns"}, jobName, discoveryDnsArgs)
-	return newDiscoverExports("discovery.dns." + jobName + ".targets")
+	common.AppendBlockWithOverride(f, []string{"discovery", "dns"}, label, discoveryDnsArgs)
+	return newDiscoverExports("discovery.dns." + label + ".targets")
 }
 
 func toDiscoveryDns(sdConfig *promdns.SDConfig) *dns.Arguments {

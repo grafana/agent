@@ -10,10 +10,10 @@ import (
 	promkubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 )
 
-func appendDiscoveryKubernetes(f *builder.File, jobName string, sdConfig *promkubernetes.SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryKubernetes(f *builder.File, label string, sdConfig *promkubernetes.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryKubernetesArgs, diags := toDiscoveryKubernetes(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "kubernetes"}, jobName, discoveryKubernetesArgs)
-	return newDiscoverExports("discovery.kubernetes." + jobName + ".targets"), diags
+	common.AppendBlockWithOverride(f, []string{"discovery", "kubernetes"}, label, discoveryKubernetesArgs)
+	return newDiscoverExports("discovery.kubernetes." + label + ".targets"), diags
 }
 
 func toDiscoveryKubernetes(sdConfig *promkubernetes.SDConfig) (*kubernetes.Arguments, diag.Diagnostics) {

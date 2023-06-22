@@ -11,10 +11,10 @@ import (
 	promdocker "github.com/prometheus/prometheus/discovery/moby"
 )
 
-func appendDiscoveryDocker(f *builder.File, jobName string, sdConfig *promdocker.DockerSDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryDocker(f *builder.File, label string, sdConfig *promdocker.DockerSDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryDockerArgs, diags := toDiscoveryDocker(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "docker"}, jobName, discoveryDockerArgs)
-	return newDiscoverExports("discovery.docker." + jobName + ".targets"), diags
+	common.AppendBlockWithOverride(f, []string{"discovery", "docker"}, label, discoveryDockerArgs)
+	return newDiscoverExports("discovery.docker." + label + ".targets"), diags
 }
 
 func toDiscoveryDocker(sdConfig *promdocker.DockerSDConfig) (*docker.Arguments, diag.Diagnostics) {
