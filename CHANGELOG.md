@@ -24,7 +24,7 @@ Main (unreleased)
   - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
-
+  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
 
 ### Enhancements
 
@@ -42,6 +42,8 @@ Main (unreleased)
 
 - Update `dnsmasq_exporter` to last version. (@marctc)
 
+- Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
@@ -49,6 +51,8 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
+- 
 - Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 
 - Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
