@@ -67,7 +67,7 @@ prometheus.remote_write "default" {
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
-[Install]: {{< relref "./install/" >}}
+[Install]: {{< relref "./setup/install/" >}}
 [Concepts]: {{< relref "./concepts/" >}}
 [Getting started]: {{< relref "./getting-started/" >}}
 [Tutorials]: {{< relref "./tutorials/ ">}}
