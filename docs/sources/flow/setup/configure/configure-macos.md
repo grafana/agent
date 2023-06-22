@@ -75,4 +75,4 @@ To expose the UI to other machines, complete the following steps:
 
        To listen on all interfaces, replace `127.0.0.1` with `0.0.0.0`.
 
-[UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+[UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
