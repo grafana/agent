@@ -42,6 +42,8 @@ Main (unreleased)
 
 - Update `dnsmasq_exporter` to last version. (@marctc)
 
+- Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
