@@ -42,7 +42,7 @@ Main (unreleased)
 
 - Update `dnsmasq_exporter` to last version. (@marctc)
 
-- Add deployment spec options for describe Prometheus Config Reloader image. (@alekseybb197)
+- Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
 
 ### Bugfixes
 
