@@ -77,8 +77,8 @@ arguments | [arguments][] | Arguments to pass to the module. | no
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`username`  | `string` | SSH username. | | no
-`key`       | `string` | SSH private key | | no
+`username`  | `string` | SSH username. | | yes
+`key`       | `secret` | SSH private key | | no
 `key_file`  | `string` | SSH private key path. | | no
 `passphrase` | `secret` | Passphrase for SSH key if needed. | | no
 
