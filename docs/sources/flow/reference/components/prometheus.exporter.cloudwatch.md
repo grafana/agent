@@ -148,9 +148,9 @@ The `static` and `discovery` blocks are marked as not required, but you must con
 
 ## discovery block
 
-The `discovery` block configures the allows the component to scrape CloudWatch metrics just with the AWS service, and a list of metrics under that service/namespace.
+The `discovery` block allows the component to scrape CloudWatch metrics with only the AWS service and a list of metrics under that service/namespace.
 The agent will find AWS resources in the specified service for which to scrape these metrics, label them appropriately, and
-export them to Prometheus. For example, if we wanted to scrape CPU utilization and network traffic metrics, from all AWS
+export them to Prometheus. For example, if we wanted to scrape CPU utilization and network traffic metrics from all AWS
 EC2 instances:
 
 ```river
@@ -176,7 +176,7 @@ prometheus.exporter.cloudwatch "discover_instances" {
 }
 ```
 
-The `discovery` block can be configured one or multiple times to scrape metrics from different services, or with different `search_tags`.
+You can configure the `discovery` block one or multiple times to scrape metrics from different services or with different `search_tags`.
 
 | Name          | Type           | Description                                                                                                                                                  | Default | Required |
 | ------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | -------- |
@@ -189,13 +189,13 @@ The `discovery` block can be configured one or multiple times to scrape metrics 
 
 ## static block
 
-The `static` block configures the component to scrape an specific set of CloudWatch metrics. For that, metrics needs to be fully qualified, specifying the following:
+The `static` block configures the component to scrape a specific set of CloudWatch metrics. The metrics need to be fully qualified with the following specifications:
 
-1. `namespace`: For example `AWS/EC2`, `AWS/EBS`, `CoolApp` if it were a custom metric, etc.
-2. `dimensions`: CloudWatch identifies a metrics by a set of dimensions, which are essentially label / value pairs. For example, all `AWS/EC2` metrics are identified by the `InstanceId` dimension, and the identifier itself.
+1. `namespace`: For example, `AWS/EC2`, `AWS/EBS`, `CoolApp` if it were a custom metric, etc.
+2. `dimensions`: CloudWatch identifies a metric by a set of dimensions, which are essentially label / value pairs. For example, all `AWS/EC2` metrics are identified by the `InstanceId` dimension and the identifier itself.
 3. `metric`: Metric name and statistics.
 
-For example, if one wants to scrape the same metrics in the discovery example, but for a specific AWS EC2 instance:
+For example, if you want to scrape the same metrics in the discovery example, but for a specific AWS EC2 instance:
 
 ```river
 prometheus.exporter.cloudwatch "static_instances" {
@@ -217,7 +217,7 @@ prometheus.exporter.cloudwatch "static_instances" {
 }
 ```
 
-The `static` block can be configured one or multiple times to scrape metrics with different sets of `dimensions`.
+You can configure the `static` block one or multiple times to scrape metrics with different sets of `dimensions`.
 
 | Name          | Type           | Description                                                                                                                                                  | Default | Required |
 | ------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | -------- |
@@ -227,8 +227,8 @@ The `static` block can be configured one or multiple times to scrape metrics wit
 | `dimensions`  | `map(string)`  | CloudWatch metric dimensions as a list of name / value pairs. Must uniquely define all metrics in this job.                                                  |         | yes      |
 | `custom_tags` | `map(string)`  | Custom tags to be added as a list of key / value pairs. When exported to Prometheus format, the label name follows the following format: `custom_tag_{key}`. | `{}`    | no       |
 
-All dimensions need to be specified when scraping single metrics like the example above. For example `AWS/Logs` metrics
-require `Resource`, `Service`, `Class`, and `Type` dimensions to be specified. Same applies to CloudWatch custom metrics,
+All dimensions must be specified when scraping single metrics like the example above. For example, `AWS/Logs` metrics
+require `Resource`, `Service`, `Class`, and `Type` dimensions to be specified. The same applies to CloudWatch custom metrics,
 all dimensions attached to a metric when saved in CloudWatch are required.
 
 ## metric block
@@ -249,8 +249,8 @@ Follow [this guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitori
 Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). If omitted, the AWS role that corresponds to the credentials configured in the environment will be used.
 
 Multiple roles can be useful when scraping metrics from different AWS accounts with a single pair of credentials. In this case, a different role
-is configured for the agent to assume prior to calling AWS APIs, therefore, the credentials configured in the system need
-permission to assume the target role. See [this documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html) on how to configure this.
+is configured for the agent to assume before calling AWS APIs. Therefore, the credentials configured in the system need
+permission to assume the target role. See [Granting a user permissions to switch roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html) in the AWS IAM documentation for more information about how to configure this.
 
 
 | Name          | Type     | Description                                                           | Default | Required |
@@ -262,8 +262,8 @@ permission to assume the target role. See [this documentation](https://docs.aws.
 
 ## period
 
-Period controls how far back in time CloudWatch metrics are considered, during each agent scrape. We can split how these
-settings affects the produced values in two different scenarios.
+Period controls how far back in time CloudWatch metrics are considered during each agent scrape. We can split how these
+settings affect the produced values in two different scenarios.
 
 If all metrics within a job (discovery or static) have the same `Period` value configured, CloudWatch APIs will be requested
 for metrics from the scrape time, to `Periods` seconds in the past. The values of these are exported to Prometheus.
@@ -273,7 +273,7 @@ for metrics from the scrape time, to `Periods` seconds in the past. The values o
 On the other hand, if metrics with different `Periods` are configured under an individual job, this works differently.
 First, two variables are calculated aggregating all periods: `length`, taking the maximum value of all periods, and
 the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs will be requested for metrics from
-`now - length` to `now`, aggregating each in samples for `period` seconds. For each metrics, the most recent sample
+`now - length` to `now`, aggregating each in samples for `period` seconds. For each metric, the most recent sample
 is exported to CloudWatch.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
