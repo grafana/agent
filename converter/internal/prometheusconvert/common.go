@@ -5,10 +5,10 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	promconfig "github.com/prometheus/common/config"
+	prom_config "github.com/prometheus/common/config"
 )
 
-func toHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) *config.HTTPClientConfig {
+func toHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.HTTPClientConfig {
 	if httpClientConfig == nil {
 		return nil
 	}
@@ -28,7 +28,7 @@ func toHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) *config.H
 
 // validateHttpClientConfig returns [diag.Diagnostics] for currently
 // unsupported Flow features available in Prometheus.
-func validateHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) diag.Diagnostics {
+func validateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if httpClientConfig.NoProxy != "" {
@@ -46,7 +46,7 @@ func validateHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) dia
 	return diags
 }
 
-func toBasicAuth(basicAuth *promconfig.BasicAuth) *config.BasicAuth {
+func toBasicAuth(basicAuth *prom_config.BasicAuth) *config.BasicAuth {
 	if basicAuth == nil {
 		return nil
 	}
@@ -58,7 +58,7 @@ func toBasicAuth(basicAuth *promconfig.BasicAuth) *config.BasicAuth {
 	}
 }
 
-func toAuthorization(authorization *promconfig.Authorization) *config.Authorization {
+func toAuthorization(authorization *prom_config.Authorization) *config.Authorization {
 	if authorization == nil {
 		return nil
 	}
@@ -70,7 +70,7 @@ func toAuthorization(authorization *promconfig.Authorization) *config.Authorizat
 	}
 }
 
-func toOAuth2(oAuth2 *promconfig.OAuth2) *config.OAuth2Config {
+func toOAuth2(oAuth2 *prom_config.OAuth2) *config.OAuth2Config {
 	if oAuth2 == nil {
 		return nil
 	}
@@ -87,7 +87,7 @@ func toOAuth2(oAuth2 *promconfig.OAuth2) *config.OAuth2Config {
 	}
 }
 
-func toTLSConfig(tlsConfig *promconfig.TLSConfig) *config.TLSConfig {
+func toTLSConfig(tlsConfig *prom_config.TLSConfig) *config.TLSConfig {
 	if tlsConfig == nil {
 		return nil
 	}

@@ -10,17 +10,17 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	promconfig "github.com/prometheus/common/config"
-	promazure "github.com/prometheus/prometheus/discovery/azure"
+	prom_config "github.com/prometheus/common/config"
+	prom_azure "github.com/prometheus/prometheus/discovery/azure"
 )
 
-func appendDiscoveryAzure(f *builder.File, label string, sdConfig *promazure.SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryAzure(f *builder.File, label string, sdConfig *prom_azure.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryAzureArgs, diags := toDiscoveryAzure(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "azure"}, label, discoveryAzureArgs)
 	return newDiscoverExports("discovery.azure." + label + ".targets"), diags
 }
 
-func toDiscoveryAzure(sdConfig *promazure.SDConfig) (*azure.Arguments, diag.Diagnostics) {
+func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) (*azure.Arguments, diag.Diagnostics) {
 	if sdConfig == nil {
 		return nil, nil
 	}
@@ -40,11 +40,11 @@ func toDiscoveryAzure(sdConfig *promazure.SDConfig) (*azure.Arguments, diag.Diag
 	}, validateDiscoveryAzure(sdConfig)
 }
 
-func validateDiscoveryAzure(sdConfig *promazure.SDConfig) diag.Diagnostics {
+func validateDiscoveryAzure(sdConfig *prom_azure.SDConfig) diag.Diagnostics {
 	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
-func toManagedIdentity(sdConfig *promazure.SDConfig) *azure.ManagedIdentity {
+func toManagedIdentity(sdConfig *prom_azure.SDConfig) *azure.ManagedIdentity {
 	if sdConfig == nil {
 		return nil
 	}
@@ -54,7 +54,7 @@ func toManagedIdentity(sdConfig *promazure.SDConfig) *azure.ManagedIdentity {
 	}
 }
 
-func toDiscoveryAzureOauth2(oAuth2 *promconfig.OAuth2, tenantId string) *azure.OAuth {
+func toDiscoveryAzureOauth2(oAuth2 *prom_config.OAuth2, tenantId string) *azure.OAuth {
 	if oAuth2 == nil {
 		return nil
 	}

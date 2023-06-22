@@ -9,11 +9,11 @@ import (
 	"github.com/grafana/agent/component/prometheus/relabel"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	promrelabel "github.com/prometheus/prometheus/model/relabel"
+	prom_relabel "github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendPrometheusRelabel(f *builder.File, relabelConfigs []*promrelabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
+func appendPrometheusRelabel(f *builder.File, relabelConfigs []*prom_relabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
@@ -26,7 +26,7 @@ func appendPrometheusRelabel(f *builder.File, relabelConfigs []*promrelabel.Conf
 	}
 }
 
-func toRelabelArguments(relabelConfigs []*promrelabel.Config, forwardTo []storage.Appendable) *relabel.Arguments {
+func toRelabelArguments(relabelConfigs []*prom_relabel.Config, forwardTo []storage.Appendable) *relabel.Arguments {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
@@ -37,7 +37,7 @@ func toRelabelArguments(relabelConfigs []*promrelabel.Config, forwardTo []storag
 	}
 }
 
-func appendDiscoveryRelabel(f *builder.File, relabelConfigs []*promrelabel.Config, label string, targets []discovery.Target) *disc_relabel.Exports {
+func appendDiscoveryRelabel(f *builder.File, relabelConfigs []*prom_relabel.Config, label string, targets []discovery.Target) *disc_relabel.Exports {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
@@ -50,14 +50,14 @@ func appendDiscoveryRelabel(f *builder.File, relabelConfigs []*promrelabel.Confi
 	}
 }
 
-func toDiscoveryRelabelArguments(relabelConfigs []*promrelabel.Config, targets []discovery.Target) *disc_relabel.Arguments {
+func toDiscoveryRelabelArguments(relabelConfigs []*prom_relabel.Config, targets []discovery.Target) *disc_relabel.Arguments {
 	return &disc_relabel.Arguments{
 		Targets:        targets,
 		RelabelConfigs: toRelabelConfigs(relabelConfigs),
 	}
 }
 
-func toRelabelConfigs(relabelConfigs []*promrelabel.Config) []*flow_relabel.Config {
+func toRelabelConfigs(relabelConfigs []*prom_relabel.Config) []*flow_relabel.Config {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}

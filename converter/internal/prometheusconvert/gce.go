@@ -7,16 +7,16 @@ import (
 	"github.com/grafana/agent/component/discovery/gce"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	promgce "github.com/prometheus/prometheus/discovery/gce"
+	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 )
 
-func appendDiscoveryGCE(f *builder.File, label string, sdConfig *promgce.SDConfig) discovery.Exports {
+func appendDiscoveryGCE(f *builder.File, label string, sdConfig *prom_gce.SDConfig) discovery.Exports {
 	discoveryGCEArgs := toDiscoveryGCE(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "gce"}, label, discoveryGCEArgs)
 	return newDiscoverExports("discovery.gce." + label + ".targets")
 }
 
-func toDiscoveryGCE(sdConfig *promgce.SDConfig) *gce.Arguments {
+func toDiscoveryGCE(sdConfig *prom_gce.SDConfig) *gce.Arguments {
 	if sdConfig == nil {
 		return nil
 	}

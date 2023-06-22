@@ -11,17 +11,17 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	promconfig "github.com/prometheus/common/config"
-	promdigitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
+	prom_config "github.com/prometheus/common/config"
+	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 )
 
-func appendDiscoveryDigitalOcean(f *builder.File, label string, sdConfig *promdigitalocean.SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryDigitalOcean(f *builder.File, label string, sdConfig *prom_digitalocean.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryDigitalOceanArgs, diags := toDiscoveryDigitalOcean(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "digitalocean"}, label, discoveryDigitalOceanArgs)
 	return newDiscoverExports("discovery.digitalocean." + label + ".targets"), diags
 }
 
-func toDiscoveryDigitalOcean(sdConfig *promdigitalocean.SDConfig) (*digitalocean.Arguments, diag.Diagnostics) {
+func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) (*digitalocean.Arguments, diag.Diagnostics) {
 	if sdConfig == nil {
 		return nil, nil
 	}
@@ -37,7 +37,7 @@ func toDiscoveryDigitalOcean(sdConfig *promdigitalocean.SDConfig) (*digitalocean
 	}, validateDiscoveryDigitalOcean(sdConfig)
 }
 
-func validateDiscoveryDigitalOcean(sdConfig *promdigitalocean.SDConfig) diag.Diagnostics {
+func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if sdConfig.HTTPClientConfig.BasicAuth != nil {
@@ -52,7 +52,7 @@ func validateDiscoveryDigitalOcean(sdConfig *promdigitalocean.SDConfig) diag.Dia
 		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for digitalocean_sd_configs")
 	}
 
-	if !reflect.DeepEqual(promconfig.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
+	if !reflect.DeepEqual(prom_config.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
 		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for digitalocean_sd_configs")
 	}
 

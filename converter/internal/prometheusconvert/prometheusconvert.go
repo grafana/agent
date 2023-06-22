@@ -9,16 +9,16 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	promconfig "github.com/prometheus/prometheus/config"
-	promdiscover "github.com/prometheus/prometheus/discovery"
-	promaws "github.com/prometheus/prometheus/discovery/aws"
-	promazure "github.com/prometheus/prometheus/discovery/azure"
-	promconsul "github.com/prometheus/prometheus/discovery/consul"
-	promdigitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
-	promdns "github.com/prometheus/prometheus/discovery/dns"
-	promgce "github.com/prometheus/prometheus/discovery/gce"
-	promkubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
-	promdocker "github.com/prometheus/prometheus/discovery/moby"
+	prom_config "github.com/prometheus/prometheus/config"
+	prom_discover "github.com/prometheus/prometheus/discovery"
+	prom_aws "github.com/prometheus/prometheus/discovery/aws"
+	prom_azure "github.com/prometheus/prometheus/discovery/azure"
+	prom_consul "github.com/prometheus/prometheus/discovery/consul"
+	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
+	prom_dns "github.com/prometheus/prometheus/discovery/dns"
+	prom_gce "github.com/prometheus/prometheus/discovery/gce"
+	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
@@ -28,7 +28,7 @@ import (
 func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	promConfig, err := promconfig.Load(string(in), false, log.NewNopLogger())
+	promConfig, err := prom_config.Load(string(in), false, log.NewNopLogger())
 	if err != nil {
 		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to parse Prometheus config: %s", err))
 		return nil, diags
@@ -56,7 +56,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 // into Flow Arguments. It then appends each argument to the file builder.
 // Exports from other components are correctly referenced to build the Flow
 // pipeline.
-func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics {
+func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 	remoteWriteExports := appendPrometheusRemoteWrite(f, promConfig)
 
@@ -87,7 +87,7 @@ func AppendAll(f *builder.File, promConfig *promconfig.Config) diag.Diagnostics 
 // appendServiceDiscoveryConfigs will loop through the service discovery
 // configs and append them to the file. This returns the scrape targets
 // and discovery targets as a result.
-func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig promdiscover.Configs, label string) ([]discovery.Target, []discovery.Target, diag.Diagnostics) {
+func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig prom_discover.Configs, label string) ([]discovery.Target, []discovery.Target, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var scrapeTargets []discovery.Target
 	var discoveryTargets []discovery.Target
@@ -96,33 +96,33 @@ func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig promd
 		var exports discovery.Exports
 		var newDiags diag.Diagnostics
 		switch sdc := serviceDiscoveryConfig.(type) {
-		case promdiscover.StaticConfig:
+		case prom_discover.StaticConfig:
 			scrapeTargets = append(scrapeTargets, getScrapeTargets(sdc)...)
-		case *promazure.SDConfig:
+		case *prom_azure.SDConfig:
 			labelCounts["azure"]++
 			exports, newDiags = appendDiscoveryAzure(f, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
-		case *promconsul.SDConfig:
+		case *prom_consul.SDConfig:
 			labelCounts["consul"]++
 			exports, newDiags = appendDiscoveryConsul(f, common.GetUniqueLabel(label, labelCounts["consul"]), sdc)
-		case *promdigitalocean.SDConfig:
+		case *prom_digitalocean.SDConfig:
 			labelCounts["digitalocean"]++
 			exports, newDiags = appendDiscoveryDigitalOcean(f, common.GetUniqueLabel(label, labelCounts["digitalocean"]), sdc)
-		case *promdns.SDConfig:
+		case *prom_dns.SDConfig:
 			labelCounts["dns"]++
 			exports = appendDiscoveryDns(f, common.GetUniqueLabel(label, labelCounts["dns"]), sdc)
-		case *promdocker.DockerSDConfig:
+		case *prom_docker.DockerSDConfig:
 			labelCounts["docker"]++
 			exports, newDiags = appendDiscoveryDocker(f, common.GetUniqueLabel(label, labelCounts["docker"]), sdc)
-		case *promaws.EC2SDConfig:
+		case *prom_aws.EC2SDConfig:
 			labelCounts["ec2"]++
 			exports, newDiags = appendDiscoveryEC2(f, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
-		case *promgce.SDConfig:
+		case *prom_gce.SDConfig:
 			labelCounts["gce"]++
 			exports = appendDiscoveryGCE(f, common.GetUniqueLabel(label, labelCounts["gce"]), sdc)
-		case *promkubernetes.SDConfig:
+		case *prom_kubernetes.SDConfig:
 			labelCounts["kubernetes"]++
 			exports, newDiags = appendDiscoveryKubernetes(f, common.GetUniqueLabel(label, labelCounts["kubernetes"]), sdc)
-		case *promaws.LightsailSDConfig:
+		case *prom_aws.LightsailSDConfig:
 			labelCounts["lightsail"]++
 			exports, newDiags = appendDiscoveryLightsail(f, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
 		default:

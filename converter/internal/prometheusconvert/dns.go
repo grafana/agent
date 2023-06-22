@@ -7,16 +7,16 @@ import (
 	"github.com/grafana/agent/component/discovery/dns"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	promdns "github.com/prometheus/prometheus/discovery/dns"
+	prom_dns "github.com/prometheus/prometheus/discovery/dns"
 )
 
-func appendDiscoveryDns(f *builder.File, label string, sdConfig *promdns.SDConfig) discovery.Exports {
+func appendDiscoveryDns(f *builder.File, label string, sdConfig *prom_dns.SDConfig) discovery.Exports {
 	discoveryDnsArgs := toDiscoveryDns(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "dns"}, label, discoveryDnsArgs)
 	return newDiscoverExports("discovery.dns." + label + ".targets")
 }
 
-func toDiscoveryDns(sdConfig *promdns.SDConfig) *dns.Arguments {
+func toDiscoveryDns(sdConfig *prom_dns.SDConfig) *dns.Arguments {
 	if sdConfig == nil {
 		return nil
 	}

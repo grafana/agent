@@ -9,16 +9,16 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	promconsul "github.com/prometheus/prometheus/discovery/consul"
+	prom_consul "github.com/prometheus/prometheus/discovery/consul"
 )
 
-func appendDiscoveryConsul(f *builder.File, label string, sdConfig *promconsul.SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryConsul(f *builder.File, label string, sdConfig *prom_consul.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryConsulArgs, diags := toDiscoveryConsul(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "consul"}, label, discoveryConsulArgs)
 	return newDiscoverExports("discovery.consul." + label + ".targets"), diags
 }
 
-func toDiscoveryConsul(sdConfig *promconsul.SDConfig) (*consul.Arguments, diag.Diagnostics) {
+func toDiscoveryConsul(sdConfig *prom_consul.SDConfig) (*consul.Arguments, diag.Diagnostics) {
 	if sdConfig == nil {
 		return nil, nil
 	}
@@ -42,6 +42,6 @@ func toDiscoveryConsul(sdConfig *promconsul.SDConfig) (*consul.Arguments, diag.D
 	}, validateDiscoveryConsul(sdConfig)
 }
 
-func validateDiscoveryConsul(sdConfig *promconsul.SDConfig) diag.Diagnostics {
+func validateDiscoveryConsul(sdConfig *prom_consul.SDConfig) diag.Diagnostics {
 	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }

@@ -10,17 +10,17 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	promconfig "github.com/prometheus/common/config"
-	promaws "github.com/prometheus/prometheus/discovery/aws"
+	prom_config "github.com/prometheus/common/config"
+	prom_aws "github.com/prometheus/prometheus/discovery/aws"
 )
 
-func appendDiscoveryEC2(f *builder.File, label string, sdConfig *promaws.EC2SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryEC2(f *builder.File, label string, sdConfig *prom_aws.EC2SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryec2Args, diags := toDiscoveryEC2(sdConfig)
 	common.AppendBlockWithOverride(f, []string{"discovery", "ec2"}, label, discoveryec2Args)
 	return newDiscoverExports("discovery.ec2." + label + ".targets"), diags
 }
 
-func toDiscoveryEC2(sdConfig *promaws.EC2SDConfig) (*aws.EC2Arguments, diag.Diagnostics) {
+func toDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) (*aws.EC2Arguments, diag.Diagnostics) {
 	if sdConfig == nil {
 		return nil, nil
 	}
@@ -38,7 +38,7 @@ func toDiscoveryEC2(sdConfig *promaws.EC2SDConfig) (*aws.EC2Arguments, diag.Diag
 	}, validateDiscoveryEC2(sdConfig)
 }
 
-func validateDiscoveryEC2(sdConfig *promaws.EC2SDConfig) diag.Diagnostics {
+func validateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if sdConfig.HTTPClientConfig.BasicAuth != nil {
@@ -53,7 +53,7 @@ func validateDiscoveryEC2(sdConfig *promaws.EC2SDConfig) diag.Diagnostics {
 		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for ec2_sd_configs")
 	}
 
-	if !reflect.DeepEqual(promconfig.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
+	if !reflect.DeepEqual(prom_config.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
 		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for ec2_sd_configs")
 	}
 
@@ -63,7 +63,7 @@ func validateDiscoveryEC2(sdConfig *promaws.EC2SDConfig) diag.Diagnostics {
 	return diags
 }
 
-func toEC2Filters(filtersConfig []*promaws.EC2Filter) []*aws.EC2Filter {
+func toEC2Filters(filtersConfig []*prom_aws.EC2Filter) []*aws.EC2Filter {
 	filters := make([]*aws.EC2Filter, 0)
 
 	for _, filter := range filtersConfig {

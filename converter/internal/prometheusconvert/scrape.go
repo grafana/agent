@@ -7,17 +7,17 @@ import (
 	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	promconfig "github.com/prometheus/prometheus/config"
-	promdiscovery "github.com/prometheus/prometheus/discovery"
+	prom_config "github.com/prometheus/prometheus/config"
+	prom_discovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendPrometheusScrape(f *builder.File, scrapeConfig *promconfig.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) {
+func appendPrometheusScrape(f *builder.File, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) {
 	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
 	common.AppendBlockWithOverride(f, []string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
 }
 
-func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
+func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
 	if scrapeConfig == nil {
 		return nil
 	}
@@ -45,7 +45,7 @@ func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig, forwardTo []storag
 	}
 }
 
-func getScrapeTargets(staticConfig promdiscovery.StaticConfig) []discovery.Target {
+func getScrapeTargets(staticConfig prom_discovery.StaticConfig) []discovery.Target {
 	targets := []discovery.Target{}
 
 	for _, target := range staticConfig {
