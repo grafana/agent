@@ -58,7 +58,7 @@ the following steps:
 To see the list of valid command-line flags that can be passed to the service,
 refer to the documentation for the [run][] command.
 
-[run]: {{< relref "../reference/cli/run.md" >}}
+[run]: {{< relref "../../reference/cli/run.md" >}}
 
 ## Expose the UI to other machines
 
