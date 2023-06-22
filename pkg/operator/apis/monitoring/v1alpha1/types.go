@@ -122,12 +122,12 @@ type GrafanaAgentSpec struct {
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 	// Secrets is a list of secrets in the same namespace as the GrafanaAgent
 	// object which will be mounted into each running Grafana Agent pod.
-	// The secrets are mounted into /etc/grafana-agent/extra-secrets/<secret-name>.
+	// The secrets are mounted into /var/lib/grafana-agent/extra-secrets/<secret-name>.
 	Secrets []string `json:"secrets,omitempty"`
 	// ConfigMaps is a list of config maps in the same namespace as the
 	// GrafanaAgent object which will be mounted into each running Grafana Agent
 	// pod.
-	// The ConfigMaps are mounted into /etc/grafana-agent/extra-configmaps/<configmap-name>.
+	// The ConfigMaps are mounted into /var/lib/grafana-agent/extra-configmaps/<configmap-name>.
 	ConfigMaps []string `json:"configMaps,omitempty"`
 	// Affinity, if specified, controls pod scheduling constraints.
 	Affinity *v1.Affinity `json:"affinity,omitempty"`
