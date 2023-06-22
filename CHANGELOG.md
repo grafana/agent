@@ -24,7 +24,7 @@ Main (unreleased)
   - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
-
+  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
 
 ### Enhancements
 
@@ -41,6 +41,8 @@ Main (unreleased)
 - Enable `prometheus.relabel` to work with Prometheus' Native Histograms. (@tpaschalis)
 
 - Update `dnsmasq_exporter` to last version. (@marctc)
+
+- Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
 
 ### Bugfixes
 
