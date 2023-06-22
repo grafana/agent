@@ -110,21 +110,9 @@ func ConvertToYACE(a Arguments) (yaceConf.ScrapeConf, error) {
 	if err := conf.Validate(); err != nil {
 		return yaceConf.ScrapeConf{}, err
 	}
-	patchYACEDefaults(&conf)
+	cloudwatch_exporter.PatchYACEDefaults(&conf)
 
 	return conf, nil
-}
-
-// patchYACEDefaults overrides some default values YACE applies after validation.
-func patchYACEDefaults(yc *yaceConf.ScrapeConf) {
-	// YACE doesn't allow during validation a zero-delay in each metrics scrape. Override this behaviour since it's taken
-	// into account by the rounding period.
-	// https://github.com/nerdswords/yet-another-cloudwatch-exporter/blob/7e5949124bb5f26353eeff298724a5897de2a2a4/pkg/config/config.go#L320
-	for _, job := range yc.Discovery.Jobs {
-		for _, metric := range job.Metrics {
-			metric.Delay = 0
-		}
-	}
 }
 
 func (tags Tags) toYACE() []yaceModel.Tag {
