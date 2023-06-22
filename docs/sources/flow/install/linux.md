@@ -47,7 +47,7 @@ To uninstall Grafana Agent Flow on Debian or Ubuntu, run the following commands 
    sudo apt remove grafana-agent-flow
    ```
 
-1. Optional. Remove the Grafana repository:
+1. (Optional) Remove the Grafana repository:
 
    ```shell
    sudo rm -i /etc/apt/sources.list.d/grafana.list
@@ -78,7 +78,7 @@ To install Grafana Agent Flow on RHEL or Fedora, run the following commands in a
    sslcacert=/etc/pki/tls/certs/ca-bundle.crt
    ```
 
-1. Optional. Verify the Grafana repository configuration:
+1. (Optional) Verify the Grafana repository configuration:
 
    ```shell
    cat /etc/yum.repos.d/grafana.repo
@@ -106,7 +106,7 @@ To uninstall Grafana Agent Flow on RHEL or Fedora, run the following commands in
    sudo dnf remove grafana-agent-flow
    ```
 
-1. Optional. Remove the Grafana repository:
+1. (Optional) Remove the Grafana repository:
 
    ```shell
    sudo rm -i /etc/yum.repos.d/rpm.grafana.repo
@@ -152,7 +152,7 @@ To uninstall Grafana Agent Flow on SUSE or openSUSE, run the following commands 
    sudo zypper remove grafana-agent-flow
    ```
 
-1. Optional. Remove the Grafana repository:
+1. (Optional) Remove the Grafana repository:
 
    ```shell
    sudo zypper removerepo grafana
