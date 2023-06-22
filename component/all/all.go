@@ -83,7 +83,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/remote"                        // Import prometheus.remote
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape
-	_ "github.com/grafana/agent/component/prometheus/wal/memory"                    // Import prometheus.wal.memory
+	_ "github.com/grafana/agent/component/prometheus/wal/badger"                    // Import prometheus.wal.badger
 	_ "github.com/grafana/agent/component/remote/http"                              // Import remote.http
 	_ "github.com/grafana/agent/component/remote/s3"                                // Import remote.s3
 	_ "github.com/grafana/agent/component/remote/vault"                             // Import remote.vault

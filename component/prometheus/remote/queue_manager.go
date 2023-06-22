@@ -28,7 +28,6 @@ import (
 	"github.com/prometheus/prometheus/model/textparse"
 	"github.com/prometheus/prometheus/prompb"
 	promremote "github.com/prometheus/prometheus/storage/remote"
-	"github.com/prometheus/prometheus/tsdb/chunks"
 )
 
 // WriteClient defines an interface for sending a batch of samples to an
@@ -56,9 +55,9 @@ type QueueManager struct {
 	mcfg                 config.MetadataConfig
 	sendExemplars        bool
 	sendNativeHistograms bool
-	watcher              prometheus.QueueWatcher
+	watcher              prometheus.WALWatcher
 	metadataWatcher      *promremote.MetadataWatcher
-	lblCache             LabelCache
+	walCancel            context.CancelFunc
 
 	clientMtx   sync.RWMutex
 	storeClient WriteClient
@@ -91,7 +90,7 @@ func NewQueueManager(
 	highestRecvTimestamp *maxTimestamp,
 	enableExemplarRemoteWrite bool,
 	enableNativeHistogramRemoteWrite bool,
-	watcher prometheus.QueueWatcher,
+	watcher prometheus.WALWatcher,
 ) *QueueManager {
 	if logger == nil {
 		logger = log.NewNopLogger()
@@ -119,11 +118,19 @@ func NewQueueManager(
 		highestRecvTimestamp: highestRecvTimestamp,
 		watcher:              watcher,
 	}
-	//	watcher.SetWriteTo(t)
+	ctx := context.Background()
+	ctx, cnc := context.WithCancel(ctx)
+	t.walCancel = cnc
+	watcher.SetWriteTo(t, ctx)
+	watcher.Start()
 
 	t.shards = t.newShards()
 
 	return t
+}
+
+func (t *QueueManager) Name() string {
+	return t.client().Name()
 }
 
 // AppendMetadata sends metadata the remote storage. Metadata is sent in batches, but is not parallelized.
@@ -216,8 +223,8 @@ outer:
 				return false
 			default:
 			}
-			if t.shards.enqueue(chunks.HeadSeriesRef(s.GlobalRefID), timeSeries{
-				seriesLabels: t.lblCache.GetLabels(s.GlobalRefID),
+			if t.shards.enqueue(s.GlobalRefID, timeSeries{
+				seriesLabels: s.L,
 				timestamp:    s.Timestamp,
 				value:        s.Value,
 				sType:        tSample,
@@ -253,8 +260,8 @@ outer:
 				return false
 			default:
 			}
-			if t.shards.enqueue(chunks.HeadSeriesRef(e.GlobalRefID), timeSeries{
-				seriesLabels:   t.lblCache.GetLabels(e.GlobalRefID),
+			if t.shards.enqueue(e.GlobalRefID, timeSeries{
+				seriesLabels:   e.L,
 				timestamp:      e.Timestamp,
 				value:          e.Value,
 				exemplarLabels: e.L,
@@ -289,8 +296,8 @@ outer:
 				return false
 			default:
 			}
-			if t.shards.enqueue(chunks.HeadSeriesRef(h.GlobalRefID), timeSeries{
-				seriesLabels: t.lblCache.GetLabels(h.GlobalRefID),
+			if t.shards.enqueue(h.GlobalRefID, timeSeries{
+				seriesLabels: h.L,
 				timestamp:    h.Timestamp,
 				histogram:    h.Value,
 				sType:        tHistogram,
@@ -324,8 +331,8 @@ outer:
 				return false
 			default:
 			}
-			if t.shards.enqueue(chunks.HeadSeriesRef(h.GlobalRefID), timeSeries{
-				seriesLabels:   t.lblCache.GetLabels(h.GlobalRefID),
+			if t.shards.enqueue(h.GlobalRefID, timeSeries{
+				seriesLabels:   h.L,
 				timestamp:      h.Timestamp,
 				floatHistogram: h.Value,
 				sType:          tFloatHistogram,
@@ -378,7 +385,7 @@ func (t *QueueManager) Stop() {
 	// is to ensure we don't end up executing a reshard and shards.stop() at the same time, which
 	// causes a closed channel panic.
 	t.shards.stop()
-	t.watcher.Stop()
+	t.walCancel()
 	if t.mcfg.Send {
 		t.metadataWatcher.Stop()
 	}
@@ -643,11 +650,11 @@ func (s *shards) stop() {
 // retry. A shard is full when its configured capacity has been reached,
 // specifically, when s.queues[shard] has filled its batchQueue channel and the
 // partial batch has also been filled.
-func (s *shards) enqueue(ref chunks.HeadSeriesRef, data timeSeries) bool {
+func (s *shards) enqueue(ref uint64, data timeSeries) bool {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 
-	shard := uint64(ref) % uint64(len(s.queues))
+	shard := ref % uint64(len(s.queues))
 	select {
 	case <-s.softShutdown:
 		return false

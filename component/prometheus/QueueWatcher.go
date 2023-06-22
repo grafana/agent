@@ -1,7 +1,8 @@
 package prometheus
 
-type QueueWatcher interface {
-	SetWriteTo(write WriteTo)
-	Start()
-	Stop()
+import "context"
+
+type WALWatcher interface {
+	SetWriteTo(write WriteTo, ctx context.Context)
+	Start() error
 }

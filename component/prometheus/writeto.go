@@ -20,29 +20,34 @@ type WriteTo interface {
 
 type Sample struct {
 	GlobalRefID uint64
+	L           labels.Labels
 	Timestamp   int64
 	Value       float64
 }
 
 type Exemplar struct {
+	GlobalRefID uint64
 	Sample
 	L labels.Labels
 }
 
 type Histogram struct {
 	GlobalRefID uint64
+	L           labels.Labels
 	Timestamp   int64
 	Value       *histogram.Histogram
 }
 
 type FloatHistogram struct {
 	GlobalRefID uint64
+	L           labels.Labels
 	Timestamp   int64
 	Value       *histogram.FloatHistogram
 }
 
 type Metadata struct {
-	Name        string
 	GlobalRefID uint64
+	Name        string
+	L           labels.Labels
 	Meta        metadata.Metadata
 }
