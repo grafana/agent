@@ -34,17 +34,28 @@ prometheus.relabel "prometheus1" {
 }
 
 discovery.azure "prometheus1" {
-	subscription_id = "subscription"
+	subscription_id = "subscription1"
 
 	managed_identity {
-		client_id = "client"
+		client_id = "client1"
+	}
+	follow_redirects = true
+	enable_http2     = true
+}
+
+discovery.azure "prometheus1_2" {
+	subscription_id = "subscription2"
+
+	managed_identity {
+		client_id = "client2"
 	}
 	follow_redirects = true
 	enable_http2     = true
 }
 
 discovery.relabel "prometheus1" {
-	targets = discovery.azure.prometheus1.targets
+	targets = concat(discovery.azure.prometheus1.targets,
+		discovery.azure.prometheus1_2.targets)
 
 	rule {
 		source_labels = ["__address1__"]

@@ -34,6 +34,7 @@ func TestConvert(t *testing.T) {
 
 			t.Run(caseName, func(t *testing.T) {
 				actual, diags := prometheusconvert.Convert(inputBytes)
+				os.WriteFile("/home/erik/temp/"+caseName+".river", actual, 0666)
 
 				expectedErrors := parseErrors(t, path)
 				for ix, diag := range diags {
