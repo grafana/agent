@@ -58,7 +58,7 @@ refer to the documentation for [run][].
 > argument like in the example above, otherwise the [debugging UI][] won't be
 > available outside of the Docker container.
 
-[debugging UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+[debugging UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
 [run]: {{< relref "../../reference/cli/run.md" >}}
 
 ## Run a Windows Docker container
@@ -88,7 +88,7 @@ refer to the documentation for [run][].
 > argument like in the example above, otherwise the [debugging UI][] won't be
 > available outside of the Docker container.
 
-[debugging UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+[debugging UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
 [run]: {{< relref "../../reference/cli/run.md" >}}
 
 ## Result
