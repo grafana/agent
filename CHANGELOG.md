@@ -51,6 +51,8 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
+- 
 - Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 
 - Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
