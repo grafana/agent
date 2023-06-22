@@ -112,7 +112,6 @@ Symbols are extracted from various sources including:
 - The `.symtab` and `.dynsym` sections in the ELF file.
 - The `.symtab` and `.dynsym` sections in the debug ELF file.
 - The `.gopclntab` section in Go language ELF files.
--
 
 The search for debug files follows [gdb algorithm](https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html).
 For example if it wants to find the debug file
