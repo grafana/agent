@@ -11,9 +11,7 @@ title: prometheus.exporter.cloudwatch
 
 # prometheus.exporter.cloudwatch
 
-The `prometheus.exporter.cloudwatch` component embeds
-
-[`yet-another-cloudwatch-exporter`](https://github.com/nerdswords/yet-another-cloudwatch-exporter). `` lets you collect [CloudWatch metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html), translate them to prometheus-compatible format and remote write.
+The `prometheus.exporter.cloudwatch` component embeds [`yet-another-cloudwatch-exporter`](https://github.com/nerdswords/yet-another-cloudwatch-exporter). `` lets you collect [CloudWatch metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html), translate them to prometheus-compatible format and remote write.
 
 This component lets you scrape CloudWatch metrics in a set of configurations that we will call *jobs*. There are
 two kind of jobs: [discovery][] and [static][].
@@ -88,24 +86,27 @@ To use all of the integration features, use the following AWS IAM Policy:
 
 ```river
 prometheus.exporter.cloudwatch "queues" {
-    sts_region = "us-east-2"
-    discovery {
-        type = "sqs"
-        regions = ["us-east-2"]
-        search_tags = {
-            "scrape" = "true",
-        }
-        metric {
-            name = "NumberOfMessagesSent"
-            statistics = ["Sum", "Average"]
-            period = "1m"
-        }
-        metric {
-            name = "NumberOfMessagesReceived"
-            statistics = ["Sum", "Average"]
-            period = "1m"
-        }
-    }
+	sts_region = "us-east-2"
+
+	discovery {
+		type        = "sqs"
+		regions     = ["us-east-2"]
+		search_tags = {
+			"scrape" = "true",
+		}
+
+		metric {
+			name       = "NumberOfMessagesSent"
+			statistics = ["Sum", "Average"]
+			period     = "1m"
+		}
+
+		metric {
+			name       = "NumberOfMessagesReceived"
+			statistics = ["Sum", "Average"]
+			period     = "1m"
+		}
+	}
 }
 ```
 
@@ -152,22 +153,25 @@ export them to Prometheus. For example, if we wanted to scrape CPU utilization a
 EC2 instances:
 
 ```river
-prometheus.exporter.cloudwatch "discover-instances" {
-    sts_region = "us-east-2"
-    discovery {
-        type = "AWS/EC2"
-        regions = ["us-east-2"]
-        metric {
-            name = "CPUUtilization"
-            statistics = ["Average"]
-            period = "5m"
-        }
-        metric {
-            name = "NetworkPacketsIn"
-            statistics = ["Average"]
-            period = "5m"
-        }
-    }
+prometheus.exporter.cloudwatch "discover_instances" {
+	sts_region = "us-east-2"
+
+	discovery {
+		type    = "AWS/EC2"
+		regions = ["us-east-2"]
+
+		metric {
+			name       = "CPUUtilization"
+			statistics = ["Average"]
+			period     = "5m"
+		}
+
+		metric {
+			name       = "NetworkPacketsIn"
+			statistics = ["Average"]
+			period     = "5m"
+		}
+	}
 }
 ```
 
@@ -193,20 +197,22 @@ The `static` block configures the component to scrape an specific set of CloudWa
 For example, if one wants to scrape the same metrics in the discovery example, but for a specific AWS EC2 instance:
 
 ```river
-prometheus.exporter.cloudwatch "static-instances" {
-    sts_region = "us-east-2"
-    static "instances" {
-        regions = ["us-east-2"]
-        namespace = "AWS/EC2"
-        dimensions = {
-            "InstanceId" = "i01u29u12ue1u2c",
-        }
-        metric {
-            name = "CPUUsage"
-            statistics = ["Sum", "Average"]
-            period = "1m"
-        }
-    }
+prometheus.exporter.cloudwatch "static_instances" {
+	sts_region = "us-east-2"
+
+	static "instances" {
+		regions    = ["us-east-2"]
+		namespace  = "AWS/EC2"
+		dimensions = {
+			"InstanceId" = "i01u29u12ue1u2c",
+		}
+
+		metric {
+			name       = "CPUUsage"
+			statistics = ["Sum", "Average"]
+			period     = "1m"
+		}
+	}
 }
 ```
 
