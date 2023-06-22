@@ -63,8 +63,9 @@ configuration.
 ## Debug metrics
 
 * `pyroscope_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
-* `pyroscope_ebpf_active_targets` (gauge): Number of active targets tracked by ebpf component.
-* `pyroscope_ebpf_profiling_sessions_total` (counter): Number of profiling sessions completed by ebpf component.
+* `pyroscope_ebpf_active_targets` (gauge): Number of active targets tracked by the component.
+* `pyroscope_ebpf_profiling_sessions_total` (counter): Number of profiling sessions completed.
+* `pyroscope_ebpf_profiling_sessions_failing_total` (counter): Number of profiling sessions failed.
 * `pyroscope_ebpf_pprofs_total` (counter): Number of pprof profiles collected by ebpf component.
 
 ## Profile collecting behavior
@@ -103,6 +104,79 @@ attempted to be inferred from multiple sources:
 - `__meta_docker_container_name`
 
 If `service_name` is not specified and could not be inferred it is set to `unspecified`.
+
+## Troubleshooting Unknown Symbols
+
+Symbols are extracted from various sources including:
+
+- The `.symtab` and `.dynsym` sections in the ELF file.
+- The `.symtab` and `.dynsym` sections in the debug ELF file.
+- The `.gopclntab` section in Go language ELF files.
+-
+
+The search for debug files follows [gdb algorithm](https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html).
+For example if it wants to find the debug file
+for `/lib/x86_64-linux-gnu/libc.so.6`
+with a `.gnu_debuglink` set to `libc.so.6.debug` and a build ID `0123456789abcdef`. The following paths are examined:
+
+- `/usr/lib/debug/.build-id/01/0123456789abcdef.debug`
+- `/lib/x86_64-linux-gnu/libc.so.6.debug`
+- `/lib/x86_64-linux-gnu/.debug/libc.so.6.debug`
+- `/usr/lib/debug/lib/x86_64-linux-gnu/libc.so.6.debug`
+
+### Dealing with Unknown Symbols
+
+If you encounter unknown symbols in the profiles you’ve collected, this indicates that we couldn't access an ELF file
+associated to a given address in trace. This might be due to the ELF file being inaccessible, or the absence of an entry
+in `/proc/pid/maps` for a particular address (this can be the case with JIT-compiled functions).
+
+This can occur for a number of reasons:
+
+- The process has terminated, making the ELF file inaccessible.
+- The ELF file is either corrupted or not recognized as an ELF file.
+- There is no corresponding ELF file entry in /proc/pid/maps for the address in the stack trace.
+
+### Addressing Unresolved Symbols
+
+If you only see module names (e.g., `/lib/x86_64-linux-gnu/libc.so.6`) without corresponding function names, this
+indicates that the symbols couldn't be mapped to their respective function names.
+
+This can occur for a number of reasons:
+
+- The binary has been stripped, leaving no .symtab, .dynsym, or .gopclntab sections in the ELF file.
+- The debug file is missing or could not be located.
+
+To fix this for your binaries, ensure that they either not stripped or that you have separate
+debug files available. You can achieve this by running:
+
+```bash
+objcopy --only-keep-debug elf elf.debug
+strip elf -o elf.stripped
+objcopy --add-gnu-debuglink=elf.debug elf.stripped elf.debuglink
+```
+
+For system libraries, ensure that debug symbols are installed. On Ubuntu, for example, you can install them by
+executing:
+
+```bash
+apt install libc6-dbg
+```
+
+### Understanding Flat Stack Traces
+
+If your profiles show a lof of shallow stack traces, typically 1-2 frames deep, it might mean that
+your binary was compiled without frame pointers.
+
+To compile your code with frame pointers, include the `-fno-omit-frame-pointer` flag in your compiler options.
+
+### Profiling Interpreted Languages
+
+Currently, profiling interpreted languages like Python, Ruby, JavaScript, etc., is not ideal using this implementation.
+The JIT-compiled methods in these languages are typically not in ELF file format, demanding additional steps for
+profiling. For instance, using perf-map-agent and enabling frame pointers for Java.
+
+Interpreted methods will display the interpreter function’s name, rather than the actual function. Future releases of
+the profiler are expected to support profiling of Ruby and Python code more effectively.
 
 ## Example
 
