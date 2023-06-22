@@ -32,8 +32,6 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 }
 
 func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
-	target := baseTarget
-	// using same instance key as integration
-	target["instance"] = "cloudwatch_exporter"
-	return []discovery.Target{target}
+	// no customization for the moment
+	return []discovery.Target{baseTarget}
 }
