@@ -44,6 +44,8 @@ Main (unreleased)
 
 - Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
 
+- Update `module.git` with basic and SSH key authentication support. (@djcode)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when

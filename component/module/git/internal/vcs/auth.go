@@ -33,8 +33,8 @@ func (h *GitAuthConfig) Convert() transport.AuthMethod {
 }
 
 type BasicAuth struct {
-	Username string            `river:"username,attr,optional"`
-	Password rivertypes.Secret `river:"password,attr,optional"`
+	Username string            `river:"username,attr"`
+	Password rivertypes.Secret `river:"password,attr"`
 }
 
 // Convert converts our type to the native prometheus type
@@ -49,7 +49,7 @@ func (b *BasicAuth) Convert() (t transport.AuthMethod) {
 }
 
 type SSHKey struct {
-	Username   string            `river:"username,attr,optional"`
+	Username   string            `river:"username,attr"`
 	Key        rivertypes.Secret `river:"key,attr,optional"`
 	Keyfile    string            `river:"key_file,attr,optional"`
 	Passphrase rivertypes.Secret `river:"passphrase,attr,optional"`
