@@ -43,13 +43,13 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 		return nil, diags
 	}
 
-	if len(buf.Bytes()) > 0 {
-		prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
-		diags = append(diags, newDiags...)
-		return prettyByte, diags
+	if len(buf.Bytes()) == 0 {
+		return nil, diags
 	}
 
-	return nil, diags
+	prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
+	diags = append(diags, newDiags...)
+	return prettyByte, diags
 }
 
 // AppendAll analyzes the entire prometheus config in memory and transforms it

@@ -36,6 +36,10 @@ func (f ConvertTargets) RiverTokenize() []builder.Token {
 	for ix, targetMap := range f.Targets {
 		keyValMap := map[string]string{}
 		for key, val := range targetMap {
+			// __expr__ is a special key used by the converter code to specify
+			// we should tokenize the value instead of tokenizing the map normally.
+			// An alternative strategy would have been to add a new property for
+			// token override to the upstream type discovery.Target.
 			if key == "__expr__" {
 				toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: val})
 				if ix != len(f.Targets)-1 {
