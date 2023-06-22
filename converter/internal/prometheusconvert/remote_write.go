@@ -19,8 +19,13 @@ func appendPrometheusRemoteWrite(f *builder.File, promConfig *prom_config.Config
 }
 
 func toRemotewriteArguments(promConfig *prom_config.Config) *remotewrite.Arguments {
+	externalLabels := promConfig.GlobalConfig.ExternalLabels.Map()
+	if len(externalLabels) == 0 {
+		externalLabels = nil
+	}
+
 	return &remotewrite.Arguments{
-		ExternalLabels: promConfig.GlobalConfig.ExternalLabels.Map(),
+		ExternalLabels: externalLabels,
 		Endpoints:      getEndpointOptions(promConfig.RemoteWriteConfigs),
 		WALOptions:     remotewrite.DefaultWALOptions,
 	}

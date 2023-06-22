@@ -1,6 +1,4 @@
 prometheus.remote_write "default" {
-	external_labels = {}
-
 	endpoint {
 		name = "remote1"
 		url  = "http://remote-write-url1"
