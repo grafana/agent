@@ -23,12 +23,12 @@
 ##   binaries                Compiles all binaries.
 ##   agent                   Compiles cmd/grafana-agent to $(AGENT_BINARY)
 ##   agent-boringcrypto      Compiles cmd/grafana-agent with GOEXPERIMENT=boringcrypto to $(AGENT_BORINGCRYPTO_BINARY)
-##   agent-flow     		 Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
-##   agent-service  		 Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
-##   agentctl       		 Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
-##   operator       		 Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
-##   crow           		 Compiles tools/crow to $(CROW_BINARY)
-##   smoke          		 Compiles tools/smoke to $(SMOKE_BINARY)
+##   agent-flow              Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
+##   agent-service           Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
+##   agentctl                Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
+##   operator                Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
+##   crow                    Compiles tools/crow to $(CROW_BINARY)
+##   smoke                   Compiles tools/smoke to $(SMOKE_BINARY)
 ##
 ## Targets for building Docker images:
 ##
