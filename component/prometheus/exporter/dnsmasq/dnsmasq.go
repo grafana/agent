@@ -32,8 +32,9 @@ func customizeTarget(baseTarget discovery.Target, args component.Arguments) []di
 
 // DefaultArguments holds the default arguments for the prometheus.exporter.dnsmasq component.
 var DefaultArguments = Arguments{
-	Address:    "localhost:53",
-	LeasesFile: "/var/lib/misc/dnsmasq.leases",
+	Address:      "localhost:53",
+	LeasesFile:   "/var/lib/misc/dnsmasq.leases",
+	ExposeLeases: false,
 }
 
 // Arguments configures the prometheus.exporter.dnsmasq component.
@@ -43,6 +44,9 @@ type Arguments struct {
 
 	// LeasesFile is the path to the dnsmasq leases file.
 	LeasesFile string `river:"leases_file,attr,optional"`
+
+	// ExposeLeases controls whether expose dnsmasq leases as metrics (high cardinality).
+	ExposeLeases bool `river:"expose_leases,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -54,5 +58,6 @@ func (a Arguments) Convert() *dnsmasq_exporter.Config {
 	return &dnsmasq_exporter.Config{
 		DnsmasqAddress: a.Address,
 		LeasesPath:     a.LeasesFile,
+		ExposeLeases:   a.ExposeLeases,
 	}
 }
