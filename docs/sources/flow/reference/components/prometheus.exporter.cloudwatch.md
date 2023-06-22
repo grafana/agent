@@ -13,8 +13,8 @@ title: prometheus.exporter.cloudwatch
 
 The `prometheus.exporter.cloudwatch` component embeds [`yet-another-cloudwatch-exporter`](https://github.com/nerdswords/yet-another-cloudwatch-exporter). `` lets you collect [CloudWatch metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html), translate them to prometheus-compatible format and remote write.
 
-This component lets you scrape CloudWatch metrics in a set of configurations that we will call *jobs*. There are
-two kind of jobs: [discovery][] and [static][].
+This component lets you scrape CloudWatch metrics in a set of configurations we call *jobs*. There are
+two kinds of jobs: [discovery][] and [static][].
 
 [discovery]: #discovery-block
 [static]: #static-block
@@ -112,7 +112,7 @@ prometheus.exporter.cloudwatch "queues" {
 
 ## Arguments
 
-The following arguments can be used to configure the exporter's behavior.
+You can use the following arguments to configure the exporter's behavior.
 Omitted fields take their default values.
 
 | Name                      | Type                | Description                                                                                                                                                                                                                            | Default | Required |
@@ -120,25 +120,26 @@ Omitted fields take their default values.
 | `sts_region`              | `string`            | AWS region to use when calling [STS][] for retrieving account information.                                                                                                                                                             |         | yes      |
 | `fips_disabled`           | `bool`              | Disable use of FIPS endpoints. Set 'true' when running outside of USA regions.                                                                                                                                                         | `true`  | no       |
 | `debug`                   | `bool`              | Enable debug logging on CloudWatch exporter internals.                                                                                                                                                                                 | `false` | no       |
-| `discovery_exported_tags` | `map(list(string))` | List of tags (value) per service (key) to export in all metrics. For example defining the `["name", "type"]` under `"AWS/EC2"` will export the name and type tags and its values as labels in all metrics. Affects all discovery jobs. | `{}`    | no       |
+| `discovery_exported_tags` | `map(list(string))` | List of tags (value) per service (key) to export in all metrics. For example, defining the `["name", "type"]` under `"AWS/EC2"` will export the name and type tags and its values as labels in all metrics. Affects all discovery jobs. | `{}`    | no       |
 
 [STS]: https://docs.aws.amazon.com/STS/latest/APIReference/welcome.html
 
 ## Blocks
 
-The following blocks are supported inside the definition of
-`prometheus.exporter.cloudwatch` to configure collector-specific options:
+You can use the following blocks  in`prometheus.exporter.cloudwatch` to configure collector-specific options:
 
 | Hierarchy          | Name          | Description                                                                                                                             | Required |
 | ------------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | discovery          | [discovery][] | Configures a discovery job. Multiple jobs can be configured.                                                                            | no*      |
 | discovery > role   | [role][]      | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
-| discovery > metric | [metric][]    | Configured the list of metrics the job should scrape. Multiple can be defined inside one job. target.                                   | yes      |
+| discovery > metric | [metric][]    | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
 | static             | [static][]    | Configures a static job. Multiple jobs can be configured.                                                                               | no*      |
 | static > role      | [role][]      | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
-| static > metric    | [metric][]    | Configured the list of metrics the job should scrape. Multiple can be defined inside one job. target.                                   | yes      |
+| static > metric    | [metric][]    | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
 
-Note that both the `static` and `discovery` blocks are marked with required `no*`. The caveat is that at least one job needs to be configured.
+{{% admonition type="note" %}}
+The `static` and `discovery` blocks are marked as not required, but you must configure at least one static or discovery job.
+{{% /admonition %}}
 
 [discovery]: #discovery-block
 [static]: #static-block
