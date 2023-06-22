@@ -50,7 +50,8 @@ func (b *BasicAuth) Convert() (t transport.AuthMethod) {
 
 type SSHKey struct {
 	Username   string            `river:"username,attr,optional"`
-	Keyfile    string            `river:"keyfile,attr,optional"`
+	Key        rivertypes.Secret `river:"key,attr,optional"`
+	Keyfile    string            `river:"key_file,attr,optional"`
 	Passphrase rivertypes.Secret `river:"passphrase,attr,optional"`
 }
 
@@ -59,9 +60,22 @@ func (s *SSHKey) Convert() (transport.AuthMethod, error) {
 	if s == nil {
 		return nil, nil
 	}
-	publickeys, err := ssh.NewPublicKeysFromFile(s.Username, s.Keyfile, string(s.Passphrase))
-	if err != nil {
-		return nil, fmt.Errorf("Loading SSH keys failed: %s", err.Error())
+
+	if s.Key != "" {
+		publickeys, err := ssh.NewPublicKeys(s.Username, []byte(s.Key), string(s.Passphrase))
+		if err != nil {
+			return nil, fmt.Errorf("Loading SSH keys failed: %s", err.Error())
+		}
+		return publickeys, nil
 	}
-	return publickeys, nil
+
+	if s.Keyfile != "" {
+		publickeys, err := ssh.NewPublicKeysFromFile(s.Username, s.Keyfile, string(s.Passphrase))
+		if err != nil {
+			return nil, fmt.Errorf("Loading SSH keys failed: %s", err.Error())
+		}
+		return publickeys, nil
+	}
+
+	return nil, nil
 }

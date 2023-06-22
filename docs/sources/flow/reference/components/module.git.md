@@ -77,8 +77,9 @@ arguments | [arguments][] | Arguments to pass to the module. | no
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`username` | `string` | SSH username. | | no
-`keyfile` | `string` | SSH private key path. | | no
+`username`  | `string` | SSH username. | | no
+`key`       | `string` | SSH private key | | no
+`key_file`  | `string` | SSH private key path. | | no
 `passphrase` | `secret` | Passphrase for SSH key if needed. | | no
 
 ### arguments block
@@ -165,6 +166,30 @@ module.git "add" {
 }
 ```
 
+Using SSH Key from another component:
+```river
+local.file "ssh_key" {
+  filename = "PATH/TO/SSH.KEY"
+  is_secret = true
+}
+
+module.git "add" {
+  repository = "github.com:rfratto/agent-modules.git"
+  revision   = "main"
+  path       = "add/module.river"
+
+  ssh_key {
+    username = "git"
+    key = local.file.ssh_key.content
+  }
+
+  arguments {
+    a = 15
+    b = 45
+  }
+}
+```
+
 The same example as above using SSH Key auth:
 ```river
 module.git "add" {
@@ -174,7 +199,7 @@ module.git "add" {
 
   ssh_key {
     username = "git"
-    keyfile = "PATH/TO/SSH.KEY"
+    key_file = "PATH/TO/SSH.KEY"
   }
 
   arguments {
