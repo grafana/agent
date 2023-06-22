@@ -207,6 +207,8 @@ func generatePodTemplate(
 		imagePathConfigReloader = *d.Agent.Spec.ConfigReloaderImage
 	}
 
+	boolFalse := false
+	boolTrue := true
 	operatorContainers := []core_v1.Container{
 		{
 			Name:         "config-reloader",
@@ -214,7 +216,11 @@ func generatePodTemplate(
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &core_v1.SecurityContext{
-				RunAsUser: pointer.Int64(0),
+				AllowPrivilegeEscalation: &boolFalse,
+				ReadOnlyRootFilesystem:   &boolTrue,
+				Capabilities: &core_v1.Capabilities{
+					Drop: []core_v1.Capability{"ALL"},
+				},
 			},
 			Args: []string{
 				"--config-file=/var/lib/grafana-agent/config-in/agent.yml",

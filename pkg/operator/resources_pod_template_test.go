@@ -98,6 +98,12 @@ func Test_generatePodTemplate(t *testing.T) {
 			assert.False(t, tmpl.Spec.Containers[i].SecurityContext.Privileged != nil &&
 				*tmpl.Spec.Containers[i].SecurityContext.Privileged,
 				"privileged is not required. Fargate cannot schedule privileged containers.")
+			assert.False(t, tmpl.Spec.Containers[i].SecurityContext.RunAsUser != nil &&
+				*tmpl.Spec.Containers[i].SecurityContext.RunAsUser == int64(0),
+				"force the container to run as root is not required.")
+			assert.False(t, tmpl.Spec.Containers[i].SecurityContext.AllowPrivilegeEscalation != nil &&
+				*tmpl.Spec.Containers[i].SecurityContext.AllowPrivilegeEscalation,
+				"allow privilege escalation is not required.")
 		}
 	})
 
@@ -110,9 +116,24 @@ func Test_generatePodTemplate(t *testing.T) {
 
 		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{Privileged: true})
 		require.NoError(t, err)
-		assert.True(t, tmpl.Spec.Containers[1].SecurityContext.Privileged != nil &&
-			*tmpl.Spec.Containers[1].SecurityContext.Privileged,
-			"privileged is needed if pod options say so.")
+		for i := range tmpl.Spec.Containers {
+			// only grafana-agent container is supposed to be privileged
+			if tmpl.Spec.Containers[i].Name == "grafana-agent" {
+				assert.True(t, tmpl.Spec.Containers[i].SecurityContext.Privileged != nil &&
+					*tmpl.Spec.Containers[i].SecurityContext.Privileged,
+					"privileged is needed for grafana-agent if pod options say so.")
+			} else {
+				assert.False(t, tmpl.Spec.Containers[i].SecurityContext.Privileged != nil &&
+					*tmpl.Spec.Containers[i].SecurityContext.Privileged,
+					"privileged is not required for other containers.")
+				assert.False(t, tmpl.Spec.Containers[i].SecurityContext.RunAsUser != nil &&
+					*tmpl.Spec.Containers[i].SecurityContext.RunAsUser == int64(0),
+					"force the container to run as root is not required for other containers.")
+				assert.False(t, tmpl.Spec.Containers[i].SecurityContext.AllowPrivilegeEscalation != nil &&
+					*tmpl.Spec.Containers[i].SecurityContext.AllowPrivilegeEscalation,
+					"allow privilege escalation is not required for other containers.")
+			}
+		}
 	})
 
 	t.Run("runtimeclassname set if passed in", func(t *testing.T) {
