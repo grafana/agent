@@ -46,7 +46,6 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/golang/snappy v0.0.4
 	github.com/google/cadvisor v0.47.0
-	github.com/google/dnsmasq_exporter v0.0.0-00010101000000-000000000000
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-jsonnet v0.18.0
 	github.com/google/pprof v0.0.0-20230602150820-91b7bce49751
@@ -89,7 +88,7 @@ require (
 	github.com/klauspost/compress v1.16.6
 	github.com/lib/pq v1.10.7
 	github.com/mackerelio/go-osstat v0.2.3
-	github.com/miekg/dns v1.1.54
+	github.com/miekg/dns v1.1.55
 	github.com/minio/pkg v1.5.8
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mitchellh/reflectwalk v1.0.2
@@ -141,7 +140,7 @@ require (
 	github.com/prometheus/memcached_exporter v0.10.0
 	github.com/prometheus/mysqld_exporter v0.14.0
 	github.com/prometheus/node_exporter v1.6.0
-	github.com/prometheus/procfs v0.10.1
+	github.com/prometheus/procfs v0.11.0
 	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f
 	github.com/prometheus/statsd_exporter v0.22.8
@@ -581,6 +580,8 @@ require github.com/edsrzf/mmap-go v1.1.0 // indirect
 
 require github.com/samber/lo v1.38.1 // indirect
 
+require github.com/google/dnsmasq_exporter v0.2.1-0.20230620100026-44b14480804a
+
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.0.0 // indirect
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
@@ -644,10 +645,16 @@ replace (
 
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
-	github.com/google/dnsmasq_exporter => github.com/grafana/dnsmasq_exporter v0.2.1-0.20211118155541-751b01d21de9
 	// Upstream seems to be inactive, see https://github.com/grafana/agent/issues/1845
 	github.com/infinityworks/github-exporter => github.com/grafana/github-exporter v0.0.0-20230418063919-fa34e926116a
+
+	// TODO(mattdurham): this is so you can debug on windows, when PR is merged into perflib, can you use that
+	// and eventually remove if windows_exporter shifts to it. https://github.com/leoluk/perflib_exporter/pull/43
+	github.com/leoluk/perflib_exporter => github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090
 	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
+
+	// TODO(mattdurham): this is to allow defaults to propogate properly.
+	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230609142740-b47fa97c3c47
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 	github.com/prometheus/snmp_exporter => github.com/grafana/snmp_exporter v0.20.1-0.20220405135227-49087c510bb1
 )
@@ -681,10 +688,3 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
-
-// TODO(mattdurham): this is so you can debug on windows, when PR is merged into perflib, can you use that
-// and eventually remove if windows_exporter shifts to it. https://github.com/leoluk/perflib_exporter/pull/43
-replace github.com/leoluk/perflib_exporter => github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090
-
-// TODO(mattdurham): this is to allow defaults to propogate properly.
-replace github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230609142740-b47fa97c3c47
