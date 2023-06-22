@@ -1,10 +1,11 @@
 package cloudwatch
 
 import (
+	"time"
+
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
-	"time"
 )
 
 // Since we are gathering metrics from CloudWatch and writing them in prometheus during each scrape, the timestamp
