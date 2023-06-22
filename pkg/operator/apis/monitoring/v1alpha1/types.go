@@ -89,6 +89,15 @@ type GrafanaAgentSpec struct {
 	// Grafana Agent Operator knows which version of Grafana Agent is being
 	// configured.
 	Image *string `json:"image,omitempty"`
+
+	// Version of Config Reloader to be deployed.
+	ConfigReloaderVersion string `json:"configReloaderVersion,omitempty"`
+	// Image, when specified, overrides the image used to run Config Reloader. Specify
+	// the image along with a tag. You still need to set the version to ensure
+	// Grafana Agent Operator knows which version of Grafana Agent is being
+	// configured.
+	ConfigReloaderImage *string `json:"configReloaderImage,omitempty"`
+
 	// ImagePullSecrets holds an optional list of references to Secrets within
 	// the same namespace used for pulling the Grafana Agent image from
 	// registries.
