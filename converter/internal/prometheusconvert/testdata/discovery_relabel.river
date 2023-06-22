@@ -16,7 +16,9 @@ prometheus.remote_write "default" {
 }
 
 discovery.relabel "prometheus1" {
-	targets = []
+	targets = [{
+		__address__ = "localhost:9090",
+	}]
 
 	rule {
 		source_labels = ["__address1__"]
@@ -40,10 +42,7 @@ discovery.relabel "prometheus1" {
 }
 
 prometheus.scrape "prometheus1" {
-	targets = concat([{
-		__address__ = "localhost:9090",
-	}],
-		discovery.relabel.prometheus1.targets)
+	targets    = discovery.relabel.prometheus1.targets
 	forward_to = [prometheus.remote_write.default.receiver]
 	job_name   = "prometheus1"
 }
@@ -59,7 +58,10 @@ discovery.azure "prometheus2" {
 }
 
 discovery.relabel "prometheus2" {
-	targets = discovery.azure.prometheus2.targets
+	targets = concat(discovery.azure.prometheus2.targets,
+		[{
+			__address__ = "localhost:9091",
+		}])
 
 	rule {
 		source_labels = ["__address1__"]
@@ -75,10 +77,7 @@ discovery.relabel "prometheus2" {
 }
 
 prometheus.scrape "prometheus2" {
-	targets = concat([{
-		__address__ = "localhost:9091",
-	}],
-		discovery.relabel.prometheus2.targets)
+	targets    = discovery.relabel.prometheus2.targets
 	forward_to = [prometheus.remote_write.default.receiver]
 	job_name   = "prometheus2"
 }

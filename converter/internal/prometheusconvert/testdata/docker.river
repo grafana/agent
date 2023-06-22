@@ -20,10 +20,10 @@ discovery.docker "prometheus1" {
 }
 
 prometheus.scrape "prometheus1" {
-	targets = concat([{
-		__address__ = "localhost:9090",
-	}],
-		discovery.docker.prometheus1.targets)
+	targets = concat(discovery.docker.prometheus1.targets,
+		[{
+			__address__ = "localhost:9090",
+		}])
 	forward_to = [prometheus.remote_write.default.receiver]
 	job_name   = "prometheus1"
 }

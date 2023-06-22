@@ -68,14 +68,12 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
-		scrapeTargets, discoveryTargets, newDiags := appendServiceDiscoveryConfigs(f, scrapeConfig.ServiceDiscoveryConfigs, scrapeConfig.JobName)
+		scrapeTargets, newDiags := appendServiceDiscoveryConfigs(f, scrapeConfig.ServiceDiscoveryConfigs, scrapeConfig.JobName)
 		diags = append(diags, newDiags...)
 
-		promDiscoveryRelabelExports := appendDiscoveryRelabel(f, scrapeConfig.RelabelConfigs, scrapeConfig.JobName, discoveryTargets)
+		promDiscoveryRelabelExports := appendDiscoveryRelabel(f, scrapeConfig.RelabelConfigs, scrapeConfig.JobName, scrapeTargets)
 		if promDiscoveryRelabelExports != nil {
-			scrapeTargets = append(scrapeTargets, promDiscoveryRelabelExports.Output...)
-		} else {
-			scrapeTargets = append(scrapeTargets, discoveryTargets...)
+			scrapeTargets = promDiscoveryRelabelExports.Output
 		}
 
 		appendPrometheusScrape(f, scrapeConfig, scrapeForwardTo, scrapeTargets)
@@ -87,17 +85,16 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics
 // appendServiceDiscoveryConfigs will loop through the service discovery
 // configs and append them to the file. This returns the scrape targets
 // and discovery targets as a result.
-func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig prom_discover.Configs, label string) ([]discovery.Target, []discovery.Target, diag.Diagnostics) {
+func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig prom_discover.Configs, label string) ([]discovery.Target, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	var scrapeTargets []discovery.Target
-	var discoveryTargets []discovery.Target
+	var targets []discovery.Target
 	labelCounts := make(map[string]int)
 	for _, serviceDiscoveryConfig := range serviceDiscoveryConfig {
 		var exports discovery.Exports
 		var newDiags diag.Diagnostics
 		switch sdc := serviceDiscoveryConfig.(type) {
 		case prom_discover.StaticConfig:
-			scrapeTargets = append(scrapeTargets, getScrapeTargets(sdc)...)
+			targets = append(targets, getScrapeTargets(sdc)...)
 		case *prom_azure.SDConfig:
 			labelCounts["azure"]++
 			exports, newDiags = appendDiscoveryAzure(f, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
@@ -130,8 +127,8 @@ func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig prom_
 		}
 
 		diags = append(diags, newDiags...)
-		discoveryTargets = append(discoveryTargets, exports.Targets...)
+		targets = append(exports.Targets, targets...)
 	}
 
-	return scrapeTargets, discoveryTargets, diags
+	return targets, diags
 }

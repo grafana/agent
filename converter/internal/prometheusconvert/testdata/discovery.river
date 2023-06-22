@@ -52,8 +52,11 @@ discovery.azure "prometheus1_2" {
 }
 
 discovery.relabel "prometheus1" {
-	targets = concat(discovery.azure.prometheus1.targets,
-		discovery.azure.prometheus1_2.targets)
+	targets = concat(discovery.azure.prometheus1_2.targets,
+		discovery.azure.prometheus1.targets,
+		[{
+			__address__ = "localhost:9090",
+		}])
 
 	rule {
 		source_labels = ["__address1__"]
@@ -69,10 +72,7 @@ discovery.relabel "prometheus1" {
 }
 
 prometheus.scrape "prometheus1" {
-	targets = concat([{
-		__address__ = "localhost:9090",
-	}],
-		discovery.relabel.prometheus1.targets)
+	targets    = discovery.relabel.prometheus1.targets
 	forward_to = [prometheus.relabel.prometheus1.receiver]
 	job_name   = "prometheus1"
 }
