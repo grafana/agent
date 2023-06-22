@@ -68,7 +68,6 @@ func (a *Arguments) SetToDefault() {
 }
 
 func (a *Arguments) Convert() *elasticsearch_exporter.Config {
-
 	return &elasticsearch_exporter.Config{
 		Address:                   a.Address,
 		Timeout:                   a.Timeout,
