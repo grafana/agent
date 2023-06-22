@@ -14,6 +14,7 @@ v0.34.3 (2023-06-27)
 
 - Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 - Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
 
 v0.34.2 (2023-06-20)
 --------------------
@@ -28,8 +29,6 @@ v0.34.2 (2023-06-20)
 - Fix a bug where `prometheus.relabel` would not correctly relabel when there is a cache miss. (@thampiotr)
 - Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
 - Fixes several issues with statsd exporter. (@jcreixell, @marctc)
-
-
 
 ### Other changes
 
