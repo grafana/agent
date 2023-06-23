@@ -9,7 +9,7 @@ aliases:
 
 # Install Grafana Agent Flow on Windows
 
-You can install Grafana Agent Flow on Windows.
+You can install Grafana Agent Flow on Windows with the stanadrd graphical installer, or as a silent install.
 
 ## Graphical install
 
@@ -40,3 +40,7 @@ You can install Grafana Agent Flow on Windows.
 [latest]: https://github.com/grafana/agent/releases/latest
 
 ## Uninstall
+
+You can uninstall Grafana Agent Flow with Windows Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`. Uninstalling Grafana Agent Flow will stop the service and remove it from disk. This includes any configuration files in the installation directory. 
+
+Grafana Agent Flow can also be silently uninstalled by running `uninstall.exe /S` as Administrator.

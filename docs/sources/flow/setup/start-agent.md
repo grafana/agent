@@ -11,7 +11,7 @@ You can start, restart, and stop Grafana Agent Flow after it is installed.
 
 ## Linux
 
-Grafana Agent Flow is configured as a [systemd][] service on Linux.
+Grafana Agent Flow is installed as a [systemd][] service on Linux.
 
 [systemd]: https://systemd.io/
 
@@ -65,8 +65,16 @@ sudo journalctl -u grafana-agent-flow
 
 ## Windows
 
-After installing Grafana Agent Flow on Windows, it will be exposed as a Windows
-Service, where it automatically runs on startup.
+Grafana Agent Flow is installed as a Windows Service. The service is configured to automatically run on startup.
+
+To verify that Grafana Agent Flow is running as a Windows Service:
+
+1. Open the Windows Services manager (services.msc):
+
+   1. Right click on the Start Menu and select **Run**.
+   1. Type: `services.msc` and click **OK**.
+
+1. Scroll down to find the **Grafana Agent Flow** service and verify that the **Status** is **Running**.
 
 ### View Grafana Agent Flow logs
 
@@ -76,16 +84,14 @@ Logs with an event source name of "Grafana Agent Flow".
 To view the logs, perform the following steps:
 
 1. Open the Event Viewer:
-   1. Right click on the Start Menu icon.
-   1. Click on **Run**.
-   1. In the resulting dialog box, type `eventvwr`.
-   1. Click **OK**.
-1. In the Event Viewer, click on Windows Logs > Application.
-1. Search for events with the source called "Grafana Agent Flow."
+   1. Right click on the Start Menu and select **Run**.
+   1. Type `eventvwr` and click **OK**.
+1. In the Event Viewer, click on **Windows Logs > Application**.
+1. Search for events with the source **Grafana Agent Flow**.
 
 ## macOS
 
-Grafana Agent Flow is configured as a launchd service on macOS. 
+Grafana Agent Flow is installed as a launchd service on macOS. 
 
 ### Start Grafana Agent Flow
 
