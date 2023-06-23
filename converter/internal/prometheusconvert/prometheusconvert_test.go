@@ -42,7 +42,6 @@ func TestConvert(t *testing.T) {
 					} else {
 						require.Fail(t, "unexpected error count reach for error: "+diag.String())
 					}
-
 				}
 
 				outputFile := strings.TrimSuffix(path, promSuffix) + flowSuffix
