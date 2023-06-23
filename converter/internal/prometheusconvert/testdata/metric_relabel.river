@@ -1,14 +1,7 @@
 prometheus.scrape "prometheus1" {
-	targets = concat(
-		[{
-			__address__ = "localhost:9091",
-			app         = "foo",
-		}],
-		[{
-			__address__ = "localhost:9091",
-			app         = "foo",
-		}],
-	)
+	targets = [{
+		__address__ = "localhost:9090",
+	}]
 	forward_to      = [prometheus.remote_write.default.receiver]
 	job_name        = "prometheus1"
 	scrape_interval = "10s"
@@ -21,19 +14,27 @@ prometheus.scrape "prometheus1" {
 }
 
 prometheus.scrape "prometheus2" {
-	targets = concat(
-		[{
-			__address__ = "localhost:9091",
-		}],
-		[{
-			__address__ = "localhost:9092",
-		}],
-		[{
-			__address__ = "localhost:9093",
-		}],
-	)
-	forward_to = [prometheus.remote_write.default.receiver]
+	targets = [{
+		__address__ = "localhost:9091",
+	}]
+	forward_to = [prometheus.relabel.prometheus2.receiver]
 	job_name   = "prometheus2"
+}
+
+prometheus.relabel "prometheus2" {
+	forward_to = [prometheus.remote_write.default.receiver]
+
+	rule {
+		source_labels = ["__address1__"]
+		regex         = "^(?:(.*))$"
+		target_label  = "__param_target1"
+	}
+
+	rule {
+		source_labels = ["__address2__"]
+		regex         = "^(?:(.*))$"
+		target_label  = "__param_target2"
+	}
 }
 
 prometheus.remote_write "default" {
