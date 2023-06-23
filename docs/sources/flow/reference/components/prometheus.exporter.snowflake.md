@@ -84,9 +84,9 @@ from `prometheus.exporter.snowflake`:
 ```river
 prometheus.exporter.snowflake "example" {
   account_name = "XXXXXXX-YYYYYYY"
-  username     = "USERNAME"
-  password     = "PASSWORD"
-  warehouse    = "WAREHOUSE"
+  username     = "grafana"
+  password     = "snowflake"
+  warehouse    = "examples"
 }
 
 // Configure a prometheus.scrape component to collect snowflake metrics.
