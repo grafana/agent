@@ -7,6 +7,8 @@ import (
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/ohler55/ojg/jp"
+	"github.com/ohler55/ojg/oj"
 )
 
 // Identifiers holds a list of stdlib identifiers by name. All interface{}
@@ -77,6 +79,20 @@ var Identifiers = map[string]interface{}{
 			return nil, err
 		}
 		return res, nil
+	},
+
+	"json_path": func(jsonString string, path string) (interface{}, error) {
+		jsonPathExpr, err := jp.ParseString(path)
+		if err != nil {
+			return nil, err
+		}
+
+		jsonExpr, err := oj.ParseString(jsonString)
+		if err != nil {
+			return nil, err
+		}
+
+		return jsonPathExpr.Get(jsonExpr), nil
 	},
 
 	"coalesce": value.RawFunction(func(funcValue value.Value, args ...value.Value) (value.Value, error) {

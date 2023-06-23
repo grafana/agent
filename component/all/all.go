@@ -64,6 +64,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/blackbox"             // Import prometheus.exporter.blackbox
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"               // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/dnsmasq"              // Import prometheus.exporter.dnsmasq
+	_ "github.com/grafana/agent/component/prometheus/exporter/elasticsearch"        // Import prometheus.exporter.elasticsearch
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"               // Import prometheus.exporter.github
 	_ "github.com/grafana/agent/component/prometheus/exporter/kafka"                // Import prometheus.exporter.kafka
 	_ "github.com/grafana/agent/component/prometheus/exporter/memcached"            // Import prometheus.exporter.memcached
