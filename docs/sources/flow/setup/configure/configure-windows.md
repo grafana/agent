@@ -10,18 +10,18 @@ weight: 400
 To configure Grafana Agent Flow when installed on Windows, perform the following
 steps:
 
-1. Edit the default configuration file at `C:\Program Files\Grafana Agent
-   Flow\config.river`.
+1. Edit the default configuration file at `C:\Program Files\Grafana Agent Flow\config.river`.
+
 1. Restart the Grafana Agent Flow service:
+
    1. Open the Windows Services manager (`services.msc`):
 
-      1. Right click on the Start Menu icon.
-      1. Click on **Run**.
-      1. In the resulting dialog box, type `services.msc`.
-      1. Click **OK**.
+      1. Right click on the Start Menu and select **Run**.
 
-   1. Right click on the service called "Grafana Agent Flow".
-   1. In the resulting dialog menu, click on All Tasks > Restart.
+      1. Type `services.msc` and click **OK**.
+
+   1. Right click on the service called **Grafana Agent Flow**.
+   1. Click on **All Tasks > Restart**.
 
 ## Change command-line arguments
 
@@ -37,26 +37,27 @@ binary, perform the following steps:
 
 1. Open the Registry Editor:
 
-   1. Right click on the Start Menu icon.
-   1. Click on **Run**.
-   1. In the resulting dialog box, type `regedit`.
-   1. Click **OK**.
+   1. Right click on the Start Menu and select **Run**.
 
-1. Navigate to the key at the path `HKEY_LOCAL_MACHINE\SOFTWARE\Grafana\Grafana
-   Agent Flow`.
+   1. Type `regedit` and click **OK**.
+
+1. Navigate to the key at the path `HKEY_LOCAL_MACHINE\SOFTWARE\Grafana\Grafana Agent Flow`.
+
 1. Double-click on the value called "Arguments".
-1. In the resulting dialog box, enter the new set of arguments to pass to the
-   Grafana Agent Flow binary.
+
+1. In the resulting dialog box, enter the new set of arguments to pass to the Grafana Agent Flow binary.
+
 1. Restart the Grafana Agent Flow service:
+
    1. Open the Windows Services manager (`services.msc`):
 
-      1. Right click on the Start Menu icon.
-      1. Click on **Run**.
-      1. In the resulting dialog box, type `services.msc`.
-      1. Click **OK**.
+      1. 1. Right click on the Start Menu and select **Run**.
 
-   1. Right click on the service called "Grafana Agent Flow".
-   1. In the resulting dialog menu, click on All Tasks > Restart.
+      1. Type `services.msc` and click **OK**.
+
+   1. Right click on the service called **Grafana Agent Flow**.
+
+   1. Click on **All Tasks > Restart**.
 
 ## Expose the UI to other machines
 

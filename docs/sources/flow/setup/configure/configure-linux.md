@@ -10,6 +10,7 @@ weight: 200
 To configure Grafana Agent Flow on Linux, perform the following steps:
 
 1. Edit the default configuration file at `/etc/grafana-agent-flow.river`.
+
 1. Run the following command in a terminal to reload the configuration file:
 
    ```shell
@@ -25,6 +26,7 @@ To change the configuration file used by the service, perform the following step
 
 1. Change the contents of the `CONFIG_FILE` environment variable to point to
    the new configuration file to use.
+
 1. Restart the Grafana Agent Flow service:
 
    ```shell
@@ -48,6 +50,7 @@ the following steps:
 
 1. Change the contents of the `CUSTOM_ARGS` environment variable to specify
    command-line flags to pass.
+   
 1. Restart the Grafana Agent Flow service:
 
    ```shell

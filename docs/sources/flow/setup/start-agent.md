@@ -72,6 +72,7 @@ To verify that Grafana Agent Flow is running as a Windows Service:
 1. Open the Windows Services manager (services.msc):
 
    1. Right click on the Start Menu and select **Run**.
+
    1. Type: `services.msc` and click **OK**.
 
 1. Scroll down to find the **Grafana Agent Flow** service and verify that the **Status** is **Running**.
@@ -84,9 +85,13 @@ Logs with an event source name of "Grafana Agent Flow".
 To view the logs, perform the following steps:
 
 1. Open the Event Viewer:
+
    1. Right click on the Start Menu and select **Run**.
+
    1. Type `eventvwr` and click **OK**.
+
 1. In the Event Viewer, click on **Windows Logs > Application**.
+
 1. Search for events with the source **Grafana Agent Flow**.
 
 ## macOS

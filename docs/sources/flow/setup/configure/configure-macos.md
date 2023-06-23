@@ -13,7 +13,7 @@ steps:
 1. Edit the default configuration file at
    `$(brew --prefix)/etc/grafana-agent-flow/config.river`.
 
-2. Run the following command in a terminal to restart the Grafana Agent Flow
+1. Run the following command in a terminal to restart the Grafana Agent Flow
    service:
 
    ```shell

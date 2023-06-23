@@ -14,9 +14,13 @@ You can install Grafana Agent Flow on Windows with the stanadrd graphical instal
 ## Graphical install
 
 1. Navigate to the [latest release][latest].
+
 1. Scroll down to the **Assets** section.
+
 1. Download the file called `grafana-agent-flow-installer.exe.zip`.
+
 1. Unzip the downloaded file.
+
 1. Double-click on the unzipped installer to run it.
 
 [latest]: https://github.com/grafana/agent/releases/latest
@@ -24,9 +28,13 @@ You can install Grafana Agent Flow on Windows with the stanadrd graphical instal
 ## Silent install
 
 1. Navigate to the [latest release][latest].
+
 1. Scroll down to the **Assets** section.
+
 1. Download the file called `grafana-agent-flow-installer.exe.zip`.
+
 1. Unzip the downloaded file.
+
 1. Run the following command in PowerShell or Command Prompt:
 
    ```shell
