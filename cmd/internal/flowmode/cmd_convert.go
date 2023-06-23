@@ -14,15 +14,13 @@ import (
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/parser"
-	"github.com/grafana/agent/pkg/river/printer"
 )
 
 func convertCommand() *cobra.Command {
 	f := &flowConvert{
-		write:                 false,
-		convertSourceFormat:   "",
-		convertBypassWarnings: false,
+		write:          false,
+		sourceFormat:   "",
+		bypassWarnings: false,
 	}
 
 	cmd := &cobra.Command{
@@ -33,7 +31,7 @@ a River configuration file.
 
 If the file argument is not supplied or if the file argument is "-", then convert will read from stdin.
 
-The -w flag can be used to write the formatted file back to disk. Output will be written to FILEPATH.river. -w can not be provided when convert is reading from stdin. When -w is not provided, fmt will write the result to stdout.
+The -w flag can be used to write the formatted file back to disk. Output will be written to SOURCE_FILEPATH.river. -w can not be provided when convert is reading from stdin. When -w is not provided, fmt will write the result to stdout.
 
 The -f flag can be used to specify the format we are converting from.
 
@@ -65,15 +63,15 @@ The -b flag can be used to bypass warnings.`,
 	}
 
 	cmd.Flags().BoolVarP(&f.write, "write", "w", f.write, "Write the converted file back to disk when not reading from standard input.")
-	cmd.Flags().StringVarP(&f.convertSourceFormat, "convert.source-format", "f", f.convertSourceFormat, "The format of the source file. Supported formats: 'prometheus'.")
-	cmd.Flags().BoolVarP(&f.convertBypassWarnings, "convert.bypass-warnings", "b", f.convertBypassWarnings, "Enable bypassing warnings when converting")
+	cmd.Flags().StringVarP(&f.sourceFormat, "source-format", "f", f.sourceFormat, "The format of the source file. Supported formats: 'prometheus'.")
+	cmd.Flags().BoolVarP(&f.bypassWarnings, "bypass-warnings", "b", f.bypassWarnings, "Enable bypassing warnings when converting")
 	return cmd
 }
 
 type flowConvert struct {
-	write                 bool
-	convertSourceFormat   string
-	convertBypassWarnings bool
+	write          bool
+	sourceFormat   string
+	bypassWarnings bool
 }
 
 func (fc *flowConvert) Run(configFile string) error {
@@ -90,7 +88,7 @@ func (fc *flowConvert) Run(configFile string) error {
 			return err
 		}
 		if fi.IsDir() {
-			return fmt.Errorf("cannot format a directory")
+			return fmt.Errorf("cannot convert a directory")
 		}
 
 		f, err := os.Open(configFile)
@@ -109,28 +107,14 @@ func convert(filename string, fi os.FileInfo, r io.Reader, fc *flowConvert) erro
 	}
 
 	var buf bytes.Buffer
-	if fc.convertSourceFormat != "" {
-		var diags convert_diag.Diagnostics
-		bb, diags = converter.Convert(bb, converter.Input(fc.convertSourceFormat))
-		hasErrors := diags.HasErrorLevel(convert_diag.SeverityLevelError)
-		hasWarns := diags.HasErrorLevel(convert_diag.SeverityLevelWarn)
-		if hasErrors || (!fc.convertBypassWarnings && hasWarns) {
-			return diags
-		}
-		buf.WriteString(string(bb))
-	} else {
-		f, err := parser.ParseFile(filename, bb)
-		if err != nil {
-			return err
-		}
-
-		if err := printer.Fprint(&buf, f); err != nil {
-			return err
-		}
-
-		// Add a newline at the end of the file.
-		_, _ = buf.Write([]byte{'\n'})
+	var diags convert_diag.Diagnostics
+	bb, diags = converter.Convert(bb, converter.Input(fc.sourceFormat))
+	hasErrors := diags.HasErrorLevel(convert_diag.SeverityLevelError)
+	hasWarns := diags.HasErrorLevel(convert_diag.SeverityLevelWarn)
+	if hasErrors || (!fc.bypassWarnings && hasWarns) {
+		return diags
 	}
+	buf.WriteString(string(bb))
 
 	if !fc.write {
 		_, err := io.Copy(os.Stdout, &buf)
