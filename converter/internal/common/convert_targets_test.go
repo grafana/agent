@@ -27,7 +27,7 @@ func TestOptionalSecret_Write(t *testing.T) {
 			value: common.ConvertTargets{
 				Targets: []discovery.Target{{}},
 			},
-			expect: `[]`,
+			expect: ``,
 		},
 		{
 			name: "__address__ key",
@@ -39,41 +39,63 @@ func TestOptionalSecret_Write(t *testing.T) {
 }]`,
 		},
 		{
-			name: "multiple __address__ key",
+			name: "__address__ key label",
 			value: common.ConvertTargets{
-				Targets: []discovery.Target{{"__address__": "testing"}, {"__address__": "testing2"}},
+				Targets: []discovery.Target{{"__address__": "testing", "label": "value"}},
 			},
-			expect: `concat([{
+			expect: `[{
 	__address__ = "testing",
-}],
+	label       = "value",
+}]`,
+		},
+		{
+			name: "multiple __address__ key label",
+			value: common.ConvertTargets{
+				Targets: []discovery.Target{
+					{"__address__": "testing", "label": "value"},
+					{"__address__": "testing2", "label": "value"},
+				},
+			},
+			expect: `concat(
+	[{
+		__address__ = "testing",
+		label       = "value",
+	}],
 	[{
 		__address__ = "testing2",
-	}])`,
+		label       = "value",
+	}],
+)`,
 		},
 		{
-			name: "non __address__ key",
+			name: "__expr__ key",
 			value: common.ConvertTargets{
-				Targets: []discovery.Target{{"key": ""}},
+				Targets: []discovery.Target{{"__expr__": "testing"}},
 			},
-			expect: `key`,
+			expect: `testing`,
 		},
 		{
-			name: "multiple non __address__ key",
+			name: "multiple __expr__ key",
 			value: common.ConvertTargets{
-				Targets: []discovery.Target{{"key": ""}, {"key2": ""}},
+				Targets: []discovery.Target{{"__expr__": "testing"}, {"__expr__": "testing2"}},
 			},
-			expect: `concat(key,
-	key2)`,
+			expect: `concat(
+	testing,
+	testing2,
+)`,
 		},
 		{
 			name: "both key types",
 			value: common.ConvertTargets{
-				Targets: []discovery.Target{{"__address__": "testing"}, {"key": ""}},
+				Targets: []discovery.Target{{"__address__": "testing", "label": "value"}, {"__expr__": "testing2"}},
 			},
-			expect: `concat([{
-	__address__ = "testing",
-}],
-	key)`,
+			expect: `concat(
+	[{
+		__address__ = "testing",
+		label       = "value",
+	}],
+	testing2,
+)`,
 		},
 	}
 
