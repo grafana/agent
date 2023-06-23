@@ -17,7 +17,7 @@ The `prometheus.exporter.kafka` component embeds
 
 ```river
 prometheus.exporter.kafka "LABEL" {
-    kafka_uris = ["localhost:9200"]
+    kafka_uris = KAFKA_URI_LIST
 }
 ```
 
@@ -95,21 +95,24 @@ prometheus.exporter.kafka "example" {
 
 // Configure a prometheus.scrape component to send metrics to.
 prometheus.scrape "demo" {
-  targets    = [prometheus.exporter.kafka.example.targets]
+  targets    = prometheus.exporter.kafka.example.targets
   forward_to = [prometheus.remote_write.demo.receiver]
 }
 
-// prometheus.remote_write component.
 prometheus.remote_write "demo" {
   endpoint {
-    url = "http://mimir:9009/api/v1/push"
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
     basic_auth {
-      username = "example-user"
-      password = "example-password"
+      username = USERNAME
+      password = PASSWORD
     }
   }
 }
-
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

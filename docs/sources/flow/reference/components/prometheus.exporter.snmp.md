@@ -17,16 +17,11 @@ The `prometheus.exporter.snmp` component embeds
 
 ```river
 prometheus.exporter.snmp "LABEL" {
-  config_file = "PATH_SNMP_CONFIG_FILE"
+  config_file = SNMP_CONFIG_FILE_PATH
 
   target "TARGET_NAME" {
-    address = "TARGET_ADDRESS"
+    address = TARGET_ADDRESS
   }
-
-  walk_param "PARAM_NAME" {
-  }
-
-  ...
 }
 ```
 
@@ -179,8 +174,23 @@ prometheus.exporter.snmp "example" {
 // Configure a prometheus.scrape component to collect SNMP metrics.
 prometheus.scrape "demo" {
     targets    = prometheus.exporter.snmp.example.targets
-    forward_to = [ /* ... */ ]
+    forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+    endpoint {
+        url = PROMETHEUS_REMOTE_WRITE_URL
+
+        basic_auth {
+            username = USERNAME
+            password = PASSWORD
+        }
+    }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

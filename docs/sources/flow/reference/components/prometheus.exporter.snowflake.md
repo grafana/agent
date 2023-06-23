@@ -17,10 +17,10 @@ The `prometheus.exporter.snowflake` component embeds
 
 ```river
 prometheus.exporter.snowflake "LABEL" {
-    account_name = "ACCOUNT_NAME"
-    username =     "USERNAME"
-    password =     "PASSWORD"
-    warehouse =    "WAREHOUSE"
+    account_name = ACCOUNT_NAME
+    username =     USERNAME
+    password =     PASSWORD
+    warehouse =    WAREHOUSE
 }
 ```
 
@@ -92,14 +92,23 @@ prometheus.exporter.snowflake "example" {
 // Configure a prometheus.scrape component to collect snowflake metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.snowflake.example.targets
-  forward_to = [ prometheus.remote_write.default.receiver ]
+  forward_to = [prometheus.remote_write.demo.receiver]
 }
 
-prometheus.remote_write "default" {
+prometheus.remote_write "demo" {
   endpoint {
-    url = "REMOTE_WRITE_URL"
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
   }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
