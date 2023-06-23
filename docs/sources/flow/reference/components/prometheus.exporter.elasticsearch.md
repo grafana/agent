@@ -31,7 +31,7 @@ prometheus.exporter.elasticsearch "LABEL" {
 ```
 
 ## Arguments
-The following arguments can be used to configure the exporter's behavior.
+You can use the following arguments to configure the exporter's behavior.
 Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
