@@ -3,21 +3,21 @@ title: grafana-agent fmt
 weight: 100
 ---
 
-# `agent fmt` command
+# `grafana-agent fmt` command
 
-The `agent fmt` command formats a given Grafana Agent Flow configuration file.
+The `grafana-agent fmt` command formats a given Grafana Agent Flow configuration file.
 
 ## Usage
 
-Usage: `agent fmt [FLAG ...] FILE_NAME`
+Usage: `grafana-agent fmt [FLAG ...] FILE_NAME`
 
 If the `FILE_NAME` argument is not provided or if the `FILE_NAME` argument is
-equal to `-`, `agent fmt` formats the contents of standard input. Otherwise,
-`agent fmt` reads and formats the file from disk specified by the argument.
+equal to `-`, `grafana-agent fmt` formats the contents of standard input. Otherwise,
+`grafana-agent fmt` reads and formats the file from disk specified by the argument.
 
 The `--write` flag can be specified to replace the contents of the original
 file on disk with the formatted results. `--write` can only be provided when
-`agent fmt` is not reading from standard input.
+`grafana-agent fmt` is not reading from standard input.
 
 The command fails if the file being formatted has syntactically incorrect River
 configuration, but does not validate whether Flow components are configured
@@ -27,7 +27,3 @@ The following flags are supported:
 
 * `--write`, `-w`: Write the formatted file back to disk when not reading from
   standard input.
-
-* `--convert.source-format`, `-f`: The source of the file for reformatting to flow. Only use when translating from a format other than river.  Supported formats: 'prometheus'.
-
-* `--convert.bypass-warnings`, `-b`: Enable bypassing warnings when converting from non-river to river.
