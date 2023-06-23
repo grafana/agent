@@ -6,15 +6,14 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendPrometheusScrape(f *builder.File, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) {
+func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) {
 	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
-	common.AppendBlockWithOverride(f, []string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
+	pb.prometheusScrapeBlocks = common.AppendNewBlockWithOverride(pb.prometheusScrapeBlocks, []string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
 }
 
 func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {

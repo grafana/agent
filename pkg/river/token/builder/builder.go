@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"reflect"
-	"sort"
 	"strings"
 
 	"github.com/grafana/agent/pkg/river/internal/reflectutil"
@@ -85,15 +84,6 @@ type Body struct {
 }
 
 type ValueOverrideHook = func(val interface{}) interface{}
-
-func (b *Body) Nodes() []tokenNode {
-	return b.nodes
-}
-
-// SortNodes allows us to sort the nodes after they have already been appended.
-func (b *Body) StableSortNodes(sortHook func(i, j int) bool) {
-	sort.SliceStable(b.nodes, sortHook)
-}
 
 // SetValueOverrideHook sets a hook to override the value that will be token
 // encoded. The hook can mutate the value to be encoded or should return it

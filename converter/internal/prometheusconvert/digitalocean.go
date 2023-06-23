@@ -10,14 +10,13 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_config "github.com/prometheus/common/config"
 	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 )
 
-func appendDiscoveryDigitalOcean(f *builder.File, label string, sdConfig *prom_digitalocean.SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *prom_digitalocean.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryDigitalOceanArgs, diags := toDiscoveryDigitalOcean(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "digitalocean"}, label, discoveryDigitalOceanArgs)
+	pb.discoveryBlocks = common.AppendNewBlockWithOverride(pb.discoveryBlocks, []string{"discovery", "digitalocean"}, label, discoveryDigitalOceanArgs)
 	return newDiscoverExports("discovery.digitalocean." + label + ".targets"), diags
 }
 

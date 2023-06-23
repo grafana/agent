@@ -8,13 +8,12 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_consul "github.com/prometheus/prometheus/discovery/consul"
 )
 
-func appendDiscoveryConsul(f *builder.File, label string, sdConfig *prom_consul.SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryConsul(pb *prometheusBlocks, label string, sdConfig *prom_consul.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryConsulArgs, diags := toDiscoveryConsul(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "consul"}, label, discoveryConsulArgs)
+	pb.discoveryBlocks = common.AppendNewBlockWithOverride(pb.discoveryBlocks, []string{"discovery", "consul"}, label, discoveryConsulArgs)
 	return newDiscoverExports("discovery.consul." + label + ".targets"), diags
 }
 

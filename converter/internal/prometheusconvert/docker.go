@@ -7,13 +7,12 @@ import (
 	"github.com/grafana/agent/component/discovery/docker"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 )
 
-func appendDiscoveryDocker(f *builder.File, label string, sdConfig *prom_docker.DockerSDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryDocker(pb *prometheusBlocks, label string, sdConfig *prom_docker.DockerSDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryDockerArgs, diags := toDiscoveryDocker(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "docker"}, label, discoveryDockerArgs)
+	pb.discoveryBlocks = common.AppendNewBlockWithOverride(pb.discoveryBlocks, []string{"discovery", "docker"}, label, discoveryDockerArgs)
 	return newDiscoverExports("discovery.docker." + label + ".targets"), diags
 }
 

@@ -9,14 +9,13 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_config "github.com/prometheus/common/config"
 	prom_azure "github.com/prometheus/prometheus/discovery/azure"
 )
 
-func appendDiscoveryAzure(f *builder.File, label string, sdConfig *prom_azure.SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryAzure(pb *prometheusBlocks, label string, sdConfig *prom_azure.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryAzureArgs, diags := toDiscoveryAzure(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "azure"}, label, discoveryAzureArgs)
+	pb.discoveryBlocks = common.AppendNewBlockWithOverride(pb.discoveryBlocks, []string{"discovery", "azure"}, label, discoveryAzureArgs)
 	return newDiscoverExports("discovery.azure." + label + ".targets"), diags
 }
 

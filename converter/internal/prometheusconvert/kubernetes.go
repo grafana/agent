@@ -6,13 +6,12 @@ import (
 	"github.com/grafana/agent/component/discovery/kubernetes"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 )
 
-func appendDiscoveryKubernetes(f *builder.File, label string, sdConfig *prom_kubernetes.SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *prom_kubernetes.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryKubernetesArgs, diags := toDiscoveryKubernetes(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "kubernetes"}, label, discoveryKubernetesArgs)
+	pb.discoveryBlocks = common.AppendNewBlockWithOverride(pb.discoveryBlocks, []string{"discovery", "kubernetes"}, label, discoveryKubernetesArgs)
 	return newDiscoverExports("discovery.kubernetes." + label + ".targets"), diags
 }
 

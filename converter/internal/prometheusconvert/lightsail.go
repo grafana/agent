@@ -9,14 +9,13 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_config "github.com/prometheus/common/config"
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
 )
 
-func appendDiscoveryLightsail(f *builder.File, label string, sdConfig *prom_aws.LightsailSDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryLightsail(pb *prometheusBlocks, label string, sdConfig *prom_aws.LightsailSDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoverylightsailArgs, diags := toDiscoveryLightsail(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "lightsail"}, label, discoverylightsailArgs)
+	pb.discoveryBlocks = common.AppendNewBlockWithOverride(pb.discoveryBlocks, []string{"discovery", "lightsail"}, label, discoverylightsailArgs)
 	return newDiscoverExports("discovery.lightsail." + label + ".targets"), diags
 }
 

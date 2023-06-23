@@ -8,18 +8,17 @@ import (
 	disc_relabel "github.com/grafana/agent/component/discovery/relabel"
 	"github.com/grafana/agent/component/prometheus/relabel"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_relabel "github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendPrometheusRelabel(f *builder.File, relabelConfigs []*prom_relabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
+func appendPrometheusRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
 
 	relabelArgs := toRelabelArguments(relabelConfigs, forwardTo)
-	common.AppendBlockWithOverride(f, []string{"prometheus", "relabel"}, label, relabelArgs)
+	pb.prometheusRelabelBlocks = common.AppendNewBlockWithOverride(pb.prometheusRelabelBlocks, []string{"prometheus", "relabel"}, label, relabelArgs)
 
 	return &relabel.Exports{
 		Receiver: common.ConvertAppendable{Expr: fmt.Sprintf("prometheus.relabel.%s.receiver", label)},
@@ -37,13 +36,13 @@ func toRelabelArguments(relabelConfigs []*prom_relabel.Config, forwardTo []stora
 	}
 }
 
-func appendDiscoveryRelabel(f *builder.File, relabelConfigs []*prom_relabel.Config, label string, targets []discovery.Target) *disc_relabel.Exports {
+func appendDiscoveryRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel.Config, label string, targets []discovery.Target) *disc_relabel.Exports {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
 
 	relabelArgs := toDiscoveryRelabelArguments(relabelConfigs, targets)
-	common.AppendBlockWithOverride(f, []string{"discovery", "relabel"}, label, relabelArgs)
+	pb.discoveryRelabelBlocks = common.AppendNewBlockWithOverride(pb.discoveryRelabelBlocks, []string{"discovery", "relabel"}, label, relabelArgs)
 
 	return &disc_relabel.Exports{
 		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.targets", label)),

@@ -3,7 +3,6 @@ package prometheusconvert
 import (
 	"bytes"
 	"fmt"
-	"reflect"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/discovery"
@@ -53,42 +52,60 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	return prettyByte, diags
 }
 
+type prometheusBlocks struct {
+	discoveryBlocks             []*builder.Block
+	discoveryRelabelBlocks      []*builder.Block
+	prometheusScrapeBlocks      []*builder.Block
+	prometheusRelabelBlocks     []*builder.Block
+	prometheusRemoteWriteBlocks []*builder.Block
+}
+
+func newPrometheusBlocks() *prometheusBlocks {
+	return &prometheusBlocks{
+		discoveryBlocks:             []*builder.Block{},
+		discoveryRelabelBlocks:      []*builder.Block{},
+		prometheusScrapeBlocks:      []*builder.Block{},
+		prometheusRelabelBlocks:     []*builder.Block{},
+		prometheusRemoteWriteBlocks: []*builder.Block{},
+	}
+}
+
 // AppendAll analyzes the entire prometheus config in memory and transforms it
 // into Flow Arguments. It then appends each argument to the file builder.
 // Exports from other components are correctly referenced to build the Flow
 // pipeline.
 func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
-	remoteWriteExports := appendPrometheusRemoteWrite(f, promConfig)
+	pb := newPrometheusBlocks()
+	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig)
 
 	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
 	scrapeForwardTo := remoteWriteForwardTo
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		promMetricsRelabelExports := appendPrometheusRelabel(f, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, scrapeConfig.JobName)
+		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, scrapeConfig.JobName)
 		if promMetricsRelabelExports != nil {
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
-		scrapeTargets, newDiags := appendServiceDiscoveryConfigs(f, scrapeConfig.ServiceDiscoveryConfigs, scrapeConfig.JobName)
+		scrapeTargets, newDiags := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, scrapeConfig.JobName)
 		diags = append(diags, newDiags...)
 
-		promDiscoveryRelabelExports := appendDiscoveryRelabel(f, scrapeConfig.RelabelConfigs, scrapeConfig.JobName, scrapeTargets)
+		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeConfig.JobName, scrapeTargets)
 		if promDiscoveryRelabelExports != nil {
 			scrapeTargets = promDiscoveryRelabelExports.Output
 		}
 
-		appendPrometheusScrape(f, scrapeConfig, scrapeForwardTo, scrapeTargets)
+		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets)
 	}
 
-	f.Body().StableSortNodes(getPromBlockHook(f))
-
+	prepareFileBlocks(f, pb)
 	return diags
 }
 
 // appendServiceDiscoveryConfigs will loop through the service discovery
 // configs and append them to the file. This returns the scrape targets
 // and discovery targets as a result.
-func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig prom_discover.Configs, label string) ([]discovery.Target, diag.Diagnostics) {
+func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) ([]discovery.Target, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var targets []discovery.Target
 	labelCounts := make(map[string]int)
@@ -100,31 +117,31 @@ func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig prom_
 			targets = append(targets, getScrapeTargets(sdc)...)
 		case *prom_azure.SDConfig:
 			labelCounts["azure"]++
-			exports, newDiags = appendDiscoveryAzure(f, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
+			exports, newDiags = appendDiscoveryAzure(pb, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
 		case *prom_consul.SDConfig:
 			labelCounts["consul"]++
-			exports, newDiags = appendDiscoveryConsul(f, common.GetUniqueLabel(label, labelCounts["consul"]), sdc)
+			exports, newDiags = appendDiscoveryConsul(pb, common.GetUniqueLabel(label, labelCounts["consul"]), sdc)
 		case *prom_digitalocean.SDConfig:
 			labelCounts["digitalocean"]++
-			exports, newDiags = appendDiscoveryDigitalOcean(f, common.GetUniqueLabel(label, labelCounts["digitalocean"]), sdc)
+			exports, newDiags = appendDiscoveryDigitalOcean(pb, common.GetUniqueLabel(label, labelCounts["digitalocean"]), sdc)
 		case *prom_dns.SDConfig:
 			labelCounts["dns"]++
-			exports = appendDiscoveryDns(f, common.GetUniqueLabel(label, labelCounts["dns"]), sdc)
+			exports = appendDiscoveryDns(pb, common.GetUniqueLabel(label, labelCounts["dns"]), sdc)
 		case *prom_docker.DockerSDConfig:
 			labelCounts["docker"]++
-			exports, newDiags = appendDiscoveryDocker(f, common.GetUniqueLabel(label, labelCounts["docker"]), sdc)
+			exports, newDiags = appendDiscoveryDocker(pb, common.GetUniqueLabel(label, labelCounts["docker"]), sdc)
 		case *prom_aws.EC2SDConfig:
 			labelCounts["ec2"]++
-			exports, newDiags = appendDiscoveryEC2(f, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
+			exports, newDiags = appendDiscoveryEC2(pb, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
 		case *prom_gce.SDConfig:
 			labelCounts["gce"]++
-			exports = appendDiscoveryGCE(f, common.GetUniqueLabel(label, labelCounts["gce"]), sdc)
+			exports = appendDiscoveryGCE(pb, common.GetUniqueLabel(label, labelCounts["gce"]), sdc)
 		case *prom_kubernetes.SDConfig:
 			labelCounts["kubernetes"]++
-			exports, newDiags = appendDiscoveryKubernetes(f, common.GetUniqueLabel(label, labelCounts["kubernetes"]), sdc)
+			exports, newDiags = appendDiscoveryKubernetes(pb, common.GetUniqueLabel(label, labelCounts["kubernetes"]), sdc)
 		case *prom_aws.LightsailSDConfig:
 			labelCounts["lightsail"]++
-			exports, newDiags = appendDiscoveryLightsail(f, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
+			exports, newDiags = appendDiscoveryLightsail(pb, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
 		default:
 			diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 		}
@@ -136,8 +153,7 @@ func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig prom_
 	return targets, diags
 }
 
-// getPromBlockHook returns a hook for sorting blocks
-// into a reasonable order for prometheus config.
+// prepareFileBlocks attaches prometheus blocks in a specific order.
 //
 // Order of blocks:
 // 1. Discovery component(s)
@@ -145,35 +161,25 @@ func appendServiceDiscoveryConfigs(f *builder.File, serviceDiscoveryConfig prom_
 // 3. Prometheus scrape component(s)
 // 4. Prometheus relabel component(s) (if any)
 // 5. Prometheus remote_write
-func getPromBlockHook(f *builder.File) func(i, j int) bool {
-	return func(i, j int) bool {
-		iSortValue := blockToSortValue(f.Body().Nodes()[i])
-		jSortValue := blockToSortValue(f.Body().Nodes()[j])
-		return iSortValue < jSortValue
-	}
-}
-
-func blockToSortValue(block any) int {
-	switch block := block.(type) {
-	case *builder.Block:
-		if reflect.DeepEqual(block.Name, []string{"discovery", "relabel"}) {
-			return 1
-		}
-
-		if reflect.DeepEqual(block.Name, []string{"prometheus", "scrape"}) {
-			return 2
-		}
-
-		if reflect.DeepEqual(block.Name, []string{"prometheus", "relabel"}) {
-			return 3
-		}
-
-		if reflect.DeepEqual(block.Name, []string{"prometheus", "remote_write"}) {
-			return 4
-		}
-
-		return 0
+func prepareFileBlocks(f *builder.File, pb *prometheusBlocks) {
+	for _, block := range pb.discoveryBlocks {
+		f.Body().AppendBlock(block)
 	}
 
-	return -1
+	for _, block := range pb.discoveryRelabelBlocks {
+		f.Body().AppendBlock(block)
+	}
+
+	for _, block := range pb.prometheusScrapeBlocks {
+		f.Body().AppendBlock(block)
+	}
+
+	for _, block := range pb.prometheusRelabelBlocks {
+		f.Body().AppendBlock(block)
+	}
+
+	for _, block := range pb.prometheusRemoteWriteBlocks {
+		f.Body().AppendBlock(block)
+	}
+
 }

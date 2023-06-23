@@ -9,14 +9,13 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_config "github.com/prometheus/common/config"
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
 )
 
-func appendDiscoveryEC2(f *builder.File, label string, sdConfig *prom_aws.EC2SDConfig) (discovery.Exports, diag.Diagnostics) {
+func appendDiscoveryEC2(pb *prometheusBlocks, label string, sdConfig *prom_aws.EC2SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryec2Args, diags := toDiscoveryEC2(sdConfig)
-	common.AppendBlockWithOverride(f, []string{"discovery", "ec2"}, label, discoveryec2Args)
+	pb.discoveryBlocks = common.AppendNewBlockWithOverride(pb.discoveryBlocks, []string{"discovery", "ec2"}, label, discoveryec2Args)
 	return newDiscoverExports("discovery.ec2." + label + ".targets"), diags
 }
 
