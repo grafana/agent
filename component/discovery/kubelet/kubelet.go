@@ -68,8 +68,14 @@ type Arguments struct {
 	KubeletURL       config.URL                        `river:"kubelet_url,attr"`
 	Interval         time.Duration                     `river:"refresh_interval,attr,optional"`
 	HTTPClientConfig config.HTTPClientConfig           `river:",squash"`
-	Namespaces       []string                          `river:"namespaces,block"`
+	Namespaces       []string                          `river:"namespaces,attr,optional"`
 	AttachMetadata   discoveryk8s.AttachMetadataConfig `river:"attach_metadata,block,optional"`
+}
+
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	return args.HTTPClientConfig.Validate()
 }
 
 // New returns a new instance of a discovery.kubelet component.
