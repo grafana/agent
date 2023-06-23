@@ -22,17 +22,17 @@ import (
 // The implementation of this API is a work in progress.
 // Additional components must be implemented:
 //
-//		discovery.consul
-//		discovery.digitalocean
-//		discovery.dns
-//		discovery.docker
-//		discovery.ec2
-//		discovery.file
-//		discovery.gce
-//	    discovery.kubelet
-//		discovery.kubernetes
-//		discovery.lightsail
-//		discovery.relabel
+//	discovery.consul
+//	discovery.digitalocean
+//	discovery.dns
+//	discovery.docker
+//	discovery.ec2
+//	discovery.file
+//	discovery.gce
+//	discovery.kubelet
+//	discovery.kubernetes
+//	discovery.lightsail
+//	discovery.relabel
 func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
