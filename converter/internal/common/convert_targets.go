@@ -52,14 +52,7 @@ func (f ConvertTargets) RiverTokenize() []builder.Token {
 			}
 		}
 
-		if len(keyValMap) == 1 {
-			expr.SetValue([]map[string]string{keyValMap})
-			toks = append(toks, expr.Tokens()...)
-			if ix != len(f.Targets)-1 {
-				toks = append(toks, builder.Token{Tok: token.COMMA})
-				toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: "\n"})
-			}
-		} else if len(keyValMap) > 0 {
+		if len(keyValMap) > 0 {
 			expr.SetValue([]map[string]string{keyValMap})
 			toks = append(toks, expr.Tokens()...)
 			if ix != len(f.Targets)-1 {
