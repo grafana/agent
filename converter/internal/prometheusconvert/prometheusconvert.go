@@ -181,5 +181,4 @@ func prepareFileBlocks(f *builder.File, pb *prometheusBlocks) {
 	for _, block := range pb.prometheusRemoteWriteBlocks {
 		f.Body().AppendBlock(block)
 	}
-
 }

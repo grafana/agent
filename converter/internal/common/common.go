@@ -14,13 +14,13 @@ import (
 	"github.com/grafana/agent/pkg/river/token/builder"
 )
 
-// AppendNewBlockWithOverride appends Flow component arguments using the convert
-// value override hook to a slice of block pointers.
-func AppendNewBlockWithOverride(blocks []*builder.Block, name []string, label string, args component.Arguments) []*builder.Block {
+// NewBlockWithOverride generates a new [*builder.Block] using a hook to
+// override specific types.
+func NewBlockWithOverride(name []string, label string, args component.Arguments) *builder.Block {
 	block := builder.NewBlock(name, label)
 	block.Body().SetValueOverrideHook(getValueOverrideHook())
 	block.Body().AppendFrom(args)
-	return append(blocks, block)
+	return block
 }
 
 // GetValueOverrideHook returns a hook for overriding the go value of

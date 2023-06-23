@@ -13,7 +13,8 @@ import (
 
 func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) {
 	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
-	pb.prometheusScrapeBlocks = common.AppendNewBlockWithOverride(pb.prometheusScrapeBlocks, []string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
+	block := common.NewBlockWithOverride([]string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
+	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, block)
 }
 
 func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {

@@ -15,7 +15,8 @@ import (
 
 func appendDiscoveryAzure(pb *prometheusBlocks, label string, sdConfig *prom_azure.SDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoveryAzureArgs, diags := toDiscoveryAzure(sdConfig)
-	pb.discoveryBlocks = common.AppendNewBlockWithOverride(pb.discoveryBlocks, []string{"discovery", "azure"}, label, discoveryAzureArgs)
+	block := common.NewBlockWithOverride([]string{"discovery", "azure"}, label, discoveryAzureArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
 	return newDiscoverExports("discovery.azure." + label + ".targets"), diags
 }
 

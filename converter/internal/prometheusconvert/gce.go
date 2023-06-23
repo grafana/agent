@@ -11,7 +11,8 @@ import (
 
 func appendDiscoveryGCE(pb *prometheusBlocks, label string, sdConfig *prom_gce.SDConfig) discovery.Exports {
 	discoveryGCEArgs := toDiscoveryGCE(sdConfig)
-	pb.discoveryBlocks = common.AppendNewBlockWithOverride(pb.discoveryBlocks, []string{"discovery", "gce"}, label, discoveryGCEArgs)
+	block := common.NewBlockWithOverride([]string{"discovery", "gce"}, label, discoveryGCEArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
 	return newDiscoverExports("discovery.gce." + label + ".targets")
 }
 

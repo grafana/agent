@@ -15,7 +15,8 @@ import (
 
 func appendDiscoveryLightsail(pb *prometheusBlocks, label string, sdConfig *prom_aws.LightsailSDConfig) (discovery.Exports, diag.Diagnostics) {
 	discoverylightsailArgs, diags := toDiscoveryLightsail(sdConfig)
-	pb.discoveryBlocks = common.AppendNewBlockWithOverride(pb.discoveryBlocks, []string{"discovery", "lightsail"}, label, discoverylightsailArgs)
+	block := common.NewBlockWithOverride([]string{"discovery", "lightsail"}, label, discoverylightsailArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
 	return newDiscoverExports("discovery.lightsail." + label + ".targets"), diags
 }
 
