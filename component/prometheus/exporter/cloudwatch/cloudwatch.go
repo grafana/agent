@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
@@ -15,7 +14,7 @@ func init() {
 		Name:    "prometheus.exporter.cloudwatch",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "cloudwatch", customizeTarget),
+		Build:   exporter.New(createExporter, "cloudwatch"),
 	})
 }
 
@@ -29,9 +28,4 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 	fipsEnabled := !a.FIPSDisabled
 
 	return cloudwatch_exporter.NewCloudwatchExporter(opts.ID, opts.Logger, exporterConfig, fipsEnabled, a.Debug), nil
-}
-
-func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
-	// no customization for the moment
-	return []discovery.Target{baseTarget}
 }

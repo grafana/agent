@@ -217,11 +217,20 @@ prometheus.exporter.cloudwatch "static_instances" {
 }
 ```
 
+As shown above, `static` blocks must be specified with a label, which will translate to the `name` label in the exported metric.
+
+```river
+static "LABEL" {
+    regions    = ["us-east-2"]
+    namespace  = "AWS/EC2"
+    // ...
+}
+```
+
 You can configure the `static` block one or multiple times to scrape metrics with different sets of `dimensions`.
 
 | Name          | Type           | Description                                                                                                                                                  | Default | Required |
 | ------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | -------- |
-| `name`        | `string`       | Identifier of the static scraping job. When exported to Prometheus format corresponds to the `name` label.                                                   |         | yes      |
 | `regions`     | `list(string)` | List of AWS regions.                                                                                                                                         |         | yes      |
 | `namespace`   | `string`       | CloudWatch metric namespace.                                                                                                                                 |         | yes      |
 | `dimensions`  | `map(string)`  | CloudWatch metric dimensions as a list of name / value pairs. Must uniquely define all metrics in this job.                                                  |         | yes      |
