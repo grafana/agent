@@ -113,8 +113,9 @@ func format(filename string, fi os.FileInfo, r io.Reader, ff *flowFmt) error {
 	if ff.convertSourceFormat != "" {
 		var diags convert_diag.Diagnostics
 		bb, diags = converter.Convert(bb, converter.Input(ff.convertSourceFormat))
-		if diags.HasErrorLevel(convert_diag.SeverityLevelError) ||
-			(!ff.convertBypassWarnings && diags.HasErrorLevel(convert_diag.SeverityLevelWarn)) {
+		hasErrors := diags.HasErrorLevel(convert_diag.SeverityLevelError)
+		hasWarns := diags.HasErrorLevel(convert_diag.SeverityLevelWarn)
+		if hasErrors || (!ff.convertBypassWarnings && hasWarns) {
 			return diags
 		}
 		buf.WriteString(string(bb))
