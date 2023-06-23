@@ -8,9 +8,9 @@ title: json_path
 
 The `json_path` function lookup values using [jsonpath](https://goessner.net/articles/JsonPath/) syntax.
 
-The function expects 2 strings. First string is the json string to lookup values from. Second string is the jsonpath expression.
+The function expects two strings. The first string is the JSON string used look up values. The second string is the jsonpath expression.
 
-`json_path` always return a list of values. If the jsonpath expression does not match any values, an empty list is returned.
+`json_path` always returns a list of values. If the jsonpath expression does not match any values, an empty list is returned.
 
 A common use case of `json_path` is to decode and filter the output of a [`local.file`][] or [`remote.http`][] component to a River value.
 
