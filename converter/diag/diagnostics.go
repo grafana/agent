@@ -27,9 +27,9 @@ func (s Severity) String() string {
 
 // Supported severity levels.
 const (
-	SeverityLevelWarn Severity = iota + 1
+	SeverityLevelInfo Severity = iota + 1
+	SeverityLevelWarn
 	SeverityLevelError
-	SeverityLevelInfo
 )
 
 // Diagnostic is an individual diagnostic message. Diagnostic messages can have
@@ -49,7 +49,7 @@ func (d Diagnostic) String() string {
 
 // Error implements error.
 func (d Diagnostic) Error() string {
-	return d.Message
+	return d.String()
 }
 
 // Diagnostics is a collection of diagnostic messages.
@@ -61,4 +61,29 @@ func (ds *Diagnostics) Add(severity Severity, message string) {
 		Severity: severity,
 		Message:  message,
 	})
+}
+
+// Error implements error.
+func (ds Diagnostics) Error() string {
+	var errorMessage string
+	for ix, diag := range ds {
+		errorMessage += diag.Error()
+		if ix+1 < len(ds) {
+			errorMessage += "\n"
+		}
+	}
+
+	return errorMessage
+}
+
+// HasErrorLevel returns true if any diagnostics exist at the provided
+// severity or higher.
+func (ds Diagnostics) HasErrorLevel(sev Severity) bool {
+	for _, diag := range ds {
+		if diag.Severity >= sev {
+			return true
+		}
+	}
+
+	return false
 }

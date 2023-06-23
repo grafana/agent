@@ -36,6 +36,6 @@ func Convert(in []byte, kind Input) ([]byte, diag.Diagnostics) {
 	}
 
 	var diags diag.Diagnostics
-	diags.Add(diag.SeverityLevelError, fmt.Sprintf("unrecognized kind %q", kind))
+	diags.Add(diag.SeverityLevelError, fmt.Sprintf("unrecognized kind %q given to the config converter", kind))
 	return nil, diags
 }

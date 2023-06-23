@@ -6,9 +6,13 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/spf13/cobra"
 
+	"github.com/grafana/agent/converter"
+	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/grafana/agent/pkg/river/printer"
@@ -16,19 +20,26 @@ import (
 
 func fmtCommand() *cobra.Command {
 	f := &flowFmt{
-		write: false,
+		write:                 false,
+		convertSourceFormat:   "",
+		convertBypassWarnings: false,
 	}
 
 	cmd := &cobra.Command{
 		Use:   "fmt [flags] file",
 		Short: "Format a River file",
 		Long: `The fmt subcommand applies standard formatting rules to the specified
-River configuration file.
+configuration file. It can format an existing river file or convert support config
+formats to river.
 
 If the file argument is not supplied or if the file argument is "-", then fmt will read from stdin.
 
-The -w flag can be used to write the formatted file back to disk. -w can not be provided when fmt is reading from stdin. When -w is not provided, fmt will write the result to stdout.`,
-		Args:         cobra.RangeArgs(0, 1),
+The -w flag can be used to write the formatted file back to disk. Output will be written to FILEPATH.river. -w can not be provided when fmt is reading from stdin. When -w is not provided, fmt will write the result to stdout.
+
+The -f flag can be used to specify that we are converting from a format other than river.
+
+The -b flag can be used to specify we should bypass warnings when converting from a format other than river.`,
+		Args:         cobra.RangeArgs(0, 3),
 		SilenceUsage: true,
 		Aliases:      []string{"format"},
 
@@ -54,12 +65,16 @@ The -w flag can be used to write the formatted file back to disk. -w can not be 
 		},
 	}
 
-	cmd.Flags().BoolVarP(&f.write, "write", "w", f.write, "write result to (source) file instead of stdout")
+	cmd.Flags().BoolVarP(&f.write, "write", "w", f.write, "Write result to a file instead of stdout")
+	cmd.Flags().StringVarP(&f.convertSourceFormat, "convert.source-format", "f", f.convertSourceFormat, "The source of the file for reformatting to flow. Only use when translating from a format other than river.  Supported formats: 'prometheus'.")
+	cmd.Flags().BoolVarP(&f.convertBypassWarnings, "convert.bypass-warnings", "b", f.convertBypassWarnings, "Enable bypassing warnings during convert")
 	return cmd
 }
 
 type flowFmt struct {
-	write bool
+	write                 bool
+	convertSourceFormat   string
+	convertBypassWarnings bool
 }
 
 func (ff *flowFmt) Run(configFile string) error {
@@ -68,7 +83,7 @@ func (ff *flowFmt) Run(configFile string) error {
 		if ff.write {
 			return fmt.Errorf("cannot use -w with standard input")
 		}
-		return format("<stdin>", nil, os.Stdin, false)
+		return format("<stdin>", nil, os.Stdin, ff)
 
 	default:
 		fi, err := os.Stat(configFile)
@@ -84,35 +99,46 @@ func (ff *flowFmt) Run(configFile string) error {
 			return err
 		}
 		defer f.Close()
-		return format(configFile, fi, f, ff.write)
+		return format(configFile, fi, f, ff)
 	}
 }
 
-func format(filename string, fi os.FileInfo, r io.Reader, write bool) error {
+func format(filename string, fi os.FileInfo, r io.Reader, ff *flowFmt) error {
 	bb, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}
 
-	f, err := parser.ParseFile(filename, bb)
-	if err != nil {
-		return err
-	}
-
 	var buf bytes.Buffer
-	if err := printer.Fprint(&buf, f); err != nil {
-		return err
+	if ff.convertSourceFormat != "" {
+		var diags convert_diag.Diagnostics
+		bb, diags = converter.Convert(bb, converter.Input(ff.convertSourceFormat))
+		if diags.HasErrorLevel(convert_diag.SeverityLevelError) ||
+			(!ff.convertBypassWarnings && diags.HasErrorLevel(convert_diag.SeverityLevelWarn)) {
+			return diags
+		}
+		buf.WriteString(string(bb))
+	} else {
+		f, err := parser.ParseFile(filename, bb)
+		if err != nil {
+			return err
+		}
+
+		if err := printer.Fprint(&buf, f); err != nil {
+			return err
+		}
+
+		// Add a newline at the end of the file.
+		_, _ = buf.Write([]byte{'\n'})
 	}
 
-	// Add a newline at the end of the file.
-	_, _ = buf.Write([]byte{'\n'})
-
-	if !write {
+	if !ff.write {
 		_, err := io.Copy(os.Stdout, &buf)
 		return err
 	}
 
-	wf, err := os.OpenFile(filename, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, fi.Mode().Perm())
+	filepath := strings.TrimSuffix(filename, path.Ext(filename)) + ".river"
+	wf, err := os.OpenFile(filepath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, fi.Mode().Perm())
 	if err != nil {
 		return err
 	}

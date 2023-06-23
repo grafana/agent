@@ -27,3 +27,7 @@ The following flags are supported:
 
 * `--write`, `-w`: Write the formatted file back to disk when not reading from
   standard input.
+
+* `--convert.source-format`, `-f`: The source of the file for reformatting to flow. Only use when translating from a format other than river.  Supported formats: 'prometheus'.
+
+* `--convert.bypass-warnings`, `-b`: Enable bypassing warnings when converting from non-river to river.
