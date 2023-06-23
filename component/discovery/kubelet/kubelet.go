@@ -133,6 +133,10 @@ func (d *Discovery) Refresh(_ context.Context) ([]*targetgroup.Group, error) {
 		return nil, fmt.Errorf("error sending kublet GET pods request: %v", err)
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error response from kubelet: %v", resp.Status)
+	}
+
 	// Read the response body
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -140,15 +144,15 @@ func (d *Discovery) Refresh(_ context.Context) ([]*targetgroup.Group, error) {
 		return nil, fmt.Errorf("error reading response body: %v", err)
 	}
 
-	// Unmarshal the response body into a list of pods
-	var pods []*v1.Pod
-	if err := json.Unmarshal(body, &pods); err != nil {
+	// Unmarshal the response body into a pod list
+	var podList v1.PodList
+	if err := json.Unmarshal(body, &podList); err != nil {
 		return nil, fmt.Errorf("error unmarshaling response body: %v", err)
 	}
 
 	// Create a list of targets from the pods
 	var targetGroups []*targetgroup.Group
-	for _, pod := range pods {
+	for _, pod := range podList.Items {
 		// Skip pods that are not in the one of the desired namespaces
 		if len(d.targetNamespaces) > 0 && !d.podInTargetNamespaces(pod) {
 			continue
@@ -159,7 +163,7 @@ func (d *Discovery) Refresh(_ context.Context) ([]*targetgroup.Group, error) {
 	return targetGroups, nil
 }
 
-func (d *Discovery) buildPodTargetGroup(pod *v1.Pod) *targetgroup.Group {
+func (d *Discovery) buildPodTargetGroup(pod v1.Pod) *targetgroup.Group {
 	tg := &targetgroup.Group{
 		Source: podSource(pod),
 	}
@@ -196,7 +200,7 @@ func (d *Discovery) buildPodTargetGroup(pod *v1.Pod) *targetgroup.Group {
 	return tg
 }
 
-func (d *Discovery) podInTargetNamespaces(pod *v1.Pod) bool {
+func (d *Discovery) podInTargetNamespaces(pod v1.Pod) bool {
 	for _, ns := range d.targetNamespaces {
 		if pod.Namespace == ns {
 			return true
@@ -205,7 +209,7 @@ func (d *Discovery) podInTargetNamespaces(pod *v1.Pod) bool {
 	return false
 }
 
-func podSource(pod *v1.Pod) string {
+func podSource(pod v1.Pod) string {
 	return podSourceFromNamespaceAndName(pod.Namespace, pod.Name)
 }
 
@@ -213,7 +217,7 @@ func podSourceFromNamespaceAndName(namespace, name string) string {
 	return "pod/" + namespace + "/" + name
 }
 
-func podLabels(pod *v1.Pod) model.LabelSet {
+func podLabels(pod v1.Pod) model.LabelSet {
 	ls := model.LabelSet{
 		podNameLabel:     lv(pod.ObjectMeta.Name),
 		podIPLabel:       lv(pod.Status.PodIP),
@@ -224,7 +228,7 @@ func podLabels(pod *v1.Pod) model.LabelSet {
 		podUID:           lv(string(pod.ObjectMeta.UID)),
 	}
 
-	createdBy := metav1.GetControllerOf(pod)
+	createdBy := metav1.GetControllerOf(&pod)
 	if createdBy != nil {
 		if createdBy.Kind != "" {
 			ls[podControllerKind] = lv(createdBy.Kind)
@@ -253,7 +257,7 @@ func lv(s string) model.LabelValue {
 	return model.LabelValue(s)
 }
 
-func podReady(pod *v1.Pod) model.LabelValue {
+func podReady(pod v1.Pod) model.LabelValue {
 	for _, cond := range pod.Status.Conditions {
 		if cond.Type == v1.PodReady {
 			return lv(strings.ToLower(string(cond.Status)))
