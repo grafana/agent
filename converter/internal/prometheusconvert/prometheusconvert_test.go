@@ -37,7 +37,12 @@ func TestConvert(t *testing.T) {
 
 				expectedErrors := parseErrors(t, path)
 				for ix, diag := range diags {
-					require.Equal(t, expectedErrors[ix], diag.String())
+					if len(expectedErrors) > ix {
+						require.Equal(t, expectedErrors[ix], diag.String())
+					} else {
+						require.Fail(t, "unexpected error count reach for error: "+diag.String())
+					}
+
 				}
 
 				outputFile := strings.TrimSuffix(path, promSuffix) + flowSuffix

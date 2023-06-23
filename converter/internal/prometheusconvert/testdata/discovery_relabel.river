@@ -35,10 +35,12 @@ discovery.relabel "prometheus1" {
 }
 
 discovery.relabel "prometheus2" {
-	targets = concat(discovery.azure.prometheus2.targets,
+	targets = concat(
+		discovery.azure.prometheus2.targets,
 		[{
 			__address__ = "localhost:9091",
-		}])
+		}],
+	)
 
 	rule {
 		source_labels = ["__address1__"]

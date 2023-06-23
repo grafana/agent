@@ -31,6 +31,7 @@ func (f ConvertTargets) RiverTokenize() []builder.Token {
 	if targetCount > 1 {
 		toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: "concat"})
 		toks = append(toks, builder.Token{Tok: token.LPAREN})
+		toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: "\n"})
 	}
 
 	for ix, targetMap := range f.Targets {
@@ -51,7 +52,14 @@ func (f ConvertTargets) RiverTokenize() []builder.Token {
 			}
 		}
 
-		if len(keyValMap) > 0 {
+		if len(keyValMap) == 1 {
+			expr.SetValue([]map[string]string{keyValMap})
+			toks = append(toks, expr.Tokens()...)
+			if ix != len(f.Targets)-1 {
+				toks = append(toks, builder.Token{Tok: token.COMMA})
+				toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: "\n"})
+			}
+		} else if len(keyValMap) > 0 {
 			expr.SetValue([]map[string]string{keyValMap})
 			toks = append(toks, expr.Tokens()...)
 			if ix != len(f.Targets)-1 {
@@ -62,6 +70,8 @@ func (f ConvertTargets) RiverTokenize() []builder.Token {
 	}
 
 	if targetCount > 1 {
+		toks = append(toks, builder.Token{Tok: token.COMMA})
+		toks = append(toks, builder.Token{Tok: token.LITERAL, Lit: "\n"})
 		toks = append(toks, builder.Token{Tok: token.RPAREN})
 	}
 

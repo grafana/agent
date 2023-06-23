@@ -56,14 +56,16 @@ func TestOptionalSecret_Write(t *testing.T) {
 					{"__address__": "testing2", "label": "value"},
 				},
 			},
-			expect: `concat([{
-	__address__ = "testing",
-	label       = "value",
-}],
+			expect: `concat(
+	[{
+		__address__ = "testing",
+		label       = "value",
+	}],
 	[{
 		__address__ = "testing2",
 		label       = "value",
-	}])`,
+	}],
+)`,
 		},
 		{
 			name: "__expr__ key",
@@ -77,19 +79,23 @@ func TestOptionalSecret_Write(t *testing.T) {
 			value: common.ConvertTargets{
 				Targets: []discovery.Target{{"__expr__": "testing"}, {"__expr__": "testing2"}},
 			},
-			expect: `concat(testing,
-	testing2)`,
+			expect: `concat(
+	testing,
+	testing2,
+)`,
 		},
 		{
 			name: "both key types",
 			value: common.ConvertTargets{
 				Targets: []discovery.Target{{"__address__": "testing", "label": "value"}, {"__expr__": "testing2"}},
 			},
-			expect: `concat([{
-	__address__ = "testing",
-	label       = "value",
-}],
-	testing2)`,
+			expect: `concat(
+	[{
+		__address__ = "testing",
+		label       = "value",
+	}],
+	testing2,
+)`,
 		},
 	}
 
