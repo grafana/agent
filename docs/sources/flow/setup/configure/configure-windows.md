@@ -21,6 +21,7 @@ steps:
       1. Type `services.msc` and click **OK**.
 
    1. Right click on the service called **Grafana Agent Flow**.
+   
    1. Click on **All Tasks > Restart**.
 
 ## Change command-line arguments
