@@ -34,7 +34,7 @@ Name | Type | Description | Default | Required
 `refresh_interval` | `duration` | How often the Kubelet should be polled for scrape targets | `5s` | no
 `namespaces` | `list(string)` | A list of namespaces to extract target pods from | | no
 
- At most one of the following must be provided:
+One of the following authentication methods must be provided if kubelet authentication is enabled
  - [`bearer_token` argument](#arguments).
  - [`bearer_token_file` argument](#arguments).
  - [`authorization` block][authorization].
@@ -54,10 +54,6 @@ Hierarchy | Block | Description | Required
 attach_metadata | [attach_metadata][] | Optional metadata to attach to discovered targets. | no
 authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-
-The `>` symbol indicates deeper levels of nesting. For example,
-`oauth2 > tls_config` refers to a `tls_config` block defined inside
-an `oauth2` block.
 
 [attach_metadata]: #attach_metadata-block
 [authorization]: #authorization-block
