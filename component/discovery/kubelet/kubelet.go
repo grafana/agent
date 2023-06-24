@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	defaultKubeletRefreshInterval = time.Minute
+	defaultKubeletRefreshInterval = 5 * time.Second
 
 	metaLabelPrefix               = model.MetaLabelPrefix + "kubernetes_"
 	namespaceLabel                = metaLabelPrefix + "namespace"
@@ -125,13 +125,13 @@ func (d *Discovery) Refresh(_ context.Context) ([]*targetgroup.Group, error) {
 	// Create a new GET request to the kubelet API server
 	req, err := http.NewRequest("GET", d.url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating kubelet GET pods request: %v", err)
+		return nil, fmt.Errorf("error creating kubelet pods request: %v", err)
 	}
 
 	// Send the request to the kubelet
 	resp, err := d.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error sending kublet GET pods request: %v", err)
+		return nil, fmt.Errorf("error sending kublet pods request: %v", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
