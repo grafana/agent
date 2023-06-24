@@ -101,6 +101,7 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 			DataPath:       c.o.DataPath,
 			HTTPPathPrefix: c.o.HTTPPath,
 			HTTPListenAddr: c.o.HTTPListenAddr,
+			HTTPMiddleware: c.o.HTTPMiddleware,
 			OnExportsChange: func(exports map[string]any) {
 				c.o.export(exports)
 			},
@@ -131,7 +132,7 @@ func (c *module) ComponentHandler() (_ http.Handler) {
 	r := mux.NewRouter()
 
 	fa := api.NewFlowAPI(c.f)
-	fa.RegisterRoutes("/", r)
+	fa.RegisterRoutes("/", r, c.f.opts.HTTPMiddleware)
 
 	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Re-add the full path to ensure that nested controllers propagate
@@ -171,6 +172,10 @@ type moduleControllerOptions struct {
 
 	// HTTPListenAddr is the address the server is configured to listen on.
 	HTTPListenAddr string
+
+	// HTTPMiddleware is a middleware [http.Handler] function to inject http behavior,
+	//for example auth basic authentication
+	HTTPMiddleware func(next http.Handler) http.HandlerFunc
 
 	// HTTPPath is the base path that requests need in order to route to this
 	// component. Requests received by a component handler will have this already

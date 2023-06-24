@@ -42,6 +42,12 @@ type Node interface {
 	Handler() (string, http.Handler)
 }
 
+type Authentication struct {
+	Enabled  bool
+	Username string
+	Password string
+}
+
 // NewLocalNode returns a Node which forms a single-node cluster and never
 // connects to other nodes.
 //
@@ -117,7 +123,7 @@ func getJoinAddr(addrs []string, in string) []string {
 }
 
 // New creates a Clusterer.
-func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenAddr, advertiseAddr, joinAddr string) (*Clusterer, error) {
+func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenAddr, advertiseAddr, joinAddr string, auth Authentication) (*Clusterer, error) {
 	// Standalone node.
 	if !clusterEnabled {
 		return &Clusterer{Node: NewLocalNode(listenAddr)}, nil
@@ -152,7 +158,7 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 	}
 
 	cli := &http.Client{
-		Transport: &http2.Transport{
+		Transport: NewTransport(&http2.Transport{
 			AllowHTTP: true,
 			DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
 				// Set a maximum timeout for establishing the connection. If our
@@ -167,7 +173,7 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, listenA
 
 				return net.DialTimeout(network, addr, timeout)
 			},
-		},
+		}, auth),
 	}
 
 	level.Info(log).Log("msg", "starting a new gossip node", "join-peers", gossipConfig.JoinPeers)

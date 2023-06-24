@@ -32,7 +32,7 @@ import (
 //
 // RegisterRoutes is not intended for public use and will only work properly
 // when called from github.com/grafana/agent.
-func RegisterRoutes(pathPrefix string, router *mux.Router) {
+func RegisterRoutes(pathPrefix string, router *mux.Router, middleware func(next http.Handler) http.HandlerFunc) {
 	if !strings.HasSuffix(pathPrefix, "/") {
 		pathPrefix = pathPrefix + "/"
 	}
@@ -47,18 +47,18 @@ func RegisterRoutes(pathPrefix string, router *mux.Router) {
 		contentCacheTime: make(map[string]time.Time),
 	}
 
-	router.PathPrefix(publicPath).Handler(http.StripPrefix(publicPath, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	router.PathPrefix(publicPath).Handler(http.StripPrefix(publicPath, middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		server.StaticFileServer(renderer).ServeHTTP(w, r)
-	})))
+	}))))
 
-	router.HandleFunc(strings.TrimSuffix(pathPrefix, "/"), func(w http.ResponseWriter, r *http.Request) {
+	router.Handle(strings.TrimSuffix(pathPrefix, "/"), middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Redirect to form with /
 		http.Redirect(w, r, pathPrefix, http.StatusFound)
-	})
-	router.PathPrefix(pathPrefix).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	})))
+	router.PathPrefix(pathPrefix).Handler(middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = "/"
 		server.StaticFileServer(renderer).ServeHTTP(w, r)
-	})
+	})))
 }
 
 // templateRenderer wraps around an inner fs.FS and will use html/template to

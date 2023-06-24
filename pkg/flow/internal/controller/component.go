@@ -74,6 +74,7 @@ type ComponentGlobals struct {
 	Registerer          prometheus.Registerer                      // Registerer for serving agent and component metrics
 	HTTPPathPrefix      string                                     // HTTP prefix for components.
 	HTTPListenAddr      string                                     // Base address for server
+	HTTPMiddleware      func(next http.Handler) http.HandlerFunc   // Function to inject authentication
 	DialFunc            DialFunc                                   // Function to connect to HTTPListenAddr.
 	ControllerID        string                                     // ID of controller.
 	NewModuleController func(id string) component.ModuleController // Func to generate a module controller.

@@ -48,6 +48,7 @@ package flow
 import (
 	"context"
 	"net"
+	"net/http"
 	"sync"
 
 	"github.com/go-kit/log/level"
@@ -116,6 +117,10 @@ type Options struct {
 	// DialFunc is a function to use for components to properly connect to
 	// HTTPListenAddr. If nil, DialFunc defaults to (&net.Dialer{}).DialContext.
 	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+
+	// HTTPMiddleware is a middleware [http.Handler] function to inject http behavior,
+	//for example auth basic authentication
+	HTTPMiddleware func(next http.Handler) http.HandlerFunc
 }
 
 // Flow is the Flow system.
@@ -174,6 +179,7 @@ func New(o Options) *Flow {
 			Registerer:      o.Reg,
 			HTTPPathPrefix:  o.HTTPPathPrefix,
 			HTTPListenAddr:  o.HTTPListenAddr,
+			HTTPMiddleware:  o.HTTPMiddleware,
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
 			NewModuleController: func(id string) component.ModuleController {
@@ -184,6 +190,7 @@ func New(o Options) *Flow {
 					Reg:            o.Reg,
 					DataPath:       o.DataPath,
 					HTTPListenAddr: o.HTTPListenAddr,
+					HTTPMiddleware: o.HTTPMiddleware,
 					HTTPPath:       o.HTTPPathPrefix,
 					DialFunc:       o.DialFunc,
 					ID:             id,
