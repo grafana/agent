@@ -1744,8 +1744,8 @@ github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090 h1:Ko80
 github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090/go.mod h1:MinSWm88jguXFFrGsP56PtleUb4Qtm4tNRH/wXNXRTI=
 github.com/grafana/phlare/api v0.1.2 h1:1jrwd3KnsXMzj/tJih9likx5EvbY3pbvLbDqAAYem30=
 github.com/grafana/phlare/api v0.1.2/go.mod h1:29vcLwFDmZBDce2jwFIMtzvof7fzPadT8VMKw9ks7FU=
-github.com/grafana/phlare/ebpf v0.0.0-20230621175341-57fce5bd0f1d h1:QIAjhSTSQyl7ZE4IBX1JeVRlAP7YyQww0FKveT3RBic=
-github.com/grafana/phlare/ebpf v0.0.0-20230621175341-57fce5bd0f1d/go.mod h1:XxeWTq8f1UlzIvQsGspnhMYDYNf2JQIspoArA5vl49w=
+github.com/grafana/phlare/ebpf v0.0.0-20230626063250-7a15e5b17f9e h1:AwiAa8PXyC8U76XGBJmYIIadPdHJkjpIZfSGlrRS8/o=
+github.com/grafana/phlare/ebpf v0.0.0-20230626063250-7a15e5b17f9e/go.mod h1:XxeWTq8f1UlzIvQsGspnhMYDYNf2JQIspoArA5vl49w=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnFWqxhoSF3WC7sKAdMZ+SRXvHLVZlZ3sbQjuUlTqkw=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/prometheus v1.8.2-0.20230511165250-22c61d1811b2 h1:1h8KeWFbA2ytUcHok2SIUi+hQubaUEwq2yS2GEh5V6I=

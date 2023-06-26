@@ -189,7 +189,9 @@ func (c *Component) collectProfiles() error {
 	level.Debug(c.options.Logger).Log("msg", "ebpf collectProfiles done", "profiles", len(builders.Builders))
 	bytesSent := 0
 	for _, builder := range builders.Builders {
-		c.metrics.pprofsTotal.Inc()
+		serviceName := builder.Labels.Get("service_name")
+		c.metrics.pprofsTotal.WithLabelValues(serviceName).Inc()
+		c.metrics.pprofSamplesTotal.WithLabelValues(serviceName).Add(float64(len(builder.Profile.Sample)))
 
 		buf := bytes.NewBuffer(nil)
 		_, err := builder.Write(buf)
@@ -200,6 +202,8 @@ func (c *Component) collectProfiles() error {
 
 		appender := c.appendable.Appender()
 		bytesSent += len(rawProfile)
+		c.metrics.pprofBytesTotal.WithLabelValues(serviceName).Add(float64(len(rawProfile)))
+
 		samples := []*pyroscope.RawSample{{RawProfile: rawProfile}}
 		err = appender.Append(context.Background(), builder.Labels, samples)
 		if err != nil {
