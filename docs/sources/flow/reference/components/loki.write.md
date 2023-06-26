@@ -154,3 +154,7 @@ loki.write "local" {
     }
 }
 ```
+
+## Technical details
+
+`loki.write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
