@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -18,7 +16,7 @@ import (
 
 func convertCommand() *cobra.Command {
 	f := &flowConvert{
-		write:          false,
+		output:         "",
 		sourceFormat:   "",
 		bypassWarnings: false,
 	}
@@ -31,12 +29,12 @@ a River configuration file.
 
 If the file argument is not supplied or if the file argument is "-", then convert will read from stdin.
 
-The -w flag can be used to write the formatted file back to disk. Output will be written to SOURCE_FILEPATH.river. -w can not be provided when convert is reading from stdin. When -w is not provided, fmt will write the result to stdout.
+The -o flag can be used to write the formatted file back to disk. -o can not be provided when convert is reading from stdin. When -o is not provided, fmt will write the result to stdout.
 
 The -f flag can be used to specify the format we are converting from.
 
 The -b flag can be used to bypass warnings.`,
-		Args:         cobra.RangeArgs(0, 3),
+		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
 		Aliases:      []string{"convert"},
 
@@ -62,14 +60,14 @@ The -b flag can be used to bypass warnings.`,
 		},
 	}
 
-	cmd.Flags().BoolVarP(&f.write, "write", "w", f.write, "Write the converted file back to disk when not reading from standard input.")
+	cmd.Flags().StringVarP(&f.output, "output", "o", f.output, "The filepath where the output is written.")
 	cmd.Flags().StringVarP(&f.sourceFormat, "source-format", "f", f.sourceFormat, "The format of the source file. Supported formats: 'prometheus'.")
 	cmd.Flags().BoolVarP(&f.bypassWarnings, "bypass-warnings", "b", f.bypassWarnings, "Enable bypassing warnings when converting")
 	return cmd
 }
 
 type flowConvert struct {
-	write          bool
+	output         string
 	sourceFormat   string
 	bypassWarnings bool
 }
@@ -77,8 +75,8 @@ type flowConvert struct {
 func (fc *flowConvert) Run(configFile string) error {
 	switch configFile {
 	case "-":
-		if fc.write {
-			return fmt.Errorf("cannot use -w with standard input")
+		if fc.output != "" {
+			return fmt.Errorf("cannot use -o with standard input")
 		}
 		return convert("<stdin>", nil, os.Stdin, fc)
 
@@ -101,28 +99,27 @@ func (fc *flowConvert) Run(configFile string) error {
 }
 
 func convert(filename string, fi os.FileInfo, r io.Reader, fc *flowConvert) error {
-	bb, err := io.ReadAll(r)
+	inputBytes, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}
 
-	var buf bytes.Buffer
-	var diags convert_diag.Diagnostics
-	bb, diags = converter.Convert(bb, converter.Input(fc.sourceFormat))
-	hasErrors := diags.HasErrorLevel(convert_diag.SeverityLevelError)
-	hasWarns := diags.HasErrorLevel(convert_diag.SeverityLevelWarn)
-	if hasErrors || (!fc.bypassWarnings && hasWarns) {
+	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat))
+	hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
+	hasWarn := hasErrorLevel(diags, convert_diag.SeverityLevelWarn)
+	if hasError || (!fc.bypassWarnings && hasWarn) {
 		return diags
 	}
-	buf.WriteString(string(bb))
 
-	if !fc.write {
+	var buf bytes.Buffer
+	buf.WriteString(string(riverBytes))
+
+	if fc.output == "" {
 		_, err := io.Copy(os.Stdout, &buf)
 		return err
 	}
 
-	filepath := strings.TrimSuffix(filename, path.Ext(filename)) + ".river"
-	wf, err := os.OpenFile(filepath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, fi.Mode().Perm())
+	wf, err := os.OpenFile(fc.output, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, fi.Mode().Perm())
 	if err != nil {
 		return err
 	}
@@ -130,4 +127,15 @@ func convert(filename string, fi os.FileInfo, r io.Reader, fc *flowConvert) erro
 
 	_, err = io.Copy(wf, &buf)
 	return err
+}
+
+// HasErrorLevel returns true if any diagnostic exists at the provided severity.
+func hasErrorLevel(ds convert_diag.Diagnostics, sev convert_diag.Severity) bool {
+	for _, diag := range ds {
+		if diag.Severity == sev {
+			return true
+		}
+	}
+
+	return false
 }

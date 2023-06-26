@@ -75,15 +75,3 @@ func (ds Diagnostics) Error() string {
 
 	return errorMessage
 }
-
-// HasErrorLevel returns true if any diagnostics exist at the provided
-// severity or higher.
-func (ds Diagnostics) HasErrorLevel(sev Severity) bool {
-	for _, diag := range ds {
-		if diag.Severity >= sev {
-			return true
-		}
-	}
-
-	return false
-}
