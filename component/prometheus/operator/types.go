@@ -30,7 +30,7 @@ type Arguments struct {
 	RelabelConfigs []*flow_relabel.Config `river:"relabel,block,optional"`
 }
 
-func (a Arguments) Equals(b *Arguments) bool {
+func (a *Arguments) Equals(b *Arguments) bool {
 	return reflect.DeepEqual(a, b)
 }
 

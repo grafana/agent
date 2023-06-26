@@ -32,9 +32,16 @@ func TestRiverUnmarshal(t *testing.T) {
 func TestEqual(t *testing.T) {
 	a := Arguments{
 		Namespaces: []string{"my-app"},
+		Clustering: Clustering{Enabled: true},
 	}
-	b := Arguments{}
-	c := Arguments{}
+	b := Arguments{
+		Namespaces: []string{"my-app"},
+        Clustering: Clustering{Enabled: true},
+	}
+	c := Arguments{
+		Namespaces: []string{"my-app", "other-app"},
+        Clustering: Clustering{Enabled: false},
+	}
 	assert.True(t, a.Equals(&b))
 	assert.False(t, a.Equals(&c))
 }

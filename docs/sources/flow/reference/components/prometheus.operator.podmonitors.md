@@ -50,6 +50,7 @@ client > tls_config | [tls_config][] | Configure TLS settings for connecting to 
 relabel | [relabel][] | Relabeling rules to apply to discovered targets. | no
 selector | [selector][] | Label selector for which PodMonitors to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which PodMonitors to discover. | no
+clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -63,6 +64,7 @@ inside a `client` block.
 [selector]: #selector-block
 [match_expression]: #match_expression-block
 [relabel]: #relabel-block
+[clustering]: #clustering-experimental
 
 ### client block
 
@@ -142,6 +144,36 @@ The `operator` argument must be one of the following strings:
 
 If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses. 
 
+### clustering (experimental)
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
+
+When the agent is running in [clustered mode][], and `enabled` is set to true,
+then this component instance opts-in to participating in
+the cluster to distribute scrape load between all cluster nodes.
+
+Clustering assumes that all cluster nodes are running with the same
+configuration file, and that all
+`prometheus.operator.podmonitors` components that have opted-in to using clustering, over
+the course of a scrape interval have the same configuration.
+
+All `prometheus.operator.podmonitors` components instances opting in to clustering use target
+labels and a consistent hashing algorithm to determine ownership for each of
+the targets between the cluster peers. Then, each peer only scrapes the subset
+of targets that it is responsible for, so that the scrape load is distributed.
+When a node joins or leaves the cluster, every peer recalculates ownership and
+continues scraping with the new target set. This performs better than hashmod
+sharding where _all_ nodes have to be re-distributed, as only 1/N of the
+targets ownership is transferred, but is eventually consistent (rather than
+fully consistent like hashmod sharding is).
+
+If the agent is _not_ running in clustered mode, then the block is a no-op and
+`prometheus.operator.podmonitors` scrapes every target it receives in its arguments.
+
+[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
+
 ## Exported fields
 
 `prometheus.operator.podmonitors` does not export any fields. It forwards all metrics it scrapes to the receiver configures with the `forward_to` argument.
@@ -198,7 +230,7 @@ prometheus.operator.podmonitors "pods" {
 }
 ```
 
-This example will apply additional relabel rules to discovered targets for hashmod sharding. Here we have five shards and an environment variable provides our current agent's shard.
+This example will apply additional relabel rules to discovered targets for hashmod sharding. Here we have five shards numbered 0-4, and an environment variable provides our current agent's shard.
 
 ```river
 prometheus.operator.podmonitors "pods" {
