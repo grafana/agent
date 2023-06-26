@@ -18,7 +18,6 @@ Main (unreleased)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
 
-
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
@@ -26,6 +25,7 @@ Main (unreleased)
     components and modifies attributes of a span, log, or metric. (@ptodev)
   - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
   - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
+  - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
