@@ -134,9 +134,7 @@ func (c *crdManager) Run(ctx context.Context) error {
 		case <-c.clusteringUpdated:
 			// if clustering updates while running, just re-filter the targets and pass them
 			// into scrape manager again, instead of reloading everything
-			if c.args.Clustering.Enabled {
-				targetSetsChan <- filterTargets(cachedTargets, c.opts.Clusterer.Node)
-			}
+			targetSetsChan <- filterTargets(cachedTargets, c.opts.Clusterer.Node)
 		}
 
 	}
@@ -149,6 +147,8 @@ func (c *crdManager) ClusteringUpdated() {
 	}
 }
 
+// TODO: merge this code with the code in prometheus.scrape. This is a copy of that code, mostly because
+// we operate on slightly different data structures.
 func filterTargets(m map[string][]*targetgroup.Group, node cluster.Node) map[string][]*targetgroup.Group {
 	// the key in the map is the job name.
 	// the targetGroups have zero or more targets inside them.
