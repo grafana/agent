@@ -121,9 +121,9 @@ func NewKubeletDiscovery(args Arguments) (*Discovery, error) {
 	}, nil
 }
 
-func (d *Discovery) Refresh(_ context.Context) ([]*targetgroup.Group, error) {
+func (d *Discovery) Refresh(ctx context.Context) ([]*targetgroup.Group, error) {
 	// Create a new GET request to the kubelet API server
-	req, err := http.NewRequest("GET", d.url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, d.url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubelet pods request: %v", err)
 	}
