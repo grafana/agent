@@ -1,0 +1,244 @@
+package cloudwatch
+
+import (
+	"testing"
+
+	"github.com/grafana/agent/pkg/river"
+	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
+	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
+	"github.com/stretchr/testify/require"
+)
+
+var falsePtr = false
+
+const invalidDiscoveryJobType = `
+sts_region = "us-east-2"
+debug = true
+discovery {
+	type = "pizza"
+	regions = ["us-east-2"]
+	search_tags = {
+		"scrape" = "true",
+	}
+	metric {
+		name = "PeperoniSlices"
+		statistics = ["Sum", "Average"]
+		period = "1m"
+	}
+}
+`
+
+const noJobsInConfig = `
+sts_region = "us-east-2"
+debug = true
+`
+
+const singleStaticJobConfig = `
+sts_region = "us-east-2"
+debug = true
+static "super_ec2_instance_id" {
+	regions = ["us-east-2"]
+	namespace = "AWS/EC2"
+	dimensions = {
+		"InstanceId" = "i01u29u12ue1u2c",
+	}
+	metric {
+		name = "CPUUsage"
+		statistics = ["Sum", "Average"]
+		period = "1m"
+	}
+}
+`
+
+const discoveryJobConfig = `
+sts_region = "us-east-2"
+debug = true
+discovery_exported_tags = { "ec2" = ["name"] }
+discovery {
+	type = "sqs"
+	regions = ["us-east-2"]
+	search_tags = {
+		"scrape" = "true",
+	}
+	metric {
+		name = "NumberOfMessagesSent"
+		statistics = ["Sum", "Average"]
+		period = "1m"
+	}
+	metric {
+		name = "NumberOfMessagesReceived"
+		statistics = ["Sum", "Average"]
+		period = "1m"
+	}
+}
+
+discovery {
+	type = "AWS/ECS"
+	regions = ["us-east-1"]
+	role {
+		role_arn = "arn:aws:iam::878167871295:role/yace_testing"
+	}
+	metric {
+		name = "CPUUtilization"
+		statistics = ["Sum", "Maximum"]
+		period = "1m"
+	}
+}
+`
+
+func TestCloudwatchComponentConfig(t *testing.T) {
+	type testcase struct {
+		raw                 string
+		expected            yaceConf.ScrapeConf
+		expectUnmarshallErr bool
+		expectConvertErr    bool
+	}
+
+	for name, tc := range map[string]testcase{
+		"error unmarshalling": {
+			raw:                 ``,
+			expectUnmarshallErr: true,
+		},
+		"error converting": {
+			raw:              invalidDiscoveryJobType,
+			expectConvertErr: true,
+		},
+		"at least one static or discovery job is required": {
+			raw:              noJobsInConfig,
+			expectConvertErr: true,
+		},
+		"single static job config": {
+			raw: singleStaticJobConfig,
+			expected: yaceConf.ScrapeConf{
+				APIVersion: "v1alpha1",
+				StsRegion:  "us-east-2",
+				Discovery:  yaceConf.Discovery{},
+				Static: []*yaceConf.Static{
+					{
+						Name: "super_ec2_instance_id",
+						// assert an empty role is used as default. IMPORTANT since this
+						// is what YACE looks for delegating to the environment role
+						Roles:      []yaceConf.Role{{}},
+						Regions:    []string{"us-east-2"},
+						Namespace:  "AWS/EC2",
+						CustomTags: []yaceModel.Tag{},
+						Dimensions: []yaceConf.Dimension{
+							{
+								Name:  "InstanceId",
+								Value: "i01u29u12ue1u2c",
+							},
+						},
+						Metrics: []*yaceConf.Metric{{
+							Name:                   "CPUUsage",
+							Statistics:             []string{"Sum", "Average"},
+							Period:                 60,
+							Length:                 60,
+							Delay:                  0,
+							NilToZero:              &nilToZero,
+							AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+						}},
+					},
+				},
+			},
+		},
+		"single discovery job config": {
+			raw: discoveryJobConfig,
+			expected: yaceConf.ScrapeConf{
+				APIVersion: "v1alpha1",
+				StsRegion:  "us-east-2",
+				Discovery: yaceConf.Discovery{
+					ExportedTagsOnMetrics: yaceModel.ExportedTagsOnMetrics{
+						"ec2": []string{"name"},
+					},
+					Jobs: []*yaceConf.Job{
+						{
+							Regions: []string{"us-east-2"},
+							// assert an empty role is used as default. IMPORTANT since this
+							// is what YACE looks for delegating to the environment role
+							Roles: []yaceConf.Role{{}},
+							Type:  "sqs",
+							SearchTags: []yaceModel.Tag{{
+								Key: "scrape", Value: "true",
+							}},
+							CustomTags: []yaceModel.Tag{},
+							Metrics: []*yaceConf.Metric{
+								{
+									Name:                   "NumberOfMessagesSent",
+									Statistics:             []string{"Sum", "Average"},
+									Period:                 60,
+									Length:                 60,
+									Delay:                  0,
+									NilToZero:              &nilToZero,
+									AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+								},
+								{
+									Name:                   "NumberOfMessagesReceived",
+									Statistics:             []string{"Sum", "Average"},
+									Period:                 60,
+									Length:                 60,
+									Delay:                  0,
+									NilToZero:              &nilToZero,
+									AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+								},
+							},
+							RoundingPeriod: nil,
+							JobLevelMetricFields: yaceConf.JobLevelMetricFields{
+								Period:                 0,
+								Length:                 0,
+								Delay:                  0,
+								AddCloudwatchTimestamp: &falsePtr,
+								NilToZero:              &nilToZero,
+							},
+						},
+						{
+							Regions: []string{"us-east-1"},
+							Roles: []yaceConf.Role{{
+								RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
+							}},
+							Type:       "AWS/ECS",
+							SearchTags: []yaceModel.Tag{},
+							CustomTags: []yaceModel.Tag{},
+							Metrics: []*yaceConf.Metric{
+								{
+									Name:                   "CPUUtilization",
+									Statistics:             []string{"Sum", "Maximum"},
+									Period:                 60,
+									Length:                 60,
+									Delay:                  0,
+									NilToZero:              &nilToZero,
+									AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+								},
+							},
+							RoundingPeriod: nil,
+							JobLevelMetricFields: yaceConf.JobLevelMetricFields{
+								Period:                 0,
+								Length:                 0,
+								Delay:                  0,
+								AddCloudwatchTimestamp: &falsePtr,
+								NilToZero:              &nilToZero,
+							},
+						},
+					},
+				},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			args := Arguments{}
+			err := river.Unmarshal([]byte(tc.raw), &args)
+			if tc.expectUnmarshallErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			converted, err := ConvertToYACE(args)
+			if tc.expectConvertErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.EqualValues(t, tc.expected, converted)
+		})
+	}
+}
