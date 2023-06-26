@@ -30,13 +30,13 @@ func init() {
 
 // Arguments configures the module.git component.
 type Arguments struct {
-	Repository string `river:"repository,attr"`
-	Revision   string `river:"revision,attr,optional"`
-	Path       string `river:"path,attr"`
-
+	Repository    string        `river:"repository,attr"`
+	Revision      string        `river:"revision,attr,optional"`
+	Path          string        `river:"path,attr"`
 	PullFrequency time.Duration `river:"pull_frequency,attr,optional"`
 
-	Arguments map[string]any `river:"arguments,block,optional"`
+	Arguments     map[string]any    `river:"arguments,block,optional"`
+	GitAuthConfig vcs.GitAuthConfig `river:",squash"`
 }
 
 // DefaultArguments holds default settings for Arguments.
@@ -75,11 +75,15 @@ var (
 
 // New creates a new module.git component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	m, err := module.NewModuleComponent(o)
+	if err != nil {
+		return nil, err
+	}
 	c := &Component{
 		opts: o,
 		log:  o.Logger,
 
-		mod: module.NewModuleComponent(o),
+		mod: m,
 
 		argsChanged: make(chan struct{}, 1),
 	}
@@ -182,6 +186,7 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	repoOpts := vcs.GitRepoOptions{
 		Repository: newArgs.Repository,
 		Revision:   newArgs.Revision,
+		Auth:       newArgs.GitAuthConfig,
 	}
 
 	// Create or update the repo field.
@@ -235,7 +240,7 @@ func (c *Component) CurrentHealth() component.Health {
 
 // Handler implements component.HTTPComponent.
 func (c *Component) Handler() http.Handler {
-	return c.mod.Handler()
+	return c.mod.HTTPHandler()
 }
 
 // DebugInfo implements component.DebugComponent.

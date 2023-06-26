@@ -5,76 +5,180 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	promconfig "github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/discovery"
+	prom_config "github.com/prometheus/prometheus/config"
+	prom_discover "github.com/prometheus/prometheus/discovery"
+	prom_aws "github.com/prometheus/prometheus/discovery/aws"
+	prom_azure "github.com/prometheus/prometheus/discovery/azure"
+	prom_consul "github.com/prometheus/prometheus/discovery/consul"
+	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
+	prom_dns "github.com/prometheus/prometheus/discovery/dns"
+	prom_gce "github.com/prometheus/prometheus/discovery/gce"
+	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 )
 
 // Convert implements a Prometheus config converter.
-//
-// TODO...
-// The implementation of this API is a work in progress.
-// Additional components must be implemented:
-//
-//	discovery.azure
-//	discovery.consul
-//	discovery.digitalocean
-//	discovery.dns
-//	discovery.docker
-//	discovery.ec2
-//	discovery.file
-//	discovery.gce
-//	discovery.kubernetes
-//	discovery.lightsail
-//	discovery.relabel
 func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	promConfig, err := promconfig.Load(string(in), false, log.NewNopLogger())
+	promConfig, err := prom_config.Load(string(in), false, log.NewNopLogger())
 	if err != nil {
 		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to parse Prometheus config: %s", err))
 		return nil, diags
 	}
 
-	diags = ValidateUnsupported(promConfig)
-
 	f := builder.NewFile()
-	AppendAll(f, promConfig)
+	diags = AppendAll(f, promConfig)
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
 		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
 		return nil, diags
 	}
-	return buf.Bytes(), diags
-}
 
-// ValidateUnsupported will traverse the Prometheus Config and return warnings
-// for any config we knowingly do not support.
-func ValidateUnsupported(promConfig *promconfig.Config) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		for _, sdConfig := range scrapeConfig.ServiceDiscoveryConfigs {
-			switch sdConfig.(type) {
-			case discovery.StaticConfig:
-				continue
-			default:
-				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", sdConfig.Name()))
-			}
-		}
+	if len(buf.Bytes()) == 0 {
+		return nil, diags
 	}
 
-	return diags
+	prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
+	diags = append(diags, newDiags...)
+	return prettyByte, diags
+}
+
+type prometheusBlocks struct {
+	discoveryBlocks             []*builder.Block
+	discoveryRelabelBlocks      []*builder.Block
+	prometheusScrapeBlocks      []*builder.Block
+	prometheusRelabelBlocks     []*builder.Block
+	prometheusRemoteWriteBlocks []*builder.Block
+}
+
+func newPrometheusBlocks() *prometheusBlocks {
+	return &prometheusBlocks{
+		discoveryBlocks:             []*builder.Block{},
+		discoveryRelabelBlocks:      []*builder.Block{},
+		prometheusScrapeBlocks:      []*builder.Block{},
+		prometheusRelabelBlocks:     []*builder.Block{},
+		prometheusRemoteWriteBlocks: []*builder.Block{},
+	}
 }
 
 // AppendAll analyzes the entire prometheus config in memory and transforms it
 // into Flow Arguments. It then appends each argument to the file builder.
-func AppendAll(f *builder.File, promConfig *promconfig.Config) {
-	remoteWriteExports := appendRemoteWrite(f, promConfig)
-	appendScrape(f, promConfig.ScrapeConfigs, []storage.Appendable{remoteWriteExports.Receiver})
+// Exports from other components are correctly referenced to build the Flow
+// pipeline.
+func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics {
+	var diags diag.Diagnostics
+	pb := newPrometheusBlocks()
+	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig)
+
+	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
+	scrapeForwardTo := remoteWriteForwardTo
+	for _, scrapeConfig := range promConfig.ScrapeConfigs {
+		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, scrapeConfig.JobName)
+		if promMetricsRelabelExports != nil {
+			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
+		}
+
+		scrapeTargets, newDiags := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, scrapeConfig.JobName)
+		diags = append(diags, newDiags...)
+
+		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeConfig.JobName, scrapeTargets)
+		if promDiscoveryRelabelExports != nil {
+			scrapeTargets = promDiscoveryRelabelExports.Output
+		}
+
+		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets)
+	}
+
+	prepareFileBlocks(f, pb)
+	return diags
+}
+
+// appendServiceDiscoveryConfigs will loop through the service discovery
+// configs and append them to the file. This returns the scrape targets
+// and discovery targets as a result.
+func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) ([]discovery.Target, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	var targets []discovery.Target
+	labelCounts := make(map[string]int)
+	for _, serviceDiscoveryConfig := range serviceDiscoveryConfig {
+		var exports discovery.Exports
+		var newDiags diag.Diagnostics
+		switch sdc := serviceDiscoveryConfig.(type) {
+		case prom_discover.StaticConfig:
+			targets = append(targets, getScrapeTargets(sdc)...)
+		case *prom_azure.SDConfig:
+			labelCounts["azure"]++
+			exports, newDiags = appendDiscoveryAzure(pb, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
+		case *prom_consul.SDConfig:
+			labelCounts["consul"]++
+			exports, newDiags = appendDiscoveryConsul(pb, common.GetUniqueLabel(label, labelCounts["consul"]), sdc)
+		case *prom_digitalocean.SDConfig:
+			labelCounts["digitalocean"]++
+			exports, newDiags = appendDiscoveryDigitalOcean(pb, common.GetUniqueLabel(label, labelCounts["digitalocean"]), sdc)
+		case *prom_dns.SDConfig:
+			labelCounts["dns"]++
+			exports = appendDiscoveryDns(pb, common.GetUniqueLabel(label, labelCounts["dns"]), sdc)
+		case *prom_docker.DockerSDConfig:
+			labelCounts["docker"]++
+			exports, newDiags = appendDiscoveryDocker(pb, common.GetUniqueLabel(label, labelCounts["docker"]), sdc)
+		case *prom_aws.EC2SDConfig:
+			labelCounts["ec2"]++
+			exports, newDiags = appendDiscoveryEC2(pb, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
+		case *prom_gce.SDConfig:
+			labelCounts["gce"]++
+			exports = appendDiscoveryGCE(pb, common.GetUniqueLabel(label, labelCounts["gce"]), sdc)
+		case *prom_kubernetes.SDConfig:
+			labelCounts["kubernetes"]++
+			exports, newDiags = appendDiscoveryKubernetes(pb, common.GetUniqueLabel(label, labelCounts["kubernetes"]), sdc)
+		case *prom_aws.LightsailSDConfig:
+			labelCounts["lightsail"]++
+			exports, newDiags = appendDiscoveryLightsail(pb, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
+		default:
+			diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
+		}
+
+		diags = append(diags, newDiags...)
+		targets = append(exports.Targets, targets...)
+	}
+
+	return targets, diags
+}
+
+// prepareFileBlocks attaches prometheus blocks in a specific order.
+//
+// Order of blocks:
+// 1. Discovery component(s)
+// 2. Discovery relabel component(s) (if any)
+// 3. Prometheus scrape component(s)
+// 4. Prometheus relabel component(s) (if any)
+// 5. Prometheus remote_write
+func prepareFileBlocks(f *builder.File, pb *prometheusBlocks) {
+	for _, block := range pb.discoveryBlocks {
+		f.Body().AppendBlock(block)
+	}
+
+	for _, block := range pb.discoveryRelabelBlocks {
+		f.Body().AppendBlock(block)
+	}
+
+	for _, block := range pb.prometheusScrapeBlocks {
+		f.Body().AppendBlock(block)
+	}
+
+	for _, block := range pb.prometheusRelabelBlocks {
+		f.Body().AppendBlock(block)
+	}
+
+	for _, block := range pb.prometheusRemoteWriteBlocks {
+		f.Body().AppendBlock(block)
+	}
 }

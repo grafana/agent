@@ -2,11 +2,13 @@ package prometheusconvert
 
 import (
 	"github.com/grafana/agent/component/common/config"
+	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	promconfig "github.com/prometheus/common/config"
+	prom_config "github.com/prometheus/common/config"
 )
 
-func toHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) *config.HTTPClientConfig {
+func toHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.HTTPClientConfig {
 	if httpClientConfig == nil {
 		return nil
 	}
@@ -24,7 +26,27 @@ func toHttpClientConfig(httpClientConfig *promconfig.HTTPClientConfig) *config.H
 	}
 }
 
-func toBasicAuth(basicAuth *promconfig.BasicAuth) *config.BasicAuth {
+// validateHttpClientConfig returns [diag.Diagnostics] for currently
+// unsupported Flow features available in Prometheus.
+func validateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if httpClientConfig.NoProxy != "" {
+		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config no_proxy was provided")
+	}
+
+	if httpClientConfig.ProxyFromEnvironment {
+		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config proxy_from_environment was provided")
+	}
+
+	if len(httpClientConfig.ProxyConnectHeader) > 0 {
+		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config proxy_connect_header was provided")
+	}
+
+	return diags
+}
+
+func toBasicAuth(basicAuth *prom_config.BasicAuth) *config.BasicAuth {
 	if basicAuth == nil {
 		return nil
 	}
@@ -36,7 +58,7 @@ func toBasicAuth(basicAuth *promconfig.BasicAuth) *config.BasicAuth {
 	}
 }
 
-func toAuthorization(authorization *promconfig.Authorization) *config.Authorization {
+func toAuthorization(authorization *prom_config.Authorization) *config.Authorization {
 	if authorization == nil {
 		return nil
 	}
@@ -48,7 +70,7 @@ func toAuthorization(authorization *promconfig.Authorization) *config.Authorizat
 	}
 }
 
-func toOAuth2(oAuth2 *promconfig.OAuth2) *config.OAuth2Config {
+func toOAuth2(oAuth2 *prom_config.OAuth2) *config.OAuth2Config {
 	if oAuth2 == nil {
 		return nil
 	}
@@ -65,7 +87,7 @@ func toOAuth2(oAuth2 *promconfig.OAuth2) *config.OAuth2Config {
 	}
 }
 
-func toTLSConfig(tlsConfig *promconfig.TLSConfig) *config.TLSConfig {
+func toTLSConfig(tlsConfig *prom_config.TLSConfig) *config.TLSConfig {
 	if tlsConfig == nil {
 		return nil
 	}
@@ -81,4 +103,22 @@ func toTLSConfig(tlsConfig *promconfig.TLSConfig) *config.TLSConfig {
 		InsecureSkipVerify: tlsConfig.InsecureSkipVerify,
 		MinVersion:         config.TLSVersion(tlsConfig.MinVersion),
 	}
+}
+
+// newDiscoverExports will return a new [discovery.Exports] with a specific
+// key for converter component exports. The argument will be tokenized
+// as a component export string rather than the standard [discovery.Target]
+// RiverTokenize.
+func newDiscoverExports(expr string) discovery.Exports {
+	return discovery.Exports{
+		Targets: newDiscoveryTargets(expr),
+	}
+}
+
+// newDiscoveryTargets will return a new [[]discovery.Target] with a specific
+// key for converter component exports. The argument will be tokenized
+// as a component export string rather than the standard [discovery.Target]
+// RiverTokenize.
+func newDiscoveryTargets(expr string) []discovery.Target {
+	return []discovery.Target{map[string]string{"__expr__": expr}}
 }

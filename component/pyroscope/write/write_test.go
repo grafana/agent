@@ -83,7 +83,7 @@ func Test_Write_FanOut(t *testing.T) {
 		t.Helper()
 		var wg sync.WaitGroup
 		wg.Add(1)
-		c, err := NewComponent(component.Options{
+		c, err := New(component.Options{
 			ID:         "1",
 			Logger:     util.TestFlowLogger(t),
 			Registerer: prometheus.NewRegistry(),
@@ -159,7 +159,7 @@ func Test_Write_Update(t *testing.T) {
 	)
 	var wg sync.WaitGroup
 	wg.Add(1)
-	c, err := NewComponent(component.Options{
+	c, err := New(component.Options{
 		ID:         "1",
 		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus.NewRegistry(),

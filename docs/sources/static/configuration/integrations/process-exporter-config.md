@@ -20,7 +20,7 @@ docker run \
   -v "/proc:/proc:ro" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.34.0-rc.1 \
+  grafana/agent:v0.34.2 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -37,7 +37,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.34.0-rc.1
+  - image: grafana/agent:v0.34.2
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml

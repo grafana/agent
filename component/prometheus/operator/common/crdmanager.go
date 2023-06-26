@@ -94,11 +94,6 @@ func (c *crdManager) Run(ctx context.Context) error {
 		}
 	}()
 
-	if err := c.runInformers(restConfig, ctx); err != nil {
-		return err
-	}
-	level.Info(c.logger).Log("msg", "informers  started")
-
 	// Start prometheus scrape manager.
 	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer)
 	opts := &scrape.Options{}
@@ -112,6 +107,12 @@ func (c *crdManager) Run(ctx context.Context) error {
 			level.Error(c.logger).Log("msg", "scrape manager failed", "err", err)
 		}
 	}()
+
+	// run informers after everything else is running
+	if err := c.runInformers(restConfig, ctx); err != nil {
+		return err
+	}
+	level.Info(c.logger).Log("msg", "informers  started")
 
 	// Start the target discovery loop to update the scrape manager with new targets.
 	for {
@@ -154,12 +155,12 @@ func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) 
 	}
 	for _, ns := range c.args.Namespaces {
 		opts := cache.Options{
-			Scheme:    scheme,
-			Namespace: ns,
+			Scheme:     scheme,
+			Namespaces: []string{ns},
 		}
 
 		if ls != labels.Nothing() {
-			opts.DefaultSelector.Label = ls
+			opts.DefaultLabelSelector = ls
 		}
 		cache, err := cache.New(restConfig, opts)
 		if err != nil {
