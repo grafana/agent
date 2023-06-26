@@ -256,6 +256,6 @@ http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
 http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 ```
 
-## Technical details
+## Compression
 
 `prometheus.scrape` supports [gzip](https://en.wikipedia.org/wiki/Gzip) compression.

@@ -323,6 +323,6 @@ prometheus.scrape "demo" {
 }
 ```
 
-## Technical details
+## Compression
 
 `prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
