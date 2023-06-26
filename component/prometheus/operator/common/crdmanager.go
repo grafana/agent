@@ -136,7 +136,6 @@ func (c *crdManager) Run(ctx context.Context) error {
 			// into scrape manager again, instead of reloading everything
 			targetSetsChan <- filterTargets(cachedTargets, c.opts.Clusterer.Node)
 		}
-
 	}
 }
 

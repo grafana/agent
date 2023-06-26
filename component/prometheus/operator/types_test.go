@@ -36,11 +36,11 @@ func TestEqual(t *testing.T) {
 	}
 	b := Arguments{
 		Namespaces: []string{"my-app"},
-        Clustering: Clustering{Enabled: true},
+		Clustering: Clustering{Enabled: true},
 	}
 	c := Arguments{
 		Namespaces: []string{"my-app", "other-app"},
-        Clustering: Clustering{Enabled: false},
+		Clustering: Clustering{Enabled: false},
 	}
 	assert.True(t, a.Equals(&b))
 	assert.False(t, a.Equals(&c))
