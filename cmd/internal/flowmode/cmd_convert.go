@@ -78,7 +78,7 @@ func (fc *flowConvert) Run(configFile string) error {
 		if fc.output != "" {
 			return fmt.Errorf("cannot use -o with standard input")
 		}
-		return convert("<stdin>", nil, os.Stdin, fc)
+		return convert(nil, os.Stdin, fc)
 
 	default:
 		fi, err := os.Stat(configFile)
@@ -94,11 +94,11 @@ func (fc *flowConvert) Run(configFile string) error {
 			return err
 		}
 		defer f.Close()
-		return convert(configFile, fi, f, fc)
+		return convert(fi, f, fc)
 	}
 }
 
-func convert(filename string, fi os.FileInfo, r io.Reader, fc *flowConvert) error {
+func convert(fi os.FileInfo, r io.Reader, fc *flowConvert) error {
 	inputBytes, err := io.ReadAll(r)
 	if err != nil {
 		return err
