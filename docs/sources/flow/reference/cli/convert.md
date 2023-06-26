@@ -25,8 +25,8 @@ configuration or cannot be converted to a Grafana Agent Flow river file.
 
 The following flags are supported:
 
-* `--output`, `-o`: The filepath where the output is written.
+* `--output`, `-o`: The filepath and filename where the output is written.
 
-* `--source-format`, `-f`: The format of the source file. Supported formats: 'prometheus'.
+* `--source-format`, `-f`: Required. The format of the source file. Supported formats: 'prometheus'.
 
 * `--bypass-warnings`, `-b`: Enable bypassing warnings when converting.
