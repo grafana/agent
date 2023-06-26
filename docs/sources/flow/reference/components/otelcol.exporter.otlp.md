@@ -42,8 +42,8 @@ Hierarchy | Block | Description | Required
 client | [client][] | Configures the gRPC server to send telemetry data to. | yes
 client > tls | [tls][] | Configures TLS for the gRPC client. | no
 client > keepalive | [keepalive][] | Configures keepalive settings for the gRPC client. | no
-queue | [queue][] | Configures batching of data before sending. | no
-retry | [retry][] | Configures retry mechanism for failed requests. | no
+sending_queue | [sending_queue][] | Configures batching of data before sending. | no
+retry_on_failure | [retry_on_failure][] | Configures retry mechanism for failed requests. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client > tls`
 refers to a `tls` block defined inside a `client` block.
@@ -51,8 +51,8 @@ refers to a `tls` block defined inside a `client` block.
 [client]: #client-block
 [tls]: #tls-block
 [keepalive]: #keepalive-block
-[queue]: #queue-block
-[retry]: #retry-block
+[sending_queue]: #sending_queue-block
+[retry_on_failure]: #retry_on_failure-block
 
 ### client block
 
@@ -120,16 +120,16 @@ Name | Type | Description | Default | Required
 `ping_response_timeout` | `duration` | Time to wait before closing inactive connections if the server does not respond to a ping. | | no
 `ping_without_stream` | `boolean` | Send pings even if there is no active stream request. | | no
 
-### queue block
+### sending_queue block
 
-The `queue` block configures an in-memory buffer of batches before data is sent
+The `sending_queue` block configures an in-memory buffer of batches before data is sent
 to the gRPC server.
 
 {{< docs/shared lookup="flow/reference/components/otelcol-queue-block.md" source="agent" >}}
 
-### retry block
+### retry_on_failure block
 
-The `retry` block configures how failed requests to the gRPC server are
+The `retry_on_failure` block configures how failed requests to the gRPC server are
 retried.
 
 {{< docs/shared lookup="flow/reference/components/otelcol-retry-block.md" source="agent" >}}
