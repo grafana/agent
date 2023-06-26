@@ -4,7 +4,7 @@ title: Install Grafana Agent Flow on other systems
 menuTitle: Other systems
 weight: 600
 aliases:
- - /docs/sources/flow/install/binary/
+ - ../../install/binary/
 ---
 
 # Install Grafana Agent Flow on other systems

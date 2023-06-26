@@ -4,7 +4,7 @@ title: Install Grafana Agent Flow on Windows
 menuTitle: Windows
 weight: 400
 aliases:
- - /docs/sources/flow/install/windows/
+ - ../../install/windows/
 ---
 
 # Install Grafana Agent Flow on Windows

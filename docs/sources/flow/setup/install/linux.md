@@ -4,7 +4,7 @@ title: Install Grafana Agent Flow on Linux
 menuTitle: Linux
 weight: 300
 aliases:
- - /docs/sources/flow/install/linux/
+ - ../../install/linux/
 ---
 
 # Install Grafana Agent Flow on Linux
