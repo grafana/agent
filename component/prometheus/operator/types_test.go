@@ -5,6 +5,7 @@ import (
 
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
+	"github.com/zeebo/assert"
 )
 
 func TestRiverUnmarshal(t *testing.T) {
@@ -26,4 +27,14 @@ func TestRiverUnmarshal(t *testing.T) {
 	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
+}
+
+func TestEqual(t *testing.T) {
+	a := Arguments{
+		Namespaces: []string{"my-app"},
+	}
+	b := Arguments{}
+	c := Arguments{}
+	assert.True(t, a.Equals(&b))
+	assert.False(t, a.Equals(&c))
 }

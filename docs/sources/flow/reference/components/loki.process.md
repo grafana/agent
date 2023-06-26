@@ -1364,7 +1364,7 @@ stage.timestamp {
 
 ### stage.geoip block
 
-The `stage.geoip` inner block configures a processing stage that reads an IP address and populates the labelset with geoip fields. Maxmind’s GeoIP2 database is used for the lookup.
+The `stage.geoip` inner block configures a processing stage that reads an IP address and populates the shared map with geoip fields. Maxmind’s GeoIP2 database is used for the lookup.
 
 The following arguments are supported:
 
@@ -1390,66 +1390,39 @@ loki.process "example" {
 		db      = "/path/to/db/GeoLite2-City.mmdb"
 		db_type = "city"
 	}
+
+	stage.labels {
+		values = {
+			geoip_city_name          = "",
+			geoip_country_name       = "",
+			geoip_continet_name      = "",
+			geoip_continent_code     = "",
+			geoip_location_latitude  = "",
+			geoip_location_longitude = "",
+			geoip_postal_code        = "",
+			geoip_timezone           = "",
+			geoip_subdivision_name   = "",
+			geoip_subdivision_code   = "",
+		}
+	}
 }
 ```
 
 The `json` stage extracts the IP address from the `client_ip` key in the log line. 
-Then the extracted `ip` value is given as source to geoip stage. The geoip stage performs a lookup on the IP and populates the following labels:
+Then the extracted `ip` value is given as source to geoip stage. The geoip stage performs a lookup on the IP and populates the following fields in the shared map which are added as labels using the `labels` stage.
+
+The extracted data from the IP used in this example:
 
 - geoip_city_name: Kansas City
 - geoip_country_name: United States
 - geoip_continet_name: North America
 - geoip_continent_code: NA
-- geoip_location_latitude: "39.1027
+- geoip_location_latitude: 39.1027
 - geoip_location_longitude: -94.5778
 - geoip_postal_code: 64184
 - geoip_timezone: America/Chicago
 - geoip_subdivision_name: Missouri
 - geoip_subdivision_code: MO
-
-If only a subset of these labels is required, you can chain the above pipeline with the `label_drop` or `label_keep` stage.
-
-label_keep example:
-```
-loki.process "example" {
-	stage.json {
-		expressions = {ip = "client_ip"}
-	}
-
-	stage.geoip {
-		source  = "ip"
-		db      = "/path/to/db/GeoLite2-City.mmdb"
-		db_type = "city"
-	}
-
-    stage.label_keep {
-        values = [ "geoip_city_name", "geoip_country_name", "geoip_location_latitude", "geoip_location_longitude" ]
-    }
-}
-```
-Only the labels listed in the `values` list in the `label_keep` stage are sent to Loki.
-
-label_drop example:
-
-```
-loki.process "example" {
-	stage.json {
-		expressions = {ip = "client_ip"}
-	}
-
-	stage.geoip {
-		source  = "ip"
-		db      = "/path/to/db/GeoLite2-City.mmdb"
-		db_type = "city"
-	}
-
-    stage.label_drop {
-        values = [ "geoip_postal_code", "geoip_subdivision_code" ]
-    }
-}
-```
-All the labels except the ones listed under `label_drop` stage are sent to Loki.
-
 
 #### GeoIP with ASN (Autonomous System Number) database example
 
@@ -1465,14 +1438,19 @@ loki.process "example" {
 		db_type = "asn"
 	}
 
-    stage.label_drop {
-        values = [ "geoip_postal_code", "geoip_subdivision_code" ]
-    }
+	stage.labels {
+		values = {
+			geoip_autonomous_system_number       = "",
+			geoip_autonomous_system_organization = "",
+		}
+	}
 }
 ```
 
 The `json` stage extracts the IP address from the `client_ip` key in the log line. 
-Then the extracted `ip` value is given as source to geoip stage. The geoip stage performs a lookup on the IP and populates the following labels:
+Then the extracted `ip` value is given as source to geoip stage. The geoip stage performs a lookup on the IP and populates the shared map.
+
+The extracted data from the IP used in this example:
 
 - geoip_autonomous_system_number: 396982
 - geoip_autonomous_system_organization: GOOGLE-CLOUD-PLATFORM
