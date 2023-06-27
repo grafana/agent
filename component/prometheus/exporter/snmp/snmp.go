@@ -1,6 +1,8 @@
 package snmp
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/grafana/agent/component"
@@ -9,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
+	"gopkg.in/yaml.v2"
 )
 
 func init() {
@@ -105,15 +108,30 @@ func (w WalkParams) Convert() map[string]snmp_config.WalkParams {
 }
 
 type Arguments struct {
-	ConfigFile string      `river:"config_file,attr"`
-	Targets    TargetBlock `river:"target,block"`
-	WalkParams WalkParams  `river:"walk_param,block,optional"`
+	ConfigFile   string      `river:"config_file,attr,optional"`
+	Config       string      `river:"config,attr,optional"`
+	Targets      TargetBlock `river:"target,block"`
+	WalkParams   WalkParams  `river:"walk_param,block,optional"`
+	ConfigStruct snmp_config.Config
 }
 
 // UnmarshalRiver implements River unmarshalling for Arguments.
 func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	type args Arguments
-	return f((*args)(a))
+	if err := f((*args)(a)); err != nil {
+		return err
+	}
+
+	if a.ConfigFile != "" && a.Config != "" {
+		return errors.New("config and config_file are mutually exclusive")
+	}
+
+	err := yaml.UnmarshalStrict([]byte(a.Config), &a.ConfigStruct)
+	if err != nil {
+		return fmt.Errorf("invalid snmp_exporter config: %s", err)
+	}
+
+	return nil
 }
 
 // Convert converts the component's Arguments to the integration's Config.
@@ -122,5 +140,6 @@ func (a *Arguments) Convert() *snmp_exporter.Config {
 		SnmpConfigFile: a.ConfigFile,
 		SnmpTargets:    a.Targets.Convert(),
 		WalkParams:     a.WalkParams.Convert(),
+		SnmpConfig:     a.ConfigStruct,
 	}
 }

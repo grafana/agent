@@ -114,6 +114,13 @@ Full reference of options:
   # If not defined, embedded snmp_exporter default set of modules is used.
   [config_file: <string> | default = ""]
 
+  # Embedded SNMP configuration. You can specify your modules here instead of an external config file.
+  # See https://github.com/prometheus/snmp_exporter/tree/main#generating-configuration for more details how to specify your SNMP modules.
+  # If this and config_file are not defined, embedded snmp_exporter default set of modules is used.
+  snmp_config:
+    [- <modules> ... ]
+    [- <auths> ... ]
+  
   # List of SNMP targets to poll
   snmp_targets:
     [- <snmp_target> ... ]

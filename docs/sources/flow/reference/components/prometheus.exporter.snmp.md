@@ -36,9 +36,17 @@ Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`config_file` | `string`       | SNMP configuration file defining custom modules. | | yes
+`config_file` | `string`       | SNMP configuration file defining custom modules. | | no
+`config` | `string`       | SNMP configuration as inline string.  | |no
 
 The `config_file` argument points to a YAML file defining which snmp_exporter modules to use. See [snmp_exporter](https://github.com/prometheus/snmp_exporter#generating-configuration) for details on how to generate a config file.
+
+The `config` argument must be a YAML document as string defining which SNMP modules and auths to use.
+`config` is typically loaded by using the exports of another component. For example,
+
+- `local.file.LABEL.content`
+- `remote.http.LABEL.content`
+- `remote.s3.LABEL.content`
 
 ## Blocks
 
@@ -119,6 +127,44 @@ from `prometheus.exporter.snmp`:
 ```river
 prometheus.exporter.snmp "example" {
     config_file = "snmp_modules.yml"
+
+    target "network_switch_1" {
+        address     = "192.168.1.2"
+        module      = "if_mib"
+        walk_params = "public"
+    }
+
+    target "network_router_2" {
+        address     = "192.168.1.3"
+        module      = "mikrotik"
+        walk_params = "private"
+    }
+
+    walk_param "private" {
+        retries = "2"
+    }
+
+    walk_param "public" {
+        retries = "2"
+    }
+}
+// Configure a prometheus.scrape component to collect SNMP metrics.
+prometheus.scrape "demo" {
+    targets    = prometheus.exporter.snmp.example.targets
+    forward_to = [ /* ... */ ]
+}
+```
+
+This example is the same above with using an embedded configuration:
+
+
+```river
+local.file "snmp_config" {
+    path = "snmp_modules.yml"
+}
+
+prometheus.exporter.snmp "example" {
+    config_file = local.file.snmp_config.content
 
     target "network_switch_1" {
         address     = "192.168.1.2"
