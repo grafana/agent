@@ -120,7 +120,7 @@ type Integration struct {
 // MetricsHandler implements Integration.
 func (i *Integration) MetricsHandler() (http.Handler, error) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		prober.Handler(w, r, i.modules, i.log, &prober.ResultHistory{}, i.cfg.ProbeTimeoutOffset, nil)
+		prober.Handler(w, r, i.modules, i.log, &prober.ResultHistory{}, i.cfg.ProbeTimeoutOffset, nil, nil)
 	}), nil
 }
 
