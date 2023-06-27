@@ -218,6 +218,6 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-## Techincal details
+## Compression
 
 `otelcol.receiver.otlp` supports [gzip](https://en.wikipedia.org/wiki/Gzip) for compression.
