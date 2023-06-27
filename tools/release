@@ -10,7 +10,8 @@ find dist/ -type f \
   -exec zip -j -m "{}.zip" "{}" \;
 
 # Sign the RPM packages. DEB packages aren't signed.
-./packaging/rpm/gpg-sign.sh
+./packaging/grafana-agent/rpm/gpg-sign.sh
+./packaging/grafana-agent-flow/rpm/gpg-sign.sh
 
 # Get the SHA256SUMS before continuing.
 pushd dist && sha256sum -- * > SHA256SUMS && popd || exit
