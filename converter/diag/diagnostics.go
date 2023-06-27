@@ -2,7 +2,10 @@
 // pretty-print them to the screen.
 package diag
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Severity denotes the severity level of a diagnostic. The zero value of
 // severity is invalid.
@@ -69,7 +72,7 @@ func (ds Diagnostics) Error() string {
 	for ix, diag := range ds {
 		fmt.Fprint(&sb, diag.Error())
 		if ix+1 < len(ds) {
-			fmt.Fprintln(&sb) 
+			fmt.Fprintln(&sb)
 		}
 	}
 

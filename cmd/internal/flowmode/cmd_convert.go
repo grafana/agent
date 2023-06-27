@@ -38,7 +38,6 @@ non-blocking issues identified during the conversion for feature[s] on the sourc
 not supported in Grafana Agent Flow.`,
 		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
-		Aliases:      []string{"convert"},
 
 		RunE: func(_ *cobra.Command, args []string) error {
 			var err error
@@ -120,7 +119,7 @@ func convert(r io.Reader, fc *flowConvert) error {
 		return err
 	}
 
-	wf, err := os.OpenFile(fc.output, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
+	wf, err := os.Create(fc.output)
 	if err != nil {
 		return err
 	}
