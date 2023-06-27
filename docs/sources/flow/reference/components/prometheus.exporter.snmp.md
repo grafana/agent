@@ -164,7 +164,7 @@ local.file "snmp_config" {
 }
 
 prometheus.exporter.snmp "example" {
-    config_file = local.file.snmp_config.content
+    config = local.file.snmp_config.content
 
     target "network_switch_1" {
         address     = "192.168.1.2"

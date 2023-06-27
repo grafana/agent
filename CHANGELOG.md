@@ -10,6 +10,13 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- The field `version` and `auth` struct block from `walk_params` in `prometheus.exporter.snmp` and SNMP integration have been removed. The auth block now can be configured at top level, together with `modules` (@marctc)
+
 ### Features
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
@@ -48,6 +55,8 @@ Main (unreleased)
 - Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
 
 - Update `module.git` with basic and SSH key authentication support. (@djcode)
+
+- Allow `prometheus.exporter.snmp` and SNMP integration to be configured passing a YAML block. (@marctc)
 
 ### Bugfixes
 
