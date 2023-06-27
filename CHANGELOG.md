@@ -18,13 +18,16 @@ Main (unreleased)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
 
-
 - New Grafana Agent Flow components:
 
-  - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
   - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
+  - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
+  - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
+
+- Added json_path function to river stdlib. (@jkroepke)
 
 ### Enhancements
 
@@ -44,6 +47,8 @@ Main (unreleased)
 
 - Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
 
+- Update `module.git` with basic and SSH key authentication support. (@djcode)
+
 - Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
 
 ### Bugfixes
@@ -53,6 +58,8 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
+- 
 - Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 
 - Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
