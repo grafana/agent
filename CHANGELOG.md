@@ -18,19 +18,20 @@ Main (unreleased)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
 
-
 - New Grafana Agent Flow components:
 
-  - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
+  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
+  - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
+  - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
 
+- Added json_path function to river stdlib. (@jkroepke)
 
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
-
-- Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
 
 - Tanka config: retain cAdvisor metrics for system processes (Kubelet, Containerd, etc.) (@bboreham)
 
@@ -40,11 +41,15 @@ Main (unreleased)
 
 - Update `node_exporter` dependency to v1.6.0. (@spartan0x117)
 
-- Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
-
 - Enable `prometheus.relabel` to work with Prometheus' Native Histograms. (@tpaschalis)
 
 - Update `dnsmasq_exporter` to last version. (@marctc)
+
+- Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
+
+- Update `module.git` with basic and SSH key authentication support. (@djcode)
+
+- Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
 
 ### Bugfixes
 
@@ -53,11 +58,7 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
-- Fix a bug where `prometheus.relabel` would not correctly relabel when there is a cache miss. (@thampiotr)
-
-- Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
-
-- Fixes several issues with statsd exporter. (@jcreixell, @marctc)
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
 
 - Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 
@@ -66,6 +67,20 @@ Main (unreleased)
 - Fix issue in `prometheus.remote_write` where the `queue_config` and
   `metadata_config` blocks used incorrect defaults when not specified in the
   config file. (@rfratto)
+
+v0.34.2 (2023-06-20)
+--------------------
+
+### Enhancements
+
+- Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
+- Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
+
+### Bugfixes
+
+- Fix a bug where `prometheus.relabel` would not correctly relabel when there is a cache miss. (@thampiotr)
+- Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
+- Fixes several issues with statsd exporter. (@jcreixell, @marctc)
 
 ### Other changes
 

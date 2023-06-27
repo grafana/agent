@@ -17,7 +17,7 @@ scrape_configs:
   - job_name: "prometheus2"
     static_configs:
       - targets: ["localhost:9091"]
-    relabel_configs:
+    metric_relabel_configs:
       - source_labels: [__address1__]
         target_label: __param_target1
       - source_labels: [__address2__]
