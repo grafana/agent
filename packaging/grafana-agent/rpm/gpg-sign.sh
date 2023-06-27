@@ -17,6 +17,7 @@ echo "%_gpg_name Grafana <info@grafana.com>
 %_signature gpg
 %_gpg_path /root/.gnupg
 %_gpgbin /usr/bin/gpg
+%_gpg_digest_algo sha256
 %__gpg /usr/bin/gpg
 %__gpg_sign_cmd     %{__gpg} \
          gpg --no-tty --batch --yes --no-verbose --no-armor \

@@ -7,6 +7,14 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.34.3 (2023-06-27)
+--------------------
+
+### Bugfixes
+
+- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
+- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+
 v0.34.2 (2023-06-20)
 --------------------
 
@@ -21,7 +29,7 @@ v0.34.2 (2023-06-20)
 - Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
 - Fixes several issues with statsd exporter. (@jcreixell, @marctc)
 
-- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
+
 
 ### Other changes
 
