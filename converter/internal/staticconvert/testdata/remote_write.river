@@ -1,6 +1,7 @@
-prometheus.remote_write "test" {
+prometheus.remote_write "test1" {
 	endpoint {
-		url = "http://localhost:9009/api/prom/push"
+		name = "test1-661de2"
+		url  = "http://localhost:9009/api/prom/push"
 
 		queue_config {
 			capacity             = 2500
@@ -14,14 +15,15 @@ prometheus.remote_write "test" {
 	}
 
 	wal {
-		truncate_frequency = "30m0s"
-		max_keepalive_time = "12h0m0s"
+		truncate_frequency = "1h0m0s"
+		max_keepalive_time = "4h0m0s"
 	}
 }
 
-prometheus.remote_write "default" {
+prometheus.remote_write "test2" {
 	endpoint {
-		url = "http://localhost:9010/api/prom/push"
+		name = "test2-8c037b"
+		url  = "http://localhost:9010/api/prom/push"
 
 		queue_config {
 			capacity             = 2500
@@ -35,14 +37,15 @@ prometheus.remote_write "default" {
 	}
 
 	wal {
-		truncate_frequency = "30m0s"
-		max_keepalive_time = "12h0m0s"
+		truncate_frequency = "1h0m0s"
+		max_keepalive_time = "4h0m0s"
 	}
 }
 
-prometheus.remote_write "default_2" {
+prometheus.remote_write "test3" {
 	endpoint {
-		url = "http://localhost:9011/api/prom/push"
+		name = "test3-e5fb03"
+		url  = "http://localhost:9011/api/prom/push"
 
 		queue_config {
 			capacity             = 2500
@@ -56,7 +59,8 @@ prometheus.remote_write "default_2" {
 	}
 
 	endpoint {
-		url = "http://localhost:9012/api/prom/push"
+		name = "test3-e53693"
+		url  = "http://localhost:9012/api/prom/push"
 
 		queue_config {
 			capacity             = 2500
@@ -70,7 +74,7 @@ prometheus.remote_write "default_2" {
 	}
 
 	wal {
-		truncate_frequency = "30m0s"
-		max_keepalive_time = "12h0m0s"
+		truncate_frequency = "1h0m0s"
+		max_keepalive_time = "4h0m0s"
 	}
 }

@@ -1,74 +1,13 @@
 metrics:
-  wal_directory: /home/pi/Projects/agent/agentwal
   global:
-    scrape_interval:     1m # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-    evaluation_interval: 1m # Evaluate rules every 15 seconds. The default is every 1 minute.
-    scrape_timeout:      45s # try to make this not timeout :) 
     remote_write:
-    - url: https://prometheus-us-central1.grafana.net/api/prom/push
-      queue_config:
-        # stop logging the thing
-        batch_send_deadline: 3m
-        max_shards: 10
-        max_backoff: 10s
-      basic_auth:
-        username: 11021
-        password: my-secret-password-here
- 
+      - url: http://localhost:9009/api/prom/push
   configs:
-    - name: agent
-      host_filter: false
-      # A scrape configuration containing exactly one endpoint to scrape:
-      # Here it's Prometheus itself.
-      scrape_configs:
-        # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
-        - job_name: 'prometheus'
-          # metrics_path defaults to '/metrics'
-          # scheme defaults to 'http'.
-          static_configs:
-            - targets: ['localhost:9099','10.10.10.23:9101','10.10.10.40:9101','localhost:9427', 'localhost:9098', '10.10.10.3:9100']
-        - job_name: "promobee"
-          metrics_path: /thermostat
-          static_configs:
-            - targets:
-              # These are the themostat IDs as exported by the /thermostats
-              # endpoint.
-              - 415564858244
-          relabel_configs:
-            - source_labels: [__address__]
-              target_label: __param_id
-            - source_labels: [__param_id]
-              target_label: thermostat
-            - target_label: __address__
-              # Replace this host:port with the location of promobee.
-              replacement: 10.10.10.8:8099
-
-integrations:
-  agent:
-    enabled: true
-  node_exporter:
-    enabled: true
-  snmp:
-    enabled: true
-    scrape_interval: 15s
-    relabel_configs:
-      - action: replace
-        source_labels: [job]
-        regex: (^.*snmp)\/(.*)
-        target_label: job_snmp
-        replacement: $1
-      - action: replace
-        source_labels: [job]
-        regex: (^.*snmp)\/(.*)
-        target_label: snmp_target
-        replacement: $2
-    snmp_targets:
-      - name: 6mcrouter
-        address: 10.10.10.1
-        module: if_mib
-        walk_params: public
-    walk_params:
-      public:
-        version: 2
-        auth:
-          community: readpw
+    - name: "test1"
+    - remote_write:
+        - url: http://localhost:9010/api/prom/push
+    - name: "test3"
+      remote_write:
+        - url: http://localhost:9011/api/prom/push
+        - url: http://localhost:9012/api/prom/push
+    

@@ -22,6 +22,11 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 		return nil, diags
 	}
 
+	if err = staticConfig.Validate(nil); err != nil {
+		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to validate Static config: %s", err))
+		return nil, diags
+	}
+
 	f := builder.NewFile()
 	diags = AppendAll(f, &staticConfig)
 
@@ -67,13 +72,9 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	labelCounts := make(map[string]int)
 	pb := newBlocks()
 	for _, instance := range staticConfig.Metrics.Configs {
-		if instance.Name == "" {
-			instance.Name = "default"
-		}
 		labelCounts[instance.Name]++
-
 		// TODO: manage the returns from this function to track the forwardTo[s] for other components.
-		appendPrometheusRemoteWrite(pb, &staticConfig.Metrics, instance, common.GetUniqueLabel(instance.Name, labelCounts[instance.Name]))
+		appendPrometheusRemoteWrite(pb, staticConfig.Metrics.Global.RemoteWrite, instance, common.GetUniqueLabel(instance.Name, labelCounts[instance.Name]))
 	}
 
 	// TODO this type of check will probably be broken into a validator func.

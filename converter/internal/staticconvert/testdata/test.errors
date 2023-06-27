@@ -1,1 +1,1 @@
-(Warning) unsupported config for wal_directory was provided. use the run command flag --storage.path for Flow mode instead.
+(Error) failed to validate Static config: error validating instance at index 1: missing instance name
