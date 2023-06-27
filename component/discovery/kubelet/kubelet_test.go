@@ -34,4 +34,4 @@ func TestBadRiverConfig(t *testing.T) {
 	var args2 Arguments
 	err = river.Unmarshal([]byte(missingKubeletURL), &args2)
 	require.ErrorContains(t, err, "missing required attribute \"kubelet_url\"")
-}e
+}
