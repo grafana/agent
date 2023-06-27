@@ -21,7 +21,7 @@ Unreleased
 
 - Don't specify replica count for StatefulSets when autoscaling is enabled (@captncraig)
 
-- Update Grafana Agent version to v0.34.3. (@captncraig)
+- Update Grafana Agent version to v0.34.2. (@captncraig)
 
 ### Other changes
 
