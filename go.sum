@@ -2775,11 +2775,8 @@ github.com/prometheus/common v0.35.0/go.mod h1:phzohg0JFMnBEFGxTDbfu3QyL5GI8gTQJ
 github.com/prometheus/common v0.37.0/go.mod h1:phzohg0JFMnBEFGxTDbfu3QyL5GI8gTQJFhYO5B3mfA=
 github.com/prometheus/common v0.38.0/go.mod h1:MBXfmBQZrK5XpbCkjofnXs96LD2QQ7fEq4C0xjC/yec=
 github.com/prometheus/common v0.39.0/go.mod h1:6XBZ7lYdLCbkAVhwRsWTZn+IN5AB9F/NXd5w0BbEX0Y=
-<<<<<<< HEAD
 github.com/prometheus/common v0.43.1-0.20230511220707-2f0f5c4b6d95 h1:zuK5oMtoKY3EMrwLyXvKKMPiDV52j3kgndI/OizgIHc=
 github.com/prometheus/common v0.43.1-0.20230511220707-2f0f5c4b6d95/go.mod h1:mA3yZuUJzjwrIm/dYNFxKgHPiv3UqcJ2cBNaBshxrZ8=
-=======
->>>>>>> main
 github.com/prometheus/common v0.44.0 h1:+5BrQJwiBB9xsMygAB3TNvpQKOwlkc25LbISbrdOOfY=
 github.com/prometheus/common v0.44.0/go.mod h1:ofAIvZbQ1e/nugmZGz4/qCb9Ap1VoSTIO7x0VV9VvuY=
 github.com/prometheus/common/assets v0.2.0/go.mod h1:D17UVUE12bHbim7HzwUvtqm6gwBEaDQ0F+hIGbFbccI=
