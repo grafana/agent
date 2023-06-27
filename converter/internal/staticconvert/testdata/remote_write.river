@@ -1,0 +1,76 @@
+prometheus.remote_write "test" {
+	endpoint {
+		url = "http://localhost:9009/api/prom/push"
+
+		queue_config {
+			capacity             = 2500
+			max_shards           = 200
+			max_samples_per_send = 500
+		}
+
+		metadata_config {
+			max_samples_per_send = 500
+		}
+	}
+
+	wal {
+		truncate_frequency = "30m0s"
+		max_keepalive_time = "12h0m0s"
+	}
+}
+
+prometheus.remote_write "default" {
+	endpoint {
+		url = "http://localhost:9010/api/prom/push"
+
+		queue_config {
+			capacity             = 2500
+			max_shards           = 200
+			max_samples_per_send = 500
+		}
+
+		metadata_config {
+			max_samples_per_send = 500
+		}
+	}
+
+	wal {
+		truncate_frequency = "30m0s"
+		max_keepalive_time = "12h0m0s"
+	}
+}
+
+prometheus.remote_write "default_2" {
+	endpoint {
+		url = "http://localhost:9011/api/prom/push"
+
+		queue_config {
+			capacity             = 2500
+			max_shards           = 200
+			max_samples_per_send = 500
+		}
+
+		metadata_config {
+			max_samples_per_send = 500
+		}
+	}
+
+	endpoint {
+		url = "http://localhost:9012/api/prom/push"
+
+		queue_config {
+			capacity             = 2500
+			max_shards           = 200
+			max_samples_per_send = 500
+		}
+
+		metadata_config {
+			max_samples_per_send = 500
+		}
+	}
+
+	wal {
+		truncate_frequency = "30m0s"
+		max_keepalive_time = "12h0m0s"
+	}
+}
