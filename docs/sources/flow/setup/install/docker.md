@@ -1,6 +1,10 @@
 ---
-title: Docker
+description: Learn how to install GRafana Agent Flow on Docker
+title: Install Grafana Agent Flow on Docker
+menuTitle: Docker
 weight: 200
+aliases:
+ - ../../install/docker/
 ---
 
 # Install Grafana Agent Flow on Docker
@@ -56,8 +60,8 @@ refer to the documentation for [run][].
 > argument like in the example above, otherwise the [debugging UI][] won't be
 > available outside of the Docker container.
 
-[debugging UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
-[run]: {{< relref "../reference/cli/run.md" >}}
+[debugging UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+[run]: {{< relref "../../reference/cli/run.md" >}}
 
 ## Run a Windows Docker container
 
@@ -86,8 +90,8 @@ refer to the documentation for [run][].
 > argument like in the example above, otherwise the [debugging UI][] won't be
 > available outside of the Docker container.
 
-[debugging UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
-[run]: {{< relref "../reference/cli/run.md" >}}
+[debugging UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+[run]: {{< relref "../../reference/cli/run.md" >}}
 
 ## Result
 
@@ -98,4 +102,4 @@ To validate that Grafana Agent Flow is running successfully, navigate to
 <http://localhost:12345> to ensure that the Grafana Agent Flow [UI][] loads
 without error.
 
-[UI]: {{< relref "../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+[UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
