@@ -130,7 +130,7 @@ func (c *module) Run(ctx context.Context) {
 func (c *module) ComponentHandler() (_ http.Handler) {
 	r := mux.NewRouter()
 
-	fa := api.NewFlowAPI(c.f)
+	fa := api.NewFlowAPI(c.f, c.f.clusterer.Node)
 	fa.RegisterRoutes("/", r)
 
 	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
