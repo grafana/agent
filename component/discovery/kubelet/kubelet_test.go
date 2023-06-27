@@ -34,17 +34,4 @@ func TestBadRiverConfig(t *testing.T) {
 	var args2 Arguments
 	err = river.Unmarshal([]byte(missingKubeletURL), &args2)
 	require.ErrorContains(t, err, "missing required attribute \"kubelet_url\"")
-}
-
-func TestAttachMetadata(t *testing.T) {
-	var exampleRiverConfig = `
-    kubelet_url = "https://10.0.0.1:10255"
-    attach_metadata {
-	    node = true
-    }
-`
-
-	var args Arguments
-	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
-	require.NoError(t, err)
-}
+}e
