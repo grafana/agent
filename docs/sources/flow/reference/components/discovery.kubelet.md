@@ -51,21 +51,11 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-attach_metadata | [attach_metadata][] | Optional metadata to attach to discovered targets. | no
 authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
-[attach_metadata]: #attach_metadata-block
 [authorization]: #authorization-block
 [tls_config]: #tls_config-block
-
-### attach_metadata block
-The `attach_metadata` block allows to attach node metadata to discovered
-targets. Valid for roles: pod, endpoints, endpointslice.
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`node` | `bool`   | Attach node metadata. | | no
 
 ### authorization block
 

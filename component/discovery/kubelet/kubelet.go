@@ -15,7 +15,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
-	discoveryk8s "github.com/grafana/agent/component/discovery/kubernetes"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/refresh"
@@ -30,7 +29,6 @@ const (
 
 	metaLabelPrefix               = model.MetaLabelPrefix + "kubernetes_"
 	namespaceLabel                = metaLabelPrefix + "namespace"
-	nodeNameLabel                 = metaLabelPrefix + "node_name"
 	presentValue                  = model.LabelValue("true")
 	podNameLabel                  = metaLabelPrefix + "pod_name"
 	podIPLabel                    = metaLabelPrefix + "pod_ip"
@@ -66,11 +64,10 @@ func init() {
 
 // Arguments configures the discovery.kubernetes component.
 type Arguments struct {
-	KubeletURL       config.URL                        `river:"kubelet_url,attr"`
-	Interval         time.Duration                     `river:"refresh_interval,attr,optional"`
-	HTTPClientConfig config.HTTPClientConfig           `river:",squash"`
-	Namespaces       []string                          `river:"namespaces,attr,optional"`
-	AttachMetadata   discoveryk8s.AttachMetadataConfig `river:"attach_metadata,block,optional"`
+	KubeletURL       config.URL              `river:"kubelet_url,attr"`
+	Interval         time.Duration           `river:"refresh_interval,attr,optional"`
+	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
+	Namespaces       []string                `river:"namespaces,attr,optional"`
 }
 
 // Validate implements river.Validator.
@@ -98,7 +95,6 @@ func New(opts component.Options, args Arguments) (*discovery.Component, error) {
 type Discovery struct {
 	client           *http.Client
 	url              string
-	addNodeMetadata  bool
 	targetNamespaces []string
 }
 
@@ -116,7 +112,6 @@ func NewKubeletDiscovery(args Arguments) (*Discovery, error) {
 	return &Discovery{
 		client:           client,
 		url:              args.KubeletURL.String(),
-		addNodeMetadata:  args.AttachMetadata.Node,
 		targetNamespaces: args.Namespaces,
 	}, nil
 }
@@ -175,9 +170,6 @@ func (d *Discovery) buildPodTargetGroup(pod v1.Pod) *targetgroup.Group {
 
 	tg.Labels = podLabels(pod)
 	tg.Labels[namespaceLabel] = lv(pod.Namespace)
-	if d.addNodeMetadata {
-		tg.Labels[nodeNameLabel] = lv(pod.Spec.NodeName)
-	}
 
 	containers := append(pod.Spec.Containers, pod.Spec.InitContainers...)
 	for i, c := range containers {
