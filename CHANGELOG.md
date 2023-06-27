@@ -11,7 +11,6 @@ Main (unreleased)
 -----------------
 
 ### Features
-- Add support to the `grafana-agent fmt` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
 
@@ -29,6 +28,8 @@ Main (unreleased)
   - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
 
 - Added json_path function to river stdlib. (@jkroepke)
+
+- Add support to the `grafana-agent fmt` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
 ### Enhancements
 
