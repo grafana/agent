@@ -7,6 +7,19 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.34.3 (2023-06-27)
+--------------------
+
+### Bugfixes
+
+- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
+- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
+
+### Other changes
+
+- Build with go version 1.20.5 (@captncraig)
+
 v0.34.2 (2023-06-20)
 --------------------
 
