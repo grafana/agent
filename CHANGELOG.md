@@ -56,6 +56,8 @@ Main (unreleased)
 
 - Update `module.git` with basic and SSH key authentication support. (@djcode)
 
+- Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
+
 - Allow `prometheus.exporter.snmp` and SNMP integration to be configured passing a YAML block. (@marctc)
 
 ### Bugfixes
