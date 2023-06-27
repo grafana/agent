@@ -21,6 +21,7 @@ type snmpHandler struct {
 
 func Handler(w http.ResponseWriter, r *http.Request, logger log.Logger, snmpCfg *snmp_config.Config,
 	targets []SNMPTarget, wParams map[string]snmp_config.WalkParams) {
+
 	query := r.URL.Query()
 
 	snmpTargets := make(map[string]SNMPTarget)
