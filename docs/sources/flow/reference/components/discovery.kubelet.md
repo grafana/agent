@@ -138,7 +138,7 @@ values.
 This example uses a bearer token file to authenticate to the Kubernetes API:
 
 ```river
-discovery.kubernetes "k8s_pods" {
+discovery.kubelet "k8s_pods" {
   kubelet_url = "https://10.0.0.1:10250"
   bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 }
@@ -149,7 +149,7 @@ discovery.kubernetes "k8s_pods" {
 This example limits the namespaces where pods are discovered using the `namespaces` argument:
 
 ```river
-discovery.kubernetes "k8s_pods" {
+discovery.kubelet "k8s_pods" {
   kubelet_url = "https://10.0.0.1:10250"
   bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
   namespaces = ["default", "kube-system"]
