@@ -51,18 +51,12 @@ Main (unreleased)
 
 - Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
 
-- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
-
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
-
-- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
-
-- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 
 - Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
 
@@ -71,6 +65,19 @@ Main (unreleased)
   config file. (@rfratto)
 
 - Fix issue where published RPMs were not signed. (@rfratto)
+
+v0.34.3 (2023-06-27)
+--------------------
+
+### Bugfixes
+
+- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
+- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
+
+### Other changes
+
+- Build with go version 1.20.5 (@captncraig)
 
 v0.34.2 (2023-06-20)
 --------------------
