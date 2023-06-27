@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
 
 import { HealthLabel } from '../component/HealthLabel';
@@ -15,8 +14,9 @@ interface ComponentListProps {
 
 const TABLEHEADERS = ['Health', 'ID'];
 
-const ComponentList = ({ components }: ComponentListProps) => {
+const ComponentList = ({ components, parent }: ComponentListProps) => {
   const tableStyles = { width: '130px' };
+  const pathPrefix = parent ? parent + '/' : '';
 
   /**
    * Custom renderer for table data
@@ -29,7 +29,7 @@ const ComponentList = ({ components }: ComponentListProps) => {
         </td>
         <td className={styles.idColumn}>
           <span className={styles.idName}>{id}</span>
-          <NavLink to={'/component/' + id} className={styles.viewButton}>
+          <NavLink to={'/component/' + pathPrefix + id} className={styles.viewButton}>
             View
           </NavLink>
         </td>

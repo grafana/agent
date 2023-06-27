@@ -41,6 +41,7 @@ type Config struct {
 	FIPSDisabled bool            `yaml:"fips_disabled"`
 	Discovery    DiscoveryConfig `yaml:"discovery"`
 	Static       []StaticJob     `yaml:"static"`
+	Debug        bool            `yaml:"debug"`
 }
 
 // DiscoveryConfig configures scraping jobs that will auto-discover metrics dimensions for a given service.
@@ -118,7 +119,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
-	return newCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled), nil
+	return NewCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled, c.Debug), nil
 }
 
 // getHash calculates the MD5 hash of the yaml representation of the config
@@ -147,7 +148,7 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, bool, error) {
 		APIVersion: "v1alpha1",
 		StsRegion:  c.STSRegion,
 		Discovery: yaceConf.Discovery{
-			ExportedTagsOnMetrics: yaceConf.ExportedTagsOnMetrics(c.Discovery.ExportedTags),
+			ExportedTagsOnMetrics: yaceModel.ExportedTagsOnMetrics(c.Discovery.ExportedTags),
 			Jobs:                  discoveryJobs,
 		},
 		Static: staticJobs,
@@ -161,13 +162,13 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, bool, error) {
 	if err := conf.Validate(); err != nil {
 		return conf, fipsEnabled, err
 	}
-	patchYACEDefaults(&conf)
+	PatchYACEDefaults(&conf)
 
 	return conf, fipsEnabled, nil
 }
 
-// patchYACEDefaults overrides some default values YACE applies after validation.
-func patchYACEDefaults(yc *yaceConf.ScrapeConf) {
+// PatchYACEDefaults overrides some default values YACE applies after validation.
+func PatchYACEDefaults(yc *yaceConf.ScrapeConf) {
 	// YACE doesn't allow during validation a zero-delay in each metrics scrape. Override this behaviour since it's taken
 	// into account by the rounding period.
 	// https://github.com/nerdswords/yet-another-cloudwatch-exporter/blob/7e5949124bb5f26353eeff298724a5897de2a2a4/pkg/config/config.go#L320

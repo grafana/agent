@@ -148,6 +148,12 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 						InsecureSkipVerify: true,
 					},
 				},
+				RelabelConfigs: []*promopv1.RelabelConfig{
+					{
+						SourceLabels: []promopv1.LabelName{"foo"},
+						TargetLabel:  "bar",
+					},
+				},
 			},
 			expectedRelabels: util.Untab(`
 				- source_labels: [job]
@@ -198,9 +204,10 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				  replacement: "${1}"
 				  regex: "(.+)"
 				  target_label: job
-				
 				- target_label: endpoint
 				  replacement: metrics
+				- target_label: bar
+				  source_labels: [foo]
 			`),
 			expected: &config.ScrapeConfig{
 				JobName:         "podMonitor/operator/podmonitor/1",

@@ -6,7 +6,9 @@ metadata:
   labels:
     {{- include "grafana-agent.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.controller.autoscaling.enabled }}
   replicas: {{ .Values.controller.replicas }}
+  {{- end }}
   minReadySeconds: 10
   selector:
     matchLabels:

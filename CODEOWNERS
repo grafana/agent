@@ -13,6 +13,11 @@
 # pull request.
 * @grafana/grafana-agent-core-maintainers
 
+# Some directories have shared ownership with the respective owners of the
+# specific code for the PR being opened, so there's no CODEOWNERS.
+/CHANGELOG.md
+/component/all
+
 # Binaries:
 /cmd/grafana-agent-operator/  @grafana/grafana-agent-operator-maintainers
 
@@ -29,6 +34,7 @@
 /component/phlare/                  @grafana/grafana-agent-signals-maintainers
 /component/prometheus/              @grafana/grafana-agent-signals-maintainers
 /component/prometheus/exporter/     @grafana/grafana-agent-infrastructure-maintainers
+/component/prometheus/operator/     @grafana/grafana-agent-operator-maintainers
 /component/remote/                  @grafana/grafana-agent-infrastructure-maintainers
 
 # Static mode packages:

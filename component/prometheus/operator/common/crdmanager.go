@@ -16,6 +16,8 @@ import (
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -41,10 +43,11 @@ type crdManager struct {
 	discoveryManager *discovery.Manager
 	scrapeManager    *scrape.Manager
 
-	opts      component.Options
-	logger    log.Logger
-	args      *operator.Arguments
-	configGen configgen.ConfigGenerator
+	opts   component.Options
+	logger log.Logger
+	args   *operator.Arguments
+
+	client *kubernetes.Clientset
 
 	kind string
 }
@@ -72,8 +75,13 @@ func newCrdManager(opts component.Options, logger log.Logger, args *operator.Arg
 }
 
 func (c *crdManager) Run(ctx context.Context) error {
-	c.configGen = configgen.ConfigGenerator{
-		Client: &c.args.Client,
+	restConfig, err := c.args.Client.BuildRESTConfig(c.logger)
+	if err != nil {
+		return fmt.Errorf("creating rest config: %w", err)
+	}
+	c.client, err = kubernetes.NewForConfig(restConfig)
+	if err != nil {
+		return fmt.Errorf("creating kubernetes client: %w", err)
 	}
 
 	// Start prometheus service discovery manager
@@ -84,11 +92,6 @@ func (c *crdManager) Run(ctx context.Context) error {
 			level.Error(c.logger).Log("msg", "discovery manager stopped", "err", err)
 		}
 	}()
-
-	if err := c.runInformers(ctx); err != nil {
-		return err
-	}
-	level.Info(c.logger).Log("msg", "informers  started")
 
 	// Start prometheus scrape manager.
 	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer)
@@ -103,6 +106,12 @@ func (c *crdManager) Run(ctx context.Context) error {
 			level.Error(c.logger).Log("msg", "scrape manager failed", "err", err)
 		}
 	}()
+
+	// run informers after everything else is running
+	if err := c.runInformers(restConfig, ctx); err != nil {
+		return err
+	}
+	level.Info(c.logger).Log("msg", "informers  started")
 
 	// Start the target discovery loop to update the scrape manager with new targets.
 	for {
@@ -129,12 +138,7 @@ func (c *crdManager) DebugInfo() interface{} {
 }
 
 // runInformers starts all the informers that are required to discover CRDs.
-func (c *crdManager) runInformers(ctx context.Context) error {
-	config, err := c.args.Client.BuildRESTConfig(c.logger)
-	if err != nil {
-		return fmt.Errorf("creating rest config: %w", err)
-	}
-
+func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) error {
 	scheme := runtime.NewScheme()
 	for _, add := range []func(*runtime.Scheme) error{
 		promopv1.AddToScheme,
@@ -150,14 +154,14 @@ func (c *crdManager) runInformers(ctx context.Context) error {
 	}
 	for _, ns := range c.args.Namespaces {
 		opts := cache.Options{
-			Scheme:    scheme,
-			Namespace: ns,
+			Scheme:     scheme,
+			Namespaces: []string{ns},
 		}
 
 		if ls != labels.Nothing() {
-			opts.DefaultSelector.Label = ls
+			opts.DefaultLabelSelector = ls
 		}
-		cache, err := cache.New(config, opts)
+		cache, err := cache.New(restConfig, opts)
 		if err != nil {
 			return err
 		}
@@ -206,19 +210,20 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 
 		return err
 	}
+	const resync = 5 * time.Minute
 	switch c.kind {
 	case KindPodMonitor:
-		_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
+		_, err = informer.AddEventHandlerWithResyncPeriod((toolscache.ResourceEventHandlerFuncs{
 			AddFunc:    c.onAddPodMonitor,
 			UpdateFunc: c.onUpdatePodMonitor,
 			DeleteFunc: c.onDeletePodMonitor,
-		}))
+		}), resync)
 	case KindServiceMonitor:
-		_, err = informer.AddEventHandler((toolscache.ResourceEventHandlerFuncs{
+		_, err = informer.AddEventHandlerWithResyncPeriod((toolscache.ResourceEventHandlerFuncs{
 			AddFunc:    c.onAddServiceMonitor,
 			UpdateFunc: c.onUpdateServiceMonitor,
 			DeleteFunc: c.onDeleteServiceMonitor,
-		}))
+		}), resync)
 	default:
 		return fmt.Errorf("unknown kind to configure Informers: %s", c.kind)
 	}
@@ -271,9 +276,13 @@ func (c *crdManager) addDebugInfo(ns string, name string, err error) {
 
 func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 	var err error
+	gen := configgen.ConfigGenerator{
+		Secrets: configgen.NewSecretManager(c.client),
+		Client:  &c.args.Client,
+	}
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
 		var pmc *config.ScrapeConfig
-		pmc, err = c.configGen.GeneratePodMonitorConfig(pm, ep, i)
+		pmc, err = gen.GeneratePodMonitorConfig(pm, ep, i)
 		if err != nil {
 			// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <podmonitor>`.
 			level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error generating scrapeconfig from podmonitor")
@@ -315,9 +324,13 @@ func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 
 func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 	var err error
+	gen := configgen.ConfigGenerator{
+		Secrets: configgen.NewSecretManager(c.client),
+		Client:  &c.args.Client,
+	}
 	for i, ep := range sm.Spec.Endpoints {
 		var pmc *config.ScrapeConfig
-		pmc, err = c.configGen.GenerateServiceMonitorConfig(sm, ep, i)
+		pmc, err = gen.GenerateServiceMonitorConfig(sm, ep, i)
 		if err != nil {
 			// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <servicemonitor>`.
 			level.Error(c.logger).Log("name", sm.Name, "err", err, "msg", "error generating scrapeconfig from serviceMonitor")

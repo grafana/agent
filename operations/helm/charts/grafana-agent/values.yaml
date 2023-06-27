@@ -5,6 +5,16 @@ nameOverride: null
 # resource names.
 fullnameOverride: null
 
+## Global properties for image pulling override the values defined under `image.registry` and `configReloader.image.registry`.
+## If you want to override only one image registry, use the specific fields but if you want to override them all, use `global.image.registry`
+global:
+  image:
+    # -- Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...)
+    registry: ""
+
+    # -- Optional set of global image pull secrets.
+    pullSecrets: []
+
 # Various agent settings.
 agent:
   # -- Mode to run Grafana Agent in. Can be "flow" or "static".
@@ -69,6 +79,8 @@ agent:
   resources: {}
 
 image:
+  # -- Grafana Agent image registry (defaults to docker.io)
+  registry: "docker.io"
   # -- Grafana Agent image repository.
   repository: grafana/agent
   # -- (string) Grafana Agent image tag. When empty, the Chart's appVersion is
@@ -97,12 +109,19 @@ configReloader:
   # -- Enables automatically reloading when the agent config changes.
   enabled: true
   image:
+    # -- Config reloader image registry (defaults to docker.io)
+    registry: "docker.io"
     # -- Repository to get config reloader image from.
     repository: jimmidyson/configmap-reload
     # -- Tag of image to use for config reloading.
     tag: v0.8.0
   # -- Override the args passed to the container.
   customArgs: []
+  # -- Resource requests and limits to apply to the config reloader container.
+  resources:
+    requests:
+      cpu: "1m"
+      memory: "5Mi"
 
 controller:
   # -- Type of controller to use for deploying Grafana Agent in the cluster.

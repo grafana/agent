@@ -7,7 +7,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfig "go.opentelemetry.io/collector/config"
@@ -38,7 +37,6 @@ type Arguments struct {
 }
 
 var (
-	_ river.Unmarshaler  = (*Arguments)(nil)
 	_ exporter.Arguments = Arguments{}
 )
 
@@ -50,11 +48,9 @@ var DefaultArguments = Arguments{
 	Client:  DefaultGRPCClientArguments,
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Convert implements exporter.Arguments.
@@ -84,8 +80,6 @@ func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.Compone
 // component-specific defaults.
 type GRPCClientArguments otelcol.GRPCClientArguments
 
-var _ river.Unmarshaler = (*GRPCClientArguments)(nil)
-
 // DefaultGRPCClientArguments holds component-specific default settings for
 // GRPCClientArguments.
 var DefaultGRPCClientArguments = GRPCClientArguments{
@@ -94,9 +88,7 @@ var DefaultGRPCClientArguments = GRPCClientArguments{
 	WriteBufferSize: 512 * 1024,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and supplies defaults.
-func (args *GRPCClientArguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *GRPCClientArguments) SetToDefault() {
 	*args = DefaultGRPCClientArguments
-	type arguments GRPCClientArguments
-	return f((*arguments)(args))
 }

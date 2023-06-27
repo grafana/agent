@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/component/module/git/internal/vcs"
-	"github.com/grafana/agent/pkg/river"
 )
 
 func init() {
@@ -31,13 +30,13 @@ func init() {
 
 // Arguments configures the module.git component.
 type Arguments struct {
-	Repository string `river:"repository,attr"`
-	Revision   string `river:"revision,attr,optional"`
-	Path       string `river:"path,attr"`
-
+	Repository    string        `river:"repository,attr"`
+	Revision      string        `river:"revision,attr,optional"`
+	Path          string        `river:"path,attr"`
 	PullFrequency time.Duration `river:"pull_frequency,attr,optional"`
 
-	Arguments map[string]any `river:"arguments,block,optional"`
+	Arguments     map[string]any    `river:"arguments,block,optional"`
+	GitAuthConfig vcs.GitAuthConfig `river:",squash"`
 }
 
 // DefaultArguments holds default settings for Arguments.
@@ -46,15 +45,9 @@ var DefaultArguments = Arguments{
 	PullFrequency: time.Minute,
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler and applies default settings to
-// args.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Component implements the module.git component.
@@ -82,11 +75,15 @@ var (
 
 // New creates a new module.git component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	m, err := module.NewModuleComponent(o)
+	if err != nil {
+		return nil, err
+	}
 	c := &Component{
 		opts: o,
 		log:  o.Logger,
 
-		mod: module.NewModuleComponent(o),
+		mod: m,
 
 		argsChanged: make(chan struct{}, 1),
 	}
@@ -189,6 +186,7 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	repoOpts := vcs.GitRepoOptions{
 		Repository: newArgs.Repository,
 		Revision:   newArgs.Revision,
+		Auth:       newArgs.GitAuthConfig,
 	}
 
 	// Create or update the repo field.
@@ -242,7 +240,7 @@ func (c *Component) CurrentHealth() component.Health {
 
 // Handler implements component.HTTPComponent.
 func (c *Component) Handler() http.Handler {
-	return c.mod.Handler()
+	return c.mod.HTTPHandler()
 }
 
 // DebugInfo implements component.DebugComponent.

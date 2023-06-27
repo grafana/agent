@@ -125,6 +125,9 @@ azure_exporter: <azure_exporter_config>
 # Controls the gcp_exporter integration
 gcp_exporter: <gcp_exporter_config>
 
+# Controls the squid integration
+squid: <squid_config>
+
 # Automatically collect metrics from enabled integrations. If disabled,
 # integrations will be run but not scraped and thus not remote_written. Metrics
 # for integrations will be exposed at /integrations/<integration_key>/metrics

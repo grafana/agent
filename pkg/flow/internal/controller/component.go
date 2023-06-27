@@ -13,10 +13,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
@@ -63,18 +65,18 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	LogSink           *logging.Sink                // Sink used for Logging.
-	Logger            *logging.Logger              // Logger shared between all managed components.
-	TraceProvider     trace.TracerProvider         // Tracer shared between all managed components.
-	Clusterer         *cluster.Clusterer           // Clusterer shared between all managed components.
-	DataPath          string                       // Shared directory where component data may be stored
-	OnComponentUpdate func(cn *ComponentNode)      // Informs controller that we need to reevaluate
-	OnExportsChange   func(exports map[string]any) // Invoked when the managed component updated its exports
-	Registerer        prometheus.Registerer        // Registerer for serving agent and component metrics
-	HTTPPathPrefix    string                       // HTTP prefix for components.
-	HTTPListenAddr    string                       // Base address for server
-	DialFunc          DialFunc                     // Function to connect to HTTPListenAddr.
-	ControllerID      string                       // ID of controller.
+	Logger              *logging.Logger                            // Logger shared between all managed components.
+	TraceProvider       trace.TracerProvider                       // Tracer shared between all managed components.
+	Clusterer           *cluster.Clusterer                         // Clusterer shared between all managed components.
+	DataPath            string                                     // Shared directory where component data may be stored
+	OnComponentUpdate   func(cn *ComponentNode)                    // Informs controller that we need to reevaluate
+	OnExportsChange     func(exports map[string]any)               // Invoked when the managed component updated its exports
+	Registerer          prometheus.Registerer                      // Registerer for serving agent and component metrics
+	HTTPPathPrefix      string                                     // HTTP prefix for components.
+	HTTPListenAddr      string                                     // Base address for server
+	DialFunc            DialFunc                                   // Function to connect to HTTPListenAddr.
+	ControllerID        string                                     // ID of controller.
+	NewModuleController func(id string) component.ModuleController // Func to generate a module controller.
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -89,7 +91,7 @@ type ComponentNode struct {
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg               component.Registration
 	managedOpts       component.Options
-	register          *wrappedRegisterer
+	registry          *prometheus.Registry
 	exportsType       reflect.Type
 	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
 
@@ -178,15 +180,14 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		globalID = path.Join(globals.ControllerID, cn.nodeID)
 	}
 
-	wrapped := newWrappedRegisterer()
-	cn.register = wrapped
+	cn.registry = prometheus.NewRegistry()
 	return component.Options{
 		ID:     globalID,
-		Logger: logging.New(logging.LoggerSink(globals.Logger), logging.WithComponentID(cn.nodeID)),
+		Logger: log.With(globals.Logger, "component", globalID),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": globalID,
-		}, wrapped),
-		Tracer:    wrapTracer(globals.TraceProvider, globalID),
+		}, cn.registry),
+		Tracer:    tracing.WrapTracer(globals.TraceProvider, globalID),
 		Clusterer: globals.Clusterer,
 
 		DataPath:       filepath.Join(globals.DataPath, cn.nodeID),
@@ -194,7 +195,8 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		DialFunc:       globals.DialFunc,
 		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
 
-		OnStateChange: cn.setExports,
+		OnStateChange:    cn.setExports,
+		ModuleController: globals.NewModuleController(globalID),
 	}
 }
 
@@ -203,6 +205,17 @@ func getExportsType(reg component.Registration) reflect.Type {
 		return reflect.TypeOf(reg.Exports)
 	}
 	return nil
+}
+
+// Registration returns the original registration of the component.
+func (cn *ComponentNode) Registration() component.Registration { return cn.reg }
+
+// Component returns the instance of the managed component. Component may be
+// nil if the ComponentNode has not been successfully evaluated yet.
+func (cn *ComponentNode) Component() component.Component {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.managed
 }
 
 // ID returns the component ID of the managed component from its River block.

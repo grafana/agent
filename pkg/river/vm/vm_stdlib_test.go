@@ -21,7 +21,7 @@ func TestVM_Stdlib(t *testing.T) {
 		expect interface{}
 	}{
 		{"env", `env("TEST_VAR")`, string("Hello!")},
-		{"concat", `concat([true, "foo"], [], [false, 1])`, []interface{}{true, "foo", false, float64(1)}},
+		{"concat", `concat([true, "foo"], [], [false, 1])`, []interface{}{true, "foo", false, 1}},
 		{"json_decode object", `json_decode("{\"foo\": \"bar\"}")`, map[string]interface{}{"foo": "bar"}},
 		{"json_decode array", `json_decode("[0, 1, 2]")`, []interface{}{float64(0), float64(1), float64(2)}},
 		{"json_decode nil field", `json_decode("{\"foo\": null}")`, map[string]interface{}{"foo": nil}},
@@ -63,6 +63,32 @@ func TestStdlibCoalesce(t *testing.T) {
 		{"coalesce(object, true) and return true", `coalesce(json_decode("{}"), true)`, true},
 		{"coalesce(object, false) and return false", `coalesce(json_decode("{}"), false)`, false},
 		{"coalesce(list, nil)", `coalesce([],null)`, value.Null},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			expr, err := parser.ParseExpression(tc.input)
+			require.NoError(t, err)
+
+			eval := vm.New(expr)
+
+			rv := reflect.New(reflect.TypeOf(tc.expect))
+			require.NoError(t, eval.Evaluate(nil, rv.Interface()))
+			require.Equal(t, tc.expect, rv.Elem().Interface())
+		})
+	}
+}
+
+func TestStdlibJsonPath(t *testing.T) {
+	tt := []struct {
+		name   string
+		input  string
+		expect interface{}
+	}{
+		{"json_path with simple json", `json_path("{\"a\": \"b\"}", ".a")`, []string{"b"}},
+		{"json_path with simple json without results", `json_path("{\"a\": \"b\"}", ".nonexists")`, []string{}},
+		{"json_path with json array", `json_path("[{\"name\": \"Department\",\"value\": \"IT\"},{\"name\":\"ReferenceNumber\",\"value\":\"123456\"},{\"name\":\"TestStatus\",\"value\":\"Pending\"}]", "[?(@.name == \"Department\")].value")`, []string{"IT"}},
+		{"json_path with simple json and return first", `json_path("{\"a\": \"b\"}", ".a")[0]`, "b"},
 	}
 
 	for _, tc := range tt {

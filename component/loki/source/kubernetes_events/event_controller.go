@@ -90,8 +90,8 @@ func (ctrl *eventController) runError(ctx context.Context) error {
 	}
 
 	opts := cache.Options{
-		Scheme:    scheme,
-		Namespace: ctrl.task.Namespace,
+		Scheme:     scheme,
+		Namespaces: []string{ctrl.task.Namespace},
 	}
 	informers, err := cache.New(ctrl.task.Config, opts)
 	if err != nil {

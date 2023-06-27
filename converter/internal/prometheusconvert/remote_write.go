@@ -4,18 +4,33 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/prometheus/remotewrite"
-	promconfig "github.com/prometheus/prometheus/config"
+	"github.com/grafana/agent/converter/internal/common"
+	prom_config "github.com/prometheus/prometheus/config"
 )
 
-func toRemotewriteArguments(promConfig *promconfig.Config) *remotewrite.Arguments {
+func appendPrometheusRemoteWrite(pb *prometheusBlocks, promConfig *prom_config.Config) *remotewrite.Exports {
+	remoteWriteArgs := toRemotewriteArguments(promConfig)
+	block := common.NewBlockWithOverride([]string{"prometheus", "remote_write"}, "default", remoteWriteArgs)
+	pb.prometheusRemoteWriteBlocks = append(pb.prometheusRemoteWriteBlocks, block)
+	return &remotewrite.Exports{
+		Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write.default.receiver"},
+	}
+}
+
+func toRemotewriteArguments(promConfig *prom_config.Config) *remotewrite.Arguments {
+	externalLabels := promConfig.GlobalConfig.ExternalLabels.Map()
+	if len(externalLabels) == 0 {
+		externalLabels = nil
+	}
+
 	return &remotewrite.Arguments{
-		ExternalLabels: promConfig.GlobalConfig.ExternalLabels.Map(),
+		ExternalLabels: externalLabels,
 		Endpoints:      getEndpointOptions(promConfig.RemoteWriteConfigs),
 		WALOptions:     remotewrite.DefaultWALOptions,
 	}
 }
 
-func getEndpointOptions(remoteWriteConfigs []*promconfig.RemoteWriteConfig) []*remotewrite.EndpointOptions {
+func getEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*remotewrite.EndpointOptions {
 	endpoints := make([]*remotewrite.EndpointOptions, 0)
 
 	for _, remoteWriteConfig := range remoteWriteConfigs {
@@ -37,7 +52,7 @@ func getEndpointOptions(remoteWriteConfigs []*promconfig.RemoteWriteConfig) []*r
 	return endpoints
 }
 
-func toQueueOptions(queueConfig *promconfig.QueueConfig) *remotewrite.QueueOptions {
+func toQueueOptions(queueConfig *prom_config.QueueConfig) *remotewrite.QueueOptions {
 	return &remotewrite.QueueOptions{
 		Capacity:          queueConfig.Capacity,
 		MaxShards:         queueConfig.MaxShards,
@@ -50,7 +65,7 @@ func toQueueOptions(queueConfig *promconfig.QueueConfig) *remotewrite.QueueOptio
 	}
 }
 
-func toMetadataOptions(metadataConfig *promconfig.MetadataConfig) *remotewrite.MetadataOptions {
+func toMetadataOptions(metadataConfig *prom_config.MetadataConfig) *remotewrite.MetadataOptions {
 	return &remotewrite.MetadataOptions{
 		Send:              metadataConfig.Send,
 		SendInterval:      time.Duration(metadataConfig.SendInterval),

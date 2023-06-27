@@ -4,12 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/grafana/agent/pkg/river"
-
 	"github.com/grafana/agent/pkg/river/rivertypes"
 )
-
-var _ river.Unmarshaler = (*Arguments)(nil)
 
 // Arguments implements the input for the S3 component.
 type Arguments struct {
@@ -25,12 +21,13 @@ type Arguments struct {
 
 // Client implements specific AWS configuration options
 type Client struct {
-	AccessKey    string            `river:"key,attr,optional"`
-	Secret       rivertypes.Secret `river:"secret,attr,optional"`
-	Endpoint     string            `river:"endpoint,attr,optional"`
-	DisableSSL   bool              `river:"disable_ssl,attr,optional"`
-	UsePathStyle bool              `river:"use_path_style,attr,optional"`
-	Region       string            `river:"region,attr,optional"`
+	AccessKey     string            `river:"key,attr,optional"`
+	Secret        rivertypes.Secret `river:"secret,attr,optional"`
+	Endpoint      string            `river:"endpoint,attr,optional"`
+	DisableSSL    bool              `river:"disable_ssl,attr,optional"`
+	UsePathStyle  bool              `river:"use_path_style,attr,optional"`
+	Region        string            `river:"region,attr,optional"`
+	SigningRegion string            `river:"signing_region,attr,optional"`
 }
 
 const minimumPollFrequency = 30 * time.Second
@@ -40,14 +37,13 @@ var DefaultArguments = Arguments{
 	PollFrequency: 10 * time.Minute,
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-	type arguments Arguments
-	err := f((*arguments)(a))
-	if err != nil {
-		return err
-	}
+}
+
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
 	if a.PollFrequency <= minimumPollFrequency {
 		return fmt.Errorf("poll_frequency must be greater than 30s")
 	}

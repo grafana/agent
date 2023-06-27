@@ -31,18 +31,15 @@ type PushConfig struct {
 	UseFullLine          bool               `river:"use_full_line,attr,optional"`
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (p *PushConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	// apply server defaults from here since the fields are squashed
+// SetToDefault implements river.Defaulter.
+func (p *PushConfig) SetToDefault() {
 	*p = PushConfig{
 		Server: fnet.DefaultServerConfig(),
 	}
+}
 
-	type pushCfg PushConfig
-	err := f((*pushCfg)(p))
-	if err != nil {
-		return err
-	}
+// Validate implements river.Validator.
+func (p *PushConfig) Validate() error {
 	if p.PushTimeout < 0 {
 		return fmt.Errorf("push_timeout must be greater than zero")
 	}

@@ -62,9 +62,9 @@ func WithMetadataHook(f func(ref storage.SeriesRef, l labels.Labels, m metadata.
 	}
 }
 
-// WithAppendHistogram returns an InterceptorOption which hooks into calls to
+// WithHistogramHook returns an InterceptorOption which hooks into calls to
 // AppendHistogram.
-func WithAppendHistogram(f func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error)) InterceptorOption {
+func WithHistogramHook(f func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error)) InterceptorOption {
 	return func(i *Interceptor) {
 		i.onAppendHistogram = f
 	}

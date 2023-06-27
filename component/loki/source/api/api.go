@@ -34,17 +34,11 @@ type Arguments struct {
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 }
 
-func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = Arguments{
 		Server: fnet.DefaultServerConfig(),
 	}
-
-	type args Arguments
-	err := f((*args)(a))
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (a *Arguments) labelSet() model.LabelSet {
@@ -69,7 +63,7 @@ type Component struct {
 	receivers    []loki.LogsReceiver
 }
 
-func New(opts component.Options, args Arguments) (component.Component, error) {
+func New(opts component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:               opts,
 		entriesChan:        make(chan loki.Entry),

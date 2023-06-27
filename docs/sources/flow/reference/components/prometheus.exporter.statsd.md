@@ -27,8 +27,8 @@ All arguments are optional. Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`listen_udp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
-`listen_tcp`                                      | `string`       | The TCP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
+`listen_udp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `:9125` | no
+`listen_tcp`                                      | `string`       | The TCP address on which to receive statsd metric lines. Use "" to disable it. | `:9125` | no
 `listen_unixgram`                                 | `string`       | The Unixgram socket path to receive statsd metric lines in datagram. Use "" to disable it. | | no
 `unix_socket_mode`                                | `string`       | The permission mode of the unix socket. | `755` | no
 `mapping_config_path`                             | `string`       | The path to a YAML mapping file used to translate specific dot-separated StatsD metrics into labeled Prometheus metrics. | | no
@@ -42,6 +42,8 @@ Name | Type | Description | Default | Required
 `parse_influxdb_tags`                             | `string`       | Parse InfluxDB style tags. | `true`| no
 `parse_librato_tags`                              | `string`       | Parse Librato style tags. | `true`| no
 `parse_signalfx_tags`                             | `string`       | Parse SignalFX style tags. | `true`| no
+`relay_addr`                                      | `string`       | Relay address configuration (UDP endpoint in the format 'host:port'). | | no
+`relay_packet_length`                             | `int`          | Maximum relay output packet length to avoid fragmentation. | `1400` | no
 
 At least one of `listen_udp`, `listen_tcp`, or `listen_unixgram` should be enabled.
 For details on how to use the mapping config file, please check the official
@@ -95,7 +97,7 @@ from `prometheus.exporter.statsd`:
 ```river
 prometheus.exporter.statsd "example" {
   listen_udp = ""
-  listen_tcp = "9125"
+  listen_tcp = ":9125"
   listen_unixgram = ""
   unix_socket_mode = "755"
   mapping_config_path = "mapTest.yaml"
