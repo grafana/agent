@@ -49,6 +49,8 @@ Main (unreleased)
 
 - Update `module.git` with basic and SSH key authentication support. (@djcode)
 
+- Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
@@ -57,10 +59,14 @@ Main (unreleased)
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
 - Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
-- 
+
 - Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 
 - Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
+
+- Fix issue in `prometheus.remote_write` where the `queue_config` and
+  `metadata_config` blocks used incorrect defaults when not specified in the
+  config file. (@rfratto)
 
 v0.34.2 (2023-06-20)
 --------------------
