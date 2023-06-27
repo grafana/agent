@@ -49,6 +49,8 @@ Main (unreleased)
 
 - Update `module.git` with basic and SSH key authentication support. (@djcode)
 
+- Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
