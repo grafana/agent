@@ -1,7 +1,7 @@
 ---
 description: Learn how to start, restart, and stop Grafana Agent Flow after it is installed
 title: Start, restart, and stop Grafana Agent Flow 
-menuTitle: Start Agent Flow
+menuTitle: Start Flow mode
 weight: 800
 ---
 

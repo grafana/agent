@@ -1,6 +1,6 @@
 ---
 title: Install Grafana Agent Flow
-menuTitle: Install Agent Flow
+menuTitle: Install Flow mode
 weight: 50
 aliases:
  - /docs/sources/flow/install/
