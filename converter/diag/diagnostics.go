@@ -65,13 +65,13 @@ func (ds *Diagnostics) Add(severity Severity, message string) {
 
 // Error implements error.
 func (ds Diagnostics) Error() string {
-	var errorMessage string
+	var sb strings.Builder
 	for ix, diag := range ds {
-		errorMessage += diag.Error()
+		fmt.Fprint(&sb, diag.Error())
 		if ix+1 < len(ds) {
-			errorMessage += "\n"
+			fmt.Fprintln(&sb) 
 		}
 	}
 
-	return errorMessage
+	return sb.String()
 }

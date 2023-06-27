@@ -22,7 +22,7 @@ func convertCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "convert [flags] file",
+		Use:   "convert [flags] [file]",
 		Short: "Convert a supported config file to River",
 		Long: `The convert subcommand translates a supported config file to
 a River configuration file.

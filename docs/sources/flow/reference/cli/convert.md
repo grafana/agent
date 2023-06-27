@@ -6,7 +6,7 @@ weight: 100
 # `grafana-agent convert` command
 
 The `grafana-agent convert` command converts a supported configuration file format
-to a Grafana Agent Flow river file.
+to a Grafana Agent Flow River file.
 
 ## Usage
 
@@ -24,7 +24,7 @@ non-blocking issues identified during the conversion for feature[s] on the sourc
 not supported in Grafana Agent Flow.
 
 The command fails if the file being converted has syntactically incorrect
-configuration or cannot be converted to a Grafana Agent Flow river file.
+configuration or cannot be converted to a Grafana Agent Flow River file.
 
 The following flags are supported:
 
