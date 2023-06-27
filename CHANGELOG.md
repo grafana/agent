@@ -51,6 +51,8 @@ Main (unreleased)
 
 - Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
 
+- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
