@@ -29,7 +29,7 @@ server, which defaults to listening at `http://localhost:12345`.
 > learn how to change the HTTP listen address, and pass the appropriate flag
 > when running Grafana Agent Flow.
 >
-> [install]: {{< relref "../install/" >}}
+> [install]: {{< relref "../setup/install/" >}}
 
 [grafana-agent run]: {{< relref "../reference/cli/run.md" >}}
 

@@ -30,13 +30,13 @@ func init() {
 
 // Arguments configures the module.git component.
 type Arguments struct {
-	Repository string `river:"repository,attr"`
-	Revision   string `river:"revision,attr,optional"`
-	Path       string `river:"path,attr"`
-
+	Repository    string        `river:"repository,attr"`
+	Revision      string        `river:"revision,attr,optional"`
+	Path          string        `river:"path,attr"`
 	PullFrequency time.Duration `river:"pull_frequency,attr,optional"`
 
-	Arguments map[string]any `river:"arguments,block,optional"`
+	Arguments     map[string]any    `river:"arguments,block,optional"`
+	GitAuthConfig vcs.GitAuthConfig `river:",squash"`
 }
 
 // DefaultArguments holds default settings for Arguments.
@@ -186,6 +186,7 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	repoOpts := vcs.GitRepoOptions{
 		Repository: newArgs.Repository,
 		Revision:   newArgs.Revision,
+		Auth:       newArgs.GitAuthConfig,
 	}
 
 	// Create or update the repo field.
