@@ -29,6 +29,8 @@ Main (unreleased)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
+- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis) 
+
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
