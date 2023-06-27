@@ -17,8 +17,11 @@ equal to `-`, `grafana-agent convert` converts the contents of standard input. O
 `grafana-agent convert` reads and converts the file from disk specified by the argument.
 
 The `--output` flag can be specified to write the contents of the converted
-file on disk to the specified path. `--output` can only be provided when
-`grafana-agent convert` is not reading from standard input.
+file on disk to the specified path.
+
+The `--bypass-warnings` flag can be used to bypass warnings. Warnings are defined as 
+non-blocking issues identified during the conversion for feature[s] on the source file
+not supported in Grafana Agent Flow.
 
 The command fails if the file being converted has syntactically incorrect
 configuration or cannot be converted to a Grafana Agent Flow river file.

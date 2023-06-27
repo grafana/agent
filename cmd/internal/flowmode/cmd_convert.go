@@ -29,11 +29,13 @@ a River configuration file.
 
 If the file argument is not supplied or if the file argument is "-", then convert will read from stdin.
 
-The -o flag can be used to write the formatted file back to disk. -o can not be provided when convert is reading from stdin. When -o is not provided, fmt will write the result to stdout.
+The -o flag can be used to write the formatted file back to disk. When -o is not provided, fmt will write the result to stdout.
 
 The -f flag can be used to specify the format we are converting from.
 
-The -b flag can be used to bypass warnings.`,
+The -b flag can be used to bypass warnings. Warnings are defined as 
+non-blocking issues identified during the conversion for feature[s] on the source file
+not supported in Grafana Agent Flow.`,
 		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
 		Aliases:      []string{"convert"},
@@ -73,32 +75,31 @@ type flowConvert struct {
 }
 
 func (fc *flowConvert) Run(configFile string) error {
-	switch configFile {
-	case "-":
-		if fc.output != "" {
-			return fmt.Errorf("cannot use -o with standard input")
-		}
-		return convert(nil, os.Stdin, fc)
-
-	default:
-		fi, err := os.Stat(configFile)
-		if err != nil {
-			return err
-		}
-		if fi.IsDir() {
-			return fmt.Errorf("cannot convert a directory")
-		}
-
-		f, err := os.Open(configFile)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		return convert(fi, f, fc)
+	if fc.sourceFormat == "" {
+		return fmt.Errorf("source-format is a required flag")
 	}
+
+	if configFile == "-" {
+		return convert(os.Stdin, fc)
+	}
+
+	fi, err := os.Stat(configFile)
+	if err != nil {
+		return err
+	}
+	if fi.IsDir() {
+		return fmt.Errorf("cannot convert a directory")
+	}
+
+	f, err := os.Open(configFile)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return convert(f, fc)
 }
 
-func convert(fi os.FileInfo, r io.Reader, fc *flowConvert) error {
+func convert(r io.Reader, fc *flowConvert) error {
 	inputBytes, err := io.ReadAll(r)
 	if err != nil {
 		return err
@@ -119,7 +120,7 @@ func convert(fi os.FileInfo, r io.Reader, fc *flowConvert) error {
 		return err
 	}
 
-	wf, err := os.OpenFile(fc.output, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, fi.Mode().Perm())
+	wf, err := os.OpenFile(fc.output, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
