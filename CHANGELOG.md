@@ -72,6 +72,10 @@ Main (unreleased)
 
 - Fix issue where published RPMs were not signed. (@rfratto)
 
+### Other changes
+
+- Build with go version 1.20.5 (@captncraig)
+
 v0.34.2 (2023-06-20)
 --------------------
 
