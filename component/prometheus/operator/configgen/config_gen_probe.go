@@ -59,14 +59,21 @@ func (cg *ConfigGenerator) GenerateProbeConfig(m *promopv1.Probe) (cfg *config.S
 	}
 	labeler := namespacelabeler.New("", nil, false)
 
-	if m.Spec.Targets.StaticConfig != nil {
+	static := m.Spec.Targets.StaticConfig
+	if static != nil {
 		// Generate static_config section.
-		sc := discovery.StaticConfig{
-			&targetgroup.Group{},
+		grp := &targetgroup.Group{
+			Labels: model.LabelSet{},
 		}
-		for _, t := range m.Spec.Targets.StaticConfig.Targets {
-
+		for k, v := range static.Labels {
+			grp.Labels[model.LabelName(k)] = model.LabelValue(v)
 		}
+		for _, t := range static.Targets {
+			grp.Targets = append(grp.Targets, model.LabelSet{
+				model.AddressLabel: model.LabelValue(t),
+			})
+		}
+		sc := discovery.StaticConfig{grp}
 		cfg.ServiceDiscoveryConfigs = append(cfg.ServiceDiscoveryConfigs, sc)
 		if err = relabels.addFromV1(labeler.GetRelabelingConfigs(m.TypeMeta, m.ObjectMeta, m.Spec.Targets.StaticConfig.RelabelConfigs)...); err != nil {
 			return nil, fmt.Errorf("parsing relabel configs: %w", err)
