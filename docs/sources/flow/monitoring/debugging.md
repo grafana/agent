@@ -16,8 +16,22 @@ Follow these steps to debug issues with Grafana Agent Flow:
 Grafana Agent Flow includes an embedded UI viewable from Grafana Agent's HTTP
 server, which defaults to listening at `http://localhost:12345`.
 
-> The documentation for the [`grafana-agent run`][grafana-agent run] command describes how to
-> modify the address Grafana Agent listens on for HTTP traffic.
+> **NOTE**: For security reasons, installations of Grafana Agent Flow on
+> non-containerized platforms default to listening on `localhost`. default
+> prevents other machines on the network from being able to view the UI.
+>
+> To expose the UI to other machines on the network on non-containerized
+> platforms, refer to the documentation for how you [installed][install]
+> Grafana Agent Flow.
+>
+> If you are running a custom installation of Grafana Agent Flow, refer to the
+> documentation for [the `grafana-agent run` command][grafana-agent run] to
+> learn how to change the HTTP listen address, and pass the appropriate flag
+> when running Grafana Agent Flow.
+>
+> [install]: {{< relref "../setup/install/" >}}
+
+[grafana-agent run]: {{< relref "../reference/cli/run.md" >}}
 
 ### Home page
 
