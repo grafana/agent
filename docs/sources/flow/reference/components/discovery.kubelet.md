@@ -39,8 +39,6 @@ One of the following authentication methods must be provided if kubelet authenti
  - [`bearer_token_file` argument](#arguments).
  - [`authorization` block][authorization].
 
-### namespaces
-
 The `namespaces` list limits the namespaces to discover resources in. If
 omitted, all namespaces are searched.
 
