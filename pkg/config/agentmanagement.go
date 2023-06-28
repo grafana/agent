@@ -131,11 +131,11 @@ func readPasswordFile(passwordFile string) (string, error) {
 	return cleanedPassword, nil
 }
 
-// FetchRemoteConfig fetches the raw bytes of the config from a remote API using
-// the values in r.AgentManagement.
-func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
+// createHTTPRequest creates an HTTP request based on the values in c. If label management is enabled,
+// the request will include headers to include the agent id and indicate that label management is enabled.
+func createHTTPRequest(c *AgentManagementConfig) (*http.Request, error) {
 	// Create the full url, possibly including labels as query params
-	url, err := r.InitialConfig.fullUrl()
+	url, err := c.fullUrl()
 	if err != nil {
 		return nil, fmt.Errorf("error trying to create full url: %w", err)
 	}
@@ -147,16 +147,26 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 	}
 
 	// Add basic auth
-	password, err := readPasswordFile(r.InitialConfig.BasicAuth.PasswordFile)
+	password, err := readPasswordFile(c.BasicAuth.PasswordFile)
 	if err != nil {
 		return nil, err
 	}
-	req.SetBasicAuth(r.InitialConfig.BasicAuth.Username, password)
+	req.SetBasicAuth(c.BasicAuth.Username, password)
 
 	// Set headers for label management, if enabled
-	if r.InitialConfig.RemoteConfiguration.LabelManagementEnabled && r.InitialConfig.RemoteConfiguration.AgentID != "" {
+	if c.RemoteConfiguration.LabelManagementEnabled && c.RemoteConfiguration.AgentID != "" {
 		req.Header.Add(labelManagementEnabledHeader, "1")
-		req.Header.Add(agentIDHeader, r.InitialConfig.RemoteConfiguration.AgentID)
+		req.Header.Add(agentIDHeader, c.RemoteConfiguration.AgentID)
+	}
+	return req, nil
+}
+
+// FetchRemoteConfig fetches the raw bytes of the config from a remote API using
+// the values in r.AgentManagement.
+func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
+	req, err := createHTTPRequest(r.InitialConfig)
+	if err != nil {
+		return nil, err
 	}
 
 	client := &http.Client{
