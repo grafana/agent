@@ -29,8 +29,9 @@ prometheus.scrape "prometheus2" {
 
 prometheus.remote_write "default" {
 	endpoint {
-		name = "remote1"
-		url  = "http://remote-write-url1"
+		name           = "remote1"
+		url            = "http://remote-write-url1"
+		send_exemplars = false
 
 		queue_config {
 			capacity             = 2500
