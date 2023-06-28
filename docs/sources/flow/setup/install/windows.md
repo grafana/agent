@@ -9,7 +9,7 @@ aliases:
 
 # Install Grafana Agent Flow on Windows
 
-You can install Grafana Agent Flow on Windows with the stanadrd graphical installer, or as a silent install.
+You can install Grafana Agent Flow on Windows with the stanadard graphical installer, or as a silent install.
 
 ## Graphical install
 
