@@ -29,6 +29,8 @@ Main (unreleased)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
+- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis) 
+
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
@@ -71,6 +73,10 @@ Main (unreleased)
   config file. (@rfratto)
 
 - Fix issue where published RPMs were not signed. (@rfratto)
+
+### Other changes
+
+- Build with go version 1.20.5 (@captncraig)
 
 v0.34.2 (2023-06-20)
 --------------------
