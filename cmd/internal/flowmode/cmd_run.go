@@ -101,23 +101,23 @@ depending on the nature of the reload error.
 		StringVar(&r.clusterJoinAddr, "cluster.join-addresses", r.clusterJoinAddr, "Comma-separated list of addresses to join the cluster at")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
-	cmd.Flags().StringVar(&r.converterSourceFormat, "converter.source-format", r.converterSourceFormat, "The format of the source file. Supported formats: 'prometheus'.")
-	cmd.Flags().BoolVar(&r.converterBypassWarnings, "converter.bypass-warnings", r.converterBypassWarnings, "Enable bypassing warnings when converting")
+	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'prometheus'.")
+	cmd.Flags().BoolVar(&r.configBypassConversionWarnings, "config.bypass-conversion-warnings", r.configBypassConversionWarnings, "Enable bypassing warnings when converting")
 	return cmd
 }
 
 type flowRun struct {
-	inMemoryAddr            string
-	httpListenAddr          string
-	storagePath             string
-	uiPrefix                string
-	enablePprof             bool
-	disableReporting        bool
-	clusterEnabled          bool
-	clusterAdvAddr          string
-	clusterJoinAddr         string
-	converterSourceFormat   string
-	converterBypassWarnings bool
+	inMemoryAddr                   string
+	httpListenAddr                 string
+	storagePath                    string
+	uiPrefix                       string
+	enablePprof                    bool
+	disableReporting               bool
+	clusterEnabled                 bool
+	clusterAdvAddr                 string
+	clusterJoinAddr                string
+	configFormat                   string
+	configBypassConversionWarnings bool
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -199,7 +199,7 @@ func (fr *flowRun) Run(configFile string) error {
 	})
 
 	reload := func() error {
-		flowCfg, err := loadFlowFile(configFile, fr.converterSourceFormat, fr.converterBypassWarnings)
+		flowCfg, err := loadFlowFile(configFile, fr.configFormat, fr.configBypassConversionWarnings)
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {

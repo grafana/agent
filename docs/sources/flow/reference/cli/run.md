@@ -37,6 +37,8 @@ The following flags are supported:
 * `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
+* `--config.format`: The format of the source file. Supported formats: 'prometheus' (default `""`).
+* `--config.bypass-conversion-warnings`: Enable bypassing warnings when converting (default `false`).
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
@@ -76,14 +78,14 @@ to advertise from a list of default network interfaces. The agent must be
 reachable over HTTP on this address as communication happens over the agent's
 HTTP server.
 
-## Converter mode
+## Configuration conversion
 
-When the `--converter.source-format` command-line argument is provided, Grafana
+When the `--config.format` command-line argument is provided, Grafana
 Agent will convert the config file from the source format to River and
 immediately start running with it. This leverages the same converter API
 described in the [grafana-agent convert][] docs.
 
-If the `--converter.bypass-warnings` command-line argument is also provided,
+If the `--config.bypass-conversion-warnings` command-line argument is also provided,
 Grafana Agent will ignore any warnings provided by the converter. This should
 be used with caution since the resulting conversion is not equivalent to the
 original config.
