@@ -7,7 +7,7 @@ weight: 400
 
 # Configure Grafana Agent on macOS
 
-To configure Grafana Agent on macOS, perform the following
+To configure Grafana Agent in flow mode on macOS, perform the following
 steps:
 
 1. Edit the default configuration file at

@@ -9,7 +9,7 @@ weight: 200
 
 ## Customize deployment
 
-To customize the deployment used to deploy Grafana Agent on Kubernetes,
+To customize the deployment used to deploy Grafana Agent in flow mode on Kubernetes,
 perform the following steps:
 
 1. Download a local copy of [values.yaml][] for the Helm chart.
@@ -57,4 +57,5 @@ configMapGenerator:
       disableNameSuffixHash: true
 ```
 
+[Helm chart]: https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent
 [Kustomize]: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/

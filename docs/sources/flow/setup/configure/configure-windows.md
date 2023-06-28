@@ -7,8 +7,7 @@ weight: 500
 
 # Configure Grafana Agent on Windows
 
-To configure Grafana Agent when installed on Windows, perform the following
-steps:
+To configure Grafana Agent in flow mode on Windows, perform the following steps:
 
 1. Edit the default configuration file at `C:\Program Files\Grafana Agent Flow\config.river`.
 
@@ -26,7 +25,7 @@ steps:
 
 ## Change command-line arguments
 
-By default, the Grafana Agent service will launch with passing the
+By default, the Grafana Agent service will launch and pass the
 following arguments to the Grafana Agent binary:
 
 * `run`

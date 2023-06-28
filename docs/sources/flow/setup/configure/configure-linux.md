@@ -7,7 +7,7 @@ weight: 300
 
 # Configure Grafana Agent on Linux
 
-To configure Grafana Agent on Linux, perform the following steps:
+To configure Grafana Agent in flow mode on Linux, perform the following steps:
 
 1. Edit the default configuration file at `/etc/grafana-agent-flow.river`.
 

@@ -21,7 +21,7 @@ Grafana Agent is available as Docker images on the following platforms:
 
 * Ensure that [Docker][] is installed and running on your machine.
 
-* Ensure that you have an existing Grafana Agent river configuration file on your host system, such as:
+* Ensure that you have an existing Grafana Agent River configuration file on your host system, such as:
 
   ```river
   logging {
