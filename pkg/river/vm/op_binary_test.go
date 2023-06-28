@@ -46,6 +46,21 @@ func TestVM_OptionalSecret_Conversion(t *testing.T) {
 			expect: bool(true),
 		},
 		{
+			name:   "capsule (secret) == capsule (secret)",
+			input:  `secret_val == secret_val`,
+			expect: bool(true),
+		},
+		{
+			name:   "capsule (non secret) == capsule (non secret)",
+			input:  `non_secret_val == non_secret_val`,
+			expect: bool(true),
+		},
+		{
+			name:   "capsule (non secret) == capsule (secret)",
+			input:  `non_secret_val == secret_val`,
+			expect: bool(false),
+		},
+		{
 			name:        "secret + string",
 			input:       `secret_val + string_val`,
 			expectError: "secret_val should be one of [number string] for binop +",
