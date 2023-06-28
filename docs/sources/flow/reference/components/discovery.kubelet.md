@@ -13,7 +13,6 @@ and exposes them as scrape targets.
 
 ```river
 discovery.kubelet "LABEL" {
-  kubelet_url = "KUBELET_URL"
   bearer_token_file = "TOKEN_FILE"
 }
 ```
@@ -30,7 +29,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`kubelet_url` | `string` | URL of Kubernetes API server. | | yes
+`url` | `string` | URL of the Kubelet server. | | no
 `bearer_token` | `secret` | Bearer token to authenticate with. | | no
 `bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
 `refresh_interval` | `duration` | How often the Kubelet should be polled for scrape targets | `5s` | no
@@ -130,7 +129,6 @@ This example uses a bearer token file to authenticate to the Kubernetes API:
 
 ```river
 discovery.kubelet "k8s_pods" {
-  kubelet_url = "https://10.0.0.1:10250"
   bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 }
 ```
@@ -141,7 +139,6 @@ This example limits the namespaces where pods are discovered using the `namespac
 
 ```river
 discovery.kubelet "k8s_pods" {
-  kubelet_url = "https://10.0.0.1:10250"
   bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
   namespaces = ["default", "kube-system"]
 }

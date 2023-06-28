@@ -69,7 +69,7 @@ func init() {
 
 // Arguments configures the discovery.kubernetes component.
 type Arguments struct {
-	KubeletURL       config.URL              `river:"kubelet_url,attr,optional"`
+	URL              config.URL              `river:"url,attr,optional"`
 	Interval         time.Duration           `river:"refresh_interval,attr,optional"`
 	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
 	Namespaces       []string                `river:"namespaces,attr,optional"`
@@ -77,7 +77,7 @@ type Arguments struct {
 
 // DefaultConfig holds defaults for SDConfig.
 var DefaultConfig = Arguments{
-	KubeletURL: config.URL{
+	URL: config.URL{
 		URL: defaultKubeletURL,
 	},
 	HTTPClientConfig: config.DefaultHTTPClientConfig,
@@ -126,10 +126,10 @@ func NewKubeletDiscovery(args Arguments) (*Discovery, error) {
 		Timeout:   30 * time.Second,
 	}
 	// ensure the path is the kubelet pods endpoint
-	args.KubeletURL.Path = "/pods"
+	args.URL.Path = "/pods"
 	return &Discovery{
 		client:           client,
-		url:              args.KubeletURL.String(),
+		url:              args.URL.String(),
 		targetNamespaces: args.Namespaces,
 	}, nil
 }
