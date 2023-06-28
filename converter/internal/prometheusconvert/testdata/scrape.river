@@ -1,3 +1,41 @@
+prometheus.scrape "prometheus1" {
+	targets = concat(
+		[{
+			__address__ = "localhost:9091",
+			app         = "foo",
+		}],
+		[{
+			__address__ = "localhost:9091",
+			app         = "foo",
+		}],
+	)
+	forward_to      = [prometheus.remote_write.default.receiver]
+	job_name        = "prometheus1"
+	scrape_interval = "10s"
+	scrape_timeout  = "5s"
+
+	basic_auth {
+		username = "user"
+		password = "pass"
+	}
+}
+
+prometheus.scrape "prometheus2" {
+	targets = concat(
+		[{
+			__address__ = "localhost:9091",
+		}],
+		[{
+			__address__ = "localhost:9092",
+		}],
+		[{
+			__address__ = "localhost:9093",
+		}],
+	)
+	forward_to = [prometheus.remote_write.default.receiver]
+	job_name   = "prometheus2"
+}
+
 prometheus.remote_write "default" {
 	external_labels = {
 		cluster = "prod",
@@ -32,27 +70,4 @@ prometheus.remote_write "default" {
 			max_samples_per_send = 500
 		}
 	}
-}
-
-prometheus.scrape "prometheus1" {
-	targets = [{
-		__address__ = "localhost:9090",
-	}]
-	forward_to      = [prometheus.remote_write.default.receiver]
-	job_name        = "prometheus1"
-	scrape_interval = "10s"
-	scrape_timeout  = "5s"
-
-	basic_auth {
-		username = "user"
-		password = "pass"
-	}
-}
-
-prometheus.scrape "prometheus2" {
-	targets = [{
-		__address__ = "localhost:9091",
-	}]
-	forward_to = [prometheus.remote_write.default.receiver]
-	job_name   = "prometheus2"
 }

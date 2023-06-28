@@ -10,13 +10,17 @@ scrape_configs:
     scrape_interval: 10s
     scrape_timeout: 5s
     static_configs:
-      - targets: ["localhost:9090"]
+      - targets: ["localhost:9090", "localhost:9091"] 
+        labels:
+          app: 'foo'
     basic_auth:
       username: 'user'
       password: 'pass'
   - job_name: "prometheus2"
     static_configs:
       - targets: ["localhost:9091"]
+      - targets: ["localhost:9092"]
+      - targets: ["localhost:9093"]
 
 remote_write:
   - name: "remote1"
