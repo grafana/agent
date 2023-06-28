@@ -45,13 +45,14 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/golang/snappy v0.0.4
 	github.com/google/cadvisor v0.47.0
+	github.com/google/dnsmasq_exporter v0.2.1-0.20230620100026-44b14480804a
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-jsonnet v0.18.0
 	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b
 	github.com/google/renameio/v2 v2.0.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
-	github.com/grafana/ckit v0.0.0-20230518140533-fbd338b33964
+	github.com/grafana/ckit v0.0.0-20230628095927-30fb40ef3315
 	github.com/grafana/cloudflare-go v0.0.0-20230110200409-c627cf6792f2
 	github.com/grafana/dskit v0.0.0-20230201083518-528d8a7d52f2
 	github.com/grafana/go-gelf/v2 v2.0.1
@@ -67,6 +68,7 @@ require (
 	github.com/hashicorp/go-discover v0.0.0-20220105235006-b95dfa40aaed
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/golang-lru v0.6.0
+	github.com/hashicorp/golang-lru/v2 v2.0.3
 	github.com/hashicorp/vault/api v1.7.2
 	github.com/hashicorp/vault/api/auth/approle v0.2.0
 	github.com/hashicorp/vault/api/auth/aws v0.2.0
@@ -95,7 +97,7 @@ require (
 	github.com/ohler55/ojg v1.18.7
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/oliver006/redis_exporter v1.49.0
+	github.com/oliver006/redis_exporter v1.51.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.63.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.63.0
@@ -130,7 +132,7 @@ require (
 	github.com/prometheus-operator/prometheus-operator v0.62.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.63.0
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.63.0
-	github.com/prometheus/blackbox_exporter v0.24.0
+	github.com/prometheus/blackbox_exporter v0.24.1-0.20230623125439-bd22efa1c900
 	github.com/prometheus/client_golang v1.16.0
 	github.com/prometheus/client_model v0.4.0
 	github.com/prometheus/common v0.44.0
@@ -202,7 +204,6 @@ require (
 	k8s.io/utils v0.0.0-20230220204549-a5ecb0141aa5
 	sigs.k8s.io/controller-runtime v0.15.0
 	sigs.k8s.io/yaml v1.3.0
-
 )
 
 require (
@@ -268,7 +269,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.2-0.20180723201105-3c1074078d32+incompatible // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
-	github.com/boynux/squid-exporter v1.10.4
+	github.com/boynux/squid-exporter v1.10.5-0.20230618153315-c1fae094e18e
 	github.com/c2h5oh/datasize v0.0.0-20200112174442-28bbd4740fee // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
@@ -582,8 +583,6 @@ require (
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
 	github.com/apache/arrow/go/v12 v12.0.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/google/dnsmasq_exporter v0.2.1-0.20230620100026-44b14480804a // indirect
-	github.com/hashicorp/golang-lru/v2 v2.0.3 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect

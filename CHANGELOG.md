@@ -29,6 +29,10 @@ Main (unreleased)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
+- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis) 
+
+- Add support to the `grafana-agent fmt` CLI for converting a river file from supported formats to river. (@erikbaranowski)
+
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
@@ -49,6 +53,10 @@ Main (unreleased)
 
 - Update `module.git` with basic and SSH key authentication support. (@djcode)
 
+- Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
+
+- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
@@ -57,10 +65,20 @@ Main (unreleased)
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
 - Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
-- 
+
 - Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 
 - Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
+
+- Fix issue in `prometheus.remote_write` where the `queue_config` and
+  `metadata_config` blocks used incorrect defaults when not specified in the
+  config file. (@rfratto)
+
+- Fix issue where published RPMs were not signed. (@rfratto)
+
+### Other changes
+
+- Build with go version 1.20.5 (@captncraig)
 
 v0.34.2 (2023-06-20)
 --------------------
