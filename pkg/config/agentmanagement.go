@@ -156,7 +156,7 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 	}
 
 	client := &http.Client{
-		Timeout: 5*time.Second,
+		Timeout: 5 * time.Second,
 	}
 	response, err := client.Do(req)
 	if err != nil {
