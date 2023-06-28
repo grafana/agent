@@ -7,10 +7,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"math/rand"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-kit/log/level"
@@ -114,47 +117,85 @@ func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) er
 	return os.WriteFile(cachePath, marshalled, 0666)
 }
 
+// readPasswordFile reads the specified password file, trims any whitespace, and returns the password as a string.
+func readPasswordFile(passwordFile string) (string, error) {
+	password, err := os.ReadFile(passwordFile)
+	if err != nil {
+		return "", errors.New("error reading password file")
+	}
+	cleanedPassword := strings.TrimSpace(string(password))
+	return cleanedPassword, nil
+}
+
 // FetchRemoteConfig fetches the raw bytes of the config from a remote API using
 // the values in r.AgentManagement.
-//
-// Sleeps for a short period of time to apply jitter to API requests.
 func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
-	httpClientConfig := &config.HTTPClientConfig{
-		BasicAuth: &r.InitialConfig.BasicAuth,
-	}
-
-	dir, err := os.Getwd()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get current working directory: %w", err)
-	}
-	httpClientConfig.SetDirectory(dir)
-
-	remoteOpts := &remoteOpts{
-		HTTPClientConfig: httpClientConfig,
-	}
-
+	// Create the full url, possibly including labels as query params
 	url, err := r.InitialConfig.fullUrl()
 	if err != nil {
 		return nil, fmt.Errorf("error trying to create full url: %w", err)
 	}
-	rc, err := newRemoteProvider(url, remoteOpts)
+
+	// Create the request
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error reading remote config: %w", err)
+		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	bb, err := rc.retrieve()
+	// Add basic auth
+	password, err := readPasswordFile(r.InitialConfig.BasicAuth.PasswordFile)
+	if err != nil {
+		return nil, err
+	}
+	req.SetBasicAuth(r.InitialConfig.BasicAuth.Username, password)
+
+	// Set headers for label management, if enabled
+	if r.InitialConfig.RemoteConfiguration.LabelManagementEnabled && r.InitialConfig.RemoteConfiguration.AgentID != "" {
+		req.Header.Add("X-LabelManagementEnabled", "1")
+		req.Header.Add("X-AgentID", r.InitialConfig.RemoteConfiguration.AgentID)
+	}
+
+	client := &http.Client{
+		Timeout: 5*time.Second,
+	}
+	response, err := client.Do(req)
+	if err != nil {
+		instrumentation.InstrumentRemoteConfigFetchError()
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+	instrumentation.InstrumentRemoteConfigFetch(response.StatusCode)
+
+	if response.StatusCode == http.StatusTooManyRequests {
+		retryAfter := response.Header.Get("Retry-After")
+		if retryAfter == "" {
+			return nil, fmt.Errorf("server indicated to retry, but no Retry-After header was provided")
+		}
+		retryAfterDuration, err := time.ParseDuration(retryAfter)
+		if err != nil {
+			return nil, fmt.Errorf("server indicated to retry, but Retry-After header was not a valid duration: %w", err)
+		}
+		return nil, retryAfterError{retryAfter: retryAfterDuration}
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving remote config: %w", err)
 	}
-	return bb, nil
+	defer response.Body.Close()
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading response body: %w", err)
+	}
+	return body, nil
 }
 
 type labelMap map[string]string
 
 type RemoteConfiguration struct {
-	Labels        labelMap `yaml:"labels"`
-	Namespace     string   `yaml:"namespace"`
-	CacheLocation string   `yaml:"cache_location"`
+	Labels                 labelMap `yaml:"labels"`
+	LabelManagementEnabled bool     `yaml:"label_management_enabled"`
+	AgentID                string   `yaml:"agent_id"`
+	Namespace              string   `yaml:"namespace"`
+	CacheLocation          string   `yaml:"cache_location"`
 }
 
 type AgentManagementConfig struct {
