@@ -1709,8 +1709,8 @@ github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/ad
 github.com/gosnmp/gosnmp v1.34.0 h1:p96iiNTTdL4ZYspPC3leSKXiHfE1NiIYffMu9100p5E=
 github.com/gosnmp/gosnmp v1.34.0/go.mod h1:QWTRprXN9haHFof3P96XTDYc46boCGAh5IXp0DniEx4=
 github.com/gotestyourself/gotestyourself v2.2.0+incompatible/go.mod h1:zZKM6oeNM8k+FRljX1mnzVYeS8wiGgQyvST1/GafPbY=
-github.com/grafana/ckit v0.0.0-20230518140533-fbd338b33964 h1:rJIMh9u7TBoq58tE8cMDypz7qNuzI42HHWxddJESDW8=
-github.com/grafana/ckit v0.0.0-20230518140533-fbd338b33964/go.mod h1:HcHGszFkeYCuFbWt6qt72rnZRHwbR2BhQBGHWqe4AqU=
+github.com/grafana/ckit v0.0.0-20230628095927-30fb40ef3315 h1:oWhBFe0MUzvoL3urLuQP60CZsWwSf0520+dFpcL+dxM=
+github.com/grafana/ckit v0.0.0-20230628095927-30fb40ef3315/go.mod h1:Df5lTff8/1LWplxi2jlRF6wvVB91Oae9ud2SM4U5KNc=
 github.com/grafana/cloudflare-go v0.0.0-20230110200409-c627cf6792f2 h1:qhugDMdQ4Vp68H0tp/0iN17DM2ehRo1rLEdOFe/gB8I=
 github.com/grafana/cloudflare-go v0.0.0-20230110200409-c627cf6792f2/go.mod h1:w/aiO1POVIeXUQyl0VQSZjl5OAGDTL5aX+4v0RA1tcw=
 github.com/grafana/dskit v0.0.0-20210908150159-fcf48cb19aa4/go.mod h1:m3eHzwe5IT5eE2MI3Ena2ooU8+Hek8IiVXb9yJ1+0rs=
