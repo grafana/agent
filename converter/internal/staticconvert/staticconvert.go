@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/river/token/builder"
 )
 
-// Convert implements a Prometheus config converter.
+// Convert implements a Static config converter.
 func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -63,7 +63,7 @@ func newBlocks() *blocks {
 	}
 }
 
-// AppendAll analyzes the entire prometheus config in memory and transforms it
+// AppendAll analyzes the entire static config in memory and transforms it
 // into Flow Arguments. It then appends each argument to the file builder.
 // Exports from other components are correctly referenced to build the Flow
 // pipeline.
@@ -84,7 +84,7 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	return diags
 }
 
-// prepareFileBlocks attaches prometheus blocks in a specific order.
+// prepareFileBlocks attaches static component blocks in a specific order.
 //
 // Order of blocks:
 // 1. Discovery component(s)
