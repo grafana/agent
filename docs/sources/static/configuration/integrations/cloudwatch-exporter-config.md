@@ -406,4 +406,3 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/WAFV2` or Alias: `wafv2`
 - Namespace: `AWS/WorkSpaces` or Alias: `workspaces`
 - Namespace: `AWS/AOSS` or Alias: `aoss`
-
