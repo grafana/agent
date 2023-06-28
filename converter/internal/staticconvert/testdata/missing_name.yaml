@@ -1,13 +1,5 @@
 metrics:
-  global:
-    remote_write:
-      - url: http://localhost:9009/api/prom/push
   configs:
-    - name: "test1"
     - remote_write:
         - url: http://localhost:9010/api/prom/push
-    - name: "test3"
-      remote_write:
-        - url: http://localhost:9011/api/prom/push
-        - url: http://localhost:9012/api/prom/push
     

@@ -73,11 +73,9 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	pb := newBlocks()
 	for _, instance := range staticConfig.Metrics.Configs {
 		labelCounts[instance.Name]++
-		// TODO: manage the returns from this function to track the forwardTo[s] for other components.
 		appendPrometheusRemoteWrite(pb, staticConfig.Metrics.Global.RemoteWrite, instance, common.GetUniqueLabel(instance.Name, labelCounts[instance.Name]))
 	}
 
-	// TODO this type of check will probably be broken into a validator func.
 	if staticConfig.Metrics.WALDir != metrics.DefaultConfig.WALDir {
 		diags.Add(diag.SeverityLevelWarn, "unsupported config for wal_directory was provided. use the run command flag --storage.path for Flow mode instead.")
 	}
