@@ -31,6 +31,8 @@ Main (unreleased)
 
 - Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis) 
 
+- Add support to the `grafana-agent fmt` CLI for converting a river file from supported formats to river. (@erikbaranowski)
+
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
