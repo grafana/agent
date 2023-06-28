@@ -107,6 +107,10 @@ Each target includes the following labels:
 * `__meta_kubernetes_pod_controller_kind`: Object kind of the pod controller.
 * `__meta_kubernetes_pod_controller_name`: Name of the pod controller.
 
+> **Note**: The Kubelet API used by this component is an internal API and therefore the
+> data in the response returned from the API cannot be guaranteed between different versions
+> of the Kubelet.
+
 ## Component health
 
 `discovery.kubelet` is reported as unhealthy when given an invalid
@@ -125,7 +129,7 @@ values.
 
 ### Bearer token file authentication
 
-This example uses a bearer token file to authenticate to the Kubernetes API:
+This example uses a bearer token file to authenticate to the Kubelet API:
 
 ```river
 discovery.kubelet "k8s_pods" {
