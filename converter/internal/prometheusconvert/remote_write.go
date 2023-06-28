@@ -25,12 +25,12 @@ func toRemotewriteArguments(promConfig *prom_config.Config) *remotewrite.Argumen
 
 	return &remotewrite.Arguments{
 		ExternalLabels: externalLabels,
-		Endpoints:      getEndpointOptions(promConfig.RemoteWriteConfigs),
+		Endpoints:      GetEndpointOptions(promConfig.RemoteWriteConfigs),
 		WALOptions:     remotewrite.DefaultWALOptions,
 	}
 }
 
-func getEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*remotewrite.EndpointOptions {
+func GetEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*remotewrite.EndpointOptions {
 	endpoints := make([]*remotewrite.EndpointOptions, 0)
 
 	for _, remoteWriteConfig := range remoteWriteConfigs {
