@@ -79,6 +79,8 @@ Main (unreleased)
 
 - Update OpenTelemetry Collector dependencies from v0.63.0 to v0.80.0. (@ptodev)
 
+- Allow setting the node name for clusterng with a command-line flag. (@tpaschalis)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
