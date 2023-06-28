@@ -35,6 +35,7 @@ The following flags are supported:
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
 * `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
 * `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
+* `--cluster.node-name`: The name to use for this node (defaults to the environment's HOSTNAME).
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
 * `--config.format`: The format of the source file. Supported formats: 'flow', 'prometheus' (default `"flow"`).
@@ -71,6 +72,10 @@ The agent tries to connect over HTTP/2 to one or more peers provided in the
 comma-separated `--cluster.join-addresses` list to join an existing cluster.
 If no connection can be made or the argument is empty, the agent falls back to
 bootstrapping a new cluster of its own.
+
+Each node's name must be unique within the cluster. The node name defaults to
+the machine's hostname but can be set to a different value by using the
+`--cluster.node-name` flag.
 
 The agent will advertise its own address as `--cluster.advertise-address` to
 other agent nodes; if this is empty it will attempt to find a suitable address
