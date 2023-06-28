@@ -75,3 +75,17 @@ other agent nodes; if this is empty it will attempt to find a suitable address
 to advertise from a list of default network interfaces. The agent must be
 reachable over HTTP on this address as communication happens over the agent's
 HTTP server.
+
+## Converter mode
+
+When the `--converter.source-format` command-line argument is provided, Grafana
+Agent will convert the config file from the source format to River and
+immediately start running with it. This leverages the same converter API
+described in the [grafana-agent convert][] docs.
+
+If the `--converter.bypass-warnings` command-line argument is also provided,
+Grafana Agent will ignore any warnings provided by the converter. This should
+be used with caution since the resulting conversion is not equivalent to the
+original config.
+
+[grafana-agent convert]: {{< relref "./convert.md" >}}
