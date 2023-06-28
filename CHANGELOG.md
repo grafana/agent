@@ -42,6 +42,9 @@ Main (unreleased)
 
 - Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
 
+- The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
+
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
