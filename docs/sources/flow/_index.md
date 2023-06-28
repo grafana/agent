@@ -63,9 +63,7 @@ prometheus.remote_write "default" {
 * Learn about the core [Concepts][] of Grafana Agent.
 * Follow our Grafana Agent Flow [Getting started][] guides.
 * Follow our [Tutorials][] to get started with Grafana Agent.
-* Learn how to use Grafana Agent's flow mode
-(cherry picked from commit b71f2285efc69c774bda43a5cc75a447e992921d)
-(cherry picked from commit b71f2285efc69c774bda43a5cc75a447e992921d) [Configuration language][].
+* Learn how to use Grafana Agent's flow mode [Configuration language][].
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
