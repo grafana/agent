@@ -67,7 +67,7 @@ func init() {
 	})
 }
 
-// Arguments configures the discovery.kubernetes component.
+// Arguments configures the discovery.kubelet component.
 type Arguments struct {
 	URL              config.URL              `river:"url,attr,optional"`
 	Interval         time.Duration           `river:"refresh_interval,attr,optional"`
