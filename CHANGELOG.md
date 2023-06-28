@@ -29,7 +29,7 @@ Main (unreleased)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
-- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis) 
+- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
 
 ### Enhancements
 
@@ -73,6 +73,9 @@ Main (unreleased)
   config file. (@rfratto)
 
 - Fix issue where published RPMs were not signed. (@rfratto)
+
+- Fix issue where flow mode exports labeled as "string or secret" could not be
+  used in a binary operation. (@rfratto)
 
 ### Other changes
 
