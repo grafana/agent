@@ -23,8 +23,8 @@ type exporter struct {
 	scrapeConf   yaceConf.ScrapeConf
 }
 
-// newCloudwatchExporter creates a new YACE wrapper, that implements Integration
-func newCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeConf, fipsEnabled, debug bool) *exporter {
+// NewCloudwatchExporter creates a new YACE wrapper, that implements Integration
+func NewCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeConf, fipsEnabled, debug bool) *exporter {
 	loggerWrapper := yaceLoggerWrapper{
 		debug: debug,
 		log:   logger,

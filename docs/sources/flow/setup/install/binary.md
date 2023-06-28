@@ -1,9 +1,13 @@
 ---
-title: Other systems
+description: Learn how to install Grafana Agent Flow on other systems
+title: Install Grafana Agent Flow on other systems
+menuTitle: Other systems
 weight: 600
+aliases:
+ - ../../install/binary/
 ---
 
-# Run Grafana Agent Flow on other systems
+# Install Grafana Agent Flow on other systems
 
 Grafana Agent Flow is distributed as plain binaries for various systems:
 
