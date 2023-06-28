@@ -1,6 +1,6 @@
 ---
-description: Learn how to configure Grafana Agent on Linux
-title: Configure Grafana Agent on Linux
+description: Learn how to configure Grafana Agent in flow mode on Linux
+title: Configure Grafana Agent in flow mode on Linux
 menuTitle: Linux
 weight: 300
 ---

@@ -1,6 +1,6 @@
 ---
-description: Learn how to configure Grafana Agent on macOS
-title: Configure Grafana Agent on macOS
+description: Learn how to configure Grafana Agent in flow mode on macOS
+title: Configure Grafana Agent in flow mode on macOS
 menuTitle: macOS
 weight: 400
 ---

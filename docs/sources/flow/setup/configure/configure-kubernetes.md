@@ -1,6 +1,6 @@
 ---
-description: Learn how to configure Grafana Agent on Kubernetes
-title: Configure Grafana Agent on Kubernetes
+description: Learn how to configure Grafana Agent in flow mode on Kubernetes
+title: Configure Grafana Agent in flow mode on Kubernetes
 menuTitle: Kubernetes
 weight: 200
 ---
