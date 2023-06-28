@@ -75,10 +75,6 @@ v0.34.3 (2023-06-27)
 - Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
 - Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
 
-### Other changes
-
-- Build with go version 1.20.5 (@captncraig)
-
 v0.34.2 (2023-06-20)
 --------------------
 
