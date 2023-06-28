@@ -1,12 +1,12 @@
 ---
-description: Install and configure Grafana Agent Flow
-title: Setup Grafana Agent Flow
-menuTitle: Setup Flow mode
+description: Install and configure Grafana Agent in flow mode
+title: Set up Grafana Agent in flow mode
+menuTitle: Set up Flow mode
 weight: 50
 ---
 
-# Setup Grafana Agent Flow
+# Set up Grafana Agent in flow mode
 
-This section includes information that helps you get Grafana Agent Flow installed and configured.
+This section includes information that helps you get Grafana Agent in flow mode installed and configured.
 
 {{< section >}}

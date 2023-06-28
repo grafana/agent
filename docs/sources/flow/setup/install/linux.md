@@ -1,19 +1,19 @@
 ---
-description: Learn how to install Grafana Agent Flow on Linux
-title: Install Grafana Agent Flow on Linux
+description: Learn how to install Grafana Agent in flow mode on Linux
+title: Install Grafana Agent in flow mode on Linux
 menuTitle: Linux
 weight: 300
 aliases:
  - ../../install/linux/
 ---
 
-# Install Grafana Agent Flow on Linux
+# Install Grafana Agent in flow mode on Linux
 
-You can install Grafana Agent Flow as a systemd service on Linux.
+You can install Grafana Agent in flow mode as a systemd service on Linux.
 
 ## Install on Debian or Ubuntu
 
-To install Grafana Agent Flow on Debian or Ubuntu, run the following commands in a terminal window.
+To install Grafana Agent in flow mode on Debian or Ubuntu, run the following commands in a terminal window.
 
 1. Import the GPG key and add the Grafana package repository:
 
@@ -29,7 +29,7 @@ To install Grafana Agent Flow on Debian or Ubuntu, run the following commands in
    sudo apt-get update
    ```
 
-1. Install Grafana Agent Flow:
+1. Install Grafana Agent:
 
    ```shell
    sudo apt-get install grafana-agent-flow
@@ -37,21 +37,21 @@ To install Grafana Agent Flow on Debian or Ubuntu, run the following commands in
 
 ### Uninstall on Debian or Ubuntu
 
-To uninstall Grafana Agent Flow on Debian or Ubuntu, run the following commands in a terminal window.
+To uninstall Grafana Agent on Debian or Ubuntu, run the following commands in a terminal window.
 
-1. Stop the systemd service for Grafana Agent Flow:
+1. Stop the systemd service for Grafana Agent:
    
    ```shell
    sudo systemctl stop grafana-agent-flow
    ```
 
-1. Uninstall Grafana Agent Flow:
+1. Uninstall Grafana Agent:
 
    ```shell
-   sudo apt remove grafana-agent-flow
+   sudo apt-get remove grafana-agent-flow
    ```
 
-1. (Optional) Remove the Grafana repository:
+1. Optional: Remove the Grafana repository:
 
    ```shell
    sudo rm -i /etc/apt/sources.list.d/grafana.list
@@ -59,7 +59,7 @@ To uninstall Grafana Agent Flow on Debian or Ubuntu, run the following commands 
 
 ## Install on RHEL or Fedora
 
-To install Grafana Agent Flow on RHEL or Fedora, run the following commands in a terminal window.
+To install Grafana Agent in flow mode on RHEL or Fedora, run the following commands in a terminal window.
 
 1. Import the GPG key:
 
@@ -82,13 +82,13 @@ To install Grafana Agent Flow on RHEL or Fedora, run the following commands in a
    sslcacert=/etc/pki/tls/certs/ca-bundle.crt
    ```
 
-1. (Optional) Verify the Grafana repository configuration:
+1. Optional: Verify the Grafana repository configuration:
 
    ```shell
    cat /etc/yum.repos.d/grafana.repo
    ```
 
-1. Install Grafana Agent Flow:
+1. Install Grafana Agent:
 
    ```shell
    sudo dnf install grafana-agent-flow
@@ -96,21 +96,21 @@ To install Grafana Agent Flow on RHEL or Fedora, run the following commands in a
 
 ### Uninstall on RHEL or Fedora
 
-To uninstall Grafana Agent Flow on RHEL or Fedora, run the following commands in a terminal window:
+To uninstall Grafana Agent on RHEL or Fedora, run the following commands in a terminal window:
 
-1. Stop the systemd service for Grafana Agent Flow:
+1. Stop the systemd service for Grafana Agent:
    
    ```shell
    sudo systemctl stop grafana-agent-flow
    ```
 
-1. Uninstall Grafana Agent Flow:
+1. Uninstall Grafana Agent:
 
    ```shell
    sudo dnf remove grafana-agent-flow
    ```
 
-1. (Optional) Remove the Grafana repository:
+1. Optional: Remove the Grafana repository:
 
    ```shell
    sudo rm -i /etc/yum.repos.d/rpm.grafana.repo
@@ -118,7 +118,7 @@ To uninstall Grafana Agent Flow on RHEL or Fedora, run the following commands in
 
 ## Install on SUSE or openSUSE
 
-To install Grafana Agent Flow on SUSE or openSUSE, run the following commands in a terminal window.
+To install Grafana Agent in flow mode on SUSE or openSUSE, run the following commands in a terminal window.
 
 1. Import the GPG key and add the Grafana package repository:
 
@@ -134,7 +134,7 @@ To install Grafana Agent Flow on SUSE or openSUSE, run the following commands in
    sudo zypper update
    ```
 
-1. Install Grafana Agent Flow:
+1. Install Grafana Agent:
 
    ```shell
    sudo zypper install grafana-agent-flow
@@ -142,22 +142,26 @@ To install Grafana Agent Flow on SUSE or openSUSE, run the following commands in
 
 ### Uninstall on SUSE or openSUSE
 
-To uninstall Grafana Agent Flow on SUSE or openSUSE, run the following commands in a terminal:
+To uninstall Grafana Agent on SUSE or openSUSE, run the following commands in a terminal:
 
-1. Stop the systemd service for Grafana Agent Flow:
+1. Stop the systemd service for Grafana Agent:
    
    ```shell
    sudo systemctl stop grafana-agent-flow
    ```
 
-1. Uninstall Grafana Agent Flow:
+1. Uninstall Grafana Agent:
 
    ```shell
    sudo zypper remove grafana-agent-flow
    ```
 
-1. (Optional) Remove the Grafana repository:
+1. Optional: Remove the Grafana repository:
 
    ```shell
    sudo zypper removerepo grafana
    ```
+## Next steps
+
+- [Start Grafana Agent]({{< relref "../start-agent#linux" >}})
+- [Configure Grafana Agent]({{< relref "../configure/configure-linux" >}})
