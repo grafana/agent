@@ -23,8 +23,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const cacheFilename = "remote-config-cache.yaml"
-const apiPath = "/agent-management/api/agent/v2"
+const (
+	cacheFilename                = "remote-config-cache.yaml"
+	apiPath                      = "/agent-management/api/agent/v2"
+	labelManagementEnabledHeader = "X-LabelManagementEnabled"
+	agentIDHeader                = "X-AgentID"
+)
 
 type remoteConfigProvider interface {
 	GetCachedRemoteConfig() ([]byte, error)
@@ -151,8 +155,8 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 
 	// Set headers for label management, if enabled
 	if r.InitialConfig.RemoteConfiguration.LabelManagementEnabled && r.InitialConfig.RemoteConfiguration.AgentID != "" {
-		req.Header.Add("X-LabelManagementEnabled", "1")
-		req.Header.Add("X-AgentID", r.InitialConfig.RemoteConfiguration.AgentID)
+		req.Header.Add(labelManagementEnabledHeader, "1")
+		req.Header.Add(agentIDHeader, r.InitialConfig.RemoteConfiguration.AgentID)
 	}
 
 	client := &http.Client{
