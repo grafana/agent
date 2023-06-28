@@ -533,10 +533,10 @@ func TestCreateHTTPRequest(t *testing.T) {
 
 	// Add label management configurations
 	c.RemoteConfiguration = RemoteConfiguration{
-		AgentID: 	 "test-agent-id",
+		AgentID:                "test-agent-id",
 		LabelManagementEnabled: true,
-		Namespace:  "test_namespace",
-		CacheLocation: "/test/path/",
+		Namespace:              "test_namespace",
+		CacheLocation:          "/test/path/",
 	}
 
 	req, err = createHTTPRequest(&c)
