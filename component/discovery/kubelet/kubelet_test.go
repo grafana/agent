@@ -9,7 +9,7 @@ import (
 
 func TestRiverConfig(t *testing.T) {
 	var exampleRiverConfig = `
-	kubelet_url = "https://10.0.0.1:10255"
+	bearer_token_file = "/path/to/file.token"
 `
 
 	var args Arguments
@@ -19,7 +19,6 @@ func TestRiverConfig(t *testing.T) {
 
 func TestBadRiverConfig(t *testing.T) {
 	var exampleRiverConfig = `
-	kubelet_url = "https://10.0.0.1:10255"
 	bearer_token = "token"
 	bearer_token_file = "/path/to/file.token"
 `
@@ -29,9 +28,9 @@ func TestBadRiverConfig(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
 
-	var missingKubeletURL = ""
-	// Make sure that kubelet URL is required
+	// Make sure that kubelet URL defaults to https://localhost:10250
 	var args2 Arguments
-	err = river.Unmarshal([]byte(missingKubeletURL), &args2)
-	require.ErrorContains(t, err, "missing required attribute \"kubelet_url\"")
+	err = river.Unmarshal([]byte{}, &args2)
+	require.NoError(t, err)
+	require.Equal(t, args2.KubeletURL.String(), "https://localhost:10250")
 }

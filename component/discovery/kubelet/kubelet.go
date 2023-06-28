@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -51,6 +52,10 @@ const (
 	podControllerName             = metaLabelPrefix + "pod_controller_name"
 )
 
+var (
+	defaultKubeletURL, _ = url.Parse("https://localhost:10250")
+)
+
 func init() {
 	component.Register(component.Registration{
 		Name:    "discovery.kubelet",
@@ -64,10 +69,23 @@ func init() {
 
 // Arguments configures the discovery.kubernetes component.
 type Arguments struct {
-	KubeletURL       config.URL              `river:"kubelet_url,attr"`
+	KubeletURL       config.URL              `river:"kubelet_url,attr,optional"`
 	Interval         time.Duration           `river:"refresh_interval,attr,optional"`
 	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
 	Namespaces       []string                `river:"namespaces,attr,optional"`
+}
+
+// DefaultConfig holds defaults for SDConfig.
+var DefaultConfig = Arguments{
+	KubeletURL: config.URL{
+		URL: defaultKubeletURL,
+	},
+	HTTPClientConfig: config.DefaultHTTPClientConfig,
+}
+
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
+	*args = DefaultConfig
 }
 
 // Validate implements river.Validator.

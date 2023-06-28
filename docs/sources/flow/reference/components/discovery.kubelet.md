@@ -1,5 +1,7 @@
 ---
 title: discovery.kubelet
+labels:
+  stage: beta
 ---
 
 # discovery.kubelet
@@ -71,8 +73,9 @@ Name | Type | Description
 ---- | ---- | -----------
 `targets` | `list(map(string))` | The set of targets discovered from the Kubelet API.
 
-Each target includes the following labels::
+Each target includes the following labels:
 
+* `__address__`: The target address to scrape derived from the pod IP and container port.
 * `__meta_kubernetes_namespace`: The namespace of the pod object.
 * `__meta_kubernetes_pod_name`: The name of the pod object.
 * `__meta_kubernetes_pod_ip`: The pod IP of the pod object.
