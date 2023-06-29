@@ -1093,7 +1093,7 @@
             "multi": true,
             "name": "namespace",
             "options": [ ],
-            "query": "label_values(agent_build_info, namespace)",
+            "query": "label_values(agent_build_info{cluster=~\"$cluster\"}, namespace)",
             "refresh": 1,
             "regex": "",
             "sort": 2,
@@ -1117,7 +1117,7 @@
             "multi": true,
             "name": "container",
             "options": [ ],
-            "query": "label_values(agent_build_info, container)",
+            "query": "label_values(agent_build_info{cluster=~\"$cluster\", namespace=\"$namespace\"}, container)",
             "refresh": 1,
             "regex": "",
             "sort": 2,
@@ -1128,7 +1128,7 @@
             "useTags": false
          },
          {
-            "allValue": ".*agent.*",
+            "allValue": ".+",
             "current": {
                "selected": true,
                "text": "All",
@@ -1141,7 +1141,7 @@
             "multi": true,
             "name": "pod",
             "options": [ ],
-            "query": "label_values(agent_build_info{container=~\"$container\", namespace=\"$namespace\"}, pod)",
+            "query": "label_values(agent_build_info{cluster=~\"$cluster\", namespace=\"$namespace\", container=\"$container\"}, pod)",
             "refresh": 1,
             "regex": "",
             "sort": 2,
