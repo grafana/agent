@@ -27,7 +27,7 @@ type Arguments struct {
 
 	Clustering Clustering `river:"clustering,block,optional"`
 
-	RelabelConfigs []*flow_relabel.Config `river:"relabel,block,optional"`
+	RelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
 }
 
 func (a *Arguments) Equals(b *Arguments) bool {
