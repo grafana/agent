@@ -61,6 +61,8 @@ Main (unreleased)
 
 - The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
 
+- The Agent Operational dashboard of Grafana Agent mixin now has more descriptive panel titles, Y-axis units
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
@@ -78,6 +80,8 @@ Main (unreleased)
 
 - Fix issue where flow mode exports labeled as "string or secret" could not be
   used in a binary operation. (@rfratto)
+
+- Fix Grafana Agent mixin's "Agent Operational" dashboard expecting pods to always have `grafana-agent-.*` prefix. (@thampiotr)
 
 v0.34.3 (2023-06-27)
 --------------------
