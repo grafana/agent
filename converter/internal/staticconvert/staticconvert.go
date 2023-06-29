@@ -67,9 +67,7 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 }
 
 func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
-
 	var diags diag.Diagnostics
-	// pb := prometheusconvert.NewBlocks()
 	for _, instance := range staticConfig.Metrics.Configs {
 		promConfig := &prom_config.Config{
 			GlobalConfig:       staticConfig.Metrics.Global.Prometheus,
@@ -83,8 +81,6 @@ func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 
 	newDiags := validateMetrics(staticConfig)
 	diags = append(diags, newDiags...)
-
-	// prometheusconvert.PrepareFileBlocks(f, pb)
 	return diags
 }
 
