@@ -37,7 +37,7 @@ The following flags are supported:
 * `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
-* `--config.format`: The format of the source file. Supported formats: 'prometheus' (default `""`).
+* `--config.format`: The format of the source file. Supported formats: 'flow', 'prometheus' (default `"flow"`).
 * `--config.bypass-conversion-warnings`: Enable bypassing warnings when converting (default `false`).
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
@@ -80,10 +80,10 @@ HTTP server.
 
 ## Configuration conversion (beta)
 
-When the `--config.format` command-line argument is provided, Grafana
-Agent will convert the config file from the source format to River and
-immediately start running with it. This leverages the same converter API
-described in the [grafana-agent convert][] docs.
+When the `--config.format` command-line argument is provided with a value
+other than `flow`, Grafana Agent will convert the config file from the source
+format to River and immediately start running with it. This leverages the same
+converter API described in the [grafana-agent convert][] docs.
 
 If the `--config.bypass-conversion-warnings` command-line argument is also provided,
 Grafana Agent will ignore any warnings provided by the converter. This should

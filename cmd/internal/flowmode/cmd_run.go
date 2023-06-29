@@ -50,6 +50,7 @@ func runCommand() *cobra.Command {
 		uiPrefix:         "/",
 		disableReporting: false,
 		enablePprof:      true,
+		configFormat:     "flow",
 	}
 
 	cmd := &cobra.Command{
@@ -101,7 +102,7 @@ depending on the nature of the reload error.
 		StringVar(&r.clusterJoinAddr, "cluster.join-addresses", r.clusterJoinAddr, "Comma-separated list of addresses to join the cluster at")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
-	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'prometheus'.")
+	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
 	cmd.Flags().BoolVar(&r.configBypassConversionWarnings, "config.bypass-conversion-warnings", r.configBypassConversionWarnings, "Enable bypassing warnings when converting")
 	return cmd
 }
@@ -377,7 +378,7 @@ func loadFlowFile(filename string, converterSourceFormat string, converterBypass
 		return nil, err
 	}
 
-	if converterSourceFormat != "" {
+	if converterSourceFormat != "flow" {
 		var diags convert_diag.Diagnostics
 		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat))
 		hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
