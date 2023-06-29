@@ -5,7 +5,7 @@ menuTitle: Linux
 weight: 300
 ---
 
-# Configure Grafana Agent on Linux
+# Configure Grafana Agent in flow mode on Linux
 
 To configure Grafana Agent in flow mode on Linux, perform the following steps:
 

@@ -1,7 +1,7 @@
 ---
 description: Install and configure Grafana Agent in flow mode
 title: Set up Grafana Agent in flow mode
-menuTitle: Set up Flow mode
+menuTitle: Set up flow mode
 weight: 50
 ---
 

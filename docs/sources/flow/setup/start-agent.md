@@ -1,6 +1,6 @@
 ---
 description: Learn how to start, restart, and stop Grafana Agent after it is installed
-title: Start, restart, and stop Grafana Agent 
+title: Start, restart, and stop Grafana Agent in flow mode
 menuTitle: Start flow mode
 weight: 800
 ---
@@ -11,29 +11,27 @@ You can start, restart, and stop Grafana Agent after it is installed.
 
 ## Linux
 
-Grafana Agent is installed as a [systemd][] service on Linux.
+Grafana Agent in flow mode is installed as a [systemd][] service on Linux.
 
 [systemd]: https://systemd.io/
 
 ### Start Grafana Agent
 
-To start Grafana Agent, run the following commands in a terminal window.
+To start Grafana Agent, run the following command in a terminal window:
 
-1. Start Grafana Agent:
+```shell
+sudo systemctl start grafana-agent-flow
+```
 
-   ```shell
-   sudo systemctl start grafana-agent-flow
-   ```
+(Optional) Verify that the service is running:
 
-1. (Optional) Verify that the service is running:
-
-   ```shell
-   sudo systemctl status grafana-agent-flow
-   ```
+```shell
+sudo systemctl status grafana-agent-flow
+```
 
 ### Configure Grafana Agent to start at boot
 
-To automatically run Grafana Agent when the system starts, run the following command in a terminal:
+To automatically run Grafana Agent when the system starts, run the following command in a terminal window:
 
 ```shell
 sudo systemctl enable grafana-agent-flow.service
@@ -49,7 +47,7 @@ sudo systemctl restart grafana-agent-flow
 
 ### Stop Grafana Agent
 
-To stop Grafana Agent, run the following commands in a terminal window:
+To stop Grafana Agent, run the following command in a terminal window:
 
 ```shell
 sudo systemctl stop grafana-agent-flow
@@ -57,7 +55,7 @@ sudo systemctl stop grafana-agent-flow
 
 ### View Grafana Agent logs on Linux
 
-To view the Grafana Agent log files, run the following command in a terminal:
+To view the Grafana Agent log files, run the following command in a terminal window:
 
 ```shell
 sudo journalctl -u grafana-agent-flow
@@ -65,23 +63,40 @@ sudo journalctl -u grafana-agent-flow
 
 ## macOS
 
-Grafana Agent is installed as a launchd service on macOS. 
+Grafana Agent is installed as a launchd service on macOS.
 
 ### Start Grafana Agent
 
-1. Start Grafana Agent:
+To start Grafana Agent, run the following command in a terminal window:
 
-   ```shell
-   brew services start grafana-agent-flow
-   ```
+```shell
+brew services start grafana-agent-flow
+```
 
-   Grafana Agent automatically runs when the system starts.
+Grafana Agent automatically runs when the system starts.
 
-1. (Optional) Verify that the serivce is running:
+(Optional) Verify that the service is running:
 
-   ```shell
-   brew services info grafana-agent-flow
-   ```
+```shell
+brew services info grafana-agent-flow
+```
+
+### Restart Grafana Agent
+
+To restart Grafana Agent, run the following command in a terminal window:
+
+```shell
+brew services restart grafana-agent-flow
+```
+
+### Stop Grafana Agent
+
+To stop Grafana Agent, run the following command in a terminal window:
+
+```shell
+brew services stop grafana-agent-flow
+```
+
 ### View Grafana Agent logs on macOS
 
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
@@ -128,7 +143,7 @@ If you downloaded the standalone binary, you must run the agent from a terminal 
 
 ### Start Grafana Agent on Linux, macOS, or FreeBSD
 
-To start Grafana Agent on Linux, macOS, or FreeBSD, run the following command in a terminal:
+To start Grafana Agent on Linux, macOS, or FreeBSD, run the following command in a terminal window:
 
 ```shell
 AGENT_MODE=flow BINARY_PATH run CONFIG_FILE
@@ -136,8 +151,8 @@ AGENT_MODE=flow BINARY_PATH run CONFIG_FILE
 
 Replace the following:
 
-   * `BINARY_PATH`: The path to the extracted binary.
-   * `CONFIG_FILE`: The path to a Grafana Agent configuration file.
+* `BINARY_PATH`: The path to the extracted binary.
+* `CONFIG_FILE`: The path to a Grafana Agent configuration file.
 
 ### Start Grafana Agent on Windows
 
@@ -150,7 +165,7 @@ BINARY_PATH run CONFIG_FILE
 
 Replace the following:
 
-   * `BINARY_PATH`: The path to the extracted binary.
-   * `CONFIG_FILE`: The path to a Grafana Agent configuration file.
+* `BINARY_PATH`: The path to the extracted binary.
+* `CONFIG_FILE`: The path to a Grafana Agent configuration file.
 
 [release]: https://github.com/grafana/agent/releases/latest

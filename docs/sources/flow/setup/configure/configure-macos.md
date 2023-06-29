@@ -7,14 +7,11 @@ weight: 400
 
 # Configure Grafana Agent on macOS
 
-To configure Grafana Agent in flow mode on macOS, perform the following
-steps:
+To configure Grafana Agent in flow mode on macOS, perform the following steps:
 
-1. Edit the default configuration file at
-   `$(brew --prefix)/etc/grafana-agent-flow/config.river`.
+1. Edit the default configuration file at `$(brew --prefix)/etc/grafana-agent-flow/config.river`.
 
-1. Run the following command in a terminal to restart the Grafana Agent
-   service:
+1. Run the following command in a terminal to restart the Grafana Agent service:
 
    ```shell
    brew services restart grafana-agent-flow
@@ -45,10 +42,9 @@ steps:
    * Flags passed to the Grafana Agent binary.
    * Location of log files.
 
-   When you are done, save the formula file.
+   When you are done, save the file.
 
-1. Reinstall the Grafana Agent Formula by running the following command in
-   a terminal:
+1. Reinstall the Grafana Agent Formula by running the following command in a terminal:
 
    ```shell
    brew reinstall grafana-agent-flow

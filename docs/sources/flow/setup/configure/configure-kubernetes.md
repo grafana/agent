@@ -7,20 +7,16 @@ weight: 200
 
 # Configure Grafana Agent on Kubernetes
 
-## Customize deployment
-
-To customize the deployment used to deploy Grafana Agent in flow mode on Kubernetes,
-perform the following steps:
+To configure Grafana Agent in flow mode on Kubernetes, perform the following steps:
 
 1. Download a local copy of [values.yaml][] for the Helm chart.
 
-2. Make changes to your copy of `values.yaml` to customize settings for the
+1. Make changes to your copy of `values.yaml` to customize settings for the
    Helm chart.
 
-   Refer to inline documentation in the `values.yaml` to understand what each
-   option does.
+   Refer to the inline documentation in the `values.yaml` for more information about each option.
 
-3. Run the following command in a terminal to upgrade your Grafana Agent
+1. Run the following command in a terminal to upgrade your Grafana Agent
    installation:
 
    ```shell
@@ -30,23 +26,21 @@ perform the following steps:
    1. Replace `RELEASE_NAME` with the name you used for your Grafana Agent
       installation.
 
-   2. Replace `VALUES_PATH` with the path to your copy of `values.yaml` to use.
+   1. Replace `VALUES_PATH` with the path to your copy of `values.yaml` to use.
 
 [values.yaml]: https://raw.githubusercontent.com/grafana/agent/main/operations/helm/charts/grafana-agent/values.yaml
 
 ## Kustomize considerations
 
-If using [Kustomize][] to inflate and install the [Helm chart][], be careful
+If you are using [Kustomize][] to inflate and install the [Helm chart][], be careful
 when using a `configMapGenerator` to generate the ConfigMap containing the
 configuration. By default, the generator appends a hash to the name and patches
 the resource mentioning it, triggering a rolling update.
 
-In the case of Grafana Agent, this behavior is undesirable, as the startup
-time can be significant depending on the size of the Write-Ahead Log. Instead,
-the [Helm chart][] provides a sidecar container that will watch the ConfigMap
-and trigger a dynamic reload.
+This behavior is undesirable for Grafana Agent because the startup time can be significant depending on the size of the Write-Ahead Log. 
+You can use the [Helm chart][] sidecar container to watch the ConfigMap and trigger a dynamic reload.
 
-Here is an example snippet of a `kustomization` that disables this behavior:
+The following is an example snippet of a `kustomization` that disables this behavior:
 
 ```yaml
 configMapGenerator:

@@ -36,6 +36,7 @@ To install Grafana Agent on macOS, run the following commands in a terminal wind
    ```shell
    brew install grafana-agent-flow
    ```
+
 ## Uninstall
 
 To install Grafana Agent on macOS, run the following command in a terminal window:
@@ -43,6 +44,7 @@ To install Grafana Agent on macOS, run the following command in a terminal windo
 ```shell
 brew uninstall grafana-agent-flow
 ```
+
 ## Next steps
 
 - [Start Grafana Agent]({{< relref "../start-agent#macos" >}})

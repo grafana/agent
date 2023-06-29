@@ -40,7 +40,7 @@ To install Grafana Agent in flow mode on Debian or Ubuntu, run the following com
 To uninstall Grafana Agent on Debian or Ubuntu, run the following commands in a terminal window.
 
 1. Stop the systemd service for Grafana Agent:
-   
+
    ```shell
    sudo systemctl stop grafana-agent-flow
    ```
@@ -99,7 +99,7 @@ To install Grafana Agent in flow mode on RHEL or Fedora, run the following comma
 To uninstall Grafana Agent on RHEL or Fedora, run the following commands in a terminal window:
 
 1. Stop the systemd service for Grafana Agent:
-   
+
    ```shell
    sudo systemctl stop grafana-agent-flow
    ```
@@ -145,7 +145,7 @@ To install Grafana Agent in flow mode on SUSE or openSUSE, run the following com
 To uninstall Grafana Agent on SUSE or openSUSE, run the following commands in a terminal:
 
 1. Stop the systemd service for Grafana Agent:
-   
+
    ```shell
    sudo systemctl stop grafana-agent-flow
    ```
@@ -161,6 +161,7 @@ To uninstall Grafana Agent on SUSE or openSUSE, run the following commands in a 
    ```shell
    sudo zypper removerepo grafana
    ```
+
 ## Next steps
 
 - [Start Grafana Agent]({{< relref "../start-agent#linux" >}})

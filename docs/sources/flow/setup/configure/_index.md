@@ -1,5 +1,5 @@
 ---
-description: Configure Grafana Agent after it is installed
+description: Configure Grafana Agent in flow mode after it is installed
 title: Configure Grafana Agent in flow mode
 menuTitle: Configure flow mode
 weight: 150
