@@ -597,5 +597,193 @@ local template = grafana.template;
         .addPanel(receivedSpans('receiver="otlp/lb"', 3))
         .addPanel(exportedSpans('exporter="otlp"', 3))
       ),
+
+    'agent-logs-pipeline.json':
+      local sumByPodRateCounter(title, metric, format='short') =
+        graphPanel.new(
+          title,
+          datasource='$datasource',
+          interval='1m',
+          span=6,
+          fill=1,
+          stack=true,
+          format=format
+        )
+        .addTarget(prometheus.target(
+          |||
+            sum by($groupBy) (rate(%s{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod"}[$__rate_interval]))
+          ||| % [metric],
+          legendFormat='{{$groupBy}}',
+        ));
+
+      local sumByPodGague(title, metric) =
+        graphPanel.new(
+          title,
+          datasource='$datasource',
+          interval='1m',
+          span=6,
+          fill=1,
+          stack=true,
+        )
+        .addTarget(prometheus.target(
+          |||
+            sum by($groupBy) (%s{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod"})
+          ||| % [metric],
+          legendFormat='{{$groupBy}}',
+        ));
+
+      local requestSuccessRate() =
+        graphPanel.new(
+          'Write requests success rate [%]',
+          datasource='$datasource',
+          interval='1m',
+          fill=0,
+          span=6,
+          format='%',
+        )
+        .addTarget(prometheus.target(
+          |||
+            sum by($groupBy) (rate(promtail_request_duration_seconds_bucket{status_code=~"2..", cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod"}[$__rate_interval]))
+            /
+            sum by($groupBy) (rate(promtail_request_duration_seconds_bucket{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod"}[$__rate_interval]))
+            * 100
+          |||,
+          legendFormat='{{$groupBy}}',
+        ));
+
+      local histogramQuantile(title, metric, q) =
+        graphPanel.new(
+          title,
+          datasource='$datasource',
+          interval='1m',
+          span=6,
+          fill=0,
+          format='s',
+        )
+        .addTarget(prometheus.target(
+          |||
+            histogram_quantile(
+              %f, 
+              sum by (le, $groupBy)
+              (rate(%s{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod"}[$__rate_interval]))
+            )
+          ||| % [q, metric],
+          legendFormat='{{$groupBy}}',
+        ));
+
+      local histogramAverage(title, metric) =
+        graphPanel.new(
+          title,
+          datasource='$datasource',
+          interval='1m',
+          span=6,
+          fill=0,
+          format='s',
+        )
+        .addTarget(prometheus.target(
+          |||
+            (sum by (le, $groupBy) (rate(%s_sum{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod"}[$__rate_interval])))
+            /
+            (sum by (le, $groupBy) (rate(%s_count{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod"}[$__rate_interval])))
+          ||| % [metric, metric],
+          legendFormat='{{$groupBy}}',
+        ));
+
+
+      dashboard.new('Agent Logs Pipeline', tags=['grafana-agent-mixin'], editable=true, refresh='30s', time_from='now-1h')
+      .addTemplate(
+        {
+          hide: 0,
+          label: null,
+          name: 'datasource',
+          options: [],
+          query: 'prometheus',
+          refresh: 1,
+          regex: '',
+          type: 'datasource',
+        },
+      )
+      .addTemplate(
+        template.new(
+          'cluster',
+          '$datasource',
+          'label_values(agent_build_info, cluster)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addTemplate(
+        template.new(
+          'namespace',
+          '$datasource',
+          'label_values(agent_build_info, namespace)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addTemplate(
+        template.new(
+          'container',
+          '$datasource',
+          'label_values(agent_build_info, container)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addTemplate(
+        template.new(
+          'pod',
+          '$datasource',
+          'label_values(agent_build_info{container=~"$container"}, pod)',
+          refresh='time',
+          current={
+            selected: true,
+            text: 'All',
+            value: '$__all',
+          },
+          includeAll=true,
+        ),
+      )
+      .addTemplate(
+        template.custom(
+          'groupBy',
+          'pod,cluster,namespace',
+          'pod',
+        ),
+      )
+      .addRow(
+        row.new('Errors', height=500)
+        .addPanel(sumByPodRateCounter('Dropped bytes rate [B/s]', 'promtail_dropped_bytes_total', format='Bps'))
+        .addPanel(requestSuccessRate())
+      )
+      .addRow(
+        row.new('Latencies', height=500)
+        .addPanel(histogramQuantile('Write latencies p99 [s]', 'promtail_request_duration_seconds_bucket', 0.99))
+        .addPanel(histogramQuantile('Write latencies p90 [s]', 'promtail_request_duration_seconds_bucket', 0.90))
+        .addPanel(histogramQuantile('Write latencies p50 [s]', 'promtail_request_duration_seconds_bucket', 0.50))
+        .addPanel(histogramAverage('Write latencies average [s]', 'promtail_request_duration_seconds'))
+      )
+      .addRow(
+        row.new('Logs volume', height=500)
+        .addPanel(sumByPodRateCounter('Bytes read rate [B/s]', 'promtail_read_bytes_total', format='Bps'))
+        .addPanel(sumByPodRateCounter('Lines read rate [lines/s]', 'promtail_read_lines_total'))
+        .addPanel(sumByPodGague('Active files count', 'promtail_files_active_total'))
+        .addPanel(sumByPodRateCounter('Entries sent rate [entries/s]', 'promtail_sent_entries_total'))
+      ),
   },
 }

@@ -20,6 +20,7 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
+  - `discovery.kubelet` collect scrape targets from the Kubelet API. (@gcampbell12)
   - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
@@ -28,6 +29,10 @@ Main (unreleased)
   - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
 
 - Added json_path function to river stdlib. (@jkroepke)
+
+- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
+
+- Add support to the `grafana-agent fmt` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
 ### Enhancements
 
@@ -51,6 +56,10 @@ Main (unreleased)
 
 - Support `clustering` block in `prometheus.operator.servicemonitors` and `prometheus.operator.podmonitors` components to distribute
   targets amongst clustered agents. (@captncraig)
+  
+- Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
+
+- The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
 
 ### Bugfixes
 
@@ -59,11 +68,25 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
-- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
-- 
-- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
-
 - Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
+
+- Fix issue in `prometheus.remote_write` where the `queue_config` and
+  `metadata_config` blocks used incorrect defaults when not specified in the
+  config file. (@rfratto)
+
+- Fix issue where published RPMs were not signed. (@rfratto)
+
+- Fix issue where flow mode exports labeled as "string or secret" could not be
+  used in a binary operation. (@rfratto)
+
+v0.34.3 (2023-06-27)
+--------------------
+
+### Bugfixes
+
+- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
+- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
 
 v0.34.2 (2023-06-20)
 --------------------

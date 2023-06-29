@@ -10,6 +10,10 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 )
 
+const (
+	LabelNameDelta = "__delta__"
+)
+
 var NoopAppendable = AppendableFunc(func(_ context.Context, _ labels.Labels, _ []*RawSample) error { return nil })
 
 type Appendable interface {
