@@ -23,7 +23,7 @@ func TestEventLogger(t *testing.T) {
 	wlog, err := eventlog.Open(loggerName)
 	require.NoError(t, err)
 	dataPath := t.TempDir()
-	rec := make(loki.LogsReceiver)
+	rec := loki.NewLogsReceiver()
 	c, err := New(component.Options{
 		ID:       "loki.source.windowsevent.test",
 		Logger:   util.TestFlowLogger(t),

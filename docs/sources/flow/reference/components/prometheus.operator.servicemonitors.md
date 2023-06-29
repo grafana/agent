@@ -47,8 +47,10 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the Kubernetes API. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
+rule | [rule][] | Relabeling rules to apply to discovered targets. | no
 selector | [selector][] | Label selector for which ServiceMonitors to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which ServiceMonitors to discover. | no
+clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -61,6 +63,8 @@ inside a `client` block.
 [tls_config]: #tls_config-block
 [selector]: #selector-block
 [match_expression]: #match_expression-block
+[rule]: #rule-block
+[clustering]: #clustering-experimental
 
 ### client block
 
@@ -102,6 +106,10 @@ Name | Type | Description | Default | Required
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
 
+### rule block
+
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
+
 ### selector block
 
 The `selector` block describes a Kubernetes label selector for ServiceMonitors.
@@ -135,6 +143,36 @@ The `operator` argument must be one of the following strings:
 * `"DoesNotExist"`
 
 If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses. 
+
+### clustering (experimental)
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
+
+When the agent is running in [clustered mode][], and `enabled` is set to true,
+then this component instance opts-in to participating in
+the cluster to distribute scrape load between all cluster nodes.
+
+Clustering assumes that all cluster nodes are running with the same
+configuration file, and that all
+`prometheus.operator.servicemonitors` components that have opted-in to using clustering, over
+the course of a scrape interval have the same configuration.
+
+All `prometheus.operator.servicemonitors` components instances opting in to clustering use target
+labels and a consistent hashing algorithm to determine ownership for each of
+the targets between the cluster peers. Then, each peer only scrapes the subset
+of targets that it is responsible for, so that the scrape load is distributed.
+When a node joins or leaves the cluster, every peer recalculates ownership and
+continues scraping with the new target set. This performs better than hashmod
+sharding where _all_ nodes have to be re-distributed, as only 1/N of the
+target's ownership is transferred, but is eventually consistent (rather than
+fully consistent like hashmod sharding is).
+
+If the agent is _not_ running in clustered mode, then the block is a no-op, and
+`prometheus.operator.servicemonitors` scrapes every target it receives in its arguments.
+
+[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
 
 ## Exported fields
 
@@ -189,6 +227,19 @@ prometheus.operator.servicemonitors "services" {
             operator = "In"
             values = ["ops"]
         }
+    }
+}
+```
+
+This example will apply additional relabel rules to discovered targets to filter by hostname. This may be useful if running the agent as a DaemonSet.
+
+```river
+prometheus.operator.podmonitors "pods" {
+    forward_to = [prometheus.remote_write.staging.receiver]
+    rule {
+      action = "keep"
+      regex = env("HOSTNAME")
+      source_labels = ["__meta_kubernetes_pod_node_name"]
     }
 }
 ```

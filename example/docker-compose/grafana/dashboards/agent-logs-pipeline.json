@@ -1,4 +1,6 @@
 {
+   "__inputs": [ ],
+   "__requires": [ ],
    "annotations": {
       "list": [ ]
    },
@@ -6,12 +8,14 @@
    "gnetId": null,
    "graphTooltip": 0,
    "hideControls": false,
+   "id": null,
    "links": [ ],
    "refresh": "30s",
    "rows": [
       {
          "collapse": false,
-         "height": "250px",
+         "collapsed": false,
+         "height": 500,
          "panels": [
             {
                "aliasColors": { },
@@ -20,122 +24,52 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
-               "id": 1,
-               "legend": {
-                  "avg": false,
-                  "current": false,
-                  "max": false,
-                  "min": false,
-                  "show": true,
-                  "total": false,
-                  "values": false
-               },
-               "lines": true,
-               "linewidth": 1,
-               "links": [ ],
-               "nullPointMode": "null as zero",
-               "percentage": false,
-               "pointradius": 5,
-               "points": false,
-               "renderer": "flot",
-               "seriesOverrides": [ ],
-               "spaceLength": 10,
-               "span": 2,
-               "stack": false,
-               "steppedLine": false,
-               "targets": [
-                  {
-                     "expr": "rate(go_gc_duration_seconds_count{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}[5m])",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "{{pod}}",
-                     "legendLink": null,
-                     "step": 10
-                  }
-               ],
-               "thresholds": [ ],
-               "timeFrom": null,
-               "timeShift": null,
-               "title": "GCs [count/s]",
-               "tooltip": {
-                  "shared": true,
-                  "sort": 2,
-                  "value_type": "individual"
-               },
-               "type": "graph",
-               "xaxis": {
-                  "buckets": null,
-                  "mode": "time",
-                  "name": null,
-                  "show": true,
-                  "values": [ ]
-               },
-               "yaxes": [
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": false
-                  }
-               ]
-            },
-            {
-               "aliasColors": { },
-               "bars": false,
-               "dashLength": 10,
-               "dashes": false,
-               "datasource": "$datasource",
-               "fill": 1,
+               "fillGradient": 0,
+               "gridPos": { },
                "id": 2,
+               "interval": "1m",
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
+                  "sideWidth": null,
                   "total": false,
                   "values": false
                },
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 2,
-               "stack": false,
+               "span": 6,
+               "stack": true,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "go_memstats_heap_inuse_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}",
+                     "expr": "sum by($groupBy) (rate(promtail_dropped_bytes_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{pod}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{$groupBy}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Go Heap In Use",
+               "title": "Dropped bytes rate [B/s]",
                "tooltip": {
                   "shared": true,
-                  "sort": 2,
+                  "sort": 0,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -148,20 +82,20 @@
                },
                "yaxes": [
                   {
-                     "format": "decbytes",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
+                     "format": "Bps",
                      "label": null,
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
+                  },
+                  {
+                     "format": "Bps",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
                   }
                ]
             },
@@ -171,47 +105,53 @@
                "dashLength": 10,
                "dashes": false,
                "datasource": "$datasource",
-               "fill": 1,
+               "fill": 0,
+               "fillGradient": 0,
+               "gridPos": { },
                "id": 3,
+               "interval": "1m",
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
+                  "sideWidth": null,
                   "total": false,
                   "values": false
                },
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 2,
+               "span": 6,
                "stack": false,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "go_goroutines{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}",
+                     "expr": "sum by($groupBy) (rate(promtail_request_duration_seconds_bucket{status_code=~\"2..\", cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n/\nsum by($groupBy) (rate(promtail_request_duration_seconds_bucket{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n* 100\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{pod}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{$groupBy}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Goroutines",
+               "title": "Write requests success rate [%]",
                "tooltip": {
                   "shared": true,
-                  "sort": 2,
+                  "sort": 0,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -224,70 +164,90 @@
                },
                "yaxes": [
                   {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
+                     "format": "%",
                      "label": null,
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
+                  },
+                  {
+                     "format": "%",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
                   }
                ]
-            },
+            }
+         ],
+         "repeat": null,
+         "repeatIteration": null,
+         "repeatRowId": null,
+         "showTitle": true,
+         "title": "Errors",
+         "titleSize": "h6",
+         "type": "row"
+      },
+      {
+         "collapse": false,
+         "collapsed": false,
+         "height": 500,
+         "panels": [
             {
                "aliasColors": { },
                "bars": false,
                "dashLength": 10,
                "dashes": false,
                "datasource": "$datasource",
-               "fill": 1,
+               "fill": 0,
+               "fillGradient": 0,
+               "gridPos": { },
                "id": 4,
+               "interval": "1m",
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
+                  "sideWidth": null,
                   "total": false,
                   "values": false
                },
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 2,
+               "span": 6,
                "stack": false,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}[5m])",
+                     "expr": "histogram_quantile(\n  0.990000, \n  sum by (le, $groupBy)\n  (rate(promtail_request_duration_seconds_bucket{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n)\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{pod}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{$groupBy}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "CPU Usage [time/s]",
+               "title": "Write latencies p99 [s]",
                "tooltip": {
                   "shared": true,
-                  "sort": 2,
+                  "sort": 0,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -300,20 +260,20 @@
                },
                "yaxes": [
                   {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
+                     "format": "s",
                      "label": null,
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
+                  },
+                  {
+                     "format": "s",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
                   }
                ]
             },
@@ -323,47 +283,53 @@
                "dashLength": 10,
                "dashes": false,
                "datasource": "$datasource",
-               "fill": 1,
+               "fill": 0,
+               "fillGradient": 0,
+               "gridPos": { },
                "id": 5,
+               "interval": "1m",
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
+                  "sideWidth": null,
                   "total": false,
                   "values": false
                },
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 2,
+               "span": 6,
                "stack": false,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "container_memory_working_set_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}",
+                     "expr": "histogram_quantile(\n  0.900000, \n  sum by (le, $groupBy)\n  (rate(promtail_request_duration_seconds_bucket{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n)\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{pod}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{$groupBy}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Working Set Size",
+               "title": "Write latencies p90 [s]",
                "tooltip": {
                   "shared": true,
-                  "sort": 2,
+                  "sort": 0,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -376,20 +342,20 @@
                },
                "yaxes": [
                   {
-                     "format": "decbytes",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
+                     "format": "s",
                      "label": null,
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
+                  },
+                  {
+                     "format": "s",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
                   }
                ]
             },
@@ -399,47 +365,53 @@
                "dashLength": 10,
                "dashes": false,
                "datasource": "$datasource",
-               "fill": 1,
+               "fill": 0,
+               "fillGradient": 0,
+               "gridPos": { },
                "id": 6,
+               "interval": "1m",
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
+                  "sideWidth": null,
                   "total": false,
                   "values": false
                },
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 2,
+               "span": 6,
                "stack": false,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(promtail_custom_bad_words_total{cluster=~\"$cluster\", exported_namespace=~\"$namespace\", exported_job=~\"$job\"}[5m])",
+                     "expr": "histogram_quantile(\n  0.500000, \n  sum by (le, $groupBy)\n  (rate(promtail_request_duration_seconds_bucket{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n)\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{job}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{$groupBy}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Promtail Bad Words",
+               "title": "Write latencies p50 [s]",
                "tooltip": {
                   "shared": true,
-                  "sort": 2,
+                  "sort": 0,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -452,60 +424,55 @@
                },
                "yaxes": [
                   {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
+                     "format": "s",
                      "label": null,
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
+                  },
+                  {
+                     "format": "s",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
                   }
                ]
-            }
-         ],
-         "repeat": null,
-         "repeatIteration": null,
-         "repeatRowId": null,
-         "showTitle": true,
-         "title": "General",
-         "titleSize": "h6"
-      },
-      {
-         "collapse": false,
-         "height": "250px",
-         "panels": [
+            },
             {
                "aliasColors": { },
                "bars": false,
                "dashLength": 10,
                "dashes": false,
                "datasource": "$datasource",
-               "fill": 1,
+               "fill": 0,
+               "fillGradient": 0,
+               "gridPos": { },
                "id": 7,
+               "interval": "1m",
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
+                  "sideWidth": null,
                   "total": false,
                   "values": false
                },
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
                "span": 6,
@@ -513,21 +480,20 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum by (pod) (rate(container_network_receive_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\", pod=~\"$pod\"}[5m]))",
+                     "expr": "(sum by (le, $groupBy) (rate(promtail_request_duration_seconds_sum{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval])))\n/\n(sum by (le, $groupBy) (rate(promtail_request_duration_seconds_count{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval])))\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{pod}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{$groupBy}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Received Bytes [B/s]",
+               "title": "Write latencies average [s]",
                "tooltip": {
                   "shared": true,
-                  "sort": 2,
+                  "sort": 0,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -540,96 +506,20 @@
                },
                "yaxes": [
                   {
-                     "format": "Bps",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
+                     "format": "s",
                      "label": null,
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
-                  }
-               ]
-            },
-            {
-               "aliasColors": { },
-               "bars": false,
-               "dashLength": 10,
-               "dashes": false,
-               "datasource": "$datasource",
-               "fill": 1,
-               "id": 8,
-               "legend": {
-                  "avg": false,
-                  "current": false,
-                  "max": false,
-                  "min": false,
-                  "show": true,
-                  "total": false,
-                  "values": false
-               },
-               "lines": true,
-               "linewidth": 1,
-               "links": [ ],
-               "nullPointMode": "null as zero",
-               "percentage": false,
-               "pointradius": 5,
-               "points": false,
-               "renderer": "flot",
-               "seriesOverrides": [ ],
-               "spaceLength": 10,
-               "span": 6,
-               "stack": false,
-               "steppedLine": false,
-               "targets": [
-                  {
-                     "expr": "sum by (pod) (rate(container_network_transmit_bytes_total{cluster=~\"$cluster\", namespace=~\"$namespace\", pod=~\"$pod\"}[5m]))",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "{{pod}}",
-                     "legendLink": null,
-                     "step": 10
-                  }
-               ],
-               "thresholds": [ ],
-               "timeFrom": null,
-               "timeShift": null,
-               "title": "Transmitted Bytes [B/s]",
-               "tooltip": {
-                  "shared": true,
-                  "sort": 2,
-                  "value_type": "individual"
-               },
-               "type": "graph",
-               "xaxis": {
-                  "buckets": null,
-                  "mode": "time",
-                  "name": null,
-                  "show": true,
-                  "values": [ ]
-               },
-               "yaxes": [
-                  {
-                     "format": "Bps",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
                      "show": true
                   },
                   {
-                     "format": "short",
+                     "format": "s",
                      "label": null,
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             }
@@ -638,12 +528,14 @@
          "repeatIteration": null,
          "repeatRowId": null,
          "showTitle": true,
-         "title": "Network",
-         "titleSize": "h6"
+         "title": "Latencies",
+         "titleSize": "h6",
+         "type": "row"
       },
       {
          "collapse": false,
-         "height": "250px",
+         "collapsed": false,
+         "height": 500,
          "panels": [
             {
                "aliasColors": { },
@@ -652,46 +544,134 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
+               "fillGradient": 0,
+               "gridPos": { },
+               "id": 8,
+               "interval": "1m",
+               "legend": {
+                  "alignAsTable": false,
+                  "avg": false,
+                  "current": false,
+                  "max": false,
+                  "min": false,
+                  "rightSide": false,
+                  "show": true,
+                  "sideWidth": null,
+                  "total": false,
+                  "values": false
+               },
+               "lines": true,
+               "linewidth": 1,
+               "links": [ ],
+               "nullPointMode": "null",
+               "percentage": false,
+               "pointradius": 5,
+               "points": false,
+               "renderer": "flot",
+               "repeat": null,
+               "seriesOverrides": [ ],
+               "spaceLength": 10,
+               "span": 6,
+               "stack": true,
+               "steppedLine": false,
+               "targets": [
+                  {
+                     "expr": "sum by($groupBy) (rate(promtail_read_bytes_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n",
+                     "format": "time_series",
+                     "intervalFactor": 2,
+                     "legendFormat": "{{$groupBy}}",
+                     "refId": "A"
+                  }
+               ],
+               "thresholds": [ ],
+               "timeFrom": null,
+               "timeShift": null,
+               "title": "Bytes read rate [B/s]",
+               "tooltip": {
+                  "shared": true,
+                  "sort": 0,
+                  "value_type": "individual"
+               },
+               "type": "graph",
+               "xaxis": {
+                  "buckets": null,
+                  "mode": "time",
+                  "name": null,
+                  "show": true,
+                  "values": [ ]
+               },
+               "yaxes": [
+                  {
+                     "format": "Bps",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  },
+                  {
+                     "format": "Bps",
+                     "label": null,
+                     "logBase": 1,
+                     "max": null,
+                     "min": null,
+                     "show": true
+                  }
+               ]
+            },
+            {
+               "aliasColors": { },
+               "bars": false,
+               "dashLength": 10,
+               "dashes": false,
+               "datasource": "$datasource",
+               "fill": 1,
+               "fillGradient": 0,
+               "gridPos": { },
                "id": 9,
+               "interval": "1m",
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
+                  "sideWidth": null,
                   "total": false,
                   "values": false
                },
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 2,
-               "stack": false,
+               "span": 6,
+               "stack": true,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "(sum by (pod) (avg_over_time(go_memstats_heap_inuse_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}[1m])))\n/\n(sum by (pod) (agent_wal_storage_active_series{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}))\n",
+                     "expr": "sum by($groupBy) (rate(promtail_read_lines_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{pod}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{$groupBy}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Heap Used per Series per Pod",
+               "title": "Lines read rate [lines/s]",
                "tooltip": {
                   "shared": true,
-                  "sort": 2,
+                  "sort": 0,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -704,11 +684,11 @@
                },
                "yaxes": [
                   {
-                     "format": "decbytes",
+                     "format": "short",
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -717,7 +697,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             },
@@ -728,46 +708,52 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
+               "fillGradient": 0,
+               "gridPos": { },
                "id": 10,
+               "interval": "1m",
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
+                  "sideWidth": null,
                   "total": false,
                   "values": false
                },
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 2,
-               "stack": false,
+               "span": 6,
+               "stack": true,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "(sum by (container) (avg_over_time(go_memstats_heap_inuse_bytes{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}[1m])))\n/\n(sum by (container) (agent_wal_storage_active_series{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"}))\n",
+                     "expr": "sum by($groupBy) (promtail_files_active_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"})\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{container}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{$groupBy}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Avg Heap Used per Series",
+               "title": "Active files count",
                "tooltip": {
                   "shared": true,
-                  "sort": 2,
+                  "sort": 0,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -780,11 +766,11 @@
                },
                "yaxes": [
                   {
-                     "format": "decbytes",
+                     "format": "short",
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -793,7 +779,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
+                     "show": true
                   }
                ]
             },
@@ -804,46 +790,52 @@
                "dashes": false,
                "datasource": "$datasource",
                "fill": 1,
+               "fillGradient": 0,
+               "gridPos": { },
                "id": 11,
+               "interval": "1m",
                "legend": {
+                  "alignAsTable": false,
                   "avg": false,
                   "current": false,
                   "max": false,
                   "min": false,
+                  "rightSide": false,
                   "show": true,
+                  "sideWidth": null,
                   "total": false,
                   "values": false
                },
                "lines": true,
                "linewidth": 1,
                "links": [ ],
-               "nullPointMode": "null as zero",
+               "nullPointMode": "null",
                "percentage": false,
                "pointradius": 5,
                "points": false,
                "renderer": "flot",
+               "repeat": null,
                "seriesOverrides": [ ],
                "spaceLength": 10,
-               "span": 2,
-               "stack": false,
+               "span": 6,
+               "stack": true,
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum by (pod) (agent_wal_storage_active_series{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"})",
+                     "expr": "sum by($groupBy) (rate(promtail_sent_entries_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval]))\n",
                      "format": "time_series",
                      "intervalFactor": 2,
-                     "legendFormat": "{{pod}}",
-                     "legendLink": null,
-                     "step": 10
+                     "legendFormat": "{{$groupBy}}",
+                     "refId": "A"
                   }
                ],
                "thresholds": [ ],
                "timeFrom": null,
                "timeShift": null,
-               "title": "Series Count per Pod",
+               "title": "Entries sent rate [entries/s]",
                "tooltip": {
                   "shared": true,
-                  "sort": 2,
+                  "sort": 0,
                   "value_type": "individual"
                },
                "type": "graph",
@@ -860,7 +852,7 @@
                      "label": null,
                      "logBase": 1,
                      "max": null,
-                     "min": 0,
+                     "min": null,
                      "show": true
                   },
                   {
@@ -869,159 +861,7 @@
                      "logBase": 1,
                      "max": null,
                      "min": null,
-                     "show": false
-                  }
-               ]
-            },
-            {
-               "aliasColors": { },
-               "bars": false,
-               "dashLength": 10,
-               "dashes": false,
-               "datasource": "$datasource",
-               "fill": 1,
-               "id": 12,
-               "legend": {
-                  "avg": false,
-                  "current": false,
-                  "max": false,
-                  "min": false,
-                  "show": true,
-                  "total": false,
-                  "values": false
-               },
-               "lines": true,
-               "linewidth": 1,
-               "links": [ ],
-               "nullPointMode": "null as zero",
-               "percentage": false,
-               "pointradius": 5,
-               "points": false,
-               "renderer": "flot",
-               "seriesOverrides": [ ],
-               "spaceLength": 10,
-               "span": 2,
-               "stack": false,
-               "steppedLine": false,
-               "targets": [
-                  {
-                     "expr": "sum by (instance_group_name) (agent_wal_storage_active_series{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"})",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "{{instance_group_name}}",
-                     "legendLink": null,
-                     "step": 10
-                  }
-               ],
-               "thresholds": [ ],
-               "timeFrom": null,
-               "timeShift": null,
-               "title": "Series per Config",
-               "tooltip": {
-                  "shared": true,
-                  "sort": 2,
-                  "value_type": "individual"
-               },
-               "type": "graph",
-               "xaxis": {
-                  "buckets": null,
-                  "mode": "time",
-                  "name": null,
-                  "show": true,
-                  "values": [ ]
-               },
-               "yaxes": [
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
                      "show": true
-                  },
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": false
-                  }
-               ]
-            },
-            {
-               "aliasColors": { },
-               "bars": false,
-               "dashLength": 10,
-               "dashes": false,
-               "datasource": "$datasource",
-               "fill": 1,
-               "id": 13,
-               "legend": {
-                  "avg": false,
-                  "current": false,
-                  "max": false,
-                  "min": false,
-                  "show": true,
-                  "total": false,
-                  "values": false
-               },
-               "lines": true,
-               "linewidth": 1,
-               "links": [ ],
-               "nullPointMode": "null as zero",
-               "percentage": false,
-               "pointradius": 5,
-               "points": false,
-               "renderer": "flot",
-               "seriesOverrides": [ ],
-               "spaceLength": 10,
-               "span": 2,
-               "stack": false,
-               "steppedLine": false,
-               "targets": [
-                  {
-                     "expr": "sum by (container) (agent_wal_storage_active_series{cluster=~\"$cluster\", namespace=~\"$namespace\", container=~\"$container\", pod=~\"$pod\"})",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "{{container}}",
-                     "legendLink": null,
-                     "step": 10
-                  }
-               ],
-               "thresholds": [ ],
-               "timeFrom": null,
-               "timeShift": null,
-               "title": "Total Series",
-               "tooltip": {
-                  "shared": true,
-                  "sort": 2,
-                  "value_type": "individual"
-               },
-               "type": "graph",
-               "xaxis": {
-                  "buckets": null,
-                  "mode": "time",
-                  "name": null,
-                  "show": true,
-                  "values": [ ]
-               },
-               "yaxes": [
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": 0,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": false
                   }
                ]
             }
@@ -1030,8 +870,9 @@
          "repeatIteration": null,
          "repeatRowId": null,
          "showTitle": true,
-         "title": "Prometheus Read",
-         "titleSize": "h6"
+         "title": "Logs volume",
+         "titleSize": "h6",
+         "type": "row"
       }
    ],
    "schemaVersion": 14,
@@ -1042,12 +883,8 @@
    "templating": {
       "list": [
          {
-            "current": {
-               "text": "default",
-               "value": "default"
-            },
             "hide": 0,
-            "label": "Data Source",
+            "label": null,
             "name": "datasource",
             "options": [ ],
             "query": "prometheus",
@@ -1056,23 +893,30 @@
             "type": "datasource"
          },
          {
-            "allValue": ".+",
+            "allValue": null,
             "current": {
-               "selected": true,
-               "text": "All",
-               "value": "$__all"
+               "text": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               },
+               "value": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               }
             },
             "datasource": "$datasource",
             "hide": 0,
             "includeAll": true,
-            "label": "cluster",
-            "multi": true,
+            "label": null,
+            "multi": false,
             "name": "cluster",
             "options": [ ],
             "query": "label_values(agent_build_info, cluster)",
-            "refresh": 1,
+            "refresh": 2,
             "regex": "",
-            "sort": 2,
+            "sort": 0,
             "tagValuesQuery": "",
             "tags": [ ],
             "tagsQuery": "",
@@ -1080,23 +924,30 @@
             "useTags": false
          },
          {
-            "allValue": ".+",
+            "allValue": null,
             "current": {
-               "selected": true,
-               "text": "All",
-               "value": "$__all"
+               "text": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               },
+               "value": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               }
             },
             "datasource": "$datasource",
             "hide": 0,
             "includeAll": true,
-            "label": "namespace",
-            "multi": true,
+            "label": null,
+            "multi": false,
             "name": "namespace",
             "options": [ ],
-            "query": "label_values(agent_build_info{cluster=~\"$cluster\"}, namespace)",
-            "refresh": 1,
+            "query": "label_values(agent_build_info, namespace)",
+            "refresh": 2,
             "regex": "",
-            "sort": 2,
+            "sort": 0,
             "tagValuesQuery": "",
             "tags": [ ],
             "tagsQuery": "",
@@ -1104,23 +955,30 @@
             "useTags": false
          },
          {
-            "allValue": ".+",
+            "allValue": null,
             "current": {
-               "selected": true,
-               "text": "All",
-               "value": "$__all"
+               "text": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               },
+               "value": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               }
             },
             "datasource": "$datasource",
             "hide": 0,
             "includeAll": true,
-            "label": "container",
-            "multi": true,
+            "label": null,
+            "multi": false,
             "name": "container",
             "options": [ ],
-            "query": "label_values(agent_build_info{cluster=~\"$cluster\", namespace=\"$namespace\"}, container)",
-            "refresh": 1,
+            "query": "label_values(agent_build_info, container)",
+            "refresh": 2,
             "regex": "",
-            "sort": 2,
+            "sort": 0,
             "tagValuesQuery": "",
             "tags": [ ],
             "tagsQuery": "",
@@ -1128,28 +986,64 @@
             "useTags": false
          },
          {
-            "allValue": ".+",
+            "allValue": null,
             "current": {
-               "selected": true,
-               "text": "All",
-               "value": "$__all"
+               "text": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               },
+               "value": {
+                  "selected": true,
+                  "text": "All",
+                  "value": "$__all"
+               }
             },
             "datasource": "$datasource",
             "hide": 0,
             "includeAll": true,
-            "label": "pod",
-            "multi": true,
+            "label": null,
+            "multi": false,
             "name": "pod",
             "options": [ ],
-            "query": "label_values(agent_build_info{cluster=~\"$cluster\", namespace=\"$namespace\", container=\"$container\"}, pod)",
-            "refresh": 1,
+            "query": "label_values(agent_build_info{container=~\"$container\"}, pod)",
+            "refresh": 2,
             "regex": "",
-            "sort": 2,
+            "sort": 0,
             "tagValuesQuery": "",
             "tags": [ ],
             "tagsQuery": "",
             "type": "query",
             "useTags": false
+         },
+         {
+            "allValue": null,
+            "current": {
+               "text": "pod",
+               "value": "pod"
+            },
+            "hide": 0,
+            "includeAll": false,
+            "label": "",
+            "multi": false,
+            "name": "groupBy",
+            "options": [
+               {
+                  "text": "pod",
+                  "value": "pod"
+               },
+               {
+                  "text": "cluster",
+                  "value": "cluster"
+               },
+               {
+                  "text": "namespace",
+                  "value": "namespace"
+               }
+            ],
+            "query": "pod,cluster,namespace",
+            "refresh": 0,
+            "type": "custom"
          }
       ]
    },
@@ -1183,7 +1077,6 @@
       ]
    },
    "timezone": "",
-   "title": "Agent Operational",
-   "uid": "",
+   "title": "Agent Logs Pipeline",
    "version": 0
 }

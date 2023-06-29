@@ -113,7 +113,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		controller: controller,
 
 		positions: positionsFile,
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 	}
 	if err := c.Update(args); err != nil {
 		return nil, err
@@ -166,13 +166,13 @@ func (c *Component) runHandler(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.receiversMut.RLock()
 			receivers := c.receivers
 			c.receiversMut.RUnlock()
 
 			for _, receiver := range receivers {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 		}
 	}
@@ -221,7 +221,7 @@ func (c *Component) updateTailer(args Arguments) error {
 
 	managerOpts := &kubetail.Options{
 		Client:    clientSet,
-		Handler:   loki.NewEntryHandler(c.handler, func() {}),
+		Handler:   loki.NewEntryHandler(c.handler.Chan(), func() {}),
 		Positions: c.positions,
 	}
 	c.lastOptions = managerOpts

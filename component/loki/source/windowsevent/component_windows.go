@@ -88,7 +88,7 @@ func (c *Component) Run(ctx context.Context) error {
 				Entry:  entry.Entry,
 			}
 			for _, receiver := range c.receivers {
-				receiver <- lokiEntry
+				receiver.Chan() <- lokiEntry
 			}
 			c.mut.RUnlock()
 		}

@@ -23,6 +23,7 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
+  - `discovery.kubelet` collect scrape targets from the Kubelet API. (@gcampbell12)
   - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
@@ -56,9 +57,14 @@ Main (unreleased)
 
 - Update `module.git` with basic and SSH key authentication support. (@djcode)
 
+- Support `clustering` block in `prometheus.operator.servicemonitors` and `prometheus.operator.podmonitors` components to distribute
+  targets amongst clustered agents. (@captncraig)
+  
 - Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
 
-- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+- The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
+
+- The Agent Operational dashboard of Grafana Agent mixin now has more descriptive panel titles, Y-axis units
 
 ### Bugfixes
 
@@ -66,10 +72,6 @@ Main (unreleased)
   proxying requests. (@mattdurham)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
-
-- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
-
-- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 
 - Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
 
@@ -82,9 +84,16 @@ Main (unreleased)
 - Fix issue where flow mode exports labeled as "string or secret" could not be
   used in a binary operation. (@rfratto)
 
-### Other changes
+- Fix Grafana Agent mixin's "Agent Operational" dashboard expecting pods to always have `grafana-agent-.*` prefix. (@thampiotr)
 
-- Build with go version 1.20.5 (@captncraig)
+v0.34.3 (2023-06-27)
+--------------------
+
+### Bugfixes
+
+- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
+- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
 
 v0.34.2 (2023-06-20)
 --------------------

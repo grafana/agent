@@ -67,7 +67,7 @@ func TestJSONLabelsStage(t *testing.T) {
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
 	require.NoError(t, err)
 
-	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 
 	// Create and run the component, so that it can process and forwards logs.
 	opts := component.Options{
@@ -97,7 +97,7 @@ func TestJSONLabelsStage(t *testing.T) {
 		},
 	}
 
-	c.receiver <- logEntry
+	c.receiver.Chan() <- logEntry
 
 	wantLabelSet := model.LabelSet{
 		"filename": "/var/log/pods/agent/agent/1.log",
@@ -111,11 +111,11 @@ func TestJSONLabelsStage(t *testing.T) {
 	// stages correctly applied.
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, logline, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, logline, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -154,7 +154,7 @@ stage.label_keep {
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
 	require.NoError(t, err)
 
-	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 
 	// Create and run the component, so that it can process and forwards logs.
 	opts := component.Options{
@@ -184,7 +184,7 @@ stage.label_keep {
 		},
 	}
 
-	c.receiver <- logEntry
+	c.receiver.Chan() <- logEntry
 
 	wantLabelSet := model.LabelSet{
 		"filename": "/var/log/pods/agent/agent/1.log",
@@ -195,11 +195,11 @@ stage.label_keep {
 	// stages correctly applied.
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, logline, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, logline, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -249,7 +249,7 @@ stage.labels {
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
 	require.NoError(t, err)
 
-	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 
 	// Create and run the component, so that it can process and forwards logs.
 	opts := component.Options{
@@ -279,7 +279,7 @@ stage.labels {
 		},
 	}
 
-	c.receiver <- logEntry
+	c.receiver.Chan() <- logEntry
 
 	wantLabelSet := model.LabelSet{
 		"filename": "/var/log/pods/agent/agent/1.log",
@@ -294,11 +294,11 @@ stage.labels {
 	// stages correctly applied.
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.Equal(t, wantLogline, logEntry.Line)
 			require.Equal(t, wantTimestamp, logEntry.Timestamp)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.Equal(t, wantLogline, logEntry.Line)
 			require.Equal(t, wantTimestamp, logEntry.Timestamp)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -323,7 +323,7 @@ stage.static_labels {
 }
 `
 
-	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 	var args1, args2 Arguments
 	require.NoError(t, river.Unmarshal([]byte(stg1), &args1))
 	require.NoError(t, river.Unmarshal([]byte(stg2), &args2))
@@ -374,11 +374,11 @@ stage.static_labels {
 	// race condition between them.
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "writing some text", logEntry.Line)
 			require.Equal(t, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": "foo"}), logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "writing some text", logEntry.Line)
 			require.Equal(t, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": "bar"}), logEntry.Labels)

@@ -90,7 +90,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	// Create and immediately export the receiver which remains the same for
 	// the component's lifetime.
-	c.receiver = make(loki.LogsReceiver)
+	c.receiver = loki.NewLogsReceiver()
 	o.OnStateChange(Exports{Receiver: c.receiver, Rules: args.RelabelConfigs})
 
 	// Call to Update() to set the relabelling rules once at the start.
@@ -107,7 +107,7 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.receiver:
+		case entry := <-c.receiver.Chan():
 			c.metrics.entriesProcessed.Inc()
 			lbls := c.relabel(entry)
 			if len(lbls) == 0 {
@@ -121,7 +121,7 @@ func (c *Component) Run(ctx context.Context) error {
 				select {
 				case <-ctx.Done():
 					return nil
-				case f <- entry:
+				case f.Chan() <- entry:
 				}
 			}
 		}
