@@ -72,7 +72,7 @@ Full reference of options:
   [ all: <boolean> ]
 
   # Node's name of which metrics should be exposed.
-  [ node: <boolean> ]
+  [ node: <string> ]
 
   # Export stats for indices in the cluster.
   [ indices: <boolean> ]

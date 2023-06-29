@@ -14,6 +14,7 @@ import (
 type GitRepoOptions struct {
 	Repository string
 	Revision   string
+	Auth       GitAuthConfig
 }
 
 // GitRepo manages a Git repository for the purposes of retrieving a file from
@@ -42,6 +43,7 @@ func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*
 		repo, err = git.PlainCloneContext(ctx, storagePath, false, &git.CloneOptions{
 			URL:               opts.Repository,
 			ReferenceName:     plumbing.HEAD,
+			Auth:              opts.Auth.Convert(),
 			RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
 			Tags:              git.AllTags,
 		})
@@ -59,6 +61,7 @@ func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*
 	err = repo.FetchContext(ctx, &git.FetchOptions{
 		RemoteName: "origin",
 		Force:      true,
+		Auth:       opts.Auth.Convert(),
 	})
 	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		return nil, UpdateFailedError{
@@ -103,6 +106,7 @@ func (repo *GitRepo) Update(ctx context.Context) error {
 	err := repo.repo.FetchContext(ctx, &git.FetchOptions{
 		RemoteName: "origin",
 		Force:      true,
+		Auth:       repo.opts.Auth.Convert(),
 	})
 	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
 		return UpdateFailedError{

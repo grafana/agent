@@ -23,10 +23,18 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
-  - `prometheus.exporter.kafka` collects metrics from Kafka Server (@oliver-zhang)
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
+  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
+  - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
+  - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
 
+- Added json_path function to river stdlib. (@jkroepke)
+
+- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
+
+- Add support to the `grafana-agent fmt` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
 ### Enhancements
 
@@ -44,6 +52,14 @@ Main (unreleased)
 
 - Update `dnsmasq_exporter` to last version. (@marctc)
 
+- Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
+
+- Update `module.git` with basic and SSH key authentication support. (@djcode)
+
+- Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
+
+- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
@@ -51,9 +67,24 @@ Main (unreleased)
 
 - Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
 
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
+
 - Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
 
 - Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
+
+- Fix issue in `prometheus.remote_write` where the `queue_config` and
+  `metadata_config` blocks used incorrect defaults when not specified in the
+  config file. (@rfratto)
+
+- Fix issue where published RPMs were not signed. (@rfratto)
+
+- Fix issue where flow mode exports labeled as "string or secret" could not be
+  used in a binary operation. (@rfratto)
+
+### Other changes
+
+- Build with go version 1.20.5 (@captncraig)
 
 v0.34.2 (2023-06-20)
 --------------------

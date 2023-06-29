@@ -255,3 +255,7 @@ Here are the endpoints that are being scraped every 10 seconds:
 http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
 http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 ```
+
+## Compression
+
+`prometheus.scrape` supports [gzip](https://en.wikipedia.org/wiki/Gzip) compression.
