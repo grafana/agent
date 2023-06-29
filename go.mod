@@ -580,7 +580,6 @@ require (
 require (
 	github.com/google/dnsmasq_exporter v0.2.1-0.20230620100026-44b14480804a
 	github.com/hashicorp/golang-lru/v2 v2.0.3
-	github.com/zeebo/assert v1.3.0
 )
 
 require (
