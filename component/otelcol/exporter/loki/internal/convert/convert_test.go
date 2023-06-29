@@ -456,7 +456,7 @@ func TestConverter(t *testing.T) {
 			require.NoError(t, err)
 
 			l := util.TestLogger(t)
-			ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
+			ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 			conv := convert.New(l, prometheus.NewRegistry(), []loki.LogsReceiver{ch1, ch2})
 			go func() {
 				require.NoError(t, conv.ConsumeLogs(context.Background(), payload))
@@ -464,11 +464,11 @@ func TestConverter(t *testing.T) {
 
 			for i := 0; i < 2; i++ {
 				select {
-				case l := <-ch1:
+				case l := <-ch1.Chan():
 					require.Equal(t, tc.expectLine, l.Line)
 					require.Equal(t, tc.expectLabels, l.Labels.String())
 					require.Equal(t, tc.expectTimestamp, l.Timestamp.UTC())
-				case l := <-ch2:
+				case l := <-ch2.Chan():
 					require.Equal(t, tc.expectLine, l.Line)
 					require.Equal(t, tc.expectLabels, l.Labels.String())
 					require.Equal(t, tc.expectTimestamp, l.Timestamp.UTC())

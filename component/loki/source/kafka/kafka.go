@@ -102,7 +102,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		mut:     sync.RWMutex{},
 		fanout:  args.ForwardTo,
 		target:  nil,
-		handler: make(loki.LogsReceiver),
+		handler: loki.NewLogsReceiver(),
 	}
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -132,10 +132,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.fanout {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -157,7 +157,7 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 	}
 
-	entryHandler := loki.NewEntryHandler(c.handler, func() {})
+	entryHandler := loki.NewEntryHandler(c.handler.Chan(), func() {})
 	t, err := kt.NewSyncer(c.opts.Logger, newArgs.Convert(), entryHandler, &kt.KafkaTargetMessageParser{})
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "failed to create kafka client with provided config", "err", err)

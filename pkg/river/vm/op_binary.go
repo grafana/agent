@@ -6,10 +6,29 @@ import (
 	"reflect"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/pkg/river/token"
 )
 
 func evalBinop(lhs value.Value, op token.Token, rhs value.Value) (value.Value, error) {
+	// Original parameters of lhs and rhs used for returning errors.
+	var (
+		origLHS = lhs
+		origRHS = rhs
+	)
+
+	// Hack to allow OptionalSecrets to be used in binary operations.
+	//
+	// TODO(rfratto): be more flexible in the future with broader definitions of
+	// how capsules can be converted to other types for the purposes of doing a
+	// binop.
+	if lhs.Type() == value.TypeCapsule {
+		lhs = tryUnwrapOptionalSecret(lhs)
+	}
+	if rhs.Type() == value.TypeCapsule {
+		rhs = tryUnwrapOptionalSecret(rhs)
+	}
+
 	// TODO(rfratto): evalBinop should check for underflows and overflows
 
 	// We have special handling for EQ and NEQ since it's valid to attempt to
@@ -24,12 +43,12 @@ func evalBinop(lhs value.Value, op token.Token, rhs value.Value) (value.Value, e
 	// The type of lhs and rhs must be acceptable for the binary operator.
 	if !acceptableBinopType(lhs, op) {
 		return value.Null, value.Error{
-			Value: lhs,
+			Value: origLHS,
 			Inner: fmt.Errorf("should be one of %v for binop %s, got %s", binopAllowedTypes[op], op, lhs.Type()),
 		}
 	} else if !acceptableBinopType(rhs, op) {
 		return value.Null, value.Error{
-			Value: rhs,
+			Value: origRHS,
 			Inner: fmt.Errorf("should be one of %v for binop %s, got %s", binopAllowedTypes[op], op, rhs.Type()),
 		}
 	}
@@ -186,6 +205,21 @@ func evalBinop(lhs value.Value, op token.Token, rhs value.Value) (value.Value, e
 	}
 
 	panic("river/vm: unreachable")
+}
+
+// tryUnwrapOptionalSecret accepts a value and, if it is a
+// rivertypes.OptionalSecret where IsSecret is false, returns a string value
+// instead.
+//
+// If val is not a rivertypes.OptionalSecret or IsSecret is true,
+// tryUnwrapOptionalSecret returns the input value unchanged.
+func tryUnwrapOptionalSecret(val value.Value) value.Value {
+	optSecret, ok := val.Interface().(rivertypes.OptionalSecret)
+	if !ok || optSecret.IsSecret {
+		return val
+	}
+
+	return value.String(optSecret.Value)
 }
 
 // valuesEqual returns true if two River Values are equal.

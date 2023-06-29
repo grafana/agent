@@ -26,7 +26,7 @@ func TestDeltaProfilerAppender(t *testing.T) {
 		pyroscope.AppendableFunc(func(ctx context.Context, lbs labels.Labels, samples []*pyroscope.RawSample) error {
 			outSamples = append(outSamples, samples...)
 			// We expect all samples to have the delta label set to false so that the server won't do the delta again.
-			require.Equal(t, "false", lbs.Get(LabelNameDelta))
+			require.Equal(t, "false", lbs.Get(pyroscope.LabelNameDelta))
 			return nil
 		}), lbs)
 

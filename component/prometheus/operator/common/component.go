@@ -51,6 +51,7 @@ func (c *Component) Run(ctx context.Context) error {
 		}
 	}()
 
+	var runningConfig *operator.Arguments
 	c.reportHealth(nil)
 	errChan := make(chan error, 1)
 	for {
@@ -63,21 +64,29 @@ func (c *Component) Run(ctx context.Context) error {
 		case err := <-errChan:
 			c.reportHealth(err)
 		case <-c.onUpdate:
-			if cancel != nil {
-				cancel()
-			}
-			innerCtx, cancel = context.WithCancel(ctx)
+
 			c.mut.Lock()
-			componentCfg := c.config
-			manager := newCrdManager(c.opts, c.opts.Logger, componentCfg, c.kind)
-			c.manager = manager
-			c.mut.Unlock()
-			go func() {
-				if err := manager.Run(innerCtx); err != nil {
-					level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
-					errChan <- err
+			nextConfig := c.config
+			// only restart crd manager if our config has changed.
+			// NOT on cluster changes.
+			if !nextConfig.Equals(runningConfig) {
+				runningConfig = nextConfig
+				manager := newCrdManager(c.opts, c.opts.Logger, nextConfig, c.kind)
+				c.manager = manager
+				if cancel != nil {
+					cancel()
 				}
-			}()
+				innerCtx, cancel = context.WithCancel(ctx)
+				go func() {
+					if err := manager.Run(innerCtx); err != nil {
+						level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
+						errChan <- err
+					}
+				}()
+			} else {
+				c.manager.ClusteringUpdated()
+			}
+			c.mut.Unlock()
 		}
 	}
 }
@@ -100,6 +109,13 @@ func (c *Component) Update(args component.Arguments) error {
 // DebugInfo returns debug information for this component.
 func (c *Component) DebugInfo() interface{} {
 	return c.manager.DebugInfo()
+}
+
+// ClusterUpdatesRegistration implements component.ClusterComponent.
+func (c *Component) ClusterUpdatesRegistration() bool {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	return c.config.Clustering.Enabled
 }
 
 func (c *Component) reportHealth(err error) {
