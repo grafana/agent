@@ -82,13 +82,13 @@ HTTP server.
 
 When you use the `--config.format` command-line argument with a value
 other than `flow`, Grafana Agent converts the configuration file from
-the source format to River and immediately start running with the new
+the source format to River and immediately starts running with the new
 configuration. This conversion uses the converter API described in the
 [grafana-agent convert][] docs.
 
 If you also use the `--config.bypass-conversion-warnings` command-line argument,
 Grafana Agent will ignore any warnings from the converter. Use this
-argument with caution because the resulting conversion is not equivalent to the
-original configuration.
+argument with caution because the resulting conversion may not be equivalent
+to the original configuration.
 
 [grafana-agent convert]: {{< relref "./convert.md" >}}
