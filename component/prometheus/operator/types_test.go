@@ -5,7 +5,6 @@ import (
 
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
-	"github.com/zeebo/assert"
 )
 
 func TestRiverUnmarshal(t *testing.T) {
@@ -42,6 +41,6 @@ func TestEqual(t *testing.T) {
 		Namespaces: []string{"my-app", "other-app"},
 		Clustering: Clustering{Enabled: false},
 	}
-	assert.True(t, a.Equals(&b))
-	assert.False(t, a.Equals(&c))
+	require.True(t, a.Equals(&b))
+	require.False(t, a.Equals(&c))
 }
