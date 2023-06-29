@@ -1461,7 +1461,7 @@ The extracted data from the IP used in this example:
 
 #### GeoIP with custom fields example
 
-If the MMDB file used is enriched with custom data, e.g. private IP addresses as explained in [the Maxmind blog post](https://github.com/maxmind/mmdb-from-go-blogpost), then it can be extracted from the record using the `custom_lookups` attribute.
+If the MMDB file used is enriched with custom data, for example, private IP addresses as explained in [the Maxmind blog post](https://github.com/maxmind/mmdb-from-go-blogpost), then it can be extracted from the record using the `custom_lookups` attribute.
 
 ```
 loki.process "example" {
