@@ -58,6 +58,9 @@ Main (unreleased)
 
 - Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
 
+- The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
+
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
