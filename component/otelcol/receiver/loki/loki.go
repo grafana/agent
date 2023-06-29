@@ -124,6 +124,8 @@ func convertLokiEntryToPlog(lokiEntry loki.Entry) plog.Logs {
 		// transformation happens.
 		lr.Attributes().PutStr("log.file.path", filenameStr)
 		lr.Attributes().PutStr("log.file.name", path.Base(filenameStr))
+		// TODO(@tpaschalis) Remove the addition of "log.file.path" and "log.file.name",
+		// because the Collector doesn't do it and we would be more in line with it.
 	}
 
 	var lbls []string

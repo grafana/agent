@@ -73,7 +73,7 @@ func (jrse *jrsExtension) Start(ctx context.Context, host component.Host) error 
 	}
 
 	if jrse.cfg.Source.Remote != nil {
-		conn, err := jrse.cfg.Source.Remote.ToClientConn(context.Background(), host, jrse.telemetry)
+		conn, err := jrse.cfg.Source.Remote.ToClientConn(ctx, host, jrse.telemetry)
 		if err != nil {
 			return fmt.Errorf("error while connecting to the remote sampling source: %w", err)
 		}
