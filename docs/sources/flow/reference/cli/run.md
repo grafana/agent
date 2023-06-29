@@ -78,7 +78,7 @@ to advertise from a list of default network interfaces. The agent must be
 reachable over HTTP on this address as communication happens over the agent's
 HTTP server.
 
-## Configuration conversion
+## Configuration conversion (beta)
 
 When the `--config.format` command-line argument is provided, Grafana
 Agent will convert the config file from the source format to River and
