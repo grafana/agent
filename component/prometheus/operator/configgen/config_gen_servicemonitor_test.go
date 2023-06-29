@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/common/kubernetes"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/pkg/util"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
@@ -45,6 +46,8 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 				Port: "metrics",
 			},
 			expectedRelabels: util.Untab(`
+				- target_label: __meta_foo
+				  replacement: bar
 				- source_labels: [job]
 				  target_label: __tmp_prometheus_job_name
 				- source_labels: [__meta_kubernetes_endpoint_port_name]
@@ -170,6 +173,8 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 				},
 			},
 			expectedRelabels: util.Untab(`
+				- target_label: __meta_foo
+				  replacement: bar
 				- source_labels: [job]
 				  target_label: __tmp_prometheus_job_name
 				- source_labels: [__meta_kubernetes_service_label_foo, __meta_kubernetes_service_labelpresent_foo]
@@ -278,7 +283,12 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 	}
 	for i, tc := range suite {
 		t.Run(tc.name, func(t *testing.T) {
-			cg := &ConfigGenerator{Client: &kubernetes.ClientArguments{}}
+			cg := &ConfigGenerator{
+				Client: &kubernetes.ClientArguments{},
+				AdditionalRelabelConfigs: []*flow_relabel.Config{
+					{TargetLabel: "__meta_foo", Replacement: "bar"},
+				},
+			}
 			cfg, err := cg.GenerateServiceMonitorConfig(tc.m, tc.ep, i)
 			require.NoError(t, err)
 			// check relabel configs separately

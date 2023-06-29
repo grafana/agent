@@ -55,7 +55,7 @@ func (c *Component) Run(ctx context.Context) error {
 				lokiEntry.Labels["job"] = model.LabelValue(c.o.ID)
 			}
 			for _, r := range c.receivers {
-				r <- lokiEntry
+				r.Chan() <- lokiEntry
 			}
 			c.mut.RUnlock()
 		}
