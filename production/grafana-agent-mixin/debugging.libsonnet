@@ -6,9 +6,9 @@ local g = import 'grafana-builder/grafana.libsonnet';
     'agent-operational.json':
       utils.injectUtils(g.dashboard('Agent Operational'))
       .addMultiTemplate('cluster', 'agent_build_info', 'cluster')
-      .addMultiTemplate('namespace', 'agent_build_info', 'namespace')
-      .addMultiTemplate('container', 'agent_build_info', 'container')
-      .addMultiTemplateWithAll('pod', 'agent_build_info{container=~"$container", namespace="$namespace"}', 'pod', all='.*agent.*')
+      .addMultiTemplate('namespace', 'agent_build_info{cluster=~"$cluster"}', 'namespace')
+      .addMultiTemplate('container', 'agent_build_info{cluster=~"$cluster", namespace="$namespace"}', 'container')
+      .addMultiTemplate('pod', 'agent_build_info{cluster=~"$cluster", namespace="$namespace", container="$container"}', 'pod')
       .addRow(
         g.row('General')
         .addPanel(
