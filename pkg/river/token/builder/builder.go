@@ -183,7 +183,14 @@ func (b *Body) encodeFields(rv reflect.Value) {
 		fieldVal := reflectutil.Get(rv, field)
 		fieldValDefault := reflectutil.Get(defaults, field)
 
-		if field.IsOptional() && fieldVal.Comparable() && fieldVal.Equal(fieldValDefault) {
+		// Check if the values are exactly equal or if they're both equal to the
+		// zero value. Checking for both fields being zero handles the case where
+		// an empty and nil map are being compared (which are not equal, but are
+		// both zero values).
+		matchesDefault := fieldVal.Comparable() && fieldVal.Equal(fieldValDefault)
+		isZero := fieldValDefault.IsZero() && fieldVal.IsZero()
+
+		if field.IsOptional() && (matchesDefault || isZero) {
 			continue
 		}
 
@@ -199,9 +206,6 @@ func (b *Body) encodeField(prefix []string, field rivertags.Field, fieldValue re
 			break
 		}
 		fieldValue = fieldValue.Elem()
-	}
-	if field.Flags&rivertags.FlagOptional != 0 && fieldValue.IsZero() {
-		return
 	}
 
 	switch {
@@ -239,9 +243,12 @@ func (b *Body) encodeField(prefix []string, field rivertags.Field, fieldValue re
 			for i := 0; i < fieldValue.Len(); i++ {
 				elem := fieldValue.Index(i)
 
-				// Recursively call encodeField for each element in the slice/array.
-				// The recursive call will hit the case below and add a new block for
-				// each field encountered.
+				// Recursively call encodeField for each element in the slice/array for
+				// non-zero blocks. The recursive call will hit the case below and add
+				// a new block for each field encountered.
+				if field.Flags&rivertags.FlagOptional != 0 && elem.IsZero() {
+					continue
+				}
 				b.encodeField(prefix, field, elem)
 			}
 
