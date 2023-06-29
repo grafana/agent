@@ -7,13 +7,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"math/rand"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/go-kit/log/level"
@@ -121,85 +118,44 @@ func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) er
 	return os.WriteFile(cachePath, marshalled, 0666)
 }
 
-// readPasswordFile reads the specified password file, trims any whitespace, and returns the password as a string.
-func readPasswordFile(passwordFile string) (string, error) {
-	password, err := os.ReadFile(passwordFile)
-	if err != nil {
-		return "", errors.New("error reading password file")
-	}
-	cleanedPassword := strings.TrimSpace(string(password))
-	return cleanedPassword, nil
-}
-
-// createHTTPRequest creates an HTTP request based on the values in c. If label management is enabled,
-// the request will include headers to include the agent id and indicate that label management is enabled.
-func createHTTPRequest(c *AgentManagementConfig) (*http.Request, error) {
-	// Create the full url, possibly including labels as query params
-	url, err := c.fullUrl()
-	if err != nil {
-		return nil, fmt.Errorf("error trying to create full url: %w", err)
-	}
-
-	// Create the request
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	// Add basic auth
-	password, err := readPasswordFile(c.BasicAuth.PasswordFile)
-	if err != nil {
-		return nil, err
-	}
-	req.SetBasicAuth(c.BasicAuth.Username, password)
-
-	// Set headers for label management, if enabled
-	if c.RemoteConfiguration.LabelManagementEnabled && c.RemoteConfiguration.AgentID != "" {
-		req.Header.Add(labelManagementEnabledHeader, "1")
-		req.Header.Add(agentIDHeader, c.RemoteConfiguration.AgentID)
-	}
-	return req, nil
-}
-
 // FetchRemoteConfig fetches the raw bytes of the config from a remote API using
 // the values in r.AgentManagement.
 func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
-	req, err := createHTTPRequest(r.InitialConfig)
+	httpClientConfig := &config.HTTPClientConfig{
+		BasicAuth: &r.InitialConfig.BasicAuth,
+	}
+
+	dir, err := os.Getwd()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get current working directory: %w", err)
+	}
+	httpClientConfig.SetDirectory(dir)
+
+	remoteOpts := &remoteOpts{
+		HTTPClientConfig: httpClientConfig,
 	}
 
-	client := &http.Client{
-		Timeout: 5 * time.Second,
+	if r.InitialConfig.RemoteConfiguration.LabelManagementEnabled && r.InitialConfig.RemoteConfiguration.AgentID != "" {
+		remoteOpts.headers = map[string]string{
+			labelManagementEnabledHeader: "1",
+			agentIDHeader:                r.InitialConfig.RemoteConfiguration.AgentID,
+		}
 	}
-	response, err := client.Do(req)
+
+	url, err := r.InitialConfig.fullUrl()
 	if err != nil {
-		instrumentation.InstrumentRemoteConfigFetchError()
-		return nil, fmt.Errorf("request failed: %w", err)
+		return nil, fmt.Errorf("error trying to create full url: %w", err)
 	}
-	instrumentation.InstrumentRemoteConfigFetch(response.StatusCode)
-
-	if response.StatusCode == http.StatusTooManyRequests {
-		retryAfter := response.Header.Get("Retry-After")
-		if retryAfter == "" {
-			return nil, fmt.Errorf("server indicated to retry, but no Retry-After header was provided")
-		}
-		retryAfterDuration, err := time.ParseDuration(retryAfter)
-		if err != nil {
-			return nil, fmt.Errorf("server indicated to retry, but Retry-After header was not a valid duration: %w", err)
-		}
-		return nil, retryAfterError{retryAfter: retryAfterDuration}
+	rc, err := newRemoteProvider(url, remoteOpts)
+	if err != nil {
+		return nil, fmt.Errorf("error reading remote config: %w", err)
 	}
 
+	bb, err := rc.retrieve()
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving remote config: %w", err)
 	}
-	defer response.Body.Close()
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading response body: %w", err)
-	}
-	return body, nil
+	return bb, nil
 }
 
 type labelMap map[string]string

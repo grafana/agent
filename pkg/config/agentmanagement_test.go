@@ -518,31 +518,3 @@ func TestGetCachedConfig_RetryAfter(t *testing.T) {
 	// attempt to fetch the remote config
 	assert.Equal(t, 1, testProvider.getCachedConfigCallCount)
 }
-
-func TestCreateHTTPRequest(t *testing.T) {
-	c := validAgentManagementConfig
-	c.BasicAuth.PasswordFile = "./testdata/example_password.txt"
-
-	// First test with no label management enabled
-	req, err := createHTTPRequest(&c)
-	assert.NoError(t, err)
-	assert.Equal(t, "https://localhost:1234/agent-management/api/agent/v2/namespace/test_namespace/remote_config?a=A&b=B", req.URL.String())
-	assert.Equal(t, "GET", req.Method)
-	assert.Equal(t, "", req.Header.Get(agentIDHeader))
-	assert.Equal(t, "", req.Header.Get(labelManagementEnabledHeader))
-
-	// Add label management configurations
-	c.RemoteConfiguration = RemoteConfiguration{
-		AgentID:                "test-agent-id",
-		LabelManagementEnabled: true,
-		Namespace:              "test_namespace",
-		CacheLocation:          "/test/path/",
-	}
-
-	req, err = createHTTPRequest(&c)
-	assert.NoError(t, err)
-	assert.Equal(t, "https://localhost:1234/agent-management/api/agent/v2/namespace/test_namespace/remote_config", req.URL.String())
-	assert.Equal(t, "GET", req.Method)
-	assert.Equal(t, "test-agent-id", req.Header.Get(agentIDHeader))
-	assert.Equal(t, "1", req.Header.Get(labelManagementEnabledHeader))
-}
