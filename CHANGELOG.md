@@ -54,12 +54,12 @@ Main (unreleased)
 
 - Update `module.git` with basic and SSH key authentication support. (@djcode)
 
+- Support `clustering` block in `prometheus.operator.servicemonitors` and `prometheus.operator.podmonitors` components to distribute
+  targets amongst clustered agents. (@captncraig)
+  
 - Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
 
-- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
-
 - The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
-
 
 ### Bugfixes
 

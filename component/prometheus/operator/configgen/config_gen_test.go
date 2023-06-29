@@ -7,6 +7,7 @@ import (
 
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/kubernetes"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -19,6 +20,9 @@ import (
 var (
 	configGen = &ConfigGenerator{
 		Secrets: &fakeSecrets{},
+		AdditionalRelabelConfigs: []*flow_relabel.Config{
+			{TargetLabel: "__meta_foo", Replacement: "bar"},
+		},
 	}
 )
 
