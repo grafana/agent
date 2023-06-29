@@ -82,6 +82,8 @@ Main (unreleased)
 - Fix issue where flow mode exports labeled as "string or secret" could not be
   used in a binary operation. (@rfratto)
 
+- Fix Grafana Agent mixin's "Agent Operational" dashboard expecting pods to always have `grafana-agent-.*` prefix. (@thampiotr)
+
 ### Other changes
 
 - Build with go version 1.20.5 (@captncraig)
