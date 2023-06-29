@@ -58,7 +58,7 @@ func Test(t *testing.T) {
 				Line:      "It's super effective!",
 			},
 		}
-		exports.Receiver <- entry
+		exports.Receiver.Chan() <- entry
 	}()
 
 	wantAttributes := map[string]interface{}{

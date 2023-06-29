@@ -36,7 +36,7 @@ func Test(t *testing.T) {
 	ctrl, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.source.file")
 	require.NoError(t, err)
 
-	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 
 	go func() {
 		err := ctrl.Run(ctx, Arguments{
@@ -61,11 +61,11 @@ func Test(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "writing some text", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "writing some text", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -133,7 +133,7 @@ func TestTwoTargets(t *testing.T) {
 	defer f.Close()
 	defer f2.Close()
 
-	ch1 := make(chan loki.Entry)
+	ch1 := loki.NewLogsReceiver()
 	args := Arguments{}
 	args.Targets = []discovery.Target{
 		{"__path__": f.Name(), "foo": "bar"},
@@ -157,7 +157,7 @@ func TestTwoTargets(t *testing.T) {
 	foundF1, foundF2 := false, false
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			if logEntry.Line == "text" {
 				foundF1 = true

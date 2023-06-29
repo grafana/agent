@@ -415,7 +415,7 @@ func testArgsWithPorts(httpPort int, grpcPort int) Arguments {
 				ListenPort:    grpcPort,
 			},
 		},
-		ForwardTo: []loki.LogsReceiver{make(chan loki.Entry), make(chan loki.Entry)},
+		ForwardTo: []loki.LogsReceiver{loki.NewLogsReceiver(), loki.NewLogsReceiver()},
 		Labels:    map[string]string{"foo": "bar", "fizz": "buzz"},
 		RelabelRules: relabel.Rules{
 			{

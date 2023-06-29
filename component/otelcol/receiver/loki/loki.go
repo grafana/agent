@@ -67,7 +67,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 
 	// Create and immediately export the receiver which remains the same for
 	// the component's lifetime.
-	res.receiver = make(loki.LogsReceiver)
+	res.receiver = loki.NewLogsReceiver()
 	o.OnStateChange(Exports{Receiver: res.receiver})
 
 	if err := res.Update(c); err != nil {
@@ -82,7 +82,7 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.receiver:
+		case entry := <-c.receiver.Chan():
 			stanzaEntry := parsePromtailEntry(entry)
 			plogEntry := adapter.Convert(stanzaEntry)
 
