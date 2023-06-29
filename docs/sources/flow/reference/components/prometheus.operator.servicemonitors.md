@@ -166,10 +166,10 @@ of targets that it is responsible for, so that the scrape load is distributed.
 When a node joins or leaves the cluster, every peer recalculates ownership and
 continues scraping with the new target set. This performs better than hashmod
 sharding where _all_ nodes have to be re-distributed, as only 1/N of the
-targets ownership is transferred, but is eventually consistent (rather than
+target's ownership is transferred, but is eventually consistent (rather than
 fully consistent like hashmod sharding is).
 
-If the agent is _not_ running in clustered mode, then the block is a no-op and
+If the agent is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.servicemonitors` scrapes every target it receives in its arguments.
 
 [clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
