@@ -75,7 +75,7 @@ brew services start grafana-agent-flow
 
 Grafana Agent automatically runs when the system starts.
 
-(Optional) Verify that the service is running:
+Optional: Verify that the service is running:
 
 ```shell
 brew services info grafana-agent-flow
