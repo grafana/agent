@@ -8,29 +8,29 @@ import (
 	prom_config "github.com/prometheus/prometheus/config"
 )
 
-func appendPrometheusRemoteWrite(pb *prometheusBlocks, promConfig *prom_config.Config) *remotewrite.Exports {
-	remoteWriteArgs := toRemotewriteArguments(promConfig)
-	block := common.NewBlockWithOverride([]string{"prometheus", "remote_write"}, "default", remoteWriteArgs)
+func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.GlobalConfig, remoteWriteConfigs []*prom_config.RemoteWriteConfig, label string) *remotewrite.Exports {
+	remoteWriteArgs := toRemotewriteArguments(globalConfig, remoteWriteConfigs)
+	block := common.NewBlockWithOverride([]string{"prometheus", "remote_write"}, label, remoteWriteArgs)
 	pb.prometheusRemoteWriteBlocks = append(pb.prometheusRemoteWriteBlocks, block)
 	return &remotewrite.Exports{
-		Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write.default.receiver"},
+		Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write." + label + ".receiver"},
 	}
 }
 
-func toRemotewriteArguments(promConfig *prom_config.Config) *remotewrite.Arguments {
-	externalLabels := promConfig.GlobalConfig.ExternalLabels.Map()
+func toRemotewriteArguments(globalConfig prom_config.GlobalConfig, remoteWriteConfigs []*prom_config.RemoteWriteConfig) *remotewrite.Arguments {
+	externalLabels := globalConfig.ExternalLabels.Map()
 	if len(externalLabels) == 0 {
 		externalLabels = nil
 	}
 
 	return &remotewrite.Arguments{
 		ExternalLabels: externalLabels,
-		Endpoints:      GetEndpointOptions(promConfig.RemoteWriteConfigs),
+		Endpoints:      getEndpointOptions(remoteWriteConfigs),
 		WALOptions:     remotewrite.DefaultWALOptions,
 	}
 }
 
-func GetEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*remotewrite.EndpointOptions {
+func getEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*remotewrite.EndpointOptions {
 	endpoints := make([]*remotewrite.EndpointOptions, 0)
 
 	for _, remoteWriteConfig := range remoteWriteConfigs {

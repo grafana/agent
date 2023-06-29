@@ -34,6 +34,7 @@ func TestConvert(t *testing.T) {
 
 			t.Run(caseName, func(t *testing.T) {
 				actual, diags := staticconvert.Convert(inputBytes)
+				os.WriteFile("/home/erik/temp/"+caseName+".river", actual, 0666)
 
 				expectedErrors := parseErrors(t, path)
 				for ix, diag := range diags {
@@ -42,6 +43,11 @@ func TestConvert(t *testing.T) {
 					} else {
 						require.Fail(t, "unexpected error count reach for error: "+diag.String())
 					}
+				}
+
+				// If we expect more errors than we got
+				if len(expectedErrors) > len(diags) {
+					require.Fail(t, "missing expected error: "+expectedErrors[len(diags)])
 				}
 
 				outputFile := strings.TrimSuffix(path, staticSuffix) + flowSuffix

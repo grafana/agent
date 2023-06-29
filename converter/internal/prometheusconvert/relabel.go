@@ -37,7 +37,7 @@ func toRelabelArguments(relabelConfigs []*prom_relabel.Config, forwardTo []stora
 	}
 }
 
-func appendDiscoveryRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel.Config, label string, targets []discovery.Target) *disc_relabel.Exports {
+func appendDiscoveryRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel.Config, targets []discovery.Target, label string) *disc_relabel.Exports {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
