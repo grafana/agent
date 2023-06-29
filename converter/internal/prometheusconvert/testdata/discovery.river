@@ -1,0 +1,81 @@
+discovery.azure "prometheus1" {
+	subscription_id = "subscription1"
+
+	managed_identity {
+		client_id = "client1"
+	}
+	follow_redirects = true
+	enable_http2     = true
+}
+
+discovery.azure "prometheus1_2" {
+	subscription_id = "subscription2"
+
+	managed_identity {
+		client_id = "client2"
+	}
+	follow_redirects = true
+	enable_http2     = true
+}
+
+discovery.relabel "prometheus1" {
+	targets = concat(
+		discovery.azure.prometheus1_2.targets,
+		discovery.azure.prometheus1.targets,
+		[{
+			__address__ = "localhost:9090",
+		}],
+	)
+
+	rule {
+		source_labels = ["__address1__"]
+		regex         = "^(?:(.*))$"
+		target_label  = "__param_target1"
+	}
+
+	rule {
+		source_labels = ["__address2__"]
+		regex         = "^(?:(.*))$"
+		target_label  = "__param_target2"
+	}
+}
+
+prometheus.scrape "prometheus1" {
+	targets    = discovery.relabel.prometheus1.targets
+	forward_to = [prometheus.relabel.prometheus1.receiver]
+	job_name   = "prometheus1"
+}
+
+prometheus.relabel "prometheus1" {
+	forward_to = [prometheus.remote_write.default.receiver]
+
+	rule {
+		source_labels = ["__metric_address1__"]
+		regex         = "^(?:(.*))$"
+		target_label  = "__metric_param_target1"
+	}
+
+	rule {
+		source_labels = ["__metric_address2__"]
+		regex         = "^(?:(.*))$"
+		target_label  = "__metric_param_target2"
+	}
+}
+
+prometheus.remote_write "default" {
+	endpoint {
+		name           = "remote1"
+		url            = "http://remote-write-url1"
+		send_exemplars = false
+
+		queue_config {
+			capacity             = 2500
+			max_shards           = 200
+			max_samples_per_send = 500
+		}
+
+		metadata_config {
+			max_samples_per_send = 500
+		}
+	}
+}

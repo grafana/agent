@@ -262,7 +262,7 @@ func (fr *flowRun) Run(configFile string) error {
 		}).Methods(http.MethodGet, http.MethodPost)
 
 		// Register Routes must be the last
-		fa := api.NewFlowAPI(f)
+		fa := api.NewFlowAPI(f, clusterer.Node)
 		fa.RegisterRoutes(path.Join(fr.uiPrefix, "/api/v0/web"), r)
 
 		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it

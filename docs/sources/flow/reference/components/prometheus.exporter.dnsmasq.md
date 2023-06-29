@@ -21,6 +21,7 @@ Name          | Type     | Description                          | Default       
 ------------- | -------- | ------------------------------------ | -------------------------------- | --------
 `address`     | `string` | The address of the dnsmasq server.   | `"localhost:53"`                 | no
 `leases_file` | `string` | The path to the dnsmasq leases file. | `"/var/lib/misc/dnsmasq.leases"` | no
+`expose_leases` | `bool` | Expose dnsmasq leases as metrics (high cardinality). | `false` | no
 
 ## Exported fields
 The following fields are exported and can be referenced by other components.
