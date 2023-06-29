@@ -80,14 +80,14 @@ HTTP server.
 
 ## Configuration conversion (beta)
 
-When the `--config.format` command-line argument is provided, Grafana
-Agent will convert the config file from the source format to River and
-immediately start running with it. This leverages the same converter API
+When you use the `--config.format` command-line argument, Grafana
+Agent converts the configuration file from the source format to River and
+immediately start running with the new configuration. This conversion uses the converter API
 described in the [grafana-agent convert][] docs.
 
-If the `--config.bypass-conversion-warnings` command-line argument is also provided,
-Grafana Agent will ignore any warnings provided by the converter. This should
-be used with caution since the resulting conversion is not equivalent to the
-original config.
+If you also use the `--config.bypass-conversion-warnings` command-line argument,
+Grafana Agent will ignore any warnings from the converter. Use this
+argument with caution because the resulting conversion is not equivalent to the
+original configuration.
 
 [grafana-agent convert]: {{< relref "./convert.md" >}}
