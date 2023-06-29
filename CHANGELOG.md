@@ -57,7 +57,7 @@ Main (unreleased)
 
 - Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
 
-- The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
+- The Grafana Agent mixin now includes a dashboard for the logs pipeline and some panel titles have more descriptive names. (@thampiotr)
 
 
 ### Bugfixes
