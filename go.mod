@@ -483,7 +483,7 @@ require (
 	github.com/opencontainers/runtime-spec v1.0.3-0.20220909204839-494a5a6aca78 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.1 // indirect
-	github.com/oschwald/maxminddb-golang v1.10.0 // indirect
+	github.com/oschwald/maxminddb-golang v1.10.0
 	github.com/ovh/go-ovh v1.3.0 // indirect
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
