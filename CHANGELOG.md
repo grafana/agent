@@ -101,8 +101,6 @@ Main (unreleased)
 
 - Fix Grafana Agent mixin's "Agent Operational" dashboard expecting pods to always have `grafana-agent-.*` prefix. (@thampiotr)
 
-- Fix `discovery.kubelet` component to correctly handle pod deletions. (@gcampbell12)
-
 v0.34.3 (2023-06-27)
 --------------------
 
