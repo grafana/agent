@@ -97,6 +97,10 @@ Main (unreleased)
 
 - Fix Grafana Agent mixin's "Agent Operational" dashboard expecting pods to always have `grafana-agent-.*` prefix. (@thampiotr)
 
+### Other changes
+
+- Mongodb integration has been re-enabled. (@jcreixell)
+
 v0.34.3 (2023-06-27)
 --------------------
 
