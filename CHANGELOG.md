@@ -75,7 +75,7 @@ Main (unreleased)
 
 - The Agent Operational dashboard of Grafana Agent mixin now has more descriptive panel titles, Y-axis units
 
-- Update OpenTelemetry Collector dependencies from v0.63.0 to v0.79.0. (@ptodev)
+- Update OpenTelemetry Collector dependencies from v0.63.0 to v0.80.0. (@ptodev)
 
 ### Bugfixes
 
