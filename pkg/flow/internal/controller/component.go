@@ -190,10 +190,10 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Tracer:    tracing.WrapTracer(globals.TraceProvider, globalID),
 		Clusterer: globals.Clusterer,
 
-		DataPath:       filepath.Join(globals.DataPath, cn.nodeID),
+		DataPath:       filepath.Join(globals.DataPath, globalID),
 		HTTPListenAddr: globals.HTTPListenAddr,
 		DialFunc:       globals.DialFunc,
-		HTTPPath:       path.Join(prefix, cn.nodeID) + "/",
+		HTTPPath:       path.Join(prefix, globalID) + "/",
 
 		OnStateChange:    cn.setExports,
 		ModuleController: globals.NewModuleController(globalID),
