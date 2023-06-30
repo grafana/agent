@@ -4,7 +4,8 @@ import (
 	"context"
 	"net/http"
 	"sync"
-	"sync/atomic"
+
+	"go.uber.org/atomic"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
