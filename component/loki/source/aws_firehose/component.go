@@ -69,7 +69,7 @@ type Component struct {
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:           o,
-		destination:    make(loki.LogsReceiver),
+		destination:    loki.NewLogsReceiver(),
 		fanout:         args.ForwardTo,
 		serverMetrics:  util.NewUncheckedCollector(nil),
 		handlerMetrics: internal.NewMetrics(o.Registerer),
@@ -98,10 +98,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.destination:
+		case entry := <-c.destination.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.fanout {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -171,7 +171,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 // Send implements internal.Sender so that the component is able to receive logs decoded by the handler.
 func (c *Component) Send(ctx context.Context, entry loki.Entry) {
-	c.destination <- entry
+	c.destination.Chan() <- entry
 }
 
 // shutdownServer will shut down the currently used server.

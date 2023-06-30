@@ -116,7 +116,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		log:       o.Logger,
 		opts:      o,
 		positions: positionsFile,
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 		runner: runner.New(func(t eventControllerTask) runner.Worker {
 			return newEventController(t)
 		}),
@@ -164,13 +164,13 @@ func (c *Component) Run(ctx context.Context) error {
 			select {
 			case <-ctx.Done():
 				return nil
-			case entry := <-c.handler:
+			case entry := <-c.handler.Chan():
 				c.receiversMut.RLock()
 				receivers := c.receivers
 				c.receiversMut.RUnlock()
 
 				for _, receiver := range receivers {
-					receiver <- entry
+					receiver.Chan() <- entry
 				}
 			}
 		}

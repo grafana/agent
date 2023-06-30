@@ -114,7 +114,7 @@ func (conv *Converter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 			select {
 			case <-ctx.Done():
 				return nil
-			case receiver <- entry:
+			case receiver.Chan() <- entry:
 				// no-op, send the entry along
 			}
 		}
