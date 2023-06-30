@@ -44,7 +44,9 @@ Main (unreleased)
 
 - Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
 
-- Add support to the `grafana-agent fmt` CLI for converting a river file from supported formats to river. (@erikbaranowski)
+- Add a new CLI command `grafana-agent convert` for converting a river file from supported formats to river. (@erikbaranowski)
+
+- Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
 ### Enhancements
 
@@ -75,7 +77,7 @@ Main (unreleased)
 
 - The Agent Operational dashboard of Grafana Agent mixin now has more descriptive panel titles, Y-axis units
 
-- Update OpenTelemetry Collector dependencies from v0.63.0 to v0.79.0. (@ptodev)
+- Update OpenTelemetry Collector dependencies from v0.63.0 to v0.80.0. (@ptodev)
 
 ### Bugfixes
 

@@ -1,6 +1,8 @@
 ---
 title: grafana-agent convert
 weight: 100
+labels:
+  stage: beta
 ---
 
 # `grafana-agent convert` command
