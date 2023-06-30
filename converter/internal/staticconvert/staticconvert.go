@@ -75,6 +75,15 @@ func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 			RemoteWriteConfigs: instance.RemoteWrite,
 		}
 
+		// There is an edge case unhandled here with label collisions.
+		// For example,
+		//   metrics config name = "agent_test"
+		//   scrape config job_name = "prometheus"
+		//
+		//   metrics config name = "agent"
+		//   scrape config job_name = "test_prometheus"
+		//
+		//   results in two prometheus.scrape components with the label "agent_test_prometheus"
 		newDiags := prometheusconvert.AppendAll(f, promConfig, instance.Name)
 		diags = append(diags, newDiags...)
 	}
@@ -90,6 +99,8 @@ func validateMetrics(staticConfig *config.Config) diag.Diagnostics {
 	if staticConfig.Metrics.WALDir != metrics.DefaultConfig.WALDir {
 		diags.Add(diag.SeverityLevelWarn, "unsupported config for wal_directory was provided. use the run command flag --storage.path for Flow mode instead.")
 	}
+
+	// TODO Static to Flow unsupported features
 
 	return diags
 }
