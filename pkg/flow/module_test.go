@@ -101,7 +101,7 @@ func TestModule(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			mc := newModuleController(testModuleControllerOptions(t)).(*moduleController)
+			mc := newModuleController(nil, testModuleControllerOptions(t)).(*moduleController)
 
 			tm := &testModule{
 				content: tc.argumentModuleContent + tc.exportModuleContent,
@@ -161,7 +161,7 @@ func TestExportsWhenNotUsed(t *testing.T) {
 }
 
 func TestIDCollision(t *testing.T) {
-	nc := newModuleController(&moduleControllerOptions{
+	nc := newModuleController(nil, &moduleControllerOptions{
 		Logger:         nil,
 		Tracer:         nil,
 		Clusterer:      nil,
@@ -183,7 +183,7 @@ func TestIDCollision(t *testing.T) {
 func TestIDRemoval(t *testing.T) {
 	opts := testModuleControllerOptions(t)
 	opts.ID = "test"
-	nc := newModuleController(opts)
+	nc := newModuleController(nil, opts)
 	m, err := nc.NewModule("t1", func(exports map[string]any) {})
 	require.NoError(t, err)
 	err = m.LoadConfig([]byte(""), nil)

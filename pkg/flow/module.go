@@ -18,6 +18,8 @@ import (
 )
 
 type moduleController struct {
+	root *Flow
+
 	mut sync.Mutex
 	o   *moduleControllerOptions
 	ids map[string]struct{}
@@ -28,10 +30,11 @@ var (
 )
 
 // newModuleController is the entrypoint into creating module instances.
-func newModuleController(o *moduleControllerOptions) component.ModuleController {
+func newModuleController(rootController *Flow, o *moduleControllerOptions) component.ModuleController {
 	return &moduleController{
-		o:   o,
-		ids: map[string]struct{}{},
+		root: rootController,
+		o:    o,
+		ids:  map[string]struct{}{},
 	}
 }
 
@@ -48,12 +51,18 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 	}
 	m.ids[fullPath] = struct{}{}
 
-	return newModule(&moduleOptions{
+	mod := newModule(&moduleOptions{
 		ID:                      fullPath,
 		export:                  export,
+		root:                    m.root,
 		moduleControllerOptions: m.o,
 		parent:                  m,
-	}), nil
+	})
+
+	if m.root != nil {
+		m.root.registerModule(fullPath, mod)
+	}
+	return mod, nil
 }
 
 func (m *moduleController) removeID(id string) {
@@ -61,6 +70,10 @@ func (m *moduleController) removeID(id string) {
 	defer m.mut.Unlock()
 
 	delete(m.ids, id)
+
+	if m.root != nil {
+		m.root.unregisterModule(id)
+	}
 }
 
 type module struct {
@@ -73,6 +86,7 @@ type moduleOptions struct {
 	ID     string
 	export component.ExportFunc
 	parent *moduleController
+	root   *Flow
 	*moduleControllerOptions
 }
 
@@ -92,7 +106,7 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	if c.f == nil {
-		f := New(Options{
+		f := newController(c.o.root, Options{
 			ControllerID:   c.o.ID,
 			Tracer:         c.o.Tracer,
 			Clusterer:      c.o.Clusterer,
@@ -146,7 +160,6 @@ func (c *module) ComponentHandler() (_ http.Handler) {
 
 // moduleControllerOptions holds static options for module controller.
 type moduleControllerOptions struct {
-
 	// Logger to use for controller logs and components. A no-op logger will be
 	// created if this is nil.
 	Logger *logging.Logger
