@@ -68,7 +68,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		args:          Arguments{},
 		fanout:        args.ForwardTo,
 		target:        nil,
-		handler:       make(loki.LogsReceiver),
+		handler:       loki.NewLogsReceiver(),
 		serverMetrics: util.NewUncheckedCollector(nil),
 	}
 
@@ -101,10 +101,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.fanout {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -143,7 +143,7 @@ func (c *Component) Update(args component.Arguments) error {
 		registry := prometheus.NewRegistry()
 		c.serverMetrics.SetCollector(registry)
 
-		entryHandler := loki.NewEntryHandler(c.handler, func() {})
+		entryHandler := loki.NewEntryHandler(c.handler.Chan(), func() {})
 		t, err := ht.NewHerokuTarget(c.metrics, c.opts.Logger, entryHandler, rcs, newArgs.Convert(), registry)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to create heroku listener with provided config", "err", err)

@@ -64,8 +64,8 @@ func TestComponent(t *testing.T) {
 		OnStateChange: func(e component.Exports) {},
 	}
 
-	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
-	r1, r2 := newReceiver(ch1), newReceiver(ch2)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
+	r1, r2 := newReceiver(ch1.Chan()), newReceiver(ch2.Chan())
 
 	// call cancelReceivers to terminate them
 	receiverContext, cancelReceivers := context.WithCancel(context.Background())
@@ -142,8 +142,8 @@ func TestComponent_UpdateWithNewArguments(t *testing.T) {
 		OnStateChange: func(e component.Exports) {},
 	}
 
-	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
-	r1, r2 := newReceiver(ch1), newReceiver(ch2)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
+	r1, r2 := newReceiver(ch1.Chan()), newReceiver(ch2.Chan())
 
 	// call cancelReceivers to terminate them
 	receiverContext, cancelReceivers := context.WithCancel(context.Background())

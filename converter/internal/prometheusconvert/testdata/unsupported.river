@@ -2,10 +2,11 @@ prometheus.scrape "prometheus1" {
 	targets = [{
 		__address__ = "localhost:9090",
 	}]
-	forward_to      = [prometheus.remote_write.default.receiver]
-	job_name        = "prometheus1"
-	scrape_interval = "10s"
-	scrape_timeout  = "5s"
+	forward_to       = [prometheus.remote_write.default.receiver]
+	job_name         = "prometheus1"
+	honor_timestamps = false
+	scrape_interval  = "10s"
+	scrape_timeout   = "5s"
 
 	basic_auth {
 		username = "user"
@@ -27,8 +28,9 @@ prometheus.remote_write "default" {
 	}
 
 	endpoint {
-		name = "remote1"
-		url  = "http://remote-write-url1"
+		name           = "remote1"
+		url            = "http://remote-write-url1"
+		send_exemplars = false
 
 		queue_config {
 			capacity             = 2500
@@ -42,8 +44,9 @@ prometheus.remote_write "default" {
 	}
 
 	endpoint {
-		name = "remote2"
-		url  = "http://remote-write-url2"
+		name           = "remote2"
+		url            = "http://remote-write-url2"
+		send_exemplars = false
 
 		queue_config {
 			capacity             = 2500
