@@ -97,7 +97,7 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		BoolVar(&r.clusterEnabled, "cluster.enabled", r.clusterEnabled, "Start in clustered mode")
 	cmd.Flags().
-		StringVar(&r.clusterAdvAddr, "cluster.node-name", r.clusterNodeName, "The name to use for this node")
+		StringVar(&r.clusterNodeName, "cluster.node-name", r.clusterNodeName, "The name to use for this node")
 	cmd.Flags().
 		StringVar(&r.clusterAdvAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
 	cmd.Flags().
