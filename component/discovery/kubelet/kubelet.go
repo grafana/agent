@@ -114,6 +114,9 @@ type Discovery struct {
 	client           *http.Client
 	url              string
 	targetNamespaces []string
+
+	// cache of pod sources from the last discovery refresh
+	discoveredPodSources map[string]bool
 }
 
 func NewKubeletDiscovery(args Arguments) (*Discovery, error) {
@@ -163,7 +166,11 @@ func (d *Discovery) Refresh(ctx context.Context) ([]*targetgroup.Group, error) {
 	if err := json.Unmarshal(body, &podList); err != nil {
 		return nil, fmt.Errorf("error unmarshaling response body: %v", err)
 	}
+	return d.refresh(podList)
+}
 
+func (d *Discovery) refresh(podList v1.PodList) ([]*targetgroup.Group, error) {
+	discovered := make(map[string]bool)
 	// Create a list of targets from the pods
 	var targetGroups []*targetgroup.Group
 	for _, pod := range podList.Items {
@@ -171,8 +178,23 @@ func (d *Discovery) Refresh(ctx context.Context) ([]*targetgroup.Group, error) {
 		if len(d.targetNamespaces) > 0 && !d.podInTargetNamespaces(pod) {
 			continue
 		}
-		targetGroups = append(targetGroups, d.buildPodTargetGroup(pod))
+		tg := d.buildPodTargetGroup(pod)
+		targetGroups = append(targetGroups, tg)
+		discovered[tg.Source] = true
 	}
+
+	// Clean up removed pods
+	for k, _ := range d.discoveredPodSources {
+		if _, ok := discovered[k]; !ok {
+			// append a target group with no targets to indicate the pod was removed and
+			// should not be scraped
+			targetGroups = append(targetGroups, &targetgroup.Group{
+				Source: k,
+			})
+		}
+	}
+	// update the list of running
+	d.discoveredPodSources = discovered
 
 	return targetGroups, nil
 }
