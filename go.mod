@@ -168,7 +168,7 @@ require (
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.79.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.79.0
 	go.opentelemetry.io/collector/pdata v1.0.0-rcv0013
-	go.opentelemetry.io/collector/semconv v0.79.0
+	go.opentelemetry.io/collector/semconv v0.80.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.36.4
 	go.opentelemetry.io/otel v1.16.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.11.2
