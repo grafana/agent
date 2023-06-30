@@ -79,7 +79,7 @@ Main (unreleased)
 
 - Update OpenTelemetry Collector dependencies from v0.63.0 to v0.80.0. (@ptodev)
 
-- Allow setting the node name for clusterng with a command-line flag. (@tpaschalis)
+- Allow setting the node name for clustering with a command-line flag. (@tpaschalis)
 
 ### Bugfixes
 
