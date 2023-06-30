@@ -242,28 +242,25 @@ func targetsOptionFromArgs(args Arguments) sd.TargetsOptions {
 	}
 }
 
-func cacheOptionsFromArgs(args Arguments) symtab.CacheOptions {
-	return symtab.CacheOptions{
-		PidCacheOptions: symtab.GCacheOptions{
-			Size:       args.PidCacheSize,
-			KeepRounds: args.CacheRounds,
-		},
-		BuildIDCacheOptions: symtab.GCacheOptions{
-			Size:       args.BuildIDCacheSize,
-			KeepRounds: args.CacheRounds,
-		},
-		SameFileCacheOptions: symtab.GCacheOptions{
-			Size:       args.SameFileCacheSize,
-			KeepRounds: args.CacheRounds,
-		},
-	}
-}
-
-func convertSessionOptions(args Arguments, metrics *metrics) ebpfspy.SessionOptions {
+func convertSessionOptions(args Arguments, ms *metrics) ebpfspy.SessionOptions {
 	return ebpfspy.SessionOptions{
 		CollectUser:   args.CollectUserProfile,
 		CollectKernel: args.CollectKernelProfile,
 		SampleRate:    args.SampleRate,
-		CacheOptions:  cacheOptionsFromArgs(args),
+		CacheOptions: symtab.CacheOptions{
+			PidCacheOptions: symtab.GCacheOptions{
+				Size:       args.PidCacheSize,
+				KeepRounds: args.CacheRounds,
+			},
+			BuildIDCacheOptions: symtab.GCacheOptions{
+				Size:       args.BuildIDCacheSize,
+				KeepRounds: args.CacheRounds,
+			},
+			SameFileCacheOptions: symtab.GCacheOptions{
+				Size:       args.SameFileCacheSize,
+				KeepRounds: args.CacheRounds,
+			},
+			Metrics: ms.symtabMetrics,
+		},
 	}
 }
