@@ -86,6 +86,8 @@ Main (unreleased)
 
 - Fix Grafana Agent mixin's "Agent Operational" dashboard expecting pods to always have `grafana-agent-.*` prefix. (@thampiotr)
 
+- Fix the HTTP Path and Data Path from the controller-local ID to the global ID for components loaded from within a module loader. (@spartan0x117)
+
 v0.34.3 (2023-06-27)
 --------------------
 
