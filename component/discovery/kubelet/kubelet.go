@@ -183,7 +183,7 @@ func (d *Discovery) refresh(podList v1.PodList) ([]*targetgroup.Group, error) {
 		discovered[tg.Source] = true
 	}
 
-	// Clean up removed pods
+	// check for pods that were present in the last refresh but not in this one
 	for k := range d.discoveredPodSources {
 		if _, ok := discovered[k]; !ok {
 			// append a target group with no targets to indicate the pod was removed and
@@ -193,7 +193,7 @@ func (d *Discovery) refresh(podList v1.PodList) ([]*targetgroup.Group, error) {
 			})
 		}
 	}
-	// update the list of running
+	// update the list of discovered pods
 	d.discoveredPodSources = discovered
 
 	return targetGroups, nil
