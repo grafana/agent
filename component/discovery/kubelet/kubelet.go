@@ -184,7 +184,7 @@ func (d *Discovery) refresh(podList v1.PodList) ([]*targetgroup.Group, error) {
 	}
 
 	// Clean up removed pods
-	for k, _ := range d.discoveredPodSources {
+	for k := range d.discoveredPodSources {
 		if _, ok := discovered[k]; !ok {
 			// append a target group with no targets to indicate the pod was removed and
 			// should not be scraped

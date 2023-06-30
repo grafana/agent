@@ -1,10 +1,11 @@
 package kubelet
 
 import (
+	"testing"
+
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
