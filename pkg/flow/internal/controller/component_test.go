@@ -1,9 +1,10 @@
 package controller
 
 import (
+	"testing"
+
 	"github.com/grafana/agent/component"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestGlobalID(t *testing.T) {
