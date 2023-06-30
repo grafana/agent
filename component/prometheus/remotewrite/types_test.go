@@ -21,6 +21,12 @@ func TestRiverConfig(t *testing.T) {
 			queue_config {
 				batch_send_deadline = "100ms"
 			}
+
+			write_relabel_config {
+				source_labels = ["instance"]
+				target_label  = "instance"
+				action        = "lowercase"
+			}
 		}
 `
 
