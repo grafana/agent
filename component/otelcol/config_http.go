@@ -6,9 +6,10 @@ import (
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/otelcol/auth"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	otelconfigauth "go.opentelemetry.io/collector/config/configauth"
 	otelconfighttp "go.opentelemetry.io/collector/config/confighttp"
+	"go.opentelemetry.io/collector/config/configopaque"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 // HTTPServerArguments holds shared settings for components which launch HTTP
@@ -106,6 +107,11 @@ func (args *HTTPClientArguments) Convert() *otelconfighttp.HTTPClientSettings {
 		auth = &otelconfigauth.Authentication{AuthenticatorID: args.Auth.ID}
 	}
 
+	opaqueHeaders := make(map[string]configopaque.String)
+	for headerName, headerVal := range args.Headers {
+		opaqueHeaders[headerName] = configopaque.String(headerVal)
+	}
+
 	return &otelconfighttp.HTTPClientSettings{
 		Endpoint: args.Endpoint,
 
@@ -116,7 +122,7 @@ func (args *HTTPClientArguments) Convert() *otelconfighttp.HTTPClientSettings {
 		ReadBufferSize:  int(args.ReadBufferSize),
 		WriteBufferSize: int(args.WriteBufferSize),
 		Timeout:         args.Timeout,
-		Headers:         args.Headers,
+		Headers:         opaqueHeaders,
 		// CustomRoundTripper: func(http.RoundTripper) (http.RoundTripper, error) { panic("not implemented") }, TODO (@tpaschalis)
 		MaxIdleConns:        args.MaxIdleConns,
 		MaxIdleConnsPerHost: args.MaxIdleConnsPerHost,
@@ -128,8 +134,8 @@ func (args *HTTPClientArguments) Convert() *otelconfighttp.HTTPClientSettings {
 }
 
 // Extensions exposes extensions used by args.
-func (args *HTTPClientArguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
-	m := make(map[otelconfig.ComponentID]otelcomponent.Extension)
+func (args *HTTPClientArguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
+	m := make(map[otelcomponent.ID]otelextension.Extension)
 	if args.Auth != nil {
 		m[args.Auth.ID] = args.Auth.Extension
 	}

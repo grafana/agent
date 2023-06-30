@@ -24,15 +24,17 @@ import (
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/prometheus/client_golang/prometheus"
 	prom_config "github.com/prometheus/common/config"
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configtest"
+	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/confmap"
+	otelexporter "go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	"go.opentelemetry.io/collector/extension"
+	"go.opentelemetry.io/collector/otelcol"
+	otelprocessor "go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
+	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
-	"go.opentelemetry.io/collector/service/external/configunmarshaler"
 	"go.uber.org/multierr"
 
 	"github.com/grafana/agent/pkg/logs"
@@ -46,7 +48,9 @@ import (
 )
 
 const (
-	spanMetricsPipelineName = "metrics/spanmetrics"
+	spanMetricsPipelineType     = "metrics"
+	spanMetricsPipelineName     = "spanmetrics"
+	spanMetricsPipelineFullName = spanMetricsPipelineType + "/" + spanMetricsPipelineName
 
 	// defaultDecisionWait is the default time to wait for a trace before making a sampling decision
 	defaultDecisionWait = time.Second * 5
@@ -575,7 +579,7 @@ func formatPolicies(cfg []policy) ([]map[string]interface{}, error) {
 	return policies, nil
 }
 
-func (c *InstanceConfig) otelConfig() (*config.Config, error) {
+func (c *InstanceConfig) otelConfig() (*otelcol.Config, error) {
 	otelMapStructure := map[string]interface{}{}
 
 	if len(c.Receivers) == 0 {
@@ -676,7 +680,7 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		}
 		processors["spanmetrics"] = spanMetrics
 
-		pipelines[spanMetricsPipelineName] = map[string]interface{}{
+		pipelines[spanMetricsPipelineFullName] = map[string]interface{}{
 			"receivers": []string{noopreceiver.TypeStr},
 			"exporters": []string{exporterName},
 		}
@@ -800,26 +804,20 @@ func (c *InstanceConfig) otelConfig() (*config.Config, error) {
 		return nil, fmt.Errorf("failed to validate factories: %w", err)
 	}
 
-	configMap := confmap.NewFromStringMap(otelMapStructure)
-	otelCfg, err := configunmarshaler.Unmarshal(configMap, factories)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load OTel config: %w", err)
-	}
-
-	return otelCfg, nil
+	return otelcolConfigFromStringMap(otelMapStructure, &factories)
 }
 
 // tracingFactories() only creates the needed factories.  if we decide to add support for a new
 // processor, exporter, receiver we need to add it here
-func tracingFactories() (component.Factories, error) {
-	extensions, err := component.MakeExtensionFactoryMap(
+func tracingFactories() (otelcol.Factories, error) {
+	extensions, err := extension.MakeFactoryMap(
 		oauth2clientauthextension.NewFactory(),
 	)
 	if err != nil {
-		return component.Factories{}, err
+		return otelcol.Factories{}, err
 	}
 
-	receivers, err := component.MakeReceiverFactoryMap(
+	receivers, err := receiver.MakeFactoryMap(
 		jaegerreceiver.NewFactory(),
 		zipkinreceiver.NewFactory(),
 		otlpreceiver.NewFactory(),
@@ -829,10 +827,10 @@ func tracingFactories() (component.Factories, error) {
 		pushreceiver.NewFactory(),
 	)
 	if err != nil {
-		return component.Factories{}, err
+		return otelcol.Factories{}, err
 	}
 
-	exporters, err := component.MakeExporterFactoryMap(
+	exporters, err := otelexporter.MakeFactoryMap(
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
 		jaegerexporter.NewFactory(),
@@ -841,10 +839,10 @@ func tracingFactories() (component.Factories, error) {
 		remotewriteexporter.NewFactory(),
 	)
 	if err != nil {
-		return component.Factories{}, err
+		return otelcol.Factories{}, err
 	}
 
-	processors, err := component.MakeProcessorFactoryMap(
+	processors, err := otelprocessor.MakeFactoryMap(
 		batchprocessor.NewFactory(),
 		attributesprocessor.NewFactory(),
 		promsdprocessor.NewFactory(),
@@ -854,10 +852,10 @@ func tracingFactories() (component.Factories, error) {
 		servicegraphprocessor.NewFactory(),
 	)
 	if err != nil {
-		return component.Factories{}, err
+		return otelcol.Factories{}, err
 	}
 
-	return component.Factories{
+	return otelcol.Factories{
 		Extensions: extensions,
 		Receivers:  receivers,
 		Processors: processors,
@@ -911,22 +909,46 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	}
 }
 
+func otelcolConfigFromStringMap(otelMapStructure map[string]interface{}, factories *otelcol.Factories) (*otelcol.Config, error) {
+	configMap := confmap.NewFromStringMap(otelMapStructure)
+	otelCfg, err := otelcol.Unmarshal(configMap, *factories)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load OTel config: %w", err)
+	}
+
+	res := otelcol.Config{
+		Receivers:  otelCfg.Receivers.Configs(),
+		Processors: otelCfg.Processors.Configs(),
+		Exporters:  otelCfg.Exporters.Configs(),
+		Connectors: otelCfg.Connectors.Configs(),
+		Extensions: otelCfg.Extensions.Configs(),
+		Service:    otelCfg.Service,
+	}
+
+	if err := res.Validate(); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 // Code taken from OTel's service/configcheck.go
 // https://github.com/grafana/opentelemetry-collector/blob/0.40-grafana/service/configcheck.go#L26-L43
-func validateConfigFromFactories(factories component.Factories) error {
+func validateConfigFromFactories(factories otelcol.Factories) error {
 	var errs error
 
+	//TODO: We should not use componenttest in non-test code
 	for _, factory := range factories.Receivers {
-		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+		errs = multierr.Append(errs, componenttest.CheckConfigStruct(factory.CreateDefaultConfig()))
 	}
 	for _, factory := range factories.Processors {
-		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+		errs = multierr.Append(errs, componenttest.CheckConfigStruct(factory.CreateDefaultConfig()))
 	}
 	for _, factory := range factories.Exporters {
-		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+		errs = multierr.Append(errs, componenttest.CheckConfigStruct(factory.CreateDefaultConfig()))
 	}
 	for _, factory := range factories.Extensions {
-		errs = multierr.Append(errs, configtest.CheckConfigStruct(factory.CreateDefaultConfig()))
+		errs = multierr.Append(errs, componenttest.CheckConfigStruct(factory.CreateDefaultConfig()))
 	}
 
 	return errs
