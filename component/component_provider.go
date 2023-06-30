@@ -54,6 +54,12 @@ type Info struct {
 	// evaluated yet.
 	Component Component
 
+	// ModuleIDs includes the list of current module IDs that the component is
+	// running. Module IDs are always globally unique.
+	//
+	// The sort order of the list is not guaranteed.
+	ModuleIDs []string
+
 	ID    ID     // ID of the component.
 	Label string // Component label. Not set for singleton components.
 

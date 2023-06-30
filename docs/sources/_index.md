@@ -27,7 +27,7 @@ Grafana Agent can collect, transform, and send data to:
 * The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Phlare][])
 
 [Terraform]: https://terraform.io
-[Grafana Agent Flow]: {{< relref "./flow/" >}}
+[Grafana Agent in flow mode]: {{< relref "./flow/" >}}
 [About Grafana Agent]: {{< relref "./about.md" >}}
 [Prometheus]: https://prometheus.io
 [OpenTelemetry]: https://opentelemetry.io

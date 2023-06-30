@@ -16,6 +16,7 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
@@ -56,7 +57,7 @@ type remoteWriteExporter struct {
 	logger log.Logger
 }
 
-func newRemoteWriteExporter(cfg *Config) (component.MetricsExporter, error) {
+func newRemoteWriteExporter(cfg *Config) (exporter.Metrics, error) {
 	logger := log.With(util.Logger, "component", "traces remote write exporter")
 
 	ls := make(labels.Labels, 0, len(cfg.ConstLabels))

@@ -95,6 +95,7 @@ func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph
 
 	return &component.Info{
 		Component: cn.Component(),
+		ModuleIDs: cn.ModuleIDs(),
 
 		ID: component.ID{
 			ModuleID: f.opts.ControllerID,

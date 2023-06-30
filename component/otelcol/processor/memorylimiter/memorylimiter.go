@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 )
 
@@ -91,10 +91,8 @@ func (args *Arguments) Validate() error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() (otelconfig.Processor, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &memorylimiterprocessor.Config{
-		ProcessorSettings: otelconfig.NewProcessorSettings(otelconfig.NewComponentID("memory_limiter")),
-
 		CheckInterval:         args.CheckInterval,
 		MemoryLimitMiB:        uint32(args.MemoryLimit / units.Mebibyte),
 		MemorySpikeLimitMiB:   uint32(args.MemorySpikeLimit / units.Mebibyte),
@@ -104,12 +102,12 @@ func (args Arguments) Convert() (otelconfig.Processor, error) {
 }
 
 // Extensions implements processor.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements processor.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

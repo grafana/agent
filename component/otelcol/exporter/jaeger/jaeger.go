@@ -9,8 +9,8 @@ import (
 	"github.com/grafana/agent/component/otelcol/exporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	otelpexporterhelper "go.opentelemetry.io/collector/exporter/exporterhelper"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -54,9 +54,8 @@ func (args *Arguments) SetToDefault() {
 }
 
 // Convert implements exporter.Arguments.
-func (args Arguments) Convert() (otelconfig.Exporter, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &jaegerexporter.Config{
-		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID("jaeger")),
 		TimeoutSettings: otelpexporterhelper.TimeoutSettings{
 			Timeout: args.Timeout,
 		},
@@ -67,12 +66,12 @@ func (args Arguments) Convert() (otelconfig.Exporter, error) {
 }
 
 // Extensions implements exporter.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return (*otelcol.GRPCClientArguments)(&args.Client).Extensions()
 }
 
 // Exporters implements exporter.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

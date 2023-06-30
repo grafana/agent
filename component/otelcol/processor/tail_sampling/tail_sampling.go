@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/processor"
 	tsp "github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -66,34 +66,27 @@ func (args *Arguments) Validate() error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() (otelconfig.Processor, error) {
-	// TODO: Get rid of mapstructure once tailsamplingprocessor.Config has all public types
-	var otelConfig tsp.Config
-
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	var otelPolicyCfgs []tsp.PolicyCfg
 	for _, policyCfg := range args.PolicyCfgs {
 		otelPolicyCfgs = append(otelPolicyCfgs, policyCfg.Convert())
 	}
 
-	mustDecodeMapStructure(map[string]interface{}{
-		"decision_wait":               args.DecisionWait,
-		"num_traces":                  args.NumTraces,
-		"expected_new_traces_per_sec": args.ExpectedNewTracesPerSec,
-		"policies":                    otelPolicyCfgs,
-	}, &otelConfig)
-
-	otelConfig.ProcessorSettings = otelconfig.NewProcessorSettings(otelconfig.NewComponentID("tail_sampling"))
-
-	return &otelConfig, nil
+	return &tsp.Config{
+		DecisionWait:            args.DecisionWait,
+		NumTraces:               args.NumTraces,
+		ExpectedNewTracesPerSec: args.ExpectedNewTracesPerSec,
+		PolicyCfgs:              otelPolicyCfgs,
+	}, nil
 }
 
 // Extensions implements processor.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements processor.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

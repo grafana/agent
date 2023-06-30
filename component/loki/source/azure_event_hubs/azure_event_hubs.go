@@ -76,7 +76,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		mut:     sync.RWMutex{},
 		opts:    o,
-		handler: make(loki.LogsReceiver),
+		handler: loki.NewLogsReceiver(),
 		fanout:  args.ForwardTo,
 	}
 
@@ -113,10 +113,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.fanout {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -141,7 +141,7 @@ func (c *Component) Update(args component.Arguments) error {
 		return err
 	}
 
-	entryHandler := loki.NewEntryHandler(c.handler, func() {})
+	entryHandler := loki.NewEntryHandler(c.handler.Chan(), func() {})
 	t, err := kt.NewSyncer(c.opts.Logger, cfg, entryHandler, &parser.AzureEventHubsTargetMessageParser{
 		DisallowCustomMessages: newArgs.DisallowCustomMessages,
 	})

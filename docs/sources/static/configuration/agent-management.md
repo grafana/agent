@@ -48,6 +48,12 @@ agent_management:
     # Set of self-identifying labels used for snippet selection.
     labels:
       [ <labelname>: <labelvalue> ... ]
+
+    # Whether to use labels from the label management service. If enabled, labels from the API supersede the ones configured in the agent.
+    label_management_enabled: <bool> | default = false
+
+    # A unique ID for the agent, which is used to identify the agent.
+    agent_id: <string>
 ```
 
 ## API (v2)
