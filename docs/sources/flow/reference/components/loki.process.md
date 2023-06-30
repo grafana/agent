@@ -562,7 +562,7 @@ The following arguments are supported:
 | `description`   | `string`   | The metric's description and help text.                                             | `""`                     | no       |
 | `source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
 | `prefix`        | `string`   | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
-| `idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
+| `max_idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
 | `value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
 
 
@@ -585,7 +585,7 @@ The following arguments are supported:
 | `description`   | `string`      | The metric's description and help text.                                             | `""`                     | no       |
 | `source`        | `string`      | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
 | `prefix`        | `string`      | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
-| `idle_duration` | `duration`    | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
+| `max_idle_duration` | `duration`    | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
 | `value`         | `string`      | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
 
 #### metrics behavior
@@ -595,8 +595,8 @@ If `value` is not present, all incoming log entries match.
 Label values on created metrics can be dynamic, which can cause exported
 metrics to explode in cardinality or go stale, for example, when a stream stops
 receiving new logs. To prevent unbounded growth of the `/metrics` endpoint, any
-metrics which have not been updated within `idle_duration` are removed. The
-`idle_duration` must be greater or equal to `"1s"`, and it defaults to `"5m"`.
+metrics which have not been updated within `max_idle_duration` are removed. The
+`max_idle_duration` must be greater or equal to `"1s"`, and it defaults to `"5m"`.
 
 The metric values extracted from the log data are internally converted to
 floats. The supported values are the following:
