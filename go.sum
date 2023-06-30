@@ -2114,6 +2114,8 @@ github.com/grafana/phlare/ebpf v0.0.0-20230630033241-c71ef63151a0 h1:swHw18oe5Fs
 github.com/grafana/phlare/ebpf v0.0.0-20230630033241-c71ef63151a0/go.mod h1:kvV1n8gguHsVPfNUGrENgcSGsAxetXGFaopoYTQu6pY=
 github.com/grafana/phlare/ebpf v0.0.0-20230630033850-d54626bfd912 h1:Ol7RN+6LvS2U/jWxTWkA6Oo+t3vpsGvPRnBU+wPnfQY=
 github.com/grafana/phlare/ebpf v0.0.0-20230630033850-d54626bfd912/go.mod h1:kvV1n8gguHsVPfNUGrENgcSGsAxetXGFaopoYTQu6pY=
+github.com/grafana/phlare/ebpf v0.0.0-20230630040859-bfbf9d418cd8 h1:epaWImkf3jpNuZ3Yjv+MvPGuDrGlEOyrfat3g37FO30=
+github.com/grafana/phlare/ebpf v0.0.0-20230630040859-bfbf9d418cd8/go.mod h1:kvV1n8gguHsVPfNUGrENgcSGsAxetXGFaopoYTQu6pY=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnFWqxhoSF3WC7sKAdMZ+SRXvHLVZlZ3sbQjuUlTqkw=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/prometheus v1.8.2-0.20230511165250-22c61d1811b2 h1:1h8KeWFbA2ytUcHok2SIUi+hQubaUEwq2yS2GEh5V6I=
