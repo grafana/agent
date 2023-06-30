@@ -35,7 +35,7 @@ LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 # Install dependencies needed at runtime.
 RUN <<EOF
   apt-get update
-  apt-get install -qy libsystemd-dev tzdata ca-certificates htop vim gdb strace
+  apt-get install -qy libsystemd-dev tzdata ca-certificates
 
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOF

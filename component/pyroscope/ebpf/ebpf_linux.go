@@ -33,29 +33,28 @@ func init() {
 			if err != nil {
 				return nil, fmt.Errorf("ebpf target finder create: %w", err)
 			}
+			ms := newMetrics(opts.Registerer)
 
 			session, err := ebpfspy.NewSession(
 				opts.Logger,
 				targetFinder,
-				sessionOptionsFromArgs(arguments),
+				convertSessionOptions(arguments, ms),
 			)
 			if err != nil {
 				return nil, fmt.Errorf("ebpf session create: %w", err)
 			}
 
-			return New(opts, arguments, session, targetFinder)
+			return New(opts, arguments, session, targetFinder, ms)
 		},
 	})
 }
 
-func New(o component.Options, args Arguments, session ebpfspy.Session, targetFinder sd.TargetFinder) (component.Component, error) {
+func New(o component.Options, args Arguments, session ebpfspy.Session, targetFinder sd.TargetFinder, ms *metrics) (component.Component, error) {
 	flowAppendable := pyroscope.NewFanout(args.ForwardTo, o.ID, o.Registerer)
-
-	metrics := newMetrics(o.Registerer)
 
 	res := &Component{
 		options:      o,
-		metrics:      metrics,
+		metrics:      ms,
 		appendable:   flowAppendable,
 		args:         args,
 		targetFinder: targetFinder,
@@ -136,7 +135,7 @@ func (c *Component) Run(ctx context.Context) error {
 				c.args = newArgs
 				c.targetFinder.Update(targetsOptionFromArgs(c.args))
 				c.metrics.targetsActive.Set(float64(len(c.targetFinder.DebugInfo())))
-				err := c.session.Update(sessionOptionsFromArgs(c.args))
+				err := c.session.Update(convertSessionOptions(c.args, c.metrics))
 				if err != nil {
 					return nil
 				}
@@ -260,7 +259,7 @@ func cacheOptionsFromArgs(args Arguments) symtab.CacheOptions {
 	}
 }
 
-func sessionOptionsFromArgs(args Arguments) ebpfspy.SessionOptions {
+func convertSessionOptions(args Arguments, metrics *metrics) ebpfspy.SessionOptions {
 	return ebpfspy.SessionOptions{
 		CollectUser:   args.CollectUserProfile,
 		CollectKernel: args.CollectKernelProfile,
