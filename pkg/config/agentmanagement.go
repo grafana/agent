@@ -306,5 +306,9 @@ func (am *AgentManagementConfig) Validate() error {
 		return errors.New("path to cache must be specified in 'agent_management.remote_configuration.cache_location'")
 	}
 
+	if am.RemoteConfiguration.LabelManagementEnabled && am.RemoteConfiguration.AgentID == "" {
+		return errors.New("agent_id must be specified in 'agent_management.remote_configuration' if label_management_enabled is true")
+	}
+
 	return nil
 }
