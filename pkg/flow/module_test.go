@@ -216,7 +216,7 @@ func TestIDRemoval(t *testing.T) {
 	ctx, cncl := context.WithTimeout(ctx, 1*time.Second)
 	defer cncl()
 	m.Run(ctx)
-	require.Len(t, nc.(*moduleController).ids, 0)
+	require.Len(t, nc.(*moduleController).modules, 0)
 }
 
 func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {

@@ -19,9 +19,9 @@ import (
 )
 
 type moduleController struct {
-	mut sync.RWMutex
-	o   *moduleControllerOptions
-	ids map[string]struct{}
+	mut     sync.RWMutex
+	o       *moduleControllerOptions
+	modules map[string]*module
 }
 
 var (
@@ -31,8 +31,8 @@ var (
 // newModuleController is the entrypoint into creating module instances.
 func newModuleController(o *moduleControllerOptions) controller.ModuleController {
 	return &moduleController{
-		o:   o,
-		ids: map[string]struct{}{},
+		o:       o,
+		modules: map[string]*module{},
 	}
 }
 
@@ -44,31 +44,61 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 	if id != "" {
 		fullPath = path.Join(fullPath, id)
 	}
-	if _, found := m.ids[fullPath]; found {
+	if _, found := m.modules[fullPath]; found {
 		return nil, fmt.Errorf("id %s already exists", id)
 	}
-	m.ids[fullPath] = struct{}{}
 
-	return newModule(&moduleOptions{
+	mod := newModule(&moduleOptions{
 		ID:                      fullPath,
 		export:                  export,
 		moduleControllerOptions: m.o,
 		parent:                  m,
-	}), nil
+	})
+
+	m.modules[fullPath] = mod
+	return mod, nil
 }
 
 func (m *moduleController) removeID(id string) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	delete(m.ids, id)
+	delete(m.modules, id)
+}
+
+func (m *moduleController) getModule(moduleID string) (*module, bool) {
+	m.mut.RLock()
+	defer m.mut.RUnlock()
+
+	mod, ok := m.modules[moduleID]
+	return mod, ok
+}
+
+// hasNonDefaultModule returns true if moduleController has any module whose
+// name is not the default (i.e., the component ID which created a module).
+func (m *moduleController) hasNonDefaultModule() bool {
+	// TODO(rfratto): this method needs a more clear name.
+
+	m.mut.RLock()
+	defer m.mut.RUnlock()
+
+	// We know that every moduleID _at least_ starts with m.o.ID, and that every
+	// moduleID is unique. This means that if one of the moduleIDs is longer than
+	// m.o.ID, is has a non-default name.
+	for key := range m.modules {
+		if len(key) > len(m.o.ID) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // ModuleIDs implements [controller.ModuleController].
 func (m *moduleController) ModuleIDs() []string {
 	m.mut.RLock()
 	defer m.mut.RUnlock()
-	return maps.Keys(m.ids)
+	return maps.Keys(m.modules)
 }
 
 type module struct {
