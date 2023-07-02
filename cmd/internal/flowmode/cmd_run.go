@@ -11,6 +11,7 @@ import (
 	"path"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/converter"
@@ -33,6 +34,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
@@ -44,13 +46,15 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		inMemoryAddr:     "agent.internal:12345",
-		httpListenAddr:   "127.0.0.1:12345",
-		storagePath:      "data-agent/",
-		uiPrefix:         "/",
-		disableReporting: false,
-		enablePprof:      true,
-		configFormat:     "flow",
+		inMemoryAddr:       "agent.internal:12345",
+		httpListenAddr:     "127.0.0.1:12345",
+		storagePath:        "data-agent/",
+		uiPrefix:           "/",
+		disableReporting:   false,
+		enablePprof:        true,
+		configFormat:       "flow",
+		configAutoReload:   true,
+		configPollInterval: 3 * time.Second,
 	}
 
 	cmd := &cobra.Command{
@@ -88,6 +92,10 @@ depending on the nature of the reload error.
 	}
 
 	cmd.Flags().
+		BoolVar(&r.configAutoReload, "config.auto-reload", r.configAutoReload, "Automatically reload the config file when it changes on disk")
+	cmd.Flags().
+		DurationVar(&r.configPollInterval, "config.auto-reload.poll-interval", r.configPollInterval, "Interval at which to poll the config file for changes when polling is used")
+	cmd.Flags().
 		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "Address to listen for HTTP traffic on")
 	cmd.Flags().StringVar(&r.inMemoryAddr, "server.http.memory-addr", r.inMemoryAddr, "Address to listen for in-memory HTTP traffic on. Change if it collides with a real address")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
@@ -122,6 +130,8 @@ type flowRun struct {
 	clusterJoinAddr                string
 	configFormat                   string
 	configBypassConversionWarnings bool
+	configAutoReload               bool
+	configPollInterval             time.Duration
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -344,6 +354,17 @@ func (fr *flowRun) Run(configFile string) error {
 		return err
 	}
 
+	// Setup config file watching
+	if fr.configAutoReload {
+		fw := util.NewFileWatcher(configFile, reload, fr.configPollInterval)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			fw.Watch(l, ctx)
+		}()
+	}
+
+	// Reload on SIGHUP
 	reloadSignal := make(chan os.Signal, 1)
 	signal.Notify(reloadSignal, syscall.SIGHUP)
 	defer signal.Stop(reloadSignal)

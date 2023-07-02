@@ -34,6 +34,8 @@ The following flags are supported:
 * `--server.http.ui-path-prefix`: Base path where the UI will be exposed (default `/`).
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
 * `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
+* `--config.auto-reload.poll-interval`: Interval at which to poll the config file for changes when polling is used (default `5s`).
+* `--config.auto-reload`: Automatically reload the config file when it changes on disk (default `true`).
 * `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
 * `--cluster.node-name`: The name to use for this node (defaults to the environment's hostname).
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`).
@@ -47,7 +49,10 @@ The following flags are supported:
 
 ## Updating the config file
 
-The config file can be reloaded from disk by either:
+By default, Grafana Agent Flow will automatically reload the config file when it
+changes on disk. To disable this feature, use the `--config.auto-reload=false` flag.
+
+In addition, the config file can be reloaded from disk by either:
 
 * Sending an HTTP POST request to the `/-/reload` endpoint.
 * Sending a `SIGHUP` signal to the Grafana Agent process.
