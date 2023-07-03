@@ -65,18 +65,18 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	Logger              *logging.Logger                            // Logger shared between all managed components.
-	TraceProvider       trace.TracerProvider                       // Tracer shared between all managed components.
-	Clusterer           *cluster.Clusterer                         // Clusterer shared between all managed components.
-	DataPath            string                                     // Shared directory where component data may be stored
-	OnComponentUpdate   func(cn *ComponentNode)                    // Informs controller that we need to reevaluate
-	OnExportsChange     func(exports map[string]any)               // Invoked when the managed component updated its exports
-	Registerer          prometheus.Registerer                      // Registerer for serving agent and component metrics
-	HTTPPathPrefix      string                                     // HTTP prefix for components.
-	HTTPListenAddr      string                                     // Base address for server
-	DialFunc            DialFunc                                   // Function to connect to HTTPListenAddr.
-	ControllerID        string                                     // ID of controller.
-	NewModuleController func(id string) component.ModuleController // Func to generate a module controller.
+	Logger              *logging.Logger                  // Logger shared between all managed components.
+	TraceProvider       trace.TracerProvider             // Tracer shared between all managed components.
+	Clusterer           *cluster.Clusterer               // Clusterer shared between all managed components.
+	DataPath            string                           // Shared directory where component data may be stored
+	OnComponentUpdate   func(cn *ComponentNode)          // Informs controller that we need to reevaluate
+	OnExportsChange     func(exports map[string]any)     // Invoked when the managed component updated its exports
+	Registerer          prometheus.Registerer            // Registerer for serving agent and component metrics
+	HTTPPathPrefix      string                           // HTTP prefix for components.
+	HTTPListenAddr      string                           // Base address for server
+	DialFunc            DialFunc                         // Function to connect to HTTPListenAddr.
+	ControllerID        string                           // ID of controller.
+	NewModuleController func(id string) ModuleController // Func to generate a module controller.
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -86,6 +86,7 @@ type ComponentGlobals struct {
 // from a River block.
 type ComponentNode struct {
 	id                ComponentID
+	globalID          string
 	label             string
 	componentName     string
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
@@ -93,6 +94,7 @@ type ComponentNode struct {
 	managedOpts       component.Options
 	registry          *prometheus.Registry
 	exportsType       reflect.Type
+	moduleController  ModuleController
 	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
 
 	mut     sync.RWMutex
@@ -139,13 +141,25 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 		UpdateTime: time.Now(),
 	}
 
+	// We need to generate a globally unique component ID to give to the
+	// component and for use with telemetry data which doesn't support
+	// reconstructing the global ID. For everything else (HTTP, data), we can
+	// just use the controller-local ID as those values are guaranteed to be
+	// globally unique.
+	globalID := nodeID
+	if globals.ControllerID != "" {
+		globalID = path.Join(globals.ControllerID, nodeID)
+	}
+
 	cn := &ComponentNode{
 		id:                id,
+		globalID:          globalID,
 		label:             b.Label,
 		nodeID:            nodeID,
 		componentName:     strings.Join(b.Name, "."),
 		reg:               reg,
 		exportsType:       getExportsType(reg),
+		moduleController:  globals.NewModuleController(globalID),
 		OnComponentUpdate: globals.OnComponentUpdate,
 
 		block: b,
@@ -170,24 +184,14 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		prefix = "/" + prefix
 	}
 
-	// We need to generate a globally unique component ID to give to the
-	// component and for use with telemetry data which doesn't support
-	// reconstructing the global ID. For everything else (HTTP, data), we can
-	// just use the controller-local ID as those values are guaranteed to be
-	// globally unique.
-	globalID := cn.nodeID
-	if globals.ControllerID != "" {
-		globalID = path.Join(globals.ControllerID, cn.nodeID)
-	}
-
 	cn.registry = prometheus.NewRegistry()
 	return component.Options{
-		ID:     globalID,
-		Logger: log.With(globals.Logger, "component", globalID),
+		ID:     cn.globalID,
+		Logger: log.With(globals.Logger, "component", cn.globalID),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
-			"component_id": globalID,
+			"component_id": cn.globalID,
 		}, cn.registry),
-		Tracer:    tracing.WrapTracer(globals.TraceProvider, globalID),
+		Tracer:    tracing.WrapTracer(globals.TraceProvider, cn.globalID),
 		Clusterer: globals.Clusterer,
 
 		DataPath:       filepath.Join(globals.DataPath, globalID),
@@ -196,7 +200,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		HTTPPath:       path.Join(prefix, globalID) + "/",
 
 		OnStateChange:    cn.setExports,
-		ModuleController: globals.NewModuleController(globalID),
+		ModuleController: cn.moduleController,
 	}
 }
 
@@ -513,4 +517,10 @@ func (cn *ComponentNode) HTTPHandler() http.Handler {
 		return nil
 	}
 	return handler.Handler()
+}
+
+// ModuleIDs returns the current list of modules that this component is
+// managing.
+func (cn *ComponentNode) ModuleIDs() []string {
+	return cn.moduleController.ModuleIDs()
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/river/rivertypes"
+	"go.opentelemetry.io/collector/config/configopaque"
 	otelconfigtls "go.opentelemetry.io/collector/config/configtls"
 )
 
@@ -70,11 +71,11 @@ func (args *TLSSetting) Convert() *otelconfigtls.TLSSetting {
 	}
 
 	return &otelconfigtls.TLSSetting{
-		CAPem:          []byte(args.CA),
+		CAPem:          configopaque.String(args.CA),
 		CAFile:         args.CAFile,
-		CertPem:        []byte(args.Cert),
+		CertPem:        configopaque.String(args.Cert),
 		CertFile:       args.CertFile,
-		KeyPem:         []byte(string(args.Key)),
+		KeyPem:         configopaque.String(string(args.Key)),
 		KeyFile:        args.KeyFile,
 		MinVersion:     args.MinVersion,
 		MaxVersion:     args.MaxVersion,

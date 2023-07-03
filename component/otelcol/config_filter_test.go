@@ -6,6 +6,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/collector/pdata/plog"
 	"k8s.io/utils/pointer"
 )
 
@@ -77,7 +78,7 @@ func TestConvertMatchProperties(t *testing.T) {
 		},
 		"log_bodies": []string{"AUTH.*"},
 		"log_severity_number": map[string]interface{}{
-			"min":             int32(2),
+			"min":             plog.SeverityNumber(2),
 			"match_undefined": true,
 		},
 		"log_severity_texts": []string{
@@ -201,6 +202,13 @@ func TestUnmarshalSeverityLevel(t *testing.T) {
 			`,
 		},
 		{
+			name: "valid INFO config without matching undefined",
+			cfg: `
+				min = "INFO"
+				match_undefined = false
+			`,
+		},
+		{
 			name: "valid WARN config",
 			cfg: `
 				min = "WARN"
@@ -255,6 +263,45 @@ func TestUnmarshalSeverityLevel(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+		})
+	}
+}
+
+func TestUnmarshalSeverityLevelString(t *testing.T) {
+	for _, sevLevelStr := range []string{
+		"TRACE",
+		"TRACE2",
+		"TRACE3",
+		"TRACE4",
+		"DEBUG",
+		"DEBUG2",
+		"DEBUG3",
+		"DEBUG4",
+		"INFO",
+		"INFO2",
+		"INFO3",
+		"INFO4",
+		"WARN",
+		"WARN2",
+		"WARN3",
+		"WARN4",
+		"ERROR",
+		"ERROR2",
+		"ERROR3",
+		"ERROR4",
+		"FATAL",
+		"FATAL2",
+		"FATAL3",
+		"FATAL4",
+	} {
+		sevLevelStr := sevLevelStr
+
+		t.Run(sevLevelStr, func(t *testing.T) {
+			t.Parallel()
+
+			var sl otelcol.SeverityLevel
+			require.NoError(t, sl.UnmarshalText([]byte(sevLevelStr)))
+			require.Equal(t, sevLevelStr, string(sl))
 		})
 	}
 }
