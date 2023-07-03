@@ -3,7 +3,6 @@ package controller
 import (
 	"testing"
 
-	"github.com/grafana/agent/component"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,14 +11,15 @@ func TestGlobalID(t *testing.T) {
 		DataPath:       "/data/",
 		HTTPPathPrefix: "/http/",
 		ControllerID:   "module.file",
-		NewModuleController: func(id string) component.ModuleController {
+		NewModuleController: func(id string) ModuleController {
 			return nil
 		},
 	}, &ComponentNode{
-		nodeID: "local.id",
+		nodeID:   "local.id",
+		globalID: "module.file/local.id",
 	})
-	require.True(t, mo.HTTPPath == "/http/module.file/local.id/")
-	require.True(t, mo.DataPath == "/data/module.file/local.id")
+	require.Equal(t, "/http/module.file/local.id/", mo.HTTPPath)
+	require.Equal(t, "/data/module.file/local.id", mo.DataPath)
 }
 
 func TestLocalID(t *testing.T) {
@@ -27,12 +27,13 @@ func TestLocalID(t *testing.T) {
 		DataPath:       "/data/",
 		HTTPPathPrefix: "/http/",
 		ControllerID:   "",
-		NewModuleController: func(id string) component.ModuleController {
+		NewModuleController: func(id string) ModuleController {
 			return nil
 		},
 	}, &ComponentNode{
-		nodeID: "local.id",
+		nodeID:   "local.id",
+		globalID: "local.id",
 	})
-	require.True(t, mo.HTTPPath == "/http/local.id/")
-	require.True(t, mo.DataPath == "/data/local.id")
+	require.Equal(t, "/http/local.id/", mo.HTTPPath)
+	require.Equal(t, "/data/local.id", mo.DataPath)
 }
