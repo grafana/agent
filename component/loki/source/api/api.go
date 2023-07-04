@@ -90,7 +90,7 @@ func (c *Component) Run(ctx context.Context) (err error) {
 
 			for _, receiver := range receivers {
 				select {
-				case receiver <- entry:
+				case receiver.Chan() <- entry:
 				case <-ctx.Done():
 					return
 				}

@@ -15,10 +15,11 @@ import (
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/web/api"
 	"github.com/prometheus/client_golang/prometheus"
+	"golang.org/x/exp/maps"
 )
 
 type moduleController struct {
-	mut sync.Mutex
+	mut sync.RWMutex
 	o   *moduleControllerOptions
 	ids map[string]struct{}
 }
@@ -28,7 +29,7 @@ var (
 )
 
 // newModuleController is the entrypoint into creating module instances.
-func newModuleController(o *moduleControllerOptions) component.ModuleController {
+func newModuleController(o *moduleControllerOptions) controller.ModuleController {
 	return &moduleController{
 		o:   o,
 		ids: map[string]struct{}{},
@@ -61,6 +62,13 @@ func (m *moduleController) removeID(id string) {
 	defer m.mut.Unlock()
 
 	delete(m.ids, id)
+}
+
+// ModuleIDs implements [controller.ModuleController].
+func (m *moduleController) ModuleIDs() []string {
+	m.mut.RLock()
+	defer m.mut.RUnlock()
+	return maps.Keys(m.ids)
 }
 
 type module struct {
@@ -130,7 +138,7 @@ func (c *module) Run(ctx context.Context) {
 func (c *module) ComponentHandler() (_ http.Handler) {
 	r := mux.NewRouter()
 
-	fa := api.NewFlowAPI(c.f)
+	fa := api.NewFlowAPI(c.f, c.f.clusterer.Node)
 	fa.RegisterRoutes("/", r)
 
 	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -146,7 +154,6 @@ func (c *module) ComponentHandler() (_ http.Handler) {
 
 // moduleControllerOptions holds static options for module controller.
 type moduleControllerOptions struct {
-
 	// Logger to use for controller logs and components. A no-op logger will be
 	// created if this is nil.
 	Logger *logging.Logger

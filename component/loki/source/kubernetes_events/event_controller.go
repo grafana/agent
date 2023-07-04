@@ -66,7 +66,7 @@ func newEventController(task eventControllerTask) *eventController {
 	return &eventController{
 		log:           task.Log,
 		task:          task,
-		handler:       loki.NewEntryHandler(task.Receiver, func() {}),
+		handler:       loki.NewEntryHandler(task.Receiver.Chan(), func() {}),
 		positionsKey:  key,
 		initTimestamp: time.UnixMicro(lastTimestamp),
 	}

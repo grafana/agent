@@ -59,15 +59,15 @@ prometheus.remote_write "default" {
 
 ## Next steps
 
-* [Install][] Grafana Agent Flow.
-* Learn about the core [Concepts][] of Grafana Agent Flow.
-* Follow our Grafana Agent Flow [Getting started][] guides.
-* Follow our [Tutorials][] to get started with Grafana Agent Flow.
-* Learn how to use Grafana Agent Flow's [Configuration language][].
+* [Install][] Grafana Agent in flow mode.
+* Learn about the core [Concepts][] of flow mode.
+* Follow our [Getting started][] guides for Grafana Agent in flow mode.
+* Follow our [Tutorials][] to get started with Grafana Agent in flow mode.
+* Learn how to use the [Configuration language][].
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
-[Install]: {{< relref "./install/" >}}
+[Install]: {{< relref "./setup/install/" >}}
 [Concepts]: {{< relref "./concepts/" >}}
 [Getting started]: {{< relref "./getting-started/" >}}
 [Tutorials]: {{< relref "./tutorials/ ">}}

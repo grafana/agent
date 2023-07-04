@@ -1,6 +1,7 @@
 package stages
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,6 +23,23 @@ func Test_ValidateConfigs(t *testing.T) {
 		},
 		{
 			GeoIPConfig{
+				DB:     "test",
+				Source: &source,
+				CustomLookups: map[string]string{
+					"field": "lookup",
+				},
+			},
+			nil,
+		},
+		{
+			GeoIPConfig{
+				DB:     "test",
+				Source: &source,
+			},
+			ErrEmptyDBTypeAndValuesGeoIPStageConfig,
+		},
+		{
+			GeoIPConfig{
 				Source: &source,
 				DBType: "city",
 			},
@@ -37,13 +55,24 @@ func Test_ValidateConfigs(t *testing.T) {
 		{
 			GeoIPConfig{
 				DB:     "test",
+				DBType: "fake",
 				Source: &source,
 			},
 			ErrEmptyDBTypeGeoIPStageConfig,
 		},
+		{
+			GeoIPConfig{
+				DB:     "test",
+				Source: &source,
+				CustomLookups: map[string]string{
+					"field": ".-badlookup",
+				},
+			},
+			errors.New(ErrCouldNotCompileJMES),
+		},
 	}
 	for _, tt := range tests {
-		err := validateGeoIPConfig(tt.config)
+		_, err := validateGeoIPConfig(tt.config)
 		if err != nil {
 			require.Equal(t, tt.wantError.Error(), err.Error())
 		}
