@@ -58,6 +58,7 @@ func (m *mockSession) DebugInfo() interface{} {
 
 func TestShutdownOnError(t *testing.T) {
 	logger := util.TestFlowLogger(t)
+	ms := newMetrics(nil)
 	targetFinder, err := sd.NewTargetFinder(os.DirFS("/foo"), logger, sd.TargetsOptions{
 		ContainerCacheSize: 1024,
 	})
@@ -75,6 +76,7 @@ func TestShutdownOnError(t *testing.T) {
 		arguments,
 		session,
 		targetFinder,
+		ms,
 	)
 	require.NoError(t, err)
 
@@ -85,6 +87,7 @@ func TestShutdownOnError(t *testing.T) {
 
 func TestContextShutdown(t *testing.T) {
 	logger := util.TestFlowLogger(t)
+	ms := newMetrics(nil)
 	targetFinder, err := sd.NewTargetFinder(os.DirFS("/foo"), logger, sd.TargetsOptions{
 		ContainerCacheSize: 1024,
 	})
@@ -102,6 +105,7 @@ func TestContextShutdown(t *testing.T) {
 		arguments,
 		session,
 		targetFinder,
+		ms,
 	)
 	require.NoError(t, err)
 
