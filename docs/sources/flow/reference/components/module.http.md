@@ -68,7 +68,7 @@ The attributes provided in the `arguments` block are validated based on the
 * If a module source marks one of its arguments as required, it must be
   provided as an attribute in the `arguments` block of the module loader.
 
-* Attributes in the `argument` block of the module loader will be rejected if
+* Attributes in the `argument` block of the module loader are rejected if
   they are not defined in the module source.
 
 [argument blocks]: {{< relref "../config-blocks/argument.md" >}}
@@ -97,7 +97,7 @@ successful.
 Before the first load of the module, the health is reported as `Unknown`.
 
 If the module is not loaded successfully, the current health displays as
-unhealthy and the health includes the error from loading the module.
+unhealthy, and the health includes the error from loading the module.
 
 ## Debug information
 
