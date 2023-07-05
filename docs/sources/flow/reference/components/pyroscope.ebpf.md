@@ -129,7 +129,7 @@ If you encounter unknown symbols in the profiles you’ve collected, this indica
 associated to a given address in trace. This might be due to the ELF file being inaccessible, or the absence of an entry
 in `/proc/pid/maps` for a particular address (this can be the case with JIT-compiled functions).
 
-This can occur for a number of reasons:
+This can occur for several reasons:
 
 - The process has terminated, making the ELF file inaccessible.
 - The ELF file is either corrupted or not recognized as an ELF file.
