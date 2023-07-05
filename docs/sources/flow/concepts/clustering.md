@@ -65,8 +65,8 @@ The easiest way to deploy agent clustering is by making use of our
 
 The following `values.yaml` file deploys anStatefulSet for metrics
 collection. It makes use of a [headless service][] to retrieve the IPs of the
-agent pods for the `--cluster.join-addresses` argument, as well as an HPA for
-autoscaling.
+agent pods for the `--cluster.join-addresses` argument, as well as an
+[Horizontal Pod Autoscaler][] (HPA) for dynamically matching demand.
 
 ```yaml
 agent:
@@ -235,16 +235,15 @@ peers. Check whether the pod itself has gone away or has remained in the
 cluster as Terminating.
 - **Lamport clock stuck or drifting**: The node is either not receiving new
 messages from its peer, or it cannot keep up with the rate of messages being
-sent by the rest of the cluster. Check the ""Packet write success rate" and
+sent by the rest of the cluster. Check the "Packet write success rate" and
 "Pending packet queue" panels to verify that messages are being decoded
 correctly and are decoded in time.
 
 ## Use cases
 
 Setting up clustering is the first step of making agents aware of one another.
-_Components_ in a telemetry pipeline need to explicitly opt-in to participate
-in one or more clustering use cases using the `clustering` block in their
-River config.
+Components in a telemetry pipeline need to explicitly opt-in to participating
+to clustering in their River config for one or more of the following use cases.
 
 ### Target auto-distribution
 
@@ -292,6 +291,7 @@ prometheus.scrape "default" {
 [grafana/ckit]: https://github.com/grafana/ckit
 [hashmod sharding]: https://grafana.com/docs/agent/latest/static/operation-guide/#hashmod-sharding-stable
 [Helm chart]: https://artifacthub.io/packages/helm/grafana/grafana-agent
+[Horizontal Pod Autoscaler]: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
 [headless service]: https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
 [Flow mixin]: https://github.com/grafana/agent/tree/main/operations/agent-flow-mixin
 [mixtool]: https://github.com/monitoring-mixins/mixtool
