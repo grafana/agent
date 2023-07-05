@@ -42,12 +42,12 @@ DNS record to lookup.
 
 Peers communicate over HTTP/2 on the agent's built-in HTTP server. Each node
 must be configured to accept connections from one another on the address
-defined by the `--server.http.listen-addr` flag.
+defined or inferred in `--cluster.advertise-address`.
 
 Each cluster member’s name must be unique within the cluster. Nodes which try
 to join with a conflicting name are rejected.
 
-If the advertised address is not explicitly set, the agent tries to find a
+If the advertised address is not explicitly set, the agent tries to infer a
 suitable one from the `eth0` and `en0` local network interfaces.
 
 The ports on the join-addresses list default to the port of the node’s HTTP
