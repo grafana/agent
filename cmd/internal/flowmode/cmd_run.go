@@ -19,6 +19,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
@@ -97,23 +98,23 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
-	cmd.Flags().BoolVar(&r.configBypassConversionWarnings, "config.bypass-conversion-warnings", r.configBypassConversionWarnings, "Enable bypassing warnings when converting")
+	cmd.Flags().BoolVar(&r.configBypassConversionErrors, "config.bypass-conversion-errors", r.configBypassConversionErrors, "Enable bypassing errors when converting")
 	return cmd
 }
 
 type flowRun struct {
-	inMemoryAddr                   string
-	httpListenAddr                 string
-	storagePath                    string
-	uiPrefix                       string
-	enablePprof                    bool
-	disableReporting               bool
-	clusterEnabled                 bool
-	clusterNodeName                string
-	clusterAdvAddr                 string
-	clusterJoinAddr                string
-	configFormat                   string
-	configBypassConversionWarnings bool
+	inMemoryAddr                 string
+	httpListenAddr               string
+	storagePath                  string
+	uiPrefix                     string
+	enablePprof                  bool
+	disableReporting             bool
+	clusterEnabled               bool
+	clusterNodeName              string
+	clusterAdvAddr               string
+	clusterJoinAddr              string
+	configFormat                 string
+	configBypassConversionErrors bool
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -141,6 +142,8 @@ func (fr *flowRun) Run(configFile string) error {
 	// use the tracer provider given to them so the appropriate attributes get
 	// injected.
 	otel.SetTracerProvider(t)
+
+	level.Info(l).Log("boringcrypto enabled", boringcrypto.Enabled)
 
 	// Immediately start the tracer.
 	go func() {
@@ -196,7 +199,7 @@ func (fr *flowRun) Run(configFile string) error {
 	})
 
 	reload := func() error {
-		flowCfg, err := loadFlowFile(configFile, fr.configFormat, fr.configBypassConversionWarnings)
+		flowCfg, err := loadFlowFile(configFile, fr.configFormat, fr.configBypassConversionErrors)
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
@@ -319,7 +322,7 @@ func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	}
 }
 
-func loadFlowFile(filename string, converterSourceFormat string, converterBypassWarnings bool) (*flow.File, error) {
+func loadFlowFile(filename string, converterSourceFormat string, converterBypassErrors bool) (*flow.File, error) {
 	bb, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -329,8 +332,8 @@ func loadFlowFile(filename string, converterSourceFormat string, converterBypass
 		var diags convert_diag.Diagnostics
 		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat))
 		hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
-		hasWarn := hasErrorLevel(diags, convert_diag.SeverityLevelWarn)
-		if hasError || (!converterBypassWarnings && hasWarn) {
+		hasCritical := hasErrorLevel(diags, convert_diag.SeverityLevelCritical)
+		if hasCritical || (!converterBypassErrors && hasError) {
 			return nil, diags
 		}
 	}

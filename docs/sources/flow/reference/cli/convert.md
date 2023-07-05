@@ -21,7 +21,7 @@ equal to `-`, `grafana-agent convert` converts the contents of standard input. O
 The `--output` flag can be specified to write the contents of the converted
 config to the specified path.
 
-The `--bypass-warnings` flag can be used to bypass [warnings].
+The `--bypass-errors` flag can be used to bypass [errors].
 
 The command fails if the source config has syntactically incorrect
 configuration or cannot be converted to Grafana Agent Flow River format.
@@ -32,10 +32,10 @@ The following flags are supported:
 
 * `--source-format`, `-f`: Required. The format of the source file. Supported formats: [prometheus].
 
-* `--bypass-warnings`, `-b`: Enable bypassing warnings when converting.
+* `--bypass-errors`, `-b`: Enable bypassing errors when converting.
 
 [prometheus]: #prometheus
-[warnings]: #warnings
+[errors]: #errors
 
 ### Defaults
 
@@ -47,12 +47,11 @@ the property is left off the Flow output.
 * If a non-provided source config value default doesn't match a Flow default
 value, the Flow default value is included in the Flow output.
 
-### Warnings
+### Errors
 
-Warnings are defined as non-blocking issues identified during the conversion
-for feature[s] on the source file not supported in Grafana Agent Flow. A
-conversion can generate an output for review by using the `--bypass-warnings`
-flag.
+Errors are defined as non-critical issues identified during the conversion
+where an output can still be generated. These can be bypassed using the
+`--bypass-errors` flag.
 
 ### Prometheus
 
@@ -66,5 +65,5 @@ This includes Prometheus features such as
 [metric_relabel_configs](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#metric_relabel_configs),
 [remote_write](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#remote_write),
 and many supported *_sd_configs. Unsupported features in a source config result
-in [warnings].
+in [errors].
 

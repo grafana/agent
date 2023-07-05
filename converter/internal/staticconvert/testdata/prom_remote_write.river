@@ -13,11 +13,6 @@ prometheus.remote_write "test1" {
 			max_samples_per_send = 500
 		}
 	}
-
-	wal {
-		truncate_frequency = "1h0m0s"
-		max_keepalive_time = "4h0m0s"
-	}
 }
 
 prometheus.remote_write "test2" {
@@ -34,11 +29,6 @@ prometheus.remote_write "test2" {
 		metadata_config {
 			max_samples_per_send = 500
 		}
-	}
-
-	wal {
-		truncate_frequency = "1h0m0s"
-		max_keepalive_time = "4h0m0s"
 	}
 }
 
@@ -71,10 +61,5 @@ prometheus.remote_write "test3" {
 		metadata_config {
 			max_samples_per_send = 500
 		}
-	}
-
-	wal {
-		truncate_frequency = "1h0m0s"
-		max_keepalive_time = "4h0m0s"
 	}
 }

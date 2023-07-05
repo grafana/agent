@@ -11,9 +11,9 @@ import (
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) {
+func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target, label string) {
 	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
-	block := common.NewBlockWithOverride([]string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
+	block := common.NewBlockWithOverride([]string{"prometheus", "scrape"}, label, scrapeArgs)
 	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, block)
 }
 

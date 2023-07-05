@@ -32,15 +32,15 @@ func validateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) di
 	var diags diag.Diagnostics
 
 	if httpClientConfig.NoProxy != "" {
-		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config no_proxy was provided")
+		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config no_proxy was provided")
 	}
 
 	if httpClientConfig.ProxyFromEnvironment {
-		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config proxy_from_environment was provided")
+		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config proxy_from_environment was provided")
 	}
 
 	if len(httpClientConfig.ProxyConnectHeader) > 0 {
-		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config proxy_connect_header was provided")
+		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config proxy_connect_header was provided")
 	}
 
 	return diags
