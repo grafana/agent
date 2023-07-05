@@ -173,8 +173,7 @@ Profiling interpreted languages like Python, Ruby, JavaScript, etc., is not idea
 The JIT-compiled methods in these languages are typically not in ELF file format, demanding additional steps for
 profiling. For instance, using perf-map-agent and enabling frame pointers for Java.
 
-Interpreted methods will display the interpreter function’s name, rather than the actual function. Future releases of
-the profiler are expected to support profiling of Ruby and Python code more effectively.
+Interpreted methods will display the interpreter function’s name, rather than the actual function.
 
 ## Example
 
