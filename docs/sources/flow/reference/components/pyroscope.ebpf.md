@@ -114,7 +114,7 @@ Symbols are extracted from various sources, including:
 - The `.gopclntab` section in Go language ELF files.
 
 The search for debug files follows [gdb algorithm](https://sourceware.org/gdb/onlinedocs/gdb/Separate-Debug-Files.html).
-For example if it wants to find the debug file
+For example if the profiler wants to find the debug file
 for `/lib/x86_64-linux-gnu/libc.so.6`
 with a `.gnu_debuglink` set to `libc.so.6.debug` and a build ID `0123456789abcdef`. The following paths are examined:
 
