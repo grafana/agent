@@ -35,7 +35,7 @@ The -f flag can be used to specify the format we are converting from.
 
 The -b flag can be used to bypass errors. Errors are defined as 
 non-critical issues identified during the conversion where an
-ouput can still be generated.`,
+output can still be generated.`,
 		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
 
