@@ -11,7 +11,7 @@ labels:
 `module.http` is a [module loader][] component.
 
 `module.http` embeds a [remote.http][] component to retrieve the module from a remote
-HTTP server. This allows for the use of a single module loader, rather than a `remote.http`
+HTTP server. This allows you to use a single module loader, rather than a `remote.http`
 component paired with a [module.string][] component.
 
 [module]: {{< relref "../../concepts/modules.md" >}}
