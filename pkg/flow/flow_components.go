@@ -19,7 +19,6 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 			return nil, fmt.Errorf("component %q does not exist", id)
 		}
 
-		// TODO(rfratto): can mod.f be nil here?
 		return mod.f.GetComponent(component.ID{LocalID: id.LocalID}, opts)
 	}
 
@@ -49,7 +48,6 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 			return nil, fmt.Errorf("module %q does not exist", moduleID)
 		}
 
-		// TODO(rfratto): can mod.f be nil here?
 		return mod.f.ListComponents("", opts)
 	}
 

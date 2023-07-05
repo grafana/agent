@@ -91,9 +91,8 @@ func (m *moduleController) ModuleIDs() []string {
 }
 
 type module struct {
-	mut sync.Mutex
-	f   *Flow
-	o   *moduleOptions
+	f *Flow
+	o *moduleOptions
 }
 
 type moduleOptions struct {
@@ -111,31 +110,25 @@ var (
 func newModule(o *moduleOptions) *module {
 	return &module{
 		o: o,
+		f: newController(o.ModuleRegistry, Options{
+			ControllerID:   o.ID,
+			Tracer:         o.Tracer,
+			Clusterer:      o.Clusterer,
+			Reg:            o.Reg,
+			Logger:         o.Logger,
+			DataPath:       o.DataPath,
+			HTTPPathPrefix: o.HTTPPath,
+			HTTPListenAddr: o.HTTPListenAddr,
+			OnExportsChange: func(exports map[string]any) {
+				o.export(exports)
+			},
+			DialFunc: o.DialFunc,
+		}),
 	}
 }
 
 // LoadConfig parses River config and loads it.
 func (c *module) LoadConfig(config []byte, args map[string]any) error {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	if c.f == nil {
-		f := newController(c.o.ModuleRegistry, Options{
-			ControllerID:   c.o.ID,
-			Tracer:         c.o.Tracer,
-			Clusterer:      c.o.Clusterer,
-			Reg:            c.o.Reg,
-			Logger:         c.o.Logger,
-			DataPath:       c.o.DataPath,
-			HTTPPathPrefix: c.o.HTTPPath,
-			HTTPListenAddr: c.o.HTTPListenAddr,
-			OnExportsChange: func(exports map[string]any) {
-				c.o.export(exports)
-			},
-			DialFunc: c.o.DialFunc,
-		})
-		c.f = f
-	}
-
 	ff, err := ReadFile(c.o.ID, config)
 	if err != nil {
 		return err
