@@ -111,6 +111,9 @@ Main (unreleased)
 
 - Change the HTTP Path and Data Path from the controller-local ID to the global ID for components loaded from within a module loader. (@spartan0x117)
 
+- Add `/loki/api/v1/raw` and `/loki/api/v1/push` to `loki.source.api`, additionally the `/api/v1/push` and `api/v1/raw` now map to 
+  the `/loki/` prefixed endpoints. (@mattdurham)
+
 v0.34.3 (2023-06-27)
 --------------------
 
