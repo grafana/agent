@@ -5,7 +5,7 @@ menuTitle: Start flow mode
 weight: 800
 ---
 
-# Start Grafana Agent
+# Start Grafana Agent in flow mode
 
 You can start, restart, and stop Grafana Agent after it is installed.
 

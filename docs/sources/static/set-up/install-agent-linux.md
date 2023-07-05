@@ -1,6 +1,7 @@
 ---
-title: Linux
-weight: 115
+title: Install Grafana Agent in static mode on Linux
+menuTitle: Linux
+weight: 400
 aliases:
 - ../../set-up/install-agent-linux/
 ---

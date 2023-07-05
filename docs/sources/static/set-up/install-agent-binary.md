@@ -1,6 +1,7 @@
 ---
-title: Other systems
-weight: 140
+title: Install Grafana Agent in static mode as a standalone binary
+menuTitle: Standalone
+weight: 700
 aliases:
 - ../../set-up/install-agent-binary/
 ---

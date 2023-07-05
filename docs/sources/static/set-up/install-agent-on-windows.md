@@ -1,6 +1,7 @@
 ---
-title: Windows
-weight: 120
+title: Install Grafana Agent in static mode on Windows
+menuTitle: Windows
+weight: 600
 aliases:
 - ../../set-up/install-agent-on-windows/
 ---
