@@ -70,7 +70,7 @@ configuration.
 
 ## Profile collecting behavior
 
-The `pyroscope.ebpf` component is designed to collect stacktraces associated with a process running on the current host.
+The `pyroscope.ebpf` component collects stack traces associated with a process running on the current host.
 Stack traces are collected according to the defined `sample_rate`, meaning traces are gathered this many times
 per second.
 
