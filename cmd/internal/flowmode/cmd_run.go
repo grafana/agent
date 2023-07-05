@@ -13,6 +13,8 @@ import (
 	"syscall"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/converter"
+	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
 	"github.com/grafana/ckit/memconn"
@@ -48,6 +50,7 @@ func runCommand() *cobra.Command {
 		uiPrefix:         "/",
 		disableReporting: false,
 		enablePprof:      true,
+		configFormat:     "flow",
 	}
 
 	cmd := &cobra.Command{
@@ -94,24 +97,31 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		BoolVar(&r.clusterEnabled, "cluster.enabled", r.clusterEnabled, "Start in clustered mode")
 	cmd.Flags().
+		StringVar(&r.clusterNodeName, "cluster.node-name", r.clusterNodeName, "The name to use for this node")
+	cmd.Flags().
 		StringVar(&r.clusterAdvAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
 	cmd.Flags().
 		StringVar(&r.clusterJoinAddr, "cluster.join-addresses", r.clusterJoinAddr, "Comma-separated list of addresses to join the cluster at")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
+	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
+	cmd.Flags().BoolVar(&r.configBypassConversionWarnings, "config.bypass-conversion-warnings", r.configBypassConversionWarnings, "Enable bypassing warnings when converting")
 	return cmd
 }
 
 type flowRun struct {
-	inMemoryAddr     string
-	httpListenAddr   string
-	storagePath      string
-	uiPrefix         string
-	enablePprof      bool
-	disableReporting bool
-	clusterEnabled   bool
-	clusterAdvAddr   string
-	clusterJoinAddr  string
+	inMemoryAddr                   string
+	httpListenAddr                 string
+	storagePath                    string
+	uiPrefix                       string
+	enablePprof                    bool
+	disableReporting               bool
+	clusterEnabled                 bool
+	clusterNodeName                string
+	clusterAdvAddr                 string
+	clusterJoinAddr                string
+	configFormat                   string
+	configBypassConversionWarnings bool
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -158,7 +168,7 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
-	clusterer, err := cluster.New(l, reg, fr.clusterEnabled, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr)
+	clusterer, err := cluster.New(l, reg, fr.clusterEnabled, fr.clusterNodeName, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr)
 	if err != nil {
 		return fmt.Errorf("building clusterer: %w", err)
 	}
@@ -193,7 +203,7 @@ func (fr *flowRun) Run(configFile string) error {
 	})
 
 	reload := func() error {
-		flowCfg, err := loadFlowFile(configFile)
+		flowCfg, err := loadFlowFile(configFile, fr.configFormat, fr.configBypassConversionWarnings)
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
@@ -365,10 +375,20 @@ func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	}
 }
 
-func loadFlowFile(filename string) (*flow.File, error) {
+func loadFlowFile(filename string, converterSourceFormat string, converterBypassWarnings bool) (*flow.File, error) {
 	bb, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
+	}
+
+	if converterSourceFormat != "flow" {
+		var diags convert_diag.Diagnostics
+		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat))
+		hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
+		hasWarn := hasErrorLevel(diags, convert_diag.SeverityLevelWarn)
+		if hasError || (!converterBypassWarnings && hasWarn) {
+			return nil, diags
+		}
 	}
 
 	instrumentation.InstrumentConfig(bb)

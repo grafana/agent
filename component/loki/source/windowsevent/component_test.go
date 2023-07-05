@@ -58,7 +58,7 @@ func TestEventLogger(t *testing.T) {
 	case <-ctx.Done():
 		// Fail!
 		require.True(t, false)
-	case e := <-rec:
+	case e := <-rec.Chan():
 		if strings.Contains(e.Line, tm) {
 			found = true
 			break

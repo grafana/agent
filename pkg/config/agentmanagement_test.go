@@ -109,6 +109,29 @@ func TestMissingCacheLocation(t *testing.T) {
 	assert.Error(t, invalidConfig.Validate())
 }
 
+func TestValidateLabelManagement(t *testing.T) {
+	cfg := &AgentManagementConfig{
+		Enabled: true,
+		Host:    "localhost:1234",
+		BasicAuth: config.BasicAuth{
+			Username:     "test",
+			PasswordFile: "/test/path",
+		},
+		Protocol:        "https",
+		PollingInterval: time.Minute,
+		RemoteConfiguration: RemoteConfiguration{
+			Namespace:              "test_namespace",
+			CacheLocation:          "/test/path/",
+			LabelManagementEnabled: true,
+		},
+	}
+	// This should error as there is no agent_id set
+	assert.Error(t, cfg.Validate())
+
+	cfg.RemoteConfiguration.AgentID = "test_agent_id"
+	assert.NoError(t, cfg.Validate())
+}
+
 func TestSleepTime(t *testing.T) {
 	cfg := `
 api_url: "http://localhost"

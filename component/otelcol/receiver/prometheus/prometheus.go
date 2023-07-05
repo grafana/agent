@@ -18,8 +18,8 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/otel/metric"
+	otelreceiver "go.opentelemetry.io/collector/receiver"
+	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -102,13 +102,13 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 		gcInterval = 5 * time.Minute
 	)
-	settings := otelcomponent.ReceiverCreateSettings{
+	settings := otelreceiver.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(c.opts.Logger),
 
 			// TODO(tpaschalis): expose tracing and logging statistics.
 			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  metric.NewNoopMeterProvider(),
+			MeterProvider:  noop.NewMeterProvider(),
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{
@@ -119,15 +119,18 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	}
 	metricsSink := fanoutconsumer.Metrics(cfg.Output.Metrics)
 
-	appendable := internal.NewAppendable(
+	appendable, err := internal.NewAppendable(
 		metricsSink,
 		settings,
 		gcInterval,
 		useStartTimeMetric,
 		startTimeMetricRegex,
-		otelconfig.NewComponentID(otelconfig.Type(c.opts.ID)),
+		otelcomponent.NewID(otelcomponent.Type(c.opts.ID)),
 		labels.Labels{},
 	)
+	if err != nil {
+		return err
+	}
 	c.appendable = appendable
 
 	// Export the receiver.
