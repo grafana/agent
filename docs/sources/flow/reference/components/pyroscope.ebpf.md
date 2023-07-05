@@ -170,7 +170,7 @@ To compile your code with frame pointers, include the `-fno-omit-frame-pointer` 
 
 ### Profiling Interpreted Languages
 
-Currently, profiling interpreted languages like Python, Ruby, JavaScript, etc., is not ideal using this implementation.
+Profiling interpreted languages like Python, Ruby, JavaScript, etc., is not ideal using this implementation.
 The JIT-compiled methods in these languages are typically not in ELF file format, demanding additional steps for
 profiling. For instance, using perf-map-agent and enabling frame pointers for Java.
 
