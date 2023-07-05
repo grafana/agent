@@ -8,8 +8,7 @@ labels:
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
-`module.http` is a *module loader* component. A module loader is a Grafana Agent Flow
-component which retrieves a [module][] and runs the components defined inside of it.
+`module.http` is a [module loader][] component.
 
 `module.http` embeds a [remote.http][] component to retrieve the module from a remote
 HTTP server. This allows for the use of a single module loader, rather than a `remote.http`
@@ -18,6 +17,7 @@ component paired with a [module.string][] component.
 [module]: {{< relref "../../concepts/modules.md" >}}
 [remote.http]: {{< relref "./remote.http.md" >}}
 [module.string]: {{< relref "./module.string.md" >}}
+[module loader]: {{< relref "../../concepts/modules.md#module-loaders" >}}
 
 ## Usage
 
