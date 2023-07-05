@@ -519,11 +519,6 @@ func (cn *ComponentNode) HTTPHandler() http.Handler {
 	return handler.Handler()
 }
 
-// ModuleController returns the ModuleController instance for cn.
-func (cn *ComponentNode) ModuleController() ModuleController {
-	return cn.moduleController
-}
-
 // ModuleIDs returns the current list of modules that this component is
 // managing.
 func (cn *ComponentNode) ModuleIDs() []string {
