@@ -16,9 +16,9 @@ import (
 
 func convertCommand() *cobra.Command {
 	f := &flowConvert{
-		output:         "",
-		sourceFormat:   "",
-		bypassWarnings: false,
+		output:       "",
+		sourceFormat: "",
+		bypassErrors: false,
 	}
 
 	cmd := &cobra.Command{
@@ -33,9 +33,9 @@ The -o flag can be used to write the formatted file back to disk. When -o is not
 
 The -f flag can be used to specify the format we are converting from.
 
-The -b flag can be used to bypass warnings. Warnings are defined as 
-non-blocking issues identified during the conversion for feature[s] on the source file
-not supported in Grafana Agent Flow.`,
+The -b flag can be used to bypass errors. Errors are defined as 
+non-critical issues identified during the conversion where an
+ouput can still be generated.`,
 		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
 
@@ -63,14 +63,14 @@ not supported in Grafana Agent Flow.`,
 
 	cmd.Flags().StringVarP(&f.output, "output", "o", f.output, "The filepath where the output is written.")
 	cmd.Flags().StringVarP(&f.sourceFormat, "source-format", "f", f.sourceFormat, "The format of the source file. Supported formats: 'prometheus'.")
-	cmd.Flags().BoolVarP(&f.bypassWarnings, "bypass-warnings", "b", f.bypassWarnings, "Enable bypassing warnings when converting")
+	cmd.Flags().BoolVarP(&f.bypassErrors, "bypass-errors", "b", f.bypassErrors, "Enable bypassing errors when converting")
 	return cmd
 }
 
 type flowConvert struct {
-	output         string
-	sourceFormat   string
-	bypassWarnings bool
+	output       string
+	sourceFormat string
+	bypassErrors bool
 }
 
 func (fc *flowConvert) Run(configFile string) error {
@@ -106,8 +106,8 @@ func convert(r io.Reader, fc *flowConvert) error {
 
 	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat))
 	hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
-	hasWarn := hasErrorLevel(diags, convert_diag.SeverityLevelWarn)
-	if hasError || (!fc.bypassWarnings && hasWarn) {
+	hasCritical := hasErrorLevel(diags, convert_diag.SeverityLevelCritical)
+	if hasCritical || (!fc.bypassErrors && hasError) {
 		return diags
 	}
 

@@ -20,12 +20,12 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var staticConfig config.Config
 	err := config.LoadBytes(in, false, &staticConfig)
 	if err != nil {
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to parse Static config: %s", err))
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to parse Static config: %s", err))
 		return nil, diags
 	}
 
 	if err = staticConfig.Validate(nil); err != nil {
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to validate Static config: %s", err))
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to validate Static config: %s", err))
 		return nil, diags
 	}
 
@@ -34,7 +34,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
 		return nil, diags
 	}
 
@@ -97,7 +97,7 @@ func validateMetrics(staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if staticConfig.Metrics.WALDir != metrics.DefaultConfig.WALDir {
-		diags.Add(diag.SeverityLevelWarn, "unsupported config for wal_directory was provided. use the run command flag --storage.path for Flow mode instead.")
+		diags.Add(diag.SeverityLevelError, "unsupported config for wal_directory was provided. use the run command flag --storage.path for Flow mode instead.")
 	}
 
 	// TODO Static to Flow unsupported features

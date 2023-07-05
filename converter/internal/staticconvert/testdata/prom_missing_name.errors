@@ -1,1 +1,1 @@
-(Error) failed to validate Static config: error validating instance at index 0: missing instance name
+(Critical) failed to validate Static config: error validating instance at index 0: missing instance name

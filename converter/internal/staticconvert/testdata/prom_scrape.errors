@@ -1,1 +1,1 @@
-(Warning) unsupported config for wal_directory was provided. use the run command flag --storage.path for Flow mode instead.
+(Error) unsupported config for wal_directory was provided. use the run command flag --storage.path for Flow mode instead.
