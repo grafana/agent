@@ -66,7 +66,7 @@ configuration.
 * `pyroscope_ebpf_active_targets` (gauge): Number of active targets the component tracks.
 * `pyroscope_ebpf_profiling_sessions_total` (counter): Number of profiling sessions completed.
 * `pyroscope_ebpf_profiling_sessions_failing_total` (counter): Number of profiling sessions failed.
-* `pyroscope_ebpf_pprofs_total` (counter): Number of pprof profiles collected by ebpf component.
+* `pyroscope_ebpf_pprofs_total` (counter): Number of pprof profiles collected by the ebpf component.
 
 ## Profile collecting behavior
 
