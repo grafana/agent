@@ -26,19 +26,17 @@ integrations:
         address: 192.168.1.2
         module: if_mib
         walk_params: public
+        auth: public
       - name: network_router_2
         address: 192.168.1.3
         module: mikrotik
         walk_params: private
+        auth: private
     walk_params:
       private:
-        version: 2
-        auth:
-          community: mysecret
+        retries: 2
       public:
-        version: 2
-        auth:
-          community: public
+        retries: 1
 ```
 
 ## Prometheus service discovery use case
@@ -60,6 +58,7 @@ metrics:
           params:
             module: [if_mib]
             walk_params: [private]
+            auth: [private]
           metrics_path: /integrations/snmp/metrics
           relabel_configs:
             - source_labels: [__address__]
@@ -74,9 +73,7 @@ integrations:
     scrape_integration: false # set autoscrape to off
     walk_params:
       private:
-        version: 2
-        auth:
-          community: secretpassword
+        retries: 2
 ```
 
 
@@ -127,8 +124,14 @@ Full reference of options:
 
   # SNMP configuration file with custom modules.
   # See https://github.com/prometheus/snmp_exporter#generating-configuration for more details how to generate custom snmp.yml file.
-  # If not defined, embedded snmp_exporter default set of modules is used.
   [config_file: <string> | default = ""]
+
+  # Embedded SNMP configuration. You can specify your modules here instead of an external config file.
+  # See https://github.com/prometheus/snmp_exporter/tree/main#generating-configuration for more details how to specify your SNMP modules.
+  # If this and config_file are not defined, embedded snmp_exporter default set of modules is used.
+  snmp_config:
+    [- <modules> ... ]
+    [- <auths> ... ]
 
   # List of SNMP targets to poll
   snmp_targets:
@@ -152,6 +155,9 @@ Full reference of options:
   # SNMP module to use for polling
   [module: <string> | default = ""]
 
+  # SNMP authentication profile to use
+  [auth: <string> | default = ""]
+
   # walk_param config to use for this snmp_target
   [walk_params: <string> | default = ""]
 ```
@@ -159,10 +165,6 @@ Full reference of options:
 ## walk_param config
 
 ```yaml
-  # SNMP version to use. Defaults to 2.
-  # 1 will use GETNEXT, 2 and 3 use GETBULK.
-  [version: <int> | default = 2]
-
   # How many objects to request with GET/GETBULK, defaults to 25.
   # May need to be reduced for buggy devices.
   [max_repetitions: <int> | default = 25]
@@ -172,43 +174,6 @@ Full reference of options:
 
   # Timeout for each SNMP request, defaults to 5s.
   [timeout: <duration> | default = 5s]
-
-  auth:
-    # Community string is used with SNMP v1 and v2. Defaults to "public".
-    [community: <string> | default = "public"]
-
-    # v3 has different and more complex settings.
-    # Which are required depends on the security_level.
-    # The equivalent options on NetSNMP commands like snmpbulkwalk
-    # and snmpget are also listed. See snmpcmd(1).
-
-    # Required if v3 is used, no default. -u option to NetSNMP.
-    [username: <string> | default = "user"]
-
-    # Defaults to noAuthNoPriv. -l option to NetSNMP.
-    # Can be noAuthNoPriv, authNoPriv or authPriv.
-    [security_level: <string> | default = "noAuthNoPriv"]
-
-    # Has no default. Also known as authKey, -A option to NetSNMP.
-    # Required if security_level is authNoPriv or authPriv.
-    [password: <string> | default = ""]
-
-    # MD5, SHA, SHA224, SHA256, SHA384, or SHA512. Defaults to MD5. -a option to NetSNMP.
-    # Used if security_level is authNoPriv or authPriv.
-    [auth_protocol: <string> | default = "MD5"]
-
-    # DES, AES, AES192, or AES256. Defaults to DES. -x option to NetSNMP.
-    # Used if security_level is authPriv.
-    [priv_protocol: <string> | default = "DES"]
-
-    # Has no default. Also known as privKey, -X option to NetSNMP.
-    # Required if security_level is authPriv.
-    [priv_password: <string> | default = ""]
-
-    # Has no default. -n option to NetSNMP.
-    # Required if context is configured on the device.
-    [context_name: <string> | default = ""]
-
 ```
 
 
