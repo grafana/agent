@@ -75,7 +75,7 @@ Main (unreleased)
 
 - Support `clustering` block in `prometheus.operator.servicemonitors` and `prometheus.operator.podmonitors` components to distribute
   targets amongst clustered agents. (@captncraig)
-  
+
 - Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
 
 - The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
@@ -87,7 +87,6 @@ Main (unreleased)
 - Allow setting the node name for clustering with a command-line flag. (@tpaschalis)
 
 - Allow `prometheus.exporter.snmp` and SNMP integration to be configured passing a YAML block. (@marctc)
-
 
 ### Bugfixes
 
@@ -110,6 +109,10 @@ Main (unreleased)
 - Fix Grafana Agent mixin's "Agent Operational" dashboard expecting pods to always have `grafana-agent-.*` prefix. (@thampiotr)
 
 - Change the HTTP Path and Data Path from the controller-local ID to the global ID for components loaded from within a module loader. (@spartan0x117)
+
+- Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
+  parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
+  binary. (@rfratto)
 
 v0.34.3 (2023-06-27)
 --------------------
