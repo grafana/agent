@@ -53,6 +53,8 @@ Main (unreleased)
 
 - Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
+- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
+
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
