@@ -2,8 +2,6 @@ package prometheusconvert
 
 import (
 	"github.com/grafana/agent/pkg/river/token/builder"
-
-	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 )
 
 // prometheusBlocks is a type for categorizing River Blocks before appending
