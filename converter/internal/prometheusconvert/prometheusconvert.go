@@ -30,7 +30,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	promConfig, err := prom_config.Load(string(in), false, log.NewNopLogger())
 	if err != nil {
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to parse Prometheus config: %s", err))
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to parse Prometheus config: %s", err))
 		return nil, diags
 	}
 
@@ -39,7 +39,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
 		return nil, diags
 	}
 
@@ -131,7 +131,7 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 			labelCounts["lightsail"]++
 			exports, newDiags = appendDiscoveryLightsail(pb, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
 		default:
-			diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 		}
 
 		diags = append(diags, newDiags...)

@@ -15,6 +15,8 @@ var _ fmt.Stringer = (*Severity)(nil)
 
 func (s Severity) String() string {
 	switch s {
+	case SeverityLevelCritical:
+		return "Critical"
 	case SeverityLevelError:
 		return "Error"
 	case SeverityLevelWarn:
@@ -33,6 +35,7 @@ const (
 	SeverityLevelInfo Severity = iota + 1
 	SeverityLevelWarn
 	SeverityLevelError
+	SeverityLevelCritical
 )
 
 // Diagnostic is an individual diagnostic message. Diagnostic messages can have
