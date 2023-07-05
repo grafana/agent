@@ -13,7 +13,7 @@ to
 the list of receivers passed in
 `forward_to`.
 
-Multiple `pyroscope.ebpf` components can be specified by giving them different labels, however it is not recommended.
+You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended.
 
 ## Usage
 
@@ -27,7 +27,7 @@ pyroscope.ebpf "LABEL" {
 
 The component configures and starts a new ebpf profiling job to collect performance profiles from the current host.
 
-The following arguments can be used to configure a `pyroscope.ebpf`. Only the
+You can use the following arguments to configure a `pyroscope.ebpf`. Only the
 `forward_to` and `targets` fields are required and any omitted fields take their default
 values.
 
@@ -63,10 +63,10 @@ configuration.
 ## Debug metrics
 
 * `pyroscope_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
-* `pyroscope_ebpf_active_targets` (gauge): Number of active targets tracked by the component.
+* `pyroscope_ebpf_active_targets` (gauge): Number of active targets the component tracks.
 * `pyroscope_ebpf_profiling_sessions_total` (counter): Number of profiling sessions completed.
 * `pyroscope_ebpf_profiling_sessions_failing_total` (counter): Number of profiling sessions failed.
-* `pyroscope_ebpf_pprofs_total` (counter): Number of pprof profiles collected by ebpf component.
+* `pyroscope_ebpf_pprofs_total` (counter): Number of pprof profiles collected by the ebpf component.
 
 ## Profile collecting behavior
 
@@ -163,14 +163,13 @@ apt install libc6-dbg
 
 ### Understanding Flat Stack Traces
 
-If your profiles show a lof of shallow stack traces, typically 1-2 frames deep, it might mean that
-your binary was compiled without frame pointers.
+If your profiles show many shallow stack traces, typically 1-2 frames deep, your binary might have been compiled without frame pointers.
 
 To compile your code with frame pointers, include the `-fno-omit-frame-pointer` flag in your compiler options.
 
 ### Profiling Interpreted Languages
 
-Currently, profiling interpreted languages like Python, Ruby, JavaScript, etc., is not ideal using this implementation.
+Profiling interpreted languages like Python, Ruby, JavaScript, etc., is not ideal using this implementation.
 The JIT-compiled methods in these languages are typically not in ELF file format, demanding additional steps for
 profiling. For instance, using perf-map-agent and enabling frame pointers for Java.
 
@@ -220,7 +219,7 @@ pyroscope.write "endpoint" {
 ### Docker discovery
 
 The following example collects performance profiles from containers discovered by `discovery.docker` and ignores all
-other profiles collected from outside any docker container. `service_name` label is set to
+other profiles collected from outside any docker container. The `service_name` label is set to the
 `__meta_docker_container_name` label.
 
 ```river
