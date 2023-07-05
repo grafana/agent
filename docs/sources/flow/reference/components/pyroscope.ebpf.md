@@ -90,7 +90,7 @@ container ID. This association process involves checking the `__container_id__`,
 and `__meta_kubernetes_pod_container_id` labels of a target against the `/proc/{pid}/cgroup` of a process.
 
 If a corresponding container ID is found, the stack traces are aggregated per target based on the container ID.
-However, if a container ID is not identified, the stack trace is then associated with a `default_target`.
+If a container ID is not found, the stack trace is associated with a `default_target`.
 
 Any stacktraces not associated with a listed target are disregarded.
 
