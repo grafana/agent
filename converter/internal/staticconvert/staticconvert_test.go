@@ -44,6 +44,11 @@ func TestConvert(t *testing.T) {
 					}
 				}
 
+				// If we expect more errors than we got
+				if len(expectedErrors) > len(diags) {
+					require.Fail(t, "missing expected error: "+expectedErrors[len(diags)])
+				}
+
 				outputFile := strings.TrimSuffix(path, staticSuffix) + flowSuffix
 				if _, err := os.Stat(outputFile); err == nil {
 					outputBytes, err := os.ReadFile(outputFile)

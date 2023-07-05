@@ -41,19 +41,19 @@ func validateDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) diag.Diagn
 	var diags diag.Diagnostics
 
 	if sdConfig.HTTPClientConfig.BasicAuth != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported basic_auth for lightsail_sd_configs")
+		diags.Add(diag.SeverityLevelError, "unsupported basic_auth for lightsail_sd_configs")
 	}
 
 	if sdConfig.HTTPClientConfig.Authorization != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported authorization for lightsail_sd_configs")
+		diags.Add(diag.SeverityLevelError, "unsupported authorization for lightsail_sd_configs")
 	}
 
 	if sdConfig.HTTPClientConfig.OAuth2 != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for lightsail_sd_configs")
+		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for lightsail_sd_configs")
 	}
 
 	if !reflect.DeepEqual(prom_config.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
-		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for lightsail_sd_configs")
+		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for lightsail_sd_configs")
 	}
 
 	newDiags := validateHttpClientConfig(&sdConfig.HTTPClientConfig)
