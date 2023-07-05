@@ -107,7 +107,7 @@ If `service_name` is not specified and could not be inferred, it is set to `unsp
 
 ## Troubleshooting Unknown Symbols
 
-Symbols are extracted from various sources including:
+Symbols are extracted from various sources, including:
 
 - The `.symtab` and `.dynsym` sections in the ELF file.
 - The `.symtab` and `.dynsym` sections in the debug ELF file.
