@@ -1,1 +1,8 @@
 (Error) unsupported service discovery nomad was provided
+(Error) unsupported global config evaluation_interval was provided
+(Error) unsupported global config query_log_file was provided
+(Error) unsupported alerting config was provided
+(Error) unsupported rule_files config was provided
+(Error) unsupported storage config was provided
+(Error) unsupported tracing config was provided
+(Error) unsupported remote_read config was provided

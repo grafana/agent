@@ -3,6 +3,7 @@ package prometheusconvert
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/discovery"
@@ -86,7 +87,10 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix stri
 		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets, label)
 	}
 
-	prepareFileBlocks(f, pb)
+	newDiags := validate(promConfig)
+	diags = append(diags, newDiags...)
+
+	pb.appendToFile(f)
 	return diags
 }
 
@@ -141,50 +145,36 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 	return targets, diags
 }
 
-type prometheusBlocks struct {
-	discoveryBlocks             []*builder.Block
-	discoveryRelabelBlocks      []*builder.Block
-	prometheusScrapeBlocks      []*builder.Block
-	prometheusRelabelBlocks     []*builder.Block
-	prometheusRemoteWriteBlocks []*builder.Block
-}
+func validate(promConfig *prom_config.Config) diag.Diagnostics {
+	var diags diag.Diagnostics
 
-func newPrometheusBlocks() *prometheusBlocks {
-	return &prometheusBlocks{
-		discoveryBlocks:             []*builder.Block{},
-		discoveryRelabelBlocks:      []*builder.Block{},
-		prometheusScrapeBlocks:      []*builder.Block{},
-		prometheusRelabelBlocks:     []*builder.Block{},
-		prometheusRemoteWriteBlocks: []*builder.Block{},
-	}
-}
-
-// prepareFileBlocks attaches prometheus blocks in a specific order.
-//
-// Order of blocks:
-// 1. Discovery component(s)
-// 2. Discovery relabel component(s) (if any)
-// 3. Prometheus scrape component(s)
-// 4. Prometheus relabel component(s) (if any)
-// 5. Prometheus remote_write
-func prepareFileBlocks(f *builder.File, pb *prometheusBlocks) {
-	for _, block := range pb.discoveryBlocks {
-		f.Body().AppendBlock(block)
+	if promConfig.GlobalConfig.EvaluationInterval != prom_config.DefaultGlobalConfig.EvaluationInterval {
+		diags.Add(diag.SeverityLevelError, "unsupported global config evaluation_interval was provided")
 	}
 
-	for _, block := range pb.discoveryRelabelBlocks {
-		f.Body().AppendBlock(block)
+	if promConfig.GlobalConfig.QueryLogFile != "" {
+		diags.Add(diag.SeverityLevelError, "unsupported global config query_log_file was provided")
 	}
 
-	for _, block := range pb.prometheusScrapeBlocks {
-		f.Body().AppendBlock(block)
+	if len(promConfig.AlertingConfig.AlertmanagerConfigs) > 0 || len(promConfig.AlertingConfig.AlertRelabelConfigs) > 0 {
+		diags.Add(diag.SeverityLevelError, "unsupported alerting config was provided")
 	}
 
-	for _, block := range pb.prometheusRelabelBlocks {
-		f.Body().AppendBlock(block)
+	if len(promConfig.RuleFiles) > 0 {
+		diags.Add(diag.SeverityLevelError, "unsupported rule_files config was provided")
 	}
 
-	for _, block := range pb.prometheusRemoteWriteBlocks {
-		f.Body().AppendBlock(block)
+	if promConfig.StorageConfig.TSDBConfig != nil || promConfig.StorageConfig.ExemplarsConfig != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported storage config was provided")
 	}
+
+	if !reflect.DeepEqual(promConfig.TracingConfig, prom_config.TracingConfig{}) {
+		diags.Add(diag.SeverityLevelError, "unsupported tracing config was provided")
+	}
+
+	if len(promConfig.RemoteReadConfigs) > 0 {
+		diags.Add(diag.SeverityLevelError, "unsupported remote_read config was provided")
+	}
+
+	return diags
 }
