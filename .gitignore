@@ -17,6 +17,8 @@ data-agent
 /dist.temp/
 /packaging/windows/LICENSE
 /packaging/windows/agent-windows-amd64.exe
+/operations/agent-flow-mixin-compiled
+/operations/agent-flow-mixin.zip
 
 .DS_Store
 buildx-v*
