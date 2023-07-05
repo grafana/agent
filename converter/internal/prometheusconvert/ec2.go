@@ -42,19 +42,19 @@ func validateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if sdConfig.HTTPClientConfig.BasicAuth != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported basic_auth for ec2_sd_configs")
+		diags.Add(diag.SeverityLevelError, "unsupported basic_auth for ec2_sd_configs")
 	}
 
 	if sdConfig.HTTPClientConfig.Authorization != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported authorization for ec2_sd_configs")
+		diags.Add(diag.SeverityLevelError, "unsupported authorization for ec2_sd_configs")
 	}
 
 	if sdConfig.HTTPClientConfig.OAuth2 != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for ec2_sd_configs")
+		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for ec2_sd_configs")
 	}
 
 	if !reflect.DeepEqual(prom_config.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
-		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for ec2_sd_configs")
+		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for ec2_sd_configs")
 	}
 
 	newDiags := validateHttpClientConfig(&sdConfig.HTTPClientConfig)
