@@ -7,7 +7,7 @@ labels:
 
 # Clustering (beta)
 
-Agent Clustering enables Grafana Agent Flow to coordinate a fleet of agents to
+Clustering enables Grafana Agent Flow to coordinate a fleet of agents to
 work together for workload distribution and high availability. It makes agent
 deployments horizontally scalable by default, and minimizes the operational
 overhead of managing your agent infrastructure to handle demand.
@@ -18,19 +18,17 @@ use the same configuration and have access to the same type of hardware and
 network resources such as PVCs and service discovery APIs.
 
 Clustering is built from the ground-up to be the de-facto answer to "how do I
-scale my Grafana Agent setup" in the agent's future. As an example, in
-comparison to a horizontally-scalable setup using [hashmod sharding][],
-clustering with target auto-distribution scales and provides resiliency at
-_half_ the cost in resources and without the need of changing configuration
-files for resharding.
+scale my Grafana Agent setup" in the future. As an example, in comparison to a
+setup using [hashmod sharding][], clustering with target auto-distribution
+scales and provides resiliency at _half_ the cost in resources and provides
+dynamic resharding without the need to change configuration files.
 
 The behavior of a standalone, non-clustered agent is the same as if it was a
 1-node cluster.
 
 ## Usage
 
-The following set of command-line flags are used to configure clustering when
-starting up Grafana Agent:
+The following set of command-line flags are used to configure clustering:
 - `--server.http.listen-addr`: the address where the agent’s HTTP server
   listens to.
 - `--cluster.enabled`: enables cluster awareness.
@@ -42,8 +40,8 @@ starting up Grafana Agent:
   join the cluster at. These can be IP addresses with an optional port, or a
 DNS record to lookup.
 
-Cluster communication happens over HTTP/2 on the agents’ HTTP listener. The
-agents must be configured to accept connections from one another on the address
+Peers communicate over HTTP/2 on the agent's built-in HTTP server. Each node
+must be configured to accept connections from one another on the address
 defined by the `--server.http.listen-addr` flag.
 
 Each cluster member’s name must be unique within the cluster. Nodes which try
@@ -57,15 +55,15 @@ listener if not explicitly provided; it’s generally recommended to align the
 port numbers on as many nodes as possible to simplify the deployment process.
 
 Finally, the first node that is used to bootstrap a new cluster (also known as
-the "seed node") can either omit specifying the flag that specifies peers to
-join or can try to connect to itself.
+the "seed node") can either omit the flag that specifies peers to join or can
+try to connect to itself.
 
 ## Deploy clustering using the Helm chart
 
 The easiest way to deploy agent clustering is by making use of our
 [Helm chart][].
 
-The following `values.yaml` file deploys an agent StatefulSet for metrics
+The following `values.yaml` file deploys anStatefulSet for metrics
 collection. It makes use of a [headless service][] to retrieve the IPs of the
 agent pods for the `--cluster.join-addresses` argument, as well as an HPA for
 autoscaling.
@@ -126,7 +124,7 @@ service:
   clusterIP: 'None'
 ```
 
-First, set up the Grafana chart repository.
+First, you need to set up the Grafana chart repository.
 ```
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
@@ -138,18 +136,17 @@ command:
 $ helm install --create-namespace --namespace NAMESPACE INSTALL_NAME . -f VALUES --set-file agent.configMap.content=CONFIG_FILE
 ```
 
-To upgrade your helm installation with a new configuration file or values
-override:
+To upgrade your helm installation with a new configuration file or values file:
 ```
 $ helm upgrade --install --namespace NAMESPACE INSTALL_NAME . -f VALUES --set-file agent.configMap.content=CONFIG_FILE
 ```
 
-In the above example we use `grafana-agent` as the install name, which is used
-to name all resources, such as the headless service we’re passing in the
-`--cluster.join-addresses` flag.
+All resources use Helm’s default name generation rules. If `INSTALL_NAME` is
+`grafana-agent`, then all resources will be named as such; for any other name,
+they will be called `INSTALL_NAME-grafana-agent`.
 
-For any other installation name, the resources use Helm’s default name
-generation and are called after `INSTALL_NAME-grafana-agent`.
+This is important for the name of the headless service we're passing as the
+`--cluster.join-addresses` flag.
 
 Keep in mind, when using a statefulset, autoscaling with an HPA can lead to up
 to `maxReplicas` PVCs leaking when the HPA is scaling down. If you're on
@@ -177,9 +174,9 @@ information with the a click of a button.
 
 To use the mixin, you first need to install [mixtool][]. Then, clone the
 `grafana/agent` repo, and run `make build-mixin` from the repo root. The compiled
-mixin is available on the `operations/agent-flow-mixin-compiled`
-directory. You can import the JSON dashboards into your Grafana instance and
-upload the alerts on Prometheus.
+mixin is available on the `operations/agent-flow-mixin-compiled` directory. You
+can import the JSON dashboards into Grafana and upload the alerts on your
+Prometheus instance.
 
 ```
 $ go install github.com/monitoring-mixins/mixtool/cmd/mixtool@main
@@ -292,12 +289,12 @@ prometheus.scrape "default" {
 }
 ```
 
-[grafana/ckit]: "https://github.com/grafana/ckit"
-[hashmod sharding]: "https://grafana.com/docs/agent/latest/static/operation-guide/#hashmod-sharding-stable"
-[Helm chart]: "https://artifacthub.io/packages/helm/grafana/grafana-agent"
-[headless service]: "https://kubernetes.io/docs/concepts/services-networking/service/#headless-services"
-[Flow mixin]: "https://github.com/grafana/agent/tree/main/operations/agent-flow-mixin"
-[mixtool]: "https://github.com/monitoring-mixins/mixtool"
+[grafana/ckit]: https://github.com/grafana/ckit
+[hashmod sharding]: https://grafana.com/docs/agent/latest/static/operation-guide/#hashmod-sharding-stable
+[Helm chart]: https://artifacthub.io/packages/helm/grafana/grafana-agent
+[headless service]: https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+[Flow mixin]: https://github.com/grafana/agent/tree/main/operations/agent-flow-mixin
+[mixtool]: https://github.com/monitoring-mixins/mixtool
 
 [prometheus.scrape]: {{< relref "../reference/components/prometheus.scrape.md#clustering-beta" >}}
 [pyroscope.scrape]: {{< relref "../reference/components/pyroscope.scrape.md#clustering-beta" >}}
