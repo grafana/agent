@@ -55,16 +55,13 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 // AppendAll analyzes the entire prometheus config in memory and transforms it
 // into Flow Arguments. It then appends each argument to the file builder.
 // Exports from other components are correctly referenced to build the Flow
-// pipeline.
+// pipeline. A non-empty labelPrefix can be provided for label uniqueness when
+// calling this function for the same builder.File multiple times.
 func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	pb := newPrometheusBlocks()
 
-	remoteWriteLabel := labelPrefix
-	if remoteWriteLabel == "" {
-		remoteWriteLabel = "default"
-	}
-	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, remoteWriteLabel)
+	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
 	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
 
 	scrapeForwardTo := remoteWriteForwardTo

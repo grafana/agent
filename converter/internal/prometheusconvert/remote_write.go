@@ -10,10 +10,15 @@ import (
 
 func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.GlobalConfig, remoteWriteConfigs []*prom_config.RemoteWriteConfig, label string) *remotewrite.Exports {
 	remoteWriteArgs := toRemotewriteArguments(globalConfig, remoteWriteConfigs)
-	block := common.NewBlockWithOverride([]string{"prometheus", "remote_write"}, label, remoteWriteArgs)
+
+	remoteWriteLabel := label
+	if remoteWriteLabel == "" {
+		remoteWriteLabel = "default"
+	}
+	block := common.NewBlockWithOverride([]string{"prometheus", "remote_write"}, remoteWriteLabel, remoteWriteArgs)
 	pb.prometheusRemoteWriteBlocks = append(pb.prometheusRemoteWriteBlocks, block)
 	return &remotewrite.Exports{
-		Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write." + label + ".receiver"},
+		Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write." + remoteWriteLabel + ".receiver"},
 	}
 }
 

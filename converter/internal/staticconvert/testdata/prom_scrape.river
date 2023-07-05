@@ -25,7 +25,7 @@ discovery.relabel "agent_promobee" {
 		discovery.azure.agent_promobee_2.targets,
 		discovery.azure.agent_promobee.targets,
 		[{
-			__address__ = "415564858244",
+			__address__ = "localhost:9090",
 		}],
 	)
 
