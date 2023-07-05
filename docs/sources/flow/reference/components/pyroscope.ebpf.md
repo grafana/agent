@@ -133,7 +133,7 @@ This can occur for several reasons:
 
 - The process has terminated, making the ELF file inaccessible.
 - The ELF file is either corrupted or not recognized as an ELF file.
-- There is no corresponding ELF file entry in /proc/pid/maps for the address in the stack trace.
+- There is no corresponding ELF file entry in `/proc/pid/maps` for the address in the stack trace.
 
 ### Addressing Unresolved Symbols
 
