@@ -100,6 +100,8 @@ debug metrics.
 
 ## Examples
 
+### Collect metrics from a PostgreSQL server
+
 This example uses a `prometheus.exporter.postgres` component to collect metrics from a Postgres
 server running locally with all default settings:
 
@@ -130,6 +132,9 @@ Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+
+### Collect custom metrics from an allowlisted set of databases
 
 This example uses a `prometheus.exporter.postgres` component to collect custom metrics from a set of
 specific databases, replacing default metrics with custom metrics derived from queries in `/etc/agent/custom-postgres-metrics.yaml`:
@@ -167,6 +172,13 @@ prometheus.remote_write "demo" {
 }
 ```
 
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+### Collect metrics from all databases except for a denylisted database
+
 This example uses a `prometheus.exporter.postgres` component to collect custom metrics from all databases except
 for the `secrets` database.
 ```river
@@ -199,5 +211,10 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

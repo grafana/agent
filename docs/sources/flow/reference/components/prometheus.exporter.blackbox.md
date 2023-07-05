@@ -98,6 +98,8 @@ debug metrics.
 
 ## Examples
 
+### Collect metrics using a blackbox exporter config file
+
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.blackbox`:
 
@@ -138,6 +140,8 @@ Replace the following:
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
 
+### Collect metrics using an embedded configuration
+
 This example is the same above with using an embedded configuration:
 
 ```river
@@ -172,5 +176,9 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
