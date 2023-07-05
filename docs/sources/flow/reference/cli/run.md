@@ -65,9 +65,10 @@ reloading.
 
 ## Clustering (beta)
 
-The `--cluster.enabled` command-line argument enable _cluster-awareness_ for
-Grafana Agent. Refer to the [clustering][] docs for an overview of the concept
-and its use cases.
+The `--cluster.enabled` command-line argument starts Grafana Agent in
+clustering mode. The rest of the `--cluster.*` command-line flags can be used
+to configure how nodes discover and connect to one another; refer to the
+[clustering][] docs for an overview of the concept and its use cases.
 
 ## Configuration conversion (beta)
 
