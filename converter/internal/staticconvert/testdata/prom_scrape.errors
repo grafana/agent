@@ -1,1 +1,2 @@
+(Error) unsupported global config evaluation_interval was provided
 (Error) unsupported config for wal_directory was provided. use the run command flag --storage.path for Flow mode instead.
