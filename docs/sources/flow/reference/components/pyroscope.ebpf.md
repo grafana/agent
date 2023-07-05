@@ -92,7 +92,7 @@ and `__meta_kubernetes_pod_container_id` labels of a target against the `/proc/{
 If a corresponding container ID is found, the stack traces are aggregated per target based on the container ID.
 If a container ID is not found, the stack trace is associated with a `default_target`.
 
-Any stack traces not associated with a listed target are disregarded.
+Any stack traces not associated with a listed target are ignored.
 
 ### Service name
 
