@@ -39,7 +39,7 @@ The following flags are supported:
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
 * `--config.format`: The format of the source file. Supported formats: 'flow', 'prometheus' (default `"flow"`).
-* `--config.bypass-conversion-warnings`: Enable bypassing warnings when converting (default `false`).
+* `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
@@ -92,9 +92,9 @@ the source format to River and immediately starts running with the new
 configuration. This conversion uses the converter API described in the
 [grafana-agent convert][] docs.
 
-If you also use the `--config.bypass-conversion-warnings` command-line argument,
-Grafana Agent will ignore any warnings from the converter. Use this
-argument with caution because the resulting conversion may not be equivalent
-to the original configuration.
+If you also use the `--config.bypass-conversion-errors` command-line argument,
+Grafana Agent will ignore any errors from the converter. Use this argument
+with caution because the resulting conversion may not be equivalent to the
+original configuration.
 
 [grafana-agent convert]: {{< relref "./convert.md" >}}
