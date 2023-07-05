@@ -528,17 +528,17 @@ Defines a metric whose value only goes up.
 
 The following arguments are supported:
 
-Name            | Type       | Description | Default | Required
---------------- | ---------- | ----------- | ------- | --------
-`name`          | `string`   | The metric name. | | yes
-`action`        | `string`   | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`. | | yes
-`description`   | `string`   | The metric's description and help text. | `""` | no
-`source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""` | no
-`prefix`        | `string`   | The prefix to the metric name. | `"loki_process_custom_"` | no
-`idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed. | `"5m"` | no
-`value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`. | `""` | no
-`match_all`     | `bool`     | If set to true, all log lines are counted, without attemptng to match the `source` to the extracted map. | `false` | no
-`count_entry_bytes`     | `bool`     | If set to true, counts all log lines bytes. | `false` | no
+| Name                | Type       | Description                                                                                              | Default                  | Required |
+| ------------------- | ---------- | -------------------------------------------------------------------------------------------------------- | ------------------------ | -------- |
+| `name`              | `string`   | The metric name.                                                                                         |                          | yes      |
+| `action`            | `string`   | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`.                              |                          | yes      |
+| `description`       | `string`   | The metric's description and help text.                                                                  | `""`                     | no       |
+| `source`            | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name.                      | `""`                     | no       |
+| `prefix`            | `string`   | The prefix to the metric name.                                                                           | `"loki_process_custom_"` | no       |
+| `max_idle_duration`     | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.                        | `"5m"`                   | no       |
+| `value`             | `string`   | If set, the metric only changes if `source` exactly matches the `value`.                                 | `""`                     | no       |
+| `match_all`         | `bool`     | If set to true, all log lines are counted, without attemptng to match the `source` to the extracted map. | `false`                  | no       |
+| `count_entry_bytes` | `bool`     | If set to true, counts all log lines bytes.                                                              | `false`                  | no       |
 
 A counter cannot set both `match_all` to true _and_ a `value`.
 A counter cannot set `count_entry_bytes` without also setting `match_all=true`
@@ -553,15 +553,15 @@ Defines a gauge metric whose value can go up or down.
 
 The following arguments are supported:
 
-Name            | Type       | Description | Default | Required
---------------- | ---------- | ----------- | ------- | --------
-`name`          | `string`   | The metric name. | | yes
-`action`        | `string`   | The action to take. Valid actions are `inc` and `add`. | | yes
-`description`   | `string`   | The metric's description and help text. | `""` | no
-`source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""` | no
-`prefix`        | `string`   | The prefix to the metric name. | `"loki_process_custom_"` | no
-`idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed. | `"5m"` | no
-`value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`. | `""` | no
+| Name            | Type       | Description                                                                         | Default                  | Required |
+| --------------- | ---------- | ----------------------------------------------------------------------------------- | ------------------------ | -------- |
+| `name`          | `string`   | The metric name.                                                                    |                          | yes      |
+| `action`        | `string`   | The action to take. Valid actions are `inc` and `add`.                              |                          | yes      |
+| `description`   | `string`   | The metric's description and help text.                                             | `""`                     | no       |
+| `source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
+| `prefix`        | `string`   | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
+| `max_idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
+| `value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
 
 
 The valid `action` values are `inc`, `dec`, `set`, `add`, or `sub`.
@@ -576,15 +576,15 @@ Defines a histogram metric whose values are recorded in predefined buckets.
 
 The following arguments are supported:
 
-Name            | Type          | Description | Default | Required
---------------- | ------------- | ----------- | ------- | --------
-`name`          | `string`      | The metric name. | | yes
-`buckets`       | `list(float)` | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`. | | yes
-`description`   | `string`      | The metric's description and help text. | `""` | no
-`source`        | `string`      | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""` | no
-`prefix`        | `string`      | The prefix to the metric name. | `"loki_process_custom_"` | no
-`idle_duration` | `duration`    | Maximum amount of time to wait until the metric is marked as 'stale' and removed. | `"5m"` | no
-`value`         | `string`      | If set, the metric only changes if `source` exactly matches the `value`. | `""` | no
+| Name            | Type          | Description                                                                         | Default                  | Required |
+| --------------- | ------------- | ----------------------------------------------------------------------------------- | ------------------------ | -------- |
+| `name`          | `string`      | The metric name.                                                                    |                          | yes      |
+| `buckets`       | `list(float)` | The action to take. Valid actions are `set`, `inc`, `dec`,` add`, or `sub`.         |                          | yes      |
+| `description`   | `string`      | The metric's description and help text.                                             | `""`                     | no       |
+| `source`        | `string`      | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
+| `prefix`        | `string`      | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
+| `max_idle_duration` | `duration`    | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
+| `value`         | `string`      | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
 
 #### metrics behavior
 
@@ -593,8 +593,8 @@ If `value` is not present, all incoming log entries match.
 Label values on created metrics can be dynamic, which can cause exported
 metrics to explode in cardinality or go stale, for example, when a stream stops
 receiving new logs. To prevent unbounded growth of the `/metrics` endpoint, any
-metrics which have not been updated within `idle_duration` are removed. The
-`idle_duration` must be greater or equal to `"1s"`, and it defaults to `"5m"`.
+metrics which have not been updated within `max_idle_duration` are removed. The
+`max_idle_duration` must be greater or equal to `"1s"`, and it defaults to `"5m"`.
 
 The metric values extracted from the log data are internally converted to
 floats. The supported values are the following:
