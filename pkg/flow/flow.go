@@ -127,6 +127,7 @@ type Flow struct {
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
 	loader      *controller.Loader
+	modules     *moduleRegistry
 
 	loadFinished chan struct{}
 
@@ -137,6 +138,10 @@ type Flow struct {
 // New creates and starts a new Flow controller. Call Close to stop
 // the controller.
 func New(o Options) *Flow {
+	return newController(newModuleRegistry(), o)
+}
+
+func newController(modReg *moduleRegistry, o Options) *Flow {
 	var (
 		log       = o.Logger
 		tracer    = o.Tracer
@@ -177,6 +182,7 @@ func New(o Options) *Flow {
 			ControllerID:    o.ControllerID,
 			NewModuleController: func(id string) controller.ModuleController {
 				return newModuleController(&moduleControllerOptions{
+					ModuleRegistry: modReg,
 					Logger:         log,
 					Tracer:         tracer,
 					Clusterer:      clusterer,
@@ -199,6 +205,7 @@ func New(o Options) *Flow {
 		updateQueue: queue,
 		sched:       sched,
 		loader:      loader,
+		modules:     modReg,
 
 		loadFinished: make(chan struct{}, 1),
 	}

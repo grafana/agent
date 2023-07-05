@@ -21,7 +21,7 @@ import (
 type moduleController struct {
 	mut     sync.RWMutex
 	o       *moduleControllerOptions
-	modules map[string]*module
+	modules map[string]struct{}
 }
 
 var (
@@ -32,7 +32,7 @@ var (
 func newModuleController(o *moduleControllerOptions) controller.ModuleController {
 	return &moduleController{
 		o:       o,
-		modules: map[string]*module{},
+		modules: map[string]struct{}{},
 	}
 }
 
@@ -55,7 +55,11 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 		parent:                  m,
 	})
 
-	m.modules[fullPath] = mod
+	if err := m.o.ModuleRegistry.Register(fullPath, mod); err != nil {
+		return nil, err
+	}
+
+	m.modules[fullPath] = struct{}{}
 	return mod, nil
 }
 
@@ -64,34 +68,7 @@ func (m *moduleController) removeID(id string) {
 	defer m.mut.Unlock()
 
 	delete(m.modules, id)
-}
-
-func (m *moduleController) getModule(moduleID string) (*module, bool) {
-	m.mut.RLock()
-	defer m.mut.RUnlock()
-
-	mod, ok := m.modules[moduleID]
-	return mod, ok
-}
-
-// hasNonDefaultModule returns true if moduleController has any module whose
-// name is not the default (i.e., the component ID which created a module).
-func (m *moduleController) hasNonDefaultModule() bool {
-	// TODO(rfratto): this method needs a more clear name.
-
-	m.mut.RLock()
-	defer m.mut.RUnlock()
-
-	// We know that every moduleID _at least_ starts with m.o.ID, and that every
-	// moduleID is unique. This means that if one of the moduleIDs is longer than
-	// m.o.ID, is has a non-default name.
-	for key := range m.modules {
-		if len(key) > len(m.o.ID) {
-			return true
-		}
-	}
-
-	return false
+	m.o.ModuleRegistry.Unregister(id)
 }
 
 // ModuleIDs implements [controller.ModuleController].
@@ -130,7 +107,7 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	if c.f == nil {
-		f := New(Options{
+		f := newController(c.o.ModuleRegistry, Options{
 			ControllerID:   c.o.ID,
 			Tracer:         c.o.Tracer,
 			Clusterer:      c.o.Clusterer,
@@ -221,4 +198,8 @@ type moduleControllerOptions struct {
 
 	// ID is the attached components full ID.
 	ID string
+
+	// ModuleRegistry is a shared registry of running modules from the same root
+	// controller.
+	ModuleRegistry *moduleRegistry
 }

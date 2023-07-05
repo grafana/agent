@@ -171,6 +171,7 @@ func TestIDList(t *testing.T) {
 		HTTPPath:       "",
 		DialFunc:       nil,
 		ID:             "test",
+		ModuleRegistry: newModuleRegistry(),
 	})
 	require.Len(t, nc.ModuleIDs(), 0)
 
@@ -194,6 +195,7 @@ func TestIDCollision(t *testing.T) {
 		HTTPPath:       "",
 		DialFunc:       nil,
 		ID:             "test",
+		ModuleRegistry: newModuleRegistry(),
 	})
 	m, err := nc.NewModule("t1", nil)
 	require.NoError(t, err)
@@ -228,10 +230,11 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
 
 	return &moduleControllerOptions{
-		Logger:    s,
-		DataPath:  t.TempDir(),
-		Reg:       prometheus.NewRegistry(),
-		Clusterer: c,
+		Logger:         s,
+		DataPath:       t.TempDir(),
+		Reg:            prometheus.NewRegistry(),
+		Clusterer:      c,
+		ModuleRegistry: newModuleRegistry(),
 	}
 }
 
