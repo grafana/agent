@@ -220,7 +220,7 @@ pyroscope.write "endpoint" {
 ### Docker discovery
 
 The following example collects performance profiles from containers discovered by `discovery.docker` and ignores all
-other profiles collected from outside any docker container. `service_name` label is set to
+other profiles collected from outside any docker container. The `service_name` label is set to the
 `__meta_docker_container_name` label.
 
 ```river
