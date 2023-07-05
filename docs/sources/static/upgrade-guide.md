@@ -19,6 +19,47 @@ static mode.
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 > [upgrade-guide-flow]: {{< relref "../flow/upgrade-guide.md" >}}
 
+## v0.35
+
+### Breaking change: `auth` and `version` attributes from `walk_params` block of SNMP integration have been removed
+
+The SNMP integrations (both v1 and v2) wrap a new version of SNMP exporter which introduces a new configuration file format. 
+This new format separates the walk and metric mappings from the connection and authentication settings. This allows for easier configuration of different
+auth params without having to duplicate the full walk and metric mapping.
+
+Old configuration example:
+
+```yaml
+    snmp_targets:
+      - name: network_switch_1
+        address: 192.168.1.2
+        module: if_mib
+        walk_params: public
+        auth: public
+    walk_params:
+      public:
+        retries: 2
+        version: 2
+        auth:
+          community: public
+```
+
+New configuration example:
+
+```yaml
+    snmp_targets:
+      - name: network_switch_1
+        address: 192.168.1.2
+        module: if_mib
+        walk_params: public
+        auth: public
+    walk_params:
+      public:
+        retries: 2
+```
+
+See [Module and Auth Split Migration](https://github.com/prometheus/snmp_exporter/blob/main/auth-split-migration.md) for more details.
+
 ### Removal of Dynamic Configuration
 
 The experimental feature Dynamic Configuration has been removed. The use case of dynamic configuration will be replaced
