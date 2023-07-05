@@ -181,7 +181,7 @@ Interpreted methods will display the interpreter function’s name rather than t
 
 In the following example, performance profiles are collected from pods on the same node, discovered using
 `discovery.kubernetes`. Pod selection relies on the `HOSTNAME` environment variable, which is a pod name if the agent is
-used as a Grafana agent helm chart. Service name is set to `{namespace}/{container_name}` from kubernetes meta labels.
+used as a Grafana agent helm chart. The `service_name` label is set to `{__meta_kubernetes_namespace}/{__meta_kubernetes_pod_container_name}` from kubernetes meta labels.
 
 ```river
 discovery.kubernetes "all_pods" {
