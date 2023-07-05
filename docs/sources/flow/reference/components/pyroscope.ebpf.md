@@ -140,7 +140,7 @@ This can occur for several reasons:
 If you only see module names (e.g., `/lib/x86_64-linux-gnu/libc.so.6`) without corresponding function names, this
 indicates that the symbols couldn't be mapped to their respective function names.
 
-This can occur for a number of reasons:
+This can occur for several reasons:
 
 - The binary has been stripped, leaving no .symtab, .dynsym, or .gopclntab sections in the ELF file.
 - The debug file is missing or could not be located.
