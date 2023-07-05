@@ -1,9 +1,11 @@
 ---
 title: Clustering
 weight: 500
+labels:
+  stage: beta
 ---
 
-# Clustering
+# Clustering (beta)
 
 Agent Clustering enables Grafana Agent Flow to coordinate a fleet of agents to
 work together for workload distribution and high availability. It makes agent
@@ -14,6 +16,13 @@ To achieve this, Grafana Agent makes use of an eventually consistent model and
 the lightweight [grafana/ckit][] framework. All running nodes are assumed to
 use the same configuration and have access to the same type of hardware and
 network resources such as PVCs and service discovery APIs.
+
+Clustering is built from the ground-up to be the de-facto answer to "how do I
+scale my Grafana Agent setup" in the agent's future. As an example, in
+comparison to a horizontally-scalable setup using [hashmod sharding][],
+clustering with target auto-distribution scales and provides resiliency at
+_half_ the cost in resources and without the need of changing configuration
+files for resharding.
 
 The behavior of a standalone, non-clustered agent is the same as if it was a
 1-node cluster.
@@ -28,7 +37,7 @@ starting up Grafana Agent:
 - `--cluster.node-name`: defines the name used by the cluster node. If not
   provided, it defaults to the machine's hostname.
 - `--cluster.advertise-address`: defines the address the agent advertises for
-  its peers to connect to. If not provided, it will be inferred automatically.
+  its peers to connect to. If not provided, it is inferred automatically.
 - `--cluster.join-addresses`: accepts a comma-separated list of addresses to
   join the cluster at. These can be IP addresses with an optional port, or a
 DNS record to lookup.
@@ -86,15 +95,6 @@ agent:
       cpu: 100m
       memory: 200Mi
 
-image:
-  # -- Grafana Agent image repository.
-  repository: grafana/agent
-  # -- (string) Grafana Agent image tag. When empty, the Chart's appVersion is
-  # used.
-  tag: "v0.35.0"
-  # -- Grafana Agent image pull policy.
-  pullPolicy: IfNotPresent
-
 rbac:
   # -- Whether to create RBAC resources for the agent.
   create: true
@@ -116,7 +116,7 @@ controller:
     minReplicas: 3
     # -- The upper limit for the number of replicas to which the autoscaler can scale up.
     maxReplicas: 8
-    # -- Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetMemoryUtilizationPercentage` to 0 will disable Memory scaling.
+    # -- Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetMemoryUtilizationPercentage` to 0 disables Memory scaling.
     targetMemoryUtilizationPercentage: 80
 
 service:
@@ -148,8 +148,8 @@ In the above example we use `grafana-agent` as the install name, which is used
 to name all resources, such as the headless service we’re passing in the
 `--cluster.join-addresses` flag.
 
-For any other installation name, the resources will use Helm’s default name
-generation and will be called after `INSTALL_NAME-grafana-agent`.
+For any other installation name, the resources use Helm’s default name
+generation and are called after `INSTALL_NAME-grafana-agent`.
 
 Keep in mind, when using a statefulset, autoscaling with an HPA can lead to up
 to `maxReplicas` PVCs leaking when the HPA is scaling down. If you're on
@@ -175,9 +175,9 @@ information with the a click of a button.
 ![](../../../assets/clustering_node_info_dashboard.png)
 ![](../../../assets/clustering_node_transport_dashboard.png)
 
-To use the mixin, you will first need to install [mixtool][](). Then, clone the
-grafana/agent repo, and run `make build-mixin` from the repo root. The compiled
-mixin will be available on the `operations/agent-flow-mixin-compiled`
+To use the mixin, you first need to install [mixtool][]. Then, clone the
+`grafana/agent` repo, and run `make build-mixin` from the repo root. The compiled
+mixin is available on the `operations/agent-flow-mixin-compiled`
 directory. You can import the JSON dashboards into your Grafana instance and
 upload the alerts on Prometheus.
 
@@ -207,36 +207,36 @@ clustering.
 
 Here’s the list of some possible issues and what to keep an eye out for.
 
-- *Cluster not converging*: The cluster peers are not converging on the same
+- **Cluster not converging**: The cluster peers are not converging on the same
   view of their peers' status. Check the "Gossip Transport" row to verify that
 incoming and outgoing network requests are succeeding. Check the "Gossip ops/s"
 panel to verify that gossip messages are being exchanged, and the "Peers by
 state" panel to understand which nodes are not being picked up. This is most
 likely due to network connectivity issues between the cluster nodes.
-- *Cluster split brain*: The cluster peers are not aware of one another,
+- **Cluster split brain**: The cluster peers are not aware of one another,
   thinking they’re the only node present. Again, check for network connectivity
 issues. Check that the addresses or DNS names given in the comma-separated list
 on `--cluster.join-addresses` are correctly formatted and reachable and  that
 messages are being exchanged between peers.
-- *Configuration drift*: Clustering assumes that all nodes are running with the
+- **Configuration drift**: Clustering assumes that all nodes are running with the
   same configuration file and that configuration changes converge in a time
 scale comparable to the scrape interval (~1m). Check whether the
 `config-reloader` container is working properly, as well as pod logs for any
 issues with the reloaded configuration file.
-- *Node name conflicts*: A new node tried to join the cluster with a
+- **Node name conflicts**: A new node tried to join the cluster with a
   conflicting name. Cluster peers need to have unique names; the
 `--cluster.node-name` command-line flag defaults to the machine’s hostname but
 can be used to override the name of the node. If you’re using a StatefulSet
 which reuses pod names, check whether the previous pod has already gone away.
 Check the "Peers by state" panel to check when the conflict event was first
 seen.
-- *Node stuck in terminating state*: The node attempted to gracefully shut
+- **Node stuck in terminating state**: The node attempted to gracefully shut
   down, set its state to Terminating but has not completely gone away. Check
 the "Peers by state" panel to verify the status of the other cluster peers.
 Check whether the reporting node is correctly gossiping messages with its
 peers. Check whether the pod itself has gone away or has remained in the
 cluster as Terminating.
-- *Lamport clock stuck or drifting*: The node is either not receiving new
+- **Lamport clock stuck or drifting**: The node is either not receiving new
 messages from its peer, or it cannot keep up with the rate of messages being
 sent by the rest of the cluster. Check the ""Packet write success rate" and
 "Pending packet queue" panels to verify that messages are being decoded
@@ -249,39 +249,40 @@ _Components_ in a telemetry pipeline need to explicitly opt-in to participate
 in one or more clustering use cases using the `clustering` block in their
 River config.
 
-### Target load balancing
+### Target auto-distribution
 
-Target load balancing is the most basic use case of clustering; it allows
+Target auto-distribution is the most basic use case of clustering; it allows
 scraping components running on all peers to distribute scrape load between
 themselves. All nodes must have access to the same service discovery APIs, and
 the set of targets should converge on a timeline comparable to the scrape
 interval.
 
 Whenever a cluster state change is detected, either due to a new node joining
-or an existing node going away, all participating components will locally
+or an existing node going away, all participating components locally
 recalculate target ownership and rebalance the number of targets they’re
 scraping without explicitly communicating ownership over the network.
 
 The agent makes use of a fully-local consistent hashing algorithm to distribute
-targets, meaning that on average only ~1/N of the targets will need to be
-redistributed. This is in contrast to hashmod sharding where up to 100% of the
-targets could be reassigned to another node and possibly cause system
-instability.
+targets, meaning that on average only ~1/N of the targets are redistributed.
+This is in contrast to hashmod sharding where up to 100% of the targets could
+be reassigned to another node and possibly cause system instability.
 
-As such, target load balancing not only allows to dynamically scale the number
-of agents to distribute workloads during peaks, but also provides resiliency,
-since in the event of a node going away, its targets get automatically picked
-up by one of their peers. Again, this is in contrast to hashmod sharding which
-requires running multiple replicas of each shard for HA.
+As such, target auto-distribution not only allows to dynamically scale the
+number of agents to distribute workloads during peaks, but also provides
+resiliency, since in the event of a node going away, its targets get
+automatically picked up by one of their peers. Again, this is in contrast to
+hashmod sharding which requires running multiple replicas of each shard for HA,
+leading to increased costs and resource usage.
 
-The components who can make use of target load balancing are the following
-- [prometheus.scrape](https://grafana.com/docs/agent/next/flow/reference/components/prometheus.scrape/#clustering-experimental)
-- [pyroscope.scrape](https://grafana.com/docs/agent/next/flow/reference/components/pyroscope.scrape/#clustering-experimental)
-- [prometheus.operator.podmonitors](https://grafana.com/docs/agent/next/flow/reference/components/prometheus.operator.podmonitors/#clustering-experimental)
-- [prometheus.operator.servicemonitors](https://grafana.com/docs/agent/next/flow/reference/components/prometheus.operator.servicemonitors/#clustering-experimental)
+The components who can make use of target auto-distribution are the following:
+- [prometheus.scrape][]
+- [pyroscope.scrape][]
+- [prometheus.operator.podmonitors][]
+- [prometheus.operator.servicemonitors][]
 
-These components can opt-in to participating in clustering and load balancing
-targets between nodes by defining the `clustering` block. For example:
+These components can opt-in to participating in clustering and
+auto-distributing targets between nodes by defining the `clustering` block. For
+example:
 ```river
 prometheus.scrape "default" {
     clustering {
@@ -292,7 +293,14 @@ prometheus.scrape "default" {
 ```
 
 [grafana/ckit]: "https://github.com/grafana/ckit"
+[hashmod sharding]: "https://grafana.com/docs/agent/latest/static/operation-guide/#hashmod-sharding-stable"
 [Helm chart]: "https://artifacthub.io/packages/helm/grafana/grafana-agent"
 [headless service]: "https://kubernetes.io/docs/concepts/services-networking/service/#headless-services"
 [Flow mixin]: "https://github.com/grafana/agent/tree/main/operations/agent-flow-mixin"
 [mixtool]: "https://github.com/monitoring-mixins/mixtool"
+
+[prometheus.scrape]: {{< relref "../reference/components/prometheus.scrape.md#clustering-beta" >}}
+[pyroscope.scrape]: {{< relref "../reference/components/pyroscope.scrape.md#clustering-beta" >}}
+[prometheus.operator.podmonitors]: {{< relref "../reference/components/prometheus.operator.podmonitors.md#clustering-beta" >}}
+[prometheus.operator.servicemonitors]: {{< relref "../reference/components/prometheus.operator.servicemonitors.md#clustering-beta" >}}
+
