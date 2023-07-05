@@ -37,7 +37,7 @@ func (args *Arguments) SetToDefault() {
 	args.RemoteHTTPArguments.SetToDefault()
 }
 
-// Component implements the module.file component.
+// Component implements the module.http component.
 type Component struct {
 	opts component.Options
 	mod  *module.ModuleComponent
@@ -57,7 +57,7 @@ var (
 	_ component.HTTPComponent   = (*Component)(nil)
 )
 
-// New creates a new module.file component.
+// New creates a new module.http component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	m, err := module.NewModuleComponent(o)
 	if err != nil {
@@ -83,8 +83,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // NewManagedLocalComponent creates the new remote.http managed component.
 func (c *Component) newManagedLocalComponent(o component.Options) (*remote_http.Component, error) {
-	localFileOpts := o
-	localFileOpts.OnStateChange = func(e component.Exports) {
+	remoteHttpOpts := o
+	remoteHttpOpts.OnStateChange = func(e component.Exports) {
 		c.setContent(e.(remote_http.Exports).Content)
 
 		if !c.inUpdate.Load() && c.isCreated.Load() {
@@ -93,7 +93,7 @@ func (c *Component) newManagedLocalComponent(o component.Options) (*remote_http.
 		}
 	}
 
-	return remote_http.New(localFileOpts, c.getArgs().RemoteHTTPArguments)
+	return remote_http.New(remoteHttpOpts, c.getArgs().RemoteHTTPArguments)
 }
 
 // Run implements component.Component.
