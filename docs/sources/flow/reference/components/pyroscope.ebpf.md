@@ -145,7 +145,7 @@ This can occur for a number of reasons:
 - The binary has been stripped, leaving no .symtab, .dynsym, or .gopclntab sections in the ELF file.
 - The debug file is missing or could not be located.
 
-To fix this for your binaries, ensure that they either not stripped or that you have separate
+To fix this for your binaries, ensure that they are either not stripped or that you have separate
 debug files available. You can achieve this by running:
 
 ```bash
