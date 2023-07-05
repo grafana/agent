@@ -13,7 +13,7 @@ to
 the list of receivers passed in
 `forward_to`.
 
-Multiple `pyroscope.ebpf` components can be specified by giving them different labels, however it is not recommended.
+You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended.
 
 ## Usage
 
