@@ -103,7 +103,7 @@ attempted to be inferred from multiple sources:
 - `__meta_kubernetes_namespace` and `__meta_kubernetes_pod_container_name`
 - `__meta_docker_container_name`
 
-If `service_name` is not specified and could not be inferred it is set to `unspecified`.
+If `service_name` is not specified and could not be inferred, it is set to `unspecified`.
 
 ## Troubleshooting Unknown Symbols
 
