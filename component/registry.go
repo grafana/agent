@@ -34,6 +34,9 @@ type ModuleController interface {
 	// NewModule creates a new, un-started Module with a given ID. Multiple calls to
 	// NewModule must provide unique values for id. The empty string is a valid unique
 	// value for id.
+	//
+	// If id is non-empty, it must be a valid River identifier, matching the
+	// regex /[A-Za-z_][A-Za-z0-9_]/.
 	NewModule(id string, export ExportFunc) (Module, error)
 }
 
