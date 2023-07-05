@@ -27,7 +27,7 @@ pyroscope.ebpf "LABEL" {
 
 The component configures and starts a new ebpf profiling job to collect performance profiles from the current host.
 
-The following arguments can be used to configure a `pyroscope.ebpf`. Only the
+You can use the following arguments to configure a `pyroscope.ebpf`. Only the
 `forward_to` and `targets` fields are required and any omitted fields take their default
 values.
 
