@@ -41,8 +41,10 @@ type Host interface {
 	// GetComponent gets a running component by ID.
 	GetComponent(id component.ID, opts component.InfoOptions) (*component.Info, error)
 
-	// ListComponents lists all running components.
-	ListComponents(opts component.InfoOptions) []*component.Info
+	// ListComponents lists all running components within a given module.
+	//
+	// Returns an error if the provided moduleID doesn't exist.
+	ListComponents(moduleID string, opts component.InfoOptions) ([]*component.Info, error)
 
 	// GetServiceConsumers gets the list of components and
 	// services which depend on a service by name. The returned
