@@ -163,8 +163,7 @@ apt install libc6-dbg
 
 ### Understanding Flat Stack Traces
 
-If your profiles show a lof of shallow stack traces, typically 1-2 frames deep, it might mean that
-your binary was compiled without frame pointers.
+If your profiles show many shallow stack traces, typically 1-2 frames deep, your binary might have been compiled without frame pointers.
 
 To compile your code with frame pointers, include the `-fno-omit-frame-pointer` flag in your compiler options.
 
