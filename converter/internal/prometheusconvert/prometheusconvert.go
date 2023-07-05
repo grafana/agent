@@ -35,7 +35,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	f := builder.NewFile()
-	diags = AppendAll(f, promConfig)
+	diags = AppendAll(f, promConfig, "")
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -52,50 +52,38 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	return prettyByte, diags
 }
 
-type prometheusBlocks struct {
-	discoveryBlocks             []*builder.Block
-	discoveryRelabelBlocks      []*builder.Block
-	prometheusScrapeBlocks      []*builder.Block
-	prometheusRelabelBlocks     []*builder.Block
-	prometheusRemoteWriteBlocks []*builder.Block
-}
-
-func newPrometheusBlocks() *prometheusBlocks {
-	return &prometheusBlocks{
-		discoveryBlocks:             []*builder.Block{},
-		discoveryRelabelBlocks:      []*builder.Block{},
-		prometheusScrapeBlocks:      []*builder.Block{},
-		prometheusRelabelBlocks:     []*builder.Block{},
-		prometheusRemoteWriteBlocks: []*builder.Block{},
-	}
-}
-
 // AppendAll analyzes the entire prometheus config in memory and transforms it
 // into Flow Arguments. It then appends each argument to the file builder.
 // Exports from other components are correctly referenced to build the Flow
-// pipeline.
-func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics {
+// pipeline. A non-empty labelPrefix can be provided for label uniqueness when
+// calling this function for the same builder.File multiple times.
+func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	pb := newPrometheusBlocks()
-	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig)
 
+	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
 	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
+
 	scrapeForwardTo := remoteWriteForwardTo
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, scrapeConfig.JobName)
+		label := scrapeConfig.JobName
+		if labelPrefix != "" {
+			label = labelPrefix + "_" + label
+		}
+		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)
 		if promMetricsRelabelExports != nil {
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
-		scrapeTargets, newDiags := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, scrapeConfig.JobName)
+		scrapeTargets, newDiags := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
 		diags = append(diags, newDiags...)
 
-		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeConfig.JobName, scrapeTargets)
+		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
 		if promDiscoveryRelabelExports != nil {
 			scrapeTargets = promDiscoveryRelabelExports.Output
 		}
 
-		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets)
+		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets, label)
 	}
 
 	prepareFileBlocks(f, pb)
@@ -151,6 +139,24 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 	}
 
 	return targets, diags
+}
+
+type prometheusBlocks struct {
+	discoveryBlocks             []*builder.Block
+	discoveryRelabelBlocks      []*builder.Block
+	prometheusScrapeBlocks      []*builder.Block
+	prometheusRelabelBlocks     []*builder.Block
+	prometheusRemoteWriteBlocks []*builder.Block
+}
+
+func newPrometheusBlocks() *prometheusBlocks {
+	return &prometheusBlocks{
+		discoveryBlocks:             []*builder.Block{},
+		discoveryRelabelBlocks:      []*builder.Block{},
+		prometheusScrapeBlocks:      []*builder.Block{},
+		prometheusRelabelBlocks:     []*builder.Block{},
+		prometheusRemoteWriteBlocks: []*builder.Block{},
+	}
 }
 
 // prepareFileBlocks attaches prometheus blocks in a specific order.
