@@ -1,6 +1,6 @@
 ---
 description: Learn how to configure Grafana Agent in flow mode on Windows
-title: Configure Grafana Agent in flow mdoe on Windows
+title: Configure Grafana Agent in flow mode on Windows
 menuTitle: Windows
 weight: 500
 ---
