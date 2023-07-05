@@ -135,12 +135,14 @@ type Flow struct {
 	loadedOnce atomic.Bool
 }
 
-// New creates and starts a new Flow controller. Call Close to stop
-// the controller.
+// New creates a new, unstarted Flow controller. Call Run to run the controller.
 func New(o Options) *Flow {
 	return newController(newModuleRegistry(), o)
 }
 
+// newController creates a new, unstarted Flow controller with a specific
+// moduleRegistry. Modules created by the controller will be passed to the
+// given modReg.
 func newController(modReg *moduleRegistry, o Options) *Flow {
 	var (
 		log       = o.Logger
