@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
@@ -28,14 +29,26 @@ func NewFlowAPI(flow component.Provider, node cluster.Node) *FlowAPI {
 
 // RegisterRoutes registers all the API's routes.
 func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
+	// NOTE(rfratto): {id:.+} is used in routes below to allow the
+	// id to contain / characters, which is used by nested module IDs and
+	// component IDs.
+
+	r.Handle(path.Join(urlPrefix, "/modules/{moduleID:.+}/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
 	r.Handle(path.Join(urlPrefix, "/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
-	r.Handle(path.Join(urlPrefix, "/components/{id}"), httputil.CompressionHandler{Handler: f.getComponentHandler()})
+	r.Handle(path.Join(urlPrefix, "/components/{id:.+}"), httputil.CompressionHandler{Handler: f.getComponentHandler()})
 	r.Handle(path.Join(urlPrefix, "/peers"), httputil.CompressionHandler{Handler: f.getClusteringPeersHandler()})
 }
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
-		components, err := f.flow.ListComponents("", component.InfoOptions{
+	return func(w http.ResponseWriter, r *http.Request) {
+		// moduleID is set from the /modules/{moduleID:.+}/components route above
+		// but not from the /compoents route.
+		var moduleID string
+		if vars := mux.Vars(r); vars != nil {
+			moduleID = vars["moduleID"]
+		}
+
+		components, err := f.flow.ListComponents(moduleID, component.InfoOptions{
 			GetHealth: true,
 		})
 		if err != nil {
@@ -55,12 +68,9 @@ func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 func (f *FlowAPI) getComponentHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		requestedComponent := vars["id"]
+		requestedComponent := parseID(vars["id"])
 
-		component, err := f.flow.GetComponent(component.ID{
-			ModuleID: "", // TODO(rfratto): support getting component from module.
-			LocalID:  requestedComponent,
-		}, component.InfoOptions{
+		component, err := f.flow.GetComponent(requestedComponent, component.InfoOptions{
 			GetHealth:    true,
 			GetArguments: true,
 			GetExports:   true,
@@ -77,6 +87,17 @@ func (f *FlowAPI) getComponentHandler() http.HandlerFunc {
 			return
 		}
 		_, _ = w.Write(bb)
+	}
+}
+
+func parseID(input string) component.ID {
+	slashIndex := strings.LastIndexByte(input, '/')
+	if slashIndex == -1 {
+		return component.ID{LocalID: input}
+	}
+	return component.ID{
+		ModuleID: input[:slashIndex],
+		LocalID:  input[slashIndex+1:],
 	}
 }
 
