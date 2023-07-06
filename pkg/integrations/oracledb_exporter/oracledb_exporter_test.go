@@ -104,7 +104,6 @@ func TestConfigValidate(t *testing.T) {
 func TestConfig_InstanceKey(t *testing.T) {
 	c := DefaultConfig
 	c.ConnectionString = "oracle://user:password@localhost:1521/orcl.localnet"
-
 	ik := "agent-key"
 	id, err := c.InstanceKey(ik)
 	require.NoError(t, err)

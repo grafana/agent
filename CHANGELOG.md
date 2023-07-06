@@ -33,6 +33,8 @@ Main (unreleased)
 
 - Integrations: Introduce the `squid` integration. (@armstrmi)
 
+- Integrations: The `prometheus.exporter.oracledb` integration now supports custom metric definitions. (@schmikei)
+
 - Support custom fields in MMDB file for `stage.geoip`. (@akselleirv)
 
 - New Grafana Agent Flow components:

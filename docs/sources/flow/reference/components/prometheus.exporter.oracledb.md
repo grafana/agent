@@ -10,6 +10,7 @@ title: prometheus.exporter.oracledb
 ---
 
 # prometheus.exporter.oracledb
+
 The `prometheus.exporter.oracledb` component embeds
 [oracledb_exporter](https://github.com/iamseth/oracledb_exporter) for collecting statistics from a OracleDB server.
 
@@ -32,8 +33,12 @@ Omitted fields take their default values.
 | `max_idle_conns`    | `int`    | Number of maximum idle connections in the connection pool.   | `0`     | no       |
 | `max_open_conns`    | `int`    | Number of maximum open connections in the connection pool.   | `10`    | no       |
 | `query_timeout`     | `int`    | The query timeout in seconds.                                | `5`     | no       |
+| `custom_metrics`    | `string` | A path to a TOML file of defined custom metrics queries. The default metrics will be included on top of the custom ones.      |         | no       |
 
 [The oracledb_exporter running documentation](https://github.com/iamseth/oracledb_exporter/tree/master#running) shows the format and provides examples of the `connection_string` argument:
+
+The oracledb_exporter [custom metrics documentation](https://github.com/iamseth/oracledb_exporter#custom-metrics) shows the format of the TOML file used for configuring custom metrics.
+
 ```conn
 oracle://user:pass@server/service_name[?OPTION1=VALUE1[&OPTIONn=VALUEn]...]
 ```

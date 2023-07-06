@@ -59,6 +59,7 @@ type Arguments struct {
 	MaxIdleConns     int               `river:"max_idle_conns,attr,optional"`
 	MaxOpenConns     int               `river:"max_open_conns,attr,optional"`
 	QueryTimeout     int               `river:"query_timeout,attr,optional"`
+	CustomMetrics    string            `river:"custom_metrics,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -93,5 +94,6 @@ func (a *Arguments) Convert() *oracledb_exporter.Config {
 		MaxIdleConns:     a.MaxIdleConns,
 		MaxOpenConns:     a.MaxOpenConns,
 		QueryTimeout:     a.QueryTimeout,
+		CustomMetrics:    a.CustomMetrics,
 	}
 }

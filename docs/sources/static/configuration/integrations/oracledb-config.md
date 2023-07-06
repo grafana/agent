@@ -67,6 +67,9 @@ Full reference of options:
   # The number of seconds that will act as the query timeout when the exporter is querying against
   # the OracleDB instance.
   [query_timeout: <int> | default = 5]
+
+  # A filepath that allows users to supply custom metrics queries. For more information on the format for specifying custom metrics, you can visit https://github.com/iamseth/oracledb_exporter#custom-metrics
+  [custom_metrics: <string>]
 ```
 
 ## Configuration example
