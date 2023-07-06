@@ -42,7 +42,7 @@ func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// moduleID is set from the /modules/{moduleID:.+}/components route above
-		// but not from the /compoents route.
+		// but not from the /components route.
 		var moduleID string
 		if vars := mux.Vars(r); vars != nil {
 			moduleID = vars["moduleID"]
