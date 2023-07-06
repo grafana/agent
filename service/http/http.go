@@ -197,23 +197,26 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Trim the path prefix to get our full path.
-		trimmedPath := strings.TrimPrefix(r.URL.Path, s.componentHttpPathPrefix)
-
 		// splitURLPath should only fail given an unexpected path.
-		componentID, componentPath, err := splitURLPath(host, trimmedPath)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, "failed to parse URL path %q: %s\n", r.URL.Path, err)
+		// componentID, componentPath, err := splitURLPath(host, trimmedPath)
+		components := host.GetAllComponents()
+		var maxComponent *component.Info
+		var maxIndex int
+		// Try to find the component that closest matches the url passed in
+		for _, comp := range components {
+			newIndex := strings.Index(r.RequestURI, comp.ID.String()) + len(comp.ID.String())
+			if newIndex > maxIndex {
+				maxIndex = newIndex
+				maxComponent = comp
+			}
 		}
 
-		info, err := host.GetComponent(componentID, component.InfoOptions{})
-		if err != nil {
+		if maxIndex == 0 {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		component, ok := info.Component.(component.HTTPComponent)
+		component, ok := maxComponent.Component.(component.HTTPComponent)
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -226,7 +229,7 @@ func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
 
 		// Send just the remaining path to our component so each component can
 		// handle paths from their own root path.
-		r.URL.Path = componentPath
+		r.URL.Path = r.RequestURI[maxIndex:]
 		handler.ServeHTTP(w, r)
 	}
 }

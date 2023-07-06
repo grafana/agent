@@ -3,6 +3,8 @@ package flow
 import (
 	"fmt"
 	"sync"
+
+	"github.com/grafana/agent/component"
 )
 
 type moduleRegistry struct {
@@ -23,6 +25,26 @@ func (reg *moduleRegistry) Get(id string) (*module, bool) {
 
 	mod, ok := reg.modules[id]
 	return mod, ok
+}
+
+func (reg *moduleRegistry) GetAllComponents() []*component.Info {
+	reg.mut.Lock()
+	defer reg.mut.Unlock()
+
+	components := make([]*component.Info, 0)
+	for _, v := range reg.modules {
+		subComponents, err := v.f.ListComponents("", component.InfoOptions{
+			GetHealth:    true,
+			GetArguments: true,
+			GetExports:   true,
+			GetDebugInfo: true,
+		})
+		if err != nil {
+			continue
+		}
+		components = append(components, subComponents...)
+	}
+	return components
 }
 
 // Register registers a module by ID. It returns an error if that module is

@@ -37,6 +37,15 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 	return f.getComponentDetail(cn, graph, opts), nil
 }
 
+// GetAllComponents returns the components from the module root, this includes all modules not just the ones located within
+// this flow controller.
+func (f *Flow) GetAllComponents() []*component.Info {
+	f.loadMut.Lock()
+	defer f.loadMut.Unlock()
+
+	return f.modules.GetAllComponents()
+}
+
 // ListComponents implements [component.Provider].
 func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*component.Info, error) {
 	f.loadMut.RLock()

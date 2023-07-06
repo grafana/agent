@@ -50,6 +50,9 @@ type Host interface {
 	// exist.
 	ListComponents(moduleID string, opts component.InfoOptions) ([]*component.Info, error)
 
+	// GetAllComponents returns all components.
+	GetAllComponents() []*component.Info
+
 	// GetServiceConsumers gets the list of components and
 	// services which depend on a service by name. The returned
 	// values will be an instance of [component.Component] or
