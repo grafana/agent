@@ -29,10 +29,10 @@ To get started with Grafana Agent Operator, refer to the Operator-specific
 
 {{< section >}}
 
-### Grafana Cloud
+## Grafana Cloud
 
 Use the Grafana Agent [Kubernetes quickstarts](https://grafana.com/docs/grafana-cloud/kubernetes/agent-k8s/) or follow instructions for installing the Grafana Agent in the [Walkthrough](https://grafana.com/docs/grafana-cloud/quickstart/agent_linuxnode/).
 
-### Tanka
+## Tanka
 
 For more information, refer to the [Tanka](https://tanka.dev) configurations in our [`production/`](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory.
