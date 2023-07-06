@@ -43,6 +43,10 @@ func validateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) di
 		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config proxy_connect_header was provided")
 	}
 
+	if httpClientConfig.TLSConfig.MaxVersion != 0 {
+		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config max_version was provided")
+	}
+
 	return diags
 }
 

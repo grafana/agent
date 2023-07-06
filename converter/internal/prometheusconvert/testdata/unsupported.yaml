@@ -44,5 +44,8 @@ scrape_configs:
 remote_write:
   - name: "remote1"
     url: "http://remote-write-url1"
+    proxy_from_environment: true
+    tls_config:
+      max_version: TLS13
   - name: "remote2"
     url: "http://remote-write-url2"
