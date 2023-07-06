@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -18,8 +19,8 @@ func TestGlobalID(t *testing.T) {
 		nodeID:   "local.id",
 		globalID: "module.file/local.id",
 	})
-	require.Equal(t, "/http/module.file/local.id/", mo.HTTPPath)
-	require.Equal(t, "/data/module.file/local.id", mo.DataPath)
+	require.Equal(t, "/http/module.file/local.id/", filepath.ToSlash(mo.HTTPPath))
+	require.Equal(t, "/data/module.file/local.id", filepath.ToSlash(mo.DataPath))
 }
 
 func TestLocalID(t *testing.T) {
@@ -34,6 +35,6 @@ func TestLocalID(t *testing.T) {
 		nodeID:   "local.id",
 		globalID: "local.id",
 	})
-	require.Equal(t, "/http/local.id/", mo.HTTPPath)
-	require.Equal(t, "/data/local.id", mo.DataPath)
+	require.Equal(t, "/http/local.id/", filepath.ToSlash(mo.HTTPPath))
+	require.Equal(t, "/data/local.id", filepath.ToSlash(mo.DataPath))
 }
