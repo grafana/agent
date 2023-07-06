@@ -110,13 +110,13 @@ Main (unreleased)
 
 - Fix Grafana Agent mixin's "Agent Operational" dashboard expecting pods to always have `grafana-agent-.*` prefix. (@thampiotr)
 
-### Other changes
-
 - Change the HTTP Path and Data Path from the controller-local ID to the global ID for components loaded from within a module loader. (@spartan0x117)
 
 - Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
   parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
   binary. (@rfratto)
+
+### Other changes
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
 
