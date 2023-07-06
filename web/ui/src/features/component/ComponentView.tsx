@@ -51,8 +51,8 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
         <hr />
         <ul>
           <li>
-            <Link to={'#' + props.component.id} target="_top">
-              {props.component.id}
+            <Link to={'#' + props.component.localID} target="_top">
+              {props.component.localID}
             </Link>
           </li>
           {argsPartition && partitionTOC(argsPartition)}
@@ -83,11 +83,11 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
       </nav>
 
       <main className={styles.content}>
-        <h1 id={props.component.id}>
+        <h1 id={props.component.localID}>
           <span className={styles.icon}>
             <FontAwesomeIcon icon={faCubes} />
           </span>
-          {props.component.id}
+          {props.component.localID}
           &nbsp; {/* space to separate the component name and label so double-click selections work */}
           <span className={styles.healthLabel}>
             <HealthLabel health={props.component.health.state} />
@@ -140,7 +140,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
             <div className={styles.sectionContent}>
               <ComponentList
                 components={props.component.moduleInfo}
-                moduleID={pathJoin([props.component.moduleID, props.component.id])}
+                moduleID={pathJoin([props.component.moduleID, props.component.localID])}
               />
             </div>
           </section>

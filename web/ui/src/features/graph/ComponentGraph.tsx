@@ -152,7 +152,7 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
     };
 
     const builder = dagStratify()
-      .id<IdOperator<ComponentInfo>>((n) => n.id)
+      .id<IdOperator<ComponentInfo>>((n) => n.localID)
       .parentIds<ParentIdsOperator<ComponentInfo>>((n) => n.referencedBy);
     const dag = builder(props.components);
 
@@ -195,7 +195,7 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
         }
 
         // Cache the width so it can be used while plotting the SVG.
-        widthCache[n.data.id] = width;
+        widthCache[n.data.localID] = width;
 
         return [width + nodeMargin + nodePadding * 2, nodeHeight + nodeMargin + nodePadding * 2];
       });
@@ -276,9 +276,9 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
         // 4. The line will now stop at the box edge as expected.
 
         const nodeBox: Box = {
-          x: (node.target.x || 0) - widthCache[node.target.data.id] / 2 - nodePadding,
+          x: (node.target.x || 0) - widthCache[node.target.data.localID] / 2 - nodePadding,
           y: (node.target.y || 0) - nodeHeight / 2 - nodePadding,
-          w: widthCache[node.target.data.id] + nodePadding * 2,
+          w: widthCache[node.target.data.localID] + nodePadding * 2,
           h: nodeHeight + nodePadding * 2,
         };
 
@@ -307,7 +307,7 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
       .attr('stroke', '#c8c9ca')
       .append('title') // Append tooltip to edge
       .text((n) => {
-        return `${n.source.data.id} to ${n.target.data.id}`;
+        return `${n.source.data.localID} to ${n.target.data.localID}`;
       });
 
     // Select nodes
@@ -323,12 +323,12 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
         // We translate the group to the top-left corner to make it easier to
         // position all the elements. Top left corner should account for
         // padding space.
-        const x = (node.x || 0) - widthCache[node.data.id] / 2 - nodePadding;
+        const x = (node.x || 0) - widthCache[node.data.localID] / 2 - nodePadding;
         const y = (node.y || 0) - nodeHeight / 2 - nodePadding;
         return `translate(${x}, ${y})`;
       });
 
-    const linkedNodes = nodes.append('a').attr('href', (n) => `${baseComponentPath}/${n.data.id}`);
+    const linkedNodes = nodes.append('a').attr('href', (n) => `${baseComponentPath}/${n.data.localID}`);
 
     // Plot nodes
     linkedNodes
@@ -337,7 +337,7 @@ export const ComponentGraph: FC<ComponentGraphProps> = (props) => {
       .attr('rx', 3)
       .attr('height', nodeHeight + nodePadding * 2)
       .attr('width', (node) => {
-        return widthCache[node.data.id] + nodePadding * 2;
+        return widthCache[node.data.localID] + nodePadding * 2;
       })
       .attr('stroke-width', '1')
       .attr('stroke', '#e4e5e6');

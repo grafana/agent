@@ -7,8 +7,8 @@ export interface ComponentInfo {
   /** The moduleID that the component is defined in. moduleID may be the empty string. */
   moduleID: string;
 
-  /** The id of the component uniquely identifies the component. */
-  id: string;
+  /** The id of the component uniquely identifies the component within a module. */
+  localID: string;
 
   /**
    * The name of the component is the name of the block used to instantiate
@@ -50,7 +50,7 @@ export interface ComponentInfo {
 export function componentInfoByID(info: ComponentInfo[]): Record<string, ComponentInfo> {
   const res: Record<string, ComponentInfo> = {};
   info.forEach((elem) => {
-    res[elem.id] = elem;
+    res[elem.localID] = elem;
   });
   return res;
 }

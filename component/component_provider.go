@@ -88,7 +88,7 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 		componentDetailJSON struct {
 			Name         string               `json:"name"`
 			Type         string               `json:"type,omitempty"`
-			ID           string               `json:"id"`
+			LocalID      string               `json:"localID"`
 			ModuleID     string               `json:"moduleID"`
 			Label        string               `json:"label,omitempty"`
 			References   []string             `json:"referencesTo"`
@@ -134,7 +134,7 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 		Name:         info.Registration.Name,
 		Type:         "block",
 		ModuleID:     info.ID.ModuleID,
-		ID:           info.ID.LocalID,
+		LocalID:      info.ID.LocalID,
 		Label:        info.Label,
 		References:   references,
 		ReferencedBy: referencedBy,

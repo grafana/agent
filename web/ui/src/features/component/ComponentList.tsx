@@ -22,7 +22,7 @@ const ComponentList = ({ components, moduleID }: ComponentListProps) => {
    * Custom renderer for table data
    */
   const renderTableData = () => {
-    return components.map(({ health, id }) => (
+    return components.map(({ health, localID: id }) => (
       <tr key={id} style={{ lineHeight: '2.5' }}>
         <td>
           <HealthLabel health={health.state} />
