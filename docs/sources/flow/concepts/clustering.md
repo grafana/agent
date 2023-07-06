@@ -50,7 +50,7 @@ This is in contrast to hashmod sharding where up to 100% of the targets could
 be reassigned to another node and possibly cause system instability.
 
 As such, target auto-distribution not only allows to dynamically scale the
-number of agents to distribute workloads during peaks, but also provides
+number of agents to distribute workload during peaks, but also provides
 resiliency, since in the event of a node going away, its targets are
 automatically picked up by one of their peers. Again, this is in contrast to
 hashmod sharding which requires running multiple replicas of each shard for HA.
@@ -72,7 +72,40 @@ prometheus.scrape "default" {
 }
 ```
 
-## Clustering example using Helm
+## Local clustering example
+
+The following commands bootstrap a three-node local cluster
+```
+# node-a (seed node)
+$ ./build/grafana-agent-flow \
+    --server.http.listen-addr=0.0.0.0:12345 \
+    --cluster.enabled --cluster.node-name=node-a\
+    --cluster.advertise-address=localhost:12345 \
+    run local-clustering.river
+
+# node-b
+$ ./build/grafana-agent-flow \
+    --server.http.listen-addr=0.0.0.0:12346 \
+    --cluster.enabled --cluster.node-name=node-b \
+    --cluster.advertise-address=localhost:12346 \
+    --cluster.join-addresses=localhost:12345 \
+    run local-clustering.river
+
+# node-c
+$ ./build/grafana-agent-flow \
+    --server.http.listen-addr=0.0.0.0:12347 \
+    --cluster.enabled --cluster.node-name=node-c \
+    --cluster.advertise-address=localhost:12347 \
+    --cluster.join-addresses=localhost:12345,localhost:12346 \
+    run local-clustering.river
+```
+
+The clustering UI page of each node will provide information about the status
+of its peers and the details page of the each node's `prometheus.scrape`
+component will point to which target is being scraped by that node in its
+Debug Info.
+
+## Helm chart clustering example
 
 The easiest way to deploy an agent cluster is by making use of our
 [Helm chart][]. Here's an example of how to achieve that.
@@ -107,14 +140,6 @@ agent:
     requests:
       cpu: 100m
       memory: 200Mi
-
-rbac:
-  # -- Whether to create RBAC resources for the agent.
-  create: true
-
-serviceAccount:
-  # -- Whether to create a service account for the Grafana Agent deployment.
-  create: true
 
 controller:
   type: 'statefulset'
