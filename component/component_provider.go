@@ -86,17 +86,19 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 		}
 
 		componentDetailJSON struct {
-			Name         string               `json:"name,omitempty"`
-			Type         string               `json:"type,omitempty"`
-			ID           string               `json:"id,omitempty"`
-			Label        string               `json:"label,omitempty"`
-			References   []string             `json:"referencesTo"`
-			ReferencedBy []string             `json:"referencedBy"`
-			Health       *componentHealthJSON `json:"health"`
-			Original     string               `json:"original"`
-			Arguments    json.RawMessage      `json:"arguments,omitempty"`
-			Exports      json.RawMessage      `json:"exports,omitempty"`
-			DebugInfo    json.RawMessage      `json:"debugInfo,omitempty"`
+			Name             string               `json:"name"`
+			Type             string               `json:"type,omitempty"`
+			LocalID          string               `json:"localID"`
+			ModuleID         string               `json:"moduleID"`
+			Label            string               `json:"label,omitempty"`
+			References       []string             `json:"referencesTo"`
+			ReferencedBy     []string             `json:"referencedBy"`
+			Health           *componentHealthJSON `json:"health"`
+			Original         string               `json:"original"`
+			Arguments        json.RawMessage      `json:"arguments,omitempty"`
+			Exports          json.RawMessage      `json:"exports,omitempty"`
+			DebugInfo        json.RawMessage      `json:"debugInfo,omitempty"`
+			CreatedModuleIDs []string             `json:"createdModuleIDs,omitempty"`
 		}
 	)
 
@@ -131,7 +133,8 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&componentDetailJSON{
 		Name:         info.Registration.Name,
 		Type:         "block",
-		ID:           info.ID.LocalID, // TODO(rfratto): support getting component from module.
+		ModuleID:     info.ID.ModuleID,
+		LocalID:      info.ID.LocalID,
 		Label:        info.Label,
 		References:   references,
 		ReferencedBy: referencedBy,
@@ -140,9 +143,10 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 			Message:     info.Health.Message,
 			UpdatedTime: info.Health.UpdateTime,
 		},
-		Arguments: arguments,
-		Exports:   exports,
-		DebugInfo: debugInfo,
+		Arguments:        arguments,
+		Exports:          exports,
+		DebugInfo:        debugInfo,
+		CreatedModuleIDs: info.ModuleIDs,
 	})
 }
 
