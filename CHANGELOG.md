@@ -114,8 +114,8 @@ Main (unreleased)
   parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
   binary. (@rfratto)
   
-- Add `/loki/api/v1/raw` and `/loki/api/v1/push` to `loki.source.api`, additionally the `/api/v1/push` and `api/v1/raw` now map to 
-  the `/loki/` prefixed endpoints. (@mattdurham)
+- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to 
+  the `/loki` prefixed endpoints. (@mattdurham)
 
 v0.34.3 (2023-06-27)
 --------------------
