@@ -77,7 +77,7 @@ require (
 	github.com/hashicorp/vault/api/auth/ldap v0.2.0
 	github.com/hashicorp/vault/api/auth/userpass v0.2.0
 	github.com/heroku/x v0.0.55
-	github.com/iamseth/oracledb_exporter v0.0.0-20230504204552-f801dc432dcf
+	github.com/iamseth/oracledb_exporter v0.0.0-20230530194851-145b4ee86cbf
 	github.com/infinityworks/github-exporter v0.0.0-20210802160115-284088c21e7d
 	github.com/influxdata/go-syslog/v3 v3.0.1-0.20210608084020-ac565dc76ba6
 	github.com/jaegertracing/jaeger v1.41.0
@@ -147,7 +147,7 @@ require (
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
 	github.com/rs/cors v1.9.0
 	github.com/shirou/gopsutil/v3 v3.23.5
-	github.com/sijms/go-ora/v2 v2.7.3
+	github.com/sijms/go-ora/v2 v2.7.6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/cobra v1.7.0
