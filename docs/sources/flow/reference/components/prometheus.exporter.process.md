@@ -110,6 +110,7 @@ from `prometheus.exporter.process`:
 ```river
 prometheus.exporter.process "example" {
   track_children = false
+
   matcher {
     comm = ["grafana-agent"]
   }
@@ -118,8 +119,23 @@ prometheus.exporter.process "example" {
 // Configure a prometheus.scrape component to collect process_exporter metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.process.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

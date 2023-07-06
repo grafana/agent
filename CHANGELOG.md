@@ -84,6 +84,8 @@ Main (unreleased)
 
 - The Agent Operational dashboard of Grafana Agent mixin now has more descriptive panel titles, Y-axis units
 
+- Add `write_relabel_config` to `prometheus.remote_write` (@jkroepke)
+
 - Update OpenTelemetry Collector dependencies from v0.63.0 to v0.80.0. (@ptodev)
 
 - Allow setting the node name for clustering with a command-line flag. (@tpaschalis)
@@ -115,6 +117,9 @@ Main (unreleased)
 - Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
   parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
   binary. (@rfratto)
+  
+- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to 
+  the `/loki` prefixed endpoints. (@mattdurham)
 
 ### Other changes
 

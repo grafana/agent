@@ -2,9 +2,21 @@ package component
 
 import (
 	"encoding/json"
+	"errors"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/pkg/river/encoding/riverjson"
+)
+
+var (
+	// ErrComponentNotFound is returned by [Provider.GetComponent] when the
+	// specified component isn't found.
+	ErrComponentNotFound = errors.New("component not found")
+
+	// ErrModuleNotFound is returned by [Provider.ListComponents] when the
+	// specified module isn't found.
+	ErrModuleNotFound = errors.New("module not found")
 )
 
 // A Provider is a system which exposes a list of running components.
@@ -13,14 +25,14 @@ type Provider interface {
 	// given its global ID. The provided opts field configures how much detail to
 	// return; see [InfoOptions] for more information.
 	//
-	// GetComponent returns an error if a component is not found.
+	// GetComponent returns ErrComponentNotFound if a component is not found.
 	GetComponent(id ID, opts InfoOptions) (*Info, error)
 
 	// ListComponents returns the list of active components. The provided opts
 	// field configures how much detail to return; see [InfoOptions] for more
 	// information.
 	//
-	// Returns an error if the provided moduleID doesn't exist.
+	// Returns ErrModuleNotFound if the provided moduleID doesn't exist.
 	ListComponents(moduleID string, opts InfoOptions) ([]*Info, error)
 }
 
@@ -28,6 +40,20 @@ type Provider interface {
 type ID struct {
 	ModuleID string // Unique ID of the module that the component is running in.
 	LocalID  string // Local ID of the component, unique to the module it is running in.
+}
+
+// ParseID parses an input string of the form "LOCAL_ID" or
+// "MODULE_ID/LOCAL_ID" into an ID. The final slash character is used to
+// separate the ModuleID and LocalID.
+func ParseID(input string) ID {
+	slashIndex := strings.LastIndexByte(input, '/')
+	if slashIndex == -1 {
+		return ID{LocalID: input}
+	}
+	return ID{
+		ModuleID: input[:slashIndex],
+		LocalID:  input[slashIndex+1:],
+	}
 }
 
 // InfoOptions is used by to determine how much information to return with

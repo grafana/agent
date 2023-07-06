@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"path"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
@@ -68,7 +67,7 @@ func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 func (f *FlowAPI) getComponentHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		requestedComponent := parseID(vars["id"])
+		requestedComponent := component.ParseID(vars["id"])
 
 		component, err := f.flow.GetComponent(requestedComponent, component.InfoOptions{
 			GetHealth:    true,
@@ -87,17 +86,6 @@ func (f *FlowAPI) getComponentHandler() http.HandlerFunc {
 			return
 		}
 		_, _ = w.Write(bb)
-	}
-}
-
-func parseID(input string) component.ID {
-	slashIndex := strings.LastIndexByte(input, '/')
-	if slashIndex == -1 {
-		return component.ID{LocalID: input}
-	}
-	return component.ID{
-		ModuleID: input[:slashIndex],
-		LocalID:  input[slashIndex+1:],
 	}
 }
 
