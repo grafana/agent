@@ -878,6 +878,40 @@ trigger:
 type: docker
 ---
 kind: pipeline
+name: Build agent-boringcrypto (Linux amd64 boringcrypto)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM=
+    GOEXPERIMENT=boringcrypto make agent-boringcrypto
+  image: grafana/agent-build-image:0.26.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
+name: Build agent-boringcrypto (Linux arm64 boringcrypto)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=arm64 GOARM=
+    GOEXPERIMENT=boringcrypto make agent-boringcrypto
+  image: grafana/agent-build-image:0.26.0
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Publish Linux agent container
 platform:
   arch: amd64
@@ -899,6 +933,50 @@ steps:
     docker-container --use
   - ./tools/ci/docker-containers agent
   - docker buildx rm multiarch-agent-agent-${DRONE_COMMIT_SHA}
+  environment:
+    DOCKER_LOGIN:
+      from_secret: docker_login
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+    GCR_CREDS:
+      from_secret: gcr_admin
+  image: grafana/agent-build-image:0.26.0
+  name: Publish container
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  ref:
+  - refs/heads/main
+  - refs/tags/v*
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
+name: Publish Linux agent-boringcrypto container
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  failure: ignore
+  image: grafana/agent-build-image:0.26.0
+  name: Configure QEMU
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+- commands:
+  - mkdir -p $HOME/.docker
+  - printenv GCR_CREDS > $HOME/.docker/config.json
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  - docker buildx create --name multiarch-agent-agent-boringcrypto-${DRONE_COMMIT_SHA}
+    --driver docker-container --use
+  - ./tools/ci/docker-containers agent-boringcrypto
+  - docker buildx rm multiarch-agent-agent-boringcrypto-${DRONE_COMMIT_SHA}
   environment:
     DOCKER_LOGIN:
       from_secret: docker_login
@@ -1157,6 +1235,7 @@ volumes:
 ---
 depends_on:
 - Publish Linux agent container
+- Publish Linux agent-boringcrypto container
 - Publish Linux agentctl container
 - Publish Linux agent-operator container
 - Publish Linux smoke container
@@ -1209,6 +1288,7 @@ type: docker
 ---
 depends_on:
 - Publish Linux agent container
+- Publish Linux agent-boringcrypto container
 - Publish Linux agentctl container
 - Publish Linux agent-operator container
 - Publish Linux smoke container
@@ -1330,6 +1410,6 @@ kind: secret
 name: gpg_public_key
 ---
 kind: signature
-hmac: 5b3ff58a3b1e14b0c099dc76ecf2f5535232faef6faf160c86007f9b2391332f
+hmac: 10f649750837f839c9baf2a5eb304de674a1d2e8aceaea04ab8afef73d59d004
 
 ...
