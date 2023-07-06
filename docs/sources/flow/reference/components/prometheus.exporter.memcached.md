@@ -61,31 +61,36 @@ debug information.
 `prometheus.exporter.memcached` does not expose any component-specific
 debug metrics.
 
-## Examples
-This minimal example uses a `prometheus.exporter.memcached` component to collect metrics from a Memcached
+## Example
+
+This example uses a `prometheus.exporter.memcached` component to collect metrics from a Memcached
 server running locally, and scrapes the metrics using a [prometheus.scrape][scrape] component:
 
 ```river
 prometheus.exporter.memcached "example" {
-    address = "localhost:13321"
-    timeout = "5s"
+  address = "localhost:13321"
+  timeout = "5s"
 }
 
 prometheus.scrape "example" {
-    targets    = [prometheus.exporter.memcached.example.targets]
-    forward_to = [prometheus.remote_write.default.receiver]
+  targets    = [prometheus.exporter.memcached.example.targets]
+  forward_to = [prometheus.remote_write.demo.receiver]
 }
 
-prometheus.remote_write "default" {
+prometheus.remote_write "demo" {
   endpoint {
-    url = "prometheus.example.com/api/v1/write"
+    url = PROMETHEUS_REMOTE_WRITE_URL
 
     basic_auth {
-      username = "user"
-      password = "pass"
+      username = USERNAME
+      password = PASSWORD
     }
   }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

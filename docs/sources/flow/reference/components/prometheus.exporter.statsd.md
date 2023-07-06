@@ -17,7 +17,6 @@ The `prometheus.exporter.statsd` component embeds
 
 ```river
 prometheus.exporter.statsd "LABEL" {
-
 }
 ```
 
@@ -96,28 +95,43 @@ from `prometheus.exporter.statsd`:
 
 ```river
 prometheus.exporter.statsd "example" {
-  listen_udp = ""
-  listen_tcp = ":9125"
-  listen_unixgram = ""
-  unix_socket_mode = "755"
-  mapping_config_path = "mapTest.yaml"
-  read_buffer = 1
-  cache_size = 1000
-  cache_type = "lru"
-  event_queue_size = 10000
+  listen_udp            = ""
+  listen_tcp            = ":9125"
+  listen_unixgram       = ""
+  unix_socket_mode      = "755"
+  mapping_config_path   = "mapTest.yaml"
+  read_buffer           = 1
+  cache_size            = 1000
+  cache_type            = "lru"
+  event_queue_size      = 10000
   event_flush_threshold = 1000
-  event_flush_interval = "200ms"
-  parse_dogstatsd_tags = true
-  parse_influxdb_tags = true
-  parse_librato_tags = true
-  parse_signalfx_tags = true
+  event_flush_interval  = "200ms"
+  parse_dogstatsd_tags  = true
+  parse_influxdb_tags   = true
+  parse_librato_tags    = true
+  parse_signalfx_tags   = true
 }
 
 // Configure a prometheus.scrape component to collect statsd metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.statsd.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
