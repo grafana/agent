@@ -2,6 +2,7 @@ package component
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/pkg/river/encoding/riverjson"
@@ -28,6 +29,20 @@ type Provider interface {
 type ID struct {
 	ModuleID string // Unique ID of the module that the component is running in.
 	LocalID  string // Local ID of the component, unique to the module it is running in.
+}
+
+// ParseID parses an input string of the form "LOCAL_ID" or
+// "MODULE_ID/LOCAL_ID" into an ID. The final slash character is used to
+// separate the ModuleID and LocalID.
+func ParseID(input string) ID {
+	slashIndex := strings.LastIndexByte(input, '/')
+	if slashIndex == -1 {
+		return ID{LocalID: input}
+	}
+	return ID{
+		ModuleID: input[:slashIndex],
+		LocalID:  input[slashIndex+1:],
+	}
 }
 
 // InfoOptions is used by to determine how much information to return with
