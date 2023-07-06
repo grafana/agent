@@ -19,6 +19,37 @@ static mode.
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 > [upgrade-guide-flow]: {{< relref "../flow/upgrade-guide.md" >}}
 
+## Main (unreleased)
+
+### Removed and renamed tracing metrics
+
+In the traces subsystem for Static mode some metrics are removed and others are renamed.
+The reason for the removal is a bug which caused the metrics to be incorrect if more than one instance of a traces configuration is specified.
+
+Removed metrics:
+- "blackbox_exporter_config_last_reload_success_timestamp_seconds" (gauge)
+- "blackbox_exporter_config_last_reload_successful" (gauge)
+- "blackbox_module_unknown_total" (counter)
+- "traces_processor_tail_sampling_count_traces_sampled" (counter)
+- "traces_processor_tail_sampling_new_trace_id_received" (counter)
+- "traces_processor_tail_sampling_sampling_decision_latency" (histogram)
+- "traces_processor_tail_sampling_sampling_decision_timer_latency" (histogram)
+- "traces_processor_tail_sampling_sampling_policy_evaluation_error" (counter)
+- "traces_processor_tail_sampling_sampling_trace_dropped_too_early" (counter)
+- "traces_processor_tail_sampling_sampling_traces_on_memory" (gauge)
+- "traces_receiver_accepted_spans" (counter)
+- "traces_receiver_refused_spans" (counter)
+- "traces_exporter_enqueue_failed_log_records" (counter)
+- "traces_exporter_enqueue_failed_metric_points" (counter)
+- "traces_exporter_enqueue_failed_spans" (counter)
+- "traces_exporter_queue_capacity" (gauge)
+- "traces_exporter_queue_size" (gauge)
+
+Renamed metrics:
+- "traces_receiver_refused_spans" is renamed to "traces_receiver_refused_spans_total"
+- "traces_receiver_accepted_spans" is renamed to "traces_receiver_refused_spans_total"
+- "traces_exporter_sent_metric_points" is renamed to "traces_exporter_sent_metric_points_total"
+
 ## v0.35
 
 ### Breaking change: `auth` and `version` attributes from `walk_params` block of SNMP integration have been removed

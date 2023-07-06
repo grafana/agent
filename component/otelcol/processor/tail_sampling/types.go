@@ -1,7 +1,13 @@
 package tail_sampling
 
 import (
+	"encoding"
+	"fmt"
+	"strings"
+
+	"github.com/grafana/agent/pkg/river"
 	"github.com/mitchellh/mapstructure"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl"
 	tsp "github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 )
 
@@ -28,6 +34,8 @@ func (policyCfg PolicyCfg) Convert() tsp.PolicyCfg {
 		"string_attribute":  policyCfg.SharedPolicyCfg.StringAttributeCfg.Convert(),
 		"rate_limiting":     policyCfg.SharedPolicyCfg.RateLimitingCfg.Convert(),
 		"span_count":        policyCfg.SharedPolicyCfg.SpanCountCfg.Convert(),
+		"boolean_attribute": policyCfg.SharedPolicyCfg.BooleanAttributeCfg.Convert(),
+		"ottl_condition":    policyCfg.SharedPolicyCfg.OttlConditionCfg.Convert(),
 		"trace_state":       policyCfg.SharedPolicyCfg.TraceStateCfg.Convert(),
 		"composite":         policyCfg.CompositeCfg.Convert(),
 		"and":               policyCfg.AndCfg.Convert(),
@@ -47,6 +55,8 @@ type SharedPolicyCfg struct {
 	StringAttributeCfg  StringAttributeCfg  `river:"string_attribute,block,optional"`
 	RateLimitingCfg     RateLimitingCfg     `river:"rate_limiting,block,optional"`
 	SpanCountCfg        SpanCountCfg        `river:"span_count,block,optional"`
+	BooleanAttributeCfg BooleanAttributeCfg `river:"boolean_attribute,block,optional"`
+	OttlConditionCfg    OttlConditionCfg    `river:"ottl_condition,block,optional"`
 	TraceStateCfg       TraceStateCfg       `river:"trace_state,block,optional"`
 }
 
@@ -197,6 +207,87 @@ func (spanCountCfg SpanCountCfg) Convert() tsp.SpanCountCfg {
 	return otelCfg
 }
 
+// BooleanAttributeCfg holds the configurable settings to create a boolean attribute filter
+// sampling policy evaluator.
+type BooleanAttributeCfg struct {
+	// Tag that the filter is going to be matching against.
+	Key string `river:"key,attr"`
+	// Value indicate the bool value, either true or false to use when matching against attribute values.
+	// BooleanAttribute Policy will apply exact value match on Value
+	Value bool `river:"value,attr"`
+}
+
+func (booleanAttributeCfg BooleanAttributeCfg) Convert() tsp.BooleanAttributeCfg {
+	var otelCfg tsp.BooleanAttributeCfg
+
+	mustDecodeMapStructure(map[string]interface{}{
+		"key":   booleanAttributeCfg.Key,
+		"value": booleanAttributeCfg.Value,
+	}, &otelCfg)
+
+	return otelCfg
+}
+
+// The error mode determines whether to ignore or propagate
+// errors with evaluating OTTL conditions.
+type ErrorMode string
+
+const (
+	// "ignore" causes evaluation to continue to the next statement.
+	ErrorModeIgnore ErrorMode = "ignore"
+	// "propagate" causes the evaluation to be false and an error is returned.
+	ErrorModePropagate ErrorMode = "propagate"
+)
+
+var (
+	_ river.Validator          = (*ErrorMode)(nil)
+	_ encoding.TextUnmarshaler = (*ErrorMode)(nil)
+)
+
+// Validate implements river.Validator.
+func (e *ErrorMode) Validate() error {
+	var ottlError ottl.ErrorMode
+	return ottlError.UnmarshalText([]byte(string(*e)))
+}
+
+// Convert the River type to the Otel type
+func (e *ErrorMode) Convert() ottl.ErrorMode {
+	var ottlError ottl.ErrorMode
+	ottlError.UnmarshalText([]byte(string(*e)))
+	return ottlError
+}
+
+func (e *ErrorMode) UnmarshalText(text []byte) error {
+	str := ErrorMode(strings.ToLower(string(text)))
+	switch str {
+	case ErrorModeIgnore, ErrorModePropagate:
+		*e = str
+		return nil
+	default:
+		return fmt.Errorf("unknown error mode %v", str)
+	}
+}
+
+// OttlConditionCfg holds the configurable setting to create a OTTL condition filter
+// sampling policy evaluator.
+type OttlConditionCfg struct {
+	ErrorMode           ErrorMode `river:"error_mode,attr"`
+	SpanConditions      []string  `river:"span,attr,optional"`
+	SpanEventConditions []string  `river:"spanevent,attr,optional"`
+}
+
+func (ottlConditionCfg OttlConditionCfg) Convert() tsp.OTTLConditionCfg {
+	var otelCfg tsp.OTTLConditionCfg
+
+	mustDecodeMapStructure(map[string]interface{}{
+		"error_mode": ottlConditionCfg.ErrorMode.Convert(),
+		"span":       ottlConditionCfg.SpanConditions,
+		"spanevent":  ottlConditionCfg.SpanEventConditions,
+	}, &otelCfg)
+
+	return otelCfg
+}
+
 type TraceStateCfg struct {
 	// Tag that the filter is going to be matching against.
 	Key string `river:"key,attr"`
@@ -268,6 +359,8 @@ func (compositeSubPolicyCfg CompositeSubPolicyCfg) Convert() tsp.CompositeSubPol
 		"string_attribute":  compositeSubPolicyCfg.SharedPolicyCfg.StringAttributeCfg.Convert(),
 		"rate_limiting":     compositeSubPolicyCfg.SharedPolicyCfg.RateLimitingCfg.Convert(),
 		"span_count":        compositeSubPolicyCfg.SharedPolicyCfg.SpanCountCfg.Convert(),
+		"boolean_attribute": compositeSubPolicyCfg.SharedPolicyCfg.BooleanAttributeCfg.Convert(),
+		"ottl_condition":    compositeSubPolicyCfg.SharedPolicyCfg.OttlConditionCfg.Convert(),
 		"trace_state":       compositeSubPolicyCfg.SharedPolicyCfg.TraceStateCfg.Convert(),
 		"and":               compositeSubPolicyCfg.AndCfg.Convert(),
 	}, &otelCfg)
@@ -329,12 +422,15 @@ func (andSubPolicyCfg AndSubPolicyCfg) Convert() tsp.AndSubPolicyCfg {
 		"string_attribute":  andSubPolicyCfg.SharedPolicyCfg.StringAttributeCfg.Convert(),
 		"rate_limiting":     andSubPolicyCfg.SharedPolicyCfg.RateLimitingCfg.Convert(),
 		"span_count":        andSubPolicyCfg.SharedPolicyCfg.SpanCountCfg.Convert(),
+		"boolean_attribute": andSubPolicyCfg.SharedPolicyCfg.BooleanAttributeCfg.Convert(),
+		"ottl_condition":    andSubPolicyCfg.SharedPolicyCfg.OttlConditionCfg.Convert(),
 		"trace_state":       andSubPolicyCfg.SharedPolicyCfg.TraceStateCfg.Convert(),
 	}, &otelCfg)
 
 	return otelCfg
 }
 
+// TODO: Why do we do this? Can we not just create the Otel types directly?
 func mustDecodeMapStructure(source map[string]interface{}, otelCfg interface{}) {
 	err := mapstructure.Decode(source, otelCfg)
 

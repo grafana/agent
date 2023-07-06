@@ -697,11 +697,7 @@ exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 // Replacing for an internal fork that exposes internal folders
 // Some funtionalities of the collector have been made internal and it's more difficult to build and configure pipelines in the newer versions.
 // This is a temporary solution while a new configuration design is discussed for the collector (ref: https://github.com/open-telemetry/opentelemetry-collector/issues/3482).
-replace (
-	go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20230630115148-4bcac41449bb
-	go.opentelemetry.io/collector/featuregate => github.com/grafana/opentelemetry-collector/featuregate v0.0.0-20230630115148-4bcac41449bb
-	go.opentelemetry.io/collector/pdata => github.com/grafana/opentelemetry-collector/pdata v0.0.0-20230630115148-4bcac41449bb
-)
+replace go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20230705075940-537e02565521
 
 // Required until https://github.com/weaveworks/common/pull/240 is merged
 replace google.golang.org/grpc => google.golang.org/grpc v1.45.0

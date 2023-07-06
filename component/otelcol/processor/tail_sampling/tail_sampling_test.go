@@ -160,6 +160,51 @@ func TestBigConfig(t *testing.T) {
         values = ["value1", "value2"]
       }
     }
+    policy {
+      name = "test-policy-12"
+      type = "boolean_attribute"
+      boolean_attribute {
+        key = "key4"
+        value = true
+      }
+    }
+    policy {
+      name = "test-policy-13"
+      type = "ottl_condition"
+      ottl_condition {
+        error_mode = "ignore"
+        span = [
+          "attributes[\"test_attr_key_1\"] == \"test_attr_val_1\"",
+          "attributes[\"test_attr_key_2\"] != \"test_attr_val_1\"",
+        ]
+        spanevent = [
+          "name != \"test_span_event_name\"",
+          "attributes[\"test_event_attr_key_2\"] != \"test_event_attr_val_1\"",
+        ]
+      }
+    }
+    policy {
+      name = "test-policy-14"
+      type = "ottl_condition"
+      ottl_condition {
+        error_mode = "ignore"
+        span = [
+          "attributes[\"test_attr_key_1\"] == \"test_attr_val_1\"",
+          "attributes[\"test_attr_key_2\"] != \"test_attr_val_1\"",
+        ]
+      }
+    }
+    policy {
+      name = "test-policy-15"
+      type = "ottl_condition"
+      ottl_condition {
+        error_mode = "propagate"
+        spanevent = [
+          "name != \"test_span_event_name\"",
+          "attributes[\"test_event_attr_key_2\"] != \"test_event_attr_val_1\"",
+        ]
+      }
+    }
     policy{
       name = "and-policy-1"
       type = "and"
@@ -179,6 +224,29 @@ func TestBigConfig(t *testing.T) {
           string_attribute {
             key = "key1"
             values = ["value1", "value2"]
+          }
+        }
+        and_sub_policy {
+          name = "test-and-policy-3"
+          type = "boolean_attribute"
+          boolean_attribute {
+            key = "key4"
+            value = true
+          }
+        }
+        and_sub_policy {
+          name = "test-and-policy-4"
+          type = "ottl_condition"
+          ottl_condition {
+            error_mode = "ignore"
+            span = [
+              "attributes[\"test_attr_key_1\"] == \"test_attr_val_1\"",
+              "attributes[\"test_attr_key_2\"] != \"test_attr_val_1\"",
+            ]
+            spanevent = [
+              "name != \"test_span_event_name\"",
+              "attributes[\"test_event_attr_key_2\"] != \"test_event_attr_val_1\"",
+            ]
           }
         }
       }
@@ -209,6 +277,29 @@ func TestBigConfig(t *testing.T) {
         composite_sub_policy {
           name = "test-composite-policy-3"
           type = "always_sample"
+        }
+        composite_sub_policy {
+          name = "test-composite-policy-4"
+          type = "boolean_attribute"
+          boolean_attribute {
+            key = "key4"
+            value = true
+          }
+        }
+        composite_sub_policy {
+          name = "test-composite-policy-5"
+          type = "ottl_condition"
+          ottl_condition {
+            error_mode = "ignore"
+            span = [
+              "attributes[\"test_attr_key_1\"] == \"test_attr_val_1\"",
+              "attributes[\"test_attr_key_2\"] != \"test_attr_val_1\"",
+            ]
+            spanevent = [
+              "name != \"test_span_event_name\"",
+              "attributes[\"test_event_attr_key_2\"] != \"test_event_attr_val_1\"",
+            ]
+          }
         }
         rate_allocation {
           policy = "test-composite-policy-1"
