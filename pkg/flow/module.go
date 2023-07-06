@@ -15,7 +15,6 @@ import (
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/scanner"
 	"github.com/grafana/agent/pkg/river/token"
-	"github.com/grafana/agent/web/api"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/maps"
 )
@@ -149,9 +148,6 @@ func (c *module) Run(ctx context.Context) {
 // components managed by the underlying flow system.
 func (c *module) ComponentHandler() (_ http.Handler) {
 	r := mux.NewRouter()
-
-	fa := api.NewFlowAPI(c.f, c.f.clusterer.Node)
-	fa.RegisterRoutes("/", r)
 
 	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Re-add the full path to ensure that nested controllers propagate
