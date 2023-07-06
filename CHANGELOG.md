@@ -116,6 +116,10 @@ Main (unreleased)
   parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
   binary. (@rfratto)
 
+### Other changes
+
+- Mongodb integration has been re-enabled. (@jcreixell, @marctc)
+
 v0.34.3 (2023-06-27)
 --------------------
 
