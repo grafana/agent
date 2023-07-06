@@ -14,14 +14,14 @@ type Provider interface {
 	// return; see [InfoOptions] for more information.
 	//
 	// GetComponent returns an error if a component is not found.
-	//
-	// BUG(rfratto): The ModuleID field in id is unused.
 	GetComponent(id ID, opts InfoOptions) (*Info, error)
 
 	// ListComponents returns the list of active components. The provided opts
 	// field configures how much detail to return; see [InfoOptions] for more
 	// information.
-	ListComponents(opts InfoOptions) []*Info
+	//
+	// Returns an error if the provided moduleID doesn't exist.
+	ListComponents(moduleID string, opts InfoOptions) ([]*Info, error)
 }
 
 // ID is a globally unique identifier for a component.
@@ -144,4 +144,32 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 		Exports:   exports,
 		DebugInfo: debugInfo,
 	})
+}
+
+// GetAllComponents enumerates over all of the modules in p and returns the set
+// of all components.
+func GetAllComponents(p Provider, opts InfoOptions) []*Info {
+	return getAllComponentsByModule("", p, opts)
+}
+
+func getAllComponentsByModule(moduleID string, p Provider, opts InfoOptions) []*Info {
+	var components []*Info
+
+	// ListComponents may return an error here if the module went away since the
+	// time we were given the ID, so we'll ignore it.
+	infos, err := p.ListComponents(moduleID, opts)
+	if err != nil {
+		return components
+	}
+
+	for _, info := range infos {
+		components = append(components, info)
+
+		for _, module := range info.ModuleIDs {
+			moduleComponents := getAllComponentsByModule(module, p, opts)
+			components = append(components, moduleComponents...)
+		}
+	}
+
+	return components
 }
