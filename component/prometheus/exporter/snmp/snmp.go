@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 	"gopkg.in/yaml.v2"
 )
@@ -108,10 +109,10 @@ func (w WalkParams) Convert() map[string]snmp_config.WalkParams {
 }
 
 type Arguments struct {
-	ConfigFile   string      `river:"config_file,attr,optional"`
-	Config       string      `river:"config,attr,optional"`
-	Targets      TargetBlock `river:"target,block"`
-	WalkParams   WalkParams  `river:"walk_param,block,optional"`
+	ConfigFile   string            `river:"config_file,attr,optional"`
+	Config       rivertypes.Secret `river:"config,attr,optional"`
+	Targets      TargetBlock       `river:"target,block"`
+	WalkParams   WalkParams        `river:"walk_param,block,optional"`
 	ConfigStruct snmp_config.Config
 }
 

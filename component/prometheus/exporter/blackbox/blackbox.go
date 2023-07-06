@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 )
 
 func init() {
@@ -81,10 +82,10 @@ func (t TargetBlock) Convert() []blackbox_exporter.BlackboxTarget {
 }
 
 type Arguments struct {
-	ConfigFile         string        `river:"config_file,attr,optional"`
-	Config             string        `river:"config,attr,optional"`
-	Targets            TargetBlock   `river:"target,block"`
-	ProbeTimeoutOffset time.Duration `river:"probe_timeout_offset,attr,optional"`
+	ConfigFile         string            `river:"config_file,attr,optional"`
+	Config             rivertypes.Secret `river:"config,attr,optional"`
+	Targets            TargetBlock       `river:"target,block"`
+	ProbeTimeoutOffset time.Duration     `river:"probe_timeout_offset,attr,optional"`
 	ConfigStruct       blackbox_config.Config
 }
 
