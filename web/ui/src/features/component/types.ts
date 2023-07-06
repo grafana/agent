@@ -4,6 +4,9 @@ import { AttrStmt, Body as RiverBody } from '../river-js/types';
  * ComponentInfo is high-level information for a component.
  */
 export interface ComponentInfo {
+  /** The moduleID that the component is defined in. moduleID may be the empty string. */
+  moduleID: string;
+
   /** The id of the component uniquely identifies the component. */
   id: string;
 
@@ -99,9 +102,9 @@ export interface ComponentDetail extends ComponentInfo {
   debugInfo?: RiverBody;
 
   /**
-   * If a component is loaded from a module, this is the parent ID.
+   * If a component is a module loader, the IDs of modules it loaded are included here.
    */
-  parent?: string;
+  moduleIDs?: string[];
 
   /**
    * If a component is a module loader, the loaded components from the module are included here.
