@@ -53,6 +53,8 @@ Main (unreleased)
 
 - Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
+- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
+
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
@@ -81,6 +83,8 @@ Main (unreleased)
 - The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
 
 - The Agent Operational dashboard of Grafana Agent mixin now has more descriptive panel titles, Y-axis units
+
+- Add `write_relabel_config` to `prometheus.remote_write` (@jkroepke)
 
 - Update OpenTelemetry Collector dependencies from v0.63.0 to v0.80.0. (@ptodev)
 
@@ -113,6 +117,10 @@ Main (unreleased)
 - Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
   parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
   binary. (@rfratto)
+
+### Other changes
+
+- Mongodb integration has been re-enabled. (@jcreixell, @marctc)
 
 v0.34.3 (2023-06-27)
 --------------------
