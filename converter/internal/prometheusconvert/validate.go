@@ -70,8 +70,10 @@ func validateRuleFilesConfig(ruleFilesConfig []string) diag.Diagnostics {
 func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// for _, scrapeConfig := range scrapeConfigs {
-	// }
+	for _, scrapeConfig := range scrapeConfigs {
+		newDiags := validateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
+		diags = append(diags, newDiags...)
+	}
 
 	return diags
 }
