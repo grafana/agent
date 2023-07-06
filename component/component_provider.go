@@ -2,10 +2,21 @@ package component
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/grafana/agent/pkg/river/encoding/riverjson"
+)
+
+var (
+	// ErrComponentNotFound is returned by [Provider.GetComponent] when the
+	// specified component isn't found.
+	ErrComponentNotFound = errors.New("component not found")
+
+	// ErrModuleNotFound is returned by [Provider.ListComponents] when the
+	// specified module isn't found.
+	ErrModuleNotFound = errors.New("module not found")
 )
 
 // A Provider is a system which exposes a list of running components.
@@ -14,14 +25,14 @@ type Provider interface {
 	// given its global ID. The provided opts field configures how much detail to
 	// return; see [InfoOptions] for more information.
 	//
-	// GetComponent returns an error if a component is not found.
+	// GetComponent returns ErrComponentNotFound if a component is not found.
 	GetComponent(id ID, opts InfoOptions) (*Info, error)
 
 	// ListComponents returns the list of active components. The provided opts
 	// field configures how much detail to return; see [InfoOptions] for more
 	// information.
 	//
-	// Returns an error if the provided moduleID doesn't exist.
+	// Returns ErrModuleNotFound if the provided moduleID doesn't exist.
 	ListComponents(moduleID string, opts InfoOptions) ([]*Info, error)
 }
 

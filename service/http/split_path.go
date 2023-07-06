@@ -1,6 +1,8 @@
 package http
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/grafana/agent/component"
@@ -15,9 +17,9 @@ import (
 //
 // The "remain" portion is optional; it's valid to give a path just containing
 // a component name.
-func splitURLPath(host service.Host, path string) (id component.ID, remain string) {
+func splitURLPath(host service.Host, path string) (id component.ID, remain string, err error) {
 	if len(path) == 0 {
-		return component.ID{}, ""
+		return component.ID{}, "", fmt.Errorf("invalid path")
 	}
 
 	// Trim leading and tailing slashes so it's not treated as part of a
@@ -38,12 +40,16 @@ func splitURLPath(host service.Host, path string) (id component.ID, remain strin
 		componentID := component.ParseID(idText)
 
 		_, err := host.GetComponent(componentID, component.InfoOptions{})
-		if err == nil {
-			return componentID, preparePath(path, trimmedLeadingSlash, trimmedTailingSlash)
+		if errors.Is(err, component.ErrComponentNotFound) {
+			continue
+		} else if err != nil {
+			return component.ID{}, "", err
 		}
+
+		return componentID, preparePath(path, trimmedLeadingSlash, trimmedTailingSlash), nil
 	}
 
-	return component.ID{}, ""
+	return component.ID{}, "", fmt.Errorf("invalid path")
 }
 
 func preparePath(path string, addLeadingSlash, addTrailingSlash bool) string {

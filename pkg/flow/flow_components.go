@@ -16,7 +16,7 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 	if id.ModuleID != "" {
 		mod, ok := f.modules.Get(id.ModuleID)
 		if !ok {
-			return nil, fmt.Errorf("component %q does not exist", id)
+			return nil, component.ErrComponentNotFound
 		}
 
 		return mod.f.GetComponent(component.ID{LocalID: id.LocalID}, opts)
@@ -26,7 +26,7 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 
 	node := graph.GetByID(id.LocalID)
 	if node == nil {
-		return nil, fmt.Errorf("component %q does not exist", id)
+		return nil, component.ErrComponentNotFound
 	}
 
 	cn, ok := node.(*controller.ComponentNode)
@@ -45,7 +45,7 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 	if moduleID != "" {
 		mod, ok := f.modules.Get(moduleID)
 		if !ok {
-			return nil, fmt.Errorf("module %q does not exist", moduleID)
+			return nil, component.ErrModuleNotFound
 		}
 
 		return mod.f.ListComponents("", opts)

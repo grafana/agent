@@ -200,7 +200,13 @@ func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
 		// Trim the path prefix to get our full path.
 		trimmedPath := strings.TrimPrefix(r.URL.Path, s.componentHttpPathPrefix)
 
-		componentID, componentPath := splitURLPath(host, trimmedPath)
+		// splitURLPath should only fail given an unexpected path.
+		componentID, componentPath, err := splitURLPath(host, trimmedPath)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, "failed to parse URL path %q: %s\n", r.URL.Path, err)
+		}
+
 		info, err := host.GetComponent(componentID, component.InfoOptions{})
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)

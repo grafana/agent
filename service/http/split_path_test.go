@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/grafana/agent/component"
@@ -70,7 +69,8 @@ func Test_splitURLPath(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.testPath, func(t *testing.T) {
-			id, remain := splitURLPath(host, tc.testPath)
+			id, remain, err := splitURLPath(host, tc.testPath)
+			assert.NoError(t, err)
 			assert.Equal(t, tc.expectID, id)
 			assert.Equal(t, tc.expectPath, remain)
 		})
@@ -88,7 +88,7 @@ func (h *fakeServiceHost) GetComponent(id component.ID, opts component.InfoOptio
 		return &component.Info{ID: id}, nil
 	}
 
-	return nil, fmt.Errorf("component %q does not exist", id)
+	return nil, component.ErrComponentNotFound
 }
 
 func Test_reversePathIterator(t *testing.T) {
