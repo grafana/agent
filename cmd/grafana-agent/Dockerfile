@@ -12,6 +12,7 @@ ARG TARGETARCH
 ARG TARGETVARIANT
 ARG RELEASE_BUILD=1
 ARG VERSION
+ARG GOEXPERIMENT
 
 COPY . /src/agent
 WORKDIR /src/agent
@@ -26,6 +27,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
     RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
     GO_TAGS="builtinassets promtail_journal_enabled" \
+    GOEXPERIMENT=${GOEXPERIMENT} \
     make agent
 
 FROM ubuntu:lunar

@@ -18,6 +18,57 @@ Grafana Agent Flow.
 > [upgrade-guide-static]: {{< relref "../static/upgrade-guide.md" >}}
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 
+## v0.35
+
+### Breaking change: `auth` and `version` attributes from `walk_params` block of `prometheus.exporter.snmp` have been removed
+
+The `prometheus.exporter.snmp` flow component wraps a new version of SNMP exporter which introduces a new configuration file format.
+This new format separates the walk and metric mappings from the connection and authentication settings. This allows for easier configuration of different
+auth params without having to duplicate the full walk and metric mapping.
+
+Old configuration example:
+
+```river
+prometheus.exporter.snmp "example" {
+   config_file = "snmp_modules.yml"
+
+    target "network_switch_1" {
+        address     = "192.168.1.2"
+        module      = "if_mib"
+        walk_params = "public"
+    }
+
+    walk_param "public" {
+        retries = "2"
+        version = "2"
+        auth {
+            community = "public"
+        }
+    }
+}
+```
+
+New configuration example:
+
+```river
+prometheus.exporter.snmp "example" {
+   config_file = "snmp_modules.yml"
+
+    target "network_switch_1" {
+        address     = "192.168.1.2"
+        module      = "if_mib"
+        walk_params = "public"
+        auth        = "public_v2"
+    }
+
+    walk_param "public" {
+        retries = "2"
+    }
+}
+```
+
+See [Module and Auth Split Migration](https://github.com/prometheus/snmp_exporter/blob/main/auth-split-migration.md) for more details.
+
 ## v0.34
 
 ### Breaking change: `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`

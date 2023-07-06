@@ -142,7 +142,7 @@ require (
 	github.com/prometheus/node_exporter v1.6.0
 	github.com/prometheus/procfs v0.11.0
 	github.com/prometheus/prometheus v1.99.0
-	github.com/prometheus/snmp_exporter v0.20.1-0.20220111173215-83399c23888f
+	github.com/prometheus/snmp_exporter v0.22.1-0.20230623130038-562ae9055ce3
 	github.com/prometheus/statsd_exporter v0.22.8
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
 	github.com/rs/cors v1.9.0
@@ -389,7 +389,7 @@ require (
 	github.com/gophercloud/gophercloud v1.2.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/gosnmp/gosnmp v1.34.0 // indirect
+	github.com/gosnmp/gosnmp v1.35.0 // indirect
 	github.com/grafana/gomemcache v0.0.0-20230105173749-11f792309e1f // indirect
 	github.com/grafana/loki/pkg/push v0.0.0-20230127102416-571f88bc5765 // indirect
 	github.com/grobie/gomemcache v0.0.0-20201204163352-08d7c80fcac6 // indirect
@@ -683,7 +683,6 @@ replace (
 	// TODO(mattdurham): this is to allow defaults to propogate properly.
 	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230609142740-b47fa97c3c47
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
-	github.com/prometheus/snmp_exporter => github.com/grafana/snmp_exporter v0.20.1-0.20220405135227-49087c510bb1
 )
 
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.

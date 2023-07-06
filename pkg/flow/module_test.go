@@ -160,18 +160,21 @@ func TestExportsWhenNotUsed(t *testing.T) {
 	}
 }
 
+func TestIDList(t *testing.T) {
+	nc := newModuleController(testModuleControllerOptions(t))
+	require.Len(t, nc.ModuleIDs(), 0)
+
+	_, err := nc.NewModule("t1", nil)
+	require.NoError(t, err)
+	require.Len(t, nc.ModuleIDs(), 1)
+
+	_, err = nc.NewModule("t2", nil)
+	require.NoError(t, err)
+	require.Len(t, nc.ModuleIDs(), 2)
+}
+
 func TestIDCollision(t *testing.T) {
-	nc := newModuleController(&moduleControllerOptions{
-		Logger:         nil,
-		Tracer:         nil,
-		Clusterer:      nil,
-		Reg:            nil,
-		DataPath:       "",
-		HTTPListenAddr: "",
-		HTTPPath:       "",
-		DialFunc:       nil,
-		ID:             "test",
-	})
+	nc := newModuleController(testModuleControllerOptions(t))
 	m, err := nc.NewModule("t1", nil)
 	require.NoError(t, err)
 	require.NotNil(t, m)
@@ -193,7 +196,7 @@ func TestIDRemoval(t *testing.T) {
 	ctx, cncl := context.WithTimeout(ctx, 1*time.Second)
 	defer cncl()
 	m.Run(ctx)
-	require.Len(t, nc.(*moduleController).ids, 0)
+	require.Len(t, nc.(*moduleController).modules, 0)
 }
 
 func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
@@ -205,10 +208,11 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
 
 	return &moduleControllerOptions{
-		Logger:    s,
-		DataPath:  t.TempDir(),
-		Reg:       prometheus.NewRegistry(),
-		Clusterer: c,
+		Logger:         s,
+		DataPath:       t.TempDir(),
+		Reg:            prometheus.NewRegistry(),
+		Clusterer:      c,
+		ModuleRegistry: newModuleRegistry(),
 	}
 }
 
@@ -253,6 +257,7 @@ func (t *testModule) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	err = m.LoadConfig([]byte(t.content), t.args)
 	if err != nil {
 		return err

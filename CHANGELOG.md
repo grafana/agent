@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
 ### Breaking changes
 
 - The algorithm for the "hash" action of `otelcol.processor.attributes` has changed.
@@ -19,6 +22,8 @@ Main (unreleased)
 
 - `otelcol.extension.jaeger_remote_sampling` removes the `\` HTTP endpoint. The `/sampling` endpoint is still functional.
   The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib. (@ptodev)
+
+- The field `version` and `auth` struct block from `walk_params` in `prometheus.exporter.snmp` and SNMP integration have been removed. The auth block now can be configured at top level, together with `modules` (@marctc)
 
 ### Features
 
@@ -44,7 +49,11 @@ Main (unreleased)
 
 - Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
 
-- Add support to the `grafana-agent fmt` CLI for converting a river file from supported formats to river. (@erikbaranowski)
+- Add a new CLI command `grafana-agent convert` for converting a river file from supported formats to river. (@erikbaranowski)
+
+- Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
+
+- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
 
 ### Enhancements
 
@@ -68,7 +77,7 @@ Main (unreleased)
 
 - Support `clustering` block in `prometheus.operator.servicemonitors` and `prometheus.operator.podmonitors` components to distribute
   targets amongst clustered agents. (@captncraig)
-  
+
 - Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
 
 - The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
@@ -76,6 +85,10 @@ Main (unreleased)
 - The Agent Operational dashboard of Grafana Agent mixin now has more descriptive panel titles, Y-axis units
 
 - Update OpenTelemetry Collector dependencies from v0.63.0 to v0.80.0. (@ptodev)
+
+- Allow setting the node name for clustering with a command-line flag. (@tpaschalis)
+
+- Allow `prometheus.exporter.snmp` and SNMP integration to be configured passing a YAML block. (@marctc)
 
 ### Bugfixes
 
@@ -99,7 +112,13 @@ Main (unreleased)
 
 ### Other changes
 
-- Mongodb integration has been re-enabled. (@jcreixell)
+- Change the HTTP Path and Data Path from the controller-local ID to the global ID for components loaded from within a module loader. (@spartan0x117)
+
+- Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
+  parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
+  binary. (@rfratto)
+
+- Mongodb integration has been re-enabled. (@jcreixell, @marctc)
 
 v0.34.3 (2023-06-27)
 --------------------

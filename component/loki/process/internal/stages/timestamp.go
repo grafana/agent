@@ -14,6 +14,8 @@ import (
 	"github.com/go-kit/log/level"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/prometheus/common/model"
+
+	_ "time/tzdata" // embed timezone data
 )
 
 // Config errors.
