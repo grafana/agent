@@ -82,10 +82,10 @@ func (t TargetBlock) Convert() []blackbox_exporter.BlackboxTarget {
 }
 
 type Arguments struct {
-	ConfigFile         string            `river:"config_file,attr,optional"`
-	Config             rivertypes.Secret `river:"config,attr,optional"`
-	Targets            TargetBlock       `river:"target,block"`
-	ProbeTimeoutOffset time.Duration     `river:"probe_timeout_offset,attr,optional"`
+	ConfigFile         string                    `river:"config_file,attr,optional"`
+	Config             rivertypes.OptionalSecret `river:"config,attr,optional"`
+	Targets            TargetBlock               `river:"target,block"`
+	ProbeTimeoutOffset time.Duration             `river:"probe_timeout_offset,attr,optional"`
 	ConfigStruct       blackbox_config.Config
 }
 
@@ -96,11 +96,11 @@ func (a *Arguments) SetToDefault() {
 
 // Validate implements river.Validator.
 func (a *Arguments) Validate() error {
-	if a.ConfigFile != "" && a.Config != "" {
+	if a.ConfigFile != "" && a.Config.Value != "" {
 		return errors.New("config and config_file are mutually exclusive")
 	}
 
-	err := yaml.UnmarshalStrict([]byte(a.Config), &a.ConfigStruct)
+	err := yaml.UnmarshalStrict([]byte(a.Config.Value), &a.ConfigStruct)
 	if err != nil {
 		return fmt.Errorf("invalid backbox_exporter config: %s", err)
 	}

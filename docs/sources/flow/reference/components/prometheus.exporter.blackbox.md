@@ -34,7 +34,7 @@ Omitted fields take their default values.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `config_file`                 | `string`       | blackbox_exporter configuration file path. | | no
-`config`                      | `secret`       | blackbox_exporter configuration as inline string.  | |no
+`config`                      | `string` or `secret`       | blackbox_exporter configuration as inline string.  | |no
 `probe_timeout_offset`        | `duration`     | Offset in seconds to subtract from timeout when probing targets.  | `"0.5s"` | no
 
 The `config_file` argument points to a YAML file defining which blackbox_exporter modules to use.
