@@ -44,6 +44,7 @@ Main (unreleased)
   - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
   - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
   - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
+  - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
