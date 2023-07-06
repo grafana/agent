@@ -24,5 +24,10 @@ scrape_configs:
 remote_write:
   - name: "remote1"
     url: "http://remote-write-url1"
+    write_relabel_configs:
+      - source_labels: [__address1__]
+        target_label: __param_target1
+      - source_labels: [__address2__]
+        target_label: __param_target2
   - name: "remote2"
     url: "http://remote-write-url2"

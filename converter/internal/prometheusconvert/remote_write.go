@@ -53,6 +53,7 @@ func getEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*
 			HTTPClientConfig:     toHttpClientConfig(&remoteWriteConfig.HTTPClientConfig),
 			QueueOptions:         toQueueOptions(&remoteWriteConfig.QueueConfig),
 			MetadataOptions:      toMetadataOptions(&remoteWriteConfig.MetadataConfig),
+			WriteRelabelConfigs:  toRelabelConfigs(remoteWriteConfig.WriteRelabelConfigs),
 		}
 
 		endpoints = append(endpoints, endpoint)
