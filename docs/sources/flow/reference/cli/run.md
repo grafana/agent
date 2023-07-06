@@ -66,9 +66,32 @@ reloading.
 ## Clustering (beta)
 
 The `--cluster.enabled` command-line argument starts Grafana Agent in
-clustering mode. The rest of the `--cluster.*` command-line flags can be used
-to configure how nodes discover and connect to one another; refer to the
-[clustering][] docs for an overview of the concept and its use cases.
+[clustering][] mode. The rest of the `--cluster.*` command-line flags can be
+used to configure how nodes discover and connect to one another.
+
+Each cluster member’s name must be unique within the cluster. Nodes which try
+to join with a conflicting name are rejected and will fall back to
+bootstrapping a new cluster of their own.
+
+Peers communicate over HTTP/2 on the agent's built-in HTTP server. Each node
+must be configured to accept connections on `--server.http.listen-addr` and the
+address defined or inferred in `--cluster.advertise-address`.
+
+If the `--cluster.advertise-address` flag is not explicitly set, the agent
+tries to infer a suitable one from the `eth0` and `en0` local network
+interfaces. If the advertised address cannot be determined, the agent will
+fail to start.
+
+The comma-separated list of addresses provided in `--cluster.join-addresses`
+can either be IP addresses with an optional port, or DNS records to lookup.
+The ports on the this list of addreses default to the port used for the HTTP
+listener if not explicitly provided. It’s generally recommended to
+align the port numbers on as many nodes as possible to simplify the deployment
+process.
+
+The first node that is used to bootstrap a new cluster (also known as
+the "seed node") can either omit the flag that specifies peers to join or can
+try to connect to itself.
 
 ## Configuration conversion (beta)
 
