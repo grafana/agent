@@ -86,9 +86,10 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 		}
 
 		componentDetailJSON struct {
-			Name         string               `json:"name,omitempty"`
+			Name         string               `json:"name"`
 			Type         string               `json:"type,omitempty"`
-			ID           string               `json:"id,omitempty"`
+			ID           string               `json:"id"`
+			ModuleID     string               `json:"moduleID"`
 			Label        string               `json:"label,omitempty"`
 			References   []string             `json:"referencesTo"`
 			ReferencedBy []string             `json:"referencedBy"`
@@ -97,6 +98,7 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 			Arguments    json.RawMessage      `json:"arguments,omitempty"`
 			Exports      json.RawMessage      `json:"exports,omitempty"`
 			DebugInfo    json.RawMessage      `json:"debugInfo,omitempty"`
+			ModuleIDs    []string             `json:"moduleIDs,omitempty"`
 		}
 	)
 
@@ -131,7 +133,8 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&componentDetailJSON{
 		Name:         info.Registration.Name,
 		Type:         "block",
-		ID:           info.ID.LocalID, // TODO(rfratto): support getting component from module.
+		ModuleID:     info.ID.ModuleID,
+		ID:           info.ID.LocalID,
 		Label:        info.Label,
 		References:   references,
 		ReferencedBy: referencedBy,
@@ -143,6 +146,7 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 		Arguments: arguments,
 		Exports:   exports,
 		DebugInfo: debugInfo,
+		ModuleIDs: info.ModuleIDs,
 	})
 }
 
