@@ -102,9 +102,9 @@ export interface ComponentDetail extends ComponentInfo {
   debugInfo?: RiverBody;
 
   /**
-   * If a component is a module loader, the IDs of modules it loaded are included here.
+   * If a component is a module loader, the IDs of modules it created are included here.
    */
-  moduleIDs?: string[];
+  createdModuleIDs?: string[];
 
   /**
    * If a component is a module loader, the loaded components from the module are included here.

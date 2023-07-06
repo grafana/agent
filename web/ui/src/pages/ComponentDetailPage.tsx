@@ -29,7 +29,7 @@ const ComponentDetailPage: FC = () => {
         });
         const data: ComponentDetail = await resp.json();
 
-        for (const moduleID of data.moduleIDs || []) {
+        for (const moduleID of data.createdModuleIDs || []) {
           const moduleComponentsResp = await fetch(`./api/v0/web/modules/${moduleID}/components`, {
             cache: 'no-cache',
             credentials: 'same-origin',
