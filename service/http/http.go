@@ -132,7 +132,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
 	}
 
-	r.PathPrefix(s.componentHttpPathPrefix + "{id}/").Handler(s.componentHandler(host))
+	r.PathPrefix(s.componentHttpPathPrefix).Handler(s.componentHandler(host))
 
 	if s.node != nil {
 		cr, ch := s.node.Handler()
@@ -196,20 +196,12 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 }
 
 func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
-	// TODO(rfratto): make this work across modules. Right now this handler
-	// only works for the top-level module, and forwards requests to inner
-	// modules.
-	//
-	// This means that the Flow controller still has HTTP logic until this is
-	// resolved.
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		id := vars["id"]
+		// Trim the path prefix to get our full path.
+		trimmedPath := strings.TrimPrefix(r.URL.Path, s.componentHttpPathPrefix)
 
-		// We pass no options in component.InfoOptions, because we're only
-		// interested in the component instance.
-		info, err := host.GetComponent(component.ID{LocalID: id}, component.InfoOptions{})
+		componentID, componentPath := splitURLPath(host, trimmedPath)
+		info, err := host.GetComponent(componentID, component.InfoOptions{})
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -226,9 +218,9 @@ func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
 			return
 		}
 
-		// Remove prefix from path, so each component can handle paths from their
-		// own root path.
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(s.componentHttpPathPrefix, id))
+		// Send just the remaining path to our component so each component can
+		// handle paths from their own root path.
+		r.URL.Path = componentPath
 		handler.ServeHTTP(w, r)
 	}
 }
