@@ -1,3 +1,7 @@
+//go:build linux
+
+// the build tag is to avoid unnecessary compilation of symtab
+
 package ebpf
 
 import (
