@@ -2,6 +2,7 @@ package attributes_test
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/backoff"
+	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/client"
@@ -21,6 +23,89 @@ import (
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 )
+
+// These are tests for SeverityLevel and not for the attributes processor as a whole.
+// However, because Otel's LogSeverityNumberMatchProperties structure is internal
+// we are not able ot test it directly.
+// The only way is to create a whole attributesprocessor.Config, because that struct is public.
+// This is why the test is in attributes_test.go instead of config_filter_test.go.
+func TestSeverityLevelMatchesOtel(t *testing.T) {
+	type TestDefinition struct {
+		name               string
+		cfg                string
+		expectedOtelSevStr string
+	}
+
+	var tests []TestDefinition
+
+	for _, testInfo := range []struct {
+		agentSevStr string
+		otelSevStr  string
+	}{
+		{"TRACE", "Trace"},
+		{"TRACE2", "Trace2"},
+		{"TRACE3", "Trace3"},
+		{"TRACE4", "Trace4"},
+		{"DEBUG", "Debug"},
+		{"DEBUG2", "Debug2"},
+		{"DEBUG3", "Debug3"},
+		{"DEBUG4", "Debug4"},
+		{"INFO", "Info"},
+		{"INFO2", "Info2"},
+		{"INFO3", "Info3"},
+		{"INFO4", "Info4"},
+		{"WARN", "Warn"},
+		{"WARN2", "Warn2"},
+		{"WARN3", "Warn3"},
+		{"WARN4", "Warn4"},
+		{"ERROR", "Error"},
+		{"ERROR2", "Error2"},
+		{"ERROR3", "Error3"},
+		{"ERROR4", "Error4"},
+		{"FATAL", "Fatal"},
+		{"FATAL2", "Fatal2"},
+		{"FATAL3", "Fatal3"},
+		{"FATAL4", "Fatal4"},
+	} {
+		cfgTemplate := `
+		match_type = "strict"
+		log_severity {
+			min = "%s"
+			match_undefined = true
+		}
+		`
+
+		newTest := TestDefinition{
+			name:               testInfo.agentSevStr,
+			cfg:                fmt.Sprintf(cfgTemplate, testInfo.agentSevStr),
+			expectedOtelSevStr: testInfo.otelSevStr,
+		}
+		tests = append(tests, newTest)
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var matchProperties otelcol.MatchProperties
+			err := river.Unmarshal([]byte(tt.cfg), &matchProperties)
+
+			require.NoError(t, err)
+
+			input := make(map[string]interface{})
+
+			matchConfig, err := matchProperties.Convert()
+			require.NoError(t, err)
+			input["include"] = matchConfig
+
+			var result attributesprocessor.Config
+			err = mapstructure.Decode(input, &result)
+			require.NoError(t, err)
+
+			require.Equal(t, tt.expectedOtelSevStr, result.MatchConfig.Include.LogSeverityNumber.Min.String())
+		})
+	}
+}
 
 // A lot of the TestDecode tests were inspired by tests in the Otel repo:
 // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.63.0/processor/attributesprocessor/testdata/config.yaml
@@ -445,7 +530,7 @@ func Test_Hash(t *testing.T) {
 					},
 					{
 						"key": "user.email",
-						"value": { "stringValue": "36687c352204c27d9e228a9b34d00c8a1d36a000" }
+						"value": { "stringValue": "0925f997eb0d742678f66d2da134d15d842d57722af5f7605c4785cb5358831b" }
 					}]
 				}]
 			}]

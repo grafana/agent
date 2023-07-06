@@ -54,6 +54,7 @@ func (s *store) shouldEvictHead() bool {
 		return false
 	}
 	ts := h.Value.(*edge).expiration
+	//TODO: This should use a steady monotonic clock? Otherwise if the time is adjusted this will not work properly
 	return ts < time.Now().Unix()
 }
 

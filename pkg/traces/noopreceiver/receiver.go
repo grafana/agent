@@ -11,7 +11,7 @@ import (
 type noopReceiver struct{}
 
 // New creates a dummy receiver.
-func newNoopReceiver(_ *zap.Logger, _ *Config, _ consumer.Metrics) *noopReceiver {
+func newNoopReceiver(_ *zap.Logger, _ component.Config, _ consumer.Metrics) *noopReceiver {
 	return &noopReceiver{}
 }
 

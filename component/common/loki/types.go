@@ -23,9 +23,29 @@ import (
 // to an outage or erroring (such as limits being hit).
 const finalEntryTimeout = 5 * time.Second
 
-// LogsReceiver is an alias for chan Entry which is used for component
+// LogsReceiver is an interface providing `chan Entry` which is used for component
 // communication.
-type LogsReceiver chan Entry
+type LogsReceiver interface {
+	Chan() chan Entry
+}
+
+type logsReceiver struct {
+	entries chan Entry
+}
+
+func (l *logsReceiver) Chan() chan Entry {
+	return l.entries
+}
+
+func NewLogsReceiver() LogsReceiver {
+	return NewLogsReceiverWithChannel(make(chan Entry))
+}
+
+func NewLogsReceiverWithChannel(c chan Entry) LogsReceiver {
+	return &logsReceiver{
+		entries: c,
+	}
+}
 
 // Entry is a log entry with labels.
 type Entry struct {
@@ -55,7 +75,7 @@ type EntryHandler interface {
 }
 
 // EntryMiddleware takes an EntryHandler and returns another one that will intercept and forward entries.
-// The newly created EntryHandler should be Stopped independently from the original one.
+// The newly created EntryHandler should be Stopped independently of the original one.
 type EntryMiddleware interface {
 	Wrap(EntryHandler) EntryHandler
 }
@@ -133,7 +153,7 @@ func NewEntryMutatorHandler(next EntryHandler, f EntryMutatorFunc) EntryHandler 
 
 			select {
 			case <-ctx.Done():
-				// The goroutine above exited on its own so we don't have to wait for
+				// The goroutine above exited on its own, so we don't have to wait for
 				// the timeout.
 			case <-time.After(finalEntryTimeout):
 				// We reached the timeout for sending the final entry to nextChan;

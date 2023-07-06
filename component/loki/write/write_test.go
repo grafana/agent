@@ -100,8 +100,8 @@ func Test(t *testing.T) {
 	}
 
 	exports := tc.Exports().(Exports)
-	exports.Receiver <- logEntry
-	exports.Receiver <- logEntry
+	exports.Receiver.Chan() <- logEntry
+	exports.Receiver.Chan() <- logEntry
 
 	// Wait for our exporter to finish and pass data to our HTTP server.
 	// Make sure the log entries were received correctly.

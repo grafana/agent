@@ -51,7 +51,6 @@ import (
 	"sync"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -128,6 +127,7 @@ type Flow struct {
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
 	loader      *controller.Loader
+	modules     *moduleRegistry
 
 	loadFinished chan struct{}
 
@@ -135,9 +135,15 @@ type Flow struct {
 	loadedOnce atomic.Bool
 }
 
-// New creates and starts a new Flow controller. Call Close to stop
-// the controller.
+// New creates a new, unstarted Flow controller. Call Run to run the controller.
 func New(o Options) *Flow {
+	return newController(newModuleRegistry(), o)
+}
+
+// newController creates a new, unstarted Flow controller with a specific
+// moduleRegistry. Modules created by the controller will be passed to the
+// given modReg.
+func newController(modReg *moduleRegistry, o Options) *Flow {
 	var (
 		log       = o.Logger
 		tracer    = o.Tracer
@@ -176,8 +182,9 @@ func New(o Options) *Flow {
 			HTTPListenAddr:  o.HTTPListenAddr,
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
-			NewModuleController: func(id string) component.ModuleController {
+			NewModuleController: func(id string) controller.ModuleController {
 				return newModuleController(&moduleControllerOptions{
+					ModuleRegistry: modReg,
 					Logger:         log,
 					Tracer:         tracer,
 					Clusterer:      clusterer,
@@ -200,6 +207,7 @@ func New(o Options) *Flow {
 		updateQueue: queue,
 		sched:       sched,
 		loader:      loader,
+		modules:     modReg,
 
 		loadFinished: make(chan struct{}, 1),
 	}

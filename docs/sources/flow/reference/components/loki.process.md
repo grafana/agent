@@ -66,6 +66,7 @@ The following blocks are supported inside the definition of `loki.process`:
 | stage.template      | [stage.template][]      | Configures a `template` processing stage.            | no       |
 | stage.tenant        | [stage.tenant][]        | Configures a `tenant` processing stage.              | no       |
 | stage.timestamp     | [stage.timestamp][]     | Configures a `timestamp` processing stage.           | no       |
+| stage.geoip         | [stage.geoip][]         | Configures a `geoip` processing stage.               | no       |
 
 A user can provide any number of these stage blocks nested inside
 `loki.process`; these will run in order of appearance in the configuration
@@ -91,6 +92,7 @@ file.
 [stage.template]: #stagetemplate-block
 [stage.tenant]: #stagetenant-block
 [stage.timestamp]: #stagetimestamp-block
+[stage.geoip]: #stagegeoip-block
 
 
 ### stage.cri block
@@ -535,7 +537,7 @@ The following arguments are supported:
 | `description`       | `string`   | The metric's description and help text.                                                                  | `""`                     | no       |
 | `source`            | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name.                      | `""`                     | no       |
 | `prefix`            | `string`   | The prefix to the metric name.                                                                           | `"loki_process_custom_"` | no       |
-| `idle_duration`     | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.                        | `"5m"`                   | no       |
+| `max_idle_duration`     | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.                        | `"5m"`                   | no       |
 | `value`             | `string`   | If set, the metric only changes if `source` exactly matches the `value`.                                 | `""`                     | no       |
 | `match_all`         | `bool`     | If set to true, all log lines are counted, without attemptng to match the `source` to the extracted map. | `false`                  | no       |
 | `count_entry_bytes` | `bool`     | If set to true, counts all log lines bytes.                                                              | `false`                  | no       |
@@ -560,7 +562,7 @@ The following arguments are supported:
 | `description`   | `string`   | The metric's description and help text.                                             | `""`                     | no       |
 | `source`        | `string`   | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
 | `prefix`        | `string`   | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
-| `idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
+| `max_idle_duration` | `duration` | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
 | `value`         | `string`   | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
 
 
@@ -583,7 +585,7 @@ The following arguments are supported:
 | `description`   | `string`      | The metric's description and help text.                                             | `""`                     | no       |
 | `source`        | `string`      | Key from the extracted data map to use for the metric. Defaults to the metric name. | `""`                     | no       |
 | `prefix`        | `string`      | The prefix to the metric name.                                                      | `"loki_process_custom_"` | no       |
-| `idle_duration` | `duration`    | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
+| `max_idle_duration` | `duration`    | Maximum amount of time to wait until the metric is marked as 'stale' and removed.   | `"5m"`                   | no       |
 | `value`         | `string`      | If set, the metric only changes if `source` exactly matches the `value`.            | `""`                     | no       |
 
 #### metrics behavior
@@ -593,8 +595,8 @@ If `value` is not present, all incoming log entries match.
 Label values on created metrics can be dynamic, which can cause exported
 metrics to explode in cardinality or go stale, for example, when a stream stops
 receiving new logs. To prevent unbounded growth of the `/metrics` endpoint, any
-metrics which have not been updated within `idle_duration` are removed. The
-`idle_duration` must be greater or equal to `"1s"`, and it defaults to `"5m"`.
+metrics which have not been updated within `max_idle_duration` are removed. The
+`max_idle_duration` must be greater or equal to `"1s"`, and it defaults to `"5m"`.
 
 The metric values extracted from the log data are internally converted to
 floats. The supported values are the following:
@@ -1368,11 +1370,12 @@ The `stage.geoip` inner block configures a processing stage that reads an IP add
 
 The following arguments are supported:
 
-| Name      | Type     | Description                                       | Default | Required |
-| --------- | -------- | ------------------------------------------------- | ------- | -------- |
-| `db`      | `string` | Path to the Maxmind DB file.                      |         | yes      |
-| `source`  | `string` | IP from extracted data to parse.                  |         | yes      |
-| `db_type` | `string` | Maxmind DB type. Allowed values are "city", "asn" |         | yes      |
+| Name             | Type          | Description                                        | Default | Required |
+| ---------------- | ------------- | -------------------------------------------------- | ------- | -------- |
+| `db`             | `string`      | Path to the Maxmind DB file.                       |         | yes      |
+| `source`         | `string`      | IP from extracted data to parse.                   |         | yes      |
+| `db_type`        | `string`      | Maxmind DB type. Allowed values are "city", "asn". |         | no       |
+| `custom_lookups` | `map(string)` | Key-value pairs of JMESPath expressions.           |         | no       |
 
 
 #### GeoIP with City database example:
@@ -1455,6 +1458,39 @@ The extracted data from the IP used in this example:
 - geoip_autonomous_system_number: 396982
 - geoip_autonomous_system_organization: GOOGLE-CLOUD-PLATFORM
 
+
+#### GeoIP with custom fields example
+
+If the MMDB file used is enriched with custom data, for example, private IP addresses as explained in [the Maxmind blog post](https://github.com/maxmind/mmdb-from-go-blogpost), then it can be extracted from the record using the `custom_lookups` attribute.
+
+```
+loki.process "example" {
+	stage.json {
+		expressions = {ip = "client_ip"}
+	}
+
+	stage.geoip {
+		source         = "ip"
+		db             = "/path/to/db/GeoIP2-Enriched.mmdb"
+		db_type        = "city"
+		custom_lookups = {
+			"department"  = "MyCompany.DeptName",
+			"parent_vnet" = "MyCompany.ParentVNet",
+			"subnet"      = "MyCompany.Subnet",
+		}
+	}
+
+	stage.labels {
+		values = {
+			department  = "",
+			parent_vnet = "",
+			subnet      = "",
+		}
+	}
+}
+```
+The `json` stage extracts the IP address from the `client_ip` key in the log line. 
+Then the extracted `ip` value is given as source to geoip stage. The geoip stage performs a lookup on the IP and populates the shared map with the data from the city database results in addition to the custom lookups. Lastly, the custom lookup fields from the shared map are added as labels.
 
 ## Exported fields
 

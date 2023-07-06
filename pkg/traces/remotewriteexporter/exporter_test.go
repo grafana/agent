@@ -13,7 +13,6 @@ import (
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
@@ -35,10 +34,9 @@ func TestRemoteWriteExporter_ConsumeMetrics(t *testing.T) {
 	)
 
 	cfg := Config{
-		ExporterSettings: config.ExporterSettings{},
-		ConstLabels:      nil,
-		Namespace:        "traces",
-		PromInstance:     "traces",
+		ConstLabels:  nil,
+		Namespace:    "traces",
+		PromInstance: "traces",
 	}
 	exp, err := newRemoteWriteExporter(&cfg)
 	require.NoError(t, err)

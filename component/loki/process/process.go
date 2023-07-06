@@ -59,8 +59,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	// Create and immediately export the receiver which remains the same for
 	// the component's lifetime.
-	c.receiver = make(loki.LogsReceiver)
-	c.processOut = make(loki.LogsReceiver)
+	c.receiver = loki.NewLogsReceiver()
+	c.processOut = make(chan loki.Entry)
 	o.OnStateChange(Exports{Receiver: c.receiver})
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -126,7 +126,7 @@ func (c *Component) handleIn(ctx context.Context, wg *sync.WaitGroup) {
 		select {
 		case <-ctx.Done():
 			return
-		case entry := <-c.receiver:
+		case entry := <-c.receiver.Chan():
 			c.mut.RLock()
 			select {
 			case <-ctx.Done():
@@ -155,7 +155,7 @@ func (c *Component) handleOut(ctx context.Context, wg *sync.WaitGroup) {
 				select {
 				case <-ctx.Done():
 					return
-				case f <- entry:
+				case f.Chan() <- entry:
 					// no-op
 				}
 			}

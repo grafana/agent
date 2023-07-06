@@ -26,7 +26,7 @@ func Test(t *testing.T) {
 		OnStateChange: func(e component.Exports) {},
 	}
 
-	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 	args := Arguments{}
 	tcpListenerAddr, udpListenerAddr := getFreeAddr(t), getFreeAddr(t)
 
@@ -63,11 +63,11 @@ func Test(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "An application event log entry...", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "An application event log entry...", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -87,11 +87,11 @@ func Test(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "An application event log entry...", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "An application event log entry...", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -108,7 +108,7 @@ func TestWithRelabelRules(t *testing.T) {
 		OnStateChange: func(e component.Exports) {},
 	}
 
-	ch1 := make(chan loki.Entry)
+	ch1 := loki.NewLogsReceiver()
 	args := Arguments{}
 	tcpListenerAddr := getFreeAddr(t)
 
@@ -161,7 +161,7 @@ func TestWithRelabelRules(t *testing.T) {
 	}
 
 	select {
-	case logEntry := <-ch1:
+	case logEntry := <-ch1.Chan():
 		require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 		require.Equal(t, "An application event log entry...", logEntry.Line)
 		require.Equal(t, wantLabelSet, logEntry.Labels)

@@ -13,10 +13,6 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 )
 
-const (
-	LabelNameDelta = "__delta__"
-)
-
 var deltaProfiles map[string][]fastdelta.ValueType = map[string][]fastdelta.ValueType{
 	pprofMemory: {
 		{Type: "alloc_objects", Unit: "count"},
@@ -71,7 +67,7 @@ func (d *deltaAppender) reset() {
 func (d *deltaAppender) Append(ctx context.Context, lbs labels.Labels, samples []*pyroscope.RawSample) error {
 	// Notify the server that this profile is a delta profile and we don't need to compute the delta again.
 	lbsBuilder := labels.NewBuilder(lbs)
-	lbsBuilder.Set(LabelNameDelta, "false")
+	lbsBuilder.Set(pyroscope.LabelNameDelta, "false")
 	for _, sample := range samples {
 		data, err := d.computeDelta(sample.RawProfile)
 		if err != nil {

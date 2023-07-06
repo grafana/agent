@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
@@ -74,7 +73,7 @@ func TestLoader(t *testing.T) {
 			DataPath:          t.TempDir(),
 			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:        prometheus.NewRegistry(),
-			NewModuleController: func(id string) component.ModuleController {
+			NewModuleController: func(id string) controller.ModuleController {
 				return nil
 			},
 		}
@@ -220,7 +219,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:        prometheus.NewRegistry(),
 			Clusterer:         noOpClusterer(),
-			NewModuleController: func(id string) component.ModuleController {
+			NewModuleController: func(id string) controller.ModuleController {
 				return nil
 			},
 		}
