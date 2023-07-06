@@ -70,7 +70,7 @@ relationship between components.
 
 To help you write configuration files in River, the following tools are available:
 
-* Editor Support for
+* Experimental editor support for
   * [vim](https://github.com/rfratto/vim-river)
   * [VSCode](https://github.com/rfratto/vscode-river)
   * [river-mode](https://github.com/jdbaldry/river-mode) for Emacs
