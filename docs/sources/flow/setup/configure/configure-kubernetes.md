@@ -5,7 +5,7 @@ menuTitle: Kubernetes
 weight: 200
 ---
 
-# Configure Grafana Agent on Kubernetes
+# Configure Grafana Agent in flow mode on Kubernetes
 
 To configure Grafana Agent in flow mode on Kubernetes, perform the following steps:
 

@@ -4,6 +4,7 @@ menuTitle: Windows
 weight: 600
 aliases:
 - ../../set-up/install-agent-on-windows/
+- ../install-agent-on-windows/
 ---
 
 # Install static mode on Windows
@@ -34,6 +35,7 @@ You can install Grafana Agent in static mode on Microsoft Windows.
    ```shell
    PATH_TO_INSTALLER/grafana-agent-installer.exe /S
    ```
+
 ## Silent installation with `remote_write`
 
 If you are using `remote_write` you must enable Windows Exporter and set the global remote_write configuration. 
@@ -107,3 +109,8 @@ logs:
 ```
 
 Refer to [windows_events](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#windows_events) for additional configuration details.
+
+## Next steps
+
+* [Start Grafana Agent]({{< relref "../start-agent/" >}})
+* [Configure Grafana Agent]({{< relref "../configure/" >}}

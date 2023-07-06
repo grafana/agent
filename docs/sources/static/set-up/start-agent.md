@@ -1,11 +1,11 @@
 ---
 description: Learn how to start, restart, and stop Grafana Agent after it is installed
-title: Start, restart, and stop Grafana Agent in flow mode
-menuTitle: Start flow mode
-weight: 800
+title: Start, restart, and stop Grafana Agent in static mode
+menuTitle: Start static mode
+weight: 200
 ---
 
-# Start Grafana Agent in flow mode
+# Start Grafana Agent in static mode
 
 You can start, restart, and stop Grafana Agent after it is installed.
 
@@ -20,13 +20,13 @@ Grafana Agent is installed as a [systemd][] service on Linux.
 To start Grafana Agent, run the following command in a terminal window:
 
 ```shell
-sudo systemctl start grafana-agent-flow
+sudo systemctl start grafana-agent
 ```
 
 (Optional) Verify that the service is running:
 
 ```shell
-sudo systemctl status grafana-agent-flow
+sudo systemctl status grafana-agent
 ```
 
 ### Configure Grafana Agent to start at boot
@@ -34,7 +34,7 @@ sudo systemctl status grafana-agent-flow
 To automatically run Grafana Agent when the system starts, run the following command in a terminal window:
 
 ```shell
-sudo systemctl enable grafana-agent-flow.service
+sudo systemctl enable grafana-agent.service
 ```
 
 ### Restart Grafana Agent
@@ -42,7 +42,7 @@ sudo systemctl enable grafana-agent-flow.service
 To restart Grafana Agent, run the following command in a terminal window:
 
 ```shell
-sudo systemctl restart grafana-agent-flow
+sudo systemctl restart grafana-agent
 ```
 
 ### Stop Grafana Agent
@@ -50,7 +50,7 @@ sudo systemctl restart grafana-agent-flow
 To stop Grafana Agent, run the following command in a terminal window:
 
 ```shell
-sudo systemctl stop grafana-agent-flow
+sudo systemctl stop grafana-agent
 ```
 
 ### View Grafana Agent logs on Linux
@@ -58,7 +58,7 @@ sudo systemctl stop grafana-agent-flow
 To view the Grafana Agent log files, run the following command in a terminal window:
 
 ```shell
-sudo journalctl -u grafana-agent-flow
+sudo journalctl -u grafana-agent
 ```
 
 ## macOS
@@ -70,7 +70,7 @@ Grafana Agent is installed as a launchd service on macOS.
 To start Grafana Agent, run the following command in a terminal window:
 
 ```shell
-brew services start grafana-agent-flow
+brew services start grafana-agent
 ```
 
 Grafana Agent automatically runs when the system starts.
@@ -78,7 +78,7 @@ Grafana Agent automatically runs when the system starts.
 Optional: Verify that the service is running:
 
 ```shell
-brew services info grafana-agent-flow
+brew services info grafana-agent
 ```
 
 ### Restart Grafana Agent
@@ -86,7 +86,7 @@ brew services info grafana-agent-flow
 To restart Grafana Agent, run the following command in a terminal window:
 
 ```shell
-brew services restart grafana-agent-flow
+brew services restart grafana-agent
 ```
 
 ### Stop Grafana Agent
@@ -94,17 +94,16 @@ brew services restart grafana-agent-flow
 To stop Grafana Agent, run the following command in a terminal window:
 
 ```shell
-brew services stop grafana-agent-flow
+brew services stop grafana-agent
 ```
 
 ### View Grafana Agent logs on macOS
 
-By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
-`$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
+By default, logs are written to `$(brew --prefix)/var/log/grafana-agent.log` and
+`$(brew --prefix)/var/log/grafana-agent.err.log`.
 
 If you followed [Configure the Grafana Agent service](../setup/configure/configure-macos.md#configure-the-grafana-agent-service)
-and changed the path where logs are written, refer to your current copy of the
-Grafana Agent formula to locate log files.
+and changed the path where logs are written, refer to your current copy of the Grafana Agent formula to locate log files.
 
 ## Windows
 
@@ -118,12 +117,12 @@ To verify that Grafana Agent is running as a Windows Service:
 
    1. Type: `services.msc` and click **OK**.
 
-1. Scroll down to find the **Grafana Agent Flow** service and verify that the **Status** is **Running**.
+1. Scroll down to find the **Grafana Agent** service and verify that the **Status** is **Running**.
 
 ### View Grafana Agent logs
 
 When running on Windows, Grafana Agent writes its logs to Windows Event
-Logs with an event source name of **Grafana Agent Flow**.
+Logs with an event source name of **Grafana Agent**.
 
 To view the logs, perform the following steps:
 
@@ -135,7 +134,7 @@ To view the logs, perform the following steps:
 
 1. In the Event Viewer, click on **Windows Logs > Application**.
 
-1. Search for events with the source **Grafana Agent Flow**.
+1. Search for events with the source **Grafana Agent**.
 
 ## Standalone binary
 
@@ -146,12 +145,12 @@ If you downloaded the standalone binary, you must run the agent from a terminal 
 To start Grafana Agent on Linux, macOS, or FreeBSD, run the following command in a terminal window:
 
 ```shell
-AGENT_MODE=flow BINARY_PATH run CONFIG_FILE
+EXTRACTED_BINARY -config.file CONFIG_FILE 
 ```
 
 Replace the following:
 
-* `BINARY_PATH`: The path to the extracted binary.
+* `EXTRACTED_BINARY`: The path to the extracted binary.
 * `CONFIG_FILE`: The path to a Grafana Agent configuration file.
 
 ### Start Grafana Agent on Windows

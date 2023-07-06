@@ -4,6 +4,7 @@ menuTitle: Docker
 weight: 200
 aliases:
 - ../../set-up/install-agent-docker/
+- ../install-agent-docker/
 ---
 
 # Run Grafana Agent in a Docker container
@@ -19,7 +20,7 @@ Grafana Agent is available as a Docker container image on the following platform
 ## Before you begin
 
 * Install [Docker][] on your computer.
-* Create and save a Grafana Agent YAML [configuration file]({{< relref "../configuration/create-config-file/" >}}) on youur computer.
+* Create and save a Grafana Agent YAML [configuration file]({{< relref "../../configuration/create-config-file/" >}}) on youur computer.
 
 [Docker]: https://docker.io
 
@@ -61,9 +62,7 @@ Replace the following:
 For the flags to work correctly, you must expose the paths on your Windows host to the Docker container through a bind mount.
 {{%/admonition %}}
 
-<!--
 ## Next steps
 
-* [Start Grafana Agent]({{< relref "../start-agent#standalone-binary" >}})
-* [Configure Grafana Agent]({{< relref "../configure/" >}})
--->
+* [Start Grafana Agent]({{< relref "../start-agent/" >}})
+* [Configure Grafana Agent]({{< relref "../configure/" >}}

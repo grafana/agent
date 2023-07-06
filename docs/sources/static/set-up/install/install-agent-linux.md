@@ -4,6 +4,7 @@ menuTitle: Linux
 weight: 400
 aliases:
 - ../../set-up/install-agent-linux/
+- ../install-agent-linux/
 ---
 
 # Install static mode on Linux
@@ -208,9 +209,7 @@ Logs of Grafana Agent can be found by running the following command in a termina
    sudo journalctl -u grafana-agent
    ```
 
-<!--
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent#linux" >}})
+- [Start Grafana Agent]({{< relref "../start-agent/" >}})
 - [Configure Grafana Agent]({{< relref "../configure/configure-linux" >}})
--->

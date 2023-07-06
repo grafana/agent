@@ -4,6 +4,7 @@ menuTitle: macOS
 weight: 500
 aliases:
 - ../../set-up/install-agent-macos/
+- ../install-agent-macos/
 ---
 
 # Install static mode on macOS
@@ -68,3 +69,8 @@ Open a terminal and run the following commands to upgrade and restart Grafana Ag
 brew upgrade grafana-agent
 brew services restart grafana-agent
  ```
+
+## Next steps
+
+* [Start Grafana Agent]({{< relref "../start-agent/" >}})
+* [Configure Grafana Agent]({{< relref "../configure/" >}}

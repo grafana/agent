@@ -4,6 +4,7 @@ menuTitle: Standalone
 weight: 700
 aliases:
 - ../../set-up/install-agent-binary/
+- ../install-agent-binary/
 ---
 
 # Install Grafana Agent in static mode
@@ -42,7 +43,7 @@ To download the Grafana Agent as a standalone binary, perform the following step
 
 ## Configure Grafana Agent
 
-Refer to [Create a configuration file]({{< relref "../configuration/create-config-file/" >}}) for information about editing or creating a configuration file.
+Refer to [Create a configuration file]({{< relref "../../configuration/create-config-file/" >}}) for information about editing or creating a configuration file.
 
 ## Run Grafana Agent
 
@@ -54,9 +55,7 @@ Refer to [Create a configuration file]({{< relref "../configuration/create-confi
    EXTRACTED_BINARY -config.file CONFIG_FILE 
    ```
 
-<!--
 ## Next steps
 
-* [Start Grafana Agent]({{< relref "../start-agent#standalone-binary" >}})
+* [Start Grafana Agent]({{< relref "../start-agent/" >}})
 * [Configure Grafana Agent]({{< relref "../configure/" >}})
--->
