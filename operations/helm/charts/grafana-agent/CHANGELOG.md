@@ -23,6 +23,8 @@ Unreleased
 
 - Update Grafana Agent version to v0.34.2. (@captncraig)
 
+- Set securityContext for configReloader container. (@yanehi)
+
 ### Other changes
 
 - Make the agent and config-reloader container resources required when using
