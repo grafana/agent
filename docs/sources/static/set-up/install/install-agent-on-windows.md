@@ -112,5 +112,5 @@ Refer to [windows_events](https://grafana.com/docs/loki/latest/clients/promtail/
 
 ## Next steps
 
-* [Start Grafana Agent]({{< relref "../start-agent/" >}})
-* [Configure Grafana Agent]({{< relref "../configure/" >}}
+- [Start Grafana Agent]({{< relref "../start-agent/" >}})
+- [Configure Grafana Agent]({{< relref "../../configuration/" >}})

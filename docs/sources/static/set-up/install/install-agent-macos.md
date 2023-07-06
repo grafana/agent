@@ -72,5 +72,5 @@ brew services restart grafana-agent
 
 ## Next steps
 
-* [Start Grafana Agent]({{< relref "../start-agent/" >}})
-* [Configure Grafana Agent]({{< relref "../configure/" >}}
+- [Start Grafana Agent]({{< relref "../start-agent/" >}})
+- [Configure Grafana Agent]({{< relref "../../configuration/" >}})

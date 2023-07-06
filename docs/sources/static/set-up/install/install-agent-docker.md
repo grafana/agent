@@ -64,5 +64,5 @@ For the flags to work correctly, you must expose the paths on your Windows host 
 
 ## Next steps
 
-* [Start Grafana Agent]({{< relref "../start-agent/" >}})
-* [Configure Grafana Agent]({{< relref "../configure/" >}}
+- [Start Grafana Agent]({{< relref "../start-agent/" >}})
+- [Configure Grafana Agent]({{< relref "../../configuration/" >}})

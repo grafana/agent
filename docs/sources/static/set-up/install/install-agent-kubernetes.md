@@ -15,5 +15,5 @@ Advanced users can use the Grafana Agent Operator to deploy the Grafana Agent on
 
 ## Next steps
 
-* [Start Grafana Agent]({{< relref "../start-agent/" >}})
-* [Configure Grafana Agent]({{< relref "../configure/configure-kubernetes/" >}}
+- [Start Grafana Agent]({{< relref "../start-agent/" >}})
+- [Configure Grafana Agent]({{< relref "../../configuration/" >}})

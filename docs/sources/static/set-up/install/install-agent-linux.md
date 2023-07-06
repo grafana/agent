@@ -212,4 +212,4 @@ Logs of Grafana Agent can be found by running the following command in a termina
 ## Next steps
 
 - [Start Grafana Agent]({{< relref "../start-agent/" >}})
-- [Configure Grafana Agent]({{< relref "../configure/configure-linux" >}})
+- [Configure Grafana Agent]({{< relref "../../configuration/" >}})

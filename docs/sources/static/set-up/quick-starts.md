@@ -1,5 +1,6 @@
 ---
-title: Static mode quick starts
+title: Get started with Grafana Agent in static mode
+menuTitle: Get started
 weight: 300
 aliases:
 - ../../set-up/quick-starts/
