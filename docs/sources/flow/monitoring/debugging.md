@@ -80,6 +80,15 @@ The clustering page shows the following information for each cluster node:
 * The current state of the node (Viewer/Participant/Terminating).
 * Which of the nodes is the local one, serving the UI.
 
+All nodes initially join in the Viewer state, where they have a read-only view
+of the cluster status.
+Once they've successfully joined, they move on to the Participant state,
+marking them as available to participate in both read and write operations, and
+as potential owners for a given hash.
+When a node is shutting down, it changes its state to Terminating to signal
+that it shouldn't be used for any more write operations. The node can still be
+a potential owner for a read hash operation until it goes away.
+
 ## Debugging using the UI
 
 To debug using the UI:
@@ -106,8 +115,8 @@ To debug issues when using [clustering][], check for the following symptoms.
 
 - **Cluster not converging**: The cluster peers are not converging on the same
   view of their peers' status. This is most likely due to network connectivity
-issues between the cluster nodes. Use the Flow UI to understand which nodes are
-not being picked up by their peers.
+issues between the cluster nodes. Use the Flow UI of each running peer to
+understand which nodes are not being picked up correctly.
 - **Cluster split brain**: The cluster peers are not aware of one another,
   thinking they’re the only node present. Again, check for network connectivity
 issues. Check that the addresses or DNS names given to the node to join are
