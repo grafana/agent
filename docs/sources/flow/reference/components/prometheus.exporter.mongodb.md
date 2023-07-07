@@ -13,7 +13,7 @@ title: prometheus.exporter.mongodb
 The `prometheus.exporter.mongodb` component embeds percona's [`mongodb_exporter`](https://github.com/percona/mongodb_exporter).
 
 {{% admonition type="note" %}}
-In order for this integration to work properly, you have to connect each node of your mongoDB cluster to an agent instance.
+For this integration to work properly, you must have connect each node of your MongoDB cluster to an agent instance.
 That's because this exporter does not collect metrics from multiple nodes.
 
 Additionally, you need to define two custom label for your metrics using `relabel_configs`.
