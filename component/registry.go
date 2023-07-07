@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"net/http"
 	"reflect"
 	"strings"
 
@@ -53,10 +52,6 @@ type Module interface {
 	// Run blocks until the provided context is canceled. The ID of a module as defined in
 	// ModuleController.NewModule will not be released until Run returns.
 	Run(context.Context)
-
-	// ComponentHandler returns an HTTP handler which exposes endpoints of
-	// components managed by the Module.
-	ComponentHandler() http.Handler
 }
 
 // ExportFunc is used for onExport of the Module

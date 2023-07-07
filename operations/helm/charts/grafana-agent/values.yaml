@@ -122,6 +122,8 @@ configReloader:
     requests:
       cpu: "1m"
       memory: "5Mi"
+  # -- Security context to apply to the Grafana configReloader container.
+  securityContext: {}
 
 controller:
   # -- Type of controller to use for deploying Grafana Agent in the cluster.

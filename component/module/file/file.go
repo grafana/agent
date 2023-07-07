@@ -2,7 +2,6 @@ package file
 
 import (
 	"context"
-	"net/http"
 	"sync"
 
 	"go.uber.org/atomic"
@@ -55,7 +54,6 @@ type Component struct {
 var (
 	_ component.Component       = (*Component)(nil)
 	_ component.HealthComponent = (*Component)(nil)
-	_ component.HTTPComponent   = (*Component)(nil)
 )
 
 // New creates a new module.file component.
@@ -138,11 +136,6 @@ func (c *Component) Update(args component.Arguments) error {
 	// Force a content load here and bubble up any error. This will catch problems
 	// on initial load.
 	return c.mod.LoadFlowContent(newArgs.Arguments, c.getContent().Value)
-}
-
-// Handler implements component.HTTPComponent.
-func (c *Component) Handler() http.Handler {
-	return c.mod.HTTPHandler()
 }
 
 // CurrentHealth implements component.HealthComponent.
