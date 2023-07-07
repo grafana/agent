@@ -5,7 +5,7 @@ menuTitle: macOS
 weight: 400
 ---
 
-# Configure Grafana Agent on macOS
+# Configure Grafana Agent in flow mode on macOS
 
 To configure Grafana Agent in flow mode on macOS, perform the following steps:
 
