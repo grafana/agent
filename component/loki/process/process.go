@@ -10,8 +10,10 @@ import (
 	"github.com/grafana/agent/component/loki/process/stages"
 )
 
-// TODO: We should reconsider which parts of this component should be exported and which should
-//       be internal before 1.0, specifically the metrics and stages configuration structures.
+// TODO(thampiotr): We should reconsider which parts of this component should be exported and which should
+//                  be internal before 1.0, specifically the metrics and stages configuration structures.
+//					To keep the `stages` package internal, we may need to move the `converter` logic into
+//					the `component/loki/process` package.
 
 func init() {
 	component.Register(component.Registration{
