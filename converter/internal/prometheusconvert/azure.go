@@ -12,16 +12,16 @@ import (
 	prom_azure "github.com/prometheus/prometheus/discovery/azure"
 )
 
-func appendDiscoveryAzure(pb *prometheusBlocks, label string, sdConfig *prom_azure.SDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoveryAzureArgs, diags := toDiscoveryAzure(sdConfig)
+func appendDiscoveryAzure(pb *prometheusBlocks, label string, sdConfig *prom_azure.SDConfig) discovery.Exports {
+	discoveryAzureArgs := toDiscoveryAzure(sdConfig)
 	block := common.NewBlockWithOverride([]string{"discovery", "azure"}, label, discoveryAzureArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.azure." + label + ".targets"), diags
+	return newDiscoverExports("discovery.azure." + label + ".targets")
 }
 
-func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) (*azure.Arguments, diag.Diagnostics) {
+func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
 	if sdConfig == nil {
-		return nil, nil
+		return nil
 	}
 
 	return &azure.Arguments{
@@ -36,7 +36,7 @@ func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) (*azure.Arguments, diag.Dia
 		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
 		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
 		TLSConfig:       *toTLSConfig(&sdConfig.HTTPClientConfig.TLSConfig),
-	}, validateDiscoveryAzure(sdConfig)
+	}
 }
 
 func validateDiscoveryAzure(sdConfig *prom_azure.SDConfig) diag.Diagnostics {

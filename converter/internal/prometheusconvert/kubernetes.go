@@ -9,16 +9,16 @@ import (
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 )
 
-func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *prom_kubernetes.SDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoveryKubernetesArgs, diags := toDiscoveryKubernetes(sdConfig)
+func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *prom_kubernetes.SDConfig) discovery.Exports {
+	discoveryKubernetesArgs := toDiscoveryKubernetes(sdConfig)
 	block := common.NewBlockWithOverride([]string{"discovery", "kubernetes"}, label, discoveryKubernetesArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.kubernetes." + label + ".targets"), diags
+	return newDiscoverExports("discovery.kubernetes." + label + ".targets")
 }
 
-func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) (*kubernetes.Arguments, diag.Diagnostics) {
+func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Arguments {
 	if sdConfig == nil {
-		return nil, nil
+		return nil
 	}
 
 	return &kubernetes.Arguments{
@@ -29,7 +29,7 @@ func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) (*kubernetes.Argu
 		NamespaceDiscovery: toNamespaceDiscovery(&sdConfig.NamespaceDiscovery),
 		Selectors:          toSelectorConfig(sdConfig.Selectors),
 		AttachMetadata:     toAttachMetadata(&sdConfig.AttachMetadata),
-	}, validateDiscoveryKubernetes(sdConfig)
+	}
 }
 
 func validateDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) diag.Diagnostics {

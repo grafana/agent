@@ -102,42 +102,38 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 	labelCounts := make(map[string]int)
 	for _, serviceDiscoveryConfig := range serviceDiscoveryConfig {
 		var exports discovery.Exports
-		var newDiags diag.Diagnostics
 		switch sdc := serviceDiscoveryConfig.(type) {
 		case prom_discover.StaticConfig:
 			targets = append(targets, getScrapeTargets(sdc)...)
 		case *prom_azure.SDConfig:
 			labelCounts["azure"]++
-			exports, newDiags = appendDiscoveryAzure(pb, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
+			exports = appendDiscoveryAzure(pb, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
 		case *prom_consul.SDConfig:
 			labelCounts["consul"]++
-			exports, newDiags = appendDiscoveryConsul(pb, common.GetUniqueLabel(label, labelCounts["consul"]), sdc)
+			exports = appendDiscoveryConsul(pb, common.GetUniqueLabel(label, labelCounts["consul"]), sdc)
 		case *prom_digitalocean.SDConfig:
 			labelCounts["digitalocean"]++
-			exports, newDiags = appendDiscoveryDigitalOcean(pb, common.GetUniqueLabel(label, labelCounts["digitalocean"]), sdc)
+			exports = appendDiscoveryDigitalOcean(pb, common.GetUniqueLabel(label, labelCounts["digitalocean"]), sdc)
 		case *prom_dns.SDConfig:
 			labelCounts["dns"]++
 			exports = appendDiscoveryDns(pb, common.GetUniqueLabel(label, labelCounts["dns"]), sdc)
 		case *prom_docker.DockerSDConfig:
 			labelCounts["docker"]++
-			exports, newDiags = appendDiscoveryDocker(pb, common.GetUniqueLabel(label, labelCounts["docker"]), sdc)
+			exports = appendDiscoveryDocker(pb, common.GetUniqueLabel(label, labelCounts["docker"]), sdc)
 		case *prom_aws.EC2SDConfig:
 			labelCounts["ec2"]++
-			exports, newDiags = appendDiscoveryEC2(pb, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
+			exports = appendDiscoveryEC2(pb, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
 		case *prom_gce.SDConfig:
 			labelCounts["gce"]++
 			exports = appendDiscoveryGCE(pb, common.GetUniqueLabel(label, labelCounts["gce"]), sdc)
 		case *prom_kubernetes.SDConfig:
 			labelCounts["kubernetes"]++
-			exports, newDiags = appendDiscoveryKubernetes(pb, common.GetUniqueLabel(label, labelCounts["kubernetes"]), sdc)
+			exports = appendDiscoveryKubernetes(pb, common.GetUniqueLabel(label, labelCounts["kubernetes"]), sdc)
 		case *prom_aws.LightsailSDConfig:
 			labelCounts["lightsail"]++
-			exports, newDiags = appendDiscoveryLightsail(pb, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
-		default:
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
+			exports = appendDiscoveryLightsail(pb, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
 		}
 
-		diags = append(diags, newDiags...)
 		targets = append(exports.Targets, targets...)
 	}
 

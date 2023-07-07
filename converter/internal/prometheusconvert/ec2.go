@@ -13,16 +13,16 @@ import (
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
 )
 
-func appendDiscoveryEC2(pb *prometheusBlocks, label string, sdConfig *prom_aws.EC2SDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoveryec2Args, diags := toDiscoveryEC2(sdConfig)
+func appendDiscoveryEC2(pb *prometheusBlocks, label string, sdConfig *prom_aws.EC2SDConfig) discovery.Exports {
+	discoveryec2Args := toDiscoveryEC2(sdConfig)
 	block := common.NewBlockWithOverride([]string{"discovery", "ec2"}, label, discoveryec2Args)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.ec2." + label + ".targets"), diags
+	return newDiscoverExports("discovery.ec2." + label + ".targets")
 }
 
-func toDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) (*aws.EC2Arguments, diag.Diagnostics) {
+func toDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) *aws.EC2Arguments {
 	if sdConfig == nil {
-		return nil, nil
+		return nil
 	}
 
 	return &aws.EC2Arguments{
@@ -35,7 +35,7 @@ func toDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) (*aws.EC2Arguments, diag.Dia
 		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
 		Port:            sdConfig.Port,
 		Filters:         toEC2Filters(sdConfig.Filters),
-	}, validateDiscoveryEC2(sdConfig)
+	}
 }
 
 func validateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {

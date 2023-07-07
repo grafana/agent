@@ -13,16 +13,16 @@ import (
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
 )
 
-func appendDiscoveryLightsail(pb *prometheusBlocks, label string, sdConfig *prom_aws.LightsailSDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoverylightsailArgs, diags := toDiscoveryLightsail(sdConfig)
+func appendDiscoveryLightsail(pb *prometheusBlocks, label string, sdConfig *prom_aws.LightsailSDConfig) discovery.Exports {
+	discoverylightsailArgs := toDiscoveryLightsail(sdConfig)
 	block := common.NewBlockWithOverride([]string{"discovery", "lightsail"}, label, discoverylightsailArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.lightsail." + label + ".targets"), diags
+	return newDiscoverExports("discovery.lightsail." + label + ".targets")
 }
 
-func toDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) (*aws.LightsailArguments, diag.Diagnostics) {
+func toDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) *aws.LightsailArguments {
 	if sdConfig == nil {
-		return nil, nil
+		return nil
 	}
 
 	return &aws.LightsailArguments{
@@ -34,7 +34,7 @@ func toDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) (*aws.LightsailA
 		RoleARN:         sdConfig.RoleARN,
 		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
 		Port:            sdConfig.Port,
-	}, validateDiscoveryLightsail(sdConfig)
+	}
 }
 
 func validateDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) diag.Diagnostics {
