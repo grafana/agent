@@ -89,6 +89,10 @@ listener if not explicitly provided. It’s generally recommended to
 align the port numbers on as many nodes as possible to simplify the deployment
 process.
 
+Discovering peers using the `--cluster.join-addresses` flag only happens on
+startup; after that, cluster nodes depend on gossiping messages with each other
+to converge on the cluster's state.
+
 The first node that is used to bootstrap a new cluster (also known as
 the "seed node") can either omit the flag that specifies peers to join or can
 try to connect to itself.
