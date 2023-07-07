@@ -16,7 +16,8 @@ Unreleased
 ### Features
 
 - Add native support for Flow mode clustering with the
-  `agent.clustering.enabled` flag. (@rfratto)
+  `agent.clustering.enabled` flag. Clustering may only be enabled in Flow mode
+  when deploying a StatefulSet. (@rfratto)
 
 ### Enhancements
 

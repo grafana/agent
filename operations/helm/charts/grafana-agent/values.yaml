@@ -32,7 +32,7 @@ agent:
 
   clustering:
     # -- Deploy agents in a cluster to allow for load distribution. Only
-    # applies when agent.mode is "flow".
+    # applies when agent.mode=flow and controller.type=statefulset.
     enabled: false
 
   # -- Path to where Grafana Agent stores data (for example, the Write-Ahead Log).

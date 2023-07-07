@@ -1,7 +1,7 @@
 ---
-# Source: grafana-agent/templates/controllers/deployment.yaml
+# Source: grafana-agent/templates/controllers/statefulset.yaml
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: grafana-agent
   labels:
@@ -13,6 +13,7 @@ metadata:
 spec:
   replicas: 3
   minReadySeconds: 10
+  serviceName: grafana-agent
   selector:
     matchLabels:
       app.kubernetes.io/name: grafana-agent

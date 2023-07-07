@@ -4,5 +4,5 @@ agent:
     enabled: true
 
 controller:
-  type: 'deployment'
+  type: 'statefulset'
   replicas: 3
