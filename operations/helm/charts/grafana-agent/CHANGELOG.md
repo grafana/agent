@@ -10,14 +10,18 @@ internal API changes are not present.
 Unreleased
 ----------
 
-0.16.0 (2023-06-20)
--------------------
-
 ### Features
 
 - Add native support for Flow mode clustering with the
   `agent.clustering.enabled` flag. Clustering may only be enabled in Flow mode
   when deploying a StatefulSet. (@rfratto)
+
+### Enhancements
+
+- Set securityContext for configReloader container. (@yanehi)
+
+0.16.0 (2023-06-20)
+-------------------
 
 ### Enhancements
 
@@ -29,13 +33,10 @@ Unreleased
 
 - Update Grafana Agent version to v0.34.2. (@captncraig)
 
-- Set securityContext for configReloader container. (@yanehi)
-
 ### Other changes
 
 - Make the agent and config-reloader container resources required when using
   autoscaling. (@tpaschalis)
-
 
 0.15.0 (2023-06-08)
 -------------------
