@@ -122,6 +122,8 @@ Main (unreleased)
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
 
+- Clustering for Grafana Agent Flow has graduated from experimental to beta.
+
 v0.34.3 (2023-06-27)
 --------------------
 

@@ -19,11 +19,6 @@ same configuration file.
 The behavior of a standalone, non-clustered agent is the same as if it was a
 single-node cluster.
 
-In comparison to [hashmod sharding][] as a scaling mechanism, clustering with
-target auto-distribution provides high availability without requiring multiple
-replicas for the same shard, and can dynamically reshard targets without
-changes to the configuration file.
-
 ## Use cases
 
 [Setting up][] clustering using the command-line arguments is the first step in
@@ -44,16 +39,13 @@ or an existing node going away, all participating components locally
 recalculate target ownership and rebalance the number of targets they’re
 scraping without explicitly communicating ownership over the network.
 
-The agent makes use of a fully-local consistent hashing algorithm to distribute
-targets, meaning that on average only ~1/N of the targets are redistributed.
-This is in contrast to hashmod sharding where up to 100% of the targets could
-be reassigned to another node and possibly cause system instability.
-
 As such, target auto-distribution not only allows to dynamically scale the
 number of agents to distribute workload during peaks, but also provides
 resiliency, since in the event of a node going away, its targets are
-automatically picked up by one of their peers. Again, this is in contrast to
-hashmod sharding which requires running multiple replicas of each shard for HA.
+automatically picked up by one of their peers. 
+
+The agent makes use of a fully-local consistent hashing algorithm to distribute
+targets, meaning that on average only ~1/N of the targets are redistributed.
 
 The components who can make use of target auto-distribution are the following:
 - [prometheus.scrape][]
@@ -62,7 +54,7 @@ The components who can make use of target auto-distribution are the following:
 - [prometheus.operator.servicemonitors][]
 
 These components can opt-in to auto-distributing targets between nodes by
-defining the `clustering` block like this:
+adding a `clustering` block with the `enabled` argument set to true:
 ```river
 prometheus.scrape "default" {
     clustering {
@@ -110,7 +102,7 @@ Debug Info.
 The easiest way to deploy an agent cluster is by making use of our
 [Helm chart][]. Here's an example of how to achieve that.
 
-The following `values.yaml` file deploys anStatefulSet for metrics
+The following `values.yaml` file deploys a StatefulSet for metrics
 collection. It makes use of a [headless service][] to retrieve the IPs of the
 agent pods for the `--cluster.join-addresses` argument, as well as an
 [Horizontal Pod Autoscaler][] (HPA) for dynamically matching demand.
@@ -228,7 +220,6 @@ The [debugging][] page contains some clues to help pin down clustering issues.
 
 
 [Setting up]: {{< relref "../reference/cli/run.md#clustering-beta" >}}
-[hashmod sharding]: https://grafana.com/docs/agent/latest/static/operation-guide/#hashmod-sharding-stable
 [Helm chart]: https://artifacthub.io/packages/helm/grafana/grafana-agent
 [Horizontal Pod Autoscaler]: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
 [headless service]: https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
