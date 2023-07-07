@@ -30,6 +30,11 @@ agent:
     # -- Key in ConfigMap to get config from.
     key: null
 
+  clustering:
+    # -- Deploy agents in a cluster to allow for load distribution. Only
+    # applies when agent.mode is "flow".
+    enabled: false
+
   # -- Path to where Grafana Agent stores data (for example, the Write-Ahead Log).
   # By default, data is lost between reboots.
   storagePath: /tmp/agent

@@ -13,6 +13,11 @@ Unreleased
 0.16.0 (2023-06-20)
 -------------------
 
+### Features
+
+- Add native support for Flow mode clustering with the
+  `agent.clustering.enabled` flag. (@rfratto)
+
 ### Enhancements
 
 - Allow requests to be set on the config reloader container. (@tpaschalis)

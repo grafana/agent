@@ -41,6 +41,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| agent.clustering.enabled | bool | `false` | Deploy agents in a cluster to allow for load distribution. Only applies when agent.mode is "flow". |
 | agent.configMap.content | string | `""` | Content to assign to the new ConfigMap.  This is passed into `tpl` allowing for templating from values. |
 | agent.configMap.create | bool | `true` | Create a new ConfigMap for the config file. |
 | agent.configMap.key | string | `nil` | Key in ConfigMap to get config from. |
