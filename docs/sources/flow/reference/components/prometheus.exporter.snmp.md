@@ -32,7 +32,7 @@ Omitted fields take their default values.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `config_file` | `string`       | SNMP configuration file defining custom modules. | | no
-`config` | `string`       | SNMP configuration as inline string.  | |no
+`config` | `string` or `secret`       | SNMP configuration as inline string.  | |no
 
 The `config_file` argument points to a YAML file defining which snmp_exporter modules to use. See [snmp_exporter](https://github.com/prometheus/snmp_exporter#generating-configuration) for details on how to generate a config file.
 
@@ -150,12 +150,13 @@ prometheus.scrape "demo" {
 }
 ```
 
-This example is the same above with using an embedded configuration:
+This example is the same above with using an embedded configuration (with secrets):
 
 
 ```river
 local.file "snmp_config" {
-    path = "snmp_modules.yml"
+    path      = "snmp_modules.yml"
+    is_secret = true
 }
 
 prometheus.exporter.snmp "example" {
