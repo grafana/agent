@@ -18,9 +18,9 @@ That's because this exporter does not collect metrics from multiple nodes.
 
 You must also define two custom labels for your metrics using `relabel_configs`.
 
-The first one is `service_name`, which is how you identify this node in your cluster (example: `ReplicaSet1-Node1`).
+The first label is `service_name`, which is how you identify this node in your cluster, for example: `ReplicaSet1-Node1`.
 
-The second one is `mongodb_cluster`, which is the name of your mongodb cluster, and must be set the same value for all nodes composing the cluster (example: `prod-cluster`).
+The second label is `mongodb_cluster`, which is the name of your MongoDB cluster. It must be set to the same value for all nodes composing the cluster, for example: `prod-cluster`.
 {{% /admonition %}}
 
 We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
