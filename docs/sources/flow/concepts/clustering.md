@@ -23,8 +23,22 @@ single-node cluster.
 
 [Setting up][] clustering using the command-line arguments is the first step in
 making agents aware of one another.
-Components in a telemetry pipeline need to explicitly opt-in to participating
-to a clustering use case in their River config.
+
+Components that support clustering can define the `clustering` block in their
+River config and need explicitly opt-in to participating to a clustering use
+case.
+
+For example, the `prometheus.scrape` component can opt-in to auto-distributing
+targets between nodes by adding the `clustering` block with the `enabled`
+argument set to `true`:
+```river
+prometheus.scrape "default" {
+    clustering {
+      enabled = true
+    }
+    ...
+}
+```
 
 ### Target auto-distribution
 
@@ -47,22 +61,11 @@ automatically picked up by one of their peers.
 The agent makes use of a fully-local consistent hashing algorithm to distribute
 targets, meaning that on average only ~1/N of the targets are redistributed.
 
-The components who can make use of target auto-distribution are the following:
+Here's some of the components that that support target auto-distribution: 
 - [prometheus.scrape][]
 - [pyroscope.scrape][]
 - [prometheus.operator.podmonitors][]
 - [prometheus.operator.servicemonitors][]
-
-These components can opt-in to auto-distributing targets between nodes by
-adding a `clustering` block with the `enabled` argument set to true:
-```river
-prometheus.scrape "default" {
-    clustering {
-      enabled = true
-    }
-    ...
-}
-```
 
 ## Local clustering example
 
