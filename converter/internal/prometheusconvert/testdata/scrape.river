@@ -59,13 +59,11 @@ prometheus.remote_write "default" {
 
 		write_relabel_config {
 			source_labels = ["__address1__"]
-			regex         = "^(?:(.*))$"
 			target_label  = "__param_target1"
 		}
 
 		write_relabel_config {
 			source_labels = ["__address2__"]
-			regex         = "^(?:(.*))$"
 			target_label  = "__param_target2"
 		}
 	}

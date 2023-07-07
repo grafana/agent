@@ -21,7 +21,6 @@ discovery.relabel "prometheus1" {
 
 	rule {
 		source_labels = ["__address1__"]
-		regex         = "^(?:(.*))$"
 		target_label  = "__param_target1"
 	}
 
@@ -50,13 +49,11 @@ discovery.relabel "prometheus2" {
 
 	rule {
 		source_labels = ["__address1__"]
-		regex         = "^(?:(.*))$"
 		target_label  = "__param_target1"
 	}
 
 	rule {
 		source_labels = ["__address2__"]
-		regex         = "^(?:(.*))$"
 		target_label  = "__param_target2"
 	}
 }
