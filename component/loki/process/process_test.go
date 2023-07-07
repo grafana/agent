@@ -2,7 +2,6 @@ package process
 
 import (
 	"context"
-	"github.com/grafana/agent/component/loki/process/stages"
 	"os"
 	"testing"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/component/loki/process/stages"
 	lsf "github.com/grafana/agent/component/loki/source/file"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
