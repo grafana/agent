@@ -10,7 +10,7 @@ You can deploy Grafana Agent in static mode on Kubernetes.
 
 ## Deploy
 
-To deploy Grafana Agent in static mode on  Kubernetes, perform the following steps.
+To deploy Grafana Agent in static mode on Kubernetes, perform the following steps.
 
 1. Download one of the following manifests from GitHub and save it as `manifest.yaml`:
 
