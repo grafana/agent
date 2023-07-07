@@ -58,7 +58,6 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 // pipeline. A non-empty labelPrefix can be provided for label uniqueness when
 // calling this function for the same builder.File multiple times.
 func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string) diag.Diagnostics {
-	var diags diag.Diagnostics
 	pb := newPrometheusBlocks()
 
 	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
@@ -75,8 +74,7 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix stri
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
-		scrapeTargets, newDiags := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
-		diags = append(diags, newDiags...)
+		scrapeTargets := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
 
 		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
 		if promDiscoveryRelabelExports != nil {
@@ -86,18 +84,15 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix stri
 		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets, label)
 	}
 
-	newDiags := validate(promConfig)
-	diags = append(diags, newDiags...)
-
 	pb.appendToFile(f)
-	return diags
+
+	return validate(promConfig)
 }
 
 // appendServiceDiscoveryConfigs will loop through the service discovery
 // configs and append them to the file. This returns the scrape targets
 // and discovery targets as a result.
-func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) ([]discovery.Target, diag.Diagnostics) {
-	var diags diag.Diagnostics
+func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) []discovery.Target {
 	var targets []discovery.Target
 	labelCounts := make(map[string]int)
 	for _, serviceDiscoveryConfig := range serviceDiscoveryConfig {
@@ -137,5 +132,5 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		targets = append(exports.Targets, targets...)
 	}
 
-	return targets, diags
+	return targets
 }
