@@ -1,6 +1,6 @@
 ---
-description: Learn how to install Grafana Agent in flow mode on Kubernetes
-title: Install Grafana Agent in flow mode on Kubernetes
+description: Learn how to deploy Grafana Agent in flow mode on Kubernetes
+title: Deploy Grafana Agent in flow mode on Kubernetes
 menuTitle: Kubernetes
 weight: 200
 aliases:
