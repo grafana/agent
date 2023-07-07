@@ -7,9 +7,9 @@ aliases:
  - ../../install/binary/
 ---
 
-# Install Grafana Agent in flow mode
+# Install Grafana Agent in flow mode as a standalone binary
 
-Grafana Agent is distributed as a standalone binary for various operating systems and architectures:
+Grafana Agent is distributed as a standalone binary for the following operating systems and architectures:
 
 * Linux: AMD64, ARM64, ARMv6, ARMv7
 * Windows: AMD64

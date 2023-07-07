@@ -7,40 +7,59 @@ aliases:
 - ../install-agent-on-windows/
 ---
 
-# Install static mode on Windows
+# Install Grafana Agent in static mode on Windows
 
-You can install Grafana Agent in static mode on Microsoft Windows.
+You can install Grafana Agent in flow mode on Windows with the standard graphical installer, or as a silent install.
 
-## Download Grafana Agent for Windows
+## Standard install
+
+To do a standard install of Grafana Agent on Windows, perform the following steps.
 
 1. Navigate to the [latest release](https://github.com/grafana/agent/releases).
+
 1. Scroll down to the **Assets** section.
+
 1. Download the file called `grafana-agent-installer.exe.zip`.
 
-   You can also download the `grafana-agent-installer.exe.zip` asset directly from https://github.com/grafana/agent/releases/latest/download/grafana-agent-installer.exe.zip
-
-## Standard installation
-
 1. Unzip the downloaded file.
+
 1. Double-click on `grafana-agent-installer.exe` to install Grafana Agent.
 
    Grafana Agent is installed into the default directory `C:\Program Files\Grafana Agent`.
    The [windows_exporter integration](https://grafana.com/docs/agent/latest/static/configuration/integrations/windows-exporter-config) can be enabled with all default windows_exporter options.
 
-## Silent installation
+## Silent install
+
+To do a silent install of Grafana Agent on Windows, perform the following steps.
+
+1. Navigate to the [latest release](https://github.com/grafana/agent/releases).
+
+1. Scroll down to the **Assets** section.
+
+1. Download the file called `grafana-agent-installer.exe.zip`.
 
 1. Unzip the downloaded file.
+
 1. Run the following command in PowerShell or Command Prompt:
 
    ```shell
    PATH_TO_INSTALLER/grafana-agent-installer.exe /S
    ```
 
-## Silent installation with `remote_write`
+   Replace `PATH_TO_INSTALLER` with the path where the unzipped installer executable is located.
 
-If you are using `remote_write` you must enable Windows Exporter and set the global remote_write configuration. 
+## Silent install with `remote_write`
+
+If you are using `remote_write` you must enable Windows Exporter and set the global remote_write configuration.
+
+1. Navigate to the [latest release](https://github.com/grafana/agent/releases).
+
+1. Scroll down to the **Assets** section.
+
+1. Download the file called `grafana-agent-installer.exe.zip`.
 
 1. Unzip the downloaded file.
+
 1. Run the following command in PowerShell or Command Prompt:
 
    ```shell
@@ -52,6 +71,7 @@ If you are using `remote_write` you must enable Windows Exporter and set the glo
 ## Verify the installation
 
 1. Make sure you can access `http://localhost:12345/-/healthy` and `http://localhost:12345/agent/api/v1/metrics/targets`.
+
 1. Optional: You can adjust `C:\Program Files\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, restart the Grafana Agent service to load changes to the configuration.
 
 Existing configuration files are kept when re-installing or upgrading the Grafana Agent.
@@ -63,11 +83,12 @@ A configuration file for the Grafana Agent is provided by default at `C:\Program
 If you change the location of the configuration file, ensure you complete the following steps.
 
 1. Update the Grafana Agent service to load the new path.
+
 1. Run the following in an elevated prompt, replacing `<new_path>` with the full path holding `agent-config.yaml`:
 
-```shell
-sc config "Grafana Agent" binpath= "INSTALLED_DIRECTORY\agent-windows-amd64.exe -config.file=\"<new_path>\agent-config.yaml\""
-```
+   ```shell
+   sc config "Grafana Agent" binpath= "INSTALLED_DIRECTORY\agent-windows-amd64.exe -config.file=\"<new_path>\agent-config.yaml\""
+   ```
 
 ## Uninstall Grafana Agent
 

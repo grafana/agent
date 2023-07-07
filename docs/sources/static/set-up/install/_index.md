@@ -11,10 +11,6 @@ aliases:
 
 You can install Grafana Agent in static mode on Docker, Kubernetes, Linux, macOS, or Windows.
 
-{{% admonition type="note" %}}
-Installing Grafana Agent on other operating systems is possible, but is not recommended or supported.
-{{% /admonition %}}
-
 The following architectures are supported:
 
 - Linux: AMD64, ARM64, ARMv6, ARMv7
@@ -24,10 +20,14 @@ The following architectures are supported:
 
 In addition, best-effort support is provided for Linux: ppc64le.
 
-To get started with Grafana Agent Operator, refer to the Operator-specific
-[documentation](../../../operator/_index.md).
-
 {{< section >}}
+
+{{% admonition type="note" %}}
+Installing Grafana Agent on other operating systems is possible, but is not recommended or supported.
+{{% /admonition %}}
+## Grafana Operator
+
+To get started with Grafana Agent Operator, refer to the Operator-specific [documentation](../../../operator/_index.md).
 
 ## Grafana Cloud
 
@@ -35,4 +35,4 @@ Use the Grafana Agent [Kubernetes quickstarts](https://grafana.com/docs/grafana-
 
 ## Tanka
 
-For more information, refer to the [Tanka](https://tanka.dev) configurations in our [`production/`](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory.
+For more information, refer to the [Tanka](https://tanka.dev) configurations in the Grafana Agent [production](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory on GitHub.

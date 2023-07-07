@@ -1,5 +1,5 @@
 ---
-title: Install Grafana Agent in static mode on Kubernetes
+title: Deploy Grafana Agent in static mode on Kubernetes
 menuTitle: Kubernetes
 weight: 300
 ---
