@@ -2,12 +2,12 @@ package process
 
 import (
 	"context"
+	"github.com/grafana/agent/component/loki/process/stages"
 	"reflect"
 	"sync"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/process/internal/stages"
 )
 
 func init() {
