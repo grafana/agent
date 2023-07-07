@@ -17,6 +17,10 @@ func appendDiscoveryDocker(pb *prometheusBlocks, label string, sdConfig *prom_do
 	return newDiscoverExports("discovery.docker." + label + ".targets")
 }
 
+func validateDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) diag.Diagnostics {
+	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+}
+
 func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
 	if sdConfig == nil {
 		return nil
@@ -30,10 +34,6 @@ func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
 		Filters:            toDockerFilters(sdConfig.Filters),
 		HTTPClientConfig:   *toHttpClientConfig(&sdConfig.HTTPClientConfig),
 	}
-}
-
-func validateDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toDockerFilters(filtersConfig []prom_docker.Filter) []docker.Filter {

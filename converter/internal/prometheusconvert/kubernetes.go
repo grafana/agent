@@ -16,6 +16,10 @@ func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *pro
 	return newDiscoverExports("discovery.kubernetes." + label + ".targets")
 }
 
+func validateDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) diag.Diagnostics {
+	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+}
+
 func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Arguments {
 	if sdConfig == nil {
 		return nil
@@ -30,10 +34,6 @@ func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Argum
 		Selectors:          toSelectorConfig(sdConfig.Selectors),
 		AttachMetadata:     toAttachMetadata(&sdConfig.AttachMetadata),
 	}
-}
-
-func validateDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toNamespaceDiscovery(ndConfig *prom_kubernetes.NamespaceDiscovery) kubernetes.NamespaceDiscovery {

@@ -18,6 +18,10 @@ func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.Scra
 	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, block)
 }
 
+func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
+	return validateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
+}
+
 func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
 	if scrapeConfig == nil {
 		return nil
@@ -46,10 +50,6 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 	}
 }
 
-func validateScrapeTargets(staticConfig prom_discovery.StaticConfig) diag.Diagnostics {
-	return make(diag.Diagnostics, 0)
-}
-
 func getScrapeTargets(staticConfig prom_discovery.StaticConfig) []discovery.Target {
 	targets := []discovery.Target{}
 
@@ -69,4 +69,8 @@ func getScrapeTargets(staticConfig prom_discovery.StaticConfig) []discovery.Targ
 	}
 
 	return targets
+}
+
+func validateScrapeTargets(staticConfig prom_discovery.StaticConfig) diag.Diagnostics {
+	return make(diag.Diagnostics, 0)
 }

@@ -20,6 +20,49 @@ func appendDiscoveryEC2(pb *prometheusBlocks, label string, sdConfig *prom_aws.E
 	return newDiscoverExports("discovery.ec2." + label + ".targets")
 }
 
+func validateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if sdConfig.HTTPClientConfig.BasicAuth != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported basic_auth for ec2_sd_configs")
+	}
+
+	if sdConfig.HTTPClientConfig.Authorization != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported authorization for ec2_sd_configs")
+	}
+
+	if sdConfig.HTTPClientConfig.OAuth2 != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for ec2_sd_configs")
+	}
+
+	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.BearerToken, prom_config.DefaultHTTPClientConfig.BearerToken) {
+		diags.Add(diag.SeverityLevelError, "unsupported bearer_token for ec2_sd_configs")
+	}
+
+	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.BearerTokenFile, prom_config.DefaultHTTPClientConfig.BearerTokenFile) {
+		diags.Add(diag.SeverityLevelError, "unsupported bearer_token_file for ec2_sd_configs")
+	}
+
+	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.FollowRedirects, prom_config.DefaultHTTPClientConfig.FollowRedirects) {
+		diags.Add(diag.SeverityLevelError, "unsupported follow_redirects for ec2_sd_configs")
+	}
+
+	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.EnableHTTP2, prom_config.DefaultHTTPClientConfig.EnableHTTP2) {
+		diags.Add(diag.SeverityLevelError, "unsupported enable_http2 for ec2_sd_configs")
+	}
+
+	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.ProxyConfig, prom_config.DefaultHTTPClientConfig.ProxyConfig) {
+		diags.Add(diag.SeverityLevelError, "unsupported proxy for ec2_sd_configs")
+	}
+
+	// Do a last check in case any of the specific checks missed anything.
+	if len(diags) == 0 && !reflect.DeepEqual(sdConfig.HTTPClientConfig, prom_config.DefaultHTTPClientConfig) {
+		diags.Add(diag.SeverityLevelError, "unsupported http_client_config for ec2_sd_configs")
+	}
+
+	return diags
+}
+
 func toDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) *aws.EC2Arguments {
 	if sdConfig == nil {
 		return nil
@@ -36,31 +79,6 @@ func toDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) *aws.EC2Arguments {
 		Port:            sdConfig.Port,
 		Filters:         toEC2Filters(sdConfig.Filters),
 	}
-}
-
-func validateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if sdConfig.HTTPClientConfig.BasicAuth != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported basic_auth for ec2_sd_configs")
-	}
-
-	if sdConfig.HTTPClientConfig.Authorization != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported authorization for ec2_sd_configs")
-	}
-
-	if sdConfig.HTTPClientConfig.OAuth2 != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for ec2_sd_configs")
-	}
-
-	if !reflect.DeepEqual(prom_config.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
-		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for ec2_sd_configs")
-	}
-
-	newDiags := validateHttpClientConfig(&sdConfig.HTTPClientConfig)
-
-	diags = append(diags, newDiags...)
-	return diags
 }
 
 func toEC2Filters(filtersConfig []*prom_aws.EC2Filter) []*aws.EC2Filter {

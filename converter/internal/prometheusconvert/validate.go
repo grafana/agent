@@ -81,7 +81,7 @@ func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagn
 	var diags diag.Diagnostics
 
 	for _, scrapeConfig := range scrapeConfigs {
-		newDiags := validateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
+		newDiags := validatePrometheusScrape(scrapeConfig)
 		diags = append(diags, newDiags...)
 
 		for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
@@ -140,11 +140,7 @@ func validateRemoteWriteConfigs(remoteWriteConfigs []*prom_config.RemoteWriteCon
 	var diags diag.Diagnostics
 
 	for _, remoteWriteConfig := range remoteWriteConfigs {
-		if remoteWriteConfig.SigV4Config != nil {
-			diags.Add(diag.SeverityLevelError, "unsupported remote_write sigv4 config was provided")
-		}
-
-		newDiags := validateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig)
+		newDiags := validateRemoteWriteConfig(remoteWriteConfig)
 		diags = append(diags, newDiags...)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/prometheus/remotewrite"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	prom_config "github.com/prometheus/prometheus/config"
 )
@@ -24,6 +25,19 @@ func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.
 	return &remotewrite.Exports{
 		Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write." + remoteWriteLabel + ".receiver"},
 	}
+}
+
+func validateRemoteWriteConfig(remoteWriteConfig *prom_config.RemoteWriteConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if remoteWriteConfig.SigV4Config != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported remote_write sigv4 config was provided")
+	}
+
+	newDiags := validateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig)
+	diags = append(diags, newDiags...)
+
+	return diags
 }
 
 func toRemotewriteArguments(globalConfig prom_config.GlobalConfig, remoteWriteConfigs []*prom_config.RemoteWriteConfig) *remotewrite.Arguments {

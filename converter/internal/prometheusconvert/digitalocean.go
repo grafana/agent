@@ -21,22 +21,6 @@ func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *p
 	return newDiscoverExports("discovery.digitalocean." + label + ".targets")
 }
 
-func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) *digitalocean.Arguments {
-	if sdConfig == nil {
-		return nil
-	}
-
-	return &digitalocean.Arguments{
-		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
-		Port:            sdConfig.Port,
-		BearerToken:     rivertypes.Secret(sdConfig.HTTPClientConfig.BearerToken),
-		BearerTokenFile: sdConfig.HTTPClientConfig.BearerTokenFile,
-		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
-		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
-		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
-	}
-}
-
 func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -60,4 +44,20 @@ func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Di
 
 	diags = append(diags, newDiags...)
 	return diags
+}
+
+func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) *digitalocean.Arguments {
+	if sdConfig == nil {
+		return nil
+	}
+
+	return &digitalocean.Arguments{
+		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
+		Port:            sdConfig.Port,
+		BearerToken:     rivertypes.Secret(sdConfig.HTTPClientConfig.BearerToken),
+		BearerTokenFile: sdConfig.HTTPClientConfig.BearerTokenFile,
+		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
+		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
+		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
+	}
 }
