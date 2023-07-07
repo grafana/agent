@@ -19,6 +19,7 @@ You can specify multiple `pyroscope.ebpf` components by giving them different la
 
 ```river
 pyroscope.ebpf "LABEL" {
+  targets    = TARGET_LIST
   forward_to = RECEIVER_LIST
 }
 ```
@@ -33,8 +34,8 @@ values.
 
 | Name                      | Type                     | Description                                                  | Default | Required |
 |---------------------------|--------------------------|--------------------------------------------------------------|---------|----------|
-| `forward_to`              | `list(ProfilesReceiver)` | List of receivers to send collected profiles to.             |         | yes      |  
-| `targets`                 | `list(map(string))`      | List of targets to group profiles by container id            |         | yes      |   
+| `targets`                 | `list(map(string))`      | List of targets to group profiles by container id            |         | yes      |
+| `forward_to`              | `list(ProfilesReceiver)` | List of receivers to send collected profiles to.             |         | yes      |   
 | `collect_interval`        | `duration`               | How frequently to collect profiles                           | `15s`   | no       |       
 | `sample_rate`             | `int`                    | How many times per second to collect profile samples         | 97      | no       |     
 | `pid_cache_size`          | `int`                    | The size of the pid -> proc symbols table LRU cache          | 32      | no       |      
