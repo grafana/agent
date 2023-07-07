@@ -4,7 +4,7 @@ menuTitle: macOS
 weight: 500
 aliases:
 - ../../set-up/install-agent-macos/
-- ../install-agent-macos/
+- ../set-up/install-agent-macos/
 ---
 
 # Install Grafana Agent in static mode on macOS

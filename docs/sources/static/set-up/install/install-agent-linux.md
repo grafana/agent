@@ -4,7 +4,7 @@ menuTitle: Linux
 weight: 400
 aliases:
 - ../../set-up/install-agent-linux/
-- ../install-agent-linux/
+- ../set-up/install-agent-linux/
 ---
 
 # Install static mode on Linux

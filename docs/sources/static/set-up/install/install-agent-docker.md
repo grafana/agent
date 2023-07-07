@@ -4,7 +4,7 @@ menuTitle: Docker
 weight: 200
 aliases:
 - ../../set-up/install-agent-docker/
-- ../install-agent-docker/
+- ../set-up/install-agent-docker/
 ---
 
 # Run Grafana Agent in static mode in a Docker container
