@@ -56,6 +56,8 @@ Main (unreleased)
 
 - Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
+- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
+
 ### Enhancements
 
 - Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
@@ -78,19 +80,20 @@ Main (unreleased)
 
 - Support `clustering` block in `prometheus.operator.servicemonitors` and `prometheus.operator.podmonitors` components to distribute
   targets amongst clustered agents. (@captncraig)
-  
+
 - Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
 
 - The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
 
 - The Agent Operational dashboard of Grafana Agent mixin now has more descriptive panel titles, Y-axis units
 
+- Add `write_relabel_config` to `prometheus.remote_write` (@jkroepke)
+
 - Update OpenTelemetry Collector dependencies from v0.63.0 to v0.80.0. (@ptodev)
 
 - Allow setting the node name for clustering with a command-line flag. (@tpaschalis)
 
 - Allow `prometheus.exporter.snmp` and SNMP integration to be configured passing a YAML block. (@marctc)
-
 
 ### Bugfixes
 
@@ -111,6 +114,19 @@ Main (unreleased)
   used in a binary operation. (@rfratto)
 
 - Fix Grafana Agent mixin's "Agent Operational" dashboard expecting pods to always have `grafana-agent-.*` prefix. (@thampiotr)
+
+- Change the HTTP Path and Data Path from the controller-local ID to the global ID for components loaded from within a module loader. (@spartan0x117)
+
+- Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
+  parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
+  binary. (@rfratto)
+  
+- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to 
+  the `/loki` prefixed endpoints. (@mattdurham)
+
+### Other changes
+
+- Mongodb integration has been re-enabled. (@jcreixell, @marctc)
 
 v0.34.3 (2023-06-27)
 --------------------

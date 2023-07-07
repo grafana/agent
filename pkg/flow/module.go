@@ -3,25 +3,24 @@ package flow
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"path"
 	"sync"
 
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/web/api"
+	"github.com/grafana/agent/pkg/river/scanner"
+	"github.com/grafana/agent/pkg/river/token"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/maps"
 )
 
 type moduleController struct {
-	mut sync.RWMutex
-	o   *moduleControllerOptions
-	ids map[string]struct{}
+	mut     sync.RWMutex
+	o       *moduleControllerOptions
+	modules map[string]struct{}
 }
 
 var (
@@ -31,50 +30,66 @@ var (
 // newModuleController is the entrypoint into creating module instances.
 func newModuleController(o *moduleControllerOptions) controller.ModuleController {
 	return &moduleController{
-		o:   o,
-		ids: map[string]struct{}{},
+		o:       o,
+		modules: map[string]struct{}{},
 	}
 }
 
 // NewModule creates a new, unstarted Module.
 func (m *moduleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
+	if id != "" && !isValidIdentifier(id) {
+		return nil, fmt.Errorf("module ID %q is not a valid River identifier", id)
+	}
+
 	m.mut.Lock()
 	defer m.mut.Unlock()
 	fullPath := m.o.ID
 	if id != "" {
 		fullPath = path.Join(fullPath, id)
 	}
-	if _, found := m.ids[fullPath]; found {
+	if _, found := m.modules[fullPath]; found {
 		return nil, fmt.Errorf("id %s already exists", id)
 	}
-	m.ids[fullPath] = struct{}{}
 
-	return newModule(&moduleOptions{
+	mod := newModule(&moduleOptions{
 		ID:                      fullPath,
 		export:                  export,
 		moduleControllerOptions: m.o,
 		parent:                  m,
-	}), nil
+	})
+
+	if err := m.o.ModuleRegistry.Register(fullPath, mod); err != nil {
+		return nil, err
+	}
+
+	m.modules[fullPath] = struct{}{}
+	return mod, nil
+}
+
+func isValidIdentifier(in string) bool {
+	s := scanner.New(nil, []byte(in), nil, 0)
+	_, tok, lit := s.Scan()
+	return tok == token.IDENT && lit == in
 }
 
 func (m *moduleController) removeID(id string) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	delete(m.ids, id)
+	delete(m.modules, id)
+	m.o.ModuleRegistry.Unregister(id)
 }
 
 // ModuleIDs implements [controller.ModuleController].
 func (m *moduleController) ModuleIDs() []string {
 	m.mut.RLock()
 	defer m.mut.RUnlock()
-	return maps.Keys(m.ids)
+	return maps.Keys(m.modules)
 }
 
 type module struct {
-	mut sync.Mutex
-	f   *Flow
-	o   *moduleOptions
+	f *Flow
+	o *moduleOptions
 }
 
 type moduleOptions struct {
@@ -92,31 +107,25 @@ var (
 func newModule(o *moduleOptions) *module {
 	return &module{
 		o: o,
+		f: newController(o.ModuleRegistry, Options{
+			ControllerID:   o.ID,
+			Tracer:         o.Tracer,
+			Clusterer:      o.Clusterer,
+			Reg:            o.Reg,
+			Logger:         o.Logger,
+			DataPath:       o.DataPath,
+			HTTPPathPrefix: o.HTTPPath,
+			HTTPListenAddr: o.HTTPListenAddr,
+			OnExportsChange: func(exports map[string]any) {
+				o.export(exports)
+			},
+			DialFunc: o.DialFunc,
+		}),
 	}
 }
 
 // LoadConfig parses River config and loads it.
 func (c *module) LoadConfig(config []byte, args map[string]any) error {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	if c.f == nil {
-		f := New(Options{
-			ControllerID:   c.o.ID,
-			Tracer:         c.o.Tracer,
-			Clusterer:      c.o.Clusterer,
-			Reg:            c.o.Reg,
-			Logger:         c.o.Logger,
-			DataPath:       c.o.DataPath,
-			HTTPPathPrefix: c.o.HTTPPath,
-			HTTPListenAddr: c.o.HTTPListenAddr,
-			OnExportsChange: func(exports map[string]any) {
-				c.o.export(exports)
-			},
-			DialFunc: c.o.DialFunc,
-		})
-		c.f = f
-	}
-
 	ff, err := ReadFile(c.o.ID, config)
 	if err != nil {
 		return err
@@ -131,25 +140,6 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 func (c *module) Run(ctx context.Context) {
 	defer c.o.parent.removeID(c.o.ID)
 	c.f.Run(ctx)
-}
-
-// ComponentHandler returns an HTTP handler which exposes endpoints of
-// components managed by the underlying flow system.
-func (c *module) ComponentHandler() (_ http.Handler) {
-	r := mux.NewRouter()
-
-	fa := api.NewFlowAPI(c.f, c.f.clusterer.Node)
-	fa.RegisterRoutes("/", r)
-
-	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Re-add the full path to ensure that nested controllers propagate
-		// requests properly.
-		r.URL.Path = path.Join(c.o.HTTPPath, r.URL.Path)
-
-		c.f.ComponentHandler().ServeHTTP(w, r)
-	})
-
-	return r
 }
 
 // moduleControllerOptions holds static options for module controller.
@@ -191,4 +181,8 @@ type moduleControllerOptions struct {
 
 	// ID is the attached components full ID.
 	ID string
+
+	// ModuleRegistry is a shared registry of running modules from the same root
+	// controller.
+	ModuleRegistry *moduleRegistry
 }

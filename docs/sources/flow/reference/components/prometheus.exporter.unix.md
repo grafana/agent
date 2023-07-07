@@ -371,14 +371,28 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.unix`:
 
 ```river
-prometheus.exporter.unix {
-}
+prometheus.exporter.unix { }
 
 // Configure a prometheus.scrape component to collect unix metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.unix.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

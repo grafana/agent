@@ -2,10 +2,10 @@ package mongodb_exporter //nolint:golint
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
 
 	"github.com/go-kit/log"
+	"github.com/percona/mongodb_exporter/exporter"
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/grafana/agent/pkg/integrations"
@@ -51,10 +51,21 @@ func init() {
 
 // New creates a new mongodb_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	// TODO(jcreixell): Re-implement conflicting bits and briong the exporter back
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "mongdb exporter has been disabled for the time being due to licensing issues", http.StatusBadRequest)
+	logrusLogger := integrations.NewLogger(logger)
+
+	exp := exporter.New(&exporter.Opts{
+		URI:                    string(c.URI),
+		Logger:                 logrusLogger,
+		DisableDefaultRegistry: true,
+
+		// NOTE(rfratto): CompatibleMode configures the exporter to use old metric
+		// names from mongodb_exporter <v0.20.0. Many existing dashboards rely on
+		// the old names, so we hard-code it to true now. We may wish to make this
+		// configurable in the future.
+		CompatibleMode: true,
+		CollectAll:     true,
+		DirectConnect:  true,
 	})
 
-	return integrations.NewHandlerIntegration(c.Name(), handler), nil
+	return integrations.NewHandlerIntegration(c.Name(), exp.Handler()), nil
 }

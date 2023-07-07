@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"net/http"
 	"reflect"
 	"strings"
 
@@ -34,6 +33,9 @@ type ModuleController interface {
 	// NewModule creates a new, un-started Module with a given ID. Multiple calls to
 	// NewModule must provide unique values for id. The empty string is a valid unique
 	// value for id.
+	//
+	// If id is non-empty, it must be a valid River identifier, matching the
+	// regex /[A-Za-z_][A-Za-z0-9_]/.
 	NewModule(id string, export ExportFunc) (Module, error)
 }
 
@@ -50,10 +52,6 @@ type Module interface {
 	// Run blocks until the provided context is canceled. The ID of a module as defined in
 	// ModuleController.NewModule will not be released until Run returns.
 	Run(context.Context)
-
-	// ComponentHandler returns an HTTP handler which exposes endpoints of
-	// components managed by the Module.
-	ComponentHandler() http.Handler
 }
 
 // ExportFunc is used for onExport of the Module

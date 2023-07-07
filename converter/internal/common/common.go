@@ -62,13 +62,13 @@ func PrettyPrint(in []byte) ([]byte, diag.Diagnostics) {
 
 	f, err := parser.ParseFile("", in)
 	if err != nil {
-		diags.Add(diag.SeverityLevelWarn, err.Error())
+		diags.Add(diag.SeverityLevelError, err.Error())
 		return in, diags
 	}
 
 	var buf bytes.Buffer
 	if err = printer.Fprint(&buf, f); err != nil {
-		diags.Add(diag.SeverityLevelWarn, err.Error())
+		diags.Add(diag.SeverityLevelError, err.Error())
 		return in, diags
 	}
 
