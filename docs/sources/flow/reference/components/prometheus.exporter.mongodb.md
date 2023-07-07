@@ -16,7 +16,7 @@ The `prometheus.exporter.mongodb` component embeds percona's [`mongodb_exporter`
 For this integration to work properly, you must have connect each node of your MongoDB cluster to an agent instance.
 That's because this exporter does not collect metrics from multiple nodes.
 
-Additionally, you need to define two custom label for your metrics using `relabel_configs`.
+You must also define two custom labels for your metrics using `relabel_configs`.
 
 The first one is `service_name`, which is how you identify this node in your cluster (example: `ReplicaSet1-Node1`).
 
