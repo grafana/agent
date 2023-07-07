@@ -9,11 +9,11 @@ aliases:
 
 # Install Grafana Agent in flow mode on Windows
 
-You can install Grafana Agent in flow mode on Windows as a standard install, or as a silent install.
+You can install Grafana Agent in flow mode on Windows as a standard graphical install, or as a silent install.
 
-## Standard install
+## Standard graphical install
 
-To do a standard install of Grafana Agent on Windows, perform the following steps.
+To do a standard graphical install of Grafana Agent on Windows, perform the following steps.
 
 1. Navigate to the [latest release][latest] on GitHub.
 

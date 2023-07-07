@@ -27,9 +27,6 @@ ppc64le builds are considered secondary release targets and do not have the same
 {{% admonition type="note" %}}
 Installing Grafana Agent on other operating systems is possible, but is not recommended or supported.
 {{% /admonition %}}
-## Grafana Operator
-
-To get started with Grafana Agent Operator, refer to the Operator-specific [documentation](../../../operator/_index.md).
 
 ## Grafana Cloud
 

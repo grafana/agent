@@ -50,7 +50,7 @@ the following steps:
 
 1. Change the contents of the `CUSTOM_ARGS` environment variable to specify
    command-line flags to pass.
-   
+
 1. Restart the Grafana Agent service:
 
    ```shell

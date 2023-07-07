@@ -145,10 +145,10 @@ If you downloaded the standalone binary, you must run the agent from a terminal 
 To start Grafana Agent on Linux, macOS, FreeBSD, or Windows run the following command in a terminal window or command prompt:
 
 ```shell
-BINARY -config.file CONFIG_FILE 
+BINARY_PATH -config.file CONFIG_FILE 
 ```
 
 Replace the following:
 
-* `BINARY`: The Grafana Agent binary file. Include the path to the binary file.
-* `CONFIG_FILE`: The Grafana Agent configuration file. Include the path to the configuration file.
+* `BINARY_PATH`: The path to the Grafana Agent binary file
+* `CONFIG_FILE`: The path to the Grafana Agent configuration file.

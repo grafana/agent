@@ -83,7 +83,7 @@ To install Grafana Agent in flow mode on RHEL or Fedora, run the following comma
    sslcacert=/etc/pki/tls/certs/ca-bundle.crt
    ```
 
-1. Optional. Verify the Grafana repository configuration:
+1. Optional: Verify the Grafana repository configuration:
 
    ```shell
    cat /etc/yum.repos.d/grafana.repo
