@@ -9,13 +9,13 @@ aliases:
 
 # Install Grafana Agent in static mode on Windows
 
-You can install Grafana Agent in flow mode on Windows with the standard graphical installer, or as a silent install.
+You can install Grafana Agent in static mode on Windows as a standard install, or as a silent install.
 
 ## Standard install
 
 To do a standard install of Grafana Agent on Windows, perform the following steps.
 
-1. Navigate to the [latest release](https://github.com/grafana/agent/releases).
+1. Navigate to the [latest release](https://github.com/grafana/agent/releases) on GitHub.
 
 1. Scroll down to the **Assets** section.
 
@@ -32,7 +32,7 @@ To do a standard install of Grafana Agent on Windows, perform the following step
 
 To do a silent install of Grafana Agent on Windows, perform the following steps.
 
-1. Navigate to the [latest release](https://github.com/grafana/agent/releases).
+1. Navigate to the [latest release](https://github.com/grafana/agent/releases) on GitHub.
 
 1. Scroll down to the **Assets** section.
 
@@ -52,7 +52,7 @@ To do a silent install of Grafana Agent on Windows, perform the following steps.
 
 If you are using `remote_write` you must enable Windows Exporter and set the global remote_write configuration.
 
-1. Navigate to the [latest release](https://github.com/grafana/agent/releases).
+1. Navigate to the [latest release](https://github.com/grafana/agent/releases) on GitHub.
 
 1. Scroll down to the **Assets** section.
 
@@ -63,8 +63,14 @@ If you are using `remote_write` you must enable Windows Exporter and set the glo
 1. Run the following command in PowerShell or Command Prompt:
 
    ```shell
-   PATH_TO_INSTALLER/grafana-agent-installer.exe /S /EnableExporter true /Username <username> /Password <password> /Url "http://example.com"
+   PATH_TO_INSTALLER/grafana-agent-installer.exe /S /EnableExporter true /Username USERNAME /Password PASSWORD /Url "http://example.com"
    ```
+
+   Replace the following:
+
+   - `PATH_TO_INSTALLER`: The path where the unzipped installer executable is located.
+   - `USERNAME`: Your username
+   - `PASSWORD`: Your password
 
    If you are using Powershell, make sure you use triple quotes `"""http://example.com"""` around the URL parameter.
 
@@ -78,29 +84,28 @@ Existing configuration files are kept when re-installing or upgrading the Grafan
 
 ## Security
 
-A configuration file for the Grafana Agent is provided by default at `C:\Program Files\Grafana Agent`. Depending on your configuration, you can modify the default permissions of the file or move it to another directory.
+A configuration file for Grafana Agent is provided by default at `C:\Program Files\Grafana Agent`. Depending on your configuration, you can modify the default permissions of the file or move it to another directory.
 
-If you change the location of the configuration file, ensure you complete the following steps.
+If you change the location of the configuration file, do the following step.
 
 1. Update the Grafana Agent service to load the new path.
 
-1. Run the following in an elevated prompt, replacing `<new_path>` with the full path holding `agent-config.yaml`:
+1. Run the following with Administrator privileges in PowerShell or Command Prompt:
 
    ```shell
-   sc config "Grafana Agent" binpath= "INSTALLED_DIRECTORY\agent-windows-amd64.exe -config.file=\"<new_path>\agent-config.yaml\""
+   sc config "Grafana Agent" binpath= "INSTALLED_DIRECTORY\agent-windows-amd64.exe -config.file=\"PATH_TO_CONFIG\agent-config.yaml\""
    ```
+
+   Replace `PATH_TO_CONFIG` with the full path to your Grafana Agent configuratiuon file.
 
 ## Uninstall Grafana Agent
 
-If you installed Grafana Agent using the Windows installer, you can uninstall it using Windows' Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`.
+You can uninstall Grafana Agent with Windows Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`.
 Uninstalling Grafana Agent will stop the service and remove it from disk. This includes any configuration files in the installation directory.
-Grafana Agent can also be silently uninstalled by executing `uninstall.exe /S` as Administrator.
 
-## Logs
+Grafana Agent can also be silently uninstalled by running `uninstall.exe /S` as Administrator.
 
-When Grafana Agent runs as a Windows Service, it writes logs to Windows Event Logs. When running as executable, Grafana Agent will write to standard out. The logs will be written with the event source name of `Grafana Agent`.
-
-## Pushing Windows logs to Grafana Loki
+## Push Windows logs to Grafana Loki
 
 Grafana Agent can use the embedded [promtail](https://grafana.com/docs/loki/latest/clients/promtail/) to push Windows Event Logs to [Grafana Loki](https://github.com/grafana/loki). Example configuration below:
 

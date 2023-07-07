@@ -9,13 +9,13 @@ aliases:
 
 # Install Grafana Agent in flow mode on Windows
 
-You can install Grafana Agent in flow mode on Windows with the standard graphical installer, or as a silent install.
+You can install Grafana Agent in flow mode on Windows as a standard install, or as a silent install.
 
 ## Standard install
 
-To do a standard graphical install of Grafana Agent on Windows, perform the following steps.
+To do a standard install of Grafana Agent on Windows, perform the following steps.
 
-1. Navigate to the [latest release][latest].
+1. Navigate to the [latest release][latest] on GitHub.
 
 1. Scroll down to the **Assets** section.
 
@@ -33,7 +33,7 @@ Grafana Agent is installed into the default directory `C:\Program Files\Grafana 
 
 To do a silent install of Grafana Agent on Windows, perform the following steps.
 
-1. Navigate to the [latest release][latest].
+1. Navigate to the [latest release][latest] on GitHub.
 
 1. Scroll down to the **Assets** section.
 

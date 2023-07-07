@@ -18,7 +18,9 @@ The following architectures are supported:
 - macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 - FreeBSD: AMD64
 
-In addition, best-effort support is provided for Linux: ppc64le.
+{{% admonition type="note" %}}
+ppc64le builds are considered secondary release targets and do not have the same level of support and testing as other platforms.
+{{% /admonition %}}
 
 {{< section >}}
 

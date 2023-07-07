@@ -27,7 +27,7 @@ To deploy Grafana Agent in static mode on  Kubernetes, perform the following ste
    ```
 
 {{% admonition type="note" %}}
-The manifests do not include the ConfigMaps which are necessary to run Grafana Agent.
+The manifests do not include the `ConfigMaps` which are necessary to run Grafana Agent.
 {{% /admonition %}}
 
 For sample configuration files and detailed instructions, refer to the Grafana Cloud Kubernetes quick start guides:

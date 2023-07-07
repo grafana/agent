@@ -43,16 +43,6 @@ To download the Grafana Agent as a standalone binary, perform the following step
    chmod +x EXTRACTED_BINARY
    ```
 
-## Run Grafana Agent
-
-1. Open a terminal on Linux or macOS, or open a command prompt on Windows.
-
-1. Run the following command to start Grafana Agent in static mode:
-
-   ```shell
-   EXTRACTED_BINARY -config.file CONFIG_FILE 
-   ```
-
 ## Next steps
 
 - [Start Grafana Agent]({{< relref "../start-agent/" >}})
