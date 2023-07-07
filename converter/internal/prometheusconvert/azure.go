@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	prom_config "github.com/prometheus/common/config"
 	prom_azure "github.com/prometheus/prometheus/discovery/azure"
 )
 
@@ -29,7 +28,7 @@ func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) (*azure.Arguments, diag.Dia
 		Environment:     sdConfig.Environment,
 		Port:            sdConfig.Port,
 		SubscriptionID:  sdConfig.SubscriptionID,
-		OAuth:           toDiscoveryAzureOauth2(sdConfig.HTTPClientConfig.OAuth2, sdConfig.TenantID),
+		OAuth:           toDiscoveryAzureOauth2(sdConfig.ClientID, sdConfig.TenantID, string(sdConfig.ClientSecret)),
 		ManagedIdentity: toManagedIdentity(sdConfig),
 		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
 		ResourceGroup:   sdConfig.ResourceGroup,
@@ -54,14 +53,10 @@ func toManagedIdentity(sdConfig *prom_azure.SDConfig) *azure.ManagedIdentity {
 	}
 }
 
-func toDiscoveryAzureOauth2(oAuth2 *prom_config.OAuth2, tenantId string) *azure.OAuth {
-	if oAuth2 == nil {
-		return nil
-	}
-
+func toDiscoveryAzureOauth2(clientId string, tenantId string, clientSecret string) *azure.OAuth {
 	return &azure.OAuth{
-		ClientID:     oAuth2.ClientID,
+		ClientID:     clientId,
 		TenantID:     tenantId,
-		ClientSecret: rivertypes.Secret(oAuth2.ClientSecret),
+		ClientSecret: rivertypes.Secret(clientSecret),
 	}
 }
