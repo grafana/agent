@@ -134,9 +134,5 @@ check the logs for any reported name conflict events.
 the clustering page to view the state of the peers and verify that the
 terminating Agent has indeed been shut down.
 
-Installing our [mixin][] for a set of predefined dashboards and alerts around
-clustering is recommended.
-
 [logging]: {{< relref "../reference/config-blocks/logging.md" >}}
 [clustering]: {{< relref "../concepts/clustering.md" >}}
-[mixin]: {{< relref "../monitoring/mixin.md" >}}
