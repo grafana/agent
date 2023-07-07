@@ -9,10 +9,10 @@ aliases:
 
 # Install Grafana Agent in flow mode on macOS
 
-You can install Grafana Agent in flow mode with Homebrew on macOS.
+You can install Grafana Agent in flow mode on macOS with Homebrew .
 
 {{% admonition type="note" %}}
-The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. You can verify the default prefix for Homebrew on your computer by opening a terminal and typing `brew --prefix`.
+The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. To verify the default prefix for Homebrew on your computer, open a terminal window and type `brew --prefix`.
 {{% /admonition %}}
 
 ## Before you begin
@@ -37,9 +37,25 @@ To install Grafana Agent on macOS, run the following commands in a terminal wind
    brew install grafana-agent-flow
    ```
 
+## Upgrade
+
+To upgrade Grafana Agent on macOS, run the following commands in a terminal window.
+
+1. Upgrade Grafana Agent:
+
+   ```shell
+   brew upgrade grafana-agent
+   ```
+
+1. Restart Grafana Agent:
+
+   ```shell
+   brew services restart grafana-agent
+   ```
+
 ## Uninstall
 
-To install Grafana Agent on macOS, run the following command in a terminal window:
+To uninstall Grafana Agent on macOS, run the following command in a terminal window:
 
 ```shell
 brew uninstall grafana-agent-flow
