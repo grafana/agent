@@ -100,6 +100,13 @@ func (re *Regexp) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// String returns the original string used to compile the regular expression.
+func (re Regexp) String() string {
+	str := re.Regexp.String()
+	// Trim the anchor `^(?:` prefix and `)$` suffix.
+	return str[4 : len(str)-2]
+}
+
 // Config describes a relabelling step to be applied on a target.
 type Config struct {
 	SourceLabels []string `river:"source_labels,attr,optional"`
