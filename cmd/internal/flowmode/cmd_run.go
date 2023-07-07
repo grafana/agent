@@ -168,7 +168,7 @@ func (fr *flowRun) Run(configFile string) error {
 		return fmt.Errorf("building clusterer: %w", err)
 	}
 	defer func() {
-		err := clusterer.Stop()
+		err := clusterer.Stop(ctx)
 		if err != nil {
 			level.Error(l).Log("msg", "failed to terminate clusterer", "err", err)
 		}

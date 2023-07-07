@@ -258,8 +258,8 @@ func (n *GossipNode) Start() (err error) {
 // Stop leaves the cluster and terminates n. n cannot be re-used after
 // stopping.
 //
-// It is advisable to ChangeState to StateTerminating and StateGone before
-// stopping so the local node has an opportunity to move work to other nodes.
+// It is advisable to ChangeState to StateTerminating before stopping so the
+// local node has an opportunity to move work to other nodes.
 func (n *GossipNode) Stop() error {
 	return n.innerNode.Stop()
 }

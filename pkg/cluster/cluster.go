@@ -231,9 +231,13 @@ func (c *Clusterer) Start(ctx context.Context) error {
 }
 
 // Stop stops the Clusterer.
-func (c *Clusterer) Stop() error {
+func (c *Clusterer) Stop(ctx context.Context) error {
 	switch node := c.Node.(type) {
 	case *GossipNode:
+		err := node.ChangeState(ctx, peer.StateTerminating)
+		if err != nil {
+			level.Error(node.log).Log("msg", "failed to change state to Terminating before shutting down", "err", err)
+		}
 		return node.Stop()
 	}
 
