@@ -23,8 +23,8 @@ The first label is `service_name`, which is how you identify this node in your c
 The second label is `mongodb_cluster`, which is the name of your MongoDB cluster. It must be set to the same value for all nodes composing the cluster, for example: `prod-cluster`.
 {{% /admonition %}}
 
-We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
-security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/percona/mongodb_exporter#permissions).
+We strongly recommend configuring a separate user for the Grafana Agent, giving it only the strictly mandatory security privileges necessary for monitoring your node. 
+Refer to the [Percona documentation](https://github.com/percona/mongodb_exporter#permissions) for more information.
 
 ## Usage
 
