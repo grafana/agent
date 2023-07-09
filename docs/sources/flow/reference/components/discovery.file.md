@@ -12,7 +12,7 @@ title: discovery.file
 
 ```river
 discovery.file "LABEL" {
-  path_targets = [{"__path__" = "DOUBLESTAR_PATH"}]
+  path_targets = [{"__path__" = DOUBLESTAR_PATH}]
 }
 ```
 
@@ -59,21 +59,37 @@ values.
 
 ## Examples
 
+### Send `/tmp/logs/*.log` files to Loki
+
 This example discovers all files and folders under `/tmp/logs`. The absolute paths are 
 used by `loki.source.file.files` targets.
 
 ```river
 discovery.file "tmp" {
-    path_targets = [{"__path__" = "/tmp/logs/**/*.log"}]
+  path_targets = [{"__path__" = "/tmp/logs/**/*.log"}]
 }
 
 loki.source.file "files" {
-    targets    = discovery.file.tmp.targets
-    forward_to = [ /* ... */ ]
+  targets    = discovery.file.tmp.targets
+  forward_to = [loki.write.endpoint.receiver]
+}
+
+loki.write "endpoint" {
+  endpoint {
+      url = LOKI_PATH
+      basic_auth {
+          username = USERNAME
+          password = PASSWORD
+      }
+  }
 }
 ```
+Replace the following:
+  - `LOKI_PATH`: The URL of the Loki server to send logs to.
+  - `USERNAME`: The username to use for authentication to the Loki API.
+  - `PASSWORD`: The password to use for authentication to the Loki API.
 
-### Kubernetes
+### Send Kubernetes pod logs to Loki
 
 This example finds all the logs on pods and monitors them.
 
@@ -100,21 +116,25 @@ discovery.relabel "k8s" {
 }
 
 discovery.file "pods" {
-    path_targets = discovery.relabel.k8s.output
+  path_targets = discovery.relabel.k8s.output
 }
 
 loki.source.file "pods" {
-    targets = discovery.file.pods.targets
-    forward_to = [loki.write.endpoint.receiver]
+  targets = discovery.file.pods.targets
+  forward_to = [loki.write.endpoint.receiver]
 }
 
 loki.write "endpoint" {
-    endpoint {
-        url = "LOKI_PATH"
-        basic_auth {
-            username = USERNAME
-            password = "PASSWORD"
-        }
-    }
+  endpoint {
+      url = LOKI_PATH
+      basic_auth {
+          username = USERNAME
+          password = PASSWORD
+      }
+  }
 }
 ```
+Replace the following:
+  - `LOKI_PATH`: The URL of the Loki server to send logs to.
+  - `USERNAME`: The username to use for authentication to the Loki API.
+  - `PASSWORD`: The password to use for authentication to the Loki API.
