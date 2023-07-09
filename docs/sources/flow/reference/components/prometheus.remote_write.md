@@ -327,7 +327,7 @@ prometheus.scrape "demo" {
 }
 ```
 
-### Send metrics to a hosted endpoint
+### Send metrics to Grafana Cloud
 
 You can create a `prometheus.remote_write` component that sends your metrics to a hosted endpoint, for example Grafana Cloud. The username and password are injected through environment variables.
 
