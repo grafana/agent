@@ -189,6 +189,6 @@ otelcol.exporter.otlp "grafana_cloud_tempo" {
 
 otelcol.auth.basic "grafana_cloud_tempo" {
     username = env("TEMPO_USERNAME")
-    password = env("TEMPO_PASSWORD")
+    password = env("GRAFANA_CLOUD_API_KEY")
 }
 ```
