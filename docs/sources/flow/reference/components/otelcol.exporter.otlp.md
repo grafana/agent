@@ -175,7 +175,7 @@ otelcol.exporter.otlp "tempo" {
 }
 ```
 
-### Send data to a hosted endpoint
+### Send data to Grafana Cloud
 
 You can create an exporter that sends your data to a hosted endpoint, for example Grafana Cloud. The username and password are injected through environment variables.
 
