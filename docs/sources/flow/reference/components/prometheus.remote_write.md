@@ -297,8 +297,11 @@ information.
 
 ## Examples
 
-This example creates a `prometheus.remote_write` component that sends received
-metrics to a local Mimir instance:
+The following examples show you how to create `prometheus.remote_write` components that send metrics to different destinations.
+
+### Send metrics to a local Mimir instance
+
+You can create a `prometheus.remote_write` component that sends your metrics to a local Mimir instance:
 
 ```river
 prometheus.remote_write "staging" {
@@ -324,10 +327,9 @@ prometheus.scrape "demo" {
 }
 ```
 
+### Send metrics to a hosted endpoint
 
-This example creates a `prometheus.remote_write` component that sends received
-metrics to Grafana Cloud with username and password injected through environment
-variables:
+You can create a `prometheus.remote_write` component that sends your metrics to a hosted endpoint, for example Grafana Cloud. The username and password are injected through environment variables.
 
 ```river
 prometheus.remote_write "default" {

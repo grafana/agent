@@ -143,8 +143,12 @@ information.
 
 ## Examples
 
-This example creates a `loki.write` component that sends received entries to a
-local Loki instance:
+
+The following examples show you how to create `loki.write` components that send log entries to different destinations.
+
+### Send log entries to a local Loki instance
+
+You can create a `loki.write` component that sends your log entries to a local Loki instance:
 
 ```river
 loki.write "local" {
@@ -154,8 +158,9 @@ loki.write "local" {
 }
 ```
 
-This example creates a `loki.write` component that sends received entries to Grafana Cloud
-with username and password injected through environment variables:
+### Send log entries to a hosted endpoint
+
+You can create a `loki.write` component that sends your log entries to a hosted endpoint, for example Grafana Cloud. The username and password are injected through environment variables.
 
 ```river
 loki.write "default" {

@@ -157,8 +157,11 @@ information.
 
 ## Examples
 
-This example creates an exporter to send data to a locally running Grafana
-Tempo without TLS:
+The following examples show you how to create an exporter to send data to different destinations.
+
+### Send data to a local Tempo instance
+
+You can create an exporter that sends your data to a local Grafana Tempo instance without TLS:
 
 ```river
 otelcol.exporter.otlp "tempo" {
@@ -172,8 +175,9 @@ otelcol.exporter.otlp "tempo" {
 }
 ```
 
-This example creates an exporter to send data to Grafana Cloud with username and password 
-injected through environment variables:
+### Send data to a hosted endpoint
+
+You can create an exporter that sends your data to a hosted endpoint, for example Grafana Cloud. The username and password are injected through environment variables.
 
 ```river
 otelcol.exporter.otlp "grafana_cloud_tempo" {
