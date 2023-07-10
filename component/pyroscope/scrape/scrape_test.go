@@ -50,9 +50,11 @@ func TestComponent(t *testing.T) {
 	arg.Targets = []discovery.Target{
 		{
 			model.AddressLabel: "foo",
+			serviceNameLabel:   "s",
 		},
 		{
-			model.AddressLabel: "bar",
+			model.AddressLabel:  "bar",
+			serviceNameK8SLabel: "k",
 		},
 	}
 	c.Update(arg)
@@ -217,11 +219,13 @@ func TestUpdateWhileScraping(t *testing.T) {
 	args.Targets = []discovery.Target{
 		{
 			model.AddressLabel: address,
+			serviceNameLabel:   "s",
 			"foo":              "bar",
 		},
 		{
-			model.AddressLabel: address,
-			"foo":              "buz",
+			model.AddressLabel:  address,
+			serviceNameK8SLabel: "k",
+			"foo":               "buz",
 		},
 	}
 
@@ -239,6 +243,7 @@ func TestUpdateWhileScraping(t *testing.T) {
 			args.Targets = []discovery.Target{
 				{
 					model.AddressLabel: address,
+					serviceNameLabel:   "s",
 					"foo":              fmt.Sprintf("%d", i),
 				},
 			}

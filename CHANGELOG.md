@@ -9,6 +9,9 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
+### Features
+- `pyroscope.ebpf` collects system-wide performance profiles from the current host (@korniltsev)
+
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -44,6 +47,7 @@ Main (unreleased)
   - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
   - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
   - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
+  - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
@@ -167,6 +171,8 @@ v0.34.1 (2023-06-12)
 - Allow `bearerTokenFile` field to be used in ServiceMonitors. (@captncraig)
 
 - Fix issue where metrics and traces were not recorded from components within modules. (@mattdurham)
+
+- `service_name` label is inferred from discovery meta labels in `pyroscope.scrape` (@korniltsev)
 
 ### Other changes
 
