@@ -21,6 +21,8 @@ single-node cluster.
 Clustering is configured by passing `cluster` command-line flags to the [run][]
 command.
 
+[run]: {{< relref "../reference/cli/run.md#clustering-beta" >}}
+
 ## Use cases
 
 ### Target auto-distribution
@@ -65,17 +67,16 @@ clustering, such as:
 - [prometheus.operator.podmonitors][]
 - [prometheus.operator.servicemonitors][]
 
+[prometheus.scrape]: {{< relref "../reference/components/prometheus.scrape.md#clustering-beta" >}}
+[pyroscope.scrape]: {{< relref "../reference/components/pyroscope.scrape.md#clustering-beta" >}}
+[prometheus.operator.podmonitors]: {{< relref "../reference/components/prometheus.operator.podmonitors.md#clustering-beta" >}}
+[prometheus.operator.servicemonitors]: {{< relref "../reference/components/prometheus.operator.servicemonitors.md#clustering-beta" >}}
+
 ## Cluster monitoring and troubleshooting
 
 To monitor your cluster status, you can check the Flow UI [clustering page][].
 The [debugging][] topic contains some clues to help pin down probable
 clustering issues.
 
-[run]: {{< relref "../reference/cli/run.md#clustering-beta" >}}
 [clustering page]: {{< relref "../monitoring/debugging.md#clustering-page" >}}
 [debugging]: {{< relref "../monitoring/debugging.md#debugging-clustering-issues" >}}
-
-[prometheus.scrape]: {{< relref "../reference/components/prometheus.scrape.md#clustering-beta" >}}
-[pyroscope.scrape]: {{< relref "../reference/components/pyroscope.scrape.md#clustering-beta" >}}
-[prometheus.operator.podmonitors]: {{< relref "../reference/components/prometheus.operator.podmonitors.md#clustering-beta" >}}
-[prometheus.operator.servicemonitors]: {{< relref "../reference/components/prometheus.operator.servicemonitors.md#clustering-beta" >}}

@@ -80,15 +80,6 @@ The clustering page shows the following information for each cluster node:
 * The current state of the node (Viewer/Participant/Terminating).
 * Which of the nodes is the local one, serving the UI.
 
-All nodes initially join in the Viewer state, where they have a read-only view
-of the cluster status.
-Once they've successfully joined, they move on to the Participant state,
-marking them as available to participate in both read and write operations, and
-as potential owners for a given hash.
-When a node is shutting down, it changes its state to Terminating to signal
-that it shouldn't be used for any more write operations. The node can still be
-a potential owner for a read hash operation until it goes away.
-
 ## Debugging using the UI
 
 To debug using the UI:

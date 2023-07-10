@@ -97,6 +97,23 @@ The first node that is used to bootstrap a new cluster (also known as
 the "seed node") can either omit the flag that specifies peers to join or can
 try to connect to itself.
 
+### Clustering states
+
+Clustered agents are in one of three states:
+
+* **Viewer**: The agent has a read-only view of the cluster and is not
+  participating in workload distribution.
+
+* **Participant**: The agent is participating in workload distribution for
+  components which have clustering enabled.
+
+* **Terminating**: The agent is shutting down, and will no longer assign new
+  work to itself.
+
+Agents initially join the cluster in the viewer state, and then transition to
+the participant state after the processs startup completes. Agents then
+transition to the terminating state when shutting down.
+
 ## Configuration conversion (beta)
 
 When you use the `--config.format` command-line argument with a value

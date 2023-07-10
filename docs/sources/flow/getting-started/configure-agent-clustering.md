@@ -17,6 +17,7 @@ use case.
 
 This topic describes how to add clustering to an existing installation.
 
+[clustering]: {{< relref "../concepts/clustering.md" >}}
 [beta]: {{< relref "../../stability.md#beta" >}}
 
 ## Before you begin
@@ -49,9 +50,10 @@ To configure clustering:
    Replace `RELEASE_NAME` with the name of the installation you chose when you
    installed the Helm chart.
 
-1. Use the [Flow UI] page to verify the cluster status.
+1. Use [UI][] to verify the cluster status:
 
-[clustering]: {{< relref "../concepts/clustering.md" >}}
-[Helm chart]: https://artifacthub.io/packages/helm/grafana/grafana-agent
-[Helm]: https://helm.sh/
-[Flow UI]: {{< relref "../monitoring/debugging.md#clustering-page" >}}
+   1. Click **Clustering** in the navigation bar.
+
+   2. Ensure that all expected nodes appear in the resulting table.
+
+[UI]: {{< relref "../monitoring/debugging.md#clustering-page" >}}
