@@ -29,9 +29,9 @@ command.
 
 Target auto-distribution is the most basic use case of clustering; it allows
 scraping components running on all peers to distribute scrape load between
-themselves. All nodes must have access to the same service discovery APIs, and
-the set of targets should converge on a timeline comparable to the scrape
-interval.
+themselves. For target auto-distribution to work correctly, all agents in the
+same cluster must be able to reach the same service discovery APIs and must be
+able to scrape the same targets.
 
 Target auto-distribution must be explicitly enabled on components by defining a
 `clustering` block, such as:

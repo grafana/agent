@@ -80,7 +80,9 @@ address defined or inferred in `--cluster.advertise-address`.
 If the `--cluster.advertise-address` flag is not explicitly set, the agent
 tries to infer a suitable one from the `eth0` and `en0` local network
 interfaces. If the advertised address cannot be determined, the agent will
-fail to start.
+fail to start. Windows users must explicitly pass a value for
+`--cluster.advertise-address`, since Windows does not have interfaces name
+`eth0` or `en0`.
 
 The comma-separated list of addresses provided in `--cluster.join-addresses`
 can either be IP addresses with an optional port, or DNS records to lookup.
