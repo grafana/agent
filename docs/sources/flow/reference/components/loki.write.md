@@ -160,7 +160,7 @@ loki.write "local" {
 
 ### Send log entries to Grafana Cloud
 
-You can create a `loki.write` component that sends your log entries to a hosted endpoint, for example Grafana Cloud. The username and password are injected through environment variables.
+You can create a `loki.write` component that sends your log entries Grafana Cloud. The Loki username and Grafana Cloud API Key are injected in this example through environment variables.
 
 ```river
 loki.write "default" {
