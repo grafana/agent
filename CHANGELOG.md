@@ -168,6 +168,8 @@ v0.34.1 (2023-06-12)
 
 - Fix issue where metrics and traces were not recorded from components within modules. (@mattdurham)
 
+- `service_name` label is inferred from discovery meta labels in `pyroscope.scrape` (@korniltsev)
+
 ### Other changes
 
 - Add logging to failed requests in `remote.http`. (@rfratto)

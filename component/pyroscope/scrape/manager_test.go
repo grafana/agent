@@ -29,8 +29,8 @@ func TestManager(t *testing.T) {
 		"group1": {
 			{
 				Targets: []model.LabelSet{
-					{model.AddressLabel: "localhost:9090"},
-					{model.AddressLabel: "localhost:8080"},
+					{model.AddressLabel: "localhost:9090", serviceNameLabel: "s"},
+					{model.AddressLabel: "localhost:8080", serviceNameK8SLabel: "k"},
 				},
 				Labels: model.LabelSet{"foo": "bar"},
 			},
@@ -50,8 +50,8 @@ func TestManager(t *testing.T) {
 		"group2": {
 			{
 				Targets: []model.LabelSet{
-					{model.AddressLabel: "localhost:9090"},
-					{model.AddressLabel: "localhost:8080"},
+					{model.AddressLabel: "localhost:9090", serviceNameLabel: "s"},
+					{model.AddressLabel: "localhost:8080", serviceNameK8SLabel: "k"},
 				},
 				Labels: model.LabelSet{"foo": "bar"},
 			},
