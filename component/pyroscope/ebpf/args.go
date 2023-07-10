@@ -1,9 +1,10 @@
 package ebpf
 
 import (
+	"time"
+
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
-	"time"
 )
 
 type Arguments struct {
