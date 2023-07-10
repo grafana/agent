@@ -3,7 +3,9 @@ package stdlib
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/rivertypes"
@@ -116,4 +118,15 @@ var Identifiers = map[string]interface{}{
 
 		return args[len(args)-1], nil
 	}),
+
+	"format":     fmt.Sprintf,
+	"join":       strings.Join,
+	"lower":      strings.ToLower,
+	"replace":    strings.ReplaceAll,
+	"split":      strings.Split,
+	"trim":       strings.Trim,
+	"trimprefix": strings.TrimPrefix,
+	"trimsuffix": strings.TrimSuffix,
+	"trimspace":  strings.TrimSpace,
+	"upper":      strings.ToUpper,
 }
