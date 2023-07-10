@@ -163,7 +163,7 @@ If your profiles show many shallow stack traces, typically 1-2 frames deep, your
 
 To compile your code with frame pointers, include the `-fno-omit-frame-pointer` flag in your compiler options.
 
-### Profiling Interpreted Languages
+### Profiling interpreted languages
 
 Profiling interpreted languages like Python, Ruby, JavaScript, etc., is not ideal using this implementation.
 The JIT-compiled methods in these languages are typically not in ELF file format, demanding additional steps for
