@@ -147,8 +147,8 @@ func TestStdlib_StringFunc(t *testing.T) {
 	}{
 		{"lower", `lower("String")`, "string"},
 		{"upper", `upper("string")`, "STRING"},
-		{"trimspace", `trimspace("   string \n\n")`, "string"},
-		{"trimspace+upper+trim", `lower(upper(trimspace("   String   ")))`, "string"},
+		{"trimspace", `trim_space("   string \n\n")`, "string"},
+		{"trimspace+upper+trim", `lower(upper(trim_space("   String   ")))`, "string"},
 		{"split", `split("/aaa/bbb/ccc/ddd", "/")`, []string{"", "aaa", "bbb", "ccc", "ddd"}},
 		{"split+index", `split("/aaa/bbb/ccc/ddd", "/")[0]`, ""},
 		{"join+split", `join(split("/aaa/bbb/ccc/ddd", "/"), "/")`, "/aaa/bbb/ccc/ddd"},
@@ -160,8 +160,8 @@ func TestStdlib_StringFunc(t *testing.T) {
 		{"replace", `replace("Hello World", " World", "!")`, "Hello!"},
 		{"trim", `trim("?!hello?!", "!?")`, "hello"},
 		{"trim2", `trim("   hello! world.!  ", "! ")`, "hello! world."},
-		{"trimprefix", `trimprefix("helloworld", "hello")`, "world"},
-		{"trimsuffix", `trimsuffix("helloworld", "world")`, "hello"},
+		{"trim_prefix", `trim_prefix("helloworld", "hello")`, "world"},
+		{"trim_suffix", `trim_suffix("helloworld", "world")`, "hello"},
 	}
 
 	for _, tc := range tt {

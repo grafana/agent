@@ -52,7 +52,7 @@ Main (unreleased)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
-- Add `format`, `join`, `lower`, `replace`, `split`, `trimprefix`, `trimsuffix`, `trimsuffix`, `trimspace`, `upper` functions to river stdlib. (@jkroepke)
+- Add `format`, `join`, `lower`, `replace`, `split`, `trim`, `trim_prefix`, `trim_suffix`, `trim_space`, `upper` functions to river stdlib. (@jkroepke)
 
 - Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
 
