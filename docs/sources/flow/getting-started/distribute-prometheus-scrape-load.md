@@ -28,7 +28,7 @@ use case.
 
 [configure existing installs]: {{< relref "../setup/configure" >}}
 [Configure Prometheus metrics collection]: {{< relref "collect-prometheus-metrics.md" >}}
-[Configure clustering]: {{< relref "./configure-agent-cluster.md" >}}
+[Configure clustering]: {{< relref "./configure-agent-clustering.md" >}}
 
 ## Steps
 
