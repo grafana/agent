@@ -96,6 +96,8 @@ Main (unreleased)
 
 - Allow `prometheus.exporter.snmp` and SNMP integration to be configured passing a YAML block. (@marctc)
 
+- Added support for custom `length` time setting in Cloudwatch component and integration. (@thepalbi)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
