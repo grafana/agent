@@ -9,6 +9,9 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
+### Features
+- `pyroscope.ebpf` collects system-wide performance profiles from the current host (@korniltsev)
+
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
