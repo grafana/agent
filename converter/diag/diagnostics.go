@@ -83,10 +83,10 @@ func (ds Diagnostics) Error() string {
 	return sb.String()
 }
 
-func (ds Diagnostics) GenerateReport(reportType string, writer io.Writer) error {
+func (ds Diagnostics) GenerateReport(writer io.Writer, reportType string) error {
 	switch reportType {
 	case Text:
-		return generateTextReport(ds, writer)
+		return generateTextReport(writer, ds)
 	default:
 		return fmt.Errorf("unsupported diagnostic report type %q", reportType)
 	}
