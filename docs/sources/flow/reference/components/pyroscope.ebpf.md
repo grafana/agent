@@ -9,9 +9,7 @@ labels:
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
 
 `pyroscope.ebpf` configures an ebpf profiling job for the current host. The collected performance profiles are forwarded
-to
-the list of receivers passed in
-`forward_to`.
+to the list of receivers passed in `forward_to`.
 
 You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended.
 
