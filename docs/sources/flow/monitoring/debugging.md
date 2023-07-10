@@ -77,8 +77,8 @@ The clustering page shows the following information for each cluster node:
 
 * The node's name.
 * The node's advertised address.
-* The current state of the node (Viewer/Participant/Terminating).
-* Which of the nodes is the local one, serving the UI.
+* The node's current state (Viewer/Participant/Terminating).
+* The local node that serves the UI.
 
 ## Debugging using the UI
 
@@ -120,10 +120,10 @@ changes have been applied.
   nodes with conflicting names are rejected and will not join the cluster. Look
 at the clustering UI page for the list of current peers with their names, and
 check the logs for any reported name conflict events.
-- **Node stuck in terminating state**: The node attempted to gracefully shut
-  down, set its state to Terminating but has not completely gone away. Check
+- **Node stuck in terminating state**: The node attempted to gracefully shut 
+down and set its state to Terminating, but it has not completely gone away. Check
 the clustering page to view the state of the peers and verify that the
-terminating Agent has indeed been shut down.
+terminating Agent has been shut down.
 
 [logging]: {{< relref "../reference/config-blocks/logging.md" >}}
 [clustering]: {{< relref "../concepts/clustering.md" >}}

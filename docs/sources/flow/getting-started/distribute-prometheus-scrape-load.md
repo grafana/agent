@@ -1,5 +1,6 @@
 ---
-title: Distribute Prometheus metrics scrape load
+title: Distribute your Prometheus metrics scrape load
+menuTitle: Distribute Prometheus metrics scrape load
 weight: 500
 ---
 
@@ -12,7 +13,7 @@ distribute their scrape load, providing high-availability.
 
 {{% admonition type="note" %}}
 Clustering is a [beta][] feature. Beta features are subject to breaking
-changes, and may be replaced with equivalent functionality that cover the same
+changes and may be replaced with equivalent functionality that covers the same
 use case.
 {{%/admonition %}}
 

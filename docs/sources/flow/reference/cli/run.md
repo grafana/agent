@@ -86,8 +86,8 @@ fail to start. Windows users must explicitly pass a value for
 
 The comma-separated list of addresses provided in `--cluster.join-addresses`
 can either be IP addresses with an optional port, or DNS records to lookup.
-The ports on the this list of addreses default to the port used for the HTTP
-listener if not explicitly provided. It’s generally recommended to
+The ports on the list of addresses default to the port used for the HTTP
+listener if not explicitly provided. We recommend that you
 align the port numbers on as many nodes as possible to simplify the deployment
 process.
 

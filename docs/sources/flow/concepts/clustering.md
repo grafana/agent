@@ -51,13 +51,11 @@ A cluster state change is detected when a new node joins or an existing node goe
 recalculate target ownership and rebalance the number of targets they’re
 scraping without explicitly communicating ownership over the network.
 
-As such, target auto-distribution not only allows to dynamically scale the
-number of agents to distribute workload during peaks, but also provides
-resiliency, since in the event of a node going away, its targets are
-automatically picked up by one of their peers.
+Target auto-distribution allows you to dynamically scale the number of agents to distribute workload during peaks. 
+It also provides resiliency because targets are automatically picked up by one of the node peers if a node goes away.
 
-The agent makes use of a fully-local consistent hashing algorithm to distribute
-targets, meaning that on average only ~1/N of the targets are redistributed.
+The agent uses a fully-local consistent hashing algorithm to distribute
+targets, meaning that, on average, only ~1/N of the targets are redistributed.
 
 Refer to component reference documentation to discover whether it supports
 clustering, such as:

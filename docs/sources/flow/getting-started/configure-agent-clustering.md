@@ -1,17 +1,18 @@
 ---
-title: Configure Grafana Agent clustering with Helm
+title: Configure Grafana Agent clustering in an existing installation
+menuTitle: Configure Grafana Agent clustering
 weight: 400
 ---
 
 # Configure Grafana Agent clustering
 
-Grafana Agent Flow can be configured to run with [clustering][] so that
+You can configure Grafana Agent to run with [clustering][] so that
 individual agents can work together for workload distribution and high
 availability.
 
 {{% admonition type="note" %}}
 Clustering is a [beta][] feature. Beta features are subject to breaking
-changes, and may be replaced with equivalent functionality that cover the same
+changes and may be replaced with equivalent functionality that covers the same
 use case.
 {{%/admonition %}}
 
