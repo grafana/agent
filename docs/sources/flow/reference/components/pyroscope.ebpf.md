@@ -103,7 +103,7 @@ attempted to be inferred from multiple sources:
 
 If `service_name` is not specified and could not be inferred, it is set to `unspecified`.
 
-## Troubleshooting Unknown Symbols
+## Troubleshooting unknown symbols
 
 Symbols are extracted from various sources, including:
 
