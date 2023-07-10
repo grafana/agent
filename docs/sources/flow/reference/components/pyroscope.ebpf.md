@@ -157,7 +157,7 @@ executing:
 apt install libc6-dbg
 ```
 
-### Understanding Flat Stack Traces
+### Understanding flat stack traces
 
 If your profiles show many shallow stack traces, typically 1-2 frames deep, your binary might have been compiled without frame pointers.
 
