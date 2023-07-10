@@ -28,32 +28,31 @@ func init() {
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			arguments := args.(Arguments)
-
-			targetFinder, err := sd.NewTargetFinder(os.DirFS("/"), opts.Logger, targetsOptionFromArgs(arguments))
-			if err != nil {
-				return nil, fmt.Errorf("ebpf target finder create: %w", err)
-			}
-			ms := newMetrics(opts.Registerer)
-
-			session, err := ebpfspy.NewSession(
-				opts.Logger,
-				targetFinder,
-				convertSessionOptions(arguments, ms),
-			)
-			if err != nil {
-				return nil, fmt.Errorf("ebpf session create: %w", err)
-			}
-
-			return New(opts, arguments, session, targetFinder, ms)
+			return New(opts, arguments)
 		},
 	})
 }
 
-func New(o component.Options, args Arguments, session ebpfspy.Session, targetFinder sd.TargetFinder, ms *metrics) (component.Component, error) {
-	flowAppendable := pyroscope.NewFanout(args.ForwardTo, o.ID, o.Registerer)
+func New(opts component.Options, args Arguments) (component.Component, error) {
+	targetFinder, err := sd.NewTargetFinder(os.DirFS("/"), opts.Logger, targetsOptionFromArgs(args))
+	if err != nil {
+		return nil, fmt.Errorf("ebpf target finder create: %w", err)
+	}
+	ms := newMetrics(opts.Registerer)
+
+	session, err := ebpfspy.NewSession(
+		opts.Logger,
+		targetFinder,
+		convertSessionOptions(args, ms),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("ebpf session create: %w", err)
+	}
+
+	flowAppendable := pyroscope.NewFanout(args.ForwardTo, opts.ID, opts.Registerer)
 
 	res := &Component{
-		options:      o,
+		options:      opts,
 		metrics:      ms,
 		appendable:   flowAppendable,
 		args:         args,

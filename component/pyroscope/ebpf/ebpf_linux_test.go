@@ -5,6 +5,7 @@ package ebpf
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/component/pyroscope"
 	"os"
 	"testing"
 	"time"
@@ -66,7 +67,7 @@ func TestShutdownOnError(t *testing.T) {
 	session := &mockSession{}
 	arguments := defaultArguments()
 	arguments.CollectInterval = time.Millisecond * 100
-	c, err := New(
+	c, err := newTestComponent(
 		component.Options{
 			Logger:        logger,
 			Registerer:    prometheus.NewRegistry(),
@@ -95,7 +96,7 @@ func TestContextShutdown(t *testing.T) {
 	session := &mockSession{}
 	arguments := defaultArguments()
 	arguments.CollectInterval = time.Millisecond * 100
-	c, err := New(
+	c, err := newTestComponent(
 		component.Options{
 			Logger:        logger,
 			Registerer:    prometheus.NewRegistry(),
@@ -179,4 +180,19 @@ cache_rounds = 4
 collect_user_profile = true
 collect_kernel_profile = false`), &arg)
 	require.Error(t, err)
+}
+
+func newTestComponent(opts component.Options, args Arguments, session *mockSession, targetFinder sd.TargetFinder, ms *metrics) (*Component, error) {
+	flowAppendable := pyroscope.NewFanout(args.ForwardTo, opts.ID, opts.Registerer)
+	res := &Component{
+		options:      opts,
+		metrics:      ms,
+		appendable:   flowAppendable,
+		args:         args,
+		targetFinder: targetFinder,
+		session:      session,
+		argsUpdate:   make(chan Arguments),
+	}
+	res.metrics.targetsActive.Set(float64(len(res.targetFinder.DebugInfo())))
+	return res, nil
 }
