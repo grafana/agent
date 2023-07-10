@@ -1,6 +1,12 @@
 discovery.azure "agent_promobee" {
 	subscription_id = "subscription1"
 
+	oauth {
+		client_id     = "client"
+		tenant_id     = "tenant"
+		client_secret = "secret"
+	}
+
 	managed_identity {
 		client_id = "client"
 	}
@@ -11,6 +17,12 @@ discovery.azure "agent_promobee" {
 
 discovery.azure "agent_promobee_2" {
 	subscription_id = "subscription2"
+
+	oauth {
+		client_id     = "client"
+		tenant_id     = "tenant"
+		client_secret = "secret"
+	}
 
 	managed_identity {
 		client_id = "client"
@@ -31,19 +43,16 @@ discovery.relabel "agent_promobee" {
 
 	rule {
 		source_labels = ["__address__"]
-		regex         = "^(?:(.*))$"
 		target_label  = "__param_id"
 	}
 
 	rule {
 		source_labels = ["__param_id"]
-		regex         = "^(?:(.*))$"
 		target_label  = "thermostat"
 	}
 
 	rule {
 		source_labels = []
-		regex         = "^(?:(.*))$"
 		target_label  = "__address__"
 		replacement   = "localhost:8099"
 	}
@@ -76,13 +85,11 @@ prometheus.relabel "agent_promobee" {
 
 	rule {
 		source_labels = ["__metric_address1__"]
-		regex         = "^(?:(.*))$"
 		target_label  = "__metric_param_target1"
 	}
 
 	rule {
 		source_labels = ["__metric_address2__"]
-		regex         = "^(?:(.*))$"
 		target_label  = "__metric_param_target2"
 	}
 }

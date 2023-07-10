@@ -187,7 +187,7 @@ func (b *Body) encodeFields(rv reflect.Value) {
 		// zero value. Checking for both fields being zero handles the case where
 		// an empty and nil map are being compared (which are not equal, but are
 		// both zero values).
-		matchesDefault := fieldVal.Comparable() && fieldVal.Equal(fieldValDefault)
+		matchesDefault := fieldVal.Comparable() && reflect.DeepEqual(fieldVal.Interface(), fieldValDefault.Interface())
 		isZero := fieldValDefault.IsZero() && fieldVal.IsZero()
 
 		if field.IsOptional() && (matchesDefault || isZero) {

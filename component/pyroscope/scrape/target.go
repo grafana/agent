@@ -230,9 +230,10 @@ func (ts Targets) Less(i, j int) bool { return ts[i].URL().String() < ts[j].URL(
 func (ts Targets) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
 
 const (
-	ProfilePath      = "__profile_path__"
-	ProfileName      = "__name__"
-	ProfileTraceType = "trace"
+	ProfilePath         = "__profile_path__"
+	ProfileName         = "__name__"
+	serviceNameLabel    = "service_name"
+	serviceNameK8SLabel = "__meta_kubernetes_pod_annotation_pyroscope_io_service_name"
 )
 
 // populateLabels builds a label set from the given label set and scrape configuration.
@@ -269,10 +270,6 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 	}
 	if v := lset.Get(model.AddressLabel); v == "" {
 		return nil, nil, errors.New("no address")
-	}
-
-	if v := lset.Get(model.AddressLabel); v == "" {
-		return nil, nil, fmt.Errorf("no address")
 	}
 
 	lb = labels.NewBuilder(lset)
@@ -319,6 +316,10 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 	// Default the instance label to the target address.
 	if v := lset.Get(model.InstanceLabel); v == "" {
 		lb.Set(model.InstanceLabel, addr)
+	}
+
+	if serviceName := lset.Get(serviceNameLabel); serviceName == "" {
+		lb.Set(serviceNameLabel, inferServiceName(lset))
 	}
 
 	res = lb.Labels(nil)
@@ -399,4 +400,21 @@ func targetsFromGroup(group *targetgroup.Group, cfg Arguments) ([]*Target, []*Ta
 	}
 
 	return targets, droppedTargets, nil
+}
+
+func inferServiceName(lset labels.Labels) string {
+	k8sServiceName := lset.Get(serviceNameK8SLabel)
+	if k8sServiceName != "" {
+		return k8sServiceName
+	}
+	k8sNamespace := lset.Get("__meta_kubernetes_namespace")
+	k8sContainer := lset.Get("__meta_kubernetes_pod_container_name")
+	if k8sNamespace != "" && k8sContainer != "" {
+		return fmt.Sprintf("%s/%s", k8sNamespace, k8sContainer)
+	}
+	dockerContainer := lset.Get("__meta_docker_container_name")
+	if dockerContainer != "" {
+		return dockerContainer
+	}
+	return "unspecified"
 }

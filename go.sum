@@ -682,6 +682,8 @@ github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535/go.mod h1:o
 github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d h1:Byv0BzEl3/e6D5CLfI0j/7hiIEtvGVFPCZ7Ei2oq8iQ=
 github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
+github.com/avvmoto/buf-readerat v0.0.0-20171115124131-a17c8cb89270 h1:JIxGEMs4E5Zb6R7z2C5IgecI0mkqS97WAEF31wUbYTM=
+github.com/avvmoto/buf-readerat v0.0.0-20171115124131-a17c8cb89270/go.mod h1:2XtVRGCw/HthOLxU0Qw6o6jSJrcEoOb2OCCl8gQYvGw=
 github.com/aws/aws-lambda-go v1.13.3/go.mod h1:4UKl9IzQMoD+QF79YdCuzCwp8VbmG4VAQwij/eHl5CU=
 github.com/aws/aws-lambda-go v1.27.0/go.mod h1:jJmlefzPfGnckuHdXX7/80O3BvUUi12XOkbv4w9SGLU=
 github.com/aws/aws-sdk-go v1.13.10/go.mod h1:ZRmQr0FajVIyZ4ZzBYKG5P3ZqPz9IHG41ZoMu1ADI3k=
@@ -1650,8 +1652,9 @@ github.com/google/pprof v0.0.0-20210601050228-01bbb1931b22/go.mod h1:kpwsk12EmLe
 github.com/google/pprof v0.0.0-20210609004039-a478d1d731e9/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/pprof v0.0.0-20211214055906-6f57359322fd/go.mod h1:KgnwoLYCZ8IQu3XUZ8Nc/bM9CCZFOyjUNOSygVozoDg=
-github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b h1:8htHrh2bw9c7Idkb7YNac+ZpTqLMjRpI+FWu51ltaQc=
 github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b/go.mod h1:dDKJzRmX4S37WGHujM7tX//fmj1uioxKzKxz3lo4HJo=
+github.com/google/pprof v0.0.0-20230602150820-91b7bce49751 h1:hR7/MlvK23p6+lIw9SN1TigNLn9ZnF3W4SYRKq2gAHs=
+github.com/google/pprof v0.0.0-20230602150820-91b7bce49751/go.mod h1:Jh3hGz2jkYak8qXPD19ryItVnUgpgeqzdkY/D0EaeuA=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 github.com/google/renameio/v2 v2.0.0 h1:UifI23ZTGY8Tt29JbYFiuyIU3eX+RNFtUwefq9qAhxg=
 github.com/google/renameio/v2 v2.0.0/go.mod h1:BtmJXm5YlszgC+TD4HOEEUFgkJP3nLxehU6hfe7jRt4=
@@ -1751,6 +1754,10 @@ github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090 h1:Ko80
 github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090/go.mod h1:MinSWm88jguXFFrGsP56PtleUb4Qtm4tNRH/wXNXRTI=
 github.com/grafana/phlare/api v0.1.2 h1:1jrwd3KnsXMzj/tJih9likx5EvbY3pbvLbDqAAYem30=
 github.com/grafana/phlare/api v0.1.2/go.mod h1:29vcLwFDmZBDce2jwFIMtzvof7fzPadT8VMKw9ks7FU=
+github.com/grafana/phlare/ebpf v0.1.0 h1:u4E9BpXoqjvw1WCyM0TeZHbHWochwwJ/rPFzot/QZmU=
+github.com/grafana/phlare/ebpf v0.1.0/go.mod h1:5RGW1YCur7bhRlhATPc25drRYbzpekhh+f2HCmmfE3g=
+github.com/grafana/phlare/ebpf v0.1.1-0.20230706055724-a2b0f4125a12 h1:q9/IDyFx2aPJL3yZDkwe41+Got9YykwclhE/tID6bGI=
+github.com/grafana/phlare/ebpf v0.1.1-0.20230706055724-a2b0f4125a12/go.mod h1:5RGW1YCur7bhRlhATPc25drRYbzpekhh+f2HCmmfE3g=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnFWqxhoSF3WC7sKAdMZ+SRXvHLVZlZ3sbQjuUlTqkw=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/prometheus v1.8.2-0.20230511165250-22c61d1811b2 h1:1h8KeWFbA2ytUcHok2SIUi+hQubaUEwq2yS2GEh5V6I=
@@ -2886,6 +2893,8 @@ github.com/safchain/ethtool v0.0.0-20200218184317-f459e2d13664/go.mod h1:Z0q5wiB
 github.com/safchain/ethtool v0.3.0 h1:gimQJpsI6sc1yIqP/y8GYgiXn/NjgvpM0RNoWLVVmP0=
 github.com/safchain/ethtool v0.3.0/go.mod h1:SA9BwrgyAqNo7M+uaL6IYbxpm5wk3L7Mm6ocLW+CJUs=
 github.com/sagikazarmark/crypt v0.6.0/go.mod h1:U8+INwJo3nBv1m6A/8OBXAq7Jnpspk5AxSgDyEQcea8=
+github.com/samber/lo v1.38.1 h1:j2XEAqXKb09Am4ebOg31SpvzUTTs6EN3VfgeLUhPdXM=
+github.com/samber/lo v1.38.1/go.mod h1:+m/ZKRl6ClXCE2Lgf3MsQlWfh4bn1bz6CXEOxnEXnEA=
 github.com/samuel/go-zookeeper v0.0.0-20180130194729-c4fab1ac1bec/go.mod h1:gi+0XIa01GRL2eRQVjQkKGqKF3SF9vZR/HnPullcV2E=
 github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da h1:p3Vo3i64TCLY7gIfzeQaUJ+kppEO5WQG3cL8iE8tGHU=
 github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da/go.mod h1:gi+0XIa01GRL2eRQVjQkKGqKF3SF9vZR/HnPullcV2E=

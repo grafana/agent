@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/pkg/river/printer"
 
 	"github.com/grafana/agent/component"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/rivertypes"
@@ -30,6 +31,8 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 		switch value := val.(type) {
 		case rivertypes.Secret:
 			return string(value)
+		case flow_relabel.Regexp:
+			return value.String()
 		case []discovery.Target:
 			return ConvertTargets{
 				Targets: value,

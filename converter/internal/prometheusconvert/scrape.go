@@ -5,6 +5,7 @@ import (
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/scrape"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discovery "github.com/prometheus/prometheus/discovery"
@@ -15,6 +16,10 @@ func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.Scra
 	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
 	block := common.NewBlockWithOverride([]string{"prometheus", "scrape"}, label, scrapeArgs)
 	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, block)
+}
+
+func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
+	return validateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
 }
 
 func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
@@ -64,4 +69,8 @@ func getScrapeTargets(staticConfig prom_discovery.StaticConfig) []discovery.Targ
 	}
 
 	return targets
+}
+
+func validateScrapeTargets(staticConfig prom_discovery.StaticConfig) diag.Diagnostics {
+	return make(diag.Diagnostics, 0)
 }

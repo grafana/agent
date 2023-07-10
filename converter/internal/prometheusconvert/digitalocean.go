@@ -14,27 +14,11 @@ import (
 	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 )
 
-func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *prom_digitalocean.SDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoveryDigitalOceanArgs, diags := toDiscoveryDigitalOcean(sdConfig)
+func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *prom_digitalocean.SDConfig) discovery.Exports {
+	discoveryDigitalOceanArgs := toDiscoveryDigitalOcean(sdConfig)
 	block := common.NewBlockWithOverride([]string{"discovery", "digitalocean"}, label, discoveryDigitalOceanArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.digitalocean." + label + ".targets"), diags
-}
-
-func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) (*digitalocean.Arguments, diag.Diagnostics) {
-	if sdConfig == nil {
-		return nil, nil
-	}
-
-	return &digitalocean.Arguments{
-		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
-		Port:            sdConfig.Port,
-		BearerToken:     rivertypes.Secret(sdConfig.HTTPClientConfig.BearerToken),
-		BearerTokenFile: sdConfig.HTTPClientConfig.BearerTokenFile,
-		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
-		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
-		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
-	}, validateDiscoveryDigitalOcean(sdConfig)
+	return newDiscoverExports("discovery.digitalocean." + label + ".targets")
 }
 
 func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
@@ -60,4 +44,20 @@ func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Di
 
 	diags = append(diags, newDiags...)
 	return diags
+}
+
+func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) *digitalocean.Arguments {
+	if sdConfig == nil {
+		return nil
+	}
+
+	return &digitalocean.Arguments{
+		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
+		Port:            sdConfig.Port,
+		BearerToken:     rivertypes.Secret(sdConfig.HTTPClientConfig.BearerToken),
+		BearerTokenFile: sdConfig.HTTPClientConfig.BearerTokenFile,
+		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
+		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
+		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
+	}
 }
