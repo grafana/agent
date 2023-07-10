@@ -1,11 +1,10 @@
-package badger
+package wal
 
 import (
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
 	"sort"
-	"strconv"
 	"sync"
 	"time"
 
@@ -89,13 +88,11 @@ func (d *db) getNextKey(k uint64) uint64 {
 	return k + 1
 }
 
-func (d *db) getValueForKey(k uint64, into any) (bool, error) {
+func (d *db) getValueForKey(k []byte, into any) (bool, error) {
 	var value []byte
 	var found bool
-	d.d.View(func(txn *badgerdb.Txn) error {
-		buf := make([]byte, 8)
-		binary.PutUvarint(buf, k)
-		item, err := txn.Get(buf)
+	err := d.d.View(func(txn *badgerdb.Txn) error {
+		item, err := txn.Get(k)
 		if err == badgerdb.ErrKeyNotFound {
 			found = false
 			return nil
@@ -104,33 +101,56 @@ func (d *db) getValueForKey(k uint64, into any) (bool, error) {
 		value, err = item.ValueCopy(nil)
 		return err
 	})
+	if err != nil {
+		return false, err
+	}
 	buf := bytes.NewBuffer(value)
 	dec := gob.NewDecoder(buf)
-	err := dec.Decode(into)
+	err = dec.Decode(into)
 	return found, err
 }
 
-func (d *db) writeRecords(data any, ttl time.Duration) error {
+func (d *db) getRecordByString(key string, into any) (bool, error) {
+	return d.getValueForKey([]byte(key), into)
+}
+
+func (d *db) getRecordByUint(key uint64, into any) (bool, error) {
+	buf := make([]byte, 8)
+	binary.PutUvarint(buf, key)
+	return d.getValueForKey(buf, into)
+}
+
+// writeRecordWithAutoKey will gob encode the data and set a TTL from now. Note the TTL may not trigger at exactly
+// the TTL. The system checks for TTLs every few minutes. writeRecordWithAutoKey will return the key of the value inserted.
+// This key is always greater than a previously entered key.
+func (d *db) writeRecordWithAutoKey(data any, ttl time.Duration) (uint64, error) {
 	if data == nil {
-		return nil
+		return 0, nil
 	}
 	id := d.getNewKey()
+	keyBuf := make([]byte, 8)
+	binary.PutUvarint(keyBuf, id)
+	err := d.writeRecord(keyBuf, data, ttl)
+	return id, err
+}
 
-	key := []byte(strconv.FormatUint(id, 10))
+// writeRecord writes a value and assumes the data is a pointer and will gob encode it. If a TTL is specified then will set
+// the expiration.
+func (d *db) writeRecord(key []byte, data any, ttl time.Duration) error {
 	buf := bytes.NewBuffer([]byte{})
 	enc := gob.NewEncoder(buf)
 	enc.Encode(data)
 	err := d.d.Update(func(txn *badgerdb.Txn) error {
-		inErr := txn.SetEntry(&badgerdb.Entry{
-			Key:       key,
-			Value:     buf.Bytes(),
-			ExpiresAt: uint64(time.Now().Add(ttl).Unix()),
-			UserMeta:  0,
-		})
+		entry := &badgerdb.Entry{
+			Key:      key,
+			Value:    buf.Bytes(),
+			UserMeta: 0,
+		}
+		if ttl > 0*time.Second {
+			entry.ExpiresAt = uint64(time.Now().Add(ttl).Unix())
+		}
+		inErr := txn.SetEntry(entry)
 		return inErr
 	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
