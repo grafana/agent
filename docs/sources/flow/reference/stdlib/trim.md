@@ -4,7 +4,7 @@ aliases:
 title: trim
 ---
 
-# trimspace
+# trim
 
 `trim` removes the specified set of characters from the start and end of the given string.
 

@@ -4,7 +4,7 @@ aliases:
 title: trimsuffix
 ---
 
-# trimspace
+# trimsuffix
 
 `trimsuffix` removes the specified suffix from the end of the given string.
 
