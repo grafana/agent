@@ -78,7 +78,7 @@ values.
 
 `discovery.gce` does not expose any component-specific debug metrics.
 
-## Examples
+## Example
 
 ```river
 discovery.gce "gce" {

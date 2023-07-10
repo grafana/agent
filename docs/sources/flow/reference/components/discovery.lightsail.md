@@ -65,7 +65,7 @@ values.
 
 `discovery.lightsail` does not expose any component-specific debug metrics.
 
-## Examples
+## Example
 
 ```river
 discovery.lightsail "lightsail" {
