@@ -70,6 +70,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"               // Import prometheus.exporter.github
 	_ "github.com/grafana/agent/component/prometheus/exporter/kafka"                // Import prometheus.exporter.kafka
 	_ "github.com/grafana/agent/component/prometheus/exporter/memcached"            // Import prometheus.exporter.memcached
+	_ "github.com/grafana/agent/component/prometheus/exporter/mongodb"              // Import prometheus.exporter.mongodb
 	_ "github.com/grafana/agent/component/prometheus/exporter/mssql"                // Import prometheus.exporter.mssql
 	_ "github.com/grafana/agent/component/prometheus/exporter/mysql"                // Import prometheus.exporter.mysql
 	_ "github.com/grafana/agent/component/prometheus/exporter/oracledb"             // Import prometheus.exporter.oracledb
