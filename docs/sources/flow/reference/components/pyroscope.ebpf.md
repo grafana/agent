@@ -11,7 +11,8 @@ labels:
 `pyroscope.ebpf` configures an ebpf profiling job for the current host. The collected performance profiles are forwarded
 to the list of receivers passed in `forward_to`.
 
-You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended as it can lead to additional memory and CPU usage.
+You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended as
+it can lead to additional memory and CPU usage.
 
 ## Usage
 
