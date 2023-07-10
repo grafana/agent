@@ -5,12 +5,12 @@ package ebpf
 import (
 	"context"
 	"fmt"
-	"github.com/grafana/agent/component/pyroscope"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
