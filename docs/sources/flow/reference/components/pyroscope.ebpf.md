@@ -131,7 +131,7 @@ This can occur for several reasons:
 - The ELF file is either corrupted or not recognized as an ELF file.
 - There is no corresponding ELF file entry in `/proc/pid/maps` for the address in the stack trace.
 
-### Addressing Unresolved Symbols
+### Addressing unresolved symbols
 
 If you only see module names (e.g., `/lib/x86_64-linux-gnu/libc.so.6`) without corresponding function names, this
 indicates that the symbols couldn't be mapped to their respective function names.
