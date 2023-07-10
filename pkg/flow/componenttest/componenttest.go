@@ -143,7 +143,7 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 	defer c.innerMut.Unlock()
 
 	writerAdapter := log.NewStdlibAdapter(c.log)
-	sink, err := logging.WriterSink(writerAdapter, logging.SinkOptions{
+	l, err := logging.New(writerAdapter, logging.Options{
 		Level:  logging.LevelDebug,
 		Format: logging.FormatLogfmt,
 	})
@@ -153,7 +153,7 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 
 	opts := component.Options{
 		ID:            c.reg.Name + ".test",
-		Logger:        logging.New(sink),
+		Logger:        l,
 		Tracer:        trace.NewNoopTracerProvider(),
 		DataPath:      dataPath,
 		OnStateChange: c.onStateChange,

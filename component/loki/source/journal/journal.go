@@ -44,7 +44,7 @@ type Component struct {
 }
 
 // New creates a new  component.
-func New(o component.Options, args Arguments) (component.Component, error) {
+func New(o component.Options, args Arguments) (*Component, error) {
 	err := os.MkdirAll(o.DataPath, 0750)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (c *Component) Run(ctx context.Context) error {
 				Entry:  entry.Entry,
 			}
 			for _, r := range c.receivers {
-				r <- lokiEntry
+				r.Chan() <- lokiEntry
 			}
 			c.mut.RUnlock()
 		}

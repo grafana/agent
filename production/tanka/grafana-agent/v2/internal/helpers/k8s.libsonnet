@@ -363,7 +363,6 @@ local gen_scrape_config(job_name, pod_uid) = {
             replacement: '$2',
           },
 
-        metric_relabel_configs: [
           // Drop container_* metrics with no image.
           {
             source_labels: ['__name__', 'image'],

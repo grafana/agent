@@ -11,7 +11,7 @@ import (
 
 // Client is a fake client used for testing.
 type Client struct {
-	entries  loki.LogsReceiver
+	entries  chan loki.Entry
 	received []loki.Entry
 	once     sync.Once
 	mtx      sync.Mutex
@@ -22,7 +22,7 @@ type Client struct {
 func NewClient(stop func()) *Client {
 	c := &Client{
 		OnStop:  stop,
-		entries: make(loki.LogsReceiver),
+		entries: make(chan loki.Entry),
 	}
 	c.wg.Add(1)
 	go func() {
@@ -49,7 +49,7 @@ func (c *Client) Chan() chan<- loki.Entry {
 
 // LogsReceiver returns this client as a LogsReceiver, which is useful in testing.
 func (c *Client) LogsReceiver() loki.LogsReceiver {
-	return c.entries
+	return loki.NewLogsReceiverWithChannel(c.entries)
 }
 
 func (c *Client) Received() []loki.Entry {

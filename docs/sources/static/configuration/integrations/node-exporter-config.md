@@ -28,7 +28,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.34.0 \
+  grafana/agent:v0.34.3 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -67,7 +67,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.34.0
+  - image: grafana/agent:v0.34.3
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -118,7 +118,7 @@ the Agent is running on is a no-op.
 | buddyinfo        | Exposes statistics of memory fragments as reported by /proc/buddyinfo. | Linux | no |
 | cgroups          | Exposes number of active and enabled cgroups. | Linux | no |
 | conntrack        | Shows conntrack statistics (does nothing if no /proc/sys/net/netfilter/ present). | Linux | yes |
-| cpu              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris | yes |
+| cpu              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris, NetBSD | yes |
 | cpufreq          | Exposes CPU frequency statistics. | Linux, Solaris | yes |
 | devstat          | Exposes device statistics. | Dragonfly, FreeBSD | no |
 | diskstats        | Exposes disk I/O statistics. | Darwin, Linux, OpenBSD | yes |
@@ -141,10 +141,11 @@ the Agent is running on is a no-op.
 | loadavg          | Exposes load average. | Darwin, Dragonfly, FreeBSD, Linux, NetBSD, OpenBSD, Solaris | yes |
 | logind           | Exposes session counts from logind. | Linux | no |
 | mdadm            | Exposes statistics about devices in /proc/mdstat (does nothing if no /proc/mdstat present). | Linux | yes |
-| meminfo          | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
+| meminfo          | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD, NetBSD | yes |
 | meminfo_numa     | Exposes memory statistics from /proc/meminfo_numa. | Linux | no |
 | mountstats       | Exposes filesystem statistics from /proc/self/mountstats. Exposes detailed NFS client statistics. | Linux | no |
 | netclass         | Exposes network interface info from /sys/class/net. | Linux | yes |
+| netisr           | Exposes netisr statistics. | FreeBSD | yes |
 | netdev           | Exposes network interface statistics such as bytes transferred. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
 | netstat          | Exposes network statistics from /proc/net/netstat. This is the same information as netstat -s. | Linux | yes |
 | network_route    | Exposes network route statistics. | Linux | no |
@@ -163,6 +164,7 @@ the Agent is running on is a no-op.
 | schedstat        | Exposes task scheduler statistics from /proc/schedstat. | Linux | yes |
 | selinux          | Exposes SELinux statistics. | Linux | yes |
 | slabinfo         | Exposes slab statistics from `/proc/slabinfo`. | Linux | no |
+| softirqs         | Exposes detailed softirq statistics from `/proc/softirqs`. | Linux | no |
 | sockstat         | Exposes various statistics from /proc/net/sockstat. | Linux | yes |
 | softnet          | Exposes statistics from /proc/net/softnet_stat. | Linux | yes |
 | stat             | Exposes various statistics from /proc/stat. This includes boot time, forks and interrupts. | Linux | yes |
@@ -177,7 +179,7 @@ the Agent is running on is a no-op.
 | time             | Exposes the current system time. | any | yes |
 | timex            | Exposes selected adjtimex(2) system call stats. | Linux | yes |
 | udp_queues       | Exposes UDP total lengths of the rx_queue and tx_queue from /proc/net/udp and /proc/net/udp6. | Linux | yes |
-| uname            | Exposes system information as provided by the uname system call. | Darwin, FreeBSD, Linux, OpenBSD | yes |
+| uname            | Exposes system information as provided by the uname system call. | Darwin, FreeBSD, Linux, OpenBSD, NetBSD | yes |
 | vmstat           | Exposes statistics from /proc/vmstat. | Linux | yes |
 | wifi             | Exposes WiFi device and station statistics. | Linux | no |
 | xfs              | Exposes XFS runtime statistics. | Linux (kernel 4.4+) | yes |
@@ -350,6 +352,27 @@ the Agent is running on is a no-op.
 
   # Array of perf tracepoints that should be collected.
   perf_tracepoint:
+    [- <string>]
+
+  # Disable perf hardware profilers.
+  [perf_disable_hardware_profilers: <boolean> | default = false]
+
+  # Perf hardware profilers that should be collected.
+  perf_hardware_profilers:
+    [- <string>]
+
+  # Disable perf software profilers.
+  [perf_disable_software_profilers: <boolean> | default = false]
+
+  # Perf software profilers that should be collected.
+  perf_software_profilers:
+    [- <string>]
+  
+  # Disable perf cache profilers.
+  [perf_disable_cache_profilers: <boolean> | default = false]
+
+  # Perf cache profilers that should be collected.
+  perf_cache_profilers:
     [- <string>]
 
   # Regexp of power supplies to ignore for the powersupplyclass collector.

@@ -107,6 +107,7 @@ func makeTracesServer(t *testing.T, ch chan ptrace.Traces) string {
 }
 
 type mockTracesReceiver struct {
+	ptraceotlp.UnimplementedGRPCServer
 	ch chan ptrace.Traces
 }
 

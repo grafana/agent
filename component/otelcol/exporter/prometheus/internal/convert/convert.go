@@ -10,6 +10,8 @@ package convert
 import (
 	"context"
 	"fmt"
+	"math"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -159,7 +161,9 @@ func (conv *Converter) getOrCreateResource(res pcommon.Resource) *memorySeries {
 	targetInfoLabels := labels.FromStrings(model.MetricNameLabel, "target_info")
 
 	var (
-		attrs = res.Attributes().Sort()
+		// There is no need to sort the attributes here.
+		// The call to lb.Labels below will sort them.
+		attrs = res.Attributes()
 
 		jobLabel      string
 		instanceLabel string
@@ -243,7 +247,9 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 	)
 
 	lb := labels.NewBuilder(scopeInfoLabels)
-	scope.Attributes().Sort().Range(func(k string, v pcommon.Value) bool {
+	// There is no need to sort the attributes here.
+	// The call to lb.Labels below will sort them.
+	scope.Attributes().Range(func(k string, v pcommon.Value) bool {
 		lb.Set(prometheus.NormalizeLabel(k), v.AsString())
 		return true
 	})
@@ -339,7 +345,9 @@ func (conv *Converter) getOrCreateSeries(res *memorySeries, scope *memorySeries,
 		lb.Set("otel_scope_version", scope.metadata[scopeVersionLabel])
 	}
 
-	attrs.Sort().Range(func(k string, v pcommon.Value) bool {
+	// There is no need to sort the attributes here.
+	// The call to lb.Labels below will sort them.
+	attrs.Range(func(k string, v pcommon.Value) bool {
 		lb.Set(prometheus.NormalizeLabel(k), v.AsString())
 		return true
 	})
@@ -458,11 +466,36 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			}
 		}
 
+		// Sort the histogram by bounds ascending
+		bSize := int(math.Min(float64(dp.ExplicitBounds().Len()), float64(dp.BucketCounts().Len())))
+		buckets := make(map[float64]uint64, bSize)
+		bounds := make([]float64, 0, bSize)
+		for i := 0; i < dp.ExplicitBounds().Len() && i < dp.BucketCounts().Len(); i++ {
+			bound := dp.ExplicitBounds().At(i)
+			buckets[bound] = dp.BucketCounts().At(i)
+			bounds = append(bounds, bound)
+		}
+
+		sort.Float64s(bounds)
+
+		// Calculate cumulative count values. Prometheus expects cummulative bucket counts for histograms.
+		// This has nothing to do with temporality, it doesn't affect cummulative vs delta histograms, it
+		// simply matches the format of bucket counts expected by Prometheus.
+		var c uint64 = 0
+		for i := 0; i < len(bounds); i++ {
+			bound := bounds[i]
+			c += buckets[bound]
+			buckets[bound] = c
+		}
+
 		// Process the boundaries. The number of buckets = number of explicit
 		// bounds + 1.
 		for i := 0; i < dp.ExplicitBounds().Len() && i < dp.BucketCounts().Len(); i++ {
 			bound := dp.ExplicitBounds().At(i)
-			count := dp.BucketCounts().At(i)
+			count, ok := buckets[bound]
+			if !ok {
+				count = dp.BucketCounts().At(i)
+			}
 
 			bucketLabel := labels.Label{
 				Name:  model.BucketLabel,

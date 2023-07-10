@@ -2,7 +2,7 @@ package controller_test
 
 import (
 	"errors"
-	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -65,14 +65,17 @@ func TestLoader(t *testing.T) {
 	}
 
 	newGlobals := func() controller.ComponentGlobals {
+		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
 		return controller.ComponentGlobals{
-			LogSink:           noOpSink(),
-			Logger:            logging.New(nil),
+			Logger:            l,
 			TraceProvider:     trace.NewNoopTracerProvider(),
 			Clusterer:         noOpClusterer(),
 			DataPath:          t.TempDir(),
 			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:        prometheus.NewRegistry(),
+			NewModuleController: func(id string) controller.ModuleController {
+				return nil
+			},
 		}
 	}
 
@@ -208,14 +211,17 @@ func TestScopeWithFailingComponent(t *testing.T) {
 		}
 	`
 	newGlobals := func() controller.ComponentGlobals {
+		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
 		return controller.ComponentGlobals{
-			LogSink:           noOpSink(),
-			Logger:            logging.New(nil),
+			Logger:            l,
 			TraceProvider:     trace.NewNoopTracerProvider(),
 			DataPath:          t.TempDir(),
 			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:        prometheus.NewRegistry(),
 			Clusterer:         noOpClusterer(),
+			NewModuleController: func(id string) controller.ModuleController {
+				return nil
+			},
 		}
 	}
 
@@ -224,11 +230,6 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
-}
-
-func noOpSink() *logging.Sink {
-	s, _ := logging.WriterSink(io.Discard, logging.DefaultSinkOptions)
-	return s
 }
 
 func noOpClusterer() *cluster.Clusterer {

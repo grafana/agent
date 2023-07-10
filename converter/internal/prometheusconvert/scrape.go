@@ -5,19 +5,24 @@ import (
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/scrape"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/token/builder"
-	promconfig "github.com/prometheus/prometheus/config"
-	promdiscovery "github.com/prometheus/prometheus/discovery"
+	prom_config "github.com/prometheus/prometheus/config"
+	prom_discovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendScrape(f *builder.File, scrapeConfig *promconfig.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) {
+func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target, label string) {
 	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
-	common.AppendBlockWithOverride(f, []string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
+	block := common.NewBlockWithOverride([]string{"prometheus", "scrape"}, label, scrapeArgs)
+	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, block)
 }
 
-func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
+func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
+	return validateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
+}
+
+func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
 	if scrapeConfig == nil {
 		return nil
 	}
@@ -45,16 +50,27 @@ func toScrapeArguments(scrapeConfig *promconfig.ScrapeConfig, forwardTo []storag
 	}
 }
 
-func getScrapeTargets(staticConfig promdiscovery.StaticConfig) []discovery.Target {
+func getScrapeTargets(staticConfig prom_discovery.StaticConfig) []discovery.Target {
 	targets := []discovery.Target{}
 
 	for _, target := range staticConfig {
+		targetMap := map[string]string{}
+
+		for labelName, labelValue := range target.Labels {
+			targetMap[string(labelName)] = string(labelValue)
+		}
+
 		for _, labelSet := range target.Targets {
 			for labelName, labelValue := range labelSet {
-				targets = append(targets, map[string]string{string(labelName): string(labelValue)})
+				targetMap[string(labelName)] = string(labelValue)
+				targets = append(targets, targetMap)
 			}
 		}
 	}
 
 	return targets
+}
+
+func validateScrapeTargets(staticConfig prom_discovery.StaticConfig) diag.Diagnostics {
+	return make(diag.Diagnostics, 0)
 }

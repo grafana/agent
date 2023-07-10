@@ -26,7 +26,7 @@ spec:
       serviceAccountName: grafana-agent
       containers:
         - name: grafana-agent
-          image: grafana/agent:v0.34.0
+          image: docker.io/grafana/agent:v0.34.2
           imagePullPolicy: IfNotPresent
           args:
             - run
@@ -53,13 +53,17 @@ spec:
             - name: config
               mountPath: /etc/agent
         - name: config-reloader
-          image: jimmidyson/configmap-reload:v0.8.0
+          image: docker.io/jimmidyson/configmap-reload:v0.8.0
           args:
             - --volume-dir=/etc/agent
             - --webhook-url=http://localhost:80/-/reload
           volumeMounts:
             - name: config
               mountPath: /etc/agent
+          resources:
+            requests:
+              cpu: 1m
+              memory: 5Mi
       dnsPolicy: ClusterFirst
       volumes:
         - name: config

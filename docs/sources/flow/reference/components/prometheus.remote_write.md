@@ -51,6 +51,7 @@ endpoint > oauth2 > tls_config | [tls_config][] | Configure TLS settings for con
 endpoint > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 endpoint > queue_config | [queue_config][] | Configuration for how metrics are batched before sending. | no
 endpoint > metadata_config | [metadata_config][] | Configuration for how metric metadata is sent. | no
+endpoint > write_relabel_config | [write_relabel_config][] | Configuration for write_relabel_config. | no
 wal | [wal][] | Configuration for the component's WAL. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `endpoint >
@@ -64,6 +65,7 @@ basic_auth` refers to a `basic_auth` block defined inside an
 [tls_config]: #tls_config-block
 [queue_config]: #queue_config-block
 [metadata_config]: #metadata_config-block
+[write_relabel_config]: #write_relabel_config-block
 [wal]: #wal-block
 
 ### endpoint block
@@ -169,6 +171,10 @@ Name | Type | Description | Default | Required
 `send` | `bool` | Controls whether metric metadata is sent to the endpoint. | `true` | no
 `send_interval` | `duration` | How frequently metric metadata is sent to the endpoint. | `"1m"` | no
 `max_samples_per_send` | `number` | Maximum number of metadata samples to send to the endpoint at once. | `2000` | no
+
+### write_relabel_config block
+
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
 
 ### wal block
 
@@ -322,3 +328,7 @@ prometheus.scrape "demo" {
   forward_to = [prometheus.remote_write.staging.receiver]
 }
 ```
+
+## Compression
+
+`prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.

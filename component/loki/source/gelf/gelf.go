@@ -55,7 +55,7 @@ func (c *Component) Run(ctx context.Context) error {
 				lokiEntry.Labels["job"] = model.LabelValue(c.o.ID)
 			}
 			for _, r := range c.receivers {
-				r <- lokiEntry
+				r.Chan() <- lokiEntry
 			}
 			c.mut.RUnlock()
 		}
@@ -117,7 +117,7 @@ func convertConfig(a Arguments) *scrapeconfig.GelfTargetConfig {
 }
 
 // New creates a new gelf component.
-func New(o component.Options, args Arguments) (component.Component, error) {
+func New(o component.Options, args Arguments) (*Component, error) {
 	metrics := target.NewMetrics(o.Registerer)
 	c := &Component{
 		o:       o,

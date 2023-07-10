@@ -16,7 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
 
@@ -30,15 +30,15 @@ type Arguments interface {
 
 	// Convert converts the Arguments into an OpenTelemetry Collector
 	// extension configuration.
-	Convert() (otelconfig.Extension, error)
+	Convert() (otelcomponent.Config, error)
 
 	// Extensions returns the set of extensions that the configured component is
 	// allowed to use.
-	Extensions() map[otelconfig.ComponentID]otelcomponent.Extension
+	Extensions() map[otelcomponent.ID]otelextension.Extension
 
 	// Exporters returns the set of exporters that are exposed to the configured
 	// component.
-	Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
+	Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component
 }
 
 // Extension is a Flow component shim which manages an OpenTelemetry Collector
@@ -48,7 +48,7 @@ type Extension struct {
 	cancel context.CancelFunc
 
 	opts    component.Options
-	factory otelcomponent.ExtensionFactory
+	factory otelextension.Factory
 
 	sched     *scheduler.Scheduler
 	collector *lazycollector.Collector
@@ -62,7 +62,7 @@ var (
 // New creates a new Flow component which encapsulates an OpenTelemetry
 // Collector extension. args must hold a value of the argument
 // type registered with the Flow component.
-func New(opts component.Options, f otelcomponent.ExtensionFactory, args Arguments) (*Extension, error) {
+func New(opts component.Options, f otelextension.Factory, args Arguments) (*Extension, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Create a lazy collector where metrics from the upstream component will be
@@ -112,7 +112,7 @@ func (e *Extension) Update(args component.Arguments) error {
 		return err
 	}
 
-	settings := otelcomponent.ExtensionCreateSettings{
+	settings := otelextension.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(e.opts.Logger),
 

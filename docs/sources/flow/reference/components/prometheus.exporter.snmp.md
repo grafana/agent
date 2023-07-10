@@ -17,16 +17,11 @@ The `prometheus.exporter.snmp` component embeds
 
 ```river
 prometheus.exporter.snmp "LABEL" {
-  config_file = "PATH_SNMP_CONFIG_FILE"
+  config_file = SNMP_CONFIG_FILE_PATH
 
   target "TARGET_NAME" {
-    address = "TARGET_ADDRESS"
+    address = TARGET_ADDRESS
   }
-
-  walk_param "PARAM_NAME" {
-  }
-
-  ...
 }
 ```
 
@@ -36,9 +31,17 @@ Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`config_file` | `string`       | SNMP configuration file defining custom modules. | | yes
+`config_file` | `string`       | SNMP configuration file defining custom modules. | | no
+`config` | `string` or `secret`       | SNMP configuration as inline string.  | |no
 
 The `config_file` argument points to a YAML file defining which snmp_exporter modules to use. See [snmp_exporter](https://github.com/prometheus/snmp_exporter#generating-configuration) for details on how to generate a config file.
+
+The `config` argument must be a YAML document as string defining which SNMP modules and auths to use.
+`config` is typically loaded by using the exports of another component. For example,
+
+- `local.file.LABEL.content`
+- `remote.http.LABEL.content`
+- `remote.s3.LABEL.content`
 
 ## Blocks
 
@@ -49,11 +52,9 @@ Hierarchy | Name | Description | Required
 --------- | ---- | ----------- | --------
 target | [target][] | Configures an SNMP target. | yes
 walk_param | [walk_param][] | SNMP connection profiles to override default SNMP settings. | no
-walk_param > auth | [auth][] | Configure auth for authenticating to the endpoint. | no
 
 [target]: #target-block
 [walk_param]: #walk_param-block
-[auth]: #auth-block
 
 ### target block
 
@@ -65,6 +66,7 @@ Name | Type | Description | Default | Required
 `name` | `string` | Name of a snmp_target. | | yes
 `address` | `string` | The address of SNMP device. | | yes
 `module`| `string` | SNMP module to use for polling. | `""` | no
+`auth` | `string` | SNMP authentication profile to use. | `""` | no
 `walk_params`| `string` | Config to use for this target. | `""` | no
 
 ### walk_param block
@@ -75,36 +77,9 @@ The `walk_param` block may be specified multiple times to define multiple SNMP c
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `name` | `string` | Name of the module to override. | | no
-`version` | `int` | SNMP version to use | `2` | no
 `max_repetitions`| `int` | How many objects to request with GET/GETBULK. | `25` | no
 `retries`| `int` | How many times to retry a failed request. | `3` | no
 `timeout`| `duration` | Timeout for each individual SNMP request. |  | no
-`auth` | [auth][] | Configure auth for walk param. | | no
-
-`version` 1 will use GETNEXT, 2 and 3 use GETBULK.
-
-### auth block
-
-The `auth` block defines an individual SNMP authentication profile that can be used to override default SNMP auth settings.
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`community` | `secret` | Community string is used with SNMP v1 and v2. | `"public"` | no
-`username` | `string` | NetSNMP username. | `"user"` | no
-`security_level` | `string` | NetSNMP security_level. | `noAuthNoPriv`| no
-`password` | `secret` | NetSNMP password. | `""` | no
-`auth_protocol` | `string` | NetSNMP auth protocol. | `"MD5"` | no
-`priv_protocol` | `string` | NetSNMP privacy protocol. | `"DES"` | no
-`priv_password` | `secret` | NetSNMP privacy password. | `""` | no
-`context_name` | `string` | NetSNMP context name. | `""`| no
-
-`username` is required if v3 is used. `-u option` to NetSNMP.
-`security_level` can be `noAuthNoPriv`, `authNoPriv` or `authPriv`. `-l option` to NetSNMP.
-`password` is also known as `authKey`. Is required if `security_level` is `authNoPriv` or `authPriv`. `-a option` to NetSNMP.
-`auth_protocol` is used if `security_level` is `authNoPriv` or `authPriv`. Possible values are `MD5`, `SHA`, `SHA224`, `SHA256`, `SHA384`, or `SHA512`. `-a option` to NetSNMP.
-`priv_protocol` is used if `security_level` is `authPriv`. Possible values are `DES`, `AES`, `AES192`, or `AES256`. `-x option` to NetSNMP.
-`priv_password` is also known as `privKey`. Is required if `security_level` is `authPriv`. `-x option` to NetSNMP.
-`context_name` is required if context is configured on the device. `-n option` to NetSNMP.
 
 ## Exported fields
 The following fields are exported and can be referenced by other components.
@@ -161,19 +136,11 @@ prometheus.exporter.snmp "example" {
     }
 
     walk_param "private" {
-        version = "2"
-
-        auth {
-            community = "secret"
-        }
+        retries = "2"
     }
 
     walk_param "public" {
-        version = "2"
-
-        auth {
-            community = "public"
-        }
+        retries = "2"
     }
 }
 // Configure a prometheus.scrape component to collect SNMP metrics.
@@ -182,5 +149,59 @@ prometheus.scrape "demo" {
     forward_to = [ /* ... */ ]
 }
 ```
+
+This example is the same above with using an embedded configuration (with secrets):
+
+
+```river
+local.file "snmp_config" {
+    path      = "snmp_modules.yml"
+    is_secret = true
+}
+
+prometheus.exporter.snmp "example" {
+    config = local.file.snmp_config.content
+
+    target "network_switch_1" {
+        address     = "192.168.1.2"
+        module      = "if_mib"
+        walk_params = "public"
+    }
+
+    target "network_router_2" {
+        address     = "192.168.1.3"
+        module      = "mikrotik"
+        walk_params = "private"
+    }
+
+    walk_param "private" {
+        retries = "2"
+    }
+
+    walk_param "public" {
+        retries = "2"
+    }
+}
+// Configure a prometheus.scrape component to collect SNMP metrics.
+prometheus.scrape "demo" {
+    targets    = prometheus.exporter.snmp.example.targets
+    forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+    endpoint {
+        url = PROMETHEUS_REMOTE_WRITE_URL
+
+        basic_auth {
+            username = USERNAME
+            password = PASSWORD
+        }
+    }
+}
+```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

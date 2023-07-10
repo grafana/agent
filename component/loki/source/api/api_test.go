@@ -169,7 +169,7 @@ func TestLokiSourceAPI_FanOut(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	defer comp.(*Component).stop()
+	defer comp.stop()
 
 	lokiClient := newTestLokiClient(t, args, opts)
 	defer lokiClient.Stop()
@@ -283,22 +283,19 @@ func TestComponent_detectsWhenUpdateRequiresARestart(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			c, ok := comp.(*Component)
-			require.True(t, ok)
-
 			// in order to cleanly update, we want to make sure the server is running first.
-			waitForServerToBeReady(t, c)
+			waitForServerToBeReady(t, comp)
 
-			serverBefore := c.server
-			err = c.Update(tc.newArgs)
+			serverBefore := comp.server
+			err = comp.Update(tc.newArgs)
 			require.NoError(t, err)
 
-			restarted := serverBefore != c.server
+			restarted := serverBefore != comp.server
 			assert.Equal(t, restarted, tc.restartRequired)
 
 			// in order to cleanly shutdown, we want to make sure the server is running first.
-			waitForServerToBeReady(t, c)
-			c.stop()
+			waitForServerToBeReady(t, comp)
+			comp.stop()
 		})
 	}
 }
@@ -313,9 +310,6 @@ func TestDefaultServerConfig(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	c, ok := comp.(*Component)
-	require.True(t, ok)
-
 	require.Eventuallyf(t, func() bool {
 		resp, err := http.Get(fmt.Sprintf(
 			"http://%v:%d/wrong/url",
@@ -325,7 +319,7 @@ func TestDefaultServerConfig(t *testing.T) {
 		return err == nil && resp.StatusCode == 404
 	}, 5*time.Second, 20*time.Millisecond, "server failed to start before timeout")
 
-	c.stop()
+	comp.stop()
 }
 
 func startTestComponent(
@@ -342,13 +336,10 @@ func startTestComponent(
 		require.NoError(t, err)
 	}()
 
-	c, ok := comp.(*Component)
-	require.True(t, ok)
-
 	return comp, func() {
 		// in order to cleanly shutdown, we want to make sure the server is running first.
-		waitForServerToBeReady(t, c)
-		c.stop()
+		waitForServerToBeReady(t, comp)
+		comp.stop()
 	}
 }
 
@@ -424,7 +415,7 @@ func testArgsWithPorts(httpPort int, grpcPort int) Arguments {
 				ListenPort:    grpcPort,
 			},
 		},
-		ForwardTo: []loki.LogsReceiver{make(chan loki.Entry), make(chan loki.Entry)},
+		ForwardTo: []loki.LogsReceiver{loki.NewLogsReceiver(), loki.NewLogsReceiver()},
 		Labels:    map[string]string{"foo": "bar", "fizz": "buzz"},
 		RelabelRules: relabel.Rules{
 			{

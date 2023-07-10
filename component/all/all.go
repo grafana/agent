@@ -10,6 +10,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
 	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file
 	_ "github.com/grafana/agent/component/discovery/gce"                            // Import discovery.gce
+	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
@@ -49,6 +50,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlphttp"                // Import otelcol.exporter.otlphttp
 	_ "github.com/grafana/agent/component/otelcol/exporter/prometheus"              // Import otelcol.exporter.prometheus
 	_ "github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling" // Import otelcol.extension.jaeger_remote_sampling
+	_ "github.com/grafana/agent/component/otelcol/processor/attributes"             // Import otelcol.processor.attributes
 	_ "github.com/grafana/agent/component/otelcol/processor/batch"                  // Import otelcol.processor.batch
 	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"          // Import otelcol.processor.memory_limiter
 	_ "github.com/grafana/agent/component/otelcol/processor/tail_sampling"          // Import otelcol.processor.tail_sampling
@@ -61,9 +63,12 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/receiver/zipkin"                  // Import otelcol.receiver.zipkin
 	_ "github.com/grafana/agent/component/prometheus/exporter/apache"               // Import prometheus.exporter.apache
 	_ "github.com/grafana/agent/component/prometheus/exporter/blackbox"             // Import prometheus.exporter.blackbox
+	_ "github.com/grafana/agent/component/prometheus/exporter/cloudwatch"           // Import prometheus.exporter.cloudwatch
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"               // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/dnsmasq"              // Import prometheus.exporter.dnsmasq
+	_ "github.com/grafana/agent/component/prometheus/exporter/elasticsearch"        // Import prometheus.exporter.elasticsearch
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"               // Import prometheus.exporter.github
+	_ "github.com/grafana/agent/component/prometheus/exporter/kafka"                // Import prometheus.exporter.kafka
 	_ "github.com/grafana/agent/component/prometheus/exporter/memcached"            // Import prometheus.exporter.memcached
 	_ "github.com/grafana/agent/component/prometheus/exporter/mssql"                // Import prometheus.exporter.mssql
 	_ "github.com/grafana/agent/component/prometheus/exporter/mysql"                // Import prometheus.exporter.mysql
@@ -73,6 +78,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"                // Import prometheus.exporter.redis
 	_ "github.com/grafana/agent/component/prometheus/exporter/snmp"                 // Import prometheus.exporter.snmp
 	_ "github.com/grafana/agent/component/prometheus/exporter/snowflake"            // Import prometheus.exporter.snowflake
+	_ "github.com/grafana/agent/component/prometheus/exporter/squid"                // Import prometheus.exporter.squid
 	_ "github.com/grafana/agent/component/prometheus/exporter/statsd"               // Import prometheus.exporter.statsd
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"                 // Import prometheus.exporter.unix
 	_ "github.com/grafana/agent/component/prometheus/exporter/windows"              // Import prometheus.exporter.windows

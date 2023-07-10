@@ -21,6 +21,7 @@ Name          | Type     | Description                          | Default       
 ------------- | -------- | ------------------------------------ | -------------------------------- | --------
 `address`     | `string` | The address of the dnsmasq server.   | `"localhost:53"`                 | no
 `leases_file` | `string` | The path to the dnsmasq leases file. | `"/var/lib/misc/dnsmasq.leases"` | no
+`expose_leases` | `bool` | Expose dnsmasq leases as metrics (high cardinality). | `false` | no
 
 ## Exported fields
 The following fields are exported and can be referenced by other components.
@@ -62,25 +63,29 @@ from `prometheus.exporter.dnsmasq`:
 
 ```river
 prometheus.exporter.dnsmasq "example" {
-  address     = "localhost:53"
+  address = "localhost:53"
 }
 
 // Configure a prometheus.scrape component to collect github metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.dnsmasq.example.targets
-  forward_to = [ prometheus.remote_write.example.receiver ]
+  forward_to = [prometheus.remote_write.demo.receiver]
 }
 
-prometheus.remote_write "example" {
+prometheus.remote_write "demo" {
   endpoint {
-    url = "http://mimir:9090/api/v1/write"
+    url = PROMETHEUS_REMOTE_WRITE_URL
 
     basic_auth {
-      username = "sample-username"
-      password = "sample-password"
+      username = USERNAME
+      password = PASSWORD
     }
   }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

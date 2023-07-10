@@ -92,7 +92,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:    o,
 		metrics: dt.NewMetrics(o.Registerer),
 
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 		manager:   newManager(o.Logger, nil),
 		receivers: args.ForwardTo,
 		posFile:   positionsFile,
@@ -125,12 +125,12 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.receiversMut.RLock()
 			receivers := c.receivers
 			c.receiversMut.RUnlock()
 			for _, receiver := range receivers {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 		}
 	}
@@ -232,7 +232,7 @@ func (c *Component) getManagerOptions(args Arguments) (*options, error) {
 
 	return &options{
 		client:    client,
-		handler:   loki.NewEntryHandler(c.handler, func() {}),
+		handler:   loki.NewEntryHandler(c.handler.Chan(), func() {}),
 		positions: c.posFile,
 	}, nil
 }

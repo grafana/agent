@@ -39,7 +39,7 @@ func init() {
 		Args:    Arguments{},
 		Exports: Exports{},
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
-			return NewComponent(o, c.(Arguments))
+			return New(o, c.(Arguments))
 		},
 	})
 }
@@ -108,8 +108,8 @@ type Exports struct {
 	Receiver pyroscope.Appendable `river:"receiver,attr"`
 }
 
-// NewComponent creates a new pyroscope.write component.
-func NewComponent(o component.Options, c Arguments) (*Component, error) {
+// New creates a new pyroscope.write component.
+func New(o component.Options, c Arguments) (*Component, error) {
 	metrics := newMetrics(o.Registerer)
 	receiver, err := NewFanOut(o, c, metrics)
 	if err != nil {
@@ -278,8 +278,11 @@ func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []
 	)
 
 	for _, label := range lbs {
-		// only __name__ is required as a private label.
-		if strings.HasPrefix(label.Name, model.ReservedLabelPrefix) && label.Name != labels.MetricName {
+		// filter reserved labels, with exceptions for __name__ and __delta__.
+		if strings.HasPrefix(label.Name, model.ReservedLabelPrefix) &&
+			label.Name != labels.MetricName &&
+			label.Name != pyroscope.LabelNameDelta {
+
 			continue
 		}
 		lbsBuilder.Set(label.Name, label.Value)

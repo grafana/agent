@@ -4,27 +4,61 @@ import (
 	"fmt"
 
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/discovery"
+	disc_relabel "github.com/grafana/agent/component/discovery/relabel"
 	"github.com/grafana/agent/component/prometheus/relabel"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/token/builder"
-	promrelabel "github.com/prometheus/prometheus/model/relabel"
+	prom_relabel "github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendRelabel(f *builder.File, relabelConfigs []*promrelabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
+func appendPrometheusRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
 
 	relabelArgs := toRelabelArguments(relabelConfigs, forwardTo)
-	common.AppendBlockWithOverride(f, []string{"prometheus", "relabel"}, label, relabelArgs)
+	block := common.NewBlockWithOverride([]string{"prometheus", "relabel"}, label, relabelArgs)
+	pb.prometheusRelabelBlocks = append(pb.prometheusRelabelBlocks, block)
 
 	return &relabel.Exports{
 		Receiver: common.ConvertAppendable{Expr: fmt.Sprintf("prometheus.relabel.%s.receiver", label)},
 	}
 }
 
-func toRelabelArguments(relabelConfigs []*promrelabel.Config, forwardTo []storage.Appendable) *relabel.Arguments {
+func toRelabelArguments(relabelConfigs []*prom_relabel.Config, forwardTo []storage.Appendable) *relabel.Arguments {
+	if len(relabelConfigs) == 0 {
+		return nil
+	}
+
+	return &relabel.Arguments{
+		ForwardTo:            forwardTo,
+		MetricRelabelConfigs: toRelabelConfigs(relabelConfigs),
+	}
+}
+
+func appendDiscoveryRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel.Config, targets []discovery.Target, label string) *disc_relabel.Exports {
+	if len(relabelConfigs) == 0 {
+		return nil
+	}
+
+	relabelArgs := toDiscoveryRelabelArguments(relabelConfigs, targets)
+	block := common.NewBlockWithOverride([]string{"discovery", "relabel"}, label, relabelArgs)
+	pb.discoveryRelabelBlocks = append(pb.discoveryRelabelBlocks, block)
+
+	return &disc_relabel.Exports{
+		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.targets", label)),
+	}
+}
+
+func toDiscoveryRelabelArguments(relabelConfigs []*prom_relabel.Config, targets []discovery.Target) *disc_relabel.Arguments {
+	return &disc_relabel.Arguments{
+		Targets:        targets,
+		RelabelConfigs: toRelabelConfigs(relabelConfigs),
+	}
+}
+
+func toRelabelConfigs(relabelConfigs []*prom_relabel.Config) []*flow_relabel.Config {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
@@ -47,8 +81,5 @@ func toRelabelArguments(relabelConfigs []*promrelabel.Config, forwardTo []storag
 		})
 	}
 
-	return &relabel.Arguments{
-		ForwardTo:            forwardTo,
-		MetricRelabelConfigs: metricRelabelConfigs,
-	}
+	return metricRelabelConfigs
 }

@@ -63,7 +63,7 @@ type Component struct {
 	receivers    []loki.LogsReceiver
 }
 
-func New(opts component.Options, args Arguments) (component.Component, error) {
+func New(opts component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:               opts,
 		entriesChan:        make(chan loki.Entry),
@@ -90,7 +90,7 @@ func (c *Component) Run(ctx context.Context) (err error) {
 
 			for _, receiver := range receivers {
 				select {
-				case receiver <- entry:
+				case receiver.Chan() <- entry:
 				case <-ctx.Done():
 					return
 				}
