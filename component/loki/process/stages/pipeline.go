@@ -19,11 +19,6 @@ import (
 // We define these as pointers types so we can use reflection to check that
 // exactly one is set.
 type StageConfig struct {
-	// TODO (@tpaschalis) The fact that this type belongs to an internal package
-	// _and_ is part of the loki.process component Arguments, means that an
-	// external caller will not be able to construct the component Arguments by
-	// hand. This will be fixed once we've gained confidence in the ported
-	// processing stages and the package is made non-internal.
 	JSONConfig         *JSONConfig         `river:"json,block,optional"`
 	LogfmtConfig       *LogfmtConfig       `river:"logfmt,block,optional"`
 	LabelsConfig       *LabelsConfig       `river:"labels,block,optional"`

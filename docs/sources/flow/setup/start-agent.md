@@ -5,13 +5,13 @@ menuTitle: Start flow mode
 weight: 800
 ---
 
-# Start Grafana Agent
+# Start Grafana Agent in flow mode
 
 You can start, restart, and stop Grafana Agent after it is installed.
 
 ## Linux
 
-Grafana Agent in flow mode is installed as a [systemd][] service on Linux.
+Grafana Agent is installed as a [systemd][] service on Linux.
 
 [systemd]: https://systemd.io/
 
@@ -103,8 +103,7 @@ By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log
 `$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
 
 If you followed [Configure the Grafana Agent service](../setup/configure/configure-macos.md#configure-the-grafana-agent-service)
-and changed the path where logs are written, refer to your current copy of the
-Grafana Agent formula to locate log files.
+and changed the path where logs are written, refer to your current copy of the Grafana Agent formula to locate your log files.
 
 ## Windows
 
@@ -151,12 +150,12 @@ AGENT_MODE=flow BINARY_PATH run CONFIG_FILE
 
 Replace the following:
 
-* `BINARY_PATH`: The path to the extracted binary.
-* `CONFIG_FILE`: The path to a Grafana Agent configuration file.
+* `BINARY_PATH`: The path to the Grafana Agent binary file
+* `CONFIG_FILE`: The path to the Grafana Agent configuration file.
 
 ### Start Grafana Agent on Windows
 
-To start Grafana Agent on Windows, run the following in a command prompt:
+To start Grafana Agent on Windows, run the following commands in a command prompt:
 
 ```cmd
 set AGENT_MODE=flow
@@ -165,7 +164,7 @@ BINARY_PATH run CONFIG_FILE
 
 Replace the following:
 
-* `BINARY_PATH`: The path to the extracted binary.
-* `CONFIG_FILE`: The path to a Grafana Agent configuration file.
+* `BINARY_PATH`: The path to the Grafana Agent binary file
+* `CONFIG_FILE`: The path to the Grafana Agent configuration file.
 
 [release]: https://github.com/grafana/agent/releases/latest
