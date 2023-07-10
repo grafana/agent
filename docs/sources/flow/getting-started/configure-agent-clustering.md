@@ -1,9 +1,9 @@
 ---
-title: Configure agent clustering with Helm
+title: Configure Grafana Agent clustering with Helm
 weight: 400
 ---
 
-# Configure agent clustering with Helm
+# Configure Grafana Agent clustering
 
 Grafana Agent Flow can be configured to run with [clustering][] so that
 individual agents can work together for workload distribution and high
@@ -20,15 +20,19 @@ This topic describes how to add clustering to an existing installation.
 [clustering]: {{< relref "../concepts/clustering.md" >}}
 [beta]: {{< relref "../../stability.md#beta" >}}
 
-## Before you begin
+## Configure Grafana Agent clustering with Helm Chart
 
-- [Install][] flow mode on Kubernetes using Helm.
-    - Ensure that your `values.yaml` file sets `controller.type` to
-      `statefulset`.
+This section will guide you through enabling clustering when Grafana Agent is
+installed on Kubernetes using the [Grafana Agent Helm chart][install-helm].
 
-[Install]: {{< relref "../setup/install/kubernetes.md" >}}
+[install-helm]: {{< relref "../setup/install/kubernetes.md" >}}
 
-## Steps
+### Before you begin
+
+- Ensure that your `values.yaml` file has `controller.type` set to
+  `statefulset`.
+
+### Steps
 
 To configure clustering:
 
