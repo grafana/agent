@@ -1,0 +1,8 @@
+(Info) Validating Global Config
+(Info) Validating Alerting Config
+(Info) Validating Rule Files Config
+(Info) Validating Scrape Configs
+(Info) Validating Storage Config
+(Info) Validating Tracing Config
+(Info) Validating Remote Write Configs
+(Info) Validating Remote Read Configs

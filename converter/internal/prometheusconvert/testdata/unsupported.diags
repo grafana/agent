@@ -1,12 +1,23 @@
+(Info) Validating Global Config
 (Error) unsupported global evaluation_interval config was provided
 (Error) unsupported global query_log_file config was provided
+(Info) Validating Alerting Config
 (Error) unsupported alerting config was provided
+(Info) Validating Rule Files Config
 (Error) unsupported rule_files config was provided
+(Info) Validating Scrape Configs
 (Error) unsupported HTTP Client config no_proxy was provided
 (Error) unsupported service discovery nomad was provided
+(Info) Validating Storage Config
 (Error) unsupported storage config was provided
+(Info) Validating Tracing Config
 (Error) unsupported tracing config was provided
+(Info) Validating Remote Write Configs
 (Error) unsupported remote_write sigv4 config was provided
 (Error) unsupported HTTP Client config proxy_from_environment was provided
 (Error) unsupported HTTP Client config max_version was provided
+(Info) Validating Remote Read Configs
 (Error) unsupported remote_read config was provided
+(Info) Appending prometheus.scrape.prometheus1
+(Info) Appending prometheus.scrape.prometheus2
+(Info) Appending prometheus.remote_write.default

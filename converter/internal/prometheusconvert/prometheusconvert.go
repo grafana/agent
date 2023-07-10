@@ -63,8 +63,8 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix stri
 	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
 	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
 
-	scrapeForwardTo := remoteWriteForwardTo
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
+		scrapeForwardTo := remoteWriteForwardTo
 		label := scrapeConfig.JobName
 		if labelPrefix != "" {
 			label = labelPrefix + "_" + label
@@ -84,9 +84,12 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix stri
 		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets, label)
 	}
 
-	pb.appendToFile(f)
+	diags := validate(promConfig)
 
-	return validate(promConfig)
+	newDiags := pb.appendToFile(f)
+	diags = append(diags, newDiags...)
+
+	return diags
 }
 
 // appendServiceDiscoveryConfigs will loop through the service discovery

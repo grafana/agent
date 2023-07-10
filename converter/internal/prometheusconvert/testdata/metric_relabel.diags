@@ -1,0 +1,12 @@
+(Info) Validating Global Config
+(Info) Validating Alerting Config
+(Info) Validating Rule Files Config
+(Info) Validating Scrape Configs
+(Info) Validating Storage Config
+(Info) Validating Tracing Config
+(Info) Validating Remote Write Configs
+(Info) Validating Remote Read Configs
+(Info) Appending prometheus.scrape.prometheus1
+(Info) Appending prometheus.scrape.prometheus2
+(Info) Appending prometheus.relabel.prometheus2
+(Info) Appending prometheus.remote_write.default
