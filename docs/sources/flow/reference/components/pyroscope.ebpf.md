@@ -121,7 +121,7 @@ with a `.gnu_debuglink` set to `libc.so.6.debug` and a build ID `0123456789abcde
 - `/lib/x86_64-linux-gnu/.debug/libc.so.6.debug`
 - `/usr/lib/debug/lib/x86_64-linux-gnu/libc.so.6.debug`
 
-### Dealing with Unknown Symbols
+### Dealing with unknown symbols
 
 Unknown symbols in the profiles you’ve collected indicate that the profiler couldn't access an ELF file ￼associated with a given address in the trace.
 
