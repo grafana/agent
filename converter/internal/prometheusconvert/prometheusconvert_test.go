@@ -39,18 +39,6 @@ func TestConvert(t *testing.T) {
 				// Skip Info level diags for this testing
 				diags.RemoveDiagsBySeverity(diag.SeverityLevelInfo)
 
-				// Generate an HTML report
-				err := diags.GenerateReport(diag.HTML, "/mnt/c/workspace/html/"+caseName+"-diagnostics.html")
-				require.NoError(t, err)
-
-				// Generate a text report
-				err = diags.GenerateReport(diag.Text, "/mnt/c/workspace/html/"+caseName+"-diagnostics.txt")
-				require.NoError(t, err)
-
-				// Generate a text report
-				// err = diags.GenerateReport(diag.Text, "/home/erik/go/src/agent/converter/internal/prometheusconvert/testdata/"+caseName+".diags")
-				// require.NoError(t, err)
-
 				expectedDiags := parseDiags(t, path)
 				for ix, diag := range diags {
 					if len(expectedDiags) > ix {

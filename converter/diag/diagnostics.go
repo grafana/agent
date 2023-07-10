@@ -4,6 +4,7 @@ package diag
 
 import (
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -82,12 +83,10 @@ func (ds Diagnostics) Error() string {
 	return sb.String()
 }
 
-func (ds Diagnostics) GenerateReport(reportType string, filename string) error {
+func (ds Diagnostics) GenerateReport(reportType string, writer io.Writer) error {
 	switch reportType {
 	case Text:
-		return generateTextReport(ds, filename)
-	case HTML:
-		return generateHTMLReport(ds, filename)
+		return generateTextReport(ds, writer)
 	default:
 		return fmt.Errorf("unsupported diagnostic report type %q", reportType)
 	}
