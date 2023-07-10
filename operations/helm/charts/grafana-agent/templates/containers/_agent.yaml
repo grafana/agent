@@ -11,6 +11,10 @@
     {{- if not .Values.agent.enableReporting }}
     - --disable-reporting
     {{- end}}
+    {{- if .Values.agent.clustering.enabled }}
+    - --cluster.enabled=true
+    - --cluster.join-addresses={{ include "grafana-agent.fullname" . }}-cluster
+    {{- end}}
     {{- end}}
     {{- if eq .Values.agent.mode "static"}}
     - -config.file=/etc/agent/{{ include "grafana-agent.config-map.key" . }}

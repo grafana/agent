@@ -6,14 +6,14 @@ import (
 	"sort"
 	"time"
 
-	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/storage"
-
-	"github.com/prometheus/prometheus/config"
-
 	types "github.com/grafana/agent/component/common/config"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
+
 	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/storage"
 )
 
 // Defaults for config blocks.
@@ -71,6 +71,7 @@ type EndpointOptions struct {
 	HTTPClientConfig     *types.HTTPClientConfig `river:",squash"`
 	QueueOptions         *QueueOptions           `river:"queue_config,block,optional"`
 	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
+	WriteRelabelConfigs  []*flow_relabel.Config  `river:"write_relabel_config,block,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -86,7 +87,17 @@ func (r *EndpointOptions) SetToDefault() {
 func (r *EndpointOptions) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	if r.HTTPClientConfig != nil {
-		return r.HTTPClientConfig.Validate()
+		if err := r.HTTPClientConfig.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if r.WriteRelabelConfigs != nil {
+		for _, relabelConfig := range r.WriteRelabelConfigs {
+			if err := relabelConfig.Validate(); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -197,14 +208,14 @@ func convertConfigs(cfg Arguments) (*config.Config, error) {
 			URL:                  &common.URL{URL: parsedURL},
 			RemoteTimeout:        model.Duration(rw.RemoteTimeout),
 			Headers:              rw.Headers,
-			WriteRelabelConfigs:  nil, // WriteRelabelConfigs are currently not supported
 			Name:                 rw.Name,
 			SendExemplars:        rw.SendExemplars,
 			SendNativeHistograms: rw.SendNativeHistograms,
 
-			HTTPClientConfig: *rw.HTTPClientConfig.Convert(),
-			QueueConfig:      rw.QueueOptions.toPrometheusType(),
-			MetadataConfig:   rw.MetadataOptions.toPrometheusType(),
+			WriteRelabelConfigs: flow_relabel.ComponentToPromRelabelConfigs(rw.WriteRelabelConfigs),
+			HTTPClientConfig:    *rw.HTTPClientConfig.Convert(),
+			QueueConfig:         rw.QueueOptions.toPrometheusType(),
+			MetadataConfig:      rw.MetadataOptions.toPrometheusType(),
 			// TODO(rfratto): SigV4Config
 		})
 	}

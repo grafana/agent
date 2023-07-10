@@ -12,6 +12,7 @@ prometheus.scrape "prometheus1" {
 		username = "user"
 		password = "pass"
 	}
+	proxy_url = "localhost:1000"
 }
 
 prometheus.scrape "prometheus2" {

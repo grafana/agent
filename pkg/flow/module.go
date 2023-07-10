@@ -3,11 +3,9 @@ package flow
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"path"
 	"sync"
 
-	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
@@ -15,7 +13,6 @@ import (
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/scanner"
 	"github.com/grafana/agent/pkg/river/token"
-	"github.com/grafana/agent/web/api"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/maps"
 )
@@ -143,25 +140,6 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 func (c *module) Run(ctx context.Context) {
 	defer c.o.parent.removeID(c.o.ID)
 	c.f.Run(ctx)
-}
-
-// ComponentHandler returns an HTTP handler which exposes endpoints of
-// components managed by the underlying flow system.
-func (c *module) ComponentHandler() (_ http.Handler) {
-	r := mux.NewRouter()
-
-	fa := api.NewFlowAPI(c.f, c.f.clusterer.Node)
-	fa.RegisterRoutes("/", r)
-
-	r.PathPrefix("/{id}/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Re-add the full path to ensure that nested controllers propagate
-		// requests properly.
-		r.URL.Path = path.Join(c.o.HTTPPath, r.URL.Path)
-
-		c.f.ComponentHandler().ServeHTTP(w, r)
-	})
-
-	return r
 }
 
 // moduleControllerOptions holds static options for module controller.

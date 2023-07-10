@@ -9,6 +9,9 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
+### Features
+- `pyroscope.ebpf` collects system-wide performance profiles from the current host (@korniltsev)
+
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -44,6 +47,7 @@ Main (unreleased)
   - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
   - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
   - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
+  - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
@@ -84,6 +88,8 @@ Main (unreleased)
 
 - The Agent Operational dashboard of Grafana Agent mixin now has more descriptive panel titles, Y-axis units
 
+- Add `write_relabel_config` to `prometheus.remote_write` (@jkroepke)
+
 - Update OpenTelemetry Collector dependencies from v0.63.0 to v0.80.0. (@ptodev)
 
 - Allow setting the node name for clustering with a command-line flag. (@tpaschalis)
@@ -115,6 +121,13 @@ Main (unreleased)
 - Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
   parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
   binary. (@rfratto)
+  
+- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to 
+  the `/loki` prefixed endpoints. (@mattdurham)
+
+### Other changes
+
+- Mongodb integration has been re-enabled. (@jcreixell, @marctc)
 
 v0.34.3 (2023-06-27)
 --------------------
@@ -158,6 +171,8 @@ v0.34.1 (2023-06-12)
 - Allow `bearerTokenFile` field to be used in ServiceMonitors. (@captncraig)
 
 - Fix issue where metrics and traces were not recorded from components within modules. (@mattdurham)
+
+- `service_name` label is inferred from discovery meta labels in `pyroscope.scrape` (@korniltsev)
 
 ### Other changes
 

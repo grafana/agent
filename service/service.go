@@ -39,11 +39,15 @@ type Definition struct {
 // Host is a controller for services and Flow components.
 type Host interface {
 	// GetComponent gets a running component by ID.
+	//
+	// GetComponent returns [component.ErrComponentNotFound] if a component is
+	// not found.
 	GetComponent(id component.ID, opts component.InfoOptions) (*component.Info, error)
 
 	// ListComponents lists all running components within a given module.
 	//
-	// Returns an error if the provided moduleID doesn't exist.
+	// Returns [component.ErrModuleNotFound] if the provided moduleID doesn't
+	// exist.
 	ListComponents(moduleID string, opts component.InfoOptions) ([]*component.Info, error)
 
 	// GetServiceConsumers gets the list of components and
