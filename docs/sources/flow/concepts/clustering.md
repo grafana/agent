@@ -19,7 +19,7 @@ same configuration file.
 The behavior of a standalone, non-clustered agent is the same as if it was a
 single-node cluster.
 
-Clustering is configured by passing `cluster` command-line flags to the [run][]
+You configure clustering by passing `cluster` command-line flags to the [run][]
 command.
 
 [run]: {{< relref "../reference/cli/run.md#clustering-beta" >}}
