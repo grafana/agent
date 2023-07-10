@@ -67,7 +67,7 @@ func TestShutdownOnError(t *testing.T) {
 	session := &mockSession{}
 	arguments := defaultArguments()
 	arguments.CollectInterval = time.Millisecond * 100
-	c, err := newTestComponent(
+	c := newTestComponent(
 		component.Options{
 			Logger:        logger,
 			Registerer:    prometheus.NewRegistry(),
@@ -79,7 +79,6 @@ func TestShutdownOnError(t *testing.T) {
 		targetFinder,
 		ms,
 	)
-	require.NoError(t, err)
 
 	session.collectError = fmt.Errorf("mocked error collecting profiles")
 	err = c.Run(context.TODO())
@@ -96,7 +95,7 @@ func TestContextShutdown(t *testing.T) {
 	session := &mockSession{}
 	arguments := defaultArguments()
 	arguments.CollectInterval = time.Millisecond * 100
-	c, err := newTestComponent(
+	c := newTestComponent(
 		component.Options{
 			Logger:        logger,
 			Registerer:    prometheus.NewRegistry(),
@@ -108,7 +107,6 @@ func TestContextShutdown(t *testing.T) {
 		targetFinder,
 		ms,
 	)
-	require.NoError(t, err)
 
 	session.data = [][]string{
 		{"a", "b", "c"},
@@ -182,7 +180,7 @@ collect_kernel_profile = false`), &arg)
 	require.Error(t, err)
 }
 
-func newTestComponent(opts component.Options, args Arguments, session *mockSession, targetFinder sd.TargetFinder, ms *metrics) (*Component, error) {
+func newTestComponent(opts component.Options, args Arguments, session *mockSession, targetFinder sd.TargetFinder, ms *metrics) *Component {
 	flowAppendable := pyroscope.NewFanout(args.ForwardTo, opts.ID, opts.Registerer)
 	res := &Component{
 		options:      opts,
@@ -194,5 +192,5 @@ func newTestComponent(opts component.Options, args Arguments, session *mockSessi
 		argsUpdate:   make(chan Arguments),
 	}
 	res.metrics.targetsActive.Set(float64(len(res.targetFinder.DebugInfo())))
-	return res, nil
+	return res
 }
