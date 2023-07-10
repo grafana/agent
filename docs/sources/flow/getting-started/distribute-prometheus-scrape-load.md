@@ -22,12 +22,12 @@ use case.
 
 ## Before you begin
 
-- Familiarize yourself with how to [configure existing installs][].
+- Familiarize yourself with how to [configure existing Grafana Agent installations][configure-grafana-agent].
 - [Configure Prometheus metrics collection][].
 - [Configure clustering][] of agents.
 - Ensure that all of your clustered agents have the same config file.
 
-[configure existing installs]: {{< relref "../setup/configure" >}}
+[configure-grafana-agent]: {{< relref "../setup/configure" >}}
 [Configure Prometheus metrics collection]: {{< relref "collect-prometheus-metrics.md" >}}
 [Configure clustering]: {{< relref "./configure-agent-clustering.md" >}}
 
