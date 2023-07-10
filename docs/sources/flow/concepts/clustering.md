@@ -47,8 +47,7 @@ prometheus.scrape "default" {
 }
 ```
 
-Whenever a cluster state change is detected, either due to a new node joining
-or an existing node going away, all participating components locally
+A cluster state change is detected when a new node joins or an existing node goes away. All participating components locally
 recalculate target ownership and rebalance the number of targets they’re
 scraping without explicitly communicating ownership over the network.
 
