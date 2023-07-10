@@ -22,35 +22,27 @@ import (
 func validate(promConfig *prom_config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.Add(diag.SeverityLevelInfo, "Validating Global Config")
 	newDiags := validateGlobalConfig(&promConfig.GlobalConfig)
 	diags = append(diags, newDiags...)
 
-	diags.Add(diag.SeverityLevelInfo, "Validating Alerting Config")
 	newDiags = validateAlertingConfig(&promConfig.AlertingConfig)
 	diags = append(diags, newDiags...)
 
-	diags.Add(diag.SeverityLevelInfo, "Validating Rule Files Config")
 	newDiags = validateRuleFilesConfig(promConfig.RuleFiles)
 	diags = append(diags, newDiags...)
 
-	diags.Add(diag.SeverityLevelInfo, "Validating Scrape Configs")
 	newDiags = validateScrapeConfigs(promConfig.ScrapeConfigs)
 	diags = append(diags, newDiags...)
 
-	diags.Add(diag.SeverityLevelInfo, "Validating Storage Config")
 	newDiags = validateStorageConfig(&promConfig.StorageConfig)
 	diags = append(diags, newDiags...)
 
-	diags.Add(diag.SeverityLevelInfo, "Validating Tracing Config")
 	newDiags = validateTracingConfig(&promConfig.TracingConfig)
 	diags = append(diags, newDiags...)
 
-	diags.Add(diag.SeverityLevelInfo, "Validating Remote Write Configs")
 	newDiags = validateRemoteWriteConfigs(promConfig.RemoteWriteConfigs)
 	diags = append(diags, newDiags...)
 
-	diags.Add(diag.SeverityLevelInfo, "Validating Remote Read Configs")
 	newDiags = validateRemoteReadConfigs(promConfig.RemoteReadConfigs)
 	diags = append(diags, newDiags...)
 

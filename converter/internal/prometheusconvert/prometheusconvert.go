@@ -58,6 +58,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 // pipeline. A non-empty labelPrefix can be provided for label uniqueness when
 // calling this function for the same builder.File multiple times.
 func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string) diag.Diagnostics {
+	var diags diag.Diagnostics
 	pb := newPrometheusBlocks()
 
 	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
@@ -84,9 +85,9 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix stri
 		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets, label)
 	}
 
-	diags := validate(promConfig)
+	pb.appendToFile(f)
 
-	newDiags := pb.appendToFile(f)
+	newDiags := validate(promConfig)
 	diags = append(diags, newDiags...)
 
 	return diags

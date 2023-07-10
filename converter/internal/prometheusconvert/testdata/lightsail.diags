@@ -1,14 +1,1 @@
-(Info) Validating Global Config
-(Info) Validating Alerting Config
-(Info) Validating Rule Files Config
-(Info) Validating Scrape Configs
 (Error) unsupported bearer_token_file for ec2_sd_configs
-(Info) Validating Storage Config
-(Info) Validating Tracing Config
-(Info) Validating Remote Write Configs
-(Info) Validating Remote Read Configs
-(Info) Appending discovery.lightsail.prometheus1
-(Info) Appending discovery.lightsail.prometheus2
-(Info) Appending prometheus.scrape.prometheus1
-(Info) Appending prometheus.scrape.prometheus2
-(Info) Appending prometheus.remote_write.default

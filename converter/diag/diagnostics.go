@@ -92,3 +92,15 @@ func (ds Diagnostics) GenerateReport(reportType string, filename string) error {
 		return fmt.Errorf("unsupported diagnostic report type %q", reportType)
 	}
 }
+
+func (ds *Diagnostics) RemoveDiagsBySeverity(severity Severity) {
+	var newDiags Diagnostics
+
+	for _, diag := range *ds {
+		if diag.Severity != severity {
+			newDiags = append(newDiags, diag)
+		}
+	}
+
+	*ds = newDiags
+}

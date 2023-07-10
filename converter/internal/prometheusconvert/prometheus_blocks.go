@@ -1,10 +1,6 @@
 package prometheusconvert
 
 import (
-	"fmt"
-	"strings"
-
-	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/token/builder"
 )
 
@@ -37,33 +33,24 @@ func newPrometheusBlocks() *prometheusBlocks {
 // 3. Prometheus scrape component(s)
 // 4. Prometheus relabel component(s) (if any)
 // 5. Prometheus remote_write
-func (pb *prometheusBlocks) appendToFile(f *builder.File) diag.Diagnostics {
-	var diags diag.Diagnostics
-
+func (pb *prometheusBlocks) appendToFile(f *builder.File) {
 	for _, block := range pb.discoveryBlocks {
-		diags.Add(diag.SeverityLevelInfo, fmt.Sprintf("Appending %s.%s", strings.Join(block.Name, "."), block.Label))
 		f.Body().AppendBlock(block)
 	}
 
 	for _, block := range pb.discoveryRelabelBlocks {
-		diags.Add(diag.SeverityLevelInfo, fmt.Sprintf("Appending %s.%s", strings.Join(block.Name, "."), block.Label))
 		f.Body().AppendBlock(block)
 	}
 
 	for _, block := range pb.prometheusScrapeBlocks {
-		diags.Add(diag.SeverityLevelInfo, fmt.Sprintf("Appending %s.%s", strings.Join(block.Name, "."), block.Label))
 		f.Body().AppendBlock(block)
 	}
 
 	for _, block := range pb.prometheusRelabelBlocks {
-		diags.Add(diag.SeverityLevelInfo, fmt.Sprintf("Appending %s.%s", strings.Join(block.Name, "."), block.Label))
 		f.Body().AppendBlock(block)
 	}
 
 	for _, block := range pb.prometheusRemoteWriteBlocks {
-		diags.Add(diag.SeverityLevelInfo, fmt.Sprintf("Appending %s.%s", strings.Join(block.Name, "."), block.Label))
 		f.Body().AppendBlock(block)
 	}
-
-	return diags
 }

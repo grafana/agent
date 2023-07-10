@@ -36,6 +36,9 @@ func TestConvert(t *testing.T) {
 			t.Run(caseName, func(t *testing.T) {
 				actual, diags := prometheusconvert.Convert(inputBytes)
 
+				// Skip Info level diags for this testing
+				diags.RemoveDiagsBySeverity(diag.SeverityLevelInfo)
+
 				// Generate an HTML report
 				err := diags.GenerateReport(diag.HTML, "/mnt/c/workspace/html/"+caseName+"-diagnostics.html")
 				require.NoError(t, err)
