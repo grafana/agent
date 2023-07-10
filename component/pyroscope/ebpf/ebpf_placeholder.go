@@ -25,9 +25,6 @@ func init() {
 type Component struct {
 }
 
-type Arguments struct {
-}
-
 func New(opts component.Options, args Arguments) (component.Component, error) {
 	level.Warn(opts.Logger).Log("msg", "the pyroscope.ebpf component only works on linux; enabling it otherwise will do nothing")
 	return &Component{}, nil

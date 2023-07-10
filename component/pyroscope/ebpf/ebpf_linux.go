@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
 	ebpfspy "github.com/grafana/phlare/ebpf"
 	"github.com/grafana/phlare/ebpf/pprof"
@@ -62,22 +61,6 @@ func New(opts component.Options, args Arguments) (component.Component, error) {
 	}
 	res.metrics.targetsActive.Set(float64(len(res.targetFinder.DebugInfo())))
 	return res, nil
-}
-
-type Arguments struct {
-	ForwardTo            []pyroscope.Appendable `river:"forward_to,attr"`
-	Targets              []discovery.Target     `river:"targets,attr,optional"`
-	DefaultTarget        discovery.Target       `river:"default_target,attr,optional"` // undocumented, keeping it until we have other sd
-	TargetsOnly          bool                   `river:"targets_only,attr,optional"`   // undocumented, keeping it until we have other sd
-	CollectInterval      time.Duration          `river:"collect_interval,attr,optional"`
-	SampleRate           int                    `river:"sample_rate,attr,optional"`
-	PidCacheSize         int                    `river:"pid_cache_size,attr,optional"`
-	BuildIDCacheSize     int                    `river:"build_id_cache_size,attr,optional"`
-	SameFileCacheSize    int                    `river:"same_file_cache_size,attr,optional"`
-	ContainerIDCacheSize int                    `river:"container_id_cache_size,attr,optional"`
-	CacheRounds          int                    `river:"cache_rounds,attr,optional"`
-	CollectUserProfile   bool                   `river:"collect_user_profile,attr,optional"`
-	CollectKernelProfile bool                   `river:"collect_kernel_profile,attr,optional"`
 }
 
 func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
