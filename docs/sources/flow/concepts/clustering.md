@@ -1,5 +1,6 @@
 ---
-title: Clustering
+title: Grafana Agent clustering concepts
+menuTitle: Clustering
 weight: 500
 labels:
   stage: beta
