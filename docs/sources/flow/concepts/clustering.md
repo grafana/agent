@@ -34,7 +34,7 @@ themselves. For target auto-distribution to work correctly, all agents in the
 same cluster must be able to reach the same service discovery APIs and must be
 able to scrape the same targets.
 
-Target auto-distribution must be explicitly enabled on components by defining a
+You must explicitly enable target auto-distribution on components by defining a
 `clustering` block, such as:
 
 ```river
