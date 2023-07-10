@@ -114,6 +114,11 @@ Agents initially join the cluster in the viewer state, and then transition to
 the participant state after the processs startup completes. Agents then
 transition to the terminating state when shutting down.
 
+The current state of a clustered agent is shown on the clustering page in the
+[UI][].
+
+[UI]: {{< relref "../../monitoring/debugging.md#clustering-page" >}}
+
 ## Configuration conversion (beta)
 
 When you use the `--config.format` command-line argument with a value
