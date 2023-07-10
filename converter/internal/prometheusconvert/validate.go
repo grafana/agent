@@ -20,12 +20,9 @@ import (
 )
 
 func validate(promConfig *prom_config.Config) diag.Diagnostics {
-	var diags diag.Diagnostics
+	diags := validateGlobalConfig(&promConfig.GlobalConfig)
 
-	newDiags := validateGlobalConfig(&promConfig.GlobalConfig)
-	diags = append(diags, newDiags...)
-
-	newDiags = validateAlertingConfig(&promConfig.AlertingConfig)
+	newDiags := validateAlertingConfig(&promConfig.AlertingConfig)
 	diags = append(diags, newDiags...)
 
 	newDiags = validateRuleFilesConfig(promConfig.RuleFiles)
