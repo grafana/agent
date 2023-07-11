@@ -65,14 +65,8 @@ func (a *Arguments) Validate() error {
 }
 
 func (a *Arguments) Convert() *gcp_exporter.Config {
-	return &gcp_exporter.Config{
-		ProjectIDs:            a.ProjectIDs,
-		MetricPrefixes:        a.MetricPrefixes,
-		ExtraFilters:          a.ExtraFilters,
-		RequestInterval:       a.RequestInterval,
-		RequestOffset:         a.RequestOffset,
-		IngestDelay:           a.IngestDelay,
-		DropDelegatedProjects: a.DropDelegatedProjects,
-		ClientTimeout:         a.ClientTimeout,
-	}
+	// NOTE(tburgessdev): this works because we can set up this exporter's Arguments struct
+	// to have the exact same field types as the gcp_exporter.Config struct.
+	c := gcp_exporter.Config(*a)
+	return &c
 }
