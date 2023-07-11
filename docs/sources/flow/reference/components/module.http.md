@@ -121,7 +121,7 @@ Parent:
 ```river
 module.http "remote_module" {
   url              = "http://localhost:8080/redis_module.yaml"
-  polling_interval = "1m"
+  poll_frequency   = "1m"
 }
 
 prometheus.exporter.unix { }
