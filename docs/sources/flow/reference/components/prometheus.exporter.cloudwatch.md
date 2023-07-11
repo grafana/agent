@@ -12,9 +12,9 @@ title: prometheus.exporter.cloudwatch
 # prometheus.exporter.cloudwatch
 
 The `prometheus.exporter.cloudwatch` component
-embeds [`yet-another-cloudwatch-exporter`](https://github.com/nerdswords/yet-another-cloudwatch-exporter). `` lets you
+embeds [`yet-another-cloudwatch-exporter`](https://github.com/nerdswords/yet-another-cloudwatch-exporter), letting you
 collect [CloudWatch metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html),
-translate them to prometheus-compatible format and remote write.
+translate them to a prometheus-compatible format and remote write them.
 
 This component lets you scrape CloudWatch metrics in a set of configurations we call *jobs*. There are
 two kinds of jobs: [discovery][] and [static][].
