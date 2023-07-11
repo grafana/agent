@@ -78,7 +78,7 @@ func (d *deltaAppender) Append(ctx context.Context, lbs labels.Labels, samples [
 			d.initialized = true
 			continue
 		}
-		if err := d.appender.Append(ctx, lbsBuilder.Labels(nil), []*pyroscope.RawSample{{RawProfile: data}}); err != nil {
+		if err := d.appender.Append(ctx, lbsBuilder.Labels(), []*pyroscope.RawSample{{RawProfile: data}}); err != nil {
 			return err
 		}
 	}

@@ -259,7 +259,7 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 		}
 	}
 
-	preRelabelLabels := lb.Labels(nil)
+	preRelabelLabels := lb.Labels()
 	// todo(ctovena): add relabeling after pprof discovery.
 	// lset = relabel.Process(preRelabelLabels, cfg.RelabelConfigs...)
 	lset, keep := relabel.Process(preRelabelLabels)
@@ -322,7 +322,7 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 		lb.Set(serviceNameLabel, inferServiceName(lset))
 	}
 
-	res = lb.Labels(nil)
+	res = lb.Labels()
 	for _, l := range res {
 		// Check label values are valid, drop the target if not.
 		if !model.LabelValue(l.Value).IsValid() {
