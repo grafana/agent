@@ -27,9 +27,14 @@ func convertCommand() *cobra.Command {
 		Long: `The convert subcommand translates a supported config file to
 a River configuration file.
 
-If the file argument is not supplied or if the file argument is "-", then convert will read from stdin.
+If the file argument is not supplied or if the file argument is "-", then
+convert will read from stdin.
 
-The -o flag can be used to write the formatted file back to disk. When -o is not provided, fmt will write the result to stdout.
+The -o flag can be used to write the formatted file back to disk. When -o
+is not provided, convert will write the result to stdout.
+
+The -r flag can be used to generate a diagnostic report. When -r is not
+provided, no report is generated.
 
 The -f flag can be used to specify the format we are converting from.
 
@@ -61,7 +66,8 @@ output can still be generated.`,
 		},
 	}
 
-	cmd.Flags().StringVarP(&f.output, "output", "o", f.output, "The filepath where the output is written.")
+	cmd.Flags().StringVarP(&f.output, "output", "o", f.output, "The filepath and filename where the output is written.")
+	cmd.Flags().StringVarP(&f.report, "report", "r", f.report, "The filepath and filename where the report is written.")
 	cmd.Flags().StringVarP(&f.sourceFormat, "source-format", "f", f.sourceFormat, "The format of the source file. Supported formats: 'prometheus'.")
 	cmd.Flags().BoolVarP(&f.bypassErrors, "bypass-errors", "b", f.bypassErrors, "Enable bypassing errors when converting")
 	return cmd
@@ -69,6 +75,7 @@ output can still be generated.`,
 
 type flowConvert struct {
 	output       string
+	report       string
 	sourceFormat string
 	bypassErrors bool
 }
@@ -105,6 +112,11 @@ func convert(r io.Reader, fc *flowConvert) error {
 	}
 
 	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat))
+	err = generateConvertReport(diags, fc)
+	if err != nil {
+		return err
+	}
+
 	hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
 	hasCritical := hasErrorLevel(diags, convert_diag.SeverityLevelCritical)
 	if hasCritical || (!fc.bypassErrors && hasError) {
@@ -127,6 +139,20 @@ func convert(r io.Reader, fc *flowConvert) error {
 
 	_, err = io.Copy(wf, &buf)
 	return err
+}
+
+func generateConvertReport(diags convert_diag.Diagnostics, fc *flowConvert) error {
+	if fc.report != "" {
+		file, err := os.Create(fc.report)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		return diags.GenerateReport(file, convert_diag.Text)
+	}
+
+	return nil
 }
 
 // HasErrorLevel returns true if any diagnostic exists at the provided severity.
