@@ -6,7 +6,7 @@ title: join
 
 # join
 
-Join all items in an array into a string, using a character as separator.
+`join` all items in an array into a string, using a character as separator.
 
 ```river
 join(list, separator)
