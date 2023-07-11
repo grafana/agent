@@ -6,11 +6,11 @@ title: trim_suffix
 
 # trim_suffix
 
-`trim_suffix` removes the specified suffix from the end of the given string.
+`trim_suffix` removes the suffix from the end of a string.
 
 ## Examples
 
-```
+```river
 > trim_suffix("helloworld", "world")
 "hello"
 ```
