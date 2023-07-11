@@ -194,7 +194,7 @@ It also exposes some debug information for each ServiceMonitor it has discovered
 
 ## Example
 
-This example discovers all ServiceMonitors in your cluster, and forwards collected logs to a
+This example discovers all ServiceMonitors in your cluster, and forwards collected metrics to a
 `prometheus.remote_write` component.
 
 ```river
