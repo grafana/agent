@@ -38,6 +38,18 @@ Main (unreleased)
 
 - Support custom fields in MMDB file for `stage.geoip`. (@akselleirv)
 
+- Added json_path function to river stdlib. (@jkroepke)
+
+- Add `format`, `join`, `lower`, `replace`, `split`, `trim`, `trim_prefix`, `trim_suffix`, `trim_space`, `upper` functions to river stdlib. (@jkroepke)
+
+- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
+
+- Add a new CLI command `grafana-agent convert` for converting a river file from supported formats to river. (@erikbaranowski)
+
+- Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
+
+- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
+
 - New Grafana Agent Flow components:
 
   - `discovery.kubelet` collect scrape targets from the Kubelet API. (@gcampbell12)
@@ -50,17 +62,10 @@ Main (unreleased)
   - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
   - `module.http` runs a Grafana Agent Flow module loaded from a remote HTTP endpoint. (@spartan0x117)
 
-- Added json_path function to river stdlib. (@jkroepke)
+- New Grafana Agent Flow command line utilities:
 
-- Add `format`, `join`, `lower`, `replace`, `split`, `trim`, `trim_prefix`, `trim_suffix`, `trim_space`, `upper` functions to river stdlib. (@jkroepke)
-
-- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
-
-- Add a new CLI command `grafana-agent convert` for converting a river file from supported formats to river. (@erikbaranowski)
-
-- Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
-
-- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
+  - `grafana-agent tools prometheus.remote_write` holds a collection of remote
+    write-specific tools. These have been ported over from the `agentctl` command. (@rfratto)
 
 ### Enhancements
 
@@ -124,8 +129,8 @@ Main (unreleased)
 - Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
   parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
   binary. (@rfratto)
-  
-- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to 
+
+- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to
   the `/loki` prefixed endpoints. (@mattdurham)
 
 ### Other changes
