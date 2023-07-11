@@ -4,6 +4,7 @@ package diag
 
 import (
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -80,4 +81,25 @@ func (ds Diagnostics) Error() string {
 	}
 
 	return sb.String()
+}
+
+func (ds Diagnostics) GenerateReport(writer io.Writer, reportType string) error {
+	switch reportType {
+	case Text:
+		return generateTextReport(writer, ds)
+	default:
+		return fmt.Errorf("unsupported diagnostic report type %q", reportType)
+	}
+}
+
+func (ds *Diagnostics) RemoveDiagsBySeverity(severity Severity) {
+	var newDiags Diagnostics
+
+	for _, diag := range *ds {
+		if diag.Severity != severity {
+			newDiags = append(newDiags, diag)
+		}
+	}
+
+	*ds = newDiags
 }
