@@ -24,7 +24,6 @@ import (
 
 // see https://github.com/prometheus-operator/prometheus-operator/blob/aa8222d7e9b66e9293ed11c9291ea70173021029/pkg/prometheus/promcfg_test.go#L423
 func TestGenerateProbeConfig(t *testing.T) {
-
 	suite := []struct {
 		name                   string
 		m                      *promopv1.Probe
