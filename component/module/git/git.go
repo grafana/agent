@@ -87,7 +87,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 
 	if err := c.Update(args); err != nil {
-		return nil, err
+		level.Error(o.Logger).Log("msg", "loading of component failed", "err", err)
+		return c, nil
 	}
 	return c, nil
 }

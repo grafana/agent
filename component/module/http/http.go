@@ -52,8 +52,8 @@ type Component struct {
 }
 
 var (
-	_ component.Component = (*Component)(nil)
-	//_ component.HealthComponent = (*Component)(nil)
+	_ component.Component       = (*Component)(nil)
+	_ component.HealthComponent = (*Component)(nil)
 )
 
 // New creates a new module.http component.
@@ -140,19 +140,19 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 // CurrentHealth implements component.HealthComponent.
-// func (c *Component) CurrentHealth() component.Health {
-// 	// Note that it takes until the first successful poll for c.managedRemoteHTTP to
-// 	// become healthy.
-// 	leastHealthy := component.LeastHealthy(
-// 		c.managedRemoteHTTP.CurrentHealth(),
-// 		c.mod.CurrentHealth(),
-// 	)
+func (c *Component) CurrentHealth() component.Health {
+	// Note that it takes until the first successful poll for c.managedRemoteHTTP to
+	// become healthy.
+	leastHealthy := component.LeastHealthy(
+		c.managedRemoteHTTP.CurrentHealth(),
+		c.mod.CurrentHealth(),
+	)
 
-// 	if leastHealthy.Health == component.HealthTypeHealthy {
-// 		return c.mod.CurrentHealth()
-// 	}
-// 	return leastHealthy
-// }
+	if leastHealthy.Health == component.HealthTypeHealthy {
+		return c.mod.CurrentHealth()
+	}
+	return leastHealthy
+}
 
 // getArgs is a goroutine safe way to get args
 func (c *Component) getArgs() Arguments {

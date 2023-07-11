@@ -6,6 +6,7 @@ import (
 
 	"go.uber.org/atomic"
 
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/local/file"
 	"github.com/grafana/agent/component/module"
@@ -75,7 +76,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 	if err := c.Update(args); err != nil {
-		return nil, err
+		level.Error(o.Logger).Log("msg", "loading of component failed", "err", err)
+		return c, nil
 	}
 	return c, nil
 }
