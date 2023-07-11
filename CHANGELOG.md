@@ -49,6 +49,8 @@ Main (unreleased)
   - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
   - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
   - `module.http` runs a Grafana Agent Flow module loaded from a remote HTTP endpoint. (@spartan0x117)
+  - `prometheus.operator.probes` - discovers Probe resources in your Kubernetes cluster and scrape
+    the targets they reference. (@captncraig)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
