@@ -239,6 +239,8 @@ func (c *Clusterer) Stop() error {
 		ctx, ccl := context.WithTimeout(context.Background(), 5*time.Second)
 		defer ccl()
 
+		// TODO(rfratto): should we enter terminating state earlier to allow for
+		// some kind of hand-off between components?
 		err := node.ChangeState(ctx, peer.StateTerminating)
 		if err != nil {
 			level.Error(node.log).Log("msg", "failed to change state to Terminating before shutting down", "err", err)
