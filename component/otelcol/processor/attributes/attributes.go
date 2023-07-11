@@ -10,7 +10,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -44,7 +44,7 @@ var (
 )
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() (otelconfig.Processor, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	input := make(map[string]interface{})
 
 	if actions := args.Actions.Convert(); len(actions) > 0 {
@@ -78,18 +78,16 @@ func (args Arguments) Convert() (otelconfig.Processor, error) {
 		return nil, err
 	}
 
-	result.ProcessorSettings = otelconfig.NewProcessorSettings(otelconfig.NewComponentID("attributes"))
-
 	return &result, nil
 }
 
 // Extensions implements processor.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements processor.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

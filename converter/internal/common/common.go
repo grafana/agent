@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/pkg/river/printer"
 
 	"github.com/grafana/agent/component"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/rivertypes"
@@ -30,6 +31,8 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 		switch value := val.(type) {
 		case rivertypes.Secret:
 			return string(value)
+		case flow_relabel.Regexp:
+			return value.String()
 		case []discovery.Target:
 			return ConvertTargets{
 				Targets: value,
@@ -62,13 +65,13 @@ func PrettyPrint(in []byte) ([]byte, diag.Diagnostics) {
 
 	f, err := parser.ParseFile("", in)
 	if err != nil {
-		diags.Add(diag.SeverityLevelWarn, err.Error())
+		diags.Add(diag.SeverityLevelError, err.Error())
 		return in, diags
 	}
 
 	var buf bytes.Buffer
 	if err = printer.Fprint(&buf, f); err != nil {
-		diags.Add(diag.SeverityLevelWarn, err.Error())
+		diags.Add(diag.SeverityLevelError, err.Error())
 		return in, diags
 	}
 

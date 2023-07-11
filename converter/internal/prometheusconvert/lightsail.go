@@ -13,16 +13,59 @@ import (
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
 )
 
-func appendDiscoveryLightsail(pb *prometheusBlocks, label string, sdConfig *prom_aws.LightsailSDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoverylightsailArgs, diags := toDiscoveryLightsail(sdConfig)
+func appendDiscoveryLightsail(pb *prometheusBlocks, label string, sdConfig *prom_aws.LightsailSDConfig) discovery.Exports {
+	discoverylightsailArgs := toDiscoveryLightsail(sdConfig)
 	block := common.NewBlockWithOverride([]string{"discovery", "lightsail"}, label, discoverylightsailArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.lightsail." + label + ".targets"), diags
+	return newDiscoverExports("discovery.lightsail." + label + ".targets")
 }
 
-func toDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) (*aws.LightsailArguments, diag.Diagnostics) {
+func validateDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if sdConfig.HTTPClientConfig.BasicAuth != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported basic_auth for ec2_sd_configs")
+	}
+
+	if sdConfig.HTTPClientConfig.Authorization != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported authorization for ec2_sd_configs")
+	}
+
+	if sdConfig.HTTPClientConfig.OAuth2 != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for ec2_sd_configs")
+	}
+
+	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.BearerToken, prom_config.DefaultHTTPClientConfig.BearerToken) {
+		diags.Add(diag.SeverityLevelError, "unsupported bearer_token for ec2_sd_configs")
+	}
+
+	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.BearerTokenFile, prom_config.DefaultHTTPClientConfig.BearerTokenFile) {
+		diags.Add(diag.SeverityLevelError, "unsupported bearer_token_file for ec2_sd_configs")
+	}
+
+	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.FollowRedirects, prom_config.DefaultHTTPClientConfig.FollowRedirects) {
+		diags.Add(diag.SeverityLevelError, "unsupported follow_redirects for ec2_sd_configs")
+	}
+
+	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.EnableHTTP2, prom_config.DefaultHTTPClientConfig.EnableHTTP2) {
+		diags.Add(diag.SeverityLevelError, "unsupported enable_http2 for ec2_sd_configs")
+	}
+
+	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.ProxyConfig, prom_config.DefaultHTTPClientConfig.ProxyConfig) {
+		diags.Add(diag.SeverityLevelError, "unsupported proxy for ec2_sd_configs")
+	}
+
+	// Do a last check in case any of the specific checks missed anything.
+	if len(diags) == 0 && !reflect.DeepEqual(sdConfig.HTTPClientConfig, prom_config.DefaultHTTPClientConfig) {
+		diags.Add(diag.SeverityLevelError, "unsupported http_client_config for ec2_sd_configs")
+	}
+
+	return diags
+}
+
+func toDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) *aws.LightsailArguments {
 	if sdConfig == nil {
-		return nil, nil
+		return nil
 	}
 
 	return &aws.LightsailArguments{
@@ -34,30 +77,5 @@ func toDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) (*aws.LightsailA
 		RoleARN:         sdConfig.RoleARN,
 		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
 		Port:            sdConfig.Port,
-	}, validateDiscoveryLightsail(sdConfig)
-}
-
-func validateDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if sdConfig.HTTPClientConfig.BasicAuth != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported basic_auth for lightsail_sd_configs")
 	}
-
-	if sdConfig.HTTPClientConfig.Authorization != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported authorization for lightsail_sd_configs")
-	}
-
-	if sdConfig.HTTPClientConfig.OAuth2 != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for lightsail_sd_configs")
-	}
-
-	if !reflect.DeepEqual(prom_config.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
-		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for lightsail_sd_configs")
-	}
-
-	newDiags := validateHttpClientConfig(&sdConfig.HTTPClientConfig)
-
-	diags = append(diags, newDiags...)
-	return diags
 }

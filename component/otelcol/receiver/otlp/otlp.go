@@ -7,7 +7,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 )
 
@@ -35,9 +35,8 @@ type Arguments struct {
 var _ receiver.Arguments = Arguments{}
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() (otelconfig.Receiver, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &otlpreceiver.Config{
-		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("otlp")),
 		Protocols: otlpreceiver.Protocols{
 			GRPC: (*otelcol.GRPCServerArguments)(args.GRPC).Convert(),
 			HTTP: (*otelcol.HTTPServerArguments)(args.HTTP).Convert(),
@@ -46,12 +45,12 @@ func (args Arguments) Convert() (otelconfig.Receiver, error) {
 }
 
 // Extensions implements receiver.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements receiver.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

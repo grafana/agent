@@ -1,6 +1,12 @@
 discovery.azure "prometheus1" {
 	subscription_id = "subscription1"
 
+	oauth {
+		client_id     = "client1"
+		tenant_id     = "tenant1"
+		client_secret = "secret1"
+	}
+
 	managed_identity {
 		client_id = "client1"
 	}
@@ -10,6 +16,12 @@ discovery.azure "prometheus1" {
 
 discovery.azure "prometheus1_2" {
 	subscription_id = "subscription2"
+
+	oauth {
+		client_id     = "client2"
+		tenant_id     = "tenant2"
+		client_secret = "secret2"
+	}
 
 	managed_identity {
 		client_id = "client2"
@@ -29,13 +41,11 @@ discovery.relabel "prometheus1" {
 
 	rule {
 		source_labels = ["__address1__"]
-		regex         = "^(?:(.*))$"
 		target_label  = "__param_target1"
 	}
 
 	rule {
 		source_labels = ["__address2__"]
-		regex         = "^(?:(.*))$"
 		target_label  = "__param_target2"
 	}
 }
@@ -51,21 +61,20 @@ prometheus.relabel "prometheus1" {
 
 	rule {
 		source_labels = ["__metric_address1__"]
-		regex         = "^(?:(.*))$"
 		target_label  = "__metric_param_target1"
 	}
 
 	rule {
 		source_labels = ["__metric_address2__"]
-		regex         = "^(?:(.*))$"
 		target_label  = "__metric_param_target2"
 	}
 }
 
 prometheus.remote_write "default" {
 	endpoint {
-		name = "remote1"
-		url  = "http://remote-write-url1"
+		name           = "remote1"
+		url            = "http://remote-write-url1"
+		send_exemplars = false
 
 		queue_config {
 			capacity             = 2500

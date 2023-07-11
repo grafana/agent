@@ -41,6 +41,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| agent.clustering.enabled | bool | `false` | Deploy agents in a cluster to allow for load distribution. Only applies when agent.mode=flow and controller.type=statefulset. |
 | agent.configMap.content | string | `""` | Content to assign to the new ConfigMap.  This is passed into `tpl` allowing for templating from values. |
 | agent.configMap.create | bool | `true` | Create a new ConfigMap for the config file. |
 | agent.configMap.key | string | `nil` | Key in ConfigMap to get config from. |
@@ -65,6 +66,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
 | configReloader.image.tag | string | `"v0.8.0"` | Tag of image to use for config reloading. |
 | configReloader.resources | object | `{"requests":{"cpu":"1m","memory":"5Mi"}}` | Resource requests and limits to apply to the config reloader container. |
+| configReloader.securityContext | object | `{}` | Security context to apply to the Grafana configReloader container. |
 | controller.affinity | object | `{}` | Affinity configuration for pods. |
 | controller.autoscaling.enabled | bool | `false` | Creates a HorizontalPodAutoscaler for controller type deployment. |
 | controller.autoscaling.maxReplicas | int | `5` | The upper limit for the number of replicas to which the autoscaler can scale up. |

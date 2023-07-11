@@ -10,6 +10,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
 	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file
 	_ "github.com/grafana/agent/component/discovery/gce"                            // Import discovery.gce
+	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
@@ -36,6 +37,7 @@ import (
 	_ "github.com/grafana/agent/component/mimir/rules/kubernetes"                   // Import mimir.rules.kubernetes
 	_ "github.com/grafana/agent/component/module/file"                              // Import module.file
 	_ "github.com/grafana/agent/component/module/git"                               // Import module.git
+	_ "github.com/grafana/agent/component/module/http"                              // Import module.http
 	_ "github.com/grafana/agent/component/module/string"                            // Import module.string
 	_ "github.com/grafana/agent/component/otelcol/auth/basic"                       // Import otelcol.auth.basic
 	_ "github.com/grafana/agent/component/otelcol/auth/bearer"                      // Import otelcol.auth.bearer
@@ -69,6 +71,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"               // Import prometheus.exporter.github
 	_ "github.com/grafana/agent/component/prometheus/exporter/kafka"                // Import prometheus.exporter.kafka
 	_ "github.com/grafana/agent/component/prometheus/exporter/memcached"            // Import prometheus.exporter.memcached
+	_ "github.com/grafana/agent/component/prometheus/exporter/mongodb"              // Import prometheus.exporter.mongodb
 	_ "github.com/grafana/agent/component/prometheus/exporter/mssql"                // Import prometheus.exporter.mssql
 	_ "github.com/grafana/agent/component/prometheus/exporter/mysql"                // Import prometheus.exporter.mysql
 	_ "github.com/grafana/agent/component/prometheus/exporter/oracledb"             // Import prometheus.exporter.oracledb
@@ -87,6 +90,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape
+	_ "github.com/grafana/agent/component/pyroscope/ebpf"                           // Import pyroscope.ebpf
 	_ "github.com/grafana/agent/component/pyroscope/scrape"                         // Import pyroscope.scrape
 	_ "github.com/grafana/agent/component/pyroscope/write"                          // Import pyroscope.write
 	_ "github.com/grafana/agent/component/remote/http"                              // Import remote.http

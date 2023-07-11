@@ -23,7 +23,7 @@ FROM alpine:3.17 as helm
 RUN apk add --no-cache helm
 
 # Dependency: Go and Go dependencies
-FROM golang:1.20.4-bullseye as golang
+FROM golang:1.20.5-bullseye as golang
 
 # Keep in sync with cmd/grafana-agent-operator/DEVELOPERS.md
 ENV CONTROLLER_GEN_VERSION v0.9.2
@@ -46,7 +46,7 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
 
 # rfratto/viceroy contains C cross compilers can be used for our Cgo
 # dependencies.
-FROM rfratto/viceroy:v0.3.0
+FROM rfratto/viceroy:v0.4.0
 
 # Install NodeJS LTS. This is needed because the most recent version of NodeJS
 # from official Debian packages is v12, and we need LTS version v16.

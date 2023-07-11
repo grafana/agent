@@ -1,6 +1,12 @@
 discovery.azure "prometheus1" {
 	subscription_id = "subscription"
 
+	oauth {
+		client_id     = "client"
+		tenant_id     = "tenant"
+		client_secret = "secret"
+	}
+
 	managed_identity {
 		client_id = "client"
 	}
@@ -10,6 +16,12 @@ discovery.azure "prometheus1" {
 
 discovery.azure "prometheus2" {
 	subscription_id = "subscription"
+
+	oauth {
+		client_id     = "client"
+		tenant_id     = "tenant"
+		client_secret = "secret"
+	}
 
 	managed_identity {
 		client_id = "client"
@@ -37,8 +49,9 @@ prometheus.scrape "prometheus2" {
 
 prometheus.remote_write "default" {
 	endpoint {
-		name = "remote1"
-		url  = "http://remote-write-url1"
+		name           = "remote1"
+		url            = "http://remote-write-url1"
+		send_exemplars = false
 
 		queue_config {
 			capacity             = 2500

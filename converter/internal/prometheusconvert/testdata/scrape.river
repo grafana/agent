@@ -9,10 +9,11 @@ prometheus.scrape "prometheus1" {
 			app         = "foo",
 		}],
 	)
-	forward_to      = [prometheus.remote_write.default.receiver]
-	job_name        = "prometheus1"
-	scrape_interval = "10s"
-	scrape_timeout  = "5s"
+	forward_to       = [prometheus.remote_write.default.receiver]
+	job_name         = "prometheus1"
+	honor_timestamps = false
+	scrape_interval  = "10s"
+	scrape_timeout   = "5s"
 
 	basic_auth {
 		username = "user"
@@ -42,8 +43,9 @@ prometheus.remote_write "default" {
 	}
 
 	endpoint {
-		name = "remote1"
-		url  = "http://remote-write-url1"
+		name           = "remote1"
+		url            = "http://remote-write-url1"
+		send_exemplars = false
 
 		queue_config {
 			capacity             = 2500
@@ -54,11 +56,22 @@ prometheus.remote_write "default" {
 		metadata_config {
 			max_samples_per_send = 500
 		}
+
+		write_relabel_config {
+			source_labels = ["__address1__"]
+			target_label  = "__param_target1"
+		}
+
+		write_relabel_config {
+			source_labels = ["__address2__"]
+			target_label  = "__param_target2"
+		}
 	}
 
 	endpoint {
-		name = "remote2"
-		url  = "http://remote-write-url2"
+		name           = "remote2"
+		url            = "http://remote-write-url2"
+		send_exemplars = false
 
 		queue_config {
 			capacity             = 2500

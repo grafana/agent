@@ -80,7 +80,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:    o,
 		metrics: newMetrics(o.Registerer),
 
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 		receivers: args.ForwardTo,
 		posFile:   positionsFile,
 		readers:   make(map[positions.Entry]reader),
@@ -106,7 +106,7 @@ func (c *Component) Run(ctx context.Context) error {
 			r.Stop()
 		}
 		c.posFile.Stop()
-		close(c.handler)
+		close(c.handler.Chan())
 		c.mut.RUnlock()
 	}()
 
@@ -114,10 +114,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.receivers {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -184,7 +184,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 		c.reportSize(path, labels.String())
 
-		handler := loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() {}))
+		handler := loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler.Chan(), func() {}))
 		reader, err := c.startTailing(path, labels, handler)
 		if err != nil {
 			continue

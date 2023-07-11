@@ -14,16 +14,41 @@ import (
 	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 )
 
-func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *prom_digitalocean.SDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoveryDigitalOceanArgs, diags := toDiscoveryDigitalOcean(sdConfig)
+func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *prom_digitalocean.SDConfig) discovery.Exports {
+	discoveryDigitalOceanArgs := toDiscoveryDigitalOcean(sdConfig)
 	block := common.NewBlockWithOverride([]string{"discovery", "digitalocean"}, label, discoveryDigitalOceanArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.digitalocean." + label + ".targets"), diags
+	return newDiscoverExports("discovery.digitalocean." + label + ".targets")
 }
 
-func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) (*digitalocean.Arguments, diag.Diagnostics) {
+func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if sdConfig.HTTPClientConfig.BasicAuth != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported basic_auth for digitalocean_sd_configs")
+	}
+
+	if sdConfig.HTTPClientConfig.Authorization != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported authorization for digitalocean_sd_configs")
+	}
+
+	if sdConfig.HTTPClientConfig.OAuth2 != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for digitalocean_sd_configs")
+	}
+
+	if !reflect.DeepEqual(prom_config.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
+		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for digitalocean_sd_configs")
+	}
+
+	newDiags := validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+
+	diags = append(diags, newDiags...)
+	return diags
+}
+
+func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) *digitalocean.Arguments {
 	if sdConfig == nil {
-		return nil, nil
+		return nil
 	}
 
 	return &digitalocean.Arguments{
@@ -34,30 +59,5 @@ func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) (*digitalocea
 		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
 		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
 		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
-	}, validateDiscoveryDigitalOcean(sdConfig)
-}
-
-func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if sdConfig.HTTPClientConfig.BasicAuth != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported basic_auth for digitalocean_sd_configs")
 	}
-
-	if sdConfig.HTTPClientConfig.Authorization != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported authorization for digitalocean_sd_configs")
-	}
-
-	if sdConfig.HTTPClientConfig.OAuth2 != nil {
-		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for digitalocean_sd_configs")
-	}
-
-	if !reflect.DeepEqual(prom_config.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
-		diags.Add(diag.SeverityLevelWarn, "unsupported oauth2 for digitalocean_sd_configs")
-	}
-
-	newDiags := validateHttpClientConfig(&sdConfig.HTTPClientConfig)
-
-	diags = append(diags, newDiags...)
-	return diags
 }

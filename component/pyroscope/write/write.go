@@ -278,8 +278,11 @@ func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []
 	)
 
 	for _, label := range lbs {
-		// only __name__ is required as a private label.
-		if strings.HasPrefix(label.Name, model.ReservedLabelPrefix) && label.Name != labels.MetricName {
+		// filter reserved labels, with exceptions for __name__ and __delta__.
+		if strings.HasPrefix(label.Name, model.ReservedLabelPrefix) &&
+			label.Name != labels.MetricName &&
+			label.Name != pyroscope.LabelNameDelta {
+
 			continue
 		}
 		lbsBuilder.Set(label.Name, label.Value)

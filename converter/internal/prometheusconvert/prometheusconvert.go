@@ -30,16 +30,16 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	promConfig, err := prom_config.Load(string(in), false, log.NewNopLogger())
 	if err != nil {
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to parse Prometheus config: %s", err))
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to parse Prometheus config: %s", err))
 		return nil, diags
 	}
 
 	f := builder.NewFile()
-	diags = AppendAll(f, promConfig)
+	diags = AppendAll(f, promConfig, "")
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to render Flow config: %s", err.Error()))
 		return nil, diags
 	}
 
@@ -52,133 +52,89 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	return prettyByte, diags
 }
 
-type prometheusBlocks struct {
-	discoveryBlocks             []*builder.Block
-	discoveryRelabelBlocks      []*builder.Block
-	prometheusScrapeBlocks      []*builder.Block
-	prometheusRelabelBlocks     []*builder.Block
-	prometheusRemoteWriteBlocks []*builder.Block
-}
-
-func newPrometheusBlocks() *prometheusBlocks {
-	return &prometheusBlocks{
-		discoveryBlocks:             []*builder.Block{},
-		discoveryRelabelBlocks:      []*builder.Block{},
-		prometheusScrapeBlocks:      []*builder.Block{},
-		prometheusRelabelBlocks:     []*builder.Block{},
-		prometheusRemoteWriteBlocks: []*builder.Block{},
-	}
-}
-
 // AppendAll analyzes the entire prometheus config in memory and transforms it
 // into Flow Arguments. It then appends each argument to the file builder.
 // Exports from other components are correctly referenced to build the Flow
-// pipeline.
-func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics {
+// pipeline. A non-empty labelPrefix can be provided for label uniqueness when
+// calling this function for the same builder.File multiple times.
+func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	pb := newPrometheusBlocks()
-	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig)
 
+	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
 	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
-	scrapeForwardTo := remoteWriteForwardTo
+
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, scrapeConfig.JobName)
+		scrapeForwardTo := remoteWriteForwardTo
+		label := scrapeConfig.JobName
+		if labelPrefix != "" {
+			label = labelPrefix + "_" + label
+		}
+		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)
 		if promMetricsRelabelExports != nil {
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
-		scrapeTargets, newDiags := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, scrapeConfig.JobName)
-		diags = append(diags, newDiags...)
+		scrapeTargets := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
 
-		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeConfig.JobName, scrapeTargets)
+		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
 		if promDiscoveryRelabelExports != nil {
 			scrapeTargets = promDiscoveryRelabelExports.Output
 		}
 
-		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets)
+		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets, label)
 	}
 
-	prepareFileBlocks(f, pb)
+	pb.appendToFile(f)
+
+	newDiags := validate(promConfig)
+	diags = append(diags, newDiags...)
+
 	return diags
 }
 
 // appendServiceDiscoveryConfigs will loop through the service discovery
 // configs and append them to the file. This returns the scrape targets
 // and discovery targets as a result.
-func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) ([]discovery.Target, diag.Diagnostics) {
-	var diags diag.Diagnostics
+func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) []discovery.Target {
 	var targets []discovery.Target
 	labelCounts := make(map[string]int)
 	for _, serviceDiscoveryConfig := range serviceDiscoveryConfig {
 		var exports discovery.Exports
-		var newDiags diag.Diagnostics
 		switch sdc := serviceDiscoveryConfig.(type) {
 		case prom_discover.StaticConfig:
 			targets = append(targets, getScrapeTargets(sdc)...)
 		case *prom_azure.SDConfig:
 			labelCounts["azure"]++
-			exports, newDiags = appendDiscoveryAzure(pb, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
+			exports = appendDiscoveryAzure(pb, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
 		case *prom_consul.SDConfig:
 			labelCounts["consul"]++
-			exports, newDiags = appendDiscoveryConsul(pb, common.GetUniqueLabel(label, labelCounts["consul"]), sdc)
+			exports = appendDiscoveryConsul(pb, common.GetUniqueLabel(label, labelCounts["consul"]), sdc)
 		case *prom_digitalocean.SDConfig:
 			labelCounts["digitalocean"]++
-			exports, newDiags = appendDiscoveryDigitalOcean(pb, common.GetUniqueLabel(label, labelCounts["digitalocean"]), sdc)
+			exports = appendDiscoveryDigitalOcean(pb, common.GetUniqueLabel(label, labelCounts["digitalocean"]), sdc)
 		case *prom_dns.SDConfig:
 			labelCounts["dns"]++
 			exports = appendDiscoveryDns(pb, common.GetUniqueLabel(label, labelCounts["dns"]), sdc)
 		case *prom_docker.DockerSDConfig:
 			labelCounts["docker"]++
-			exports, newDiags = appendDiscoveryDocker(pb, common.GetUniqueLabel(label, labelCounts["docker"]), sdc)
+			exports = appendDiscoveryDocker(pb, common.GetUniqueLabel(label, labelCounts["docker"]), sdc)
 		case *prom_aws.EC2SDConfig:
 			labelCounts["ec2"]++
-			exports, newDiags = appendDiscoveryEC2(pb, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
+			exports = appendDiscoveryEC2(pb, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
 		case *prom_gce.SDConfig:
 			labelCounts["gce"]++
 			exports = appendDiscoveryGCE(pb, common.GetUniqueLabel(label, labelCounts["gce"]), sdc)
 		case *prom_kubernetes.SDConfig:
 			labelCounts["kubernetes"]++
-			exports, newDiags = appendDiscoveryKubernetes(pb, common.GetUniqueLabel(label, labelCounts["kubernetes"]), sdc)
+			exports = appendDiscoveryKubernetes(pb, common.GetUniqueLabel(label, labelCounts["kubernetes"]), sdc)
 		case *prom_aws.LightsailSDConfig:
 			labelCounts["lightsail"]++
-			exports, newDiags = appendDiscoveryLightsail(pb, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
-		default:
-			diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
+			exports = appendDiscoveryLightsail(pb, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
 		}
 
-		diags = append(diags, newDiags...)
 		targets = append(exports.Targets, targets...)
 	}
 
-	return targets, diags
-}
-
-// prepareFileBlocks attaches prometheus blocks in a specific order.
-//
-// Order of blocks:
-// 1. Discovery component(s)
-// 2. Discovery relabel component(s) (if any)
-// 3. Prometheus scrape component(s)
-// 4. Prometheus relabel component(s) (if any)
-// 5. Prometheus remote_write
-func prepareFileBlocks(f *builder.File, pb *prometheusBlocks) {
-	for _, block := range pb.discoveryBlocks {
-		f.Body().AppendBlock(block)
-	}
-
-	for _, block := range pb.discoveryRelabelBlocks {
-		f.Body().AppendBlock(block)
-	}
-
-	for _, block := range pb.prometheusScrapeBlocks {
-		f.Body().AppendBlock(block)
-	}
-
-	for _, block := range pb.prometheusRelabelBlocks {
-		f.Body().AppendBlock(block)
-	}
-
-	for _, block := range pb.prometheusRemoteWriteBlocks {
-		f.Body().AppendBlock(block)
-	}
+	return targets
 }

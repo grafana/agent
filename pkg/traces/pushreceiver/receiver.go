@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/component"
+	otelreceiver "go.opentelemetry.io/collector/receiver"
 )
 
 type receiver struct{}
@@ -16,6 +17,6 @@ func (r *receiver) Shutdown(_ context.Context) error {
 	return nil
 }
 
-func newPushReceiver() (component.TracesReceiver, error) {
+func newPushReceiver() (otelreceiver.Traces, error) {
 	return &receiver{}, nil
 }

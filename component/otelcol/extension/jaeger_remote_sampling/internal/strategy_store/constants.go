@@ -14,9 +14,7 @@
 
 package strategy_store
 
-import (
-	"github.com/jaegertracing/jaeger/thrift-gen/sampling"
-)
+import "github.com/jaegertracing/jaeger/thrift-gen/sampling"
 
 const (
 	// samplerTypeProbabilistic is the type of sampler that samples traces
