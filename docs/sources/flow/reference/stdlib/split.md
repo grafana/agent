@@ -6,15 +6,15 @@ title: split
 
 # split
 
-`split` produces a list by dividing a given string at all occurrences of a given separator.
+`split` produces a list by dividing a string at all occurrences of a separator.
 
-```
+```river
 split(list, separator)
 ```
 
 ## Examples
 
-```
+```river
 > split(",", "foo,bar,baz")
 ["foo", "bar", "baz"]
 

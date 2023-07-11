@@ -6,11 +6,11 @@ title: lower
 
 # lower
 
-`lower` converts all cased letters in the given string to lowercase.
+`lower` converts all uppercase letters in a string to lowercase.
 
 ## Examples
 
-```
+```river
 > lower("HELLO")
 "hello"
 ```

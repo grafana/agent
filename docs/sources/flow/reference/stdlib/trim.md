@@ -6,9 +6,9 @@ title: trim
 
 # trim
 
-`trim` removes the specified set of characters from the start and end of the given string.
+`trim` removes the specified set of characters from the start and end of a string.
 
-```
+```river
 trim(string, str_character_set)
 ```
 
@@ -16,7 +16,7 @@ Every occurrence of a character in the second argument is removed from the start
 
 ## Examples
 
-```
+```river
 > trim("?!hello?!", "!?")
 "hello"
 

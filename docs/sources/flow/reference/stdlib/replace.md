@@ -6,15 +6,15 @@ title: replace
 
 # replace
 
-`replace` searches a given string for another given substring, and replaces each occurrence with a given replacement string.
+`replace` searches a string for a substring, and replaces each occurrence of the substring with a replacement string.
 
-```
+```river
 replace(string, substring, replacement)
 ```
 
 ## Examples
 
-```
+```river
 > replace("1 + 2 + 3", "+", "-")
 "1 - 2 - 3"
 ```
