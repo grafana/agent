@@ -21,7 +21,7 @@ static mode.
 
 ## Main (unreleased)
 
-### Removed and renamed tracing metrics
+### Breaking change: Removed and renamed tracing metrics
 
 In the traces subsystem for Static mode some metrics are removed and others are renamed.
 The reason for the removal is a bug which caused the metrics to be incorrect if more than one instance of a traces configuration is specified.

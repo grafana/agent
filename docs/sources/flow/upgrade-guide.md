@@ -18,6 +18,40 @@ Grafana Agent Flow.
 > [upgrade-guide-static]: {{< relref "../static/upgrade-guide.md" >}}
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 
+## Main (unreleased)
+
+### Breaking change: The algorithm for the "hash" action of `otelcol.processor.attributes` has changed
+The hash produced when using `action = "hash"` in the `otelcol.processor.attributes` flow component is now using the more secure SHA-256 algorithm.
+The change was made in PR [#22831](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22831) of opentelemetry-collector-contrib. 
+
+### Breaking change: `otelcol.exporter.loki` now includes instrumentation scope in its output
+
+Additional `instrumentation_scope` information will be added to the OTLP log signal, like this:
+```
+{
+    "body": "Example log",
+    "traceid": "01020304000000000000000000000000",
+    "spanid": "0506070800000000",
+    "severity": "error",
+    "attributes": {
+        "attr1": "1",
+        "attr2": "2"
+    },
+    "resources": {
+        "host.name": "something"
+    },
+    "instrumentation_scope": {
+        "name": "example-logger-name",
+        "version": "v1"
+    }
+}
+```
+
+### Breaking change: `otelcol.extension.jaeger_remote_sampling` removes the `/` HTTP endpoint
+
+The `/` HTTP endpoint was the same as the `/sampling` endpoint. The `/sampling` endpoint is still functional.
+The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib. 
+
 ## v0.35
 
 ### Breaking change: `auth` and `version` attributes from `walk_params` block of `prometheus.exporter.snmp` have been removed
