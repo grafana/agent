@@ -156,7 +156,7 @@ func (c *Component) nextPoll() time.Duration {
 	return nextPoll.Sub(now)
 }
 
-// poll performs a HTTP GET for the component's configured URL. c.mut must
+// poll performs a HTTP request for the component's configured URL. c.mut must
 // not be held when calling. After polling, the component's health is updated
 // with the success or failure status.
 func (c *Component) poll() {
