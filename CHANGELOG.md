@@ -136,6 +136,7 @@ Main (unreleased)
 ### Other changes
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
+- Build with go 1.20.5 (@captncraig)
 
 v0.34.3 (2023-06-27)
 --------------------
