@@ -1,6 +1,7 @@
 package wal
 
 import (
+	"context"
 	"path"
 	"sync"
 	"time"
@@ -18,24 +19,58 @@ type dbstore struct {
 	ttlUpdate time.Duration
 	ttl       time.Duration
 	inMemory  bool
-	databases map[string]*db
-	bookmark  *db
-	callbacks []func(table string, deletedIDs []uint64)
+	databases map[string]*signaldb
+	bookmark  *signaldb
+	callbacks []func(table string, oldestID uint64)
+	ctx       context.Context
 }
 
-func newDBStore(inMemory bool, ttl time.Duration, ttlUpdate time.Duration, directory string, l *logging.Logger) (*dbstore, error) {
+func newDBStore(ctx context.Context, inMemory bool, ttl time.Duration, ttlUpdate time.Duration, directory string, l *logging.Logger) (*dbstore, error) {
 	bookmark, err := newDb(path.Join(directory, "bookmark"), l)
 	if err != nil {
 		return nil, err
 	}
 
-	return &dbstore{
+	store := &dbstore{
 		ttlUpdate: ttlUpdate,
 		inMemory:  inMemory,
-		databases: make(map[string]*db),
+		databases: make(map[string]*signaldb),
 		bookmark:  bookmark,
-		callbacks: make([]func(table string, deletedIDs []uint64), 0),
-	}, nil
+		callbacks: make([]func(table string, oldestID uint64), 0),
+	}
+	return store, nil
+}
+
+func (dbs *dbstore) startTTL() {
+	ttlTimer := time.NewTicker(dbs.ttlUpdate)
+	for {
+		select {
+		case <-ttlTimer.C:
+			// Start eviction
+			dbs.evict()
+		case <-dbs.ctx.Done():
+			return
+		}
+
+	}
+}
+
+func (dbs *dbstore) evict() {
+	dbs.mut.Lock()
+	defer dbs.mut.Unlock()
+	// This is a big lock the world event.
+	var wg sync.WaitGroup
+	for _, store := range dbs.databases {
+		wg.Add(1)
+		go func() {
+			store.evict()
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+	for _, store := range dbs.databases {
+
+	}
 }
 
 func (dbs *dbstore) WriteBookmark(key string, value any) error {
@@ -69,7 +104,7 @@ func (dbs *dbstore) GetSignal(table string, key uint64, value any) bool {
 	return found
 }
 
-func (dbs *dbstore) getTable(table string) (*db, error) {
+func (dbs *dbstore) getTable(table string) (*signaldb, error) {
 	dbs.mut.RLock()
 	foundStore, found := dbs.databases[table]
 	dbs.mut.RUnlock()
@@ -86,7 +121,7 @@ func (dbs *dbstore) getTable(table string) (*db, error) {
 	return foundStore, nil
 }
 
-func (dbs *dbstore) RegisterTTLCallback(f func(table string, deletedIDs []uint64)) {
+func (dbs *dbstore) RegisterTTLCallback(f func(table string, oldestID uint64)) {
 	dbs.mut.Lock()
 	defer dbs.mut.Unlock()
 

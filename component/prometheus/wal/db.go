@@ -12,20 +12,20 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 )
 
-type db struct {
+type signaldb struct {
 	mut          sync.RWMutex
 	d            *badgerdb.DB
 	log          *logging.Logger
 	currentIndex uint64
 }
 
-func newDb(dir string, l *logging.Logger) (*db, error) {
+func newDb(dir string, l *logging.Logger) (*signaldb, error) {
 	bdb, err := badgerdb.Open(badgerdb.DefaultOptions(dir))
 	if err != nil {
 		return nil, err
 	}
 
-	newDb := &db{
+	newDb := &signaldb{
 		d:   bdb,
 		log: l,
 	}
@@ -41,7 +41,7 @@ func newDb(dir string, l *logging.Logger) (*db, error) {
 	return newDb, nil
 }
 
-func (d *db) getNewKey() uint64 {
+func (d *signaldb) getNewKey() uint64 {
 	d.mut.Lock()
 	defer d.mut.Unlock()
 
@@ -49,7 +49,27 @@ func (d *db) getNewKey() uint64 {
 	return d.currentIndex
 }
 
-func (d *db) getKeys() ([]uint64, error) {
+func (d *signaldb) getOldestKey() uint64 {
+	d.mut.RLock()
+	defer d.mut.Unlock()
+
+	var buf []byte
+	d.d.View(func(txn *badgerdb.Txn) error {
+		iterator := txn.NewIterator(badgerdb.IteratorOptions{
+			PrefetchSize: 1,
+		})
+		defer iterator.Close()
+		if iterator.Valid() {
+			buf = iterator.Item().KeyCopy(nil)
+		}
+		return nil
+	})
+	buff := bytes.NewBuffer(buf)
+	key, _ := binary.ReadUvarint(buff)
+	return key
+}
+
+func (d *signaldb) getKeys() ([]uint64, error) {
 	ret := make([]uint64, 0)
 	err := d.d.View(func(txn *badgerdb.Txn) error {
 		opt := badgerdb.DefaultIteratorOptions
@@ -64,13 +84,13 @@ func (d *db) getKeys() ([]uint64, error) {
 		return nil
 	})
 	if err != nil {
-		return []uint64{}, nil
+		return []uint64{}, err
 	}
 	sort.Slice(ret, func(i, j int) bool { return ret[i] < ret[j] })
 	return ret, nil
 }
 
-func (d *db) getCurrentKey() uint64 {
+func (d *signaldb) getCurrentKey() uint64 {
 	d.mut.RLock()
 	defer d.mut.RUnlock()
 
@@ -78,7 +98,7 @@ func (d *db) getCurrentKey() uint64 {
 }
 
 // getNextKey may return the passed in key if that is all that exists.
-func (d *db) getNextKey(k uint64) uint64 {
+func (d *signaldb) getNextKey(k uint64) uint64 {
 	d.mut.RLock()
 	defer d.mut.RUnlock()
 
@@ -88,7 +108,7 @@ func (d *db) getNextKey(k uint64) uint64 {
 	return k + 1
 }
 
-func (d *db) getValueForKey(k []byte, into any) (bool, error) {
+func (d *signaldb) getValueForKey(k []byte, into any) (bool, error) {
 	var value []byte
 	var found bool
 	err := d.d.View(func(txn *badgerdb.Txn) error {
@@ -110,20 +130,22 @@ func (d *db) getValueForKey(k []byte, into any) (bool, error) {
 	return found, err
 }
 
-func (d *db) getRecordByString(key string, into any) (bool, error) {
+func (d *signaldb) getRecordByString(key string, into any) (bool, error) {
 	return d.getValueForKey([]byte(key), into)
 }
 
-func (d *db) getRecordByUint(key uint64, into any) (bool, error) {
+func (d *signaldb) getRecordByUint(key uint64, into any) (bool, error) {
 	buf := make([]byte, 8)
 	binary.PutUvarint(buf, key)
 	return d.getValueForKey(buf, into)
 }
 
-// writeRecordWithAutoKey will gob encode the data and set a TTL from now. Note the TTL may not trigger at exactly
-// the TTL. The system checks for TTLs every few minutes. writeRecordWithAutoKey will return the key of the value inserted.
+// writeRecordWithAutoKey will gob encode the data and set a TTL from now.
+// If the TTL expires you will not be able to retrieve the value though the space will not be retrieved until
+// the system cleans up TTLs every few minutes.
+// writeRecordWithAutoKey will return the key of the value inserted.
 // This key is always greater than a previously entered key.
-func (d *db) writeRecordWithAutoKey(data any, ttl time.Duration) (uint64, error) {
+func (d *signaldb) writeRecordWithAutoKey(data any, ttl time.Duration) (uint64, error) {
 	if data == nil {
 		return 0, nil
 	}
@@ -136,11 +158,14 @@ func (d *db) writeRecordWithAutoKey(data any, ttl time.Duration) (uint64, error)
 
 // writeRecord writes a value and assumes the data is a pointer and will gob encode it. If a TTL is specified then will set
 // the expiration.
-func (d *db) writeRecord(key []byte, data any, ttl time.Duration) error {
+func (d *signaldb) writeRecord(key []byte, data any, ttl time.Duration) error {
 	buf := bytes.NewBuffer([]byte{})
 	enc := gob.NewEncoder(buf)
-	enc.Encode(data)
-	err := d.d.Update(func(txn *badgerdb.Txn) error {
+	err := enc.Encode(data)
+	if err != nil {
+		return err
+	}
+	err = d.d.Update(func(txn *badgerdb.Txn) error {
 		entry := &badgerdb.Entry{
 			Key:      key,
 			Value:    buf.Bytes(),
@@ -153,4 +178,18 @@ func (d *db) writeRecord(key []byte, data any, ttl time.Duration) error {
 		return inErr
 	})
 	return err
+}
+
+func (d *signaldb) evict() {
+	d.mut.Lock()
+	defer d.mut.Unlock()
+	var err error
+	for err == nil {
+		// Reclaim if we can gain 10% of space back.
+		err = d.d.RunValueLogGC(0.1)
+		if err != nil {
+			return
+		}
+	}
+
 }
