@@ -153,6 +153,7 @@ func TestStdlib_StringFunc(t *testing.T) {
 		{"split+index", `split("/aaa/bbb/ccc/ddd", "/")[0]`, ""},
 		{"join+split", `join(split("/aaa/bbb/ccc/ddd", "/"), "/")`, "/aaa/bbb/ccc/ddd"},
 		{"join", `join(["foo", "bar", "baz"], ", ")`, "foo, bar, baz"},
+		{"join w/ int", `join([0, 0, 1], ", ")`, "0, 0, 1"},
 		{"format", `format("Hello %s", "World")`, "Hello World"},
 		{"format+int", `format("%#v", 1)`, "1"},
 		{"format+bool", `format("%#v", true)`, "true"},
