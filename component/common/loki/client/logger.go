@@ -1,8 +1,5 @@
 package client
 
-// This code is copied from Promtail. The client package is used to configure
-// and run the clients that can send log entries to a Loki instance.
-
 import (
 	"fmt"
 	"os"
@@ -12,13 +9,18 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component/common/loki"
+	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/yaml.v2"
+
+	"github.com/grafana/loki/clients/pkg/promtail/api"
+	"github.com/grafana/loki/clients/pkg/promtail/limit"
+	"github.com/grafana/loki/clients/pkg/promtail/wal"
 )
 
 var (
-	yellow = color.New(color.FgYellow)
-	blue   = color.New(color.FgBlue)
+	yellow      = color.New(color.FgYellow)
+	blue        = color.New(color.FgBlue)
+	nilNotifier = notifier(func(_ wal.CleanupEventSubscriber) {})
 )
 
 func init() {
@@ -31,15 +33,15 @@ func init() {
 type logger struct {
 	*tabwriter.Writer
 	sync.Mutex
-	entries chan loki.Entry
+	entries chan api.Entry
 
 	once sync.Once
 }
 
 // NewLogger creates a new client logger that logs entries instead of sending them.
-func NewLogger(metrics *Metrics, streamLogLabels []string, log log.Logger, cfgs ...Config) (Client, error) {
+func NewLogger(metrics *Metrics, log log.Logger, cfgs ...Config) (Client, error) {
 	// make sure the clients config is valid
-	c, err := NewMulti(metrics, streamLogLabels, log, 0, cfgs...)
+	c, err := NewManager(metrics, log, limit.Config{}, prometheus.NewRegistry(), wal.Config{}, NilNotifier, cfgs...)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +56,7 @@ func NewLogger(metrics *Metrics, streamLogLabels []string, log log.Logger, cfgs 
 		fmt.Println("----------------------")
 		fmt.Println(string(yaml))
 	}
-	entries := make(chan loki.Entry)
+	entries := make(chan api.Entry)
 	l := &logger{
 		Writer:  tabwriter.NewWriter(os.Stdout, 0, 8, 0, '\t', 0),
 		entries: entries,
@@ -67,7 +69,7 @@ func (l *logger) Stop() {
 	l.once.Do(func() { close(l.entries) })
 }
 
-func (l *logger) Chan() chan<- loki.Entry {
+func (l *logger) Chan() chan<- api.Entry {
 	return l.entries
 }
 
@@ -79,7 +81,7 @@ func (l *logger) run() {
 		fmt.Fprint(l.Writer, "\t")
 		fmt.Fprint(l.Writer, e.Line)
 		fmt.Fprint(l.Writer, "\n")
-		_ = l.Flush()
+		l.Flush()
 	}
 }
 func (l *logger) StopNow() { l.Stop() }
