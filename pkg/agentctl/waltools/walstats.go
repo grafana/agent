@@ -1,4 +1,4 @@
-package agentctl
+package waltools
 
 import (
 	"math"

@@ -1,4 +1,4 @@
-package agentctl
+package waltools
 
 import (
 	"github.com/prometheus/prometheus/tsdb/record"

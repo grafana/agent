@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/grafana/agent/pkg/agentctl"
+	"github.com/grafana/agent/pkg/agentctl/waltools"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -62,7 +62,7 @@ sample-stats -s '{job="a"}' /tmp/wal
 				directory = filepath.Join(directory, "wal")
 			}
 
-			stats, err := agentctl.FindSamples(directory, selector)
+			stats, err := waltools.FindSamples(directory, selector)
 			if err != nil {
 				fmt.Printf("failed to get sample stats: %v\n", err)
 				os.Exit(1)
@@ -115,7 +115,7 @@ high-cardinality series that you do not want to send.`,
 				directory = filepath.Join(directory, "wal")
 			}
 
-			cardinality, err := agentctl.FindCardinality(directory, jobLabel, instanceLabel)
+			cardinality, err := waltools.FindCardinality(directory, jobLabel, instanceLabel)
 			if err != nil {
 				fmt.Printf("failed to get cardinality: %v\n", err)
 				os.Exit(1)
@@ -169,7 +169,7 @@ deletion but then comes back at some point).`,
 				directory = filepath.Join(directory, "wal")
 			}
 
-			stats, err := agentctl.CalculateStats(directory)
+			stats, err := waltools.CalculateStats(directory)
 			if err != nil {
 				fmt.Printf("failed to get WAL stats: %v\n", err)
 				os.Exit(1)
@@ -192,7 +192,7 @@ deletion but then comes back at some point).`,
 
 			table.SetHeader([]string{"Job", "Instance", "Series", "Samples"})
 
-			sort.Sort(agentctl.BySeriesCount(stats.Targets))
+			sort.Sort(waltools.BySeriesCount(stats.Targets))
 
 			for _, t := range stats.Targets {
 				seriesStr := fmt.Sprintf("%d", t.Series)
