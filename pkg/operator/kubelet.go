@@ -90,7 +90,7 @@ func (r *kubeletReconciler) Reconcile(ctx context.Context, req controller.Reques
 	return
 }
 
-// mergeMaps merges the contents of b with a. Keys from b take precednece.
+// mergeMaps merges the contents of b with a. Keys from b take precedence.
 func mergeMaps(a, b map[string]string) map[string]string {
 	res := make(map[string]string)
 	for k, v := range a {

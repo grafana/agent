@@ -1,11 +1,14 @@
-import { Body as RiverBody } from '../river-js/types';
+import { AttrStmt, Body as RiverBody } from '../river-js/types';
 
 /**
  * ComponentInfo is high-level information for a component.
  */
 export interface ComponentInfo {
-  /** The id of the component uniquely identifies the component. */
-  id: string;
+  /** The moduleID that the component is defined in. moduleID may be the empty string. */
+  moduleID: string;
+
+  /** The id of the component uniquely identifies the component within a module. */
+  localID: string;
 
   /**
    * The name of the component is the name of the block used to instantiate
@@ -47,7 +50,7 @@ export interface ComponentInfo {
 export function componentInfoByID(info: ComponentInfo[]): Record<string, ComponentInfo> {
   const res: Record<string, ComponentInfo> = {};
   info.forEach((elem) => {
-    res[elem.id] = elem;
+    res[elem.localID] = elem;
   });
   return res;
 }
@@ -99,12 +102,22 @@ export interface ComponentDetail extends ComponentInfo {
   debugInfo?: RiverBody;
 
   /**
-   * If a component is loaded from a module, this is the parent ID.
+   * If a component is a module loader, the IDs of modules it created are included here.
    */
-  parent?: string;
+  createdModuleIDs?: string[];
 
   /**
    * If a component is a module loader, the loaded components from the module are included here.
    */
   moduleInfo?: ComponentInfo[];
+}
+
+export interface PartitionedBody {
+  /** key is a list of unique identifiers for this partitioned body. */
+  key: string[];
+  /** displayName is a list of friendly identifiers for this partitioned body. */
+  displayName: string[];
+
+  attrs: AttrStmt[];
+  inner: PartitionedBody[];
 }

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/prometheus/common/config"
@@ -20,6 +21,7 @@ const (
 type remoteOpts struct {
 	url              *url.URL
 	HTTPClientConfig *config.HTTPClientConfig
+	headers          map[string]string
 }
 
 // remoteProvider interface should be implemented by config providers
@@ -59,10 +61,11 @@ func newRemoteProvider(rawURL string, opts *remoteOpts) (remoteProvider, error) 
 // httpProvider - http/https provider
 type httpProvider struct {
 	myURL      *url.URL
+	headers    map[string]string
 	httpClient *http.Client
 }
 
-// newHTTPProvider constructs an new httpProvider
+// newHTTPProvider constructs a new httpProvider
 func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	httpClientConfig := config.HTTPClientConfig{}
 	if opts.HTTPClientConfig != nil {
@@ -79,12 +82,28 @@ func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	return &httpProvider{
 		myURL:      opts.url,
 		httpClient: httpClient,
+		headers:    opts.headers,
 	}, nil
+}
+
+type retryAfterError struct {
+	retryAfter time.Duration
+}
+
+func (r retryAfterError) Error() string {
+	return fmt.Sprintf("server indicated to retry after %s", r.retryAfter)
 }
 
 // retrieve implements remoteProvider and fetches the config
 func (p httpProvider) retrieve() ([]byte, error) {
-	response, err := p.httpClient.Get(p.myURL.String())
+	req, err := http.NewRequest(http.MethodGet, p.myURL.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+	for header, headerVal := range p.headers {
+		req.Header.Set(header, headerVal)
+	}
+	response, err := p.httpClient.Do(req)
 	if err != nil {
 		instrumentation.InstrumentRemoteConfigFetchError()
 		return nil, fmt.Errorf("request failed: %w", err)
@@ -92,6 +111,18 @@ func (p httpProvider) retrieve() ([]byte, error) {
 	defer response.Body.Close()
 
 	instrumentation.InstrumentRemoteConfigFetch(response.StatusCode)
+
+	if response.StatusCode == http.StatusTooManyRequests {
+		retryAfter := response.Header.Get("Retry-After")
+		if retryAfter == "" {
+			return nil, fmt.Errorf("server indicated to retry, but no Retry-After header was provided")
+		}
+		retryAfterDuration, err := time.ParseDuration(retryAfter)
+		if err != nil {
+			return nil, fmt.Errorf("server indicated to retry, but Retry-After header was not a valid duration: %w", err)
+		}
+		return nil, retryAfterError{retryAfter: retryAfterDuration}
+	}
 
 	if response.StatusCode/100 != 2 {
 		return nil, fmt.Errorf("error fetching config: status code: %d", response.StatusCode)

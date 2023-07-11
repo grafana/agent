@@ -21,11 +21,23 @@ function(agent, namespace, spec) {
   batchwait: optionals.string(spec.BatchWait),
   batchsize: optionals.number(spec.BatchSize),
 
-  // TODO(rfratto): oauth2 support?
   basic_auth: if spec.BasicAuth != null then {
     username: secrets.valueForSecret(namespace, spec.BasicAuth.Username),
     password: secrets.valueForSecret(namespace, spec.BasicAuth.Password),
   },
+  oauth2: (
+    if spec.OAuth2 != null then {
+      // TODO: client_id can also be stored in a config map:
+      // secrets.valueForConfigMap(namespace, spec.OAuth2.ClientID.ConfigMap),
+      local client_id = secrets.valueForSecret(namespace, spec.OAuth2.ClientID.Secret),
+      
+      client_id: client_id,
+      client_secret_file: secrets.pathForSecret(namespace, spec.OAuth2.ClientSecret),
+      endpoint_params: spec.OAuth2.EndpointParams,
+      scopes: spec.OAuth2.Scopes,
+      token_url: spec.OAuth2.TokenURL,
+    }
+  ),
   bearer_token: optionals.string(spec.BearerToken),
   bearer_token_file: optionals.string(spec.BearerTokenFile),
 

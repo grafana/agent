@@ -10,7 +10,7 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:      "prometheus.exporter.unix",
-		Args:      Config{},
+		Args:      Arguments{},
 		Exports:   exporter.Exports{},
 		Singleton: true,
 		Build:     exporter.New(createExporter, "unix"),
@@ -18,6 +18,6 @@ func init() {
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Config)
-	return node_integration.New(opts.Logger, cfg.Convert())
+	a := args.(Arguments)
+	return node_integration.New(opts.Logger, a.Convert())
 }

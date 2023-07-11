@@ -8,10 +8,9 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter"
-	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -43,8 +42,6 @@ type Arguments struct {
 }
 
 var (
-	_ river.Unmarshaler  = (*Arguments)(nil)
-	_ river.Unmarshaler  = (*HTTPClientArguments)(nil)
 	_ exporter.Arguments = Arguments{}
 )
 
@@ -55,38 +52,34 @@ var DefaultArguments = Arguments{
 	Client: DefaultHTTPClientArguments,
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-	type arguments Arguments
-	err := f((*arguments)(args))
-	if err != nil {
-		return err
-	}
-	return args.Validate()
 }
 
 // Convert implements exporter.Arguments.
-func (args Arguments) Convert() (otelconfig.Exporter, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &otlphttpexporter.Config{
-		ExporterSettings:   otelconfig.NewExporterSettings(otelconfig.NewComponentID("otlp")),
 		HTTPClientSettings: *(*otelcol.HTTPClientArguments)(&args.Client).Convert(),
 		QueueSettings:      *args.Queue.Convert(),
 		RetrySettings:      *args.Retry.Convert(),
+		TracesEndpoint:     args.TracesEndpoint,
+		MetricsEndpoint:    args.MetricsEndpoint,
+		LogsEndpoint:       args.LogsEndpoint,
 	}, nil
 }
 
 // Extensions implements exporter.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return (*otelcol.HTTPClientArguments)(&args.Client).Extensions()
 }
 
 // Exporters implements exporter.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 
-// Validate returns an error if the configuration is invalid.
+// Validate implements river.Validator.
 func (args *Arguments) Validate() error {
 	if args.Client.Endpoint == "" && args.TracesEndpoint == "" && args.MetricsEndpoint == "" && args.LogsEndpoint == "" {
 		return errors.New("at least one endpoint must be specified")
@@ -114,9 +107,7 @@ var (
 	}
 )
 
-// UnmarshalRiver implements river.Unmarshaler and supplies defaults.
-func (args *HTTPClientArguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *HTTPClientArguments) SetToDefault() {
 	*args = DefaultHTTPClientArguments
-	type arguments HTTPClientArguments
-	return f((*arguments)(args))
 }

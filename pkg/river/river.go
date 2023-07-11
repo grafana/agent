@@ -149,7 +149,7 @@ func Marshal(v interface{}) ([]byte, error) {
 // comma-separated list of options. The following provides examples for all
 // supported struct field tags with their meanings:
 //
-//	// Field appears as a object field named "my_name". It will always
+//	// Field appears as an object field named "my_name". It will always
 //	// appear in the resulting encoding. When decoding, "my_name" is treated
 //	// as a required attribute and must be present in the source text.
 //	Field bool `river:"my_name,attr"`
@@ -263,7 +263,10 @@ func Unmarshal(in []byte, v interface{}) error {
 // following:
 //
 //   - bool, for River bools
-//   - float64, for River numbers
+//   - float64, for floating point River numbers
+//     and integers which are too big to fit in either of int/int64/uint64
+//   - int/int64/uint64, in this order of preference, for signed and unsigned
+//     River integer numbers, depending on how big they are
 //   - string, for River strings
 //   - []interface{}, for River arrays
 //   - map[string]interface{}, for River objects
@@ -304,7 +307,7 @@ func NewDecoder(r io.Reader) *Decoder {
 // in the value pointed to by v. Data will be read from the Decoder's input
 // until EOF is reached.
 //
-// See the documentation for Unmarshal for details about the converion of River
+// See the documentation for Unmarshal for details about the conversion of River
 // configuration into Go values.
 func (dec *Decoder) Decode(v interface{}) error {
 	bb, err := io.ReadAll(dec.r)
@@ -325,7 +328,7 @@ func (dec *Decoder) Decode(v interface{}) error {
 // stores it in the value pointed to by v. Data will be read from the Decoder's
 // input until EOF is reached.
 //
-// See the documentation for UnmarshalValue for details about the converion of
+// See the documentation for UnmarshalValue for details about the conversion of
 // River values into Go values.
 func (dec *Decoder) DecodeValue(v interface{}) error {
 	bb, err := io.ReadAll(dec.r)

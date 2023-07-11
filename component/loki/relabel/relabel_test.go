@@ -3,12 +3,15 @@ package relabel
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/discovery"
+	lsf "github.com/grafana/agent/component/loki/source/file"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
@@ -48,7 +51,7 @@ func TestRelabeling(t *testing.T) {
 	err := river.Unmarshal([]byte(rc), &relabelConfigs)
 	require.NoError(t, err)
 
-	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 
 	// Create and run the component, so that it relabels and forwards logs.
 	opts := component.Options{
@@ -75,7 +78,7 @@ func TestRelabeling(t *testing.T) {
 		},
 	}
 
-	c.receiver <- logEntry
+	c.receiver.Chan() <- logEntry
 
 	wantLabelSet := model.LabelSet{
 		"filename":    "/var/log/pods/agent/agent/1.log",
@@ -89,11 +92,11 @@ func TestRelabeling(t *testing.T) {
 	// rules correctly applied.
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "very important log", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "very important log", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -109,7 +112,7 @@ func BenchmarkRelabelComponent(b *testing.B) {
 	}
 	var relabelConfigs cfg
 	_ = river.Unmarshal([]byte(rc), &relabelConfigs)
-	ch1 := make(loki.LogsReceiver)
+	ch1 := loki.NewLogsReceiver()
 
 	// Create and run the component, so that it relabels and forwards logs.
 	opts := component.Options{
@@ -129,14 +132,14 @@ func BenchmarkRelabelComponent(b *testing.B) {
 
 	var entry loki.Entry
 	go func() {
-		for e := range ch1 {
+		for e := range ch1.Chan() {
 			entry = e
 		}
 	}()
 
 	now := time.Now()
 	for i := 0; i < b.N; i++ {
-		c.receiver <- loki.Entry{
+		c.receiver.Chan() <- loki.Entry{
 			Labels: model.LabelSet{"filename": "/var/log/pods/agent/agent/%d.log", "kubernetes_namespace": "dev", "kubernetes_pod_name": model.LabelValue(fmt.Sprintf("agent-%d", i)), "foo": "bar"},
 			Entry: logproto.Entry{
 				Timestamp: now,
@@ -157,7 +160,7 @@ func TestCache(t *testing.T) {
 	err := river.Unmarshal([]byte(rc), &relabelConfigs)
 	require.NoError(t, err)
 
-	ch1 := make(loki.LogsReceiver)
+	ch1 := loki.NewLogsReceiver()
 
 	// Create and run the component, so that it relabels and forwards logs.
 	opts := component.Options{
@@ -184,7 +187,7 @@ func TestCache(t *testing.T) {
 	go c.Run(context.Background())
 
 	go func() {
-		for e := range ch1 {
+		for e := range ch1.Chan() {
 			require.Equal(t, "very important log", e.Line)
 		}
 	}()
@@ -207,11 +210,11 @@ func TestCache(t *testing.T) {
 	}
 	// Send three entries with different label sets along the receiver.
 	e.Labels = lsets[0]
-	c.receiver <- e
+	c.receiver.Chan() <- e
 	e.Labels = lsets[1]
-	c.receiver <- e
+	c.receiver.Chan() <- e
 	e.Labels = lsets[2]
-	c.receiver <- e
+	c.receiver.Chan() <- e
 
 	time.Sleep(100 * time.Millisecond)
 	// Let's look into the cache's structure now!
@@ -233,7 +236,7 @@ func TestCache(t *testing.T) {
 	// We should've hit the cached path, with no changes to the cache's length
 	// or the underlying stored value.
 	e.Labels = lsets[0]
-	c.receiver <- e
+	c.receiver.Chan() <- e
 	require.Equal(t, c.cache.Len(), 3)
 	val, _ := c.cache.Get(lsets[0].Fingerprint())
 	cachedVal := val.([]cacheItem)
@@ -250,10 +253,10 @@ func TestCache(t *testing.T) {
 	require.Equal(t, ls1.Fingerprint(), ls2.Fingerprint(), "expected labelset fingerprints to collide; have we changed the hashing algorithm?")
 
 	e.Labels = ls1
-	c.receiver <- e
+	c.receiver.Chan() <- e
 
 	e.Labels = ls2
-	c.receiver <- e
+	c.receiver.Chan() <- e
 
 	time.Sleep(100 * time.Millisecond)
 	// Both of these should be under a single, new cache key which will contain
@@ -272,9 +275,9 @@ func TestCache(t *testing.T) {
 	// Finally, send two more entries, which should fill up the cache and evict
 	// the Least Recently Used items (lsets[1], and lsets[2]).
 	e.Labels = lsets[3]
-	c.receiver <- e
+	c.receiver.Chan() <- e
 	e.Labels = lsets[4]
-	c.receiver <- e
+	c.receiver.Chan() <- e
 
 	require.Equal(t, c.cache.Len(), 4)
 	wantKeys := []model.Fingerprint{lsets[0].Fingerprint(), ls1.Fingerprint(), lsets[3].Fingerprint(), lsets[4].Fingerprint()}
@@ -282,6 +285,96 @@ func TestCache(t *testing.T) {
 		f, ok := k.(model.Fingerprint)
 		require.True(t, ok)
 		require.Equal(t, f, wantKeys[i])
+	}
+}
+
+func TestEntrySentToTwoRelabelComponents(t *testing.T) {
+	// Set up two different loki.relabel components.
+	stg1 := `
+forward_to = []
+rule {
+	action       = "replace"
+	target_label = "lbl"
+	replacement  = "foo"
+}
+`
+	stg2 := `
+forward_to = []
+rule {
+	action       = "replace"
+	target_label = "lbl"
+	replacement  = "bar"
+}
+`
+
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
+	var args1, args2 Arguments
+	require.NoError(t, river.Unmarshal([]byte(stg1), &args1))
+	require.NoError(t, river.Unmarshal([]byte(stg2), &args2))
+	args1.ForwardTo = []loki.LogsReceiver{ch1}
+	args2.ForwardTo = []loki.LogsReceiver{ch2}
+
+	// Start the loki.process components.
+	tc1, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.relabel")
+	require.NoError(t, err)
+	tc2, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.relabel")
+
+	require.NoError(t, err)
+	go func() {
+		err1 := tc1.Run(componenttest.TestContext(t), args1)
+		require.NoError(t, err1)
+	}()
+	go func() {
+		err2 := tc2.Run(componenttest.TestContext(t), args2)
+		require.NoError(t, err2)
+	}()
+	require.NoError(t, tc1.WaitExports(time.Second))
+	require.NoError(t, tc2.WaitExports(time.Second))
+
+	// Create a file to log to.
+	f, err := os.CreateTemp(t.TempDir(), "example")
+	require.NoError(t, err)
+	defer f.Close()
+
+	// Create and start a component that will read from that file and fan out to both components.
+	ctrl, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.source.file")
+	require.NoError(t, err)
+
+	go func() {
+		err := ctrl.Run(context.Background(), lsf.Arguments{
+			Targets: []discovery.Target{{"__path__": f.Name(), "somelbl": "somevalue"}},
+			ForwardTo: []loki.LogsReceiver{
+				tc1.Exports().(Exports).Receiver,
+				tc2.Exports().(Exports).Receiver,
+			},
+		})
+		require.NoError(t, err)
+	}()
+	ctrl.WaitRunning(time.Minute)
+
+	// Write a line to the file.
+	_, err = f.Write([]byte("writing some text\n"))
+	require.NoError(t, err)
+
+	wantLabelSet := model.LabelSet{
+		"filename": model.LabelValue(f.Name()),
+		"somelbl":  "somevalue",
+	}
+
+	// The two entries have been modified without a race condition.
+	for i := 0; i < 2; i++ {
+		select {
+		case logEntry := <-ch1.Chan():
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "writing some text", logEntry.Line)
+			require.Equal(t, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": "foo"}), logEntry.Labels)
+		case logEntry := <-ch2.Chan():
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "writing some text", logEntry.Line)
+			require.Equal(t, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": "bar"}), logEntry.Labels)
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "failed waiting for log line")
+		}
 	}
 }
 

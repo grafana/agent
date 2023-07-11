@@ -64,10 +64,12 @@ type Component struct {
 	manager       *manager
 	lastOptions   *options
 	handler       loki.LogsReceiver
-	receivers     []loki.LogsReceiver
 	posFile       positions.Positions
 	rcs           []*relabel.Config
 	defaultLabels model.LabelSet
+
+	receiversMut sync.RWMutex
+	receivers    []loki.LogsReceiver
 }
 
 // New creates a new loki.source.file component.
@@ -90,7 +92,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:    o,
 		metrics: dt.NewMetrics(o.Registerer),
 
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 		manager:   newManager(o.Logger, nil),
 		receivers: args.ForwardTo,
 		posFile:   positionsFile,
@@ -123,12 +125,12 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
-			c.mut.RLock()
+		case entry := <-c.handler.Chan():
+			c.receiversMut.RLock()
 			receivers := c.receivers
-			c.mut.RUnlock()
+			c.receiversMut.RUnlock()
 			for _, receiver := range receivers {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 		}
 	}
@@ -138,10 +140,13 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
+	// Update the receivers before anything else, just in case something fails.
+	c.receiversMut.Lock()
+	c.receivers = newArgs.ForwardTo
+	c.receiversMut.Unlock()
+
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	c.args = newArgs
-	c.receivers = newArgs.ForwardTo
 
 	managerOpts, err := c.getManagerOptions(newArgs)
 	if err != nil {
@@ -200,6 +205,8 @@ func (c *Component) Update(args component.Arguments) error {
 		// This will never fail because it only fails if the context gets canceled.
 		_ = c.manager.syncTargets(context.Background(), targets)
 	}
+
+	c.args = newArgs
 	return nil
 }
 
@@ -214,7 +221,7 @@ func (c *Component) getManagerOptions(args Arguments) (*options, error) {
 	}
 
 	opts := []client.Opt{
-		client.WithHost(c.args.Host),
+		client.WithHost(args.Host),
 		client.WithAPIVersionNegotiation(),
 	}
 	client, err := client.NewClientWithOpts(opts...)
@@ -225,7 +232,7 @@ func (c *Component) getManagerOptions(args Arguments) (*options, error) {
 
 	return &options{
 		client:    client,
-		handler:   loki.NewEntryHandler(c.handler, func() {}),
+		handler:   loki.NewEntryHandler(c.handler.Chan(), func() {}),
 		positions: c.posFile,
 	}, nil
 }

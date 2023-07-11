@@ -8,10 +8,9 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
-	"github.com/grafana/agent/pkg/river"
 	tsp "github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -39,7 +38,6 @@ type Arguments struct {
 
 var (
 	_ processor.Arguments = Arguments{}
-	_ river.Unmarshaler   = (*Arguments)(nil)
 )
 
 // DefaultArguments holds default settings for Arguments.
@@ -49,16 +47,13 @@ var DefaultArguments = Arguments{
 	ExpectedNewTracesPerSec: 0,
 }
 
-// UnmarshalRiver implements river.Unmarshaler. It applies defaults to args and
-// validates settings provided by the user.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.DecisionWait.Milliseconds() <= 0 {
 		return fmt.Errorf("decision_wait must be greater than zero")
 	}
@@ -71,34 +66,27 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() (otelconfig.Processor, error) {
-	// TODO: Get rid of mapstructure once tailsamplingprocessor.Config has all public types
-	var otelConfig tsp.Config
-
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	var otelPolicyCfgs []tsp.PolicyCfg
 	for _, policyCfg := range args.PolicyCfgs {
 		otelPolicyCfgs = append(otelPolicyCfgs, policyCfg.Convert())
 	}
 
-	mustDecodeMapStructure(map[string]interface{}{
-		"decision_wait":               args.DecisionWait,
-		"num_traces":                  args.NumTraces,
-		"expected_new_traces_per_sec": args.ExpectedNewTracesPerSec,
-		"policies":                    otelPolicyCfgs,
-	}, &otelConfig)
-
-	otelConfig.ProcessorSettings = otelconfig.NewProcessorSettings(otelconfig.NewComponentID("tail_sampling"))
-
-	return &otelConfig, nil
+	return &tsp.Config{
+		DecisionWait:            args.DecisionWait,
+		NumTraces:               args.NumTraces,
+		ExpectedNewTracesPerSec: args.ExpectedNewTracesPerSec,
+		PolicyCfgs:              otelPolicyCfgs,
+	}, nil
 }
 
 // Extensions implements processor.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements processor.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

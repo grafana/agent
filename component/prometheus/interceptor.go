@@ -17,7 +17,7 @@ type Interceptor struct {
 	onAppend          func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error)
 	onAppendExemplar  func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error)
 	onUpdateMetadata  func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error)
-	onAppendHistogram func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, next storage.Appender) (storage.SeriesRef, error)
+	onAppendHistogram func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error)
 
 	// next is the next appendable to pass in the chain.
 	next storage.Appendable
@@ -62,9 +62,9 @@ func WithMetadataHook(f func(ref storage.SeriesRef, l labels.Labels, m metadata.
 	}
 }
 
-// WithAppendHistogram returns an InterceptorOption which hooks into calls to
+// WithHistogramHook returns an InterceptorOption which hooks into calls to
 // AppendHistogram.
-func WithAppendHistogram(f func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, next storage.Appender) (storage.SeriesRef, error)) InterceptorOption {
+func WithHistogramHook(f func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error)) InterceptorOption {
 	return func(i *Interceptor) {
 		i.onAppendHistogram = f
 	}
@@ -108,7 +108,7 @@ func (a *interceptappender) Commit() error {
 	return a.child.Commit()
 }
 
-// Rollback satisifies the Appender interface.
+// Rollback satisfies the Appender interface.
 func (a *interceptappender) Rollback() error {
 	if a.child == nil {
 		return nil
@@ -133,7 +133,7 @@ func (a *interceptappender) AppendExemplar(
 	return a.child.AppendExemplar(ref, l, e)
 }
 
-// UpdateMetadata satisifies the Appender interface.
+// UpdateMetadata satisfies the Appender interface.
 func (a *interceptappender) UpdateMetadata(
 	ref storage.SeriesRef,
 	l labels.Labels,
@@ -155,6 +155,7 @@ func (a *interceptappender) AppendHistogram(
 	l labels.Labels,
 	t int64,
 	h *histogram.Histogram,
+	fh *histogram.FloatHistogram,
 ) (storage.SeriesRef, error) {
 
 	if ref == 0 {
@@ -162,7 +163,7 @@ func (a *interceptappender) AppendHistogram(
 	}
 
 	if a.interceptor.onAppendHistogram != nil {
-		return a.interceptor.onAppendHistogram(ref, l, t, h, a.child)
+		return a.interceptor.onAppendHistogram(ref, l, t, h, fh, a.child)
 	}
-	return a.child.AppendHistogram(ref, l, t, h)
+	return a.child.AppendHistogram(ref, l, t, h, fh)
 }

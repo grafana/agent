@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/stretchr/testify/require"
@@ -39,11 +40,11 @@ func TestRiverUnmarshal(t *testing.T) {
 		skip_tls_verification       = false
 		is_cluster                  = true
 	`
-	var cfg Config
-	err := river.Unmarshal([]byte(riverConfig), &cfg)
+	var args Arguments
+	err := river.Unmarshal([]byte(riverConfig), &args)
 
 	require.NoError(t, err)
-	expected := Config{
+	expected := Arguments{
 		RedisAddr:         "localhost:6379",
 		RedisUser:         "redis_user",
 		RedisPasswordFile: "/tmp/pass",
@@ -77,7 +78,7 @@ func TestRiverUnmarshal(t *testing.T) {
 		SkipTLSVerification: false,
 		IsCluster:           true,
 	}
-	require.Equal(t, expected, cfg)
+	require.Equal(t, expected, args)
 }
 
 func TestUnmarshalInvalid(t *testing.T) {
@@ -85,8 +86,8 @@ func TestUnmarshalInvalid(t *testing.T) {
 	redis_addr  = "localhost:1234"
 	script_path = "/tmp/metrics.lua"`
 
-	var cfg Config
-	err := river.Unmarshal([]byte(validRiverConfig), &cfg)
+	var args Arguments
+	err := river.Unmarshal([]byte(validRiverConfig), &args)
 	require.NoError(t, err)
 
 	invalidRiverConfig := `
@@ -94,13 +95,13 @@ func TestUnmarshalInvalid(t *testing.T) {
 	script_path  = "/tmp/metrics.lua"
 	script_paths = ["/tmp/more-metrics.lua", "/tmp/even-more-metrics.lua"]`
 
-	var invalidCfg Config
-	err = river.Unmarshal([]byte(invalidRiverConfig), &invalidCfg)
+	var invalidArgs Arguments
+	err = river.Unmarshal([]byte(invalidRiverConfig), &invalidArgs)
 	require.Error(t, err)
 }
 
 func TestRiverConvert(t *testing.T) {
-	orig := Config{
+	orig := Arguments{
 		RedisAddr:         "localhost:6379",
 		RedisUser:         "redis_user",
 		RedisPasswordFile: "/tmp/pass",
@@ -169,4 +170,15 @@ func TestRiverConvert(t *testing.T) {
 	}
 
 	require.Equal(t, expected, *converted)
+}
+
+func TestCustomizeTarget(t *testing.T) {
+	args := Arguments{
+		RedisAddr: "localhost:6379",
+	}
+
+	baseTarget := discovery.Target{}
+	newTargets := customizeTarget(baseTarget, args)
+	require.Equal(t, 1, len(newTargets))
+	require.Equal(t, "localhost:6379", newTargets[0]["instance"])
 }

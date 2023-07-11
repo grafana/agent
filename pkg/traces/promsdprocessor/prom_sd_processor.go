@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/collector/processor"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
 )
 
@@ -40,7 +41,7 @@ type promServiceDiscoProcessor struct {
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAssociations []string, scrapeConfigs []*config.ScrapeConfig) (component.TracesProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAssociations []string, scrapeConfigs []*config.ScrapeConfig) (processor.Traces, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	logger := log.With(util.Logger, "component", "traces service disco")
@@ -264,9 +265,9 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 		for k, v := range discoveredLabels.Clone() {
 			labelMap[string(k)] = string(v)
 		}
-		processedLabels := relabel.Process(labels.FromMap(labelMap), relabelConfig...)
+		processedLabels, keep := relabel.Process(labels.FromMap(labelMap), relabelConfig...)
 		level.Debug(p.logger).Log("processedLabels", processedLabels)
-		if processedLabels == nil { // dropped
+		if !keep {
 			continue
 		}
 

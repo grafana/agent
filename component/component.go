@@ -93,7 +93,7 @@ type Component interface {
 	// always match the struct type which the component registers.
 	//
 	// Update will be called concurrently with Run. The component must be able to
-	// gracefully handle updating its config will still running.
+	// gracefully handle updating its config while still running.
 	//
 	// An error may be returned if the provided config is invalid.
 	Update(args Arguments) error
@@ -124,4 +124,12 @@ type HTTPComponent interface {
 	// For example, f a request is made to `/component/{id}/metrics`, the component
 	// will receive a request to just `/metrics`.
 	Handler() http.Handler
+}
+
+// ClusteredComponent is an extension interface for components which implement
+// clustering-specific behavior.
+type ClusteredComponent interface {
+	Component
+
+	ClusterUpdatesRegistration() bool
 }

@@ -18,11 +18,22 @@ func valueFromLiteral(lit string, tok token.Token) (value.Value, error) {
 		return value.Null, nil
 
 	case token.NUMBER:
-		v, err := strconv.ParseInt(lit, 0, 64)
-		if err != nil {
-			return value.Null, err
+		intVal, err1 := strconv.ParseInt(lit, 0, 64)
+		if err1 == nil {
+			return value.Int(intVal), nil
 		}
-		return value.Int(v), nil
+
+		uintVal, err2 := strconv.ParseUint(lit, 0, 64)
+		if err2 == nil {
+			return value.Uint(uintVal), nil
+		}
+
+		floatVal, err3 := strconv.ParseFloat(lit, 64)
+		if err3 == nil {
+			return value.Float(floatVal), nil
+		}
+
+		return value.Null, err3
 
 	case token.FLOAT:
 		v, err := strconv.ParseFloat(lit, 64)

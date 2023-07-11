@@ -1,5 +1,4 @@
 //go:build !nonetwork && !nodocker && !race
-// +build !nonetwork,!nodocker,!race
 
 package hierarchy
 
@@ -126,7 +125,7 @@ func TestNotifier(t *testing.T) {
 			}
 
 			e := notifier.EventHandler()
-			e.Create(event.CreateEvent{Object: testPod}, q)
+			e.Create(ctx, event.CreateEvent{Object: testPod}, q)
 			if tc.expectEnqueue {
 				require.Equal(t, 1, q.Len(), "expected change enqueue")
 			} else {

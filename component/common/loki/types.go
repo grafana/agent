@@ -23,14 +23,42 @@ import (
 // to an outage or erroring (such as limits being hit).
 const finalEntryTimeout = 5 * time.Second
 
-// LogsReceiver is an alias for chan Entry which is used for component
+// LogsReceiver is an interface providing `chan Entry` which is used for component
 // communication.
-type LogsReceiver chan Entry
+type LogsReceiver interface {
+	Chan() chan Entry
+}
+
+type logsReceiver struct {
+	entries chan Entry
+}
+
+func (l *logsReceiver) Chan() chan Entry {
+	return l.entries
+}
+
+func NewLogsReceiver() LogsReceiver {
+	return NewLogsReceiverWithChannel(make(chan Entry))
+}
+
+func NewLogsReceiverWithChannel(c chan Entry) LogsReceiver {
+	return &logsReceiver{
+		entries: c,
+	}
+}
 
 // Entry is a log entry with labels.
 type Entry struct {
 	Labels model.LabelSet
 	logproto.Entry
+}
+
+// Clone returns a copy of the entry so that it can be safely fanned out.
+func (e *Entry) Clone() Entry {
+	return Entry{
+		Labels: e.Labels.Clone(),
+		Entry:  e.Entry,
+	}
 }
 
 // InstrumentedEntryHandler ...
@@ -40,14 +68,14 @@ type InstrumentedEntryHandler interface {
 }
 
 // EntryHandler is something that can "handle" entries via a channel.
-// Stop must be called to gracefully shutdown the EntryHandler
+// Stop must be called to gracefully shut down the EntryHandler
 type EntryHandler interface {
 	Chan() chan<- Entry
 	Stop()
 }
 
 // EntryMiddleware takes an EntryHandler and returns another one that will intercept and forward entries.
-// The newly created EntryHandler should be Stopped independently from the original one.
+// The newly created EntryHandler should be Stopped independently of the original one.
 type EntryMiddleware interface {
 	Wrap(EntryHandler) EntryHandler
 }
@@ -77,7 +105,7 @@ func (e entryHandler) Stop() {
 	e.stop()
 }
 
-// NewEntryHandler creates a new EntryHandler using a input channel and a stop function.
+// NewEntryHandler creates a new EntryHandler using an input channel and a stop function.
 func NewEntryHandler(entries chan<- Entry, stop func()) EntryHandler {
 	return entryHandler{
 		stop:    stop,
@@ -125,7 +153,7 @@ func NewEntryMutatorHandler(next EntryHandler, f EntryMutatorFunc) EntryHandler 
 
 			select {
 			case <-ctx.Done():
-				// The goroutine above exited on its own so we don't have to wait for
+				// The goroutine above exited on its own, so we don't have to wait for
 				// the timeout.
 			case <-time.After(finalEntryTimeout):
 				// We reached the timeout for sending the final entry to nextChan;

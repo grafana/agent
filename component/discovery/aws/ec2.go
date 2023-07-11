@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	promcfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	promaws "github.com/prometheus/prometheus/discovery/aws"
@@ -69,15 +69,13 @@ var DefaultEC2SDConfig = EC2Arguments{
 	RefreshInterval: 60 * time.Second,
 }
 
-// UnmarshalRiver implements river.Unmarshaler, applying defaults and
-// validating the provided config.
-func (args *EC2Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *EC2Arguments) SetToDefault() {
 	*args = DefaultEC2SDConfig
+}
 
-	type arguments EC2Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
+// Validate implements river.Validator.
+func (args *EC2Arguments) Validate() error {
 	if args.Region == "" {
 		sess, err := session.NewSession()
 		if err != nil {

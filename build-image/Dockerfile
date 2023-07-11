@@ -23,7 +23,7 @@ FROM alpine:3.17 as helm
 RUN apk add --no-cache helm
 
 # Dependency: Go and Go dependencies
-FROM golang:1.20.2-bullseye as golang
+FROM golang:1.20.5-bullseye as golang
 
 # Keep in sync with cmd/grafana-agent-operator/DEVELOPERS.md
 ENV CONTROLLER_GEN_VERSION v0.9.2
@@ -46,7 +46,7 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
 
 # rfratto/viceroy contains C cross compilers can be used for our Cgo
 # dependencies.
-FROM rfratto/viceroy:v0.3.0
+FROM rfratto/viceroy:v0.4.0
 
 # Install NodeJS LTS. This is needed because the most recent version of NodeJS
 # from official Debian packages is v12, and we need LTS version v16.
@@ -76,7 +76,7 @@ RUN apt-get update                                \
       build-essential file zip unzip gettext git  \
       musl libsystemd-dev nsis                    \
       rpm ruby ruby-dev rubygems                  \
-      protobuf-compiler libprotobuf-dev           \
+      protobuf-compiler libprotobuf-dev yamllint  \
  && gem install --no-document fpm                 \
  && rm -rf /var/lib/apt/lists/*
 
@@ -86,6 +86,13 @@ COPY --from=docker   /usr/libexec/docker/cli-plugins /usr/libexec/docker/cli-plu
 COPY --from=helm     /usr/bin/helm                   /usr/bin/helm
 COPY --from=golang   /usr/local/go                   /usr/local/go
 COPY --from=golang   /go/bin                         /go/bin
+
+# Git tries to prevent misuse of repositories (CVE-2022-24765), but we don't
+# care about this for build containers, where it's expected that the repository
+# will be accessed by other users (the root user of the build container).
+#
+# Disable that safety check.
+RUN git config --global --add safe.directory \*
 
 # Set CC to viceroycc to ensure that the cross compilers are used for all C
 # compilation.

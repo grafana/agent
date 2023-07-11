@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/procfs"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -125,6 +125,12 @@ type Config struct {
 	NetstatFields                    string              `yaml:"netstat_fields,omitempty"`
 	PerfCPUS                         string              `yaml:"perf_cpus,omitempty"`
 	PerfTracepoint                   flagext.StringSlice `yaml:"perf_tracepoint,omitempty"`
+	PerfDisableHardwareProfilers     bool                `yaml:"perf_disable_hardware_profilers,omitempty"`
+	PerfDisableSoftwareProfilers     bool                `yaml:"perf_disable_software_profilers,omitempty"`
+	PerfDisableCacheProfilers        bool                `yaml:"perf_disable_cache_profilers,omitempty"`
+	PerfHardwareProfilers            flagext.StringSlice `yaml:"perf_hardware_profilers,omitempty"`
+	PerfSoftwareProfilers            flagext.StringSlice `yaml:"perf_software_profilers,omitempty"`
+	PerfCacheProfilers               flagext.StringSlice `yaml:"perf_cache_profilers,omitempty"`
 	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty"`
 	RunitServiceDir                  string              `yaml:"runit_service_dir,omitempty"`
 	SupervisordURL                   string              `yaml:"supervisord_url,omitempty"`
@@ -319,8 +325,11 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 	}
 
 	if collectors[CollectorDiskstats] {
-		flags.add("--collector.diskstats.device-include", c.DiskStatsDeviceInclude)
-		flags.add("--collector.diskstats.device-exclude", c.DiskStatsDeviceExclude)
+		if c.DiskStatsDeviceInclude != "" {
+			flags.add("--collector.diskstats.device-include", c.DiskStatsDeviceInclude)
+		} else {
+			flags.add("--collector.diskstats.device-exclude", c.DiskStatsDeviceExclude)
+		}
 	}
 
 	if collectors[CollectorEthtool] {
@@ -383,6 +392,22 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 
 		for _, tp := range c.PerfTracepoint {
 			flags.add("--collector.perf.tracepoint", tp)
+		}
+
+		flags.addBools(map[*bool]string{
+			&c.PerfDisableHardwareProfilers: "collector.perf.disable-hardware-profilers",
+			&c.PerfDisableSoftwareProfilers: "collector.perf.disable-software-profilers",
+			&c.PerfDisableCacheProfilers:    "collector.perf.disable-cache-profilers",
+		})
+
+		for _, hwp := range c.PerfHardwareProfilers {
+			flags.add("--collector.perf.hardware-profilers", hwp)
+		}
+		for _, swp := range c.PerfSoftwareProfilers {
+			flags.add("--collector.perf.software-profilers", swp)
+		}
+		for _, cp := range c.PerfCacheProfilers {
+			flags.add("--collector.perf.cache-profilers", cp)
 		}
 	}
 

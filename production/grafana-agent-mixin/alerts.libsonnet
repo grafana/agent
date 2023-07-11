@@ -59,7 +59,7 @@ local _config = config._config;
             },
             annotations: {
               message: |||
-                Load balacing is experiencing {{ printf "%.2f" $value }}% errors.
+                Load balancing is experiencing {{ printf "%.2f" $value }}% errors.
               |||,
             },
           },
@@ -358,7 +358,7 @@ local _config = config._config;
             },
             annotations: {
               message: |||
-                 Instance {{ $labels.instance }} failed to succesfully reload the config.
+                 Instance {{ $labels.instance }} failed to successfully reload the config.
               |||,
             },
           },
@@ -373,7 +373,37 @@ local _config = config._config;
             },
             annotations: {
               message: |||
-                 Instance {{ $labels.instance }} failed to succesfully reload the config.
+                 Instance {{ $labels.instance }} failed to successfully reload the config.
+              |||,
+            },
+          },
+          {
+            alert: 'AgentManagementFallbackToEmptyConfig',
+            expr: |||
+              sum(rate(agent_management_config_fallbacks_total{fallback_to="empty_config"}[10m])) by (%(group_by_cluster)s) > 0
+            ||| % _config,
+            'for': '10m',
+            labels: {
+              severity: 'warning',
+            },
+            annotations: {
+              message: |||
+                 Instance {{ $labels.instance }} fell back to empty configuration.
+              |||,
+            },
+          },
+          {
+            alert: 'AgentManagementFallbackToEmptyConfig',
+            expr: |||
+              sum(rate(agent_management_config_fallbacks_total{fallback_to="empty_config"}[10m])) by (%(group_by_cluster)s) > 0
+            ||| % _config,
+            'for': '30m',
+            labels: {
+              severity: 'critical',
+            },
+            annotations: {
+              message: |||
+                 Instance {{ $labels.instance }} fell back to empty configuration.
               |||,
             },
           },

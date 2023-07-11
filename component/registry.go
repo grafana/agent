@@ -1,11 +1,14 @@
 package component
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"reflect"
 	"strings"
 
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
@@ -25,16 +28,48 @@ var (
 	parsedNames = map[string]parsedName{}
 )
 
+// ModuleController is a mechanism responsible for allowing components to create other components via modules.
+type ModuleController interface {
+	// NewModule creates a new, un-started Module with a given ID. Multiple calls to
+	// NewModule must provide unique values for id. The empty string is a valid unique
+	// value for id.
+	//
+	// If id is non-empty, it must be a valid River identifier, matching the
+	// regex /[A-Za-z_][A-Za-z0-9_]/.
+	NewModule(id string, export ExportFunc) (Module, error)
+}
+
+// Module is a controller for running components within a Module.
+type Module interface {
+	// LoadConfig parses River config and loads it into the Module.
+	// LoadConfig can be called multiple times, and called prior to
+	// [Module.Run].
+	LoadConfig(config []byte, args map[string]any) error
+
+	// Run starts the Module. No components within the Module
+	// will be run until Run is called.
+	//
+	// Run blocks until the provided context is canceled. The ID of a module as defined in
+	// ModuleController.NewModule will not be released until Run returns.
+	Run(context.Context)
+}
+
+// ExportFunc is used for onExport of the Module
+type ExportFunc func(exports map[string]any)
+
 // Options are provided to a component when it is being constructed. Options
 // are static for the lifetime of a component.
 type Options struct {
+	// ModuleController allows for the creation of modules.
+	ModuleController ModuleController
+
 	// ID of the component. Guaranteed to be globally unique across all running
 	// components.
 	ID string
 
 	// Logger the component may use for logging. Logs emitted with the logger
 	// always include the component ID as a field.
-	Logger *logging.Logger
+	Logger log.Logger
 
 	// A path to a directory with this component may use for storage. The path is
 	// guaranteed to be unique across all running components.
@@ -61,11 +96,22 @@ type Options struct {
 	// attribute denoting the component ID.
 	Tracer trace.TracerProvider
 
+	// Clusterer allows components to work in a clustered fashion. The
+	// clusterer is shared between all components initialized by a Flow
+	// controller.
+	Clusterer *cluster.Clusterer
+
 	// HTTPListenAddr is the address the server is configured to listen on.
 	HTTPListenAddr string
 
-	// HTTPPath is the base path that requests need in order to route to this component.
-	// Requests received by a component handler will have this already trimmed off.
+	// DialFunc is a function for components to use to properly communicate to
+	// HTTPListenAddr. If set, components which send HTTP requests to
+	// HTTPListenAddr must use this function to establish connections.
+	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+
+	// HTTPPath is the base path that requests need in order to route to this
+	// component. Requests received by a component handler will have this already
+	// trimmed off.
 	HTTPPath string
 }
 

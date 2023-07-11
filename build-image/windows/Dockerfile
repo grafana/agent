@@ -1,7 +1,10 @@
-FROM library/golang:1.20.2-windowsservercore-1809
+FROM library/golang:1.20.5-windowsservercore-1809
 
 SHELL ["powershell", "-command"]
 
+# Use a fixed version of chocolatey to avoid dependency on .net framework install
+# See https://stackoverflow.com/questions/76470752/chocolatey-installation-in-docker-started-to-fail-restart-due-to-net-framework
+ENV chocolateyVersion=1.4.0
 # Install chocolatey for package management
 RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
@@ -38,3 +41,10 @@ RUN choco install git --version 2.39.0 -y
 # yarn - installs node dependencies
 RUN choco install nodejs.install --version 19.2.0 -y
 RUN choco install yarn --version 1.22.19 -y
+
+# Git tries to prevent misuse of repositories (CVE-2022-24765), but we don't
+# care about this for build containers, where it's expected that the repository
+# will be accessed by other users (the root user of the build container).
+#
+# Disable that safety check.
+RUN git config --global --add safe.directory \*

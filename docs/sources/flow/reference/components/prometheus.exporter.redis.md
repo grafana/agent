@@ -17,7 +17,7 @@ The `prometheus.exporter.redis` component embeds
 
 ```river
 prometheus.exporter.redis "LABEL" {
-    redis_addr = "REDIS_ADDRESS"
+    redis_addr = REDIS_ADDRESS
 }
 ```
 
@@ -84,6 +84,12 @@ For example, `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metrics' label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
 
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
+
 ## Component health
 
 `prometheus.exporter.redis` is only reported as unhealthy if given
@@ -113,8 +119,23 @@ prometheus.exporter.redis "example" {
 // Configure a prometheus.scrape component to collect Redis metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.redis.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

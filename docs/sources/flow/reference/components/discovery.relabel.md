@@ -32,7 +32,7 @@ different labels.
 
 ## Usage
 
-```
+```river
 discovery.relabel "LABEL" {
   targets = TARGET_LIST
 

@@ -9,9 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/source/gcplog/internal/fake"
+	fnet "github.com/grafana/agent/component/common/net"
+
+	"github.com/go-kit/log"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -152,7 +155,7 @@ func TestPushTarget(t *testing.T) {
 		outerName := t.Name()
 		t.Run(name, func(t *testing.T) {
 			// Create fake promtail client
-			eh := fake.New(func() {})
+			eh := fake.NewClient(func() {})
 			defer eh.Stop()
 
 			port, err := freeport.GetFreePort()
@@ -164,8 +167,14 @@ func TestPushTarget(t *testing.T) {
 			config := &PushConfig{
 				Labels:               lbls,
 				UseIncomingTimestamp: false,
-				HTTPListenAddress:    "localhost",
-				HTTPListenPort:       port,
+				Server: &fnet.ServerConfig{
+					HTTP: &fnet.HTTPConfig{
+						ListenAddress: "localhost",
+						ListenPort:    port,
+					},
+					// assign random grpc port
+					GRPC: &fnet.GRPCConfig{ListenPort: 0},
+				},
 			}
 
 			prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -190,7 +199,7 @@ func TestPushTarget(t *testing.T) {
 
 			waitForMessages(eh)
 
-			// Make sure we didn't timeout
+			// Make sure we didn't time out
 			require.Equal(t, 1, len(eh.Received()))
 
 			require.Equal(t, len(eh.Received()), len(tc.expectedEntries), "expected to receive equal amount of expected label sets")
@@ -218,7 +227,7 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	port, err := freeport.GetFreePort()
@@ -227,8 +236,14 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		HTTPListenAddress:    "localhost",
-		HTTPListenPort:       port,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -250,7 +265,7 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 
 	waitForMessages(eh)
 
-	// Make sure we didn't timeout
+	// Make sure we didn't time out
 	require.Equal(t, 1, len(eh.Received()))
 
 	expectedTs, err := time.Parse(time.RFC3339Nano, "2022-09-06T18:07:42.363113Z")
@@ -263,7 +278,7 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	port, err := freeport.GetFreePort()
@@ -271,8 +286,14 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 	config := &PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
-		HTTPListenAddress:    "localhost",
-		HTTPListenPort:       port,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -304,7 +325,7 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 
 	waitForMessages(eh)
 
-	// Make sure we didn't timeout
+	// Make sure we didn't time out
 	require.Equal(t, 1, len(eh.Received()))
 
 	require.Equal(t, model.LabelValue("42"), eh.Received()[0].Labels[ReservedLabelTenantID])
@@ -316,15 +337,21 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	// Create fake promtail client
-	eh := fake.New(func() {})
+	eh := fake.NewClient(func() {})
 	defer eh.Stop()
 
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
 	config := &PushConfig{
-		Labels:            nil,
-		HTTPListenAddress: "localhost",
-		HTTPListenPort:    port,
+		Labels: nil,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()
@@ -405,8 +432,14 @@ func TestPushTarget_UsePushTimeout(t *testing.T) {
 		Labels:               nil,
 		UseIncomingTimestamp: true,
 		PushTimeout:          time.Second,
-		HTTPListenAddress:    "localhost",
-		HTTPListenPort:       port,
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress: "localhost",
+				ListenPort:    port,
+			},
+			// assign random grpc port
+			GRPC: &fnet.GRPCConfig{ListenPort: 0},
+		},
 	}
 
 	prometheus.DefaultRegisterer = prometheus.NewRegistry()

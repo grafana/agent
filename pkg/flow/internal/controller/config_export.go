@@ -5,48 +5,33 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 )
 
 type ExportConfigNode struct {
-	label           string
-	nodeID          string
-	componentName   string
-	onExportsChange func(exports map[string]any) // Invoked when the managed component updated its exports
+	label         string
+	nodeID        string
+	componentName string
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
 	eval  *vm.Evaluator
+	value any
 }
 
 var _ BlockNode = (*ExportConfigNode)(nil)
 
 // NewExportConfigNode creates a new ExportConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bool) (*ExportConfigNode, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if !isInModule {
-		diags.Add(diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  "export blocks only allowed inside a module",
-			StartPos: ast.StartPos(block).Position(),
-			EndPos:   ast.EndPos(block).Position(),
-		})
-
-		return nil, diags
-	}
-
+func NewExportConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *ExportConfigNode {
 	return &ExportConfigNode{
-		label:           block.Label,
-		nodeID:          BlockComponentID(block).String(),
-		componentName:   block.GetBlockName(),
-		onExportsChange: globals.OnExportsChange,
+		label:         block.Label,
+		nodeID:        BlockComponentID(block).String(),
+		componentName: block.GetBlockName(),
 
 		block: block,
 		eval:  vm.New(block.Body),
-	}, diags
+	}
 }
 
 type exportBlock struct {
@@ -60,21 +45,24 @@ type exportBlock struct {
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
 func (cn *ExportConfigNode) Evaluate(scope *vm.Scope) error {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	exports := make(map[string]any)
+	cn.mut.Lock()
+	defer cn.mut.Unlock()
 
 	var export exportBlock
 	if err := cn.eval.Evaluate(scope, &export); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
 	}
-
-	exports[cn.label] = export.Value
-
-	if cn.onExportsChange != nil {
-		cn.onExportsChange(exports)
-	}
+	cn.value = export.Value
 	return nil
+}
+
+func (cn *ExportConfigNode) Label() string { return cn.label }
+
+// Value returns the value of the export.
+func (cn *ExportConfigNode) Value() any {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.value
 }
 
 // Block implements BlockNode and returns the current block of the managed config node.

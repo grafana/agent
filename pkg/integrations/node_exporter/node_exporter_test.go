@@ -1,5 +1,4 @@
-//go:build !race
-// +build !race
+//go:build !race && !windows
 
 package node_exporter //nolint:golint
 
@@ -10,6 +9,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
@@ -17,7 +17,6 @@ import (
 	"github.com/prometheus/prometheus/model/textparse"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // TestNodeExporter runs an integration test for node_exporter, doing the
@@ -41,7 +40,7 @@ func TestNodeExporter(t *testing.T) {
 	}
 	cfg.DisableCollectors = []string{CollectorPerf, CollectorBuddyInfo}
 
-	// Check that the flags convert and the integration initiailizes
+	// Check that the flags convert and the integration initializes
 	logger := log.NewNopLogger()
 	integration, err := New(logger, &cfg)
 	require.NoError(t, err, "failed to setup node_exporter")

@@ -11,8 +11,11 @@ import (
 
 	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
+	"github.com/grafana/agent/pkg/river/internal/value"
 	"github.com/grafana/agent/pkg/river/token"
 )
+
+var goRiverDefaulter = reflect.TypeOf((*value.Defaulter)(nil)).Elem()
 
 // An Expr represents a single River expression.
 type Expr struct {
@@ -76,7 +79,17 @@ func (f *File) Bytes() []byte {
 // Body is a list of block and attribute statements. A Body cannot be manually
 // created, but is retrieved from a File or Block.
 type Body struct {
-	nodes []tokenNode
+	nodes             []tokenNode
+	valueOverrideHook ValueOverrideHook
+}
+
+type ValueOverrideHook = func(val interface{}) interface{}
+
+// SetValueOverrideHook sets a hook to override the value that will be token
+// encoded. The hook can mutate the value to be encoded or should return it
+// unmodified. This hook can be skipped by leaving it nil or setting it to nil.
+func (b *Body) SetValueOverrideHook(valueOverrideHook ValueOverrideHook) {
+	b.valueOverrideHook = valueOverrideHook
 }
 
 // A tokenNode is a structural element which can be converted into a set of
@@ -107,7 +120,7 @@ func (b *Body) Tokens() []Token {
 	return rawToks
 }
 
-// AppendTokens appens raw tokens to the Body.
+// AppendTokens appends raw tokens to the Body.
 func (b *Body) AppendTokens(tokens []Token) {
 	b.nodes = append(b.nodes, tokensSlice(tokens))
 }
@@ -120,6 +133,11 @@ func (b *Body) AppendBlock(block *Block) {
 // AppendFrom sets attributes and appends blocks defined by goValue into the
 // Body. If any value reachable from goValue implements Tokenizer, the printed
 // tokens will instead be retrieved by calling the RiverTokenize method.
+//
+// Optional attributes and blocks set to default values are trimmed.
+// If goValue implements Defaulter, default values are retrieved by
+// calling SetToDefault against a copy. Otherwise, default values are
+// the zero value of the respective Go types.
 //
 // goValue must be a struct or a pointer to a struct that contains River struct
 // tags.
@@ -156,9 +174,26 @@ func (b *Body) encodeFields(rv reflect.Value) {
 	}
 
 	fields := rivertags.Get(rv.Type())
+	defaults := reflect.New(rv.Type()).Elem()
+	if defaults.CanAddr() && defaults.Addr().Type().Implements(goRiverDefaulter) {
+		defaults.Addr().Interface().(value.Defaulter).SetToDefault()
+	}
 
 	for _, field := range fields {
 		fieldVal := reflectutil.Get(rv, field)
+		fieldValDefault := reflectutil.Get(defaults, field)
+
+		// Check if the values are exactly equal or if they're both equal to the
+		// zero value. Checking for both fields being zero handles the case where
+		// an empty and nil map are being compared (which are not equal, but are
+		// both zero values).
+		matchesDefault := fieldVal.Comparable() && reflect.DeepEqual(fieldVal.Interface(), fieldValDefault.Interface())
+		isZero := fieldValDefault.IsZero() && fieldVal.IsZero()
+
+		if field.IsOptional() && (matchesDefault || isZero) {
+			continue
+		}
+
 		b.encodeField(nil, field, fieldVal)
 	}
 }
@@ -171,9 +206,6 @@ func (b *Body) encodeField(prefix []string, field rivertags.Field, fieldValue re
 			break
 		}
 		fieldValue = fieldValue.Elem()
-	}
-	if field.Flags&rivertags.FlagOptional != 0 && fieldValue.IsZero() {
-		return
 	}
 
 	switch {
@@ -188,20 +220,41 @@ func (b *Body) encodeField(prefix []string, field rivertags.Field, fieldValue re
 			// It shouldn't be possible to have a required block which is unset, but
 			// we'll encode something anyway.
 			inner := NewBlock(fullName, "")
+			inner.body.SetValueOverrideHook(b.valueOverrideHook)
 			b.AppendBlock(inner)
+
+		case fieldValue.Kind() == reflect.Map:
+			// Iterate over the map and add each element as an attribute into it.
+			if fieldValue.Type().Key().Kind() != reflect.String {
+				panic("river/token/builder: unsupported map type for block; expected map[string]T, got " + fieldValue.Type().String())
+			}
+
+			inner := NewBlock(fullName, "")
+			inner.body.SetValueOverrideHook(b.valueOverrideHook)
+			b.AppendBlock(inner)
+
+			iter := fieldValue.MapRange()
+			for iter.Next() {
+				mapKey, mapValue := iter.Key(), iter.Value()
+				inner.body.SetAttributeValue(mapKey.String(), mapValue.Interface())
+			}
 
 		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
 			for i := 0; i < fieldValue.Len(); i++ {
 				elem := fieldValue.Index(i)
 
-				// Recursively call encodeField for each element in the slice/array.
-				// The recurisve call will hit the case below and add a new block for
-				// each field encountered.
+				// Recursively call encodeField for each element in the slice/array for
+				// non-zero blocks. The recursive call will hit the case below and add
+				// a new block for each field encountered.
+				if field.Flags&rivertags.FlagOptional != 0 && elem.IsZero() {
+					continue
+				}
 				b.encodeField(prefix, field, elem)
 			}
 
 		case fieldValue.Kind() == reflect.Struct:
 			inner := NewBlock(fullName, getBlockLabel(fieldValue))
+			inner.body.SetValueOverrideHook(b.valueOverrideHook)
 			inner.Body().encodeFields(fieldValue)
 			b.AppendBlock(inner)
 		}
@@ -289,7 +342,12 @@ func (b *Body) getOrCreateAttribute(name string) *attribute {
 // Attributes will be written out in the order they were initially crated.
 func (b *Body) SetAttributeValue(name string, goValue interface{}) {
 	attr := b.getOrCreateAttribute(name)
-	attr.RawTokens = tokenEncode(goValue)
+
+	if b.valueOverrideHook != nil {
+		attr.RawTokens = tokenEncode(b.valueOverrideHook(goValue))
+	} else {
+		attr.RawTokens = tokenEncode(goValue)
+	}
 }
 
 type attribute struct {

@@ -14,12 +14,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki/positions"
-	"github.com/grafana/agent/component/loki/source/docker/internal/fake"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -52,7 +53,7 @@ func TestDockerTarget(t *testing.T) {
 
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
-	entryHandler := fake.New(func() {})
+	entryHandler := fake.NewClient(func() {})
 	client, err := client.NewClientWithOpts(client.WithHost(ts.URL))
 	require.NoError(t, err)
 

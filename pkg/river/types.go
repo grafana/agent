@@ -2,7 +2,7 @@ package river
 
 import "github.com/grafana/agent/pkg/river/internal/value"
 
-// Our types in this file are re-impelemntations of interfaces from
+// Our types in this file are re-implementations of interfaces from
 // value.Capsule. They are *not* defined as type aliases, since pkg.go.dev
 // would show the type alias instead of the contents of that type (which IMO is
 // a frustrating user experience).
@@ -10,7 +10,9 @@ import "github.com/grafana/agent/pkg/river/internal/value"
 // The types below must be kept in sync with the internal package, and the
 // checks below ensure they're compatible.
 var (
+	_ value.Defaulter              = (Defaulter)(nil)
 	_ value.Unmarshaler            = (Unmarshaler)(nil)
+	_ value.Validator              = (Validator)(nil)
 	_ value.Capsule                = (Capsule)(nil)
 	_ value.ConvertibleFromCapsule = (ConvertibleFromCapsule)(nil)
 	_ value.ConvertibleIntoCapsule = (ConvertibleIntoCapsule)(nil)
@@ -24,6 +26,24 @@ type Unmarshaler interface {
 	// will not be called on types which are squashed into the parent struct
 	// using `river:",squash"`.
 	UnmarshalRiver(f func(v interface{}) error) error
+}
+
+// The Defaulter interface allows a type to implement default functionality
+// in River evaluation.
+type Defaulter interface {
+	// SetToDefault is called when evaluating a block or body to set the value
+	// to its defaults. SetToDefault will not be called on types which are
+	// squashed into the parent struct using `river:",squash"`.
+	SetToDefault()
+}
+
+// The Validator interface allows a type to implement validation functionality
+// in River evaluation.
+type Validator interface {
+	// Validate is called when evaluating a block or body to enforce the
+	// value is valid. Validate will not be called on types which are
+	// squashed into the parent struct using `river:",squash"`.
+	Validate() error
 }
 
 // Capsule is an interface marker which tells River that a type should always
@@ -64,7 +84,7 @@ type ConvertibleFromCapsule interface {
 }
 
 // ConvertibleIntoCapsule is a Capsule which supports custom conversion into
-// into any Go type which is not the same as the capsule type.
+// any Go type which is not the same as the capsule type.
 type ConvertibleIntoCapsule interface {
 	Capsule
 

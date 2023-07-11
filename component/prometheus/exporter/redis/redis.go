@@ -6,30 +6,39 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 )
 
 func init() {
 	component.Register(component.Registration{
 		Name:    "prometheus.exporter.redis",
-		Args:    Config{},
+		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "redis"),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "redis", customizeTarget),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Config)
-	return cfg.Convert().NewIntegration(opts.Logger)
+	a := args.(Arguments)
+	return a.Convert().NewIntegration(opts.Logger)
 }
 
-// DefaultConfig holds non-zero default options for the Config when it is
+func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
+	a := args.(Arguments)
+	target := baseTarget
+
+	target["instance"] = a.RedisAddr
+	return []discovery.Target{target}
+}
+
+// DefaultArguments holds non-zero default options for Arguments when it is
 // unmarshaled from river.
-var DefaultConfig = Config{
+var DefaultArguments = Arguments{
 	IncludeExporterMetrics:  false,
 	Namespace:               "redis",
 	ConfigCommand:           "CONFIG",
@@ -39,7 +48,7 @@ var DefaultConfig = Config{
 	MaxDistinctKeyGroups:    100,
 }
 
-type Config struct {
+type Arguments struct {
 	IncludeExporterMetrics bool `river:"include_exporter_metrics,attr,optional"`
 
 	// exporter-specific config.
@@ -78,62 +87,57 @@ type Config struct {
 	SkipTLSVerification     bool              `river:"skip_tls_verification,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type cfg Config
-	if err := f((*cfg)(c)); err != nil {
-		return err
-	}
-	return c.Validate()
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultArguments
 }
 
-func (c *Config) Validate() error {
-	if c.ScriptPath != "" && len(c.ScriptPaths) > 0 {
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
+	if a.ScriptPath != "" && len(a.ScriptPaths) > 0 {
 		return fmt.Errorf("only one of script_path and script_paths should be specified")
 	}
 	return nil
 }
 
-func (c *Config) Convert() *redis_exporter.Config {
+func (a *Arguments) Convert() *redis_exporter.Config {
 	var scriptPath string
-	if c.ScriptPath != "" {
-		scriptPath = c.ScriptPath
-	} else if len(c.ScriptPaths) > 0 {
-		scriptPath = strings.Join(c.ScriptPaths, ",")
+	if a.ScriptPath != "" {
+		scriptPath = a.ScriptPath
+	} else if len(a.ScriptPaths) > 0 {
+		scriptPath = strings.Join(a.ScriptPaths, ",")
 	}
 
 	return &redis_exporter.Config{
-		IncludeExporterMetrics:  c.IncludeExporterMetrics,
-		RedisAddr:               c.RedisAddr,
-		RedisUser:               c.RedisUser,
-		RedisPassword:           config_util.Secret(c.RedisPassword),
-		RedisPasswordFile:       c.RedisPasswordFile,
-		RedisPasswordMapFile:    c.RedisPasswordMapFile,
-		Namespace:               c.Namespace,
-		ConfigCommand:           c.ConfigCommand,
-		CheckKeys:               strings.Join(c.CheckKeys, ","),
-		CheckKeyGroups:          strings.Join(c.CheckKeyGroups, ","),
-		CheckKeyGroupsBatchSize: c.CheckKeyGroupsBatchSize,
-		MaxDistinctKeyGroups:    c.MaxDistinctKeyGroups,
-		CheckSingleKeys:         strings.Join(c.CheckSingleKeys, ","),
-		CheckStreams:            strings.Join(c.CheckStreams, ","),
-		CheckSingleStreams:      strings.Join(c.CheckSingleStreams, ","),
-		CountKeys:               strings.Join(c.CountKeys, ","),
+		IncludeExporterMetrics:  a.IncludeExporterMetrics,
+		RedisAddr:               a.RedisAddr,
+		RedisUser:               a.RedisUser,
+		RedisPassword:           config_util.Secret(a.RedisPassword),
+		RedisPasswordFile:       a.RedisPasswordFile,
+		RedisPasswordMapFile:    a.RedisPasswordMapFile,
+		Namespace:               a.Namespace,
+		ConfigCommand:           a.ConfigCommand,
+		CheckKeys:               strings.Join(a.CheckKeys, ","),
+		CheckKeyGroups:          strings.Join(a.CheckKeyGroups, ","),
+		CheckKeyGroupsBatchSize: a.CheckKeyGroupsBatchSize,
+		MaxDistinctKeyGroups:    a.MaxDistinctKeyGroups,
+		CheckSingleKeys:         strings.Join(a.CheckSingleKeys, ","),
+		CheckStreams:            strings.Join(a.CheckStreams, ","),
+		CheckSingleStreams:      strings.Join(a.CheckSingleStreams, ","),
+		CountKeys:               strings.Join(a.CountKeys, ","),
 		ScriptPath:              scriptPath,
-		ConnectionTimeout:       c.ConnectionTimeout,
-		TLSClientKeyFile:        c.TLSClientKeyFile,
-		TLSClientCertFile:       c.TLSClientCertFile,
-		TLSCaCertFile:           c.TLSCaCertFile,
-		SetClientName:           c.SetClientName,
-		IsTile38:                c.IsTile38,
-		IsCluster:               c.IsCluster,
-		ExportClientList:        c.ExportClientList,
-		ExportClientPort:        c.ExportClientPort,
-		RedisMetricsOnly:        c.RedisMetricsOnly,
-		PingOnConnect:           c.PingOnConnect,
-		InclSystemMetrics:       c.InclSystemMetrics,
-		SkipTLSVerification:     c.SkipTLSVerification,
+		ConnectionTimeout:       a.ConnectionTimeout,
+		TLSClientKeyFile:        a.TLSClientKeyFile,
+		TLSClientCertFile:       a.TLSClientCertFile,
+		TLSCaCertFile:           a.TLSCaCertFile,
+		SetClientName:           a.SetClientName,
+		IsTile38:                a.IsTile38,
+		IsCluster:               a.IsCluster,
+		ExportClientList:        a.ExportClientList,
+		ExportClientPort:        a.ExportClientPort,
+		RedisMetricsOnly:        a.RedisMetricsOnly,
+		PingOnConnect:           a.PingOnConnect,
+		InclSystemMetrics:       a.InclSystemMetrics,
+		SkipTLSVerification:     a.SkipTLSVerification,
 	}
 }

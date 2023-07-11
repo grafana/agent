@@ -76,15 +76,34 @@ func (vm *Evaluator) Evaluate(scope *Scope, v interface{}) (err error) {
 }
 
 func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
-	// TODO(rfratto): the errors returned by this function are missing context to
-	// be able to print line numbers. We need to return decorated error types.
-
 	// Before decoding the block, we need to temporarily take the address of rv
 	// to handle the case of it implementing the unmarshaler interface.
 	if rv.CanAddr() {
 		rv = rv.Addr()
 	}
 
+	if err, unmarshaled := vm.evaluateUnmarshalRiver(scope, assoc, node, rv); unmarshaled || err != nil {
+		return err
+	}
+
+	if ru, ok := rv.Interface().(value.Defaulter); ok {
+		ru.SetToDefault()
+	}
+
+	if err := vm.evaluateDecode(scope, assoc, node, rv); err != nil {
+		return err
+	}
+
+	if ru, ok := rv.Interface().(value.Validator); ok {
+		if err := ru.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (vm *Evaluator) evaluateUnmarshalRiver(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) (error, bool) {
 	if ru, ok := rv.Interface().(value.Unmarshaler); ok {
 		return ru.UnmarshalRiver(func(v interface{}) error {
 			rv := reflect.ValueOf(v)
@@ -92,8 +111,15 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 				panic(fmt.Sprintf("river/vm: expected pointer, got %s", rv.Kind()))
 			}
 			return vm.evaluateBlockOrBody(scope, assoc, node, rv.Elem())
-		})
+		}), true
 	}
+
+	return nil, false
+}
+
+func (vm *Evaluator) evaluateDecode(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
+	// TODO(rfratto): the errors returned by this function are missing context to
+	// be able to print line numbers. We need to return decorated error types.
 
 	// Fully deference rv and allocate pointers as necessary.
 	for rv.Kind() == reflect.Pointer {
@@ -255,7 +281,7 @@ func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Fie
 }
 
 // prepareDecodeValue prepares v for decoding. Pointers will be fully
-// deferenced until finding a non-pointer value. nil pointers will be
+// dereferenced until finding a non-pointer value. nil pointers will be
 // allocated.
 func prepareDecodeValue(v reflect.Value) reflect.Value {
 	for v.Kind() == reflect.Pointer {
@@ -441,7 +467,7 @@ type Scope struct {
 	// Variables holds the list of available variable names that can be used when
 	// evaluating a node.
 	//
-	// Values in the Variables map should considered immutable after passed to
+	// Values in the Variables map should be considered immutable after passed to
 	// Evaluate; maps and slices will be copied by reference for performance
 	// optimizations.
 	Variables map[string]interface{}

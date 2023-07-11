@@ -6,13 +6,11 @@ import (
 
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 	"go.opentelemetry.io/otel/trace"
 )
 
 type TracingConfigNode struct {
-	label         string
 	nodeID        string
 	componentName string
 	traceProvider trace.TracerProvider // Tracer shared between all managed components.
@@ -22,31 +20,32 @@ type TracingConfigNode struct {
 	eval  *vm.Evaluator
 }
 
+var _ BlockNode = (*TracingConfigNode)(nil)
+
 // NewTracingConfigNode creates a new TracingConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bool) (*TracingConfigNode, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if isInModule {
-		diags.Add(diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  "tracing block not allowed inside a module",
-			StartPos: ast.StartPos(block).Position(),
-			EndPos:   ast.EndPos(block).Position(),
-		})
-
-		return nil, diags
-	}
-
+func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *TracingConfigNode {
 	return &TracingConfigNode{
-		label:         block.Label,
 		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),
 		traceProvider: globals.TraceProvider,
 
 		block: block,
 		eval:  vm.New(block.Body),
-	}, diags
+	}
+}
+
+// NewDefaulTracingConfigNode creates a new TracingConfigNode with nil block and eval.
+// This will force evaluate to use the default tracing options for this node.
+func NewDefaulTracingConfigNode(globals ComponentGlobals) *TracingConfigNode {
+	return &TracingConfigNode{
+		nodeID:        tracingBlockID,
+		componentName: tracingBlockID,
+		traceProvider: globals.TraceProvider,
+
+		block: nil,
+		eval:  nil,
+	}
 }
 
 // Evaluate implements BlockNode and updates the arguments for the managed config block
@@ -59,8 +58,10 @@ func (cn *TracingConfigNode) Evaluate(scope *vm.Scope) error {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	args := tracing.DefaultOptions
-	if err := cn.eval.Evaluate(scope, &args); err != nil {
-		return fmt.Errorf("decoding River: %w", err)
+	if cn.eval != nil {
+		if err := cn.eval.Evaluate(scope, &args); err != nil {
+			return fmt.Errorf("decoding River: %w", err)
+		}
 	}
 
 	t, ok := cn.traceProvider.(*tracing.Tracer)
@@ -70,6 +71,7 @@ func (cn *TracingConfigNode) Evaluate(scope *vm.Scope) error {
 			return fmt.Errorf("could not update tracer: %v", err)
 		}
 	}
+
 	return nil
 }
 

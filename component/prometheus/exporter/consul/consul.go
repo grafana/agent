@@ -1,9 +1,11 @@
 package consul
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
@@ -12,19 +14,32 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:    "prometheus.exporter.consul",
-		Args:    Config{},
+		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "consul"),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "consul", customizeTarget),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Config)
-	return cfg.Convert().NewIntegration(opts.Logger)
+	a := args.(Arguments)
+	return a.Convert().NewIntegration(opts.Logger)
 }
 
-// DefaultConfig holds the default settings for the consul_exporter exporter.
-var DefaultConfig = Config{
+func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
+	a := args.(Arguments)
+	target := baseTarget
+
+	url, err := url.Parse(a.Server)
+	if err != nil {
+		return []discovery.Target{target}
+	}
+
+	target["instance"] = url.Host
+	return []discovery.Target{target}
+}
+
+// DefaultArguments holds the default settings for the consul_exporter exporter.
+var DefaultArguments = Arguments{
 	Server:        "http://localhost:8500",
 	Timeout:       500 * time.Millisecond,
 	AllowStale:    true,
@@ -32,8 +47,8 @@ var DefaultConfig = Config{
 	HealthSummary: true,
 }
 
-// Config controls the consul_exporter exporter.
-type Config struct {
+// Arguments controls the consul_exporter exporter.
+type Arguments struct {
 	Server             string        `river:"server,attr,optional"`
 	CAFile             string        `river:"ca_file,attr,optional"`
 	CertFile           string        `river:"cert_file,attr,optional"`
@@ -50,28 +65,25 @@ type Config struct {
 	HealthSummary bool   `river:"generate_health_summary,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type cfg Config
-	return f((*cfg)(c))
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultArguments
 }
 
-func (c *Config) Convert() *consul_exporter.Config {
+func (a *Arguments) Convert() *consul_exporter.Config {
 	return &consul_exporter.Config{
-		Server:             c.Server,
-		CAFile:             c.CAFile,
-		CertFile:           c.CertFile,
-		KeyFile:            c.KeyFile,
-		ServerName:         c.ServerName,
-		Timeout:            c.Timeout,
-		InsecureSkipVerify: c.InsecureSkipVerify,
-		RequestLimit:       c.RequestLimit,
-		AllowStale:         c.AllowStale,
-		RequireConsistent:  c.RequireConsistent,
-		KVPrefix:           c.KVPrefix,
-		KVFilter:           c.KVFilter,
-		HealthSummary:      c.HealthSummary,
+		Server:             a.Server,
+		CAFile:             a.CAFile,
+		CertFile:           a.CertFile,
+		KeyFile:            a.KeyFile,
+		ServerName:         a.ServerName,
+		Timeout:            a.Timeout,
+		InsecureSkipVerify: a.InsecureSkipVerify,
+		RequestLimit:       a.RequestLimit,
+		AllowStale:         a.AllowStale,
+		RequireConsistent:  a.RequireConsistent,
+		KVPrefix:           a.KVPrefix,
+		KVFilter:           a.KVFilter,
+		HealthSummary:      a.HealthSummary,
 	}
 }

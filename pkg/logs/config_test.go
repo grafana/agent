@@ -90,12 +90,28 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 				- name: config-b
 		  `),
 		},
+		{
+			name: "global filewatcher",
+			err:  nil,
+			cfg: untab(`
+				global:
+    				file_watch_config:
+      					min_poll_frequency: 1s
+      					max_poll_frequency: 20s
+				positions_directory: /tmp
+				configs:
+				- name: config-a
+				- name: config-b
+		  `),
+		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			var cfg Config
 			err := yaml.UnmarshalStrict([]byte(tc.cfg), &cfg)
+			require.NoError(t, err)
+			err = cfg.ApplyDefaults()
 			if tc.err == nil {
 				require.NoError(t, err)
 			} else {
@@ -128,6 +144,8 @@ func TestConfig_ApplyDefaults_Defaults(t *testing.T) {
   `)
 	var cfg Config
 	err := yaml.UnmarshalStrict([]byte(cfgText), &cfg)
+	require.NoError(t, err)
+	err = cfg.ApplyDefaults()
 	require.NoError(t, err)
 
 	var (

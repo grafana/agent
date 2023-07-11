@@ -10,7 +10,7 @@ import (
 
 	"github.com/grafana/agent/component/local/file"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/stretchr/testify/require"
 )
 
@@ -115,7 +115,7 @@ func TestFile_ImmediateExports(t *testing.T) {
 	}, tc.Exports())
 }
 
-// TestFile_ExistOnLoad ensures that the the configured file must exist on the
+// TestFile_ExistOnLoad ensures that the configured file must exist on the
 // first load of local.file.
 func TestFile_ExistOnLoad(t *testing.T) {
 	testFile := filepath.Join(t.TempDir(), "testfile")

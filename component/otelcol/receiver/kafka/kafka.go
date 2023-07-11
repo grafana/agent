@@ -7,12 +7,11 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -46,7 +45,6 @@ type Arguments struct {
 }
 
 var (
-	_ river.Unmarshaler  = (*Arguments)(nil)
 	_ receiver.Arguments = Arguments{}
 )
 
@@ -78,19 +76,14 @@ var DefaultArguments = Arguments{
 	},
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() (otelconfig.Receiver, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &kafkareceiver.Config{
-		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("kafka")),
-
 		Brokers:         args.Brokers,
 		ProtocolVersion: args.ProtocolVersion,
 		Topic:           args.Topic,
@@ -106,12 +99,12 @@ func (args Arguments) Convert() (otelconfig.Receiver, error) {
 }
 
 // Extensions implements receiver.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements receiver.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

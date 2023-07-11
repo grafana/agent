@@ -48,6 +48,12 @@ For example, the `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metric's label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
 
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
+
 ## Component health
 
 `prometheus.exporter.github` is only reported as unhealthy if given
@@ -72,14 +78,29 @@ from `prometheus.exporter.github`:
 ```river
 prometheus.exporter.github "example" {
   api_token_file = "/etc/github-api-token"
-  repositories = ["grafana/agent"]
+  repositories   = ["grafana/agent"]
 }
 
 // Configure a prometheus.scrape component to collect github metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.github.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

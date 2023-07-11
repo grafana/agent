@@ -6,19 +6,19 @@ import (
 	"io"
 	stdlog "log"
 	"net"
+	"net/http"
 	"os"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/ckit"
+	"github.com/grafana/ckit/advertise"
+	"github.com/grafana/ckit/peer"
+	"github.com/grafana/ckit/shard"
 	"github.com/grafana/dskit/flagext"
 	"github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/k8s"
-	"github.com/rfratto/ckit"
-	"github.com/rfratto/ckit/advertise"
-	"github.com/rfratto/ckit/clientpool"
-	"github.com/rfratto/ckit/peer"
-	"github.com/rfratto/ckit/shard"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
-	"google.golang.org/grpc"
 )
 
 // extraDiscoverProviders used in tests.
@@ -28,20 +28,16 @@ var extraDiscoverProviders map[string]discover.Provider
 // the hash ring. All nodes must use the same value, otherwise they will have
 // different views of the ring and assign work differently.
 //
-// Using 256 tokens strikes a good balance between distribution accuracy and
-// memory consumption. A cluster of 1,000 nodes with 256 tokens per node
-// requires 6MB for the hash ring, while 12MB is used for 512 tokens per node.
+// Using 512 tokens strikes a good balance between distribution accuracy and
+// memory consumption. A cluster of 1,000 nodes with 512 tokens per node
+// requires 12MB for the hash ring.
 //
 // Distribution accuracy measures how close a node was to being responsible for
 // exactly 1/N keys during simulation. Simulation tests used a cluster of 10
 // nodes and hashing 100,000 random keys:
 //
-//	256 tokens per node: min 94.0%, median 96.3%, max 115.3%
-//	512 tokens per node: min 96.1%, median 99.9%, max 103.2%
-//
-// While 512 tokens per node is closer to perfect distribution, 256 tokens per
-// node is good enough, optimizing for lower memory usage.
-const tokensPerNode = 256
+//	512 tokens per node: min 96.1%, median 99.9%, max 103.2% (stddev: 197.9 hashes)
+const tokensPerNode = 512
 
 // GossipConfig controls clustering of Agents through gRPC-based gossip.
 // GossipConfig cannot be changed at runtime.
@@ -67,9 +63,6 @@ type GossipConfig struct {
 	// Discover peers to connect to using go-discover. Mutually exclusive with
 	// JoinPeers.
 	DiscoverPeers string
-
-	// Client pool to use for connecting to peers.
-	Pool *clientpool.Pool
 }
 
 // DefaultGossipConfig holds default GossipConfig options.
@@ -136,7 +129,7 @@ func (c *GossipConfig) ApplyDefaults(defaultPort int) error {
 	for i := range c.JoinPeers {
 		// Default to using the same advertise port as the local node. This may
 		// break in some cases, so the user should make sure the port numbers
-		// align on as much nodes as possible.
+		// align on as many nodes as possible.
 		c.JoinPeers[i] = appendDefaultPort(c.JoinPeers[i], defaultPort)
 	}
 
@@ -166,12 +159,13 @@ type GossipNode struct {
 	started atomic.Bool
 }
 
-// NewGossipNode creates an unstarted GossipNode. The GossipNode will register
-// itself as a gRPC service to srv. GossipConfig is expected to be valid and
-// have already had ApplyDefaults called on it.
+// NewGossipNode creates an unstarted GossipNode. The GossipNode will use the
+// passed http.Client to create a new HTTP/2-compatible Transport that can
+// communicate with other nodes over HTTP/2. GossipConfig is expected to be
+// valid and have already had ApplyDefaults called on it.
 //
 // GossipNode operations are unavailable until the node is started.
-func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode, error) {
+func NewGossipNode(l log.Logger, reg prometheus.Registerer, cli *http.Client, c *GossipConfig) (*GossipNode, error) {
 	if l == nil {
 		l = log.NewNopLogger()
 	}
@@ -183,13 +177,13 @@ func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode
 		AdvertiseAddr: c.AdvertiseAddr,
 		Sharder:       sharder,
 		Log:           l,
-		Pool:          c.Pool,
 	}
 
-	inner, err := ckit.NewNode(srv, ckitConfig)
+	inner, err := ckit.NewNode(cli, ckitConfig)
 	if err != nil {
 		return nil, err
 	}
+	reg.MustRegister(inner.Metrics())
 
 	return &GossipNode{
 		cfg:       c,
@@ -200,7 +194,7 @@ func NewGossipNode(l log.Logger, srv *grpc.Server, c *GossipConfig) (*GossipNode
 }
 
 // ChangeState changes the state of n. ChangeState will block until the state
-// change has been receieved by another node; cancel the context to stop
+// change has been received by another node; cancel the context to stop
 // waiting. ChangeState will fail if the current state cannot move to the
 // target state.
 //
@@ -230,7 +224,7 @@ func (n *GossipNode) Lookup(key shard.Key, numOwners int, op shard.Op) ([]peer.P
 }
 
 // Observe registers o to be informed when the cluster changes, including peers
-// appearing, disapearing, or changing state.
+// appearing, disappearing, or changing state.
 //
 // Calls will have to filter events if they are only interested in a subset of
 // changes.
@@ -241,6 +235,11 @@ func (n *GossipNode) Observe(o ckit.Observer) {
 // Peers returns the current set of Peers.
 func (n *GossipNode) Peers() []peer.Peer {
 	return n.innerNode.Peers()
+}
+
+// Handler returns the base route and HTTP handlers to register for this node.
+func (n *GossipNode) Handler() (string, http.Handler) {
+	return n.innerNode.Handler()
 }
 
 // Start starts the node. Start will connect to peers if configured to do so.
@@ -259,7 +258,7 @@ func (n *GossipNode) Start() (err error) {
 // Stop leaves the cluster and terminates n. n cannot be re-used after
 // stopping.
 //
-// It is advisble to ChangeState to StateTerminating and StateGone before
+// It is advisable to ChangeState to StateTerminating and StateGone before
 // stopping so the local node has an opportunity to move work to other nodes.
 func (n *GossipNode) Stop() error {
 	return n.innerNode.Stop()

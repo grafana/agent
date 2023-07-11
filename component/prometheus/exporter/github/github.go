@@ -1,35 +1,51 @@
 package github
 
 import (
+	"net/url"
+
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/github_exporter"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 )
 
 func init() {
 	component.Register(component.Registration{
 		Name:    "prometheus.exporter.github",
-		Args:    Config{},
+		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "github"),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "github", customizeTarget),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Config)
-	return cfg.Convert().NewIntegration(opts.Logger)
+	a := args.(Arguments)
+	return a.Convert().NewIntegration(opts.Logger)
 }
 
-// DefaultConfig holds non-zero default options for the Config when it is
+func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
+	a := args.(Arguments)
+	target := baseTarget
+
+	url, err := url.Parse(a.APIURL)
+	if err != nil {
+		return []discovery.Target{target}
+	}
+
+	target["instance"] = url.Host
+	return []discovery.Target{target}
+}
+
+// DefaultArguments holds non-zero default options for Arguments when it is
 // unmarshaled from river.
-var DefaultConfig = Config{
+var DefaultArguments = Arguments{
 	APIURL: github_exporter.DefaultConfig.APIURL,
 }
 
-type Config struct {
+type Arguments struct {
 	APIURL        string            `river:"api_url,attr,optional"`
 	Repositories  []string          `river:"repositories,attr,optional"`
 	Organizations []string          `river:"organizations,attr,optional"`
@@ -38,21 +54,18 @@ type Config struct {
 	APITokenFile  string            `river:"api_token_file,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type cfg Config
-	return f((*cfg)(c))
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultArguments
 }
 
-func (c *Config) Convert() *github_exporter.Config {
+func (a *Arguments) Convert() *github_exporter.Config {
 	return &github_exporter.Config{
-		APIURL:        c.APIURL,
-		Repositories:  c.Repositories,
-		Organizations: c.Organizations,
-		Users:         c.Users,
-		APIToken:      config_util.Secret(c.APIToken),
-		APITokenFile:  c.APITokenFile,
+		APIURL:        a.APIURL,
+		Repositories:  a.Repositories,
+		Organizations: a.Organizations,
+		Users:         a.Users,
+		APIToken:      config_util.Secret(a.APIToken),
+		APITokenFile:  a.APITokenFile,
 	}
 }

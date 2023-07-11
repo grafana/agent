@@ -4,17 +4,34 @@ import (
 	"encoding"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"time"
 
 	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 )
 
+// The Defaulter interface allows a type to implement default functionality
+// in River evaluation.
+type Defaulter interface {
+	// SetToDefault is called when evaluating a block or body to set the value
+	// to its defaults.
+	SetToDefault()
+}
+
 // Unmarshaler is a custom type which can be used to hook into the decoder.
 type Unmarshaler interface {
 	// UnmarshalRiver is called when decoding a value. f should be invoked to
 	// continue decoding with a value to decode into.
 	UnmarshalRiver(f func(v interface{}) error) error
+}
+
+// The Validator interface allows a type to implement validation functionality
+// in River evaluation.
+type Validator interface {
+	// Validate is called when evaluating a block or body to enforce the
+	// value is valid.
+	Validate() error
 }
 
 // Decode assigns a Value val to a Go pointer target. Pointers will be
@@ -70,7 +87,18 @@ type decoder struct {
 	makeCopy bool
 }
 
-func (d *decoder) decode(val Value, into reflect.Value) error {
+func (d *decoder) decode(val Value, into reflect.Value) (err error) {
+	// If everything has decoded successfully, run Validate if implemented.
+	defer func() {
+		if err == nil {
+			if into.CanAddr() && into.Addr().Type().Implements(goRiverValidator) {
+				err = into.Addr().Interface().(Validator).Validate()
+			} else if into.Type().Implements(goRiverValidator) {
+				err = into.Interface().(Validator).Validate()
+			}
+		}
+	}()
+
 	// Store the raw value from val and try to address it so we can do underlying
 	// type match assignment.
 	rawValue := val.rv
@@ -80,8 +108,8 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 
 	// Fully deference into and allocate pointers as necessary.
 	for into.Kind() == reflect.Pointer {
-		// Check for direct assignments before allocating pointers and deferencing.
-		// This preservs pointer addresses when decoding an *int into an *int.
+		// Check for direct assignments before allocating pointers and dereferencing.
+		// This preserves pointer addresses when decoding an *int into an *int.
 		switch {
 		case into.CanSet() && val.Type() == TypeNull:
 			into.Set(reflect.Zero(into.Type()))
@@ -124,6 +152,12 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 		return d.decodeAny(val, into)
 	} else if ok, err := d.decodeFromInterface(val, into); ok {
 		return err
+	}
+
+	if into.CanAddr() && into.Addr().Type().Implements(goRiverDefaulter) {
+		into.Addr().Interface().(Defaulter).SetToDefault()
+	} else if into.Type().Implements(goRiverDefaulter) {
+		into.Interface().(Defaulter).SetToDefault()
 	}
 
 	targetType := RiverType(into.Type())
@@ -231,7 +265,7 @@ func (d *decoder) canDirectlyAssign(from reflect.Type, into reflect.Type) bool {
 	return !containsAny(into)
 }
 
-// containsAny recrusively traverses through into, returning true if it
+// containsAny recursively traverses through into, returning true if it
 // contains an interface{} value anywhere in its structure.
 func containsAny(into reflect.Type) bool {
 	// TODO(rfratto): cache result of this function?
@@ -365,8 +399,9 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 // interface{} a known type based on the River value being decoded:
 //
 //	Null values:   nil
-//	Number values: float64, int, or uint depending on the underlying Go type
-//	               of the River value
+//	Number values: float64, int, int64, or uint64.
+//	               If the underlying type is a float, always decode to a float64.
+//	               For non-floats the order of preference is int -> int64 -> uint64.
 //	Arrays:        []interface{}
 //	Objects:       map[string]interface{}
 //	Bool:          bool
@@ -374,8 +409,8 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 //	Function:      Passthrough of the underlying function value
 //	Capsule:       Passthrough of the underlying capsule value
 //
-// In the cases where we do not passthrough the underlying value, we create a
-// value of that type, recrusively call decode to populate that new value, and
+// In the cases where we do not pass through the underlying value, we create a
+// value of that type, recursively call decode to populate that new value, and
 // then store that value into the interface{}.
 func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 	var ptr reflect.Value
@@ -386,16 +421,33 @@ func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 		return nil
 
 	case TypeNumber:
+
 		switch val.Number().Kind() {
 		case NumberKindFloat:
 			var v float64
 			ptr = reflect.ValueOf(&v)
-		case NumberKindInt:
-			var v int
-			ptr = reflect.ValueOf(&v)
 		case NumberKindUint:
-			var v uint
-			ptr = reflect.ValueOf(&v)
+			uint64Val := val.Uint()
+			if uint64Val <= math.MaxInt {
+				var v int
+				ptr = reflect.ValueOf(&v)
+			} else if uint64Val <= math.MaxInt64 {
+				var v int64
+				ptr = reflect.ValueOf(&v)
+			} else {
+				var v uint64
+				ptr = reflect.ValueOf(&v)
+			}
+		case NumberKindInt:
+			int64Val := val.Int()
+			if math.MinInt <= int64Val && int64Val <= math.MaxInt {
+				var v int
+				ptr = reflect.ValueOf(&v)
+			} else {
+				var v int64
+				ptr = reflect.ValueOf(&v)
+			}
+
 		default:
 			panic("river/value: unreachable")
 		}
@@ -419,6 +471,14 @@ func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 	case TypeFunction, TypeCapsule:
 		// Functions and capsules must be directly assigned since there's no
 		// "generic" representation for either.
+		//
+		// We retain the pointer if we were given a pointer.
+
+		if val.rv.CanAddr() {
+			into.Set(val.rv.Addr())
+			return nil
+		}
+
 		into.Set(val.rv)
 		return nil
 

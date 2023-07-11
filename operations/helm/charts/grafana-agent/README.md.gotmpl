@@ -101,15 +101,29 @@ components like [discovery.kubernetes][] to work properly.
 
 ### controller.autoscaling
 
-`controller.autoscaling.enabled` enables the creation of a HorizontalPodAutoscaler. It is only used when `controller.type` is set to `deployment`.
+`controller.autoscaling.enabled` enables the creation of a HorizontalPodAutoscaler. It is only used when `controller.type` is set to `deployment` or `statefulset`.
 
 `controller.autoscaling` is intended to be used with an
-[app_agent_receiver-configured][app_agent_receiver] Grafana Agent.
+[app_agent_receiver-configured][app_agent_receiver] Grafana Agent or for
+[clustered][] mode.
 
 > **WARNING**: Using `controller.autoscaling` for any other Grafana Agent
 > configuration could lead to redundant or double telemetry collection.
 
 [app_agent_receiver]: https://grafana.com/docs/agent/latest/configuration/integrations/integrations-next/app-agent-receiver-config/
+[clustered]: https://grafana.com/docs/agent/latest/flow/reference/cli/run/#clustered-mode-experimental
+
+When using autoscaling with a StatefulSet controller and have enabled
+volumeClaimTemplates to be created alongside the StatefulSet, it is possible to
+leak up to `maxReplicas` PVCs when the HPA is scaling down. If you're on
+Kubernetes version `>=1.23-0` and your cluster has the
+`StatefulSetAutoDeletePVC` feature gate enabled, you can set
+`enableStatefulSetAutoDeletePVC` to true to automatically delete stale PVCs.
+
+Using `controller.autoscaling` requires the target metric (cpu/memory) to have
+its resource requests set up for both the agent and config-reloader containers
+so that the HPA can use them to calculate the replica count from the actual
+resource utilization.
 
 ## Collecting logs from other containers
 

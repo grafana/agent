@@ -230,7 +230,7 @@ func TestStorage_ExistingWAL_RefID(t *testing.T) {
 	require.NoError(t, err)
 	defer require.NoError(t, s.Close())
 
-	require.Equal(t, uint64(len(payload)), s.ref.Load(), "cached ref ID should be equal to the number of series written")
+	require.Equal(t, uint64(len(payload)), s.nextRef.Load(), "cached ref ID should be equal to the number of series written")
 }
 
 func TestStorage_Truncate(t *testing.T) {
@@ -256,7 +256,7 @@ func TestStorage_Truncate(t *testing.T) {
 
 	require.NoError(t, app.Commit())
 
-	// Forefully create a bunch of new segments so when we truncate
+	// Forcefully create a bunch of new segments so when we truncate
 	// there's enough segments to be considered for truncation.
 	for i := 0; i < 5; i++ {
 		_, err := s.wal.NextSegmentSync()

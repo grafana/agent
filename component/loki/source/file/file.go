@@ -52,13 +52,12 @@ type Component struct {
 
 	updateMut sync.Mutex
 
-	mut          sync.RWMutex
-	args         Arguments
-	handler      loki.LogsReceiver
-	entryHandler loki.EntryHandler
-	receivers    []loki.LogsReceiver
-	posFile      positions.Positions
-	readers      map[positions.Entry]reader
+	mut       sync.RWMutex
+	args      Arguments
+	handler   loki.LogsReceiver
+	receivers []loki.LogsReceiver
+	posFile   positions.Positions
+	readers   map[positions.Entry]reader
 }
 
 // New creates a new loki.source.file component.
@@ -81,7 +80,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:    o,
 		metrics: newMetrics(o.Registerer),
 
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 		receivers: args.ForwardTo,
 		posFile:   positionsFile,
 		readers:   make(map[positions.Entry]reader),
@@ -107,10 +106,7 @@ func (c *Component) Run(ctx context.Context) error {
 			r.Stop()
 		}
 		c.posFile.Stop()
-		if c.entryHandler != nil {
-			c.entryHandler.Stop()
-		}
-		close(c.handler)
+		close(c.handler.Chan())
 		c.mut.RUnlock()
 	}()
 
@@ -118,10 +114,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.receivers {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -163,9 +159,6 @@ func (c *Component) Update(args component.Arguments) error {
 	c.receivers = newArgs.ForwardTo
 
 	c.readers = make(map[positions.Entry]reader)
-	if c.entryHandler != nil {
-		c.entryHandler.Stop()
-	}
 
 	if len(newArgs.Targets) == 0 {
 		level.Debug(c.opts.Logger).Log("msg", "no files targets were passed, nothing will be tailed")
@@ -190,14 +183,17 @@ func (c *Component) Update(args component.Arguments) error {
 		}
 
 		c.reportSize(path, labels.String())
-		c.entryHandler = loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() {}))
 
-		reader, err := c.startTailing(path, labels, c.entryHandler)
+		handler := loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler.Chan(), func() {}))
+		reader, err := c.startTailing(path, labels, handler)
 		if err != nil {
 			continue
 		}
 
-		c.readers[readersKey] = reader
+		c.readers[readersKey] = readerWithHandler{
+			reader:  reader,
+			handler: handler,
+		}
 	}
 
 	// Remove from the positions file any entries that had a Reader before, but
@@ -207,6 +203,18 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	return nil
+}
+
+// readerWithHandler combines a reader with an entry handler associated with
+// it. Closing the reader will also close the handler.
+type readerWithHandler struct {
+	reader
+	handler loki.EntryHandler
+}
+
+func (r readerWithHandler) Stop() {
+	r.reader.Stop()
+	r.handler.Stop()
 }
 
 // stopReaders stops existing readers and returns the set of paths which were

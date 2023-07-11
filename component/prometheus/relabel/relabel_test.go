@@ -2,10 +2,11 @@ package relabel
 
 import (
 	"math"
+	"strconv"
 	"testing"
 	"time"
 
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
@@ -25,7 +26,7 @@ func TestCache(t *testing.T) {
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
 	relabeller.relabel(0, lbls)
-	require.Len(t, relabeller.cache, 1)
+	require.True(t, relabeller.cache.Len() == 1)
 	entry, found := relabeller.getFromCache(prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls))
 	require.True(t, found)
 	require.NotNil(t, entry)
@@ -35,24 +36,15 @@ func TestCache(t *testing.T) {
 	)
 }
 
-func TestEviction(t *testing.T) {
-	relabeller := generateRelabel(t)
-	lbls := labels.FromStrings("__address__", "localhost")
-	relabeller.relabel(0, lbls)
-	require.Len(t, relabeller.cache, 1)
-	relabeller.relabel(math.Float64frombits(value.StaleNaN), lbls)
-	require.Len(t, relabeller.cache, 0)
-}
-
 func TestUpdateReset(t *testing.T) {
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
 	relabeller.relabel(0, lbls)
-	require.Len(t, relabeller.cache, 1)
+	require.True(t, relabeller.cache.Len() == 1)
 	_ = relabeller.Update(Arguments{
 		MetricRelabelConfigs: []*flow_relabel.Config{},
 	})
-	require.Len(t, relabeller.cache, 0)
+	require.True(t, relabeller.cache.Len() == 0)
 }
 
 func TestNil(t *testing.T) {
@@ -80,6 +72,25 @@ func TestNil(t *testing.T) {
 
 	lbls := labels.FromStrings("__address__", "localhost")
 	relabeller.relabel(0, lbls)
+}
+
+func TestLRU(t *testing.T) {
+	relabeller := generateRelabel(t)
+
+	for i := 0; i < 600_000; i++ {
+		lbls := labels.FromStrings("__address__", "localhost", "inc", strconv.Itoa(i))
+		relabeller.relabel(0, lbls)
+	}
+	require.True(t, relabeller.cache.Len() == 100_000)
+}
+
+func TestLRUNaN(t *testing.T) {
+	relabeller := generateRelabel(t)
+	lbls := labels.FromStrings("__address__", "localhost")
+	relabeller.relabel(0, lbls)
+	require.True(t, relabeller.cache.Len() == 1)
+	relabeller.relabel(math.Float64frombits(value.StaleNaN), lbls)
+	require.True(t, relabeller.cache.Len() == 0)
 }
 
 func BenchmarkCache(b *testing.B) {

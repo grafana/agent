@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/ckit/advertise"
 	"github.com/hashicorp/go-discover"
-	"github.com/rfratto/ckit/advertise"
 	"github.com/stretchr/testify/require"
 )
 
@@ -86,7 +86,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		require.Equal(t, "foobar:9999", gc.AdvertiseAddr)
 	})
 
-	t.Run("explicit adervise address can use default port", func(t *testing.T) {
+	t.Run("explicit advertise address can use default port", func(t *testing.T) {
 		gc := defaultConfig
 		gc.AdvertiseAddr = "foobar"
 

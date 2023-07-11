@@ -17,7 +17,7 @@ The `prometheus.exporter.mysql` component embeds
 
 ```river
 prometheus.exporter.mysql "LABEL" {
-    data_source_name = "DATA SOURCE NAME"
+    data_source_name = DATA_SOURCE_NAME
 }
 ```
 
@@ -45,7 +45,7 @@ Set a `lock_wait_timeout` on the connection to avoid potentially long wait times
 
 ## Blocks
 
-The following blocks are supported inside the definiton of
+The following blocks are supported inside the definition of
 `prometheus.exporter.mysql` to configure collector-specific options:
 
 Hierarchy | Name | Description | Required
@@ -154,6 +154,12 @@ For example, the `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metric's label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
 
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
+
 ## Component health
 
 `prometheus.exporter.mysql` is only reported as unhealthy if given
@@ -177,15 +183,30 @@ from `prometheus.exporter.mysql`:
 
 ```river
 prometheus.exporter.mysql "example" {
-  data_source_name = "root@(server-a:3306)/"
+  data_source_name  = "root@(server-a:3306)/"
   enable_collectors = ["heartbeat", "mysql.user"]
 }
 
 // Configure a prometheus.scrape component to collect mysql metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.mysql.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

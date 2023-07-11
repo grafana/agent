@@ -2,12 +2,14 @@ package value_test
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 	"time"
 	"unsafe"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -244,7 +246,9 @@ func TestDecode_CustomTypes(t *testing.T) {
 	t.Run("object to Unmarshaler", func(t *testing.T) {
 		var actual customUnmarshaler
 		require.NoError(t, value.Decode(value.Object(nil), &actual))
-		require.True(t, actual.Called, "UnmarshalRiver was not invoked")
+		require.True(t, actual.UnmarshalCalled, "UnmarshalRiver was not invoked")
+		require.True(t, actual.DefaultCalled, "SetToDefault was not invoked")
+		require.True(t, actual.ValidateCalled, "Validate was not invoked")
 	})
 
 	t.Run("TextMarshaler to TextUnmarshaler", func(t *testing.T) {
@@ -284,14 +288,25 @@ func TestDecode_CustomTypes(t *testing.T) {
 }
 
 type customUnmarshaler struct {
-	Called bool `river:"called,attr,optional"`
+	UnmarshalCalled bool `river:"unmarshal_called,attr,optional"`
+	DefaultCalled   bool `river:"default_called,attr,optional"`
+	ValidateCalled  bool `river:"validate_called,attr,optional"`
 }
 
 func (cu *customUnmarshaler) UnmarshalRiver(f func(interface{}) error) error {
-	cu.Called = true
+	cu.UnmarshalCalled = true
+	return f((*customUnmarshalerTarget)(cu))
+}
 
-	type s customUnmarshaler
-	return f((*s)(cu))
+type customUnmarshalerTarget customUnmarshaler
+
+func (s *customUnmarshalerTarget) SetToDefault() {
+	s.DefaultCalled = true
+}
+
+func (s *customUnmarshalerTarget) Validate() error {
+	s.ValidateCalled = true
+	return nil
 }
 
 type textEnumType bool
@@ -641,3 +656,106 @@ func TestDecode_SquashedSlice_Pointer(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expect, out)
 }
+
+// TestDecode_KnownTypes_Any asserts that decoding River values into an
+// any/interface{} results in known types.
+func TestDecode_KnownTypes_Any(t *testing.T) {
+	tt := []struct {
+		input  any
+		expect any
+	}{
+		// expect "int"
+		{int(0), 0},
+		{int(-1), -1},
+		{int(15), 15},
+		{int8(15), 15},
+		{int16(15), 15},
+		{int32(15), 15},
+		{int64(15), 15},
+		{uint(0), 0},
+		{uint(15), 15},
+		{uint8(15), 15},
+		{uint16(15), 15},
+		{uint32(15), 15},
+		{uint64(15), 15},
+		{int64(math.MinInt64), math.MinInt64},
+		{int64(math.MaxInt64), math.MaxInt64},
+		// expect "uint"
+		{uint64(math.MaxInt64 + 1), uint64(math.MaxInt64 + 1)},
+		{uint64(math.MaxUint64), uint64(math.MaxUint64)},
+		// expect "float"
+		{float32(2.5), float64(2.5)},
+		{float64(2.5), float64(2.5)},
+		{float64(math.MinInt64) - 10, float64(math.MinInt64) - 10},
+		{float64(math.MaxInt64) + 10, float64(math.MaxInt64) + 10},
+
+		{bool(true), bool(true)},
+		{string("Hello"), string("Hello")},
+
+		{
+			input:  []int{1, 2, 3},
+			expect: []any{1, 2, 3},
+		},
+
+		{
+			input:  map[string]int{"number": 15},
+			expect: map[string]any{"number": 15},
+		},
+		{
+			input: struct {
+				Name string `river:"name,attr"`
+			}{Name: "John"},
+
+			expect: map[string]any{"name": "John"},
+		},
+	}
+
+	t.Run("basic types", func(t *testing.T) {
+		for _, tc := range tt {
+			var actual any
+			err := value.Decode(value.Encode(tc.input), &actual)
+
+			if assert.NoError(t, err) {
+				assert.Equal(t, tc.expect, actual,
+					"Expected %[1]v (%[1]T) to transcode to %[2]v (%[2]T)", tc.input, tc.expect)
+			}
+		}
+	})
+
+	t.Run("inside maps", func(t *testing.T) {
+		for _, tc := range tt {
+			input := map[string]any{
+				"key": tc.input,
+			}
+
+			var actual map[string]any
+			err := value.Decode(value.Encode(input), &actual)
+
+			if assert.NoError(t, err) {
+				assert.Equal(t, tc.expect, actual["key"],
+					"Expected %[1]v (%[1]T) to transcode to %[2]v (%[2]T) inside a map", tc.input, tc.expect)
+			}
+		}
+	})
+}
+
+func TestRetainCapsulePointer(t *testing.T) {
+	capsuleVal := &capsule{}
+
+	in := map[string]any{
+		"foo": capsuleVal,
+	}
+
+	var actual map[string]any
+	err := value.Decode(value.Encode(in), &actual)
+	require.NoError(t, err)
+
+	expect := map[string]any{
+		"foo": capsuleVal,
+	}
+	require.Equal(t, expect, actual)
+}
+
+type capsule struct{}
+
+func (*capsule) RiverCapsule() {}

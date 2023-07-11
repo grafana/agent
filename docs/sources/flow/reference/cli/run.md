@@ -27,12 +27,22 @@ running components.
 
 The following flags are supported:
 
+* `--server.http.enable-pprof`: Enable /debug/pprof profiling endpoints. (default `true`)
+* `--server.http.memory-addr`: Address to listen for [in-memory HTTP traffic][] on
+  (default `agent.internal:12345`).
 * `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
 * `--server.http.ui-path-prefix`: Base path where the UI will be exposed (default `/`).
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
 * `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
+* `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
+* `--cluster.node-name`: The name to use for this node (defaults to the environment's hostname).
+* `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`).
+* `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
+* `--config.format`: The format of the source file. Supported formats: 'flow', 'prometheus' (default `"flow"`).
+* `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 
-[usage reporting]: {{< relref "../../../configuration/flags.md/#report-information-usage" >}}
+[in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
 [components]: {{< relref "../../concepts/components.md" >}}
 
 ## Updating the config file
@@ -52,3 +62,39 @@ All components managed by the component controller are reevaluated after
 reloading.
 
 [component controller]: {{< relref "../../concepts/component_controller.md" >}}
+
+## Clustered mode (experimental)
+
+When the `--cluster.enabled` command-line argument is provided, Grafana Agent will
+start in _clustered mode_.
+
+The agent tries to connect over HTTP/2 to one or more peers provided in the
+comma-separated `--cluster.join-addresses` list to join an existing cluster.
+If no connection can be made or the argument is empty, the agent falls back to
+bootstrapping a new cluster of its own.
+
+Each node's name must be unique within the cluster. The node name defaults to
+the machine's hostname but can be set to a different value by using the
+`--cluster.node-name` flag. Mainly useful for running clustered agents on the
+same machine.
+
+The agent will advertise its own address as `--cluster.advertise-address` to
+other agent nodes; if this is empty it will attempt to find a suitable address
+to advertise from a list of default network interfaces. The agent must be
+reachable over HTTP on this address as communication happens over the agent's
+HTTP server.
+
+## Configuration conversion (beta)
+
+When you use the `--config.format` command-line argument with a value
+other than `flow`, Grafana Agent converts the configuration file from
+the source format to River and immediately starts running with the new
+configuration. This conversion uses the converter API described in the
+[grafana-agent convert][] docs.
+
+If you also use the `--config.bypass-conversion-errors` command-line argument,
+Grafana Agent will ignore any errors from the converter. Use this argument
+with caution because the resulting conversion may not be equivalent to the
+original configuration.
+
+[grafana-agent convert]: {{< relref "./convert.md" >}}

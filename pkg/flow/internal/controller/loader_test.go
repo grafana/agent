@@ -2,10 +2,11 @@ package controller_test
 
 import (
 	"errors"
-	"io"
+	"os"
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -41,7 +42,7 @@ func TestLoader(t *testing.T) {
 			level = "debug"
 			format = "logfmt"
 		}
-		
+
 		tracing {
 			sampling_fraction = 1
 		}
@@ -64,19 +65,30 @@ func TestLoader(t *testing.T) {
 	}
 
 	newGlobals := func() controller.ComponentGlobals {
+		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
 		return controller.ComponentGlobals{
-			LogSink:           noOpSink(),
-			Logger:            logging.New(nil),
+			Logger:            l,
 			TraceProvider:     trace.NewNoopTracerProvider(),
+			Clusterer:         noOpClusterer(),
 			DataPath:          t.TempDir(),
 			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:        prometheus.NewRegistry(),
+			NewModuleController: func(id string) controller.ModuleController {
+				return nil
+			},
 		}
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
 		l := controller.NewLoader(newGlobals())
 		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig))
+		require.NoError(t, diags.ErrorOrNil())
+		requireGraph(t, l.Graph(), testGraphDefinition)
+	})
+
+	t.Run("New Graph No Config", func(t *testing.T) {
+		l := controller.NewLoader(newGlobals())
+		diags := applyFromContent(t, l, []byte(testFile), nil)
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
@@ -199,13 +211,17 @@ func TestScopeWithFailingComponent(t *testing.T) {
 		}
 	`
 	newGlobals := func() controller.ComponentGlobals {
+		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
 		return controller.ComponentGlobals{
-			LogSink:           noOpSink(),
-			Logger:            logging.New(nil),
+			Logger:            l,
 			TraceProvider:     trace.NewNoopTracerProvider(),
 			DataPath:          t.TempDir(),
 			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 			Registerer:        prometheus.NewRegistry(),
+			Clusterer:         noOpClusterer(),
+			NewModuleController: func(id string) controller.ModuleController {
+				return nil
+			},
 		}
 	}
 
@@ -216,9 +232,8 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
 }
 
-func noOpSink() *logging.Sink {
-	s, _ := logging.WriterSink(io.Discard, logging.DefaultSinkOptions)
-	return s
+func noOpClusterer() *cluster.Clusterer {
+	return &cluster.Clusterer{Node: cluster.NewLocalNode("")}
 }
 
 func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte) diag.Diagnostics {

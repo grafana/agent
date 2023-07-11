@@ -28,11 +28,11 @@ type Comparer struct {
 }
 
 // Compare compares the text representation of families to an expected input
-// string. If the OpenMetrics field of the Comparerer is true, families is
+// string. If the OpenMetrics field of the Comparer is true, families is
 // converted into the OpenMetrics text exposition format. Otherwise, families
 // is converted into the Prometheus text exposition format.
 //
-// To make testing less error prone, expect is cleaned by removing leading
+// To make testing less error-prone, expect is cleaned by removing leading
 // whitespace, trailing whitespace, and empty lines. The cleaned version of
 // expect is then compared directly against the text representation of
 // families.
@@ -44,7 +44,7 @@ func (c Comparer) Compare(families []*dto.MetricFamily, expect string) error {
 		buf bytes.Buffer
 	)
 	if c.OpenMetrics {
-		enc = expfmt.NewEncoder(&buf, expfmt.FmtOpenMetrics)
+		enc = expfmt.NewEncoder(&buf, expfmt.FmtOpenMetrics_1_0_0)
 	} else {
 		enc = expfmt.NewEncoder(&buf, expfmt.FmtText)
 	}
@@ -87,7 +87,7 @@ func cleanExpositionString(s string) string {
 // Compare compares the text representation of families to an expected input
 // string. Families is converted into the Prometheus text exposition format.
 //
-// To make testing less error prone, expect is cleaned by removing leading
+// To make testing less error-prone, expect is cleaned by removing leading
 // whitespace, trailing whitespace, and empty lines. The cleaned version of
 // expect is then compared directly against the text representation of
 // families.

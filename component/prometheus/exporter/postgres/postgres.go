@@ -1,11 +1,16 @@
 package postgres
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
+	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/lib/pq"
 	config_util "github.com/prometheus/common/config"
 )
 
@@ -14,13 +19,75 @@ func init() {
 		Name:    "prometheus.exporter.postgres",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "postgres"),
+		Build:   exporter.NewWithTargetBuilder(createExporter, "postgres", customizeTarget),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Arguments)
-	return cfg.Convert().NewIntegration(opts.Logger)
+	a := args.(Arguments)
+	return a.Convert().NewIntegration(opts.Logger)
+}
+
+func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
+	a := args.(Arguments)
+	target := baseTarget
+
+	dsn := a.convertDataSourceNames()
+	if len(dsn) != 1 {
+		return []discovery.Target{target}
+	}
+
+	s, err := parsePostgresURL(string(dsn[0]))
+	if err != nil {
+		return []discovery.Target{target}
+	}
+
+	// Assign default values to s.
+	//
+	// PostgreSQL hostspecs can contain multiple host pairs. We'll assign a host
+	// and port by default, but otherwise just use the hostname.
+	if _, ok := s["host"]; !ok {
+		s["host"] = "localhost"
+		s["port"] = "5432"
+	}
+
+	hostport := s["host"]
+	if p, ok := s["port"]; ok {
+		hostport += fmt.Sprintf(":%s", p)
+	}
+	target["instance"] = fmt.Sprintf("postgresql://%s/%s", hostport, s["dbname"])
+	return []discovery.Target{target}
+}
+
+func parsePostgresURL(url string) (map[string]string, error) {
+	raw, err := pq.ParseURL(url)
+	if err != nil {
+		return nil, err
+	}
+
+	res := map[string]string{}
+
+	unescaper := strings.NewReplacer(`\'`, `'`, `\\`, `\`)
+
+	for _, keypair := range strings.Split(raw, " ") {
+		parts := strings.SplitN(keypair, "=", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("unexpected keypair %s from pq", keypair)
+		}
+
+		key := parts[0]
+		value := parts[1]
+
+		// Undo all the transformations ParseURL did: remove wrapping
+		// quotes and then unescape the escaped characters.
+		value = strings.TrimPrefix(value, "'")
+		value = strings.TrimSuffix(value, "'")
+		value = unescaper.Replace(value)
+
+		res[key] = value
+	}
+
+	return res, nil
 }
 
 // DefaultArguments holds the default arguments for the prometheus.exporter.postgres
@@ -57,12 +124,9 @@ type AutoDiscovery struct {
 	DatabaseDenylist  []string `river:"database_denylist,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Arguments.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	return f((*args)(a))
 }
 
 func (a *Arguments) Convert() *postgres_exporter.Config {

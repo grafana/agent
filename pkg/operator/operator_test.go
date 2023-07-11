@@ -1,5 +1,4 @@
 //go:build !nonetwork && !nodocker && !race
-// +build !nonetwork,!nodocker,!race
 
 package operator
 
@@ -173,7 +172,7 @@ func NewTestConfig(t *testing.T, cluster *k8s.Cluster) *Config {
 	cfg.Controller.Logger = logutil.Wrap(util.TestLogger(t))
 
 	// Listen on any port for testing purposes
-	cfg.Controller.Port = 0
+	cfg.Controller.Port = 0 // nolint:staticcheck
 	cfg.Controller.MetricsBindAddress = "127.0.0.1:0"
 	cfg.Controller.HealthProbeBindAddress = "127.0.0.1:0"
 

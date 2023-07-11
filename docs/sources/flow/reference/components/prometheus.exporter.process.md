@@ -46,12 +46,12 @@ Each `matcher` block config can match multiple processes, which will be tracked 
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`name`       | `string`        | The name to use for identifying the process group name in the metric. | `{{.ExeBase}}` | no
+`name`       | `string`        | The name to use for identifying the process group name in the metric. | `"{{.ExeBase}}"` | no
 `comm`       | `list(string)`  | A list of strings that match the base executable name for a process, truncated to 15 characters.  | | no
 `exe`        | `list(string)`  | A list of strings that match `argv[0]` for a process. | | no
 `cmdline`    | `list(string)`  | A list of regular expressions applied to the `argv` of the process. | | no
 
-The `name` argument can use the following template variables. By default it uses the base path of the executable: 
+The `name` argument can use the following template variables. By default it uses the base path of the executable:
 - `{{.Comm}}`:      Basename of the original executable from /proc/\<pid\>/stat.
 - `{{.ExeBase}}`:   Basename of the executable from argv[0].
 - `{{.ExeFull}}`:   Fully qualified path of the executable.
@@ -59,6 +59,9 @@ The `name` argument can use the following template variables. By default it uses
 - `{{.Matches}}`:   Map containing all regex capture groups resulting from matching a process with the cmdline rule group.
 - `{{.PID}}`:       PID of the process. Note that the PID is copied from the first executable found.
 - `{{.StartTime}}`: The start time of the process. This is useful when combined with PID as PIDS get reused over time.
+- `{{.Cgroups}}`: The cgroups, if supported, of the process (`/proc/self/cgroup`). This is particularly useful for identifying to which container a process belongs.
+
+**NOTE**: Using `PID` or `StartTime` is discouraged, as it is almost never what you want, and is likely to result in high cardinality metrics.
 
 The value that is used for matching `comm` list elements is derived from reading the second field of `/proc/<pid>/stat`, stripped of parens.
 
@@ -76,6 +79,12 @@ Name      | Type                | Description
 For example, the `targets` can either be passed to a `prometheus.relabel`
 component to rewrite the metric's label set, or to a `prometheus.scrape`
 component that collects the exposed metrics.
+
+The exported targets will use the configured [in-memory traffic][] address
+specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
 
 ## Component health
 
@@ -101,6 +110,7 @@ from `prometheus.exporter.process`:
 ```river
 prometheus.exporter.process "example" {
   track_children = false
+
   matcher {
     comm = ["grafana-agent"]
   }
@@ -109,8 +119,23 @@ prometheus.exporter.process "example" {
 // Configure a prometheus.scrape component to collect process_exporter metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.process.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

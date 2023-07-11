@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"reflect"
 	"sync"
 
 	"github.com/grafana/agent/component"
@@ -13,18 +14,23 @@ import (
 // The current state of valueCache can then be built into a *vm.Scope for other
 // components to be evaluated.
 type valueCache struct {
-	mut        sync.RWMutex
-	components map[string]ComponentID // NodeID -> ComponentID
-	args       map[string]interface{} // NodeID -> component arguments value
-	exports    map[string]interface{} // NodeID -> component exports value
+	mut                sync.RWMutex
+	components         map[string]ComponentID // NodeID -> ComponentID
+	args               map[string]interface{} // NodeID -> component arguments value
+	exports            map[string]interface{} // NodeID -> component exports value
+	moduleArguments    map[string]any         // key -> module arguments value
+	moduleExports      map[string]any         // name -> value for the value of module exports
+	moduleChangedIndex int                    // Everytime a change occurs this is incremented
 }
 
-// newValueCache cretes a new ValueCache.
+// newValueCache creates a new ValueCache.
 func newValueCache() *valueCache {
 	return &valueCache{
-		components: make(map[string]ComponentID),
-		args:       make(map[string]interface{}),
-		exports:    make(map[string]interface{}),
+		components:      make(map[string]ComponentID),
+		args:            make(map[string]interface{}),
+		exports:         make(map[string]interface{}),
+		moduleArguments: make(map[string]any),
+		moduleExports:   make(map[string]any),
 	}
 }
 
@@ -60,7 +66,64 @@ func (vc *valueCache) CacheExports(id ComponentID, exports component.Exports) {
 	vc.exports[nodeID] = exportsVal
 }
 
-// SyncIDs will removed any cached values for any Component ID which is not in
+// CacheModuleArgument will cache the provided exports using the given id.
+func (vc *valueCache) CacheModuleArgument(key string, value any) {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	if value == nil {
+		vc.moduleArguments[key] = nil
+	} else {
+		vc.moduleArguments[key] = value
+	}
+}
+
+// CacheModuleExportValue saves the value to the map
+func (vc *valueCache) CacheModuleExportValue(name string, value any) {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	// Need to see if the module exports have changed.
+	v, found := vc.moduleExports[name]
+	if !found {
+		vc.moduleChangedIndex++
+	} else if !reflect.DeepEqual(v, value) {
+		vc.moduleChangedIndex++
+	}
+
+	vc.moduleExports[name] = value
+}
+
+// CreateModuleExports creates a map for usage on OnExportsChanged
+func (vc *valueCache) CreateModuleExports() map[string]any {
+	vc.mut.RLock()
+	defer vc.mut.RUnlock()
+
+	exports := make(map[string]any)
+	for k, v := range vc.moduleExports {
+		exports[k] = v
+	}
+	return exports
+}
+
+// ClearModuleExports empties the map and notifies that the exports have changed.
+func (vc *valueCache) ClearModuleExports() {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	vc.moduleChangedIndex++
+	vc.moduleExports = make(map[string]any)
+}
+
+// ExportChangeIndex return the change index.
+func (vc *valueCache) ExportChangeIndex() int {
+	vc.mut.RLock()
+	defer vc.mut.RUnlock()
+
+	return vc.moduleChangedIndex
+}
+
+// SyncIDs will remove any cached values for any Component ID which is not in
 // ids. SyncIDs should be called with the current set of components after the
 // graph is updated.
 func (vc *valueCache) SyncIDs(ids []ComponentID) {
@@ -82,14 +145,27 @@ func (vc *valueCache) SyncIDs(ids []ComponentID) {
 	}
 }
 
+// SyncModuleArgs will remove any cached values for any args no longer in the map.
+func (vc *valueCache) SyncModuleArgs(args map[string]any) {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	for id := range vc.moduleArguments {
+		if _, keep := args[id]; keep {
+			continue
+		}
+		delete(vc.moduleArguments, id)
+	}
+}
+
 // BuildContext builds a vm.Scope based on the current set of cached values.
 // The arguments and exports for the same ID are merged into one object.
-func (vc *valueCache) BuildContext(parent *vm.Scope) *vm.Scope {
+func (vc *valueCache) BuildContext() *vm.Scope {
 	vc.mut.RLock()
 	defer vc.mut.RUnlock()
 
 	scope := &vm.Scope{
-		Parent:    parent,
+		Parent:    nil,
 		Variables: make(map[string]interface{}),
 	}
 
@@ -103,6 +179,20 @@ func (vc *valueCache) BuildContext(parent *vm.Scope) *vm.Scope {
 	// Then, convert each partition into a single value.
 	for blockName, ids := range componentsByBlockName {
 		scope.Variables[blockName] = vc.buildValue(ids, 1)
+	}
+
+	// Add module arguments to the scope.
+	if len(vc.moduleArguments) > 0 {
+		scope.Variables["argument"] = make(map[string]any)
+	}
+	for key, value := range vc.moduleArguments {
+		keyMap := make(map[string]any)
+		keyMap["value"] = value
+
+		switch args := scope.Variables["argument"].(type) {
+		case map[string]any:
+			args[key] = keyMap
+		}
 	}
 
 	return scope
