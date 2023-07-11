@@ -28,6 +28,10 @@ Main (unreleased)
 
 - The field `version` and `auth` struct block from `walk_params` in `prometheus.exporter.snmp` and SNMP integration have been removed. The auth block now can be configured at top level, together with `modules` (@marctc)
 
+- Rename `discovery.file` to `local.file_match` to make it more clear that it
+  discovers file on the local filesystem, and so it doesn't get confused with
+  Prometheus' file discovery. (@rfratto)
+
 ### Features
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
@@ -122,8 +126,8 @@ Main (unreleased)
 - Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
   parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
   binary. (@rfratto)
-  
-- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to 
+
+- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to
   the `/loki` prefixed endpoints. (@mattdurham)
 
 ### Other changes

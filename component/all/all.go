@@ -8,12 +8,12 @@ import (
 	_ "github.com/grafana/agent/component/discovery/digitalocean"                   // Import discovery.digitalocean
 	_ "github.com/grafana/agent/component/discovery/dns"                            // Import discovery.dns
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
-	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file
 	_ "github.com/grafana/agent/component/discovery/gce"                            // Import discovery.gce
 	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
+	_ "github.com/grafana/agent/component/local/file_match"                         // Import local.file_match
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo
 	_ "github.com/grafana/agent/component/loki/process"                             // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                             // Import loki.relabel

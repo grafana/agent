@@ -1,4 +1,4 @@
-package file
+package file_match
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.file",
+		Name:    "local.file_match",
 		Args:    Arguments{},
 		Exports: discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -22,7 +22,7 @@ func init() {
 	})
 }
 
-// Arguments holds values which are used to configure the discovery.file
+// Arguments holds values which are used to configure the local.file_match
 // component.
 type Arguments struct {
 	PathTargets []discovery.Target `river:"path_targets,attr"`
@@ -31,7 +31,7 @@ type Arguments struct {
 
 var _ component.Component = (*Component)(nil)
 
-// Component implements the discovery.file component.
+// Component implements the local.file_match component.
 type Component struct {
 	opts component.Options
 
@@ -41,7 +41,7 @@ type Component struct {
 	watchDog *time.Ticker
 }
 
-// New creates a new discovery.file component.
+// New creates a new local.file_match component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:     o,

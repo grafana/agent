@@ -1,7 +1,7 @@
 //go:build !windows
 
 // This should run on windows but windows does not like the tight timing of file creation and deletion.
-package file
+package file_match
 
 import (
 	"os"
