@@ -121,12 +121,12 @@ var Identifiers = map[string]interface{}{
 
 	"format":      fmt.Sprintf,
 	"join":        strings.Join,
-	"lower":       strings.ToLower,
 	"replace":     strings.ReplaceAll,
 	"split":       strings.Split,
+	"to_lower":    strings.ToLower,
+	"to_upper":    strings.ToUpper,
 	"trim":        strings.Trim,
 	"trim_prefix": strings.TrimPrefix,
 	"trim_suffix": strings.TrimSuffix,
 	"trim_space":  strings.TrimSpace,
-	"upper":       strings.ToUpper,
 }

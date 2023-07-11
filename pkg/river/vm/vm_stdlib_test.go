@@ -145,10 +145,10 @@ func TestStdlib_StringFunc(t *testing.T) {
 		input  string
 		expect interface{}
 	}{
-		{"lower", `lower("String")`, "string"},
-		{"upper", `upper("string")`, "STRING"},
+		{"to_lower", `to_lower("String")`, "string"},
+		{"to_upper", `to_upper("string")`, "STRING"},
 		{"trimspace", `trim_space("   string \n\n")`, "string"},
-		{"trimspace+upper+trim", `lower(upper(trim_space("   String   ")))`, "string"},
+		{"trimspace+to_upper+trim", `to_lower(to_upper(trim_space("   String   ")))`, "string"},
 		{"split", `split("/aaa/bbb/ccc/ddd", "/")`, []string{"", "aaa", "bbb", "ccc", "ddd"}},
 		{"split+index", `split("/aaa/bbb/ccc/ddd", "/")[0]`, ""},
 		{"join+split", `join(split("/aaa/bbb/ccc/ddd", "/"), "/")`, "/aaa/bbb/ccc/ddd"},
