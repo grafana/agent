@@ -12,8 +12,6 @@ title: trim
 trim(string, str_character_set)
 ```
 
-Every occurrence of a character in the second argument is removed from the start and end of the string specified in the first argument.
-
 ## Examples
 
 ```river
