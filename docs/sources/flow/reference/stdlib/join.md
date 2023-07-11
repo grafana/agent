@@ -6,7 +6,7 @@ title: join
 
 # join
 
-`join` produces a string by concatenating all of the elements of the specified list of strings with the specified separator.
+Join all items in an array into a string, using a character as separator.
 
 ```river
 join(list, separator)
