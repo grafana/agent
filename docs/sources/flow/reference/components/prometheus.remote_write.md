@@ -332,3 +332,7 @@ prometheus.scrape "demo" {
 ## Compression
 
 `prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
+
+## Meta labels
+
+Any labels that start with `__` will be removed before sending to the endpoint. 
