@@ -6,11 +6,11 @@ title: upper
 
 # upper
 
-`upper` converts all cased letters in the given string to uppercase.
+`upper` converts all lowercase letters in a string to uppercase.
 
 ## Examples
 
-```
+```river
 > upper("hello")
 "HELLO"
 ```
