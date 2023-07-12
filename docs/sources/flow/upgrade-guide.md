@@ -52,6 +52,11 @@ Additional `instrumentation_scope` information will be added to the OTLP log sig
 The `/` HTTP endpoint was the same as the `/sampling` endpoint. The `/sampling` endpoint is still functional.
 The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib. 
 
+### The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`
+
+The `remote_sampling` block in `otelcol.receiver.jaeger` has been an undocumented no-op configuration for some time, and has now been removed. 
+Customers are advised to use `otelcol.extension.jaeger_remote_sampling` instead.
+
 ## v0.35
 
 ### Breaking change: `auth` and `version` attributes from `walk_params` block of `prometheus.exporter.snmp` have been removed

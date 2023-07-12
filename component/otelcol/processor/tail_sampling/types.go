@@ -246,18 +246,36 @@ var (
 
 // Validate implements river.Validator.
 func (e *ErrorMode) Validate() error {
+	if e == nil {
+		return nil
+	}
+
 	var ottlError ottl.ErrorMode
 	return ottlError.UnmarshalText([]byte(string(*e)))
 }
 
 // Convert the River type to the Otel type
 func (e *ErrorMode) Convert() ottl.ErrorMode {
+	if e == nil || *e == "" {
+		return ottl.ErrorMode("")
+	}
+
 	var ottlError ottl.ErrorMode
-	ottlError.UnmarshalText([]byte(string(*e)))
+	err := ottlError.UnmarshalText([]byte(string(*e)))
+
+	//TODO: Rework this to return an error instead of panicking
+	if err != nil {
+		panic(err)
+	}
+
 	return ottlError
 }
 
 func (e *ErrorMode) UnmarshalText(text []byte) error {
+	if e == nil {
+		return nil
+	}
+
 	str := ErrorMode(strings.ToLower(string(text)))
 	switch str {
 	case ErrorModeIgnore, ErrorModePropagate:
@@ -434,6 +452,7 @@ func (andSubPolicyConfig AndSubPolicyConfig) Convert() tsp.AndSubPolicyCfg {
 func mustDecodeMapStructure(source map[string]interface{}, otelConfig interface{}) {
 	err := mapstructure.Decode(source, otelConfig)
 
+	//TODO: Rework this to return an error instead of panicking
 	if err != nil {
 		panic(err)
 	}

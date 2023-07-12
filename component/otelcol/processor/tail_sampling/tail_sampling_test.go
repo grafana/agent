@@ -36,6 +36,35 @@ func TestBadRiverConfig(t *testing.T) {
 	require.Error(t, river.Unmarshal([]byte(exampleBadRiverConfig), &args), "num_traces must be greater than zero")
 }
 
+func TestBadRiverConfigErrorMode(t *testing.T) {
+	exampleBadRiverConfig := `
+    decision_wait               = "10s"
+    num_traces                  = 5
+    expected_new_traces_per_sec = 10
+    policy {
+      name = "test-policy-1"
+      type = "ottl_condition"
+      ottl_condition {
+        error_mode = ""
+        span = [
+          "attributes[\"test_attr_key_1\"] == \"test_attr_val_1\"",
+          "attributes[\"test_attr_key_2\"] != \"test_attr_val_1\"",
+        ]
+        spanevent = [
+          "name != \"test_span_event_name\"",
+          "attributes[\"test_event_attr_key_2\"] != \"test_event_attr_val_1\"",
+        ]
+      }
+    }
+    output { 
+	    // no-op: will be overridden by test code.
+    }
+`
+
+	var args Arguments
+	require.ErrorContains(t, river.Unmarshal([]byte(exampleBadRiverConfig), &args), "\"\" unknown error mode")
+}
+
 func TestBadOtelConfig(t *testing.T) {
 	var exampleBadOtelConfig = `
     decision_wait               = "10s"

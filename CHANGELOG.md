@@ -28,7 +28,7 @@ Main (unreleased)
 - Rename `discovery.file` to `local.file_match` to make it more clear that it
   discovers file on the local filesystem, and so it doesn't get confused with
   Prometheus' file discovery. (@rfratto)
-  
+
 - In the traces subsystem for Static mode, some metrics are removed and others are renamed. (@ptodev)
   - Removed metrics:
     - "blackbox_exporter_config_last_reload_success_timestamp_seconds" (gauge)
@@ -53,6 +53,8 @@ Main (unreleased)
     - "traces_receiver_refused_spans" is renamed to "traces_receiver_refused_spans_total"
     - "traces_receiver_accepted_spans" is renamed to "traces_receiver_refused_spans_total"
     - "traces_exporter_sent_metric_points" is renamed to "traces_exporter_sent_metric_points_total"
+
+- The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`. (@ptodev)
 
 ### Features
 
