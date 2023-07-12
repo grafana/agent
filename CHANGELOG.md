@@ -218,6 +218,7 @@ v0.34.0 (2023-06-08)
   - `prometheus.exporter.oracledb` collects metrics from oracledb (@jonathanwamsley)
   - `prometheus.exporter.dnsmasq` collects metrics from a dnsmasq server. (@spartan0x117)
   - `loki.source.awsfirehose` - receive Loki log entries from AWS Firehose via HTTP (@thepalbi)
+  - `discovery.http` service discovery via http. (@captncraig)
 
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)

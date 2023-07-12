@@ -164,10 +164,9 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-// maxUpdateFrequency is the minimum time to wait between updating targets.
-// Currently not settable, since prometheus uses a static threshold, but
-// we could reconsider later.
-const maxUpdateFrequency = 5 * time.Second
+// MaxUpdateFrequency is the minimum time to wait between updating targets.
+// Prometheus uses a static threshold. Do not recommend changing this, except for tests.
+var MaxUpdateFrequency = 5 * time.Second
 
 // runDiscovery is a utility for consuming and forwarding target groups from a discoverer.
 // It will handle collating targets (and clearing), as well as time based throttling of updates.
@@ -198,7 +197,7 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 		c.opts.OnStateChange(Exports{Targets: allTargets})
 	}
 
-	ticker := time.NewTicker(maxUpdateFrequency)
+	ticker := time.NewTicker(MaxUpdateFrequency)
 	// true if we have received new targets and need to send.
 	haveUpdates := false
 	for {
