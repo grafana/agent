@@ -234,6 +234,17 @@ func (c *Clusterer) Start(ctx context.Context) error {
 func (c *Clusterer) Stop() error {
 	switch node := c.Node.(type) {
 	case *GossipNode:
+		// The node is going away. We move to the Terminating state to signal
+		// that we should not be owners for write hashing operations anymore.
+		ctx, ccl := context.WithTimeout(context.Background(), 5*time.Second)
+		defer ccl()
+
+		// TODO(rfratto): should we enter terminating state earlier to allow for
+		// some kind of hand-off between components?
+		err := node.ChangeState(ctx, peer.StateTerminating)
+		if err != nil {
+			level.Error(node.log).Log("msg", "failed to change state to Terminating before shutting down", "err", err)
+		}
 		return node.Stop()
 	}
 

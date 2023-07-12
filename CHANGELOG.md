@@ -9,9 +9,6 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
-### Features
-- `pyroscope.ebpf` collects system-wide performance profiles from the current host (@korniltsev)
-
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -28,6 +25,10 @@ Main (unreleased)
 
 - The field `version` and `auth` struct block from `walk_params` in `prometheus.exporter.snmp` and SNMP integration have been removed. The auth block now can be configured at top level, together with `modules` (@marctc)
 
+- Rename `discovery.file` to `local.file_match` to make it more clear that it
+  discovers file on the local filesystem, and so it doesn't get confused with
+  Prometheus' file discovery. (@rfratto)
+
 ### Features
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
@@ -38,17 +39,6 @@ Main (unreleased)
 
 - Support custom fields in MMDB file for `stage.geoip`. (@akselleirv)
 
-- New Grafana Agent Flow components:
-
-  - `discovery.kubelet` collect scrape targets from the Kubelet API. (@gcampbell12)
-  - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
-  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
-    components and modifies attributes of a span, log, or metric. (@ptodev)
-  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
-  - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
-  - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
-  - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
-
 - Added json_path function to river stdlib. (@jkroepke)
 
 - Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
@@ -58,6 +48,27 @@ Main (unreleased)
 - Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
 - Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
+
+- New Grafana Agent Flow components:
+
+  - `discovery.kubelet` collect scrape targets from the Kubelet API. (@gcampbell12)
+  - `module.http` runs a Grafana Agent Flow module loaded from a remote HTTP endpoint. (@spartan0x117)
+  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
+    components and modifies attributes of a span, log, or metric. (@ptodev)
+  - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
+  - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
+  - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
+  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
+  - `prometheus.operator.probes` - discovers Probe resources in your Kubernetes
+    cluster and scrape the targets they reference. (@captncraig)
+  - `pyroscope.ebpf` collects system-wide performance profiles from the current
+    host (@korniltsev)
+
+- New Grafana Agent Flow command line utilities:
+
+  - `grafana-agent tools prometheus.remote_write` holds a collection of remote
+    write-specific tools. These have been ported over from the `agentctl` command. (@rfratto)
 
 ### Enhancements
 
@@ -121,13 +132,14 @@ Main (unreleased)
 - Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
   parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
   binary. (@rfratto)
-  
-- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to 
+
+- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to
   the `/loki` prefixed endpoints. (@mattdurham)
 
 ### Other changes
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
+- Build with go 1.20.5 (@captncraig)
 
 v0.34.3 (2023-06-27)
 --------------------

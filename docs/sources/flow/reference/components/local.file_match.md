@@ -1,17 +1,17 @@
 ---
-title: discovery.file
+title: local.file_match
 ---
 
-# discovery.file
+# local.file_match
 
-`discovery.file` discovers files on the local filesystem using glob patterns and the [doublestar][] library.
+`local.file_match` discovers files on the local filesystem using glob patterns and the [doublestar][] library.
 
 [doublestar]: https://github.com/bmatcuk/doublestar
 
 ## Usage
 
 ```river
-discovery.file "LABEL" {
+local.file_match "LABEL" {
   path_targets = [{"__path__" = DOUBLESTAR_PATH}]
 }
 ```
@@ -45,17 +45,17 @@ Each target includes the following labels:
 
 ## Component health
 
-`discovery.file` is only reported as unhealthy when given an invalid
+`local.file_match` is only reported as unhealthy when given an invalid
 configuration. In those cases, exported fields retain their last healthy
 values.
 
 ## Debug information
 
-`discovery.file` does not expose any component-specific debug information.
+`local.file_match` does not expose any component-specific debug information.
 
 ### Debug metrics
 
-`discovery.file` does not expose any component-specific debug metrics.
+`local.file_match` does not expose any component-specific debug metrics.
 
 ## Examples
 
@@ -65,12 +65,12 @@ This example discovers all files and folders under `/tmp/logs`. The absolute pat
 used by `loki.source.file.files` targets.
 
 ```river
-discovery.file "tmp" {
+local.file_match "tmp" {
   path_targets = [{"__path__" = "/tmp/logs/**/*.log"}]
 }
 
 loki.source.file "files" {
-  targets    = discovery.file.tmp.targets
+  targets    = local.file_match.tmp.targets
   forward_to = [loki.write.endpoint.receiver]
 }
 
@@ -100,7 +100,7 @@ discovery.kubernetes "k8s" {
 
 discovery.relabel "k8s" {
   targets = discovery.kubernetes.k8s.targets
- 
+
   rule {
     source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_name"]
     target_label  = "job"
@@ -110,17 +110,17 @@ discovery.relabel "k8s" {
   rule {
     source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
     target_label  = "__path__"
-    separator     = "/" 
+    separator     = "/"
     replacement   = "/var/log/pods/*$1/*.log"
-  } 
+  }
 }
 
-discovery.file "pods" {
+local.file_match "pods" {
   path_targets = discovery.relabel.k8s.output
 }
 
 loki.source.file "pods" {
-  targets = discovery.file.pods.targets
+  targets = local.file_match.pods.targets
   forward_to = [loki.write.endpoint.receiver]
 }
 
