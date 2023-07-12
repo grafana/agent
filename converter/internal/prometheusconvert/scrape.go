@@ -1,6 +1,8 @@
 package prometheusconvert
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/component/discovery"
@@ -14,8 +16,11 @@ import (
 
 func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target, label string) {
 	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
-	block := common.NewBlockWithOverride([]string{"prometheus", "scrape"}, label, scrapeArgs)
-	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, block)
+	name := []string{"prometheus", "scrape"}
+	block := common.NewBlockWithOverride(name, label, scrapeArgs)
+	summary := fmt.Sprintf("Converted scrape_configs job_name %q into...", scrapeConfig.JobName)
+	detail := fmt.Sprintf("	A %s.%s component", strings.Join(name, "."), label)
+	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, newPrometheusBlockWithInfo(block, name, label, summary, detail))
 }
 
 func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {

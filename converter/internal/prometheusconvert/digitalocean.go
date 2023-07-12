@@ -16,8 +16,9 @@ import (
 
 func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *prom_digitalocean.SDConfig) discovery.Exports {
 	discoveryDigitalOceanArgs := toDiscoveryDigitalOcean(sdConfig)
-	block := common.NewBlockWithOverride([]string{"discovery", "digitalocean"}, label, discoveryDigitalOceanArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
+	name := []string{"discovery", "digitalocean"}
+	block := common.NewBlockWithOverride(name, label, discoveryDigitalOceanArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label))
 	return newDiscoverExports("discovery.digitalocean." + label + ".targets")
 }
 

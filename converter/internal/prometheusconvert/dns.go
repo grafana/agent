@@ -12,8 +12,9 @@ import (
 
 func appendDiscoveryDns(pb *prometheusBlocks, label string, sdConfig *prom_dns.SDConfig) discovery.Exports {
 	discoveryDnsArgs := toDiscoveryDns(sdConfig)
-	block := common.NewBlockWithOverride([]string{"discovery", "dns"}, label, discoveryDnsArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
+	name := []string{"discovery", "dns"}
+	block := common.NewBlockWithOverride(name, label, discoveryDnsArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label))
 	return newDiscoverExports("discovery.dns." + label + ".targets")
 }
 
