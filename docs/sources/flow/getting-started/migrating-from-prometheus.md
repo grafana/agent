@@ -5,13 +5,13 @@ weight: 320
 
 # Migrating from Prometheus
 
-Migration to Grafana Agent Flow from [Prometheus][] can be done using built
-in Grafana Agent tooling.
+Migration to Grafana Agent flow mode from [Prometheus][] can be done using
+built in Grafana Agent tooling.
 
 This topic describes how to:
 
-* Convert a Prometheus configuration to a Grafana Agent Flow configuration
-* Run a Prometheus configuration natively using Grafana Agent Flow
+* Convert a Prometheus configuration to a flow configuration
+* Run a Prometheus configuration natively using Grafana Agent flow mode
 
 [Prometheus]: https://prometheus.io/docs/prometheus/latest/configuration/configuration/
 
@@ -27,8 +27,8 @@ This topic describes how to:
 
 * Have an existing Prometheus configuration.
 * Have a set of Prometheus applications ready to push telemetry data to
-  Grafana Agent Flow.
-* Be familiar with the concept of [Components][] in Grafana Agent Flow.
+  Grafana Agent.
+* Be familiar with the concept of [Components][] in Grafana Agent flow mode.
 
 [Components]: {{< relref "../concepts/components.md" >}}
 [convert]: {{< relref "../reference/cli/convert.md" >}}
@@ -39,23 +39,22 @@ This topic describes how to:
 ## Convert a Prometheus configuration
 
 In order to fully migrate your configuration from [Prometheus] to Grafana Agent
-Flow, your Prometheus configuration must be converted into a Grafana Agent Flow
-configuration. This will enable you to modify it going forward as a flow
+Flow, your Prometheus configuration must be converted into a Grafana Agent flow
+mode configuration. This will enable you to modify it going forward as a flow
 configuration and take full advantage of the many additional features available
-in Grafana Agent Flow.
+in Grafana Agent flow mode.
 
 > In this task, we will use the [convert][] CLI command to output flow
 > configuration from a Prometheus configuration.
 
 1. Execute the following:
 
-```bash
-grafana-agent convert --format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-```
+    ```bash
+    grafana-agent convert --format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+    ```
   
-> Replace `INPUT_CONFIG_PATH` with the full path to the Prometheus configuration.
->
-> Replace `OUTPUT_CONFIG_PATH` with the full path to output the flow configuration.
+    1. Replace `INPUT_CONFIG_PATH` with the full path to the Prometheus configuration.
+    2. Replace `OUTPUT_CONFIG_PATH` with the full path to output the flow configuration.
 
 The following example demonstrates converting a Prometheus configuration:
 
@@ -117,36 +116,36 @@ prometheus.remote_write "default" {
 }
 ```
 
-#### Debugging
+### Debugging
 
-If Prometheus configuration is provided that cannot be converted,
-diagnostic information is printed to `stderr`. You can bypass
-any non-critical issues and output the flow configuration using best
-effort conversion by including the `--bypass-errors` flag.
+1. If Prometheus configuration is provided that cannot be converted,
+   diagnostic information is printed to `stderr`. You can bypass
+   any non-critical issues and output the flow configuration using best
+   effort conversion by including the `--bypass-errors` flag.
    
-> Be aware that the behavior may not match when bypassing errors.
+    > Be aware that the behavior may not match when bypassing errors.
 
-```bash
-grafana-agent convert --format=prometheus --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-```
+    ```bash
+    grafana-agent convert --format=prometheus --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+    ```
 
-You can also output a diagnostic report by including the `--report` flag.
+2. You can also output a diagnostic report by including the `--report` flag.
 
-```bash
-grafana-agent convert --format=prometheus --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-```
+    ```bash
+    grafana-agent convert --format=prometheus --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+    ```
 
-> Replace `OUTPUT_REPORT_PATH` with the full path to output the report to.
+    1. Replace `OUTPUT_REPORT_PATH` with the full path to output the report to.
 
-Using the example Prometheus configuration from above outputs a diagnostic
-report:
+    Using the example Prometheus configuration from above outputs a diagnostic
+    report:
 
-```
-(Info) Converted scrape_configs job_name "prometheus" into...
-  A prometheus.scrape.prometheus component
-(Info) Converted 1 remote_write[s] "grafana-cloud" into...
-  A prometheus.remote_write.default component
-```
+    ```
+    (Info) Converted scrape_configs job_name "prometheus" into...
+      A prometheus.scrape.prometheus component
+    (Info) Converted 1 remote_write[s] "grafana-cloud" into...
+      A prometheus.remote_write.default component
+    ```
 
 ## Run a Prometheus configuration
 
@@ -161,13 +160,13 @@ Prometheus configuration infrastructure.
 1. Execute the following to start the Grafana Agent in flow mode with a
 Prometheus configuration:
 
-```bash
-grafana-agent run --config.format=prometheus INPUT_CONFIG_PATH
-```
+    ```bash
+    grafana-agent run --config.format=prometheus INPUT_CONFIG_PATH
+    ```
 
-> Replace `INPUT_CONFIG_PATH` with the full path to the Prometheus configuration.
+    1. Replace `INPUT_CONFIG_PATH` with the full path to the Prometheus configuration.
 
-#### Debugging
+### Debugging
 
 If Prometheus configuration is provided that cannot be converted,
 diagnostic information is printed to `stderr`. You can bypass
