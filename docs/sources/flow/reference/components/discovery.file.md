@@ -4,6 +4,11 @@ title: discovery.file
 
 # discovery.file
 
+> **NOTE:** In `v0.35.0` of the Grafana Agent, the `discovery.file` component was renamed to [local.file_match][]. From `v0.35.0` onwards, the `discovery.file` 
+> component behaves as documented here.
+
+[local.file_match]: {{< relref "./local.file_match.md" >}}
+
 `discovery.file` discovers targets from a set of files, similar to the [Prometheus file_sd_config](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#file_sd_config).
 
 ## Usage
