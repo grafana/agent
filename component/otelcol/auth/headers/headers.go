@@ -2,10 +2,13 @@
 package headers
 
 import (
+	"encoding"
 	"fmt"
+	"strings"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/auth"
+	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -40,6 +43,11 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 			Key: &h.Key,
 		}
 
+		err := h.Action.Convert(&upstreamHeader)
+		if err != nil {
+			return nil, err
+		}
+
 		if h.Value != nil {
 			upstreamHeader.Value = &h.Value.Value
 		}
@@ -65,15 +73,87 @@ func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.I
 	return nil
 }
 
+type Action string
+
+const (
+	ActionInsert Action = "insert"
+	ActionUpdate Action = "update"
+	ActionUpsert Action = "upsert"
+	ActionDelete Action = "delete"
+)
+
+var (
+	_ river.Validator          = (*Action)(nil)
+	_ encoding.TextUnmarshaler = (*Action)(nil)
+)
+
+// Validate implements river.Validator.
+func (a *Action) Validate() error {
+	switch *a {
+	case ActionInsert, ActionUpdate, ActionUpsert, ActionDelete:
+		// This is a valid value, do not error
+	default:
+		return fmt.Errorf("action is set to an invalid value of %q", *a)
+	}
+	return nil
+}
+
+// Convert the River type to the Otel type.
+// TODO: When headerssetterextension.actionValue is made external,
+// remove the input parameter and make this output the Otel type.
+func (a *Action) Convert(hc *headerssetterextension.HeaderConfig) error {
+	switch *a {
+	case ActionInsert:
+		hc.Action = headerssetterextension.INSERT
+	case ActionUpdate:
+		hc.Action = headerssetterextension.UPDATE
+	case ActionUpsert:
+		hc.Action = headerssetterextension.UPSERT
+	case ActionDelete:
+		hc.Action = headerssetterextension.DELETE
+	default:
+		return fmt.Errorf("action is set to an invalid value of %q", *a)
+	}
+	return nil
+}
+
+func (a *Action) UnmarshalText(text []byte) error {
+	str := Action(strings.ToLower(string(text)))
+	switch str {
+	case ActionInsert, ActionUpdate, ActionUpsert, ActionDelete:
+		*a = str
+		return nil
+	default:
+		return fmt.Errorf("unknown action %v", str)
+	}
+}
+
 // Header is an individual Header to send along with requests.
 type Header struct {
 	Key         string                     `river:"key,attr"`
 	Value       *rivertypes.OptionalSecret `river:"value,attr,optional"`
 	FromContext *string                    `river:"from_context,attr,optional"`
+	Action      Action                     `river:"action,attr,optional"`
+}
+
+var _ river.Defaulter = &Header{}
+
+var DefaultHeader = Header{
+	Action: ActionUpsert,
+}
+
+// SetToDefault implements river.Defaulter.
+func (h *Header) SetToDefault() {
+	*h = DefaultHeader
 }
 
 // Validate implements river.Validator.
 func (h *Header) Validate() error {
+	err := h.Action.Validate()
+	if err != nil {
+		return err
+	}
+
 	switch {
 	case h.Key == "":
 		return fmt.Errorf("key must be set to a non-empty string")
