@@ -168,19 +168,19 @@ Prometheus configuration:
 
 ### Debugging
 
-If Prometheus configuration is provided that cannot be converted,
-diagnostic information is printed to `stderr`. You can bypass
-any non-critical issues and start the Agent by including the
-`--config.bypass-conversion-errors` flag.
+1. If Prometheus configuration is provided that cannot be converted,
+   diagnostic information is printed to `stderr`. You can bypass
+   any non-critical issues and start the Agent by including the
+   `--config.bypass-conversion-errors` flag.
 
-> Be aware that the behavior may not match when bypassing errors
-> and doing so should be avoided in Production systems.
+    > Be aware that the behavior may not match when bypassing errors
+    > and doing so should be avoided in Production systems.
 
-```bash
-grafana-agent run --config.format=prometheus --config.bypass-conversion-errors INPUT_CONFIG_PATH
-```
+    ```bash
+    grafana-agent run --config.format=prometheus --config.bypass-conversion-errors INPUT_CONFIG_PATH
+    ```
 
-If a deeper dive is needed for Prometheus configuration conversion issues,
-use the [convert][] CLI command [debugging][]
+2. The convert CLI command [debugging][] instructions can be followed to
+   generate a diagnostic report.
 
-For debugging a running Agent, see Grafana Agent [Flow Debugging][].
+3. See the Grafana Agent [Flow Debugging][] for debugging a running Agent.
