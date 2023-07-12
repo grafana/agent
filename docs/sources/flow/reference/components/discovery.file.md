@@ -4,8 +4,13 @@ title: discovery.file
 
 # discovery.file
 
-> **NOTE:** In `v0.35.0` of the Grafana Agent, the `discovery.file` component was renamed to [local.file_match][]. From `v0.35.0` onwards, the `discovery.file` 
-> component behaves as documented here.
+> **NOTE:** In `v0.35.0` of the Grafana Agent, the `discovery.file` component was renamed to [local.file_match][],
+> and `discovery.file` was repurposed to discover scrape targets from one or more files.
+>
+> <br>
+>
+> If you are trying to discover files on the local filesystem rather than scrape
+> targets within a set of files, you should use [local.file_match][] instead.
 
 [local.file_match]: {{< relref "./local.file_match.md" >}}
 
