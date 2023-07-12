@@ -323,12 +323,14 @@ func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
 	if cn.managed == nil {
 		// We haven't built the managed component successfully yet.
 		managed, err := cn.reg.Build(cn.managedOpts, argsCopyValue)
-		if err != nil {
-			return fmt.Errorf("building component: %w", err)
-		}
 		cn.managed = managed
 		cn.args = argsCopyValue
 
+		// We do the error check at the end to allow the component to still return
+		// a component instance with an error to signal that it should still run.
+		if err != nil {
+			return fmt.Errorf("building component: %w", err)
+		}
 		return nil
 	}
 

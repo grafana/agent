@@ -272,6 +272,9 @@ func (fr *flowRun) Run(configFile string) error {
 	// Perform the initial reload. This is done after starting the HTTP server so
 	// that /metric and pprof endpoints are available while the Flow controller
 	// is loading.
+	//
+	// TODO(rfratto): add a flag to permit the initial load failing, allowing
+	// Flow to run in a partially-healthy state.
 	if err := reload(); err != nil {
 		var diags diag.Diagnostics
 		if errors.As(err, &diags) {

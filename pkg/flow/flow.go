@@ -239,6 +239,28 @@ func (f *Flow) Run(ctx context.Context) {
 				f.loader.EvaluateDependencies(updated)
 			}
 
+			// If the graph was partially evaluated (i.e., one failed component
+			// prevented downstream components from initially evaluating), it's
+			// possible for a subset of components to not be running.
+			//
+			// We'll re-synchronize the list of running components to ensure that
+			// newly evaluated components are started.
+			//
+			// TODO(rfratto): this may be expensive with busy graphs; one solution
+			// could be to check for non-running components before calling
+			// Synchronize, or to check for a difference in the length of
+			// current synchronized runnables to the current list of
+			// f.loader.Components().
+			components := f.loader.Components()
+			runnables := make([]controller.RunnableNode, 0, len(components))
+			for _, uc := range components {
+				runnables = append(runnables, uc)
+			}
+			err := f.sched.Synchronize(runnables)
+			if err != nil {
+				level.Error(f.log).Log("msg", "failed to load components", "err", err)
+			}
+
 		case <-f.loadFinished:
 			level.Info(f.log).Log("msg", "scheduling loaded components")
 
@@ -259,19 +281,15 @@ func (f *Flow) Run(ctx context.Context) {
 // file. Components in the graph will be marked as unhealthy if there was an
 // error encountered during Load.
 //
-// The controller will only start running components after Load is called once
-// without any configuration errors.
+// If the Flow controller is running, loaded components will be scheduled for
+// running.
 func (f *Flow) LoadFile(file *File, args map[string]any) error {
+	defer f.loadedOnce.Store(true)
+
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 
 	diags := f.loader.Apply(args, file.Components, file.ConfigBlocks)
-	if !f.loadedOnce.Load() && diags.HasErrors() {
-		// The first call to Load should not run any components if there were
-		// errors in the configuration file.
-		return diags
-	}
-	f.loadedOnce.Store(true)
 
 	select {
 	case f.loadFinished <- struct{}{}:
@@ -281,7 +299,7 @@ func (f *Flow) LoadFile(file *File, args map[string]any) error {
 	return diags.ErrorOrNil()
 }
 
-// Ready returns whether the Flow controller has finished its initial load.
+// Ready returns whether LoadFile has been invoked at least once.
 func (f *Flow) Ready() bool {
 	return f.loadedOnce.Load()
 }

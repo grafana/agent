@@ -162,6 +162,12 @@ type Registration struct {
 
 	// Build should construct a new component from an initial Arguments and set
 	// of options.
+	//
+	// If Build returns an error, downstream components which depend on this
+	// component will not be evaluated.
+	//
+	// If Build returns a non-nil Component instance, that Component instance
+	// will run regardless of whether Build also returns a non-nil error.
 	Build func(opts Options, args Arguments) (Component, error)
 }
 
