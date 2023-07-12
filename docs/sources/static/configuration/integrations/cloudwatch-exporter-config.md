@@ -327,9 +327,8 @@ If both settings are configured, the time parameters when calling CloudWatch API
 As noted above, if there is a different `period` or `length` across multiple metrics under the same static or discovery job, 
 the minimum of all periods, and maximum of all lengths is configured.
 
-On the other hand, if `length` is not configured, both period and length settings will be calculated based on the
-required
-`period` configuration attribute.
+On the other hand, if `length` is not configured, both period and length settings are calculated based on 
+the required `period` configuration attribute.
 
 If all metrics within a job (discovery or static) have the same `period` value configured, CloudWatch APIs will be
 requested for metrics from the scrape time, to `period`s seconds in the past. 
