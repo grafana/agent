@@ -694,9 +694,12 @@ replace (
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
 exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 
-// Replacing for an internal fork that exposes internal folders
-// Some funtionalities of the collector have been made internal and it's more difficult to build and configure pipelines in the newer versions.
-// This is a temporary solution while a new configuration design is discussed for the collector (ref: https://github.com/open-telemetry/opentelemetry-collector/issues/3482).
+// Replacing for an internal fork which allows us to observe metrics produced by the Collector.
+// This is a temporary solution while a new configuration design is discussed for the collector. Related issues:
+// https://github.com/open-telemetry/opentelemetry-collector/issues/7532
+// https://github.com/open-telemetry/opentelemetry-collector/pull/7644
+// https://github.com/open-telemetry/opentelemetry-collector/pull/7696
+// https://github.com/open-telemetry/opentelemetry-collector/issues/4970
 replace go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20230705075940-537e02565521
 
 // Required until https://github.com/weaveworks/common/pull/240 is merged
