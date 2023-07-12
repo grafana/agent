@@ -324,8 +324,7 @@ If both settings are configured, the time parameters when calling CloudWatch API
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-period-and-length-time-model-2.png)
 
-As noted above, if across multiple metrics under the same static or discovery job, there's different `period`
-and/or `length`
+As noted above, if there is a different `period` or `length` across multiple metrics under the same static or discovery job, 
 the minimum of all periods, and maximum of all lengths is configured.
 
 On the other hand, if `length` is not configured, both period and length settings will be calculated based on the
