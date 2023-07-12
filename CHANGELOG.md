@@ -39,6 +39,16 @@ Main (unreleased)
 
 - Support custom fields in MMDB file for `stage.geoip`. (@akselleirv)
 
+- Added json_path function to river stdlib. (@jkroepke)
+
+- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
+
+- Add a new CLI command `grafana-agent convert` for converting a river file from supported formats to river. (@erikbaranowski)
+
+- Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
+
+- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
+
 - New Grafana Agent Flow components:
 
   - `discovery.kubelet` collect scrape targets from the Kubelet API. (@gcampbell12)
@@ -50,17 +60,15 @@ Main (unreleased)
   - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
   - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
   - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
-  - `pyroscope.ebpf` collects system-wide performance profiles from the current host (@korniltsev)
+  - `prometheus.operator.probes` - discovers Probe resources in your Kubernetes
+    cluster and scrape the targets they reference. (@captncraig)
+  - `pyroscope.ebpf` collects system-wide performance profiles from the current
+    host (@korniltsev)
 
-- Added json_path function to river stdlib. (@jkroepke)
+- New Grafana Agent Flow command line utilities:
 
-- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
-
-- Add a new CLI command `grafana-agent convert` for converting a river file from supported formats to river. (@erikbaranowski)
-
-- Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
-
-- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
+  - `grafana-agent tools prometheus.remote_write` holds a collection of remote
+    write-specific tools. These have been ported over from the `agentctl` command. (@rfratto)
 
 ### Enhancements
 
@@ -131,6 +139,7 @@ Main (unreleased)
 ### Other changes
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
+- Build with go 1.20.5 (@captncraig)
 
 v0.34.3 (2023-06-27)
 --------------------
