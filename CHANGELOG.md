@@ -29,6 +29,10 @@ Main (unreleased)
   discovers file on the local filesystem, and so it doesn't get confused with
   Prometheus' file discovery. (@rfratto)
 
+- Remove the `discovery_target_decode` function in favor of using discovery
+  components to better match the behavior of Prometheus' service discovery.
+  (@rfratto)
+
 ### Features
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
@@ -64,7 +68,7 @@ Main (unreleased)
     cluster and scrape the targets they reference. (@captncraig)
   - `pyroscope.ebpf` collects system-wide performance profiles from the current
     host (@korniltsev)
-  - `otelcol.exporter.loadbalancing` - export traces and logs to multiple OTLP gRPC 
+  - `otelcol.exporter.loadbalancing` - export traces and logs to multiple OTLP gRPC
     endpoints in a load-balanced way. (@ptodev)
 
 - New Grafana Agent Flow command line utilities:

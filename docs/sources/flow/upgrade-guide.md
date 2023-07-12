@@ -137,6 +137,50 @@ local.file_match "pods" {
 }
 ```
 
+### Breaking change: `discovery_target_decode` has been removed from the River standard library
+
+The `discovery_target_decode` function was initially added to the River
+standard library as an equivalent to Prometheus' file-based discovery and
+HTTP-based discovery methods.
+
+However, the Prometheus discovery mechanisms have more functionality than
+`discovery_target_decode`:
+
+* Prometheus' `file_sd_configs` can use many files based on pattern matching.
+* Prometheus' `http_sd_configs` also support YAML files.
+
+Additionally, it is no longer an accepted pattern to have component-specific
+functions to the River standard library.
+
+As a result, `discovery_target_decode` has been removed in favor of using
+components.
+
+Old configuration example:
+
+```river
+remote.http "example" {
+    url = URL_CONTAINING_TARGETS
+}
+
+prometehus.scrape "example" {
+    targets    = discovery_target_decode(remote.http.example.content)
+    forward_to = FORWARD_LIST
+}
+```
+
+New configuration example:
+
+```river
+discovery.http "example" {
+    url = URL_CONTAINING_TARGETS
+}
+
+prometehus.scrape "example" {
+    targets    = discovery.http.example.targets
+    forward_to = FORWARD_LIST
+}
+```
+
 ## v0.34
 
 ### Breaking change: `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`
