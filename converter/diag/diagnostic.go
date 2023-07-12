@@ -24,8 +24,7 @@ func (d Diagnostic) String() string {
 		return result
 	}
 
-	return result + `
-` + d.Detail
+	return fmt.Sprintln(result) + d.Detail
 }
 
 // Error implements error.

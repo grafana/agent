@@ -67,22 +67,19 @@ func (pb *prometheusBlocks) getScrapeInfo() diag.Diagnostics {
 
 		for _, promDiscoveryBlock := range pb.discoveryBlocks {
 			if strings.HasPrefix(promDiscoveryBlock.label, promScrapeBlock.label) {
-				detail = detail + `
-	` + fmt.Sprintf("A %s.%s component", strings.Join(promDiscoveryBlock.name, "."), promDiscoveryBlock.label)
+				detail = fmt.Sprintln(detail) + fmt.Sprintf("	A %s.%s component", strings.Join(promDiscoveryBlock.name, "."), promDiscoveryBlock.label)
 			}
 		}
 
 		for _, promDiscoveryRelabelBlock := range pb.discoveryRelabelBlocks {
 			if strings.HasPrefix(promDiscoveryRelabelBlock.label, promScrapeBlock.label) {
-				detail = detail + `
-	` + fmt.Sprintf("A %s.%s component", strings.Join(promDiscoveryRelabelBlock.name, "."), promDiscoveryRelabelBlock.label)
+				detail = fmt.Sprintln(detail) + fmt.Sprintf("	A %s.%s component", strings.Join(promDiscoveryRelabelBlock.name, "."), promDiscoveryRelabelBlock.label)
 			}
 		}
 
 		for _, promRelabelBlock := range pb.prometheusRelabelBlocks {
 			if strings.HasPrefix(promRelabelBlock.label, promScrapeBlock.label) {
-				detail = detail + `
-	` + fmt.Sprintf("A %s.%s component", strings.Join(promRelabelBlock.name, "."), promRelabelBlock.label)
+				detail = fmt.Sprintln(detail) + fmt.Sprintf("	A %s.%s component", strings.Join(promRelabelBlock.name, "."), promRelabelBlock.label)
 			}
 		}
 
