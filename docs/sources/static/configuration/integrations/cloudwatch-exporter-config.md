@@ -318,11 +318,9 @@ pick the ones you need.
 
 ### Period and length
 
-`period` controls primarily the width of the time bucket used for aggregating metrics collected from
-CloudWatch. `length`
-controls how far back in time CloudWatch metrics are considered during each agent scrape. If both settings are
-configured,
-the time parameters when calling CloudWatch APIs works as follows:
+`period` controls the width of the time bucket used for aggregating metrics collected from CloudWatch.
+`length` controls how far back in time CloudWatch metrics are considered during each agent scrape.
+If both settings are configured, the time parameters when calling CloudWatch APIs work as follows:
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-period-and-length-time-model-2.png)
 
