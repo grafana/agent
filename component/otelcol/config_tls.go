@@ -70,31 +70,17 @@ func (args *TLSSetting) Convert() *otelconfigtls.TLSSetting {
 		return nil
 	}
 
-	res := &otelconfigtls.TLSSetting{
+	return &otelconfigtls.TLSSetting{
+		CAPem:          configopaque.String(args.CA),
 		CAFile:         args.CAFile,
+		CertPem:        configopaque.String(args.Cert),
 		CertFile:       args.CertFile,
+		KeyPem:         configopaque.String(string(args.Key)),
 		KeyFile:        args.KeyFile,
 		MinVersion:     args.MinVersion,
 		MaxVersion:     args.MaxVersion,
 		ReloadInterval: args.ReloadInterval,
 	}
-
-	// Collector sets the pem attributes to nil by default,
-	// so let's match this.
-
-	if args.CA != "" {
-		res.CAPem = configopaque.String(args.CA)
-	}
-
-	if args.Cert != "" {
-		res.CertPem = configopaque.String(args.Cert)
-	}
-
-	if args.Key != "" {
-		res.KeyPem = configopaque.String(args.Key)
-	}
-
-	return res
 }
 
 // Validate implements river.Validator.
