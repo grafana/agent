@@ -104,15 +104,7 @@ type prometheusBlock struct {
 	detail  string
 }
 
-func newPrometheusBlock(block *builder.Block, name []string, label string) prometheusBlock {
-	return prometheusBlock{
-		block: block,
-		name:  name,
-		label: label,
-	}
-}
-
-func newPrometheusBlockWithInfo(block *builder.Block, name []string, label string, summary string, detail string) prometheusBlock {
+func newPrometheusBlock(block *builder.Block, name []string, label string, summary string, detail string) prometheusBlock {
 	return prometheusBlock{
 		block:   block,
 		name:    name,

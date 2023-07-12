@@ -20,7 +20,7 @@ func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.Scra
 	block := common.NewBlockWithOverride(name, label, scrapeArgs)
 	summary := fmt.Sprintf("Converted scrape_configs job_name %q into...", scrapeConfig.JobName)
 	detail := fmt.Sprintf("	A %s.%s component", strings.Join(name, "."), label)
-	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, newPrometheusBlockWithInfo(block, name, label, summary, detail))
+	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, newPrometheusBlock(block, name, label, summary, detail))
 }
 
 func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {

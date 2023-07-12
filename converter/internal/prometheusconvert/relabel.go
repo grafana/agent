@@ -20,7 +20,7 @@ func appendPrometheusRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabe
 	relabelArgs := toRelabelArguments(relabelConfigs, forwardTo)
 	name := []string{"prometheus", "relabel"}
 	block := common.NewBlockWithOverride(name, label, relabelArgs)
-	pb.prometheusRelabelBlocks = append(pb.prometheusRelabelBlocks, newPrometheusBlock(block, name, label))
+	pb.prometheusRelabelBlocks = append(pb.prometheusRelabelBlocks, newPrometheusBlock(block, name, label, "", ""))
 
 	return &relabel.Exports{
 		Receiver: common.ConvertAppendable{Expr: fmt.Sprintf("prometheus.relabel.%s.receiver", label)},
@@ -46,7 +46,7 @@ func appendDiscoveryRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel
 	relabelArgs := toDiscoveryRelabelArguments(relabelConfigs, targets)
 	name := []string{"discovery", "relabel"}
 	block := common.NewBlockWithOverride(name, label, relabelArgs)
-	pb.discoveryRelabelBlocks = append(pb.discoveryRelabelBlocks, newPrometheusBlock(block, name, label))
+	pb.discoveryRelabelBlocks = append(pb.discoveryRelabelBlocks, newPrometheusBlock(block, name, label, "", ""))
 
 	return &disc_relabel.Exports{
 		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.targets", label)),

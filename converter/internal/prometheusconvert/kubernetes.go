@@ -13,7 +13,7 @@ func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *pro
 	discoveryKubernetesArgs := toDiscoveryKubernetes(sdConfig)
 	name := []string{"discovery", "kubernetes"}
 	block := common.NewBlockWithOverride(name, label, discoveryKubernetesArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label))
+	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
 	return newDiscoverExports("discovery.kubernetes." + label + ".targets")
 }
 

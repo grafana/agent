@@ -29,7 +29,7 @@ func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.
 		}
 		summary := fmt.Sprintf("Converted %d remote_write[s] %q into...", len(remoteWriteConfigs), strings.Join(names, ","))
 		detail := fmt.Sprintf("	A prometheus.remote_write.%s component", remoteWriteLabel)
-		pb.prometheusRemoteWriteBlocks = append(pb.prometheusRemoteWriteBlocks, newPrometheusBlockWithInfo(block, name, label, summary, detail))
+		pb.prometheusRemoteWriteBlocks = append(pb.prometheusRemoteWriteBlocks, newPrometheusBlock(block, name, label, summary, detail))
 	}
 
 	return &remotewrite.Exports{
