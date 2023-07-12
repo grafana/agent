@@ -9,9 +9,6 @@ internal API changes are not present.
 
 Main (unreleased)
 -----------------
-### Features
-- `pyroscope.ebpf` collects system-wide performance profiles from the current host (@korniltsev)
-
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -27,6 +24,10 @@ Main (unreleased)
   The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib. (@ptodev)
 
 - The field `version` and `auth` struct block from `walk_params` in `prometheus.exporter.snmp` and SNMP integration have been removed. The auth block now can be configured at top level, together with `modules` (@marctc)
+
+- Rename `discovery.file` to `local.file_match` to make it more clear that it
+  discovers file on the local filesystem, and so it doesn't get confused with
+  Prometheus' file discovery. (@rfratto)
 
 ### Features
 
@@ -51,16 +52,18 @@ Main (unreleased)
 - New Grafana Agent Flow components:
 
   - `discovery.kubelet` collect scrape targets from the Kubelet API. (@gcampbell12)
-  - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
+  - `module.http` runs a Grafana Agent Flow module loaded from a remote HTTP endpoint. (@spartan0x117)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
     components and modifies attributes of a span, log, or metric. (@ptodev)
-  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
-  - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
   - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
+  - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
   - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
-  - `module.http` runs a Grafana Agent Flow module loaded from a remote HTTP endpoint. (@spartan0x117)
-  - `prometheus.operator.probes` - discovers Probe resources in your Kubernetes cluster and scrape
-    the targets they reference. (@captncraig)
+  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
+  - `prometheus.operator.probes` - discovers Probe resources in your Kubernetes
+    cluster and scrape the targets they reference. (@captncraig)
+  - `pyroscope.ebpf` collects system-wide performance profiles from the current
+    host (@korniltsev)
 
 - New Grafana Agent Flow command line utilities:
 
