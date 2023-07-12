@@ -57,15 +57,14 @@ func (a *Arguments) SetToDefault() {
 
 // Validate implements river.Validator.
 func (a *Arguments) Validate() error {
-	err := a.Convert().Validate()
-	if err != nil {
+	if err := a.Convert().Validate(); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (a *Arguments) Convert() *gcp_exporter.Config {
-	// NOTE(tburgessdev): this works because we can set up this exporter's Arguments struct
+	// NOTE(tburgessdev): this works because we set up this exporter's Arguments struct
 	// to have the exact same field types as the gcp_exporter.Config struct.
 	c := gcp_exporter.Config(*a)
 	return &c
