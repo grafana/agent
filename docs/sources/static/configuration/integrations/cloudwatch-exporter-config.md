@@ -332,8 +332,8 @@ required
 `period` configuration attribute.
 
 If all metrics within a job (discovery or static) have the same `period` value configured, CloudWatch APIs will be
-requested
-for metrics from the scrape time, to `period`s seconds in the past. The values of these are exported to Prometheus.
+requested for metrics from the scrape time, to `period`s seconds in the past. 
+The values of these metrics are exported to Prometheus.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-single-period-time-model.png)
 
