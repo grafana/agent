@@ -76,7 +76,7 @@ loki.source.file "files" {
 
 loki.write "endpoint" {
   endpoint {
-      url = LOKI_PATH
+      url = LOKI_URL
       basic_auth {
           username = USERNAME
           password = PASSWORD
@@ -126,7 +126,7 @@ loki.source.file "pods" {
 
 loki.write "endpoint" {
   endpoint {
-      url = LOKI_PATH
+      url = LOKI_URL
       basic_auth {
           username = USERNAME
           password = PASSWORD
