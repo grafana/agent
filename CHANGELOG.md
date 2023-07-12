@@ -49,6 +49,7 @@ Main (unreleased)
   - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
   - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
   - `module.http` runs a Grafana Agent Flow module loaded from a remote HTTP endpoint. (@spartan0x117)
+  - `discovery.file` discovers scrape targets from files. (@spartan0x117)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
