@@ -6,7 +6,7 @@ title: trim_space
 
 # trim_space
 
-`trim_space` removes any space characters from the start and end of a string.
+`trim_space` removes any whitespace characters from the start and end of a string.
 
 ## Examples
 
