@@ -157,33 +157,27 @@ the Prometheus configuration without having to save it as a flow config.
 This allows you to try flow mode without having to modify your existing
 Prometheus configuration infrastructure.
 
-> In this task, we will use the [run][] CLI command to output flow
-> configuration from a Prometheus configuration.
+> In this task, we will use the [run][] CLI command to run the Agent in flow
+> mode using a Prometheus configuration.
 
-1. Execute the following to start the Grafana Agent in flow mode with a
-Prometheus configuration:
+1. [Start the agent][] in flow mode and include the command line flag
+   `--config.format=prometheus`. Your configuration file should be a valid
+   Prometheus configuration rather than a flow mode configuration
 
-    ```bash
-    grafana-agent run --config.format=prometheus INPUT_CONFIG_PATH
-    ```
-
-    1. Replace `INPUT_CONFIG_PATH` with the full path to the Prometheus configuration.
 
 ### Debugging
 
-1. If Prometheus configuration is provided that cannot be converted,
+1. The convert CLI command [debugging][] instructions can be followed to
+   generate a diagnostic report.
+
+2. See the Grafana Agent [Flow Debugging][] for debugging a running Grafana
+   Agent in flow mode.
+
+3. If the Prometheus configuration provided cannot be converted,
    diagnostic information is printed to `stderr`. You can bypass
    any non-critical issues and start the Agent by including the
-   `--config.bypass-conversion-errors` flag.
+   `--config.bypass-conversion-errors` flag in addition to
+   `--config.format=prometheus`.
 
     > Be aware that the behavior may not match when bypassing errors
     > and doing so should be avoided in Production systems.
-
-    ```bash
-    grafana-agent run --config.format=prometheus --config.bypass-conversion-errors INPUT_CONFIG_PATH
-    ```
-
-2. The convert CLI command [debugging][] instructions can be followed to
-   generate a diagnostic report.
-
-3. See the Grafana Agent [Flow Debugging][] for debugging a running Agent.
