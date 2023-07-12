@@ -47,7 +47,7 @@ in Grafana Agent Flow.
 > In this task, we will use the [convert][] CLI command to output flow
 > configuration from a Prometheus configuration.
 
-1. Execute the following
+1. Execute the following:
 
 ```bash
 grafana-agent convert --format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
@@ -184,4 +184,4 @@ grafana-agent run --config.format=prometheus --config.bypass-conversion-errors I
 If a deeper dive is needed for Prometheus configuration conversion issues,
 use the [convert][] CLI command [debugging][]
 
-For debugging a running Agent, see Grafana Agent [Flow Debugging][]
+For debugging a running Agent, see Grafana Agent [Flow Debugging][].
