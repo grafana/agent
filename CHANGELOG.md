@@ -61,6 +61,8 @@ Main (unreleased)
   - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
   - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
   - `module.http` runs a Grafana Agent Flow module loaded from a remote HTTP endpoint. (@spartan0x117)
+  - `prometheus.operator.probes` - discovers Probe resources in your Kubernetes cluster and scrape
+    the targets they reference. (@captncraig)
 
 - New Grafana Agent Flow command line utilities:
 
@@ -136,6 +138,7 @@ Main (unreleased)
 ### Other changes
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
+- Build with go 1.20.5 (@captncraig)
 
 v0.34.3 (2023-06-27)
 --------------------
