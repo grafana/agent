@@ -10,6 +10,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
 	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file
 	_ "github.com/grafana/agent/component/discovery/gce"                            // Import discovery.gce
+	_ "github.com/grafana/agent/component/discovery/http"                           // Import discovery.http
 	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
@@ -46,6 +47,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/oauth2"                      // Import otelcol.auth.oauth2
 	_ "github.com/grafana/agent/component/otelcol/auth/sigv4"                       // Import otelcol.auth.sigv4
 	_ "github.com/grafana/agent/component/otelcol/exporter/jaeger"                  // Import otelcol.exporter.jaeger
+	_ "github.com/grafana/agent/component/otelcol/exporter/loadbalancing"           // Import otelcol.exporter.loadbalancing
 	_ "github.com/grafana/agent/component/otelcol/exporter/logging"                 // Import otelcol.exporter.logging
 	_ "github.com/grafana/agent/component/otelcol/exporter/loki"                    // Import otelcol.exporter.loki
 	_ "github.com/grafana/agent/component/otelcol/exporter/otlp"                    // Import otelcol.exporter.otlp

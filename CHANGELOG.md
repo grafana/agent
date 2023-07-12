@@ -65,6 +65,8 @@ Main (unreleased)
     cluster and scrape the targets they reference. (@captncraig)
   - `pyroscope.ebpf` collects system-wide performance profiles from the current
     host (@korniltsev)
+  - `otelcol.exporter.loadbalancing` - export traces and logs to multiple OTLP gRPC 
+    endpoints in a load-balanced way. (@ptodev)
 
 - New Grafana Agent Flow command line utilities:
 
@@ -140,7 +142,7 @@ Main (unreleased)
 ### Other changes
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
-- Build with go 1.20.5 (@captncraig)
+- Build with go 1.20.6 (@captncraig)
 
 v0.34.3 (2023-06-27)
 --------------------
@@ -219,6 +221,7 @@ v0.34.0 (2023-06-08)
   - `prometheus.exporter.oracledb` collects metrics from oracledb (@jonathanwamsley)
   - `prometheus.exporter.dnsmasq` collects metrics from a dnsmasq server. (@spartan0x117)
   - `loki.source.awsfirehose` - receive Loki log entries from AWS Firehose via HTTP (@thepalbi)
+  - `discovery.http` service discovery via http. (@captncraig)
 
 - Added new functions to the River standard library:
   - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)

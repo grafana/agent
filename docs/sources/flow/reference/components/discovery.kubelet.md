@@ -13,7 +13,6 @@ and exposes them as scrape targets.
 
 ```river
 discovery.kubelet "LABEL" {
-  bearer_token_file = "TOKEN_FILE"
 }
 ```
 
@@ -135,7 +134,27 @@ This example uses a bearer token file to authenticate to the Kubelet API:
 discovery.kubelet "k8s_pods" {
   bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubelet.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Limit searched namespaces
 
@@ -146,4 +165,24 @@ discovery.kubelet "k8s_pods" {
   bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
   namespaces = ["default", "kube-system"]
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubelet.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
