@@ -85,7 +85,7 @@ loki.write "endpoint" {
 }
 ```
 Replace the following:
-  - `LOKI_PATH`: The URL of the Loki server to send logs to.
+  - `LOKI_URL`: The URL of the Loki server to send logs to.
   - `USERNAME`: The username to use for authentication to the Loki API.
   - `PASSWORD`: The password to use for authentication to the Loki API.
 
@@ -135,6 +135,6 @@ loki.write "endpoint" {
 }
 ```
 Replace the following:
-  - `LOKI_PATH`: The URL of the Loki server to send logs to.
+  - `LOKI_URL`: The URL of the Loki server to send logs to.
   - `USERNAME`: The username to use for authentication to the Loki API.
   - `PASSWORD`: The password to use for authentication to the Loki API.
