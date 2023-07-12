@@ -8,13 +8,13 @@ import (
 	_ "github.com/grafana/agent/component/discovery/digitalocean"                   // Import discovery.digitalocean
 	_ "github.com/grafana/agent/component/discovery/dns"                            // Import discovery.dns
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
-	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file
-	_ "github.com/grafana/agent/component/discovery/file2"                          // Import discovery.file2
+	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file                         // Import discovery.file2
 	_ "github.com/grafana/agent/component/discovery/gce"                            // Import discovery.gce
 	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
+	_ "github.com/grafana/agent/component/local/file_match"                         // Import local.file_match
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo
 	_ "github.com/grafana/agent/component/loki/process"                             // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                             // Import loki.relabel
@@ -86,6 +86,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"                 // Import prometheus.exporter.unix
 	_ "github.com/grafana/agent/component/prometheus/exporter/windows"              // Import prometheus.exporter.windows
 	_ "github.com/grafana/agent/component/prometheus/operator/podmonitors"          // Import prometheus.operator.podmonitors
+	_ "github.com/grafana/agent/component/prometheus/operator/probes"               // Import prometheus.operator.probes
 	_ "github.com/grafana/agent/component/prometheus/operator/servicemonitors"      // Import prometheus.operator.servicemonitors
 	_ "github.com/grafana/agent/component/prometheus/receive_http"                  // Import prometheus.receive_http
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel

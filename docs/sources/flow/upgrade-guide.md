@@ -69,6 +69,74 @@ prometheus.exporter.snmp "example" {
 
 See [Module and Auth Split Migration](https://github.com/prometheus/snmp_exporter/blob/main/auth-split-migration.md) for more details.
 
+### Breaking change: `discovery.file` has been renamed to `local.file_match`
+
+The `discovery.file` component has been renamed to `local.file_match` to make
+its purpose more clear: to find files on the local filesystem matching a
+pattern.
+
+Renaming `discovery.file` to `local.file_match` also resolves a point of
+confusion where `discovery.file` was thought to implement Prometheus' file
+service discovery.
+
+Old configuration example:
+
+```river
+discovery.kubernetes "k8s" {
+  role = "pod"
+}
+
+discovery.relabel "k8s" {
+  targets = discovery.kubernetes.k8s.targets
+
+  rule {
+    source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_name"]
+    target_label  = "job"
+    separator     = "/"
+  }
+
+  rule {
+    source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+    target_label  = "__path__"
+    separator     = "/"
+    replacement   = "/var/log/pods/*$1/*.log"
+  }
+}
+
+discovery.file "pods" {
+  path_targets = discovery.relabel.k8s.output
+}
+```
+
+New configuration example:
+
+```river
+discovery.kubernetes "k8s" {
+  role = "pod"
+}
+
+discovery.relabel "k8s" {
+  targets = discovery.kubernetes.k8s.targets
+
+  rule {
+    source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_name"]
+    target_label  = "job"
+    separator     = "/"
+  }
+
+  rule {
+    source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+    target_label  = "__path__"
+    separator     = "/"
+    replacement   = "/var/log/pods/*$1/*.log"
+  }
+}
+
+local.file_match "pods" {
+  path_targets = discovery.relabel.k8s.output
+}
+```
+
 ## v0.34
 
 ### Breaking change: `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`
