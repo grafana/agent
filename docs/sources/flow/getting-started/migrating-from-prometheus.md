@@ -33,6 +33,7 @@ This topic describes how to:
 [Components]: {{< relref "../concepts/components.md" >}}
 [convert]: {{< relref "../reference/cli/convert.md" >}}
 [run]: {{< relref "../reference/cli/run.md" >}}
+[Start the agent]: {{< relref "../setup/start-agent.md" >}}
 [Flow Debugging]: {{< relref "../monitoring/debugging.md" >}}
 [debugging]: #debugging
 
@@ -55,6 +56,8 @@ in Grafana Agent flow mode.
   
     1. Replace `INPUT_CONFIG_PATH` with the full path to the Prometheus configuration.
     2. Replace `OUTPUT_CONFIG_PATH` with the full path to output the flow configuration.
+
+2. [Start the agent][] in flow mode using the new flow configuration from `OUTPUT_CONFIG_PATH`:
 
 The following example demonstrates converting a Prometheus configuration:
 
