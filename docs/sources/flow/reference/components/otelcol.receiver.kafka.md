@@ -42,6 +42,7 @@ Name | Type | Description | Default | Required
 `encoding` | `string` | Encoding of payload read from Kafka. | `"otlp_proto"` | no
 `group_id` | `string` | Consumer group to consume messages from. | `"otel-collector"` | no
 `client_id` | `string` | Consumer client ID to use. | `"otel-collector"` | no
+`initial_offset` | `string` | Initial offset to use if no offset was previously committed. | `"latest"` | no
 
 The `encoding` argument determines how to decode messages read from Kafka.
 `encoding` must be one of the following strings:
@@ -52,10 +53,14 @@ The `encoding` argument determines how to decode messages read from Kafka.
 * `"zipkin_proto"`: Decode messages as a list of Zipkin protobuf spans.
 * `"zipkin_json"`: Decode messages as a list of Zipkin JSON spans.
 * `"zipkin_thrift"`: Decode messages as a list of Zipkin Thrift spans.
-* `"raw"`: Copy the message bytes into the body of a log record.
+* `"raw"`: Copy the log message bytes into the body of a log record.
+* `"text"`: Decode the log message as text and insert it into the body of a log record.
+By default, UTF-8 is used to decode. A different encoding can be chosen by using `text_<ENCODING>`. For example, `text_utf-8` or `text_shift_jis`.
 
 `"otlp_proto"` must be used to read all telemetry types from Kafka; other
 encodings are signal-specific.
+
+`initial_offset` must be either `"latest"` or `"earliest"`.
 
 ## Blocks
 

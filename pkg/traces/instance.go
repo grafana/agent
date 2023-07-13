@@ -166,7 +166,8 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		Connectors:               connector.NewBuilder(otelConfig.Connectors, factories.Connectors),
 		Extensions:               extension.NewBuilder(otelConfig.Extensions, factories.Extensions),
 		OtelMetricViews:          servicegraphprocessor.OtelMetricViews(),
-		OtelMetricReader:         *promExporter,
+		OtelMetricReader:         promExporter,
+		DisableProcessMetrics:    true,
 		UseExternalMetricsServer: true,
 		TracerProvider:           trace.NewNoopTracerProvider(),
 		//TODO: Plug in an AsyncErrorChannel to shut down the Agent in case of a fatal event

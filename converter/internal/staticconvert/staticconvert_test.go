@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/staticconvert"
 	"github.com/stretchr/testify/require"
 )
@@ -34,6 +35,9 @@ func TestConvert(t *testing.T) {
 
 			t.Run(caseName, func(t *testing.T) {
 				actual, diags := staticconvert.Convert(inputBytes)
+
+				// Skip Info level diags for this testing
+				diags.RemoveDiagsBySeverity(diag.SeverityLevelInfo)
 
 				expectedErrors := parseErrors(t, path)
 				for ix, diag := range diags {
