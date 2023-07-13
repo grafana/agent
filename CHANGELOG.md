@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
+
 v0.35.0-rc.0 (2023-07-13)
 -------------------------
 
