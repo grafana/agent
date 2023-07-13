@@ -13,7 +13,7 @@ v0.35.0-rc.0 (2023-07-13)
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
-### Breaking changes
+### Breaking changes 
 
 - The algorithm for the "hash" action of `otelcol.processor.attributes` has changed.
   The change was made in PR [#22831](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22831) of opentelemetry-collector-contrib. (@ptodev)
@@ -84,7 +84,7 @@ v0.35.0-rc.0 (2023-07-13)
 
 - Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
-- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
+- Add boringcrypto builds and docker images for Linux arm64 and x64.  (@mattdurham)
 
 - New Grafana Agent Flow components:
 
