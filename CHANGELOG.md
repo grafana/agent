@@ -78,6 +78,7 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
+  - `discovery.file` discovers scrape targets from files. (@spartan0x117)
   - `discovery.kubelet` collect scrape targets from the Kubelet API. (@gcampbell12)
   - `module.http` runs a Grafana Agent Flow module loaded from a remote HTTP endpoint. (@spartan0x117)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
