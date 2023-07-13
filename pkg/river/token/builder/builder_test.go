@@ -551,29 +551,18 @@ func TestBuilder_AppendInner_MatchesDefaults(t *testing.T) {
 	expect := format(t, `
 		field = "some_value"
 		
-		block {
-			number = 123
-		}
+		block { }
 		
-		block_slice {
-			number = 123
-		}
+		block_slice { }
 		
-		block_slice {
-			number = 123
-		}
+		block_slice { }
+		
+		block_ptr { }
+		
+		block_ptr_slice { }
+		
+		block_ptr_slice { }
 
-		block_ptr {
-			number = 123
-		}
-		
-		block_ptr_slice {
-			number = 123
-		}
-		
-		block_ptr_slice {
-			number = 123
-		}
 	`)
 
 	require.Equal(t, expect, string(f.Bytes()))
