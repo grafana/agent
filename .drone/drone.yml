@@ -152,6 +152,24 @@ trigger:
 type: docker
 ---
 kind: pipeline
+name: Test crds
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-crds
+  - ERR_MSG="Custom Resource Sefinitions are out of date. Please run 'make generate-crds'
+    and commit changes!"
+  - if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi
+  image: grafana/agent-build-image:0.29.0
+  name: Regenerate crds
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Test manifests
 platform:
   arch: amd64
@@ -1410,6 +1428,6 @@ kind: secret
 name: gpg_public_key
 ---
 kind: signature
-hmac: 9ecc1fa9a8be49794621e773cbcc3e321b440742cf13f7ceb183a1afcea2cc17
+hmac: a58af429299bdf48536283582b715d18c02d69f513d0dc68874162517b65602e
 
 ...
