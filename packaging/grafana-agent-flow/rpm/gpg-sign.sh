@@ -13,7 +13,7 @@ printf "%s" "${GPG_PRIVATE_KEY}" | gpg --import --no-tty --batch --yes --passphr
 
 rpm --import /tmp/gpg-public-key
 
-echo "%_gpg_name Grafana <info@grafana.com>
+echo "%_gpg_name Grafana Labs <engineering@grafana.com>
 %_signature gpg
 %_gpg_path /root/.gnupg
 %_gpgbin /usr/bin/gpg
