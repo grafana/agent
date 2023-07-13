@@ -49,7 +49,7 @@ To run a Grafana Agent Docker container on Windows, run the following command in
 docker run ^
   -v WAL_DATA_DIRECTORY:C:\etc\grafana-agent\data ^
   -v CONFIG_FILE_PATH:C:\etc\grafana-agent ^
-  grafana/agent:v0.35.0-rc.0
+  grafana/agent:v0.35.0-rc.0-windows
 ```
 
 Replace the following:
