@@ -557,8 +557,6 @@ func TestBuilder_AppendInner_MatchesDefaults(t *testing.T) {
 		
 		block_slice { }
 		
-		block_ptr { }
-		
 		block_ptr_slice { }
 		
 		block_ptr_slice { }
@@ -667,8 +665,6 @@ func TestBuilder_AppendInnerBlock_InnerDefaultsMatch_OuterDefaultsNil(t *testing
 
 	expect := format(t, `
 		inner { }
-		
-		inner_ptr { }
 	`)
 
 	require.Equal(t, expect, string(f.Bytes()))
@@ -698,9 +694,6 @@ func TestBuilder_AppendInnerAttr_InnerDefaultsMatch_OuterDefaultsNil(t *testing.
 			number = 123,
 		}
 		inner_slice = []
-		inner_ptr   = {
-			number = 123,
-		}
 		inner_ptr_slice = []
 	`)
 

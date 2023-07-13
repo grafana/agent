@@ -174,23 +174,38 @@ func (b *Body) encodeFields(rv reflect.Value) {
 	}
 
 	fields := rivertags.Get(rv.Type())
-	defaults := reflect.New(rv.Type()).Elem()
-	if defaults.CanAddr() && defaults.Addr().Type().Implements(goRiverDefaulter) {
-		defaults.Addr().Interface().(value.Defaulter).SetToDefault()
+	outerDefaults := reflect.New(rv.Type()).Elem()
+	if outerDefaults.CanAddr() && outerDefaults.Addr().Type().Implements(goRiverDefaulter) {
+		outerDefaults.Addr().Interface().(value.Defaulter).SetToDefault()
 	}
 
 	for _, field := range fields {
 		fieldVal := reflectutil.Get(rv, field)
-		fieldValDefault := reflectutil.Get(defaults, field)
+		fieldOuterDefaultVal := reflectutil.Get(outerDefaults, field)
 
-		// Check if the values are exactly equal or if they're both equal to the
-		// zero value. Checking for both fields being zero handles the case where
-		// an empty and nil map are being compared (which are not equal, but are
-		// both zero values).
-		matchesDefault := fieldVal.Comparable() && reflect.DeepEqual(fieldVal.Interface(), fieldValDefault.Interface())
-		isZero := fieldValDefault.IsZero() && fieldVal.IsZero()
+		// Check if the outer blocks' default values match the provided value.
+		matchesOuterDefault := fieldVal.Comparable() && reflect.DeepEqual(fieldVal.Interface(), fieldOuterDefaultVal.Interface())
 
-		if field.IsOptional() && (matchesDefault || isZero) {
+		// Check if they're both equal to the zero value. Checking for both fields being zero handles the case where
+		// an empty and nil map are being compared (which are not equal, but are both zero values).
+		isZero := fieldOuterDefaultVal.IsZero() && fieldVal.IsZero()
+
+		// In case where the outer block's default value is not specified (e.g. nil pointer), check if the value
+		// matches the field's own default value.
+		// For example: we have an outer block that sets a field to nil in its defaults, but we receive a
+		// non-nil value from the user. The value from the user may still be equal to the field's own default value,
+		// which is what we check for here.
+		matchesFieldOwnDefault := false
+		//TODO(thampiotr): this only works with pointers now... do we need to handle structs?
+		if fieldOuterDefaultVal.Kind() == reflect.Pointer && fieldOuterDefaultVal.IsNil() {
+			fieldOwnDefault := reflect.New(fieldOuterDefaultVal.Type().Elem())
+			if fieldOwnDefault.Type().Implements(goRiverDefaulter) {
+				fieldOwnDefault.Interface().(value.Defaulter).SetToDefault()
+			}
+			matchesFieldOwnDefault = fieldVal.Comparable() && reflect.DeepEqual(fieldVal.Interface(), fieldOwnDefault.Interface())
+		}
+
+		if field.IsOptional() && (matchesOuterDefault || isZero || matchesFieldOwnDefault) {
 			continue
 		}
 
