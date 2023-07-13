@@ -29,6 +29,10 @@ Main (unreleased)
   discovers file on the local filesystem, and so it doesn't get confused with
   Prometheus' file discovery. (@rfratto)
 
+- Remove the `discovery_target_decode` function in favor of using discovery
+  components to better match the behavior of Prometheus' service discovery.
+  (@rfratto)
+
 - In the traces subsystem for Static mode, some metrics are removed and others are renamed. (@ptodev)
   - Removed metrics:
     - "blackbox_exporter_config_last_reload_success_timestamp_seconds" (gauge)
@@ -92,7 +96,7 @@ Main (unreleased)
     cluster and scrape the targets they reference. (@captncraig)
   - `pyroscope.ebpf` collects system-wide performance profiles from the current
     host (@korniltsev)
-  - `otelcol.exporter.loadbalancing` - export traces and logs to multiple OTLP gRPC 
+  - `otelcol.exporter.loadbalancing` - export traces and logs to multiple OTLP gRPC
     endpoints in a load-balanced way. (@ptodev)
 
 - New Grafana Agent Flow command line utilities:
