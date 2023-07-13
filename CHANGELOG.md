@@ -10,6 +10,13 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
+
+v0.35.0-rc.0 (2023-07-13)
+-------------------------
+
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
@@ -75,6 +82,8 @@ Main (unreleased)
 - Support custom fields in MMDB file for `stage.geoip`. (@akselleirv)
 
 - Added json_path function to river stdlib. (@jkroepke)
+
+- Add `format`, `join`, `tp_lower`, `replace`, `split`, `trim`, `trim_prefix`, `trim_suffix`, `trim_space`, `to_upper` functions to river stdlib. (@jkroepke)
 
 - Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
 
