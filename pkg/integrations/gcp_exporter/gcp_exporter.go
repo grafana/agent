@@ -33,21 +33,21 @@ func init() {
 
 type Config struct {
 	// Google Cloud project ID from where we want to scrape metrics from
-	ProjectIDs []string `yaml:"project_ids"`
+	ProjectIDs []string `yaml:"project_ids" river:"project_ids,attr"`
 	// Comma separated Google Monitoring Metric Type prefixes.
-	MetricPrefixes []string `yaml:"metrics_prefixes"`
+	MetricPrefixes []string `yaml:"metrics_prefixes" river:"metrics_prefixes,attr"`
 	// Filters. i.e: pubsub.googleapis.com/subscription:resource.labels.subscription_id=monitoring.regex.full_match("my-subs-prefix.*")
-	ExtraFilters []string `yaml:"extra_filters"`
+	ExtraFilters []string `yaml:"extra_filters" river:"extra_filters,attr,optional"`
 	// Interval to request the Google Monitoring Metrics for. Only the most recent data point is used.
-	RequestInterval time.Duration `yaml:"request_interval"`
+	RequestInterval time.Duration `yaml:"request_interval" river:"request_interval,attr,optional"`
 	// Offset for the Google Stackdriver Monitoring Metrics interval into the past.
-	RequestOffset time.Duration `yaml:"request_offset"`
+	RequestOffset time.Duration `yaml:"request_offset" river:"request_offset,attr,optional"`
 	// Offset for the Google Stackdriver Monitoring Metrics interval into the past by the ingest delay from the metric's metadata.
-	IngestDelay bool `yaml:"ingest_delay"`
+	IngestDelay bool `yaml:"ingest_delay" river:"ingest_delay,attr,optional"`
 	// Drop metrics from attached projects and fetch `project_id` only.
-	DropDelegatedProjects bool `yaml:"drop_delegated_projects"`
+	DropDelegatedProjects bool `yaml:"drop_delegated_projects" river:"drop_delegated_projects,attr,optional"`
 	// How long should the collector wait for a result from the API.
-	ClientTimeout time.Duration `yaml:"gcp_client_timeout"`
+	ClientTimeout time.Duration `yaml:"gcp_client_timeout" river:"gcp_client_timeout,attr,optional"`
 }
 
 var DefaultConfig = Config{
