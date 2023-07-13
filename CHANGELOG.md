@@ -60,6 +60,10 @@ Main (unreleased)
 
 - The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`. (@ptodev)
 
+### Deprecations
+
+- `otelcol.exporter.jaeger` has been deprecated and will be removed in Agent v0.38.0. (@ptodev)
+
 ### Features
 
 - The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
@@ -194,8 +198,6 @@ Main (unreleased)
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
 - Build with go 1.20.6 (@captncraig)
-
-- `otelcol.exporter.jaeger` has been deprecated and will be removed soon. (@ptodev)
 
 v0.34.3 (2023-06-27)
 --------------------
