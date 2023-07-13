@@ -537,14 +537,14 @@ func TestBuilder_AppendInner_MatchesDefaults(t *testing.T) {
 	f.Body().AppendFrom(Structure{
 		Field: "some_value",
 
-		Block: InnerDefaults,
+		Block: InnerDefaults(),
 		BlocksSlice: []InnerBlockDefaulter{
-			InnerDefaults, InnerDefaults,
+			InnerDefaults(), InnerDefaults(),
 		},
 
-		BlockPtr: &InnerDefaults,
+		BlockPtr: InnerDefaultsPtr(),
 		BlocksPtrSlice: []*InnerBlockDefaulter{
-			&InnerDefaults, &InnerDefaults,
+			InnerDefaultsPtr(), InnerDefaultsPtr(),
 		},
 	})
 
@@ -655,9 +655,9 @@ func TestBuilder_AppendInnerBlock_InnerDefaultsMatch_OuterDefaultsNil(t *testing
 	}
 
 	outerUserValue := OuterBlockDefaulter{
-		Inner:         InnerDefaults,
+		Inner:         InnerDefaults(),
 		InnerSlice:    []InnerBlockDefaulter{},
-		InnerPtr:      &InnerDefaults,
+		InnerPtr:      InnerDefaultsPtr(),
 		InnerPtrSlice: []*InnerBlockDefaulter{},
 	}
 
@@ -681,9 +681,9 @@ func TestBuilder_AppendInnerAttr_InnerDefaultsMatch_OuterDefaultsNil(t *testing.
 	}
 
 	outerUserValue := OuterAttrDefaulter{
-		Inner:         InnerDefaults,
+		Inner:         InnerDefaults(),
 		InnerSlice:    []InnerBlockDefaulter{},
-		InnerPtr:      &InnerDefaults,
+		InnerPtr:      InnerDefaultsPtr(),
 		InnerPtrSlice: []*InnerBlockDefaulter{},
 	}
 
@@ -695,6 +695,36 @@ func TestBuilder_AppendInnerAttr_InnerDefaultsMatch_OuterDefaultsNil(t *testing.
 		}
 		inner_slice = []
 		inner_ptr_slice = []
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_AppendInnerBlock_ConflictingDefaults(t *testing.T) {
+	f := builder.NewFile()
+
+	OuterBlockDefaults = OuterBlockDefaulter{
+		Inner: InnerBlockDefaulter{
+			Number: 321,
+		},
+		InnerPtr: &InnerBlockDefaulter{
+			Number: 321,
+		},
+	}
+
+	outerUserValue := OuterBlockDefaulter{
+		Inner:         InnerDefaults(),
+		InnerSlice:    []InnerBlockDefaulter{},
+		InnerPtr:      InnerDefaultsPtr(),
+		InnerPtrSlice: []*InnerBlockDefaulter{},
+	}
+
+	f.Body().AppendFrom(outerUserValue)
+
+	expect := format(t, `
+		inner { }
+
+		inner_ptr { }
 	`)
 
 	require.Equal(t, expect, string(f.Bytes()))
@@ -740,8 +770,15 @@ type InnerBlockDefaulter struct {
 	Number int `river:"number,attr,optional"`
 }
 
-var InnerDefaults = InnerBlockDefaulter{Number: 123}
+func InnerDefaults() InnerBlockDefaulter {
+	return InnerBlockDefaulter{Number: 123}
+}
+
+func InnerDefaultsPtr() *InnerBlockDefaulter {
+	d := InnerDefaults()
+	return &d
+}
 
 func (i *InnerBlockDefaulter) SetToDefault() {
-	*i = InnerDefaults
+	*i = InnerDefaults()
 }
