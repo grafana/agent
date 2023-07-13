@@ -7,6 +7,8 @@ title: otelcol.auth.bearer
 `otelcol.auth.bearer` exposes a `handler` that can be used by other `otelcol`
 components to authenticate requests using bearer token authentication.
 
+This extension supports both server and client authentication.
+
 > **NOTE**: `otelcol.auth.bearer` is a wrapper over the upstream OpenTelemetry
 > Collector `bearertokenauth` extension. Bug reports or feature requests will
 > be redirected to the upstream repository, if necessary.

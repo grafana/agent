@@ -38,16 +38,9 @@ var DefaultArguments = Arguments{
 	Scheme: "Bearer",
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Convert implements auth.Arguments.

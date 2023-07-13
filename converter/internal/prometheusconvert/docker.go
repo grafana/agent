@@ -12,8 +12,9 @@ import (
 
 func appendDiscoveryDocker(pb *prometheusBlocks, label string, sdConfig *prom_docker.DockerSDConfig) discovery.Exports {
 	discoveryDockerArgs := toDiscoveryDocker(sdConfig)
-	block := common.NewBlockWithOverride([]string{"discovery", "docker"}, label, discoveryDockerArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
+	name := []string{"discovery", "docker"}
+	block := common.NewBlockWithOverride(name, label, discoveryDockerArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
 	return newDiscoverExports("discovery.docker." + label + ".targets")
 }
 

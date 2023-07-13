@@ -12,7 +12,7 @@ title: discovery.consul
 
 ```river
 discovery.consul "LABEL" {
-  server = "CONSUL_SERVER"
+  server = CONSUL_SERVER
 }
 ```
 
@@ -127,7 +127,7 @@ values.
 
 `discovery.consul` does not expose any component-specific debug metrics.
 
-## Examples
+## Example
 
 This example discovers targets from Consul for the specified list of services:
 
@@ -139,4 +139,24 @@ discovery.consul "example" {
     "service2",
   ]
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.consul.example.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.

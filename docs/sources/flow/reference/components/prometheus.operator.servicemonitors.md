@@ -194,7 +194,7 @@ It also exposes some debug information for each ServiceMonitor it has discovered
 
 ## Example
 
-This example discovers all ServiceMonitors in your cluster, and forwards collected logs to a
+This example discovers all ServiceMonitors in your cluster, and forwards collected metrics to a
 `prometheus.remote_write` component.
 
 ```river
@@ -234,7 +234,7 @@ prometheus.operator.servicemonitors "services" {
 This example will apply additional relabel rules to discovered targets to filter by hostname. This may be useful if running the agent as a DaemonSet.
 
 ```river
-prometheus.operator.podmonitors "pods" {
+prometheus.operator.servicemonitors "services" {
     forward_to = [prometheus.remote_write.staging.receiver]
     rule {
       action = "keep"

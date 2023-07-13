@@ -3,7 +3,6 @@ package jaeger
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component"
@@ -30,8 +29,7 @@ func init() {
 
 // Arguments configures the otelcol.receiver.jaeger component.
 type Arguments struct {
-	Protocols      ProtocolsArguments       `river:"protocols,block"`
-	RemoteSampling *RemoteSamplingArguments `river:"remote_sampling,block,optional"`
+	Protocols ProtocolsArguments `river:"protocols,block"`
 
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
@@ -63,16 +61,12 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 			ThriftBinary:  args.Protocols.ThriftBinary.Convert(),
 			ThriftCompact: args.Protocols.ThriftCompact.Convert(),
 		},
-		RemoteSampling: args.RemoteSampling.Convert(),
 	}, nil
 }
 
 // Extensions implements receiver.Arguments.
 func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
-	if args.RemoteSampling == nil {
-		return nil
-	}
-	return args.RemoteSampling.Client.Extensions()
+	return nil
 }
 
 // Exporters implements receiver.Arguments.
@@ -215,32 +209,4 @@ func (args *ThriftBinary) Convert() *jaegerreceiver.ProtocolUDP {
 	}
 
 	return args.ProtocolUDP.Convert()
-}
-
-// RemoteSamplingArguments configures remote sampling settings.
-type RemoteSamplingArguments struct {
-	// TODO(rfratto): can we work with upstream to provide a hook to provide a
-	// custom strategy file and bypass the reload interval?
-	//
-	// That would let users connect a local.file to otelcol.receiver.jaeger for
-	// the remote sampling.
-
-	HostEndpoint               string                      `river:"host_endpoint,attr"`
-	StrategyFile               string                      `river:"strategy_file,attr"`
-	StrategyFileReloadInterval time.Duration               `river:"strategy_file_reload_interval,attr"`
-	Client                     otelcol.GRPCClientArguments `river:"client,block"`
-}
-
-// Convert converts args into the upstream type.
-func (args *RemoteSamplingArguments) Convert() *jaegerreceiver.RemoteSamplingConfig {
-	if args == nil {
-		return nil
-	}
-
-	return &jaegerreceiver.RemoteSamplingConfig{
-		HostEndpoint:               args.HostEndpoint,
-		StrategyFile:               args.StrategyFile,
-		StrategyFileReloadInterval: args.StrategyFileReloadInterval,
-		GRPCClientSettings:         *args.Client.Convert(),
-	}
 }

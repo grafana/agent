@@ -34,6 +34,7 @@ type Arguments struct {
 	Encoding        string   `river:"encoding,attr,optional"`
 	GroupID         string   `river:"group_id,attr,optional"`
 	ClientID        string   `river:"client_id,attr,optional"`
+	InitialOffset   string   `river:"initial_offset,attr,optional"`
 
 	Authentication AuthenticationArguments `river:"authentication,block,optional"`
 	Metadata       MetadataArguments       `river:"metadata,block,optional"`
@@ -54,11 +55,12 @@ var DefaultArguments = Arguments{
 	// for compatibility, even though that means using a client and group ID of
 	// "otel-collector".
 
-	Topic:    "otlp_spans",
-	Encoding: "otlp_proto",
-	Brokers:  []string{"localhost:9092"},
-	ClientID: "otel-collector",
-	GroupID:  "otel-collector",
+	Topic:         "otlp_spans",
+	Encoding:      "otlp_proto",
+	Brokers:       []string{"localhost:9092"},
+	ClientID:      "otel-collector",
+	GroupID:       "otel-collector",
+	InitialOffset: "latest",
 	Metadata: MetadataArguments{
 		IncludeAllTopics: true,
 		Retry: MetadataRetryArguments{
@@ -90,6 +92,7 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 		Encoding:        args.Encoding,
 		GroupID:         args.GroupID,
 		ClientID:        args.ClientID,
+		InitialOffset:   args.InitialOffset,
 
 		Authentication: args.Authentication.Convert(),
 		Metadata:       args.Metadata.Convert(),
