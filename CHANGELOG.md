@@ -20,6 +20,10 @@ v0.35.0-rc.1 (2023-07-17)
 - Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
   period specified by the polling frequency elapsed. (@rfratto)
 
+### Features
+
+- Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
+
 v0.35.0-rc.0 (2023-07-13)
 -------------------------
 

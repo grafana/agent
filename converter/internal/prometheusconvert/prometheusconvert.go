@@ -16,6 +16,7 @@ import (
 	prom_consul "github.com/prometheus/prometheus/discovery/consul"
 	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 	prom_dns "github.com/prometheus/prometheus/discovery/dns"
+	prom_file "github.com/prometheus/prometheus/discovery/file"
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
@@ -121,6 +122,9 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_aws.EC2SDConfig:
 			labelCounts["ec2"]++
 			exports = appendDiscoveryEC2(pb, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
+		case *prom_file.SDConfig:
+			labelCounts["file"]++
+			exports = appendDiscoveryFile(pb, common.GetUniqueLabel(label, labelCounts["file"]), sdc)
 		case *prom_gce.SDConfig:
 			labelCounts["gce"]++
 			exports = appendDiscoveryGCE(pb, common.GetUniqueLabel(label, labelCounts["gce"]), sdc)
