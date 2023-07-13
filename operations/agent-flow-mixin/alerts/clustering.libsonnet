@@ -45,9 +45,16 @@ alert.newGroup(
     ),
 
     // Lamport clock of a node is not progressing at all.
+    //
+    // This only checks for nodes that have peers other than themselves; nodes
+    // with no external peers will not increase their lamport time because
+    // there is no cluster networking traffic.
     alert.newRule(
       'ClusterLamportClockStuck',
-      'sum by (cluster, namespace, instance) (rate(cluster_node_lamport_time[2m])) == 0',
+      |||
+        sum by (cluster, namespace, instance) (rate(cluster_node_lamport_time[2m])) == 0
+        and on (cluster, namespace, instance) (cluster_node_peers > 1)
+      |||,
       "Cluster nodes's lamport clocks is not progressing.",
       '5m',
     ),
@@ -72,9 +79,9 @@ alert.newGroup(
     alert.newRule(
       'ClusterConfigurationDrift',
       |||
-        count without (sha256) ( 
+        count without (sha256) (
             max by (cluster, namespace, sha256) (agent_config_hash and on(cluster, namespace) cluster_node_info)
-        ) > 1 
+        ) > 1
       |||,
       'Cluster nodes are not using the same configuration file.',
       '5m',
