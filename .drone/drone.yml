@@ -159,7 +159,7 @@ platform:
 steps:
 - commands:
   - make generate-crds
-  - ERR_MSG="Custom Resource Sefinitions are out of date. Please run 'make generate-crds'
+  - ERR_MSG="Custom Resource Definitions are out of date. Please run 'make generate-crds'
     and commit changes!"
   - if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi
   image: grafana/agent-build-image:0.29.0
@@ -1428,6 +1428,6 @@ kind: secret
 name: gpg_public_key
 ---
 kind: signature
-hmac: a58af429299bdf48536283582b715d18c02d69f513d0dc68874162517b65602e
+hmac: 353f98a1a6e7a4c225382c26705148356dd5cd1fbc042a0115d607893e889a71
 
 ...
