@@ -159,6 +159,8 @@ Main (unreleased)
   - "traces_exporter_send_failed_spans_total" (counter)
   - "traces_exporter_sent_spans_total" (counter)
 
+- Added support for custom `length` time setting in Cloudwatch component and integration. (@thepalbi)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
