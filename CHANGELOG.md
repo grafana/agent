@@ -76,6 +76,8 @@ v0.35.0-rc.0 (2023-07-13)
 
 - Added json_path function to river stdlib. (@jkroepke)
 
+- Add `format`, `join`, `tp_lower`, `replace`, `split`, `trim`, `trim_prefix`, `trim_suffix`, `trim_space`, `to_upper` functions to river stdlib. (@jkroepke)
+
 - Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
 
 - Add a new CLI command `grafana-agent convert` for converting a river file from supported formats to river. (@erikbaranowski)
