@@ -124,9 +124,9 @@ prometheus.remote_write "default" {
 ### Debugging
 
 1. If the convert command cannot convert a Prometheus configuration,
-   diagnostic information is printed to `stderr`. You can bypass
+   diagnostic information is sent to `stderr`. You can bypass
    any non-critical issues and output the flow configuration using a 
-   best- effort conversion by including the `--bypass-errors` flag.
+   best-effort conversion by including the `--bypass-errors` flag.
    
     > Be aware that the behavior may not match when bypassing errors.
 
@@ -175,7 +175,7 @@ Prometheus configuration infrastructure.
    Agent in flow mode.
 
 3. If the Prometheus configuration provided cannot be converted,
-   diagnostic information is printed to `stderr`. You can bypass
+   diagnostic information is sent to `stderr`. You can bypass
    any non-critical issues and start the Agent by including the
    `--config.bypass-conversion-errors` flag in addition to
    `--config.format=prometheus`.
