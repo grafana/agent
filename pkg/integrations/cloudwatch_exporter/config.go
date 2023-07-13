@@ -102,6 +102,7 @@ type Metric struct {
 	Name       string        `yaml:"name"`
 	Statistics []string      `yaml:"statistics"`
 	Period     time.Duration `yaml:"period"`
+	Length     time.Duration `yaml:"length"`
 }
 
 // Name returns the name of the integration this config is for.
@@ -234,6 +235,11 @@ func toYACEMetrics(metrics []Metric) []*yaceConf.Metric {
 	for _, metric := range metrics {
 		periodSeconds := int64(metric.Period.Seconds())
 		lengthSeconds := periodSeconds
+		// If `length` is configured, override default
+		if metric.Length != 0 {
+			lengthSeconds = int64(metric.Length.Seconds())
+		}
+
 		yaceMetrics = append(yaceMetrics, &yaceConf.Metric{
 			Name:       metric.Name,
 			Statistics: metric.Statistics,
