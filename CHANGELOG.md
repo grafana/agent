@@ -38,7 +38,7 @@ v0.35.0-rc.0 (2023-07-13)
 
 - Remove the `discovery_target_decode` function in favor of using discovery
   components to better match the behavior of Prometheus' service discovery.
-  (@rfratto)
+  (@rfratto) 
 
 - In the traces subsystem for Static mode, some metrics are removed and others are renamed. (@ptodev)
   - Removed metrics:
