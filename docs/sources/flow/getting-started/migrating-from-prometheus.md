@@ -131,7 +131,7 @@ prometheus.remote_write "default" {
    best-effort conversion by including the `--bypass-errors` flag.
    
     {{% admonition type="caution" %}}
-    If you bypass the errors, the behavior of the converted configuration may not match the original configuration.
+    If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration.
     Make sure you fully test the converted configuration before using it in a production environment.
     {{% /admonition %}}
 
@@ -185,6 +185,6 @@ This allows you to try flow mode without modifying your existing Prometheus conf
    `--config.format=prometheus`.
 
     {{% admonition type="caution" %}}
-    If you bypass the errors, the behavior of the converted configuration may not match the original configuration. 
-    Make sure you fully test the converted configuration before using it in a production environment.
+    If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration. 
+    Do not use this flag in a production environment.
     {{% /admonition %}}
