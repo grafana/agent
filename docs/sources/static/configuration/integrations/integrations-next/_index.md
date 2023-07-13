@@ -42,7 +42,7 @@ original subsystem:
 * Autoscrape, when enabled, now works completely in-memory without using the
   network.
 
-[http_sd_config]: https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#http_sd_config
+[http_sd_config]: https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#http_sd_config
 
 ## Config changes
 
