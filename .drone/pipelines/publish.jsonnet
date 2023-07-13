@@ -129,6 +129,11 @@ linux_containers_jobs + windows_containers_jobs + [
                   "file_path": "ksonnet/environments/grafana-agent/waves/agent.libsonnet",
                   "jsonnet_key": "dev_canary",
                   "jsonnet_value_file": ".image-tag"
+                },
+                {
+                  "file_path": "ksonnet/environments/pyroscope-ebpf/waves/ebpf.libsonnet",
+                  "jsonnet_key": "dev_canary",
+                  "jsonnet_value_file": ".image-tag"
                 }
               ]
             }
