@@ -20,7 +20,7 @@ Main (unreleased)
 
 - `otelcol.exporter.loki` now includes the instrumentation scope in its output. (@ptodev)
 
-- `otelcol.extension.jaeger_remote_sampling` removes the `\` HTTP endpoint. The `/sampling` endpoint is still functional.
+- `otelcol.extension.jaeger_remote_sampling` removes the `/` HTTP endpoint. The `/sampling` endpoint is still functional.
   The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib. (@ptodev)
 
 - The field `version` and `auth` struct block from `walk_params` in `prometheus.exporter.snmp` and SNMP integration have been removed. The auth block now can be configured at top level, together with `modules` (@marctc)
@@ -32,6 +32,33 @@ Main (unreleased)
 - Remove the `discovery_target_decode` function in favor of using discovery
   components to better match the behavior of Prometheus' service discovery.
   (@rfratto)
+
+- In the traces subsystem for Static mode, some metrics are removed and others are renamed. (@ptodev)
+  - Removed metrics:
+    - "blackbox_exporter_config_last_reload_success_timestamp_seconds" (gauge)
+    - "blackbox_exporter_config_last_reload_successful" (gauge)
+    - "blackbox_module_unknown_total" (counter)
+    - "traces_processor_tail_sampling_count_traces_sampled" (counter)
+    - "traces_processor_tail_sampling_new_trace_id_received" (counter)
+    - "traces_processor_tail_sampling_sampling_decision_latency" (histogram)
+    - "traces_processor_tail_sampling_sampling_decision_timer_latency" (histogram)
+    - "traces_processor_tail_sampling_sampling_policy_evaluation_error" (counter)
+    - "traces_processor_tail_sampling_sampling_trace_dropped_too_early" (counter)
+    - "traces_processor_tail_sampling_sampling_traces_on_memory" (gauge)
+    - "traces_receiver_accepted_spans" (counter)
+    - "traces_receiver_refused_spans" (counter)
+    - "traces_exporter_enqueue_failed_log_records" (counter)
+    - "traces_exporter_enqueue_failed_metric_points" (counter)
+    - "traces_exporter_enqueue_failed_spans" (counter)
+    - "traces_exporter_queue_capacity" (gauge)
+    - "traces_exporter_queue_size" (gauge)
+
+  - Renamed metrics:
+    - "traces_receiver_refused_spans" is renamed to "traces_receiver_refused_spans_total"
+    - "traces_receiver_accepted_spans" is renamed to "traces_receiver_refused_spans_total"
+    - "traces_exporter_sent_metric_points" is renamed to "traces_exporter_sent_metric_points_total"
+
+- The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`. (@ptodev)
 
 ### Features
 
@@ -55,6 +82,7 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
+  - `discovery.file` discovers scrape targets from files. (@spartan0x117)
   - `discovery.kubelet` collect scrape targets from the Kubelet API. (@gcampbell12)
   - `module.http` runs a Grafana Agent Flow module loaded from a remote HTTP endpoint. (@spartan0x117)
   - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
@@ -75,6 +103,14 @@ Main (unreleased)
 
   - `grafana-agent tools prometheus.remote_write` holds a collection of remote
     write-specific tools. These have been ported over from the `agentctl` command. (@rfratto)
+
+- A new `action` argument for `otelcol.auth.headers`. (@ptodev)
+
+- New `metadata_keys` and `metadata_cardinality_limit` arguments for `otelcol.processor.batch`. (@ptodev)
+
+- New `boolean_attribute` and `ottl_condition` sampling policies for `otelcol.processor.tail_sampling`. (@ptodev)
+
+- A new `initial_offset` argument for `otelcol.receiver.kafka`. (@ptodev)
 
 ### Enhancements
 
@@ -113,6 +149,16 @@ Main (unreleased)
 
 - Allow `prometheus.exporter.snmp` and SNMP integration to be configured passing a YAML block. (@marctc)
 
+- Some metrics have been added to the traces subsystem for Static mode. (@ptodev)
+  - "traces_processor_batch_batch_send_size" (histogram)
+  - "traces_processor_batch_batch_size_trigger_send_total" (counter)
+  - "traces_processor_batch_metadata_cardinality" (gauge)
+  - "traces_processor_batch_timeout_trigger_send_total" (counter)
+  - "traces_rpc_server_duration" (histogram)
+  - "traces_exporter_send_failed_metric_points_total" (counter)
+  - "traces_exporter_send_failed_spans_total" (counter)
+  - "traces_exporter_sent_spans_total" (counter)
+
 ### Bugfixes
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
@@ -146,6 +192,8 @@ Main (unreleased)
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
 - Build with go 1.20.6 (@captncraig)
+
+- `otelcol.exporter.jaeger` has been deprecated and will be removed soon. (@ptodev)
 
 v0.34.3 (2023-06-27)
 --------------------
