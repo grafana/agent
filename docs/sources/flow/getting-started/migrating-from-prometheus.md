@@ -1,5 +1,7 @@
 ---
-title: Migrating from Prometheus
+description: Learn how to migrate your configuration from Prometheus to Grafana Agent flow mode
+title: Migrate from Prometheus to Grafana Agent flow mode
+menuTitle: Migrate from Prometheus
 weight: 320
 ---
 
@@ -128,7 +130,10 @@ prometheus.remote_write "default" {
    any non-critical issues and output the flow configuration using a 
    best-effort conversion by including the `--bypass-errors` flag.
    
-    > Be aware that the behavior may not match when bypassing errors.
+    {{% admonition type="caution" %}}
+    If you bypass the errors, the behavior of the converted configuration may not match the original configuration.
+    Make sure you fully test the converted configuration before using it in a production environment.
+    {{% /admonition %}}
 
     ```bash
     grafana-agent convert --format=prometheus --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
@@ -153,10 +158,9 @@ prometheus.remote_write "default" {
 
 ## Run a Prometheus configuration
 
-If you’re not ready to switch to a flow configuration, you can also run your
-existing Prometheus configuration without saving it as a flow configuration.
-This allows you to try flow mode without modifying your existing
-Prometheus configuration infrastructure.
+If you’re not ready to completely switch to a flow configuration, you can run Grafana Agent using your existing Prometheus configuration.
+The `--config.format=prometheus` flag tells Grafana Agent to convert your Prometheus configuration to flow mode and load it directly without saving the new configuration.
+This allows you to try flow mode without modifying your existing Prometheus configuration infrastructure.
 
 > In this task, we will use the [run][] CLI command to run Grafana Agent in flow
 > mode using a Prometheus configuration.
@@ -164,7 +168,6 @@ Prometheus configuration infrastructure.
 [Start the agent][] in flow mode and include the command line flag
    `--config.format=prometheus`. Your configuration file must be a valid
    Prometheus configuration file rather than a flow mode configuration file.
-
 
 ### Debugging
 
@@ -174,11 +177,14 @@ Prometheus configuration infrastructure.
 1. Refer to the Grafana Agent [Flow Debugging][] for more information about a running Grafana
    Agent in flow mode.
 
-3. If the Prometheus configuration provided cannot be converted,
-   diagnostic information is sent to `stderr`. You can bypass
-   any non-critical issues and start the Agent by including the
+3. If your Prometheus configuration cannot be converted and 
+    loaded directly into Grafana Agent, diagnostic information 
+    is sent to `stderr`. You can bypass any non-critical issues 
+    and start the Agent by including the
    `--config.bypass-conversion-errors` flag in addition to
    `--config.format=prometheus`.
 
-    > Be aware that the behavior may not match when bypassing errors
-    > and doing so should be avoided in Production systems.
+    {{% admonition type="caution" %}}
+    If you bypass the errors, the behavior of the converted configuration may not match the original configuration. 
+    Make sure you fully test the converted configuration before using it in a production environment.
+    {{% /admonition %}}
