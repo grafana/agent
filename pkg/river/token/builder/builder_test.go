@@ -409,3 +409,277 @@ func TestBuilder_MapBlocks(t *testing.T) {
 
 	require.Equal(t, expect, string(f.Bytes()))
 }
+
+func TestBuilder_AppendInner(t *testing.T) {
+	type InnerBlock struct {
+		Number int `river:"number,attr"`
+	}
+
+	type Structure struct {
+		Field          string        `river:"field,attr"`
+		Block          InnerBlock    `river:"block,block,optional"`
+		BlocksSlice    []InnerBlock  `river:"block_slice,block,optional"`
+		BlockPtr       *InnerBlock   `river:"block_ptr,block,optional"`
+		BlocksPtrSlice []*InnerBlock `river:"block_ptr_slice,block,optional"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+
+		Block: InnerBlock{Number: 1},
+		BlocksSlice: []InnerBlock{
+			{Number: 1}, {Number: 2},
+		},
+
+		BlockPtr: &InnerBlock{Number: 1},
+		BlocksPtrSlice: []*InnerBlock{
+			{Number: 1}, {Number: 2},
+		},
+	})
+
+	expect := format(t, `
+		field = "some_value"
+		
+		block {
+			number = 1
+		}
+		
+		block_slice {
+			number = 1
+		}
+		
+		block_slice {
+			number = 2
+		}
+		
+		block_ptr {
+			number = 1
+		}
+		
+		block_ptr_slice {
+			number = 1
+		}
+		
+		block_ptr_slice {
+			number = 2
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_AppendInner_DiffersFromDefault(t *testing.T) {
+	type Structure struct {
+		Field          string                 `river:"field,attr"`
+		Block          InnerBlockDefaulter    `river:"block,block,optional"`
+		BlocksSlice    []InnerBlockDefaulter  `river:"block_slice,block,optional"`
+		BlockPtr       *InnerBlockDefaulter   `river:"block_ptr,block,optional"`
+		BlocksPtrSlice []*InnerBlockDefaulter `river:"block_ptr_slice,block,optional"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+
+		Block: InnerBlockDefaulter{Number: 1},
+		BlocksSlice: []InnerBlockDefaulter{
+			{Number: 1}, {Number: 2},
+		},
+
+		BlockPtr: &InnerBlockDefaulter{Number: 1},
+		BlocksPtrSlice: []*InnerBlockDefaulter{
+			{Number: 1}, {Number: 2},
+		},
+	})
+
+	expect := format(t, `
+		field = "some_value"
+		
+		block {
+			number = 1
+		}
+		
+		block_slice {
+			number = 1
+		}
+		
+		block_slice {
+			number = 2
+		}
+		
+		block_ptr {
+			number = 1
+		}
+		
+		block_ptr_slice {
+			number = 1
+		}
+		
+		block_ptr_slice {
+			number = 2
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_AppendInner_MatchesDefaults(t *testing.T) {
+	type Structure struct {
+		Field          string                 `river:"field,attr"`
+		Block          InnerBlockDefaulter    `river:"block,block,optional"`
+		BlocksSlice    []InnerBlockDefaulter  `river:"block_slice,block,optional"`
+		BlockPtr       *InnerBlockDefaulter   `river:"block_ptr,block,optional"`
+		BlocksPtrSlice []*InnerBlockDefaulter `river:"block_ptr_slice,block,optional"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+
+		Block: InnerBlockDefaulter{Number: 123},
+		BlocksSlice: []InnerBlockDefaulter{
+			{Number: 123}, {Number: 123},
+		},
+
+		BlockPtr: &InnerBlockDefaulter{Number: 123},
+		BlocksPtrSlice: []*InnerBlockDefaulter{
+			{Number: 123}, {Number: 123},
+		},
+	})
+
+	expect := format(t, `
+		field = "some_value"
+		
+		block {
+			number = 123
+		}
+		
+		block_slice {
+			number = 123
+		}
+		
+		block_slice {
+			number = 123
+		}
+
+		block_ptr {
+			number = 123
+		}
+		
+		block_ptr_slice {
+			number = 123
+		}
+		
+		block_ptr_slice {
+			number = 123
+		}
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_AppendInner_EmptyValues(t *testing.T) {
+	type Structure struct {
+		Field          string                 `river:"field,attr"`
+		Block          InnerBlockDefaulter    `river:"block,block,optional"`
+		BlocksSlice    []InnerBlockDefaulter  `river:"block_slice,block,optional"`
+		BlockPtr       *InnerBlockDefaulter   `river:"block_ptr,block,optional"`
+		BlocksPtrSlice []*InnerBlockDefaulter `river:"block_ptr_slice,block,optional"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+
+		Block:       InnerBlockDefaulter{},
+		BlocksSlice: []InnerBlockDefaulter{},
+
+		BlockPtr:       &InnerBlockDefaulter{},
+		BlocksPtrSlice: []*InnerBlockDefaulter{},
+	})
+
+	expect := format(t, `
+		field = "some_value"
+
+		block_ptr { }
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_AppendInner_Nil(t *testing.T) {
+	type Structure struct {
+		Field          string                 `river:"field,attr"`
+		Block          InnerBlockDefaulter    `river:"block,block,optional"`
+		BlocksSlice    []InnerBlockDefaulter  `river:"block_slice,block,optional"`
+		BlockPtr       *InnerBlockDefaulter   `river:"block_ptr,block,optional"`
+		BlocksPtrSlice []*InnerBlockDefaulter `river:"block_ptr_slice,block,optional"`
+	}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(Structure{
+		Field: "some_value",
+
+		Block:       InnerBlockDefaulter{},
+		BlocksSlice: nil,
+
+		BlockPtr:       nil,
+		BlocksPtrSlice: nil,
+	})
+
+	expect := format(t, `
+		field = "some_value"
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+func TestBuilder_AppendInner_InnerDefaultsMatch_OuterDefaultsNil(t *testing.T) {
+	f := builder.NewFile()
+
+	OuterDefaults = OuterBlockDefaulter{
+		Inner:         InnerBlockDefaulter{},
+		InnerSlice:    nil,
+		InnerPtr:      nil,
+		InnerPtrSlice: nil,
+	}
+
+	outerUserValue := OuterBlockDefaulter{
+		Inner:         InnerBlockDefaulter{Number: 123},
+		InnerSlice:    []InnerBlockDefaulter{},
+		InnerPtr:      &InnerBlockDefaulter{Number: 123},
+		InnerPtrSlice: []*InnerBlockDefaulter{},
+	}
+
+	f.Body().AppendFrom(outerUserValue)
+
+	expect := format(t, `
+		inner { }
+		
+		inner_ptr { }
+	`)
+
+	require.Equal(t, expect, string(f.Bytes()))
+}
+
+type OuterBlockDefaulter struct {
+	Inner         InnerBlockDefaulter    `river:"inner,block,optional"`
+	InnerSlice    []InnerBlockDefaulter  `river:"inner_slice,block,optional"`
+	InnerPtr      *InnerBlockDefaulter   `river:"inner_ptr,block,optional"`
+	InnerPtrSlice []*InnerBlockDefaulter `river:"inner_ptr_slice,block,optional"`
+}
+
+var OuterDefaults = OuterBlockDefaulter{}
+
+func (o *OuterBlockDefaulter) SetToDefault() {
+	*o = OuterDefaults
+}
+
+type InnerBlockDefaulter struct {
+	Number int `river:"number,attr,optional"`
+}
+
+func (i *InnerBlockDefaulter) SetToDefault() {
+	*i = InnerBlockDefaulter{Number: 123}
+}
