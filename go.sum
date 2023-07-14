@@ -2755,6 +2755,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributespr
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.80.0/go.mod h1:9uoUdWeHgN/c98VL9hPtDbdmqqHjQs8sF8W6P5MtUKA=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0 h1:+aUgA8hzbaBGyraAy7WGjyzq0zLvvTAaq0q0RO934HM=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0/go.mod h1:cjPA2Zcmy6ZSiKe1+gFGGjN4wgRRcPFwYuL/AnM6nIo=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.80.0 h1:E0eTh3rgRm38HQ3YX7y+IsSCsAsN1oy31aLAGzBW0jY=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.80.0/go.mod h1:xr2gz2uqeBIktRFVzkhbfwaDpwFPnFbfshmpkhZYmco=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.80.0 h1:UvxHvdSDQItDU+GI5fP79d9AOMNhhTHX/AZNvtQA/zs=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.80.0/go.mod h1:z2N7529PWQE8UlDFvGbr9kHbSXxt9a5hBUIDVtCzbiM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.80.0 h1:y7Q+273OjVQy3+jAEL6uXtDci3MZ2yCoEXe4VlRMo84=
