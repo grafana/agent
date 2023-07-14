@@ -21,6 +21,14 @@
 # Binaries:
 /cmd/grafana-agent-operator/  @grafana/grafana-agent-operator-maintainers
 
+# `make docs` procedure and related workflows are owned @grafana/docs-tooling. Slack #docs.
+/.github/workflows/publish-technical-documentation-next.yml    @grafana/docs-tooling
+/.github/workflows/publish-technical-documentation-release.yml @grafana/docs-tooling
+/.github/workflows/update-make-docs.yml                        @grafana/docs-tooling
+/docs/docs.mk                                                  @grafana/docs-tooling
+/docs/make-docs                                                @grafana/docs-tooling
+/docs/variables.mk                                             @grafana/docs-tooling
+
 # Documentation:
 /docs/sources/  @clayton-cornell
 
