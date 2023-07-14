@@ -1,11 +1,12 @@
 ---
-title: About Grafana Agent
+title: Introduction to Grafana Agent
+menuTitle: Introduction
 weight: 100
 aliases:
   - ./about-agent/
 ---
 
-# About Grafana Agent
+# Introduction to Grafana Agent
 
 Grafana Agent is a vendor-neutral, batteries-included telemetry collector. It
 is designed to be flexible, performant, and compatible with multiple ecosystems
