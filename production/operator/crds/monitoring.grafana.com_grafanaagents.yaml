@@ -1101,6 +1101,15 @@ spec:
                 items:
                   type: string
                 type: array
+              configReloaderImage:
+                description: Image, when specified, overrides the image used to run
+                  Config Reloader. Specify the image along with a tag. You still need
+                  to set the version to ensure Grafana Agent Operator knows which
+                  version of Grafana Agent is being configured.
+                type: string
+              configReloaderVersion:
+                description: Version of Config Reloader to be deployed.
+                type: string
               containers:
                 description: 'Containers lets you inject additional containers or
                   modify operator-generated containers. This can be used to add an
