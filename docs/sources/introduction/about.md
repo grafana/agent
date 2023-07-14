@@ -4,6 +4,7 @@ menuTitle: Introduction
 weight: 100
 aliases:
   - ./about-agent/
+  - ../about/
 ---
 
 # Introduction to Grafana Agent

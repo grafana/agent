@@ -62,7 +62,7 @@ Grafana Agent can collect, transform, and send data to:
   * [Static mode Kubernetes operator][]
   * [Flow mode][]
 
-[variants]: {{< relref "./about.md" >}}
+[variants]: {{< relref "./introduction/about.md" >}}
 [Static mode]: {{< relref "./static/" >}}
 [Static mode Kubernetes operator]: {{< relref "./operator/" >}}
 [Flow mode]: {{< relref "./flow/" >}}
