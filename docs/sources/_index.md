@@ -1,6 +1,6 @@
 ---
 title: Grafana Agent
-weight:550
+weight: 550
 ---
 
 # Grafana Agent
