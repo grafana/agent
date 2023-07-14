@@ -1,6 +1,6 @@
 ---
 title: Static mode
-weight: 200
+weight: 600
 ---
 
 # Static mode

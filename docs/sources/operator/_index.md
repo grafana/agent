@@ -1,6 +1,6 @@
 ---
 title: Static mode Kubernetes operator
-weight: 300
+weight: 620
 ---
 
 # Static mode Kubernetes operator (Beta)

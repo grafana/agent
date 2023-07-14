@@ -1,6 +1,6 @@
 ---
 title: Flow mode
-weight: 400
+weight: 630
 ---
 
 # Flow mode
