@@ -39,7 +39,7 @@ func TestDirectory(t *testing.T, folderPath string, sourceSuffix string, convert
 		}
 
 		if strings.HasSuffix(path, sourceSuffix) {
-			tc := getTestCaseName(t, path, sourceSuffix)
+			tc := getTestCaseName(path, sourceSuffix)
 			t.Run(tc, func(t *testing.T) {
 				actualRiver, actualDiags := convert(getSourceContents(t, path))
 
@@ -67,7 +67,7 @@ func getSourceContents(t *testing.T, path string) []byte {
 }
 
 // getTestCaseName gets the test case name based on the path and source suffix.
-func getTestCaseName(t *testing.T, path string, sourceSuffix string) string {
+func getTestCaseName(path string, sourceSuffix string) string {
 	caseName := filepath.Base(path)
 	return strings.TrimSuffix(caseName, sourceSuffix)
 }
