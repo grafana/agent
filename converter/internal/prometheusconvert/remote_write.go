@@ -44,7 +44,7 @@ func validateRemoteWriteConfig(remoteWriteConfig *prom_config.RemoteWriteConfig)
 		diags.Add(diag.SeverityLevelError, "unsupported remote_write sigv4 config was provided")
 	}
 
-	newDiags := validateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig)
+	newDiags := ValidateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig)
 	diags = append(diags, newDiags...)
 
 	return diags
@@ -74,10 +74,10 @@ func getEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*
 			Headers:              remoteWriteConfig.Headers,
 			SendExemplars:        remoteWriteConfig.SendExemplars,
 			SendNativeHistograms: remoteWriteConfig.SendNativeHistograms,
-			HTTPClientConfig:     toHttpClientConfig(&remoteWriteConfig.HTTPClientConfig),
+			HTTPClientConfig:     ToHttpClientConfig(&remoteWriteConfig.HTTPClientConfig),
 			QueueOptions:         toQueueOptions(&remoteWriteConfig.QueueConfig),
 			MetadataOptions:      toMetadataOptions(&remoteWriteConfig.MetadataConfig),
-			WriteRelabelConfigs:  toRelabelConfigs(remoteWriteConfig.WriteRelabelConfigs),
+			WriteRelabelConfigs:  ToFlowRelabelConfigs(remoteWriteConfig.WriteRelabelConfigs),
 		}
 
 		endpoints = append(endpoints, endpoint)

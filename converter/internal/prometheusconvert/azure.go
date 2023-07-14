@@ -41,7 +41,7 @@ func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
 }
 
 func validateDiscoveryAzure(sdConfig *prom_azure.SDConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toManagedIdentity(sdConfig *prom_azure.SDConfig) *azure.ManagedIdentity {
