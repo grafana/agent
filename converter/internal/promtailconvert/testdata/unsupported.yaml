@@ -1,0 +1,22 @@
+global:
+  file_watch_config:
+    min_poll_frequency: 1s
+    max_poll_frequency: 5s
+clients:
+  - url: http://localhost/loki/api/v1/push
+    drop_rate_limited_batches: true
+    stream_lag_labels: hare,tortoise
+positions:
+  filename: /dev/urandom
+options:
+  stream_lag_labels: hare,tortoise
+wal:
+  enabled: true
+limits_config:
+  readline_rate_enabled: true
+target_config:
+  stdin: true
+server:
+  profiling_enabled: true
+  register_instrumentation: true
+  log_level: error

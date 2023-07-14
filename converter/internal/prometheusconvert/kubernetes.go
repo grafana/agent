@@ -10,7 +10,7 @@ import (
 )
 
 func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *prom_kubernetes.SDConfig) discovery.Exports {
-	discoveryKubernetesArgs := toDiscoveryKubernetes(sdConfig)
+	discoveryKubernetesArgs := ToDiscoveryKubernetes(sdConfig)
 	name := []string{"discovery", "kubernetes"}
 	block := common.NewBlockWithOverride(name, label, discoveryKubernetesArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
@@ -18,10 +18,10 @@ func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *pro
 }
 
 func validateDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
-func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Arguments {
+func ToDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
@@ -30,7 +30,7 @@ func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Argum
 		APIServer:          config.URL(sdConfig.APIServer),
 		Role:               string(sdConfig.Role),
 		KubeConfig:         sdConfig.KubeConfig,
-		HTTPClientConfig:   *toHttpClientConfig(&sdConfig.HTTPClientConfig),
+		HTTPClientConfig:   *ToHttpClientConfig(&sdConfig.HTTPClientConfig),
 		NamespaceDiscovery: toNamespaceDiscovery(&sdConfig.NamespaceDiscovery),
 		Selectors:          toSelectorConfig(sdConfig.Selectors),
 		AttachMetadata:     toAttachMetadata(&sdConfig.AttachMetadata),

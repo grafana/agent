@@ -34,7 +34,7 @@ func toRelabelArguments(relabelConfigs []*prom_relabel.Config, forwardTo []stora
 
 	return &relabel.Arguments{
 		ForwardTo:            forwardTo,
-		MetricRelabelConfigs: toRelabelConfigs(relabelConfigs),
+		MetricRelabelConfigs: ToFlowRelabelConfigs(relabelConfigs),
 	}
 }
 
@@ -56,11 +56,11 @@ func appendDiscoveryRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel
 func toDiscoveryRelabelArguments(relabelConfigs []*prom_relabel.Config, targets []discovery.Target) *disc_relabel.Arguments {
 	return &disc_relabel.Arguments{
 		Targets:        targets,
-		RelabelConfigs: toRelabelConfigs(relabelConfigs),
+		RelabelConfigs: ToFlowRelabelConfigs(relabelConfigs),
 	}
 }
 
-func toRelabelConfigs(relabelConfigs []*prom_relabel.Config) []*flow_relabel.Config {
+func ToFlowRelabelConfigs(relabelConfigs []*prom_relabel.Config) []*flow_relabel.Config {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
