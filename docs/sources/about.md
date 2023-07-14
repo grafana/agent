@@ -1,6 +1,6 @@
 ---
 title: About Grafana Agent
-weight: 100
+weight: 600
 aliases:
   - ./about-agent/
 ---
