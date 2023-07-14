@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -126,9 +127,12 @@ func getExpectedRiver(t *testing.T, path string, sourceSuffix string) []byte {
 // validateRiver makes sure the expected river and actual river are a match
 func validateRiver(t *testing.T, expectedRiver []byte, actualRiver []byte) {
 	if len(expectedRiver) > 0 {
-		fmt.Println("============== ACTUAL =============")
-		fmt.Println(string(normalizeLineEndings(actualRiver)))
-		fmt.Println("===================================")
+		if !reflect.DeepEqual(expectedRiver, actualRiver) {
+			fmt.Println("============== ACTUAL =============")
+			fmt.Println(string(normalizeLineEndings(actualRiver)))
+			fmt.Println("===================================")
+		}
+
 		require.Equal(t, string(expectedRiver), string(normalizeLineEndings(actualRiver)))
 	}
 }
