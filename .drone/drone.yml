@@ -1294,6 +1294,11 @@ steps:
             "file_path": "ksonnet/environments/grafana-agent/waves/agent.libsonnet",
             "jsonnet_key": "dev_canary",
             "jsonnet_value_file": ".image-tag"
+          },
+          {
+            "file_path": "ksonnet/environments/pyroscope-ebpf/waves/ebpf.libsonnet",
+            "jsonnet_key": "dev_canary",
+            "jsonnet_value_file": ".image-tag"
           }
         ]
       }
@@ -1428,6 +1433,6 @@ kind: secret
 name: gpg_public_key
 ---
 kind: signature
-hmac: 353f98a1a6e7a4c225382c26705148356dd5cd1fbc042a0115d607893e889a71
+hmac: cdbbd7e715a892c48356bd5d381e47ffb29940cb24ac898c3e495765bdd982e5
 
 ...
