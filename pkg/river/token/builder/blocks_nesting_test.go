@@ -158,7 +158,7 @@ func (o *OutNoDefInStrBlkOptWithDef) testCases() []testCase {
 		{
 			// NOTE: even though the inner block has a default value, it will not be applied because the inner block
 			// is a struct, so it will be initialized to zero value as we create a new outer block.
-			//TODO: should we document this behavior better?
+			// See the Defaulter interface docs for more details.
 			name:  "no value set",
 			in:    OutNoDefInStrBlkOptWithDef{},
 			river: "",
