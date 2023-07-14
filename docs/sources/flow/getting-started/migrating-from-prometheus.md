@@ -130,10 +130,7 @@ prometheus.remote_write "default" {
    any non-critical issues and output the flow configuration using a 
    best-effort conversion by including the `--bypass-errors` flag.
    
-    {{% admonition type="caution" %}}
-    If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration.
-    Make sure you fully test the converted configuration before using it in a production environment.
-    {{% /admonition %}}
+    {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
 
     ```bash
     grafana-agent convert --format=prometheus --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
@@ -184,7 +181,4 @@ This allows you to try flow mode without modifying your existing Prometheus conf
    `--config.bypass-conversion-errors` flag in addition to
    `--config.format=prometheus`.
 
-    {{% admonition type="caution" %}}
-    If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration. 
-    Do not use this flag in a production environment.
-    {{% /admonition %}}
+    {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration. Do not use this flag in a production environment.{{% /admonition %}}
