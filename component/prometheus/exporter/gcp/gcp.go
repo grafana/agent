@@ -7,6 +7,10 @@ import (
 	"github.com/grafana/agent/pkg/integrations/gcp_exporter"
 )
 
+type Arguments gcp_exporter.Config
+
+var DefaultArguments = Arguments(gcp_exporter.DefaultConfig)
+
 func init() {
 	component.Register(component.Registration{
 		Name:    "prometheus.exporter.gcp",
@@ -20,10 +24,6 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 	a := args.(Arguments)
 	return a.Convert().NewIntegration(opts.Logger)
 }
-
-var DefaultArguments = Arguments(gcp_exporter.DefaultConfig)
-
-type Arguments gcp_exporter.Config
 
 // SetToDefault implements river.Defaulter.
 func (a *Arguments) SetToDefault() {
@@ -39,8 +39,6 @@ func (a *Arguments) Validate() error {
 }
 
 func (a *Arguments) Convert() *gcp_exporter.Config {
-	// NOTE(tburgessdev): this works because we set up this exporter's Arguments struct
-	// to have the exact same field types as the gcp_exporter.Config struct.
 	c := gcp_exporter.Config(*a)
 	return &c
 }
