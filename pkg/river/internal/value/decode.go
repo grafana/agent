@@ -14,23 +14,16 @@ import (
 // The Defaulter interface allows a type to implement default functionality
 // in River evaluation.
 //
-// SetToDefault() will be called only for block and body river types. To
-// set arguments to their defaults, use the SetToDefault() method the arguments'
-// parent block.
+// Defaulter will be called only on block and body river types.
 //
-// Care should be taken when using nested optional blocks with defaults:
-//   - when an inner block is provided with empty body, the inner type's
-//     defaults will be used.
-//   - when an inner block is not provided at all, the outer type's defaults
-//     will be used.
-//   - if the defaults are not defined, zero values (for structs) or
-//     nil (for pointers) will be set for fields that are not present.
-//     This means that, for example, if an outer type doesn't define defaults,
-//     but the inner type does, the inner type's defaults will not be used when
-//     the block is not provided at all.
+// When using nested blocks, the wrapping type must also implement
+// Defaulter to propagate the defaults of the wrapped type. Otherwise,
+// defaults used for the wrapped type become inconsistent:
 //
-// To avoid confusion, it is strongly recommended to ensure that the
-// SetToDefault method sets the same defaults for the outer and the inner types. .
+//   - If the wrapped block is NOT defined in the River config, the wrapping
+//     type's defaults are used.
+//   - If the wrapped block IS defined in the River config, the wrapped type's
+//     defaults are used.
 type Defaulter interface {
 	// SetToDefault is called when evaluating a block or body to set the value
 	// to its defaults.
