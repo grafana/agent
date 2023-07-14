@@ -59,77 +59,13 @@ additional features available in Grafana Agent flow mode.
 
 1. [Start the agent][] in flow mode using the new flow configuration from `OUTPUT_CONFIG_PATH`:
 
-### Example
-
-This example demonstrates converting a Prometheus configuration file to a Grafana Agent flow mode configuration file.
-
-The following Prometheus configuration file provides the input for the conversion:
-
-```yaml
-global:
-  scrape_timeout:    45s
-
-scrape_configs:
-  - job_name: "prometheus"
-    static_configs:
-      - targets: ["localhost:12345"]
-
-remote_write:
-  - name: "grafana-cloud"
-    url: "https://prometheus-us-central1.grafana.net/api/prom/push"
-    basic_auth:
-      username: USERNAME
-      password: PASSWORD
-```
-
-The convert command takes the YAML as input and outputs a River file.
-
-```bash
-grafana-agent convert --format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-```
-
-The new flow configuration file looks like this:
-
-```river
-prometheus.scrape "prometheus" {
-	targets = [{
-		__address__ = "localhost:12345",
-	}]
-	forward_to     = [prometheus.remote_write.default.receiver]
-	job_name       = "prometheus"
-	scrape_timeout = "45s"
-}
-
-prometheus.remote_write "default" {
-	endpoint {
-		name = "grafana-cloud"
-		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
-
-		basic_auth {
-			username = "USERNAME"
-			password = "PASSWORD"
-		}
-
-		queue_config {
-			capacity             = 2500
-			max_shards           = 200
-			max_samples_per_send = 500
-		}
-
-		metadata_config {
-			max_samples_per_send = 500
-		}
-	}
-}
-```
-
 ### Debugging
 
 1. If the convert command cannot convert a Prometheus configuration,
    diagnostic information is sent to `stderr`. You can bypass
    any non-critical issues and output the flow configuration using a 
    best-effort conversion by including the `--bypass-errors` flag.
-   
+
     {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
 
     ```bash
@@ -146,7 +82,7 @@ prometheus.remote_write "default" {
 
     Using the example Prometheus configuration from above the diagnostic report provides the following information:
 
-    ```
+    ```plaintext
     (Info) Converted scrape_configs job_name "prometheus" into...
       A prometheus.scrape.prometheus component
     (Info) Converted 1 remote_write[s] "grafana-cloud" into...
@@ -174,7 +110,7 @@ This allows you to try flow mode without modifying your existing Prometheus conf
 1. Refer to the Grafana Agent [Flow Debugging][] for more information about a running Grafana
    Agent in flow mode.
 
-3. If your Prometheus configuration cannot be converted and 
+1. If your Prometheus configuration cannot be converted and 
     loaded directly into Grafana Agent, diagnostic information 
     is sent to `stderr`. You can bypass any non-critical issues 
     and start the Agent by including the
@@ -182,3 +118,67 @@ This allows you to try flow mode without modifying your existing Prometheus conf
    `--config.format=prometheus`.
 
     {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration. Do not use this flag in a production environment.{{% /admonition %}}
+
+## Example
+
+This example demonstrates converting a Prometheus configuration file to a Grafana Agent flow mode configuration file.
+
+The following Prometheus configuration file provides the input for the conversion:
+
+```yaml
+global:
+  scrape_timeout:    45s
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:12345"]
+
+remote_write:
+  - name: "grafana-cloud"
+    url: "https://prometheus-us-central1.grafana.net/api/prom/push"
+    basic_auth:
+      username: USERNAME
+      password: PASSWORD
+```
+
+The convert command takes the YAML file as input and outputs a River file.
+
+```bash
+grafana-agent convert --format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+```
+
+The new flow configuration file looks like this:
+
+```river
+prometheus.scrape "prometheus" {
+  targets = [{
+    __address__ = "localhost:12345",
+  }]
+  forward_to     = [prometheus.remote_write.default.receiver]
+  job_name       = "prometheus"
+  scrape_timeout = "45s"
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    name = "grafana-cloud"
+    url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
+
+    basic_auth {
+      username = "USERNAME"
+      password = "PASSWORD"
+    }
+
+    queue_config {
+      capacity             = 2500
+      max_shards           = 200
+      max_samples_per_send = 500
+    }
+
+    metadata_config {
+      max_samples_per_send = 500
+    }
+  }
+}
+```
