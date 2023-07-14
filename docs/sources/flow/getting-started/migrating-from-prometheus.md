@@ -80,7 +80,7 @@ additional features available in Grafana Agent flow mode.
 
     * Replace `OUTPUT_REPORT_PATH` with the output path for the report.
 
-    Using the example Prometheus configuration from above the diagnostic report provides the following information:
+    Using the [example](#example) Prometheus configuration below, the diagnostic report provides the following information:
 
     ```plaintext
     (Info) Converted scrape_configs job_name "prometheus" into...
