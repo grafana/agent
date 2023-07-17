@@ -4,6 +4,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: grafana-agent
+  namespace: default
   labels:
     helm.sh/chart: grafana-agent
     app.kubernetes.io/name: grafana-agent
