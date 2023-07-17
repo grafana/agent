@@ -85,7 +85,7 @@ The following blocks are supported inside the definition of `pyroscope.scrape`:
 | profiling_config > profile.fgprof             | [profile.fgprof][]             | Collect [fgprof][] profiles.                                             | no       |
 | profiling_config > profile.godeltaprof_memory | [profile.godeltaprof_memory][] | Collect [godeltaprof][] memory profiles.                                 | no       |
 | profiling_config > profile.godeltaprof_mutex  | [profile.godeltaprof_mutex][]  | Collect [godeltaprof][] mutex profiles.                                  | no       |
-| profiling_config > profile.godeltaprof_block  | [profile.delta_block][]        | Collect [godeltaprof][] block profiles.                                  | no       |
+| profiling_config > profile.godeltaprof_block  | [profile.godeltaprof_block][]        | Collect [godeltaprof][] block profiles.                                  | no       |
 | profiling_config > profile.custom             | [profile.custom][]             | Collect custom profiles.                                                 | no       |
 | clustering                                    | [clustering][]                 | Configure the component for when the Agent is running in clustered mode. | no       |
 
