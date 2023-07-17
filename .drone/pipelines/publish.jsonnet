@@ -5,7 +5,7 @@ local secrets = import '../util/secrets.jsonnet';
 // job_names gets the list of job names for use in depends_on.
 local job_names = function(jobs) std.map(function(job) job.name, jobs);
 
-local linux_containers = ['agent', 'agentctl', 'agent-operator', 'smoke', 'crow'];
+local linux_containers = ['agent','agent-boringcrypto', 'agentctl', 'agent-operator', 'smoke', 'crow'];
 local linux_containers_jobs = std.map(function(container) (
   pipelines.linux('Publish Linux %s container' % container) {
     trigger: {
@@ -127,6 +127,11 @@ linux_containers_jobs + windows_containers_jobs + [
                 },
                 {
                   "file_path": "ksonnet/environments/grafana-agent/waves/agent.libsonnet",
+                  "jsonnet_key": "dev_canary",
+                  "jsonnet_value_file": ".image-tag"
+                },
+                {
+                  "file_path": "ksonnet/environments/pyroscope-ebpf/waves/ebpf.libsonnet",
                   "jsonnet_key": "dev_canary",
                   "jsonnet_value_file": ".image-tag"
                 }

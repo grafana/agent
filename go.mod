@@ -22,6 +22,7 @@ require (
 	github.com/buger/jsonparser v1.1.1
 	github.com/burningalchemist/sql_exporter v0.0.0-20221222155641-2ff59aa75200
 	github.com/cespare/xxhash/v2 v2.2.0
+	github.com/cilium/ebpf v0.11.0 // indirect
 	github.com/cloudflare/cloudflare-go v0.27.0
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/go-systemd/v22 v22.5.0
@@ -47,7 +48,7 @@ require (
 	github.com/google/dnsmasq_exporter v0.2.1-0.20230620100026-44b14480804a
 	github.com/google/go-cmp v0.5.9
 	github.com/google/go-jsonnet v0.18.0
-	github.com/google/pprof v0.0.0-20230111200839-76d1ae5aea2b
+	github.com/google/pprof v0.0.0-20230602150820-91b7bce49751
 	github.com/google/renameio/v2 v2.0.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
@@ -57,6 +58,7 @@ require (
 	github.com/grafana/go-gelf/v2 v2.0.1
 	github.com/grafana/loki v1.6.2-0.20230414223651-220cbdd4f172 // k146 branch
 	github.com/grafana/phlare/api v0.1.2
+	github.com/grafana/phlare/ebpf v0.1.1
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/tail v0.0.0-20230328181249-aa6682d7843a
@@ -121,6 +123,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ory/dockertest/v3 v3.8.1
 	github.com/oschwald/geoip2-golang v1.8.0
+	github.com/percona/mongodb_exporter v0.39.1-0.20230706092307-28432707eb65
 	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
@@ -233,6 +236,7 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
+	github.com/AlekSi/pointer v1.1.0 // indirect
 	github.com/Azure/azure-sdk-for-go v66.0.0+incompatible // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.3.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/monitor/armmonitor v0.9.1 // indirect
@@ -272,6 +276,7 @@ require (
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
+	github.com/avvmoto/buf-readerat v0.0.0-20171115124131-a17c8cb89270 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.26 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.4 // indirect
@@ -299,7 +304,6 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/checkpoint-restore/go-criu/v5 v5.3.0 // indirect
-	github.com/cilium/ebpf v0.10.0 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/cncf/xds/go v0.0.0-20230607035331-e9ce68804cb4 // indirect
 	github.com/containerd/cgroups v1.1.0 // indirect
@@ -448,7 +452,6 @@ require (
 	github.com/joyent/triton-go v0.0.0-20180628001255-830d2b111e62 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/jsimonetti/rtnetlink v1.3.2 // indirect
-	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
@@ -488,6 +491,7 @@ require (
 	github.com/moby/term v0.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/montanaflynn/stats v0.7.0 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/mostynb/go-grpc-compression v1.1.19 // indirect
 	github.com/mrunalp/fileutils v0.5.0 // indirect
@@ -522,7 +526,6 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
 	github.com/prometheus-community/go-runit v0.1.0 // indirect
-	github.com/prometheus-community/prom-label-proxy v0.5.0 // indirect
 	github.com/prometheus/alertmanager v0.25.0 // indirect
 	github.com/prometheus/common/sigv4 v0.1.0 // indirect
 	github.com/prometheus/exporter-toolkit v0.10.0 // indirect
@@ -532,6 +535,7 @@ require (
 	github.com/rivo/uniseg v0.4.2 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/safchain/ethtool v0.3.0 // indirect
+	github.com/samber/lo v1.38.1 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da // indirect
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.14 // indirect
@@ -546,7 +550,6 @@ require (
 	github.com/snowflakedb/gosnowflake v1.6.22 // indirect
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
-	github.com/sony/gobreaker v0.5.0 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -581,11 +584,12 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
 	github.com/xo/dburl v0.13.0 // indirect
+	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.7 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.7 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.7 // indirect
-	go.mongodb.org/mongo-driver v1.11.2 // indirect
+	go.mongodb.org/mongo-driver v1.11.7 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/collector/config/internal v0.80.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.42.1-0.20230612162650-64be7e574a17 // indirect
@@ -615,6 +619,13 @@ require (
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
+)
+
+require (
+	github.com/drone/envsubst v1.0.3 // indirect
+	github.com/julienschmidt/httprouter v1.3.0 // indirect
+	github.com/prometheus-community/prom-label-proxy v0.5.0 // indirect
+	github.com/sony/gobreaker v0.5.0 // indirect
 )
 
 // NOTE: replace directives below must always be *temporary*.
@@ -684,14 +695,13 @@ replace (
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
 exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 
-// Replacing for an internal fork that exposes internal folders
-// Some funtionalities of the collector have been made internal and it's more difficult to build and configure pipelines in the newer versions.
-// This is a temporary solution while a new configuration design is discussed for the collector (ref: https://github.com/open-telemetry/opentelemetry-collector/issues/3482).
-replace (
-	go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20230630115148-4bcac41449bb
-	go.opentelemetry.io/collector/featuregate => github.com/grafana/opentelemetry-collector/featuregate v0.0.0-20230630115148-4bcac41449bb
-	go.opentelemetry.io/collector/pdata => github.com/grafana/opentelemetry-collector/pdata v0.0.0-20230630115148-4bcac41449bb
-)
+// Replacing for an internal fork which allows us to observe metrics produced by the Collector.
+// This is a temporary solution while a new configuration design is discussed for the collector. Related issues:
+// https://github.com/open-telemetry/opentelemetry-collector/issues/7532
+// https://github.com/open-telemetry/opentelemetry-collector/pull/7644
+// https://github.com/open-telemetry/opentelemetry-collector/pull/7696
+// https://github.com/open-telemetry/opentelemetry-collector/issues/4970
+replace go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20230705075940-537e02565521
 
 // Required until https://github.com/weaveworks/common/pull/240 is merged
 replace google.golang.org/grpc => google.golang.org/grpc v1.45.0
@@ -707,3 +717,5 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
+
+// replace github.com/grafana/phlare/ebpf => ../phlare/ebpf

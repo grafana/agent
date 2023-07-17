@@ -9,31 +9,32 @@ import (
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 )
 
-func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *prom_kubernetes.SDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoveryKubernetesArgs, diags := toDiscoveryKubernetes(sdConfig)
-	block := common.NewBlockWithOverride([]string{"discovery", "kubernetes"}, label, discoveryKubernetesArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.kubernetes." + label + ".targets"), diags
+func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *prom_kubernetes.SDConfig) discovery.Exports {
+	discoveryKubernetesArgs := ToDiscoveryKubernetes(sdConfig)
+	name := []string{"discovery", "kubernetes"}
+	block := common.NewBlockWithOverride(name, label, discoveryKubernetesArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
+	return newDiscoverExports("discovery.kubernetes." + label + ".targets")
 }
 
-func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) (*kubernetes.Arguments, diag.Diagnostics) {
+func validateDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) diag.Diagnostics {
+	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+}
+
+func ToDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Arguments {
 	if sdConfig == nil {
-		return nil, nil
+		return nil
 	}
 
 	return &kubernetes.Arguments{
 		APIServer:          config.URL(sdConfig.APIServer),
 		Role:               string(sdConfig.Role),
 		KubeConfig:         sdConfig.KubeConfig,
-		HTTPClientConfig:   *toHttpClientConfig(&sdConfig.HTTPClientConfig),
+		HTTPClientConfig:   *ToHttpClientConfig(&sdConfig.HTTPClientConfig),
 		NamespaceDiscovery: toNamespaceDiscovery(&sdConfig.NamespaceDiscovery),
 		Selectors:          toSelectorConfig(sdConfig.Selectors),
 		AttachMetadata:     toAttachMetadata(&sdConfig.AttachMetadata),
-	}, validateDiscoveryKubernetes(sdConfig)
-}
-
-func validateDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+	}
 }
 
 func toNamespaceDiscovery(ndConfig *prom_kubernetes.NamespaceDiscovery) kubernetes.NamespaceDiscovery {

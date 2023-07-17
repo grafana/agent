@@ -39,7 +39,7 @@ The following flags are supported:
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
 * `--config.format`: The format of the source file. Supported formats: 'flow', 'prometheus' (default `"flow"`).
-* `--config.bypass-conversion-warnings`: Enable bypassing warnings when converting (default `false`).
+* `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
@@ -63,26 +63,63 @@ reloading.
 
 [component controller]: {{< relref "../../concepts/component_controller.md" >}}
 
-## Clustered mode (experimental)
+## Clustering (beta)
 
-When the `--cluster.enabled` command-line argument is provided, Grafana Agent will
-start in _clustered mode_.
+The `--cluster.enabled` command-line argument starts Grafana Agent in
+[clustering][] mode. The rest of the `--cluster.*` command-line flags can be
+used to configure how nodes discover and connect to one another.
 
-The agent tries to connect over HTTP/2 to one or more peers provided in the
-comma-separated `--cluster.join-addresses` list to join an existing cluster.
-If no connection can be made or the argument is empty, the agent falls back to
-bootstrapping a new cluster of its own.
+Each cluster member’s name must be unique within the cluster. Nodes which try
+to join with a conflicting name are rejected and will fall back to
+bootstrapping a new cluster of their own.
 
-Each node's name must be unique within the cluster. The node name defaults to
-the machine's hostname but can be set to a different value by using the
-`--cluster.node-name` flag. Mainly useful for running clustered agents on the
-same machine.
+Peers communicate over HTTP/2 on the agent's built-in HTTP server. Each node
+must be configured to accept connections on `--server.http.listen-addr` and the
+address defined or inferred in `--cluster.advertise-address`.
 
-The agent will advertise its own address as `--cluster.advertise-address` to
-other agent nodes; if this is empty it will attempt to find a suitable address
-to advertise from a list of default network interfaces. The agent must be
-reachable over HTTP on this address as communication happens over the agent's
-HTTP server.
+If the `--cluster.advertise-address` flag is not explicitly set, the agent
+tries to infer a suitable one from the `eth0` and `en0` local network
+interfaces. If the advertised address cannot be determined, the agent will
+fail to start. Windows users must explicitly pass a value for
+`--cluster.advertise-address`, since Windows does not have interfaces name
+`eth0` or `en0`.
+
+The comma-separated list of addresses provided in `--cluster.join-addresses`
+can either be IP addresses with an optional port, or DNS records to lookup.
+The ports on the list of addresses default to the port used for the HTTP
+listener if not explicitly provided. We recommend that you
+align the port numbers on as many nodes as possible to simplify the deployment
+process.
+
+Discovering peers using the `--cluster.join-addresses` flag only happens on
+startup; after that, cluster nodes depend on gossiping messages with each other
+to converge on the cluster's state.
+
+The first node that is used to bootstrap a new cluster (also known as
+the "seed node") can either omit the flag that specifies peers to join or can
+try to connect to itself.
+
+### Clustering states
+
+Clustered agents are in one of three states:
+
+* **Viewer**: The agent has a read-only view of the cluster and is not
+  participating in workload distribution.
+
+* **Participant**: The agent is participating in workload distribution for
+  components which have clustering enabled.
+
+* **Terminating**: The agent is shutting down, and will no longer assign new
+  work to itself.
+
+Agents initially join the cluster in the viewer state, and then transition to
+the participant state after the processs startup completes. Agents then
+transition to the terminating state when shutting down.
+
+The current state of a clustered agent is shown on the clustering page in the
+[UI][].
+
+[UI]: {{< relref "../../monitoring/debugging.md#clustering-page" >}}
 
 ## Configuration conversion (beta)
 
@@ -92,9 +129,10 @@ the source format to River and immediately starts running with the new
 configuration. This conversion uses the converter API described in the
 [grafana-agent convert][] docs.
 
-If you also use the `--config.bypass-conversion-warnings` command-line argument,
-Grafana Agent will ignore any warnings from the converter. Use this
-argument with caution because the resulting conversion may not be equivalent
-to the original configuration.
+If you also use the `--config.bypass-conversion-errors` command-line argument,
+Grafana Agent will ignore any errors from the converter. Use this argument
+with caution because the resulting conversion may not be equivalent to the
+original configuration.
 
 [grafana-agent convert]: {{< relref "./convert.md" >}}
+[clustering]:  {{< relref "../../concepts/clustering.md" >}}

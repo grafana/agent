@@ -16,9 +16,9 @@ import (
 
 func convertCommand() *cobra.Command {
 	f := &flowConvert{
-		output:         "",
-		sourceFormat:   "",
-		bypassWarnings: false,
+		output:       "",
+		sourceFormat: "",
+		bypassErrors: false,
 	}
 
 	cmd := &cobra.Command{
@@ -27,15 +27,20 @@ func convertCommand() *cobra.Command {
 		Long: `The convert subcommand translates a supported config file to
 a River configuration file.
 
-If the file argument is not supplied or if the file argument is "-", then convert will read from stdin.
+If the file argument is not supplied or if the file argument is "-", then
+convert will read from stdin.
 
-The -o flag can be used to write the formatted file back to disk. When -o is not provided, fmt will write the result to stdout.
+The -o flag can be used to write the formatted file back to disk. When -o
+is not provided, convert will write the result to stdout.
+
+The -r flag can be used to generate a diagnostic report. When -r is not
+provided, no report is generated.
 
 The -f flag can be used to specify the format we are converting from.
 
-The -b flag can be used to bypass warnings. Warnings are defined as 
-non-blocking issues identified during the conversion for feature[s] on the source file
-not supported in Grafana Agent Flow.`,
+The -b flag can be used to bypass errors. Errors are defined as 
+non-critical issues identified during the conversion where an
+output can still be generated.`,
 		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
 
@@ -61,16 +66,18 @@ not supported in Grafana Agent Flow.`,
 		},
 	}
 
-	cmd.Flags().StringVarP(&f.output, "output", "o", f.output, "The filepath where the output is written.")
+	cmd.Flags().StringVarP(&f.output, "output", "o", f.output, "The filepath and filename where the output is written.")
+	cmd.Flags().StringVarP(&f.report, "report", "r", f.report, "The filepath and filename where the report is written.")
 	cmd.Flags().StringVarP(&f.sourceFormat, "source-format", "f", f.sourceFormat, "The format of the source file. Supported formats: 'prometheus'.")
-	cmd.Flags().BoolVarP(&f.bypassWarnings, "bypass-warnings", "b", f.bypassWarnings, "Enable bypassing warnings when converting")
+	cmd.Flags().BoolVarP(&f.bypassErrors, "bypass-errors", "b", f.bypassErrors, "Enable bypassing errors when converting")
 	return cmd
 }
 
 type flowConvert struct {
-	output         string
-	sourceFormat   string
-	bypassWarnings bool
+	output       string
+	report       string
+	sourceFormat string
+	bypassErrors bool
 }
 
 func (fc *flowConvert) Run(configFile string) error {
@@ -105,9 +112,14 @@ func convert(r io.Reader, fc *flowConvert) error {
 	}
 
 	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat))
+	err = generateConvertReport(diags, fc)
+	if err != nil {
+		return err
+	}
+
 	hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
-	hasWarn := hasErrorLevel(diags, convert_diag.SeverityLevelWarn)
-	if hasError || (!fc.bypassWarnings && hasWarn) {
+	hasCritical := hasErrorLevel(diags, convert_diag.SeverityLevelCritical)
+	if hasCritical || (!fc.bypassErrors && hasError) {
 		return diags
 	}
 
@@ -127,6 +139,20 @@ func convert(r io.Reader, fc *flowConvert) error {
 
 	_, err = io.Copy(wf, &buf)
 	return err
+}
+
+func generateConvertReport(diags convert_diag.Diagnostics, fc *flowConvert) error {
+	if fc.report != "" {
+		file, err := os.Create(fc.report)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		return diags.GenerateReport(file, convert_diag.Text)
+	}
+
+	return nil
 }
 
 // HasErrorLevel returns true if any diagnostic exists at the provided severity.

@@ -1,36 +1,69 @@
 package prometheusconvert
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/component/prometheus/remotewrite"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	prom_config "github.com/prometheus/prometheus/config"
 )
 
-func appendPrometheusRemoteWrite(pb *prometheusBlocks, promConfig *prom_config.Config) *remotewrite.Exports {
-	remoteWriteArgs := toRemotewriteArguments(promConfig)
-	block := common.NewBlockWithOverride([]string{"prometheus", "remote_write"}, "default", remoteWriteArgs)
-	pb.prometheusRemoteWriteBlocks = append(pb.prometheusRemoteWriteBlocks, block)
+func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.GlobalConfig, remoteWriteConfigs []*prom_config.RemoteWriteConfig, label string) *remotewrite.Exports {
+	remoteWriteArgs := toRemotewriteArguments(globalConfig, remoteWriteConfigs)
+
+	remoteWriteLabel := label
+	if remoteWriteLabel == "" {
+		remoteWriteLabel = "default"
+	}
+
+	if len(remoteWriteConfigs) > 0 {
+		name := []string{"prometheus", "remote_write"}
+		block := common.NewBlockWithOverride(name, remoteWriteLabel, remoteWriteArgs)
+
+		names := []string{}
+		for _, remoteWriteConfig := range remoteWriteConfigs {
+			names = append(names, remoteWriteConfig.Name)
+		}
+		summary := fmt.Sprintf("Converted %d remote_write[s] %q into...", len(remoteWriteConfigs), strings.Join(names, ","))
+		detail := fmt.Sprintf("	A prometheus.remote_write.%s component", remoteWriteLabel)
+		pb.prometheusRemoteWriteBlocks = append(pb.prometheusRemoteWriteBlocks, newPrometheusBlock(block, name, label, summary, detail))
+	}
+
 	return &remotewrite.Exports{
-		Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write.default.receiver"},
+		Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write." + remoteWriteLabel + ".receiver"},
 	}
 }
 
-func toRemotewriteArguments(promConfig *prom_config.Config) *remotewrite.Arguments {
-	externalLabels := promConfig.GlobalConfig.ExternalLabels.Map()
+func validateRemoteWriteConfig(remoteWriteConfig *prom_config.RemoteWriteConfig) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if remoteWriteConfig.SigV4Config != nil {
+		diags.Add(diag.SeverityLevelError, "unsupported remote_write sigv4 config was provided")
+	}
+
+	newDiags := ValidateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig)
+	diags = append(diags, newDiags...)
+
+	return diags
+}
+
+func toRemotewriteArguments(globalConfig prom_config.GlobalConfig, remoteWriteConfigs []*prom_config.RemoteWriteConfig) *remotewrite.Arguments {
+	externalLabels := globalConfig.ExternalLabels.Map()
 	if len(externalLabels) == 0 {
 		externalLabels = nil
 	}
 
 	return &remotewrite.Arguments{
 		ExternalLabels: externalLabels,
-		Endpoints:      GetEndpointOptions(promConfig.RemoteWriteConfigs),
+		Endpoints:      getEndpointOptions(remoteWriteConfigs),
 		WALOptions:     remotewrite.DefaultWALOptions,
 	}
 }
 
-func GetEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*remotewrite.EndpointOptions {
+func getEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*remotewrite.EndpointOptions {
 	endpoints := make([]*remotewrite.EndpointOptions, 0)
 
 	for _, remoteWriteConfig := range remoteWriteConfigs {
@@ -41,9 +74,10 @@ func GetEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*
 			Headers:              remoteWriteConfig.Headers,
 			SendExemplars:        remoteWriteConfig.SendExemplars,
 			SendNativeHistograms: remoteWriteConfig.SendNativeHistograms,
-			HTTPClientConfig:     toHttpClientConfig(&remoteWriteConfig.HTTPClientConfig),
+			HTTPClientConfig:     ToHttpClientConfig(&remoteWriteConfig.HTTPClientConfig),
 			QueueOptions:         toQueueOptions(&remoteWriteConfig.QueueConfig),
 			MetadataOptions:      toMetadataOptions(&remoteWriteConfig.MetadataConfig),
+			WriteRelabelConfigs:  ToFlowRelabelConfigs(remoteWriteConfig.WriteRelabelConfigs),
 		}
 
 		endpoints = append(endpoints, endpoint)

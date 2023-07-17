@@ -10,16 +10,21 @@ import (
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 )
 
-func appendDiscoveryDocker(pb *prometheusBlocks, label string, sdConfig *prom_docker.DockerSDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoveryDockerArgs, diags := toDiscoveryDocker(sdConfig)
-	block := common.NewBlockWithOverride([]string{"discovery", "docker"}, label, discoveryDockerArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.docker." + label + ".targets"), diags
+func appendDiscoveryDocker(pb *prometheusBlocks, label string, sdConfig *prom_docker.DockerSDConfig) discovery.Exports {
+	discoveryDockerArgs := toDiscoveryDocker(sdConfig)
+	name := []string{"discovery", "docker"}
+	block := common.NewBlockWithOverride(name, label, discoveryDockerArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
+	return newDiscoverExports("discovery.docker." + label + ".targets")
 }
 
-func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) (*docker.Arguments, diag.Diagnostics) {
+func validateDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) diag.Diagnostics {
+	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+}
+
+func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
 	if sdConfig == nil {
-		return nil, nil
+		return nil
 	}
 
 	return &docker.Arguments{
@@ -28,12 +33,8 @@ func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) (*docker.Arguments,
 		HostNetworkingHost: sdConfig.HostNetworkingHost,
 		RefreshInterval:    time.Duration(sdConfig.RefreshInterval),
 		Filters:            toDockerFilters(sdConfig.Filters),
-		HTTPClientConfig:   *toHttpClientConfig(&sdConfig.HTTPClientConfig),
-	}, validateDiscoveryDocker(sdConfig)
-}
-
-func validateDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+		HTTPClientConfig:   *ToHttpClientConfig(&sdConfig.HTTPClientConfig),
+	}
 }
 
 func toDockerFilters(filtersConfig []prom_docker.Filter) []docker.Filter {

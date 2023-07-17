@@ -8,7 +8,7 @@ import (
 	prom_config "github.com/prometheus/common/config"
 )
 
-func toHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.HTTPClientConfig {
+func ToHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.HTTPClientConfig {
 	if httpClientConfig == nil {
 		return nil
 	}
@@ -26,21 +26,25 @@ func toHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.
 	}
 }
 
-// validateHttpClientConfig returns [diag.Diagnostics] for currently
+// ValidateHttpClientConfig returns [diag.Diagnostics] for currently
 // unsupported Flow features available in Prometheus.
-func validateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) diag.Diagnostics {
+func ValidateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if httpClientConfig.NoProxy != "" {
-		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config no_proxy was provided")
+		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config no_proxy was provided")
 	}
 
 	if httpClientConfig.ProxyFromEnvironment {
-		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config proxy_from_environment was provided")
+		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config proxy_from_environment was provided")
 	}
 
 	if len(httpClientConfig.ProxyConnectHeader) > 0 {
-		diags.Add(diag.SeverityLevelWarn, "unsupported HTTP Client config proxy_connect_header was provided")
+		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config proxy_connect_header was provided")
+	}
+
+	if httpClientConfig.TLSConfig.MaxVersion != 0 {
+		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config max_version was provided")
 	}
 
 	return diags

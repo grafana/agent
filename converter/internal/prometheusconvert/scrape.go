@@ -1,20 +1,30 @@
 package prometheusconvert
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/scrape"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) {
+func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target, label string) {
 	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
-	block := common.NewBlockWithOverride([]string{"prometheus", "scrape"}, scrapeConfig.JobName, scrapeArgs)
-	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, block)
+	name := []string{"prometheus", "scrape"}
+	block := common.NewBlockWithOverride(name, label, scrapeArgs)
+	summary := fmt.Sprintf("Converted scrape_configs job_name %q into...", scrapeConfig.JobName)
+	detail := fmt.Sprintf("	A %s.%s component", strings.Join(name, "."), label)
+	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, newPrometheusBlock(block, name, label, summary, detail))
+}
+
+func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
+	return ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
 }
 
 func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
@@ -39,7 +49,7 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 		LabelLimit:            scrapeConfig.LabelLimit,
 		LabelNameLengthLimit:  scrapeConfig.LabelNameLengthLimit,
 		LabelValueLengthLimit: scrapeConfig.LabelValueLengthLimit,
-		HTTPClientConfig:      *toHttpClientConfig(&scrapeConfig.HTTPClientConfig),
+		HTTPClientConfig:      *ToHttpClientConfig(&scrapeConfig.HTTPClientConfig),
 		ExtraMetrics:          false,
 		Clustering:            scrape.Clustering{Enabled: false},
 	}
@@ -64,4 +74,8 @@ func getScrapeTargets(staticConfig prom_discovery.StaticConfig) []discovery.Targ
 	}
 
 	return targets
+}
+
+func validateScrapeTargets(staticConfig prom_discovery.StaticConfig) diag.Diagnostics {
+	return make(diag.Diagnostics, 0)
 }

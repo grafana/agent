@@ -84,6 +84,21 @@ discovery {
 		period = "1m"
 	}
 }
+
+// the configuration below overrides the length
+discovery {
+	type = "s3"
+	regions = ["us-east-1"]
+	role {
+		role_arn = "arn:aws:iam::878167871295:role/yace_testing"
+	}
+	metric {
+		name = "BucketSizeBytes"
+		statistics = ["Sum"]
+		period = "1m"
+		length = "1h"
+	}
+}
 `
 
 func TestCloudwatchComponentConfig(t *testing.T) {
@@ -204,6 +219,34 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 									Statistics:             []string{"Sum", "Maximum"},
 									Period:                 60,
 									Length:                 60,
+									Delay:                  0,
+									NilToZero:              &nilToZero,
+									AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+								},
+							},
+							RoundingPeriod: nil,
+							JobLevelMetricFields: yaceConf.JobLevelMetricFields{
+								Period:                 0,
+								Length:                 0,
+								Delay:                  0,
+								AddCloudwatchTimestamp: &falsePtr,
+								NilToZero:              &nilToZero,
+							},
+						},
+						{
+							Regions: []string{"us-east-1"},
+							Roles: []yaceConf.Role{{
+								RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
+							}},
+							Type:       "s3",
+							SearchTags: []yaceModel.Tag{},
+							CustomTags: []yaceModel.Tag{},
+							Metrics: []*yaceConf.Metric{
+								{
+									Name:                   "BucketSizeBytes",
+									Statistics:             []string{"Sum"},
+									Period:                 60,
+									Length:                 3600,
 									Delay:                  0,
 									NilToZero:              &nilToZero,
 									AddCloudwatchTimestamp: &addCloudwatchTimestamp,

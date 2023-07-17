@@ -19,7 +19,7 @@ type ConvertAppendable struct {
 
 var _ storage.Appendable = (*ConvertAppendable)(nil)
 var _ builder.Tokenizer = ConvertAppendable{}
-var _ river.Capsule = ConvertTargets{}
+var _ river.Capsule = ConvertAppendable{}
 
 func (f ConvertAppendable) RiverCapsule() {}
 func (f ConvertAppendable) RiverTokenize() []builder.Token {

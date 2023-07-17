@@ -1,0 +1,1 @@
+(Critical) failed to parse Prometheus config: yaml: unmarshal errors:\n  line 7: field not_a_thing not found in type config.plain

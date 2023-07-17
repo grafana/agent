@@ -466,6 +466,19 @@ The Examples section provides copy-and-paste River pipelines which use the
 Flow component. The section starts with an `h2` header called Examples. If
 there is only one example, call the section Example instead.
 
+If there is more than one example, each example should have an `h3` header
+containing a descriptive name. For example:
+
+```markdown
+## Examples
+
+### Send metrics to a Prometheus server
+...
+
+### Send metrics to a Prometheus server using Oauth2 authentication
+...
+```
+
 The Examples section should be composed of a brief description of each example,
 followed by the example in a code block. For example:
 
@@ -475,7 +488,7 @@ the set of scrape targets:
 
 ```river
 remote.http "targets" {
-  url = env("MY_TARGETS_URL")
+  url = TARGETS_URL
 }
 
 prometheus.scrape "default" {
@@ -485,20 +498,52 @@ prometheus.scrape "default" {
 
 prometheus.remote_write "default" {
   client {
-    url = env("PROMETHEUS_URL")
+    url = PROMETHEUS_URL
   }
 }
 ```
+Replace the following:
+  - `TARGETS_URL`: The URL to fetch the JSON array of objects from.
+  - `PROMETHEUS_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
 ````
 
 Each example should be a full pipeline when possible, rather than just the
 individual component being documented.
+
+Placeholders should follow the [Google style guide](https://developers.google.com/style/placeholders#placeholder-text), where they are
+written in all uppercase and underscore delimited, for example: `API_URL`.
+
+Examples of the new component should avoid using placeholders and instead use
+realistic example values. For example, if documenting a `prometheus.scrape` component, use:
+  
+  ```river
+  remote.http "targets" {
+    url = "http://localhost:8080/targets"
+  }
+  ```
+
+If an example includes a placeholder, make sure to include a brief description
+of what the placeholder is. For example:
+
+```markdown
+Replace `API_URL` with the URL of the API to query.
+```
+
+or if there are multiple placeholders:
+
+````markdown
+Replace the following:
+  - `API_URL`: The URL of the API to query.
+  - `API_KEY`: The API key to use when querying the API.
+````
 
 If an example includes clarifying comments, make sure that the relevant
 Arguments or block header includes sufficient explanation to be the official
 source for the clarifying comment. Clarifying comments must only be used be
 supplementary information to reenforce knowledge, and not as the primary source
 of information.
+
+Examples should be formatted using the [grafana-agent fmt](https://grafana.com/docs/agent/latest/flow/reference/cli/fmt/) command.
 
 ## Exceptions
 

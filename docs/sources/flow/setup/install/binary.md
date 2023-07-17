@@ -7,9 +7,9 @@ aliases:
  - ../../install/binary/
 ---
 
-# Install Grafana Agent in flow mode
+# Install Grafana Agent in flow mode as a standalone binary
 
-Grafana Agent is distributed as a standalone binarie for various operating systems and architectures:
+Grafana Agent is distributed as a standalone binary for the following operating systems and architectures:
 
 * Linux: AMD64, ARM64, ARMv6, ARMv7
 * Windows: AMD64
@@ -20,7 +20,7 @@ Grafana Agent is distributed as a standalone binarie for various operating syste
 
 To download the Grafana Agent as a standalone binary, perform the following steps.
 
-1. Navigate to the current Grafana Agent [release][] page.
+1. Navigate to the current Grafana Agent [release](https://github.com/grafana/agent/releases) page.
 
 1. Scroll down to the **Assets** section.
 
@@ -38,5 +38,5 @@ To download the Grafana Agent as a standalone binary, perform the following step
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent#standalone-binary" >}})
-- [Configure Grafana Agent]({{< relref "../configure/" >}})
+* [Start Grafana Agent]({{< relref "../start-agent#standalone-binary" >}})
+* [Configure Grafana Agent]({{< relref "../configure/" >}})

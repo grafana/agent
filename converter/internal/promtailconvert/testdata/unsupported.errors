@@ -1,0 +1,9 @@
+(Error) global/file_watch_config is not supported
+(Error) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
+(Warning) stream_lag_labels is deprecated and the associated metric has been removed
+(Error) Promtail's WAL is currently not supported in Flow Mode
+(Error) limits_config is not yet supported in Flow Mode
+(Error) tracing configuration cannot be migrated to Flow Mode automatically - please refer to documentation on how to configure tracing in Flow Mode
+(Error) reading targets from stdin is not supported in Flow Mode configuration file
+(Error) DropRateLimitedBatches is currently not supported in Grafana Agent Flow.
+(Warning) stream_lag_labels is deprecated and the associated metric has been removed

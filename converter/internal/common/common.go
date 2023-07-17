@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/pkg/river/printer"
 
 	"github.com/grafana/agent/component"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/rivertypes"
@@ -17,8 +18,14 @@ import (
 // NewBlockWithOverride generates a new [*builder.Block] using a hook to
 // override specific types.
 func NewBlockWithOverride(name []string, label string, args component.Arguments) *builder.Block {
+	return NewBlockWithOverrideFn(name, label, args, getValueOverrideHook())
+}
+
+// NewBlockWithOverrideFn generates a new [*builder.Block] using a hook fn to
+// override specific types.
+func NewBlockWithOverrideFn(name []string, label string, args component.Arguments, fn builder.ValueOverrideHook) *builder.Block {
 	block := builder.NewBlock(name, label)
-	block.Body().SetValueOverrideHook(getValueOverrideHook())
+	block.Body().SetValueOverrideHook(fn)
 	block.Body().AppendFrom(args)
 	return block
 }
@@ -30,6 +37,8 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 		switch value := val.(type) {
 		case rivertypes.Secret:
 			return string(value)
+		case flow_relabel.Regexp:
+			return value.String()
 		case []discovery.Target:
 			return ConvertTargets{
 				Targets: value,
@@ -62,13 +71,13 @@ func PrettyPrint(in []byte) ([]byte, diag.Diagnostics) {
 
 	f, err := parser.ParseFile("", in)
 	if err != nil {
-		diags.Add(diag.SeverityLevelWarn, err.Error())
+		diags.Add(diag.SeverityLevelError, err.Error())
 		return in, diags
 	}
 
 	var buf bytes.Buffer
 	if err = printer.Fprint(&buf, f); err != nil {
-		diags.Add(diag.SeverityLevelWarn, err.Error())
+		diags.Add(diag.SeverityLevelError, err.Error())
 		return in, diags
 	}
 

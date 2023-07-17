@@ -11,16 +11,21 @@ import (
 	prom_consul "github.com/prometheus/prometheus/discovery/consul"
 )
 
-func appendDiscoveryConsul(pb *prometheusBlocks, label string, sdConfig *prom_consul.SDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoveryConsulArgs, diags := toDiscoveryConsul(sdConfig)
-	block := common.NewBlockWithOverride([]string{"discovery", "consul"}, label, discoveryConsulArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.consul." + label + ".targets"), diags
+func appendDiscoveryConsul(pb *prometheusBlocks, label string, sdConfig *prom_consul.SDConfig) discovery.Exports {
+	discoveryConsulArgs := toDiscoveryConsul(sdConfig)
+	name := []string{"discovery", "consul"}
+	block := common.NewBlockWithOverride(name, label, discoveryConsulArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
+	return newDiscoverExports("discovery.consul." + label + ".targets")
 }
 
-func toDiscoveryConsul(sdConfig *prom_consul.SDConfig) (*consul.Arguments, diag.Diagnostics) {
+func validateDiscoveryConsul(sdConfig *prom_consul.SDConfig) diag.Diagnostics {
+	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+}
+
+func toDiscoveryConsul(sdConfig *prom_consul.SDConfig) *consul.Arguments {
 	if sdConfig == nil {
-		return nil, nil
+		return nil
 	}
 
 	return &consul.Arguments{
@@ -38,10 +43,6 @@ func toDiscoveryConsul(sdConfig *prom_consul.SDConfig) (*consul.Arguments, diag.
 		ServiceTags:      sdConfig.ServiceTags,
 		NodeMeta:         sdConfig.NodeMeta,
 		RefreshInterval:  time.Duration(sdConfig.RefreshInterval),
-		HTTPClientConfig: *toHttpClientConfig(&sdConfig.HTTPClientConfig),
-	}, validateDiscoveryConsul(sdConfig)
-}
-
-func validateDiscoveryConsul(sdConfig *prom_consul.SDConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+		HTTPClientConfig: *ToHttpClientConfig(&sdConfig.HTTPClientConfig),
+	}
 }

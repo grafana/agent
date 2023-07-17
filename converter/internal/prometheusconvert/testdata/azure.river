@@ -1,6 +1,12 @@
 discovery.azure "prometheus1" {
 	subscription_id = "subscription"
 
+	oauth {
+		client_id     = "client"
+		tenant_id     = "tenant"
+		client_secret = "secret"
+	}
+
 	managed_identity {
 		client_id = "client"
 	}
@@ -10,6 +16,12 @@ discovery.azure "prometheus1" {
 
 discovery.azure "prometheus2" {
 	subscription_id = "subscription"
+
+	oauth {
+		client_id     = "client"
+		tenant_id     = "tenant"
+		client_secret = "secret"
+	}
 
 	managed_identity {
 		client_id = "client"

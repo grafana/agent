@@ -103,7 +103,7 @@ an `oauth2` block.
 [profile.fgprof]: #profile.fgprof-block
 [profile.custom]: #profile.custom-block
 [pprof]: https://github.com/google/pprof/blob/main/doc/README.md
-[clustering]: #clustering-experimental
+[clustering]: #clustering-beta
 
 [fgprof]: https://github.com/felixge/fgprof
 
@@ -251,13 +251,13 @@ Name | Type | Description | Default | Required
 When the `delta` argument is `true`, a `seconds` query parameter is
 automatically added to requests.
 
-### clustering (experimental)
+### clustering (beta)
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is running in [clustered mode][], and `enabled` is set to true,
+When the agent is [using clustering][], and `enabled` is set to true,
 then this `pyroscope.scrape` component instance opts-in to participating in the
 cluster to distribute scrape load between all cluster nodes.
 
@@ -272,7 +272,7 @@ APIs.
 
 If the agent is _not_ running in clustered mode, this block is a no-op.
 
-[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 
@@ -305,6 +305,14 @@ by a service discovery component such as `discovery.kubernetes`. The special
 label `__address__` _must always_ be present and corresponds to the
 `<host>:<port>` that is used for the scrape request.
 
+The special label `service_name` is required and must always be present. If it's not specified, it is
+attempted to be inferred from multiple sources: 
+- `__meta_kubernetes_pod_annotation_pyroscope_io_service_name` which is a `pyroscope.io/service_name` pod annotation.
+- `__meta_kubernetes_namespace` and `__meta_kubernetes_pod_container_name`
+- `__meta_docker_container_name`
+
+If `service_name` is not specified and could not be inferred it is set to `unspecified`.
+
 By default, the scrape job tries to scrape all available targets' `/debug/pprof`
 endpoints using HTTP, with a scrape interval of 15 seconds and scrape timeout of
 15 seconds. The profile paths, protocol scheme, scrape interval and timeout,
@@ -328,10 +336,11 @@ the labels last used for scraping.
 The following labels are automatically injected to the scraped profiles and
 can help pin down a scrape target.
 
-Label                 | Description
---------------------- | ----------
-job                   | The configured job name that the target belongs to. Defaults to the fully formed component name.
-instance              | The `__address__` or `<host>:<port>` of the scrape target's URL.
+| Label        | Description                                                                                      |
+|--------------|--------------------------------------------------------------------------------------------------|
+| job          | The configured job name that the target belongs to. Defaults to the fully formed component name. |
+| instance     | The `__address__` or `<host>:<port>` of the scrape target's URL.                                 |
+| service_name | The inferred pyroscope service name                                                              |
 
 ## Example
 
@@ -341,8 +350,8 @@ The exposed profiles are sent over to the provided list of receivers, as defined
 ```river
 pyroscope.scrape "local" {
   targets    = [
-    {"__address__" = "localhost:4100", "app"="pyroscope"},
-    {"__address__" = "localhost:12345", "app"="agent"},
+    {"__address__" = "localhost:4100", "service_name"="pyroscope"},
+    {"__address__" = "localhost:12345", "service_name"="agent"},
   ]
   forward_to = [pyroscope.write.local.receiver]
   profiling_config {

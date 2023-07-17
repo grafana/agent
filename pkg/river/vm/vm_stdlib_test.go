@@ -135,6 +135,49 @@ func TestStdlib_Nonsensitive(t *testing.T) {
 		})
 	}
 }
+func TestStdlib_StringFunc(t *testing.T) {
+	scope := &vm.Scope{
+		Variables: map[string]any{},
+	}
+
+	tt := []struct {
+		name   string
+		input  string
+		expect interface{}
+	}{
+		{"to_lower", `to_lower("String")`, "string"},
+		{"to_upper", `to_upper("string")`, "STRING"},
+		{"trimspace", `trim_space("   string \n\n")`, "string"},
+		{"trimspace+to_upper+trim", `to_lower(to_upper(trim_space("   String   ")))`, "string"},
+		{"split", `split("/aaa/bbb/ccc/ddd", "/")`, []string{"", "aaa", "bbb", "ccc", "ddd"}},
+		{"split+index", `split("/aaa/bbb/ccc/ddd", "/")[0]`, ""},
+		{"join+split", `join(split("/aaa/bbb/ccc/ddd", "/"), "/")`, "/aaa/bbb/ccc/ddd"},
+		{"join", `join(["foo", "bar", "baz"], ", ")`, "foo, bar, baz"},
+		{"join w/ int", `join([0, 0, 1], ", ")`, "0, 0, 1"},
+		{"format", `format("Hello %s", "World")`, "Hello World"},
+		{"format+int", `format("%#v", 1)`, "1"},
+		{"format+bool", `format("%#v", true)`, "true"},
+		{"format+quote", `format("%q", "hello")`, `"hello"`},
+		{"replace", `replace("Hello World", " World", "!")`, "Hello!"},
+		{"trim", `trim("?!hello?!", "!?")`, "hello"},
+		{"trim2", `trim("   hello! world.!  ", "! ")`, "hello! world."},
+		{"trim_prefix", `trim_prefix("helloworld", "hello")`, "world"},
+		{"trim_suffix", `trim_suffix("helloworld", "world")`, "hello"},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			expr, err := parser.ParseExpression(tc.input)
+			require.NoError(t, err)
+
+			eval := vm.New(expr)
+
+			rv := reflect.New(reflect.TypeOf(tc.expect))
+			require.NoError(t, eval.Evaluate(scope, rv.Interface()))
+			require.Equal(t, tc.expect, rv.Elem().Interface())
+		})
+	}
+}
 
 func BenchmarkConcat(b *testing.B) {
 	// There's a bit of setup work to do here: we want to create a scope holding

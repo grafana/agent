@@ -17,16 +17,11 @@ The `prometheus.exporter.snmp` component embeds
 
 ```river
 prometheus.exporter.snmp "LABEL" {
-  config_file = "PATH_SNMP_CONFIG_FILE"
+  config_file = SNMP_CONFIG_FILE_PATH
 
   target "TARGET_NAME" {
-    address = "TARGET_ADDRESS"
+    address = TARGET_ADDRESS
   }
-
-  walk_param "PARAM_NAME" {
-  }
-
-  ...
 }
 ```
 
@@ -37,7 +32,7 @@ Omitted fields take their default values.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `config_file` | `string`       | SNMP configuration file defining custom modules. | | no
-`config` | `string`       | SNMP configuration as inline string.  | |no
+`config` | `string` or `secret`       | SNMP configuration as inline string.  | |no
 
 The `config_file` argument points to a YAML file defining which snmp_exporter modules to use. See [snmp_exporter](https://github.com/prometheus/snmp_exporter#generating-configuration) for details on how to generate a config file.
 
@@ -155,12 +150,13 @@ prometheus.scrape "demo" {
 }
 ```
 
-This example is the same above with using an embedded configuration:
+This example is the same above with using an embedded configuration (with secrets):
 
 
 ```river
 local.file "snmp_config" {
-    path = "snmp_modules.yml"
+    path      = "snmp_modules.yml"
+    is_secret = true
 }
 
 prometheus.exporter.snmp "example" {
@@ -189,8 +185,23 @@ prometheus.exporter.snmp "example" {
 // Configure a prometheus.scrape component to collect SNMP metrics.
 prometheus.scrape "demo" {
     targets    = prometheus.exporter.snmp.example.targets
-    forward_to = [ /* ... */ ]
+    forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+    endpoint {
+        url = PROMETHEUS_REMOTE_WRITE_URL
+
+        basic_auth {
+            username = USERNAME
+            password = PASSWORD
+        }
+    }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

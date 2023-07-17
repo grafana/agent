@@ -9,27 +9,27 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	prom_config "github.com/prometheus/common/config"
 	prom_azure "github.com/prometheus/prometheus/discovery/azure"
 )
 
-func appendDiscoveryAzure(pb *prometheusBlocks, label string, sdConfig *prom_azure.SDConfig) (discovery.Exports, diag.Diagnostics) {
-	discoveryAzureArgs, diags := toDiscoveryAzure(sdConfig)
-	block := common.NewBlockWithOverride([]string{"discovery", "azure"}, label, discoveryAzureArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
-	return newDiscoverExports("discovery.azure." + label + ".targets"), diags
+func appendDiscoveryAzure(pb *prometheusBlocks, label string, sdConfig *prom_azure.SDConfig) discovery.Exports {
+	discoveryAzureArgs := toDiscoveryAzure(sdConfig)
+	name := []string{"discovery", "azure"}
+	block := common.NewBlockWithOverride(name, label, discoveryAzureArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
+	return newDiscoverExports("discovery.azure." + label + ".targets")
 }
 
-func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) (*azure.Arguments, diag.Diagnostics) {
+func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
 	if sdConfig == nil {
-		return nil, nil
+		return nil
 	}
 
 	return &azure.Arguments{
 		Environment:     sdConfig.Environment,
 		Port:            sdConfig.Port,
 		SubscriptionID:  sdConfig.SubscriptionID,
-		OAuth:           toDiscoveryAzureOauth2(sdConfig.HTTPClientConfig.OAuth2, sdConfig.TenantID),
+		OAuth:           toDiscoveryAzureOauth2(sdConfig.ClientID, sdConfig.TenantID, string(sdConfig.ClientSecret)),
 		ManagedIdentity: toManagedIdentity(sdConfig),
 		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
 		ResourceGroup:   sdConfig.ResourceGroup,
@@ -37,11 +37,11 @@ func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) (*azure.Arguments, diag.Dia
 		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
 		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
 		TLSConfig:       *toTLSConfig(&sdConfig.HTTPClientConfig.TLSConfig),
-	}, validateDiscoveryAzure(sdConfig)
+	}
 }
 
 func validateDiscoveryAzure(sdConfig *prom_azure.SDConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toManagedIdentity(sdConfig *prom_azure.SDConfig) *azure.ManagedIdentity {
@@ -54,14 +54,10 @@ func toManagedIdentity(sdConfig *prom_azure.SDConfig) *azure.ManagedIdentity {
 	}
 }
 
-func toDiscoveryAzureOauth2(oAuth2 *prom_config.OAuth2, tenantId string) *azure.OAuth {
-	if oAuth2 == nil {
-		return nil
-	}
-
+func toDiscoveryAzureOauth2(clientId string, tenantId string, clientSecret string) *azure.OAuth {
 	return &azure.OAuth{
-		ClientID:     oAuth2.ClientID,
+		ClientID:     clientId,
 		TenantID:     tenantId,
-		ClientSecret: rivertypes.Secret(oAuth2.ClientSecret),
+		ClientSecret: rivertypes.Secret(clientSecret),
 	}
 }

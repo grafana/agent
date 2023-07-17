@@ -1,7 +1,10 @@
-FROM library/golang:1.20.5-windowsservercore-1809
+FROM library/golang:1.20.6-windowsservercore-1809
 
 SHELL ["powershell", "-command"]
 
+# Use a fixed version of chocolatey to avoid dependency on .net framework install
+# See https://stackoverflow.com/questions/76470752/chocolatey-installation-in-docker-started-to-fail-restart-due-to-net-framework
+ENV chocolateyVersion=1.4.0
 # Install chocolatey for package management
 RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 

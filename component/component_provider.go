@@ -2,9 +2,21 @@ package component
 
 import (
 	"encoding/json"
+	"errors"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/pkg/river/encoding/riverjson"
+)
+
+var (
+	// ErrComponentNotFound is returned by [Provider.GetComponent] when the
+	// specified component isn't found.
+	ErrComponentNotFound = errors.New("component not found")
+
+	// ErrModuleNotFound is returned by [Provider.ListComponents] when the
+	// specified module isn't found.
+	ErrModuleNotFound = errors.New("module not found")
 )
 
 // A Provider is a system which exposes a list of running components.
@@ -13,21 +25,35 @@ type Provider interface {
 	// given its global ID. The provided opts field configures how much detail to
 	// return; see [InfoOptions] for more information.
 	//
-	// GetComponent returns an error if a component is not found.
-	//
-	// BUG(rfratto): The ModuleID field in id is unused.
+	// GetComponent returns ErrComponentNotFound if a component is not found.
 	GetComponent(id ID, opts InfoOptions) (*Info, error)
 
 	// ListComponents returns the list of active components. The provided opts
 	// field configures how much detail to return; see [InfoOptions] for more
 	// information.
-	ListComponents(opts InfoOptions) []*Info
+	//
+	// Returns ErrModuleNotFound if the provided moduleID doesn't exist.
+	ListComponents(moduleID string, opts InfoOptions) ([]*Info, error)
 }
 
 // ID is a globally unique identifier for a component.
 type ID struct {
 	ModuleID string // Unique ID of the module that the component is running in.
 	LocalID  string // Local ID of the component, unique to the module it is running in.
+}
+
+// ParseID parses an input string of the form "LOCAL_ID" or
+// "MODULE_ID/LOCAL_ID" into an ID. The final slash character is used to
+// separate the ModuleID and LocalID.
+func ParseID(input string) ID {
+	slashIndex := strings.LastIndexByte(input, '/')
+	if slashIndex == -1 {
+		return ID{LocalID: input}
+	}
+	return ID{
+		ModuleID: input[:slashIndex],
+		LocalID:  input[slashIndex+1:],
+	}
 }
 
 // InfoOptions is used by to determine how much information to return with
@@ -86,17 +112,19 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 		}
 
 		componentDetailJSON struct {
-			Name         string               `json:"name,omitempty"`
-			Type         string               `json:"type,omitempty"`
-			ID           string               `json:"id,omitempty"`
-			Label        string               `json:"label,omitempty"`
-			References   []string             `json:"referencesTo"`
-			ReferencedBy []string             `json:"referencedBy"`
-			Health       *componentHealthJSON `json:"health"`
-			Original     string               `json:"original"`
-			Arguments    json.RawMessage      `json:"arguments,omitempty"`
-			Exports      json.RawMessage      `json:"exports,omitempty"`
-			DebugInfo    json.RawMessage      `json:"debugInfo,omitempty"`
+			Name             string               `json:"name"`
+			Type             string               `json:"type,omitempty"`
+			LocalID          string               `json:"localID"`
+			ModuleID         string               `json:"moduleID"`
+			Label            string               `json:"label,omitempty"`
+			References       []string             `json:"referencesTo"`
+			ReferencedBy     []string             `json:"referencedBy"`
+			Health           *componentHealthJSON `json:"health"`
+			Original         string               `json:"original"`
+			Arguments        json.RawMessage      `json:"arguments,omitempty"`
+			Exports          json.RawMessage      `json:"exports,omitempty"`
+			DebugInfo        json.RawMessage      `json:"debugInfo,omitempty"`
+			CreatedModuleIDs []string             `json:"createdModuleIDs,omitempty"`
 		}
 	)
 
@@ -131,7 +159,8 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&componentDetailJSON{
 		Name:         info.Registration.Name,
 		Type:         "block",
-		ID:           info.ID.LocalID, // TODO(rfratto): support getting component from module.
+		ModuleID:     info.ID.ModuleID,
+		LocalID:      info.ID.LocalID,
 		Label:        info.Label,
 		References:   references,
 		ReferencedBy: referencedBy,
@@ -140,8 +169,37 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 			Message:     info.Health.Message,
 			UpdatedTime: info.Health.UpdateTime,
 		},
-		Arguments: arguments,
-		Exports:   exports,
-		DebugInfo: debugInfo,
+		Arguments:        arguments,
+		Exports:          exports,
+		DebugInfo:        debugInfo,
+		CreatedModuleIDs: info.ModuleIDs,
 	})
+}
+
+// GetAllComponents enumerates over all of the modules in p and returns the set
+// of all components.
+func GetAllComponents(p Provider, opts InfoOptions) []*Info {
+	return getAllComponentsByModule("", p, opts)
+}
+
+func getAllComponentsByModule(moduleID string, p Provider, opts InfoOptions) []*Info {
+	var components []*Info
+
+	// ListComponents may return an error here if the module went away since the
+	// time we were given the ID, so we'll ignore it.
+	infos, err := p.ListComponents(moduleID, opts)
+	if err != nil {
+		return components
+	}
+
+	for _, info := range infos {
+		components = append(components, info)
+
+		for _, module := range info.ModuleIDs {
+			moduleComponents := getAllComponentsByModule(module, p, opts)
+			components = append(components, moduleComponents...)
+		}
+	}
+
+	return components
 }

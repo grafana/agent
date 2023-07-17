@@ -28,9 +28,11 @@ func init() {
 
 // Arguments configures the otelcol.processor.batch component.
 type Arguments struct {
-	Timeout          time.Duration `river:"timeout,attr,optional"`
-	SendBatchSize    uint32        `river:"send_batch_size,attr,optional"`
-	SendBatchMaxSize uint32        `river:"send_batch_max_size,attr,optional"`
+	Timeout                  time.Duration `river:"timeout,attr,optional"`
+	SendBatchSize            uint32        `river:"send_batch_size,attr,optional"`
+	SendBatchMaxSize         uint32        `river:"send_batch_max_size,attr,optional"`
+	MetadataKeys             []string      `river:"metadata_keys,attr,optional"`
+	MetadataCardinalityLimit uint32        `river:"metadata_cardinality_limit,attr,optional"`
 
 	// Output configures where to send processed data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
@@ -42,8 +44,9 @@ var (
 
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
-	Timeout:       200 * time.Millisecond,
-	SendBatchSize: 8192,
+	Timeout:                  200 * time.Millisecond,
+	SendBatchSize:            8192,
+	MetadataCardinalityLimit: 1000,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -62,9 +65,11 @@ func (args *Arguments) Validate() error {
 // Convert implements processor.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &batchprocessor.Config{
-		Timeout:          args.Timeout,
-		SendBatchSize:    args.SendBatchSize,
-		SendBatchMaxSize: args.SendBatchMaxSize,
+		Timeout:                  args.Timeout,
+		SendBatchSize:            args.SendBatchSize,
+		SendBatchMaxSize:         args.SendBatchMaxSize,
+		MetadataKeys:             args.MetadataKeys,
+		MetadataCardinalityLimit: args.MetadataCardinalityLimit,
 	}, nil
 }
 
