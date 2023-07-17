@@ -27,6 +27,8 @@ Main (unreleased)
   an unhealthy `prometheus.operator` component or a healthy
   `prometheus.operator` component which discovered no custom resources.
   (@rfratto)
+- Fix issue where config conversion for some empty structures would not apply
+  the default values correctly. (@thampiotr)
 
 ### Other changes
 
