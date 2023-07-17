@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
+
+
 v0.35.0-rc.1 (2023-07-17)
 -------------------------
 
@@ -21,10 +26,6 @@ v0.35.0-rc.1 (2023-07-17)
 
 - Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
   period specified by the polling frquency elapsed. (@rfratto)
-
-### Enhancements
-
-- Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
 
 v0.35.0-rc.0 (2023-07-13)
 -------------------------
