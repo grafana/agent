@@ -1,7 +1,8 @@
 ---
-title: pyroscope.scrape
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.scrape/
 labels:
   stage: beta
+title: pyroscope.scrape
 ---
 
 # pyroscope.scrape

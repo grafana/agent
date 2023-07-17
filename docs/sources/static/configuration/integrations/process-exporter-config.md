@@ -1,7 +1,8 @@
 ---
-title: process_exporter_config
 aliases:
 - ../../../configuration/integrations/process-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/process-exporter-config/
+title: process_exporter_config
 ---
 
 # process_exporter_config

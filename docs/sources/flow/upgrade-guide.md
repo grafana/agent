@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/upgrade-guide/
 title: Upgrade guide
 weight: 999
 ---

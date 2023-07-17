@@ -1,7 +1,8 @@
 ---
-title: discovery.kubelet
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubelet/
 labels:
   stage: beta
+title: discovery.kubelet
 ---
 
 # discovery.kubelet

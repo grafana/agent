@@ -1,7 +1,8 @@
 ---
-title: windows_exporter_config
 aliases:
 - ../../../configuration/integrations/windows-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/windows-exporter-config/
+title: windows_exporter_config
 ---
 
 # windows_exporter_config

@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../concepts/modules/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/modules/
 title: Modules
 weight: 300
 ---
