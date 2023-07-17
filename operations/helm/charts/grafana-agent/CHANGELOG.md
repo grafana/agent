@@ -20,6 +20,8 @@ Unreleased
 
 - Set securityContext for configReloader container. (@yanehi)
 
+- Use helm release namespace instead of default. (@korniltsev)
+
 0.16.0 (2023-06-20)
 -------------------
 
