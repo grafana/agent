@@ -13,6 +13,7 @@ Main (unreleased)
 ### Features
 
 - Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
+- Add support for initcontainers in helm chart. (@dwalker-sabiogroup)
 
 ### Bugfixes
 

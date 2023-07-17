@@ -15,6 +15,11 @@ global:
     # -- Optional set of global image pull secrets.
     pullSecrets: []
 
+## init containers (evaluated as template)
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+##
+initContainers: []
+
 # Various agent settings.
 agent:
   # -- Mode to run Grafana Agent in. Can be "flow" or "static".
