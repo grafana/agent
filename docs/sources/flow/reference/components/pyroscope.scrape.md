@@ -232,9 +232,9 @@ Name | Type | Description | Default | Required
 When the `delta` argument is `true`, a `seconds` query parameter is
 automatically added to requests.
 
-### profile.delta_memory block
+### profile.godeltaprof_memory block
 
-The `profile.delta_memory` block collects profiles from [godeltaprof][] memory endpoint.
+The `profile.godeltaprof_memory` block collects profiles from [godeltaprof][] memory endpoint. The delta is computed on the target.
 
 It accepts the following arguments:
 
@@ -245,7 +245,7 @@ It accepts the following arguments:
 
 ### profile.godeltaprof_mutex block
 
-The `profile.godeltaprof_mutex` block collects profiles from [godeltaprof][] mutex endpoint.
+The `profile.godeltaprof_mutex` block collects profiles from [godeltaprof][] mutex endpoint. The delta is computed on the target.
 
 It accepts the following arguments:
 
@@ -256,7 +256,7 @@ It accepts the following arguments:
 
 ### profile.godeltaprof_block block
 
-The `profile.godeltaprof_block` block collects profiles from [godeltaprof][] block endpoint.
+The `profile.godeltaprof_block` block collects profiles from [godeltaprof][] block endpoint. The delta is computed on the target.
 
 It accepts the following arguments:
 
