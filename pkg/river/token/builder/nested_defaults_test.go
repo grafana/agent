@@ -155,7 +155,6 @@ func TestNestedDefaults(t *testing.T) {
 			actualOut := reflect.ValueOf(vPtr).Elem().Interface()
 			require.Equal(t, tc.input, actualOut, "Invariant violated: encoded and then decoded block didn't match the original value")
 		})
-
 	}
 }
 
