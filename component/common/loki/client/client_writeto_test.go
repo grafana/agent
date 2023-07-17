@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki"
 	"math/rand"
 	"os"
 	"sync"
@@ -18,18 +19,16 @@ import (
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/logproto"
 )
 
 func TestClientWriter_LogEntriesAreReconstructedAndForwardedCorrectly(t *testing.T) {
 	logger := level.NewFilter(log.NewLogfmtLogger(os.Stdout), level.AllowDebug())
-	ch := make(chan api.Entry)
+	ch := make(chan loki.Entry)
 	defer close(ch)
 
-	var receivedEntries []api.Entry
+	var receivedEntries []loki.Entry
 
 	go func() {
 		for e := range ch {
@@ -82,10 +81,10 @@ func TestClientWriter_LogEntriesAreReconstructedAndForwardedCorrectly(t *testing
 
 func TestClientWriter_LogEntriesWithoutMatchingSeriesAreIgnored(t *testing.T) {
 	logger := level.NewFilter(log.NewLogfmtLogger(os.Stdout), level.AllowDebug())
-	ch := make(chan api.Entry)
+	ch := make(chan loki.Entry)
 	defer close(ch)
 
-	var receivedEntries []api.Entry
+	var receivedEntries []loki.Entry
 
 	go func() {
 		for e := range ch {
@@ -161,7 +160,7 @@ func BenchmarkClientWriteTo(b *testing.B) {
 func bench(numWriters, totalLines int, b *testing.B) {
 	logger := level.NewFilter(log.NewLogfmtLogger(os.Stdout), level.AllowDebug())
 	readerWG := sync.WaitGroup{}
-	ch := make(chan api.Entry)
+	ch := make(chan loki.Entry)
 
 	b.Log("starting reader routine")
 	readerWG.Add(1)

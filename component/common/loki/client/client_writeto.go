@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki"
 	"sync"
 
 	"github.com/go-kit/log"
@@ -9,8 +10,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/util"
@@ -31,11 +30,11 @@ type clientWriteTo struct {
 	seriesSegmentLock sync.RWMutex
 
 	logger   log.Logger
-	toClient chan<- api.Entry
+	toClient chan<- loki.Entry
 }
 
 // newClientWriteTo creates a new clientWriteTo
-func newClientWriteTo(toClient chan<- api.Entry, logger log.Logger) *clientWriteTo {
+func newClientWriteTo(toClient chan<- loki.Entry, logger log.Logger) *clientWriteTo {
 	return &clientWriteTo{
 		series:        make(map[chunks.HeadSeriesRef]model.LabelSet),
 		seriesSegment: make(map[chunks.HeadSeriesRef]int),
@@ -72,7 +71,7 @@ func (c *clientWriteTo) SeriesReset(segmentNum int) {
 }
 
 func (c *clientWriteTo) AppendEntries(entries wal.RefEntries) error {
-	var entry api.Entry
+	var entry loki.Entry
 	c.seriesLock.RLock()
 	l, ok := c.series[entries.Ref]
 	c.seriesLock.RUnlock()

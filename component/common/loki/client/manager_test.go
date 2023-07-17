@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/component/common/loki"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/utils"
@@ -26,7 +26,7 @@ import (
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
 )
 
-var limitsConfig = limit.Config{
+var testLimitsConfig = limit.Config{
 	MaxLineSizeTruncate: false,
 	MaxStreams:          0,
 	MaxLineSize:         0,
@@ -41,11 +41,11 @@ func TestManager_ErrorCreatingWhenNoClientConfigsProvided(t *testing.T) {
 	for _, walEnabled := range []bool{true, false} {
 		t.Run(fmt.Sprintf("wal-enabled = %t", walEnabled), func(t *testing.T) {
 			walDir := t.TempDir()
-			_, err := NewManager(nilMetrics, log.NewLogfmtLogger(os.Stdout), limitsConfig, prometheus.NewRegistry(), wal.Config{
+			_, err := NewManager(nilMetrics, log.NewLogfmtLogger(os.Stdout), testLimitsConfig, prometheus.NewRegistry(), wal.Config{
 				Dir:         walDir,
 				Enabled:     walEnabled,
 				WatchConfig: wal.DefaultWatchConfig,
-			}, notifier(func(subscriber wal.CleanupEventSubscriber) {}))
+			}, NilNotifier)
 			require.Error(t, err)
 		})
 	}
@@ -63,11 +63,11 @@ func TestManager_ErrorCreatingWhenRepeatedConfigs(t *testing.T) {
 	for _, walEnabled := range []bool{true, false} {
 		t.Run(fmt.Sprintf("wal-enabled = %t", walEnabled), func(t *testing.T) {
 			walDir := t.TempDir()
-			_, err := NewManager(nilMetrics, log.NewLogfmtLogger(os.Stdout), limitsConfig, prometheus.NewRegistry(), wal.Config{
+			_, err := NewManager(nilMetrics, log.NewLogfmtLogger(os.Stdout), testLimitsConfig, prometheus.NewRegistry(), wal.Config{
 				Dir:         walDir,
 				Enabled:     walEnabled,
 				WatchConfig: wal.DefaultWatchConfig,
-			}, notifier(func(subscriber wal.CleanupEventSubscriber) {}), config1, config1Copy)
+			}, NilNotifier, config1, config1Copy)
 			require.Error(t, err)
 		})
 	}
@@ -123,7 +123,7 @@ func TestManager_WALEnabled(t *testing.T) {
 	// start writer and manager
 	writer, err := wal.NewWriter(walConfig, logger, reg)
 	require.NoError(t, err)
-	manager, err := NewManager(clientMetrics, logger, limitsConfig, prometheus.NewRegistry(), walConfig, writer, testClientConfig)
+	manager, err := NewManager(clientMetrics, logger, testLimitsConfig, prometheus.NewRegistry(), walConfig, writer, testClientConfig)
 	require.NoError(t, err)
 	require.Equal(t, "wal:test-client", manager.Name())
 
@@ -145,7 +145,7 @@ func TestManager_WALEnabled(t *testing.T) {
 	}
 	var totalLines = 100
 	for i := 0; i < totalLines; i++ {
-		writer.Chan() <- api.Entry{
+		writer.Chan() <- loki.Entry{
 			Labels: testLabels,
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),
@@ -178,7 +178,7 @@ func TestManager_WALDisabled(t *testing.T) {
 	clientMetrics := NewMetrics(reg)
 
 	// start writer and manager
-	manager, err := NewManager(clientMetrics, logger, limitsConfig, prometheus.NewRegistry(), walConfig, NilNotifier, testClientConfig)
+	manager, err := NewManager(clientMetrics, logger, testLimitsConfig, prometheus.NewRegistry(), walConfig, NilNotifier, testClientConfig)
 	require.NoError(t, err)
 	require.Equal(t, "multi:test-client", manager.Name())
 
@@ -199,7 +199,7 @@ func TestManager_WALDisabled(t *testing.T) {
 	}
 	var totalLines = 100
 	for i := 0; i < totalLines; i++ {
-		manager.Chan() <- api.Entry{
+		manager.Chan() <- loki.Entry{
 			Labels: testLabels,
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),
@@ -246,7 +246,7 @@ func TestManager_WALDisabled_MultipleConfigs(t *testing.T) {
 	clientMetrics := NewMetrics(reg)
 
 	// start writer and manager
-	manager, err := NewManager(clientMetrics, logger, limitsConfig, prometheus.NewRegistry(), walConfig, NilNotifier, testClientConfig, testClientConfig2)
+	manager, err := NewManager(clientMetrics, logger, testLimitsConfig, prometheus.NewRegistry(), walConfig, NilNotifier, testClientConfig, testClientConfig2)
 	require.NoError(t, err)
 	require.Equal(t, "multi:test-client,test-client-2", manager.Name())
 
@@ -277,7 +277,7 @@ func TestManager_WALDisabled_MultipleConfigs(t *testing.T) {
 	}
 	var totalLines = 100
 	for i := 0; i < totalLines; i++ {
-		manager.Chan() <- api.Entry{
+		manager.Chan() <- loki.Entry{
 			Labels: testLabels,
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),
@@ -312,7 +312,7 @@ func TestManager_StopClients(t *testing.T) {
 	clients := []Client{fc, fc, fc, fc}
 	m := &Manager{
 		clients: clients,
-		entries: make(chan api.Entry),
+		entries: make(chan loki.Entry),
 	}
 	m.startWithForward()
 	m.Stop()

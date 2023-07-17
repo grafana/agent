@@ -2,6 +2,9 @@ package client
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/limit"
+	"github.com/grafana/agent/component/common/loki/wal"
 	"os"
 	"runtime"
 	"sync"
@@ -11,16 +14,11 @@ import (
 	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/yaml.v2"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/limit"
-	"github.com/grafana/loki/clients/pkg/promtail/wal"
 )
 
 var (
-	yellow      = color.New(color.FgYellow)
-	blue        = color.New(color.FgBlue)
-	nilNotifier = notifier(func(_ wal.CleanupEventSubscriber) {})
+	yellow = color.New(color.FgYellow)
+	blue   = color.New(color.FgBlue)
 )
 
 func init() {
@@ -33,7 +31,7 @@ func init() {
 type logger struct {
 	*tabwriter.Writer
 	sync.Mutex
-	entries chan api.Entry
+	entries chan loki.Entry
 
 	once sync.Once
 }
@@ -56,7 +54,7 @@ func NewLogger(metrics *Metrics, log log.Logger, cfgs ...Config) (Client, error)
 		fmt.Println("----------------------")
 		fmt.Println(string(yaml))
 	}
-	entries := make(chan api.Entry)
+	entries := make(chan loki.Entry)
 	l := &logger{
 		Writer:  tabwriter.NewWriter(os.Stdout, 0, 8, 0, '\t', 0),
 		entries: entries,
@@ -69,7 +67,7 @@ func (l *logger) Stop() {
 	l.once.Do(func() { close(l.entries) })
 }
 
-func (l *logger) Chan() chan<- api.Entry {
+func (l *logger) Chan() chan<- loki.Entry {
 	return l.entries
 }
 

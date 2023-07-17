@@ -719,5 +719,3 @@ exclude (
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
 
 // replace github.com/grafana/phlare/ebpf => ../phlare/ebpf
-
-replace github.com/grafana/loki => /Users/pablo/work/loki

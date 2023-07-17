@@ -2,6 +2,8 @@ package client
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/limit"
 	"github.com/grafana/agent/component/common/loki/wal"
 	"strings"
 	"sync"
@@ -9,9 +11,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-	"github.com/grafana/loki/clients/pkg/promtail/limit"
 )
 
 // WriterEventsNotifier implements a notifier that's received by the Manager, to which wal.Watcher can subscribe for
@@ -21,25 +20,23 @@ type WriterEventsNotifier interface {
 	SubscribeWrite(subscriber wal.WriteEventSubscriber)
 }
 
-// notifier implements WriteEventsNotifier so that we can create a no-op notifier.
-type notifier func(subscriber wal.CleanupEventSubscriber)
-
-func (n notifier) SubscribeCleanup(subscriber wal.CleanupEventSubscriber) {
-	n(subscriber)
-}
-
-func (n notifier) SubscribeWrite(_ wal.WriteEventSubscriber) {}
-
 var (
-	// NilNotifier is a no-op notifier.
-	NilNotifier = notifier(func(_ wal.CleanupEventSubscriber) {})
+	// NilNotifier is a no-op WriterEventsNotifier.
+	NilNotifier = nilNotifier{}
 )
+
+// nilNotifier implements WriterEventsNotifier with no-ops callbacks.
+type nilNotifier struct{}
+
+func (n nilNotifier) SubscribeCleanup(_ wal.CleanupEventSubscriber) {}
+
+func (n nilNotifier) SubscribeWrite(_ wal.WriteEventSubscriber) {}
 
 type Stoppable interface {
 	Stop()
 }
 
-// Manager manages remote write client instantiation, and connects the related components to orchestrate the flow of api.Entry
+// Manager manages remote write client instantiation, and connects the related components to orchestrate the flow of loki.Entry
 // from the scrape targets, to the remote write clients themselves.
 //
 // Right now it just supports instantiating the WAL writer side of the future-to-be WAL enabled client. In follow-up
@@ -50,7 +47,7 @@ type Manager struct {
 	clients     []Client
 	walWatchers []Stoppable
 
-	entries chan api.Entry
+	entries chan loki.Entry
 	once    sync.Once
 
 	wg sync.WaitGroup
@@ -63,7 +60,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 	watcherMetrics := wal.NewWatcherMetrics(reg)
 
 	if len(clientCfgs) == 0 {
-		return nil, fmt.Errorf("at least one client config should be provided")
+		return nil, fmt.Errorf("at least one client config must be provided")
 	}
 
 	clientsCheck := make(map[string]struct{})
@@ -107,7 +104,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 	manager := &Manager{
 		clients:     clients,
 		walWatchers: watchers,
-		entries:     make(chan api.Entry),
+		entries:     make(chan loki.Entry),
 	}
 	if walCfg.Enabled {
 		manager.name = "wal"
@@ -120,6 +117,10 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 }
 
 // startWithConsume starts the main manager routine, which reads and discards entries from the exposed channel.
+// This is necessary since to treat the WAL-enabled manager the same way as the WAL-disabled one, the processing pipeline
+// send entries both to the WAL writer, and the channel exposed by the manager. In the case the WAL is enabled, these entries
+// are not used since they are read from the WAL, so we need a routine to just read the entries received through the channel
+// and discarding them, to not block the sending side.
 func (m *Manager) startWithConsume() {
 	m.wg.Add(1)
 	go func() {
@@ -153,7 +154,6 @@ func (m *Manager) StopNow() {
 
 func (m *Manager) Name() string {
 	var sb strings.Builder
-	// name contains wal since manager is used as client only when WAL enabled for now
 	sb.WriteString(m.name)
 	sb.WriteString(":")
 	for i, c := range m.clients {
@@ -165,7 +165,7 @@ func (m *Manager) Name() string {
 	return sb.String()
 }
 
-func (m *Manager) Chan() chan<- api.Entry {
+func (m *Manager) Chan() chan<- loki.Entry {
 	return m.entries
 }
 

@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"strconv"
-
 	"strings"
 	"time"
 
@@ -12,9 +11,9 @@ import (
 	"github.com/prometheus/common/model"
 	"golang.org/x/exp/slices"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-
 	"github.com/grafana/loki/pkg/logproto"
+
+	"github.com/grafana/agent/component/common/loki"
 )
 
 const (
@@ -33,7 +32,7 @@ type batch struct {
 	maxStreams int
 }
 
-func newBatch(maxStreams int, entries ...api.Entry) *batch {
+func newBatch(maxStreams int, entries ...loki.Entry) *batch {
 	b := &batch{
 		streams:    map[string]*logproto.Stream{},
 		bytes:      0,
@@ -51,7 +50,7 @@ func newBatch(maxStreams int, entries ...api.Entry) *batch {
 }
 
 // add an entry to the batch
-func (b *batch) add(entry api.Entry) error {
+func (b *batch) add(entry loki.Entry) error {
 	b.bytes += len(entry.Line)
 
 	// Append the entry to an already existing stream (if any)
@@ -112,7 +111,7 @@ func (b *batch) sizeBytes() int {
 
 // sizeBytesAfter returns the size of the batch after the input entry
 // will be added to the batch itself
-func (b *batch) sizeBytesAfter(entry api.Entry) int {
+func (b *batch) sizeBytesAfter(entry loki.Entry) int {
 	return b.bytes + len(entry.Line)
 }
 

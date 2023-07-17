@@ -2,6 +2,7 @@ package wal
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,8 +13,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 
 	"github.com/grafana/loki/pkg/logproto"
 )
@@ -43,7 +42,7 @@ func TestWriter_EntriesAreWrittenToWAL(t *testing.T) {
 	}
 
 	for _, line := range lines {
-		writer.Chan() <- api.Entry{
+		writer.Chan() <- loki.Entry{
 			Labels: testLabels,
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),
@@ -109,7 +108,7 @@ func TestWriter_OldSegmentsAreCleanedUp(t *testing.T) {
 	}
 
 	for _, line := range lines {
-		writer.Chan() <- api.Entry{
+		writer.Chan() <- loki.Entry{
 			Labels: testLabels,
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),
@@ -191,7 +190,7 @@ func TestWriter_NoSegmentIsCleanedUpIfTheresOnlyOne(t *testing.T) {
 	}
 
 	for _, line := range lines {
-		writer.Chan() <- api.Entry{
+		writer.Chan() <- loki.Entry{
 			Labels: testLabels,
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),
@@ -293,7 +292,7 @@ func benchWriteEntries(b *testing.B, lines, labelSetCount int) {
 	}()
 
 	for i := 0; i < lines; i++ {
-		writer.Chan() <- api.Entry{
+		writer.Chan() <- loki.Entry{
 			Labels: model.LabelSet{
 				"someLabel": model.LabelValue(fmt.Sprint(i % labelSetCount)),
 			},

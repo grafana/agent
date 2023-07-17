@@ -2,10 +2,9 @@ package wal
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki"
 
 	"github.com/prometheus/common/model"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/util"
@@ -13,7 +12,7 @@ import (
 )
 
 // ReadWAL will read all entries in the WAL located under dir. Mainly used for testing
-func ReadWAL(dir string) ([]api.Entry, error) {
+func ReadWAL(dir string) ([]loki.Entry, error) {
 	reader, closeFn, err := walUtils.NewWalReader(dir, -1)
 	if err != nil {
 		return nil, err
@@ -21,7 +20,7 @@ func ReadWAL(dir string) ([]api.Entry, error) {
 	defer func() { closeFn.Close() }()
 
 	seenSeries := make(map[uint64]model.LabelSet)
-	seenEntries := []api.Entry{}
+	seenEntries := []loki.Entry{}
 
 	for reader.Next() {
 		var walRec = wal.Record{}
@@ -45,7 +44,7 @@ func ReadWAL(dir string) ([]api.Entry, error) {
 				if !ok {
 					return nil, fmt.Errorf("found entry without matching series")
 				}
-				seenEntries = append(seenEntries, api.Entry{
+				seenEntries = append(seenEntries, loki.Entry{
 					Labels: labels,
 					Entry:  entry,
 				})

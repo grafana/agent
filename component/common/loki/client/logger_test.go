@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/grafana/agent/component/common/loki"
 	"net/url"
 	"testing"
 	"time"
@@ -8,8 +9,6 @@ import (
 	cortexflag "github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 
 	"github.com/grafana/loki/pkg/logproto"
 	util_log "github.com/grafana/loki/pkg/util/log"
@@ -21,6 +20,6 @@ func TestNewLogger(t *testing.T) {
 
 	l, err := NewLogger(nilMetrics, util_log.Logger, []Config{{URL: cortexflag.URLValue{URL: &url.URL{Host: "string"}}}}...)
 	require.NoError(t, err)
-	l.Chan() <- api.Entry{Labels: model.LabelSet{"foo": "bar"}, Entry: logproto.Entry{Timestamp: time.Now(), Line: "entry"}}
+	l.Chan() <- loki.Entry{Labels: model.LabelSet{"foo": "bar"}, Entry: logproto.Entry{Timestamp: time.Now(), Line: "entry"}}
 	l.Stop()
 }

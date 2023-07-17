@@ -2,6 +2,7 @@ package wal
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki"
 	"os"
 	"testing"
 	"time"
@@ -13,15 +14,13 @@ import (
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
-
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/util"
 )
 
 type testWriteTo struct {
-	ReadEntries         []api.Entry
+	ReadEntries         []loki.Entry
 	series              map[uint64]model.LabelSet
 	logger              log.Logger
 	ReceivedSeriesReset []int
@@ -39,7 +38,7 @@ func (t *testWriteTo) SeriesReset(segmentNum int) {
 }
 
 func (t *testWriteTo) AppendEntries(entries wal.RefEntries) error {
-	var entry api.Entry
+	var entry loki.Entry
 	if l, ok := t.series[uint64(entries.Ref)]; ok {
 		entry.Labels = l
 		for _, e := range entries.Entries {
@@ -54,7 +53,7 @@ func (t *testWriteTo) AppendEntries(entries wal.RefEntries) error {
 
 // watcherTestResources contains all resources necessary to test an individual Watcher functionality
 type watcherTestResources struct {
-	writeEntry             func(entry api.Entry)
+	writeEntry             func(entry loki.Entry)
 	notifyWrite            func()
 	startWatcher           func()
 	syncWAL                func() error
@@ -80,7 +79,7 @@ var cases = map[string]watcherTest{
 		}
 
 		for _, line := range lines {
-			res.writeEntry(api.Entry{
+			res.writeEntry(loki.Entry{
 				Labels: testLabels,
 				Entry: logproto.Entry{
 					Timestamp: time.Now(),
@@ -114,7 +113,7 @@ var cases = map[string]watcherTest{
 		}
 
 		for _, line := range lines {
-			res.writeEntry(api.Entry{
+			res.writeEntry(loki.Entry{
 				Labels: testLabels,
 				Entry: logproto.Entry{
 					Timestamp: time.Now(),
@@ -151,7 +150,7 @@ var cases = map[string]watcherTest{
 		}
 
 		for _, line := range lines {
-			res.writeEntry(api.Entry{
+			res.writeEntry(loki.Entry{
 				Labels: testLabels,
 				Entry: logproto.Entry{
 					Timestamp: time.Now(),
@@ -174,7 +173,7 @@ var cases = map[string]watcherTest{
 		require.NoError(t, err, "expected no error when moving to next wal segment")
 
 		for _, line := range linesAfter {
-			res.writeEntry(api.Entry{
+			res.writeEntry(loki.Entry{
 				Labels: testLabels,
 				Entry: logproto.Entry{
 					Timestamp: time.Now(),
@@ -205,7 +204,7 @@ var cases = map[string]watcherTest{
 		}
 
 		// write something to first segment
-		res.writeEntry(api.Entry{
+		res.writeEntry(loki.Entry{
 			Labels: testLabels,
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),
@@ -221,7 +220,7 @@ var cases = map[string]watcherTest{
 		res.startWatcher()
 
 		for _, line := range linesAfter {
-			res.writeEntry(api.Entry{
+			res.writeEntry(loki.Entry{
 				Labels: testLabels,
 				Entry: logproto.Entry{
 					Timestamp: time.Now(),
@@ -249,7 +248,7 @@ var cases = map[string]watcherTest{
 		}
 
 		writeAndWaitForWatcherToCatchUp := func(line string, expectedReadEntries int) {
-			res.writeEntry(api.Entry{
+			res.writeEntry(loki.Entry{
 				Labels: testLabels,
 				Entry: logproto.Entry{
 					Timestamp: time.Now(),
@@ -323,7 +322,7 @@ func TestWatcher(t *testing.T) {
 			testCase(
 				t,
 				&watcherTestResources{
-					writeEntry: func(entry api.Entry) {
+					writeEntry: func(entry loki.Entry) {
 						_ = ew.WriteEntry(entry, wl, logger)
 					},
 					notifyWrite: func() {

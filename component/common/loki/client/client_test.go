@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki"
 	"io"
 	"net/http"
 	"net/url"
@@ -19,14 +20,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/utils"
 
 	"github.com/grafana/loki/pkg/logproto"
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
 )
 
-var logEntries = []api.Entry{
+var logEntries = []loki.Entry{
 	{Labels: model.LabelSet{}, Entry: logproto.Entry{Timestamp: time.Unix(1, 0).UTC(), Line: "line1"}},
 	{Labels: model.LabelSet{}, Entry: logproto.Entry{Timestamp: time.Unix(2, 0).UTC(), Line: "line2"}},
 	{Labels: model.LabelSet{}, Entry: logproto.Entry{Timestamp: time.Unix(3, 0).UTC(), Line: "line3"}},
@@ -46,7 +46,7 @@ func TestClient_Handle(t *testing.T) {
 		clientTenantID            string
 		clientDropRateLimited     bool
 		serverResponseStatus      int
-		inputEntries              []api.Entry
+		inputEntries              []loki.Entry
 		inputDelay                time.Duration
 		expectedReqs              []utils.RemoteWriteRequest
 		expectedMetrics           string
@@ -56,7 +56,7 @@ func TestClient_Handle(t *testing.T) {
 			clientBatchWait:      100 * time.Millisecond,
 			clientMaxRetries:     3,
 			serverResponseStatus: 200,
-			inputEntries:         []api.Entry{logEntries[0], logEntries[1], logEntries[2]},
+			inputEntries:         []loki.Entry{logEntries[0], logEntries[1], logEntries[2]},
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "",
@@ -98,7 +98,7 @@ func TestClient_Handle(t *testing.T) {
 			clientMaxLineSize:         10, // any log line more than this length should be discarded
 			clientMaxLineSizeTruncate: false,
 			serverResponseStatus:      200,
-			inputEntries:              []api.Entry{logEntries[0], logEntries[1], logEntries[6]}, // this logEntries[6] entries has line more than size 10
+			inputEntries:              []loki.Entry{logEntries[0], logEntries[1], logEntries[6]}, // this logEntries[6] entries has line more than size 10
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "",
@@ -136,7 +136,7 @@ func TestClient_Handle(t *testing.T) {
 			clientMaxLineSize:         10,
 			clientMaxLineSizeTruncate: true,
 			serverResponseStatus:      200,
-			inputEntries:              []api.Entry{logEntries[0], logEntries[1], logEntries[6]}, // logEntries[6]'s line is greater than 10 bytes
+			inputEntries:              []loki.Entry{logEntries[0], logEntries[1], logEntries[6]}, // logEntries[6]'s line is greater than 10 bytes
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "",
@@ -180,7 +180,7 @@ func TestClient_Handle(t *testing.T) {
 			clientBatchWait:      100 * time.Millisecond,
 			clientMaxRetries:     3,
 			serverResponseStatus: 200,
-			inputEntries:         []api.Entry{logEntries[0], logEntries[1]},
+			inputEntries:         []loki.Entry{logEntries[0], logEntries[1]},
 			inputDelay:           110 * time.Millisecond,
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
@@ -221,7 +221,7 @@ func TestClient_Handle(t *testing.T) {
 			clientBatchWait:      10 * time.Millisecond,
 			clientMaxRetries:     3,
 			serverResponseStatus: 500,
-			inputEntries:         []api.Entry{logEntries[0]},
+			inputEntries:         []loki.Entry{logEntries[0]},
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "",
@@ -265,7 +265,7 @@ func TestClient_Handle(t *testing.T) {
 			clientBatchWait:      10 * time.Millisecond,
 			clientMaxRetries:     3,
 			serverResponseStatus: 400,
-			inputEntries:         []api.Entry{logEntries[0]},
+			inputEntries:         []loki.Entry{logEntries[0]},
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "",
@@ -301,7 +301,7 @@ func TestClient_Handle(t *testing.T) {
 			clientBatchWait:      10 * time.Millisecond,
 			clientMaxRetries:     3,
 			serverResponseStatus: 429,
-			inputEntries:         []api.Entry{logEntries[0]},
+			inputEntries:         []loki.Entry{logEntries[0]},
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "",
@@ -346,7 +346,7 @@ func TestClient_Handle(t *testing.T) {
 			clientMaxRetries:      3,
 			clientDropRateLimited: true,
 			serverResponseStatus:  429,
-			inputEntries:          []api.Entry{logEntries[0]},
+			inputEntries:          []loki.Entry{logEntries[0]},
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "",
@@ -383,7 +383,7 @@ func TestClient_Handle(t *testing.T) {
 			clientMaxRetries:     3,
 			clientTenantID:       "tenant-default",
 			serverResponseStatus: 200,
-			inputEntries:         []api.Entry{logEntries[0], logEntries[1]},
+			inputEntries:         []loki.Entry{logEntries[0], logEntries[1]},
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "tenant-default",
@@ -420,7 +420,7 @@ func TestClient_Handle(t *testing.T) {
 			clientMaxRetries:     3,
 			clientTenantID:       "tenant-default",
 			serverResponseStatus: 200,
-			inputEntries:         []api.Entry{logEntries[0], logEntries[3], logEntries[4], logEntries[5]},
+			inputEntries:         []loki.Entry{logEntries[0], logEntries[3], logEntries[4], logEntries[5]},
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "tenant-default",
@@ -566,7 +566,7 @@ func TestClient_StopNow(t *testing.T) {
 		clientMaxRetries     int
 		clientTenantID       string
 		serverResponseStatus int
-		inputEntries         []api.Entry
+		inputEntries         []loki.Entry
 		inputDelay           time.Duration
 		expectedReqs         []utils.RemoteWriteRequest
 		expectedMetrics      string
@@ -577,7 +577,7 @@ func TestClient_StopNow(t *testing.T) {
 			clientBatchWait:      100 * time.Millisecond,
 			clientMaxRetries:     3,
 			serverResponseStatus: 200,
-			inputEntries:         []api.Entry{logEntries[0], logEntries[1], logEntries[2]},
+			inputEntries:         []loki.Entry{logEntries[0], logEntries[1], logEntries[2]},
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "",
@@ -606,7 +606,7 @@ func TestClient_StopNow(t *testing.T) {
 			clientBatchWait:      10 * time.Millisecond,
 			clientMaxRetries:     3,
 			serverResponseStatus: 429,
-			inputEntries:         []api.Entry{logEntries[0]},
+			inputEntries:         []loki.Entry{logEntries[0]},
 			expectedReqs: []utils.RemoteWriteRequest{
 				{
 					TenantID: "",
@@ -727,7 +727,7 @@ func Test_Tripperware(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	c.Chan() <- api.Entry{
+	c.Chan() <- loki.Entry{
 		Labels: model.LabelSet{"foo": "bar"},
 		Entry:  logproto.Entry{Timestamp: time.Now(), Line: "foo"},
 	}

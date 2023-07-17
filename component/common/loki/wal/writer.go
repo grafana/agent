@@ -2,6 +2,7 @@ package wal
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki"
 	"os"
 	"path/filepath"
 	"sort"
@@ -15,8 +16,6 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/logproto"
@@ -40,12 +39,12 @@ type WriteEventSubscriber interface {
 	NotifyWrite()
 }
 
-// Writer implements api.EntryHandler, exposing a channel were scraping targets can write to. Reading from there, it
+// Writer implements loki.EntryHandler, exposing a channel were scraping targets can write to. Reading from there, it
 // writes incoming entries to a WAL.
 // Also, since Writer is responsible for all changing operations over the WAL, therefore a routine is run for cleaning
 // old segments.
 type Writer struct {
-	entries     chan api.Entry
+	entries     chan loki.Entry
 	log         log.Logger
 	wg          sync.WaitGroup
 	once        sync.Once
@@ -75,7 +74,7 @@ func NewWriter(walCfg Config, logger log.Logger, reg prometheus.Registerer) (*Wr
 	}
 
 	wrt := &Writer{
-		entries:      make(chan api.Entry),
+		entries:      make(chan loki.Entry),
 		log:          logger,
 		wg:           sync.WaitGroup{},
 		wal:          wl,
@@ -144,7 +143,7 @@ func (wrt *Writer) start(maxSegmentAge time.Duration) {
 	}()
 }
 
-func (wrt *Writer) Chan() chan<- api.Entry {
+func (wrt *Writer) Chan() chan<- loki.Entry {
 	return wrt.entries
 }
 
@@ -222,7 +221,7 @@ func (wrt *Writer) SubscribeWrite(subscriber WriteEventSubscriber) {
 	wrt.writeSubscribers = append(wrt.writeSubscribers, subscriber)
 }
 
-// entryWriter writes api.Entry to a WAL, keeping in memory a single Record object that's reused
+// entryWriter writes loki.Entry to a WAL, keeping in memory a single Record object that's reused
 // across every write.
 type entryWriter struct {
 	reusableWALRecord *wal.Record
@@ -238,9 +237,9 @@ func newEntryWriter() *entryWriter {
 	}
 }
 
-// WriteEntry writes an api.Entry to a WAL. Note that since it's re-using the same Record object for every
+// WriteEntry writes an loki.Entry to a WAL. Note that since it's re-using the same Record object for every
 // write, it first has to be reset, and then overwritten accordingly. Therefore, WriteEntry is not thread-safe.
-func (ew *entryWriter) WriteEntry(entry api.Entry, wl WAL, _ log.Logger) error {
+func (ew *entryWriter) WriteEntry(entry loki.Entry, wl WAL, _ log.Logger) error {
 	// Reset wal record slices
 	ew.reusableWALRecord.RefEntries = ew.reusableWALRecord.RefEntries[:0]
 	ew.reusableWALRecord.Series = ew.reusableWALRecord.Series[:0]

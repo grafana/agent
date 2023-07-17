@@ -3,8 +3,8 @@ package write
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/component/common/loki/limit"
 	"github.com/grafana/agent/component/common/loki/wal"
-	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"sync"
 
 	"github.com/grafana/agent/component"
@@ -12,8 +12,6 @@ import (
 	"github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/agent/pkg/build"
 )
-
-var streamLagLabels = []string{"filename"}
 
 func init() {
 	component.Register(component.Registration{
@@ -61,7 +59,7 @@ type Component struct {
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:    o,
-		metrics: client.NewMetrics(o.Registerer, streamLagLabels),
+		metrics: client.NewMetrics(o.Registerer),
 	}
 
 	// Create and immediately export the receiver which remains the same for
@@ -108,6 +106,7 @@ func (c *Component) Update(args component.Arguments) error {
 	cfgs := newArgs.convertClientConfigs()
 
 	var err error
+	// todo(thepalbi): Add river support for enabling and configuring WAL
 	c.manager, err = client.NewManager(c.metrics, c.opts.Logger, limit.Config{
 		MaxStreams: newArgs.MaxStreams,
 	}, c.opts.Registerer, wal.Config{}, client.NilNotifier, cfgs...)

@@ -7,8 +7,6 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"io"
 	"net/http"
 	"strconv"
@@ -22,6 +20,7 @@ import (
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 
+	"github.com/grafana/agent/component/common/loki"
 	lokiutil "github.com/grafana/loki/pkg/util"
 	"github.com/grafana/loki/pkg/util/build"
 )
@@ -166,7 +165,7 @@ type client struct {
 	logger  log.Logger
 	cfg     Config
 	client  *http.Client
-	entries chan api.Entry
+	entries chan loki.Entry
 
 	once sync.Once
 	wg   sync.WaitGroup
@@ -203,7 +202,7 @@ func newClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLin
 	c := &client{
 		logger:  log.With(logger, "component", "client", "host", cfg.URL.Host),
 		cfg:     cfg,
-		entries: make(chan api.Entry),
+		entries: make(chan loki.Entry),
 		metrics: metrics,
 		name:    asSha256(cfg),
 
@@ -362,7 +361,7 @@ func (c *client) run() {
 	}
 }
 
-func (c *client) Chan() chan<- api.Entry {
+func (c *client) Chan() chan<- loki.Entry {
 	return c.entries
 }
 
@@ -513,7 +512,7 @@ func (c *client) StopNow() {
 	c.Stop()
 }
 
-func (c *client) processEntry(e api.Entry) (api.Entry, string) {
+func (c *client) processEntry(e loki.Entry) (loki.Entry, string) {
 	if len(c.externalLabels) > 0 {
 		e.Labels = c.externalLabels.Merge(e.Labels)
 	}
