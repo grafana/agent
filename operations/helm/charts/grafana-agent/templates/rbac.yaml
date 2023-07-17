@@ -90,5 +90,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ include "grafana-agent.serviceAccountName" . }}
-    namespace: {{ .Release.Namespace }}
+    namespace: {{ include "grafana-agent.namespace" . }}
 {{- end }}
