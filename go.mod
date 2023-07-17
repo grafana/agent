@@ -22,7 +22,7 @@ require (
 	github.com/buger/jsonparser v1.1.1
 	github.com/burningalchemist/sql_exporter v0.0.0-20221222155641-2ff59aa75200
 	github.com/cespare/xxhash/v2 v2.2.0
-	github.com/cilium/ebpf v0.10.0 // indirect
+	github.com/cilium/ebpf v0.11.0 // indirect
 	github.com/cloudflare/cloudflare-go v0.27.0
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/go-systemd/v22 v22.5.0
@@ -58,7 +58,7 @@ require (
 	github.com/grafana/go-gelf/v2 v2.0.1
 	github.com/grafana/loki v1.6.2-0.20230414223651-220cbdd4f172 // k146 branch
 	github.com/grafana/phlare/api v0.1.2
-	github.com/grafana/phlare/ebpf v0.1.0
+	github.com/grafana/phlare/ebpf v0.1.1
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/tail v0.0.0-20230328181249-aa6682d7843a
