@@ -7,6 +7,20 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.35.0-rc.1 (2023-07-17)
+-------------------------
+
+### Features
+
+- Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
+
+
+### Bugfixes
+
+- Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
+  period specified by the polling frequency elapsed. (@rfratto)
+
+
 v0.35.0-rc.0 (2023-07-13)
 -------------------------
 
@@ -200,6 +214,8 @@ v0.35.0-rc.0 (2023-07-13)
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
 - Build with go 1.20.6 (@captncraig)
+
+- Clustering for Grafana Agent in flow mode has graduated from experimental to beta.
 
 v0.34.3 (2023-06-27)
 --------------------

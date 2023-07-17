@@ -103,7 +103,7 @@ an `oauth2` block.
 [profile.fgprof]: #profile.fgprof-block
 [profile.custom]: #profile.custom-block
 [pprof]: https://github.com/google/pprof/blob/main/doc/README.md
-[clustering]: #clustering-experimental
+[clustering]: #clustering-beta
 
 [fgprof]: https://github.com/felixge/fgprof
 
@@ -251,13 +251,13 @@ Name | Type | Description | Default | Required
 When the `delta` argument is `true`, a `seconds` query parameter is
 automatically added to requests.
 
-### clustering (experimental)
+### clustering (beta)
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is running in [clustered mode][], and `enabled` is set to true,
+When the agent is [using clustering][], and `enabled` is set to true,
 then this `pyroscope.scrape` component instance opts-in to participating in the
 cluster to distribute scrape load between all cluster nodes.
 
@@ -272,7 +272,7 @@ APIs.
 
 If the agent is _not_ running in clustered mode, this block is a no-op.
 
-[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 

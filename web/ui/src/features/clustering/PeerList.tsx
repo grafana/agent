@@ -29,7 +29,7 @@ const PeerList = ({ peers }: PeerListProps) => {
           <span className={styles.idName}>{state}</span>
         </td>
         <td>
-          <span> {isSelf ? '✅' : '🚫'}</span>
+          <span> {isSelf ? '✅' : ' '}</span>
         </td>
       </tr>
     ));

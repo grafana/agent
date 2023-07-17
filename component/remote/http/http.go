@@ -160,11 +160,11 @@ func (c *Component) nextPoll() time.Duration {
 // not be held when calling. After polling, the component's health is updated
 // with the success or failure status.
 func (c *Component) poll() {
-	startTime := time.Now()
 	err := c.pollError()
+	c.updatePollHealth(err)
+}
 
-	// NOTE(rfratto): to prevent the health from being inaccessible for longer
-	// than is needed, only update the health after the poll finished.
+func (c *Component) updatePollHealth(err error) {
 	c.healthMut.Lock()
 	defer c.healthMut.Unlock()
 
@@ -172,13 +172,13 @@ func (c *Component) poll() {
 		c.health = component.Health{
 			Health:     component.HealthTypeHealthy,
 			Message:    "polled endpoint",
-			UpdateTime: startTime,
+			UpdateTime: time.Now(),
 		}
 	} else {
 		c.health = component.Health{
 			Health:     component.HealthTypeUnhealthy,
 			Message:    fmt.Sprintf("polling failed: %s", err),
-			UpdateTime: startTime,
+			UpdateTime: time.Now(),
 		}
 	}
 }
@@ -252,6 +252,7 @@ func (c *Component) Update(args component.Arguments) (err error) {
 			return
 		}
 		err = c.pollError()
+		c.updatePollHealth(err)
 	}()
 
 	c.mut.Lock()
