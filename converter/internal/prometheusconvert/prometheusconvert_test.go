@@ -20,7 +20,7 @@ const (
 )
 
 func TestConvert(t *testing.T) {
-	filepath.WalkDir("testdata", func(path string, d fs.DirEntry, _ error) error {
+	require.NoError(t, filepath.WalkDir("testdata", func(path string, d fs.DirEntry, _ error) error {
 		if d.IsDir() {
 			return nil
 		}
@@ -63,7 +63,7 @@ func TestConvert(t *testing.T) {
 		}
 
 		return nil
-	})
+	}))
 }
 
 // Replace '\r\n' with '\n'

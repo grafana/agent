@@ -1,0 +1,28 @@
+discovery.relabel "fun" {
+	targets = []
+
+	rule {
+		source_labels = ["__trail__"]
+		target_label  = "__path__"
+	}
+}
+
+loki.source.journal "fun" {
+	format_as_json = true
+	max_age        = "20h0m0s"
+	relabel_rules  = discovery.relabel.fun.rules
+	forward_to     = [loki.write.default_0.receiver]
+	labels         = {
+		region  = "chablis",
+		variety = "chardonnay",
+	}
+}
+
+loki.write "default_0" {
+	endpoint {
+		url              = "http://localhost/loki/api/v1/push"
+		follow_redirects = false
+		enable_http2     = false
+	}
+	external_labels = {}
+}

@@ -19,7 +19,7 @@ func appendDiscoveryDocker(pb *prometheusBlocks, label string, sdConfig *prom_do
 }
 
 func validateDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
@@ -33,7 +33,7 @@ func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
 		HostNetworkingHost: sdConfig.HostNetworkingHost,
 		RefreshInterval:    time.Duration(sdConfig.RefreshInterval),
 		Filters:            toDockerFilters(sdConfig.Filters),
-		HTTPClientConfig:   *toHttpClientConfig(&sdConfig.HTTPClientConfig),
+		HTTPClientConfig:   *ToHttpClientConfig(&sdConfig.HTTPClientConfig),
 	}
 }
 

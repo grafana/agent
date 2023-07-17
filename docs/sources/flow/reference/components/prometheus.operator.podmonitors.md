@@ -64,7 +64,7 @@ inside a `client` block.
 [selector]: #selector-block
 [match_expression]: #match_expression-block
 [rule]: #rule-block
-[clustering]: #clustering-experimental
+[clustering]: #clustering-beta
 
 ### client block
 
@@ -144,13 +144,13 @@ The `operator` argument must be one of the following strings:
 
 If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses. 
 
-### clustering (experimental)
+### clustering (beta)
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is running in [clustered mode][], and `enabled` is set to true,
+When the agent is [using clustering][], and `enabled` is set to true,
 then this component instance opts-in to participating in
 the cluster to distribute scrape load between all cluster nodes.
 
@@ -172,7 +172,7 @@ fully consistent like hashmod sharding is).
 If the agent is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.podmonitors` scrapes every target it receives in its arguments.
 
-[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 
