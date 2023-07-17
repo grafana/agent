@@ -139,8 +139,6 @@ func (c *Component) Update(args component.Arguments) error {
 
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
-	// Note that it takes until the first successful poll for c.managedRemoteHTTP to
-	// become healthy.
 	leastHealthy := component.LeastHealthy(
 		c.managedRemoteHTTP.CurrentHealth(),
 		c.mod.CurrentHealth(),
