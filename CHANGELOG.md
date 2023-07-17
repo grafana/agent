@@ -10,6 +10,9 @@ internal API changes are not present.
 v0.35.0-rc.1 (2023-07-17)
 -------------------------
 
+v0.35.0-rc.1 (2023-07-17)
+-------------------------
+
 ### Features
 
 - Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
