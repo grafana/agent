@@ -21,7 +21,7 @@ Main (unreleased)
 
 ### Enhancements
 
-- Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`delta_memory`, `delta_mutex`, `delta_block`) to `pyroscope.scrape` component
+- Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
 
 v0.35.0-rc.0 (2023-07-13)
 -------------------------
