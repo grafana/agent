@@ -19,12 +19,15 @@ import (
 )
 
 const (
-	pprofMemory     string = "memory"
-	pprofBlock      string = "block"
-	pprofGoroutine  string = "goroutine"
-	pprofMutex      string = "mutex"
-	pprofProcessCPU string = "process_cpu"
-	pprofFgprof     string = "fgprof"
+	pprofMemory      string = "memory"
+	pprofBlock       string = "block"
+	pprofGoroutine   string = "goroutine"
+	pprofMutex       string = "mutex"
+	pprofProcessCPU  string = "process_cpu"
+	pprofFgprof      string = "fgprof"
+	pprofDeltaMemory string = "delta_memory"
+	pprofDeltaBlock  string = "delta_block"
+	pprofDeltaMutex  string = "delta_mutex"
 )
 
 func init() {
@@ -80,13 +83,16 @@ type Arguments struct {
 }
 
 type ProfilingConfig struct {
-	Memory     ProfilingTarget         `river:"profile.memory,block,optional"`
-	Block      ProfilingTarget         `river:"profile.block,block,optional"`
-	Goroutine  ProfilingTarget         `river:"profile.goroutine,block,optional"`
-	Mutex      ProfilingTarget         `river:"profile.mutex,block,optional"`
-	ProcessCPU ProfilingTarget         `river:"profile.process_cpu,block,optional"`
-	FGProf     ProfilingTarget         `river:"profile.fgprof,block,optional"`
-	Custom     []CustomProfilingTarget `river:"profile.custom,block,optional"`
+	Memory      ProfilingTarget         `river:"profile.memory,block,optional"`
+	Block       ProfilingTarget         `river:"profile.block,block,optional"`
+	Goroutine   ProfilingTarget         `river:"profile.goroutine,block,optional"`
+	Mutex       ProfilingTarget         `river:"profile.mutex,block,optional"`
+	ProcessCPU  ProfilingTarget         `river:"profile.process_cpu,block,optional"`
+	FGProf      ProfilingTarget         `river:"profile.fgprof,block,optional"`
+	DeltaMemory ProfilingTarget         `river:"profile.delta_memory,block,optional"`
+	DeltaMutex  ProfilingTarget         `river:"profile.delta_mutex,block,optional"`
+	DeltaBlock  ProfilingTarget         `river:"profile.delta_block,block,optional"`
+	Custom      []CustomProfilingTarget `river:"profile.custom,block,optional"`
 
 	PprofPrefix string `river:"path_prefix,attr,optional"`
 }
@@ -96,12 +102,15 @@ type ProfilingConfig struct {
 // of the target.
 func (cfg ProfilingConfig) AllTargets() map[string]ProfilingTarget {
 	targets := map[string]ProfilingTarget{
-		pprofMemory:     cfg.Memory,
-		pprofBlock:      cfg.Block,
-		pprofGoroutine:  cfg.Goroutine,
-		pprofMutex:      cfg.Mutex,
-		pprofProcessCPU: cfg.ProcessCPU,
-		pprofFgprof:     cfg.FGProf,
+		pprofMemory:      cfg.Memory,
+		pprofBlock:       cfg.Block,
+		pprofGoroutine:   cfg.Goroutine,
+		pprofMutex:       cfg.Mutex,
+		pprofProcessCPU:  cfg.ProcessCPU,
+		pprofFgprof:      cfg.FGProf,
+		pprofDeltaMemory: cfg.DeltaMemory,
+		pprofDeltaMutex:  cfg.DeltaMutex,
+		pprofDeltaBlock:  cfg.DeltaBlock,
 	}
 
 	for _, custom := range cfg.Custom {
@@ -141,6 +150,19 @@ var DefaultProfilingConfig = ProfilingConfig{
 		Enabled: false,
 		Path:    "/debug/fgprof",
 		Delta:   true,
+	},
+	// https://github.com/grafana/godeltaprof/blob/main/http/pprof/pprof.go#L21
+	DeltaMemory: ProfilingTarget{
+		Enabled: false,
+		Path:    "/debug/pprof/delta_heap",
+	},
+	DeltaMutex: ProfilingTarget{
+		Enabled: false,
+		Path:    "/debug/pprof/delta_mutex",
+	},
+	DeltaBlock: ProfilingTarget{
+		Enabled: false,
+		Path:    "/debug/pprof/delta_block",
 	},
 }
 

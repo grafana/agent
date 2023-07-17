@@ -19,6 +19,10 @@ Main (unreleased)
 - Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
   period specified by the polling frquency elapsed. (@rfratto)
 
+### Enhancements
+
+- Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`delta_memory`, `delta_mutex`, `delta_block`) to `pyroscope.scrape` component
+
 v0.35.0-rc.0 (2023-07-13)
 -------------------------
 
