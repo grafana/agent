@@ -2,13 +2,14 @@ package builder_test
 
 import (
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/stretchr/testify/require"
-	"reflect"
-	"testing"
 )
 
 const (
