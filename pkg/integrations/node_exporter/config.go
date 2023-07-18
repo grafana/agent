@@ -23,8 +23,9 @@ var (
 	// DefaultConfig's defaults are populated from init functions in this package.
 	// See the init function here and in node_exporter_linux.go.
 	DefaultConfig = Config{
-		ProcFSPath: procfs.DefaultMountPoint,
-		RootFSPath: "/",
+		ProcFSPath:   procfs.DefaultMountPoint,
+		RootFSPath:   "/",
+		UdevDataPath: "/run/udev/data",
 
 		DiskStatsDeviceExclude: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
 

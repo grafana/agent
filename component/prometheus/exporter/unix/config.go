@@ -12,9 +12,10 @@ import (
 //
 // Some defaults are populated from init functions in the github.com/grafana/agent/pkg/integrations/node_exporter package.
 var DefaultArguments = Arguments{
-	ProcFSPath: node_integration.DefaultConfig.ProcFSPath,
-	RootFSPath: node_integration.DefaultConfig.RootFSPath,
-	SysFSPath:  node_integration.DefaultConfig.SysFSPath,
+	ProcFSPath:   node_integration.DefaultConfig.ProcFSPath,
+	RootFSPath:   node_integration.DefaultConfig.RootFSPath,
+	SysFSPath:    node_integration.DefaultConfig.SysFSPath,
+	UdevDataPath: node_integration.DefaultConfig.UdevDataPath,
 	Disk: DiskStatsConfig{
 		DeviceExclude: node_integration.DefaultConfig.DiskStatsDeviceExclude,
 	},
