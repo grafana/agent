@@ -24,3 +24,4 @@ scrape_configs:
         target_label: hostname
 
 tracing: {enabled: false}
+server: {register_instrumentation: false}

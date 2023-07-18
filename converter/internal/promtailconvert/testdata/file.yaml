@@ -12,3 +12,4 @@ scrape_configs:
           - /etc/agent/targets/*.yml
         refresh_interval: 30m
 tracing: {enabled: false}
+server: {register_instrumentation: false}

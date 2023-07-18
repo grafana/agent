@@ -38,3 +38,4 @@ scrape_configs:
         kubeconfig_file: /home/toby/.kube/config
 
 tracing: {enabled: false}
+server: {register_instrumentation: false}

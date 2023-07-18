@@ -20,6 +20,9 @@ server:
   profiling_enabled: true
   register_instrumentation: true
   log_level: error
+  http_path_prefix: /cgi/bin
+  health_check_target: false
+
 scrape_configs:
   - job_name: unsupported
     dockerswarm_sd_configs:

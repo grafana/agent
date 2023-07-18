@@ -5,3 +5,4 @@ scrape_configs:
         port: 1234
 
 tracing: {enabled: false}
+server: {register_instrumentation: false}

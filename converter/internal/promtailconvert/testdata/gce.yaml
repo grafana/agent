@@ -6,3 +6,4 @@ scrape_configs:
         port: 8080
 
 tracing: {enabled: false}
+server: {register_instrumentation: false}

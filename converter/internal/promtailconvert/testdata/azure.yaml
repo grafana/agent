@@ -6,3 +6,4 @@ scrape_configs:
         client_id: "client"
         client_secret: "secret"
 tracing: {enabled: false}
+server: {register_instrumentation: false}

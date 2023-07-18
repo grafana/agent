@@ -42,3 +42,4 @@ scrape_configs:
             path: /oauth2/token
 
 tracing: {enabled: false}
+server: {register_instrumentation: false}
