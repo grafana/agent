@@ -1,6 +1,7 @@
 package build
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -216,4 +217,15 @@ func logsReceiversToExpr(r []loki.LogsReceiver) string {
 		exprs = append(exprs, clr.Expr)
 	}
 	return "[" + strings.Join(exprs, ", ") + "]"
+}
+
+func toRiverExpression(goValue interface{}) (string, error) {
+	e := builder.NewExpr()
+	e.SetValue(goValue)
+	var buff bytes.Buffer
+	_, err := e.WriteTo(&buff)
+	if err != nil {
+		return "", err
+	}
+	return buff.String(), nil
 }

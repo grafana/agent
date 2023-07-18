@@ -141,20 +141,26 @@ func validateRiver(t *testing.T, expectedRiver []byte, actualRiver []byte) {
 		cfg, err := flow.ReadFile(t.Name(), actualRiver)
 		require.NoError(t, err, "the output River config failed to parse")
 
-		// Now check if we can load this config file
-		logger, err := logging.New(os.Stderr, logging.DefaultOptions)
-		require.NoError(t, err)
-		f := flow.New(flow.Options{
-			Logger:    logger,
-			Clusterer: &cluster.Clusterer{Node: cluster.NewLocalNode("")},
-			DataPath:  t.TempDir(),
-		})
-		err = f.LoadFile(cfg, nil)
-
-		// Many components will fail to build as e.g. the cert files are missing, so we ignore these errors
-		if err != nil && strings.Contains(err.Error(), "Failed to build component") {
-			return
-		}
-		require.NoError(t, err)
+		attemptLoadingFlowConfig(t, cfg)
 	}
+}
+
+// attemptLoadingFlowConfig will attempt to load the Flow config and report any errors.
+func attemptLoadingFlowConfig(t *testing.T, cfg *flow.File) {
+	logger, err := logging.New(os.Stderr, logging.DefaultOptions)
+	require.NoError(t, err)
+	f := flow.New(flow.Options{
+		Logger:    logger,
+		Clusterer: &cluster.Clusterer{Node: cluster.NewLocalNode("")},
+		DataPath:  t.TempDir(),
+	})
+	err = f.LoadFile(cfg, nil)
+
+	// Many components will fail to build as e.g. the cert files are missing, so we ignore these errors.
+	// This is not ideal, but we still validate for other potential issues.
+	if err != nil && strings.Contains(err.Error(), "Failed to build component") {
+		t.Log("ignoring error: " + err.Error())
+		return
+	}
+	require.NoError(t, err)
 }
