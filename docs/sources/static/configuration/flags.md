@@ -1,8 +1,9 @@
 ---
-title: Command-line flags
-weight: 100
 aliases:
 - ../../configuration/flags/
+canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/flags/
+title: Command-line flags
+weight: 100
 ---
 
 # Command-line flags

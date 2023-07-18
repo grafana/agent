@@ -1,7 +1,8 @@
 ---
-title: node_exporter_config
 aliases:
 - ../../../configuration/integrations/node-exporter-config/
+canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/integrations/node-exporter-config/
+title: node_exporter_config
 ---
 
 # node_exporter_config

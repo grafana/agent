@@ -1,7 +1,8 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/setup/configure/configure-windows/
 description: Learn how to configure Grafana Agent in flow mode on Windows
-title: Configure Grafana Agent in flow mode on Windows
 menuTitle: Windows
+title: Configure Grafana Agent in flow mode on Windows
 weight: 500
 ---
 

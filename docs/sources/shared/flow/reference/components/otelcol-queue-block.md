@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/shared/flow/reference/components/otelcol-queue-block/
+canonical: https://grafana.com/docs/grafana/agent/latest/shared/flow/reference/components/otelcol-queue-block/
 headless: true
 ---
 

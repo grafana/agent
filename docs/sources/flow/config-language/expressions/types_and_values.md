@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/expressions/types-and-values/
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/config-language/expressions/types_and_values/
 title: Types and values
 weight: 100
 ---

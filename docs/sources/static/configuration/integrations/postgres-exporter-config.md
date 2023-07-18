@@ -1,7 +1,8 @@
 ---
-title: postgres_exporter_config
 aliases:
 - ../../../configuration/integrations/postgres-exporter-config/
+canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/integrations/postgres-exporter-config/
+title: postgres_exporter_config
 ---
 
 # postgres_exporter_config

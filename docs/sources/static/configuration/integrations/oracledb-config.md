@@ -1,7 +1,8 @@
 ---
-title: oracledb_config
 aliases:
 - ../../../configuration/integrations/oracledb-config/
+canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/integrations/oracledb-config/
+title: oracledb_config
 ---
 
 # oracledb_config

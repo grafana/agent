@@ -1,8 +1,9 @@
 ---
-title: Upgrade guide
-weight: 999
 aliases:
 - ../upgrade-guide/
+canonical: https://grafana.com/docs/grafana/agent/latest/static/upgrade-guide/
+title: Upgrade guide
+weight: 999
 ---
 
 # Upgrade guide

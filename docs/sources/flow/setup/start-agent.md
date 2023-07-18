@@ -1,7 +1,8 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/setup/start-agent/
 description: Learn how to start, restart, and stop Grafana Agent after it is installed
-title: Start, restart, and stop Grafana Agent in flow mode
 menuTitle: Start flow mode
+title: Start, restart, and stop Grafana Agent in flow mode
 weight: 800
 ---
 

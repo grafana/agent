@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/trim_suffix/
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/stdlib/trim_suffix/
 title: trim_suffix
 ---
 

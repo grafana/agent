@@ -1,8 +1,9 @@
 ---
-title: grafana-agent convert
-weight: 100
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/cli/convert/
 labels:
   stage: beta
+title: grafana-agent convert
+weight: 100
 ---
 
 # `grafana-agent convert` command

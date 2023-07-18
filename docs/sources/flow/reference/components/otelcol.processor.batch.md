@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/otelcol.processor.batch/
 title: otelcol.processor.batch
 ---
 

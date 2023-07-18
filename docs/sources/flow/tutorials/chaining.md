@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/tutorials/chaining/
 title: Chaining Prometheus components
 weight: 400
 ---

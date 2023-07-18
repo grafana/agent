@@ -1,8 +1,9 @@
 ---
-title: server_config
-weight: 100
 aliases:
 - ../../configuration/server-config/
+canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/server-config/
+title: server_config
+weight: 100
 ---
 
 # server_config

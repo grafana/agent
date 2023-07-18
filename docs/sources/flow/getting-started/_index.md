@@ -1,9 +1,10 @@
 ---
-title: Get started with Grafana Agent in flow mode
-menuTitle: Get started
-weight: 200
 aliases:
 - getting_started/
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/getting-started/
+menuTitle: Get started
+title: Get started with Grafana Agent in flow mode
+weight: 200
 ---
 
 # Get started with Grafana Agent in flow mode

@@ -1,7 +1,8 @@
 ---
-title: module.http
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/module.http/
 labels:
   stage: beta
+title: module.http
 ---
 
 # module.http

@@ -1,10 +1,11 @@
 ---
-description: Learn how to install Grafana Agent in flow mode on Docker
-title: Run Grafana Agent in flow mode in a Docker container
-menuTitle: Docker
-weight: 100
 aliases:
- - ../../install/docker/
+- ../../install/docker/
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/setup/install/docker/
+description: Learn how to install Grafana Agent in flow mode on Docker
+menuTitle: Docker
+title: Run Grafana Agent in flow mode in a Docker container
+weight: 100
 ---
 
 # Run Grafana Agent in flow mode in a Docker container

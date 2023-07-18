@@ -1,6 +1,7 @@
 ---
-title: Configure Grafana Agent clustering in an existing installation
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/getting-started/configure-agent-clustering/
 menuTitle: Configure Grafana Agent clustering
+title: Configure Grafana Agent clustering in an existing installation
 weight: 400
 ---
 

@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/prometheus.remote_write/
 title: prometheus.remote_write
 ---
 
