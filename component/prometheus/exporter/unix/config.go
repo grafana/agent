@@ -66,6 +66,7 @@ type Arguments struct {
 	ProcFSPath             string `river:"procfs_path,attr,optional"`
 	SysFSPath              string `river:"sysfs_path,attr,optional"`
 	RootFSPath             string `river:"rootfs_path,attr,optional"`
+	UdevDataPath           string `river:"udev_data_path,attr,optional"`
 
 	// Collectors to mark as enabled
 	EnableCollectors flagext.StringSlice `river:"enable_collectors,attr,optional"`
@@ -106,6 +107,7 @@ func (a *Arguments) Convert() *node_integration.Config {
 		ProcFSPath:                       a.ProcFSPath,
 		SysFSPath:                        a.SysFSPath,
 		RootFSPath:                       a.RootFSPath,
+		UdevDataPath:                     a.UdevDataPath,
 		EnableCollectors:                 a.EnableCollectors,
 		DisableCollectors:                a.DisableCollectors,
 		SetCollectors:                    a.SetCollectors,
