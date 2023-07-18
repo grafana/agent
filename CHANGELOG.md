@@ -175,8 +175,6 @@ v0.35.0 (2023-07-18)
 
 - Added support for custom `length` time setting in Cloudwatch component and integration. (@thepalbi)
 
-- Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
-
 ### Bugfixes
 
 - Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
