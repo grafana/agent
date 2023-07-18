@@ -1398,7 +1398,7 @@ loki.process "example" {
 		values = {
 			geoip_city_name          = "",
 			geoip_country_name       = "",
-			geoip_continet_name      = "",
+			geoip_continent_name     = "",
 			geoip_continent_code     = "",
 			geoip_location_latitude  = "",
 			geoip_location_longitude = "",
