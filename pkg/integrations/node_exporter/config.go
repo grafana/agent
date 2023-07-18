@@ -82,9 +82,10 @@ func init() {
 type Config struct {
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics,omitempty"`
 
-	ProcFSPath string `yaml:"procfs_path,omitempty"`
-	SysFSPath  string `yaml:"sysfs_path,omitempty"`
-	RootFSPath string `yaml:"rootfs_path,omitempty"`
+	ProcFSPath   string `yaml:"procfs_path,omitempty"`
+	SysFSPath    string `yaml:"sysfs_path,omitempty"`
+	RootFSPath   string `yaml:"rootfs_path,omitempty"`
+	UdevDataPath string `yaml:"udev_data_path,omitempty"`
 
 	// Collectors to mark as enabled
 	EnableCollectors flagext.StringSlice `yaml:"enable_collectors,omitempty"`
@@ -307,6 +308,7 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 		"--path.procfs", c.ProcFSPath,
 		"--path.sysfs", c.SysFSPath,
 		"--path.rootfs", c.RootFSPath,
+		"--path.udev.data", c.UdevDataPath,
 	)
 
 	if collectors[CollectorBCache] {
