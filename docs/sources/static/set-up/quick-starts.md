@@ -1,9 +1,10 @@
 ---
-title: Get started with Grafana Agent in static mode
-menuTitle: Get started
-weight: 300
 aliases:
 - ../../set-up/quick-starts/
+canonical: https://grafana.com/docs/agent/latest/static/set-up/quick-starts/
+menuTitle: Get started
+title: Get started with Grafana Agent in static mode
+weight: 300
 ---
 
 # Grafana Agent quick starts

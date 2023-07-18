@@ -1,7 +1,8 @@
 ---
-title: node_exporter_config
 aliases:
 - ../../../configuration/integrations/node-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/node-exporter-config/
+title: node_exporter_config
 ---
 
 # node_exporter_config
@@ -28,7 +29,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.35.0-rc.0 \
+  grafana/agent:v0.35.0-rc.1 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -67,7 +68,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.35.0-rc.0
+  - image: grafana/agent:v0.35.0-rc.1
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml

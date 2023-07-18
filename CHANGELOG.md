@@ -10,6 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
+
+
+v0.35.0-rc.1 (2023-07-17)
+-------------------------
+
 ### Features
 
 - Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)

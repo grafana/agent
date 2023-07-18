@@ -1,7 +1,8 @@
 ---
-title: blackbox_config
 aliases:
 - ../../../configuration/integrations/blackbox-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/blackbox-config/
+title: blackbox_config
 ---
 
 # blackbox_config

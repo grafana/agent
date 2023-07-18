@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/stability/
 title: Stability
 weight: 600
 ---
