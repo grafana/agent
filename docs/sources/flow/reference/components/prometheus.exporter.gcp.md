@@ -1,11 +1,5 @@
 ---
-# NOTE(tburgessdev, from rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.gcp/
 title: prometheus.exporter.gcp
 ---
 
@@ -40,74 +34,16 @@ Since the exporter gathers all of its data from [GCP monitoring APIs](https://cl
 
 ```river
 prometheus.exporter.gcp "pubsub" {
-    project_ids = [
-        "foo",
-        "bar",
-    ]
+        project_ids = [
+                "foo",
+                "bar",
+        ]
 
-    # Using pubsub metrics (https://cloud.google.com/monitoring/api/metrics_gcp#gcp-pubsub) as an example
-    # all metrics.
-    #   [
-    #     "pubsub.googleapis.com/"
-    #   ]
-    # all snapshot specific metrics
-    #   [
-    #     "pubsub.googleapis.com/snapshot"
-    #   ]
-    # all snapshot specific metrics and a few subscription metrics
-    metrics_prefixes = [
-        "pubsub.googleapis.com/snapshot",
-        "pubsub.googleapis.com/subscription/num_undelivered_messages",
-        "pubsub.googleapis.com/subscription/oldest_unacked_message_age",
-    ]
-
-    # Given the above metrics_prefixes list, some examples of 
-    # targeted_metric_prefix option behavior with respect to the filter string 
-    # format <targeted_metric_prefix>:<filter_query> would be:
-    #   pubsub.googleapis.com (apply to all defined prefixes)
-    #   pubsub.googleapis.com/snapshot (apply to only snapshot metrics)
-    #   pubsub.googleapis.com/subscription (apply to only subscription metrics)
-    #   pubsub.googleapis.com/subscription/num_undelivered_messages (apply to only the specific subscription metric)
-    extra_filters = [
-        "pubsub.googleapis.com/subscription:resource.labels.subscription_id=monitoring.regex.full_match(\"my-subs-prefix.*\")",
-    ]
-
-    request_interval = "5m"
-    request_offset = "0s"
-    ingest_delay = false
-    drop_delegated_projects = false
-    gcp_client_timeout = "15s"
-}
-```
-
-```river
-prometheus.exporter.gcp "lb_with_filter" {
-    project_ids = [
-        "foo",
-        "bar",
-    ]
-    metrics_prefixes = [
-        "loadbalancing.googleapis.com"
-    ]
-    extra_filters = [
-        "loadbalancing.googleapis.com:resource.labels.backend_target_name=\"sample-value\""
-    ]
-}
-```
-
-```river
-prometheus.exporter.gcp "lb_subset_with_filter" {
-    project_ids = [
-        "foo",
-        "bar",
-    ]
-    metrics_prefixes = [
-        "loadbalancing.googleapis.com/https/request_bytes_count",
-        "loadbalancing.googleapis.com/https/total_latencies"
-    ]
-    extra_filters = [
-        "loadbalancing.googleapis.com:resource.labels.backend_target_name=\"sample-value\""
-    ]
+        metrics_prefixes = [
+                "pubsub.googleapis.com/snapshot",
+                "pubsub.googleapis.com/subscription/num_undelivered_messages",
+                "pubsub.googleapis.com/subscription/oldest_unacked_message_age",
+        ]
 }
 ```
 
@@ -120,16 +56,22 @@ Omitted fields take their default values.
 Please note that if you are supplying a list of strings for the `extra_filters` argument, any string values within a particular filter string must be enclosed in escaped double quotes. For example, `loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"` must be encoded as `"loadbalancing.googleapis.com:resource.labels.backend_target_name=\"sample-value\""` in the River config.
 {{% /admonition %}}
 
-| Name                      | Type           | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Default | Required |
-|---------------------------|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|----------|
-| `project_ids`             | `list(string)` | Configure the GCP Project(s) to scrape for metrics.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |         | yes      |
-| `metrics_prefixes`        | `list(string)` | One or more values from the supported [GCP Metrics](https://cloud.google.com/monitoring/api/metrics_gcp). These can be as targeted or loose as needed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |         | yes      |
-| `extra_filters`           | `list(string)` | Used to further refine the resources you would like to collect metrics from. Please note that any string value within a particular filter string must be enclosed in escaped double-quotes. The structure for these filters is `<targeted_metric_prefix>:<filter_query>`. The `targeted_metric_prefix` is used to ensure the filter is only applied to the metric_prefix(es) where it makes sense. It does not explicitly have to match a value from `metric_prefixes`, but the `targeted_metric_prefix` must be at least a prefix to one or more `metric_prefixes`. The `filter_query` is applied to a final metrics API query when querying for metric data. The final query sent to the metrics API already includes filters for project and metric type. Each applicable `filter_query` is appended to the query with an AND. You can read more about the metric API filter options in [GCPs documentation](https://cloud.google.com/monitoring/api/v3/filters). | `[]`    | no       |
-| `request_interval`        | `duration`     | The time range used when querying for metrics. Most of the time the default works perfectly fine. Most documented metrics include a comments of the form `Sampled every X seconds. After sampling, data is not visible for up to Y seconds.` As long as your `request_interval` is >= `Y` you should have no issues. Consider using `ingest_delay` if you would like this to be done programmatically or are gathering slower moving metrics.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | `5m`    | no       |
-| `ingest_delay`            | `boolean`      | When enabled this automatically adjusts the time range used when querying for metrics backwards based on the metadata GCP has published for how long the data can take to be ingested. You can see the values for this in documented metrics as `After sampling, data is not visible for up to Y seconds.` Since GCPs ingestion delay is an "at worst," this is off by default to ensure data is gathered as soon as it's available.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | `false` | no       |
-| `request_offset`          | `duration`     | When enabled this offsets the time range used when querying for metrics by a set amount.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | `0s`    | no       |
-| `drop_delegated_projects` | `boolean`      | When enabled drops metrics from attached projects and only fetches metrics from the explicitly configured `project_ids`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | `false` | no       |
-| `gcp_client_timeout`      | `duration`     | Sets a timeout on the client used to make API calls to GCP. A single scrape can initiate numerous calls to GCP, so be mindful if you choose to override this value.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | `15s`   | no       |
+| Name                      | Type           | Description                                                                                                                                                                                                                                                               | Default | Required |
+|---------------------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|----------|
+| `project_ids`             | `list(string)` | Configure the GCP Project(s) to scrape for metrics.                                                                                                                                                                                                                       |         | yes      |
+| `metrics_prefixes`        | `list(string)` | One or more values from the supported [GCP Metrics](https://cloud.google.com/monitoring/api/metrics_gcp). These can be as targeted or loose as needed.                                                                                                                    |         | yes      |
+| `extra_filters`           | `list(string)` | Used to further refine the resources you would like to collect metrics from. Please note that any string value within a particular filter string must be enclosed in escaped double-quotes. The structure for these filters is `<targeted_metric_prefix>:<filter_query>`. | `[]`    | no       |
+| `request_interval`        | `duration`     | The time range used when querying for metrics.                                                                                                                                                                                                                            | `5m`    | no       |
+| `ingest_delay`            | `boolean`      | When enabled, this automatically adjusts the time range used when querying for metrics backwards based on the metadata GCP has published for how long the data can take to be ingested.                                                                                   | `false` | no       |
+| `request_offset`          | `duration`     | When enabled this offsets the time range used when querying for metrics by a set amount.                                                                                                                                                                                  | `0s`    | no       |
+| `drop_delegated_projects` | `boolean`      | When enabled drops metrics from attached projects and only fetches metrics from the explicitly configured `project_ids`.                                                                                                                                                  | `false` | no       |
+| `gcp_client_timeout`      | `duration`     | Sets a timeout on the client used to make API calls to GCP. A single scrape can initiate numerous calls to GCP, so be mindful if you choose to override this value.                                                                                                       | `15s`   | no       |
+
+For `extra_filters`, the `targeted_metric_prefix` is used to ensure the filter is only applied to the metric_prefix(es) where it makes sense. It does not explicitly have to match a value from `metric_prefixes`, but the `targeted_metric_prefix` must be at least a prefix to one or more `metric_prefixes`. The `filter_query` is applied to a final metrics API query when querying for metric data. The final query sent to the metrics API already includes filters for project and metric type. Each applicable `filter_query` is appended to the query with an AND. You can read more about the metric API filter options in [GCPs documentation](https://cloud.google.com/monitoring/api/v3/filters).
+
+For `request_interval`, most of the time the default works perfectly fine. Most documented metrics include a comments of the form `Sampled every X seconds. After sampling, data is not visible for up to Y seconds.` As long as your `request_interval` is >= `Y` you should have no issues. Consider using `ingest_delay` if you would like this to be done programmatically or are gathering slower moving metrics.
+
+For `ingest_delay`, you can see the values for this in documented metrics as `After sampling, data is not visible for up to Y seconds.` Since GCPs ingestion delay is an "at worst", this is off by default to ensure data is gathered as soon as it's available.
 
 ## Exported fields
 
@@ -155,3 +97,78 @@ debug information.
 
 `prometheus.exporter.gcp` does not expose any component-specific
 debug metrics.
+
+## Examples
+
+```river
+prometheus.exporter.gcp "pubsub_full_config" {
+        project_ids = [
+                "foo",
+                "bar",
+        ]
+
+        // Using pubsub metrics (https://cloud.google.com/monitoring/api/metrics_gcp/gcp-pubsub) as an example
+        // all metrics.
+        //   [
+        //     "pubsub.googleapis.com/"
+        //   ]
+        // all snapshot specific metrics
+        //   [
+        //     "pubsub.googleapis.com/snapshot"
+        //   ]
+        // all snapshot specific metrics and a few subscription metrics
+        metrics_prefixes = [
+                "pubsub.googleapis.com/snapshot",
+                "pubsub.googleapis.com/subscription/num_undelivered_messages",
+                "pubsub.googleapis.com/subscription/oldest_unacked_message_age",
+        ]
+
+        // Given the above metrics_prefixes list, some examples of
+        // targeted_metric_prefix option behavior with respect to the filter string
+        // format <targeted_metric_prefix>:<filter_query> would be:
+        //   pubsub.googleapis.com (apply to all defined prefixes)
+        //   pubsub.googleapis.com/snapshot (apply to only snapshot metrics)
+        //   pubsub.googleapis.com/subscription (apply to only subscription metrics)
+        //   pubsub.googleapis.com/subscription/num_undelivered_messages (apply to only the specific subscription metric)
+        extra_filters = [
+                "pubsub.googleapis.com/subscription:resource.labels.subscription_id=monitoring.regex.full_match(\"my-subs-prefix.*\")",
+        ]
+
+        request_interval        = "5m"
+        request_offset          = "0s"
+        ingest_delay            = false
+        drop_delegated_projects = false
+        gcp_client_timeout      = "15s"
+}
+```
+
+```river
+prometheus.exporter.gcp "lb_with_filter" {
+        project_ids = [
+                "foo",
+                "bar",
+        ]
+        metrics_prefixes = [
+                "loadbalancing.googleapis.com",
+        ]
+        extra_filters = [
+                "loadbalancing.googleapis.com:resource.labels.backend_target_name=\"sample-value\"",
+        ]
+}
+```
+
+```river
+prometheus.exporter.gcp "lb_subset_with_filter" {
+        project_ids = [
+                "foo",
+                "bar",
+        ]
+        metrics_prefixes = [
+                "loadbalancing.googleapis.com/https/request_bytes_count",
+                "loadbalancing.googleapis.com/https/total_latencies",
+        ]
+        extra_filters = [
+                "loadbalancing.googleapis.com:resource.labels.backend_target_name=\"sample-value\"",
+        ]
+}
+```
