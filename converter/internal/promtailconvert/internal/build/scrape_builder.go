@@ -178,12 +178,12 @@ func (s *ScrapeConfigBuilder) getExpandedFileTargetsExpr() string {
 	}
 
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
-		[]string{"discovery", "file"},
+		[]string{"local", "file_match"},
 		s.cfg.JobName,
 		args,
 		overrideHook,
 	))
-	s.allExpandedFileTargetsExpr = "discovery.file." + s.cfg.JobName + ".targets"
+	s.allExpandedFileTargetsExpr = "local.file_match." + s.cfg.JobName + ".targets"
 	return s.allExpandedFileTargetsExpr
 }
 
