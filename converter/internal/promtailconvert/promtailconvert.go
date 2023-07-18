@@ -7,6 +7,8 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
+	"github.com/grafana/agent/component/loki/source/api"
 	lokiwrite "github.com/grafana/agent/component/loki/write"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
@@ -19,6 +21,7 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/server"
 	lokicfgutil "github.com/grafana/loki/pkg/util/cfg"
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
 	"gopkg.in/yaml.v2"
@@ -131,12 +134,60 @@ func appendScrapeConfig(
 	diags *diag.Diagnostics,
 	gctx *build.GlobalContext,
 ) {
+	//TODO(thampiotr): need to support/warn about the following fields:
+	//JobName              string                      `mapstructure:"job_name,omitempty" yaml:"job_name,omitempty"`
+	//Encoding               string                 `mapstructure:"encoding,omitempty" yaml:"encoding,omitempty"`
+	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
+
+	//TODO(thampiotr): support/warn about the following log producing promtail configs:
+	//SyslogConfig         *SyslogTargetConfig         `mapstructure:"syslog,omitempty" yaml:"syslog,omitempty"`
+	//GcplogConfig         *GcplogTargetConfig         `mapstructure:"gcplog,omitempty" yaml:"gcplog,omitempty"`
+	//PushConfig           *PushTargetConfig           `mapstructure:"loki_push_api,omitempty" yaml:"loki_push_api,omitempty"`
+	//WindowsConfig        *WindowsEventsTargetConfig  `mapstructure:"windows_events,omitempty" yaml:"windows_events,omitempty"`
+	//KafkaConfig          *KafkaTargetConfig          `mapstructure:"kafka,omitempty" yaml:"kafka,omitempty"`
+	//AzureEventHubsConfig *AzureEventHubsTargetConfig `mapstructure:"azure_event_hubs,omitempty" yaml:"azure_event_hubs,omitempty"`
+	//GelfConfig           *GelfTargetConfig           `mapstructure:"gelf,omitempty" yaml:"gelf,omitempty"`
+	//HerokuDrainConfig    *HerokuDrainTargetConfig    `mapstructure:"heroku_drain,omitempty" yaml:"heroku_drain,omitempty"`
+
+	//TODO(thampiotr): support/warn about the following SD configs:
+	//// List of labeled target groups for this job.
+	//StaticConfigs discovery.StaticConfig `mapstructure:"static_configs" yaml:"static_configs"`
+	//// List of file service discovery configurations.
+	//FileSDConfigs []*file.SDConfig `mapstructure:"file_sd_configs,omitempty" yaml:"file_sd_configs,omitempty"`
+	//// List of Consul service discovery configurations.
+	//ConsulSDConfigs []*consul.SDConfig `mapstructure:"consul_sd_configs,omitempty" yaml:"consul_sd_configs,omitempty"`
+	//// List of Consul agent service discovery configurations.
+	//ConsulAgentSDConfigs []*consulagent.SDConfig `mapstructure:"consulagent_sd_configs,omitempty" yaml:"consulagent_sd_configs,omitempty"`
+	//// List of Kubernetes service discovery configurations.
+	//KubernetesSDConfigs []*kubernetes.SDConfig `mapstructure:"kubernetes_sd_configs,omitempty" yaml:"kubernetes_sd_configs,omitempty"`
+	// TODO: ==== undocumented SDs - if they exist in Flow, we support, if they don't we log warning ====
+	//// List of DigitalOcean service discovery configurations.
+	//DigitalOceanSDConfigs []*digitalocean.SDConfig `mapstructure:"digitalocean_sd_configs,omitempty" yaml:"digitalocean_sd_configs,omitempty"`
+	//// List of Docker Swarm service discovery configurations.
+	//DockerSwarmSDConfigs []*moby.DockerSwarmSDConfig `mapstructure:"dockerswarm_sd_configs,omitempty" yaml:"dockerswarm_sd_configs,omitempty"`
+	//// List of Serverset service discovery configurations.
+	//ServersetSDConfigs []*zookeeper.ServersetSDConfig `mapstructure:"serverset_sd_configs,omitempty" yaml:"serverset_sd_configs,omitempty"`
+	//// NerveSDConfigs is a list of Nerve service discovery configurations.
+	//NerveSDConfigs []*zookeeper.NerveSDConfig `mapstructure:"nerve_sd_configs,omitempty" yaml:"nerve_sd_configs,omitempty"`
+	//// MarathonSDConfigs is a list of Marathon service discovery configurations.
+	//MarathonSDConfigs []*marathon.SDConfig `mapstructure:"marathon_sd_configs,omitempty" yaml:"marathon_sd_configs,omitempty"`
+	//// List of GCE service discovery configurations.
+	//GCESDConfigs []*gce.SDConfig `mapstructure:"gce_sd_configs,omitempty" yaml:"gce_sd_configs,omitempty"`
+	//// List of EC2 service discovery configurations.
+	//EC2SDConfigs []*aws.EC2SDConfig `mapstructure:"ec2_sd_configs,omitempty" yaml:"ec2_sd_configs,omitempty"`
+	//// List of OpenStack service discovery configurations.
+	//OpenstackSDConfigs []*openstack.SDConfig `mapstructure:"openstack_sd_configs,omitempty" yaml:"openstack_sd_configs,omitempty"`
+	//// List of Azure service discovery configurations.
+	//AzureSDConfigs []*azure.SDConfig `mapstructure:"azure_sd_configs,omitempty" yaml:"azure_sd_configs,omitempty"`
+	//// List of Triton service discovery configurations.
+	//TritonSDConfigs []*triton.SDConfig `mapstructure:"triton_sd_configs,omitempty" yaml:"triton_sd_configs,omitempty"`
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
 
 	// Append all the SD components
 	b.AppendKubernetesSDs()
-	//TODO(thampiotr): add support for other SDs
+	b.AppendDockerSDs()
+	b.AppendStaticSDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.
@@ -158,6 +209,66 @@ func newLokiWrite(client *client.Config, diags *diag.Diagnostics, index int) (*b
 	block := common.NewBlockWithOverride([]string{"loki", "write"}, label, lokiWriteArgs)
 	return block, common.ConvertLogsReceiver{
 		Expr: fmt.Sprintf("loki.write.%s.receiver", label),
+	}
+}
+
+func appendServerConfig(f *builder.File, config server.Config, receivers []loki.LogsReceiver, diags *diag.Diagnostics) {
+	lokiHttpArgs := toLokiApiArguments(config, receivers, diags)
+	//TODO(thampiotr): this will be used for scrape_configs.loki_push_api.server once we add support
+	_ = lokiHttpArgs
+}
+
+func toLokiApiArguments(config server.Config, receivers []loki.LogsReceiver, diags *diag.Diagnostics) api.Arguments {
+	if config.ProfilingEnabled {
+		diags.Add(diag.SeverityLevelWarn, "server.profiling_enabled is not supported - use Agent's "+
+			"main HTTP server's profiling endpoints instead.")
+	}
+
+	if config.RegisterInstrumentation {
+		diags.Add(diag.SeverityLevelWarn, "server.register_instrumentation is not supported - Flow mode "+
+			"components expose their metrics automatically in their own metrics namespace")
+	}
+
+	if config.LogLevel.String() != "info" {
+		diags.Add(diag.SeverityLevelWarn, "server.log_level is not supported - Flow mode "+
+			"components may produce different logs")
+	}
+
+	if config.PathPrefix != "" {
+		diags.Add(diag.SeverityLevelWarn, "server.http_path_prefix is not supported - Flow mode's "+
+			"loki.source.api is available at /api/v1/push - see documentation for more details. If you are sending "+
+			"logs to this endpoint, the clients configuration may need to be updated.")
+	}
+
+	if config.HealthCheckTarget != nil && !*config.HealthCheckTarget {
+		diags.Add(diag.SeverityLevelWarn, "server.health_check_target disabling is not supported in Flow mode")
+	}
+
+	forwardTo := receivers
+	return api.Arguments{
+		Server: &fnet.ServerConfig{
+			HTTP: &fnet.HTTPConfig{
+				ListenAddress:      config.HTTPListenAddress,
+				ListenPort:         config.HTTPListenPort,
+				ConnLimit:          config.HTTPConnLimit,
+				ServerReadTimeout:  config.HTTPServerReadTimeout,
+				ServerWriteTimeout: config.HTTPServerWriteTimeout,
+				ServerIdleTimeout:  config.HTTPServerIdleTimeout,
+			},
+			GRPC: &fnet.GRPCConfig{
+				ListenAddress:              config.GRPCListenAddress,
+				ListenPort:                 config.GRPCListenPort,
+				ConnLimit:                  config.GRPCConnLimit,
+				MaxConnectionAge:           config.GRPCServerMaxConnectionAge,
+				MaxConnectionAgeGrace:      config.GRPCServerMaxConnectionAgeGrace,
+				MaxConnectionIdle:          config.GRPCServerMaxConnectionIdle,
+				ServerMaxRecvMsg:           config.GPRCServerMaxRecvMsgSize,
+				ServerMaxSendMsg:           config.GRPCServerMaxSendMsgSize,
+				ServerMaxConcurrentStreams: config.GPRCServerMaxConcurrentStreams,
+			},
+			GracefulShutdownTimeout: config.ServerGracefulShutdownTimeout,
+		},
+		ForwardTo: forwardTo,
 	}
 }
 
