@@ -140,22 +140,16 @@ func appendScrapeConfig(
 	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
 
 	//TODO(thampiotr): support/warn about the following log producing promtail configs:
+	//PushConfig           *PushTargetConfig           `mapstructure:"loki_push_api,omitempty" yaml:"loki_push_api,omitempty"`
 	//SyslogConfig         *SyslogTargetConfig         `mapstructure:"syslog,omitempty" yaml:"syslog,omitempty"`
 	//GcplogConfig         *GcplogTargetConfig         `mapstructure:"gcplog,omitempty" yaml:"gcplog,omitempty"`
-	//PushConfig           *PushTargetConfig           `mapstructure:"loki_push_api,omitempty" yaml:"loki_push_api,omitempty"`
 	//WindowsConfig        *WindowsEventsTargetConfig  `mapstructure:"windows_events,omitempty" yaml:"windows_events,omitempty"`
 	//KafkaConfig          *KafkaTargetConfig          `mapstructure:"kafka,omitempty" yaml:"kafka,omitempty"`
 	//AzureEventHubsConfig *AzureEventHubsTargetConfig `mapstructure:"azure_event_hubs,omitempty" yaml:"azure_event_hubs,omitempty"`
 	//GelfConfig           *GelfTargetConfig           `mapstructure:"gelf,omitempty" yaml:"gelf,omitempty"`
 	//HerokuDrainConfig    *HerokuDrainTargetConfig    `mapstructure:"heroku_drain,omitempty" yaml:"heroku_drain,omitempty"`
 
-	//TODO(thampiotr): support/warn about the following SD configs:
-	// TODO: ==== undocumented SDs - if they exist in Flow, we support, if they don't we log warning ====
-	//// List of Azure service discovery configurations.
-	//AzureSDConfigs []*azure.SDConfig `mapstructure:"azure_sd_configs,omitempty" yaml:"azure_sd_configs,omitempty"`
-
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
-
 	b.Validate()
 
 	// Append all the SD components
