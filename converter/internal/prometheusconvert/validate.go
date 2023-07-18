@@ -91,7 +91,7 @@ func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagn
 			case prom_discover.StaticConfig:
 				newDiags = validateScrapeTargets(sdc)
 			case *prom_azure.SDConfig:
-				newDiags = validateDiscoveryAzure(sdc)
+				newDiags = ValidateDiscoveryAzure(sdc)
 			case *prom_consul.SDConfig:
 				newDiags = validateDiscoveryConsul(sdc)
 			case *prom_digitalocean.SDConfig:
