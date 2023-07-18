@@ -26,3 +26,24 @@ scrape_configs:
       - host: remote
         role: tasks
         port: 1234
+    serverset_sd_configs:
+      - servers:
+          - localhost
+        paths:
+          - /zk/sd/some/path
+    nerve_sd_configs:
+      - servers:
+          - localhost
+        paths:
+          - /zk/sd/some/path
+    marathon_sd_configs:
+      - servers: [localhost]
+    openstack_sd_configs:
+      - role: instance
+        domain_name: domain
+        region: region
+        port: 1234
+    triton_sd_configs:
+      - account: account
+        dns_suffix: .example.com
+        endpoint: triton.example.com

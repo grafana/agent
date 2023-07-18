@@ -151,24 +151,12 @@ func appendScrapeConfig(
 
 	//TODO(thampiotr): support/warn about the following SD configs:
 	// TODO: ==== undocumented SDs - if they exist in Flow, we support, if they don't we log warning ====
-	//// List of Docker Swarm service discovery configurations.
-	//DockerSwarmSDConfigs []*moby.DockerSwarmSDConfig `mapstructure:"dockerswarm_sd_configs,omitempty" yaml:"dockerswarm_sd_configs,omitempty"`
-	//// List of Serverset service discovery configurations.
-	//ServersetSDConfigs []*zookeeper.ServersetSDConfig `mapstructure:"serverset_sd_configs,omitempty" yaml:"serverset_sd_configs,omitempty"`
-	//// NerveSDConfigs is a list of Nerve service discovery configurations.
-	//NerveSDConfigs []*zookeeper.NerveSDConfig `mapstructure:"nerve_sd_configs,omitempty" yaml:"nerve_sd_configs,omitempty"`
-	//// MarathonSDConfigs is a list of Marathon service discovery configurations.
-	//MarathonSDConfigs []*marathon.SDConfig `mapstructure:"marathon_sd_configs,omitempty" yaml:"marathon_sd_configs,omitempty"`
 	//// List of GCE service discovery configurations.
 	//GCESDConfigs []*gce.SDConfig `mapstructure:"gce_sd_configs,omitempty" yaml:"gce_sd_configs,omitempty"`
 	//// List of EC2 service discovery configurations.
 	//EC2SDConfigs []*aws.EC2SDConfig `mapstructure:"ec2_sd_configs,omitempty" yaml:"ec2_sd_configs,omitempty"`
-	//// List of OpenStack service discovery configurations.
-	//OpenstackSDConfigs []*openstack.SDConfig `mapstructure:"openstack_sd_configs,omitempty" yaml:"openstack_sd_configs,omitempty"`
 	//// List of Azure service discovery configurations.
 	//AzureSDConfigs []*azure.SDConfig `mapstructure:"azure_sd_configs,omitempty" yaml:"azure_sd_configs,omitempty"`
-	//// List of Triton service discovery configurations.
-	//TritonSDConfigs []*triton.SDConfig `mapstructure:"triton_sd_configs,omitempty" yaml:"triton_sd_configs,omitempty"`
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
 

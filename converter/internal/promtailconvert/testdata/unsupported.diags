@@ -8,3 +8,8 @@
 (Error) DropRateLimitedBatches is currently not supported in Grafana Agent Flow.
 (Warning) stream_lag_labels is deprecated and the associated metric has been removed
 (Error) dockerswarm_sd_configs is not supported
+(Error) serverset_sd_configs is not supported
+(Error) nerve_sd_configs is not supported
+(Error) marathon_sd_configs is not supported
+(Error) openstack_sd_configs is not supported
+(Error) triton_sd_configs is not supported

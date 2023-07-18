@@ -51,6 +51,27 @@ func NewScrapeConfigBuilder(
 	}
 }
 
+func (s *ScrapeConfigBuilder) Validate() {
+	if len(s.cfg.ServiceDiscoveryConfig.DockerSwarmSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "dockerswarm_sd_configs is not supported")
+	}
+	if len(s.cfg.ServiceDiscoveryConfig.ServersetSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "serverset_sd_configs is not supported")
+	}
+	if len(s.cfg.ServiceDiscoveryConfig.NerveSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "nerve_sd_configs is not supported")
+	}
+	if len(s.cfg.ServiceDiscoveryConfig.MarathonSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "marathon_sd_configs is not supported")
+	}
+	if len(s.cfg.ServiceDiscoveryConfig.OpenstackSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "openstack_sd_configs is not supported")
+	}
+	if len(s.cfg.ServiceDiscoveryConfig.TritonSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "triton_sd_configs is not supported")
+	}
+}
+
 func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
 	// If there were no targets expressions collected, that means
 	// we didn't have any components that produced SD targets, so
@@ -200,12 +221,6 @@ func (s *ScrapeConfigBuilder) getAllTargetsJoinedExpr() string {
 		targetsExpr = fmt.Sprintf("concat(\n%s\n\t)", strings.Join(formatted, "\n"))
 	}
 	return targetsExpr
-}
-
-func (s *ScrapeConfigBuilder) Validate() {
-	if len(s.cfg.ServiceDiscoveryConfig.DockerSwarmSDConfigs) != 0 {
-		s.diags.Add(diag.SeverityLevelError, "dockerswarm_sd_configs is not supported")
-	}
 }
 
 func convertPromLabels(labels model.LabelSet) map[string]string {
