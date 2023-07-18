@@ -105,7 +105,7 @@ func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagn
 			case *prom_file.SDConfig:
 				newDiags = validateDiscoveryFile(sdc)
 			case *prom_gce.SDConfig:
-				newDiags = validateDiscoveryGce(sdc)
+				newDiags = ValidateDiscoveryGCE(sdc)
 			case *prom_kubernetes.SDConfig:
 				newDiags = validateDiscoveryKubernetes(sdc)
 			case *prom_aws.LightsailSDConfig:
