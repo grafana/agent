@@ -95,7 +95,7 @@ func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagn
 			case *prom_consul.SDConfig:
 				newDiags = validateDiscoveryConsul(sdc)
 			case *prom_digitalocean.SDConfig:
-				newDiags = validateDiscoveryDigitalOcean(sdc)
+				newDiags = ValidateDiscoveryDigitalOcean(sdc)
 			case *prom_dns.SDConfig:
 				newDiags = validateDiscoveryDns(sdc)
 			case *prom_docker.DockerSDConfig:

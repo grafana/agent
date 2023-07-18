@@ -202,6 +202,12 @@ func (s *ScrapeConfigBuilder) getAllTargetsJoinedExpr() string {
 	return targetsExpr
 }
 
+func (s *ScrapeConfigBuilder) Validate() {
+	if len(s.cfg.ServiceDiscoveryConfig.DockerSwarmSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "dockerswarm_sd_configs is not supported")
+	}
+}
+
 func convertPromLabels(labels model.LabelSet) map[string]string {
 	result := make(map[string]string)
 	for k, v := range labels {

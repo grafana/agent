@@ -7,3 +7,4 @@
 (Error) reading targets from stdin is not supported in Flow Mode configuration file
 (Error) DropRateLimitedBatches is currently not supported in Grafana Agent Flow.
 (Warning) stream_lag_labels is deprecated and the associated metric has been removed
+(Error) dockerswarm_sd_configs is not supported

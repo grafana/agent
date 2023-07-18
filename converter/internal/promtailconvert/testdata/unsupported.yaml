@@ -20,3 +20,9 @@ server:
   profiling_enabled: true
   register_instrumentation: true
   log_level: error
+scrape_configs:
+  - job_name: unsupported
+    dockerswarm_sd_configs:
+      - host: remote
+        role: tasks
+        port: 1234

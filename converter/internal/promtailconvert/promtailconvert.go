@@ -150,15 +150,7 @@ func appendScrapeConfig(
 	//HerokuDrainConfig    *HerokuDrainTargetConfig    `mapstructure:"heroku_drain,omitempty" yaml:"heroku_drain,omitempty"`
 
 	//TODO(thampiotr): support/warn about the following SD configs:
-	//// List of Consul service discovery configurations.
-	//ConsulSDConfigs []*consul.SDConfig `mapstructure:"consul_sd_configs,omitempty" yaml:"consul_sd_configs,omitempty"`
-	//// List of Consul agent service discovery configurations.
-	//ConsulAgentSDConfigs []*consulagent.SDConfig `mapstructure:"consulagent_sd_configs,omitempty" yaml:"consulagent_sd_configs,omitempty"`
-	//// List of Kubernetes service discovery configurations.
-	//KubernetesSDConfigs []*kubernetes.SDConfig `mapstructure:"kubernetes_sd_configs,omitempty" yaml:"kubernetes_sd_configs,omitempty"`
 	// TODO: ==== undocumented SDs - if they exist in Flow, we support, if they don't we log warning ====
-	//// List of DigitalOcean service discovery configurations.
-	//DigitalOceanSDConfigs []*digitalocean.SDConfig `mapstructure:"digitalocean_sd_configs,omitempty" yaml:"digitalocean_sd_configs,omitempty"`
 	//// List of Docker Swarm service discovery configurations.
 	//DockerSwarmSDConfigs []*moby.DockerSwarmSDConfig `mapstructure:"dockerswarm_sd_configs,omitempty" yaml:"dockerswarm_sd_configs,omitempty"`
 	//// List of Serverset service discovery configurations.
@@ -180,12 +172,16 @@ func appendScrapeConfig(
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
 
+	b.Validate()
+
 	// Append all the SD components
 	b.AppendKubernetesSDs()
 	b.AppendDockerSDs()
 	b.AppendStaticSDs()
 	b.AppendFileSDs()
 	b.AppendConsulSDs()
+	b.AppendConsulAgentSDs()
+	b.AppendDigitalOceanSDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.
