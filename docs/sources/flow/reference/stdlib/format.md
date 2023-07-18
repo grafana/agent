@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/format/
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/stdlib/format/
 title: format
 ---
 

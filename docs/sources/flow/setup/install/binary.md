@@ -1,10 +1,11 @@
 ---
-description: Learn how to install Grafana Agent in flow mode as a standalone binary
-title: Install Grafana Agent in flow mode as a standalone binary
-menuTitle: Standalone
-weight: 600
 aliases:
- - ../../install/binary/
+- ../../install/binary/
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/setup/install/binary/
+description: Learn how to install Grafana Agent in flow mode as a standalone binary
+menuTitle: Standalone
+title: Install Grafana Agent in flow mode as a standalone binary
+weight: 600
 ---
 
 # Install Grafana Agent in flow mode as a standalone binary

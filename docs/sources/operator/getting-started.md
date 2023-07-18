@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/operator/getting-started/
 title: Install the Operator
 weight: 110
 ---

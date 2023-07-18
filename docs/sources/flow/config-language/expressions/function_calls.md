@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/expressions/function-calls/
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/config-language/expressions/function_calls/
 title: Function calls
 weight: 400
 ---

@@ -1,7 +1,8 @@
 ---
-title: otelcol.​processor.tail_sampling
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/otelcol.processor.tail_sampling/
 labels:
   stage: beta
+title: otelcol.​processor.tail_sampling
 ---
 
 # otelcol.processor.tail_sampling

@@ -1,7 +1,8 @@
 ---
-title: prometheus.operator.podmonitors
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/prometheus.operator.podmonitors/
 labels:
   stage: beta
+title: prometheus.operator.podmonitors
 ---
 
 # prometheus.operator.podmonitors

@@ -1,8 +1,9 @@
 ---
+aliases:
+- ./about-agent/
+canonical: https://grafana.com/docs/grafana/agent/latest/about/
 title: About Grafana Agent
 weight: 100
-aliases:
-  - ./about-agent/
 ---
 
 # About Grafana Agent

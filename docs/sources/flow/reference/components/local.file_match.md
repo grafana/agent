@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/local.file_match/
 title: local.file_match
 ---
 

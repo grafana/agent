@@ -1,7 +1,8 @@
 ---
-title: module.git
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/module.git/
 labels:
   stage: beta
+title: module.git
 ---
 
 # module.git

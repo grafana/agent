@@ -1,10 +1,11 @@
 ---
-description: Learn how to deploy Grafana Agent in flow mode on Kubernetes
-title: Deploy Grafana Agent in flow mode on Kubernetes
-menuTitle: Kubernetes
-weight: 200
 aliases:
- - ../../install/kubernetes/
+- ../../install/kubernetes/
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/setup/install/kubernetes/
+description: Learn how to deploy Grafana Agent in flow mode on Kubernetes
+menuTitle: Kubernetes
+title: Deploy Grafana Agent in flow mode on Kubernetes
+weight: 200
 ---
 
 # Deploy Grafana Agent in flow mode on Kubernetes

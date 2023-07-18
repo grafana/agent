@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/discovery.file/
 title: discovery.file
 ---
 

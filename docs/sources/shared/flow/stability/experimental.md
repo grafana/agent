@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/shared/flow/stability/experimental/
+canonical: https://grafana.com/docs/grafana/agent/latest/shared/flow/stability/experimental/
 headless: true
 ---
 

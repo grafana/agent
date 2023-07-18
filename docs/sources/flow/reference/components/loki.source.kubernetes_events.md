@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/loki.source.kubernetes_events/
 title: loki.source.kubernetes_events
 ---
 

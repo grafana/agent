@@ -1,7 +1,8 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/setup/configure/
 description: Configure Grafana Agent in flow mode after it is installed
-title: Configure Grafana Agent in flow mode
 menuTitle: Configure flow mode
+title: Configure Grafana Agent in flow mode
 weight: 150
 ---
 

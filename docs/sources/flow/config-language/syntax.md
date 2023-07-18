@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../configuration-language/syntax/
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/config-language/syntax/
 title: Syntax
 weight: 200
 ---

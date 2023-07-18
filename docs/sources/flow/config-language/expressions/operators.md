@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/expressions/operators/
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/config-language/expressions/operators/
 title: Operators
 weight: 300
 ---

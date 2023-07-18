@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/static/
 title: Static mode
 weight: 200
 ---

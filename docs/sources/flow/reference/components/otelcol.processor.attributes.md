@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/otelcol.processor.attributes/
 title: otelcol.processor.attributes
 ---
 
