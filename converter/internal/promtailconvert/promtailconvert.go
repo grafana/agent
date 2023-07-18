@@ -150,8 +150,6 @@ func appendScrapeConfig(
 	//HerokuDrainConfig    *HerokuDrainTargetConfig    `mapstructure:"heroku_drain,omitempty" yaml:"heroku_drain,omitempty"`
 
 	//TODO(thampiotr): support/warn about the following SD configs:
-	//// List of labeled target groups for this job.
-	//StaticConfigs discovery.StaticConfig `mapstructure:"static_configs" yaml:"static_configs"`
 	//// List of file service discovery configurations.
 	//FileSDConfigs []*file.SDConfig `mapstructure:"file_sd_configs,omitempty" yaml:"file_sd_configs,omitempty"`
 	//// List of Consul service discovery configurations.
@@ -188,6 +186,7 @@ func appendScrapeConfig(
 	b.AppendKubernetesSDs()
 	b.AppendDockerSDs()
 	b.AppendStaticSDs()
+	b.AppendFileSDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.
