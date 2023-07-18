@@ -10,25 +10,20 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Features
+### Enhancements
 
-- Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
+- Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
 
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics (@tburgessdev)
 
-### Bugfixes
-
-- Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
-  period specified by the polling frquency elapsed. (@rfratto)
-
-v0.35.0-rc.0 (2023-07-13)
--------------------------
+v0.35.0 (2023-07-18)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
-
+ 
 ### Breaking changes
 
 - The algorithm for the "hash" action of `otelcol.processor.attributes` has changed.
@@ -184,6 +179,10 @@ v0.35.0-rc.0 (2023-07-13)
 - Added support for custom `length` time setting in Cloudwatch component and integration. (@thepalbi)
 
 ### Bugfixes
+
+- Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
+  period specified by the polling frquency elapsed. (@rfratto)
+
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)

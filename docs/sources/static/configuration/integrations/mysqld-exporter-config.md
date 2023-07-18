@@ -1,7 +1,8 @@
 ---
-title: mysqld_exporter_config
 aliases:
 - ../../../configuration/integrations/mysqld-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/mysqld-exporter-config/
+title: mysqld_exporter_config
 ---
 
 # mysqld_exporter_config

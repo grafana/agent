@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../concepts/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/
 title: Concepts
 weight: 100
 ---

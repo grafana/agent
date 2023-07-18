@@ -1,7 +1,8 @@
 ---
-title: otelcol.exporter.loadbalancing
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.loadbalancing/
 labels:
   stage: beta
+title: otelcol.exporter.loadbalancing
 ---
 
 # otelcol.exporter.loadbalancing
