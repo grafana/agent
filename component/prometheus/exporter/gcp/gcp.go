@@ -24,22 +24,14 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 }
 
 type Arguments struct {
-	// Google Cloud project ID from where we want to scrape metrics from
-	ProjectIDs []string `river:"project_ids,attr"`
-	// Comma separated Google Monitoring Metric Type prefixes.
-	MetricPrefixes []string `river:"metrics_prefixes,attr"`
-	// Filters. i.e: pubsub.googleapis.com/subscription:resource.labels.subscription_id=monitoring.regex.full_match("my-subs-prefix.*")
-	ExtraFilters []string `river:"extra_filters,attr,optional"`
-	// Interval to request the Google Monitoring Metrics for. Only the most recent data point is used.
-	RequestInterval time.Duration `river:"request_interval,attr,optional"`
-	// Offset for the Google Stackdriver Monitoring Metrics interval into the past.
-	RequestOffset time.Duration `river:"request_offset,attr,optional"`
-	// Offset for the Google Stackdriver Monitoring Metrics interval into the past by the ingest delay from the metric's metadata.
-	IngestDelay bool `river:"ingest_delay,attr,optional"`
-	// Drop metrics from attached projects and fetch `project_id` only.
-	DropDelegatedProjects bool `river:"drop_delegated_projects,attr,optional"`
-	// How long should the collector wait for a result from the API.
-	ClientTimeout time.Duration `river:"gcp_client_timeout,attr,optional"`
+	ProjectIDs            []string      `river:"project_ids,attr"`
+	MetricPrefixes        []string      `river:"metrics_prefixes,attr"`
+	ExtraFilters          []string      `river:"extra_filters,attr,optional"`
+	RequestInterval       time.Duration `river:"request_interval,attr,optional"`
+	RequestOffset         time.Duration `river:"request_offset,attr,optional"`
+	IngestDelay           bool          `river:"ingest_delay,attr,optional"`
+	DropDelegatedProjects bool          `river:"drop_delegated_projects,attr,optional"`
+	ClientTimeout         time.Duration `river:"gcp_client_timeout,attr,optional"`
 }
 
 var DefaultArguments = Arguments{

@@ -14,6 +14,10 @@ Main (unreleased)
 
 - Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
 
+- New Grafana Agent Flow components:
+
+  - `prometheus.exporter.gcp` - scrape GCP metrics (@tburgessdev)
+
 ### Bugfixes
 
 - Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
@@ -107,7 +111,6 @@ v0.35.0-rc.0 (2023-07-13)
     components and modifies attributes of a span, log, or metric. (@ptodev)
   - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
   - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
-  - `prometheus.exporter.gcp` - scrape GCP metrics (@tburgessdev)
   - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
   - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
   - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
