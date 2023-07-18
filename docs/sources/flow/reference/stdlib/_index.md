@@ -1,6 +1,7 @@
 ---
 aliases:
 - standard-library/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/
 title: Standard library
 weight: 400
 ---

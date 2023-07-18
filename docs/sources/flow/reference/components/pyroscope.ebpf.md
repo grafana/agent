@@ -1,7 +1,8 @@
 ---
-title: pyroscope.ebpf
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.ebpf/
 labels:
   stage: beta
+title: pyroscope.ebpf
 ---
 
 # pyroscope.ebpf

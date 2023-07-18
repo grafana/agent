@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../concepts/component-controller/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/component_controller/
 title: Component controller
 weight: 200
 ---

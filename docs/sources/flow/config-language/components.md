@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../configuration-language/components/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/components/
 title: Components
 weight: 300
 ---
