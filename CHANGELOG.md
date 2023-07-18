@@ -7,27 +7,13 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.35.0-rc.1 (2023-07-17)
--------------------------
-
-### Features
-
-- Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
-
-
-### Bugfixes
-
-- Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
-  period specified by the polling frequency elapsed. (@rfratto)
-
-
-v0.35.0-rc.0 (2023-07-13)
--------------------------
+v0.35.0 (2023-07-18)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
-
-### Breaking changes 
+ 
+### Breaking changes
 
 - The algorithm for the "hash" action of `otelcol.processor.attributes` has changed.
   The change was made in PR [#22831](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22831) of opentelemetry-collector-contrib. (@ptodev)
@@ -98,7 +84,7 @@ v0.35.0-rc.0 (2023-07-13)
 
 - Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
 
-- Add boringcrypto builds and docker images for Linux arm64 and x64.  (@mattdurham)
+- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
 
 - New Grafana Agent Flow components:
 
@@ -182,6 +168,10 @@ v0.35.0-rc.0 (2023-07-13)
 - Added support for custom `length` time setting in Cloudwatch component and integration. (@thepalbi)
 
 ### Bugfixes
+
+- Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
+  period specified by the polling frquency elapsed. (@rfratto)
+
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)

@@ -33,7 +33,7 @@ To run a Grafana Agent Docker container on Linux, run the following command in a
 docker run \
   -v WAL_DATA_DIRECTORY:/etc/agent/data \
   -v CONFIG_FILE_PATH:/etc/agent/agent.yaml \
-  grafana/agent:v0.35.0-rc.1
+  grafana/agent:v0.35.0
 ```
 
 Replace `CONFIG_FILE_PATH` with the configuration file path on your Linux host system.
@@ -50,7 +50,7 @@ To run a Grafana Agent Docker container on Windows, run the following command in
 docker run ^
   -v WAL_DATA_DIRECTORY:C:\etc\grafana-agent\data ^
   -v CONFIG_FILE_PATH:C:\etc\grafana-agent ^
-  grafana/agent:v0.35.0-rc.1-windows
+  grafana/agent:v0.35.0-windows
 ```
 
 Replace the following:
