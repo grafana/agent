@@ -151,10 +151,6 @@ func appendScrapeConfig(
 
 	//TODO(thampiotr): support/warn about the following SD configs:
 	// TODO: ==== undocumented SDs - if they exist in Flow, we support, if they don't we log warning ====
-	//// List of GCE service discovery configurations.
-	//GCESDConfigs []*gce.SDConfig `mapstructure:"gce_sd_configs,omitempty" yaml:"gce_sd_configs,omitempty"`
-	//// List of EC2 service discovery configurations.
-	//EC2SDConfigs []*aws.EC2SDConfig `mapstructure:"ec2_sd_configs,omitempty" yaml:"ec2_sd_configs,omitempty"`
 	//// List of Azure service discovery configurations.
 	//AzureSDConfigs []*azure.SDConfig `mapstructure:"azure_sd_configs,omitempty" yaml:"azure_sd_configs,omitempty"`
 
@@ -171,6 +167,7 @@ func appendScrapeConfig(
 	b.AppendConsulAgentSDs()
 	b.AppendDigitalOceanSDs()
 	b.AppendGCESDs()
+	b.AppendEC2SDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.
