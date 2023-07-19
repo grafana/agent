@@ -60,7 +60,7 @@ func TestDirectory(t *testing.T, folderPath string, sourceSuffix string, convert
 				expectedDiags := getExpectedDiags(t, diagsFile)
 				validateDiags(t, expectedDiags, actualDiags)
 
-				expectedRiver := getExpectedRiver(t, path, riverFile)
+				expectedRiver := getExpectedRiver(t, riverFile)
 				validateRiver(t, expectedRiver, actualRiver)
 			})
 		}
@@ -124,7 +124,7 @@ func normalizeLineEndings(data []byte) []byte {
 }
 
 // getExpectedRiver reads the expected river output file and retrieve its contents.
-func getExpectedRiver(t *testing.T, path string, filePath string) []byte {
+func getExpectedRiver(t *testing.T, filePath string) []byte {
 	if _, err := os.Stat(filePath); err == nil {
 		outputBytes, err := os.ReadFile(filePath)
 		require.NoError(t, err)
