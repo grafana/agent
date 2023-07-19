@@ -299,7 +299,7 @@ selectors][] to learn more about the possible filters that can be used.
 > instead.
 
 [Field selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
-[Labels and selectros]: https://Kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+[Labels and selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
 
 ### attach_metadata block
