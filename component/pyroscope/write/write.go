@@ -290,7 +290,7 @@ func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []
 	for name, value := range f.config.ExternalLabels {
 		lbsBuilder.Set(name, value)
 	}
-	for _, l := range lbsBuilder.Labels(lbs) {
+	for _, l := range lbsBuilder.Labels() {
 		protoLabels = append(protoLabels, &typesv1.LabelPair{
 			Name:  l.Name,
 			Value: l.Value,
