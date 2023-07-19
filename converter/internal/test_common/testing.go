@@ -45,21 +45,23 @@ func TestDirectory(t *testing.T, folderPath string, sourceSuffix string, convert
 		if strings.HasSuffix(path, sourceSuffix) {
 			tc := getTestCaseName(path, sourceSuffix)
 			t.Run(tc, func(t *testing.T) {
+				riverFile := strings.TrimSuffix(path, sourceSuffix) + flowSuffix
+				diagsFile := strings.TrimSuffix(path, sourceSuffix) + diagsSuffix
+				if !fileExists(riverFile) && !fileExists(diagsFile) {
+					t.Fatalf("no expected diags or river for %s - missing test expectations?", path)
+				}
+
 				actualRiver, actualDiags := convert(getSourceContents(t, path))
 
 				// Skip Info level diags for this testing. These would create
 				// a lot of unnecessary noise.
 				actualDiags.RemoveDiagsBySeverity(diag.SeverityLevelInfo)
 
-				expectedDiags := getExpectedDiags(t, strings.TrimSuffix(path, sourceSuffix)+diagsSuffix)
+				expectedDiags := getExpectedDiags(t, diagsFile)
 				validateDiags(t, expectedDiags, actualDiags)
 
-				expectedRiver := getExpectedRiver(t, path, sourceSuffix)
+				expectedRiver := getExpectedRiver(t, path, riverFile)
 				validateRiver(t, expectedRiver, actualRiver)
-
-				if len(expectedDiags) == 0 && len(expectedRiver) == 0 {
-					t.Fatalf("no expected diags or river for %s - missing test expectations?", path)
-				}
 			})
 		}
 
@@ -122,15 +124,19 @@ func normalizeLineEndings(data []byte) []byte {
 }
 
 // getExpectedRiver reads the expected river output file and retrieve its contents.
-func getExpectedRiver(t *testing.T, path string, sourceSuffix string) []byte {
-	outputFile := strings.TrimSuffix(path, sourceSuffix) + flowSuffix
-	if _, err := os.Stat(outputFile); err == nil {
-		outputBytes, err := os.ReadFile(outputFile)
+func getExpectedRiver(t *testing.T, path string, filePath string) []byte {
+	if _, err := os.Stat(filePath); err == nil {
+		outputBytes, err := os.ReadFile(filePath)
 		require.NoError(t, err)
 		return normalizeLineEndings(outputBytes)
 	}
 
 	return nil
+}
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }
 
 // validateRiver makes sure the expected river and actual river are a match

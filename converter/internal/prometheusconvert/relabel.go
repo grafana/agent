@@ -49,7 +49,7 @@ func appendDiscoveryRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel
 	pb.discoveryRelabelBlocks = append(pb.discoveryRelabelBlocks, newPrometheusBlock(block, name, label, "", ""))
 
 	return &disc_relabel.Exports{
-		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.targets", label)),
+		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.output", label)),
 	}
 }
 
