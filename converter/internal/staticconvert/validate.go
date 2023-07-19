@@ -81,7 +81,9 @@ func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diag
 func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// TODO
+	if len(integrationsConfig.EnabledIntegrations()) > 0 {
+		diags.Add(diag.SeverityLevelError, "unsupported integrations config was provided.")
+	}
 
 	return diags
 }

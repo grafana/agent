@@ -11,7 +11,6 @@ metrics:
   global:
     remote_write:
     - url: https://prometheus-us-central1.grafana.net/api/prom/push
- 
   configs:
     - name: agent
       scrape_configs:
@@ -19,11 +18,9 @@ metrics:
           static_configs:
             - targets: ['localhost:9099']
 
-# integrations:
-#   node_exporter:
-#     rootfs_path: /host/root
-#     sysfs_path: /host/sys
-#     procfs_path: /host/proc
+integrations:
+  agent:
+    enabled: true
 
 traces:
   configs:

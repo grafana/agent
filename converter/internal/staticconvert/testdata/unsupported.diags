@@ -3,6 +3,7 @@
 (Error) unsupported grpc_tls_config server config was provided.
 (Error) unsupported http_tls_config server config was provided.
 (Error) unsupported wal_directory metrics config was provided. use the run command flag --storage.path for Flow mode instead.
+(Error) unsupported integrations config was provided.
 (Error) unsupported traces config was provided.
 (Error) unsupported positions_directory logs config was provided.
 (Error) unsupported global logs config was provided.

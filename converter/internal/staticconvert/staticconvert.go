@@ -2,6 +2,7 @@ package staticconvert
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 
 	"github.com/grafana/agent/converter/diag"
@@ -10,42 +11,26 @@ import (
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
+
+	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations
 )
 
 // Convert implements a Static config converter.
 func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	var staticConfig config.Config
-	// fs := flag.NewFlagSet("test", flag.ExitOnError)
-	// featRemoteConfigs := features.Feature("remote-configs")
-	// featIntegrationsNext := features.Feature("integrations-next")
-	// featExtraMetrics := features.Feature("extra-scrape-metrics")
-	// featAgentManagement := features.Feature("agent-management")
+	fs := flag.NewFlagSet("convert", flag.ExitOnError)
+	staticConfig, err := config.LoadFromFunc(fs, []string{"-config.file", "convert"}, func(_, _ string, _ bool, c *config.Config) error {
+		return config.LoadBytes([]byte(in), false, c)
+	})
 
-	// allFeatures := []features.Feature{
-	// 	featRemoteConfigs,
-	// 	featIntegrationsNext,
-	// 	featExtraMetrics,
-	// 	featAgentManagement,
-	// }
-
-	// features.Register(fs, allFeatures)
-	// staticConfig.RegisterFlags(fs)
-
-	err := config.LoadBytes(in, false, &staticConfig)
 	if err != nil {
 		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to parse Static config: %s", err))
 		return nil, diags
 	}
 
-	if err = staticConfig.Validate(nil); err != nil {
-		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to validate Static config: %s", err))
-		return nil, diags
-	}
-
 	f := builder.NewFile()
-	diags = AppendAll(f, &staticConfig)
+	diags = AppendAll(f, staticConfig)
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
