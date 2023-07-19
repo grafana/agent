@@ -13,7 +13,7 @@ Main (unreleased)
 ### Enhancements
 
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
-- Update jsonnet libraries to use the `v1` CronJob API instead of the `v1beta1` that is removed from Kubernetes 1.25. The `v1` CronJob has been around since Kubernetes 1.21, making it a safe change breakage-wise.
+
 
 v0.35.0-rc.1 (2023-07-17)
 -------------------------
