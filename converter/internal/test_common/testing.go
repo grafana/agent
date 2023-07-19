@@ -3,15 +3,16 @@ package test_common
 import (
 	"bytes"
 	"fmt"
-	"github.com/grafana/agent/pkg/cluster"
-	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/flow/logging"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/pkg/flow"
+	"github.com/grafana/agent/pkg/flow/logging"
 
 	"github.com/grafana/agent/converter/diag"
 	"github.com/stretchr/testify/require"

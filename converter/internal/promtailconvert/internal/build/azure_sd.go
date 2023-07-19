@@ -2,6 +2,7 @@ package build
 
 import (
 	"fmt"
+
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 )

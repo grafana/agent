@@ -132,12 +132,10 @@ func appendScrapeConfig(
 	gctx *build.GlobalContext,
 ) {
 	//TODO(thampiotr): need to support/warn about the following fields:
-	//JobName              string                      `mapstructure:"job_name,omitempty" yaml:"job_name,omitempty"`
 	//Encoding               string                 `mapstructure:"encoding,omitempty" yaml:"encoding,omitempty"`
 	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
 
 	//TODO(thampiotr): support/warn about the following log producing promtail configs:
-	//PushConfig           *PushTargetConfig           `mapstructure:"loki_push_api,omitempty" yaml:"loki_push_api,omitempty"`
 	//SyslogConfig         *SyslogTargetConfig         `mapstructure:"syslog,omitempty" yaml:"syslog,omitempty"`
 	//GcplogConfig         *GcplogTargetConfig         `mapstructure:"gcplog,omitempty" yaml:"gcplog,omitempty"`
 	//WindowsConfig        *WindowsEventsTargetConfig  `mapstructure:"windows_events,omitempty" yaml:"windows_events,omitempty"`
@@ -170,7 +168,6 @@ func appendScrapeConfig(
 	// Append all the components that produce logs directly.
 	// If any relabelling is required, it will be done via a loki.relabel component.
 	// The logs are sent to loki.process if processing is needed, or directly to loki.write components.
-	//TODO(thampiotr): add support for other integrations
 	b.AppendCloudFlareConfig()
 	b.AppendJournalConfig()
 	b.AppendPushAPI()
