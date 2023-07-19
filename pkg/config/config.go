@@ -428,7 +428,7 @@ func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path str
 	return nil
 }
 
-// LoadFromFunc allows us to inject a function for retrieving the config file that
+// LoadFromFunc injects a function for retrieving the config file that
 // doesn't require having a literal file on disk.
 func LoadFromFunc(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	var (
