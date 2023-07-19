@@ -55,6 +55,10 @@ func TestDirectory(t *testing.T, folderPath string, sourceSuffix string, convert
 
 				expectedRiver := getExpectedRiver(t, path, sourceSuffix)
 				validateRiver(t, expectedRiver, actualRiver)
+
+				if len(expectedDiags) == 0 && len(expectedRiver) == 0 {
+					t.Fatalf("no expected diags or river for %s - missing test expectations?", path)
+				}
 			})
 		}
 
@@ -99,6 +103,7 @@ func validateDiags(t *testing.T, expectedDiags []string, actualDiags diag.Diagno
 		if len(expectedDiags) > ix {
 			require.Equal(t, expectedDiags[ix], diag.String())
 		} else {
+			fmt.Printf("=== EXTRA DIAGS FOUND ===\n%s\n===========================\n", actualDiags[ix:])
 			require.Fail(t, "unexpected diag count reach for diag: "+diag.String())
 		}
 	}
@@ -138,15 +143,15 @@ func validateRiver(t *testing.T, expectedRiver []byte, actualRiver []byte) {
 
 		require.Equal(t, string(expectedRiver), string(normalizeLineEndings(actualRiver)))
 
-		cfg, err := flow.ReadFile(t.Name(), actualRiver)
-		require.NoError(t, err, "the output River config failed to parse")
-
-		attemptLoadingFlowConfig(t, cfg)
+		attemptLoadingFlowConfig(t, actualRiver)
 	}
 }
 
 // attemptLoadingFlowConfig will attempt to load the Flow config and report any errors.
-func attemptLoadingFlowConfig(t *testing.T, cfg *flow.File) {
+func attemptLoadingFlowConfig(t *testing.T, river []byte) {
+	cfg, err := flow.ReadFile(t.Name(), river)
+	require.NoError(t, err, "the output River config failed to parse: %s", string(normalizeLineEndings(river)))
+
 	logger, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 	f := flow.New(flow.Options{
@@ -162,5 +167,5 @@ func attemptLoadingFlowConfig(t *testing.T, cfg *flow.File) {
 		t.Log("ignoring error: " + err.Error())
 		return
 	}
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to load the River config: %s", string(normalizeLineEndings(river)))
 }
