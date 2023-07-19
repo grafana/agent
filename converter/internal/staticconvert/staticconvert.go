@@ -21,7 +21,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	fs := flag.NewFlagSet("convert", flag.ExitOnError)
 	staticConfig, err := config.LoadFromFunc(fs, []string{"-config.file", "convert"}, func(_, _ string, _ bool, c *config.Config) error {
-		return config.LoadBytes([]byte(in), false, c)
+		return config.LoadBytes(in, false, c)
 	})
 
 	if err != nil {
