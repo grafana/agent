@@ -96,7 +96,7 @@ prometheus.relabel "agent_promobee" {
 
 prometheus.remote_write "agent" {
 	endpoint {
-		name = "agent-46bff8"
+		name = "agent-e71e8f"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
 		basic_auth {
@@ -105,15 +105,11 @@ prometheus.remote_write "agent" {
 		}
 
 		queue_config {
-			capacity             = 2500
-			max_shards           = 10
-			max_samples_per_send = 500
-			batch_send_deadline  = "3m0s"
-			max_backoff          = "10s"
+			max_shards          = 10
+			batch_send_deadline = "3m0s"
+			max_backoff         = "10s"
 		}
 
-		metadata_config {
-			max_samples_per_send = 500
-		}
+		metadata_config { }
 	}
 }

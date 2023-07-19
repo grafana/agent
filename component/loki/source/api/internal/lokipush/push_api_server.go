@@ -166,7 +166,7 @@ func (s *PushAPIServer) handleLoki(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Apply relabeling
-		processed, keep := relabel.Process(lb.Labels(nil), relabelRules...)
+		processed, keep := relabel.Process(lb.Labels(), relabelRules...)
 		if !keep || len(processed) == 0 {
 			w.WriteHeader(http.StatusNoContent)
 			return
