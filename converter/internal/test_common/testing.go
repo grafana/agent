@@ -10,11 +10,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
-
-	"github.com/grafana/agent/converter/diag"
 	"github.com/stretchr/testify/require"
 )
 
@@ -162,9 +161,10 @@ func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 	logger, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 	f := flow.New(flow.Options{
-		Logger:    logger,
-		Clusterer: &cluster.Clusterer{Node: cluster.NewLocalNode("")},
-		DataPath:  t.TempDir(),
+		Logger:         logger,
+		Clusterer:      &cluster.Clusterer{Node: cluster.NewLocalNode("")},
+		DataPath:       t.TempDir(),
+		HTTPListenAddr: ":0",
 	})
 	err = f.LoadFile(cfg, nil)
 
