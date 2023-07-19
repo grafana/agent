@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/static/configuration/agent-management/
 title: Agent Management
 weight: 700
 ---
