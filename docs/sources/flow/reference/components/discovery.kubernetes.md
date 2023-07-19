@@ -290,6 +290,10 @@ Name | Type | Description | Default | Required
 See Kubernetes' documentation for [Field selectors][] and [Labels and
 selectors][] to learn more about the possible filters that can be used.
 
+The endpoints role supports pod, service and endpoints selectors.
+The pod role supports node selectors when configured with `attach_metadata: {node: true}`.
+Other roles only support selectors matching the role itself (e.g. node role can only contain node selectors).
+
 > **Note**: Using multiple `discovery.kubernetes` components with different
 > selectors may result in a bigger load against the Kubernetes API.
 >
