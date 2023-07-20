@@ -58,10 +58,12 @@ prometheus.remote_write "default" {
 }
 ```
 
-## Online configurator
+## Grafana Agent configuration generator
 
-Check out the [Grafana Agent Configuration Generator](https://grafana.github.io/agent-configurator/) to get a head start on creating
-flow code. Note that this is experimental and not all components are supported.
+The [Grafana Agent configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
+{{% admonition type="note" %}}
+This feature is experimental, and it does not support all River components.
+{{% /admonition %}}
 
 ## Next steps
 
