@@ -56,6 +56,7 @@ integrations:
     rootfs_path: /host/root
     sysfs_path: /host/sys
     procfs_path: /host/proc
+    udev_data_path: /host/root/run/udev/data
 ```
 
 For running on Kubernetes, ensure to set the equivalent mounts and capabilities
@@ -265,6 +266,10 @@ the Agent is running on is a no-op.
   # machine should be mounted and this value should be changed to the mount
   # directory.
   [rootfs_path: <string> | default = "/"]
+
+  # udev data path needed for diskstats from Node exporter. When running
+  # in Kubernetes it should be set to /host/root/run/udev/data.
+  [udev_data_path: <string> | default = "/run/udev/data"]
 
   # Expose expensive bcache priority stats.
   [enable_bcache_priority_stats: <boolean>]

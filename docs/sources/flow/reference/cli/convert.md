@@ -56,14 +56,14 @@ where an output can still be generated. These can be bypassed using the
 ### Prometheus
 
 Using the `--source-format=prometheus` will convert the source config from
-[Prometheus v2.42](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/)
+[Prometheus v2.45](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/)
 to Grafana Agent Flow config.
 
 This includes Prometheus features such as
-[scrape_config](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#scrape_config), 
-[relabel_config](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#relabel_config),
-[metric_relabel_configs](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#metric_relabel_configs),
-[remote_write](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#remote_write),
+[scrape_config](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config), 
+[relabel_config](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#relabel_config),
+[metric_relabel_configs](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#metric_relabel_configs),
+[remote_write](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write),
 and many supported *_sd_configs. Unsupported features in a source config result
 in [errors].
 

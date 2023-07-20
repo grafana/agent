@@ -20,6 +20,8 @@ Unreleased
 
 - Set securityContext for configReloader container. (@yanehi)
 
+- Set securityContext at podlevel. (@yanehi)
+
 0.16.0 (2023-06-20)
 -------------------
 
