@@ -1,0 +1,4 @@
+(Error) global/file_watch_config is not supported
+(Error) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
+(Error) limits_config is not yet supported in Flow Mode
+(Warning) server.log_level is not supported - Flow mode components may produce different logs
