@@ -58,6 +58,11 @@ prometheus.remote_write "default" {
 }
 ```
 
+## Online configurator
+
+Check out the [Grafana Agent Configuration Generator](https://grafana.github.io/agent-configurator/) to get a head start on creating
+flow code. Note that this is experimental and not all components are supported.
+
 ## Next steps
 
 * [Install][] Grafana Agent in flow mode.
