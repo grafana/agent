@@ -8,17 +8,11 @@ prometheus.scrape "agent_prometheus" {
 
 prometheus.remote_write "agent" {
 	endpoint {
-		name = "agent-28ce50"
+		name = "agent-72cf3f"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
-		queue_config {
-			capacity             = 2500
-			max_shards           = 200
-			max_samples_per_send = 500
-		}
+		queue_config { }
 
-		metadata_config {
-			max_samples_per_send = 500
-		}
+		metadata_config { }
 	}
 }
