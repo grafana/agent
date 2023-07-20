@@ -1,0 +1,41 @@
+clients:
+  - url: http://localhost/loki/api/v1/push
+scrape_configs:
+  - job_name: example
+    pipeline_stages:
+      - json:
+          expressions:
+            face: smiley
+            hand: thumbs-up
+          source: video
+          drop_malformed: true
+    relabel_configs:
+      - source_labels:
+          - __trail__
+        target_label: __path__
+      - source_labels:
+          - __name__
+        action: drop
+    static_configs:
+      - targets:
+          - this
+          - is
+          - not
+          - used
+        labels:
+          __path__: /var/log/captain_scott_last_expedition.log
+          __path__exclude__: /var/log/sensational_news.log
+          category: fun
+      - labels:
+          __path__: /shelf/books/star_trek*
+          __path__exclude__: /shelf/books/star_wars*
+          category: sf
+          quality: high
+      - labels: {}
+    # Include k8s config to demonstrate how other discovery features differ from static_configs
+    kubernetes_sd_configs:
+      - role: pod
+        kubeconfig_file: /home/toby/.kube/config
+
+tracing: {enabled: false}
+server: {register_instrumentation: false}

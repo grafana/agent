@@ -5,22 +5,17 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/common/loki"
-	lokiwrite "github.com/grafana/agent/component/loki/write"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/converter/internal/promtailconvert/internal/build"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/dskit/flagext"
-	"github.com/grafana/loki/clients/pkg/promtail/client"
 	promtailcfg "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	lokicfgutil "github.com/grafana/loki/pkg/util/cfg"
-	lokiflag "github.com/grafana/loki/pkg/util/flagext"
 	"gopkg.in/yaml.v2"
 )
 
@@ -93,7 +88,7 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics)
 	// Each client config needs to be a separate remote_write,
 	// because they may have different ExternalLabels fields.
 	for i, cc := range cfg.ClientConfigs {
-		writeBlocks[i], writeReceivers[i] = newLokiWrite(&cc, &diags, i)
+		writeBlocks[i], writeReceivers[i] = build.NewLokiWrite(&cc, &diags, i)
 	}
 
 	gc := &build.GlobalContext{
@@ -131,12 +126,33 @@ func appendScrapeConfig(
 	diags *diag.Diagnostics,
 	gctx *build.GlobalContext,
 ) {
+	//TODO(thampiotr): need to support/warn about the following fields:
+	//Encoding               string                 `mapstructure:"encoding,omitempty" yaml:"encoding,omitempty"`
+	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
+
+	//TODO(thampiotr): support/warn about the following log producing promtail configs:
+	//SyslogConfig         *SyslogTargetConfig         `mapstructure:"syslog,omitempty" yaml:"syslog,omitempty"`
+	//GcplogConfig         *GcplogTargetConfig         `mapstructure:"gcplog,omitempty" yaml:"gcplog,omitempty"`
+	//WindowsConfig        *WindowsEventsTargetConfig  `mapstructure:"windows_events,omitempty" yaml:"windows_events,omitempty"`
+	//KafkaConfig          *KafkaTargetConfig          `mapstructure:"kafka,omitempty" yaml:"kafka,omitempty"`
+	//AzureEventHubsConfig *AzureEventHubsTargetConfig `mapstructure:"azure_event_hubs,omitempty" yaml:"azure_event_hubs,omitempty"`
+	//GelfConfig           *GelfTargetConfig           `mapstructure:"gelf,omitempty" yaml:"gelf,omitempty"`
+	//HerokuDrainConfig    *HerokuDrainTargetConfig    `mapstructure:"heroku_drain,omitempty" yaml:"heroku_drain,omitempty"`
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
+	b.Validate()
 
 	// Append all the SD components
 	b.AppendKubernetesSDs()
-	//TODO(thampiotr): add support for other SDs
+	b.AppendDockerSDs()
+	b.AppendStaticSDs()
+	b.AppendFileSDs()
+	b.AppendConsulSDs()
+	b.AppendConsulAgentSDs()
+	b.AppendDigitalOceanSDs()
+	b.AppendGCESDs()
+	b.AppendEC2SDs()
+	b.AppendAzureSDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.
@@ -147,69 +163,7 @@ func appendScrapeConfig(
 	// Append all the components that produce logs directly.
 	// If any relabelling is required, it will be done via a loki.relabel component.
 	// The logs are sent to loki.process if processing is needed, or directly to loki.write components.
-	//TODO(thampiotr): add support for other integrations
 	b.AppendCloudFlareConfig()
 	b.AppendJournalConfig()
-}
-
-func newLokiWrite(client *client.Config, diags *diag.Diagnostics, index int) (*builder.Block, loki.LogsReceiver) {
-	label := fmt.Sprintf("default_%d", index)
-	lokiWriteArgs := toLokiWriteArguments(client, diags)
-	block := common.NewBlockWithOverride([]string{"loki", "write"}, label, lokiWriteArgs)
-	return block, common.ConvertLogsReceiver{
-		Expr: fmt.Sprintf("loki.write.%s.receiver", label),
-	}
-}
-
-func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiwrite.Arguments {
-	batchSize, err := units.ParseBase2Bytes(fmt.Sprintf("%dB", config.BatchSize))
-	if err != nil {
-		diags.Add(
-			diag.SeverityLevelError,
-			fmt.Sprintf("failed to parse BatchSize for client config %s: %s", config.Name, err.Error()),
-		)
-	}
-
-	// This is not supported yet - see https://github.com/grafana/agent/issues/4335.
-	if config.DropRateLimitedBatches {
-		diags.Add(
-			diag.SeverityLevelError,
-			"DropRateLimitedBatches is currently not supported in Grafana Agent Flow.",
-		)
-	}
-
-	// Also deprecated in promtail.
-	if len(config.StreamLagLabels) != 0 {
-		diags.Add(
-			diag.SeverityLevelWarn,
-			"stream_lag_labels is deprecated and the associated metric has been removed",
-		)
-	}
-
-	return &lokiwrite.Arguments{
-		Endpoints: []lokiwrite.EndpointOptions{
-			{
-				Name:              config.Name,
-				URL:               config.URL.String(),
-				BatchWait:         config.BatchWait,
-				BatchSize:         batchSize,
-				HTTPClientConfig:  prometheusconvert.ToHttpClientConfig(&config.Client),
-				Headers:           config.Headers,
-				MinBackoff:        config.BackoffConfig.MinBackoff,
-				MaxBackoff:        config.BackoffConfig.MaxBackoff,
-				MaxBackoffRetries: config.BackoffConfig.MaxRetries,
-				RemoteTimeout:     config.Timeout,
-				TenantID:          config.TenantID,
-			},
-		},
-		ExternalLabels: convertFlagLabels(config.ExternalLabels),
-	}
-}
-
-func convertFlagLabels(labels lokiflag.LabelSet) map[string]string {
-	result := map[string]string{}
-	for k, v := range labels.LabelSet {
-		result[string(k)] = string(v)
-	}
-	return result
+	b.AppendPushAPI()
 }

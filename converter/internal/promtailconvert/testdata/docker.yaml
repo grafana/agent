@@ -1,12 +1,20 @@
 scrape_configs:
   - job_name: fun
-    kubernetes_sd_configs:
-      - api_server: http://toby.pets.com/
-        role: pod
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        port: 12345
+        filters:
+          - name: v60
+            values: [small, large]
+          - name: aeropress
+            values: [regular, inverted]
+        refresh_interval: 10s
+        host_networking_host: localhost
+
+        proxy_url: http://proxy.example.com
         basic_auth:
           username: robin
           password_file: /home/robin/.password
-        proxy_url: http://proxy.example.com
         tls_config:
           ca_file: /home/robin/.ca
           cert_file: /home/robin/.cert
@@ -14,21 +22,14 @@ scrape_configs:
           server_name: example.local
           insecure_skip_verify: true
 
-      - role: pod
-        kubeconfig_file: /home/toby/.kube/config
+      - host: unix:///var/run/docker.sock
+        port: 54321
+        filters:
+          - name: sunscreen
+            values: [ spf20, spf50, spf100 ]
+        refresh_interval: 10s
+        host_networking_host: localhost
 
-      - api_server: http://toby.pets.com/
-        role: pod
-        bearer_token_file: /home/robin/.special_token
-
-      - api_server: http://toby.pets.com/
-        role: pod
-        authorization:
-          type: Bearer
-          credentials_file: /home/toby/.token
-
-      - api_server: http://toby.pets.com/
-        role: node
         oauth2:
           client_id: client_id
           client_secret_file: foo/bar
@@ -39,7 +40,6 @@ scrape_configs:
           endpoint_params:
             host: example
             path: /oauth2/token
-        proxy_from_environment: true
 
 tracing: {enabled: false}
 server: {register_instrumentation: false}
