@@ -8,7 +8,7 @@ loki.relabel "fun" {
 	max_cache_size = 0
 }
 
-loki.source.cloudfare "fun" {
+loki.source.cloudflare "fun" {
 	api_token = "dont_look_at_me_please"
 	zone_id   = "area51"
 	labels    = {

@@ -20,7 +20,7 @@ discovery.relabel "fun" {
 	}
 }
 
-discovery.file "fun" {
+local.file_match "fun" {
 	path_targets = discovery.relabel.fun.output
 }
 
@@ -38,7 +38,7 @@ loki.process "fun" {
 }
 
 loki.source.file "fun" {
-	targets    = discovery.file.fun.targets
+	targets    = local.file_match.fun.targets
 	forward_to = [loki.process.fun.receiver]
 }
 
