@@ -13,3 +13,4 @@ scrape_configs:
           - __trail__
         target_label: __path__
 tracing: {enabled: false}
+server: {register_instrumentation: false}

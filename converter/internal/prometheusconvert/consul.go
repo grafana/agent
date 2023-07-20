@@ -12,7 +12,7 @@ import (
 )
 
 func appendDiscoveryConsul(pb *prometheusBlocks, label string, sdConfig *prom_consul.SDConfig) discovery.Exports {
-	discoveryConsulArgs := toDiscoveryConsul(sdConfig)
+	discoveryConsulArgs := ToDiscoveryConsul(sdConfig)
 	name := []string{"discovery", "consul"}
 	block := common.NewBlockWithOverride(name, label, discoveryConsulArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
@@ -23,7 +23,7 @@ func validateDiscoveryConsul(sdConfig *prom_consul.SDConfig) diag.Diagnostics {
 	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
-func toDiscoveryConsul(sdConfig *prom_consul.SDConfig) *consul.Arguments {
+func ToDiscoveryConsul(sdConfig *prom_consul.SDConfig) *consul.Arguments {
 	if sdConfig == nil {
 		return nil
 	}

@@ -15,12 +15,12 @@ func (s *ScrapeConfigBuilder) AppendKubernetesSDs() {
 	for i, sd := range s.cfg.ServiceDiscoveryConfig.KubernetesSDConfigs {
 		s.diags.AddAll(prometheusconvert.ValidateHttpClientConfig(&sd.HTTPClientConfig))
 		args := prometheusconvert.ToDiscoveryKubernetes(sd)
-		compName := fmt.Sprintf("%s_%d", s.cfg.JobName, i)
+		compLabel := fmt.Sprintf("%s_%d", s.cfg.JobName, i)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride(
 			[]string{"discovery", "kubernetes"},
-			compName,
+			compLabel,
 			args,
 		))
-		s.allTargetsExps = append(s.allTargetsExps, "discovery.kubernetes."+compName+".targets")
+		s.allTargetsExps = append(s.allTargetsExps, "discovery.kubernetes."+compLabel+".targets")
 	}
 }
