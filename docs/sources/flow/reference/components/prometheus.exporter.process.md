@@ -1,6 +1,6 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.process/
-title: prometheus.exporter.​process
+title: prometheus.exporter.process
 ---
 
 # prometheus.exporter.process
