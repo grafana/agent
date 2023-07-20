@@ -1,6 +1,6 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.memory_limiter/
-title: otelcol.​processor.​memory_limiter
+title: otelcol.processor.memory_limiter
 ---
 
 # otelcol.processor.memory_limiter
