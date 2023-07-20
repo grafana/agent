@@ -8,8 +8,10 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
+	"github.com/grafana/agent/converter/internal/promtailconvert"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/river/token/builder"
+	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
 	prom_config "github.com/prometheus/prometheus/config"
 
 	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations
@@ -57,7 +59,8 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	newDiags := AppendStaticPrometheus(f, staticConfig)
 	diags = append(diags, newDiags...)
 
-	// TODO promtail
+	newDiags = AppendStaticPromtail(f, staticConfig)
+	diags = append(diags, newDiags...)
 
 	// TODO otel
 
@@ -91,6 +94,34 @@ func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		//   results in two prometheus.scrape components with the label "agent_test_prometheus"
 		newDiags := prometheusconvert.AppendAll(f, promConfig, instance.Name)
 		diags = append(diags, newDiags...)
+	}
+
+	return diags
+}
+
+func AppendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if staticConfig.Logs == nil {
+		return diags
+	}
+
+	for _, logConfig := range staticConfig.Logs.Configs {
+		promtailConfig := &promtail_config.Config{
+			Global: promtail_config.GlobalConfig{FileWatch: staticConfig.Logs.Global.FileWatch},
+			// ServerConfig:    server.Config{},
+			// ClientConfig:    client.Config{},
+			ClientConfigs:   logConfig.ClientConfigs,
+			PositionsConfig: logConfig.PositionsConfig,
+			ScrapeConfig:    logConfig.ScrapeConfig,
+			TargetConfig:    logConfig.TargetConfig,
+			LimitsConfig:    logConfig.LimitsConfig,
+			// Options:         promtail_config.Options{},
+			// Tracing:         tracing.Config{},
+			// WAL:             wal.Config{},
+		}
+
+		diags = promtailconvert.AppendAll(f, promtailConfig, diags)
 	}
 
 	return diags

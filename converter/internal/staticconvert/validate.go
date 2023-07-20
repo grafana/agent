@@ -100,15 +100,7 @@ func validateTraces(tracesConfig traces.Config) diag.Diagnostics {
 func validateLogs(logsConfig *logs.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if logsConfig != nil {
-		var defaultLogsConfig logs.Config
-		diags = append(diags, common.UnsupportedNotEquals(logsConfig.PositionsDirectory, defaultLogsConfig.PositionsDirectory, "positions_directory logs")...)
-		diags = append(diags, common.UnsupportedNotDeepEquals(logsConfig.Global, defaultLogsConfig.Global, "global logs")...)
-
-		if len(logsConfig.Configs) > 0 {
-			diags.Add(diag.SeverityLevelError, "unsupported logs config was provided.")
-		}
-	}
+	// TODO any specific errors now that we are wiring this up to promtail
 
 	return diags
 }
