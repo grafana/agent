@@ -13,7 +13,11 @@ Main (unreleased)
 ### Enhancements
 
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
+- Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
 
+### Bugfixes
+
+- Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
 
 v0.35.0 (2023-07-18)
 --------------------

@@ -51,7 +51,7 @@ discovery.relabel "prometheus1" {
 }
 
 prometheus.scrape "prometheus1" {
-	targets    = discovery.relabel.prometheus1.targets
+	targets    = discovery.relabel.prometheus1.output
 	forward_to = [prometheus.relabel.prometheus1.receiver]
 	job_name   = "prometheus1"
 }

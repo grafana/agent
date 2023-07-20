@@ -73,7 +73,7 @@ prometheus.scrape "agent_prometheus" {
 }
 
 prometheus.scrape "agent_promobee" {
-	targets        = discovery.relabel.agent_promobee.targets
+	targets        = discovery.relabel.agent_promobee.output
 	forward_to     = [prometheus.relabel.agent_promobee.receiver]
 	job_name       = "promobee"
 	scrape_timeout = "45s"
