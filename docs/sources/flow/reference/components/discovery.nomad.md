@@ -25,7 +25,7 @@ Name | Type | Description | Default | Required
 `namespace` | `string` | Nomad namespace to use. | `default` | no
 `region` | `string` | Nomad region to use. | `global` | no
 `allow_stale` | `bool` | Allow reading from non-leader nomad instances. | `true` | no
-`tag_separator` | `string` | Seperator to join nomad tags into prometheus labels. | `,` | no
+`tag_separator` | `string` | Seperator to join nomad tags into Prometheus labels. | `,` | no
 
 `refresh_interval` | `duration` | Frequency to refresh list of containers. | `"30s"` | no
 `bearer_token` | `secret` | Bearer token to authenticate with. | | no
