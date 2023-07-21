@@ -7,10 +7,14 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/pkg/flow"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/stretchr/testify/require"
 )
 
@@ -146,30 +150,36 @@ func validateRiver(t *testing.T, expectedRiver []byte, actualRiver []byte) {
 
 		require.Equal(t, string(expectedRiver), string(normalizeLineEndings(actualRiver)))
 
-		// attemptLoadingFlowConfig(t, actualRiver)
+		attemptLoadingFlowConfig(t, actualRiver)
 	}
 }
 
 // attemptLoadingFlowConfig will attempt to load the Flow config and report any errors.
-// func attemptLoadingFlowConfig(t *testing.T, river []byte) {
-// 	cfg, err := flow.ReadFile(t.Name(), river)
-// 	require.NoError(t, err, "the output River config failed to parse: %s", string(normalizeLineEndings(river)))
+func attemptLoadingFlowConfig(t *testing.T, river []byte) {
+	cfg, err := flow.ReadFile(t.Name(), river)
+	require.NoError(t, err, "the output River config failed to parse: %s", string(normalizeLineEndings(river)))
 
-// 	logger, err := logging.New(os.Stderr, logging.DefaultOptions)
-// 	require.NoError(t, err)
-// 	f := flow.New(flow.Options{
-// 		Logger:         logger,
-// 		Clusterer:      &cluster.Clusterer{Node: cluster.NewLocalNode("")},
-// 		DataPath:       t.TempDir(),
-// 		HTTPListenAddr: ":0",
-// 	})
-// 	err = f.LoadFile(cfg, nil)
+	// The below check suffers from test race conditions on Windows. Our goal here is to verify config conversions,
+	// which is platform independent, so we can skip this check on Windows as a workaround.
+	if runtime.GOOS == "windows" {
+		return
+	}
 
-// 	// Many components will fail to build as e.g. the cert files are missing, so we ignore these errors.
-// 	// This is not ideal, but we still validate for other potential issues.
-// 	if err != nil && strings.Contains(err.Error(), "Failed to build component") {
-// 		t.Log("ignoring error: " + err.Error())
-// 		return
-// 	}
-// 	require.NoError(t, err, "failed to load the River config: %s", string(normalizeLineEndings(river)))
-// }
+	logger, err := logging.New(os.Stderr, logging.DefaultOptions)
+	require.NoError(t, err)
+	f := flow.New(flow.Options{
+		Logger:         logger,
+		Clusterer:      &cluster.Clusterer{Node: cluster.NewLocalNode("")},
+		DataPath:       t.TempDir(),
+		HTTPListenAddr: ":0",
+	})
+	err = f.LoadFile(cfg, nil)
+
+	// Many components will fail to build as e.g. the cert files are missing, so we ignore these errors.
+	// This is not ideal, but we still validate for other potential issues.
+	if err != nil && strings.Contains(err.Error(), "Failed to build component") {
+		t.Log("ignoring error: " + err.Error())
+		return
+	}
+	require.NoError(t, err, "failed to load the River config: %s", string(normalizeLineEndings(river)))
+}

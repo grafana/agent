@@ -3,11 +3,12 @@
 package windows_exporter
 
 import (
+	"testing"
+
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/prometheus-community/windows_exporter/collector"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
-	"testing"
 )
 
 func TestConfig(t *testing.T) {
