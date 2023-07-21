@@ -10,6 +10,10 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  {{- with .Values.global.podSecurityContext }}
+  securityContext:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   serviceAccountName: {{ include "grafana-agent.serviceAccountName" . }}
   {{- if or .Values.global.image.pullSecrets .Values.image.pullSecrets }}
   imagePullSecrets:

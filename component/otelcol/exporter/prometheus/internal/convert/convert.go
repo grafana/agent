@@ -199,7 +199,7 @@ func (conv *Converter) getOrCreateResource(res pcommon.Resource) *memorySeries {
 		return true
 	})
 
-	labels := lb.Labels(nil)
+	labels := lb.Labels()
 
 	entry := newMemorySeries(map[string]string{
 		model.JobLabel:      jobLabel,
@@ -254,7 +254,7 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 		return true
 	})
 
-	labels := lb.Labels(nil)
+	labels := lb.Labels()
 
 	entry := newMemorySeries(map[string]string{
 		scopeNameLabel:    scope.Name(),
@@ -352,7 +352,7 @@ func (conv *Converter) getOrCreateSeries(res *memorySeries, scope *memorySeries,
 		return true
 	})
 
-	labels := lb.Labels(nil)
+	labels := lb.Labels()
 
 	entry := newMemorySeries(nil, labels)
 	if actual, loaded := conv.seriesCache.LoadOrStore(labels.String(), entry); loaded {

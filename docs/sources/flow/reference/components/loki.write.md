@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.write/
 title: loki.write
 ---
 
@@ -150,7 +151,7 @@ local Loki instance:
 ```river
 loki.write "local" {
     endpoint {
-        url = "loki:3100"
+        url = "http://loki:3100/loki/api/v1/push"
     }
 }
 ```

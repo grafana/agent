@@ -10,18 +10,17 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Features
+### Enhancements
 
 - Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
 - Add support for initcontainers in helm chart. (@dwalker-sabiogroup)
 
 ### Bugfixes
 
-- Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
-  period specified by the polling frquency elapsed. (@rfratto)
+- Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
 
-v0.35.0-rc.0 (2023-07-13)
--------------------------
+v0.35.0 (2023-07-18)
+--------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -181,6 +180,10 @@ v0.35.0-rc.0 (2023-07-13)
 - Added support for custom `length` time setting in Cloudwatch component and integration. (@thepalbi)
 
 ### Bugfixes
+
+- Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
+  period specified by the polling frquency elapsed. (@rfratto)
+
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)

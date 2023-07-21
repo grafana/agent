@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/static/configuration/agent-management/
 title: Agent Management
 weight: 700
 ---
@@ -93,7 +94,7 @@ selector:
 
 > **Note:** More information on the following types can be found in their respective documentation pages:
 >
-> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#scrape_config)
+> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
 > * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
 > * [`integrations_config`](https://grafana.com/docs/agent/latest/static/configuration/integrations)
 

@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/
 title: Grafana Agent
 weight: 550
 ---
