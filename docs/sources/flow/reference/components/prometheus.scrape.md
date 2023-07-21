@@ -268,7 +268,7 @@ Special Labels that can change the behavior of prometheus.scrape
 * `__scrape_timeout__` is the name of the label that holds the scrape timeout used to scrape a target.
 * `__param__` is a prefix for labels that provide URL parameters used to scrape a target.
 
-* Special labels added after a scrape
+Special labels added after a scrape
 * `__name__` is the label name indicating the metric name of a timeseries.
 * `job` is the label name indicating the job from which a timeseries was scraped.
 * `instance` is the label name used for the instance label.
