@@ -88,6 +88,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | fullnameOverride | string | `nil` | Overrides the chart's computed fullname. Used to change the full prefix of resource names. |
 | global.image.pullSecrets | list | `[]` | Optional set of global image pull secrets. |
 | global.image.registry | string | `""` | Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...) |
+| global.podSecurityContext | object | `{}` | Security context to apply to the Grafana Agent pod. |
 | image.pullPolicy | string | `"IfNotPresent"` | Grafana Agent image pull policy. |
 | image.pullSecrets | list | `[]` | Optional set of image pull secrets. |
 | image.registry | string | `"docker.io"` | Grafana Agent image registry (defaults to docker.io) |

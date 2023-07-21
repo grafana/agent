@@ -42,3 +42,4 @@ tracing:
   enabled: false
 server:
   disable: true
+  register_instrumentation: false

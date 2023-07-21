@@ -11,18 +11,18 @@ import (
 )
 
 func appendDiscoveryGCE(pb *prometheusBlocks, label string, sdConfig *prom_gce.SDConfig) discovery.Exports {
-	discoveryGCEArgs := toDiscoveryGCE(sdConfig)
+	discoveryGCEArgs := ToDiscoveryGCE(sdConfig)
 	name := []string{"discovery", "gce"}
 	block := common.NewBlockWithOverride(name, label, discoveryGCEArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
 	return newDiscoverExports("discovery.gce." + label + ".targets")
 }
 
-func validateDiscoveryGce(sdConfig *prom_gce.SDConfig) diag.Diagnostics {
+func ValidateDiscoveryGCE(sdConfig *prom_gce.SDConfig) diag.Diagnostics {
 	return make(diag.Diagnostics, 0)
 }
 
-func toDiscoveryGCE(sdConfig *prom_gce.SDConfig) *gce.Arguments {
+func ToDiscoveryGCE(sdConfig *prom_gce.SDConfig) *gce.Arguments {
 	if sdConfig == nil {
 		return nil
 	}

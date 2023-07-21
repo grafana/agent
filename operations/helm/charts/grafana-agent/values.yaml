@@ -15,6 +15,9 @@ global:
     # -- Optional set of global image pull secrets.
     pullSecrets: []
 
+  # -- Security context to apply to the Grafana Agent pod.
+  podSecurityContext: {}
+
 # Various agent settings.
 agent:
   # -- Mode to run Grafana Agent in. Can be "flow" or "static".

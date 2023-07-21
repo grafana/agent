@@ -1,6 +1,7 @@
 package build
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -47,6 +48,27 @@ func NewScrapeConfigBuilder(
 		diags:     diags,
 		cfg:       cfg,
 		globalCtx: globalCtx,
+	}
+}
+
+func (s *ScrapeConfigBuilder) Validate() {
+	if len(s.cfg.ServiceDiscoveryConfig.DockerSwarmSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "dockerswarm_sd_configs is not supported")
+	}
+	if len(s.cfg.ServiceDiscoveryConfig.ServersetSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "serverset_sd_configs is not supported")
+	}
+	if len(s.cfg.ServiceDiscoveryConfig.NerveSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "nerve_sd_configs is not supported")
+	}
+	if len(s.cfg.ServiceDiscoveryConfig.MarathonSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "marathon_sd_configs is not supported")
+	}
+	if len(s.cfg.ServiceDiscoveryConfig.OpenstackSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "openstack_sd_configs is not supported")
+	}
+	if len(s.cfg.ServiceDiscoveryConfig.TritonSDConfigs) != 0 {
+		s.diags.Add(diag.SeverityLevelError, "triton_sd_configs is not supported")
 	}
 }
 
@@ -178,12 +200,12 @@ func (s *ScrapeConfigBuilder) getExpandedFileTargetsExpr() string {
 	}
 
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
-		[]string{"discovery", "file"},
+		[]string{"local", "file_match"},
 		s.cfg.JobName,
 		args,
 		overrideHook,
 	))
-	s.allExpandedFileTargetsExpr = "discovery.file." + s.cfg.JobName + ".targets"
+	s.allExpandedFileTargetsExpr = "local.file_match." + s.cfg.JobName + ".targets"
 	return s.allExpandedFileTargetsExpr
 }
 
@@ -216,4 +238,15 @@ func logsReceiversToExpr(r []loki.LogsReceiver) string {
 		exprs = append(exprs, clr.Expr)
 	}
 	return "[" + strings.Join(exprs, ", ") + "]"
+}
+
+func toRiverExpression(goValue interface{}) (string, error) {
+	e := builder.NewExpr()
+	e.SetValue(goValue)
+	var buff bytes.Buffer
+	_, err := e.WriteTo(&buff)
+	if err != nil {
+		return "", err
+	}
+	return buff.String(), nil
 }

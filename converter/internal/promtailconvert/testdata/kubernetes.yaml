@@ -42,3 +42,4 @@ scrape_configs:
         proxy_from_environment: true
 
 tracing: {enabled: false}
+server: {register_instrumentation: false}

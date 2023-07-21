@@ -107,23 +107,27 @@ dist-agentctl-binaries: dist/grafana-agentctl-linux-amd64       \
                         dist/grafana-agentctl-windows-amd64.exe \
                         dist/grafana-agentctl-freebsd-amd64
 
+dist/grafana-agentctl-linux-amd64: GO_TAGS += promtail_journal_enabled
 dist/grafana-agentctl-linux-amd64: GOOS    := linux
 dist/grafana-agentctl-linux-amd64: GOARCH  := amd64
 dist/grafana-agentctl-linux-amd64:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
-dist/grafana-agentctl-linux-arm64: GOOS   := linux
-dist/grafana-agentctl-linux-arm64: GOARCH := arm64
+dist/grafana-agentctl-linux-arm64: GO_TAGS += promtail_journal_enabled
+dist/grafana-agentctl-linux-arm64: GOOS    := linux
+dist/grafana-agentctl-linux-arm64: GOARCH  := arm64
 dist/grafana-agentctl-linux-arm64:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
-dist/grafana-agentctl-linux-ppc64le: GOOS   := linux
-dist/grafana-agentctl-linux-ppc64le: GOARCH := ppc64le
+dist/grafana-agentctl-linux-ppc64le: GO_TAGS += promtail_journal_enabled
+dist/grafana-agentctl-linux-ppc64le: GOOS    := linux
+dist/grafana-agentctl-linux-ppc64le: GOARCH  := ppc64le
 dist/grafana-agentctl-linux-ppc64le:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
-dist/grafana-agentctl-linux-s390x: GOOS   := linux
-dist/grafana-agentctl-linux-s390x: GOARCH := s390x
+dist/grafana-agentctl-linux-s390x: GO_TAGS += promtail_journal_enabled
+dist/grafana-agentctl-linux-s390x: GOOS    := linux
+dist/grafana-agentctl-linux-s390x: GOARCH  := s390x
 dist/grafana-agentctl-linux-s390x:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 

@@ -35,6 +35,7 @@ Name | Type | Description | Default | Required
 `procfs_path`              | `string`       | The procfs mountpoint. | `/proc` | no
 `sysfs_path`               | `string`       | The sysfs mountpoint.  | `/sys`   | no
 `rootfs_path`              | `string`       | Specify a prefix for accessing the host filesystem. | `/` | no
+`udev_data_path`           | `string`       | The udev data path.  | `/run/udev/data` | no
 
 `set_collectors` defines a hand-picked list of enabled-by-default
 collectors. If set, anything not provided in that list is disabled by
