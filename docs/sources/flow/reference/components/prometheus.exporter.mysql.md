@@ -1,6 +1,6 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mysql/
-title: prometheus.exporter.​mysql
+title: prometheus.exporter.mysql
 ---
 
 # prometheus.exporter.mysql
