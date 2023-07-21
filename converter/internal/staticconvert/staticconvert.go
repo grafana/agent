@@ -62,16 +62,10 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// There is an edge case where different subsystems generate identical Flow
-	// components. See ./testdata/promtail_prom.river for an example output
-	// with multiple discovery.consul.name_jobName components.
 	diags.AddAll(appendStaticPrometheus(f, staticConfig))
 	diags.AddAll(appendStaticPromtail(f, staticConfig))
-
 	// TODO otel
-
 	// TODO integrations
-
 	// TODO other
 
 	diags.AddAll(validate(staticConfig))
