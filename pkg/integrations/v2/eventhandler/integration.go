@@ -13,6 +13,7 @@ var DefaultConfig = Config{
 	LogsInstance:   "default",
 	InformerResync: 120,
 	FlushInterval:  10,
+	LogFormat:      "text",
 }
 
 // Config configures the eventhandler integration
@@ -39,7 +40,9 @@ type Config struct {
 	Namespace string `yaml:"namespace,omitempty"`
 	// Extra labels to append to log lines
 	ExtraLabels labels.Labels `yaml:"extra_labels,omitempty"`
-	InstanceKey *string       `yaml:"instance,omitempty"`
+	// For changing the log format to json, use this parameter.
+	LogFormat   string  `yaml:"log_format,omitempty"`
+	InstanceKey *string `yaml:"instance,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config

@@ -85,6 +85,9 @@ Configuration reference:
   ## Configure extra labels to add to log lines
   extra_labels:
     { <string>: <string> }
+
+  ## Format of the log line. The possible values are "text" and "json"
+  [log_format: <string> | default = "text"]
 ```
 
 Sample agent config:
