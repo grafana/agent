@@ -34,7 +34,7 @@ Name | Type | Description | Default | Required
 `follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
 `enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
- At most one of the following can be provided:
+ You can provide one of the following arguments for authentication:
  - [`bearer_token` argument](#arguments).
  - [`bearer_token_file` argument](#arguments). 
  - [`basic_auth` block][basic_auth].
