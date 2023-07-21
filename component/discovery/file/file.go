@@ -1,14 +1,12 @@
 package file
 
 import (
-	"context"
-	"sync"
 	"time"
 
-	"github.com/grafana/agent/component/discovery"
-
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
+	"github.com/prometheus/common/model"
+	prom_discovery "github.com/prometheus/prometheus/discovery/file"
 )
 
 func init() {
@@ -16,110 +14,37 @@ func init() {
 		Name:    "discovery.file",
 		Args:    Arguments{},
 		Exports: discovery.Exports{},
+
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
 	})
 }
 
-// Arguments holds values which are used to configure the discovery.file
-// component.
 type Arguments struct {
-	PathTargets []discovery.Target `river:"path_targets,attr"`
-	SyncPeriod  time.Duration      `river:"sync_period,attr,optional"`
+	Files           []string      `river:"files,attr"`
+	RefreshInterval time.Duration `river:"refresh_interval,attr,optional"`
 }
 
-var _ component.Component = (*Component)(nil)
-
-// Component implements the discovery.file component.
-type Component struct {
-	opts component.Options
-
-	mut      sync.RWMutex
-	args     Arguments
-	watches  []watch
-	watchDog *time.Ticker
-}
-
-// New creates a new discovery.file component.
-func New(o component.Options, args Arguments) (*Component, error) {
-	c := &Component{
-		opts:     o,
-		mut:      sync.RWMutex{},
-		args:     args,
-		watches:  make([]watch, 0),
-		watchDog: time.NewTicker(args.SyncPeriod),
-	}
-
-	if err := c.Update(args); err != nil {
-		return nil, err
-	}
-	return c, nil
-}
-
-func getDefault() Arguments {
-	return Arguments{SyncPeriod: 10 * time.Second}
+var DefaultArguments = Arguments{
+	RefreshInterval: 5 * time.Minute,
 }
 
 // SetToDefault implements river.Defaulter.
 func (a *Arguments) SetToDefault() {
-	*a = getDefault()
+	*a = DefaultArguments
 }
 
-// Update satisfies the component interface.
-func (c *Component) Update(args component.Arguments) error {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-
-	// Check to see if our ticker timer needs to be reset.
-	if args.(Arguments).SyncPeriod != c.args.SyncPeriod {
-		c.watchDog.Reset(c.args.SyncPeriod)
-	}
-	c.args = args.(Arguments)
-	c.watches = c.watches[:0]
-	for _, v := range c.args.PathTargets {
-		c.watches = append(c.watches, watch{
-			target: v,
-			log:    c.opts.Logger,
-		})
-	}
-
-	return nil
-}
-
-// Run satisfies the component interface.
-func (c *Component) Run(ctx context.Context) error {
-	update := func() {
-		c.mut.Lock()
-		defer c.mut.Unlock()
-
-		paths := c.getWatchedFiles()
-		// The component node checks to see if exports have actually changed.
-		c.opts.OnStateChange(discovery.Exports{Targets: paths})
-	}
-	// Trigger initial check
-	update()
-	defer c.watchDog.Stop()
-	for {
-		select {
-		case <-c.watchDog.C:
-			// This triggers a check for any new paths, along with pushing new targets.
-			update()
-		case <-ctx.Done():
-			return nil
-		}
+func (a *Arguments) Convert() *prom_discovery.SDConfig {
+	return &prom_discovery.SDConfig{
+		Files:           a.Files,
+		RefreshInterval: model.Duration(a.RefreshInterval),
 	}
 }
 
-func (c *Component) getWatchedFiles() []discovery.Target {
-	paths := make([]discovery.Target, 0)
-	// See if there is anything new we need to check.
-	for _, w := range c.watches {
-		newPaths, err := w.getPaths()
-		if err != nil {
-			level.Error(c.opts.Logger).Log("msg", "error getting paths", "path", w.getPath(), "excluded", w.getExcludePath(), "err", err)
-		}
-		paths = append(paths, newPaths...)
-	}
-	return paths
+func New(opts component.Options, args Arguments) (*discovery.Component, error) {
+	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
+		newArgs := args.(Arguments)
+		return prom_discovery.NewDiscovery(newArgs.Convert(), opts.Logger), nil
+	})
 }

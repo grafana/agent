@@ -18,8 +18,14 @@ import (
 // NewBlockWithOverride generates a new [*builder.Block] using a hook to
 // override specific types.
 func NewBlockWithOverride(name []string, label string, args component.Arguments) *builder.Block {
+	return NewBlockWithOverrideFn(name, label, args, getValueOverrideHook())
+}
+
+// NewBlockWithOverrideFn generates a new [*builder.Block] using a hook fn to
+// override specific types.
+func NewBlockWithOverrideFn(name []string, label string, args component.Arguments, fn builder.ValueOverrideHook) *builder.Block {
 	block := builder.NewBlock(name, label)
-	block.Body().SetValueOverrideHook(getValueOverrideHook())
+	block.Body().SetValueOverrideHook(fn)
 	block.Body().AppendFrom(args)
 	return block
 }

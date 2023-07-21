@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/dskit/backoff"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/collector/processor/batchprocessor"
 )
 
 // Test performs a basic integration test which runs the
@@ -115,4 +116,74 @@ func createTestTraces() ptrace.Traces {
 		panic(err)
 	}
 	return data
+}
+
+func TestArguments_UnmarshalRiver(t *testing.T) {
+	tests := []struct {
+		cfg               string
+		expectedArguments batch.Arguments
+	}{
+		{
+			cfg: `
+			output {}
+			`,
+			expectedArguments: batch.Arguments{
+				Timeout:                  batch.DefaultArguments.Timeout,
+				SendBatchSize:            batch.DefaultArguments.SendBatchSize,
+				SendBatchMaxSize:         0,
+				MetadataKeys:             nil,
+				MetadataCardinalityLimit: batch.DefaultArguments.MetadataCardinalityLimit,
+			},
+		},
+		{
+			cfg: `
+			timeout = "11s"
+			send_batch_size = 8000
+			send_batch_max_size = 10000
+			output {}
+			`,
+			expectedArguments: batch.Arguments{
+				Timeout:                  11 * time.Second,
+				SendBatchSize:            8000,
+				SendBatchMaxSize:         10000,
+				MetadataKeys:             nil,
+				MetadataCardinalityLimit: batch.DefaultArguments.MetadataCardinalityLimit,
+			},
+		},
+		{
+			cfg: `
+			timeout = "11s"
+			send_batch_size = 8000
+			send_batch_max_size = 10000
+			metadata_keys = ["tenant_id"]
+			metadata_cardinality_limit = 123
+			output {}
+			`,
+			expectedArguments: batch.Arguments{
+				Timeout:                  11 * time.Second,
+				SendBatchSize:            8000,
+				SendBatchMaxSize:         10000,
+				MetadataKeys:             []string{"tenant_id"},
+				MetadataCardinalityLimit: 123,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		var args batch.Arguments
+		err := river.Unmarshal([]byte(tc.cfg), &args)
+		require.NoError(t, err)
+
+		ext, err := args.Convert()
+		require.NoError(t, err)
+
+		otelArgs, ok := (ext).(*batchprocessor.Config)
+		require.True(t, ok)
+
+		require.Equal(t, otelArgs.Timeout, tc.expectedArguments.Timeout)
+		require.Equal(t, otelArgs.SendBatchSize, tc.expectedArguments.SendBatchSize)
+		require.Equal(t, otelArgs.SendBatchMaxSize, tc.expectedArguments.SendBatchMaxSize)
+		require.Equal(t, otelArgs.MetadataKeys, tc.expectedArguments.MetadataKeys)
+		require.Equal(t, otelArgs.MetadataCardinalityLimit, tc.expectedArguments.MetadataCardinalityLimit)
+	}
 }

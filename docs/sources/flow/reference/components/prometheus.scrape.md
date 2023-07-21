@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/
 title: prometheus.scrape
 ---
 
@@ -89,7 +90,7 @@ an `oauth2` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
-[clustering]: #clustering-experimental
+[clustering]: #clustering-beta
 
 ### basic_auth block
 
@@ -107,13 +108,13 @@ an `oauth2` block.
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
 
-### clustering (experimental)
+### clustering (beta)
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is running in [clustered mode][], and `enabled` is set to true,
+When the agent is [using clustering][], and `enabled` is set to true,
 then this `prometheus.scrape` component instance opts-in to participating in
 the cluster to distribute scrape load between all cluster nodes.
 
@@ -136,7 +137,7 @@ fully consistent like hashmod sharding is).
 If the agent is _not_ running in clustered mode, then the block is a no-op and
 `prometheus.scrape` scrapes every target it receives in its arguments.
 
-[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 

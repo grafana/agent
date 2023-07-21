@@ -13,6 +13,7 @@ import (
 	prom_consul "github.com/prometheus/prometheus/discovery/consul"
 	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 	prom_dns "github.com/prometheus/prometheus/discovery/dns"
+	prom_file "github.com/prometheus/prometheus/discovery/file"
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
@@ -90,19 +91,21 @@ func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagn
 			case prom_discover.StaticConfig:
 				newDiags = validateScrapeTargets(sdc)
 			case *prom_azure.SDConfig:
-				newDiags = validateDiscoveryAzure(sdc)
+				newDiags = ValidateDiscoveryAzure(sdc)
 			case *prom_consul.SDConfig:
 				newDiags = validateDiscoveryConsul(sdc)
 			case *prom_digitalocean.SDConfig:
-				newDiags = validateDiscoveryDigitalOcean(sdc)
+				newDiags = ValidateDiscoveryDigitalOcean(sdc)
 			case *prom_dns.SDConfig:
 				newDiags = validateDiscoveryDns(sdc)
 			case *prom_docker.DockerSDConfig:
 				newDiags = validateDiscoveryDocker(sdc)
 			case *prom_aws.EC2SDConfig:
-				newDiags = validateDiscoveryEC2(sdc)
+				newDiags = ValidateDiscoveryEC2(sdc)
+			case *prom_file.SDConfig:
+				newDiags = validateDiscoveryFile(sdc)
 			case *prom_gce.SDConfig:
-				newDiags = validateDiscoveryGce(sdc)
+				newDiags = ValidateDiscoveryGCE(sdc)
 			case *prom_kubernetes.SDConfig:
 				newDiags = validateDiscoveryKubernetes(sdc)
 			case *prom_aws.LightsailSDConfig:

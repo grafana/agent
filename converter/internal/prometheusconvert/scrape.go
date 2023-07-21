@@ -1,6 +1,8 @@
 package prometheusconvert
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/component/discovery"
@@ -14,12 +16,15 @@ import (
 
 func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target, label string) {
 	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
-	block := common.NewBlockWithOverride([]string{"prometheus", "scrape"}, label, scrapeArgs)
-	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, block)
+	name := []string{"prometheus", "scrape"}
+	block := common.NewBlockWithOverride(name, label, scrapeArgs)
+	summary := fmt.Sprintf("Converted scrape_configs job_name %q into...", scrapeConfig.JobName)
+	detail := fmt.Sprintf("	A %s.%s component", strings.Join(name, "."), label)
+	pb.prometheusScrapeBlocks = append(pb.prometheusScrapeBlocks, newPrometheusBlock(block, name, label, summary, detail))
 }
 
 func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
+	return ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
 }
 
 func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
@@ -44,7 +49,7 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 		LabelLimit:            scrapeConfig.LabelLimit,
 		LabelNameLengthLimit:  scrapeConfig.LabelNameLengthLimit,
 		LabelValueLengthLimit: scrapeConfig.LabelValueLengthLimit,
-		HTTPClientConfig:      *toHttpClientConfig(&scrapeConfig.HTTPClientConfig),
+		HTTPClientConfig:      *ToHttpClientConfig(&scrapeConfig.HTTPClientConfig),
 		ExtraMetrics:          false,
 		Clustering:            scrape.Clustering{Enabled: false},
 	}

@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/
 title: Flow mode
 weight: 400
 ---
@@ -56,6 +57,13 @@ prometheus.remote_write "default" {
   }
 }
 ```
+
+## Grafana Agent configuration generator
+
+The [Grafana Agent configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
+{{% admonition type="note" %}}
+This feature is experimental, and it does not support all River components.
+{{% /admonition %}}
 
 ## Next steps
 

@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/operator/crd/
+canonical: https://grafana.com/docs/agent/latest/operator/api/
 title: Custom Resource Definition Reference
 weight: 500
 ---
@@ -40,8 +41,8 @@ GrafanaAgent defines a Grafana Agent deployment.
 |`version`<br/>_string_|  Version of Grafana Agent to be deployed.  |
 |`paused`<br/>_bool_|  Paused prevents actions except for deletion to be performed on the underlying managed objects.  |
 |`image`<br/>_string_|  Image, when specified, overrides the image used to run Agent. Specify the image along with a tag. You still need to set the version to ensure Grafana Agent Operator knows which version of Grafana Agent is being configured.  |
-|`configReloaderVersion`<br/>_string_|  Version of Prometheus Config Reloader to be deployed.  |
-|`configReloaderImage`<br/>_string_|  Image, when specified, overrides the image used to run Prometheus Config Reloader. Specify the image along with a tag. You still need to set the version to ensure Grafana Agent Operator knows which version of Prometheus Config Reloader is being configured.  |
+|`configReloaderVersion`<br/>_string_|  Version of Config Reloader to be deployed.  |
+|`configReloaderImage`<br/>_string_|  Image, when specified, overrides the image used to run Config Reloader. Specify the image along with a tag. You still need to set the version to ensure Grafana Agent Operator knows which version of Grafana Agent is being configured.  |
 |`imagePullSecrets`<br/>_[[]Kubernetes core/v1.LocalObjectReference](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#localobjectreference-v1-core)_|  ImagePullSecrets holds an optional list of references to Secrets within the same namespace used for pulling the Grafana Agent image from registries. More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod  |
 |`storage`<br/>_[github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.StorageSpec](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.StorageSpec)_|  Storage spec to specify how storage will be used.  |
 |`volumes`<br/>_[[]Kubernetes core/v1.Volume](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core)_|  Volumes allows configuration of additional volumes on the output StatefulSet definition. The volumes specified are appended to other volumes that are generated as a result of StorageSpec objects.  |
@@ -128,6 +129,8 @@ GrafanaAgentSpec is a specification of the desired behavior of the Grafana Agent
 |`version`<br/>_string_|  Version of Grafana Agent to be deployed.  |
 |`paused`<br/>_bool_|  Paused prevents actions except for deletion to be performed on the underlying managed objects.  |
 |`image`<br/>_string_|  Image, when specified, overrides the image used to run Agent. Specify the image along with a tag. You still need to set the version to ensure Grafana Agent Operator knows which version of Grafana Agent is being configured.  |
+|`configReloaderVersion`<br/>_string_|  Version of Config Reloader to be deployed.  |
+|`configReloaderImage`<br/>_string_|  Image, when specified, overrides the image used to run Config Reloader. Specify the image along with a tag. You still need to set the version to ensure Grafana Agent Operator knows which version of Grafana Agent is being configured.  |
 |`imagePullSecrets`<br/>_[[]Kubernetes core/v1.LocalObjectReference](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#localobjectreference-v1-core)_|  ImagePullSecrets holds an optional list of references to Secrets within the same namespace used for pulling the Grafana Agent image from registries. More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod  |
 |`storage`<br/>_[github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.StorageSpec](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.StorageSpec)_|  Storage spec to specify how storage will be used.  |
 |`volumes`<br/>_[[]Kubernetes core/v1.Volume](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core)_|  Volumes allows configuration of additional volumes on the output StatefulSet definition. The volumes specified are appended to other volumes that are generated as a result of StorageSpec objects.  |

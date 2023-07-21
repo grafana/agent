@@ -8,7 +8,7 @@ import (
 	prom_config "github.com/prometheus/common/config"
 )
 
-func toHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.HTTPClientConfig {
+func ToHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.HTTPClientConfig {
 	if httpClientConfig == nil {
 		return nil
 	}
@@ -26,9 +26,9 @@ func toHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.
 	}
 }
 
-// validateHttpClientConfig returns [diag.Diagnostics] for currently
+// ValidateHttpClientConfig returns [diag.Diagnostics] for currently
 // unsupported Flow features available in Prometheus.
-func validateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) diag.Diagnostics {
+func ValidateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if httpClientConfig.NoProxy != "" {

@@ -13,13 +13,14 @@ import (
 )
 
 func appendDiscoveryAzure(pb *prometheusBlocks, label string, sdConfig *prom_azure.SDConfig) discovery.Exports {
-	discoveryAzureArgs := toDiscoveryAzure(sdConfig)
-	block := common.NewBlockWithOverride([]string{"discovery", "azure"}, label, discoveryAzureArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, block)
+	discoveryAzureArgs := ToDiscoveryAzure(sdConfig)
+	name := []string{"discovery", "azure"}
+	block := common.NewBlockWithOverride(name, label, discoveryAzureArgs)
+	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
 	return newDiscoverExports("discovery.azure." + label + ".targets")
 }
 
-func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
+func ToDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
@@ -39,8 +40,8 @@ func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
 	}
 }
 
-func validateDiscoveryAzure(sdConfig *prom_azure.SDConfig) diag.Diagnostics {
-	return validateHttpClientConfig(&sdConfig.HTTPClientConfig)
+func ValidateDiscoveryAzure(sdConfig *prom_azure.SDConfig) diag.Diagnostics {
+	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toManagedIdentity(sdConfig *prom_azure.SDConfig) *azure.ManagedIdentity {

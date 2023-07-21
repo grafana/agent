@@ -23,8 +23,8 @@ local ksm = import 'kube-state-metrics/kube-state-metrics.libsonnet';
   local this = self,
 
   _images:: {
-    agent: 'grafana/agent:v0.34.3',
-    agent_operator: 'grafana/agent-operator:v0.34.3',
+    agent: 'grafana/agent:v0.35.0',
+    agent_operator: 'grafana/agent-operator:v0.35.0',
     ksm: 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.5.0',
   },
 

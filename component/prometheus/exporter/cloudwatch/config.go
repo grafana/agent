@@ -76,6 +76,7 @@ type Metric struct {
 	Name       string        `river:"name,attr"`
 	Statistics []string      `river:"statistics,attr"`
 	Period     time.Duration `river:"period,attr"`
+	Length     time.Duration `river:"length,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -141,6 +142,10 @@ func toYACEMetrics(ms []Metric) []*yaceConf.Metric {
 	for _, m := range ms {
 		periodSeconds := int64(m.Period.Seconds())
 		lengthSeconds := periodSeconds
+		// If length is other than zero, that is, is configured, override the default period vaue
+		if m.Length != 0 {
+			lengthSeconds = int64(m.Length.Seconds())
+		}
 		yaceMetrics = append(yaceMetrics, &yaceConf.Metric{
 			Name:       m.Name,
 			Statistics: m.Statistics,

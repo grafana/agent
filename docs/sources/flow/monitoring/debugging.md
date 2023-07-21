@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/
 title: Debugging
 weight: 300
 ---
@@ -69,6 +70,17 @@ The component detail page shows the following information for each component:
 
 [secret]: {{< relref "../config-language/expressions/types_and_values.md#secrets" >}}
 
+### Clustering page
+
+![](../../../assets/ui_clustering_page.png)
+
+The clustering page shows the following information for each cluster node:
+
+* The node's name.
+* The node's advertised address.
+* The node's current state (Viewer/Participant/Terminating).
+* The local node that serves the UI.
+
 ## Debugging using the UI
 
 To debug using the UI:
@@ -89,4 +101,30 @@ The location of Grafana Agent's logs is different based on how it is deployed.
 Refer to the [`logging` block][logging] page to see how to find logs for your
 system.
 
+## Debugging clustering issues
+
+To debug issues when using [clustering][], check for the following symptoms.
+
+- **Cluster not converging**: The cluster peers are not converging on the same
+  view of their peers' status. This is most likely due to network connectivity
+issues between the cluster nodes. Use the Flow UI of each running peer to
+understand which nodes are not being picked up correctly.
+- **Cluster split brain**: The cluster peers are not aware of one another,
+  thinking they’re the only node present. Again, check for network connectivity
+issues. Check that the addresses or DNS names given to the node to join are
+correctly formatted and reachable.
+- **Configuration drift**: Clustering assumes that all nodes are running with
+  the same configuration file at roughly the same time. Check the logs for
+issues with the reloaded configuration file as well as the graph page to verify
+changes have been applied.
+- **Node name conflicts**: Clustering assumes all nodes have unique names;
+  nodes with conflicting names are rejected and will not join the cluster. Look
+at the clustering UI page for the list of current peers with their names, and
+check the logs for any reported name conflict events.
+- **Node stuck in terminating state**: The node attempted to gracefully shut 
+down and set its state to Terminating, but it has not completely gone away. Check
+the clustering page to view the state of the peers and verify that the
+terminating Agent has been shut down.
+
 [logging]: {{< relref "../reference/config-blocks/logging.md" >}}
+[clustering]: {{< relref "../concepts/clustering.md" >}}

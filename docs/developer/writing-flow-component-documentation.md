@@ -466,6 +466,19 @@ The Examples section provides copy-and-paste River pipelines which use the
 Flow component. The section starts with an `h2` header called Examples. If
 there is only one example, call the section Example instead.
 
+If there is more than one example, each example should have an `h3` header
+containing a descriptive name. For example:
+
+```markdown
+## Examples
+
+### Send metrics to a Prometheus server
+...
+
+### Send metrics to a Prometheus server using Oauth2 authentication
+...
+```
+
 The Examples section should be composed of a brief description of each example,
 followed by the example in a code block. For example:
 

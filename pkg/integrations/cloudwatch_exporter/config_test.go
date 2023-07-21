@@ -35,6 +35,17 @@ discovery:
           statistics:
             - Maximum
             - Average
+    - type: s3
+      regions:
+        - us-east-2
+      roles:
+        - role_arn: arn:aws:iam::878167871295:role/yace_testing
+      metrics:
+        - name: BucketSizeBytes
+          period: 5m
+          length: 1h
+          statistics:
+            - Sum
 static:
   - regions:
       - us-east-2
@@ -79,6 +90,17 @@ discovery:
           statistics:
             - Maximum
             - Average
+    - type: s3
+      regions:
+        - us-east-2
+      roles:
+        - role_arn: arn:aws:iam::878167871295:role/yace_testing
+      metrics:
+        - name: BucketSizeBytes
+          period: 5m
+          length: 1h
+          statistics:
+            - Sum
 static:
   - regions:
       - us-east-2
@@ -134,6 +156,37 @@ var expectedConfig = yaceConf.ScrapeConf{
 						// Defaults get configured from general settings
 						Period:                 300,
 						Length:                 300,
+						Delay:                  0,
+						NilToZero:              &nilToZero,
+						AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+					},
+				},
+				RoundingPeriod: nil,
+				JobLevelMetricFields: yaceConf.JobLevelMetricFields{
+					Period:                 0,
+					Length:                 0,
+					Delay:                  0,
+					AddCloudwatchTimestamp: &falsePtr,
+					NilToZero:              &nilToZero,
+				},
+			},
+			{
+				Type:    "s3",
+				Regions: []string{"us-east-2"},
+				Roles: []yaceConf.Role{
+					{
+						RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
+					},
+				},
+				SearchTags: []yaceModel.Tag{},
+				CustomTags: []yaceModel.Tag{},
+				Metrics: []*yaceConf.Metric{
+					{
+						Name:       "BucketSizeBytes",
+						Statistics: []string{"Sum"},
+						// Defaults get configured from general settings
+						Period:                 300,
+						Length:                 3600, // 1 hour
 						Delay:                  0,
 						NilToZero:              &nilToZero,
 						AddCloudwatchTimestamp: &addCloudwatchTimestamp,

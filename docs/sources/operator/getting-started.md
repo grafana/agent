@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/operator/getting-started/
 title: Install the Operator
 weight: 110
 ---
@@ -73,7 +74,7 @@ To install Agent Operator:
           serviceAccountName: grafana-agent-operator
           containers:
           - name: operator
-            image: grafana/agent-operator:v0.34.3
+            image: grafana/agent-operator:v0.35.0
             args:
             - --kubelet-service=default/kubelet
     ---

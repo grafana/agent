@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
 title: discovery.kubernetes
 ---
 
@@ -16,7 +17,7 @@ to override the defaults.
 
 ```river
 discovery.kubernetes "LABEL" {
-  role = "DISCOVERY_ROLE"
+  role = DISCOVERY_ROLE
 }
 ```
 
@@ -289,6 +290,10 @@ Name | Type | Description | Default | Required
 See Kubernetes' documentation for [Field selectors][] and [Labels and
 selectors][] to learn more about the possible filters that can be used.
 
+The endpoints role supports pod, service, and endpoints selectors.
+The pod role supports node selectors when configured with `attach_metadata: {node: true}`.
+Other roles only support selectors matching the role itself (e.g. node role can only contain node selectors).
+
 > **Note**: Using multiple `discovery.kubernetes` components with different
 > selectors may result in a bigger load against the Kubernetes API.
 >
@@ -298,7 +303,7 @@ selectors][] to learn more about the possible filters that can be used.
 > instead.
 
 [Field selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
-[Labels and selectros]: https://Kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+[Labels and selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
 
 ### attach_metadata block
@@ -357,7 +362,27 @@ This example uses in-cluster authentication to discover all pods:
 discovery.kubernetes "k8s_pods" {
   role = "pod"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Kubeconfig authentication
 
@@ -368,7 +393,27 @@ discovery.kubernetes "k8s_pods" {
   role = "pod"
   kubeconfig_file = "/etc/k8s/kubeconfig.yaml"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Limit searched namespaces
 
@@ -381,4 +426,24 @@ discovery.kubernetes "k8s_pods" {
     names = ["myapp"]
   }
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.

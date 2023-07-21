@@ -199,6 +199,30 @@ func TestBlock(t *testing.T) {
 	require.JSONEq(t, expect, string(actual))
 }
 
+func TestBlock_Empty_Required_Block_Slice(t *testing.T) {
+	type wrapper struct {
+		Blocks []testBlock `river:"some_block,block"`
+	}
+
+	tt := []struct {
+		name string
+		val  any
+	}{
+		{"nil block slice", wrapper{Blocks: nil}},
+		{"empty block slice", wrapper{Blocks: []testBlock{}}},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			expect := `[]`
+
+			actual, err := riverjson.MarshalBody(tc.val)
+			require.NoError(t, err)
+			require.JSONEq(t, expect, string(actual))
+		})
+	}
+}
+
 type testBlock struct {
 	Number  int            `river:"number,attr,optional"`
 	String  string         `river:"string,attr,optional"`

@@ -33,6 +33,7 @@
   newHeatmap(title=''):: $.new(title, 'heatmap-new') {
     maxDataPoints: 30,
     options: {
+      calculate: false,
       color: {
         exponent: 0.5,
         fill: 'dark-orange',

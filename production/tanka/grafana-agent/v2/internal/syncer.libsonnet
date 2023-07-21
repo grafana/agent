@@ -1,6 +1,6 @@
 local k = import 'ksonnet-util/kausal.libsonnet';
 
-local cronJob = k.batch.v1beta1.cronJob;
+local cronJob = k.batch.v1.cronJob;
 local configMap = k.core.v1.configMap;
 local container = k.core.v1.container;
 local deployment = k.apps.v1.deployment;
@@ -14,7 +14,7 @@ function(
 ) {
   local _config = {
     api: error 'api must be set',
-    image: 'grafana/agentctl:v0.34.3',
+    image: 'grafana/agentctl:v0.35.0',
     schedule: '*/5 * * * *',
     configs: [],
   } + config,

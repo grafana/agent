@@ -1,14 +1,8 @@
 ---
-# NOTE(rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
-title: prometheus.exporter.postgres
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.postgres/
 labels:
   stage: beta
+title: prometheus.exporter.postgres
 ---
 
 # prometheus.exporter.postgres

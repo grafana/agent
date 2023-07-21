@@ -1,7 +1,8 @@
 ---
-title: pyroscope.write
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.write/
 labels:
   stage: beta
+title: pyroscope.write
 ---
 
 # pyroscope.write

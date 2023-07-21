@@ -1,7 +1,8 @@
 ---
-title: module.string
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.string/
 labels:
   stage: beta
+title: module.string
 ---
 
 # module.string

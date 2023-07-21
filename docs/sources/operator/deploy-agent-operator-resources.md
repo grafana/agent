@@ -1,6 +1,7 @@
 ---
 aliases:
 - custom-resource-quickstart/
+canonical: https://grafana.com/docs/agent/latest/operator/deploy-agent-operator-resources/
 title: Deploy Operator resources
 weight: 120
 ---
@@ -19,16 +20,18 @@ Follow the steps in this guide to roll out the Grafana Agent Operator custom res
 The hierarchy of custom resources is as follows:
 
 - `GrafanaAgent`
-    - `MetricsInstance`
-        - `PodMonitor`
-        - `Probe`
-        - `ServiceMonitor`
-    - `LogsInstance`
-        - `PodLogs`
+  - `MetricsInstance`
+    - `PodMonitor`
+    - `Probe`
+    - `ServiceMonitor`
+  - `LogsInstance`
+    - `PodLogs`
 
 To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
 
-> **Note:** Agent Operator is currently in beta and its custom resources are subject to change.
+{{% admonition type="note" %}}
+Agent Operator is currently in beta and its custom resources are subject to change.
+{{% /admonition %}}
 
 ## Before you begin
 
@@ -38,7 +41,9 @@ Before you begin, make sure that you have deployed the Grafana Agent Operator CR
 
 In this section, you'll roll out a `GrafanaAgent` resource. See [Grafana Agent Operator architecture]({{< relref "./architecture.md" >}}) for a discussion of the resources in the `GrafanaAgent` resource hierarchy.
 
-> **Note:** Due to the variety of possible deployment architectures, the official Agent Operator Helm chart does not provide built-in templates for the custom resources described in this guide. You must configure and deploy these manually as described in this section. We recommend templating and adding the following manifests to your own in-house Helm charts and GitOps flows.
+{{% admonition type="note" %}}
+Due to the variety of possible deployment architectures, the official Agent Operator Helm chart does not provide built-in templates for the custom resources described in this guide. You must configure and deploy these manually as described in this section. We recommend templating and adding the following manifests to your own in-house Helm charts and GitOps flows.
+{{% /admonition %}}
 
 To deploy the `GrafanaAgent` resource:
 
@@ -53,7 +58,7 @@ To deploy the `GrafanaAgent` resource:
       labels:
         app: grafana-agent
     spec:
-      image: grafana/agent:v0.34.3
+      image: grafana/agent:v0.35.0
       integrations:
         selector:
           matchLabels:
@@ -181,19 +186,6 @@ To deploy a `MetricsInstance` resource:
           password:
             name: primary-credentials-metrics
             key: password
-
-      # As an alternative authentication method, Grafana Agent also supports OAuth2.
-      # - url: your_remote_write_URL
-      #   oauth2:
-      #     clientId:
-      #       secret:
-      #         key: username # Kubernetes Secret Key
-      #         name: primary-credentials-metrics # Kubernetes Secret Name
-      #     clientSecret:
-      #       key: password # Kubernetes Secret Key
-      #       name: primary-credentials-metrics # Kubernetes Secret Name
-      #     tokenUrl: https://auth.example.com/realms/master/protocol/openid-connect/token
-
 
       # Supply an empty namespace selector to look in all namespaces. Remove
       # this to only look in the same namespace as the MetricsInstance CR
@@ -384,7 +376,9 @@ To deploy the `LogsInstance` resource into your cluster:
 
 1. Copy the following `PodLogs` manifest to a file, then roll it to your cluster using `kubectl apply -f` followed by the filename. The manifest defines your logging targets. Agent Operator  turns this into Agent configuration for the logs subsystem, and rolls it out to the DaemonSet of logging Agents.
 
-    > **Note**: The following is a minimal working example which you should adapt to your production needs.
+    {{% admonition type="note" %}}
+    The following is a minimal working example which you should adapt to your production needs.
+    {{% /admonition %}}
 
     ```yaml
     apiVersion: monitoring.grafana.com/v1alpha1
@@ -434,5 +428,3 @@ You've now rolled out the following into your cluster:
 You can verify that everything is working correctly by navigating to your Grafana instance and querying your Loki and Prometheus data sources.
 
 > Tip: You can deploy multiple GrafanaAgent resources to isolate allocated resources to the agent pods. By default, the GrafanaAgent resource determines the resources of all deployed agent containers. However, you might want different memory limits for metrics versus logs.
-
-

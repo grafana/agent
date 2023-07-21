@@ -1,7 +1,8 @@
 ---
-title: loki.echo
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.echo/
 labels:
   stage: beta
+title: loki.echo
 ---
 
 # loki.echo
@@ -46,7 +47,7 @@ This example creates a pipeline that reads log files from `/var/log` and
 prints log lines to echo:
 
 ```river
-discovery.file "varlog" {
+local.file_match "varlog" {
   path_targets = [{
     __path__ = "/var/log/*log",
     job      = "varlog",
@@ -54,7 +55,7 @@ discovery.file "varlog" {
 }
 
 loki.source.file "logs" {
-  targets    = discovery.file.varlog.targets
+  targets    = local.file_match.varlog.targets
   forward_to = [loki.echo.example.receiver]
 }
 
