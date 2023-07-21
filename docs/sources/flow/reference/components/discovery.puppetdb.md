@@ -5,7 +5,7 @@ title: discovery.puppetdb
 
 # discovery.puppetdb
 
-`discovery.puppetdb` allows retrieving scrape targets from [PuppetDB](https://www.puppet.com/docs/puppetdb/7/overview.html) resources.
+`discovery.puppetdb` allows you to retrieve scrape targets from [PuppetDB](https://www.puppet.com/docs/puppetdb/7/overview.html) resources.
 
 This SD discovers resources and will create a target for each resource returned by the API.
 
