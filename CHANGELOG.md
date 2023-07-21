@@ -28,6 +28,8 @@ Main (unreleased)
   `prometheus.operator` component which discovered no custom resources.
   (@rfratto)
 
+- Fix issue with nil tls config reference when using oauth2. (@mattdurham) 
+
 ### Other changes
 
 - Compile journald support into builds of `grafana-agentctl` so
