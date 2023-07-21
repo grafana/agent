@@ -122,17 +122,17 @@ values.
 
 ## Example
 
-This example discovers targets from Consul for the specified list of services:
+This example discovers targets from puppetdb for all the servers that have a specific package defined:
 
 ```river
 discovery.puppetdb "example" {
   url = "http://puppetdb.local:8080"
-  query = "resources { type = \"Apache::Vhost\" }"
-  include_parameters = true
+  query = "resources { type = \"Package\" and title = \"node_exporter\" }"
+  port = 9100
 }
 
 prometheus.scrape "demo" {
-  targets    = discovery.consul.example.targets
+  targets    = discovery.puppetdb.example.targets
   forward_to = [prometheus.remote_write.demo.receiver]
 }
 
