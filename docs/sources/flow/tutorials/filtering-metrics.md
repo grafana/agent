@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/tutorials/filtering-metrics/
+canonical: https://grafana.com/docs/agent/latest/flow/tutorials/filtering-metrics/
 title: Filtering Prometheus metrics
 weight: 300
 ---

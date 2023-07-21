@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/mimir.rules.kubernetes/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/mimir.rules.kubernetes/
 labels:
   stage: beta
 title: mimir.rules.kubernetes

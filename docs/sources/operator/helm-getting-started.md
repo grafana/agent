@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/operator/helm-getting-started/
+canonical: https://grafana.com/docs/agent/latest/operator/helm-getting-started/
 title: Install the Operator with Helm
 weight: 100
 ---

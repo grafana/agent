@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/getting-started/migrating-from-prometheus/
+canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-prometheus/
 description: Learn how to migrate your configuration from Prometheus to Grafana Agent
   flow mode
 menuTitle: Migrate from Prometheus

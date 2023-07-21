@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
 label:
   stage: experimental
 title: otelcol.extension.jaeger_remote_sampling

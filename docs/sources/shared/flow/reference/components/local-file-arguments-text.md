@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/shared/flow/reference/components/local-file-arguments-text/
-canonical: https://grafana.com/docs/grafana/agent/latest/shared/flow/reference/components/local-file-arguments-text/
+canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/local-file-arguments-text/
 headless: true
 ---
 

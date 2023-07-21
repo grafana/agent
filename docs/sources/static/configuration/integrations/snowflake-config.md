@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../../../configuration/integrations/snowflake-config/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/integrations/snowflake-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/snowflake-config/
 title: snowflake_config
 ---
 

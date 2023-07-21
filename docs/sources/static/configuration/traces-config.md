@@ -2,7 +2,7 @@
 aliases:
 - ../../configuration/tempo-config/
 - ../../configuration/traces-config/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/traces-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/traces-config/
 title: traces_config
 weight: 400
 ---

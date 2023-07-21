@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../../../configuration/integrations/consul-exporter-config/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/integrations/consul-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/consul-exporter-config/
 title: consul_exporter_config
 ---
 

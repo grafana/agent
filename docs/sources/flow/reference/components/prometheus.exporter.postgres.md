@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/prometheus.exporter.postgres/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.postgres/
 labels:
   stage: beta
 title: prometheus.exporter.postgres

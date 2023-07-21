@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/config-blocks/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/
 title: Configuration blocks
 weight: 200
 ---

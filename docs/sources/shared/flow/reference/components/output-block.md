@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../../otelcol/output-block/
-canonical: https://grafana.com/docs/grafana/agent/latest/shared/flow/reference/components/output-block/
+canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/output-block/
 headless: true
 ---
 

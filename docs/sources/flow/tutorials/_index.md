@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/tutorials/
+canonical: https://grafana.com/docs/agent/latest/flow/tutorials/
 title: Tutorials
 weight: 300
 ---

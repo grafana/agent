@@ -1,7 +1,7 @@
 ---
 aliases:
 - ./about-agent/
-canonical: https://grafana.com/docs/grafana/agent/latest/about/
+canonical: https://grafana.com/docs/agent/latest/about/
 title: About Grafana Agent
 weight: 100
 ---

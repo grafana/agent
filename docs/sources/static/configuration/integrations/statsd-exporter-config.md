@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../../../configuration/integrations/statsd-exporter-config/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/integrations/statsd-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/statsd-exporter-config/
 title: statsd_exporter_config
 ---
 

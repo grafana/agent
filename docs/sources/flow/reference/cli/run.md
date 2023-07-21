@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/cli/run/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
 title: grafana-agent run
 weight: 100
 ---

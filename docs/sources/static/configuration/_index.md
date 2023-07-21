@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../configuration/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/
 title: Configure static mode
 weight: 300
 ---

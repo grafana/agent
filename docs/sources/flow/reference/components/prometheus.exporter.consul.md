@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/prometheus.exporter.consul/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.consul/
 title: prometheus.exporter.​consul
 ---
 

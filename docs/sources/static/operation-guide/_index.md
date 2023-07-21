@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../operation-guide/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/operation-guide/
+canonical: https://grafana.com/docs/agent/latest/static/operation-guide/
 title: Operation guide
 weight: 700
 ---

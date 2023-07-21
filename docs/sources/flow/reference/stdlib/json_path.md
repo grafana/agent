@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/json_path/
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/stdlib/json_path/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/json_path/
 title: json_path
 ---
 

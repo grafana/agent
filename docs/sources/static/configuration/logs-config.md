@@ -2,7 +2,7 @@
 aliases:
 - ../../configuration/loki-config/
 - ../../configuration/logs-config/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/logs-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/logs-config/
 title: logs_config
 weight: 300
 ---

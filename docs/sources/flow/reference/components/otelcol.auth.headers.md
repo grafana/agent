@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/otelcol.auth.headers/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.headers/
 title: otelcol.auth.headers
 ---
 

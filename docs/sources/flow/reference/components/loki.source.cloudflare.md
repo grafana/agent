@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/loki.source.cloudflare/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.cloudflare/
 title: loki.source.cloudflare
 ---
 

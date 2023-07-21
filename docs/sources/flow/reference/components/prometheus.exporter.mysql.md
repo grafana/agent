@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/prometheus.exporter.mysql/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mysql/
 title: prometheus.exporter.​mysql
 ---
 

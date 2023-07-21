@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/prometheus.exporter.snowflake/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.snowflake/
 title: prometheus.exporter.snowflake
 ---
 

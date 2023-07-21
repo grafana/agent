@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/config-blocks/export/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/export/
 title: export
 ---
 

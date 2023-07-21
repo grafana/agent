@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/prometheus.exporter.snmp/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.snmp/
 title: prometheus.exporter.snmp
 ---
 

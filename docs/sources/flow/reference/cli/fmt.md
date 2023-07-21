@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/cli/fmt/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/fmt/
 title: grafana-agent fmt
 weight: 100
 ---
