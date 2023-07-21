@@ -5,7 +5,7 @@ title: discovery.nomad
 
 # discovery.consul
 
-`discovery.nomad` allows retrieving scrape targets from [Nomad's](https://www.nomadproject.io/) Service API.
+`discovery.nomad` allows you to retrieve scrape targets from [Nomad's](https://www.nomadproject.io/) Service API.
 
 ## Usage
 
