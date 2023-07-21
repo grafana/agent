@@ -22,6 +22,8 @@ Unreleased
 
 - Set securityContext at podlevel. (@yanehi)
 
+- Set hostPID from values. (@korniltsev)
+
 0.16.0 (2023-06-20)
 -------------------
 

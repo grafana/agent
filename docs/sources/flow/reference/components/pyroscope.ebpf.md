@@ -83,6 +83,12 @@ can help you pin down a profiling target.
 | `__name__`         | pyroscope metric name. Defaults to `process_cpu`.                                                                                |
 | `__container_id__` | The container ID derived from target.                                                                                            |
 
+
+### Privileges
+
+You are required to run the agent as root and inside host pid namespace in order to `pyroscope.ebpf` component to work.
+See helm example below how to do it with helm.
+
 ### Container ID
 
 Each collected stack trace is then associated with a specified target from the targets list, determined by a
@@ -152,8 +158,8 @@ strip elf -o elf.stripped
 objcopy --add-gnu-debuglink=elf.debug elf.stripped elf.debuglink
 ```
 
-For system libraries, ensure that debug symbols are installed. On Ubuntu, for example, you can install them by
-executing:
+For system libraries, ensure that debug symbols are installed. On Ubuntu, for example, you can install debug symbols 
+for `libc` by executing:
 
 ```bash
 apt install libc6-dbg
@@ -243,4 +249,46 @@ pyroscope.ebpf "default" {
   forward_to   = [ pyroscope.write.staging.receiver ]
   targets      = discovery.relabel.local_containers.output
 }
+```
+
+### Helm deployment
+
+Create `values.yaml`
+```yaml
+agent:
+  mode: 'flow'
+  configMap:
+    create: true
+    content: |
+      discovery.kubernetes "local_pods" {
+        selectors {
+          field = "spec.nodeName=" + env("HOSTNAME")
+          role = "pod"
+        }
+        role = "pod"
+      }
+      pyroscope.ebpf "instance" {
+        forward_to = [pyroscope.write.endpoint.receiver]
+        targets = discovery.kubernetes.local_pods.targets
+      }
+      pyroscope.write "endpoint" {
+        endpoint {
+          basic_auth {
+            password = "<PASSWORD>"
+            username = "<USERNAME>"
+          }
+          url = "<URL>"
+        }
+      }
+  securityContext:
+    privileged: true
+    runAsGroup: 0
+    runAsUser: 0
+
+controller:
+  hostPID: true
+```
+
+```bash
+helm install pyroscope-ebpf grafana/grafana-agent -f values.yaml
 ```

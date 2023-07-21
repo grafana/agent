@@ -32,6 +32,9 @@ spec:
   {{- if .Values.controller.hostNetwork }}
   hostNetwork: {{ .Values.controller.hostNetwork }}
   {{- end }}
+  {{- if .Values.controller.hostPID }}
+  hostPID: {{ .Values.controller.hostPID }}
+  {{- end }}
   dnsPolicy: {{ .Values.controller.dnsPolicy }}
   {{- with .Values.controller.affinity }}
   affinity:
