@@ -41,7 +41,6 @@ Name | Type | Description | Default | Required
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
 
-[consistency documentation]: https://www.consul.io/api/features/consistency.html
 [arguments]: #arguments
 
 ## Blocks
