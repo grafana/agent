@@ -10,9 +10,9 @@ title: gcp_exporter_config
 ## Overview
 The `gcp_exporter_config` block configures the `gcp_exporter` integration, which is an embedded version of
 [`stackdriver_exporter`](https://github.com/prometheus-community/stackdriver_exporter). This allows for the collection of
-metrics data from [GCP Cloud Monitoring (formerly stackdriver)](https://cloud.google.com/monitoring/docs).
+metrics data from [GCP Cloud Monitoring (formerly stackdriver)](https://cloud.google.com/monitoring/docs). The exporter supports all metrics available via [GCP's monitoring API](https://cloud.google.com/monitoring/api/metrics_gcp). 
 
-The exporter supports all metrics available via [GCP's monitoring API](https://cloud.google.com/monitoring/api/metrics_gcp). `gcp_exporter` follows the template `stackdriver_<monitored_resource>_<metric_type_prefix>_<metric_type>`.
+Metric names follow the template `stackdriver_<monitored_resource>_<metric_type_prefix>_<metric_type>`.
 
 The following example shows a load balancing metric:
 
@@ -117,7 +117,7 @@ Since the exporter gathers all of its data from [GCP monitoring APIs](https://cl
   # Optional: The time range used when querying for metrics.
   # Most of the time the default works perfectly fine. Most documented metrics include a comments of the form
   #   `Sampled every X seconds. After sampling, data is not visible for up to Y seconds.`
-  #   As longs as your `request_interval` is >= `Y` you should have no issues.
+  #   As long as your `request_interval` is >= `Y` you should have no issues.
   #   Consider using `ingest_delay` if you would like this to be done programmatically or are gathering slower moving metrics.
   [request_interval: <duration> | default = "5m"]
 
