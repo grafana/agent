@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/concepts/clustering/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/clustering/
 labels:
   stage: beta
 menuTitle: Clustering

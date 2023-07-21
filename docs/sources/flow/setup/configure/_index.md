@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/setup/configure/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/
 description: Configure Grafana Agent in flow mode after it is installed
 menuTitle: Configure flow mode
 title: Configure Grafana Agent in flow mode

@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../../../configuration/integrations/cloudwatch-exporter-config/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/integrations/cloudwatch-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cloudwatch-exporter-config/
 title: cloudwatch_exporter_config
 ---
 

@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/config-blocks/tracing/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/tracing/
 title: tracing
 ---
 

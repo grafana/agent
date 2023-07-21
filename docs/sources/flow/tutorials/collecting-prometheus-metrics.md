@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/tutorials/collecting-prometheus-metrics/
+canonical: https://grafana.com/docs/agent/latest/flow/tutorials/collecting-prometheus-metrics/
 title: Collecting Prometheus metrics
 weight: 200
 ---

@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/cli/convert/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/convert/
 labels:
   stage: beta
 title: grafana-agent convert

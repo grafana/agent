@@ -2,7 +2,7 @@
 aliases:
 - ../../scraping-service/
 - ../../configuration/scraping-service/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/scraping-service/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/scraping-service/
 title: Scraping Service Mode
 weight: 600
 ---

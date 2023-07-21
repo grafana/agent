@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/prometheus.operator.probes/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.probes/
 labels:
   stage: beta
 title: prometheus.operator.probes

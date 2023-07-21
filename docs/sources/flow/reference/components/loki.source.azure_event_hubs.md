@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/loki.source.azure_event_hubs/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.azure_event_hubs/
 title: loki.source.azure_event_hubs
 ---
 

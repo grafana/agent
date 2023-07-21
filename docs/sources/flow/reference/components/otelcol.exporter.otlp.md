@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/otelcol.exporter.otlp/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.otlp/
 title: otelcol.exporter.otlp
 ---
 

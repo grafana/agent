@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/otelcol.receiver.opencensus/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.opencensus/
 title: otelcol.receiver.opencensus
 ---
 

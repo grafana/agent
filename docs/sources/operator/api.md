@@ -1,7 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/operator/crd/
-canonical: https://grafana.com/docs/grafana/agent/latest/operator/api/
+canonical: https://grafana.com/docs/agent/latest/operator/api/
 title: Custom Resource Definition Reference
 weight: 500
 ---

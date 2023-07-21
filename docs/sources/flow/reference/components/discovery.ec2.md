@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/discovery.ec2/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ec2/
 title: discovery.ec2
 ---
 

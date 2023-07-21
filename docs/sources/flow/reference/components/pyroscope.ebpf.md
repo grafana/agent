@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/pyroscope.ebpf/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.ebpf/
 labels:
   stage: beta
 title: pyroscope.ebpf

@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/operator/
+canonical: https://grafana.com/docs/agent/latest/operator/
 title: Static mode Kubernetes operator
 weight: 300
 ---

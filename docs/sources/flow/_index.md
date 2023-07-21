@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/
+canonical: https://grafana.com/docs/agent/latest/flow/
 title: Flow mode
 weight: 400
 ---

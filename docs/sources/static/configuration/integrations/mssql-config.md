@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../../../configuration/integrations/mssql-config/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/integrations/mssql-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/mssql-config/
 title: mssql_config
 ---
 

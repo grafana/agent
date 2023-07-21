@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../configuration-language/expressions/
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/config-language/expressions/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/
 title: Expressions
 weight: 400
 ---

@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/prometheus.exporter.process/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.process/
 title: prometheus.exporter.​process
 ---
 

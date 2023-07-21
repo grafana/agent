@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/setup/configure/configure-macos/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-macos/
 description: Learn how to configure Grafana Agent in flow mode on macOS
 menuTitle: macOS
 title: Configure Grafana Agent in flow mode on macOS

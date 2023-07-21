@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/static/set-up/install/install-agent-kubernetes/
+canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-kubernetes/
 menuTitle: Kubernetes
 title: Deploy Grafana Agent in static mode on Kubernetes
 weight: 300

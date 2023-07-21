@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/prometheus.relabel/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.relabel/
 title: prometheus.relabel
 ---
 

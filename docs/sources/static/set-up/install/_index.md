@@ -2,7 +2,7 @@
 aliases:
 - ../set-up/
 - ../
-canonical: https://grafana.com/docs/grafana/agent/latest/static/set-up/install/
+canonical: https://grafana.com/docs/agent/latest/static/set-up/install/
 menuTitle: Install static mode
 title: Install Grafana Agent in static mode
 weight: 100

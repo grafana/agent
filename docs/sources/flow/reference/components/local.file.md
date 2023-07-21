@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/local.file/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/local.file/
 title: local.file
 ---
 

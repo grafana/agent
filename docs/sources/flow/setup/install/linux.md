@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../../install/linux/
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/setup/install/linux/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/install/linux/
 description: Learn how to install Grafana Agent in flow mode on Linux
 menuTitle: Linux
 title: Install Grafana Agent in flow mode on Linux

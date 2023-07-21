@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../api/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/api/
+canonical: https://grafana.com/docs/agent/latest/static/api/
 title: Static mode API
 weight: 400
 ---

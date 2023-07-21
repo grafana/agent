@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/loki.source.api/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.api/
 title: loki.source.api
 ---
 

@@ -2,7 +2,7 @@
 aliases:
 - ../../configuration/prometheus-config/
 - ../../configuration/metrics-config/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/configuration/metrics-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/metrics-config/
 title: metrics_config
 weight: 200
 ---

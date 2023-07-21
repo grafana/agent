@@ -2,7 +2,7 @@
 aliases:
 - ../../set-up/install-agent-docker/
 - ../set-up/install-agent-docker/
-canonical: https://grafana.com/docs/grafana/agent/latest/static/set-up/install/install-agent-docker/
+canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-docker/
 menuTitle: Docker
 title: Run Grafana Agent in static mode in a Docker container
 weight: 200

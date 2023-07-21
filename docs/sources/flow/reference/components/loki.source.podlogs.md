@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/reference/components/loki.source.podlogs/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.podlogs/
 labels:
   stage: experimental
 title: loki.source.podlogs

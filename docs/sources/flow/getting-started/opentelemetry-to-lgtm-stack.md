@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/getting-started/opentelemetry-to-lgtm-stack/
+canonical: https://grafana.com/docs/agent/latest/flow/getting-started/opentelemetry-to-lgtm-stack/
 title: OpenTelemetry to Grafana stack
 weight: 350
 ---

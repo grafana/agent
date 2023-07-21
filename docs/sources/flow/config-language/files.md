@@ -1,7 +1,7 @@
 ---
 aliases:
 - ../configuration-language/files/
-canonical: https://grafana.com/docs/grafana/agent/latest/flow/config-language/files/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/files/
 title: Files
 weight: 100
 ---
