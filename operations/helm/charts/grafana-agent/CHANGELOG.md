@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+
+0.17.0 (2023-07-19)
+-------------------
+
 ### Features
 
 - Add native support for Flow mode clustering with the
