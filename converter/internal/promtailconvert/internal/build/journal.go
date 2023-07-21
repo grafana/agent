@@ -38,9 +38,10 @@ func (s *ScrapeConfigBuilder) AppendJournalConfig() {
 		}
 		return val
 	}
+	compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, 0)
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
 		[]string{"loki", "source", "journal"},
-		s.cfg.JobName,
+		compLabel,
 		args,
 		hook,
 	))

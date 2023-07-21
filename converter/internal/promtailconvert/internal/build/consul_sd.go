@@ -1,8 +1,6 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 )
@@ -14,7 +12,7 @@ func (s *ScrapeConfigBuilder) AppendConsulSDs() {
 
 	for i, sd := range s.cfg.ServiceDiscoveryConfig.ConsulSDConfigs {
 		args := prometheusconvert.ToDiscoveryConsul(sd)
-		compLabel := fmt.Sprintf("consul_sd_%d", i)
+		compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, i)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride(
 			[]string{"discovery", "consul"},
 			compLabel,

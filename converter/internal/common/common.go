@@ -59,6 +59,21 @@ func GetUniqueLabel(label string, currentCount int) string {
 	return fmt.Sprintf("%s_%d", label, currentCount)
 }
 
+// GetLabelWithPrefix creates a label with an optional labelPrefix and based on
+// the current count.
+func GetLabelWithPrefix(labelPrefix string, label string, currentCount int) string {
+	finalLabel := label
+	if currentCount != 0 {
+		finalLabel += fmt.Sprintf("_%d", currentCount+1)
+	}
+
+	if labelPrefix != "" {
+		finalLabel = labelPrefix + "_" + finalLabel
+	}
+
+	return finalLabel
+}
+
 // PrettyPrint parses river config and returns it in a standardize format.
 // If PrettyPrint fails, the input is returned unmodified.
 func PrettyPrint(in []byte) ([]byte, diag.Diagnostics) {

@@ -15,8 +15,9 @@ import (
 func validate(staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.AddAll(validateServer(staticConfig.Server))
 	_, grpcListenPort, _ := staticConfig.ServerFlags.GRPC.ListenHostPort()
+
+	diags.AddAll(validateServer(staticConfig.Server))
 	diags.AddAll(validateMetrics(staticConfig.Metrics, grpcListenPort))
 	diags.AddAll(validateIntegrations(staticConfig.Integrations))
 	diags.AddAll(validateTraces(staticConfig.Traces))
@@ -33,7 +34,6 @@ func validateServer(serverConfig *server.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	defaultServerConfig := server.DefaultConfig()
-
 	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.LogLevel.Level.Logrus, defaultServerConfig.LogLevel.Level.Logrus, "log_level server"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.LogFormat, defaultServerConfig.LogFormat, "log_format server"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server"))
@@ -80,8 +80,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 func validateTraces(tracesConfig traces.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	var defaultTracesConfig traces.Config
-	diags.AddAll(common.UnsupportedNotDeepEquals(tracesConfig, defaultTracesConfig, "traces"))
+	diags.AddAll(common.UnsupportedNotDeepEquals(tracesConfig, traces.Config{}, "traces"))
 
 	return diags
 }
@@ -89,16 +88,13 @@ func validateTraces(tracesConfig traces.Config) diag.Diagnostics {
 func validateLogs(logsConfig *logs.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// TODO any specific errors now that we are wiring this up to promtail
-
 	return diags
 }
 
 func validateAgentManagement(agentManagementConfig config.AgentManagementConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	var defaultAgentManagementConfig config.AgentManagementConfig
-	diags.AddAll(common.UnsupportedNotDeepEquals(agentManagementConfig, defaultAgentManagementConfig, "agent_management"))
+	diags.AddAll(common.UnsupportedNotDeepEquals(agentManagementConfig, config.AgentManagementConfig{}, "agent_management"))
 
 	return diags
 }

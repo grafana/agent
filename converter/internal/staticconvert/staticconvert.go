@@ -11,7 +11,13 @@ import (
 	"github.com/grafana/agent/converter/internal/promtailconvert"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/loki/clients/pkg/promtail/client"
 	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
+	"github.com/grafana/loki/clients/pkg/promtail/limit"
+	"github.com/grafana/loki/clients/pkg/promtail/server"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
+	"github.com/grafana/loki/clients/pkg/promtail/wal"
+	"github.com/grafana/loki/pkg/tracing"
 	prom_config "github.com/prometheus/prometheus/config"
 
 	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations
@@ -56,9 +62,11 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.AddAll(AppendStaticPrometheus(f, staticConfig))
-
-	diags.AddAll(AppendStaticPromtail(f, staticConfig))
+	// There is an edge case where different subsystems generate identical Flow
+	// components. See ./testdata/promtail_prom.river for an example output
+	// with multiple discovery.consul.name_jobName components.
+	diags.AddAll(appendStaticPrometheus(f, staticConfig))
+	diags.AddAll(appendStaticPromtail(f, staticConfig))
 
 	// TODO otel
 
@@ -71,7 +79,7 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	return diags
 }
 
-func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 	for _, instance := range staticConfig.Metrics.Configs {
 		promConfig := &prom_config.Config{
@@ -95,7 +103,7 @@ func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 	return diags
 }
 
-func AppendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if staticConfig.Logs == nil {
@@ -104,20 +112,29 @@ func AppendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 
 	for _, logConfig := range staticConfig.Logs.Configs {
 		promtailConfig := &promtail_config.Config{
-			Global: promtail_config.GlobalConfig{FileWatch: staticConfig.Logs.Global.FileWatch},
-			// ServerConfig:    server.Config{},
-			// ClientConfig:    client.Config{},
+			Global:          promtail_config.GlobalConfig{FileWatch: staticConfig.Logs.Global.FileWatch},
+			ServerConfig:    server.Config{Disable: true},
+			ClientConfig:    client.Config{},
 			ClientConfigs:   logConfig.ClientConfigs,
 			PositionsConfig: logConfig.PositionsConfig,
 			ScrapeConfig:    logConfig.ScrapeConfig,
 			TargetConfig:    logConfig.TargetConfig,
 			LimitsConfig:    logConfig.LimitsConfig,
-			// Options:         promtail_config.Options{},
-			// Tracing:         tracing.Config{},
-			// WAL:             wal.Config{},
+			Options:         promtail_config.Options{},
+			Tracing:         tracing.Config{Enabled: false},
+			WAL:             wal.Config{Enabled: false},
 		}
 
-		diags = promtailconvert.AppendAll(f, promtailConfig, diags)
+		// We need to set this when empty so the promtail converter doesn't think it has been overridden
+		if promtailConfig.Global == (promtail_config.GlobalConfig{}) {
+			promtailConfig.Global.FileWatch = file.DefaultWatchConig
+		}
+
+		if promtailConfig.LimitsConfig == (limit.Config{}) {
+			promtailConfig.LimitsConfig = promtailconvert.DefaultLimitsConfig()
+		}
+
+		diags = promtailconvert.AppendAll(f, promtailConfig, logConfig.Name, diags)
 	}
 
 	return diags

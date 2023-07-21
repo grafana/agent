@@ -1,5 +1,5 @@
 loki.process "fun" {
-	forward_to = [loki.write.default_0.receiver]
+	forward_to = [loki.write.default.receiver]
 
 	stage.json {
 		expressions = {
@@ -31,7 +31,7 @@ loki.source.journal "fun" {
 	}
 }
 
-loki.write "default_0" {
+loki.write "default" {
 	endpoint {
 		url              = "http://localhost/loki/api/v1/push"
 		follow_redirects = false

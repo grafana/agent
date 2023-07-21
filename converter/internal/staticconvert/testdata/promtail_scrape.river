@@ -1,5 +1,5 @@
-loki.relabel "fun" {
-	forward_to = [loki.write.default_0.receiver]
+loki.relabel "log_config_fun" {
+	forward_to = [loki.write.log_config.receiver]
 
 	rule {
 		source_labels = ["__trail__"]
@@ -8,7 +8,7 @@ loki.relabel "fun" {
 	max_cache_size = 0
 }
 
-loki.source.cloudflare "fun" {
+loki.source.cloudflare "log_config_fun" {
 	api_token = "dont_look_at_me_please"
 	zone_id   = "area51"
 	labels    = {
@@ -18,10 +18,10 @@ loki.source.cloudflare "fun" {
 	workers     = 42
 	pull_range  = "1h0m0s"
 	fields_type = "all"
-	forward_to  = [loki.relabel.fun.receiver]
+	forward_to  = [loki.relabel.log_config_fun.receiver]
 }
 
-loki.write "default_0" {
+loki.write "log_config" {
 	endpoint {
 		url              = "http://localhost/loki/api/v1/push"
 		follow_redirects = false

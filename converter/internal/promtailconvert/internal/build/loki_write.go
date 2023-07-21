@@ -14,12 +14,18 @@ import (
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
 )
 
-func NewLokiWrite(client *client.Config, diags *diag.Diagnostics, index int) (*builder.Block, loki.LogsReceiver) {
-	label := fmt.Sprintf("default_%d", index)
+func NewLokiWrite(client *client.Config, diags *diag.Diagnostics, index int, labelPrefix string) (*builder.Block, loki.LogsReceiver) {
+	label := "default"
+	if labelPrefix != "" {
+		label = labelPrefix
+	}
+
+	lokiWriteLabel := common.GetLabelWithPrefix("", label, index)
+
 	lokiWriteArgs := toLokiWriteArguments(client, diags)
-	block := common.NewBlockWithOverride([]string{"loki", "write"}, label, lokiWriteArgs)
+	block := common.NewBlockWithOverride([]string{"loki", "write"}, lokiWriteLabel, lokiWriteArgs)
 	return block, common.ConvertLogsReceiver{
-		Expr: fmt.Sprintf("loki.write.%s.receiver", label),
+		Expr: fmt.Sprintf("loki.write.%s.receiver", lokiWriteLabel),
 	}
 }
 

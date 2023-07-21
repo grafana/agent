@@ -61,7 +61,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	f := builder.NewFile()
-	diags = AppendAll(f, &cfg.Config, diags)
+	diags = AppendAll(f, &cfg.Config, "", diags)
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -80,7 +80,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 // AppendAll analyzes the entire promtail config in memory and transforms it
 // into Flow components. It then appends each argument to the file builder.
-func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics) diag.Diagnostics {
+func AppendAll(f *builder.File, cfg *promtailcfg.Config, labelPrefix string, diags diag.Diagnostics) diag.Diagnostics {
 	validateTopLevelConfig(cfg, &diags)
 
 	var writeReceivers = make([]loki.LogsReceiver, len(cfg.ClientConfigs))
@@ -88,12 +88,13 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics)
 	// Each client config needs to be a separate remote_write,
 	// because they may have different ExternalLabels fields.
 	for i, cc := range cfg.ClientConfigs {
-		writeBlocks[i], writeReceivers[i] = build.NewLokiWrite(&cc, &diags, i)
+		writeBlocks[i], writeReceivers[i] = build.NewLokiWrite(&cc, &diags, i, labelPrefix)
 	}
 
 	gc := &build.GlobalContext{
 		WriteReceivers:   writeReceivers,
 		TargetSyncPeriod: cfg.TargetConfig.SyncPeriod,
+		LabelPrefix:      labelPrefix,
 	}
 
 	for _, sc := range cfg.ScrapeConfig {
@@ -107,14 +108,14 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics)
 	return diags
 }
 
-func defaultPositionsConfig() positions.Config {
+func DefaultPositionsConfig() positions.Config {
 	// We obtain the default by registering the flags
 	cfg := positions.Config{}
 	cfg.RegisterFlags(flag.NewFlagSet("", flag.PanicOnError))
 	return cfg
 }
 
-func defaultLimitsConfig() limit.Config {
+func DefaultLimitsConfig() limit.Config {
 	cfg := limit.Config{}
 	cfg.RegisterFlagsWithPrefix("", flag.NewFlagSet("", flag.PanicOnError))
 	return cfg
@@ -145,7 +146,7 @@ func appendScrapeConfig(
 	// Append all the SD components
 	b.AppendKubernetesSDs()
 	b.AppendDockerSDs()
-	b.AppendStaticSDs()
+	b.AppendStaticSDs() //TODO
 	b.AppendFileSDs()
 	b.AppendConsulSDs()
 	b.AppendConsulAgentSDs()
