@@ -49,7 +49,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
-	diags = append(diags, newDiags...)
+	diags.AddAll(newDiags)
 	return prettyByte, diags
 }
 
@@ -86,7 +86,7 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix stri
 	}
 
 	diags := validate(promConfig)
-	diags = append(diags, pb.getScrapeInfo()...)
+	diags.AddAll(pb.getScrapeInfo())
 
 	pb.appendToFile(f)
 

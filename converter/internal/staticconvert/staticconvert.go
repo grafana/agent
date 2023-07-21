@@ -45,7 +45,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
-	diags = append(diags, newDiags...)
+	diags.AddAll(newDiags)
 	return prettyByte, diags
 }
 
@@ -56,11 +56,9 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	newDiags := AppendStaticPrometheus(f, staticConfig)
-	diags = append(diags, newDiags...)
+	diags.AddAll(AppendStaticPrometheus(f, staticConfig))
 
-	newDiags = AppendStaticPromtail(f, staticConfig)
-	diags = append(diags, newDiags...)
+	diags.AddAll(AppendStaticPromtail(f, staticConfig))
 
 	// TODO otel
 
@@ -68,8 +66,7 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 
 	// TODO other
 
-	newDiags = validate(staticConfig)
-	diags = append(diags, newDiags...)
+	diags.AddAll(validate(staticConfig))
 
 	return diags
 }
@@ -92,8 +89,7 @@ func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		//   scrape config job_name = "test_prometheus"
 		//
 		//   results in two prometheus.scrape components with the label "agent_test_prometheus"
-		newDiags := prometheusconvert.AppendAll(f, promConfig, instance.Name)
-		diags = append(diags, newDiags...)
+		diags.AddAll(prometheusconvert.AppendAll(f, promConfig, instance.Name))
 	}
 
 	return diags
