@@ -28,6 +28,12 @@ Main (unreleased)
   `prometheus.operator` component which discovered no custom resources.
   (@rfratto)
 
+### Other changes
+
+- Compile journald support into builds of `grafana-agentctl` so
+  `grafana-agentctl test-logs` functions as expected when testing tailing the
+  systemd journal. (@rfratto)
+
 v0.35.0 (2023-07-18)
 --------------------
 
