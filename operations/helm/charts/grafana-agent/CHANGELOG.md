@@ -26,6 +26,8 @@ Unreleased
 
 - Set securityContext at podlevel. (@yanehi)
 
+- Update Grafana Agent version to v0.35.0. (@mattdurham)
+
 0.16.0 (2023-06-20)
 -------------------
 
