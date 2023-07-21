@@ -25,6 +25,12 @@ Main (unreleased)
 
 - Fix RPM file digests so that installation on FIPS-enabled systems succeeds. (@andrewimeson)
 
+### Other changes
+
+- Compile journald support into builds of `grafana-agentctl` so
+  `grafana-agentctl test-logs` functions as expected when testing tailing the
+  systemd journal. (@rfratto)
+
 v0.35.1 (2023-07-25)
 --------------------
 
