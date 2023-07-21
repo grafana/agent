@@ -94,7 +94,7 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
 	github.com/ncabatoff/process-exporter v0.7.10
-	github.com/nerdswords/yet-another-cloudwatch-exporter v0.51.0
+	github.com/nerdswords/yet-another-cloudwatch-exporter v0.53.0
 	github.com/ohler55/ojg v1.18.7
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
