@@ -87,15 +87,6 @@ func encodeFieldAsStatements(prefix []string, field rivertags.Field, fieldValue 
 		fullName := mergeStringSlice(prefix, field.Name)
 
 		switch {
-		case fieldValue.IsZero():
-			// It shouldn't be possible to have a required block which is unset, but
-			// we'll encode something anyway.
-			return []jsonStatement{jsonBlock{
-				Name: strings.Join(fullName, "."),
-				Type: "block",
-				Body: nil,
-			}}
-
 		case fieldValue.Kind() == reflect.Map:
 			// Iterate over the map and add each element as an attribute into it.
 
@@ -137,6 +128,19 @@ func encodeFieldAsStatements(prefix []string, field rivertags.Field, fieldValue 
 			return statements
 
 		case fieldValue.Kind() == reflect.Struct:
+			if fieldValue.IsZero() {
+				// It shouldn't be possible to have a required block which is unset, but
+				// we'll encode something anyway.
+				return []jsonStatement{jsonBlock{
+					Name: strings.Join(fullName, "."),
+					Type: "block",
+
+					// Never set this to nil, since the API contract always expects blocks
+					// to have an array value for the body.
+					Body: []jsonStatement{},
+				}}
+			}
+
 			return []jsonStatement{jsonBlock{
 				Name:  strings.Join(fullName, "."),
 				Type:  "block",
