@@ -28,7 +28,9 @@ Main (unreleased)
   `prometheus.operator` component which discovered no custom resources.
   (@rfratto)
 
-- Fix panic when using `oauth2` without specifying `tls_config`. (@mattdurham) 
+- Fix panic when using `oauth2` without specifying `tls_config`. (@mattdurham)
+
+- Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
 ### Other changes
 
