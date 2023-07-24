@@ -15,11 +15,11 @@ Grafana Agent is based around **components**. Components are wired together to
 form programmable observability **pipelines** for telemetry collection,
 processing, and delivery.
 
-> **NOTE**: This page focuses mainly on "[Flow mode][]," the
-> Terraform-inspired variant of Grafana Agent.
->
-> For information on other variants of Grafana Agent, refer to [About Grafana
-> Agent][].
+{{% admonition type="note" %}}
+This page focuses mainly on [Flow mode]({{< relref "./flow/" >}}), the Terraform-inspired variant of Grafana Agent.
+
+For information on other variants of Grafana Agent, refer to [Introduction to Grafana Agent]({{< relref "./about.md" >}}).
+{{% /admonition %}}
 
 Grafana Agent can collect, transform, and send data to:
 
@@ -28,8 +28,6 @@ Grafana Agent can collect, transform, and send data to:
 * The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Phlare][])
 
 [Terraform]: https://terraform.io
-[Flow mode]: {{< relref "./flow/" >}}
-[About Grafana Agent]: {{< relref "./about.md" >}}
 [Prometheus]: https://prometheus.io
 [OpenTelemetry]: https://opentelemetry.io
 [Loki]: https://github.com/grafana/loki
