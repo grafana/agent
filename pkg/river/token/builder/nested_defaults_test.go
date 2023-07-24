@@ -50,13 +50,6 @@ var testCases2 = []struct {
 		input:         PtrPropagatingDefault{Inner: &AttrWithDefault{Number: defaultNumber}},
 		expectedRiver: "",
 	},
-	// TODO: Test fails currently: invariant violated - not clear how to explicitly set the inner block to nil in River
-	//       The builder currently encodes this into empty river block, which decodes into default value.
-	//{
-	//	name:          "pointer propagating default - nil pointer",
-	//	input:         PtrPropagatingDefault{},
-	//	expectedRiver: "",
-	//},
 	{
 		name:  "pointer propagating default - input with zero value",
 		input: PtrPropagatingDefault{Inner: &AttrWithDefault{}},
@@ -117,13 +110,6 @@ var testCases2 = []struct {
 		input:         MismatchingDefault{Inner: &AttrWithDefault{Number: defaultNumber}},
 		expectedRiver: "inner { }",
 	},
-	// TODO: Test fails currently: invariant violated - not clear how to explicitly set the inner block to nil in River
-	//       The builder currently encodes this into empty river block, which decodes into outer default values.
-	//{
-	//	name:          "mismatching default - nil inner block",
-	//	input:         MismatchingDefault{},
-	//	expectedRiver: "",
-	//},
 	{
 		name:  "mismatching default - input with non-default value",
 		input: MismatchingDefault{Inner: &AttrWithDefault{Number: 42}},
