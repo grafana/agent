@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/prometheus/tsdb/wlog"
 
 	"github.com/prometheus/prometheus/config"
 
@@ -163,7 +162,7 @@ func (o *MetadataOptions) toPrometheusType() config.MetadataConfig {
 }
 
 type Exports struct {
-	Receiver wlog.WriteTo `river:"receiver,attr"`
+	Receiver RemoteWrite `river:"receiver,attr"`
 }
 
 func convertConfigs(cfg Arguments) (*config.Config, error) {

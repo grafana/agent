@@ -30,8 +30,6 @@ import (
 	promremote "github.com/prometheus/prometheus/storage/remote"
 )
 
-// WriteClient defines an interface for sending a batch of samples to an
-// external timeseries database.
 type WriteClient interface {
 	// Store stores the given samples in the remote storage.
 	Store(context.Context, []byte) error
@@ -55,8 +53,6 @@ type QueueManager struct {
 	mcfg                 config.MetadataConfig
 	sendExemplars        bool
 	sendNativeHistograms bool
-	watcher              prometheus.WALWatcher
-	metadataWatcher      *promremote.MetadataWatcher
 	walCancel            context.CancelFunc
 
 	clientMtx   sync.RWMutex
@@ -90,8 +86,8 @@ func NewQueueManager(
 	highestRecvTimestamp *maxTimestamp,
 	enableExemplarRemoteWrite bool,
 	enableNativeHistogramRemoteWrite bool,
-	watcher prometheus.WALWatcher,
 ) *QueueManager {
+
 	if logger == nil {
 		logger = log.NewNopLogger()
 	}
@@ -116,13 +112,10 @@ func NewQueueManager(
 
 		metrics:              metrics,
 		highestRecvTimestamp: highestRecvTimestamp,
-		watcher:              watcher,
 	}
-	ctx := context.Background()
-	ctx, cnc := context.WithCancel(ctx)
+	backCtx := context.Background()
+	_, cnc := context.WithCancel(backCtx)
 	t.walCancel = cnc
-	watcher.SetWriteTo(t, ctx)
-	watcher.Start()
 
 	t.shards = t.newShards()
 
@@ -229,6 +222,7 @@ outer:
 				value:        s.Value,
 				sType:        tSample,
 			}) {
+
 				continue outer
 			}
 
@@ -267,6 +261,7 @@ outer:
 				exemplarLabels: e.L,
 				sType:          tExemplar,
 			}) {
+
 				continue outer
 			}
 
@@ -285,10 +280,8 @@ func (t *QueueManager) AppendHistograms(histograms []prometheus.Histogram) bool 
 	if !t.sendNativeHistograms {
 		return true
 	}
-
 outer:
 	for _, h := range histograms {
-
 		backoff := model.Duration(5 * time.Millisecond)
 		for {
 			select {
@@ -302,6 +295,7 @@ outer:
 				histogram:    h.Value,
 				sType:        tHistogram,
 			}) {
+
 				continue outer
 			}
 
@@ -323,7 +317,6 @@ func (t *QueueManager) AppendFloatHistograms(floatHistograms []prometheus.FloatH
 
 outer:
 	for _, h := range floatHistograms {
-
 		backoff := model.Duration(5 * time.Millisecond)
 		for {
 			select {
@@ -337,6 +330,7 @@ outer:
 				floatHistogram: h.Value,
 				sType:          tFloatHistogram,
 			}) {
+
 				continue outer
 			}
 
@@ -363,10 +357,6 @@ func (t *QueueManager) Start() {
 	t.metrics.maxSamplesPerSend.Set(float64(t.cfg.MaxSamplesPerSend))
 
 	t.shards.start(t.numShards)
-	t.watcher.Start()
-	if t.mcfg.Send {
-		t.metadataWatcher.Start()
-	}
 
 	t.wg.Add(2)
 	go t.updateShardsLoop()
@@ -386,9 +376,6 @@ func (t *QueueManager) Stop() {
 	// causes a closed channel panic.
 	t.shards.stop()
 	t.walCancel()
-	if t.mcfg.Send {
-		t.metadataWatcher.Stop()
-	}
 
 	t.metrics.unregister()
 }
@@ -1144,8 +1131,6 @@ func metricTypeToMetricTypeProto(t textparse.MetricType) prompb.MetricMetadata_M
 
 	return prompb.MetricMetadata_MetricType(v)
 }
-
-const defaultBackoff = 0
 
 type RecoverableError struct {
 	error

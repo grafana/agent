@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -165,11 +166,15 @@ func (d *signaldb) writeRecord(key []byte, data any, ttl time.Duration) error {
 	if err != nil {
 		return err
 	}
+	signalType, err := getType(data)
+	if err != nil {
+		return err
+	}
 	err = d.d.Update(func(txn *badgerdb.Txn) error {
 		entry := &badgerdb.Entry{
 			Key:      key,
 			Value:    buf.Bytes(),
-			UserMeta: 0,
+			UserMeta: byte(signalType),
 		}
 		if ttl > 0*time.Second {
 			entry.ExpiresAt = uint64(time.Now().Add(ttl).Unix())
@@ -178,6 +183,23 @@ func (d *signaldb) writeRecord(key []byte, data any, ttl time.Duration) error {
 		return inErr
 	})
 	return err
+}
+
+func getType(data any) (int8, error) {
+	switch v := data.(type) {
+	case []Sample:
+		return metric_signal, nil
+	case []Exemplar:
+		return exemplar_signal, nil
+	case []Metadata:
+		return metadata_signal, nil
+	case []Histogram:
+		return histogram_signal, nil
+	case []FloatHistogram:
+		return floathistogram_signal, nil
+	default:
+		return 0, fmt.Errorf("unknown data type %v", v)
+	}
 }
 
 func (d *signaldb) evict() {
@@ -193,3 +215,4 @@ func (d *signaldb) evict() {
 	}
 
 }
+  

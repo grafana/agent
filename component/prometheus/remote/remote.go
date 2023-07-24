@@ -71,21 +71,27 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 			})},
 		true,
 		true,
-		nil,
 	)
-	return &Component{
+	comp := &Component{
 		args: c,
 		qm:   qm,
-	}, nil
+	}
+	o.OnStateChange(Exports{
+		Receiver: comp.qm,
+	})
+	return comp, nil
 }
 
 func (c *Component) Run(ctx context.Context) error {
 	defer c.qm.Stop()
-	_ = <-ctx.Done()
+	<-ctx.Done()
 	return nil
 }
 
 func (c *Component) Update(args component.Arguments) error {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
 	c.args = args.(Arguments)
 	// If arguments change we need to rebuild the whole thing
 	return nil

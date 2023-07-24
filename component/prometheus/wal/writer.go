@@ -1,4 +1,4 @@
-package badger
+package wal
 
 import (
 	"bytes"
@@ -8,23 +8,17 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/component/prometheus/remote"
 )
-
-var _ prometheus.WALWatcher = (*writer)(nil)
 
 type writer struct {
 	parentId   string
 	keys       []uint64
 	currentKey uint64
-	to         prometheus.WriteTo
+	to         remote.RemoteWrite
 	bm         *bookmark
-	metrics    *db
+	metrics    *signaldb
 	ctx        context.Context
-}
-
-func (w *writer) SetWriteTo(to prometheus.WriteTo, ctx context.Context) {
-	w.to = to
-	w.ctx = ctx
 }
 
 func (w *writer) Start() error {
@@ -54,7 +48,7 @@ func (w *writer) Start() error {
 	}
 	for {
 		var samples []prometheus.Sample
-		found, err := w.metrics.getValueForKey(w.currentKey, samples)
+		found, err := w.metrics.getRecordByUint(w.currentKey, samples)
 
 		w.incrementKey()
 		if err != nil {
@@ -87,3 +81,4 @@ func (w *writer) incrementKey() error {
 	binary.PutUvarint(buf, w.currentKey)
 	return w.bm.writeBookmark(name, buf)
 }
+  

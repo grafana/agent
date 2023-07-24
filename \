@@ -1,8 +1,0 @@
-package wal
-
-var _ Store = (*dbstore)(nil)
-
-type dbstore struct {
-	stores   map[string]*db
-	bookmark *db
-}
