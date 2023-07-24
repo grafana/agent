@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.16.0](https://img.shields.io/badge/Version-0.16.0-informational?style=flat-square) ![AppVersion: v0.34.2](https://img.shields.io/badge/AppVersion-v0.34.2-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.17.0](https://img.shields.io/badge/Version-0.17.0-informational?style=flat-square) ![AppVersion: v0.35.0](https://img.shields.io/badge/AppVersion-v0.35.0-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
