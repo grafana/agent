@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.span/
 title: otelcol.processor.span
 ---
 
