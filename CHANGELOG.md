@@ -28,7 +28,7 @@ Main (unreleased)
   `prometheus.operator` component which discovered no custom resources.
   (@rfratto)
 
-- Fix issue with nil tls config reference when using oauth2. (@mattdurham) 
+- Fix panic when using `oauth2` without specifying `tls_config`. (@mattdurham) 
 
 ### Other changes
 
