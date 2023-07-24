@@ -66,7 +66,7 @@ func TestDeltaProfilerAppenderNoop(t *testing.T) {
 	require.Equal(t, in, unmarshal(t, actual[0].RawProfile))
 }
 
-func marshal(t *testing.T, profile *googlev1.Profile) []byte {
+func marshal(t testing.TB, profile *googlev1.Profile) []byte {
 	t.Helper()
 	data, err := profile.MarshalVT()
 	if err != nil {
@@ -75,7 +75,7 @@ func marshal(t *testing.T, profile *googlev1.Profile) []byte {
 	return data
 }
 
-func compress(t *testing.T, data []byte) []byte {
+func compress(t testing.TB, data []byte) []byte {
 	t.Helper()
 	var buf bytes.Buffer
 	gzw := gzip.NewWriter(&buf)
@@ -88,7 +88,7 @@ func compress(t *testing.T, data []byte) []byte {
 	return buf.Bytes()
 }
 
-func unmarshalCompressed(t *testing.T, data []byte) *googlev1.Profile {
+func unmarshalCompressed(t testing.TB, data []byte) *googlev1.Profile {
 	t.Helper()
 	var gzr gzip.Reader
 	if err := gzr.Reset(bytes.NewReader(data)); err != nil {
@@ -106,7 +106,7 @@ func unmarshalCompressed(t *testing.T, data []byte) *googlev1.Profile {
 	return result
 }
 
-func unmarshal(t *testing.T, data []byte) *googlev1.Profile {
+func unmarshal(t testing.TB, data []byte) *googlev1.Profile {
 	t.Helper()
 	result := &googlev1.Profile{}
 	if err := result.UnmarshalVT(data); err != nil {
@@ -170,4 +170,19 @@ func (strings stringTable) addString(s string) int64 {
 		strings[s] = i
 	}
 	return int64(i)
+}
+
+var out []byte
+
+func BenchmarkComputeDelta(b *testing.B) {
+	data := compress(b, marshal(b, newMemoryProfile(1, 1)))
+	app := newDeltaAppender(nil, nil)
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		res, err := app.computeDelta(data)
+		require.NoError(b, err)
+		out = res
+	}
 }
