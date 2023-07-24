@@ -387,7 +387,7 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) {
-	cfg, error := load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
+	cfg, error := LoadFromFunc(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
 		switch fileType {
 		case fileTypeYAML:
 			if features.Enabled(fs, featRemoteConfigs) {
@@ -428,9 +428,9 @@ func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path str
 	return nil
 }
 
-// load allows for tests to inject a function for retrieving the config file that
+// LoadFromFunc injects a function for retrieving the config file that
 // doesn't require having a literal file on disk.
-func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
+func LoadFromFunc(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	var (
 		cfg = DefaultConfig()
 

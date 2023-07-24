@@ -24,12 +24,23 @@ Main (unreleased)
 
 - Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
 
+- Fix issue where the flow mode UI would show an empty page when navigating to
+  an unhealthy `prometheus.operator` component or a healthy
+  `prometheus.operator` component which discovered no custom resources.
+  (@rfratto)
+
+### Other changes
+
+- Compile journald support into builds of `grafana-agentctl` so
+  `grafana-agentctl test-logs` functions as expected when testing tailing the
+  systemd journal. (@rfratto)
+
 v0.35.0 (2023-07-18)
 --------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
- 
+
 ### Breaking changes
 
 - The algorithm for the "hash" action of `otelcol.processor.attributes` has changed.

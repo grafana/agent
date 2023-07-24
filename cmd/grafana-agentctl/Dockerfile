@@ -20,6 +20,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     GOOS="$TARGETOS" GOARCH="$TARGETARCH" GOARM="${TARGETVARIANT#v}" \
     RELEASE_BUILD="${RELEASE_BUILD}" VERSION="${VERSION}" \
+    GO_TAGS="promtail_journal_enabled" \
     make agentctl
 
 FROM ubuntu:lunar
