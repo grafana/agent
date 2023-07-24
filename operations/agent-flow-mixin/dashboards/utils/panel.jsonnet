@@ -30,7 +30,7 @@
     },
   },
 
-  newHeatmap(title=''):: $.new(title, 'heatmap-new') {
+  newHeatmap(title=''):: $.new(title, 'heatmap') {
     maxDataPoints: 30,
     options: {
       calculate: false,
