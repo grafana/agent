@@ -2,7 +2,6 @@ package scrape
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"io"
 	"testing"
@@ -11,6 +10,7 @@ import (
 	googlev1 "github.com/grafana/phlare/api/gen/proto/go/google/v1"
 
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/klauspost/compress/gzip"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"

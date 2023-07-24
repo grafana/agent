@@ -2,7 +2,6 @@ package scrape
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/binary"
 	"fmt"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/component/pyroscope/scrape/internal/fastdelta"
+	"github.com/klauspost/compress/gzip"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 )
