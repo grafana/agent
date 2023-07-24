@@ -28,6 +28,8 @@ Main (unreleased)
   `prometheus.operator` component which discovered no custom resources.
   (@rfratto)
 
+- Fix panic when using `oauth2` without specifying `tls_config`. (@mattdurham) 
+
 ### Other changes
 
 - Compile journald support into builds of `grafana-agentctl` so
