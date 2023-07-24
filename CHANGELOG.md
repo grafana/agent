@@ -17,6 +17,8 @@ Main (unreleased)
   `prometheus.operator` component which discovered no custom resources.
   (@rfratto)
 
+- Fix panic when using `oauth2` without specifying `tls_config`. (@mattdurham)
+
 v0.35.1 (2023-07-25)
 --------------------
 
