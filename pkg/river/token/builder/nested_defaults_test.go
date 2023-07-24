@@ -17,7 +17,7 @@ const (
 	otherDefaultNumber = 321
 )
 
-var testCases2 = []struct {
+var testCases = []struct {
 	name          string
 	input         interface{}
 	expectedRiver string
@@ -122,14 +122,11 @@ var testCases2 = []struct {
 }
 
 func TestNestedDefaults(t *testing.T) {
-	for _, tc := range testCases2 {
+	for _, tc := range testCases {
 		t.Run(fmt.Sprintf("%T/%s", tc.input, tc.name), func(t *testing.T) {
 			f := builder.NewFile()
 			f.Body().AppendFrom(tc.input)
 			actualRiver := string(f.Bytes())
-			fmt.Println("====== ACTUAL ======")
-			fmt.Println(actualRiver)
-			fmt.Println("====================")
 			expected := format(t, tc.expectedRiver)
 			require.Equal(t, expected, actualRiver, "generated river didn't match expected")
 
@@ -142,6 +139,28 @@ func TestNestedDefaults(t *testing.T) {
 			require.Equal(t, tc.input, actualOut, "Invariant violated: encoded and then decoded block didn't match the original value")
 		})
 	}
+}
+
+func TestPtrPropagatingDefaultWithNil(t *testing.T) {
+	// This is a special case - when defaults are correctly defined, the `Inner: nil` should mean to use defaults.
+	// Encoding will encode to empty string and decoding will produce the default value - `Inner: {Number: 123}`.
+	input := PtrPropagatingDefault{}
+	expectedEncodedRiver := ""
+	expectedDecoded := PtrPropagatingDefault{Inner: &AttrWithDefault{Number: 123}}
+
+	f := builder.NewFile()
+	f.Body().AppendFrom(input)
+	actualRiver := string(f.Bytes())
+	expected := format(t, expectedEncodedRiver)
+	require.Equal(t, expected, actualRiver, "generated river didn't match expected")
+
+	// Now decode the River produced above and make sure it's the same as the input.
+	eval := vm.New(parseBlock(t, actualRiver))
+	vPtr := reflect.New(reflect.TypeOf(input)).Interface()
+	require.NoError(t, eval.Evaluate(nil, vPtr), "river evaluation error")
+
+	actualOut := reflect.ValueOf(vPtr).Elem().Interface()
+	require.Equal(t, expectedDecoded, actualOut)
 }
 
 // StructPropagatingDefault has the outer defaults matching the inner block's defaults. The inner block is a struct.
