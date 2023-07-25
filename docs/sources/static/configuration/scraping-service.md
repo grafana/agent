@@ -168,3 +168,30 @@ Entries in the API not in the synced directory will be deleted.
 container with the `grafana/agentctl` image. Tanka configurations that
 utilize `grafana/agentctl` and sync a set of configurations to the API
 are planned for the future.
+
+## Debug Ring endpoint
+
+The `/debug/ring` endpoint is a useful tool to troubleshoot issues with the scraping
+service in Scraping Service Mode. It provides information about the Distributed Hash Ring
+and the current distribution of configurations among Agents in the cluster. 
+
+This endpoint can be accessed by making an HTTP request to the Agent's API server.
+
+Information returned by the `/debug/ring` endpoint includes:
+
+- The list of Agents in the cluster along with their respective tokens
+  used for sharding.
+- The list of configuration files stored in the KV store and their associated
+   hash values used for lookup in the ring.
+- For each configuration file, it shows the Agent responsible for scraping it
+   based on the token closest to the configuration file's hash.
+- The instance ID is also included in the information returned by the `/debug/ring` endpoint.
+- The instance ID is a unique identifier assigned to each instance of the Agent running in the cluster.
+
+## Instance ID Generation
+
+The instance ID is a unique identifier assigned to each running instance of the Agent within the cluster.
+The exact details of the instance ID generation might be specific to the implementation of the Grafana Agent,
+and without further information, it's difficult to determine the exact method used for generating the instance ID.
+
+
