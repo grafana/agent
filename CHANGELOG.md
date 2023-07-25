@@ -14,10 +14,13 @@ Main (unreleased)
 
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
 - Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
+- Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
 
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics (@tburgessdev)
+  - `otelcol.processor.span` - accepts traces telemetry data from other `otelcol`
+  components and modifies the names and attributes of the spans. (@ptodev)
 
 ### Bugfixes
 
@@ -31,6 +34,10 @@ Main (unreleased)
 - Fix panic when using `oauth2` without specifying `tls_config`. (@mattdurham)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
+
+- Fix incorrect display of trace IDs in the automatic_logging processor of static mode's traces subsystem.
+  Users of the static mode's service graph processor are also advised to upgrade, 
+  although the bug should theoretically not affect them. (@ptodev)
 
 ### Other changes
 
