@@ -32,7 +32,9 @@ Main (unreleased)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
-- Fix incorrect display of trace IDs in the automatic_logging processor of static mode's traces subsystem. (@ptodev)
+- Fix incorrect display of trace IDs in the automatic_logging processor of static mode's traces subsystem.
+  Users of the static mode's service graph processor are also advised to upgrade, 
+  although the bug should theoretically not affect them. (@ptodev)
 
 ### Other changes
 
