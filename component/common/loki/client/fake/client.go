@@ -1,15 +1,14 @@
 package fake
 
 import (
+	"github.com/grafana/agent/component/common/loki"
 	"sync"
-
-	"github.com/grafana/loki/clients/pkg/promtail/api"
 )
 
 // Client is a fake client used for testing.
 type Client struct {
-	entries  chan api.Entry
-	received []api.Entry
+	entries  chan loki.Entry
+	received []loki.Entry
 	once     sync.Once
 	mtx      sync.Mutex
 	wg       sync.WaitGroup
@@ -19,7 +18,7 @@ type Client struct {
 func New(stop func()) *Client {
 	c := &Client{
 		OnStop:  stop,
-		entries: make(chan api.Entry),
+		entries: make(chan loki.Entry),
 	}
 	c.wg.Add(1)
 	go func() {
@@ -40,14 +39,14 @@ func (c *Client) Stop() {
 	c.OnStop()
 }
 
-func (c *Client) Chan() chan<- api.Entry {
+func (c *Client) Chan() chan<- loki.Entry {
 	return c.entries
 }
 
-func (c *Client) Received() []api.Entry {
+func (c *Client) Received() []loki.Entry {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	cpy := make([]api.Entry, len(c.received))
+	cpy := make([]loki.Entry, len(c.received))
 	copy(cpy, c.received)
 	return cpy
 }
@@ -66,5 +65,5 @@ func (c *Client) Name() string {
 func (c *Client) Clear() {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	c.received = []api.Entry{}
+	c.received = []loki.Entry{}
 }

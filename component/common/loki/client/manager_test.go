@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/client/fake"
+	"github.com/grafana/agent/component/common/loki/limit"
+	"github.com/grafana/agent/component/common/loki/wal"
 	"net/http"
 	"net/url"
 	"os"
@@ -17,10 +20,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/clients/pkg/promtail/client/fake"
-	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/utils"
-	"github.com/grafana/loki/clients/pkg/promtail/wal"
 
 	"github.com/grafana/loki/pkg/logproto"
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
