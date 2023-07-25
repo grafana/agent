@@ -413,7 +413,7 @@ Replace the following:
 
 ### Limit searched namespaces and filter by labels value
 
-This example limits the searched namespaces and only selects pods with a specific label value attached to them.:
+This example limits the searched namespaces and only selects pods with a specific label value attached to them:
 
 ```river
 discovery.kubernetes "k8s_pods" {
