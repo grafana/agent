@@ -32,6 +32,8 @@ Main (unreleased)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
+- Fix incorrect display of trace IDs in the automatic_logging processor of static mode's traces subsystem. (@ptodev)
+
 ### Other changes
 
 - Compile journald support into builds of `grafana-agentctl` so
