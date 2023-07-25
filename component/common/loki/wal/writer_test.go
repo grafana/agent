@@ -2,7 +2,6 @@ package wal
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki"
 	"os"
 	"path/filepath"
 	"testing"
@@ -14,6 +13,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/pkg/logproto"
 )
 

@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/pkg/errors"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wlog"
 
@@ -191,7 +190,7 @@ func (w *Watcher) watch(segmentNum int) error {
 			}
 
 			// io.EOF error are non-fatal since we are tailing the wal
-			if errors.Cause(err) != io.EOF {
+			if errorCause(err) != io.EOF {
 				return err
 			}
 
@@ -216,7 +215,7 @@ func (w *Watcher) watch(segmentNum int) error {
 		}
 
 		// io.EOF error are non-fatal since we are tailing the wal
-		if errors.Cause(err) != io.EOF {
+		if errorCause(err) != io.EOF {
 			return err
 		}
 
@@ -241,10 +240,10 @@ func (w *Watcher) readSegment(r *wlog.LiveReader, segmentNum int) (bool, error) 
 		// keep true if data was read at least once
 		readData = readData || read
 		if err != nil {
-			return readData, errors.Wrapf(err, "error decoding record")
+			return readData, fmt.Errorf("error decoding record: %w", err)
 		}
 	}
-	return readData, errors.Wrapf(r.Err(), "segment %d: %v", segmentNum, r.Err())
+	return readData, fmt.Errorf("segment %d: %w", segmentNum, r.Err())
 }
 
 // decodeAndDispatch first decodes a WAL record. Upon reading either Series or Entries from the WAL record, call the
@@ -348,4 +347,21 @@ func readSegmentNumbers(dir string) ([]int, error) {
 		refs = append(refs, k)
 	}
 	return refs, nil
+}
+
+// errorCause gets the underlying error case, if this implements the causer interface.
+// Inlining to avoid using deny-listed dependency.
+func errorCause(err error) error {
+	type causer interface {
+		Cause() error
+	}
+
+	for err != nil {
+		cause, ok := err.(causer)
+		if !ok {
+			break
+		}
+		err = cause.Cause()
+	}
+	return err
 }
