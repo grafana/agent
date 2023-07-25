@@ -457,6 +457,11 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 		span.SetAttributes(attribute.String("node_id", n.NodeID()))
 		defer span.End()
 
+		start := time.Now()
+		defer func() {
+			level.Info(logger).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", time.Since(start))
+		}()
+
 		var err error
 
 		switch n := n.(type) {

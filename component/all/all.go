@@ -58,6 +58,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/processor/attributes"             // Import otelcol.processor.attributes
 	_ "github.com/grafana/agent/component/otelcol/processor/batch"                  // Import otelcol.processor.batch
 	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"          // Import otelcol.processor.memory_limiter
+	_ "github.com/grafana/agent/component/otelcol/processor/span"                   // Import otelcol.processor.span
 	_ "github.com/grafana/agent/component/otelcol/processor/tail_sampling"          // Import otelcol.processor.tail_sampling
 	_ "github.com/grafana/agent/component/otelcol/receiver/jaeger"                  // Import otelcol.receiver.jaeger
 	_ "github.com/grafana/agent/component/otelcol/receiver/kafka"                   // Import otelcol.receiver.kafka
