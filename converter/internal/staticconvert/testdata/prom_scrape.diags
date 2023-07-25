@@ -1,2 +1,3 @@
 (Error) unsupported global evaluation_interval config was provided
+(Warning) Static mode command line flags which modify the running agent are not supported for the static to flow converter.
 (Error) unsupported wal_directory metrics config was provided. use the run command flag --storage.path for Flow mode instead.

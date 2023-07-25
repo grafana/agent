@@ -17,6 +17,7 @@ func validate(staticConfig *config.Config) diag.Diagnostics {
 
 	_, grpcListenPort, _ := staticConfig.ServerFlags.GRPC.ListenHostPort()
 
+	diags.AddAll(validateCommandLine())
 	diags.AddAll(validateServer(staticConfig.Server))
 	diags.AddAll(validateMetrics(staticConfig.Metrics, grpcListenPort))
 	diags.AddAll(validateIntegrations(staticConfig.Integrations))
@@ -24,8 +25,13 @@ func validate(staticConfig *config.Config) diag.Diagnostics {
 	diags.AddAll(validateLogs(staticConfig.Logs))
 	diags.AddAll(validateAgentManagement(staticConfig.AgentManagement))
 
-	// TODO: other properties exist on config.Config but are driven by command line flags.
-	// We don't have them so need to document somewhere
+	return diags
+}
+
+func validateCommandLine() diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	diags.Add(diag.SeverityLevelWarn, "Static mode command line flags which modify the running agent are not supported for the static to flow converter.")
 
 	return diags
 }
@@ -60,9 +66,6 @@ func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diag
 	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.InstanceMode, defaultMetrics.InstanceMode, "instance_mode metrics"))
 	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.DisableKeepAlives, defaultMetrics.DisableKeepAlives, "http_disable_keepalives metrics"))
 	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.IdleConnTimeout, defaultMetrics.IdleConnTimeout, "http_idle_conn_timeout metrics"))
-
-	// TODO: other properties exist on metricsConfig.Global but are driven by command line flags.
-	// We don't have them so need to document somewhere
 
 	return diags
 }
