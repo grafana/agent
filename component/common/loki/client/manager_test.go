@@ -127,10 +127,10 @@ func TestManager_WALEnabled(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "wal:test-client", manager.Name())
 
-	receivedRequests := []utils.RemoteWriteRequest{}
+	receivedRequest := utils.NewSyncSlice[utils.RemoteWriteRequest]()
 	go func() {
 		for req := range rwReceivedReqs {
-			receivedRequests = append(receivedRequests, req)
+			receivedRequest.Append(req)
 		}
 	}()
 
@@ -155,12 +155,13 @@ func TestManager_WALEnabled(t *testing.T) {
 	}
 
 	require.Eventually(t, func() bool {
-		return len(receivedRequests) == totalLines
+		return receivedRequest.Length() == totalLines
 	}, 5*time.Second, time.Second, "timed out waiting for requests to be received")
 
 	var seenEntries = map[string]struct{}{}
 	// assert over rw client received entries
-	for _, req := range receivedRequests {
+	defer receivedRequest.DoneIterate()
+	for _, req := range receivedRequest.StartIterate() {
 		require.Len(t, req.Request.Streams, 1, "expected 1 stream requests to be received")
 		require.Len(t, req.Request.Streams[0].Entries, 1, "expected 1 entry in the only stream received per request")
 		require.Equal(t, `{wal_enabled="true"}`, req.Request.Streams[0].Labels)
@@ -182,10 +183,10 @@ func TestManager_WALDisabled(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "multi:test-client", manager.Name())
 
-	receivedRequests := []utils.RemoteWriteRequest{}
+	receivedRequests := utils.NewSyncSlice[utils.RemoteWriteRequest]()
 	go func() {
 		for req := range rwReceivedReqs {
-			receivedRequests = append(receivedRequests, req)
+			receivedRequests.Append(req)
 		}
 	}()
 
@@ -209,12 +210,13 @@ func TestManager_WALDisabled(t *testing.T) {
 	}
 
 	require.Eventually(t, func() bool {
-		return len(receivedRequests) == totalLines
+		return receivedRequests.Length() == totalLines
 	}, 5*time.Second, time.Second, "timed out waiting for requests to be received")
 
 	var seenEntries = map[string]struct{}{}
 	// assert over rw client received entries
-	for _, req := range receivedRequests {
+	defer receivedRequests.DoneIterate()
+	for _, req := range receivedRequests.StartIterate() {
 		require.Len(t, req.Request.Streams, 1, "expected 1 stream requests to be received")
 		require.Len(t, req.Request.Streams[0].Entries, 1, "expected 1 entry in the only stream received per request")
 		require.Equal(t, `{pizza-flavour="fugazzeta"}`, req.Request.Streams[0].Labels)
@@ -250,15 +252,15 @@ func TestManager_WALDisabled_MultipleConfigs(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "multi:test-client,test-client-2", manager.Name())
 
-	receivedRequests := []utils.RemoteWriteRequest{}
+	receivedRequests := utils.NewSyncSlice[utils.RemoteWriteRequest]()
 	ctx, cancel := context.WithCancel(context.Background())
 	go func(ctx context.Context) {
 		for {
 			select {
 			case req := <-rwReceivedReqs:
-				receivedRequests = append(receivedRequests, req)
+				receivedRequests.Append(req)
 			case req := <-rwReceivedReqs2:
-				receivedRequests = append(receivedRequests, req)
+				receivedRequests.Append(req)
 			case <-ctx.Done():
 				return
 			}
@@ -289,12 +291,13 @@ func TestManager_WALDisabled_MultipleConfigs(t *testing.T) {
 	// times 2 due to clients being run
 	expectedTotalLines := totalLines * 2
 	require.Eventually(t, func() bool {
-		return len(receivedRequests) == expectedTotalLines
+		return receivedRequests.Length() == expectedTotalLines
 	}, 5*time.Second, time.Second, "timed out waiting for requests to be received")
 
 	var seenEntries = map[string]struct{}{}
 	// assert over rw client received entries
-	for _, req := range receivedRequests {
+	defer receivedRequests.DoneIterate()
+	for _, req := range receivedRequests.StartIterate() {
 		require.Len(t, req.Request.Streams, 1, "expected 1 stream requests to be received")
 		require.Len(t, req.Request.Streams[0].Entries, 1, "expected 1 entry in the only stream received per request")
 		seenEntries[fmt.Sprintf("%s-%s", req.Request.Streams[0].Labels, req.Request.Streams[0].Entries[0].Line)] = struct{}{}

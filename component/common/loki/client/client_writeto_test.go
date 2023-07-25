@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/grafana/agent/component/common/loki/utils"
 	"math/rand"
 	"os"
 	"sync"
@@ -28,11 +29,11 @@ func TestClientWriter_LogEntriesAreReconstructedAndForwardedCorrectly(t *testing
 	ch := make(chan loki.Entry)
 	defer close(ch)
 
-	var receivedEntries []loki.Entry
+	var receivedEntries = utils.NewSyncSlice[loki.Entry]()
 
 	go func() {
 		for e := range ch {
-			receivedEntries = append(receivedEntries, e)
+			receivedEntries.Append(e)
 		}
 	}()
 
@@ -71,9 +72,10 @@ func TestClientWriter_LogEntriesAreReconstructedAndForwardedCorrectly(t *testing
 	}
 
 	require.Eventually(t, func() bool {
-		return len(receivedEntries) == len(lines)
+		return receivedEntries.Length() == len(lines)
 	}, time.Second*10, time.Second)
-	for _, receivedEntry := range receivedEntries {
+	defer receivedEntries.DoneIterate()
+	for _, receivedEntry := range receivedEntries.StartIterate() {
 		require.Contains(t, lines, receivedEntry.Line, "entry line was not expected")
 		require.Equal(t, model.LabelValue("test"), receivedEntry.Labels["app"])
 	}
@@ -84,11 +86,11 @@ func TestClientWriter_LogEntriesWithoutMatchingSeriesAreIgnored(t *testing.T) {
 	ch := make(chan loki.Entry)
 	defer close(ch)
 
-	var receivedEntries []loki.Entry
+	var receivedEntries = utils.NewSyncSlice[loki.Entry]()
 
 	go func() {
 		for e := range ch {
-			receivedEntries = append(receivedEntries, e)
+			receivedEntries.Append(e)
 		}
 	}()
 
@@ -127,7 +129,7 @@ func TestClientWriter_LogEntriesWithoutMatchingSeriesAreIgnored(t *testing.T) {
 	}
 
 	time.Sleep(time.Second * 2)
-	require.Empty(t, receivedEntries, "no entry should have arrived")
+	require.Equal(t, 0, receivedEntries.Length(), "no entry should have arrived")
 }
 
 func BenchmarkClientWriteTo(b *testing.B) {
