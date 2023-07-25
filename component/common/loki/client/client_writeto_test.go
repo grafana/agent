@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/utils"
 	"math/rand"
 	"os"
 	"sync"
@@ -20,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/logproto"
 )

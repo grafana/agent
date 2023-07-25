@@ -14,13 +14,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/util"
 )
 
 type testWriteTo struct {
-	ReadEntries         []loki.Entry
+	ReadEntries         *utils.SyncSlice[loki.Entry]
 	series              map[uint64]model.LabelSet
 	logger              log.Logger
 	ReceivedSeriesReset []int
@@ -43,7 +44,7 @@ func (t *testWriteTo) AppendEntries(entries wal.RefEntries) error {
 		entry.Labels = l
 		for _, e := range entries.Entries {
 			entry.Entry = e
-			t.ReadEntries = append(t.ReadEntries, entry)
+			t.ReadEntries.Append(entry)
 		}
 	} else {
 		level.Debug(t.logger).Log("series for entry not found")
@@ -93,9 +94,10 @@ var cases = map[string]watcherTest{
 		res.notifyWrite()
 
 		require.Eventually(t, func() bool {
-			return len(res.writeTo.ReadEntries) == 3
+			return res.writeTo.ReadEntries.Length() == 3
 		}, time.Second*10, time.Second, "expected watcher to catch up with written entries")
-		for _, readEntry := range res.writeTo.ReadEntries {
+		defer res.writeTo.ReadEntries.DoneIterate()
+		for _, readEntry := range res.writeTo.ReadEntries.StartIterate() {
 			require.Contains(t, lines, readEntry.Line, "not expected log line")
 		}
 	},
@@ -126,9 +128,10 @@ var cases = map[string]watcherTest{
 		// do not notify, let the backup timer trigger the watcher reads
 
 		require.Eventually(t, func() bool {
-			return len(res.writeTo.ReadEntries) == 3
+			return res.writeTo.ReadEntries.Length() == 3
 		}, time.Second*10, time.Second, "expected watcher to catch up with written entries")
-		for _, readEntry := range res.writeTo.ReadEntries {
+		defer res.writeTo.ReadEntries.DoneIterate()
+		for _, readEntry := range res.writeTo.ReadEntries.StartIterate() {
 			require.Contains(t, lines, readEntry.Line, "not expected log line")
 		}
 	},
@@ -163,9 +166,10 @@ var cases = map[string]watcherTest{
 		res.notifyWrite()
 
 		require.Eventually(t, func() bool {
-			return len(res.writeTo.ReadEntries) == 3
+			return res.writeTo.ReadEntries.Length() == 3
 		}, time.Second*10, time.Second, "expected watcher to catch up with written entries")
-		for _, readEntry := range res.writeTo.ReadEntries {
+		defer res.writeTo.ReadEntries.DoneIterate()
+		for _, readEntry := range res.writeTo.ReadEntries.StartIterate() {
 			require.Contains(t, lines, readEntry.Line, "not expected log line")
 		}
 
@@ -185,10 +189,11 @@ var cases = map[string]watcherTest{
 		res.notifyWrite()
 
 		require.Eventually(t, func() bool {
-			return len(res.writeTo.ReadEntries) == 6
+			return res.writeTo.ReadEntries.Length() == 6
 		}, time.Second*10, time.Second, "expected watcher to catch up after new wal segment is cut")
 		// assert over second half of entries
-		for _, readEntry := range res.writeTo.ReadEntries[3:] {
+		defer res.writeTo.ReadEntries.DoneIterate()
+		for _, readEntry := range res.writeTo.ReadEntries.StartIterate()[3:] {
 			require.Contains(t, linesAfter, readEntry.Line, "not expected log line")
 		}
 	},
@@ -233,10 +238,11 @@ var cases = map[string]watcherTest{
 		res.notifyWrite()
 
 		require.Eventually(t, func() bool {
-			return len(res.writeTo.ReadEntries) == 3
+			return res.writeTo.ReadEntries.Length() == 3
 		}, time.Second*10, time.Second, "expected watcher to catch up after new wal segment is cut")
 		// assert over second half of entries
-		for _, readEntry := range res.writeTo.ReadEntries[3:] {
+		defer res.writeTo.ReadEntries.DoneIterate()
+		for _, readEntry := range res.writeTo.ReadEntries.StartIterate()[3:] {
 			require.Contains(t, linesAfter, readEntry.Line, "not expected log line")
 		}
 	},
@@ -258,7 +264,7 @@ var cases = map[string]watcherTest{
 			require.NoError(t, res.syncWAL())
 			res.notifyWrite()
 			require.Eventually(t, func() bool {
-				return len(res.writeTo.ReadEntries) == expectedReadEntries
+				return res.writeTo.ReadEntries.Length() == expectedReadEntries
 			}, time.Second*10, time.Second, "expected watcher to catch up with written entries")
 		}
 
@@ -306,8 +312,9 @@ func TestWatcher(t *testing.T) {
 			dir := t.TempDir()
 			metrics := NewWatcherMetrics(reg)
 			writeTo := &testWriteTo{
-				series: map[uint64]model.LabelSet{},
-				logger: logger,
+				series:      map[uint64]model.LabelSet{},
+				logger:      logger,
+				ReadEntries: utils.NewSyncSlice[loki.Entry](),
 			}
 			// create new watcher, and defer stop
 			watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig)
