@@ -420,8 +420,8 @@ discovery.kubernetes "k8s_pods" {
   role = "pod"
 
   selectors {
-    role = “pod”
-    label = “app.kubernetes.io/name=prometheus-node-exporter”
+    role = "pod"
+    label = "app.kubernetes.io/name=prometheus-node-exporter"
   }
 
   namespaces {
