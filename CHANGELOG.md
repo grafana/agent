@@ -12,8 +12,8 @@ Main (unreleased)
 
 ### Enhancements
 
-- Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
-- Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
+- Add support for converting Prometheus `file_sd_config` to `discovery.file`. (@erikbaranowski)
+- Add support for initcontainers in helm chart. (@dwalker-sabiogroup)
 
 - New Grafana Agent Flow components:
 
