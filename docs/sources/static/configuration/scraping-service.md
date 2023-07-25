@@ -192,6 +192,5 @@ Information returned by the `/debug/ring` endpoint includes:
 
 The instance ID is a unique identifier assigned to each running instance of the Agent within the cluster.
 The exact details of the instance ID generation might be specific to the implementation of the Grafana Agent.
-and without further information, it's difficult to determine the exact method used for generating the instance ID.
 
 
