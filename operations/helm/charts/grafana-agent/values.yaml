@@ -150,6 +150,9 @@ controller:
   # -- Update strategy for updating deployed Pods.
   updateStrategy: {}
 
+  # -- nodeSelector to apply to Grafana Agent pods.
+  nodeSelector: {}
+
   # -- Tolerations to apply to Grafana Agent pods.
   tolerations: []
 
