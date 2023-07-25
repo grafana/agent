@@ -47,7 +47,7 @@ const (
 
 var Reasons = []string{ReasonGeneric, ReasonRateLimited, ReasonStreamLimited, ReasonLineTooLong}
 
-var UserAgent = fmt.Sprintf("promtail/%s", build.Version)
+var UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 
 type Metrics struct {
 	encodedBytes                 *prometheus.CounterVec
@@ -68,49 +68,40 @@ func NewMetrics(reg prometheus.Registerer) *Metrics {
 	var m Metrics
 
 	m.encodedBytes = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "promtail",
-		Name:      "encoded_bytes_total",
-		Help:      "Number of bytes encoded and ready to send.",
+		Name: "loki_write_encoded_bytes_total",
+		Help: "Number of bytes encoded and ready to send.",
 	}, []string{HostLabel})
 	m.sentBytes = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "promtail",
-		Name:      "sent_bytes_total",
-		Help:      "Number of bytes sent.",
+		Name: "loki_write_sent_bytes_total",
+		Help: "Number of bytes sent.",
 	}, []string{HostLabel})
 	m.droppedBytes = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "promtail",
-		Name:      "dropped_bytes_total",
-		Help:      "Number of bytes dropped because failed to be sent to the ingester after all retries.",
+		Name: "loki_write_dropped_bytes_total",
+		Help: "Number of bytes dropped because failed to be sent to the ingester after all retries.",
 	}, []string{HostLabel, TenantLabel, ReasonLabel})
 	m.sentEntries = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "promtail",
-		Name:      "sent_entries_total",
-		Help:      "Number of log entries sent to the ingester.",
+		Name: "loki_write_sent_entries_total",
+		Help: "Number of log entries sent to the ingester.",
 	}, []string{HostLabel})
 	m.droppedEntries = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "promtail",
-		Name:      "dropped_entries_total",
-		Help:      "Number of log entries dropped because failed to be sent to the ingester after all retries.",
+		Name: "loki_write_dropped_entries_total",
+		Help: "Number of log entries dropped because failed to be sent to the ingester after all retries.",
 	}, []string{HostLabel, TenantLabel, ReasonLabel})
 	m.mutatedEntries = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "promtail",
-		Name:      "mutated_entries_total",
-		Help:      "The total number of log entries that have been mutated.",
+		Name: "loki_write_mutated_entries_total",
+		Help: "The total number of log entries that have been mutated.",
 	}, []string{HostLabel, TenantLabel, ReasonLabel})
 	m.mutatedBytes = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "promtail",
-		Name:      "mutated_bytes_total",
-		Help:      "The total number of bytes that have been mutated.",
+		Name: "loki_write_mutated_bytes_total",
+		Help: "The total number of bytes that have been mutated.",
 	}, []string{HostLabel, TenantLabel, ReasonLabel})
 	m.requestDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Namespace: "promtail",
-		Name:      "request_duration_seconds",
-		Help:      "Duration of send requests.",
+		Name: "loki_write_request_duration_seconds",
+		Help: "Duration of send requests.",
 	}, []string{"status_code", HostLabel})
 	m.batchRetries = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "promtail",
-		Name:      "batch_retries_total",
-		Help:      "Number of times batches has had to be retried.",
+		Name: "loki_write_batch_retries_total",
+		Help: "Number of times batches has had to be retried.",
 	}, []string{HostLabel, TenantLabel})
 
 	m.countersWithHost = []*prometheus.CounterVec{
@@ -222,7 +213,7 @@ func newClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLin
 		return nil, err
 	}
 
-	c.client, err = config.NewClientFromConfig(cfg.Client, "promtail", config.WithHTTP2Disabled())
+	c.client, err = config.NewClientFromConfig(cfg.Client, "GrafanaAgent", config.WithHTTP2Disabled())
 	if err != nil {
 		return nil, err
 	}

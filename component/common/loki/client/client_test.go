@@ -68,27 +68,27 @@ func TestClient_Handle(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                               # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                               # TYPE promtail_sent_entries_total counter
-                               promtail_sent_entries_total{host="__HOST__"} 3.0
-                               # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                               # TYPE promtail_dropped_entries_total counter
-                               promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                               promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                               promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                               promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                               # HELP promtail_mutated_entries_total The total number of log entries that have been mutated.
-                               # TYPE promtail_mutated_entries_total counter
-                               promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                               promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                               promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                               promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                               # HELP promtail_mutated_bytes_total The total number of bytes that have been mutated.
-                               # TYPE promtail_mutated_bytes_total counter
-                               promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                               promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                               promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                               promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                               # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                               # TYPE loki_write_sent_entries_total counter
+                               loki_write_sent_entries_total{host="__HOST__"} 3.0
+                               # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                               # TYPE loki_write_dropped_entries_total counter
+                               loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                               loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                               loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                               loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                               # HELP loki_write_mutated_entries_total The total number of log entries that have been mutated.
+                               # TYPE loki_write_mutated_entries_total counter
+                               loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                               loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                               loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                               loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                               # HELP loki_write_mutated_bytes_total The total number of bytes that have been mutated.
+                               # TYPE loki_write_mutated_bytes_total counter
+                               loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                               loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                               loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                               loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
                        `,
 		},
 		"dropping log entries that have max_line_size exceeded": {
@@ -106,27 +106,27 @@ func TestClient_Handle(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                               # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                               # TYPE promtail_sent_entries_total counter
-                               promtail_sent_entries_total{host="__HOST__"} 2.0
-                               # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                               # TYPE promtail_dropped_entries_total counter
-                               promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                               promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 1
-                               promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                               promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                               # HELP promtail_mutated_entries_total The total number of log entries that have been mutated.
-                               # TYPE promtail_mutated_entries_total counter
-                               promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                               promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                               promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                               promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_bytes_total The total number of bytes that have been mutated.
-                              # TYPE promtail_mutated_bytes_total counter
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                               # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                               # TYPE loki_write_sent_entries_total counter
+                               loki_write_sent_entries_total{host="__HOST__"} 2.0
+                               # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                               # TYPE loki_write_dropped_entries_total counter
+                               loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                               loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 1
+                               loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                               loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                               # HELP loki_write_mutated_entries_total The total number of log entries that have been mutated.
+                               # TYPE loki_write_mutated_entries_total counter
+                               loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                               loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                               loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                               loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_bytes_total The total number of bytes that have been mutated.
+                              # TYPE loki_write_mutated_bytes_total counter
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
                        `,
 		},
 		"truncating log entries that have max_line_size exceeded": {
@@ -151,27 +151,27 @@ func TestClient_Handle(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                               # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                               # TYPE promtail_sent_entries_total counter
-                               promtail_sent_entries_total{host="__HOST__"} 3.0
-                               # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                               # TYPE promtail_dropped_entries_total counter
-                               promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                               promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                               promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                               promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                               # HELP promtail_mutated_entries_total The total number of log entries that have been mutated.
-                               # TYPE promtail_mutated_entries_total counter
-                               promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                               promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 1
-                               promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                               promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_bytes_total The total number of bytes that have been mutated.
-                              # TYPE promtail_mutated_bytes_total counter
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 4
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                               # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                               # TYPE loki_write_sent_entries_total counter
+                               loki_write_sent_entries_total{host="__HOST__"} 3.0
+                               # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                               # TYPE loki_write_dropped_entries_total counter
+                               loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                               loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                               loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                               loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                               # HELP loki_write_mutated_entries_total The total number of log entries that have been mutated.
+                               # TYPE loki_write_mutated_entries_total counter
+                               loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                               loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 1
+                               loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                               loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_bytes_total The total number of bytes that have been mutated.
+                              # TYPE loki_write_mutated_bytes_total counter
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 4
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
                        `,
 		},
 
@@ -193,27 +193,27 @@ func TestClient_Handle(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                              # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                              # TYPE promtail_sent_entries_total counter
-                              promtail_sent_entries_total{host="__HOST__"} 2.0
-                              # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                              # TYPE promtail_dropped_entries_total counter
-                              promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_entries_total The total number of log entries that have been mutated.
-                              # TYPE promtail_mutated_entries_total counter
-                              promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_bytes_total The total number of bytes that have been mutated.
-                              # TYPE promtail_mutated_bytes_total counter
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                              # TYPE loki_write_sent_entries_total counter
+                              loki_write_sent_entries_total{host="__HOST__"} 2.0
+                              # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                              # TYPE loki_write_dropped_entries_total counter
+                              loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_entries_total The total number of log entries that have been mutated.
+                              # TYPE loki_write_mutated_entries_total counter
+                              loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_bytes_total The total number of bytes that have been mutated.
+                              # TYPE loki_write_mutated_bytes_total counter
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
                        `,
 		},
 		"retry send a batch up to backoff's max retries in case the server responds with a 5xx": {
@@ -237,27 +237,27 @@ func TestClient_Handle(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                              # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                              # TYPE promtail_dropped_entries_total counter
-                              promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 1
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_entries_total The total number of log entries that have been mutated.
-                              # TYPE promtail_mutated_entries_total counter
-                              promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_bytes_total The total number of bytes that have been mutated.
-                              # TYPE promtail_mutated_bytes_total counter
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                              # TYPE promtail_sent_entries_total counter
-                              promtail_sent_entries_total{host="__HOST__"} 0
+                              # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                              # TYPE loki_write_dropped_entries_total counter
+                              loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 1
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_entries_total The total number of log entries that have been mutated.
+                              # TYPE loki_write_mutated_entries_total counter
+                              loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_bytes_total The total number of bytes that have been mutated.
+                              # TYPE loki_write_mutated_bytes_total counter
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                              # TYPE loki_write_sent_entries_total counter
+                              loki_write_sent_entries_total{host="__HOST__"} 0
                        `,
 		},
 		"do not retry send a batch in case the server responds with a 4xx": {
@@ -273,27 +273,27 @@ func TestClient_Handle(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                              # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                              # TYPE promtail_dropped_entries_total counter
-                              promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 1
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_entries_total The total number of log entries that have been mutated.
-                              # TYPE promtail_mutated_entries_total counter
-                              promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_bytes_total The total number of bytes that have been mutated.
-                              # TYPE promtail_mutated_bytes_total counter
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                              # TYPE promtail_sent_entries_total counter
-                              promtail_sent_entries_total{host="__HOST__"} 0
+                              # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                              # TYPE loki_write_dropped_entries_total counter
+                              loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 1
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_entries_total The total number of log entries that have been mutated.
+                              # TYPE loki_write_mutated_entries_total counter
+                              loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_bytes_total The total number of bytes that have been mutated.
+                              # TYPE loki_write_mutated_bytes_total counter
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                              # TYPE loki_write_sent_entries_total counter
+                              loki_write_sent_entries_total{host="__HOST__"} 0
                        `,
 		},
 		"do retry sending a batch in case the server responds with a 429": {
@@ -317,27 +317,27 @@ func TestClient_Handle(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                              # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                              # TYPE promtail_dropped_entries_total counter
-                              promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 1
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_entries_total The total number of log entries that have been mutated.
-                              # TYPE promtail_mutated_entries_total counter
-                              promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_bytes_total The total number of bytes that have been mutated.
-                              # TYPE promtail_mutated_bytes_total counter
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                              # TYPE promtail_sent_entries_total counter
-                              promtail_sent_entries_total{host="__HOST__"} 0
+                              # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                              # TYPE loki_write_dropped_entries_total counter
+                              loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 1
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_entries_total The total number of log entries that have been mutated.
+                              # TYPE loki_write_mutated_entries_total counter
+                              loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_bytes_total The total number of bytes that have been mutated.
+                              # TYPE loki_write_mutated_bytes_total counter
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                              # TYPE loki_write_sent_entries_total counter
+                              loki_write_sent_entries_total{host="__HOST__"} 0
                        `,
 		},
 		"do not retry in case of 429 when client is configured to drop rate limited batches": {
@@ -354,27 +354,27 @@ func TestClient_Handle(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                              # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                              # TYPE promtail_dropped_entries_total counter
-                              promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 1
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_entries_total The total number of log entries that have been mutated.
-                              # TYPE promtail_mutated_entries_total counter
-                              promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_mutated_bytes_total The total number of bytes that have been mutated.
-                              # TYPE promtail_mutated_bytes_total counter
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                              # TYPE promtail_sent_entries_total counter
-                              promtail_sent_entries_total{host="__HOST__"} 0
+                              # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                              # TYPE loki_write_dropped_entries_total counter
+                              loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 1
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_entries_total The total number of log entries that have been mutated.
+                              # TYPE loki_write_mutated_entries_total counter
+                              loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_mutated_bytes_total The total number of bytes that have been mutated.
+                              # TYPE loki_write_mutated_bytes_total counter
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                              # TYPE loki_write_sent_entries_total counter
+                              loki_write_sent_entries_total{host="__HOST__"} 0
                        `,
 		},
 		"batch log entries together honoring the client tenant ID": {
@@ -391,27 +391,27 @@ func TestClient_Handle(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                              # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                              # TYPE promtail_sent_entries_total counter
-                              promtail_sent_entries_total{host="__HOST__"} 2.0
-                              # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                              # TYPE promtail_dropped_entries_total counter
-                              promtail_dropped_entries_total{host="__HOST__", reason="ingester_error", tenant="tenant-default"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
-                              promtail_dropped_entries_total{host="__HOST__", reason="rate_limited", tenant="tenant-default"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
-                              # HELP promtail_mutated_entries_total The total number of log entries that have been mutated.
-                              # TYPE promtail_mutated_entries_total counter
-                              promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-default"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-default"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
-                              # HELP promtail_mutated_bytes_total The total number of bytes that have been mutated.
-                              # TYPE promtail_mutated_bytes_total counter
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant="tenant-default"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant="tenant-default"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
+                              # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                              # TYPE loki_write_sent_entries_total counter
+                              loki_write_sent_entries_total{host="__HOST__"} 2.0
+                              # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                              # TYPE loki_write_dropped_entries_total counter
+                              loki_write_dropped_entries_total{host="__HOST__", reason="ingester_error", tenant="tenant-default"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
+                              loki_write_dropped_entries_total{host="__HOST__", reason="rate_limited", tenant="tenant-default"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
+                              # HELP loki_write_mutated_entries_total The total number of log entries that have been mutated.
+                              # TYPE loki_write_mutated_entries_total counter
+                              loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-default"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-default"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
+                              # HELP loki_write_mutated_bytes_total The total number of bytes that have been mutated.
+                              # TYPE loki_write_mutated_bytes_total counter
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant="tenant-default"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant="tenant-default"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
                        `,
 		},
 		"batch log entries together honoring the tenant ID overridden while processing the pipeline stages": {
@@ -436,51 +436,51 @@ func TestClient_Handle(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                              # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                              # TYPE promtail_sent_entries_total counter
-                              promtail_sent_entries_total{host="__HOST__"} 4.0
-                              # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                              # TYPE promtail_dropped_entries_total counter
-                              promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-1"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-2"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-default"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-1"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-2"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-1"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-2"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-default"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-1"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-2"} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
-                              # HELP promtail_mutated_entries_total The total number of log entries that have been mutated.
-                              # TYPE promtail_mutated_entries_total counter
-                              promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-1"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-2"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-default"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-1"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-2"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-1"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-2"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-default"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-1"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-2"} 0
-                              promtail_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
-                              # HELP promtail_mutated_bytes_total The total number of bytes that have been mutated.
-                              # TYPE promtail_mutated_bytes_total counter
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant="tenant-1"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant="tenant-2"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant="tenant-default"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant="tenant-1"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant="tenant-2"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant="tenant-1"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant="tenant-2"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant="tenant-default"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant="tenant-1"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant="tenant-2"} 0
-                              promtail_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
+                              # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                              # TYPE loki_write_sent_entries_total counter
+                              loki_write_sent_entries_total{host="__HOST__"} 4.0
+                              # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                              # TYPE loki_write_dropped_entries_total counter
+                              loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-1"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-2"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-default"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-1"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-2"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-1"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-2"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-default"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-1"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-2"} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
+                              # HELP loki_write_mutated_entries_total The total number of log entries that have been mutated.
+                              # TYPE loki_write_mutated_entries_total counter
+                              loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-1"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-2"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="ingester_error",tenant="tenant-default"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-1"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-2"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-1"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-2"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="rate_limited",tenant="tenant-default"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-1"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-2"} 0
+                              loki_write_mutated_entries_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
+                              # HELP loki_write_mutated_bytes_total The total number of bytes that have been mutated.
+                              # TYPE loki_write_mutated_bytes_total counter
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant="tenant-1"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant="tenant-2"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="ingester_error",tenant="tenant-default"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant="tenant-1"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant="tenant-2"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="line_too_long",tenant="tenant-default"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant="tenant-1"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant="tenant-2"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="rate_limited",tenant="tenant-default"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant="tenant-1"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant="tenant-2"} 0
+                              loki_write_mutated_bytes_total{host="__HOST__",reason="stream_limited",tenant="tenant-default"} 0
                        `,
 		},
 	}
@@ -552,7 +552,7 @@ func TestClient_Handle(t *testing.T) {
 			fmt.Printf("Expected reqs: %#v\n", testData.expectedReqs)
 
 			expectedMetrics := strings.Replace(testData.expectedMetrics, "__HOST__", serverURL.Host, -1)
-			err = testutil.GatherAndCompare(reg, strings.NewReader(expectedMetrics), "promtail_sent_entries_total", "promtail_dropped_entries_total", "promtail_mutated_entries_total", "promtail_mutated_bytes_total")
+			err = testutil.GatherAndCompare(reg, strings.NewReader(expectedMetrics), "loki_write_sent_entries_total", "loki_write_dropped_entries_total", "loki_write_mutated_entries_total", "loki_write_mutated_bytes_total")
 			assert.NoError(t, err)
 		})
 	}
@@ -589,15 +589,15 @@ func TestClient_StopNow(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                              # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                              # TYPE promtail_sent_entries_total counter
-                              promtail_sent_entries_total{host="__HOST__"} 3.0
-                              # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                              # TYPE promtail_dropped_entries_total counter
-                              promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                              # TYPE loki_write_sent_entries_total counter
+                              loki_write_sent_entries_total{host="__HOST__"} 3.0
+                              # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                              # TYPE loki_write_dropped_entries_total counter
+                              loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
                        `,
 		},
 		{
@@ -614,15 +614,15 @@ func TestClient_StopNow(t *testing.T) {
 				},
 			},
 			expectedMetrics: `
-                              # HELP promtail_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
-                              # TYPE promtail_dropped_entries_total counter
-                              promtail_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
-                              promtail_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 1
-                              promtail_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
-                              # HELP promtail_sent_entries_total Number of log entries sent to the ingester.
-                              # TYPE promtail_sent_entries_total counter
-                              promtail_sent_entries_total{host="__HOST__"} 0
+                              # HELP loki_write_dropped_entries_total Number of log entries dropped because failed to be sent to the ingester after all retries.
+                              # TYPE loki_write_dropped_entries_total counter
+                              loki_write_dropped_entries_total{host="__HOST__",reason="ingester_error",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="line_too_long",tenant=""} 0
+                              loki_write_dropped_entries_total{host="__HOST__",reason="rate_limited",tenant=""} 1
+                              loki_write_dropped_entries_total{host="__HOST__",reason="stream_limited",tenant=""} 0
+                              # HELP loki_write_sent_entries_total Number of log entries sent to the ingester.
+                              # TYPE loki_write_sent_entries_total counter
+                              loki_write_sent_entries_total{host="__HOST__"} 0
                        `,
 		},
 	}
@@ -697,7 +697,7 @@ func TestClient_StopNow(t *testing.T) {
 			require.ElementsMatch(t, c.expectedReqs, receivedReqs)
 
 			expectedMetrics := strings.Replace(c.expectedMetrics, "__HOST__", serverURL.Host, -1)
-			err = testutil.GatherAndCompare(reg, strings.NewReader(expectedMetrics), "promtail_sent_entries_total", "promtail_dropped_entries_total")
+			err = testutil.GatherAndCompare(reg, strings.NewReader(expectedMetrics), "loki_write_sent_entries_total", "loki_write_dropped_entries_total")
 			assert.NoError(t, err)
 		})
 	}
