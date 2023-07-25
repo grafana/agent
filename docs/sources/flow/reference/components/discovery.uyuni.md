@@ -23,17 +23,17 @@ discovery.uyuni "LABEL" {
 
 The following arguments are supported:
 
-Name                | Type       | Description                                                            | Default                  | Required
-------------------- | ---------- | ---------------------------------------------------------------------- | ------------------------ | --------
-Server              | `string`   | The primary Uyuni Server.                                              |                          | yes
-Username            | `string`   | The username to use for authentication to the Uyuni API.               |                          | yes
-Password            | `Secret`   | The password to use for authentication to the Uyuni API.               |                          | yes
-Entitlement         | `string`   | The entitlement to filter on when listing targets.                     | `"monitoring_entitled"`  | no
-Separator           | `string`   | The separator to use when building the `__meta_uyuni_groups` label.    | `","`                    | no
-RefreshInterval     | `duration` | Interval at which to refresh the list of targets.                      | `1m`                     | no
-ProxyURL            | `string`   | HTTP proxy to proxy requests through.                                  |                          | no
-FollowRedirects     | `bool`     | Whether redirects returned by the server should be followed.           | `true`                   | no
-EnableHTTP2         | `bool`     | Whether HTTP2 is supported for requests.                               | `true`                   | no
+Name                  | Type       | Description                                                            | Default                  | Required
+--------------------- | ---------- | ---------------------------------------------------------------------- | ------------------------ | --------
+`server`              | `string`   | The primary Uyuni Server.                                              |                          | yes
+`username`            | `string`   | The username to use for authentication to the Uyuni API.               |                          | yes
+`password`            | `Secret`   | The password to use for authentication to the Uyuni API.               |                          | yes
+`entitlement`         | `string`   | The entitlement to filter on when listing targets.                     | `"monitoring_entitled"`  | no
+`separator`           | `string`   | The separator to use when building the `__meta_uyuni_groups` label.    | `","`                    | no
+`refresh_interval`    | `duration` | Interval at which to refresh the list of targets.                      | `1m`                     | no
+`proxy_url`           | `string`   | HTTP proxy to proxy requests through.                                  |                          | no
+`follow_redirects`    | `bool`     | Whether redirects returned by the server should be followed.           | `true`                   | no
+`enable_http2`        | `bool`     | Whether HTTP2 is supported for requests.                               | `true`                   | no
 
 
 ## Blocks
