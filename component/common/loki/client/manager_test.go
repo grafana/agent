@@ -308,7 +308,7 @@ func TestManager_StopClients(t *testing.T) {
 	stopping := func() {
 		stopped++
 	}
-	fc := fake.New(stopping)
+	fc := fake.NewClient(stopping)
 	clients := []Client{fc, fc, fc, fc}
 	m := &Manager{
 		clients: clients,

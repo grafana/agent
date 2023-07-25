@@ -16,7 +16,7 @@ type Client struct {
 	OnStop   func()
 }
 
-func New(stop func()) *Client {
+func NewClient(stop func()) *Client {
 	c := &Client{
 		OnStop:  stop,
 		entries: make(chan loki.Entry),
@@ -67,4 +67,9 @@ func (c *Client) Clear() {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 	c.received = []loki.Entry{}
+}
+
+// LogsReceiver returns this client as a LogsReceiver, which is useful in testing.
+func (c *Client) LogsReceiver() loki.LogsReceiver {
+	return loki.NewLogsReceiverWithChannel(c.entries)
 }
