@@ -3,13 +3,13 @@ package write
 import (
 	"context"
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/limit"
-	"github.com/grafana/agent/component/common/loki/wal"
 	"sync"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/client"
+	"github.com/grafana/agent/component/common/loki/limit"
+	"github.com/grafana/agent/component/common/loki/wal"
 	"github.com/grafana/agent/pkg/build"
 )
 

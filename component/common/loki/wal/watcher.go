@@ -204,7 +204,6 @@ func (w *Watcher) watch(segmentNum int) error {
 			w.metrics.segmentRead.WithLabelValues(w.id, "timer").Inc()
 			if debug {
 				level.Debug(w.logger).Log("msg", "Segment read triggered by backup timer", "segment", segmentNum)
-
 			}
 		case <-w.readNotify:
 			w.metrics.segmentRead.WithLabelValues(w.id, "notification").Inc()
@@ -283,10 +282,9 @@ func (w *Watcher) Stop() {
 }
 
 // firstAndLast finds the first and last segment number for a WAL directory.
-func (w *Watcher) firstAndLast() (int, int, error) {
+func (w *Watcher) firstAndLast() (int, int, error) { //nolint:unparam
 	refs, err := readSegmentNumbers(w.walDir)
 	if err != nil {
-
 		return -1, -1, err
 	}
 

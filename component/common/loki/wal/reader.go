@@ -2,10 +2,10 @@ package wal
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki"
 
 	"github.com/prometheus/common/model"
 
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/util"
 	walUtils "github.com/grafana/loki/pkg/util/wal"
@@ -33,7 +33,6 @@ func ReadWAL(dir string) ([]loki.Entry, error) {
 		// first read series
 		for _, series := range walRec.Series {
 			if _, ok := seenSeries[uint64(series.Ref)]; !ok {
-
 				seenSeries[uint64(series.Ref)] = util.MapToModelLabelSet(series.Labels.Map())
 			}
 		}

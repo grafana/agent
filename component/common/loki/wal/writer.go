@@ -2,7 +2,6 @@ package wal
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki"
 	"os"
 	"path/filepath"
 	"sort"
@@ -17,6 +16,7 @@ import (
 	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
 
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/util"
@@ -134,7 +134,6 @@ func (wrt *Writer) start(maxSegmentAge time.Duration) {
 				if err := wrt.cleanSegments(maxSegmentAge); err != nil {
 					level.Error(wrt.log).Log("msg", "Error cleaning old segments", "err", err)
 				}
-				break
 			case <-wrt.closeCleaner:
 				trigger.Stop()
 				return

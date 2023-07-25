@@ -80,7 +80,7 @@ func (l *logger) run() {
 		fmt.Fprint(l.Writer, "\t")
 		fmt.Fprint(l.Writer, e.Line)
 		fmt.Fprint(l.Writer, "\n")
-		l.Flush()
+		_ = l.Flush()
 	}
 }
 func (l *logger) StopNow() { l.Stop() }

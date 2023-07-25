@@ -183,7 +183,6 @@ func New(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeT
 }
 
 func newClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger) (*client, error) {
-
 	if cfg.URL.URL == nil {
 		return nil, errors.New("client needs target URL")
 	}
