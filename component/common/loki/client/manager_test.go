@@ -19,8 +19,8 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/client/fake"
 	"github.com/grafana/agent/component/common/loki/limit"
+	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/agent/component/common/loki/wal"
-	"github.com/grafana/loki/clients/pkg/promtail/utils"
 
 	"github.com/grafana/loki/pkg/logproto"
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
