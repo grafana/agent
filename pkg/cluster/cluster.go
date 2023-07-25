@@ -175,7 +175,7 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 		},
 	}
 
-	level.Info(log).Log("msg", "starting a new gossip node", "join-peers", gossipConfig.JoinPeers)
+	level.Info(log).Log("msg", "starting a new gossip node", "join-peers", gossipConfig.JoinPeers, "discover-peers", gossipConfig.DiscoverPeers)
 
 	gossipNode, err := NewGossipNode(log, reg, cli, &gossipConfig)
 	if err != nil {
