@@ -52,7 +52,7 @@ additional features available in Grafana Agent flow mode.
 1. Open a terminal window and run the following command:
 
     ```bash
-    grafana-agent convert --format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+    AGENT_MODE=flow; grafana-agent convert --format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
     ```
   
     Replace the following: 
@@ -71,13 +71,13 @@ additional features available in Grafana Agent flow mode.
     {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
 
     ```bash
-    grafana-agent convert --format=prometheus --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+    AGENT_MODE=flow; grafana-agent convert --format=prometheus --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
     ```
 
 1. You can also output a diagnostic report by including the `--report` flag.
 
     ```bash
-    grafana-agent convert --format=prometheus --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+    AGENT_MODE=flow; grafana-agent convert --format=prometheus --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
     ```
 
     * Replace `OUTPUT_REPORT_PATH` with the output path for the report.
@@ -147,7 +147,7 @@ remote_write:
 The convert command takes the YAML file as input and outputs a River file.
 
 ```bash
-grafana-agent convert --format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+AGENT_MODE=flow; grafana-agent convert --format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
 ```
 
 The new flow configuration file looks like this:
