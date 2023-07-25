@@ -23,6 +23,12 @@ spec:
     {{- toYaml .Values.image.pullSecrets | nindent 4 }}
     {{- end }}
   {{- end }}
+  {{- if .Values.initContainers }}
+  initContainers:
+    {{- with .Values.initContainers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
   containers:
     {{- include "grafana-agent.container" . | nindent 4 }}
     {{- include "grafana-agent.watch-container" . | nindent 4 }}
