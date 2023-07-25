@@ -2,15 +2,16 @@ package client
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/common/loki/limit"
-	"github.com/grafana/agent/component/common/loki/wal"
 	"strings"
 	"sync"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/limit"
+	"github.com/grafana/agent/component/common/loki/wal"
 )
 
 // WriterEventsNotifier implements a notifier that's received by the Manager, to which wal.Watcher can subscribe for

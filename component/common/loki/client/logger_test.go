@@ -1,7 +1,6 @@
 package client
 
 import (
-	"github.com/grafana/agent/component/common/loki"
 	"net/url"
 	"testing"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/pkg/logproto"
 	util_log "github.com/grafana/loki/pkg/util/log"
 )

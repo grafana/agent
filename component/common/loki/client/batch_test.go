@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki"
 	"testing"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/pkg/logproto"
 )
 

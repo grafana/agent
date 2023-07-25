@@ -2,9 +2,6 @@ package client
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/common/loki/limit"
-	"github.com/grafana/agent/component/common/loki/wal"
 	"os"
 	"runtime"
 	"sync"
@@ -14,6 +11,10 @@ import (
 	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/yaml.v2"
+
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/limit"
+	"github.com/grafana/agent/component/common/loki/wal"
 )
 
 var (

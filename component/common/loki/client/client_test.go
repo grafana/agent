@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki"
 	"io"
 	"net/http"
 	"net/url"
@@ -20,6 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/clients/pkg/promtail/utils"
 
 	"github.com/grafana/loki/pkg/logproto"

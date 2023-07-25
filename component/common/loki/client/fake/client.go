@@ -1,8 +1,9 @@
 package fake
 
 import (
-	"github.com/grafana/agent/component/common/loki"
 	"sync"
+
+	"github.com/grafana/agent/component/common/loki"
 )
 
 // Client is a fake client used for testing.

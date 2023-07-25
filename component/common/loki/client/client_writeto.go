@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"github.com/grafana/agent/component/common/loki"
 	"sync"
 
 	"github.com/go-kit/log"
@@ -11,6 +10,7 @@ import (
 	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
 
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/util"
 )
