@@ -168,10 +168,10 @@ var cases = map[string]watcherTest{
 		require.Eventually(t, func() bool {
 			return res.writeTo.ReadEntries.Length() == 3
 		}, time.Second*10, time.Second, "expected watcher to catch up with written entries")
-		defer res.writeTo.ReadEntries.DoneIterate()
 		for _, readEntry := range res.writeTo.ReadEntries.StartIterate() {
 			require.Contains(t, lines, readEntry.Line, "not expected log line")
 		}
+		res.writeTo.ReadEntries.DoneIterate()
 
 		err := res.nextWALSegment()
 		require.NoError(t, err, "expected no error when moving to next wal segment")

@@ -1,6 +1,7 @@
 package wal
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -190,7 +191,7 @@ func (w *Watcher) watch(segmentNum int) error {
 			}
 
 			// io.EOF error are non-fatal since we are tailing the wal
-			if errorCause(err) != io.EOF {
+			if errors.Unwrap(err) != io.EOF {
 				return err
 			}
 
@@ -215,7 +216,7 @@ func (w *Watcher) watch(segmentNum int) error {
 		}
 
 		// io.EOF error are non-fatal since we are tailing the wal
-		if errorCause(err) != io.EOF {
+		if errors.Unwrap(err) != io.EOF {
 			return err
 		}
 
@@ -347,21 +348,4 @@ func readSegmentNumbers(dir string) ([]int, error) {
 		refs = append(refs, k)
 	}
 	return refs, nil
-}
-
-// errorCause gets the underlying error case, if this implements the causer interface.
-// Inlining to avoid using deny-listed dependency.
-func errorCause(err error) error {
-	type causer interface {
-		Cause() error
-	}
-
-	for err != nil {
-		cause, ok := err.(causer)
-		if !ok {
-			break
-		}
-		err = cause.Cause()
-	}
-	return err
 }
