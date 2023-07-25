@@ -7,6 +7,15 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.35.1 (2023-07-25)
+--------------------
+
+### Bugfixes
+
+- Fix incorrect display of trace IDs in the automatic_logging processor of static mode's traces subsystem.
+  Users of the static mode's service graph processor are also advised to upgrade, 
+  although the bug should theoretically not affect them. (@ptodev)
+
 v0.35.0 (2023-07-18)
 --------------------
 
