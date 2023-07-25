@@ -18,6 +18,7 @@ Main (unreleased)
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics (@tburgessdev)
+  - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@sparta0x117)
 
 ### Bugfixes
 
