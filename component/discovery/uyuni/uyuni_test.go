@@ -2,28 +2,66 @@ package uyuni
 
 import (
 	"testing"
-)
+	"time"
 
-// type Arguments struct {
-// 	Server           string                  `river:"server,attr"`
-// 	Username         string                  `river:"username,attr"`
-// 	Password         rivertypes.Secret       `river:"password,attr"`
-// 	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
-// 	Entitlement      string                  `river:"entitlement,attr,optional"`
-// 	Separator        string                  `river:"separator,attr,optional"`
-// 	RefreshInterval  time.Duration           `river:"refresh_interval,attr,optional"`
-// }
+	"github.com/grafana/agent/component/common/config"
+	"github.com/grafana/agent/pkg/river"
+	promcfg "github.com/prometheus/common/config"
+	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/require"
+)
 
 func TestUnmarshal(t *testing.T) {
 	cfg := `
-	server = "https://uyuni.example.com"
+	server = "https://uyuni.com"
 	username = "exampleuser"
 	password = "examplepassword"
 	refresh_interval = "1m"
-	http_client_config {
-		tls_config {
-			ca_file = "/etc/ssl/certs/ca-certificates.crt"
-			
-	}
+	tls_config {
+		ca_file   = "/etc/ssl/certs/ca-certificates.crt"
+		cert_file = "/etc/ssl/certs/client.crt"
+		key_file  = "/etc/ssl/certs/client.key"
+	}	
 	`
+	var args Arguments
+	err := river.Unmarshal([]byte(cfg), &args)
+	require.NoError(t, err)
+}
+
+func TestValidate(t *testing.T) {
+	invalidServer := Arguments{
+		Server:   "http://uyuni.com",
+		Username: "exampleuser",
+		Password: "examplepassword",
+		TLSConfig: config.TLSConfig{
+			CAFile:   "/etc/ssl/certs/ca-certificates.crt",
+			CertFile: "/etc/ssl/certs/client.crt",
+
+			// Check that the TLSConfig is being validated
+			KeyFile: "/etc/ssl/certs/client.key",
+			Key:     "key",
+		},
+	}
+
+	err := invalidServer.Validate()
+	require.Error(t, err)
+}
+
+func TestConvert(t *testing.T) {
+	args := Arguments{
+		Server:          "https://uyuni.com",
+		Username:        "exampleuser",
+		Password:        "examplepassword",
+		RefreshInterval: 1 * time.Minute,
+		EnableHTTP2:     true,
+		FollowRedirects: true,
+	}
+	require.NoError(t, args.Validate())
+
+	converted := args.Convert()
+	require.Equal(t, "https://uyuni.com", converted.Server)
+	require.Equal(t, "exampleuser", converted.Username)
+	require.Equal(t, promcfg.Secret("examplepassword"), converted.Password)
+	require.Equal(t, model.Duration(1*time.Minute), converted.RefreshInterval)
+	require.Equal(t, promcfg.DefaultHTTPClientConfig, converted.HTTPClientConfig)
 }

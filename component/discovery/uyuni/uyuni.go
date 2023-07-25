@@ -27,20 +27,26 @@ func init() {
 }
 
 type Arguments struct {
-	Server           string                  `river:"server,attr"`
-	Username         string                  `river:"username,attr"`
-	Password         rivertypes.Secret       `river:"password,attr"`
-	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
-	Entitlement      string                  `river:"entitlement,attr,optional"`
-	Separator        string                  `river:"separator,attr,optional"`
-	RefreshInterval  time.Duration           `river:"refresh_interval,attr,optional"`
+	Server          string            `river:"server,attr"`
+	Username        string            `river:"username,attr"`
+	Password        rivertypes.Secret `river:"password,attr"`
+	Entitlement     string            `river:"entitlement,attr,optional"`
+	Separator       string            `river:"separator,attr,optional"`
+	RefreshInterval time.Duration     `river:"refresh_interval,attr,optional"`
+
+	ProxyURL        config.URL       `river:"proxy_url,attr,optional"`
+	TLSConfig       config.TLSConfig `river:"tls_config,block,optional"`
+	FollowRedirects bool             `river:"follow_redirects,attr,optional"`
+	EnableHTTP2     bool             `river:"enable_http2,attr,optional"`
 }
 
 var DefaultArguments = Arguments{
-	Entitlement:      "monitoring_entitled",
-	Separator:        ",",
-	RefreshInterval:  1 * time.Minute,
-	HTTPClientConfig: config.DefaultHTTPClientConfig,
+	Entitlement:     "monitoring_entitled",
+	Separator:       ",",
+	RefreshInterval: 1 * time.Minute,
+
+	EnableHTTP2:     config.DefaultHTTPClientConfig.EnableHTTP2,
+	FollowRedirects: config.DefaultHTTPClientConfig.FollowRedirects,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -54,18 +60,26 @@ func (a *Arguments) Validate() error {
 	if err != nil {
 		return fmt.Errorf("invalid server URL: %w", err)
 	}
-	return a.HTTPClientConfig.Validate()
+	return a.TLSConfig.Validate()
 }
 
 func (a *Arguments) Convert() *prom_discovery.SDConfig {
 	return &prom_discovery.SDConfig{
-		Server:           a.Server,
-		Username:         a.Username,
-		Password:         promcfg.Secret(a.Password),
-		HTTPClientConfig: *a.HTTPClientConfig.Convert(),
-		Entitlement:      a.Entitlement,
-		Separator:        a.Separator,
-		RefreshInterval:  model.Duration(a.RefreshInterval),
+		Server:          a.Server,
+		Username:        a.Username,
+		Password:        promcfg.Secret(a.Password),
+		Entitlement:     a.Entitlement,
+		Separator:       a.Separator,
+		RefreshInterval: model.Duration(a.RefreshInterval),
+
+		HTTPClientConfig: promcfg.HTTPClientConfig{
+			ProxyConfig: promcfg.ProxyConfig{
+				ProxyURL: a.ProxyURL.Convert(),
+			},
+			TLSConfig:       *a.TLSConfig.Convert(),
+			FollowRedirects: a.FollowRedirects,
+			EnableHTTP2:     a.EnableHTTP2,
+		},
 	}
 }
 
