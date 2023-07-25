@@ -3,11 +3,11 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"io"
 	stdlog "log"
 	"net"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/ckit"
@@ -39,7 +39,7 @@ var extraDiscoverProviders map[string]discover.Provider
 //	512 tokens per node: min 96.1%, median 99.9%, max 103.2% (stddev: 197.9 hashes)
 const tokensPerNode = 512
 
-// GossipConfig controls clustering of Agents through gRPC-based gossip.
+// GossipConfig controls clustering of Agents through HTTP/2-based gossip.
 // GossipConfig cannot be changed at runtime.
 type GossipConfig struct {
 	// Name of the node within the cluster. Must be unique cluster-wide.
@@ -53,8 +53,8 @@ type GossipConfig struct {
 	// AdvertiseAddr is unset.
 	AdvertiseInterfaces flagext.StringSlice
 
-	// List of one or more host:port peer addresses to connect to. Mutually
-	// exclusive with DiscoverPeers.
+	// List of one or more hosts, DNS records, or host:port peer addresses to
+	// connect to. Mutually exclusive with DiscoverPeers.
 	//
 	// If an agent connects to no peers, it will form a one-node cluster until a
 	// peer connects to it explicitly.
@@ -63,20 +63,30 @@ type GossipConfig struct {
 	// Discover peers to connect to using go-discover. Mutually exclusive with
 	// JoinPeers.
 	DiscoverPeers string
+	discoverer    *discover.Discover
+
+	// How often to rediscover peers and try to connect to them.
+	RejoinInterval time.Duration
+
+	// DefaultPort is appended as the default port to addresses that do not
+	// have port numbers assigned.
+	DefaultPort int
 }
 
 // DefaultGossipConfig holds default GossipConfig options.
 var DefaultGossipConfig = GossipConfig{
 	AdvertiseInterfaces: advertise.DefaultInterfaces,
+	RejoinInterval:      60 * time.Second,
+	DefaultPort:         80,
 }
 
-// ApplyDefaults mutates c with default settings applied. defaultPort is
-// added as the default port for addresses that do not have port numbers
-// assigned.
+// ApplyDefaults mutates c with default settings applied.
+// ApplyDefaults must be called successfully before using it to create a
+// NewGossipNode.
 //
 // An error will be returned if the configuration is invalid or if an error
 // occurred while applying defaults.
-func (c *GossipConfig) ApplyDefaults(defaultPort int) error {
+func (c *GossipConfig) ApplyDefaults() error {
 	if c.NodeName == "" {
 		hn, err := os.Hostname()
 		if err != nil {
@@ -94,9 +104,9 @@ func (c *GossipConfig) ApplyDefaults(defaultPort int) error {
 		if err != nil {
 			return fmt.Errorf("determining advertise address: %w", err)
 		}
-		c.AdvertiseAddr = fmt.Sprintf("%s:%d", addr.String(), defaultPort)
+		c.AdvertiseAddr = fmt.Sprintf("%s:%d", addr.String(), c.DefaultPort)
 	} else {
-		c.AdvertiseAddr = appendDefaultPort(c.AdvertiseAddr, defaultPort)
+		c.AdvertiseAddr = appendDefaultPort(c.AdvertiseAddr, c.DefaultPort)
 	}
 
 	if len(c.JoinPeers) > 0 && c.DiscoverPeers != "" {
@@ -118,22 +128,36 @@ func (c *GossipConfig) ApplyDefaults(defaultPort int) error {
 		if err != nil {
 			return fmt.Errorf("bootstrapping peer discovery: %w", err)
 		}
-
-		addrs, err := d.Addrs(c.DiscoverPeers, stdlog.New(io.Discard, "", 0)) // TODO(rfratto): log to log.Logger?
-		if err != nil {
-			return fmt.Errorf("discovering peers: %w", err)
-		}
-		c.JoinPeers = addrs
-	}
-
-	for i := range c.JoinPeers {
-		// Default to using the same advertise port as the local node. This may
-		// break in some cases, so the user should make sure the port numbers
-		// align on as many nodes as possible.
-		c.JoinPeers[i] = appendDefaultPort(c.JoinPeers[i], defaultPort)
+		c.discoverer = d
 	}
 
 	return nil
+}
+
+// GetPeers updates the list of peers the node will look to connect to.
+func (n *GossipNode) GetPeers() ([]string, error) {
+	var peers []string
+
+	if len(n.cfg.JoinPeers) > 0 {
+		for _, jaddr := range n.cfg.JoinPeers {
+			peers = appendJoinAddr(peers, jaddr)
+		}
+	} else if n.cfg.DiscoverPeers != "" {
+		addrs, err := n.cfg.discoverer.Addrs(n.cfg.DiscoverPeers, stdlog.New(log.NewStdlibAdapter(n.log), "", 0))
+		if err != nil {
+			return nil, fmt.Errorf("discovering peers: %w", err)
+		}
+		peers = addrs
+	}
+
+	for i := range peers {
+		// Default to using the same advertise port as the local node. This may
+		// break in some cases, so the user should make sure the port numbers
+		// align on as many nodes as possible.
+		peers[i] = appendDefaultPort(peers[i], n.cfg.DefaultPort)
+	}
+
+	return peers, nil
 }
 
 func appendDefaultPort(addr string, port int) string {
@@ -246,13 +270,13 @@ func (n *GossipNode) Handler() (string, http.Handler) {
 //
 // Start must only be called after the gRPC server is running, otherwise Start
 // will block forever.
-func (n *GossipNode) Start() (err error) {
+func (n *GossipNode) Start(peers []string) (err error) {
 	defer func() {
 		if err == nil {
 			n.started.Store(true)
 		}
 	}()
-	return n.innerNode.Start(n.cfg.JoinPeers)
+	return n.innerNode.Start(peers)
 }
 
 // Stop leaves the cluster and terminates n. n cannot be re-used after

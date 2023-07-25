@@ -93,7 +93,7 @@ type Clusterer struct {
 	Node Node
 }
 
-func getJoinAddr(addrs []string, in string) []string {
+func appendJoinAddr(addrs []string, in string) []string {
 	_, _, err := net.SplitHostPort(in)
 	if err == nil {
 		addrs = append(addrs, in)
@@ -117,7 +117,7 @@ func getJoinAddr(addrs []string, in string) []string {
 }
 
 // New creates a Clusterer.
-func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, listenAddr, advertiseAddr, joinAddr, discoverPeers string) (*Clusterer, error) {
+func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, listenAddr, advertiseAddr, joinAddr, discoverPeers string, rejoinInterval time.Duration) (*Clusterer, error) {
 	// Standalone node.
 	if !clusterEnabled {
 		return &Clusterer{Node: NewLocalNode(listenAddr)}, nil
@@ -125,13 +125,13 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 
 	gossipConfig := DefaultGossipConfig
 
-	defaultPort := 80
 	_, portStr, err := net.SplitHostPort(listenAddr)
 	if err == nil { // there was a port
-		defaultPort, err = strconv.Atoi(portStr)
+		defaultPort, err := strconv.Atoi(portStr)
 		if err != nil {
 			return nil, err
 		}
+		gossipConfig.DefaultPort = defaultPort
 	}
 
 	if name != "" {
@@ -142,16 +142,11 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 		gossipConfig.AdvertiseAddr = advertiseAddr
 	}
 
-	if joinAddr != "" {
-		gossipConfig.JoinPeers = []string{}
-		jaddrs := strings.Split(joinAddr, ",")
-		for _, jaddr := range jaddrs {
-			gossipConfig.JoinPeers = getJoinAddr(gossipConfig.JoinPeers, jaddr)
-		}
-	}
+	gossipConfig.JoinPeers = strings.Split(joinAddr, ",")
 	gossipConfig.DiscoverPeers = discoverPeers
+	gossipConfig.RejoinInterval = rejoinInterval
 
-	err = gossipConfig.ApplyDefaults(defaultPort)
+	err = gossipConfig.ApplyDefaults()
 	if err != nil {
 		return nil, err
 	}
@@ -197,14 +192,35 @@ func (c *Clusterer) Start() error {
 	case *localNode:
 		return nil // no-op, always ready
 	case *GossipNode:
-		err := node.Start() // TODO(@tpaschalis) Should we backoff and retry before moving on to the fallback here?
+		peers, err := node.GetPeers()
+		if err != nil {
+			return err
+		}
+		err = node.Start(peers) // TODO(@tpaschalis) Should we backoff and retry before moving on to the fallback here?
 		if err != nil {
 			level.Debug(node.log).Log("msg", "failed to connect to peers; bootstrapping a new cluster")
-			node.cfg.JoinPeers = nil
-			err = node.Start()
+			err = node.Start(nil)
 			if err != nil {
 				return err
 			}
+		}
+
+		if node.cfg.RejoinInterval > 0 {
+			go func() {
+				t := time.NewTicker(node.cfg.RejoinInterval)
+				for {
+					<-t.C
+					peers, err := node.GetPeers()
+					if err != nil {
+						level.Error(node.log).Log("msg", "failed to refresh the list of peers", "err", err)
+						continue // we'll try on the next tick
+					}
+					err = node.Start(peers)
+					if err != nil {
+						level.Error(node.log).Log("msg", "failed to rejoin the list of peers", "err", err)
+					}
+				}
+			}()
 		}
 
 		node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {

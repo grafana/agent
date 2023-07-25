@@ -48,6 +48,7 @@ The following flags are supported:
 * `--cluster.node-name`: The name to use for this node (defaults to the environment's hostname).
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`). Mutually exclusive with `--cluster.discover-peers`.
 * `--cluster.discover-peers`: List of key-value tuples for discovering peers (default `""`). Mutually exclusive with `--cluster.join-addresses`.
+* `--cluster.rejoin-interval`: How often to rejoin the list of peers (default `"60s"`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
 * `--config.format`: The format of the source file. Supported formats: 'flow', 'prometheus', 'promtail' (default `"flow"`).
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
@@ -109,10 +110,18 @@ on the chosen provider and the filtering key-values it supports. Clustering
 supports the default set of providers available in go-discover and registers
 the `k8s` provider on top.
 
-If either the key or the value in a pair contains a space, a backslash, or
+If either the key or the value in a tuple pair contains a space, a backslash or
 double quotes, then it must be quoted with double quotes. Within this quoted
 string, the backslash can be used to escape double quotes or the backslash
 itself.
+
+The `--cluster.rejoin-interval` flag defines how often each node should
+rediscover peers based on the contents of the `--cluster.join-addresses` and
+`--cluster.discover-peers` flags and try to rejoin them.  This operation
+is useful for addressing split-brain issues if the initial bootstrap is
+unsuccessful and for making clustering easier to manage in dynamic
+environments. To disable this behavior, set the `--cluster.rejoin-interval`
+flag to `"0s"`.
 
 Discovering peers using the `--cluster.join-addresses` and
 `--cluster.discover-peers` flags only happens on startup; after that, cluster
@@ -120,7 +129,7 @@ nodes depend on gossiping messages with each other to converge on the cluster's
 state.
 
 The first node that is used to bootstrap a new cluster (also known as
-the "seed node") can either omit the flag that specifies peers to join or can
+the "seed node") can either omit the flags that specify peers to join or can
 try to connect to itself.
 
 ### Clustering states

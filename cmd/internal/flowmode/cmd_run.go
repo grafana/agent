@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
@@ -44,6 +45,8 @@ func runCommand() *cobra.Command {
 		disableReporting: false,
 		enablePprof:      true,
 		configFormat:     "flow",
+
+		clusterRejoinInterval: 60 * time.Second,
 	}
 
 	cmd := &cobra.Command{
@@ -98,6 +101,8 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		StringVar(&r.clusterDiscoverPeers, "cluster.discover-peers", r.clusterDiscoverPeers, "List of key-value tuples for discovering peers")
 	cmd.Flags().
+		DurationVar(&r.clusterRejoinInterval, "cluster.rejoin-interval", r.clusterRejoinInterval, "How often to rejoin the list of peers")
+	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
 	cmd.Flags().BoolVar(&r.configBypassConversionErrors, "config.bypass-conversion-errors", r.configBypassConversionErrors, "Enable bypassing errors when converting")
@@ -116,6 +121,7 @@ type flowRun struct {
 	clusterAdvAddr               string
 	clusterJoinAddr              string
 	clusterDiscoverPeers         string
+	clusterRejoinInterval        time.Duration
 	configFormat                 string
 	configBypassConversionErrors bool
 }
@@ -166,7 +172,7 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
-	clusterer, err := cluster.New(l, reg, fr.clusterEnabled, fr.clusterNodeName, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr, fr.clusterDiscoverPeers)
+	clusterer, err := cluster.New(l, reg, fr.clusterEnabled, fr.clusterNodeName, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr, fr.clusterDiscoverPeers, fr.clusterRejoinInterval)
 	if err != nil {
 		return fmt.Errorf("building clusterer: %w", err)
 	}
