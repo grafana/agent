@@ -83,7 +83,7 @@ func (a *Arguments) Convert() *prom_discovery.SDConfig {
 	}
 }
 
-// New returns a new instance of a discovery.digitalocean component.
+// New returns a new instance of a discovery.uyuni component.
 func New(opts component.Options, args Arguments) (*discovery.Component, error) {
 	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
 		newArgs := args.(Arguments)
