@@ -9,3 +9,4 @@ scrape_configs:
         variety: chardonnay
         region: chablis
 tracing: {enabled: false}
+server: {register_instrumentation: false}

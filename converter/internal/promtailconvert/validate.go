@@ -68,4 +68,26 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 			"reading targets from stdin is not supported in Flow Mode configuration file",
 		)
 	}
+	if cfg.ServerConfig.ProfilingEnabled {
+		diags.Add(diag.SeverityLevelWarn, "server.profiling_enabled is not supported - use Agent's "+
+			"main HTTP server's profiling endpoints instead.")
+	}
+
+	if cfg.ServerConfig.RegisterInstrumentation {
+		diags.Add(diag.SeverityLevelWarn, "server.register_instrumentation is not supported - Flow mode "+
+			"components expose their metrics automatically in their own metrics namespace")
+	}
+
+	if cfg.ServerConfig.LogLevel.String() != "info" {
+		diags.Add(diag.SeverityLevelWarn, "server.log_level is not supported - Flow mode "+
+			"components may produce different logs")
+	}
+
+	if cfg.ServerConfig.PathPrefix != "" {
+		diags.Add(diag.SeverityLevelError, "server.http_path_prefix is not supported")
+	}
+
+	if cfg.ServerConfig.HealthCheckTarget != nil && !*cfg.ServerConfig.HealthCheckTarget {
+		diags.Add(diag.SeverityLevelWarn, "server.health_check_target disabling is not supported in Flow mode")
+	}
 }

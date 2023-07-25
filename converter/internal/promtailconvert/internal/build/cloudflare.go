@@ -34,7 +34,7 @@ func (s *ScrapeConfigBuilder) AppendCloudFlareConfig() {
 		}
 	}
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
-		[]string{"loki", "source", "cloudfare"},
+		[]string{"loki", "source", "cloudflare"},
 		s.cfg.JobName,
 		args,
 		override,

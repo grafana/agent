@@ -2,9 +2,10 @@ package windows_exporter //nolint:golint
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/prometheus-community/windows_exporter/collector"
-	"strconv"
 )
 
 // Populate defaults for all collector configs.

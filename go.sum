@@ -846,8 +846,8 @@ github.com/aws/aws-sdk-go v1.40.45/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm
 github.com/aws/aws-sdk-go v1.42.8/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
 github.com/aws/aws-sdk-go v1.44.156/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go v1.44.276/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
-github.com/aws/aws-sdk-go v1.44.282 h1:ZPB9QhwxmMIEC8ja0DdFowOl5fODWaZ6s2cZ40fx6r8=
-github.com/aws/aws-sdk-go v1.44.282/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
+github.com/aws/aws-sdk-go v1.44.304 h1:crcJBVeewWcVAXDQChzJWZYGFq9i1TYLycAtQ6Xpi4c=
+github.com/aws/aws-sdk-go v1.44.304/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
 github.com/aws/aws-sdk-go-v2 v1.7.0/go.mod h1:tb9wi5s61kTDA5qCkcDbt3KRVV74GGslQkl/DRdX/P4=
 github.com/aws/aws-sdk-go-v2 v1.9.1/go.mod h1:cK/D0BBs0b/oWPIcX/Z/obahJK1TT7IPVjy53i/mX/4=
@@ -2344,6 +2344,8 @@ github.com/klauspost/compress v1.13.6/go.mod h1:/3/Vjq9QcHkK5uEr5lBEmyoZ1iFhe47e
 github.com/klauspost/compress v1.15.9/go.mod h1:PhcZ0MbTNciWF3rruxRgKxI5NkcHHrHUDtV4Yw2GlzU=
 github.com/klauspost/compress v1.16.6 h1:91SKEy4K37vkp255cJ8QesJhjyRO0hn9i9G0GoUwLsk=
 github.com/klauspost/compress v1.16.6/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
+github.com/klauspost/compress v1.16.7 h1:2mk3MPGNzKyxErAw8YaohYh69+pa4sIQSC0fPGCFR9I=
+github.com/klauspost/compress v1.16.7/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
 github.com/klauspost/cpuid v1.2.3/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
 github.com/klauspost/cpuid v1.3.1/go.mod h1:bYW4mA6ZgKPob1/Dlai2LviZJO7KGI3uoWLd42rAQw4=
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
@@ -2755,6 +2757,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributespr
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.80.0/go.mod h1:9uoUdWeHgN/c98VL9hPtDbdmqqHjQs8sF8W6P5MtUKA=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0 h1:+aUgA8hzbaBGyraAy7WGjyzq0zLvvTAaq0q0RO934HM=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0/go.mod h1:cjPA2Zcmy6ZSiKe1+gFGGjN4wgRRcPFwYuL/AnM6nIo=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.80.0 h1:E0eTh3rgRm38HQ3YX7y+IsSCsAsN1oy31aLAGzBW0jY=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.80.0/go.mod h1:xr2gz2uqeBIktRFVzkhbfwaDpwFPnFbfshmpkhZYmco=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.80.0 h1:UvxHvdSDQItDU+GI5fP79d9AOMNhhTHX/AZNvtQA/zs=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.80.0/go.mod h1:z2N7529PWQE8UlDFvGbr9kHbSXxt9a5hBUIDVtCzbiM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.80.0 h1:y7Q+273OjVQy3+jAEL6uXtDci3MZ2yCoEXe4VlRMo84=

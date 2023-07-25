@@ -15,14 +15,14 @@ import (
 )
 
 func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *prom_digitalocean.SDConfig) discovery.Exports {
-	discoveryDigitalOceanArgs := toDiscoveryDigitalOcean(sdConfig)
+	discoveryDigitalOceanArgs := ToDiscoveryDigitalOcean(sdConfig)
 	name := []string{"discovery", "digitalocean"}
 	block := common.NewBlockWithOverride(name, label, discoveryDigitalOceanArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
 	return newDiscoverExports("discovery.digitalocean." + label + ".targets")
 }
 
-func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
+func ValidateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if sdConfig.HTTPClientConfig.BasicAuth != nil {
@@ -47,7 +47,7 @@ func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Di
 	return diags
 }
 
-func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) *digitalocean.Arguments {
+func ToDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) *digitalocean.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
