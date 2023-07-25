@@ -429,7 +429,6 @@ discovery.kubernetes "k8s_pods" {
   }
 }
 
-
 prometheus.scrape "demo" {
   targets    = discovery.kubernetes.k8s_pods.targets
   forward_to = [prometheus.remote_write.demo.receiver]
