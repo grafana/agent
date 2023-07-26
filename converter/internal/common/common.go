@@ -3,6 +3,7 @@ package common
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/grafana/agent/pkg/river/parser"
 	"github.com/grafana/agent/pkg/river/printer"
@@ -49,29 +50,23 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 	}
 }
 
-// GetUniqueLabel appends a counter to the input label if it is not the first.
-// The input label is 1-indexed.
-func GetUniqueLabel(label string, currentCount int) string {
-	if currentCount == 1 {
-		return label
+func GetLabelForParts(parts ...interface{}) string {
+	var sParts []string
+	for _, part := range parts {
+		if part != "" {
+			sParts = append(sParts, fmt.Sprintf("%v", part))
+		}
 	}
-
-	return fmt.Sprintf("%s_%d", label, currentCount)
+	return strings.Join(sParts, "_")
 }
 
-// GetLabelWithPrefix creates a label with an optional labelPrefix and based on
-// the current count.
-func GetLabelWithPrefix(labelPrefix string, label string, currentCount int) string {
-	finalLabel := label
-	if currentCount != 0 {
-		finalLabel += fmt.Sprintf("_%d", currentCount+1)
+func GetLabelWithIndex(index int, parts ...interface{}) string {
+	if index == 0 {
+		return GetLabelForParts(parts...)
 	}
 
-	if labelPrefix != "" {
-		finalLabel = labelPrefix + "_" + finalLabel
-	}
-
-	return finalLabel
+	appendedIndex := index + 1
+	return GetLabelForParts(append(parts, appendedIndex)...)
 }
 
 // PrettyPrint parses river config and returns it in a standardize format.

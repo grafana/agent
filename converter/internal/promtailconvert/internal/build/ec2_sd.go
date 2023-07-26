@@ -12,7 +12,7 @@ func (s *ScrapeConfigBuilder) AppendEC2SDs() {
 	for i, sd := range s.cfg.ServiceDiscoveryConfig.EC2SDConfigs {
 		s.diags.AddAll(prometheusconvert.ValidateDiscoveryEC2(sd))
 		args := prometheusconvert.ToDiscoveryEC2(sd)
-		compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, i)
+		compLabel := common.GetLabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride(
 			[]string{"discovery", "ec2"},
 			compLabel,

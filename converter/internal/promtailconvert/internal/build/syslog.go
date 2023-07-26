@@ -39,9 +39,10 @@ func (s *ScrapeConfigBuilder) AppendSyslogConfig() {
 			return val
 		}
 	}
+	compLabel := common.GetLabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
 		[]string{"loki", "source", "syslog"},
-		s.cfg.JobName,
+		compLabel,
 		args,
 		override,
 	))

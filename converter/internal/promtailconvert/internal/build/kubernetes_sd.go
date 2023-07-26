@@ -13,7 +13,7 @@ func (s *ScrapeConfigBuilder) AppendKubernetesSDs() {
 	for i, sd := range s.cfg.ServiceDiscoveryConfig.KubernetesSDConfigs {
 		s.diags.AddAll(prometheusconvert.ValidateHttpClientConfig(&sd.HTTPClientConfig))
 		args := prometheusconvert.ToDiscoveryKubernetes(sd)
-		compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, i)
+		compLabel := common.GetLabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride(
 			[]string{"discovery", "kubernetes"},
 			compLabel,

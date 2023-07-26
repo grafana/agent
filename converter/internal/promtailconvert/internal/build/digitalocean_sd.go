@@ -12,7 +12,7 @@ func (s *ScrapeConfigBuilder) AppendDigitalOceanSDs() {
 	for i, sd := range s.cfg.ServiceDiscoveryConfig.DigitalOceanSDConfigs {
 		s.diags.AddAll(prometheusconvert.ValidateDiscoveryDigitalOcean(sd))
 		args := prometheusconvert.ToDiscoveryDigitalOcean(sd)
-		compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, i)
+		compLabel := common.GetLabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride(
 			[]string{"discovery", "digitalocean"},
 			compLabel,

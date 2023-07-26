@@ -12,7 +12,7 @@ func (s *ScrapeConfigBuilder) AppendAzureSDs() {
 	for i, sd := range s.cfg.ServiceDiscoveryConfig.AzureSDConfigs {
 		s.diags.AddAll(prometheusconvert.ValidateDiscoveryAzure(sd))
 		args := prometheusconvert.ToDiscoveryAzure(sd)
-		compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, i)
+		compLabel := common.GetLabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride(
 			[]string{"discovery", "azure"},
 			compLabel,

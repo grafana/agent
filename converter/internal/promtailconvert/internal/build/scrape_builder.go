@@ -92,7 +92,7 @@ func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
 		return val
 	}
 
-	compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, 0)
+	compLabel := common.GetLabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
 		[]string{"loki", "source", "file"},
 		compLabel,
@@ -112,7 +112,7 @@ func (s *ScrapeConfigBuilder) getOrNewLokiRelabel() string {
 			ForwardTo:      s.getOrNewProcessStageReceivers(),
 			RelabelConfigs: prometheusconvert.ToFlowRelabelConfigs(s.cfg.RelabelConfigs),
 		}
-		compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, 0)
+		compLabel := common.GetLabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "relabel"}, compLabel, args))
 		s.lokiRelabelReceiverExpr = "loki.relabel." + compLabel + ".receiver"
 	}
@@ -138,7 +138,7 @@ func (s *ScrapeConfigBuilder) getOrNewProcessStageReceivers() []loki.LogsReceive
 		ForwardTo: s.globalCtx.WriteReceivers,
 		Stages:    flowStages,
 	}
-	compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, 0)
+	compLabel := common.GetLabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 	s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "process"}, compLabel, args))
 	s.processStageReceivers = []loki.LogsReceiver{common.ConvertLogsReceiver{
 		Expr: fmt.Sprintf("loki.process.%s.receiver", compLabel),
@@ -168,7 +168,7 @@ func (s *ScrapeConfigBuilder) appendDiscoveryRelabel() {
 		return val
 	}
 
-	compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, 0)
+	compLabel := common.GetLabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
 		[]string{"discovery", "relabel"},
 		compLabel,
@@ -203,7 +203,7 @@ func (s *ScrapeConfigBuilder) getExpandedFileTargetsExpr() string {
 		return val
 	}
 
-	compLabel := common.GetLabelWithPrefix(s.globalCtx.LabelPrefix, s.cfg.JobName, 0)
+	compLabel := common.GetLabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
 		[]string{"local", "file_match"},
 		compLabel,
