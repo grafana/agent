@@ -15,7 +15,7 @@ func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
 	m := &WatcherMetrics{
 		recordsRead: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Namespace: "loki",
+				Namespace: "loki_write",
 				Subsystem: "wal_watcher",
 				Name:      "records_read_total",
 				Help:      "Number of records read by the WAL watcher from the WAL.",
@@ -24,7 +24,7 @@ func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
 		),
 		recordDecodeFails: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Namespace: "loki",
+				Namespace: "loki_write",
 				Subsystem: "wal_watcher",
 				Name:      "record_decode_failures_total",
 				Help:      "Number of records read by the WAL watcher that resulted in an error when decoding.",
@@ -33,7 +33,7 @@ func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
 		),
 		droppedWriteNotifications: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Namespace: "loki",
+				Namespace: "loki_write",
 				Subsystem: "wal_watcher",
 				Name:      "dropped_write_notifications_total",
 				Help:      "Number of dropped write notifications due to having one already buffered.",
@@ -42,7 +42,7 @@ func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
 		),
 		segmentRead: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
-				Namespace: "loki",
+				Namespace: "loki_write",
 				Subsystem: "wal_watcher",
 				Name:      "segment_read_total",
 				Help:      "Number of segment reads triggered by the backup timer firing.",
@@ -51,7 +51,7 @@ func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
 		),
 		currentSegment: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Namespace: "loki",
+				Namespace: "loki_write",
 				Subsystem: "wal_watcher",
 				Name:      "current_segment",
 				Help:      "Current segment the WAL watcher is reading records from.",
@@ -60,7 +60,7 @@ func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
 		),
 		watchersRunning: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
-				Namespace: "loki",
+				Namespace: "loki_write",
 				Subsystem: "wal_watcher",
 				Name:      "running",
 				Help:      "Number of WAL watchers running.",
