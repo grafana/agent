@@ -14,7 +14,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
@@ -53,9 +52,7 @@ type Arguments struct {
 var DefaultArguments = Arguments{
 	JobName: "loki.source.kubernetes_events",
 
-	Client: kubernetes.ClientArguments{
-		HTTPClientConfig: config.DefaultHTTPClientConfig,
-	},
+	Client: kubernetes.DefaultClientArguments,
 }
 
 // SetToDefault implements river.Defaulter.
