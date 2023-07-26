@@ -205,7 +205,11 @@ func (c *crdManager) DebugInfo() interface{} {
 	for _, pm := range c.debugInfo {
 		info.DiscoveredCRDs = append(info.DiscoveredCRDs, pm)
 	}
-	info.Targets = compscrape.BuildTargetStatuses(c.scrapeManager.TargetsActive())
+
+	// c.scrapeManager can be nil if the client failed to build.
+	if c.scrapeManager != nil {
+		info.Targets = compscrape.BuildTargetStatuses(c.scrapeManager.TargetsActive())
+	}
 	return info
 }
 

@@ -10,6 +10,13 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Set hostPID from values. (@korniltsev)
+
+0.17.0 (2023-07-19)
+-------------------
+
 ### Features
 
 - Add native support for Flow mode clustering with the
@@ -22,7 +29,7 @@ Unreleased
 
 - Set securityContext at podlevel. (@yanehi)
 
-- Set hostPID from values. (@korniltsev)
+- Update Grafana Agent version to v0.35.0. (@mattdurham)
 
 0.16.0 (2023-06-20)
 -------------------

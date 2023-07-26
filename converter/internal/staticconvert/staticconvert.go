@@ -2,35 +2,35 @@ package staticconvert
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/config"
-	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
+
+	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations
 )
 
 // Convert implements a Static config converter.
 func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	var staticConfig config.Config
-	err := config.LoadBytes(in, false, &staticConfig)
+	fs := flag.NewFlagSet("convert", flag.ExitOnError)
+	staticConfig, err := config.LoadFromFunc(fs, []string{"-config.file", "convert"}, func(_, _ string, _ bool, c *config.Config) error {
+		return config.LoadBytes(in, false, c)
+	})
+
 	if err != nil {
 		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to parse Static config: %s", err))
 		return nil, diags
 	}
 
-	if err = staticConfig.Validate(nil); err != nil {
-		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to validate Static config: %s", err))
-		return nil, diags
-	}
-
 	f := builder.NewFile()
-	diags = AppendAll(f, &staticConfig)
+	diags = AppendAll(f, staticConfig)
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -61,7 +61,12 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 
 	// TODO otel
 
+	// TODO integrations
+
 	// TODO other
+
+	newDiags = validate(staticConfig)
+	diags = append(diags, newDiags...)
 
 	return diags
 }
@@ -87,20 +92,6 @@ func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		newDiags := prometheusconvert.AppendAll(f, promConfig, instance.Name)
 		diags = append(diags, newDiags...)
 	}
-
-	newDiags := validateMetrics(staticConfig)
-	diags = append(diags, newDiags...)
-	return diags
-}
-
-func validateMetrics(staticConfig *config.Config) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if staticConfig.Metrics.WALDir != metrics.DefaultConfig.WALDir {
-		diags.Add(diag.SeverityLevelError, "unsupported config for wal_directory was provided. use the run command flag --storage.path for Flow mode instead.")
-	}
-
-	// TODO Static to Flow unsupported features
 
 	return diags
 }

@@ -22,6 +22,7 @@ func TestConfigConversion(t *testing.T) {
 				Compression:     "gzip",
 				WriteBufferSize: 512 * 1024,
 				Headers:         map[string]configopaque.String{},
+				BalancerName:    "pick_first",
 			},
 		},
 	}
@@ -108,6 +109,7 @@ func TestConfigConversion(t *testing.T) {
 							Compression:     "gzip",
 							WriteBufferSize: 512 * 1024,
 							Headers:         map[string]configopaque.String{},
+							BalancerName:    "pick_first",
 						},
 					},
 				},

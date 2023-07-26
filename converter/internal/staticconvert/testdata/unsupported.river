@@ -1,0 +1,18 @@
+prometheus.scrape "agent_prometheus" {
+	targets = [{
+		__address__ = "localhost:9099",
+	}]
+	forward_to = [prometheus.remote_write.agent.receiver]
+	job_name   = "prometheus"
+}
+
+prometheus.remote_write "agent" {
+	endpoint {
+		name = "agent-72cf3f"
+		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}

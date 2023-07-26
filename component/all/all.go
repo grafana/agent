@@ -14,6 +14,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
+	_ "github.com/grafana/agent/component/discovery/uyuni"                          // Import discovery.uyuni
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
 	_ "github.com/grafana/agent/component/local/file_match"                         // Import local.file_match
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo
@@ -57,6 +58,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/processor/attributes"             // Import otelcol.processor.attributes
 	_ "github.com/grafana/agent/component/otelcol/processor/batch"                  // Import otelcol.processor.batch
 	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"          // Import otelcol.processor.memory_limiter
+	_ "github.com/grafana/agent/component/otelcol/processor/span"                   // Import otelcol.processor.span
 	_ "github.com/grafana/agent/component/otelcol/processor/tail_sampling"          // Import otelcol.processor.tail_sampling
 	_ "github.com/grafana/agent/component/otelcol/receiver/jaeger"                  // Import otelcol.receiver.jaeger
 	_ "github.com/grafana/agent/component/otelcol/receiver/kafka"                   // Import otelcol.receiver.kafka
@@ -71,6 +73,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"               // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/dnsmasq"              // Import prometheus.exporter.dnsmasq
 	_ "github.com/grafana/agent/component/prometheus/exporter/elasticsearch"        // Import prometheus.exporter.elasticsearch
+	_ "github.com/grafana/agent/component/prometheus/exporter/gcp"                  // Import prometheus.exporter.gcp
 	_ "github.com/grafana/agent/component/prometheus/exporter/github"               // Import prometheus.exporter.github
 	_ "github.com/grafana/agent/component/prometheus/exporter/kafka"                // Import prometheus.exporter.kafka
 	_ "github.com/grafana/agent/component/prometheus/exporter/memcached"            // Import prometheus.exporter.memcached
