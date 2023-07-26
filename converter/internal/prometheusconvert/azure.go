@@ -36,7 +36,7 @@ func ToDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
 		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
 		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
 		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
-		TLSConfig:       *toTLSConfig(&sdConfig.HTTPClientConfig.TLSConfig),
+		TLSConfig:       *ToTLSConfig(&sdConfig.HTTPClientConfig.TLSConfig),
 	}
 }
 

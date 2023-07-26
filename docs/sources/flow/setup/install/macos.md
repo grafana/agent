@@ -45,7 +45,7 @@ To upgrade Grafana Agent on macOS, run the following commands in a terminal wind
 1. Upgrade Grafana Agent:
 
    ```shell
-   brew upgrade grafana-agent
+   brew upgrade grafana-agent-flow
    ```
 
 1. Restart Grafana Agent:
