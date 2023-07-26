@@ -71,14 +71,12 @@ Name | Type | Description | Default | Required
 `write_buffer_size` | `string` | Size of the write buffer the gRPC client to use for writing requests. | `"512KiB"` | no
 `wait_for_ready` | `boolean` | Waits for gRPC connection to be in the `READY` state before sending data. | `false` | no
 `headers` | `map(string)` | Additional headers to send with the request. | `{}` | no
-`balancer_name` | `string` | Which gRPC client-side load balancer to use for requests. | | no
+`balancer_name` | `string` | Which gRPC client-side load balancer to use for requests. | `pick_first` | no
 `auth` | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 
 {{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" >}}
 
-The `balancer_name` argument controls what client-side load balancing mechanism
-to use. See the gRPC documentation on [Load balancing][] for more information.
-When unspecified, `pick_first` is used.
+{{< docs/shared lookup="flow/reference/components/otelcol-grpc-balancer-name.md" source="agent" >}}
 
 An HTTP proxy can be configured through the following environment variables:
 
@@ -100,7 +98,6 @@ that domain and all subdomains. A domain name with a leading "."
 Because `otelcol.exporter.jaeger` uses gRPC, the configured proxy server must be
 able to handle and proxy HTTP/2 traffic.
 
-[Load balancing]: https://github.com/grpc/grpc-go/blob/master/examples/features/load_balancing/README.md#pick_first
 [HTTP CONNECT]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
 
 ### tls block

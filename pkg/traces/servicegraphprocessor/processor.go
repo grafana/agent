@@ -2,7 +2,6 @@ package servicegraphprocessor
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -316,7 +315,7 @@ func (p *processor) consume(trace ptrace.Traces) error {
 
 				switch span.Kind() {
 				case ptrace.SpanKindClient:
-					k := key(hex.EncodeToString([]byte(span.TraceID().String())), hex.EncodeToString([]byte(span.SpanID().String())))
+					k := key(span.TraceID().String(), span.SpanID().String())
 
 					edge, err := p.store.upsertEdge(k, func(e *edge) {
 						e.clientService = svc.Str()
@@ -339,7 +338,7 @@ func (p *processor) consume(trace ptrace.Traces) error {
 					}
 
 				case ptrace.SpanKindServer:
-					k := key(hex.EncodeToString([]byte(span.TraceID().String())), hex.EncodeToString([]byte(span.ParentSpanID().String())))
+					k := key(span.TraceID().String(), span.ParentSpanID().String())
 
 					edge, err := p.store.upsertEdge(k, func(e *edge) {
 						e.serverService = svc.Str()

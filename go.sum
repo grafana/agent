@@ -2344,6 +2344,8 @@ github.com/klauspost/compress v1.13.6/go.mod h1:/3/Vjq9QcHkK5uEr5lBEmyoZ1iFhe47e
 github.com/klauspost/compress v1.15.9/go.mod h1:PhcZ0MbTNciWF3rruxRgKxI5NkcHHrHUDtV4Yw2GlzU=
 github.com/klauspost/compress v1.16.6 h1:91SKEy4K37vkp255cJ8QesJhjyRO0hn9i9G0GoUwLsk=
 github.com/klauspost/compress v1.16.6/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
+github.com/klauspost/compress v1.16.7 h1:2mk3MPGNzKyxErAw8YaohYh69+pa4sIQSC0fPGCFR9I=
+github.com/klauspost/compress v1.16.7/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
 github.com/klauspost/cpuid v1.2.3/go.mod h1:Pj4uuM528wm8OyEC2QMXAi2YiTZ96dNQPGgoMS4s3ek=
 github.com/klauspost/cpuid v1.3.1/go.mod h1:bYW4mA6ZgKPob1/Dlai2LviZJO7KGI3uoWLd42rAQw4=
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
@@ -2755,6 +2757,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributespr
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.80.0/go.mod h1:9uoUdWeHgN/c98VL9hPtDbdmqqHjQs8sF8W6P5MtUKA=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0 h1:+aUgA8hzbaBGyraAy7WGjyzq0zLvvTAaq0q0RO934HM=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0/go.mod h1:cjPA2Zcmy6ZSiKe1+gFGGjN4wgRRcPFwYuL/AnM6nIo=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.80.0 h1:E0eTh3rgRm38HQ3YX7y+IsSCsAsN1oy31aLAGzBW0jY=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.80.0/go.mod h1:xr2gz2uqeBIktRFVzkhbfwaDpwFPnFbfshmpkhZYmco=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.80.0 h1:UvxHvdSDQItDU+GI5fP79d9AOMNhhTHX/AZNvtQA/zs=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.80.0/go.mod h1:z2N7529PWQE8UlDFvGbr9kHbSXxt9a5hBUIDVtCzbiM=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.80.0 h1:y7Q+273OjVQy3+jAEL6uXtDci3MZ2yCoEXe4VlRMo84=

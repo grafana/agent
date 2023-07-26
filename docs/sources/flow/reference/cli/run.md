@@ -37,7 +37,8 @@ The following flags are supported:
 * `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
 * `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
 * `--cluster.node-name`: The name to use for this node (defaults to the environment's hostname).
-* `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`).
+* `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`). Mutually exclusive with `--cluster.discover-peers`.
+* `--cluster.discover-peers`: List of key-value tuples for discovering peers (default `""`). Mutually exclusive with `--cluster.join-addresses`.
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
 * `--config.format`: The format of the source file. Supported formats: 'flow', 'prometheus' (default `"flow"`).
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
@@ -92,9 +93,22 @@ listener if not explicitly provided. We recommend that you
 align the port numbers on as many nodes as possible to simplify the deployment
 process.
 
-Discovering peers using the `--cluster.join-addresses` flag only happens on
-startup; after that, cluster nodes depend on gossiping messages with each other
-to converge on the cluster's state.
+The `--cluster.discover-peers` command-line flag expects a list of tuples in
+the form of `provider=XXX key=val key=val ...`. Clustering makes use of the
+[go-discover] package to discover peers and fetch their IP addresses, based
+on the chosen provider and the filtering key-values it supports. Clustering
+supports the default set of providers available in go-discover and registers
+the `k8s` provider on top.
+
+If either the key or the value in a pair contains a space, a backslash or
+double quotes, then it must be quoted with double quotes. Within this quoted
+string, the backslash can be used to escape double quotes or the backslash
+itself.
+
+Discovering peers using the `--cluster.join-addresses` and
+`--cluster.discover-peers` flags only happens on startup; after that, cluster
+nodes depend on gossiping messages with each other to converge on the cluster's
+state.
 
 The first node that is used to bootstrap a new cluster (also known as
 the "seed node") can either omit the flag that specifies peers to join or can
@@ -137,3 +151,4 @@ original configuration.
 
 [grafana-agent convert]: {{< relref "./convert.md" >}}
 [clustering]:  {{< relref "../../concepts/clustering.md" >}}
+[go-discover]: https://github.com/hashicorp/go-discover
