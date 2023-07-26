@@ -90,8 +90,8 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		//   metrics config name = "agent"
 		//   scrape config job_name = "test_prometheus"
 		//
-		//   results in two prometheus.scrape components with the label "agent_test_prometheus"
-		diags.AddAll(prometheusconvert.AppendAll(f, promConfig, instance.Name))
+		//   results in two prometheus.scrape components with the label "metrics_agent_test_prometheus"
+		diags.AddAll(prometheusconvert.AppendAll(f, promConfig, "metrics_"+instance.Name))
 	}
 
 	return diags
@@ -128,7 +128,16 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 			promtailConfig.LimitsConfig = promtailconvert.DefaultLimitsConfig()
 		}
 
-		diags = promtailconvert.AppendAll(f, promtailConfig, logConfig.Name, diags)
+		// There is an edge case unhandled here with label collisions.
+		// For example,
+		//   logs config name = "agent_test"
+		//   scrape config job_name = "promtail"
+		//
+		//   metrics config name = "agent"
+		//   scrape config job_name = "test_promtail"
+		//
+		//   results in two prometheus.scrape components with the label "logs_agent_test_promtail"
+		diags = promtailconvert.AppendAll(f, promtailConfig, "logs_"+logConfig.Name, diags)
 	}
 
 	return diags

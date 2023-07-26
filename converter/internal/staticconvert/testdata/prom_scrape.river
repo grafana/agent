@@ -1,4 +1,4 @@
-discovery.azure "agent_promobee" {
+discovery.azure "metrics_agent_promobee" {
 	subscription_id = "subscription1"
 
 	oauth {
@@ -15,7 +15,7 @@ discovery.azure "agent_promobee" {
 	enable_http2     = true
 }
 
-discovery.azure "agent_promobee_2" {
+discovery.azure "metrics_agent_promobee_2" {
 	subscription_id = "subscription2"
 
 	oauth {
@@ -32,10 +32,10 @@ discovery.azure "agent_promobee_2" {
 	enable_http2     = true
 }
 
-discovery.relabel "agent_promobee" {
+discovery.relabel "metrics_agent_promobee" {
 	targets = concat(
-		discovery.azure.agent_promobee_2.targets,
-		discovery.azure.agent_promobee.targets,
+		discovery.azure.metrics_agent_promobee_2.targets,
+		discovery.azure.metrics_agent_promobee.targets,
 		[{
 			__address__ = "localhost:9090",
 		}],
@@ -58,7 +58,7 @@ discovery.relabel "agent_promobee" {
 	}
 }
 
-prometheus.scrape "agent_prometheus" {
+prometheus.scrape "metrics_agent_prometheus" {
 	targets = concat(
 		[{
 			__address__ = "localhost:9101",
@@ -67,21 +67,21 @@ prometheus.scrape "agent_prometheus" {
 			__address__ = "localhost:9101",
 		}],
 	)
-	forward_to     = [prometheus.remote_write.agent.receiver]
+	forward_to     = [prometheus.remote_write.metrics_agent.receiver]
 	job_name       = "prometheus"
 	scrape_timeout = "45s"
 }
 
-prometheus.scrape "agent_promobee" {
-	targets        = discovery.relabel.agent_promobee.output
-	forward_to     = [prometheus.relabel.agent_promobee.receiver]
+prometheus.scrape "metrics_agent_promobee" {
+	targets        = discovery.relabel.metrics_agent_promobee.output
+	forward_to     = [prometheus.relabel.metrics_agent_promobee.receiver]
 	job_name       = "promobee"
 	scrape_timeout = "45s"
 	metrics_path   = "/thermostat"
 }
 
-prometheus.relabel "agent_promobee" {
-	forward_to = [prometheus.remote_write.agent.receiver]
+prometheus.relabel "metrics_agent_promobee" {
+	forward_to = [prometheus.remote_write.metrics_agent.receiver]
 
 	rule {
 		source_labels = ["__metric_address1__"]
@@ -94,7 +94,7 @@ prometheus.relabel "agent_promobee" {
 	}
 }
 
-prometheus.remote_write "agent" {
+prometheus.remote_write "metrics_agent" {
 	endpoint {
 		name = "agent-e71e8f"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"

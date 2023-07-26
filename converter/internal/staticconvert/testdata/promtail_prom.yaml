@@ -4,8 +4,7 @@ metrics:
       - url: http://localhost:9009/api/prom/push
   configs:
     # TODO Switching the name here will test the scenario where labels overlap between metrics and logs
-    # - name: name
-    - name: name3
+    - name: name
       host_filter: false
       scrape_configs:
         - job_name: 'jobName'
