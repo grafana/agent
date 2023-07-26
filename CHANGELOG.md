@@ -36,15 +36,20 @@ Main (unreleased)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
-- Fix incorrect display of trace IDs in the automatic_logging processor of static mode's traces subsystem.
-  Users of the static mode's service graph processor are also advised to upgrade, 
-  although the bug should theoretically not affect them. (@ptodev)
-
 ### Other changes
 
 - Compile journald support into builds of `grafana-agentctl` so
   `grafana-agentctl test-logs` functions as expected when testing tailing the
   systemd journal. (@rfratto)
+
+v0.35.1 (2023-07-25)
+--------------------
+
+### Bugfixes
+
+- Fix incorrect display of trace IDs in the automatic_logging processor of static mode's traces subsystem.
+  Users of the static mode's service graph processor are also advised to upgrade, 
+  although the bug should theoretically not affect them. (@ptodev)
 
 v0.35.0 (2023-07-18)
 --------------------
