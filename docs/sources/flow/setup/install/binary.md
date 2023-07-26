@@ -24,7 +24,7 @@ To download the Grafana Agent as a standalone binary, perform the following step
 
 1. Scroll down to the **Assets** section.
 
-1. Download the `grafana-agent-flow` zip file that matches your operating system and machine's architecture.
+1. Download the `grafana-agent` zip file that matches your operating system and machine's architecture.
 
 1. Extract the package contents into a directory.
 
