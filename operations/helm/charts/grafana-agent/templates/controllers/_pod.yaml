@@ -46,6 +46,10 @@ spec:
   affinity:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with .Values.controller.nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- with .Values.controller.tolerations }}
   tolerations:
     {{- toYaml . | nindent 4 }}
