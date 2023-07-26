@@ -55,3 +55,11 @@ func TestConvert(t *testing.T) {
 	assert.Equal(t, "http://foo:111", promArgs.Server)
 	assert.Equal(t, ";", promArgs.TagSeparator)
 }
+
+func TestValidate(t *testing.T) {
+	riverArgsNoServer := Arguments{
+		Server: "",
+	}
+	err := riverArgsNoServer.Validate()
+	assert.Error(t, err, "nomad SD configuration requires a server address")
+}
