@@ -25,14 +25,14 @@ func init() {
 }
 
 type Arguments struct {
-	Server           string                  `river:"server,attr"`
-	RefreshInterval  time.Duration           `river:"refresh_interval,attr,optional"`
+	Server          string        `river:"server,attr"`
+	RefreshInterval time.Duration `river:"refresh_interval,attr,optional"`
 
 	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
 }
 
 var DefaultArguments = Arguments{
-	RefreshInterval: 30 * time.Second,
+	RefreshInterval:  30 * time.Second,
 	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
@@ -55,9 +55,9 @@ func (a *Arguments) Validate() error {
 
 func (a *Arguments) Convert() *prom_discovery.SDConfig {
 	return &prom_discovery.SDConfig{
-		Server:          a.Server,
+		Server:           a.Server,
 		HTTPClientConfig: *a.HTTPClientConfig.Convert(),
-		RefreshInterval: model.Duration(a.RefreshInterval),
+		RefreshInterval:  model.Duration(a.RefreshInterval),
 	}
 }
 
