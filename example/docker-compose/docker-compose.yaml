@@ -85,7 +85,8 @@ services:
     volumes:
       - ./agent/config:/etc/agent-config
     entrypoint:
-      - /bin/agent
+      - /bin/grafana-agent
+      - -server.http.address=0.0.0.0:12345
       - -config.file=/etc/agent-config/agent.yaml
       - -metrics.wal-directory=/tmp/agent/wal
       - -enable-features=integrations-next

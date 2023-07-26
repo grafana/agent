@@ -1,6 +1,5 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/discovery.kubernetes
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
 title: discovery.kubernetes
 ---
 
@@ -18,7 +17,7 @@ to override the defaults.
 
 ```river
 discovery.kubernetes "LABEL" {
-  role = "DISCOVERY_ROLE"
+  role = DISCOVERY_ROLE
 }
 ```
 
@@ -31,6 +30,20 @@ Name | Type | Description | Default | Required
 `api_server` | `string` | URL of Kubernetes API server. | | no
 `role` | `string` | Type of Kubernetes resource to query. | | yes
 `kubeconfig_file` | `string` | Path of kubeconfig file to use for connecting to Kubernetes. | | no
+`bearer_token` | `secret` | Bearer token to authenticate with. | | no
+`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
+`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+
+ At most one of the following can be provided:
+ - [`bearer_token` argument](#arguments).
+ - [`bearer_token_file` argument](#arguments). 
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
+
+ [arguments]: #arguments
 
 The `role` argument is required to specify what type of targets to discover.
 `role` must be one of `node`, `pod`, `service`, `endpoints`, `endpointslice`,
@@ -115,6 +128,8 @@ The following labels are included for discovered pods:
   `InitContainer`.
 * `__meta_kubernetes_pod_container_name`: Name of the container the target
   address points to.
+* `__meta_kubernetes_pod_container_id`: ID of the container the target address
+  points to. The ID is in the form `<type>://<container_id>`.
 * `__meta_kubernetes_pod_container_image`: The image the container is using.
 * `__meta_kubernetes_pod_container_port_name`: Name of the container port.
 * `__meta_kubernetes_pod_container_port_number`: Number of the container port.
@@ -233,19 +248,19 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 namespaces | [namespaces][] | Information about which Kubernetes namespaces to search. | no
 selectors | [selectors][] | Information about which Kubernetes namespaces to search. | no
-http_client_config | [http_client_config][] | HTTP client configuration for Kubernetes requests. | no
-http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-http_client_config > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+attach_metadata | [attach_metadata][] | Optional metadata to attach to discovered targets. | no
+basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
-`http_client_config > basic_auth` refers to a `basic_auth` block defined inside
-an `http_client_config` block.
+`oauth2 > tls_config` refers to a `tls_config` block defined inside
+an `oauth2` block.
 
 [namespaces]: #namespaces-block
 [selectors]: #selectors-block
-[http_client_config]: #http_client_config-block
+[attach_metadata]: #attach_metadata-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
@@ -259,7 +274,7 @@ omitted, all namespaces are searched.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `own_namespace` | `bool`   | Include the namespace the agent is running in. | | no
-`names` | `[]string` | List of namespaces to search. | | no
+`names` | `list(string)` | List of namespaces to search. | | no
 
 ### selectors block
 
@@ -275,6 +290,10 @@ Name | Type | Description | Default | Required
 See Kubernetes' documentation for [Field selectors][] and [Labels and
 selectors][] to learn more about the possible filters that can be used.
 
+The endpoints role supports pod, service, and endpoints selectors.
+The pod role supports node selectors when configured with `attach_metadata: {node: true}`.
+Other roles only support selectors matching the role itself (e.g. node role can only contain node selectors).
+
 > **Note**: Using multiple `discovery.kubernetes` components with different
 > selectors may result in a bigger load against the Kubernetes API.
 >
@@ -284,15 +303,16 @@ selectors][] to learn more about the possible filters that can be used.
 > instead.
 
 [Field selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
-[Labels and selectros]: https://Kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+[Labels and selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
 
-### http_client_config block
+### attach_metadata block
+The `attach_metadata` block allows to attach node metadata to discovered
+targets. Valid for roles: pod, endpoints, endpointslice.
 
-The `http_client_config` block configures settings used to connect to the
-Kubernetes API server.
-
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`node` | `bool`   | Attach node metadata. | | no
 
 ### basic_auth block
 
@@ -342,7 +362,27 @@ This example uses in-cluster authentication to discover all pods:
 discovery.kubernetes "k8s_pods" {
   role = "pod"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Kubeconfig authentication
 
@@ -353,17 +393,63 @@ discovery.kubernetes "k8s_pods" {
   role = "pod"
   kubeconfig_file = "/etc/k8s/kubeconfig.yaml"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
-### Limit searched namespaces
+### Limit searched namespaces and filter by labels value
 
-This example limits the namespaces where pods are discovered using the `namespaces` block:
+This example limits the searched namespaces and only selects pods with a specific label value attached to them:
 
 ```river
 discovery.kubernetes "k8s_pods" {
   role = "pod"
+
+  selectors {
+    role = "pod"
+    label = "app.kubernetes.io/name=prometheus-node-exporter"
+  }
+
   namespaces {
     names = ["myapp"]
   }
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.

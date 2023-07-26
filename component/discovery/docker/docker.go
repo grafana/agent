@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/moby"
 )
@@ -33,7 +32,7 @@ type Arguments struct {
 	HostNetworkingHost string                  `river:"host_networking_host,attr,optional"`
 	RefreshInterval    time.Duration           `river:"refresh_interval,attr,optional"`
 	Filters            []Filter                `river:"filter,block,optional"`
-	HTTPClientConfig   config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig   config.HTTPClientConfig `river:",squash"`
 }
 
 // Filter is used to limit the discovery process to a subset of available
@@ -59,18 +58,13 @@ var DefaultArguments = Arguments{
 	HTTPClientConfig:   config.DefaultHTTPClientConfig,
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler, applying defaults and
-// validating the provided config.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.Host == "" {
 		return fmt.Errorf("host attribute must not be empty")
 	} else if _, err := url.Parse(args.Host); err != nil {
@@ -104,7 +98,7 @@ func (args Arguments) Convert() moby.DockerSDConfig {
 }
 
 // New returns a new instance of a discovery.docker component.
-func New(opts component.Options, args Arguments) (component.Component, error) {
+func New(opts component.Options, args Arguments) (*discovery.Component, error) {
 	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
 		conf := args.(Arguments).Convert()
 		return moby.NewDockerDiscovery(&conf, opts.Logger)

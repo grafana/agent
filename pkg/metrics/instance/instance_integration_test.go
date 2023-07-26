@@ -30,9 +30,7 @@ import (
 func TestInstance_Update(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	t.Cleanup(func() { os.RemoveAll(walDir) })
+	walDir := t.TempDir()
 
 	var (
 		scraped = atomic.NewBool(false)
@@ -46,7 +44,7 @@ func TestInstance_Update(t *testing.T) {
 	})
 	r.HandleFunc("/push", func(w http.ResponseWriter, r *http.Request) {
 		pushed.Store(true)
-		// We don't particularly care what was pushed to us so we'll ignore
+		// We don't particularly care what was pushed to us, so we'll ignore
 		// everything here; we just want to make sure the endpoint was invoked.
 	})
 
@@ -86,11 +84,16 @@ remote_write:
   - url: http://%[1]s/push
 `, l.Addr()))
 
+	// Wait for the instance to be ready before updating.
+	test.Poll(t, time.Minute, true, func() interface{} {
+		return inst.Ready()
+	})
+
 	// Wait minute for the instance to update (it might not be ready yet and
 	// would return an error until everything is initialized), and then wait
 	// again for the configs to apply and set the scraped and pushed atomic
 	// variables, indicating that the Prometheus components successfully updated.
-	test.Poll(t, time.Second*15, nil, func() interface{} {
+	test.Poll(t, time.Minute, nil, func() interface{} {
 		err := inst.Update(newConfig)
 		if err != nil {
 			logger.Log("msg", "failed to update instance", "err", err)
@@ -98,7 +101,7 @@ remote_write:
 		return err
 	})
 
-	test.Poll(t, time.Second*15, true, func() interface{} {
+	test.Poll(t, time.Minute, true, func() interface{} {
 		return scraped.Load() && pushed.Load()
 	})
 }
@@ -106,9 +109,7 @@ remote_write:
 func TestInstance_Update_Failed(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	t.Cleanup(func() { os.RemoveAll(walDir) })
+	walDir := t.TempDir()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
@@ -173,9 +174,7 @@ remote_write:
 func TestInstance_Update_InvalidChanges(t *testing.T) {
 	logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	t.Cleanup(func() { os.RemoveAll(walDir) })
+	walDir := t.TempDir()
 
 	// Create a new instance where it's not scraping or writing anything by default.
 	initialConfig := loadConfig(t, `

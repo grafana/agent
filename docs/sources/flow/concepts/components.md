@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/concepts/components
+- ../../concepts/components/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/components/
 title: Components
 weight: 100
 ---
@@ -24,7 +25,7 @@ Components are specified in the config file by first providing the component's
 name with a user-specified label, and then by providing arguments to configure
 the component:
 
-```
+```river
 discovery.kubernetes "pods" {
   role = "pod"
 }
@@ -108,13 +109,11 @@ prometheus.remote_write "prod" {
   endpoint {
     url = "https://prod:9090/api/v1/write"
 
-    http_client_config {
-      basic_auth {
-        username = "admin"
+    basic_auth {
+      username = "admin"
 
-        // Use our password file for authenticating with the production database.
-        password = local.file.api_key.content
-      }
+      // Use our password file for authenticating with the production database.
+      password = local.file.api_key.content
     }
   }
 }

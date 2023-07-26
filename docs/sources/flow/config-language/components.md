@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/components
+- ../configuration-language/components/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/components/
 title: Components
 weight: 300
 ---
@@ -87,7 +88,7 @@ prometheus.scrape "default" {
 ```
 
 Every time the file contents change, the `local.file` will update its exports,
-so the new value will provided to `prometheus.scrape` targets field.
+so the new value will be provided to the `prometheus.scrape` targets field.
 
 Each argument and exported field has an underlying [type]({{< relref "./expressions/types_and_values.md" >}}).
 River will type-check expressions before assigning a value to an attribute; the
@@ -97,4 +98,3 @@ you can wire components together.
 In the previous example, the contents of the `local.file.targets.content`
 expression must first be evaluated in a concrete value then type-checked and
 substituted into `prometheus.scrape.default` for it to be configured in turn.
-

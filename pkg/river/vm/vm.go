@@ -8,6 +8,7 @@ import (
 
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 	"github.com/grafana/agent/pkg/river/internal/rivertags"
 	"github.com/grafana/agent/pkg/river/internal/stdlib"
 	"github.com/grafana/agent/pkg/river/internal/value"
@@ -75,15 +76,34 @@ func (vm *Evaluator) Evaluate(scope *Scope, v interface{}) (err error) {
 }
 
 func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
-	// TODO(rfratto): the errors returned by this function are missing context to
-	// be able to print line numbers. We need to return decorated error types.
-
 	// Before decoding the block, we need to temporarily take the address of rv
 	// to handle the case of it implementing the unmarshaler interface.
 	if rv.CanAddr() {
 		rv = rv.Addr()
 	}
 
+	if err, unmarshaled := vm.evaluateUnmarshalRiver(scope, assoc, node, rv); unmarshaled || err != nil {
+		return err
+	}
+
+	if ru, ok := rv.Interface().(value.Defaulter); ok {
+		ru.SetToDefault()
+	}
+
+	if err := vm.evaluateDecode(scope, assoc, node, rv); err != nil {
+		return err
+	}
+
+	if ru, ok := rv.Interface().(value.Validator); ok {
+		if err := ru.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (vm *Evaluator) evaluateUnmarshalRiver(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) (error, bool) {
 	if ru, ok := rv.Interface().(value.Unmarshaler); ok {
 		return ru.UnmarshalRiver(func(v interface{}) error {
 			rv := reflect.ValueOf(v)
@@ -91,8 +111,15 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 				panic(fmt.Sprintf("river/vm: expected pointer, got %s", rv.Kind()))
 			}
 			return vm.evaluateBlockOrBody(scope, assoc, node, rv.Elem())
-		})
+		}), true
 	}
+
+	return nil, false
+}
+
+func (vm *Evaluator) evaluateDecode(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
+	// TODO(rfratto): the errors returned by this function are missing context to
+	// be able to print line numbers. We need to return decorated error types.
 
 	// Fully deference rv and allocate pointers as necessary.
 	for rv.Kind() == reflect.Pointer {
@@ -102,19 +129,28 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		rv = rv.Elem()
 	}
 
-	// TODO(rfratto): potentially loosen this restriction and allow decoding into
-	// an interface{} or map[string]interface{}.
-	if rv.Kind() != reflect.Struct {
+	if rv.Kind() == reflect.Interface {
+		var anyMap map[string]interface{}
+		into := reflect.MakeMap(reflect.TypeOf(anyMap))
+		if err := vm.evaluateMap(scope, assoc, node, into); err != nil {
+			return err
+		}
+
+		rv.Set(into)
+		return nil
+	} else if rv.Kind() == reflect.Map {
+		return vm.evaluateMap(scope, assoc, node, rv)
+	} else if rv.Kind() != reflect.Struct {
 		panic(fmt.Sprintf("river/vm: can only evaluate blocks into structs, got %s", rv.Kind()))
 	}
 
-	tfs := rivertags.Get(rv.Type())
+	ti := getCachedTagInfo(rv.Type())
 
 	var stmts ast.Body
 	switch node := node.(type) {
 	case *ast.BlockStmt:
 		// Decode the block label first.
-		if err := vm.evaluateBlockLabel(node, tfs, rv); err != nil {
+		if err := vm.evaluateBlockLabel(node, ti.Tags, rv); err != nil {
 			return err
 		}
 		stmts = node.Body
@@ -124,177 +160,72 @@ func (vm *Evaluator) evaluateBlockOrBody(scope *Scope, assoc map[value.Value]ast
 		panic(fmt.Sprintf("river/vm: unrecognized node type %T", node))
 	}
 
-	var (
-		foundAttrs  = make(map[string][]*ast.AttributeStmt, len(tfs))
-		foundBlocks = make(map[string][]*ast.BlockStmt, len(tfs))
-	)
+	sd := structDecoder{
+		VM:      vm,
+		Scope:   scope,
+		Assoc:   assoc,
+		TagInfo: ti,
+	}
+	return sd.Decode(stmts, rv)
+}
+
+// evaluateMap evaluates a block or a body into a map.
+func (vm *Evaluator) evaluateMap(scope *Scope, assoc map[value.Value]ast.Node, node ast.Node, rv reflect.Value) error {
+	var stmts ast.Body
+
+	switch node := node.(type) {
+	case *ast.BlockStmt:
+		if node.Label != "" {
+			return diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: node.NamePos.Position(),
+				EndPos:   node.LCurlyPos.Position(),
+				Message:  fmt.Sprintf("block %q requires non-empty label", strings.Join(node.Name, ".")),
+			}
+		}
+		stmts = node.Body
+	case ast.Body:
+		stmts = node
+	default:
+		panic(fmt.Sprintf("river/vm: unrecognized node type %T", node))
+	}
+
+	if rv.IsNil() {
+		rv.Set(reflect.MakeMap(rv.Type()))
+	}
+
 	for _, stmt := range stmts {
 		switch stmt := stmt.(type) {
 		case *ast.AttributeStmt:
-			name := stmt.Name.Name
-			foundAttrs[name] = append(foundAttrs[name], stmt)
+			val, err := vm.evaluateExpr(scope, assoc, stmt.Value)
+			if err != nil {
+				// TODO(rfratto): get error as diagnostics.
+				return err
+			}
+
+			target := reflect.New(rv.Type().Elem()).Elem()
+			if err := value.Decode(val, target.Addr().Interface()); err != nil {
+				// TODO(rfratto): get error as diagnostics.
+				return err
+			}
+			rv.SetMapIndex(reflect.ValueOf(stmt.Name.Name), target)
 
 		case *ast.BlockStmt:
-			name := strings.Join(stmt.Name, ".")
-			foundBlocks[name] = append(foundBlocks[name], stmt)
+			// TODO(rfratto): potentially relax this restriction where nested blocks
+			// are permitted when decoding to a map.
+			return diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				StartPos: ast.StartPos(stmt).Position(),
+				EndPos:   ast.EndPos(stmt).Position(),
+				Message:  "nested blocks not supported here",
+			}
 
 		default:
-			panic(fmt.Sprintf("river: unrecognized ast.Stmt type %T", stmt))
+			panic(fmt.Sprintf("river/vm: unrecognized node type %T", stmt))
 		}
 	}
 
-	var (
-		consumedAttrs  = make(map[string]struct{}, len(foundAttrs))
-		consumedBlocks = make(map[string]struct{}, len(foundBlocks))
-	)
-	for _, tf := range tfs {
-		fullName := strings.Join(tf.Name, ".")
-
-		if tf.IsAttr() {
-			consumedAttrs[fullName] = struct{}{}
-		} else if tf.IsBlock() {
-			consumedBlocks[fullName] = struct{}{}
-		}
-
-		// Skip over fields that aren't attributes or blocks.
-		if !tf.IsAttr() && !tf.IsBlock() {
-			continue
-		}
-
-		var (
-			attrs  = foundAttrs[fullName]
-			blocks = foundBlocks[fullName]
-		)
-
-		// Validity checks for attributes and blocks
-		switch {
-		case len(attrs) == 0 && len(blocks) == 0 && tf.IsOptional():
-			// Optional field with no set values. Skip.
-			continue
-
-		case tf.IsAttr() && len(blocks) > 0:
-			return fmt.Errorf("%q must be an attribute, but is used as a block", fullName)
-		case tf.IsAttr() && len(attrs) == 0 && !tf.IsOptional():
-			return fmt.Errorf("missing required attribute %q", fullName)
-		case tf.IsAttr() && len(attrs) > 1:
-			// While blocks may be specified multiple times (when the struct field
-			// accepts a slice or an array), attributes may only ever be specified
-			// once.
-			return fmt.Errorf("attribute %q may only be set once", fullName)
-
-		case tf.IsBlock() && len(attrs) > 0:
-			return fmt.Errorf("%q must be a block, but is used as an attribute", fullName)
-		case tf.IsBlock() && len(blocks) == 0 && !tf.IsOptional():
-			// TODO(rfratto): does it ever make sense for children blocks to be required?
-			return fmt.Errorf("missing required block %q", fullName)
-
-		case len(attrs) > 0 && len(blocks) > 0:
-			// NOTE(rfratto): it's not possible to reach this condition given the
-			// statements above, but this is left in defensively in case there is a
-			// bug with the validity checks.
-			return fmt.Errorf("%q may only be used as a block or an attribute, but found both", fullName)
-		}
-
-		field := rv.FieldByIndex(tf.Index)
-
-		// Decode.
-		switch {
-		case tf.IsBlock():
-			decodeField := prepareDecodeValue(field)
-
-			switch decodeField.Kind() {
-			case reflect.Slice:
-				// Reset the slice length to zero.
-				decodeField.Set(reflect.MakeSlice(decodeField.Type(), len(blocks), len(blocks)))
-
-				// Now, iterate over all of the block values and decode them
-				// individually into the slice.
-				for i, block := range blocks {
-					decodeElement := prepareDecodeValue(decodeField.Index(i))
-					err := vm.evaluateBlockOrBody(scope, assoc, block, decodeElement)
-					if err != nil {
-						return err
-					}
-				}
-
-			case reflect.Array:
-				if decodeField.Len() != len(blocks) {
-					return fmt.Errorf(
-						"block %q must be specified exactly %d times, but was specified %d times",
-						fullName,
-						decodeField.Len(),
-						len(blocks),
-					)
-				}
-
-				for i := 0; i < decodeField.Len(); i++ {
-					decodeElement := prepareDecodeValue(decodeField.Index(i))
-					err := vm.evaluateBlockOrBody(scope, assoc, blocks[i], decodeElement)
-					if err != nil {
-						return err
-					}
-				}
-
-			default:
-				if len(blocks) > 1 {
-					return fmt.Errorf("block %q may only be specified once", tf.Name)
-				}
-				err := vm.evaluateBlockOrBody(scope, assoc, blocks[0], decodeField)
-				if err != nil {
-					return err
-				}
-			}
-
-		case tf.IsAttr():
-			val, err := vm.evaluateExpr(scope, assoc, attrs[0].Value)
-			if err != nil {
-				return err
-			}
-
-			// We're reconverting our reflect.Value back into an interface{}, so we
-			// need to also turn it back into a pointer for decoding.
-			if err := value.Decode(val, field.Addr().Interface()); err != nil {
-				return err
-			}
-		}
-	}
-
-	var diags diag.Diagnostics
-
-	// Make sure that all of the attributes and blocks defined in the AST node
-	// matched up with a field from our struct.
-	for attrName, attrs := range foundAttrs {
-		if _, consumed := consumedAttrs[attrName]; consumed {
-			// Ignore accepted attributes.
-			continue
-		}
-
-		for _, attr := range attrs {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				StartPos: ast.StartPos(attr.Name).Position(),
-				EndPos:   ast.EndPos(attr.Name).Position(),
-				Message:  fmt.Sprintf("unrecognized attribute name %q", attrName),
-			})
-		}
-	}
-	for blockName, blocks := range foundBlocks {
-		if _, consumed := consumedBlocks[blockName]; consumed {
-			// Ignore accepted blocks.
-			continue
-		}
-
-		for _, block := range blocks {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				StartPos: block.NamePos.Position(),
-				EndPos:   block.NamePos.Add(len(blockName) - 1).Position(),
-				Message:  fmt.Sprintf("unrecognized block name %q", blockName),
-			})
-		}
-	}
-
-	return diags.ErrorOrNil()
+	return nil
 }
 
 func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Field, rv reflect.Value) error {
@@ -338,7 +269,7 @@ func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Fie
 	}
 
 	var (
-		field     = rv.FieldByIndex(labelField.Index)
+		field     = reflectutil.GetOrAlloc(rv, labelField)
 		fieldType = field.Type()
 	)
 	if !reflect.TypeOf(node.Label).AssignableTo(fieldType) {
@@ -350,7 +281,7 @@ func (vm *Evaluator) evaluateBlockLabel(node *ast.BlockStmt, tfs []rivertags.Fie
 }
 
 // prepareDecodeValue prepares v for decoding. Pointers will be fully
-// deferenced until finding a non-pointer value. nil pointers will be
+// dereferenced until finding a non-pointer value. nil pointers will be
 // allocated.
 func prepareDecodeValue(v reflect.Value) reflect.Value {
 	for v.Kind() == reflect.Pointer {
@@ -536,7 +467,7 @@ type Scope struct {
 	// Variables holds the list of available variable names that can be used when
 	// evaluating a node.
 	//
-	// Values in the Variables map should considered immutable after passed to
+	// Values in the Variables map should be considered immutable after passed to
 	// Evaluate; maps and slices will be copied by reference for performance
 	// optimizations.
 	Variables map[string]interface{}
@@ -552,8 +483,8 @@ func (s *Scope) Lookup(name string) (interface{}, bool) {
 		}
 		s = s.Parent
 	}
-	if fn, ok := stdlib.Functions[name]; ok {
-		return fn, true
+	if ident, ok := stdlib.Identifiers[name]; ok {
+		return ident, true
 	}
 	return nil, false
 }

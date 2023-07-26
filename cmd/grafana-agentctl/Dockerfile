@@ -4,7 +4,7 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
-FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.20.0 as build
+FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.29.0 as build
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -18,11 +18,14 @@ WORKDIR /src/agent
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-    GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
-    RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
+    GOOS="$TARGETOS" GOARCH="$TARGETARCH" GOARM="${TARGETVARIANT#v}" \
+    RELEASE_BUILD="${RELEASE_BUILD}" VERSION="${VERSION}" \
+    GO_TAGS="promtail_journal_enabled" \
     make agentctl
 
-FROM ubuntu:jammy
+FROM ubuntu:lunar
+
+LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 
 # Install dependencies needed at runtime.
 RUN <<EOF
@@ -33,5 +36,4 @@ RUN <<EOF
 EOF
 
 COPY --from=build /src/agent/build/grafana-agentctl /bin/grafana-agentctl
-RUN ln -sv /bin/grafana-agentctl /bin/agentctl
-ENTRYPOINT ["/bin/agentctl"]
+ENTRYPOINT ["/bin/grafana-agentctl"]

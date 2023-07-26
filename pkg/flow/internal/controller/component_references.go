@@ -15,9 +15,9 @@ import (
 // will be (field_a, field_b, field_c).
 type Traversal []*ast.Ident
 
-// Reference describes an River expression reference to a ComponentNode.
+// Reference describes an River expression reference to a BlockNode.
 type Reference struct {
-	Target *ComponentNode // Component being referenced
+	Target BlockNode // BlockNode being referenced
 
 	// Traversal describes which nested field relative to Target is being
 	// accessed.
@@ -34,10 +34,10 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 	)
 
 	switch cn := cn.(type) {
-	case *ConfigNode:
-		traversals = configTraversals(cn)
-	case *ComponentNode:
-		traversals = componentTraversals(cn)
+	case BlockNode:
+		if cn.Block() != nil {
+			traversals = expressionsFromBody(cn.Block().Body)
+		}
 	}
 
 	refs := make([]Reference, 0, len(traversals))
@@ -48,7 +48,7 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 		//
 		// Any call to an stdlib function is ignored.
 		var emptyScope vm.Scope
-		if _, ok := emptyScope.Lookup(t[0].Name); ok && len(t) == 1 {
+		if _, ok := emptyScope.Lookup(t[0].Name); ok {
 			continue
 		}
 
@@ -61,25 +61,6 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 	}
 
 	return refs, diags
-}
-
-// componentTraversals gets the set of Traverals for a given component.
-func componentTraversals(cn *ComponentNode) []Traversal {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return expressionsFromBody(cn.block.Body)
-}
-
-// configTraversals gets the set of Traverals for the config node.
-func configTraversals(cn *ConfigNode) []Traversal {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-
-	var res []Traversal
-	for _, b := range cn.blocks {
-		res = append(res, expressionsFromBody(b.Body)...)
-	}
-	return res
 }
 
 // expressionsFromSyntaxBody recurses through body and finds all variable
@@ -159,7 +140,7 @@ func resolveTraversal(t Traversal, g *dag.Graph) (Reference, diag.Diagnostics) {
 	for {
 		if n := g.GetByID(partial.String()); n != nil {
 			return Reference{
-				Target:    n.(*ComponentNode),
+				Target:    n.(BlockNode),
 				Traversal: rem,
 			}, nil
 		}

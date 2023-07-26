@@ -74,7 +74,32 @@ LINE_11`,
 		},
 
 		{
-			name:  "errors which cross multiple lines can be printed",
+			name:  "errors which cross multiple lines can be printed from start of line",
+			start: token.Position{Line: 2, Column: 1},
+			end:   token.Position{Line: 6, Column: 7},
+			input: `FILE_BEGIN
+START
+TEXT
+	TEXT
+		TEXT
+			DONE after
+FILE_END`,
+			expect: `Error: testfile:2:1: synthetic error
+
+1 |   FILE_BEGIN
+2 |   START
+  |  _^^^^^
+3 | | TEXT
+4 | |     TEXT
+5 | |         TEXT
+6 | |             DONE after
+  | |_____________^^^^
+7 |   FILE_END
+`,
+		},
+
+		{
+			name:  "errors which cross multiple lines can be printed from middle of line",
 			start: token.Position{Line: 2, Column: 8},
 			end:   token.Position{Line: 6, Column: 7},
 			input: `FILE_BEGIN
@@ -100,23 +125,25 @@ FILE_END`,
 	}
 
 	for _, tc := range tt {
-		files := map[string][]byte{
-			"testfile": []byte(tc.input),
-		}
+		t.Run(tc.name, func(t *testing.T) {
+			files := map[string][]byte{
+				"testfile": []byte(tc.input),
+			}
 
-		tc.start.Filename = "testfile"
-		tc.end.Filename = "testfile"
+			tc.start.Filename = "testfile"
+			tc.end.Filename = "testfile"
 
-		diags := diag.Diagnostics{{
-			Severity: diag.SeverityLevelError,
-			StartPos: tc.start,
-			EndPos:   tc.end,
-			Message:  "synthetic error",
-		}}
+			diags := diag.Diagnostics{{
+				Severity: diag.SeverityLevelError,
+				StartPos: tc.start,
+				EndPos:   tc.end,
+				Message:  "synthetic error",
+			}}
 
-		var buf bytes.Buffer
-		_ = diag.Fprint(&buf, files, diags)
-		requireEqualStrings(t, tc.expect, buf.String())
+			var buf bytes.Buffer
+			_ = diag.Fprint(&buf, files, diags)
+			requireEqualStrings(t, tc.expect, buf.String())
+		})
 	}
 }
 

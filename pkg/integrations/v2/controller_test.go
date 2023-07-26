@@ -16,7 +16,7 @@ import (
 // Tests for Controller's utilization of the core Integration interface.
 //
 
-// Test_controller_UniqueIdentifer ensures that integrations must not share a (name, id) tuple.
+// Test_controller_UniqueIdentifier ensures that integrations must not share a (name, id) tuple.
 func Test_controller_UniqueIdentifier(t *testing.T) {
 	controllerFromConfigs := func(t *testing.T, cc []Config) (*controller, error) {
 		t.Helper()

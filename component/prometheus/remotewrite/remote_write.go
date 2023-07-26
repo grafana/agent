@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -39,7 +40,7 @@ func init() {
 		Args:    Arguments{},
 		Exports: Exports{},
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
-			return NewComponent(o, c.(Arguments))
+			return New(o, c.(Arguments))
 		},
 	})
 }
@@ -60,17 +61,25 @@ type Component struct {
 	receiver *prometheus.Interceptor
 }
 
-// NewComponent creates a new prometheus.remote_write component.
-func NewComponent(o component.Options, c Arguments) (*Component, error) {
+// New creates a new prometheus.remote_write component.
+func New(o component.Options, c Arguments) (*Component, error) {
+	// Older versions of prometheus.remote_write used the subpath below, which
+	// added in too many extra unnecessary directories (since o.DataPath is
+	// already unique).
+	//
+	// We best-effort attempt to delete the old path if it already exists to not
+	// leak storage space.
+	oldDataPath := filepath.Join(o.DataPath, "wal", o.ID)
+	_ = os.RemoveAll(oldDataPath)
+
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
-	dataPath := filepath.Join(o.DataPath, "wal", o.ID)
-	walStorage, err := wal.NewStorage(walLogger, o.Registerer, dataPath)
+	walStorage, err := wal.NewStorage(walLogger, o.Registerer, o.DataPath)
 	if err != nil {
 		return nil, err
 	}
 
 	remoteLogger := log.With(o.Logger, "subcomponent", "rw")
-	remoteStore := remote.NewStorage(remoteLogger, o.Registerer, startTime, dataPath, remoteFlushDeadline, nil)
+	remoteStore := remote.NewStorage(remoteLogger, o.Registerer, startTime, o.DataPath, remoteFlushDeadline, nil)
 
 	res := &Component{
 		log:         o.Logger,
@@ -174,7 +183,7 @@ func (c *Component) Run(ctx context.Context) error {
 
 			// The timestamp ts is used to determine which series are not receiving
 			// samples and may be deleted from the WAL. Their most recent append
-			// timestamp is compared to ts, and if that timestamp is older then ts,
+			// timestamp is compared to ts, and if that timestamp is older than ts,
 			// they are considered inactive and may be deleted.
 			//
 			// Subtracting a duration from ts will delay when it will be considered

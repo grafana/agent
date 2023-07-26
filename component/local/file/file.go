@@ -12,8 +12,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 )
 
 // waitReadPeriod holds the time to wait before reading a file while the
@@ -42,8 +41,8 @@ type Arguments struct {
 	// Type indicates how to detect changes to the file.
 	Type Detector `river:"detector,attr,optional"`
 	// PollFrequency determines the frequency to check for changes when Type is
-	// UpdateTypePoll.
-	PollFrequency time.Duration `river:"poll_freqency,attr,optional"`
+	// Poll.
+	PollFrequency time.Duration `river:"poll_frequency,attr,optional"`
 	// IsSecret marks the file as holding a secret value which should not be
 	// displayed to the user.
 	IsSecret bool `river:"is_secret,attr,optional"`
@@ -56,14 +55,9 @@ var DefaultArguments = Arguments{
 	PollFrequency: time.Minute,
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(a))
 }
 
 // Exports holds values which are exported by the local.file component.
@@ -190,12 +184,12 @@ func (c *Component) readFile() error {
 	return nil
 }
 
-// Update implements component.Compnoent.
+// Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
 	if newArgs.PollFrequency <= 0 {
-		return fmt.Errorf("poll_freqency must be greater than 0")
+		return fmt.Errorf("poll_frequency must be greater than 0")
 	}
 
 	c.mut.Lock()
@@ -249,10 +243,10 @@ func (c *Component) configureDetector() error {
 		})
 	case DetectorFSNotify:
 		c.detector, err = newFSNotify(fsNotifyOptions{
-			Logger:       c.opts.Logger,
-			Filename:     c.args.Filename,
-			ReloadFile:   reloadFile,
-			PollFreqency: c.args.PollFrequency,
+			Logger:        c.opts.Logger,
+			Filename:      c.args.Filename,
+			ReloadFile:    reloadFile,
+			PollFrequency: c.args.PollFrequency,
 		})
 	}
 

@@ -9,6 +9,21 @@ import (
 	"github.com/grafana/agent/pkg/river/parser"
 )
 
+// An Argument is an input to a Flow module.
+type Argument struct {
+	// Name of the argument.
+	Name string `river:",label"`
+
+	// Whether the Argument must be provided when evaluating the file.
+	Optional bool `river:"optional,attr,optional"`
+
+	// Description for the Argument.
+	Comment string `river:"comment,attr,optional"`
+
+	// Default value for the argument.
+	Default any `river:"default,attr,optional"`
+}
+
 // File holds the contents of a parsed Flow file.
 type File struct {
 	Name string    // File name given to ReadFile.
@@ -54,6 +69,10 @@ func ReadFile(name string, bb []byte) (*File, error) {
 			case "logging":
 				configs = append(configs, stmt)
 			case "tracing":
+				configs = append(configs, stmt)
+			case "argument":
+				configs = append(configs, stmt)
+			case "export":
 				configs = append(configs, stmt)
 			default:
 				components = append(components, stmt)

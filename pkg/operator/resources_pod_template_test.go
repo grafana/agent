@@ -27,6 +27,18 @@ func Test_generatePodTemplate(t *testing.T) {
 		require.Equal(t, DefaultAgentImage, tmpl.Spec.Containers[1].Image)
 	})
 
+	t.Run("reloader image should have version", func(t *testing.T) {
+		deploy := gragent.Deployment{
+			Agent: &gragent.GrafanaAgent{
+				ObjectMeta: v1.ObjectMeta{Name: name, Namespace: name},
+			},
+		}
+
+		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
+		require.NoError(t, err)
+		require.Equal(t, DefaultConfigReloaderImage, tmpl.Spec.Containers[0].Image)
+	})
+
 	t.Run("allow custom version", func(t *testing.T) {
 		deploy := gragent.Deployment{
 			Agent: &gragent.GrafanaAgent{
@@ -40,6 +52,36 @@ func Test_generatePodTemplate(t *testing.T) {
 		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
 		require.NoError(t, err)
 		require.Equal(t, DefaultAgentBaseImage+":vX.Y.Z", tmpl.Spec.Containers[1].Image)
+	})
+
+	t.Run("allow custom version for reloader", func(t *testing.T) {
+		deploy := gragent.Deployment{
+			Agent: &gragent.GrafanaAgent{
+				ObjectMeta: v1.ObjectMeta{Name: name, Namespace: name},
+				Spec: gragent.GrafanaAgentSpec{
+					ConfigReloaderVersion: "vX.Y.Z",
+				},
+			},
+		}
+
+		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
+		require.NoError(t, err)
+		require.Equal(t, DefaultConfigReloaderBaseImage+":vX.Y.Z", tmpl.Spec.Containers[0].Image)
+	})
+
+	t.Run("does not set version label in spec selector", func(t *testing.T) {
+		deploy := gragent.Deployment{
+			Agent: &gragent.GrafanaAgent{
+				ObjectMeta: v1.ObjectMeta{Name: name, Namespace: name},
+			},
+		}
+
+		tmpl, selectors, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
+		require.NoError(t, err)
+
+		// version label should not be set in selectors, since that is immutable
+		require.NotContains(t, selectors.MatchLabels, versionLabelName)
+		require.Contains(t, tmpl.ObjectMeta.Labels, versionLabelName)
 	})
 
 	t.Run("security ctx does not contain privileged", func(t *testing.T) {
@@ -71,5 +113,25 @@ func Test_generatePodTemplate(t *testing.T) {
 		assert.True(t, tmpl.Spec.Containers[1].SecurityContext.Privileged != nil &&
 			*tmpl.Spec.Containers[1].SecurityContext.Privileged,
 			"privileged is needed if pod options say so.")
+	})
+
+	t.Run("runtimeclassname set if passed in", func(t *testing.T) {
+		name := "test123"
+		deploy := gragent.Deployment{
+			Agent: &gragent.GrafanaAgent{
+				ObjectMeta: v1.ObjectMeta{Name: name, Namespace: name},
+				Spec: gragent.GrafanaAgentSpec{
+					RuntimeClassName: &name,
+				},
+			},
+		}
+		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
+		require.NoError(t, err)
+		assert.Equal(t, name, *tmpl.Spec.RuntimeClassName)
+
+		deploy.Agent.Spec.RuntimeClassName = nil
+		tmpl, _, err = generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
+		require.NoError(t, err)
+		assert.Nil(t, tmpl.Spec.RuntimeClassName)
 	})
 }

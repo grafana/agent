@@ -372,7 +372,7 @@ spec:
       containers:
       - args:
         - --kubelet-service=default/kubelet
-        image: grafana/agent-operator:v0.30.2
+        image: grafana/agent-operator:v0.35.0
         imagePullPolicy: IfNotPresent
         name: grafana-agent-operator
       serviceAccount: grafana-agent-operator
@@ -436,7 +436,7 @@ metadata:
   name: grafana-agent
   namespace: ${NAMESPACE}
 spec:
-  image: grafana/agent:v0.30.2
+  image: grafana/agent:v0.35.0
   integrations:
     selector:
       matchLabels:
@@ -537,8 +537,6 @@ spec:
   - sourceLabels:
     - __meta_kubernetes_pod_node_name
     targetLabel: __host__
-  - action: labelmap
-    regex: __meta_kubernetes_pod_label_(.+)
   - action: replace
     sourceLabels:
     - __meta_kubernetes_namespace
@@ -549,7 +547,7 @@ spec:
     targetLabel: pod
   - action: replace
     sourceLabels:
-    - __meta_kubernetes_container_name
+    - __meta_kubernetes_pod_container_name
     targetLabel: container
   - replacement: /var/log/pods/*$1/*.log
     separator: /

@@ -1,8 +1,10 @@
 import React, { Fragment } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
-import { RiverValue } from '../../features/river-js/RiverValue';
-import Table from '../widget/Table';
+import { riverStringify } from '../river-js/stringify';
 
+import { style } from './style';
+import Table from './Table';
 import { PartitionedBody } from './types';
 
 import styles from './ComponentView.module.css';
@@ -17,12 +19,16 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
   const sectionClass = partition.key.length === 1 ? '' : styles.nested;
 
   const renderTableData = () => {
-    return partition.attrs.map((attr) => {
+    return partition.attrs.map(({ name, value }, index) => {
       return (
-        <tr key={attr.name}>
-          <td className={styles.nameColumn}>{attr.name}</td>
+        <tr key={name}>
+          <td className={styles.nameColumn}>{name}</td>
           <td>
-            <RiverValue value={attr.value} />
+            <pre className={styles.pre}>
+              <SyntaxHighlighter language="javascript" style={style}>
+                {riverStringify(value)}
+              </SyntaxHighlighter>
+            </pre>
           </td>
         </tr>
       );
@@ -41,7 +47,7 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
             <h3>
               {partition.displayName.map((val, idx) => {
                 return (
-                  <Fragment key={idx.toString()}>
+                  <Fragment key={val}>
                     <span>{val}</span>
                     {idx + 1 < partition.key.length && <span> / </span>}
                   </Fragment>
@@ -55,7 +61,7 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
             <em className={styles.informative}>(No set attributes in this block)</em>
           ) : (
             <div className={styles.list}>
-              <Table tableHeaders={TABLEHEADERS} renderTableData={renderTableData} style={{ width: '200px' }} />
+              <Table tableHeaders={TABLEHEADERS} renderTableData={renderTableData} style={{ width: '210px' }} />
             </div>
           )}
         </div>

@@ -5,37 +5,57 @@
 package api
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"path"
 
-	"github.com/prometheus/prometheus/util/httputil"
-
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/flow"
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/cluster"
+	"github.com/prometheus/prometheus/util/httputil"
 )
 
 // FlowAPI is a wrapper around the component API.
 type FlowAPI struct {
-	flow *flow.Flow
+	flow component.Provider
+	node cluster.Node
 }
 
 // NewFlowAPI instantiates a new Flow API.
-func NewFlowAPI(flow *flow.Flow, r *mux.Router) *FlowAPI {
-	return &FlowAPI{flow: flow}
+func NewFlowAPI(flow component.Provider, node cluster.Node) *FlowAPI {
+	return &FlowAPI{flow: flow, node: node}
 }
 
 // RegisterRoutes registers all the API's routes.
 func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
-	r.Handle(path.Join(urlPrefix, "/api/v0/web/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
-	r.Handle(path.Join(urlPrefix, "/api/v0/web/components/{id}"), httputil.CompressionHandler{Handler: f.listComponentHandler()})
+	// NOTE(rfratto): {id:.+} is used in routes below to allow the
+	// id to contain / characters, which is used by nested module IDs and
+	// component IDs.
+
+	r.Handle(path.Join(urlPrefix, "/modules/{moduleID:.+}/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
+	r.Handle(path.Join(urlPrefix, "/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
+	r.Handle(path.Join(urlPrefix, "/components/{id:.+}"), httputil.CompressionHandler{Handler: f.getComponentHandler()})
+	r.Handle(path.Join(urlPrefix, "/peers"), httputil.CompressionHandler{Handler: f.getClusteringPeersHandler()})
 }
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
-		infos := f.flow.ComponentInfos()
-		bb, err := json.Marshal(infos)
+	return func(w http.ResponseWriter, r *http.Request) {
+		// moduleID is set from the /modules/{moduleID:.+}/components route above
+		// but not from the /components route.
+		var moduleID string
+		if vars := mux.Vars(r); vars != nil {
+			moduleID = vars["moduleID"]
+		}
+
+		components, err := f.flow.ListComponents(moduleID, component.InfoOptions{
+			GetHealth: true,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		bb, err := json.Marshal(components)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -44,34 +64,41 @@ func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
 	}
 }
 
-func (f *FlowAPI) listComponentHandler() http.HandlerFunc {
+func (f *FlowAPI) getComponentHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		infos := f.flow.ComponentInfos()
-		requestedComponent := vars["id"]
+		requestedComponent := component.ParseID(vars["id"])
 
-		for _, info := range infos {
-			if requestedComponent == info.ID {
-				bb, err := f.json(info)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				_, _ = w.Write(bb)
-				return
-			}
+		component, err := f.flow.GetComponent(requestedComponent, component.InfoOptions{
+			GetHealth:    true,
+			GetArguments: true,
+			GetExports:   true,
+			GetDebugInfo: true,
+		})
+		if err != nil {
+			http.NotFound(w, r)
+			return
 		}
 
-		http.NotFound(w, r)
+		bb, err := json.Marshal(component)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		_, _ = w.Write(bb)
 	}
 }
 
-// json returns the JSON representation of c.
-func (f *FlowAPI) json(c *flow.ComponentInfo) ([]byte, error) {
-	var buf bytes.Buffer
-	err := f.flow.ComponentJSON(&buf, c)
-	if err != nil {
-		return nil, err
+func (f *FlowAPI) getClusteringPeersHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		// TODO(@tpaschalis) Detect if clustering is disabled and propagate to
+		// the Typescript code (eg. via the returned status code?).
+		peers := f.node.Peers()
+		bb, err := json.Marshal(peers)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		_, _ = w.Write(bb)
 	}
-	return buf.Bytes(), nil
 }

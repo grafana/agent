@@ -1,10 +1,13 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/loki.source.kubernetes
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/
+labels:
+  stage: experimental
 title: loki.source.kubernetes
 ---
 
 # loki.source.kubernetes
+
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
 
 `loki.source.kubernetes` tails logs from Kubernetes containers using the
 Kubernetes API. It has the following benefits over `loki.source.file`:
@@ -69,14 +72,21 @@ The following blocks are supported inside the definition of
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 client | [client][] | Configures Kubernetes client used to tail logs. | no
-client > http_client_config | [http_client_config][] | HTTP client configuration for Kubernetes requests. | no
+client > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+client > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
-http_client_config` refers to an `http_client_config` block defined
+basic_auth` refers to a `basic_auth` block defined
 inside a `client` block.
 
 [client]: #client-block
-[http_client_config]: #http_client_config-block
+[basic_auth]: #basic_auth-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
 
 ### client block
 
@@ -91,13 +101,34 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `api_server` | `string` | URL of the Kubernetes API server. | | no
 `kubeconfig_file` | `string` | Path of the `kubeconfig` file to use for connecting to Kubernetes. | | no
+`bearer_token` | `secret` | Bearer token to authenticate with. | | no
+`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
+`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
-### http_client_config block
+ At most one of the following can be provided:
+ - [`bearer_token` argument][client].
+ - [`bearer_token_file` argument][client].
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
 
-The `http_client_config` block configures settings used to connect to the
-Kubernetes API server.
+### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+
+### authorization block
+
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+
+### oauth2 block
+
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+
+### tls_config block
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
 
 ## Exported fields
 
@@ -121,19 +152,19 @@ target:
 
 ## Debug metrics
 
-`loki.source.kubernetes` does not exist any component-specific debug metrics.
+`loki.source.kubernetes` does not expose any component-specific debug metrics.
 
 ## Example
 
 This example collects logs from all Kubernetes pods and forwards them to a
-`loki.write` component so they are can be written to Loki.
+`loki.write` component so they are written to Loki.
 
 ```river
 discovery.kubernetes "pods" {
   role = "pod"
 }
 
-loki.source.kubernetes "tmpfiles" {
+loki.source.kubernetes "pods" {
   targets    = discovery.kubernetes.pods.targets
   forward_to = [loki.write.local.receiver]
 }

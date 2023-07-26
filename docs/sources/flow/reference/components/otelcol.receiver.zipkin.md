@@ -1,6 +1,5 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/otelcol.receiver.zipkin
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.zipkin/
 title: otelcol.receiver.zipkin
 ---
 
@@ -33,6 +32,9 @@ otelcol.receiver.zipkin "LABEL" {
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `parse_string_tags` | `bool` | Parse string tags and binary annotations into non-string types. | `false` | no
+`endpoint` | `string` | `host:port` to listen for traffic on. | `"0.0.0.0:9411"` | no
+`max_request_body_size` | `string` | Maximum request body size the HTTP server will allow. No limit when unset. | | no
+`include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
 If `parse_string_tags` is `true`, string tags and binary annotations are
 converted to `int`, `bool`, and `float` if possible. String tags and binary
@@ -45,47 +47,23 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-http | [http][] | Configures the HTTP server to receive telemetry data. | no
-http > tls | [tls][] | Configures TLS for the HTTP server. | no
-http > cors | [cors][] | Configures CORS for the HTTP server. | no
+tls | [tls][] | Configures TLS for the HTTP server. | no
+cors | [cors][] | Configures CORS for the HTTP server. | no
 output | [output][] | Configures where to send received traces. | yes
 
 The `>` symbol indicates deeper levels of nesting. For example, `grpc > tls`
 refers to a `tls` block defined inside a `grpc` block.
 
-[http]: #http-block
 [tls]: #tls-block
 [cors]: #cors-block
 [output]: #output-block
-
-### http block
-
-The `http` block configures the HTTP server used by the component.
-
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`endpoint` | `string` | `host:port` to listen for traffic on. | `"0.0.0.0:9411"` | no
-`max_request_body_size` | `string` | Maximum request body size the server will allow. No limit when unset. | | no
-`include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
 ### tls block
 
 The `tls` block configures TLS settings used for a server. If the `tls` block
 isn't provided, TLS won't be used for connections to the server.
 
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`ca_file` | `string` | Path to the CA file. | | no
-`cert_file` | `string` | Path to the TLS certificate. | | no
-`key_file` | `string` | Path to the TLS certificate key. | | no
-`min_version` | `string` | Minimum acceptable TLS version for connections. | `"TLS 1.2"` | no
-`max_version` | `string` | Maximum acceptable TLS version for connections. | `"TLS 1.3"` | no
-`reload_interval` | `duration` | Frequency to reload the certificates. | | no
-`client_ca_file` | `string` | Path to the CA file used to authenticate client certificates. | | no
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
 
 ### cors block
 

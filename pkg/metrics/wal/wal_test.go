@@ -3,7 +3,6 @@ package wal
 import (
 	"context"
 	"math"
-	"os"
 	"sort"
 	"testing"
 	"time"
@@ -21,9 +20,7 @@ import (
 )
 
 func TestStorage_InvalidSeries(t *testing.T) {
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
@@ -63,9 +60,7 @@ func TestStorage_InvalidSeries(t *testing.T) {
 }
 
 func TestStorage(t *testing.T) {
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
@@ -105,12 +100,13 @@ func TestStorage(t *testing.T) {
 }
 
 func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, s.Close())
+	}()
 
 	app := s.Appender(context.Background())
 
@@ -146,9 +142,7 @@ func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
 }
 
 func TestStorage_ExistingWAL(t *testing.T) {
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
@@ -213,9 +207,7 @@ func TestStorage_ExistingWAL(t *testing.T) {
 func TestStorage_ExistingWAL_RefID(t *testing.T) {
 	l := util.TestLogger(t)
 
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	s, err := NewStorage(l, nil, walDir)
 	require.NoError(t, err)
@@ -238,7 +230,7 @@ func TestStorage_ExistingWAL_RefID(t *testing.T) {
 	require.NoError(t, err)
 	defer require.NoError(t, s.Close())
 
-	require.Equal(t, uint64(len(payload)), s.ref.Load(), "cached ref ID should be equal to the number of series written")
+	require.Equal(t, uint64(len(payload)), s.nextRef.Load(), "cached ref ID should be equal to the number of series written")
 }
 
 func TestStorage_Truncate(t *testing.T) {
@@ -246,9 +238,7 @@ func TestStorage_Truncate(t *testing.T) {
 	// after writing all the data, forcefully create 4 more segments,
 	// then do a truncate of a timestamp for _some_ of the data.
 	// then read data back in. Expect to only get the latter half of data.
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
@@ -266,7 +256,7 @@ func TestStorage_Truncate(t *testing.T) {
 
 	require.NoError(t, app.Commit())
 
-	// Forefully create a bunch of new segments so when we truncate
+	// Forcefully create a bunch of new segments so when we truncate
 	// there's enough segments to be considered for truncation.
 	for i := 0; i < 5; i++ {
 		_, err := s.wal.NextSegmentSync()
@@ -308,9 +298,7 @@ func TestStorage_Truncate(t *testing.T) {
 }
 
 func TestStorage_WriteStalenessMarkers(t *testing.T) {
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
@@ -362,9 +350,7 @@ func TestStorage_WriteStalenessMarkers(t *testing.T) {
 }
 
 func TestStorage_TruncateAfterClose(t *testing.T) {
-	walDir, err := os.MkdirTemp(os.TempDir(), "wal")
-	require.NoError(t, err)
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
@@ -374,8 +360,7 @@ func TestStorage_TruncateAfterClose(t *testing.T) {
 }
 
 func TestGlobalReferenceID_Normal(t *testing.T) {
-	walDir, _ := os.MkdirTemp(os.TempDir(), "wal")
-	defer os.RemoveAll(walDir)
+	walDir := t.TempDir()
 
 	s, _ := NewStorage(log.NewNopLogger(), nil, walDir)
 	defer s.Close()
@@ -402,8 +387,7 @@ func TestGlobalReferenceID_Normal(t *testing.T) {
 }
 
 func BenchmarkAppendExemplar(b *testing.B) {
-	walDir, _ := os.MkdirTemp(os.TempDir(), "wal")
-	defer os.RemoveAll(walDir)
+	walDir := b.TempDir()
 
 	s, _ := NewStorage(log.NewNopLogger(), nil, walDir)
 	defer s.Close()

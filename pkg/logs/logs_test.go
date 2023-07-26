@@ -1,5 +1,4 @@
 //go:build !race
-// +build !race
 
 package logs
 
@@ -35,11 +34,7 @@ func TestLogs(t *testing.T) {
 	//
 	// Create a temporary file to tail
 	//
-	positionsDir, err := os.MkdirTemp(os.TempDir(), "positions-*")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		_ = os.RemoveAll(positionsDir)
-	})
+	positionsDir := t.TempDir()
 
 	tmpFile, err := os.CreateTemp(os.TempDir(), "*.log")
 	require.NoError(t, err)
@@ -91,7 +86,7 @@ configs:
 	dec := yaml.NewDecoder(strings.NewReader(cfgText))
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&cfg))
-
+	require.NoError(t, cfg.ApplyDefaults())
 	logger := log.NewSyncLogger(log.NewNopLogger())
 	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
 	require.NoError(t, err)
@@ -132,7 +127,7 @@ configs:
 	dec = yaml.NewDecoder(strings.NewReader(cfgText))
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&newCfg))
-
+	require.NoError(t, newCfg.ApplyDefaults())
 	require.NoError(t, l.ApplyConfig(&newCfg, false))
 
 	fmt.Fprintf(tmpFile, "Hello again!\n")
@@ -149,17 +144,34 @@ configs:
 		require.NoError(t, err)
 		require.Len(t, l.instances, 0)
 	})
+
+	t.Run("re-apply previous config", func(t *testing.T) {
+		// Applying a nil config should remove all instances.
+		l.ApplyConfig(nil, false)
+
+		// Re-Apply the previous config and write a new line.
+		var newCfg Config
+		dec = yaml.NewDecoder(strings.NewReader(cfgText))
+		dec.SetStrict(true)
+		require.NoError(t, dec.Decode(&newCfg))
+		require.NoError(t, newCfg.ApplyDefaults())
+		require.NoError(t, l.ApplyConfig(&newCfg, false))
+
+		fmt.Fprintf(tmpFile, "Hello again!\n")
+		select {
+		case <-time.After(time.Second * 30):
+			require.FailNow(t, "timed out waiting for data to be pushed")
+		case req := <-pushes:
+			require.Equal(t, "Hello again!", req.Streams[0].Entries[0].Line)
+		}
+	})
 }
 
 func TestLogs_PositionsDirectory(t *testing.T) {
 	//
 	// Create a temporary file to tail
 	//
-	positionsDir, err := os.MkdirTemp(os.TempDir(), "positions-*")
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		_ = os.RemoveAll(positionsDir)
-	})
+	positionsDir := t.TempDir()
 
 	//
 	// Launch Loki so it starts tailing the file and writes to our server.
@@ -181,7 +193,7 @@ configs:
 	dec := yaml.NewDecoder(strings.NewReader(cfgText))
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&cfg))
-
+	require.NoError(t, cfg.ApplyDefaults())
 	logger := util.TestLogger(t)
 	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
 	require.NoError(t, err)
@@ -190,5 +202,5 @@ configs:
 	_, err = os.Stat(filepath.Join(positionsDir, "positions"))
 	require.NoError(t, err, "default shared positions directory did not get created")
 	_, err = os.Stat(filepath.Join(positionsDir, "other-positions"))
-	require.NoError(t, err, "instance-specific positions directory did not get creatd")
+	require.NoError(t, err, "instance-specific positions directory did not get created")
 }

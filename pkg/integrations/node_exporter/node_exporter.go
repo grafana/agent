@@ -1,3 +1,5 @@
+//go:build !windows
+
 package node_exporter //nolint:golint
 
 import (
@@ -7,14 +9,14 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/version"
 	"github.com/prometheus/node_exporter/collector"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // Integration is the node_exporter integration. The integration scrapes metrics
@@ -86,7 +88,7 @@ func (i *Integration) MetricsHandler() (http.Handler, error) {
 
 	// Register node_exporter_build_info metrics, generally useful for
 	// dashboards that depend on them for discovering targets.
-	if err := r.Register(version.NewCollector(i.c.Name())); err != nil {
+	if err := r.Register(build.NewCollector(i.c.Name())); err != nil {
 		return nil, fmt.Errorf("couldn't register %s: %w", i.c.Name(), err)
 	}
 

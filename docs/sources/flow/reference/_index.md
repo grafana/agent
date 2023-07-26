@@ -1,6 +1,5 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference
+canonical: https://grafana.com/docs/agent/latest/flow/reference/
 title: Reference
 weight: 600
 ---

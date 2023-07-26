@@ -33,14 +33,18 @@ local stackedPanelMixin = {
     dashboard.withUID(std.md5(filename)) +
     dashboard.withTemplateVariablesMixin([
       dashboard.newTemplateVariable('cluster', |||
-        label_values(agent_component_controller_running_components_total, cluster)
+        label_values(agent_component_controller_running_components, cluster)
       |||),
       dashboard.newTemplateVariable('namespace', |||
-        label_values(agent_component_controller_running_components_total{cluster="$cluster"}, namespace)
+        label_values(agent_component_controller_running_components{cluster="$cluster"}, namespace)
       |||),
       dashboard.newMultiTemplateVariable('instance', |||
-        label_values(agent_component_controller_running_components_total{cluster="$cluster", namespace="$namespace"}, instance)
+        label_values(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace"}, instance)
       |||),
+    ]) +
+    // TODO(@tpaschalis) Make the annotation optional.
+    dashboard.withAnnotations([
+      dashboard.newLokiAnnotation('Deployments', '{cluster="$cluster", container="kube-diff-logger"} | json | namespace_extracted="grafana-agent" | name_extracted=~"grafana-agent.*"', 'rgba(0, 211, 255, 1)'),
     ]) +
     dashboard.withPanelsMixin([
       // CPU usage

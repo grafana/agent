@@ -30,13 +30,15 @@
   border-top: 1px solid #545556;
 }
 
-.page nav li, .page nav a {
+.page nav li,
+.page nav a {
   color: #545556;
   text-decoration: none;
   margin: 20px 0px;
 }
 
-.page nav a:hover, .page nav a:focus {
+.page nav a:hover,
+.page nav a:focus {
   text-decoration: underline;
 }
 
@@ -68,14 +70,23 @@
   top: 2px;
 }
 
-.content h1, h2, h3, h4, h5, h6 {
+.content h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: rgb(36, 41, 46);
   font-size: 1.4em;
   font-weight: normal;
   margin-bottom: 8px;
 }
 
-.content h2, h3, h4, h5, h6 {
+.content h2,
+h3,
+h4,
+h5,
+h6 {
   font-size: 1.2em;
 }
 
@@ -114,7 +125,6 @@
 
 .content blockquote p {
   margin-bottom: 0px;
-  white-space: pre;
   font-family: 'Fira Code', monospace;
 }
 
@@ -124,7 +134,6 @@
   border-radius: 3px;
   padding: 16px;
 }
-
 
 .content section.nested {
   margin-left: 32px;
@@ -147,5 +156,11 @@ td.nameColumn {
   font-family: 'Fira Code', monospace;
   font-size: 14px;
   vertical-align: top;
+  padding: 6px;
   color: black;
+}
+
+.pre {
+  margin: 0;
+  font-size: 14px;
 }

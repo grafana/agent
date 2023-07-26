@@ -5,24 +5,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
-	goruntime "runtime"
 	"sort"
 	"strings"
 	"syscall"
-	"time"
 
-	"gopkg.in/yaml.v2"
-
-	"github.com/grafana/agent/pkg/client/grafanacloud"
+	"github.com/grafana/agent/pkg/agentctl/waltools"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/olekukonko/tablewriter"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/version"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -49,16 +44,13 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	kconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	// Adds version information
-	_ "github.com/grafana/agent/pkg/build"
 )
 
 func main() {
-	var cmd = &cobra.Command{
+	cmd := &cobra.Command{
 		Use:     "agentctl",
 		Short:   "Tools for interacting with the Grafana Agent",
-		Version: version.Print("agentctl"),
+		Version: build.Print("agentctl"),
 	}
 	cmd.SetVersionTemplate("{{ .Version }}\n")
 
@@ -69,8 +61,6 @@ func main() {
 		targetStatsCmd(),
 		samplesCmd(),
 		operatorDetachCmd(),
-		cloudConfigCmd(),
-		templateDryRunCmd(),
 		testLogs(),
 	)
 
@@ -87,7 +77,7 @@ func configSyncCmd() *cobra.Command {
 		Use:   "config-sync [directory]",
 		Short: "Sync config files from a directory to an Agent's config management API",
 		Long: `config-sync loads all files ending with .yml or .yaml from the specified
-directory and uploads them the the config management API. The name of the config
+directory and uploads them through the config management API. The name of the config
 uploaded will be the base name of the file (e.g., the name of the file without
 its extension).
 
@@ -193,7 +183,7 @@ $ agentctl sample-stats -s '{job="a"}' /tmp/wal
 				directory = filepath.Join(directory, "wal")
 			}
 
-			stats, err := agentctl.FindSamples(directory, selector)
+			stats, err := waltools.FindSamples(directory, selector)
 			if err != nil {
 				fmt.Printf("failed to get sample stats: %v\n", err)
 				os.Exit(1)
@@ -246,7 +236,7 @@ high-cardinality series that you do not want to send.`,
 				directory = filepath.Join(directory, "wal")
 			}
 
-			cardinality, err := agentctl.FindCardinality(directory, jobLabel, instanceLabel)
+			cardinality, err := waltools.FindCardinality(directory, jobLabel, instanceLabel)
 			if err != nil {
 				fmt.Printf("failed to get cardinality: %v\n", err)
 				os.Exit(1)
@@ -300,7 +290,7 @@ deletion but then comes back at some point).`,
 				directory = filepath.Join(directory, "wal")
 			}
 
-			stats, err := agentctl.CalculateStats(directory)
+			stats, err := waltools.CalculateStats(directory)
 			if err != nil {
 				fmt.Printf("failed to get WAL stats: %v\n", err)
 				os.Exit(1)
@@ -323,7 +313,7 @@ deletion but then comes back at some point).`,
 
 			table.SetHeader([]string{"Job", "Instance", "Series", "Samples"})
 
-			sort.Sort(agentctl.BySeriesCount(stats.Targets))
+			sort.Sort(waltools.BySeriesCount(stats.Targets))
 
 			for _, t := range stats.Targets {
 				seriesStr := fmt.Sprintf("%d", t.Series)
@@ -402,7 +392,7 @@ func operatorDetachCmd() *cobra.Command {
 						continue
 					}
 
-					level.Info(logger).Log("msg", "detatching ownerreferences for object", "resource", gvk.Kind, "namespace", obj.GetNamespace(), "name", obj.GetName())
+					level.Info(logger).Log("msg", "detaching ownerreferences for object", "resource", gvk.Kind, "namespace", obj.GetNamespace(), "name", obj.GetName())
 					obj.SetOwnerReferences(filtered)
 
 					if err := cli.Update(context.Background(), obj); err != nil {
@@ -434,93 +424,6 @@ func filterAgentOwners(refs []meta_v1.OwnerReference) (filtered []meta_v1.OwnerR
 		filtered = append(filtered, ref)
 	}
 	return
-}
-
-func cloudConfigCmd() *cobra.Command {
-	var (
-		stackID   string
-		apiURL    string
-		apiKey    string
-		platforms string
-	)
-
-	cmd := &cobra.Command{
-		Use:   "cloud-config",
-		Short: "Retrieves the cloud config for the Grafana Agent",
-		Long: `cloud-config connects to Grafana Cloud and retrieves the generated
-config that may be used with this agent.`,
-		Args: cobra.ExactArgs(0),
-
-		// Hidden, this is only expected to be used by scripts.
-		Hidden: true,
-
-		RunE: func(_ *cobra.Command, args []string) error {
-			if stackID == "" {
-				return fmt.Errorf("--stack must be provided")
-			}
-			if apiKey == "" {
-				return fmt.Errorf("--api-key must be provided")
-			}
-
-			// setting timeout 2x as the default HTTP transport timeout (30s)
-			httpClient := &http.Client{
-				Timeout: time.Minute,
-			}
-			cli := grafanacloud.NewClient(httpClient, apiKey, apiURL)
-
-			cfg, err := cli.AgentConfig(context.Background(), stackID, platforms)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "could not retrieve agent cloud config: %s\n", err)
-				os.Exit(1)
-			}
-
-			fmt.Println(cfg)
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVarP(&stackID, "stack", "u", "", "stack ID to get a config for")
-	cmd.Flags().StringVarP(&apiKey, "api-key", "p", "", "API key to authenticate against Grafana Cloud's API with")
-	cmd.Flags().StringVarP(&apiURL, "api-url", "e", "", "Grafana Cloud's API url")
-	cmd.Flags().StringVar(&platforms, "platforms", goruntime.GOOS, "comma-separated list of Platforms/OSes")
-	must(cmd.MarkFlagRequired("stack"))
-	must(cmd.MarkFlagRequired("api-key"))
-
-	return cmd
-}
-
-func templateDryRunCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "template-parse [directory]",
-		Short: "dry run dynamic configuration",
-		Long:  `This will load the dynamic configuration, load configs, run templates and then output the full config as yaml`,
-		Args:  cobra.ExactArgs(1),
-
-		RunE: func(_ *cobra.Command, args []string) error {
-			cmf, err := config.NewDynamicLoader()
-			if err != nil {
-				return err
-			}
-			c := &config.Config{}
-			err = cmf.LoadConfigByPath(args[0])
-			if err != nil {
-				return err
-			}
-			err = cmf.ProcessConfigs(c)
-			if err != nil {
-				return fmt.Errorf("error processing config templates %s", err)
-			}
-
-			outBytes, err := yaml.Marshal(c)
-			if err != nil {
-				return err
-			}
-			fmt.Println(string(outBytes))
-			return nil
-		},
-	}
-
-	return cmd
 }
 
 func testLogs() *cobra.Command {

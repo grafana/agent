@@ -51,8 +51,8 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
         <hr />
         <ul>
           <li>
-            <Link to={'#' + props.component.id} target="_top">
-              {props.component.id}
+            <Link to={'#' + props.component.localID} target="_top">
+              {props.component.localID}
             </Link>
           </li>
           {argsPartition && partitionTOC(argsPartition)}
@@ -72,15 +72,22 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
               </Link>
             </li>
           )}
+          {props.component.moduleInfo && (
+            <li>
+              <Link to="#module" target="_top">
+                Module components
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
 
       <main className={styles.content}>
-        <h1 id={props.component.id}>
+        <h1 id={props.component.localID}>
           <span className={styles.icon}>
             <FontAwesomeIcon icon={faCubes} />
           </span>
-          {props.component.id}
+          {props.component.localID}
           &nbsp; {/* space to separate the component name and label so double-click selections work */}
           <span className={styles.healthLabel}>
             <HealthLabel health={props.component.health.state} />
@@ -113,7 +120,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           <section id="dependencies">
             <h2>Dependencies</h2>
             <div className={styles.sectionContent}>
-              <ComponentList components={referencesTo} />
+              <ComponentList components={referencesTo} moduleID={props.component.moduleID} />
             </div>
           </section>
         )}
@@ -122,7 +129,19 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           <section id="dependants">
             <h2>Dependants</h2>
             <div className={styles.sectionContent}>
-              <ComponentList components={referencedBy} />
+              <ComponentList components={referencedBy} moduleID={props.component.moduleID} />
+            </div>
+          </section>
+        )}
+
+        {props.component.moduleInfo && (
+          <section id="module">
+            <h2>Module components</h2>
+            <div className={styles.sectionContent}>
+              <ComponentList
+                components={props.component.moduleInfo}
+                moduleID={pathJoin([props.component.moduleID, props.component.localID])}
+              />
             </div>
           </section>
         )}
@@ -130,3 +149,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
     </div>
   );
 };
+
+function pathJoin(paths: (string | undefined)[]): string {
+  return paths.filter((p) => p && p !== '').join('/');
+}

@@ -1,11 +1,10 @@
 ---
-aliases:
-- /docs/agent/latest/operator/architecture/
-title: Agent Operator architecture
+canonical: https://grafana.com/docs/agent/latest/operator/architecture/
+title: Architecture
 weight: 300
 ---
 
-# Grafana Agent Operator architecture
+# Architecture
 
 Grafana Agent Operator works by watching for Kubernetes [custom resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) that specify how to collect telemetry data from your Kubernetes cluster and where to send it. Agent Operator manages corresponding Grafana Agent deployments in your cluster by watching for changes against the custom resources.
 
@@ -81,7 +80,7 @@ deployment will also be deleted.
 Reconciling creates the following cluster resources:
 
 1. A Secret that holds the Grafana Agent
-   [configuration]({{< relref "../configuration/_index.md" >}}) is generated.
+   [configuration]({{< relref "../static/configuration/_index.md" >}}) is generated.
 2. A Secret that holds all referenced Secrets or ConfigMaps from
    the resource hierarchy is generated. This ensures that Secrets referenced from a custom
    resource in another namespace can still be read.

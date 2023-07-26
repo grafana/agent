@@ -7,15 +7,19 @@ package gcplogtarget
 
 import (
 	"context"
+	"io"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/dskit/backoff"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"google.golang.org/api/option"
+
+	"github.com/grafana/agent/component/common/loki"
 )
 
 // PullTarget represents a target that scrapes logs from a GCP project id and
@@ -29,19 +33,32 @@ type PullTarget struct {
 	jobName       string
 
 	// lifecycle management
-	ctx    context.Context
-	cancel context.CancelFunc
-	wg     sync.WaitGroup
+	ctx     context.Context
+	cancel  context.CancelFunc
+	wg      sync.WaitGroup
+	backoff *backoff.Backoff
 
 	// pubsub
-	ps   *pubsub.Client
+	ps   io.Closer
+	sub  pubsubSubscription
 	msgs chan *pubsub.Message
+}
+
+// TODO(@tpaschalis) Expose this as River configuration in the future.
+var defaultBackoff = backoff.Config{
+	MinBackoff: 1 * time.Second,
+	MaxBackoff: 10 * time.Second,
+	MaxRetries: 0, // Retry forever
+}
+
+// pubsubSubscription allows us to mock pubsub for testing
+type pubsubSubscription interface {
+	Receive(ctx context.Context, f func(context.Context, *pubsub.Message)) error
 }
 
 // NewPullTarget returns the new instance of PullTarget.
 func NewPullTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PullConfig, relabel []*relabel.Config, clientOptions ...option.ClientOption) (*PullTarget, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-
 	ps, err := pubsub.NewClient(ctx, config.ProjectID, clientOptions...)
 	if err != nil {
 		cancel()
@@ -58,13 +75,15 @@ func NewPullTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandle
 		ctx:           ctx,
 		cancel:        cancel,
 		ps:            ps,
+		sub:           ps.SubscriptionInProject(config.Subscription, config.ProjectID),
+		backoff:       backoff.New(ctx, defaultBackoff),
 		msgs:          make(chan *pubsub.Message),
 	}
 
 	go func() {
 		err := target.run()
 		if err != nil {
-			level.Error(logger).Log("msg", "loki.source.gcplog pull target shutdown with error", "err", err)
+			_ = level.Error(logger).Log("msg", "loki.source.gcplog pull target shutdown with error", "err", err)
 		}
 	}()
 
@@ -75,23 +94,7 @@ func (t *PullTarget) run() error {
 	t.wg.Add(1)
 	defer t.wg.Done()
 
-	send := t.handler.Chan()
-
-	sub := t.ps.SubscriptionInProject(t.config.Subscription, t.config.ProjectID)
-	go func() {
-		// NOTE(kavi): `cancel` the context as exiting from this goroutine should stop main `run` loop
-		// It makesense as no more messages will be received.
-		defer t.cancel()
-
-		err := sub.Receive(t.ctx, func(ctx context.Context, m *pubsub.Message) {
-			t.msgs <- m
-		})
-		if err != nil {
-			level.Error(t.logger).Log("msg", "failed to receive pubsub messages", "error", err)
-			t.metrics.gcplogErrors.WithLabelValues(t.config.ProjectID).Inc()
-			t.metrics.gcplogTargetLastSuccessScrape.WithLabelValues(t.config.ProjectID, t.config.Subscription).SetToCurrentTime()
-		}
-	}()
+	go t.consumeSubscription()
 
 	lbls := make(model.LabelSet, len(t.config.Labels))
 	for k, v := range t.config.Labels {
@@ -103,15 +106,34 @@ func (t *PullTarget) run() error {
 		case <-t.ctx.Done():
 			return t.ctx.Err()
 		case m := <-t.msgs:
-			entry, err := parseGCPLogsEntry(m.Data, lbls, nil, t.config.UseIncomingTimestamp, t.relabelConfig)
+			entry, err := parseGCPLogsEntry(m.Data, lbls, nil, t.config.UseIncomingTimestamp, t.config.UseFullLine, t.relabelConfig)
 			if err != nil {
 				level.Error(t.logger).Log("event", "error formating log entry", "cause", err)
 				m.Ack()
 				break
 			}
-			send <- entry
+			t.handler.Chan() <- entry
 			m.Ack() // Ack only after log is sent.
 			t.metrics.gcplogEntries.WithLabelValues(t.config.ProjectID).Inc()
+		}
+	}
+}
+
+func (t *PullTarget) consumeSubscription() {
+	// NOTE(kavi): `cancel` the context as exiting from this goroutine should stop main `run` loop
+	// It makesense as no more messages will be received.
+	defer t.cancel()
+
+	for t.backoff.Ongoing() {
+		err := t.sub.Receive(t.ctx, func(ctx context.Context, m *pubsub.Message) {
+			t.msgs <- m
+			t.backoff.Reset()
+		})
+		if err != nil {
+			level.Error(t.logger).Log("msg", "failed to receive pubsub messages", "error", err)
+			t.metrics.gcplogErrors.WithLabelValues(t.config.ProjectID).Inc()
+			t.metrics.gcplogTargetLastSuccessScrape.WithLabelValues(t.config.ProjectID, t.config.Subscription).SetToCurrentTime()
+			t.backoff.Wait()
 		}
 	}
 }

@@ -136,7 +136,9 @@ func (p *Printer) printRange(w io.Writer, file []byte, diag Diagnostic) {
 		fmt.Fprintf(w, " | ")
 
 		if multiline {
-			if inRange(lineNum, 1, start, end) {
+			// Use 0 for the column number so we never consider the starting line for
+			// showing |.
+			if inRange(lineNum, 0, start, end) {
 				fmt.Fprint(w, "| ")
 			} else {
 				fmt.Fprint(w, "  ")
@@ -166,7 +168,7 @@ func (p *Printer) printRange(w io.Writer, file []byte, diag Diagnostic) {
 			printCh(w, prefixWidth, ' ') // Add empty space where line number would be
 
 			// Print the margin after the blank line number. On multi-line errors,
-			// the arrow is printed all the way to the margin, with with straight
+			// the arrow is printed all the way to the margin, with straight
 			// lines going down in between the lines.
 			switch {
 			case multiline && lineNum == start.Line:
@@ -187,7 +189,7 @@ func (p *Printer) printRange(w io.Writer, file []byte, diag Diagnostic) {
 
 // printFocus prints the focus indicator for the line number specified by line.
 // The contents of the line should be represented by data so whitespace can be
-// retained (injecting spaces where a tab should be, etc).
+// retained (injecting spaces where a tab should be, etc.).
 func (p *Printer) printFocus(w io.Writer, data string, line int, diag Diagnostic) {
 	for i, ch := range data {
 		column := i + 1

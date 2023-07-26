@@ -49,12 +49,19 @@ func (bbh *blackboxHandler) Targets(ep integrations.Endpoint) []*targetgroup.Gro
 	}
 
 	for _, t := range bbh.cfg.BlackboxTargets {
-		group.Targets = append(group.Targets, model.LabelSet{
+		labelSet := model.LabelSet{
 			model.AddressLabel:     model.LabelValue(ep.Host),
 			model.MetricsPathLabel: model.LabelValue(path.Join(ep.Prefix, "metrics")),
 			"blackbox_target":      model.LabelValue(t.Target),
 			"__param_target":       model.LabelValue(t.Target),
-		})
+		}
+
+		if t.Module != "" {
+			labelSet = labelSet.Merge(model.LabelSet{
+				"__param_module": model.LabelValue(t.Module),
+			})
+		}
+		group.Targets = append(group.Targets, labelSet)
 	}
 
 	return []*targetgroup.Group{group}
@@ -102,7 +109,7 @@ func (bbh *blackboxHandler) createHandler(targets []blackbox_exporter.BlackboxTa
 			params.Set("module", t.Module)
 		}
 
-		prober.Handler(w, r, bbh.modules, bbh.log, &prober.ResultHistory{}, bbh.cfg.ProbeTimeoutOffset, params)
+		prober.Handler(w, r, bbh.modules, bbh.log, &prober.ResultHistory{}, bbh.cfg.ProbeTimeoutOffset, params, nil)
 	}
 }
 

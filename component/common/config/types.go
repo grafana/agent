@@ -1,5 +1,5 @@
 // Package config contains types from github.com/prometheus/common/config,
-// but modifiys them to be serializable with River.
+// but modifies them to be serializable with River.
 package config
 
 import (
@@ -7,9 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/grafana/agent/pkg/river"
-
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/prometheus/common/config"
 )
 
@@ -28,18 +26,9 @@ type HTTPClientConfig struct {
 	EnableHTTP2     bool              `river:"enable_http2,attr,optional"`
 }
 
-// UnmarshalRiver implements the umarshaller
-func (h *HTTPClientConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	*h = HTTPClientConfig{
-		FollowRedirects: true,
-		EnableHTTP2:     true,
-	}
-	type config HTTPClientConfig
-	if err := f((*config)(h)); err != nil {
-		return err
-	}
-
-	return h.Validate()
+// SetToDefault implements the river.Defaulter
+func (h *HTTPClientConfig) SetToDefault() {
+	*h = DefaultHTTPClientConfig
 }
 
 // Validate returns an error if h is invalid.
@@ -116,11 +105,19 @@ func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
 		OAuth2:          h.OAuth2.Convert(),
 		BearerToken:     config.Secret(h.BearerToken),
 		BearerTokenFile: h.BearerTokenFile,
-		ProxyURL:        h.ProxyURL.Convert(),
 		TLSConfig:       *h.TLSConfig.Convert(),
 		FollowRedirects: h.FollowRedirects,
 		EnableHTTP2:     h.EnableHTTP2,
+		ProxyConfig: config.ProxyConfig{
+			ProxyURL: h.ProxyURL.Convert(),
+		},
 	}
+}
+
+// Clone creates a shallow clone of h.
+func CloneDefaultHTTPClientConfig() *HTTPClientConfig {
+	clone := DefaultHTTPClientConfig
+	return &clone
 }
 
 // DefaultHTTPClientConfig for initializing objects
@@ -128,8 +125,6 @@ var DefaultHTTPClientConfig = HTTPClientConfig{
 	FollowRedirects: true,
 	EnableHTTP2:     true,
 }
-
-var _ river.Unmarshaler = (*HTTPClientConfig)(nil)
 
 // BasicAuth configures Basic HTTP authentication credentials.
 type BasicAuth struct {
@@ -225,12 +220,15 @@ func (tv *TLSVersion) UnmarshalText(text []byte) error {
 
 // TLSConfig sets up options for TLS connections.
 type TLSConfig struct {
-	CAFile             string     `river:"ca_file,attr,optional"`
-	CertFile           string     `river:"cert_file,attr,optional"`
-	KeyFile            string     `river:"key_file,attr,optional"`
-	ServerName         string     `river:"server_name,attr,optional"`
-	InsecureSkipVerify bool       `river:"insecure_skip_verify,attr,optional"`
-	MinVersion         TLSVersion `river:"min_version,attr,optional"`
+	CA                 string            `river:"ca_pem,attr,optional"`
+	CAFile             string            `river:"ca_file,attr,optional"`
+	Cert               string            `river:"cert_pem,attr,optional"`
+	CertFile           string            `river:"cert_file,attr,optional"`
+	Key                rivertypes.Secret `river:"key_pem,attr,optional"`
+	KeyFile            string            `river:"key_file,attr,optional"`
+	ServerName         string            `river:"server_name,attr,optional"`
+	InsecureSkipVerify bool              `river:"insecure_skip_verify,attr,optional"`
+	MinVersion         TLSVersion        `river:"min_version,attr,optional"`
 }
 
 // Convert converts our type to the native prometheus type
@@ -239,13 +237,42 @@ func (t *TLSConfig) Convert() *config.TLSConfig {
 		return nil
 	}
 	return &config.TLSConfig{
+		CA:                 t.CA,
 		CAFile:             t.CAFile,
+		Cert:               t.Cert,
 		CertFile:           t.CertFile,
+		Key:                config.Secret(t.Key),
 		KeyFile:            t.KeyFile,
 		ServerName:         t.ServerName,
 		InsecureSkipVerify: t.InsecureSkipVerify,
 		MinVersion:         config.TLSVersion(t.MinVersion),
 	}
+}
+
+// Validate reports whether t is valid.
+func (t *TLSConfig) Validate() error {
+	if len(t.CA) > 0 && len(t.CAFile) > 0 {
+		return fmt.Errorf("at most one of ca_pem and ca_file must be configured")
+	}
+	if len(t.Cert) > 0 && len(t.CertFile) > 0 {
+		return fmt.Errorf("at most one of cert_pem and cert_file must be configured")
+	}
+	if len(t.Key) > 0 && len(t.KeyFile) > 0 {
+		return fmt.Errorf("at most one of key_pem and key_file must be configured")
+	}
+
+	var (
+		usingClientCert = len(t.Cert) > 0 || len(t.CertFile) > 0
+		usingClientKey  = len(t.Key) > 0 || len(t.KeyFile) > 0
+	)
+
+	if usingClientCert && !usingClientKey {
+		return fmt.Errorf("exactly one of key_pem or key_file must be configured when a client certificate is configured")
+	} else if usingClientKey && !usingClientCert {
+		return fmt.Errorf("exactly one of cert_pem or cert_file must be configured when a client key is configured")
+	}
+
+	return nil
 }
 
 // OAuth2Config sets up the OAuth2 client.
@@ -257,7 +284,7 @@ type OAuth2Config struct {
 	TokenURL         string            `river:"token_url,attr,optional"`
 	EndpointParams   map[string]string `river:"endpoint_params,attr,optional"`
 	ProxyURL         URL               `river:"proxy_url,attr,optional"`
-	TLSConfig        *TLSConfig        `river:"tls_config,attr,optional"`
+	TLSConfig        *TLSConfig        `river:"tls_config,block,optional"`
 }
 
 // Convert converts our type to the native prometheus type
@@ -265,14 +292,19 @@ func (o *OAuth2Config) Convert() *config.OAuth2 {
 	if o == nil {
 		return nil
 	}
-	return &config.OAuth2{
+	oa := &config.OAuth2{
 		ClientID:         o.ClientID,
 		ClientSecret:     config.Secret(o.ClientSecret),
 		ClientSecretFile: o.ClientSecretFile,
 		Scopes:           o.Scopes,
 		TokenURL:         o.TokenURL,
 		EndpointParams:   o.EndpointParams,
-		ProxyURL:         o.ProxyURL.Convert(),
-		TLSConfig:        *o.TLSConfig.Convert(),
+		ProxyConfig: config.ProxyConfig{
+			ProxyURL: o.ProxyURL.Convert(),
+		},
 	}
+	if o.TLSConfig != nil {
+		oa.TLSConfig = *o.TLSConfig.Convert()
+	}
+	return oa
 }

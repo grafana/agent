@@ -13,11 +13,15 @@ local filename = 'agent-flow-controller.json';
     dashboard.withUID(std.md5(filename)) +
     dashboard.withTemplateVariablesMixin([
       dashboard.newTemplateVariable('cluster', |||
-        label_values(agent_component_controller_running_components_total, cluster)
+        label_values(agent_component_controller_running_components, cluster)
       |||),
       dashboard.newTemplateVariable('namespace', |||
-        label_values(agent_component_controller_running_components_total{cluster="$cluster"}, namespace)
+        label_values(agent_component_controller_running_components{cluster="$cluster"}, namespace)
       |||),
+    ]) +
+    // TODO(@tpaschalis) Make the annotation optional.
+    dashboard.withAnnotations([
+      dashboard.newLokiAnnotation('Deployments', '{cluster="$cluster", container="kube-diff-logger"} | json | namespace_extracted="grafana-agent" | name_extracted=~"grafana-agent.*"', 'rgba(0, 211, 255, 1)'),
     ]) +
     dashboard.withPanelsMixin([
       // Running agents
@@ -45,7 +49,7 @@ local filename = 'agent-flow-controller.json';
         panel.withPosition({ x: 0, y: 4, w: 10, h: 4 }) +
         panel.withQueries([
           panel.newQuery(
-            expr='sum(agent_component_controller_running_components_total{cluster="$cluster", namespace="$namespace"})',
+            expr='sum(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace"})',
           ),
         ])
       ),
@@ -69,8 +73,8 @@ local filename = 'agent-flow-controller.json';
         panel.withQueries([
           panel.newQuery(
             expr=|||
-              sum(agent_component_controller_running_components_total{cluster="$cluster", namespace="$namespace",health_type="healthy"}) /
-              sum(agent_component_controller_running_components_total{cluster="$cluster", namespace="$namespace"})
+              sum(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace",health_type="healthy"}) /
+              sum(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace"})
             |||,
           ),
         ])
@@ -153,19 +157,19 @@ local filename = 'agent-flow-controller.json';
         panel.withQueries([
           panel.newInstantQuery(
             legendFormat='Healthy',
-            expr='sum(agent_component_controller_running_components_total{cluster="$cluster", namespace="$namespace", health_type="healthy"}) or vector(0)',
+            expr='sum(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace", health_type="healthy"}) or vector(0)',
           ),
           panel.newInstantQuery(
             legendFormat='Unhealthy',
-            expr='sum(agent_component_controller_running_components_total{cluster="$cluster", namespace="$namespace", health_type="unhealthy"}) or vector(0)',
+            expr='sum(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace", health_type="unhealthy"}) or vector(0)',
           ),
           panel.newInstantQuery(
             legendFormat='Unknown',
-            expr='sum(agent_component_controller_running_components_total{cluster="$cluster", namespace="$namespace", health_type="unknown"}) or vector(0)',
+            expr='sum(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace", health_type="unknown"}) or vector(0)',
           ),
           panel.newInstantQuery(
             legendFormat='Exited',
-            expr='sum(agent_component_controller_running_components_total{cluster="$cluster", namespace="$namespace", health_type="exited"}) or vector(0)',
+            expr='sum(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace", health_type="exited"}) or vector(0)',
           ),
         ])
       ),

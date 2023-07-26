@@ -3,19 +3,31 @@ package stdlib
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"strings"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/river/internal/value"
-	"github.com/prometheus/prometheus/discovery/targetgroup"
+	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/ohler55/ojg/jp"
+	"github.com/ohler55/ojg/oj"
 )
 
-// Functions returns the list of stdlib functions by name. The interface{}
-// value is always a River-compatible function value, where functions have at
-// least one non-error return value, with an optionally supported error return
-// value as the second return value.
-var Functions = map[string]interface{}{
+// Identifiers holds a list of stdlib identifiers by name. All interface{}
+// values are River-compatible values.
+//
+// Function identifiers are Go functions with exactly one non-error return
+// value, with an optionally supported error return value as the second return
+// value.
+var Identifiers = map[string]interface{}{
+	// See constants.go for the definition.
+	"constants": constants,
+
 	"env": os.Getenv,
+
+	"nonsensitive": func(secret rivertypes.Secret) string {
+		return string(secret)
+	},
 
 	// concat is implemented as a raw function so it can bypass allocations
 	// converting arguments into []interface{}. concat is optimized to allow it
@@ -71,31 +83,50 @@ var Functions = map[string]interface{}{
 		return res, nil
 	},
 
-	"discovery_target_decode": func(in string) (interface{}, error) {
-		var targetGroups []*targetgroup.Group
-		if err := json.Unmarshal([]byte(in), &targetGroups); err != nil {
+	"json_path": func(jsonString string, path string) (interface{}, error) {
+		jsonPathExpr, err := jp.ParseString(path)
+		if err != nil {
 			return nil, err
 		}
 
-		var res []discovery.Target
+		jsonExpr, err := oj.ParseString(jsonString)
+		if err != nil {
+			return nil, err
+		}
 
-		for _, group := range targetGroups {
-			for _, target := range group.Targets {
+		return jsonPathExpr.Get(jsonExpr), nil
+	},
 
-				// Create the output target from group and target labels. Target labels
-				// should override group labels.
-				outputTarget := make(discovery.Target, len(group.Labels)+len(target))
-				for k, v := range group.Labels {
-					outputTarget[string(k)] = string(v)
+	"coalesce": value.RawFunction(func(funcValue value.Value, args ...value.Value) (value.Value, error) {
+		if len(args) == 0 {
+			return value.Null, nil
+		}
+
+		for _, arg := range args {
+			if arg.Type() == value.TypeNull {
+				continue
+			}
+
+			if !arg.Reflect().IsZero() {
+				if argType := value.RiverType(arg.Reflect().Type()); (argType == value.TypeArray || argType == value.TypeObject) && arg.Len() == 0 {
+					continue
 				}
-				for k, v := range target {
-					outputTarget[string(k)] = string(v)
-				}
 
-				res = append(res, outputTarget)
+				return arg, nil
 			}
 		}
 
-		return res, nil
-	},
+		return args[len(args)-1], nil
+	}),
+
+	"format":      fmt.Sprintf,
+	"join":        strings.Join,
+	"replace":     strings.ReplaceAll,
+	"split":       strings.Split,
+	"to_lower":    strings.ToLower,
+	"to_upper":    strings.ToUpper,
+	"trim":        strings.Trim,
+	"trim_prefix": strings.TrimPrefix,
+	"trim_suffix": strings.TrimSuffix,
+	"trim_space":  strings.TrimSpace,
 }

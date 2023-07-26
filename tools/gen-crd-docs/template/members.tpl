@@ -2,46 +2,12 @@
 
 {{ range .Members }}
 {{ if not (hiddenMember .)}}
-<tr>
-    <td>
-        <code>{{ fieldName . }}</code><br/>
-        <em>
-            {{ if linkForType .Type }}
-                <a href="{{ linkForType .Type}}">
-                    {{ typeDisplayName .Type }}
-                </a>
-            {{ else }}
-                {{ typeDisplayName .Type }}
-            {{ end }}
-        </em>
-    </td>
-    <td>
-        {{ if fieldEmbedded . }}
-            <p>
-                (Members of <code>{{ fieldName . }}</code> are embedded into this type.)
-            </p>
-        {{ end}}
+|`{{ fieldName . }}`<br/>_{{ if linkForType .Type }}[{{ typeDisplayName .Type }}]({{ linkForType .Type}}){{ else }}{{ typeDisplayName .Type }}{{ end }}_|{{ if fieldEmbedded . }}
+(Members of `{{ fieldName . }}` are embedded into this type.){{ end}} {{ if isOptionalMember .}} _(Optional)_ {{ end }} {{ range .CommentLines }}{{ . }} {{ end }} {{ if and (eq (.Type.Name.Name) "ObjectMeta") }} Refer to the Kubernetes API documentation for the fields of the `metadata` field. {{ end }}|
 
-        {{ if isOptionalMember .}}
-            <em>(Optional)</em>
-        {{ end }}
-
-        {{ safe (renderComments .CommentLines) }}
-
-    {{ if and (eq (.Type.Name.Name) "ObjectMeta") }}
-        Refer to the Kubernetes API documentation for the fields of the
-        <code>metadata</code> field.
-    {{ end }}
-
-    {{ if or (eq (fieldName .) "spec") }}
-        <br/>
-        <br/>
-        <table>
-            {{ template "members" .Type }}
-        </table>
-    {{ end }}
-    </td>
-</tr>
+{{ if or (eq (fieldName .) "spec") }}    
+{{ template "members" .Type }}
+{{ end }}
 {{ end }}
 {{ end }}
 

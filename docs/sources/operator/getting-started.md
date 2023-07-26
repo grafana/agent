@@ -1,11 +1,10 @@
 ---
-aliases:
-- /docs/agent/latest/operator/getting-started/
-title: Install Grafana Agent Operator
+canonical: https://grafana.com/docs/agent/latest/operator/getting-started/
+title: Install the Operator
 weight: 110
 ---
 
-# Install Grafana Agent Operator
+# Install the Operator
 
 In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster. This guide does not use Helm. To learn how to deploy Agent Operator using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator), see [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}).
 
@@ -75,7 +74,7 @@ To install Agent Operator:
           serviceAccountName: grafana-agent-operator
           containers:
           - name: operator
-            image: grafana/agent-operator:v0.30.2
+            image: grafana/agent-operator:v0.35.0
             args:
             - --kubelet-service=default/kubelet
     ---

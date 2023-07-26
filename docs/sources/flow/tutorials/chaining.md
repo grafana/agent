@@ -1,6 +1,5 @@
 ---
-aliases:
-- /docs/agent/latest/flow/tutorials/chaining
+canonical: https://grafana.com/docs/agent/latest/flow/tutorials/chaining/
 title: Chaining Prometheus components
 weight: 400
 ---
@@ -37,12 +36,12 @@ prometheus.scrape "agent" {
 	forward_to = [prometheus.relabel.service.receiver]
 }
 
-prometheus.integration.node_exporter {
+prometheus.exporter.unix {
 	set_collectors = ["cpu", "diskstats"]
 }
 
-prometheus.scrape "node" {
-	targets    = prometheus.integration.node_exporter.targets
+prometheus.scrape "unix" {
+	targets    = prometheus.exporter.unix.targets
 	forward_to = [prometheus.relabel.service.receiver]
 }
 
@@ -63,7 +62,7 @@ prometheus.remote_write "prom" {
 }
 ```
 
-In the above Flow block, `prometheus.relabel.service` is being forwarded metrics from two sources `prometheus.scrape.agent` and `prometheus.integration.node_exporter`. This allows for a single relabel component to be used with any number of inputs.
+In the above Flow block, `prometheus.relabel.service` is being forwarded metrics from two sources `prometheus.scrape.agent` and `prometheus.exporter.unix`. This allows for a single relabel component to be used with any number of inputs.
 
 ## Adding another relabel
 

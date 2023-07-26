@@ -1,6 +1,5 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/prometheus.remote_write
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
 title: prometheus.remote_write
 ---
 
@@ -46,28 +45,28 @@ The following blocks are supported inside the definition of
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 endpoint | [endpoint][] | Location to send metrics to. | no
-endpoint > http_client_config | [http_client_config][] | HTTP client settings when connecting to the endpoint. | no
-endpoint > http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-endpoint > http_client_config > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-endpoint > http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-endpoint > http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-endpoint > http_client_config > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+endpoint > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+endpoint > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+endpoint > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+endpoint > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+endpoint > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 endpoint > queue_config | [queue_config][] | Configuration for how metrics are batched before sending. | no
 endpoint > metadata_config | [metadata_config][] | Configuration for how metric metadata is sent. | no
+endpoint > write_relabel_config | [write_relabel_config][] | Configuration for write_relabel_config. | no
 wal | [wal][] | Configuration for the component's WAL. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `endpoint >
-http_client_config` refers to an `http_client_config` block defined inside an
+basic_auth` refers to a `basic_auth` block defined inside an
 `endpoint` block.
 
 [endpoint]: #endpoint-block
-[http_client_config]: #http_client_config-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
 [queue_config]: #queue_config-block
 [metadata_config]: #metadata_config-block
+[write_relabel_config]: #write_relabel_config-block
 [wal]: #wal-block
 
 ### endpoint block
@@ -85,6 +84,18 @@ Name | Type | Description | Default | Required
 `headers` | `map(string)` | Extra headers to deliver with the request. | | no
 `send_exemplars` | `bool` | Whether exemplars should be sent. | `true` | no
 `send_native_histograms` | `bool` | Whether native histograms should be sent. | `false` | no
+`bearer_token` | `secret` | Bearer token to authenticate with. | | no
+`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
+`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+
+ At most one of the following can be provided:
+ - [`bearer_token` argument](#endpoint-block).
+ - [`bearer_token_file` argument](#endpoint-block).
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
 
 When multiple `endpoint` blocks are provided, metrics are concurrently sent to all
 configured locations. Each endpoint has a _queue_ which is used to read metrics
@@ -99,13 +110,6 @@ When `send_native_histograms` is `true`, native Prometheus histogram samples
 sent to `prometheus.remote_write` are forwarded to the configured endpoint. If
 the endpoint doesn't support receiving native histogram samples, pushing
 metrics fails.
-
-### http_client_config block
-
-The `http_client_config` configures settings used to connect to the
-remote_write server.
-
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block
 
@@ -127,10 +131,10 @@ remote_write server.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`capacity` | `number` | Number of samples to buffer per shard. | `2500` | no
+`capacity` | `number` | Number of samples to buffer per shard. | `10000` | no
 `min_shards` | `number` | Minimum amount of concurrent shards sending samples to the endpoint. | `1` | no
-`max_shards` | `number` | Maximum number of concurrent shards sending samples to the endpoint. | `200` | no
-`max_samples_per_send` | `number` | Maximum number of samples per send. | `500` | no
+`max_shards` | `number` | Maximum number of concurrent shards sending samples to the endpoint. | `50` | no
+`max_samples_per_send` | `number` | Maximum number of samples per send. | `2000` | no
 `batch_send_deadline` | `duration` | Maximum time samples will wait in the buffer before sending. | `"5s"` | no
 `min_backoff` | `duration` | Initial retry delay. The backoff time gets doubled for each retry. | `"30ms"` | no
 `max_backoff` | `duration` | Maximum retry delay. | `"5s"` | no
@@ -144,7 +148,7 @@ quickly enough. The range of permitted shards can be configured with the
 
 Each shard has a buffer of samples it will keep in memory, controlled with the
 `capacity` argument. New metrics aren't read from the WAL unless there is at
-least one shard that is not at maximum capcity.
+least one shard that is not at maximum capacity.
 
 The buffer of a shard is flushed and sent to the endpoint either after the
 shard reaches the number of samples specified by `max_samples_per_send` or the
@@ -167,7 +171,11 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `send` | `bool` | Controls whether metric metadata is sent to the endpoint. | `true` | no
 `send_interval` | `duration` | How frequently metric metadata is sent to the endpoint. | `"1m"` | no
-`max_samples_per_send` | `number` | Maximum number of metadata samples to send to the endpoint at once. | `500` | no
+`max_samples_per_send` | `number` | Maximum number of metadata samples to send to the endpoint at once. | `2000` | no
+
+### write_relabel_config block
+
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
 
 ### wal block
 
@@ -227,6 +235,8 @@ information.
   being tracked by the WAL.
 * `agent_wal_storage_deleted_series` (gauge): Current number of series marked
   for deletion from memory.
+* `agent_wal_out_of_order_samples_total` (counter): Total number of out of
+  order samples ingestion failed attempts.
 * `agent_wal_storage_created_series_total` (counter): Total number of created
   series appended to the WAL.
 * `agent_wal_storage_removed_series_total` (counter): Total number of series
@@ -302,11 +312,9 @@ prometheus.remote_write "staging" {
   endpoint {
     url = "http://mimir:9009/api/v1/push"
 
-    http_client_config {
-      basic_auth {
-        username = "example-user"
-        password = "example-password"
-      }
+    basic_auth {
+      username = "example-user"
+      password = "example-password"
     }
   }
 }
@@ -321,3 +329,7 @@ prometheus.scrape "demo" {
   forward_to = [prometheus.remote_write.staging.receiver]
 }
 ```
+
+## Compression
+
+`prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.

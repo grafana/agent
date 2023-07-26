@@ -1,6 +1,5 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/prometheus.relabel
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.relabel/
 title: prometheus.relabel
 ---
 
@@ -94,6 +93,7 @@ values.
 * `agent_prometheus_relabel_cache_hits` (counter): Total number of cache hits.
 * `agent_prometheus_relabel_cache_size` (gauge): Total size of relabel cache.
 * `agent_prometheus_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
+* `agent_prometheus_forwarded_samples_total` (counter): Total number of samples sent to downstream components.
 
 ## Example
 
@@ -144,7 +144,7 @@ metric_a{host = "cluster_b/production",  __address__ = "cluster_a", instance = "
 
 On the second relabeling rule, the `keep` action only keeps the metrics whose
 `app` label matches `regex`, dropping everything else, so the list of metrics
-is be trimmed down to:
+is trimmed down to:
 
 ```
 metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}  2

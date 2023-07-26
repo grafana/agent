@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/shared/flow/reference/components/oauth2-block/
+canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/oauth2-block/
 headless: true
 ---
 
@@ -14,7 +15,7 @@ Name | Type | Description | Default | Required
 `endpoint_params` | `map(string)` | Optional parameters to append to the token URL. | | no
 `proxy_url` | `string` | Optional proxy URL for OAuth2 requests. | | no
 
-`client_secret` and `client_secret_file` are mututally exclusive and only one
+`client_secret` and `client_secret_file` are mutually exclusive and only one
 can be provided inside of an `oauth2` block.
 
 The `oauth2` block may also contain its own separate `tls_config` sub-block.

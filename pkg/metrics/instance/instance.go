@@ -108,7 +108,7 @@ func (c Config) MarshalYAML() (interface{}, error) {
 // values that have not been changed to their non-zero value. ApplyDefaults
 // also validates the config.
 //
-// The value for global will saved.
+// The value for global will be saved.
 func (c *Config) ApplyDefaults(global GlobalConfig) error {
 	c.global = global
 
@@ -414,7 +414,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 
 	i.readyScrapeManager = &readyScrapeManager{}
 
-	// Setup the remote storage
+	// Set up the remote storage
 	remoteLogger := log.With(i.logger, "component", "remote")
 	i.remoteStore = remote.NewStorage(remoteLogger, reg, i.wal.StartTime, i.wal.Directory(), cfg.RemoteFlushDeadline, i.readyScrapeManager)
 	err = i.remoteStore.ApplyConfig(&config.Config{
@@ -469,7 +469,7 @@ func (i *Instance) Update(c Config) (err error) {
 	// if any other field has changed here, return the error.
 	switch {
 	// This first case should never happen in practice but it's included here for
-	// completions sake.
+	// completion’s sake.
 	case i.cfg.Name != c.Name:
 		err = errImmutableField{Field: "name"}
 	case i.cfg.HostFilter != c.HostFilter:
@@ -665,7 +665,7 @@ func (i *Instance) truncateLoop(ctx context.Context, wal walStorage, cfg *Config
 		case <-time.After(cfg.WALTruncateFrequency):
 			// The timestamp ts is used to determine which series are not receiving
 			// samples and may be deleted from the WAL. Their most recent append
-			// timestamp is compared to ts, and if that timestamp is older then ts,
+			// timestamp is compared to ts, and if that timestamp is older than ts,
 			// they are considered inactive and may be deleted.
 			//
 			// Subtracting a duration from ts will delay when it will be considered

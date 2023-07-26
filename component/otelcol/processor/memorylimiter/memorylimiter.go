@@ -9,9 +9,8 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
-	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 )
 
@@ -42,7 +41,6 @@ type Arguments struct {
 
 var (
 	_ processor.Arguments = Arguments{}
-	_ river.Unmarshaler   = (*Arguments)(nil)
 )
 
 // DefaultArguments holds default settings for Arguments.
@@ -54,18 +52,15 @@ var DefaultArguments = Arguments{
 	MemorySpikePercentage: 0,
 }
 
-// UnmarshalRiver implements river.Unmarshaler. It applies defaults to args and
-// validates settings provided by the user.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.CheckInterval <= 0 {
-		return fmt.Errorf("check_interval must me greater than zero")
+		return fmt.Errorf("check_interval must be greater than zero")
 	}
 
 	if args.MemoryLimit > 0 && args.MemoryLimitPercentage > 0 {
@@ -96,25 +91,23 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() otelconfig.Processor {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &memorylimiterprocessor.Config{
-		ProcessorSettings: otelconfig.NewProcessorSettings(otelconfig.NewComponentID("memory_limiter")),
-
 		CheckInterval:         args.CheckInterval,
 		MemoryLimitMiB:        uint32(args.MemoryLimit / units.Mebibyte),
 		MemorySpikeLimitMiB:   uint32(args.MemorySpikeLimit / units.Mebibyte),
 		MemoryLimitPercentage: args.MemoryLimitPercentage,
 		MemorySpikePercentage: args.MemorySpikePercentage,
-	}
+	}, nil
 }
 
 // Extensions implements processor.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements processor.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

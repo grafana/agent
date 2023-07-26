@@ -1,6 +1,5 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/loki.source.file
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.file/
 title: loki.source.file
 ---
 
@@ -66,7 +65,7 @@ _labels_.
 The set of targets can either be _static_, or dynamically provided periodically
 by a service discovery component. The special label `__path__` _must always_ be
 present and must point to the absolute path of the file to read from.
-<!-- TODO(@tpaschalis) refer to discovery.fileglob -->
+<!-- TODO(@tpaschalis) refer to local.file_match -->
 
 The `__path__` value is  available as the `filename` label to each log entry
 the component reads. All other labels starting with a double underscore are
@@ -76,7 +75,7 @@ passed to other `loki.*` components.
 The component uses its data path (a directory named after the domain's
 fully qualified name) to store its _positions file_. The positions file is used
 to store read offsets, so that in case of a component or Agent restart,
-`loki.source.file` can pick up tailing from the same spot. 
+`loki.source.file` can pick up tailing from the same spot.
 
 If a file is removed from the `targets` list, its positions file entry is also
 removed. When it's added back on, `loki.source.file` starts reading it from the
@@ -85,8 +84,7 @@ beginning.
 ## Example
 
 This example collects log entries from the files specified in the targets
-argument and forwards them to a `loki.write` component so they are can be 
-written to Loki.
+argument and forwards them to a `loki.write` component to be written to Loki.
 
 ```river
 loki.source.file "tmpfiles" {
@@ -94,7 +92,7 @@ loki.source.file "tmpfiles" {
     {__path__ = "/tmp/foo.txt", "color" = "pink"},
     {__path__ = "/tmp/bar.txt", "color" = "blue"},
     {__path__ = "/tmp/baz.txt", "color" = "grey"},
-  ] 
+  ]
   forward_to = [loki.write.local.receiver]
 }
 

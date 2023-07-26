@@ -1,20 +1,27 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/discovery.file
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.file/
 title: discovery.file
 ---
 
 # discovery.file
 
-`discovery.file` discovers files on the local filesystem using glob patterns and the [doublestar][] library.
+> **NOTE:** In `v0.35.0` of the Grafana Agent, the `discovery.file` component was renamed to [local.file_match][],
+> and `discovery.file` was repurposed to discover scrape targets from one or more files.
+>
+> <br>
+>
+> If you are trying to discover files on the local filesystem rather than scrape
+> targets within a set of files, you should use [local.file_match][] instead.
 
-[doublestar]: https://github.com/bmatcuk/doublestar
+[local.file_match]: {{< relref "./local.file_match.md" >}}
+
+`discovery.file` discovers targets from a set of files, similar to the [Prometheus file_sd_config](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#file_sd_config).
 
 ## Usage
 
 ```river
 discovery.file "LABEL" {
-  path_targets = [{"__path__" = "DOUBLESTAR_PATH"}]
+  files = [FILE_PATH_1, FILE_PATH_2, ...]
 }
 ```
 
@@ -22,28 +29,24 @@ discovery.file "LABEL" {
 
 The following arguments are supported:
 
-Name            | Type                | Description                                                                                | Default | Required
---------------- | ------------------- | ------------------------------------------------------------------------------------------ |---------| --------
-`path_targets`  | `list(map(string))` | Targets to expand; looks for glob patterns on the  `__path__` and `__path_exclude__` keys. |         | yes
-`sync_period`   | `duration`          | How often to sync filesystem and targets.                                                  | `"10s"` | no
+Name               | Type                | Description                                | Default | Required
+------------------ | ------------------- | ------------------------------------------ |---------| --------
+`files`            | `list(string)`      | Files to read and discover targets from.   |         | yes 
+`refresh_interval` | `duration`          | How often to sync targets.                 | "5m"    | no
 
-`path_targets` uses [doublestar][] style paths.
-* `/tmp/**/*.log` will match all subfolders of `tmp` and include any files that end in `*.log`.
-* `/tmp/apache/*.log` will match only files in `/tmp/apache/` that end in `*.log`.
-* `/tmp/**` will match all subfolders of `tmp`, `tmp` itself, and all files.
-
+The last path segment of each element in `files` may contain a single * that matches any character sequence, e.g. `my/path/tg_*.json`.
 
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
+Name      | Type                | Description
+--------- | ------------------- | -----------
 `targets` | `list(map(string))` | The set of targets discovered from the filesystem.
 
 Each target includes the following labels:
 
-* `__path__`: Absolute path to the file.
+* `__meta_filepath`: The absolute path to the file the target was discovered from.
 
 ## Component health
 
@@ -61,64 +64,106 @@ values.
 
 ## Examples
 
-This example discovers all files and folders under `/tmp/logs`. The absolute paths are 
-used by `loki.source.file.files` targets.
-
-```river
-discovery.file "tmp" {
-    path_targets = [{"__path__" = "/tmp/logs/**/*.log"}]
-}
-
-loki.source.file "files" {
-    targets    = discovery.file.tmp.targets
-    forward_to = [ /* ... */ ]
-}
-```
-
-### Kubernetes
-
-This example finds all the logs on pods and monitors them.
-
-```river
-discovery.kubernetes "k8s" {
-  role = "pod"
-}
-
-discovery.relabel "k8s" {
-  targets = discovery.kubernetes.k8s.targets
- 
-  rule {
-    source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_label_name"]
-    target_label  = "job"
-    separator     = "/"
-  }
-
-  rule {
-    source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
-    target_label  = "__path__"
-    separator     = "/" 
-    replacement   = "/var/log/pods/*$1/*.log"
-  } 
-}
-
-discovery.file "pods" {
-    path_targets = discovery.relabel.k8s.output
-}
-
-loki.source.file "pods" {
-    targets = discovery.file.pods.targets
-    forward_to = [loki.write.endpoint.receiver]
-}
-
-loki.write "endpoint" {
-    endpoint {
-        url = "LOKI_PATH"
-        http_client_config {
-            basic_auth {
-                username = USERNAME
-                password = "PASSWORD"
-            }
-        }
+### Example target files
+```json
+[
+  {
+    "targets": [ "127.0.0.1:9091", "127.0.0.1:9092" ],
+    "labels": {
+      "environment": "dev"
     }
+  },
+  {
+    "targets": [ "127.0.0.1:9093" ],
+    "labels": {
+      "environment": "prod"
+    }
+  }
+]
+```
+
+```yaml
+- targets:
+  - 127.0.0.1:9999
+  - 127.0.0.1:10101
+  labels:
+    job: worker
+- targets:
+  - 127.0.0.1:9090
+  labels:
+    job: prometheus
+```
+
+### Basic file discovery
+
+This example discovers targets from a single file, scrapes them, and writes metrics
+to a Prometheus remote write endpoint.
+
+```river
+discovery.file "example" {
+  files = ["/tmp/example.json"]
+}
+
+prometheus.scrape "default" {
+  targets    = discovery.file.example.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+### File discovery with retained file path label
+
+This example discovers targets from a wildcard file path, scrapes them, and writes metrics
+to a Prometheus remote write endpoint.
+
+It also uses a relabeling rule to retain the file path as a label on each target.
+
+```river
+discovery.file "example" {
+  files = ["/tmp/example_*.yaml"]
+}
+
+discovery.relabel "keep_filepath" {
+  targets = discovery.file.example.targets
+  rule {
+    source_labels = ["__meta_filepath"]
+    target_label = "filepath"
+  }
+}
+
+prometheus.scrape "default" {
+  targets    = discovery.relabel.keep_filepath.output
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
+```
+
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.

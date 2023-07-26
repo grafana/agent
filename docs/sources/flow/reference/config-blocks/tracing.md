@@ -1,8 +1,6 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/config-blocks/tracing
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/tracing/
 title: tracing
-weight: 100
 ---
 
 # tracing block

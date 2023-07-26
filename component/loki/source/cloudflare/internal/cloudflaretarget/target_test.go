@@ -12,9 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki/positions"
-	"github.com/grafana/agent/component/loki/source/cloudflare/internal/fake"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +37,7 @@ func Test_CloudflareTarget(t *testing.T) {
 		}
 		end      = time.Unix(0, time.Hour.Nanoseconds())
 		start    = time.Unix(0, time.Hour.Nanoseconds()-int64(cfg.PullRange))
-		client   = fake.New(func() {})
+		client   = fake.NewClient(func() {})
 		cfClient = newFakeCloudflareClient()
 	)
 	ps, err := positions.New(logger, positions.Config{
@@ -111,7 +112,7 @@ func Test_RetryErrorLogpullReceived(t *testing.T) {
 		logger   = log.NewLogfmtLogger(w)
 		end      = time.Unix(0, time.Hour.Nanoseconds())
 		start    = time.Unix(0, end.Add(-30*time.Minute).UnixNano())
-		client   = fake.New(func() {})
+		client   = fake.NewClient(func() {})
 		cfClient = newFakeCloudflareClient()
 	)
 	cfClient.On("LogpullReceived", mock.Anything, start, end).Return(&fakeLogIterator{
@@ -142,7 +143,7 @@ func Test_RetryErrorIterating(t *testing.T) {
 		logger   = log.NewLogfmtLogger(w)
 		end      = time.Unix(0, time.Hour.Nanoseconds())
 		start    = time.Unix(0, end.Add(-30*time.Minute).UnixNano())
-		client   = fake.New(func() {})
+		client   = fake.NewClient(func() {})
 		cfClient = newFakeCloudflareClient()
 	)
 	cfClient.On("LogpullReceived", mock.Anything, start, end).Return(&fakeLogIterator{
@@ -199,7 +200,7 @@ func Test_CloudflareTargetError(t *testing.T) {
 			Workers:    3,
 		}
 		end      = time.Unix(0, time.Hour.Nanoseconds())
-		client   = fake.New(func() {})
+		client   = fake.NewClient(func() {})
 		cfClient = newFakeCloudflareClient()
 	)
 	ps, err := positions.New(logger, positions.Config{
@@ -254,7 +255,7 @@ func Test_CloudflareTargetError168h(t *testing.T) {
 			Workers:    3,
 		}
 		end      = time.Unix(0, time.Hour.Nanoseconds())
-		client   = fake.New(func() {})
+		client   = fake.NewClient(func() {})
 		cfClient = newFakeCloudflareClient()
 	)
 	ps, err := positions.New(logger, positions.Config{

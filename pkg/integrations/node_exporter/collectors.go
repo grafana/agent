@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin/v2"
 )
 
 // CollectorState represents the default state of the collector, where it can
@@ -65,6 +65,7 @@ const (
 	CollectorNVME         = "nvme"
 	CollectorNetclass     = "netclass"
 	CollectorNetdev       = "netdev"
+	CollectorNetisr       = "netisr"
 	CollectorNetstat      = "netstat"
 	CollectorNetworkRoute = "network_route"
 	CollectorOS           = "os"
@@ -77,6 +78,7 @@ const (
 	CollectorRunit        = "runit"
 	CollectorSchedstat    = "schedstat"
 	CollectorSockstat     = "sockstat"
+	CollectorSoftirqs     = "softirqs"
 	CollectorSoftnet      = "softnet"
 	CollectorStat         = "stat"
 	CollectorSupervisord  = "supervisord"
@@ -95,6 +97,10 @@ const (
 	CollectorXFS          = "xfs"
 	CollectorZFS          = "zfs"
 	CollectorZoneinfo     = "zoneinfo"
+	CollectorCGroups      = "cgroups"
+	CollectorSELinux      = "selinux"
+	CollectorSlabInfo     = "slabinfo"
+	CollectorSysctl       = "sysctl"
 )
 
 // Collectors holds a map of known collector names to their default
@@ -106,6 +112,7 @@ var Collectors = map[string]CollectorState{
 	CollectorBonding:      CollectorStateEnabled,
 	CollectorBootTime:     CollectorStateEnabled,
 	CollectorBuddyInfo:    CollectorStateDisabled,
+	CollectorCGroups:      CollectorStateDisabled,
 	CollectorCPU:          CollectorStateEnabled,
 	CollectorCPUFreq:      CollectorStateEnabled,
 	CollectorConntrack:    CollectorStateEnabled,
@@ -139,6 +146,7 @@ var Collectors = map[string]CollectorState{
 	CollectorNVME:         CollectorStateEnabled,
 	CollectorNetclass:     CollectorStateEnabled,
 	CollectorNetdev:       CollectorStateEnabled,
+	CollectorNetisr:       CollectorStateEnabled,
 	CollectorNetstat:      CollectorStateEnabled,
 	CollectorNetworkRoute: CollectorStateDisabled,
 	CollectorOS:           CollectorStateEnabled,
@@ -150,10 +158,14 @@ var Collectors = map[string]CollectorState{
 	CollectorRAPL:         CollectorStateEnabled,
 	CollectorRunit:        CollectorStateDisabled,
 	CollectorSchedstat:    CollectorStateEnabled,
+	CollectorSELinux:      CollectorStateEnabled,
+	CollectorSlabInfo:     CollectorStateDisabled,
 	CollectorSockstat:     CollectorStateEnabled,
+	CollectorSoftirqs:     CollectorStateDisabled,
 	CollectorSoftnet:      CollectorStateEnabled,
 	CollectorStat:         CollectorStateEnabled,
 	CollectorSupervisord:  CollectorStateDisabled,
+	CollectorSysctl:       CollectorStateDisabled,
 	CollectorSystemd:      CollectorStateDisabled,
 	CollectorTCPStat:      CollectorStateDisabled,
 	CollectorTapestats:    CollectorStateEnabled,

@@ -26,8 +26,9 @@ type Fanout struct {
 	// children is where to fan out.
 	children []storage.Appendable
 	// ComponentID is what component this belongs to.
-	componentID  string
-	writeLatency prometheus.Histogram
+	componentID    string
+	writeLatency   prometheus.Histogram
+	samplesCounter prometheus.Counter
 }
 
 // NewFanout creates a fanout appendable.
@@ -37,10 +38,18 @@ func NewFanout(children []storage.Appendable, componentID string, register prome
 		Help: "Write latency for sending to direct and indirect components",
 	})
 	_ = register.Register(wl)
+
+	s := prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "agent_prometheus_forwarded_samples_total",
+		Help: "Total number of samples sent to downstream components.",
+	})
+	_ = register.Register(s)
+
 	return &Fanout{
-		children:     children,
-		componentID:  componentID,
-		writeLatency: wl,
+		children:       children,
+		componentID:    componentID,
+		writeLatency:   wl,
+		samplesCounter: s,
 	}
 }
 
@@ -65,10 +74,12 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	ctx = scrape.ContextWithMetricMetadataStore(ctx, NoopMetadataStore{})
 
 	app := &appender{
-		children:     make([]storage.Appender, 0),
-		componentID:  f.componentID,
-		writeLatency: f.writeLatency,
+		children:       make([]storage.Appender, 0),
+		componentID:    f.componentID,
+		writeLatency:   f.writeLatency,
+		samplesCounter: f.samplesCounter,
 	}
+
 	for _, x := range f.children {
 		if x == nil {
 			continue
@@ -79,10 +90,11 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 }
 
 type appender struct {
-	children     []storage.Appender
-	componentID  string
-	writeLatency prometheus.Histogram
-	start        time.Time
+	children       []storage.Appender
+	componentID    string
+	writeLatency   prometheus.Histogram
+	samplesCounter prometheus.Counter
+	start          time.Time
 }
 
 var _ storage.Appender = (*appender)(nil)
@@ -96,11 +108,17 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
 	}
 	var multiErr error
+	updated := false
 	for _, x := range a.children {
 		_, err := x.Append(ref, l, t, v)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
+		} else {
+			updated = true
 		}
+	}
+	if updated {
+		a.samplesCounter.Inc()
 	}
 	return ref, multiErr
 }
@@ -157,7 +175,7 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exem
 	return ref, multiErr
 }
 
-// UpdateMetadata satisifies the Appender interface.
+// UpdateMetadata satisfies the Appender interface.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
 	if a.start.IsZero() {
 		a.start = time.Now()
@@ -175,7 +193,7 @@ func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m meta
 	return ref, multiErr
 }
 
-func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error) {
+func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
 	if a.start.IsZero() {
 		a.start = time.Now()
 	}
@@ -184,7 +202,7 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 	}
 	var multiErr error
 	for _, x := range a.children {
-		_, err := x.AppendHistogram(ref, l, t, h)
+		_, err := x.AppendHistogram(ref, l, t, h, fh)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 		}

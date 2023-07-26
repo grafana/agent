@@ -2,172 +2,163 @@ package controller
 
 import (
 	"fmt"
-	"strings"
-	"sync"
 
-	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/flow/logging"
-	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/vm"
-	"go.opentelemetry.io/otel/trace"
 )
 
 const (
-	configNodeID = "configNode"
-
-	loggingBlockID = "logging"
-	tracingBlockID = "tracing"
+	argumentBlockID = "argument"
+	exportBlockID   = "export"
+	loggingBlockID  = "logging"
+	tracingBlockID  = "tracing"
 )
-
-// ConfigNode is a controller node which manages agent configuration.
-// The graph will always have _exactly one_ instance of ConfigNode, which will
-// be used to contain the state of all config blocks.
-type ConfigNode struct {
-	mut          sync.RWMutex
-	blocks       []*ast.BlockStmt // Current River blocks to derive config from
-	logger       log.Logger
-	loggingArgs  logging.Options // Evaluated logging arguments for the config
-	loggingBlock *ast.BlockStmt
-	loggingEval  *vm.Evaluator
-	tracer       trace.TracerProvider
-	tracingArgs  tracing.Options
-	tracingBlock *ast.BlockStmt
-	tracingEval  *vm.Evaluator
-}
-
-// ConfigBlockID returns the string name for a config block.
-func ConfigBlockID(block *ast.BlockStmt) string {
-	return strings.Join(block.Name, ".")
-}
-
-var _ dag.Node = (*ConfigNode)(nil)
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewConfigNode(blocks []*ast.BlockStmt, l log.Logger, t trace.TracerProvider) (*ConfigNode, diag.Diagnostics) {
-	var (
-		blockMap = make(map[string]*ast.BlockStmt, len(blocks))
-		diags    diag.Diagnostics
+func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, diag.Diagnostics) {
+	switch block.GetBlockName() {
+	case argumentBlockID:
+		return NewArgumentConfigNode(block, globals), nil
+	case exportBlockID:
+		return NewExportConfigNode(block, globals), nil
+	case loggingBlockID:
+		return NewLoggingConfigNode(block, globals), nil
+	case tracingBlockID:
+		return NewTracingConfigNode(block, globals), nil
+	default:
+		var diags diag.Diagnostics
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  fmt.Sprintf("invalid config block type %s while creating new config node", block.GetBlockName()),
+			StartPos: ast.StartPos(block).Position(),
+			EndPos:   ast.EndPos(block).Position(),
+		})
+		return nil, diags
+	}
+}
 
-		loggingBlock ast.BlockStmt
-		tracingBlock ast.BlockStmt
-	)
+// ConfigNodeMap represents the config BlockNodes in their explicit types.
+// This is helpful when validating node conditions specific to config node
+// types.
+type ConfigNodeMap struct {
+	logging     *LoggingConfigNode
+	tracing     *TracingConfigNode
+	argumentMap map[string]*ArgumentConfigNode
+	exportMap   map[string]*ExportConfigNode
+}
 
-	for _, b := range blocks {
-		id := ConfigBlockID(b)
-		if orig, redefined := blockMap[id]; redefined {
+// NewConfigNodeMap will create an initial ConfigNodeMap. Append must be called
+// to populate NewConfigNodeMap.
+func NewConfigNodeMap() *ConfigNodeMap {
+	return &ConfigNodeMap{
+		logging:     nil,
+		tracing:     nil,
+		argumentMap: map[string]*ArgumentConfigNode{},
+		exportMap:   map[string]*ExportConfigNode{},
+	}
+}
+
+// Append will add a config node to the ConfigNodeMap. This will overwrite
+// values on the ConfigNodeMap that are matched and previously set.
+func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	switch n := configNode.(type) {
+	case *ArgumentConfigNode:
+		nodeMap.argumentMap[n.Label()] = n
+	case *ExportConfigNode:
+		nodeMap.exportMap[n.Label()] = n
+	case *LoggingConfigNode:
+		nodeMap.logging = n
+	case *TracingConfigNode:
+		nodeMap.tracing = n
+	default:
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  fmt.Sprintf("unsupported config node type found %q", n.Block().Name),
+			StartPos: ast.StartPos(n.Block()).Position(),
+			EndPos:   ast.EndPos(n.Block()).Position(),
+		})
+	}
+
+	return diags
+}
+
+// Validate wraps all validators for ConfigNodeMap.
+func (nodeMap *ConfigNodeMap) Validate(isInModule bool, args map[string]any) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	newDiags := nodeMap.ValidateModuleConstraints(isInModule)
+	diags = append(diags, newDiags...)
+
+	newDiags = nodeMap.ValidateUnsupportedArguments(args)
+	diags = append(diags, newDiags...)
+
+	return diags
+}
+
+// ValidateModuleConstraints will make sure config blocks with module
+// constraints get followed.
+func (nodeMap *ConfigNodeMap) ValidateModuleConstraints(isInModule bool) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if isInModule {
+		if nodeMap.logging != nil {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("Config block %s already declared at %s", id, ast.StartPos(orig).Position()),
-				StartPos: b.NamePos.Position(),
-				EndPos:   b.NamePos.Add(len(id) - 1).Position(),
+				Message:  "logging block not allowed inside a module",
+				StartPos: ast.StartPos(nodeMap.logging.Block()).Position(),
+				EndPos:   ast.EndPos(nodeMap.logging.Block()).Position(),
 			})
+		}
+
+		if nodeMap.tracing != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  "tracing block not allowed inside a module",
+				StartPos: ast.StartPos(nodeMap.tracing.Block()).Position(),
+				EndPos:   ast.EndPos(nodeMap.tracing.Block()).Position(),
+			})
+		}
+		return diags
+	}
+
+	for key := range nodeMap.argumentMap {
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  "argument blocks only allowed inside a module",
+			StartPos: ast.StartPos(nodeMap.argumentMap[key].Block()).Position(),
+			EndPos:   ast.EndPos(nodeMap.argumentMap[key].Block()).Position(),
+		})
+	}
+
+	for key := range nodeMap.exportMap {
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  "export blocks only allowed inside a module",
+			StartPos: ast.StartPos(nodeMap.exportMap[key].Block()).Position(),
+			EndPos:   ast.EndPos(nodeMap.exportMap[key].Block()).Position(),
+		})
+	}
+
+	return diags
+}
+
+// ValidateUnsupportedArguments will validate each provided argument is
+// supported in the config.
+func (nodeMap *ConfigNodeMap) ValidateUnsupportedArguments(args map[string]any) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	for argName := range args {
+		if _, found := nodeMap.argumentMap[argName]; found {
 			continue
 		}
-
-		switch id {
-		case loggingBlockID:
-			loggingBlock = *b
-		case tracingBlockID:
-			tracingBlock = *b
-		}
-
-		blockMap[id] = b
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  fmt.Sprintf("Provided argument %q is not defined in the module", argName),
+		})
 	}
 
-	// Pre-populate arguments with their default values.
-	var (
-		loggerOptions = logging.DefaultOptions
-		tracerOptions = tracing.DefaultOptions
-	)
-	return &ConfigNode{
-		blocks: blocks,
-
-		logger:       l,
-		loggingArgs:  loggerOptions,
-		loggingBlock: &loggingBlock,
-		loggingEval:  vm.New(loggingBlock.Body),
-
-		tracer:       t,
-		tracingArgs:  tracerOptions,
-		tracingBlock: &tracingBlock,
-		tracingEval:  vm.New(tracingBlock.Body),
-	}, diags
-}
-
-// NodeID implements dag.Node and returns the unique ID for the config node.
-func (cn *ConfigNode) NodeID() string { return configNodeID }
-
-// Evaluate updates the config block by re-evaluating its River block with the
-// provided scope. The config will be built the first time Evaluate is called.
-//
-// Evaluate will return an error if the River block cannot be evaluated or if
-// decoding to arguments fails.
-func (cn *ConfigNode) Evaluate(scope *vm.Scope) (*ast.BlockStmt, error) {
-	cn.mut.Lock()
-	defer cn.mut.Unlock()
-
-	evals := []func(*vm.Scope) (*ast.BlockStmt, error){
-		cn.evaluateLogging,
-		cn.evaluateTracing,
-	}
-	for _, eval := range evals {
-		if stmt, err := eval(scope); err != nil {
-			return stmt, err
-		}
-	}
-	return nil, nil
-}
-
-func (cn *ConfigNode) evaluateLogging(scope *vm.Scope) (*ast.BlockStmt, error) {
-	// Evaluate logging block fields and store a copy.
-	args := logging.DefaultOptions
-	if err := cn.loggingEval.Evaluate(scope, &args); err != nil {
-		return cn.loggingBlock, fmt.Errorf("decoding River: %w", err)
-	}
-	cn.loggingArgs = args
-
-	l, ok := cn.logger.(*logging.Logger)
-	if ok {
-		err := l.Update(cn.loggingArgs)
-		if err != nil {
-			return cn.loggingBlock, fmt.Errorf("could not update logger: %v", err)
-		}
-	}
-	return nil, nil
-}
-
-func (cn *ConfigNode) evaluateTracing(scope *vm.Scope) (*ast.BlockStmt, error) {
-	// Evaluate logging block fields and store a copy.
-	args := tracing.DefaultOptions
-	if err := cn.tracingEval.Evaluate(scope, &args); err != nil {
-		return cn.tracingBlock, fmt.Errorf("decoding River: %w", err)
-	}
-	cn.tracingArgs = args
-
-	t, ok := cn.tracer.(*tracing.Tracer)
-	if ok {
-		err := t.Update(cn.tracingArgs)
-		if err != nil {
-			return cn.tracingBlock, fmt.Errorf("could not update logger: %v", err)
-		}
-	}
-	return nil, nil
-}
-
-// LoggingArgs returns the arguments used to configure the logger.
-func (cn *ConfigNode) LoggingArgs() logging.Options {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return cn.loggingArgs
-}
-
-// TracingArgs returns the arguments used to configure the tracer.
-func (cn *ConfigNode) TracingArgs() tracing.Options {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return cn.tracingArgs
+	return diags
 }

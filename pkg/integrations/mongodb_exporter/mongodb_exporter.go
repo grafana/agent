@@ -5,11 +5,12 @@ import (
 	"net/url"
 
 	"github.com/go-kit/log"
+	"github.com/percona/mongodb_exporter/exporter"
+	config_util "github.com/prometheus/common/config"
+
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
-	"github.com/percona/mongodb_exporter/exporter"
-	config_util "github.com/prometheus/common/config"
 )
 
 // Config controls mongodb_exporter
@@ -50,7 +51,7 @@ func init() {
 
 // New creates a new mongodb_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	logrusLogger := NewLogger(logger)
+	logrusLogger := integrations.NewLogger(logger)
 
 	exp := exporter.New(&exporter.Opts{
 		URI:                    string(c.URI),

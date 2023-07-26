@@ -1,5 +1,4 @@
 //go:build !nonetwork && !nodocker && !race
-// +build !nonetwork,!nodocker,!race
 
 package operator
 
@@ -23,6 +22,9 @@ import (
 
 // TestKubelet tests the Kubelet reconciler.
 func TestKubelet(t *testing.T) {
+	// TODO: this is broken with go 1.20.6
+	// waiting on https://github.com/testcontainers/testcontainers-go/issues/1359
+	t.Skip()
 	l := util.TestLogger(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)

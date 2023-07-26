@@ -10,6 +10,885 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
+- Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
+- Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
+
+- New Grafana Agent Flow components:
+
+  - `prometheus.exporter.gcp` - scrape GCP metrics (@tburgessdev)
+  - `otelcol.processor.span` - accepts traces telemetry data from other `otelcol`
+  components and modifies the names and attributes of the spans. (@ptodev)
+  - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@sparta0x117)
+
+### Bugfixes
+
+- Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
+
+- Fix issue where the flow mode UI would show an empty page when navigating to
+  an unhealthy `prometheus.operator` component or a healthy
+  `prometheus.operator` component which discovered no custom resources.
+  (@rfratto)
+
+- Fix panic when using `oauth2` without specifying `tls_config`. (@mattdurham)
+
+- Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
+
+- Fix incorrect display of trace IDs in the automatic_logging processor of static mode's traces subsystem.
+  Users of the static mode's service graph processor are also advised to upgrade, 
+  although the bug should theoretically not affect them. (@ptodev)
+
+### Other changes
+
+- Compile journald support into builds of `grafana-agentctl` so
+  `grafana-agentctl test-logs` functions as expected when testing tailing the
+  systemd journal. (@rfratto)
+
+v0.35.0 (2023-07-18)
+--------------------
+
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- The algorithm for the "hash" action of `otelcol.processor.attributes` has changed.
+  The change was made in PR [#22831](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22831) of opentelemetry-collector-contrib. (@ptodev)
+
+- `otelcol.exporter.loki` now includes the instrumentation scope in its output. (@ptodev)
+
+- `otelcol.extension.jaeger_remote_sampling` removes the `/` HTTP endpoint. The `/sampling` endpoint is still functional.
+  The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib. (@ptodev)
+
+- The field `version` and `auth` struct block from `walk_params` in `prometheus.exporter.snmp` and SNMP integration have been removed. The auth block now can be configured at top level, together with `modules` (@marctc)
+
+- Rename `discovery.file` to `local.file_match` to make it more clear that it
+  discovers file on the local filesystem, and so it doesn't get confused with
+  Prometheus' file discovery. (@rfratto)
+
+- Remove the `discovery_target_decode` function in favor of using discovery
+  components to better match the behavior of Prometheus' service discovery.
+  (@rfratto)
+
+- In the traces subsystem for Static mode, some metrics are removed and others are renamed. (@ptodev)
+  - Removed metrics:
+    - "blackbox_exporter_config_last_reload_success_timestamp_seconds" (gauge)
+    - "blackbox_exporter_config_last_reload_successful" (gauge)
+    - "blackbox_module_unknown_total" (counter)
+    - "traces_processor_tail_sampling_count_traces_sampled" (counter)
+    - "traces_processor_tail_sampling_new_trace_id_received" (counter)
+    - "traces_processor_tail_sampling_sampling_decision_latency" (histogram)
+    - "traces_processor_tail_sampling_sampling_decision_timer_latency" (histogram)
+    - "traces_processor_tail_sampling_sampling_policy_evaluation_error" (counter)
+    - "traces_processor_tail_sampling_sampling_trace_dropped_too_early" (counter)
+    - "traces_processor_tail_sampling_sampling_traces_on_memory" (gauge)
+    - "traces_receiver_accepted_spans" (counter)
+    - "traces_receiver_refused_spans" (counter)
+    - "traces_exporter_enqueue_failed_log_records" (counter)
+    - "traces_exporter_enqueue_failed_metric_points" (counter)
+    - "traces_exporter_enqueue_failed_spans" (counter)
+    - "traces_exporter_queue_capacity" (gauge)
+    - "traces_exporter_queue_size" (gauge)
+
+  - Renamed metrics:
+    - "traces_receiver_refused_spans" is renamed to "traces_receiver_refused_spans_total"
+    - "traces_receiver_accepted_spans" is renamed to "traces_receiver_refused_spans_total"
+    - "traces_exporter_sent_metric_points" is renamed to "traces_exporter_sent_metric_points_total"
+
+- The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`. (@ptodev)
+
+### Deprecations
+
+- `otelcol.exporter.jaeger` has been deprecated and will be removed in Agent v0.38.0. (@ptodev)
+
+### Features
+
+- The Pyroscope scrape component computes and sends delta profiles automatically when required to reduce bandwidth usage. (@cyriltovena)
+
+- Support `stage.geoip` in `loki.process`. (@akselleirv)
+
+- Integrations: Introduce the `squid` integration. (@armstrmi)
+
+- Support custom fields in MMDB file for `stage.geoip`. (@akselleirv)
+
+- Added json_path function to river stdlib. (@jkroepke)
+
+- Add `format`, `join`, `tp_lower`, `replace`, `split`, `trim`, `trim_prefix`, `trim_suffix`, `trim_space`, `to_upper` functions to river stdlib. (@jkroepke)
+
+- Flow UI: Add a view for listing the Agent's peers status when clustering is enabled. (@tpaschalis)
+
+- Add a new CLI command `grafana-agent convert` for converting a river file from supported formats to river. (@erikbaranowski)
+
+- Add support to the `grafana-agent run` CLI for converting a river file from supported formats to river. (@erikbaranowski)
+
+- Add boringcrypto builds and docker images for Linux arm64 and x64. (@mattdurham)
+
+- New Grafana Agent Flow components:
+
+  - `discovery.file` discovers scrape targets from files. (@spartan0x117)
+  - `discovery.kubelet` collect scrape targets from the Kubelet API. (@gcampbell12)
+  - `module.http` runs a Grafana Agent Flow module loaded from a remote HTTP endpoint. (@spartan0x117)
+  - `otelcol.processor.attributes` accepts telemetry data from other `otelcol`
+    components and modifies attributes of a span, log, or metric. (@ptodev)
+  - `prometheus.exporter.cloudwatch` - scrape AWS CloudWatch metrics (@thepalbi)
+  - `prometheus.exporter.elasticsearch` collects metrics from Elasticsearch. (@marctc)
+  - `prometheus.exporter.kafka` collects metrics from Kafka Server. (@oliver-zhang)
+  - `prometheus.exporter.mongodb` collects metrics from MongoDB. (@marctc)
+  - `prometheus.exporter.squid` collects metrics from a squid server. (@armstrmi)
+  - `prometheus.operator.probes` - discovers Probe resources in your Kubernetes
+    cluster and scrape the targets they reference. (@captncraig)
+  - `pyroscope.ebpf` collects system-wide performance profiles from the current
+    host (@korniltsev)
+  - `otelcol.exporter.loadbalancing` - export traces and logs to multiple OTLP gRPC
+    endpoints in a load-balanced way. (@ptodev)
+
+- New Grafana Agent Flow command line utilities:
+
+  - `grafana-agent tools prometheus.remote_write` holds a collection of remote
+    write-specific tools. These have been ported over from the `agentctl` command. (@rfratto)
+
+- A new `action` argument for `otelcol.auth.headers`. (@ptodev)
+
+- New `metadata_keys` and `metadata_cardinality_limit` arguments for `otelcol.processor.batch`. (@ptodev)
+
+- New `boolean_attribute` and `ottl_condition` sampling policies for `otelcol.processor.tail_sampling`. (@ptodev)
+
+- A new `initial_offset` argument for `otelcol.receiver.kafka`. (@ptodev)
+
+### Enhancements
+
+- Attributes and blocks set to their default values will no longer be shown in the Flow UI. (@rfratto)
+
+- Tanka config: retain cAdvisor metrics for system processes (Kubelet, Containerd, etc.) (@bboreham)
+
+- Update cAdvisor dependency to v0.47.0. (@jcreixell)
+
+- Upgrade and improve Cloudwatch exporter integration (@thepalbi)
+
+- Update `node_exporter` dependency to v1.6.0. (@spartan0x117)
+
+- Enable `prometheus.relabel` to work with Prometheus' Native Histograms. (@tpaschalis)
+
+- Update `dnsmasq_exporter` to last version. (@marctc)
+
+- Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
+
+- Update `module.git` with basic and SSH key authentication support. (@djcode)
+
+- Support `clustering` block in `prometheus.operator.servicemonitors` and `prometheus.operator.podmonitors` components to distribute
+  targets amongst clustered agents. (@captncraig)
+
+- Update `redis_exporter` dependency to v1.51.0. (@jcreixell)
+
+- The Grafana Agent mixin now includes a dashboard for the logs pipeline. (@thampiotr)
+
+- The Agent Operational dashboard of Grafana Agent mixin now has more descriptive panel titles, Y-axis units
+
+- Add `write_relabel_config` to `prometheus.remote_write` (@jkroepke)
+
+- Update OpenTelemetry Collector dependencies from v0.63.0 to v0.80.0. (@ptodev)
+
+- Allow setting the node name for clustering with a command-line flag. (@tpaschalis)
+
+- Allow `prometheus.exporter.snmp` and SNMP integration to be configured passing a YAML block. (@marctc)
+
+- Some metrics have been added to the traces subsystem for Static mode. (@ptodev)
+  - "traces_processor_batch_batch_send_size" (histogram)
+  - "traces_processor_batch_batch_size_trigger_send_total" (counter)
+  - "traces_processor_batch_metadata_cardinality" (gauge)
+  - "traces_processor_batch_timeout_trigger_send_total" (counter)
+  - "traces_rpc_server_duration" (histogram)
+  - "traces_exporter_send_failed_metric_points_total" (counter)
+  - "traces_exporter_send_failed_spans_total" (counter)
+  - "traces_exporter_sent_spans_total" (counter)
+
+- Added support for custom `length` time setting in Cloudwatch component and integration. (@thepalbi)
+
+### Bugfixes
+
+- Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
+  period specified by the polling frquency elapsed. (@rfratto)
+
+
+- Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
+  proxying requests. (@mattdurham)
+
+- Fix oauth default scope in `loki.source.azure_event_hubs`. (@akselleirv)
+
+- Fix bug where `otelcol.exporter.otlphttp` ignores configuration for `traces_endpoint`, `metrics_endpoint`, and `logs_endpoint` attributes. (@SimoneFalzone)
+
+- Fix issue in `prometheus.remote_write` where the `queue_config` and
+  `metadata_config` blocks used incorrect defaults when not specified in the
+  config file. (@rfratto)
+
+- Fix issue where published RPMs were not signed. (@rfratto)
+
+- Fix issue where flow mode exports labeled as "string or secret" could not be
+  used in a binary operation. (@rfratto)
+
+- Fix Grafana Agent mixin's "Agent Operational" dashboard expecting pods to always have `grafana-agent-.*` prefix. (@thampiotr)
+
+- Change the HTTP Path and Data Path from the controller-local ID to the global ID for components loaded from within a module loader. (@spartan0x117)
+
+- Fix bug where `stage.timestamp` in `loki.process` wasn't able to correctly
+  parse timezones. This issue only impacts the dedicated `grafana-agent-flow`
+  binary. (@rfratto)
+
+- Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to
+  the `/loki` prefixed endpoints. (@mattdurham)
+
+### Other changes
+
+- Mongodb integration has been re-enabled. (@jcreixell, @marctc)
+- Build with go 1.20.6 (@captncraig)
+
+- Clustering for Grafana Agent in flow mode has graduated from experimental to beta.
+
+v0.34.3 (2023-06-27)
+--------------------
+
+### Bugfixes
+
+- Fixes a bug in conversion of OpenTelemetry histograms when exported to Prometheus. (@grcevski)
+- Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
+- Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
+
+v0.34.2 (2023-06-20)
+--------------------
+
+### Enhancements
+
+- Replace map cache in prometheus.relabel with an LRU cache. (@mattdurham)
+- Integrations: Extend `statsd` integration to configure relay endpoint. (@arminaaki)
+
+### Bugfixes
+
+- Fix a bug where `prometheus.relabel` would not correctly relabel when there is a cache miss. (@thampiotr)
+- Fix a bug where `prometheus.relabel` would not correctly relabel exemplars or metadata. (@tpaschalis)
+- Fixes several issues with statsd exporter. (@jcreixell, @marctc)
+
+### Other changes
+
+- Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
+
+v0.34.1 (2023-06-12)
+--------------------
+
+### Bugfixes
+
+- Fixed application of sub-collector defaults using the `windows_exporter` integration or `prometheus.exporter.windows`. (@mattdurham)
+
+- Fix issue where `remote.http` did not fail early if the initial request
+  failed. This caused failed requests to initially export empty values, which
+  could lead to propagating issues downstream to other components which expect
+  the export to be non-empty. (@rfratto)
+
+- Allow `bearerTokenFile` field to be used in ServiceMonitors. (@captncraig)
+
+- Fix issue where metrics and traces were not recorded from components within modules. (@mattdurham)
+
+- `service_name` label is inferred from discovery meta labels in `pyroscope.scrape` (@korniltsev)
+
+### Other changes
+
+- Add logging to failed requests in `remote.http`. (@rfratto)
+
+v0.34.0 (2023-06-08)
+--------------------
+
+### Breaking changes
+
+- The experimental dynamic configuration feature has been removed in favor of Flow mode. (@mattdurham)
+
+- The `oracledb` integration configuration has removed a redundant field `metrics_scrape_interval`. Use the `scrape_interval` parameter of the integration if a custom scrape interval is required. (@schmikei)
+
+- Upgrade the embedded windows_exporter to commit 79781c6. (@jkroepke)
+
+- Prometheus exporters in Flow mode now set the `instance` label to a value similar to the one they used to have in Static mode (<hostname> by default, customized by some integrations). (@jcreixell)
+
+- `phlare.scrape` and `phlare.write` have been renamed to `pyroscope.scrape` and `pyroscope.scrape`. (@korniltsev)
+
+### Features
+
+- New Grafana Agent Flow components:
+  - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
+  - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
+    the targets they reference. (@captncraig, @marctc, @jcreixell)
+  - `prometheus.receive_http` - receive Prometheus metrics over HTTP (e.g. from other agents). (@thampiotr)
+  - `remote.vault` retrieves a secret from Vault. (@rfratto)
+  - `prometheus.exporter.snowflake` collects metrics from a snowflake database (@jonathanWamsley)
+  - `prometheus.exporter.mssql` collects metrics from Microsoft SQL Server (@jonathanwamsley)
+  - `prometheus.exporter.oracledb` collects metrics from oracledb (@jonathanwamsley)
+  - `prometheus.exporter.dnsmasq` collects metrics from a dnsmasq server. (@spartan0x117)
+  - `loki.source.awsfirehose` - receive Loki log entries from AWS Firehose via HTTP (@thepalbi)
+  - `discovery.http` service discovery via http. (@captncraig)
+
+- Added new functions to the River standard library:
+  - `coalesce` returns the first non-zero value from a list of arguments. (@jkroepke)
+  - `nonsensitive` converts a River secret back into a string. (@rfratto)
+
+### Enhancements
+
+- Support to attach node metadata to pods and endpoints targets in
+  `discovery.kubernetes`. (@laurovenancio)
+
+- Support ability to add optional custom headers to `loki.write` endpoint block (@aos)
+
+- Support in-memory HTTP traffic for Flow components. `prometheus.exporter`
+  components will now export a target containing an internal HTTP address.
+  `prometheus.scrape`, when given that internal HTTP address, will connect to
+  the server in-memory, bypassing the network stack. Use the new
+  `--server.http.memory-addr` flag to customize which address is used for
+  in-memory traffic. (@rfratto)
+- Disable node_exporter on Windows systems (@jkroepke)
+- Operator support for OAuth 2.0 Client in LogsClientSpec (@DavidSpek)
+
+- Support `clustering` block in `phlare.scrape` components to distribute
+  targets amongst clustered agents. (@rfratto)
+
+- Delete stale series after a single WAL truncate instead of two. (@rfratto)
+
+- Update OracleDB Exporter dependency to 0.5.0 (@schmikei)
+
+- Embed Google Fonts on Flow UI (@jkroepke)
+
+- Enable Content-Security-Policies on Flow UI (@jkroepke)
+
+- Update azure-metrics-exporter to v0.0.0-20230502203721-b2bfd97b5313 (@kgeckhart)
+
+- Update azidentity dependency to v1.3.0. (@akselleirv)
+
+- Add custom labels to journal entries in `loki.source.journal` (@sbhrule15)
+
+- `prometheus.operator.podmonitors` and `prometheus.operator.servicemonitors` can now access cluster secrets for authentication to targets. (@captncraig)
+
+### Bugfixes
+
+- Fix `loki.source.(gcplog|heroku)` `http` and `grpc` blocks were overriding defaults with zero-values
+  on non-present fields. (@thepalbi)
+
+- Fix an issue where defining `logging` or `tracing` blocks inside of a module
+  would generate a panic instead of returning an error. (@erikbaranowski)
+
+- Fix an issue where not specifying either `http` nor `grpc` blocks could result
+  in a panic for `loki.source.heroku` and `loki.source.gcplog` components. (@thampiotr)
+
+- Fix an issue where build artifacts for IBM S390x were being built with the
+  GOARCH value for the PPC64 instead. (tpaschalis)
+
+- Fix an issue where the Grafana Agent Flow RPM used the wrong path for the
+  environment file, preventing the service from loading. (@rfratto)
+
+- Fix an issue where the cluster advertise address was overwriting the join
+  addresses. (@laurovenancio)
+
+- Fix targets deduplication when clustering mode is enabled. (@laurovenancio)
+
+- Fix issue in operator where any version update will restart all agent pods simultaneously. (@captncraig)
+
+- Fix an issue where `loki.source.journald` did not create the positions
+  directory with the appropriate permissions. (@tpaschalis)
+
+- Fix an issue where fanning out log entries to multiple `loki.process`
+  components lead to a race condition. (@tpaschalis)
+
+- Fix panic in `prometheus.operator.servicemonitors` from relabel rules without certain defaults. (@captncraig)
+
+- Fix issue in modules export cache throwing uncomparable errors. (@mattdurham)
+
+- Fix issue where the UI could not navigate to components loaded by modules. (@rfratto)
+
+- Fix issue where using exporters inside modules failed due to not passing the in-memory address dialer. (@mattdurham)
+
+- Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
+  proxying requests. (@mattdurham)
+
+- Fix missing `instance` key for `prometheus.exporter.dnsmasq` component. (@spartan0x117)
+
+### Other changes
+
+- Add metrics when clustering mode is enabled. (@rfratto)
+- Document debug metric `loki_process_dropped_lines_by_label_total` in loki.process. (@akselleirv)
+
+- Add `agent_wal_out_of_order_samples_total` metric to track samples received
+  out of order. (@rfratto)
+
+- Add CLI flag `--server.http.enable-pprof` to grafana-agent-flow to conditionally enable `/debug/pprof` endpoints (@jkroepke)
+
+- Use Go 1.20.4 for builds. (@tpaschalis)
+
+- Integrate the new ExceptionContext which was recently added to the Faro Web-SDK in the
+  app_agent_receiver Payload. (@codecapitano)
+
+- Flow clustering: clusters will now use 512 tokens per node for distributing
+  work, leading to better distribution. However, rolling out this change will
+  cause some incorrerct or missing assignments until all nodes are updated. (@rfratto)
+
+- Change the Docker base image for Linux containers to `ubuntu:lunar`.
+  (@rfratto)
+
+v0.33.2 (2023-05-11)
+--------------------
+
+### Bugfixes
+
+- Fix issue where component evaluation time was overridden by a "default
+  health" message. (@rfratto)
+
+- Honor timeout when trying to establish a connection to another agent in Flow
+  clustering mode. (@rfratto)
+
+- Fix an issue with the grafana/agent windows docker image entrypoint
+  not targeting the right location for the config. (@erikbaranowski)
+
+- Fix issue where the `node_exporter` integration and
+  `prometheus.exporter.unix` `diskstat_device_include` component could not set
+  the allowlist field for the diskstat collector. (@tpaschalis)
+
+- Fix an issue in `loki.source.heroku` where updating the `labels` or `use_incoming_timestamp`
+  would not take effect. (@thampiotr)
+
+- Flow: Fix an issue within S3 Module where the S3 path was not parsed correctly when the
+  path consists of a parent directory. (@jastisriradheshyam)
+
+- Flow: Fix an issue on Windows where `prometheus.remote_write` failed to read
+  WAL checkpoints. This issue led to memory leaks once the initial checkpoint
+  was created, and prevented a fresh process from being able to deliver metrics
+  at all. (@rfratto)
+
+- Fix an issue where the `loki.source.kubernetes` component could lead to
+  the Agent crashing due to a race condition. (@tpaschalis)
+
+### Other changes
+
+- The `phlare.scrape` Flow component `fetch profile failed` log has been set to
+  `debug` instead of `error`. (@erikbaranowski)
+
+v0.33.1 (2023-05-01)
+--------------------
+
+### Bugfixes
+
+- Fix spelling of the `frequency` argument on the `local.file` component.
+  (@tpaschalis)
+
+- Fix bug where some capsule values (such as Prometheus receivers) could not
+  properly be used as an argument to a module. (@rfratto)
+
+- Fix version information not displaying correctly when passing the `--version`
+  flag or in the `agent_build_info` metric. (@rfratto)
+
+- Fix issue in `loki.source.heroku` and `loki.source.gcplog` where updating the
+  component would cause Grafana Agent Flow's Prometheus metrics endpoint to
+  return an error until the process is restarted. (@rfratto)
+
+- Fix issue in `loki.source.file` where updating the component caused
+  goroutines to leak. (@rfratto)
+
+### Other changes
+
+- Support Bundles report the status of discovered log targets. (@tpaschalis)
+
+v0.33.0 (2023-04-25)
+--------------------
+
+### Breaking changes
+
+- Support for 32-bit ARM builds is removed for the foreseeable future due to Go
+  compiler issues. We will consider bringing back 32-bit ARM support once our Go
+  compiler issues are resolved and 32-bit ARM builds are stable. (@rfratto)
+
+- Agent Management: `agent_management.api_url` config field has been replaced by
+`agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
+
+- Agent Management: `agent_management.protocol` config field now allows defining "http" and "https" explicitly. Previously, "http" was previously used for both, with the actual protocol used inferred from the api url, which led to confusion. When upgrading, make sure to set to "https" when replacing `api_url` with `host`. (@jcreixell)
+
+- Agent Management: `agent_management.remote_config_cache_location` config field has been replaced by
+`agent_management.remote_configuration.cache_location`. (@jcreixell)
+
+- Remove deprecated symbolic links to to `/bin/agent*` in Docker containers,
+  as planned in v0.31. (@tpaschalis)
+
+### Deprecations
+
+- [Dynamic Configuration](https://grafana.com/docs/agent/latest/cookbook/dynamic-configuration/) will be removed in v0.34. Grafana Agent Flow supersedes this functionality. (@mattdurham)
+
+### Features
+
+- New Grafana Agent Flow components:
+
+  - `discovery.dns` DNS service discovery. (@captncraig)
+  - `discovery.ec2` service discovery for aws ec2. (@captncraig)
+  - `discovery.lightsail` service discovery for aws lightsail. (@captncraig)
+  - `discovery.gce` discovers resources on Google Compute Engine (GCE). (@marctc)
+  - `discovery.digitalocean` provides service discovery for DigitalOcean. (@spartan0x117)
+  - `discovery.consul` service discovery for Consul. (@jcreixell)
+  - `discovery.azure` provides service discovery for Azure. (@spartan0x117)
+  - `module.file` runs a Grafana Agent Flow module loaded from a file on disk.
+    (@erikbaranowski)
+  - `module.git` runs a Grafana Agent Flow module loaded from a file within a
+    Git repository. (@rfratto)
+  - `module.string` runs a Grafana Agent Flow module passed to the component by
+    an expression containing a string. (@erikbaranowski, @rfratto)
+  - `otelcol.auth.oauth2` performs OAuth 2.0 authentication for HTTP and gRPC
+    based OpenTelemetry exporters. (@ptodev)
+  - `otelcol.extension.jaeger_remote_sampling` provides an endpoint from which to
+    pull Jaeger remote sampling documents. (@joe-elliott)
+  - `otelcol.exporter.logging` accepts OpenTelemetry data from other `otelcol` components and writes it to the console. (@erikbaranowski)
+  - `otelcol.auth.sigv4` performs AWS Signature Version 4 (SigV4) authentication
+    for making requests to AWS services via `otelcol` components that support
+    authentication extensions. (@ptodev)
+  - `prometheus.exporter.blackbox` collects metrics from Blackbox exporter. (@marctc)
+  - `prometheus.exporter.mysql` collects metrics from a MySQL database. (@spartan0x117)
+  - `prometheus.exporter.postgres` collects metrics from a PostgreSQL database. (@spartan0x117)
+  - `prometheus.exporter.statsd` collects metrics from a Statsd instance. (@gaantunes)
+  - `prometheus.exporter.snmp` collects metrics from SNMP exporter. (@marctc)
+  - `prometheus.operator.podmonitors` discovers PodMonitor resources in your Kubernetes cluster and scrape
+    the targets they reference. (@captncraig, @marctc, @jcreixell)
+  - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
+  - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
+  - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other   `loki` components. (@akselleirv)
+
+- Add support for Flow-specific system packages:
+
+  - Flow-specific DEB packages. (@rfratto, @robigan)
+  - Flow-specific RPM packages. (@rfratto, @robigan)
+  - Flow-specific macOS Homebrew Formula. (@rfratto)
+  - Flow-specific Windows installer. (@rfratto)
+
+  The Flow-specific packages allow users to install and run Grafana Agent Flow
+  alongside an existing installation of Grafana Agent.
+
+- Agent Management: Add support for integration snippets. (@jcreixell)
+
+- Flow: Introduce a gossip-over-HTTP/2 _clustered mode_. `prometheus.scrape`
+  component instances can opt-in to distributing scrape load between cluster
+  peers. (@tpaschalis)
+
+### Enhancements
+
+- Flow: Add retries with backoff logic to Phlare write component. (@cyriltovena)
+
+- Operator: Allow setting runtimeClassName on operator-created pods. (@captncraig)
+
+- Operator: Transparently compress agent configs to stay under size limitations. (@captncraig)
+
+- Update Redis Exporter Dependency to v1.49.0. (@spartan0x117)
+
+- Update Loki dependency to the k144 branch. (@andriikushch)
+
+- Flow: Add OAUTHBEARER mechanism to `loki.source.kafka` using Azure as provider. (@akselleirv)
+
+- Update Process Exporter dependency to v0.7.10. (@spartan0x117)
+
+- Agent Management: Introduces backpressure mechanism for remote config fetching (obeys 429 request
+  `Retry-After` header). (@spartan0x117)
+
+- Flow: support client TLS settings (CA, client certificate, client key) being
+  provided from other components for the following components:
+
+  - `discovery.docker`
+  - `discovery.kubernetes`
+  - `loki.source.kafka`
+  - `loki.source.kubernetes`
+  - `loki.source.podlogs`
+  - `loki.write`
+  - `mimir.rules.kubernetes`
+  - `otelcol.auth.oauth2`
+  - `otelcol.exporter.jaeger`
+  - `otelcol.exporter.otlp`
+  - `otelcol.exporter.otlphttp`
+  - `otelcol.extension.jaeger_remote_sampling`
+  - `otelcol.receiver.jaeger`
+  - `otelcol.receiver.kafka`
+  - `phlare.scrape`
+  - `phlare.write`
+  - `prometheus.remote_write`
+  - `prometheus.scrape`
+  - `remote.http`
+
+- Flow: support server TLS settings (client CA, server certificate, server key)
+  being provided from other components for the following components:
+
+  - `loki.source.syslog`
+  - `otelcol.exporter.otlp`
+  - `otelcol.extension.jaeger_remote_sampling`
+  - `otelcol.receiver.jaeger`
+  - `otelcol.receiver.opencensus`
+  - `otelcol.receiver.zipkin`
+
+- Flow: Define custom http method and headers in `remote.http` component (@jkroepke)
+
+- Flow: Add config property to `prometheus.exporter.blackbox` to define the config inline (@jkroepke)
+
+- Update Loki Dependency to k146 which includes configurable file watchers (@mattdurham)
+
+### Bugfixes
+
+- Flow: fix issue where Flow would return an error when trying to access a key
+  of a map whose value was the zero value (`null`, `0`, `false`, `[]`, `{}`).
+  Whether an error was returned depended on the internal type of the value.
+  (@rfratto)
+
+- Flow: fix issue where using the `jaeger_remote` sampler for the `tracing`
+  block would fail to parse the response from the remote sampler server if it
+  used strings for the strategy type. This caused sampling to fall back
+  to the default rate. (@rfratto)
+
+- Flow: fix issue where components with no arguments like `loki.echo` were not
+  viewable in the UI. (@rfratto)
+
+- Flow: fix deadlock in `loki.source.file` where terminating tailers would hang
+  while flushing remaining logs, preventing `loki.source.file` from being able
+  to update. (@rfratto)
+
+- Flow: fix deadlock in `loki.process` where a component with no stages would
+  hang forever on handling logs. (@rfratto)
+
+- Fix issue where a DefaultConfig might be mutated during unmarshaling. (@jcreixell)
+
+- Fix issues where CloudWatch Exporter cannot use FIPS Endpoints outside of USA regions (@aglees)
+
+- Fix issue where scraping native Prometheus histograms would leak memory.
+  (@rfratto)
+
+- Flow: fix issue where `loki.source.docker` component could deadlock. (@tpaschalis)
+
+- Flow: fix issue where `prometheus.remote_write` created unnecessary extra
+  child directories to store the WAL in. (@rfratto)
+
+- Fix internal metrics reported as invalid by promtool's linter. (@tpaschalis)
+
+- Fix issues with cri stage which treats partial line coming from any stream as same. (@kavirajk @aglees)
+
+- Operator: fix for running multiple operators with different `--agent-selector` flags. (@captncraig)
+
+- Operator: respect FilterRunning on PodMonitor and ServiceMonitor resources to only scrape running pods. (@captncraig)
+
+- Fixes a bug where the github exporter would get stuck in an infinite loop under certain conditions. (@jcreixell)
+
+- Fix bug where `loki.source.docker` always failed to start. (@rfratto)
+
+### Other changes
+
+- Grafana Agent Docker containers and release binaries are now published for
+  s390x. (@rfratto)
+
+- Use Go 1.20.3 for builds. (@rfratto)
+
+- Change the Docker base image for Linux containers to `ubuntu:kinetic`.
+  (@rfratto)
+
+- Update prometheus.remote_write defaults to match new prometheus
+  remote-write defaults. (@erikbaranowski)
+
+v0.32.1 (2023-03-06)
+--------------------
+
+### Bugfixes
+
+- Flow: Fixes slow reloading of targets in `phlare.scrape` component. (@cyriltovena)
+
+- Flow: add a maximum connection lifetime of one hour when tailing logs from
+  `loki.source.kubernetes` and `loki.source.podlogs` to recover from an issue
+  where the Kubernetes API server stops responding with logs without closing
+  the TCP connection. (@rfratto)
+
+- Flow: fix issue in `loki.source.kubernetes` where `__pod__uid__` meta label
+  defaulted incorrectly to the container name, causing tailers to never
+  restart. (@rfratto)
+
+v0.32.0 (2023-02-28)
+--------------------
+
+### Breaking changes
+
+- Support for the embedded Flow UI for 32-bit ARMv6 builds is temporarily
+  removed. (@rfratto)
+
+- Node Exporter configuration options changed to align with new upstream version (@Thor77):
+
+  - `diskstats_ignored_devices` is now `diskstats_device_exclude` in agent configuration.
+  - `ignored_devices` is now `device_exclude` in flow configuration.
+
+- Some blocks in Flow components have been merged with their parent block to make the block hierarchy smaller:
+
+  - `discovery.docker > http_client_config` is merged into the `discovery.docker` block. (@erikbaranowski)
+  - `discovery.kubernetes > http_client_config` is merged into the `discovery.kubernetes` block. (@erikbaranowski)
+  - `loki.source.kubernetes > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+  - `loki.source.podlogs > client > http_client_config` is merged into the `client` block. (@erikbaranowski)
+  - `loki.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `mimir.rules.kubernetes > http_client_config` is merged into the `mimir.rules.kubernetes` block. (@erikbaranowski)
+  - `otelcol.receiver.opencensus > grpc` is merged into the `otelcol.receiver.opencensus` block. (@ptodev)
+  - `otelcol.receiver.zipkin > http` is merged into the `otelcol.receiver.zipkin` block. (@ptodev)
+  - `phlare.scrape > http_client_config` is merged into the `phlare.scrape` block. (@erikbaranowski)
+  - `phlare.write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `prometheus.remote_write > endpoint > http_client_config` is merged into the `endpoint` block. (@erikbaranowski)
+  - `prometheus.scrape > http_client_config` is merged into the `prometheus.scrape` block. (@erikbaranowski)
+
+- The `loki.process` component now uses a combined name for stages, simplifying
+  the block hierarchy. For example, the `stage > json` block hierarchy is now a
+  single block called `stage.json`. All stage blocks in `loki.process` have
+  been updated to use this simplified hierarchy. (@tpaschalis)
+
+- `remote.s3` `client_options` block has been renamed to `client`. (@mattdurham)
+
+- Renamed `prometheus.integration.node_exporter` to `prometheus.exporter.unix`. (@jcreixell)
+
+- As first announced in v0.30, support for the `EXPERIMENTAL_ENABLE_FLOW`
+  environment variable has been removed in favor of `AGENT_MODE=flow`.
+  (@rfratto)
+
+### Features
+
+- New integrations:
+
+  - `oracledb` (@schmikei)
+  - `mssql` (@binaryfissiongames)
+  - `cloudwatch metrics` (@thepalbi)
+  - `azure` (@kgeckhart)
+  - `gcp` (@kgeckhart, @ferruvich)
+
+- New Grafana Agent Flow components:
+
+  - `loki.echo` writes received logs to stdout. (@tpaschalis, @rfratto)
+  - `loki.source.docker` reads logs from Docker containers and forwards them to
+    other `loki` components. (@tpaschalis)
+  - `loki.source.kafka` reads logs from Kafka events and forwards them to other
+    `loki` components. (@erikbaranowski)
+  - `loki.source.kubernetes_events` watches for Kubernetes Events and converts
+    them into log lines to forward to other `loki` components. It is the
+    equivalent of the `eventhandler` integration. (@rfratto)
+  - `otelcol.processor.tail_sampling` samples traces based on a set of defined
+    policies from `otelcol` components before forwarding them to other
+    `otelcol` components. (@erikbaranowski)
+  - `prometheus.exporter.apache` collects metrics from an apache web server
+    (@captncraig)
+  - `prometheus.exporter.consul` collects metrics from a consul installation
+    (@captncraig)
+  - `prometheus.exporter.github` collects metrics from GitHub (@jcreixell)
+  - `prometheus.exporter.process` aggregates and collects metrics by scraping
+    `/proc`. (@spartan0x117)
+  - `prometheus.exporter.redis` collects metrics from a redis database
+    (@spartan0x117)
+
+### Enhancements
+
+- Flow: Support `keepequal` and `dropequal` actions for relabeling. (@cyriltovena)
+
+- Update Prometheus Node Exporter integration to v1.5.0. (@Thor77)
+
+- Grafana Agent Flow will now reload the config file when `SIGHUP` is sent to
+  the process. (@rfratto)
+
+- If using the official RPM and DEB packages for Grafana Agent, invoking
+  `systemctl reload grafana-agent` will now reload the configuration file.
+  (@rfratto)
+
+- Flow: the `loki.process` component now implements all the same processing
+  stages as Promtail's pipelines. (@tpaschalis)
+
+- Flow: new metric for `prometheus.scrape` -
+  `agent_prometheus_scrape_targets_gauge`. (@ptodev)
+
+- Flow: new metric for `prometheus.scrape` and `prometheus.relabel` -
+  `agent_prometheus_forwarded_samples_total`. (@ptodev)
+
+- Flow: add `constants` into the standard library to expose the hostname, OS,
+  and architecture of the system Grafana Agent is running on. (@rfratto)
+
+- Flow: add timeout to loki.source.podlogs controller setup. (@polyrain)
+
+### Bugfixes
+
+- Fixed a reconciliation error in Grafana Agent Operator when using `tlsConfig`
+  on `Probe`. (@supergillis)
+
+- Fix issue where an empty `server:` config stanza would cause debug-level logging.
+  An empty `server:` is considered a misconfiguration, and thus will error out.
+  (@neomantra)
+
+- Flow: fix an error where some error messages that crossed multiple lines
+  added extra an extra `|` character when displaying the source file on the
+  starting line. (@rfratto)
+
+- Flow: fix issues in `agent fmt` where adding an inline comment on the same
+  line as a `[` or `{` would cause indentation issues on subsequent lines.
+  (@rfratto)
+
+- Flow: fix issues in `agent fmt` where line comments in arrays would be given
+  the wrong identation level. (@rfratto)
+
+- Flow: fix issues with `loki.file` and `loki.process` where deadlock contention or
+  logs fail to process. (@mattdurham)
+
+- Flow: `oauth2 > tls_config` was documented as a block but coded incorrectly as
+  an attribute. This is now a block in code. This impacted `discovery.docker`,
+  `discovery.kubernetes`, `loki.source.kubernetes`, `loki.write`,
+  `mimir.rules.kubernetes`, `phlare.scrape`, `phlare.write`,
+  `prometheus.remote_write`, `prometheus.scrape`, and `remote.http`
+  (@erikbaranowski)
+
+- Flow: Fix issue where using `river:",label"` causes the UI to return nothing. (@mattdurham)
+
+### Other changes
+
+- Use Go 1.20 for builds. (@rfratto)
+
+- The beta label from Grafana Agent Flow has been removed. A subset of Flow
+  components are still marked as beta or experimental:
+
+  - `loki.echo` is explicitly marked as beta.
+  - `loki.source.kubernetes` is explicitly marked as experimental.
+  - `loki.source.podlogs` is explicitly marked as experimental.
+  - `mimir.rules.kubernetes` is explicitly marked as beta.
+  - `otelcol.processor.tail_sampling` is explicitly marked as beta.
+  - `otelcol.receiver.loki` is explicitly marked as beta.
+  - `otelcol.receiver.prometheus` is explicitly marked as beta.
+  - `phlare.scrape` is explicitly marked as beta.
+  - `phlare.write` is explicitly marked as beta.
+
+v0.31.3 (2023-02-13)
+--------------------
+
+### Bugfixes
+
+- `loki.source.cloudflare`: fix issue where the `zone_id` argument
+  was being ignored, and the `api_token` argument was being used for the zone
+  instead. (@rfratto)
+
+- `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
+  as a sensitive field. (@rfratto)
+
+v0.31.2 (2023-02-08)
+--------------------
+
+### Other changes
+
+- In the Agent Operator, upgrade the `prometheus-config-reloader` dependency
+  from version 0.47.0 to version 0.62.0. (@ptodev)
+
+v0.31.1 (2023-02-06)
+--------------------
+
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- All release Windows `.exe` files are now published as a zip archive.
+  Previously, `grafana-agent-installer.exe` was unzipped. (@rfratto)
+
+### Other changes
+
+- Support Go 1.20 for builds. Official release binaries are still produced
+  using Go 1.19. (@rfratto)
+
+v0.31.0 (2023-01-31)
+--------------------
+
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
@@ -38,8 +917,12 @@ Main (unreleased)
   - `loki.source.gelf` listens for Graylog logs. (@mattdurham)
   - `loki.source.heroku` listens for Heroku messages over TCP a connection and
     forwards them to other `loki` components. (@erikbaranowski)
+  - `loki.source.journal` read messages from systemd journal. (@mattdurham)
   - `loki.source.kubernetes` collects logs from Kubernetes pods using the
     Kubernetes API. (@rfratto)
+  - `loki.source.podlogs` discovers PodLogs resources on Kubernetes and
+    uses the Kubernetes API to collect logs from the pods specified by the
+    PodLogs resource. (@rfratto)
   - `loki.source.syslog` listens for Syslog messages over TCP and UDP
     connections and forwards them to other `loki` components. (@tpaschalis)
   - `loki.source.windowsevent` reads logs from Windows Event Log. (@mattdurham)
@@ -56,6 +939,8 @@ Main (unreleased)
   - `phlare.scrape` collects application performance profiles. (@cyriltovena)
   - `phlare.write` sends application performance profiles to Grafana Phlare.
     (@cyriltovena)
+  - `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
+    loads them into a Mimir instance. (@Logiraptor)
 
 - Flow components which work with relabeling rules (`discovery.relabel`,
   `prometheus.relabel` and `loki.relabel`) now export a new value named Rules.
@@ -75,9 +960,8 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Flow UI: Fix the issue with messy layout on the component list page while browser window resize. (@xiyu95)
-
-- Flow UI: Fix the issue with long string going out of bound in the component detail page. (@xiyu95)
+- Flow UI: Fix the issue with messy layout on the component list page while
+  browser window resize (@xiyu95)
 
 - Flow UI: Display the values of all attributes unless they are nil. (@ptodev)
 
@@ -88,6 +972,9 @@ Main (unreleased)
 
 - Flow: fix a goroutine leak when `loki.source.file` is passed more than one
   target with identical set of public labels. (@rfratto)
+
+- Fix issue where removing and re-adding log instance configurations causes an
+  error due to double registration of metrics (@spartan0x117, @jcreixell)
 
 ### Other changes
 
@@ -173,11 +1060,7 @@ v0.30.0 (2022-12-20)
   - `discovery.file` discovers files on the filesystem following glob
     patterns. (@mattdurham)
 
-  - `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
-    loads them into a Mimir instance. (@Logiraptor)
-
 - Integrations: Introduce the `snowflake` integration. (@binaryfissiongames)
-
 
 ### Enhancements
 
@@ -1093,7 +1976,7 @@ v0.19.0 (2021-09-29)
 
 ### Features
 
-- Added [Github exporter](https://github.com/infinityworks/github-exporter)
+- Added [GitHub exporter](https://github.com/infinityworks/github-exporter)
   integration. (@rgeyer)
 
 - Add TLS config options for tempo `remote_write`s. (@mapno)
@@ -1213,7 +2096,7 @@ v0.18.0 (2021-07-29)
 
 ### Features
 
-- Added [Github exporter](https://github.com/infinityworks/github-exporter)
+- Added [GitHub exporter](https://github.com/infinityworks/github-exporter)
   integration. (@rgeyer)
 
 - Add support for OTLP HTTP trace exporting. (@mapno)
@@ -1299,7 +2182,7 @@ v0.15.0 (2021-06-03)
 - Update Loki dependency to d88f3996eaa2. This is a non-release build, and was
   needed to support exemplars. (@mapno)
 
-- Update Cortex dependency to to d382e1d80eaf. This is a non-release build, and
+- Update Cortex dependency to d382e1d80eaf. This is a non-release build, and
   was needed to support exemplars. (@mapno)
 
 ### Bugfixes
@@ -1756,7 +2639,7 @@ v0.7.0 (2020-10-23)
 - The instance label written from replace_instance_label can now be overwritten
   with relabel_configs. This bugfix slightly modifies the behavior of what data
   is stored. The final instance label will now be stored in the WAL rather than
-  computed by remote_write. This change should not negatively effect existing
+  computed by remote_write. This change should not negatively affect existing
   users. (@rfratto)
 
 v0.6.1 (2020-04-11)

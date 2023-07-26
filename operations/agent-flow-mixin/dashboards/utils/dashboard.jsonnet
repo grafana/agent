@@ -16,6 +16,13 @@
         query: 'prometheus',
         refresh: 1,
         sort: 2,
+      }, {
+        name: 'loki_datasource',
+        label: 'Loki Data Source',
+        type: 'datasource',
+        query: 'loki',
+        refresh: 1,
+        sort: 2,
       }],
     },
     time: {
@@ -71,6 +78,16 @@
     sort: 2,
   },
 
+  newLokiAnnotation(name, expression, color):: {
+    name: name,
+    datasource: '$loki_datasource',
+    enable: true,
+    expr: expression,
+    iconColor: color,
+    instant: false,
+    titleFormat: '{{cluster}}/{{namespace}}',
+  },
+
   newMultiTemplateVariable(name, query):: $.newTemplateVariable(name, query) {
     allValue: '.*',
     includeAll: true,
@@ -78,6 +95,12 @@
   },
 
   withPanelsMixin(panels):: { panels+: panels },
+
+  withAnnotations(annotations):: {
+    annotations+: {
+      list+: annotations,
+    },
+  },
 
   withDocsLink(url, desc):: {
     links+: [{

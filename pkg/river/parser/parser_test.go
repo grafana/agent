@@ -108,7 +108,7 @@ func TestParseExpressions(t *testing.T) {
 
 		"parens": `(1 + 5) * 100`,
 
-		"mixed exprsssion": `(a.b.c)(1, 3 * some_list[magic_index * 2]).resulting_field`,
+		"mixed expression": `(a.b.c)(1, 3 * some_list[magic_index * 2]).resulting_field`,
 	}
 
 	for name, input := range tt {

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	otelreceiver "go.opentelemetry.io/collector/receiver"
 )
 
 const (
@@ -14,24 +14,23 @@ const (
 )
 
 // Type returns the receiver type that PushReceiverFactory produces
-func (f Factory) Type() config.Type {
+func (f Factory) Type() component.Type {
 	return TypeStr
 }
 
 // NewFactory creates a new push receiver factory.
-func NewFactory() component.ReceiverFactory {
+func NewFactory() otelreceiver.Factory {
 	return &Factory{}
 }
 
 // CreateDefaultConfig creates a default push receiver config.
-func (f *Factory) CreateDefaultConfig() config.Receiver {
-	s := config.NewReceiverSettings(config.NewComponentIDWithName(TypeStr, TypeStr))
-	return &s
+func (f *Factory) CreateDefaultConfig() component.Config {
+	return &struct{}{}
 }
 
 // Factory is a factory that sneakily exposes a Traces consumer for use within the agent.
 type Factory struct {
-	component.Factory
+	otelreceiver.Factory
 	Consumer consumer.Traces
 }
 
@@ -53,10 +52,10 @@ func (f *Factory) TracesReceiverStability() component.StabilityLevel {
 // CreateTracesReceiver creates a stub receiver while also sneakily keeping a reference to the provided Traces consumer.
 func (f *Factory) CreateTracesReceiver(
 	_ context.Context,
-	_ component.ReceiverCreateSettings,
-	_ config.Receiver,
+	_ otelreceiver.CreateSettings,
+	_ component.Config,
 	c consumer.Traces,
-) (component.TracesReceiver, error) {
+) (otelreceiver.Traces, error) {
 
 	r, err := newPushReceiver()
 	f.Consumer = c
@@ -65,15 +64,15 @@ func (f *Factory) CreateTracesReceiver(
 }
 
 // CreateMetricsReceiver returns an error because metrics are not supported by push receiver.
-func (f *Factory) CreateMetricsReceiver(ctx context.Context, set component.ReceiverCreateSettings,
-	cfg config.Receiver, nextConsumer consumer.Metrics) (component.MetricsReceiver, error) {
+func (f *Factory) CreateMetricsReceiver(ctx context.Context, set otelreceiver.CreateSettings,
+	cfg component.Config, nextConsumer consumer.Metrics) (otelreceiver.Metrics, error) {
 
 	return nil, component.ErrDataTypeIsNotSupported
 }
 
 // CreateLogsReceiver returns an error because logs are not supported by push receiver.
-func (f *Factory) CreateLogsReceiver(ctx context.Context, set component.ReceiverCreateSettings,
-	cfg config.Receiver, nextConsumer consumer.Logs) (component.LogsReceiver, error) {
+func (f *Factory) CreateLogsReceiver(ctx context.Context, set otelreceiver.CreateSettings,
+	cfg component.Config, nextConsumer consumer.Logs) (otelreceiver.Logs, error) {
 
 	return nil, component.ErrDataTypeIsNotSupported
 }

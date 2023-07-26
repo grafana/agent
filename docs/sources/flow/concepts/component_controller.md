@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/concepts/component-controller
+- ../../concepts/component-controller/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/component_controller/
 title: Component controller
 weight: 200
 ---
@@ -89,7 +90,7 @@ The overall health of a component is determined by combining the
 controller-reported health of the component with the component-specific health
 information.
 
-An individual component's health is independent from the health of any other
+An individual component's health is independent of the health of any other
 components it references: a component can be marked as healthy even if it
 references an exported field of an unhealthy component.
 
@@ -105,6 +106,24 @@ exporting new values.
 This prevents failure propagation: if your `local.file` component which watches
 API keys suddenly stops working, other components continues using the last
 valid API key until the component returns to a healthy state.
+
+## In-memory traffic
+
+Components which expose HTTP endpoints, such as [prometheus.exporter.unix][],
+can expose an internal address which will completely bypass the network and
+communicate in-memory. This allows components within the same process to
+communicate with one another without needing to be aware of any network-level
+protections such as authentication or mutual TLS.
+
+The internal address defaults to `agent.internal:12345`. If this address
+collides with a real target on your network, change it to something unique
+using the `--server.http.memory-addr` flag in the [run][] command.
+
+Components must opt-in to using in-memory traffic; see the individual
+documentation for components to learn if in-memory traffic is supported.
+
+[prometheus.exporter.unix]: {{< relref "../reference/components/prometheus.exporter.unix.md" >}}
+[run]: {{< relref "../reference/cli/run.md" >}}
 
 ## Updating the config file
 

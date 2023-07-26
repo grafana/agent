@@ -7,9 +7,6 @@ local r = pl.spec.relabelings;
         r.withSourceLabels(['__meta_kubernetes_pod_node_name']) +
         r.withTargetLabel('__host__'),
 
-        r.withAction('labelmap') +
-        r.withRegex('__meta_kubernetes_pod_label_(.+)'),
-
         // r.withAction('replace') +
         // r.withReplacement('$1') +
         // r.withSeparator('/') +
@@ -25,7 +22,7 @@ local r = pl.spec.relabelings;
         r.withTargetLabel('pod'),
 
         r.withAction('replace') +
-        r.withSourceLabels('__meta_kubernetes_container_name') +
+        r.withSourceLabels('__meta_kubernetes_pod_container_name') +
         r.withTargetLabel('container'),
 
         r.withReplacement('/var/log/pods/*$1/*.log') +

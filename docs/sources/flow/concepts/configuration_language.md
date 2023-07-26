@@ -1,8 +1,9 @@
 ---
 aliases:
-- /docs/agent/latest/concepts/configuration-language
+- ../../concepts/configuration-language/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/configuration_language/
 title: Configuration language
-weight: 300
+weight: 400
 ---
 
 # Configuration language
@@ -69,8 +70,8 @@ formed by merging the component's name (e.g., `local.file`), label (e.g.,
 `password_file`), and export name (e.g., `content`), delimited by period.
 
 For components that don't use labels, like
-`prometheus.integration.node_exporter`, only combine the component name with
-export name: `prometheus.integration.node_exporter.targets`.
+`prometheus.exporter.unix`, only combine the component name with
+export name: `prometheus.exporter.unix.targets`.
 
 ## Blocks
 
@@ -90,7 +91,7 @@ This file has two blocks:
 * `prometheus.remote_write "default"`: A labeled block which instantiates a
   `prometheus.remote_write` component. The label is the string `"default"`.
 
-* `remote_write`: An unlabeled block inside the component which configures an
+* `endpoint`: An unlabeled block inside the component which configures an
   endpoint to send metrics to. This block sets the `url` attribute to specify
   what the endpoint is.
 

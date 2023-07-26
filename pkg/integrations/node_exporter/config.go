@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/procfs"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -23,10 +23,11 @@ var (
 	// DefaultConfig's defaults are populated from init functions in this package.
 	// See the init function here and in node_exporter_linux.go.
 	DefaultConfig = Config{
-		ProcFSPath: procfs.DefaultMountPoint,
-		RootFSPath: "/",
+		ProcFSPath:   procfs.DefaultMountPoint,
+		RootFSPath:   "/",
+		UdevDataPath: "/run/udev/data",
 
-		DiskStatsIgnoredDevices: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
+		DiskStatsDeviceExclude: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
 
 		EthtoolMetricsInclude: ".*",
 
@@ -82,9 +83,10 @@ func init() {
 type Config struct {
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics,omitempty"`
 
-	ProcFSPath string `yaml:"procfs_path,omitempty"`
-	SysFSPath  string `yaml:"sysfs_path,omitempty"`
-	RootFSPath string `yaml:"rootfs_path,omitempty"`
+	ProcFSPath   string `yaml:"procfs_path,omitempty"`
+	SysFSPath    string `yaml:"sysfs_path,omitempty"`
+	RootFSPath   string `yaml:"rootfs_path,omitempty"`
+	UdevDataPath string `yaml:"udev_data_path,omitempty"`
 
 	// Collectors to mark as enabled
 	EnableCollectors flagext.StringSlice `yaml:"enable_collectors,omitempty"`
@@ -102,7 +104,8 @@ type Config struct {
 	CPUEnableCPUGuest                bool                `yaml:"enable_cpu_guest_seconds_metric,omitempty"`
 	CPUEnableCPUInfo                 bool                `yaml:"enable_cpu_info_metric,omitempty"`
 	CPUFlagsInclude                  string              `yaml:"cpu_flags_include,omitempty"`
-	DiskStatsIgnoredDevices          string              `yaml:"diskstats_ignored_devices,omitempty"`
+	DiskStatsDeviceExclude           string              `yaml:"diskstats_device_exclude,omitempty"`
+	DiskStatsDeviceInclude           string              `yaml:"diskstats_device_include,omitempty"`
 	EthtoolDeviceExclude             string              `yaml:"ethtool_device_exclude,omitempty"`
 	EthtoolDeviceInclude             string              `yaml:"ethtool_device_include,omitempty"`
 	EthtoolMetricsInclude            string              `yaml:"ethtool_metrics_include,omitempty"`
@@ -124,9 +127,17 @@ type Config struct {
 	NetstatFields                    string              `yaml:"netstat_fields,omitempty"`
 	PerfCPUS                         string              `yaml:"perf_cpus,omitempty"`
 	PerfTracepoint                   flagext.StringSlice `yaml:"perf_tracepoint,omitempty"`
+	PerfDisableHardwareProfilers     bool                `yaml:"perf_disable_hardware_profilers,omitempty"`
+	PerfDisableSoftwareProfilers     bool                `yaml:"perf_disable_software_profilers,omitempty"`
+	PerfDisableCacheProfilers        bool                `yaml:"perf_disable_cache_profilers,omitempty"`
+	PerfHardwareProfilers            flagext.StringSlice `yaml:"perf_hardware_profilers,omitempty"`
+	PerfSoftwareProfilers            flagext.StringSlice `yaml:"perf_software_profilers,omitempty"`
+	PerfCacheProfilers               flagext.StringSlice `yaml:"perf_cache_profilers,omitempty"`
 	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty"`
 	RunitServiceDir                  string              `yaml:"runit_service_dir,omitempty"`
 	SupervisordURL                   string              `yaml:"supervisord_url,omitempty"`
+	SysctlInclude                    flagext.StringSlice `yaml:"sysctl_include,omitempty"`
+	SysctlIncludeInfo                flagext.StringSlice `yaml:"sysctl_include_info,omitempty"`
 	SystemdEnableRestartsMetrics     bool                `yaml:"systemd_enable_restarts_metrics,omitempty"`
 	SystemdEnableStartTimeMetrics    bool                `yaml:"systemd_enable_start_time_metrics,omitempty"`
 	SystemdEnableTaskMetrics         bool                `yaml:"systemd_enable_task_metrics,omitempty"`
@@ -154,6 +165,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		SystemdUnitBlacklist         string `yaml:"systemd_unit_blacklist,omitempty"`
 		FilesystemIgnoredMountPoints string `yaml:"filesystem_ignored_mount_points,omitempty"`
 		FilesystemIgnoredFSTypes     string `yaml:"filesystem_ignored_fs_types,omitempty"`
+		DiskStatsIgnoredDevices      string `yaml:"diskstats_ignored_devices,omitempty"`
 	}
 
 	var fc config // our full config (schema + deprecated names)
@@ -189,6 +201,10 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		{
 			OldName: "filesystem_ignored_fs_types", NewName: "filesystem_fs_types_exclude",
 			OldValue: &fc.FilesystemIgnoredFSTypes, NewValue: &fc.FilesystemFSTypesExclude,
+		},
+		{
+			OldName: "diskstats_ignored_devices", NewName: "diskstats_device_exclude",
+			OldValue: &fc.DiskStatsIgnoredDevices, NewValue: &fc.DiskStatsDeviceExclude,
 		},
 	}
 
@@ -293,6 +309,7 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 		"--path.procfs", c.ProcFSPath,
 		"--path.sysfs", c.SysFSPath,
 		"--path.rootfs", c.RootFSPath,
+		"--path.udev.data", c.UdevDataPath,
 	)
 
 	if collectors[CollectorBCache] {
@@ -311,7 +328,11 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 	}
 
 	if collectors[CollectorDiskstats] {
-		flags.add("--collector.diskstats.ignored-devices", c.DiskStatsIgnoredDevices)
+		if c.DiskStatsDeviceInclude != "" {
+			flags.add("--collector.diskstats.device-include", c.DiskStatsDeviceInclude)
+		} else {
+			flags.add("--collector.diskstats.device-exclude", c.DiskStatsDeviceExclude)
+		}
 	}
 
 	if collectors[CollectorEthtool] {
@@ -375,6 +396,22 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 		for _, tp := range c.PerfTracepoint {
 			flags.add("--collector.perf.tracepoint", tp)
 		}
+
+		flags.addBools(map[*bool]string{
+			&c.PerfDisableHardwareProfilers: "collector.perf.disable-hardware-profilers",
+			&c.PerfDisableSoftwareProfilers: "collector.perf.disable-software-profilers",
+			&c.PerfDisableCacheProfilers:    "collector.perf.disable-cache-profilers",
+		})
+
+		for _, hwp := range c.PerfHardwareProfilers {
+			flags.add("--collector.perf.hardware-profilers", hwp)
+		}
+		for _, swp := range c.PerfSoftwareProfilers {
+			flags.add("--collector.perf.software-profilers", swp)
+		}
+		for _, cp := range c.PerfCacheProfilers {
+			flags.add("--collector.perf.cache-profilers", cp)
+		}
 	}
 
 	if collectors[CollectorPowersuppply] {
@@ -387,6 +424,16 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 
 	if collectors[CollectorSupervisord] {
 		flags.add("--collector.supervisord.url", c.SupervisordURL)
+	}
+
+	if collectors[CollectorSysctl] {
+		for _, numValue := range c.SysctlInclude {
+			flags.add("--collector.sysctl.include", numValue)
+		}
+
+		for _, stringValue := range c.SysctlIncludeInfo {
+			flags.add("--collector.sysctl.include-info", stringValue)
+		}
 	}
 
 	if collectors[CollectorSystemd] {

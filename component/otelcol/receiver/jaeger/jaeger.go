@@ -3,16 +3,16 @@ package jaeger
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelconfiggrpc "go.opentelemetry.io/collector/config/configgrpc"
+	otelconfighttp "go.opentelemetry.io/collector/config/confighttp"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -29,80 +29,17 @@ func init() {
 
 // Arguments configures the otelcol.receiver.jaeger component.
 type Arguments struct {
-	Protocols      ProtocolsArguments       `river:"protocols,block"`
-	RemoteSampling *RemoteSamplingArguments `river:"remote_sampling,block,optional"`
+	Protocols ProtocolsArguments `river:"protocols,block"`
 
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
 
 var (
-	_ river.Unmarshaler  = (*Arguments)(nil)
 	_ receiver.Arguments = Arguments{}
 )
 
-// DefaultArguments provides default settings for Arguments. All protocols are
-// configured with defaults and then set to nil in UnmarshalRiver if they were
-// not defined in the source config.
-var DefaultArguments = Arguments{
-	Protocols: ProtocolsArguments{
-		GRPC: &otelcol.GRPCServerArguments{
-			Endpoint:  "0.0.0.0:14250",
-			Transport: "tcp",
-		},
-		ThriftHTTP: &otelcol.HTTPServerArguments{
-			Endpoint: "0.0.0.0:14268",
-		},
-		ThriftBinary: &ProtocolUDP{
-			Endpoint:      "0.0.0.0:6832",
-			QueueSize:     1_000,
-			MaxPacketSize: 65 * units.KiB,
-			Workers:       10,
-		},
-		ThriftCompact: &ProtocolUDP{
-			Endpoint:      "0.0.0.0:6831",
-			QueueSize:     1_000,
-			MaxPacketSize: 65 * units.KiB,
-			Workers:       10,
-		},
-	},
-}
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*args = DefaultArguments
-
-	type arguments Arguments
-
-	// Unmarshal into a temporary struct so we can detect which protocols were
-	// actually enabled by the user.
-	var temp arguments
-	if err := f(&temp); err != nil {
-		return err
-	}
-
-	// Remove protocols from args if they weren't provided by the user.
-	if temp.Protocols.GRPC == nil {
-		args.Protocols.GRPC = nil
-	}
-	if temp.Protocols.ThriftHTTP == nil {
-		args.Protocols.ThriftHTTP = nil
-	}
-	if temp.Protocols.ThriftBinary == nil {
-		args.Protocols.ThriftBinary = nil
-	}
-	if temp.Protocols.ThriftCompact == nil {
-		args.Protocols.ThriftCompact = nil
-	}
-
-	// Finally, unmarshal into the real struct.
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-	return args.Validate()
-}
-
-// Validate returns an error if args is invalid.
+// Validate implements river.Validator.
 func (args *Arguments) Validate() error {
 	if args.Protocols.GRPC == nil &&
 		args.Protocols.ThriftHTTP == nil &&
@@ -116,29 +53,24 @@ func (args *Arguments) Validate() error {
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() otelconfig.Receiver {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &jaegerreceiver.Config{
-		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("jaeger")),
 		Protocols: jaegerreceiver.Protocols{
 			GRPC:          args.Protocols.GRPC.Convert(),
 			ThriftHTTP:    args.Protocols.ThriftHTTP.Convert(),
 			ThriftBinary:  args.Protocols.ThriftBinary.Convert(),
 			ThriftCompact: args.Protocols.ThriftCompact.Convert(),
 		},
-		RemoteSampling: args.RemoteSampling.Convert(),
-	}
+	}, nil
 }
 
 // Extensions implements receiver.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
-	if args.RemoteSampling == nil {
-		return nil
-	}
-	return args.RemoteSampling.Client.Extensions()
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
+	return nil
 }
 
 // Exporters implements receiver.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 
@@ -150,10 +82,55 @@ func (args Arguments) NextConsumers() *otelcol.ConsumerArguments {
 // ProtocolsArguments configures protocols for otelcol.receiver.jaeger to
 // listen on.
 type ProtocolsArguments struct {
-	GRPC          *otelcol.GRPCServerArguments `river:"grpc,block,optional"`
-	ThriftHTTP    *otelcol.HTTPServerArguments `river:"thrift_http,block,optional"`
-	ThriftBinary  *ProtocolUDP                 `river:"thrift_binary,block,optional"`
-	ThriftCompact *ProtocolUDP                 `river:"thrift_compact,block,optional"`
+	GRPC          *GRPC          `river:"grpc,block,optional"`
+	ThriftHTTP    *ThriftHTTP    `river:"thrift_http,block,optional"`
+	ThriftBinary  *ThriftBinary  `river:"thrift_binary,block,optional"`
+	ThriftCompact *ThriftCompact `river:"thrift_compact,block,optional"`
+}
+
+type GRPC struct {
+	GRPCServerArguments *otelcol.GRPCServerArguments `river:",squash"`
+}
+
+// SetToDefault implements river.Defaulter.
+func (args *GRPC) SetToDefault() {
+	*args = GRPC{
+		GRPCServerArguments: &otelcol.GRPCServerArguments{
+			Endpoint:  "0.0.0.0:14250",
+			Transport: "tcp",
+		},
+	}
+}
+
+// Convert converts proto into the upstream type.
+func (args *GRPC) Convert() *otelconfiggrpc.GRPCServerSettings {
+	if args == nil {
+		return nil
+	}
+
+	return args.GRPCServerArguments.Convert()
+}
+
+type ThriftHTTP struct {
+	HTTPServerArguments *otelcol.HTTPServerArguments `river:",squash"`
+}
+
+// SetToDefault implements river.Defaulter.
+func (args *ThriftHTTP) SetToDefault() {
+	*args = ThriftHTTP{
+		HTTPServerArguments: &otelcol.HTTPServerArguments{
+			Endpoint: "0.0.0.0:14268",
+		},
+	}
+}
+
+// Convert converts proto into the upstream type.
+func (args *ThriftHTTP) Convert() *otelconfighttp.HTTPServerSettings {
+	if args == nil {
+		return nil
+	}
+
+	return args.HTTPServerArguments.Convert()
 }
 
 // ProtocolUDP configures a UDP server.
@@ -182,30 +159,54 @@ func (proto *ProtocolUDP) Convert() *jaegerreceiver.ProtocolUDP {
 	}
 }
 
-// RemoteSamplingArguments configures remote sampling settings.
-type RemoteSamplingArguments struct {
-	// TODO(rfratto): can we work with upstream to provide a hook to provide a
-	// custom strategy file and bypass the reload interval?
-	//
-	// That would let users connect a local.file to otelcol.receiver.jaeger for
-	// the remote sampling.
-
-	HostEndpoint               string                      `river:"host_endpoint,attr"`
-	StrategyFile               string                      `river:"strategy_file,attr"`
-	StrategyFileReloadInterval time.Duration               `river:"strategy_file_reload_interval,attr"`
-	Client                     otelcol.GRPCClientArguments `river:"client,block"`
+// ThriftCompact wraps ProtocolUDP and provides additional behavior.
+type ThriftCompact struct {
+	ProtocolUDP *ProtocolUDP `river:",squash"`
 }
 
-// Convert converts args into the upstream type.
-func (args *RemoteSamplingArguments) Convert() *jaegerreceiver.RemoteSamplingConfig {
+// SetToDefault implements river.Defaulter.
+func (args *ThriftCompact) SetToDefault() {
+	*args = ThriftCompact{
+		ProtocolUDP: &ProtocolUDP{
+			Endpoint:      "0.0.0.0:6831",
+			QueueSize:     1_000,
+			MaxPacketSize: 65 * units.KiB,
+			Workers:       10,
+		},
+	}
+}
+
+// Convert converts proto into the upstream type.
+func (args *ThriftCompact) Convert() *jaegerreceiver.ProtocolUDP {
 	if args == nil {
 		return nil
 	}
 
-	return &jaegerreceiver.RemoteSamplingConfig{
-		HostEndpoint:               args.HostEndpoint,
-		StrategyFile:               args.StrategyFile,
-		StrategyFileReloadInterval: args.StrategyFileReloadInterval,
-		GRPCClientSettings:         *args.Client.Convert(),
+	return args.ProtocolUDP.Convert()
+}
+
+// ThriftCompact wraps ProtocolUDP and provides additional behavior.
+type ThriftBinary struct {
+	ProtocolUDP *ProtocolUDP `river:",squash"`
+}
+
+// SetToDefault implements river.Defaulter.
+func (args *ThriftBinary) SetToDefault() {
+	*args = ThriftBinary{
+		ProtocolUDP: &ProtocolUDP{
+			Endpoint:      "0.0.0.0:6832",
+			QueueSize:     1_000,
+			MaxPacketSize: 65 * units.KiB,
+			Workers:       10,
+		},
 	}
+}
+
+// Convert converts proto into the upstream type.
+func (args *ThriftBinary) Convert() *jaegerreceiver.ProtocolUDP {
+	if args == nil {
+		return nil
+	}
+
+	return args.ProtocolUDP.Convert()
 }

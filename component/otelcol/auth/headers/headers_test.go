@@ -12,9 +12,10 @@ import (
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config/configauth"
+	extauth "go.opentelemetry.io/collector/extension/auth"
 )
 
 // Test performs a basic integration test which runs the otelcol.auth.headers
@@ -62,7 +63,7 @@ func Test(t *testing.T) {
 	exports := ctrl.Exports().(auth.Exports)
 	require.NotNil(t, exports.Handler.Extension, "handler extension is nil")
 
-	clientAuth, ok := exports.Handler.Extension.(configauth.ClientAuthenticator)
+	clientAuth, ok := exports.Handler.Extension.(extauth.Client)
 	require.True(t, ok, "handler does not implement configauth.ClientAuthenticator")
 
 	rt, err := clientAuth.RoundTripper(http.DefaultTransport)
@@ -77,4 +78,106 @@ func Test(t *testing.T) {
 	resp, err := cli.Do(req)
 	require.NoError(t, err, "HTTP request failed")
 	require.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestArguments_UnmarshalRiver(t *testing.T) {
+	tests := []struct {
+		cfg                  string
+		expectedKey          string
+		expectedValue        string
+		expectedAction       any
+		expectUnmarshalError bool
+	}{
+		{
+			cfg: `
+			header {
+				key    = "X-Scope-Org-ID"
+				value  = "fake"
+			}
+			`,
+			expectedKey:    "X-Scope-Org-ID",
+			expectedValue:  "fake",
+			expectedAction: headerssetterextension.UPSERT,
+		},
+		{
+			cfg: `
+			header {
+				key    = "X-Scope-Org-ID"
+				value  = "fake"
+				action = "insert"
+			}
+			`,
+			expectedKey:    "X-Scope-Org-ID",
+			expectedValue:  "fake",
+			expectedAction: headerssetterextension.INSERT,
+		},
+		{
+			cfg: `
+			header {
+				key    = "X-Scope-Org-ID"
+				value  = "fake"
+				action = "update"
+			}
+			`,
+			expectedKey:    "X-Scope-Org-ID",
+			expectedValue:  "fake",
+			expectedAction: headerssetterextension.UPDATE,
+		},
+		{
+			cfg: `
+			header {
+				key    = "X-Scope-Org-ID"
+				value  = "fake"
+				action = "upsert"
+			}
+			`,
+			expectedKey:    "X-Scope-Org-ID",
+			expectedValue:  "fake",
+			expectedAction: headerssetterextension.UPSERT,
+		},
+		{
+			cfg: `
+			header {
+				key    = "X-Scope-Org-ID"
+				value  = "fake"
+				action = "delete"
+			}
+			`,
+			expectedKey:    "X-Scope-Org-ID",
+			expectedValue:  "fake",
+			expectedAction: headerssetterextension.DELETE,
+		},
+		{
+			cfg: `
+			header {
+				key    = "X-Scope-Org-ID"
+				value  = "fake"
+				action = "NonExistingAction"
+			}
+			`,
+			expectUnmarshalError: true,
+		},
+	}
+
+	for _, tc := range tests {
+		var args headers.Arguments
+		err := river.Unmarshal([]byte(tc.cfg), &args)
+
+		if tc.expectUnmarshalError {
+			require.Error(t, err)
+			continue
+		}
+		require.NoError(t, err)
+
+		ext, err := args.Convert()
+
+		require.NoError(t, err)
+		otelArgs, ok := (ext).(*headerssetterextension.Config)
+		require.True(t, ok)
+
+		require.Equal(t, len(otelArgs.HeadersConfig), 1)
+		require.Equal(t, *otelArgs.HeadersConfig[0].Key, tc.expectedKey)
+		require.Equal(t, *otelArgs.HeadersConfig[0].Value, tc.expectedValue)
+		require.Equal(t, otelArgs.HeadersConfig[0].Action, tc.expectedAction)
+	}
 }

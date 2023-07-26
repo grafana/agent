@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 )
 
 // Go types used throughout the package.
@@ -23,7 +25,9 @@ var (
 	goCapsule         = reflect.TypeOf((*Capsule)(nil)).Elem()
 	goDuration        = reflect.TypeOf((time.Duration)(0))
 	goDurationPtr     = reflect.TypeOf((*time.Duration)(nil))
+	goRiverDefaulter  = reflect.TypeOf((*Defaulter)(nil)).Elem()
 	goRiverDecoder    = reflect.TypeOf((*Unmarshaler)(nil)).Elem()
+	goRiverValidator  = reflect.TypeOf((*Validator)(nil)).Elem()
 	goRawRiverFunc    = reflect.TypeOf((RawFunction)(nil))
 	goRiverValue      = reflect.TypeOf(Null)
 )
@@ -107,7 +111,7 @@ func Encode(v interface{}) Value {
 }
 
 // FromRaw converts a reflect.Value into a River Value. It is useful to prevent
-// downcasting a interface into an any.
+// downcasting an interface into an any.
 func FromRaw(v reflect.Value) Value {
 	return makeValue(v)
 }
@@ -257,7 +261,7 @@ func (v Value) Interface() interface{} {
 // Reflect returns the raw reflection value backing v.
 func (v Value) Reflect() reflect.Value { return v.rv }
 
-// makeValue converts a reflect value into a Value, deferencing any pointers or
+// makeValue converts a reflect value into a Value, dereferencing any pointers or
 // interface{} values.
 func makeValue(v reflect.Value) Value {
 	// Early check: if v is interface{}, we need to deference it to get the
@@ -297,7 +301,7 @@ func makeValue(v reflect.Value) Value {
 }
 
 // OrderedKeys reports if v represents an object with consistently ordered
-// keys. If panics if v is not an object.
+// keys. It panics if v is not an object.
 func (v Value) OrderedKeys() bool {
 	if v.ty != TypeObject {
 		panic("river/value: OrderedKeys called on non-object value")
@@ -330,7 +334,7 @@ func (v Value) Keys() []string {
 
 		keys := make([]string, v.rv.Len())
 		for i := range keys {
-			keys[i] = v.rv.Index(i).FieldByIndex(labelField.Index).String()
+			keys[i] = reflectutil.Get(v.rv.Index(i), labelField).String()
 		}
 		return keys
 
@@ -360,12 +364,9 @@ func (v Value) Key(key string) (index Value, ok bool) {
 		// We return the struct with the label intact.
 		return wrapStruct(v.rv, true).Key(key)
 	case v.rv.Kind() == reflect.Map:
-		// TODO There is a known issue where value.Keys returns an array of keys
-		// but MapIndex does not find the key just returned because it is a nil/zero value.
-		// This is a bug and will be evaluated later when the ramifications are better known.
 		val := v.rv.MapIndex(reflect.ValueOf(key))
-		if !val.IsValid() || val.IsZero() {
-			return
+		if !val.IsValid() {
+			return Null, false
 		}
 		return makeValue(val), true
 
@@ -376,7 +377,7 @@ func (v Value) Key(key string) (index Value, ok bool) {
 		for i := 0; i < v.rv.Len(); i++ {
 			elem := v.rv.Index(i)
 
-			label := elem.FieldByIndex(labelField.Index).String()
+			label := reflectutil.Get(elem, labelField).String()
 			if label == key {
 				// We discard the label since the key here represents the label value.
 				ws := wrapStruct(elem, false)

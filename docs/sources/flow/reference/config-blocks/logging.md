@@ -1,8 +1,6 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/config-blocks/logging
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/logging/
 title: logging
-weight: 100
 ---
 
 # logging block

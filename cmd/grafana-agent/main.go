@@ -7,14 +7,13 @@ import (
 
 	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/cmd/internal/flowmode"
+	"github.com/grafana/agent/pkg/boringcrypto"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
 
-	// Adds version information
-	_ "github.com/grafana/agent/pkg/build"
-
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/version"
 
 	// Register Prometheus SD components
 	_ "github.com/grafana/loki/clients/pkg/promtail/discovery/consulagent"
@@ -25,7 +24,7 @@ import (
 )
 
 func init() {
-	prometheus.MustRegister(version.NewCollector("agent"))
+	prometheus.MustRegister(build.NewCollector("agent"))
 }
 
 func main() {
@@ -44,15 +43,17 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// If flow is enabled go into that working mode
-	// TODO allow flow to run as a windows service
+	// NOTE(rfratto): Flow when run through the primary Grafana Agent binary does
+	// not support being run as a Windows service. To run Flow mode as a Windows
+	// service, use cmd/grafana-agent-service and cmd/grafana-agent-flow instead.
 	if runMode == runModeFlow {
-		runFlow()
+		flowmode.Run()
 		return
 	}
 
 	// Set up logging using default values before loading the config
-	logger := server.NewLogger(&server.DefaultConfig)
+	defaultCfg := server.DefaultConfig()
+	logger := server.NewLogger(&defaultCfg)
 
 	reloader := func(log *server.Logger) (*config.Config, error) {
 		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
@@ -64,9 +65,10 @@ func main() {
 	}
 
 	// After this point we can start using go-kit logging.
-	logger = server.NewLogger(&cfg.Server)
+	logger = server.NewLogger(cfg.Server)
 	util_log.Logger = logger
 
+	level.Info(logger).Log("boringcrypto enabled", boringcrypto.Enabled)
 	ep, err := NewEntrypoint(logger, cfg, reloader)
 	if err != nil {
 		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)

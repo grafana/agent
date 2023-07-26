@@ -6,15 +6,14 @@ import (
 	"sort"
 	"time"
 
-	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/storage"
-
-	"github.com/prometheus/prometheus/config"
-
 	types "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/pkg/river"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
+
 	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/storage"
 )
 
 // Defaults for config blocks.
@@ -23,16 +22,11 @@ var (
 		WALOptions: DefaultWALOptions,
 	}
 
-	DefaultEndpointOptions = EndpointOptions{
-		RemoteTimeout: 30 * time.Second,
-		SendExemplars: true,
-	}
-
 	DefaultQueueOptions = QueueOptions{
-		Capacity:          2500,
-		MaxShards:         200,
+		Capacity:          10000,
+		MaxShards:         50,
 		MinShards:         1,
-		MaxSamplesPerSend: 500,
+		MaxSamplesPerSend: 2000,
 		BatchSendDeadline: 5 * time.Second,
 		MinBackoff:        30 * time.Millisecond,
 		MaxBackoff:        5 * time.Second,
@@ -42,7 +36,7 @@ var (
 	DefaultMetadataOptions = MetadataOptions{
 		Send:              true,
 		SendInterval:      1 * time.Minute,
-		MaxSamplesPerSend: 500,
+		MaxSamplesPerSend: 2000,
 	}
 
 	DefaultWALOptions = WALOptions{
@@ -50,8 +44,6 @@ var (
 		MinKeepaliveTime:  5 * time.Minute,
 		MaxKeepaliveTime:  8 * time.Hour,
 	}
-
-	_ river.Unmarshaler = (*QueueOptions)(nil)
 )
 
 // Arguments represents the input state of the prometheus.remote_write
@@ -62,12 +54,9 @@ type Arguments struct {
 	WALOptions     WALOptions         `river:"wal,block,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (rc *Arguments) SetToDefault() {
 	*rc = DefaultArguments
-
-	type config Arguments
-	return f((*config)(rc))
 }
 
 // EndpointOptions describes an individual location for where metrics in the WAL
@@ -79,17 +68,39 @@ type EndpointOptions struct {
 	Headers              map[string]string       `river:"headers,attr,optional"`
 	SendExemplars        bool                    `river:"send_exemplars,attr,optional"`
 	SendNativeHistograms bool                    `river:"send_native_histograms,attr,optional"`
-	HTTPClientConfig     *types.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig     *types.HTTPClientConfig `river:",squash"`
 	QueueOptions         *QueueOptions           `river:"queue_config,block,optional"`
 	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
+	WriteRelabelConfigs  []*flow_relabel.Config  `river:"write_relabel_config,block,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = DefaultEndpointOptions
+// SetToDefault implements river.Defaulter.
+func (r *EndpointOptions) SetToDefault() {
+	*r = EndpointOptions{
+		RemoteTimeout:    30 * time.Second,
+		SendExemplars:    true,
+		HTTPClientConfig: types.CloneDefaultHTTPClientConfig(),
+	}
+}
 
-	type arguments EndpointOptions
-	return f((*arguments)(r))
+// Validate implements river.Validator.
+func (r *EndpointOptions) Validate() error {
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	if r.HTTPClientConfig != nil {
+		if err := r.HTTPClientConfig.Validate(); err != nil {
+			return err
+		}
+	}
+
+	if r.WriteRelabelConfigs != nil {
+		for _, relabelConfig := range r.WriteRelabelConfigs {
+			if err := relabelConfig.Validate(); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // QueueOptions handles the low level queue config options for a remote_write
@@ -104,17 +115,16 @@ type QueueOptions struct {
 	RetryOnHTTP429    bool          `river:"retry_on_http_429,attr,optional"`
 }
 
-// UnmarshalRiver allows injecting of default values
-func (r *QueueOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (r *QueueOptions) SetToDefault() {
 	*r = DefaultQueueOptions
-
-	type arguments QueueOptions
-	return f((*arguments)(r))
 }
 
 func (r *QueueOptions) toPrometheusType() config.QueueConfig {
 	if r == nil {
-		return config.DefaultQueueConfig
+		var res QueueOptions
+		res.SetToDefault()
+		return res.toPrometheusType()
 	}
 
 	return config.QueueConfig{
@@ -137,17 +147,16 @@ type MetadataOptions struct {
 	MaxSamplesPerSend int           `river:"max_samples_per_send,attr,optional"`
 }
 
-// UnmarshalRiver allows injecting of default values
-func (o *MetadataOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (o *MetadataOptions) SetToDefault() {
 	*o = DefaultMetadataOptions
-
-	type options MetadataOptions
-	return f((*options)(o))
 }
 
 func (o *MetadataOptions) toPrometheusType() config.MetadataConfig {
 	if o == nil {
-		return config.DefaultMetadataConfig
+		var res MetadataOptions
+		res.SetToDefault()
+		return res.toPrometheusType()
 	}
 
 	return config.MetadataConfig{
@@ -164,15 +173,13 @@ type WALOptions struct {
 	MaxKeepaliveTime  time.Duration `river:"max_keepalive_time,attr,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (o *WALOptions) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (o *WALOptions) SetToDefault() {
 	*o = DefaultWALOptions
+}
 
-	type config WALOptions
-	if err := f((*config)(o)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (o *WALOptions) Validate() error {
 	switch {
 	case o.TruncateFrequency == 0:
 		return fmt.Errorf("truncate_frequency must not be 0")
@@ -201,14 +208,14 @@ func convertConfigs(cfg Arguments) (*config.Config, error) {
 			URL:                  &common.URL{URL: parsedURL},
 			RemoteTimeout:        model.Duration(rw.RemoteTimeout),
 			Headers:              rw.Headers,
-			WriteRelabelConfigs:  nil, // WriteRelabelConfigs are currently not supported
 			Name:                 rw.Name,
 			SendExemplars:        rw.SendExemplars,
 			SendNativeHistograms: rw.SendNativeHistograms,
 
-			HTTPClientConfig: *rw.HTTPClientConfig.Convert(),
-			QueueConfig:      rw.QueueOptions.toPrometheusType(),
-			MetadataConfig:   rw.MetadataOptions.toPrometheusType(),
+			WriteRelabelConfigs: flow_relabel.ComponentToPromRelabelConfigs(rw.WriteRelabelConfigs),
+			HTTPClientConfig:    *rw.HTTPClientConfig.Convert(),
+			QueueConfig:         rw.QueueOptions.toPrometheusType(),
+			MetadataConfig:      rw.MetadataOptions.toPrometheusType(),
 			// TODO(rfratto): SigV4Config
 		})
 	}

@@ -7,12 +7,11 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -35,6 +34,7 @@ type Arguments struct {
 	Encoding        string   `river:"encoding,attr,optional"`
 	GroupID         string   `river:"group_id,attr,optional"`
 	ClientID        string   `river:"client_id,attr,optional"`
+	InitialOffset   string   `river:"initial_offset,attr,optional"`
 
 	Authentication AuthenticationArguments `river:"authentication,block,optional"`
 	Metadata       MetadataArguments       `river:"metadata,block,optional"`
@@ -46,7 +46,6 @@ type Arguments struct {
 }
 
 var (
-	_ river.Unmarshaler  = (*Arguments)(nil)
 	_ receiver.Arguments = Arguments{}
 )
 
@@ -56,11 +55,12 @@ var DefaultArguments = Arguments{
 	// for compatibility, even though that means using a client and group ID of
 	// "otel-collector".
 
-	Topic:    "otlp_spans",
-	Encoding: "otlp_proto",
-	Brokers:  []string{"localhost:9092"},
-	ClientID: "otel-collector",
-	GroupID:  "otel-collector",
+	Topic:         "otlp_spans",
+	Encoding:      "otlp_proto",
+	Brokers:       []string{"localhost:9092"},
+	ClientID:      "otel-collector",
+	GroupID:       "otel-collector",
+	InitialOffset: "latest",
 	Metadata: MetadataArguments{
 		IncludeAllTopics: true,
 		Retry: MetadataRetryArguments{
@@ -78,40 +78,36 @@ var DefaultArguments = Arguments{
 	},
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() otelconfig.Receiver {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &kafkareceiver.Config{
-		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("kafka")),
-
 		Brokers:         args.Brokers,
 		ProtocolVersion: args.ProtocolVersion,
 		Topic:           args.Topic,
 		Encoding:        args.Encoding,
 		GroupID:         args.GroupID,
 		ClientID:        args.ClientID,
+		InitialOffset:   args.InitialOffset,
 
 		Authentication: args.Authentication.Convert(),
 		Metadata:       args.Metadata.Convert(),
 		AutoCommit:     args.AutoCommit.Convert(),
 		MessageMarking: args.MessageMarking.Convert(),
-	}
+	}, nil
 }
 
 // Extensions implements receiver.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements receiver.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

@@ -1,110 +1,135 @@
 <p align="center"><img src="docs/sources/assets/logo_and_name.png" alt="Grafana Agent logo"></p>
 
-Grafana Agent is a telemetry collector for sending metrics, logs,
-and trace data to the opinionated Grafana observability stack. It works best
-with:
+Grafana Agent is a vendor-neutral, batteries-included telemetry collector with
+configuration inspired by [Terraform][]. It is designed to be flexible,
+performant, and compatible with multiple ecosystems such as Prometheus and
+OpenTelemetry.
 
-* [Grafana Cloud](https://grafana.com/products/cloud/)
-* [Grafana Enterprise Stack](https://grafana.com/products/enterprise/)
-* OSS deployments of [Grafana Loki](https://grafana.com/oss/loki/), [Prometheus](https://prometheus.io/), [Grafana Mimir](https://grafana.com/oss/mimir/), and [Grafana Tempo](https://grafana.com/oss/tempo/)
+Grafana Agent is based around **components**. Components are wired together to
+form programmable observability **pipelines** for telemetry collection,
+processing, and delivery.
 
-Users of Prometheus operating at a massive scale (i.e., millions of active
-series) can struggle to run an unsharded singleton Prometheus instance: it becomes a
-single point of failure and requires a giant machine with a lot of resources
-allocated to it. Even with proper sharding across multiple Prometheus instances,
-using Prometheus to send data to a cloud vendor can seem redundant: why pay for
-cloud storage if data is already stored locally?
+> **NOTE**: This page focuses mainly on "[Flow mode][Grafana Agent Flow]," the
+> Terraform-inspired revision of Grafana Agent.
 
-The Grafana Agent uses the same code as Prometheus, but tackles these issues
-by only using the most relevant parts of Prometheus for interaction with hosted
-metrics:
+Grafana Agent can collect, transform, and send data to:
 
-1. Service Discovery
-2. Scraping
-3. Write Ahead Log (WAL)
-4. Remote Write
+* The [Prometheus][] ecosystem
+* The [OpenTelemetry][] ecosystem
+* The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Phlare][])
 
-On top of these, the Grafana Agent enables easier sharding mechanisms that
-enable users to shard Agents across their cluster and lower the memory requirements
-per machine.
+[Terraform]: https://terraform.io
+[Grafana Agent Flow]: https://grafana.com/docs/agent/latest/flow/
+[Prometheus]: https://prometheus.io
+[OpenTelemetry]: https://opentelemetry.io
+[Loki]: https://github.com/grafana/loki
+[Grafana]: https://github.com/grafana/grafana
+[Tempo]: https://github.com/grafana/tempo
+[Mimir]: https://github.com/grafana/mimir
+[Phlare]: https://github.com/grafana/phlare
 
-A typical deployment of the Grafana Agent for Prometheus metrics can see
-up to a 40% reduction in memory usage with equal scrape loads.
+## Why use Grafana Agent?
 
-The Grafana Agent it can be used to send Prometheus metrics to any system that
-supports the Prometheus `remote_write` API.
+* **Vendor-neutral**: Fully compatible with the Prometheus, OpenTelemetry, and
+  Grafana open source ecosystems.
+* **Every signal**: Collect telemetry data for metrics, logs, traces, and
+  continuous profiles.
+* **Scalable**: Deploy on any number of machines to collect millions of active
+  series and terabytes of logs.
+* **Battle-tested**: Grafana Agent extends the existing battle-tested code from
+  the Prometheus and OpenTelemetry Collector projects.
+* **Powerful**: Write programmable pipelines with ease, and debug them using a
+  [built-in UI][UI].
+* **Batteries included**: Integrate with systems like MySQL, Kubernetes, and
+  Apache to get telemetry that's immediately useful.
 
-## Trade-offs
-
-By heavily optimizing Prometheus for remote write and resource reduction, some
-trade-offs have been made:
-
-- You can't query the Agent; you can only query metrics from the remote write
-  storage.
-- Recording rules aren't supported.
-- Alerts aren't supported.
-- When sharding the Agent, if your node has problems that interrupt metric
-  availability, metrics tracking that node won't be sent for alerting on.
-
-While the Agent can't use recording rules and alerts, `remote_write` systems such
-as Mimir currently support server-side rules and alerts. Note that this trade-off
-means that reliability of alerts are tied to the reliability of the remote system
-and alerts will be delayed at least by the time it takes for samples to reach
-the remote system.
+[UI]: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/#grafana-agent-flow-ui
 
 ## Getting started
 
-When using Kubernetes this [link](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s) offers the best guide.
+Check out our [documentation][] to see:
 
-Other installation methods can be found in our
-[Grafana Agent](https://grafana.com/docs/agent/latest/set-up/) documentation.
+* [Installation instructions][] for Grafana Agent Flow
+* Details about [Grafana Agent Flow][]
+* Steps for [Getting started][] with Grafana Agent Flow
+* The list of Grafana Agent Flow [Components][]
 
-More detailed [documentation](./docs/README.md) is provided as part of the
-repository.
+[documentation]: https://grafana.com/docs/agent/latest/
+[Installation instructions]: https://grafana.com/docs/agent/latest/flow/setup/install/
+[Grafana Agent Flow]: https://grafana.com/docs/agent/latest/flow/
+[Getting started]: https://grafana.com/docs/agent/latest/flow/getting_started/
+[Components]: https://grafana.com/docs/agent/latest/flow/reference/components/
 
 ## Example
 
-The [`example/`](./example) folder contains docker-compose configs and a local
-k3d/Tanka environment. Both examples deploy the Agent, Cortex and Grafana for
-testing the agent. See the [docker-compose README](./example/docker-compose/README.md)
-and the [k3d example README](./example/k3d/README.md) for more information.
+```river
+// Discover Kubernetes pods to collect metrics from.
+discovery.kubernetes "pods" {
+  role = "pod"
+}
 
-## Release schedule
+// Collect metrics from Kubernetes pods.
+prometheus.scrape "default" {
+  targets    = discovery.kubernetes.pods.targets
+  forward_to = [prometheus.remote_write.default.receiver]
+}
 
-Starting with the v0.28 release, a new minor release is planned for every 6
-weeks. This includes a release for Grafana Agent, Grafana Agent Operator, and
-the `agentctl` binary.
+// Get an API key from disk.
+local.file "apikey" {
+  filename  = "/var/data/my-api-key.txt"
+  is_secret = true
+}
 
-The release schedule is best-effort, and releases may be moved forward or
-backwards if needed. The planned release dates for future minor releases are
-not changed if one minor release is moved.
+// Send metrics to a Prometheus remote_write endpoint.
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://localhost:9009/api/prom/push"
+
+    basic_auth {
+      username = "MY_USERNAME"
+      password = local.file.apikey.content
+    }
+  }
+}
+```
+
+We maintain an example [Docker Compose environment][] that can be used to
+launch dependencies to play with Grafana Agent locally.
+
+[Docker Compose environment]: ./example/docker-compose/
+
+## Release cadence
+
+A new minor release is planned every six weeks. You can use the list of
+[Milestones][] to see what maintainers are planning on working on for a given
+release cycle.
+
+Both the release cadence and the items assigned to a milestone are best-effort:
+releases may be moved forwards or backwards if needed, and items may be moved
+to a different milestone or removed entirely. The planned release dates for
+future minor releases do not change if one minor release is moved.
 
 Patch and security releases may be created at any time.
 
-## Prometheus vendoring
+[Milestones]: https://github.com/grafana/agent/milestones
 
-The Grafana Agent vendors a downstream Prometheus repository maintained by
-[Grafana Labs](https://github.com/grafana/prometheus). This is done so
-experimental features Grafana Labs wants to contribute upstream can first be
-tested and iterated on quickly within the Agent. We aim to keep the
-experimental changes to a minimum and upstream changes as soon as possible.
+## Community
 
-For more context on our vendoring strategy, read our
-[downstream repo maintenance guide](./docs/developer/downstream-prometheus.md).
+To engage with the Grafana Agent community:
 
-## Getting help
+* Chat with us on our community Slack channel. To invite yourself to the
+  Grafana Slack, visit <https://slack.grafana.com/> and join the `#agent`
+  channel.
+* Ask questions on the [Discussions page][].
+* [File an issue][] for bugs, issues, and feature suggestions.
+* Attend the monthly [community call][].
 
-If you have any questions or feedback regarding the Grafana Agent:
+[Discussions page]: https://github.com/grafana/agent/discussions
+[File an issue]: https://github.com/grafana/agent/issues/new
+[community call]: https://docs.google.com/document/d/1TqaZD1JPfNadZ4V81OCBPCG_TksDYGlNlGdMnTWUSpo
 
-* Ask a question on the Agent Slack channel. To invite yourself to the Grafana
-  Slack, visit https://slack.grafana.com/ and join the #agent channel.
-* Alternatively ask questions on the
-  [Discussions page](https://github.com/grafana/agent/discussions).
-* [File an issue](https://github.com/grafana/agent/issues/new) for bugs, issues
-  and feature suggestions.
-* Attend the [Grafana Agent Community Call](https://docs.google.com/document/d/1TqaZD1JPfNadZ4V81OCBPCG_TksDYGlNlGdMnTWUSpo).
+## Contribute
 
-## Contributing
+Refer to our [contributors guide][] to learn how to contribute.
 
-Any contributions are welcome and details can be found
-[in our contributors guide](./docs/developer/contributing.md).
+[contributors guide]: ./docs/developer/contributing.md

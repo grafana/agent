@@ -1,6 +1,5 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/loki.source.windowsevent
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.windowsevent/
 title: loki.source.windowsevent
 ---
 
@@ -36,13 +35,13 @@ Name         | Type                 | Description                               
 `poll_interval`    | `duration`      | How often to poll the event log.                                               | `"3s"`                         | no
 `exclude_event_data`    | `bool`               | Exclude event data.                                                            | `false`                      | no
 `exclude_user_data`    | `bool`               | Exclude user data.                                                             | `false`                      | no
-`user_incoming_timestamp`    | `bool`               | When false, assigns the current timestamp to the log when it was processed. | `false`                      | no
+`use_incoming_timestamp`    | `bool`               | When false, assigns the current timestamp to the log when it was processed. | `false`                      | no
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to.                                      |                            | yes
 
 
 > **NOTE**: `eventlog_name` is required if `xpath_query` does not specify the event log.
 > You can define `xpath_query` in [short or xml form](https://docs.microsoft.com/en-us/windows/win32/wes/consuming-events).
-> When using the XML form you can specify `event_log` in the `xpath_query`. 
+> When using the XML form you can specify `event_log` in the `xpath_query`.
 > If using short form, you must define `eventlog_name`.
 
 
@@ -53,8 +52,8 @@ configuration.
 
 ## Example
 
-This example collects log entries from the Event Log specified in `eventlog_name` and 
-forwards them to a `loki.write` component so they are can be written to Loki.
+This example collects log entries from the Event Log specified in `eventlog_name` and
+forwards them to a `loki.write` component so they are written to Loki.
 
 ```river
 loki.source.windowsevent "application"  {
@@ -65,6 +64,6 @@ loki.source.windowsevent "application"  {
 loki.write "endpoint" {
     endpoint {
         url ="loki:3100/api/v1/push"
-    }  
+    }
 }
 ```

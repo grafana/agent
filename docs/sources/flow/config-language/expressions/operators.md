@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/expressions/operators
+- ../../configuration-language/expressions/operators/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/operators/
 title: Operators
 weight: 300
 ---
@@ -21,7 +22,11 @@ Operator | Description
 `%`      | Computes the remainder after dividing two numbers.
 `^`      | Raises the number to the specified power.
 
-The `+` operator can also be used for string concatenation.
+## String operators
+
+Operator | Description
+-------- | -----------
+`+`      | Concatenate two strings.
 
 ## Comparison operators
 

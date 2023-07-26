@@ -16,7 +16,8 @@ import (
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelexporter "go.opentelemetry.io/collector/exporter"
+	otelextension "go.opentelemetry.io/collector/extension"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
 
@@ -30,15 +31,15 @@ type Arguments interface {
 
 	// Convert converts the Arguments into an OpenTelemetry Collector exporter
 	// configuration.
-	Convert() otelconfig.Exporter
+	Convert() (otelcomponent.Config, error)
 
 	// Extensions returns the set of extensions that the configured component is
 	// allowed to use.
-	Extensions() map[otelconfig.ComponentID]otelcomponent.Extension
+	Extensions() map[otelcomponent.ID]otelextension.Extension
 
 	// Exporters returns the set of exporters that are exposed to the configured
 	// component.
-	Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
+	Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component
 }
 
 // Exporter is a Flow component shim which manages an OpenTelemetry Collector
@@ -48,7 +49,7 @@ type Exporter struct {
 	cancel context.CancelFunc
 
 	opts     component.Options
-	factory  otelcomponent.ExporterFactory
+	factory  otelexporter.Factory
 	consumer *lazyconsumer.Consumer
 
 	sched     *scheduler.Scheduler
@@ -66,7 +67,7 @@ var (
 //
 // The registered component must be registered to export the
 // otelcol.ConsumerExports type, otherwise New will panic.
-func New(opts component.Options, f otelcomponent.ExporterFactory, args Arguments) (*Exporter, error) {
+func New(opts component.Options, f otelexporter.Factory, args Arguments) (*Exporter, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	consumer := lazyconsumer.New(ctx)
@@ -126,7 +127,7 @@ func (e *Exporter) Update(args component.Arguments) error {
 		return err
 	}
 
-	settings := otelcomponent.ExporterCreateSettings{
+	settings := otelexporter.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(e.opts.Logger),
 
@@ -141,7 +142,10 @@ func (e *Exporter) Update(args component.Arguments) error {
 		},
 	}
 
-	exporterConfig := eargs.Convert()
+	exporterConfig, err := eargs.Convert()
+	if err != nil {
+		return err
+	}
 
 	// Create instances of the exporter from our factory for each of our
 	// supported telemetry signals.

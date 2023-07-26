@@ -16,7 +16,8 @@ import (
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/extension"
+	otelreceiver "go.opentelemetry.io/collector/receiver"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
 
@@ -30,15 +31,15 @@ type Arguments interface {
 
 	// Convert converts the Arguments into an OpenTelemetry Collector receiver
 	// configuration.
-	Convert() otelconfig.Receiver
+	Convert() (otelcomponent.Config, error)
 
 	// Extensions returns the set of extensions that the configured component is
 	// allowed to use.
-	Extensions() map[otelconfig.ComponentID]otelcomponent.Extension
+	Extensions() map[otelcomponent.ID]extension.Extension
 
 	// Exporters returns the set of exporters that are exposed to the configured
 	// component.
-	Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
+	Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component
 
 	// NextConsumers returns the set of consumers to send data to.
 	NextConsumers() *otelcol.ConsumerArguments
@@ -51,7 +52,7 @@ type Receiver struct {
 	cancel context.CancelFunc
 
 	opts    component.Options
-	factory otelcomponent.ReceiverFactory
+	factory otelreceiver.Factory
 
 	sched     *scheduler.Scheduler
 	collector *lazycollector.Collector
@@ -69,7 +70,7 @@ var (
 // If the registered Flow component registers exported fields, it is the
 // responsibility of the caller to export values when needed; the Receiver
 // component never exports any values.
-func New(opts component.Options, f otelcomponent.ReceiverFactory, args Arguments) (*Receiver, error) {
+func New(opts component.Options, f otelreceiver.Factory, args Arguments) (*Receiver, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Create a lazy collector where metrics from the upstream component will be
@@ -119,7 +120,7 @@ func (r *Receiver) Update(args component.Arguments) error {
 		return err
 	}
 
-	settings := otelcomponent.ReceiverCreateSettings{
+	settings := otelreceiver.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(r.opts.Logger),
 
@@ -134,7 +135,10 @@ func (r *Receiver) Update(args component.Arguments) error {
 		},
 	}
 
-	receiverConfig := rargs.Convert()
+	receiverConfig, err := rargs.Convert()
+	if err != nil {
+		return err
+	}
 
 	var (
 		next        = rargs.NextConsumers()

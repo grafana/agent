@@ -1,6 +1,5 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/discovery.docker
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.docker/
 title: discovery.docker
 ---
 
@@ -14,7 +13,7 @@ title: discovery.docker
 
 ```river
 discovery.docker "LABEL" {
-  host = "DOCKER_ENGINE_HOST"
+  host = DOCKER_ENGINE_HOST
 }
 ```
 
@@ -28,6 +27,20 @@ Name | Type | Description | Default | Required
 `port` | `number` | Port to use for collecting metrics when containers don't have any port mappings. | `80` | no
 `host_networking_host` | `string` | Host to use if the container is in host networking mode. | `"localhost"` | no
 `refresh_interval` | `duration` | Frequency to refresh list of containers. | `"1m"` | no
+`bearer_token` | `secret` | Bearer token to authenticate with. | | no
+`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
+`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+
+ At most one of the following can be provided:
+ - [`bearer_token` argument](#arguments).
+ - [`bearer_token_file` argument](#arguments). 
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
+
+[arguments]: #arguments
 
 ## Blocks
 
@@ -37,18 +50,16 @@ The following blocks are supported inside the definition of
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 filter | [filter][] | Filters discoverable resources. | no
-http_client_config | [http_client_config][] | HTTP client configuration for docker requests. | no
-http_client_config > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-http_client_config > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-http_client_config > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-http_client_config > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
-`http_client_config > basic_auth` refers to a `basic_auth` block defined inside
-an `http_client_config` block.
+`oauth2 > tls_config` refers to a `tls_config` block defined inside
+an `oauth2` block.
 
 [filter]: #filter-block
-[http_client_config]: #http_client_config-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
@@ -69,13 +80,6 @@ Refer to [List containers][List containers] from the Docker Engine API
 documentation for the list of supported filters and their meaning.
 
 [List containers]: https://docs.docker.com/engine/api/v1.41/#tag/Container/operation/ContainerList
-
-### http_client_config block
-
-The `http_client_config` block configures settings used to connect to the
-Docker Engine API server.
-
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
 
 ### basic_auth block
 
@@ -151,7 +155,27 @@ Linux:
 discovery.docker "containers" {
   host = "unix:///var/run/docker.sock"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.docker.containers.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Windows hosts
 
@@ -161,7 +185,27 @@ This example discovers Docker containers when the host machine is Windows:
 discovery.docker "containers" {
   host = "tcp://localhost:2375"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.docker.containers.example.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 > **NOTE**: This example requires the "Expose daemon on tcp://localhost:2375
 > without TLS" setting to be enabled in the Docker Engine settings.

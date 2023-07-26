@@ -25,9 +25,10 @@ type Arguments struct {
 	APIServer          config.URL              `river:"api_server,attr,optional"`
 	Role               string                  `river:"role,attr"`
 	KubeConfig         string                  `river:"kubeconfig_file,attr,optional"`
-	HTTPClientConfig   config.HTTPClientConfig `river:"http_client_config,block,optional"`
+	HTTPClientConfig   config.HTTPClientConfig `river:",squash"`
 	NamespaceDiscovery NamespaceDiscovery      `river:"namespaces,block,optional"`
 	Selectors          []SelectorConfig        `river:"selectors,block,optional"`
+	AttachMetadata     AttachMetadataConfig    `river:"attach_metadata,block,optional"`
 }
 
 // DefaultConfig holds defaults for SDConfig.
@@ -35,11 +36,15 @@ var DefaultConfig = Arguments{
 	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultConfig
-	type arguments Arguments
-	return f((*arguments)(args))
+}
+
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	return args.HTTPClientConfig.Validate()
 }
 
 // Convert converts Arguments to the Prometheus SD type.
@@ -55,6 +60,7 @@ func (args *Arguments) Convert() *promk8s.SDConfig {
 		HTTPClientConfig:   *args.HTTPClientConfig.Convert(),
 		NamespaceDiscovery: *args.NamespaceDiscovery.convert(),
 		Selectors:          selectors,
+		AttachMetadata:     *args.AttachMetadata.convert(),
 	}
 }
 
@@ -86,8 +92,18 @@ func (sc *SelectorConfig) convert() *promk8s.SelectorConfig {
 	}
 }
 
+type AttachMetadataConfig struct {
+	Node bool `river:"node,attr,optional"`
+}
+
+func (am *AttachMetadataConfig) convert() *promk8s.AttachMetadataConfig {
+	return &promk8s.AttachMetadataConfig{
+		Node: am.Node,
+	}
+}
+
 // New returns a new instance of a discovery.kubernetes component.
-func New(opts component.Options, args Arguments) (component.Component, error) {
+func New(opts component.Options, args Arguments) (*discovery.Component, error) {
 	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
 		newArgs := args.(Arguments)
 		return promk8s.New(opts.Logger, newArgs.Convert())

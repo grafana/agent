@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/standard-library/env
+- ../../configuration-language/standard-library/env/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/env/
 title: env
 ---
 

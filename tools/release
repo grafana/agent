@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 #
 # This script should be run from the root of the repository.
-set -x
+set -ex
 
-# Zip up agent* binaries to reduce the download size. agent* binaries include
-# everything *except* for the deb/rpm assets, which are named grafana-agent*.
-for i in dist/agent*; do
-  zip -j -m "$i.zip" "$i"
-done
+# Zip up all the agent binaries to reduce the download size. DEBs and RPMs
+# aren't included to be easier to work with.
+find dist/ -type f \
+  -name 'grafana-agent*' -not -name '*.deb' -not -name '*.rpm' \
+  -exec zip -j -m "{}.zip" "{}" \;
 
 # Sign the RPM packages. DEB packages aren't signed.
-./packaging/rpm/gpg-sign.sh
+./packaging/grafana-agent/rpm/gpg-sign.sh
+./packaging/grafana-agent-flow/rpm/gpg-sign.sh
 
 # Get the SHA256SUMS before continuing.
 pushd dist && sha256sum -- * > SHA256SUMS && popd || exit

@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-// RunnableNode is any dag.Node which can also be ran.
+// RunnableNode is any dag.Node which can also be run.
 type RunnableNode interface {
 	NodeID() string
 	Run(ctx context.Context) error

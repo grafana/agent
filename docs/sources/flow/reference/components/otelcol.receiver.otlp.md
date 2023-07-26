@@ -1,6 +1,5 @@
 ---
-aliases:
-- /docs/agent/latest/flow/reference/components/otelcol.receiver.otlp
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.otlp/
 title: otelcol.receiver.otlp
 ---
 
@@ -219,3 +218,7 @@ otelcol.exporter.otlp "default" {
   }
 }
 ```
+
+## Compression
+
+`otelcol.receiver.otlp` supports [gzip](https://en.wikipedia.org/wiki/Gzip) for compression.

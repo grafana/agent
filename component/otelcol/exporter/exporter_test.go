@@ -13,8 +13,9 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	otelconsumer "go.opentelemetry.io/collector/consumer"
+	otelexporter "go.opentelemetry.io/collector/exporter"
+	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
@@ -90,12 +91,14 @@ func newTestEnvironment(t *testing.T, fe *fakeExporter) *testEnvironment {
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			// Create a factory which always returns our instance of fakeExporter
 			// defined above.
-			factory := otelcomponent.NewExporterFactory(
+			factory := otelexporter.NewFactory(
 				"testcomponent",
-				func() otelconfig.Exporter {
-					return fakeExporterArgs{}.Convert()
+				func() otelcomponent.Config {
+					res, err := fakeExporterArgs{}.Convert()
+					require.NoError(t, err)
+					return res
 				},
-				otelcomponent.WithTracesExporter(func(ctx context.Context, ecs otelcomponent.ExporterCreateSettings, e otelconfig.Exporter) (otelcomponent.TracesExporter, error) {
+				otelexporter.WithTraces(func(ctx context.Context, ecs otelexporter.CreateSettings, e otelcomponent.Config) (otelexporter.Traces, error) {
 					return fe, nil
 				}, otelcomponent.StabilityLevelUndefined),
 			)
@@ -123,16 +126,15 @@ type fakeExporterArgs struct {
 
 var _ exporter.Arguments = fakeExporterArgs{}
 
-func (fa fakeExporterArgs) Convert() otelconfig.Exporter {
-	settings := otelconfig.NewExporterSettings(otelconfig.NewComponentID("testcomponent"))
-	return &settings
+func (fa fakeExporterArgs) Convert() (otelcomponent.Config, error) {
+	return &struct{}{}, nil
 }
 
-func (fa fakeExporterArgs) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (fa fakeExporterArgs) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
-func (fa fakeExporterArgs) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (fa fakeExporterArgs) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 
@@ -143,7 +145,7 @@ type fakeExporter struct {
 	ConsumeTracesFunc func(ctx context.Context, td ptrace.Traces) error
 }
 
-var _ otelcomponent.TracesExporter = (*fakeExporter)(nil)
+var _ otelconsumer.Traces = (*fakeExporter)(nil)
 
 func (fe *fakeExporter) Start(ctx context.Context, host otelcomponent.Host) error {
 	if fe.StartFunc != nil {

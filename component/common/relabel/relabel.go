@@ -2,6 +2,7 @@ package relabel
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/grafana/regexp"
 	"github.com/prometheus/common/model"
@@ -22,6 +23,8 @@ const (
 	LabelKeep Action = "labelkeep"
 	Lowercase Action = "lowercase"
 	Uppercase Action = "uppercase"
+	KeepEqual Action = "keepequal"
+	DropEqual Action = "dropequal"
 )
 
 var actions = map[Action]struct{}{
@@ -34,6 +37,8 @@ var actions = map[Action]struct{}{
 	LabelKeep: {},
 	Lowercase: {},
 	Uppercase: {},
+	KeepEqual: {},
+	DropEqual: {},
 }
 
 // String returns the string representation of the Action type.
@@ -95,6 +100,13 @@ func (re *Regexp) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// String returns the original string used to compile the regular expression.
+func (re Regexp) String() string {
+	str := re.Regexp.String()
+	// Trim the anchor `^(?:` prefix and `)$` suffix.
+	return str[4 : len(str)-2]
+}
+
 // Config describes a relabelling step to be applied on a target.
 type Config struct {
 	SourceLabels []string `river:"source_labels,attr,optional"`
@@ -114,25 +126,31 @@ var DefaultRelabelConfig = Config{
 	Replacement: "$1",
 }
 
+// SetToDefault implements river.Defaulter.
+func (c *Config) SetToDefault() {
+	*c = Config{
+		Action:      Replace,
+		Separator:   ";",
+		Regex:       mustNewRegexp("(.*)"),
+		Replacement: "$1",
+	}
+}
+
 var relabelTarget = regexp.MustCompile(`^(?:(?:[a-zA-Z_]|\$(?:\{\w+\}|\w+))+\w*)+$`)
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (rc *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*rc = DefaultRelabelConfig
-
-	type relabelConfig Config
-	if err := f((*relabelConfig)(rc)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (rc *Config) Validate() error {
 	if rc.Action == "" {
 		return fmt.Errorf("relabel action cannot be empty")
 	}
 	if rc.Modulus == 0 && rc.Action == HashMod {
 		return fmt.Errorf("relabel configuration for hashmod requires non-zero modulus")
 	}
-	if (rc.Action == Replace || rc.Action == HashMod || rc.Action == Lowercase || rc.Action == Uppercase) && rc.TargetLabel == "" {
+	if (rc.Action == Replace || rc.Action == KeepEqual || rc.Action == DropEqual || rc.Action == HashMod || rc.Action == Lowercase || rc.Action == Uppercase) && rc.TargetLabel == "" {
 		return fmt.Errorf("relabel configuration for %s action requires 'target_label' value", rc.Action)
+	}
+	if (rc.Action == KeepEqual || rc.Action == DropEqual) && rc.SourceLabels == nil {
+		return fmt.Errorf("relabel configuration for %s action requires 'source_labels' value", rc.Action)
 	}
 	if (rc.Action == Replace || rc.Action == Lowercase || rc.Action == Uppercase) && !relabelTarget.MatchString(rc.TargetLabel) {
 		return fmt.Errorf("%q is invalid 'target_label' for %s action", rc.TargetLabel, rc.Action)
@@ -155,6 +173,16 @@ func (rc *Config) UnmarshalRiver(f func(interface{}) error) error {
 			rc.Replacement != DefaultRelabelConfig.Replacement {
 
 			return fmt.Errorf("%s action requires only 'regex', and no other fields", rc.Action)
+		}
+	}
+
+	if rc.Action == KeepEqual || rc.Action == DropEqual {
+		if !reflect.DeepEqual(*rc.Regex.Regexp, *DefaultRelabelConfig.Regex.Regexp) ||
+			rc.Modulus != DefaultRelabelConfig.Modulus ||
+			rc.Separator != DefaultRelabelConfig.Separator ||
+			rc.Replacement != DefaultRelabelConfig.Replacement {
+
+			return fmt.Errorf("%s action requires only 'source_labels' and 'target_label', and no other fields", rc.Action)
 		}
 	}
 

@@ -104,7 +104,7 @@ agent:
 
 	// Ensure that the relabel configs are functional
 	require.Len(t, relabels, 1)
-	result := relabel.Process(labels.FromStrings("__address__", "127.0.0.1"), relabels...)
+	result, _ := relabel.Process(labels.FromStrings("__address__", "127.0.0.1"), relabels...)
 
 	require.Equal(t, result.Get("instance"), expectHostname+":12345")
 }

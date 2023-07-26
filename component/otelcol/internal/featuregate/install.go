@@ -17,30 +17,22 @@ import (
 // Once all feature gates are removed, this package can be removed as well.
 
 func init() {
-	_ = enableFeatureGates(featuregate.GetRegistry())
+	_ = enableFeatureGates(featuregate.GlobalRegistry())
 }
 
 func enableFeatureGates(reg *featuregate.Registry) error {
 	// TODO(marctc): temporary workaround to fix issue with traces' metrics not
 	// being collected even flow is not enabled.
-	return reg.Apply(map[string]bool{
-		"telemetry.useOtelForInternalMetrics": isFlowRunning(),
-	})
+	return reg.Set("telemetry.useOtelForInternalMetrics", isFlowRunning())
 }
 
 func isFlowRunning() bool {
-	key, found := os.LookupEnv("AGENT_MODE")
-	if !found {
-		key, found := os.LookupEnv("EXPERIMENTAL_ENABLE_FLOW")
-		if !found {
-			return false
-		}
-		return key == "true" || key == "1"
-	}
+	key, _ := os.LookupEnv("AGENT_MODE")
 
 	switch key {
 	case "flow":
 		return true
+	default:
+		return false
 	}
-	return false
 }

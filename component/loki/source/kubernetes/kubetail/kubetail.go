@@ -38,9 +38,13 @@ type Manager struct {
 
 // NewManager returns a new Manager which manages a set of running tailers.
 // Options must not be modified after passing it to a Manager.
+//
+// If NewManager is called with a nil set of options, no targets will be
+// scheduled for running until UpdateOptions is called.
 func NewManager(l log.Logger, opts *Options) *Manager {
 	return &Manager{
-		log: l,
+		log:  l,
+		opts: opts,
 		runner: runner.New(func(t *tailerTask) runner.Worker {
 			return newTailer(l, t)
 		}),
@@ -62,8 +66,18 @@ func (m *Manager) SyncTargets(ctx context.Context, targets []*Target) error {
 		})
 	}
 
-	if err := m.runner.ApplyTasks(ctx, tasks); err != nil {
-		return err
+	// Sync our tasks to the runner. If the Manager doesn't have any options, the
+	// runner will be cleaered of tasks until UpdateOptions is called with a
+	// non-nil set of options.
+	switch m.opts {
+	default:
+		if err := m.runner.ApplyTasks(ctx, tasks); err != nil {
+			return err
+		}
+	case nil:
+		if err := m.runner.ApplyTasks(ctx, nil); err != nil {
+			return err
+		}
 	}
 
 	// Delete positions for targets which have gone away.
@@ -99,7 +113,7 @@ func entryForTarget(t *Target) positions.Entry {
 	// it's probably not worth handling.
 	//
 	// The path is fed into positions.CursorKey to treat it as a "cursor";
-	// otherise positions.Positions will try to read the path as a file and
+	// otherwise positions.Positions will try to read the path as a file and
 	// delete the entry when it can't find it.
 	return positions.Entry{
 		Path:   positions.CursorKey(t.String() + ":" + t.UID()),
@@ -110,6 +124,9 @@ func entryForTarget(t *Target) positions.Entry {
 // UpdateOptions updates the Options shared with all Tailers. All Tailers will
 // be updated with the new set of Options. Options should not be modified after
 // passing to UpdateOptions.
+//
+// If newOptions is nil, all tasks will be cleared until UpdateOptions is
+// called again with a non-nil set of options.
 func (m *Manager) UpdateOptions(ctx context.Context, newOptions *Options) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
@@ -124,8 +141,15 @@ func (m *Manager) UpdateOptions(ctx context.Context, newOptions *Options) error 
 		})
 	}
 
-	if err := m.runner.ApplyTasks(ctx, tasks); err != nil {
-		return err
+	switch newOptions {
+	case nil:
+		if err := m.runner.ApplyTasks(ctx, nil); err != nil {
+			return err
+		}
+	default:
+		if err := m.runner.ApplyTasks(ctx, tasks); err != nil {
+			return err
+		}
 	}
 
 	m.opts = newOptions

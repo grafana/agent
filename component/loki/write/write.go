@@ -7,7 +7,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/write/internal/client"
+	"github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/agent/pkg/build"
 )
 
@@ -64,7 +64,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	// Create and immediately export the receiver which remains the same for
 	// the component's lifetime.
-	c.receiver = make(loki.LogsReceiver)
+	c.receiver = loki.NewLogsReceiver()
 	o.OnStateChange(Exports{Receiver: c.receiver})
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -81,7 +81,7 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.receiver:
+		case entry := <-c.receiver.Chan():
 			for _, client := range c.clients {
 				if client != nil {
 					select {

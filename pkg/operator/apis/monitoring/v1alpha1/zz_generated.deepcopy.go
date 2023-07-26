@@ -186,6 +186,11 @@ func (in *GrafanaAgentSpec) DeepCopyInto(out *GrafanaAgentSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.ConfigReloaderImage != nil {
+		in, out := &in.ConfigReloaderImage, &out.ConfigReloaderImage
+		*out = new(string)
+		**out = **in
+	}
 	if in.ImagePullSecrets != nil {
 		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
 		*out = make([]corev1.LocalObjectReference, len(*in))
@@ -265,6 +270,11 @@ func (in *GrafanaAgentSpec) DeepCopyInto(out *GrafanaAgentSpec) {
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
+	}
+	if in.RuntimeClassName != nil {
+		in, out := &in.RuntimeClassName, &out.RuntimeClassName
+		*out = new(string)
+		**out = **in
 	}
 	in.Metrics.DeepCopyInto(&out.Metrics)
 	in.Logs.DeepCopyInto(&out.Logs)
@@ -506,6 +516,11 @@ func (in *LogsClientSpec) DeepCopyInto(out *LogsClientSpec) {
 	if in.BasicAuth != nil {
 		in, out := &in.BasicAuth, &out.BasicAuth
 		*out = new(v1.BasicAuth)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.OAuth2 != nil {
+		in, out := &in.OAuth2, &out.OAuth2
+		*out = new(v1.OAuth2)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.TLSConfig != nil {

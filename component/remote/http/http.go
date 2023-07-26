@@ -11,11 +11,11 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	common_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 )
 
@@ -39,6 +39,9 @@ type Arguments struct {
 	PollTimeout   time.Duration `river:"poll_timeout,attr,optional"`
 	IsSecret      bool          `river:"is_secret,attr,optional"`
 
+	Method  string            `river:"method,attr,optional"`
+	Headers map[string]string `river:"headers,attr,optional"`
+
 	Client common_config.HTTPClientConfig `river:"client,block,optional"`
 }
 
@@ -47,19 +50,16 @@ var DefaultArguments = Arguments{
 	PollFrequency: 1 * time.Minute,
 	PollTimeout:   10 * time.Second,
 	Client:        common_config.DefaultHTTPClientConfig,
+	Method:        http.MethodGet,
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.PollFrequency <= 0 {
 		return fmt.Errorf("poll_frequency must be greater than 0")
 	}
@@ -68,6 +68,10 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	}
 	if args.PollTimeout >= args.PollFrequency {
 		return fmt.Errorf("poll_timeout must be less than poll_frequency")
+	}
+
+	if _, err := http.NewRequest(args.Method, args.URL, nil); err != nil {
+		return err
 	}
 
 	return nil
@@ -156,11 +160,11 @@ func (c *Component) nextPoll() time.Duration {
 // not be held when calling. After polling, the component's health is updated
 // with the success or failure status.
 func (c *Component) poll() {
-	startTime := time.Now()
 	err := c.pollError()
+	c.updatePollHealth(err)
+}
 
-	// NOTE(rfratto): to prevent the health from being inaccessible for longer
-	// than is needed, only update the health after the poll finished.
+func (c *Component) updatePollHealth(err error) {
 	c.healthMut.Lock()
 	defer c.healthMut.Unlock()
 
@@ -168,13 +172,13 @@ func (c *Component) poll() {
 		c.health = component.Health{
 			Health:     component.HealthTypeHealthy,
 			Message:    "polled endpoint",
-			UpdateTime: startTime,
+			UpdateTime: time.Now(),
 		}
 	} else {
 		c.health = component.Health{
 			Health:     component.HealthTypeUnhealthy,
 			Message:    fmt.Sprintf("polling failed: %s", err),
-			UpdateTime: startTime,
+			UpdateTime: time.Now(),
 		}
 	}
 }
@@ -189,23 +193,30 @@ func (c *Component) pollError() error {
 	ctx, cancel := context.WithTimeout(context.Background(), c.args.PollTimeout)
 	defer cancel()
 
-	req, err := http.NewRequest(http.MethodGet, c.args.URL, nil)
+	req, err := http.NewRequest(c.args.Method, c.args.URL, nil)
 	if err != nil {
+		level.Error(c.log).Log("msg", "failed to build request", "err", err)
 		return fmt.Errorf("building request: %w", err)
+	}
+	for name, value := range c.args.Headers {
+		req.Header.Set(name, value)
 	}
 	req = req.WithContext(ctx)
 
 	resp, err := c.cli.Do(req)
 	if err != nil {
+		level.Error(c.log).Log("msg", "failed to perform request", "err", err)
 		return fmt.Errorf("performing request: %w", err)
 	}
 
 	bb, err := io.ReadAll(resp.Body)
 	if err != nil {
+		level.Error(c.log).Log("msg", "failed to read response", "err", err)
 		return fmt.Errorf("reading response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		level.Error(c.log).Log("msg", "unexpected status code from response", "status", resp.Status)
 		return fmt.Errorf("unexpected status code %s", resp.Status)
 	}
 
@@ -230,13 +241,18 @@ func (c *Component) pollError() error {
 // Update updates the remote.http component. After the update completes, a
 // poll is forced.
 func (c *Component) Update(args component.Arguments) (err error) {
-	// poll after updating. If an error occurred during Update, we don't bother
-	// to do anything.
+	// Poll after updating and propagate the error if the poll fails. If an error
+	// occurred during Update, we don't bother to do anything.
+	//
+	// It's important to propagate the error in update so the initial state of
+	// the component is calculated correctly, otherwise the exports will be empty
+	// and may cause unexpected errors in downstream components.
 	defer func() {
 		if err != nil {
 			return
 		}
-		c.poll()
+		err = c.pollError()
+		c.updatePollHealth(err)
 	}()
 
 	c.mut.Lock()

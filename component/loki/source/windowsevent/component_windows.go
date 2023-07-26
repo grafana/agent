@@ -88,7 +88,7 @@ func (c *Component) Run(ctx context.Context) error {
 				Entry:  entry.Entry,
 			}
 			for _, receiver := range c.receivers {
-				receiver <- lokiEntry
+				receiver.Chan() <- lokiEntry
 			}
 			c.mut.RUnlock()
 		}
@@ -115,10 +115,11 @@ func (c *Component) Update(args component.Arguments) error {
 		if err != nil {
 			return err
 		}
-		_, err = os.Create(newArgs.BookmarkPath)
+		f, err := os.Create(newArgs.BookmarkPath)
 		if err != nil {
 			return err
 		}
+		_ = f.Close()
 	}
 
 	winTarget, err := windows.New(c.opts.Logger, c.handle, nil, convertConfig(newArgs))

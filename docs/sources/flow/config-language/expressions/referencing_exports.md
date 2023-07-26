@@ -1,6 +1,7 @@
 ---
 aliases:
-- /docs/agent/latest/flow/configuration-language/expressions/referencing-exports
+- ../../configuration-language/expressions/referencing-exports/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/referencing_exports/
 title: Referencing component exports
 weight: 200
 ---

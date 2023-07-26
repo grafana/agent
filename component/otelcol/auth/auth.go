@@ -17,7 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
 
@@ -31,15 +31,15 @@ type Arguments interface {
 
 	// Convert converts the Arguments into an OpenTelemetry Collector
 	// authentication extension configuration.
-	Convert() otelconfig.Extension
+	Convert() (otelcomponent.Config, error)
 
 	// Extensions returns the set of extensions that the configured component is
 	// allowed to use.
-	Extensions() map[otelconfig.ComponentID]otelcomponent.Extension
+	Extensions() map[otelcomponent.ID]otelextension.Extension
 
 	// Exporters returns the set of exporters that are exposed to the configured
 	// component.
-	Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
+	Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component
 }
 
 // Exports is a common Exports type for Flow components which expose
@@ -52,8 +52,8 @@ type Exports struct {
 
 // Handler combines an extension with its ID.
 type Handler struct {
-	ID        otelconfig.ComponentID
-	Extension otelcomponent.Extension
+	ID        otelcomponent.ID
+	Extension otelextension.Extension
 }
 
 var _ river.Capsule = Handler{}
@@ -68,7 +68,7 @@ type Auth struct {
 	cancel context.CancelFunc
 
 	opts    component.Options
-	factory otelcomponent.ExtensionFactory
+	factory otelextension.Factory
 
 	sched     *scheduler.Scheduler
 	collector *lazycollector.Collector
@@ -85,7 +85,7 @@ var (
 //
 // The registered component must be registered to export the Exports type from
 // this package, otherwise New will panic.
-func New(opts component.Options, f otelcomponent.ExtensionFactory, args Arguments) (*Auth, error) {
+func New(opts component.Options, f otelextension.Factory, args Arguments) (*Auth, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Create a lazy collector where metrics from the upstream component will be
@@ -135,7 +135,7 @@ func (a *Auth) Update(args component.Arguments) error {
 		return err
 	}
 
-	settings := otelcomponent.ExtensionCreateSettings{
+	settings := otelextension.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(a.opts.Logger),
 
@@ -150,7 +150,10 @@ func (a *Auth) Update(args component.Arguments) error {
 		},
 	}
 
-	extensionConfig := rargs.Convert()
+	extensionConfig, err := rargs.Convert()
+	if err != nil {
+		return err
+	}
 
 	// Create instances of the extension from our factory.
 	var components []otelcomponent.Component
@@ -165,7 +168,7 @@ func (a *Auth) Update(args component.Arguments) error {
 	// Inform listeners that our handler changed.
 	a.opts.OnStateChange(Exports{
 		Handler: Handler{
-			ID:        otelconfig.NewComponentID(otelconfig.Type(a.opts.ID)),
+			ID:        otelcomponent.NewID(otelcomponent.Type(a.opts.ID)),
 			Extension: ext,
 		},
 	})

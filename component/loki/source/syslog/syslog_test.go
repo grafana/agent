@@ -5,28 +5,28 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/regexp"
 	"github.com/phayes/freeport"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 )
 
 func Test(t *testing.T) {
-	// Create opts for component
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 
-	opts := component.Options{Logger: l}
-
-	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 	args := Arguments{}
 	tcpListenerAddr, udpListenerAddr := getFreeAddr(t), getFreeAddr(t)
 
@@ -63,11 +63,11 @@ func Test(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "An application event log entry...", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "An application event log entry...", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -87,11 +87,11 @@ func Test(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "An application event log entry...", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "An application event log entry...", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -102,13 +102,13 @@ func Test(t *testing.T) {
 }
 
 func TestWithRelabelRules(t *testing.T) {
-	// Create opts for component.
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
-	require.NoError(t, err)
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
 
-	opts := component.Options{Logger: l}
-
-	ch1 := make(chan loki.Entry)
+	ch1 := loki.NewLogsReceiver()
 	args := Arguments{}
 	tcpListenerAddr := getFreeAddr(t)
 
@@ -161,7 +161,7 @@ func TestWithRelabelRules(t *testing.T) {
 	}
 
 	select {
-	case logEntry := <-ch1:
+	case logEntry := <-ch1.Chan():
 		require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 		require.Equal(t, "An application event log entry...", logEntry.Line)
 		require.Equal(t, wantLabelSet, logEntry.Labels)
