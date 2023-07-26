@@ -24,6 +24,8 @@ loader](#module-loaders).
 Refer to the documentation for the [argument block][] and [export block][] to
 learn how to define arguments and exports for a module.
 
+A collection of curated modules for use are located in the [agent modules repository](https://github.com/grafana/agent-modules).
+
 [argument block]: {{< relref "../reference/config-blocks/argument.md" >}}
 [export block]: {{< relref "../reference/config-blocks/export.md" >}}
 
