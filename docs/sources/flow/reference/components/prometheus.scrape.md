@@ -262,7 +262,7 @@ http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 `prometheus.scrape` supports [gzip](https://en.wikipedia.org/wiki/Gzip) compression.
 
 The following special labels can change the behavior of prometheus.scrape:
-* `__address__` is the name of the label that holds the address of a scrape target.
+* `__address__` is the name of the label that holds the `<host>:<port>` address of a scrape target.
 * `__metrics_path__`   is the name of the label that holds the path on which to scrape a target.
 * `__scheme__` is the name of the label that holds the scheme (http,https) on which to  scrape a target.
 * `__scrape_interval__` is the name of the label that holds the scrape interval used to scrape a target.
