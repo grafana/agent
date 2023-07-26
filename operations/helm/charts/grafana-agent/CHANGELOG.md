@@ -12,8 +12,9 @@ Unreleased
 
 ### Enhancements
 
-- Set nodeSelector at podlevel. (@Flasheh)
+- Set hostPID from values. (@korniltsev)
 
+- Set nodeSelector at podlevel. (@Flasheh)
 
 0.17.0 (2023-07-19)
 -------------------
