@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -157,6 +158,12 @@ func validateRiver(t *testing.T, expectedRiver []byte, actualRiver []byte) {
 func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 	cfg, err := flow.ReadFile(t.Name(), river)
 	require.NoError(t, err, "the output River config failed to parse: %s", string(normalizeLineEndings(river)))
+
+	// The below check suffers from test race conditions on Windows. Our goal here is to verify config conversions,
+	// which is platform independent, so we can skip this check on Windows as a workaround.
+	if runtime.GOOS == "windows" {
+		return
+	}
 
 	logger, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)

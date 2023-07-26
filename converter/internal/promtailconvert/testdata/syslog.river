@@ -1,0 +1,41 @@
+discovery.relabel "fun" {
+	targets = []
+
+	rule {
+		source_labels = ["host"]
+		target_label  = "hostname"
+	}
+}
+
+loki.source.syslog "fun" {
+	listener {
+		address               = "localhost:4000"
+		protocol              = "udp"
+		idle_timeout          = "1m0s"
+		label_structured_data = true
+		labels                = {
+			region  = "chablis",
+			variety = "chardonnay",
+		}
+		use_incoming_timestamp = true
+		use_rfc5424_message    = true
+		max_message_length     = 1024
+
+		tls_config {
+			ca_file   = "/etc/ssl/certs/ca-certificates.crt"
+			cert_file = "/etc/promtail/certs/promtail.crt"
+			key_file  = "/etc/promtail/certs/promtail.key"
+		}
+	}
+	forward_to    = [loki.write.default_0.receiver]
+	relabel_rules = discovery.relabel.fun.rules
+}
+
+loki.write "default_0" {
+	endpoint {
+		url              = "http://localhost/loki/api/v1/push"
+		follow_redirects = false
+		enable_http2     = false
+	}
+	external_labels = {}
+}

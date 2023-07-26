@@ -1,0 +1,38 @@
+server:
+  log_level: debug
+  log_format: json
+  http_tls_config:
+    cert_file: "/something.cert"
+  grpc_tls_config:
+    cert_file: "/something2.cert"
+
+metrics:
+  wal_directory: /tmp/agent
+  global:
+    remote_write:
+    - url: https://prometheus-us-central1.grafana.net/api/prom/push
+  configs:
+    - name: agent
+      scrape_configs:
+        - job_name: 'prometheus'
+          static_configs:
+            - targets: ['localhost:9099']
+
+integrations:
+  agent:
+    enabled: true
+
+traces:
+  configs:
+    - name: trace_config
+
+logs:
+  positions_directory: /path
+  global:
+    file_watch_config:
+      min_poll_frequency: 1m
+  configs:
+    - name: log_config
+
+agent_management:
+  host: host_name
