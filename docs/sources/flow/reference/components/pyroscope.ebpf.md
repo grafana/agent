@@ -12,6 +12,10 @@ title: pyroscope.ebpf
 `pyroscope.ebpf` configures an ebpf profiling job for the current host. The collected performance profiles are forwarded
 to the list of receivers passed in `forward_to`.
 
+{{% admonition type="note" %}}
+To use the  `pyroscope.ebpf` component you must run Grafana Agent as root and inside host pid namespace.
+{{% /admonition %}}
+
 You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended as
 it can lead to additional memory and CPU usage.
 
@@ -82,12 +86,6 @@ can help you pin down a profiling target.
 | `service_name`     | Pyroscope service name. It's automatically selected from discovery meta labels if possible. Otherwise defaults to `unspecified`. |
 | `__name__`         | pyroscope metric name. Defaults to `process_cpu`.                                                                                |
 | `__container_id__` | The container ID derived from target.                                                                                            |
-
-
-### Privileges
-
-You are required to run the agent as root and inside host pid namespace in order to `pyroscope.ebpf` component to work.
-See helm example below how to do it with helm.
 
 ### Container ID
 
@@ -249,46 +247,4 @@ pyroscope.ebpf "default" {
   forward_to   = [ pyroscope.write.staging.receiver ]
   targets      = discovery.relabel.local_containers.output
 }
-```
-
-### Helm deployment
-
-Create `values.yaml`
-```yaml
-agent:
-  mode: 'flow'
-  configMap:
-    create: true
-    content: |
-      discovery.kubernetes "local_pods" {
-        selectors {
-          field = "spec.nodeName=" + env("HOSTNAME")
-          role = "pod"
-        }
-        role = "pod"
-      }
-      pyroscope.ebpf "instance" {
-        forward_to = [pyroscope.write.endpoint.receiver]
-        targets = discovery.kubernetes.local_pods.targets
-      }
-      pyroscope.write "endpoint" {
-        endpoint {
-          basic_auth {
-            password = "<PASSWORD>"
-            username = "<USERNAME>"
-          }
-          url = "<URL>"
-        }
-      }
-  securityContext:
-    privileged: true
-    runAsGroup: 0
-    runAsUser: 0
-
-controller:
-  hostPID: true
-```
-
-```bash
-helm install pyroscope-ebpf grafana/grafana-agent -f values.yaml
 ```
