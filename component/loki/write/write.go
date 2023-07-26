@@ -50,10 +50,11 @@ type Component struct {
 	opts    component.Options
 	metrics *client.Metrics
 
-	mut      sync.RWMutex
-	args     Arguments
-	receiver loki.LogsReceiver
-	manager  client.Client
+	mut       sync.RWMutex
+	args      Arguments
+	receiver  loki.LogsReceiver
+	manager   client.Client
+	walWriter *wal.Writer
 }
 
 // New creates a new loki.write component.
@@ -100,6 +101,9 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
+	if c.walWriter != nil {
+		c.walWriter.Stop()
+	}
 	if c.manager != nil {
 		c.manager.Stop()
 	}
@@ -107,10 +111,20 @@ func (c *Component) Update(args component.Arguments) error {
 	cfgs := newArgs.convertClientConfigs()
 
 	var err error
+	var notifier client.WriterEventsNotifier = client.NilNotifier
+	c.walWriter = nil
+	if newArgs.WAL.Enabled {
+		c.walWriter, err = wal.NewWriter(newArgs.WAL, c.opts.Logger, c.opts.Registerer)
+		if err != nil {
+			return fmt.Errorf("error creating wal writer")
+		}
+		notifier = c.walWriter
+	}
+
 	// todo(thepalbi): Add river support for enabling and configuring WAL
 	c.manager, err = client.NewManager(c.metrics, c.opts.Logger, limit.Config{
 		MaxStreams: newArgs.MaxStreams,
-	}, c.opts.Registerer, wal.Config{}, client.NilNotifier, cfgs...)
+	}, c.opts.Registerer, newArgs.WAL, notifier, cfgs...)
 
 	return err
 }
