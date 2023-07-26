@@ -132,9 +132,33 @@ the exit code will be 1.`,
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to validate config: %s\n", err)
 				os.Exit(1)
-			} else {
-				fmt.Fprintln(os.Stdout, "config valid")
 			}
+
+			if err := cfg.Metrics.ApplyDefaults(); err != nil {
+				fmt.Fprintf(os.Stderr, "invalid metrics config: %s\n", err)
+				os.Exit(1)
+			}
+
+			if cfg.Logs != nil {
+				if err := cfg.Logs.ApplyDefaults(); err != nil {
+					fmt.Fprintf(os.Stderr, "invalid logs config: %s\n", err)
+					os.Exit(1)
+				}
+			}
+
+			if err := cfg.Traces.Validate(cfg.Logs); err != nil {
+				fmt.Fprintf(os.Stderr, "invalid trace config: %s\n", err)
+				os.Exit(1)
+			}
+
+			if cfg.AgentManagement.Enabled {
+				if err := cfg.AgentManagement.Validate(); err != nil {
+					fmt.Fprintf(os.Stderr, "invalid agent management config: %s\n", err)
+					os.Exit(1)
+				}
+			}
+
+			fmt.Fprintln(os.Stdout, "config valid")
 		},
 	}
 
