@@ -20,17 +20,28 @@ type Config struct {
 	//
 	// WAL support is a WIP. Do not enable in production setups until https://github.com/grafana/loki/issues/8197
 	// is finished.
-	Enabled bool `yaml:"enabled"`
+	Enabled bool `yaml:"enabled" river:"enabled,attr,optional"`
 
 	// Path where the WAL is written to.
-	Dir string `yaml:"dir"`
+	Dir string `yaml:"dir" river:"dir,attr"`
 
 	// MaxSegmentAge is threshold at which a WAL segment is considered old enough to be cleaned up. Default: 1h.
 	//
 	// Note that this functionality will likely be deprecated in favour of a programmatic cleanup mechanism.
-	MaxSegmentAge time.Duration `yaml:"cleanSegmentsOlderThan"`
+	MaxSegmentAge time.Duration `yaml:"cleanSegmentsOlderThan" river:"max_segment_age,attr,optional"`
 
-	WatchConfig WatchConfig `yaml:"watchConfig"`
+	WatchConfig WatchConfig `yaml:"watchConfig" river:"watch_config,block,optional"`
+}
+
+// SetToDefault applies the default values to the watch config during unmarshalling
+func (c *Config) SetToDefault() {
+	// todo(thepalbi): Once we are in a good state: replay implemented, and a better cleanup mechanism
+	// make WAL enabled the default
+	*c = Config{
+		Enabled:       false,
+		MaxSegmentAge: defaultMaxSegmentAge,
+		WatchConfig:   DefaultWatchConfig,
+	}
 }
 
 // WatchConfig allows the user to configure the Watcher.
@@ -42,11 +53,11 @@ type Config struct {
 type WatchConfig struct {
 	// MinReadFrequency controls the minimum read frequency the Watcher polls the WAL for new records. If the poll is successful,
 	// the frequency will remain the same. If not, it will be incremented using an exponential backoff.
-	MinReadFrequency time.Duration `yaml:"minReadFrequency"`
+	MinReadFrequency time.Duration `yaml:"minReadFrequency" river:"min_read_frequency,attr,optional"`
 
 	// MaxReadFrequency controls the maximum read frequency the Watcher polls the WAL for new records. As mentioned above
 	// it caps the polling frequency to a maximum, to prevent to exponential backoff from making it too high.
-	MaxReadFrequency time.Duration `yaml:"maxReadFrequency"`
+	MaxReadFrequency time.Duration `yaml:"maxReadFrequency" river:"max_read_frequency,attr,optional"`
 }
 
 // UnmarshalYAML implement YAML Unmarshaler

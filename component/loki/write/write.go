@@ -32,6 +32,7 @@ type Arguments struct {
 	Endpoints      []EndpointOptions `river:"endpoint,block,optional"`
 	ExternalLabels map[string]string `river:"external_labels,attr,optional"`
 	MaxStreams     int               `river:"max_streams,attr,optional"`
+	WAL            wal.Config        `river:"wal,block,optional"`
 }
 
 // Exports holds the receiver that is used to send log entries to the
