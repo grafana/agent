@@ -64,6 +64,8 @@ spec:
               cpu: 1m
               memory: 5Mi
       dnsPolicy: ClusterFirst
+      nodeSelector:
+        key1: value1
       tolerations:
         - effect: NoSchedule
           key: key1
