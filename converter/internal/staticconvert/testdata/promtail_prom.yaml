@@ -3,7 +3,6 @@ metrics:
     remote_write:
       - url: http://localhost:9009/api/prom/push
   configs:
-    # TODO Switching the name here will test the scenario where labels overlap between metrics and logs
     - name: name
       host_filter: false
       scrape_configs:
