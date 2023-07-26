@@ -131,7 +131,6 @@ func appendScrapeConfig(
 	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
 
 	//TODO(thampiotr): support/warn about the following log producing promtail configs:
-	//SyslogConfig         *SyslogTargetConfig         `mapstructure:"syslog,omitempty" yaml:"syslog,omitempty"`
 	//GcplogConfig         *GcplogTargetConfig         `mapstructure:"gcplog,omitempty" yaml:"gcplog,omitempty"`
 	//WindowsConfig        *WindowsEventsTargetConfig  `mapstructure:"windows_events,omitempty" yaml:"windows_events,omitempty"`
 	//KafkaConfig          *KafkaTargetConfig          `mapstructure:"kafka,omitempty" yaml:"kafka,omitempty"`
@@ -166,4 +165,5 @@ func appendScrapeConfig(
 	b.AppendCloudFlareConfig()
 	b.AppendJournalConfig()
 	b.AppendPushAPI()
+	b.AppendSyslogConfig()
 }

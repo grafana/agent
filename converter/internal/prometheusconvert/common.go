@@ -20,7 +20,7 @@ func ToHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.
 		BearerToken:     rivertypes.Secret(httpClientConfig.BearerToken),
 		BearerTokenFile: httpClientConfig.BearerTokenFile,
 		ProxyURL:        config.URL(httpClientConfig.ProxyURL),
-		TLSConfig:       *toTLSConfig(&httpClientConfig.TLSConfig),
+		TLSConfig:       *ToTLSConfig(&httpClientConfig.TLSConfig),
 		FollowRedirects: httpClientConfig.FollowRedirects,
 		EnableHTTP2:     httpClientConfig.EnableHTTP2,
 	}
@@ -87,11 +87,11 @@ func toOAuth2(oAuth2 *prom_config.OAuth2) *config.OAuth2Config {
 		TokenURL:         oAuth2.TokenURL,
 		EndpointParams:   oAuth2.EndpointParams,
 		ProxyURL:         config.URL(oAuth2.ProxyURL),
-		TLSConfig:        toTLSConfig(&oAuth2.TLSConfig),
+		TLSConfig:        ToTLSConfig(&oAuth2.TLSConfig),
 	}
 }
 
-func toTLSConfig(tlsConfig *prom_config.TLSConfig) *config.TLSConfig {
+func ToTLSConfig(tlsConfig *prom_config.TLSConfig) *config.TLSConfig {
 	if tlsConfig == nil {
 		return nil
 	}
