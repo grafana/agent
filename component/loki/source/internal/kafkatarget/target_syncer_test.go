@@ -7,14 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/loki/internal/fake"
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/config"
 
 	"github.com/Shopify/sarama"
 	"github.com/go-kit/log"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/assert"
@@ -33,7 +32,6 @@ func Test_TopicDiscovery(t *testing.T) {
 		ctx:          ctx,
 		cancel:       cancel,
 		logger:       log.NewNopLogger(),
-		reg:          prometheus.DefaultRegisterer,
 		topicManager: mustNewTopicsManager(client, []string{"topic1", "topic2"}),
 		close: func() error {
 			closed = true
@@ -86,7 +84,6 @@ func Test_TopicDiscovery(t *testing.T) {
 func Test_NewTarget(t *testing.T) {
 	ts := &TargetSyncer{
 		logger: log.NewNopLogger(),
-		reg:    prometheus.DefaultRegisterer,
 		client: fake.NewClient(func() {}),
 		cfg: Config{
 			RelabelConfigs: []*relabel.Config{
@@ -123,7 +120,6 @@ func Test_NewTarget(t *testing.T) {
 func Test_NewDroppedTarget(t *testing.T) {
 	ts := &TargetSyncer{
 		logger: log.NewNopLogger(),
-		reg:    prometheus.DefaultRegisterer,
 		cfg: Config{
 			KafkaConfig: TargetConfig{
 				UseIncomingTimestamp: true,

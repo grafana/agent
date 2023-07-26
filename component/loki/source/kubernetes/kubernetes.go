@@ -13,13 +13,11 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/config"
 	commonk8s "github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/loki/source/kubernetes/kubetail"
-	"github.com/grafana/agent/pkg/river"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -44,21 +42,14 @@ type Arguments struct {
 	Client commonk8s.ClientArguments `river:"client,block,optional"`
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
 // DefaultArguments holds default settings for loki.source.kubernetes.
 var DefaultArguments = Arguments{
-	Client: commonk8s.ClientArguments{
-		HTTPClientConfig: config.DefaultHTTPClientConfig,
-	},
+	Client: commonk8s.DefaultClientArguments,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies defaults.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Component implements the loki.source.kubernetes component.
@@ -101,7 +92,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		log:       o.Logger,
 		opts:      o,
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 		positions: positionsFile,
 	}
 	if err := c.Update(args); err != nil {
@@ -129,13 +120,13 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.receiversMut.RLock()
 			receivers := c.receivers
 			c.receiversMut.RUnlock()
 
 			for _, receiver := range receivers {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 		}
 	}
@@ -222,7 +213,7 @@ func (c *Component) getTailerOptions(args Arguments) (*kubetail.Options, error) 
 
 	return &kubetail.Options{
 		Client:    clientSet,
-		Handler:   loki.NewEntryHandler(c.handler, func() {}),
+		Handler:   loki.NewEntryHandler(c.handler.Chan(), func() {}),
 		Positions: c.positions,
 	}, nil
 }

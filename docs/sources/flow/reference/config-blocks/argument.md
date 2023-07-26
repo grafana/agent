@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/argument/
 title: argument
 ---
 
@@ -34,7 +35,7 @@ Name | Type | Description | Default | Required
 `default` | `any` | Default value for the argument. | `null` | no
 
 By default, all module arguments are required. The `optional` argument can be
-used to mark the module argument as optional. When `optional` is false, the
+used to mark the module argument as optional. When `optional` is `true`, the
 initial value for the module argument is specified by `default`.
 
 ## Exported fields

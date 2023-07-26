@@ -16,6 +16,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/ckit/memconn"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/hashicorp/go-multierror"
 	"github.com/oklog/run"
@@ -23,7 +24,7 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/rfratto/ckit/memconn"
+	_ "github.com/pyroscope-io/godeltaprof/http/pprof" // anonymous import to get the godeltaprof handler registered
 	"github.com/weaveworks/common/logging"
 	"github.com/weaveworks/common/middleware"
 	"golang.org/x/net/netutil"

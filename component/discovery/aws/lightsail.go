@@ -8,7 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	promcfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	promaws "github.com/prometheus/prometheus/discovery/aws"
@@ -57,13 +57,13 @@ var DefaultLightsailSDConfig = LightsailArguments{
 	RefreshInterval: 60 * time.Second,
 }
 
-func (args *LightsailArguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *LightsailArguments) SetToDefault() {
 	*args = DefaultLightsailSDConfig
+}
 
-	type arguments LightsailArguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
+// Validate implements river.Validator.
+func (args *LightsailArguments) Validate() error {
 	if args.Region == "" {
 		sess, err := session.NewSession()
 		if err != nil {

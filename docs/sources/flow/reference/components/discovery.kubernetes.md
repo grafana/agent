@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
 title: discovery.kubernetes
 ---
 
@@ -16,7 +17,7 @@ to override the defaults.
 
 ```river
 discovery.kubernetes "LABEL" {
-  role = "DISCOVERY_ROLE"
+  role = DISCOVERY_ROLE
 }
 ```
 
@@ -127,6 +128,8 @@ The following labels are included for discovered pods:
   `InitContainer`.
 * `__meta_kubernetes_pod_container_name`: Name of the container the target
   address points to.
+* `__meta_kubernetes_pod_container_id`: ID of the container the target address
+  points to. The ID is in the form `<type>://<container_id>`.
 * `__meta_kubernetes_pod_container_image`: The image the container is using.
 * `__meta_kubernetes_pod_container_port_name`: Name of the container port.
 * `__meta_kubernetes_pod_container_port_number`: Number of the container port.
@@ -245,6 +248,7 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 namespaces | [namespaces][] | Information about which Kubernetes namespaces to search. | no
 selectors | [selectors][] | Information about which Kubernetes namespaces to search. | no
+attach_metadata | [attach_metadata][] | Optional metadata to attach to discovered targets. | no
 basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
 authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
@@ -256,6 +260,7 @@ an `oauth2` block.
 
 [namespaces]: #namespaces-block
 [selectors]: #selectors-block
+[attach_metadata]: #attach_metadata-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
@@ -285,6 +290,10 @@ Name | Type | Description | Default | Required
 See Kubernetes' documentation for [Field selectors][] and [Labels and
 selectors][] to learn more about the possible filters that can be used.
 
+The endpoints role supports pod, service, and endpoints selectors.
+The pod role supports node selectors when configured with `attach_metadata: {node: true}`.
+Other roles only support selectors matching the role itself (e.g. node role can only contain node selectors).
+
 > **Note**: Using multiple `discovery.kubernetes` components with different
 > selectors may result in a bigger load against the Kubernetes API.
 >
@@ -294,8 +303,16 @@ selectors][] to learn more about the possible filters that can be used.
 > instead.
 
 [Field selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
-[Labels and selectros]: https://Kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+[Labels and selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
+
+### attach_metadata block
+The `attach_metadata` block allows to attach node metadata to discovered
+targets. Valid for roles: pod, endpoints, endpointslice.
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`node` | `bool`   | Attach node metadata. | | no
 
 ### basic_auth block
 
@@ -345,7 +362,27 @@ This example uses in-cluster authentication to discover all pods:
 discovery.kubernetes "k8s_pods" {
   role = "pod"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Kubeconfig authentication
 
@@ -356,17 +393,63 @@ discovery.kubernetes "k8s_pods" {
   role = "pod"
   kubeconfig_file = "/etc/k8s/kubeconfig.yaml"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
-### Limit searched namespaces
+### Limit searched namespaces and filter by labels value
 
-This example limits the namespaces where pods are discovered using the `namespaces` block:
+This example limits the searched namespaces and only selects pods with a specific label value attached to them:
 
 ```river
 discovery.kubernetes "k8s_pods" {
   role = "pod"
+
+  selectors {
+    role = "pod"
+    label = "app.kubernetes.io/name=prometheus-node-exporter"
+  }
+
   namespaces {
     names = ["myapp"]
   }
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.

@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.basic/
 title: otelcol.auth.basic
 ---
 
@@ -6,6 +7,8 @@ title: otelcol.auth.basic
 
 `otelcol.auth.basic` exposes a `handler` that can be used by other `otelcol`
 components to authenticate requests using basic authentication.
+
+This extension supports both server and client authentication.
 
 > **NOTE**: `otelcol.auth.basic` is a wrapper over the upstream OpenTelemetry
 > Collector `basicauth` extension. Bug reports or feature requests will be

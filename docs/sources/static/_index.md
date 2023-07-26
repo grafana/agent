@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/static/
 title: Static mode
 weight: 200
 ---
@@ -34,6 +35,7 @@ you can follow the common workflows described in this topic.
 
 [set up]: {{< relref "./set-up" >}}
 [configure]: {{< relref "./configuration/" >}}
+[configured]: {{< relref "./configuration/" >}}
 
 ## Topics
 

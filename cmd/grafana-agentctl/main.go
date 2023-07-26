@@ -12,13 +12,12 @@ import (
 	"strings"
 	"syscall"
 
-	"gopkg.in/yaml.v2"
-
+	"github.com/grafana/agent/pkg/agentctl/waltools"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/olekukonko/tablewriter"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/version"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -45,16 +44,13 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	kconfig "sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	// Adds version information
-	_ "github.com/grafana/agent/pkg/build"
 )
 
 func main() {
 	cmd := &cobra.Command{
 		Use:     "agentctl",
 		Short:   "Tools for interacting with the Grafana Agent",
-		Version: version.Print("agentctl"),
+		Version: build.Print("agentctl"),
 	}
 	cmd.SetVersionTemplate("{{ .Version }}\n")
 
@@ -65,7 +61,6 @@ func main() {
 		targetStatsCmd(),
 		samplesCmd(),
 		operatorDetachCmd(),
-		templateDryRunCmd(),
 		testLogs(),
 	)
 
@@ -188,7 +183,7 @@ $ agentctl sample-stats -s '{job="a"}' /tmp/wal
 				directory = filepath.Join(directory, "wal")
 			}
 
-			stats, err := agentctl.FindSamples(directory, selector)
+			stats, err := waltools.FindSamples(directory, selector)
 			if err != nil {
 				fmt.Printf("failed to get sample stats: %v\n", err)
 				os.Exit(1)
@@ -241,7 +236,7 @@ high-cardinality series that you do not want to send.`,
 				directory = filepath.Join(directory, "wal")
 			}
 
-			cardinality, err := agentctl.FindCardinality(directory, jobLabel, instanceLabel)
+			cardinality, err := waltools.FindCardinality(directory, jobLabel, instanceLabel)
 			if err != nil {
 				fmt.Printf("failed to get cardinality: %v\n", err)
 				os.Exit(1)
@@ -295,7 +290,7 @@ deletion but then comes back at some point).`,
 				directory = filepath.Join(directory, "wal")
 			}
 
-			stats, err := agentctl.CalculateStats(directory)
+			stats, err := waltools.CalculateStats(directory)
 			if err != nil {
 				fmt.Printf("failed to get WAL stats: %v\n", err)
 				os.Exit(1)
@@ -318,7 +313,7 @@ deletion but then comes back at some point).`,
 
 			table.SetHeader([]string{"Job", "Instance", "Series", "Samples"})
 
-			sort.Sort(agentctl.BySeriesCount(stats.Targets))
+			sort.Sort(waltools.BySeriesCount(stats.Targets))
 
 			for _, t := range stats.Targets {
 				seriesStr := fmt.Sprintf("%d", t.Series)
@@ -429,40 +424,6 @@ func filterAgentOwners(refs []meta_v1.OwnerReference) (filtered []meta_v1.OwnerR
 		filtered = append(filtered, ref)
 	}
 	return
-}
-
-func templateDryRunCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "template-parse [directory]",
-		Short: "dry run dynamic configuration",
-		Long:  `This will load the dynamic configuration, load configs, run templates and then output the full config as yaml`,
-		Args:  cobra.ExactArgs(1),
-
-		RunE: func(_ *cobra.Command, args []string) error {
-			cmf, err := config.NewDynamicLoader()
-			if err != nil {
-				return err
-			}
-			c := &config.Config{}
-			err = cmf.LoadConfigByPath(args[0])
-			if err != nil {
-				return err
-			}
-			err = cmf.ProcessConfigs(c)
-			if err != nil {
-				return fmt.Errorf("error processing config templates %s", err)
-			}
-
-			outBytes, err := yaml.Marshal(c)
-			if err != nil {
-				return err
-			}
-			fmt.Println(string(outBytes))
-			return nil
-		},
-	}
-
-	return cmd
 }
 
 func testLogs() *cobra.Command {

@@ -1,7 +1,8 @@
 ---
-title: oracledb_config
 aliases:
 - ../../../configuration/integrations/oracledb-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/oracledb-config/
+title: oracledb_config
 ---
 
 # oracledb_config
@@ -63,9 +64,6 @@ Full reference of options:
   [max_idle_connections: <int>]
   # The maximum amount of connections allowed to be open by the exporter.
   [max_open_connections: <int>]
-
-  # This is the interval between each scrape. Default of 0 is to scrape on collect requests.
-  [metric_scrape_interval: <duration> | default = "0"]
 
   # The number of seconds that will act as the query timeout when the exporter is querying against
   # the OracleDB instance.

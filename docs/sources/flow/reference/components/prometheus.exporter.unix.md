@@ -1,11 +1,5 @@
 ---
-# NOTE(rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.unix/
 title: prometheus.exporter.unix
 ---
 
@@ -41,6 +35,7 @@ Name | Type | Description | Default | Required
 `procfs_path`              | `string`       | The procfs mountpoint. | `/proc` | no
 `sysfs_path`               | `string`       | The sysfs mountpoint.  | `/sys`   | no
 `rootfs_path`              | `string`       | Specify a prefix for accessing the host filesystem. | `/` | no
+`udev_data_path`           | `string`       | The udev data path.  | `/run/udev/data` | no
 
 `set_collectors` defines a hand-picked list of enabled-by-default
 collectors. If set, anything not provided in that list is disabled by
@@ -116,8 +111,8 @@ Name | Type | Description | Default | Required
 ### disk block
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`device_exclude` | `string` | Regexp of devices to exclude for diskstats (mutually exclusive with `device_include`). | `"^(ram\|loop\|fd\|(h\|s\|v\|xv)d[a-z]\|nvme\\d+n\\d+p)\\d+$"` | no
-`device_include` | `string` | Regexp of devices to include for diskstats (mutually exclusive with `device_exclude`). | | no
+`device_exclude` | `string` | Regexp of devices to exclude for diskstats. | `"^(ram\|loop\|fd\|(h\|s\|v\|xv)d[a-z]\|nvme\\d+n\\d+p)\\d+$"` | no
+`device_include` | `string` | Regexp of devices to include for diskstats. If set, `device_exclude` is ignored.  | | no
 
 ### ethtool block
 Name | Type | Description | Default | Required
@@ -181,8 +176,14 @@ name | type | description | default | required
 ### perf block
 name | type | description | default | required
 ---- | ---- | ----------- | ------- | --------
-`cpus`       | `string`       | List of CPUs from which perf metrics should be collected. | | no
-`tracepoint` | `list(string)` | Array of perf tracepoints that should be collected. | | no
+`cpus`                        | `string`       | List of CPUs from which perf metrics should be collected. | | no
+`tracepoint`                  | `list(string)` | Array of perf tracepoints that should be collected. | | no
+`disable_hardware_profilers`  | `boolean`      | Disable perf hardware profilers. | false | no
+`hardware_profilers`          | `list(string)` | Perf hardware profilers that should be collected. | | no
+`disable_software_profilers`  | `boolean`      | Disable perf software profilers. | false | no
+`software_profilers`          | `list(string)` | Perf software profilers that should be collected. | | no
+`disable_cache_profilers`     | `boolean`      | Disable perf cache profilers. | false | no
+`cache_profilers`             | `list(string)` | Perf cache profilers that should be collected. | | no
 
 ### powersupply block
 name | type | description | default | required
@@ -284,7 +285,7 @@ or disable collectors that are expensive to run.
 | `btrfs`            | Exposes statistics on btrfs. | Linux | yes |
 | `buddyinfo`        | Exposes statistics of memory fragments as reported by `/proc/buddyinfo`. | Linux | no |
 | `conntrack`        | Shows conntrack statistics (does nothing if no `/proc/sys/net/netfilter/` present). | Linux | yes |
-| `cpu`              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris | yes |
+| `cpu`              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris, NetBSD | yes |
 | `cpufreq`          | Exposes CPU frequency statistics. | Linux, Solaris | yes |
 | `devstat`          | Exposes device statistics. | Dragonfly, FreeBSD | no |
 | `diskstats`        | Exposes disk I/O statistics. | Darwin, Linux, OpenBSD | yes |
@@ -307,11 +308,12 @@ or disable collectors that are expensive to run.
 | `loadavg`          | Exposes load average. | Darwin, Dragonfly, FreeBSD, Linux, NetBSD, OpenBSD, Solaris | yes |
 | `logind`           | Exposes session counts from logind. | Linux | no |
 | `mdadm`            | Exposes statistics about devices in `/proc/mdstat` (does nothing if no `/proc/mdstat` present). | Linux | yes |
-| `meminfo`          | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
+| `meminfo`          | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD, NetBSD | yes |
 | `meminfo_numa`     | Exposes memory statistics from `/proc/meminfo_numa`. | Linux | no |
 | `mountstats`       | Exposes filesystem statistics from `/proc/self/mountstats`. Exposes detailed NFS client statistics. | Linux | no |
 | `netclass`         | Exposes network interface info from `/sys/class/net`. | Linux | yes |
 | `netdev`           | Exposes network interface statistics such as bytes transferred. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
+| `netisr`           | Exposes netisr statistics. | FreeBSD | yes |
 | `netstat`          | Exposes network statistics from `/proc/net/netstat`. This is the same information as `netstat -s`. | Linux | yes |
 | `network_route`    | Exposes network route statistics. | Linux | no |
 | `nfs`              | Exposes NFS client statistics from `/proc/net/rpc/nfs`. This is the same information as `nfsstat -c`. | Linux | yes |
@@ -328,6 +330,7 @@ or disable collectors that are expensive to run.
 | `runit`            | Exposes service status from runit. | any | no |
 | `schedstat`        | Exposes task scheduler statistics from `/proc/schedstat`. | Linux | yes |
 | `sockstat`         | Exposes various statistics from `/proc/net/sockstat`. | Linux | yes |
+| `softirqs`         | Exposes detailed softirq statistics from `/proc/softirqs`. | Linux | no |
 | `softnet`          | Exposes statistics from `/proc/net/softnet_stat`. | Linux | yes |
 | `stat`             | Exposes various statistics from `/proc/stat`. This includes boot time, forks and interrupts. | Linux | yes |
 | `supervisord`      | Exposes service status from supervisord. | any | no |
@@ -341,7 +344,7 @@ or disable collectors that are expensive to run.
 | `time`             | Exposes the current system time. | any | yes |
 | `timex`            | Exposes selected `adjtimex(2)` system call stats. | Linux | yes |
 | `udp_queues`       | Exposes UDP total lengths of the `rx_queue` and `tx_queue` from `/proc/net/udp` and `/proc/net/udp6`. | Linux | yes |
-| `uname`            | Exposes system information as provided by the uname system call. | Darwin, FreeBSD, Linux, OpenBSD | yes |
+| `uname`            | Exposes system information as provided by the uname system call. | Darwin, FreeBSD, Linux, OpenBSD, NetBSD | yes |
 | `vmstat`           | Exposes statistics from `/proc/vmstat`. | Linux | yes |
 | `wifi`             | Exposes WiFi device and station statistics. | Linux | no |
 | `xfs`              | Exposes XFS runtime statistics. | Linux (kernel 4.4+) | yes |
@@ -363,14 +366,28 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.unix`:
 
 ```river
-prometheus.exporter.unix {
-}
+prometheus.exporter.unix { }
 
 // Configure a prometheus.scrape component to collect unix metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.unix.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

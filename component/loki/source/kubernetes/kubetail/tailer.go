@@ -190,7 +190,7 @@ func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {
 			lastReadTime = entryTimestamp
 
 			entry := loki.Entry{
-				Labels: t.lset,
+				Labels: t.lset.Clone(),
 				Entry: logproto.Entry{
 					Timestamp: entryTimestamp,
 					Line:      entryLine,

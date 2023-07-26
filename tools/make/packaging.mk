@@ -14,7 +14,7 @@ clean-dist:
 # reference time. Earlier iterations of this file had each target explicitly
 # list these, but it's too easy to forget to set on so this is used to ensure
 # everything needed is always passed through.
-PACKAGING_VARS = RELEASE_BUILD=1 GO_TAGS="$(GO_TAGS)" GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM)
+PACKAGING_VARS = RELEASE_BUILD=1 GO_TAGS="$(GO_TAGS)" GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) GOEXPERIMENT=$(GOEXPERIMENT)
 
 #
 # agent release binaries
@@ -27,7 +27,9 @@ dist-agent-binaries: dist/grafana-agent-linux-amd64       \
                      dist/grafana-agent-darwin-amd64      \
                      dist/grafana-agent-darwin-arm64      \
                      dist/grafana-agent-windows-amd64.exe \
-                     dist/grafana-agent-freebsd-amd64
+                     dist/grafana-agent-freebsd-amd64     \
+                     dist/grafana-agent-linux-amd64-boringcrypto  \
+                     dist/grafana-agent-linux-arm64-boringcrypto
 
 dist/grafana-agent-linux-amd64: GO_TAGS += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-amd64: GOOS    := linux
@@ -49,7 +51,7 @@ dist/grafana-agent-linux-ppc64le: generate-ui
 
 dist/grafana-agent-linux-s390x: GO_TAGS += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-s390x: GOOS    := linux
-dist/grafana-agent-linux-s390x: GOARCH  := ppc64le
+dist/grafana-agent-linux-s390x: GOARCH  := s390x
 dist/grafana-agent-linux-s390x: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
@@ -75,7 +77,22 @@ dist/grafana-agent-freebsd-amd64: GO_TAGS += builtinassets
 dist/grafana-agent-freebsd-amd64: GOOS    := freebsd
 dist/grafana-agent-freebsd-amd64: GOARCH  := amd64
 dist/grafana-agent-freebsd-amd64: generate-ui
-	$(PACKAGING_VARS) AGEAGENT_BINARYNT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+
+
+dist/grafana-agent-linux-amd64-boringcrypto: GO_TAGS      += builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-amd64-boringcrypto: GOOS         := linux
+dist/grafana-agent-linux-amd64-boringcrypto: GOARCH       := amd64
+dist/grafana-agent-linux-amd64-boringcrypto: GOEXPERIMENT := boringcrypto
+dist/grafana-agent-linux-amd64-boringcrypto: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
+
+dist/grafana-agent-linux-arm64-boringcrypto: GO_TAGS      += builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-arm64-boringcrypto: GOOS         := linux
+dist/grafana-agent-linux-arm64-boringcrypto: GOARCH       := arm64
+dist/grafana-agent-linux-arm64-boringcrypto: GOEXPERIMENT := boringcrypto
+dist/grafana-agent-linux-arm64-boringcrypto: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 #
 # agentctl release binaries.
@@ -90,23 +107,27 @@ dist-agentctl-binaries: dist/grafana-agentctl-linux-amd64       \
                         dist/grafana-agentctl-windows-amd64.exe \
                         dist/grafana-agentctl-freebsd-amd64
 
+dist/grafana-agentctl-linux-amd64: GO_TAGS += promtail_journal_enabled
 dist/grafana-agentctl-linux-amd64: GOOS    := linux
 dist/grafana-agentctl-linux-amd64: GOARCH  := amd64
 dist/grafana-agentctl-linux-amd64:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
-dist/grafana-agentctl-linux-arm64: GOOS   := linux
-dist/grafana-agentctl-linux-arm64: GOARCH := arm64
+dist/grafana-agentctl-linux-arm64: GO_TAGS += promtail_journal_enabled
+dist/grafana-agentctl-linux-arm64: GOOS    := linux
+dist/grafana-agentctl-linux-arm64: GOARCH  := arm64
 dist/grafana-agentctl-linux-arm64:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
-dist/grafana-agentctl-linux-ppc64le: GOOS   := linux
-dist/grafana-agentctl-linux-ppc64le: GOARCH := ppc64le
+dist/grafana-agentctl-linux-ppc64le: GO_TAGS += promtail_journal_enabled
+dist/grafana-agentctl-linux-ppc64le: GOOS    := linux
+dist/grafana-agentctl-linux-ppc64le: GOARCH  := ppc64le
 dist/grafana-agentctl-linux-ppc64le:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
-dist/grafana-agentctl-linux-s390x: GOOS   := linux
-dist/grafana-agentctl-linux-s390x: GOARCH := s390x
+dist/grafana-agentctl-linux-s390x: GO_TAGS += promtail_journal_enabled
+dist/grafana-agentctl-linux-s390x: GOOS    := linux
+dist/grafana-agentctl-linux-s390x: GOARCH  := s390x
 dist/grafana-agentctl-linux-s390x:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agentctl
 
@@ -166,7 +187,7 @@ dist.temp/grafana-agent-flow-linux-ppc64le: generate-ui
 
 dist.temp/grafana-agent-flow-linux-s390x: GO_TAGS += builtinassets promtail_journal_enabled
 dist.temp/grafana-agent-flow-linux-s390x: GOOS    := linux
-dist.temp/grafana-agent-flow-linux-s390x: GOARCH  := ppc64le
+dist.temp/grafana-agent-flow-linux-s390x: GOARCH  := s390x
 dist.temp/grafana-agent-flow-linux-s390x: generate-ui
 	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 

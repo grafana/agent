@@ -5,10 +5,9 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -35,7 +34,6 @@ type Arguments struct {
 
 var (
 	_ receiver.Arguments = Arguments{}
-	_ river.Unmarshaler  = (*Arguments)(nil)
 )
 
 // DefaultArguments holds default settings for otelcol.receiver.zipkin.
@@ -45,31 +43,26 @@ var DefaultArguments = Arguments{
 	},
 }
 
-// UnmarshalRiver applies defaults to args before unmarshaling.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() (otelconfig.Receiver, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &zipkinreceiver.Config{
-		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("zipkin")),
-
 		ParseStringTags:    args.ParseStringTags,
 		HTTPServerSettings: *args.HTTPServer.Convert(),
 	}, nil
 }
 
 // Extensions implements receiver.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements receiver.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

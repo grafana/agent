@@ -14,11 +14,9 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/runner"
 	"github.com/oklog/run"
 	"k8s.io/client-go/rest"
@@ -50,26 +48,20 @@ type Arguments struct {
 	Client kubernetes.ClientArguments `river:"client,block,optional"`
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
 // DefaultArguments holds default settings for loki.source.kubernetes_events.
 var DefaultArguments = Arguments{
 	JobName: "loki.source.kubernetes_events",
 
-	Client: kubernetes.ClientArguments{
-		HTTPClientConfig: config.DefaultHTTPClientConfig,
-	},
+	Client: kubernetes.DefaultClientArguments,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies defaults.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.JobName == "" {
 		return fmt.Errorf("job_name must not be an empty string")
 	}
@@ -121,7 +113,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		log:       o.Logger,
 		opts:      o,
 		positions: positionsFile,
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 		runner: runner.New(func(t eventControllerTask) runner.Worker {
 			return newEventController(t)
 		}),
@@ -169,13 +161,13 @@ func (c *Component) Run(ctx context.Context) error {
 			select {
 			case <-ctx.Done():
 				return nil
-			case entry := <-c.handler:
+			case entry := <-c.handler.Chan():
 				c.receiversMut.RLock()
 				receivers := c.receivers
 				c.receiversMut.RUnlock()
 
 				for _, receiver := range receivers {
-					receiver <- entry
+					receiver.Chan() <- entry
 				}
 			}
 		}

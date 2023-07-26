@@ -5,11 +5,10 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter"
-	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	loggingexporter "go.opentelemetry.io/collector/exporter/loggingexporter"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -33,7 +32,6 @@ type Arguments struct {
 }
 
 var (
-	_ river.Unmarshaler  = (*Arguments)(nil)
 	_ exporter.Arguments = Arguments{}
 )
 
@@ -44,17 +42,14 @@ var DefaultArguments = Arguments{
 	SamplingThereafter: 500,
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Convert implements exporter.Arguments.
-func (args Arguments) Convert() (otelconfig.Exporter, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &loggingexporter.Config{
-		ExporterSettings:   otelconfig.NewExporterSettings(otelconfig.NewComponentID("logging")),
 		Verbosity:          args.Verbosity,
 		SamplingInitial:    args.SamplingInitial,
 		SamplingThereafter: args.SamplingInitial,
@@ -62,11 +57,11 @@ func (args Arguments) Convert() (otelconfig.Exporter, error) {
 }
 
 // Extensions implements exporter.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements exporter.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }

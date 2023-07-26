@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/loki/internal/fake"
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"

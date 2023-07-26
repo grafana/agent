@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	prom_discovery "github.com/prometheus/prometheus/discovery/azure"
@@ -57,16 +57,12 @@ var DefaultArguments = Arguments{
 	RefreshInterval: 5 * time.Minute,
 }
 
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-	type arguments Arguments
-	err := f((*arguments)(a))
-	if err != nil {
-		return err
-	}
-	return a.Validate()
 }
 
+// Validate implements river.Validator.
 func (a *Arguments) Validate() error {
 	if a.OAuth == nil && a.ManagedIdentity == nil || a.OAuth != nil && a.ManagedIdentity != nil {
 		return fmt.Errorf("exactly one of oauth or managed_identity must be specified")
@@ -111,7 +107,8 @@ func (a *Arguments) Convert() *prom_discovery.SDConfig {
 	}
 }
 
-func New(opts component.Options, args Arguments) (component.Component, error) {
+// New returns a new instance of a discovery.azure component.
+func New(opts component.Options, args Arguments) (*discovery.Component, error) {
 	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
 		newArgs := args.(Arguments)
 		return prom_discovery.NewDiscovery(newArgs.Convert(), opts.Logger), nil

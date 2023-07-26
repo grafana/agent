@@ -7,9 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/grafana/agent/pkg/river"
-
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/prometheus/common/config"
 )
 
@@ -28,18 +26,9 @@ type HTTPClientConfig struct {
 	EnableHTTP2     bool              `river:"enable_http2,attr,optional"`
 }
 
-// UnmarshalRiver implements the umarshaller
-func (h *HTTPClientConfig) UnmarshalRiver(f func(v interface{}) error) error {
-	*h = HTTPClientConfig{
-		FollowRedirects: true,
-		EnableHTTP2:     true,
-	}
-	type config HTTPClientConfig
-	if err := f((*config)(h)); err != nil {
-		return err
-	}
-
-	return h.Validate()
+// SetToDefault implements the river.Defaulter
+func (h *HTTPClientConfig) SetToDefault() {
+	*h = DefaultHTTPClientConfig
 }
 
 // Validate returns an error if h is invalid.
@@ -136,8 +125,6 @@ var DefaultHTTPClientConfig = HTTPClientConfig{
 	FollowRedirects: true,
 	EnableHTTP2:     true,
 }
-
-var _ river.Unmarshaler = (*HTTPClientConfig)(nil)
 
 // BasicAuth configures Basic HTTP authentication credentials.
 type BasicAuth struct {
@@ -244,17 +231,6 @@ type TLSConfig struct {
 	MinVersion         TLSVersion        `river:"min_version,attr,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler and reports whether the
-// unmarshaled TLSConfig is valid.
-func (t *TLSConfig) UnmarshalRiver(f func(interface{}) error) error {
-	type tlsConfig TLSConfig
-	if err := f((*tlsConfig)(t)); err != nil {
-		return err
-	}
-
-	return t.Validate()
-}
-
 // Convert converts our type to the native prometheus type
 func (t *TLSConfig) Convert() *config.TLSConfig {
 	if t == nil {
@@ -316,16 +292,19 @@ func (o *OAuth2Config) Convert() *config.OAuth2 {
 	if o == nil {
 		return nil
 	}
-	return &config.OAuth2{
+	oa := &config.OAuth2{
 		ClientID:         o.ClientID,
 		ClientSecret:     config.Secret(o.ClientSecret),
 		ClientSecretFile: o.ClientSecretFile,
 		Scopes:           o.Scopes,
 		TokenURL:         o.TokenURL,
 		EndpointParams:   o.EndpointParams,
-		TLSConfig:        *o.TLSConfig.Convert(),
 		ProxyConfig: config.ProxyConfig{
 			ProxyURL: o.ProxyURL.Convert(),
 		},
 	}
+	if o.TLSConfig != nil {
+		oa.TLSConfig = *o.TLSConfig.Convert()
+	}
+	return oa
 }

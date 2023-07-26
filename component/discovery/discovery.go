@@ -3,15 +3,17 @@ package discovery
 import (
 	"context"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/ckit/shard"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/model/labels"
-	"github.com/rfratto/ckit/shard"
 )
 
 // Target refers to a singular discovered endpoint found by a discovery
@@ -46,7 +48,7 @@ func (t *DistributedTargets) Get() []Target {
 	// TODO(@tpaschalis): Make sure OpReadWrite is the correct operation;
 	// eg. this determines how clustering behaves when nodes are shutting down.
 	for _, tgt := range t.targets {
-		peers, err := t.node.Lookup(shard.StringKey(tgt.Labels().String()), 1, shard.OpReadWrite)
+		peers, err := t.node.Lookup(shard.StringKey(tgt.NonMetaLabels().String()), 1, shard.OpReadWrite)
 		if err != nil {
 			// This can only fail in case we ask for more owners than the
 			// available peers. This will never happen, but in any case we fall
@@ -66,6 +68,17 @@ func (t Target) Labels() labels.Labels {
 	var lset labels.Labels
 	for k, v := range t {
 		lset = append(lset, labels.Label{Name: k, Value: v})
+	}
+	sort.Sort(lset)
+	return lset
+}
+
+func (t Target) NonMetaLabels() labels.Labels {
+	var lset labels.Labels
+	for k, v := range t {
+		if !strings.HasPrefix(k, model.MetaLabelPrefix) {
+			lset = append(lset, labels.Label{Name: k, Value: v})
+		}
 	}
 	sort.Sort(lset)
 	return lset
@@ -151,10 +164,9 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-// maxUpdateFrequency is the minimum time to wait between updating targets.
-// Currently not settable, since prometheus uses a static threshold, but
-// we could reconsider later.
-const maxUpdateFrequency = 5 * time.Second
+// MaxUpdateFrequency is the minimum time to wait between updating targets.
+// Prometheus uses a static threshold. Do not recommend changing this, except for tests.
+var MaxUpdateFrequency = 5 * time.Second
 
 // runDiscovery is a utility for consuming and forwarding target groups from a discoverer.
 // It will handle collating targets (and clearing), as well as time based throttling of updates.
@@ -185,7 +197,7 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 		c.opts.OnStateChange(Exports{Targets: allTargets})
 	}
 
-	ticker := time.NewTicker(maxUpdateFrequency)
+	ticker := time.NewTicker(MaxUpdateFrequency)
 	// true if we have received new targets and need to send.
 	haveUpdates := false
 	for {

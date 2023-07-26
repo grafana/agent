@@ -1,0 +1,20 @@
+(Error) global/file_watch_config is not supported
+(Error) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
+(Warning) stream_lag_labels is deprecated and the associated metric has been removed
+(Error) Promtail's WAL is currently not supported in Flow Mode
+(Error) limits_config is not yet supported in Flow Mode
+(Error) tracing configuration cannot be migrated to Flow Mode automatically - please refer to documentation on how to configure tracing in Flow Mode
+(Error) reading targets from stdin is not supported in Flow Mode configuration file
+(Warning) server.profiling_enabled is not supported - use Agent's main HTTP server's profiling endpoints instead.
+(Warning) server.register_instrumentation is not supported - Flow mode components expose their metrics automatically in their own metrics namespace
+(Warning) server.log_level is not supported - Flow mode components may produce different logs
+(Error) server.http_path_prefix is not supported
+(Warning) server.health_check_target disabling is not supported in Flow mode
+(Error) DropRateLimitedBatches is currently not supported in Grafana Agent Flow.
+(Warning) stream_lag_labels is deprecated and the associated metric has been removed
+(Error) dockerswarm_sd_configs is not supported
+(Error) serverset_sd_configs is not supported
+(Error) nerve_sd_configs is not supported
+(Error) marathon_sd_configs is not supported
+(Error) openstack_sd_configs is not supported
+(Error) triton_sd_configs is not supported

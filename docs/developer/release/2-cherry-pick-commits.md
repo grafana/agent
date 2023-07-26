@@ -13,5 +13,6 @@ Any commits not on the release branch need to be cherry-picked over to it.
     ```
     git cherry-pick -x COMMIT_SHA
     ```
+    - If there are several commits to cherry-pick, consider using one branch to cherry-pick to and ask reviewers to review commit-by-commit.
 
     - For example, refer to PR [#3188](https://github.com/grafana/agent/pull/3188) and [#3185](https://github.com/grafana/agent/pull/3185). 

@@ -2,7 +2,6 @@ package file
 
 import (
 	"context"
-	"net/http"
 	"sync"
 
 	"go.uber.org/atomic"
@@ -10,8 +9,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/local/file"
 	"github.com/grafana/agent/component/module"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 )
 
 func init() {
@@ -34,19 +32,9 @@ type Arguments struct {
 	Arguments map[string]any `river:"arguments,block,optional"`
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	a.LocalFileArguments = file.DefaultArguments
-
-	type arguments Arguments
-	err := f((*arguments)(a))
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Component implements the module.file component.
@@ -66,19 +54,22 @@ type Component struct {
 var (
 	_ component.Component       = (*Component)(nil)
 	_ component.HealthComponent = (*Component)(nil)
-	_ component.HTTPComponent   = (*Component)(nil)
 )
 
 // New creates a new module.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	m, err := module.NewModuleComponent(o)
+	if err != nil {
+		return nil, err
+	}
+
 	c := &Component{
 		opts: o,
-		mod:  module.NewModuleComponent(o),
+		mod:  m,
 		args: args,
 	}
 	defer c.isCreated.Store(true)
 
-	var err error
 	c.managedLocalFile, err = c.newManagedLocalComponent(o)
 	if err != nil {
 		return nil, err
@@ -145,11 +136,6 @@ func (c *Component) Update(args component.Arguments) error {
 	// Force a content load here and bubble up any error. This will catch problems
 	// on initial load.
 	return c.mod.LoadFlowContent(newArgs.Arguments, c.getContent().Value)
-}
-
-// Handler implements component.HTTPComponent.
-func (c *Component) Handler() http.Handler {
-	return c.mod.Handler()
 }
 
 // CurrentHealth implements component.HealthComponent.

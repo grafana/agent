@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/pkg/river"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
@@ -46,14 +45,9 @@ var DefaultArguments = Arguments{
 	MaxCacheSize: 10_000,
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(a))
 }
 
 // Exports holds values which are exported by the loki.relabel component.
@@ -96,7 +90,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	// Create and immediately export the receiver which remains the same for
 	// the component's lifetime.
-	c.receiver = make(loki.LogsReceiver)
+	c.receiver = loki.NewLogsReceiver()
 	o.OnStateChange(Exports{Receiver: c.receiver, Rules: args.RelabelConfigs})
 
 	// Call to Update() to set the relabelling rules once at the start.
@@ -113,7 +107,7 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.receiver:
+		case entry := <-c.receiver.Chan():
 			c.metrics.entriesProcessed.Inc()
 			lbls := c.relabel(entry)
 			if len(lbls) == 0 {
@@ -127,7 +121,7 @@ func (c *Component) Run(ctx context.Context) error {
 				select {
 				case <-ctx.Done():
 					return nil
-				case f <- entry:
+				case f.Chan() <- entry:
 				}
 			}
 		}

@@ -4,17 +4,45 @@ import (
 	"encoding"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"time"
 
 	"github.com/grafana/agent/pkg/river/internal/reflectutil"
 )
 
+// The Defaulter interface allows a type to implement default functionality
+// in River evaluation.
+//
+// Defaulter will be called only on block and body river types.
+//
+// When using nested blocks, the wrapping type must also implement
+// Defaulter to propagate the defaults of the wrapped type. Otherwise,
+// defaults used for the wrapped type become inconsistent:
+//
+//   - If the wrapped block is NOT defined in the River config, the wrapping
+//     type's defaults are used.
+//   - If the wrapped block IS defined in the River config, the wrapped type's
+//     defaults are used.
+type Defaulter interface {
+	// SetToDefault is called when evaluating a block or body to set the value
+	// to its defaults.
+	SetToDefault()
+}
+
 // Unmarshaler is a custom type which can be used to hook into the decoder.
 type Unmarshaler interface {
 	// UnmarshalRiver is called when decoding a value. f should be invoked to
 	// continue decoding with a value to decode into.
 	UnmarshalRiver(f func(v interface{}) error) error
+}
+
+// The Validator interface allows a type to implement validation functionality
+// in River evaluation.
+type Validator interface {
+	// Validate is called when evaluating a block or body to enforce the
+	// value is valid.
+	Validate() error
 }
 
 // Decode assigns a Value val to a Go pointer target. Pointers will be
@@ -70,7 +98,18 @@ type decoder struct {
 	makeCopy bool
 }
 
-func (d *decoder) decode(val Value, into reflect.Value) error {
+func (d *decoder) decode(val Value, into reflect.Value) (err error) {
+	// If everything has decoded successfully, run Validate if implemented.
+	defer func() {
+		if err == nil {
+			if into.CanAddr() && into.Addr().Type().Implements(goRiverValidator) {
+				err = into.Addr().Interface().(Validator).Validate()
+			} else if into.Type().Implements(goRiverValidator) {
+				err = into.Interface().(Validator).Validate()
+			}
+		}
+	}()
+
 	// Store the raw value from val and try to address it so we can do underlying
 	// type match assignment.
 	rawValue := val.rv
@@ -124,6 +163,12 @@ func (d *decoder) decode(val Value, into reflect.Value) error {
 		return d.decodeAny(val, into)
 	} else if ok, err := d.decodeFromInterface(val, into); ok {
 		return err
+	}
+
+	if into.CanAddr() && into.Addr().Type().Implements(goRiverDefaulter) {
+		into.Addr().Interface().(Defaulter).SetToDefault()
+	} else if into.Type().Implements(goRiverDefaulter) {
+		into.Interface().(Defaulter).SetToDefault()
 	}
 
 	targetType := RiverType(into.Type())
@@ -365,8 +410,9 @@ func tryCapsuleConvert(from Value, into reflect.Value, intoType Type) (ok bool, 
 // interface{} a known type based on the River value being decoded:
 //
 //	Null values:   nil
-//	Number values: float64, int, or uint depending on the underlying Go type
-//	               of the River value
+//	Number values: float64, int, int64, or uint64.
+//	               If the underlying type is a float, always decode to a float64.
+//	               For non-floats the order of preference is int -> int64 -> uint64.
 //	Arrays:        []interface{}
 //	Objects:       map[string]interface{}
 //	Bool:          bool
@@ -386,8 +432,36 @@ func (d *decoder) decodeAny(val Value, into reflect.Value) error {
 		return nil
 
 	case TypeNumber:
-		var v = val.Number().Float()
-		ptr = reflect.ValueOf(&v)
+
+		switch val.Number().Kind() {
+		case NumberKindFloat:
+			var v float64
+			ptr = reflect.ValueOf(&v)
+		case NumberKindUint:
+			uint64Val := val.Uint()
+			if uint64Val <= math.MaxInt {
+				var v int
+				ptr = reflect.ValueOf(&v)
+			} else if uint64Val <= math.MaxInt64 {
+				var v int64
+				ptr = reflect.ValueOf(&v)
+			} else {
+				var v uint64
+				ptr = reflect.ValueOf(&v)
+			}
+		case NumberKindInt:
+			int64Val := val.Int()
+			if math.MinInt <= int64Val && int64Val <= math.MaxInt {
+				var v int
+				ptr = reflect.ValueOf(&v)
+			} else {
+				var v int64
+				ptr = reflect.ValueOf(&v)
+			}
+
+		default:
+			panic("river/value: unreachable")
+		}
 
 	case TypeArray:
 		var v []interface{}

@@ -1,11 +1,5 @@
 ---
-# NOTE(rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.statsd/
 title: prometheus.exporter.statsd
 ---
 
@@ -17,7 +11,6 @@ The `prometheus.exporter.statsd` component embeds
 
 ```river
 prometheus.exporter.statsd "LABEL" {
-
 }
 ```
 
@@ -27,8 +20,8 @@ All arguments are optional. Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`listen_udp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
-`listen_tcp`                                      | `string`       | The TCP address on which to receive statsd metric lines. Use "" to disable it. | `9125` | no
+`listen_udp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `:9125` | no
+`listen_tcp`                                      | `string`       | The TCP address on which to receive statsd metric lines. Use "" to disable it. | `:9125` | no
 `listen_unixgram`                                 | `string`       | The Unixgram socket path to receive statsd metric lines in datagram. Use "" to disable it. | | no
 `unix_socket_mode`                                | `string`       | The permission mode of the unix socket. | `755` | no
 `mapping_config_path`                             | `string`       | The path to a YAML mapping file used to translate specific dot-separated StatsD metrics into labeled Prometheus metrics. | | no
@@ -42,6 +35,8 @@ Name | Type | Description | Default | Required
 `parse_influxdb_tags`                             | `string`       | Parse InfluxDB style tags. | `true`| no
 `parse_librato_tags`                              | `string`       | Parse Librato style tags. | `true`| no
 `parse_signalfx_tags`                             | `string`       | Parse SignalFX style tags. | `true`| no
+`relay_addr`                                      | `string`       | Relay address configuration (UDP endpoint in the format 'host:port'). | | no
+`relay_packet_length`                             | `int`          | Maximum relay output packet length to avoid fragmentation. | `1400` | no
 
 At least one of `listen_udp`, `listen_tcp`, or `listen_unixgram` should be enabled.
 For details on how to use the mapping config file, please check the official
@@ -94,28 +89,43 @@ from `prometheus.exporter.statsd`:
 
 ```river
 prometheus.exporter.statsd "example" {
-  listen_udp = ""
-  listen_tcp = "9125"
-  listen_unixgram = ""
-  unix_socket_mode = "755"
-  mapping_config_path = "mapTest.yaml"
-  read_buffer = 1
-  cache_size = 1000
-  cache_type = "lru"
-  event_queue_size = 10000
+  listen_udp            = ""
+  listen_tcp            = ":9125"
+  listen_unixgram       = ""
+  unix_socket_mode      = "755"
+  mapping_config_path   = "mapTest.yaml"
+  read_buffer           = 1
+  cache_size            = 1000
+  cache_type            = "lru"
+  event_queue_size      = 10000
   event_flush_threshold = 1000
-  event_flush_interval = "200ms"
-  parse_dogstatsd_tags = true
-  parse_influxdb_tags = true
-  parse_librato_tags = true
-  parse_signalfx_tags = true
+  event_flush_interval  = "200ms"
+  parse_dogstatsd_tags  = true
+  parse_influxdb_tags   = true
+  parse_librato_tags    = true
+  parse_signalfx_tags   = true
 }
 
 // Configure a prometheus.scrape component to collect statsd metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.statsd.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

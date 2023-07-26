@@ -8,18 +8,13 @@ import { ComponentInfo } from '../features/component/types';
  * @param fromComponent The component requesting component info. Required for
  * determining the proper list of components from the context of a module.
  */
-export const useComponentInfo = (fromComponent?: string): ComponentInfo[] => {
+export const useComponentInfo = (moduleID: string): ComponentInfo[] => {
   const [components, setComponents] = useState<ComponentInfo[]>([]);
 
   useEffect(
     function () {
       const worker = async () => {
-        const fragments = (fromComponent || '').split('/');
-
-        const infoPath =
-          fragments.length === 1
-            ? './api/v0/web/components'
-            : `./api/v0/component/${fragments.slice(0, fragments.length - 1).join('/')}/components`;
+        const infoPath = moduleID === '' ? './api/v0/web/components' : `./api/v0/web/modules/${moduleID}/components`;
 
         // Request is relative to the <base> tag inside of <head>.
         const resp = await fetch(infoPath, {
@@ -31,7 +26,7 @@ export const useComponentInfo = (fromComponent?: string): ComponentInfo[] => {
 
       worker().catch(console.error);
     },
-    [fromComponent]
+    [moduleID]
   );
 
   return components;

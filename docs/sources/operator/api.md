@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/operator/crd/
+canonical: https://grafana.com/docs/agent/latest/operator/api/
 title: Custom Resource Definition Reference
 weight: 500
 ---
@@ -40,6 +41,8 @@ GrafanaAgent defines a Grafana Agent deployment.
 |`version`<br/>_string_|  Version of Grafana Agent to be deployed.  |
 |`paused`<br/>_bool_|  Paused prevents actions except for deletion to be performed on the underlying managed objects.  |
 |`image`<br/>_string_|  Image, when specified, overrides the image used to run Agent. Specify the image along with a tag. You still need to set the version to ensure Grafana Agent Operator knows which version of Grafana Agent is being configured.  |
+|`configReloaderVersion`<br/>_string_|  Version of Config Reloader to be deployed.  |
+|`configReloaderImage`<br/>_string_|  Image, when specified, overrides the image used to run Config Reloader. Specify the image along with a tag. You still need to set the version to ensure Grafana Agent Operator knows which version of Grafana Agent is being configured.  |
 |`imagePullSecrets`<br/>_[[]Kubernetes core/v1.LocalObjectReference](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#localobjectreference-v1-core)_|  ImagePullSecrets holds an optional list of references to Secrets within the same namespace used for pulling the Grafana Agent image from registries. More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod  |
 |`storage`<br/>_[github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.StorageSpec](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.StorageSpec)_|  Storage spec to specify how storage will be used.  |
 |`volumes`<br/>_[[]Kubernetes core/v1.Volume](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core)_|  Volumes allows configuration of additional volumes on the output StatefulSet definition. The volumes specified are appended to other volumes that are generated as a result of StorageSpec objects.  |
@@ -47,8 +50,8 @@ GrafanaAgent defines a Grafana Agent deployment.
 |`resources`<br/>_[Kubernetes core/v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#resourcerequirements-v1-core)_|  Resources holds requests and limits for individual pods.  |
 |`nodeSelector`<br/>_map[string]string_|  NodeSelector defines which nodes pods should be scheduling on.  |
 |`serviceAccountName`<br/>_string_|  ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.  |
-|`secrets`<br/>_[]string_|  Secrets is a list of secrets in the same namespace as the GrafanaAgent object which will be mounted into each running Grafana Agent pod. The secrets are mounted into /etc/grafana-agent/extra-secrets/&lt;secret-name&gt;.  |
-|`configMaps`<br/>_[]string_|  ConfigMaps is a list of config maps in the same namespace as the GrafanaAgent object which will be mounted into each running Grafana Agent pod. The ConfigMaps are mounted into /etc/grafana-agent/extra-configmaps/&lt;configmap-name&gt;.  |
+|`secrets`<br/>_[]string_|  Secrets is a list of secrets in the same namespace as the GrafanaAgent object which will be mounted into each running Grafana Agent pod. The secrets are mounted into /var/lib/grafana-agent/extra-secrets/&lt;secret-name&gt;.  |
+|`configMaps`<br/>_[]string_|  ConfigMaps is a list of config maps in the same namespace as the GrafanaAgent object which will be mounted into each running Grafana Agent pod. The ConfigMaps are mounted into /var/lib/grafana-agent/extra-configmaps/&lt;configmap-name&gt;.  |
 |`affinity`<br/>_[Kubernetes core/v1.Affinity](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#affinity-v1-core)_|  Affinity, if specified, controls pod scheduling constraints.  |
 |`tolerations`<br/>_[[]Kubernetes core/v1.Toleration](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#toleration-v1-core)_|  Tolerations, if specified, controls the pod&#39;s tolerations.  |
 |`topologySpreadConstraints`<br/>_[[]Kubernetes core/v1.TopologySpreadConstraint](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#topologyspreadconstraint-v1-core)_|  TopologySpreadConstraints, if specified, controls the pod&#39;s topology spread constraints.  |
@@ -126,6 +129,8 @@ GrafanaAgentSpec is a specification of the desired behavior of the Grafana Agent
 |`version`<br/>_string_|  Version of Grafana Agent to be deployed.  |
 |`paused`<br/>_bool_|  Paused prevents actions except for deletion to be performed on the underlying managed objects.  |
 |`image`<br/>_string_|  Image, when specified, overrides the image used to run Agent. Specify the image along with a tag. You still need to set the version to ensure Grafana Agent Operator knows which version of Grafana Agent is being configured.  |
+|`configReloaderVersion`<br/>_string_|  Version of Config Reloader to be deployed.  |
+|`configReloaderImage`<br/>_string_|  Image, when specified, overrides the image used to run Config Reloader. Specify the image along with a tag. You still need to set the version to ensure Grafana Agent Operator knows which version of Grafana Agent is being configured.  |
 |`imagePullSecrets`<br/>_[[]Kubernetes core/v1.LocalObjectReference](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#localobjectreference-v1-core)_|  ImagePullSecrets holds an optional list of references to Secrets within the same namespace used for pulling the Grafana Agent image from registries. More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod  |
 |`storage`<br/>_[github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.StorageSpec](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.StorageSpec)_|  Storage spec to specify how storage will be used.  |
 |`volumes`<br/>_[[]Kubernetes core/v1.Volume](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volume-v1-core)_|  Volumes allows configuration of additional volumes on the output StatefulSet definition. The volumes specified are appended to other volumes that are generated as a result of StorageSpec objects.  |
@@ -133,8 +138,8 @@ GrafanaAgentSpec is a specification of the desired behavior of the Grafana Agent
 |`resources`<br/>_[Kubernetes core/v1.ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#resourcerequirements-v1-core)_|  Resources holds requests and limits for individual pods.  |
 |`nodeSelector`<br/>_map[string]string_|  NodeSelector defines which nodes pods should be scheduling on.  |
 |`serviceAccountName`<br/>_string_|  ServiceAccountName is the name of the ServiceAccount to use for running Grafana Agent pods.  |
-|`secrets`<br/>_[]string_|  Secrets is a list of secrets in the same namespace as the GrafanaAgent object which will be mounted into each running Grafana Agent pod. The secrets are mounted into /etc/grafana-agent/extra-secrets/&lt;secret-name&gt;.  |
-|`configMaps`<br/>_[]string_|  ConfigMaps is a list of config maps in the same namespace as the GrafanaAgent object which will be mounted into each running Grafana Agent pod. The ConfigMaps are mounted into /etc/grafana-agent/extra-configmaps/&lt;configmap-name&gt;.  |
+|`secrets`<br/>_[]string_|  Secrets is a list of secrets in the same namespace as the GrafanaAgent object which will be mounted into each running Grafana Agent pod. The secrets are mounted into /var/lib/grafana-agent/extra-secrets/&lt;secret-name&gt;.  |
+|`configMaps`<br/>_[]string_|  ConfigMaps is a list of config maps in the same namespace as the GrafanaAgent object which will be mounted into each running Grafana Agent pod. The ConfigMaps are mounted into /var/lib/grafana-agent/extra-configmaps/&lt;configmap-name&gt;.  |
 |`affinity`<br/>_[Kubernetes core/v1.Affinity](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#affinity-v1-core)_|  Affinity, if specified, controls pod scheduling constraints.  |
 |`tolerations`<br/>_[[]Kubernetes core/v1.Toleration](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#toleration-v1-core)_|  Tolerations, if specified, controls the pod&#39;s tolerations.  |
 |`topologySpreadConstraints`<br/>_[[]Kubernetes core/v1.TopologySpreadConstraint](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#topologyspreadconstraint-v1-core)_|  TopologySpreadConstraints, if specified, controls the pod&#39;s topology spread constraints.  |
@@ -231,6 +236,7 @@ LogsClientSpec defines the client integration for logs, indicating which Loki se
 |`batchWait`<br/>_string_|  Maximum amount of time to wait before sending a batch, even if that batch isn&#39;t full.  |
 |`batchSize`<br/>_int_|  Maximum batch size (in bytes) of logs to accumulate before sending the batch to Loki.  |
 |`basicAuth`<br/>_[github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.BasicAuth](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.BasicAuth)_|  BasicAuth for the Loki server.  |
+|`oauth2`<br/>_[github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.OAuth2](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.OAuth2)_|  Oauth2 for URL  |
 |`bearerToken`<br/>_string_|  BearerToken used for remote_write.  |
 |`bearerTokenFile`<br/>_string_|  BearerTokenFile used to read bearer token.  |
 |`proxyUrl`<br/>_string_|  ProxyURL to proxy requests through. Optional.  |

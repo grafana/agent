@@ -121,8 +121,41 @@ func TestConverter(t *testing.T) {
 				# TYPE test_metric_seconds histogram
 				test_metric_seconds_bucket{le="0.25"} 0
 				test_metric_seconds_bucket{le="0.5"} 111
-				test_metric_seconds_bucket{le="0.75"} 0
-				test_metric_seconds_bucket{le="1.0"} 222
+				test_metric_seconds_bucket{le="0.75"} 111
+				test_metric_seconds_bucket{le="1.0"} 333
+				test_metric_seconds_bucket{le="+Inf"} 333
+				test_metric_seconds_sum 100.0
+				test_metric_seconds_count 333
+			`,
+		},
+		{
+			name: "Histogram out-of-order bounds",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric_seconds",
+							"histogram": {
+								"aggregation_temporality": 2,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"count": 333,
+									"sum": 100,
+									"bucket_counts": [0, 111, 0, 222],
+									"explicit_bounds": [0.5, 1.0, 0.25, 0.75]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_seconds histogram
+				test_metric_seconds_bucket{le="0.25"} 0
+				test_metric_seconds_bucket{le="0.5"} 0
+				test_metric_seconds_bucket{le="0.75"} 222
+				test_metric_seconds_bucket{le="1.0"} 333
 				test_metric_seconds_bucket{le="+Inf"} 333
 				test_metric_seconds_sum 100.0
 				test_metric_seconds_count 333

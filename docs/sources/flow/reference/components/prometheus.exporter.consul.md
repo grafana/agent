@@ -1,17 +1,11 @@
 ---
-# NOTE(rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
-title: prometheus.exporter.​consul
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.consul/
+title: prometheus.exporter.consul
 ---
 
 # prometheus.exporter.consul
 The `prometheus.exporter.consul` component embeds
-[consul_exporter](github.com/prometheus/consul_exporter) for collecting metrics from a consul instal.
+[consul_exporter](github.com/prometheus/consul_exporter) for collecting metrics from a consul install.
 
 ## Usage
 
@@ -86,8 +80,23 @@ prometheus.exporter.consul "example" {
 // Configure a prometheus.scrape component to collect consul metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.consul.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

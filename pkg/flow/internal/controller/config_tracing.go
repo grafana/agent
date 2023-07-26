@@ -6,7 +6,6 @@ import (
 
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/river/vm"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -21,22 +20,11 @@ type TracingConfigNode struct {
 	eval  *vm.Evaluator
 }
 
+var _ BlockNode = (*TracingConfigNode)(nil)
+
 // NewTracingConfigNode creates a new TracingConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInModule bool) (*TracingConfigNode, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	if isInModule {
-		diags.Add(diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  "tracing block not allowed inside a module",
-			StartPos: ast.StartPos(block).Position(),
-			EndPos:   ast.EndPos(block).Position(),
-		})
-
-		return nil, diags
-	}
-
+func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *TracingConfigNode {
 	return &TracingConfigNode{
 		nodeID:        BlockComponentID(block).String(),
 		componentName: block.GetBlockName(),
@@ -44,7 +32,7 @@ func NewTracingConfigNode(block *ast.BlockStmt, globals ComponentGlobals, isInMo
 
 		block: block,
 		eval:  vm.New(block.Body),
-	}, diags
+	}
 }
 
 // NewDefaulTracingConfigNode creates a new TracingConfigNode with nil block and eval.

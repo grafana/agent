@@ -1,0 +1,55 @@
+global:
+  scrape_interval: 60s
+  evaluation_interval: 15s
+  query_log_file: /tmp/log.txt
+  external_labels:
+    cluster: prod
+
+alerting:
+  alertmanagers:
+    - timeout: 5s
+
+rule_files:
+  - "/tmp/1234"
+
+storage:
+  tsdb:
+    out_of_order_time_window: 10m
+
+tracing:
+  endpoint: "http://localhost:3000"
+  headers:
+    some: header
+    something: else
+
+remote_read:
+  - url: "http://localhost:3001"
+
+scrape_configs:
+  - job_name: "prometheus1"
+    honor_timestamps: false
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ["localhost:9090"]
+    proxy_url: "localhost:1000"
+    no_proxy: "localhost:1001"
+    basic_auth:
+      username: 'user'
+      password: 'pass'
+    nomad_sd_configs:
+      - server: 'http://localhost:4646'
+  - job_name: "prometheus2"
+    static_configs:
+      - targets: ["localhost:9091"]
+
+remote_write:
+  - name: "remote1"
+    url: "http://remote-write-url1"
+    proxy_from_environment: true
+    tls_config:
+      max_version: TLS13
+    sigv4:
+      region: us-east-1
+  - name: "remote2"
+    url: "http://remote-write-url2"

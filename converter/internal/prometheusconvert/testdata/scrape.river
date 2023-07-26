@@ -1,0 +1,74 @@
+prometheus.scrape "prometheus1" {
+	targets = concat(
+		[{
+			__address__ = "localhost:9091",
+			app         = "foo",
+		}],
+		[{
+			__address__ = "localhost:9091",
+			app         = "foo",
+		}],
+	)
+	forward_to       = [prometheus.remote_write.default.receiver]
+	job_name         = "prometheus1"
+	honor_timestamps = false
+	scrape_interval  = "10s"
+	scrape_timeout   = "5s"
+
+	basic_auth {
+		username = "user"
+		password = "pass"
+	}
+}
+
+prometheus.scrape "prometheus2" {
+	targets = concat(
+		[{
+			__address__ = "localhost:9091",
+		}],
+		[{
+			__address__ = "localhost:9092",
+		}],
+		[{
+			__address__ = "localhost:9093",
+		}],
+	)
+	forward_to = [prometheus.remote_write.default.receiver]
+	job_name   = "prometheus2"
+}
+
+prometheus.remote_write "default" {
+	external_labels = {
+		cluster = "prod",
+	}
+
+	endpoint {
+		name           = "remote1"
+		url            = "http://remote-write-url1"
+		send_exemplars = false
+
+		queue_config { }
+
+		metadata_config { }
+
+		write_relabel_config {
+			source_labels = ["__address1__"]
+			target_label  = "__param_target1"
+		}
+
+		write_relabel_config {
+			source_labels = ["__address2__"]
+			target_label  = "__param_target2"
+		}
+	}
+
+	endpoint {
+		name           = "remote2"
+		url            = "http://remote-write-url2"
+		send_exemplars = false
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}

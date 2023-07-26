@@ -7,8 +7,7 @@ import (
 	"github.com/go-kit/log"
 	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
-	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logger"
-	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
+	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logging"
 	yaceSess "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/session"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -24,10 +23,10 @@ type exporter struct {
 	scrapeConf   yaceConf.ScrapeConf
 }
 
-// newCloudwatchExporter creates a new YACE wrapper, that implements Integration
-func newCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeConf, fipsEnabled bool) *exporter {
+// NewCloudwatchExporter creates a new YACE wrapper, that implements Integration
+func NewCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeConf, fipsEnabled, debug bool) *exporter {
 	loggerWrapper := yaceLoggerWrapper{
-		debug: false,
+		debug: debug,
 		log:   logger,
 	}
 	return &exporter{
@@ -44,25 +43,25 @@ func (e *exporter) MetricsHandler() (http.Handler, error) {
 		e.logger.Debug("Running collect in cloudwatch_exporter")
 
 		reg := prometheus.NewRegistry()
-		cwSemaphore := make(chan struct{}, cloudWatchConcurrency)
-		tagSemaphore := make(chan struct{}, tagConcurrency)
-		observedMetricLabels := map[string]yaceModel.LabelSet{}
-		yace.UpdateMetrics(
+		err := yace.UpdateMetrics(
 			context.Background(),
+			e.logger,
 			e.scrapeConf,
 			reg,
-			metricsPerQuery,
-			labelsSnakeCase,
-			cwSemaphore,
-			tagSemaphore,
 			e.sessionCache,
-			observedMetricLabels,
-			e.logger,
+			yace.MetricsPerQuery(metricsPerQuery),
+			yace.LabelsSnakeCase(labelsSnakeCase),
+			yace.CloudWatchAPIConcurrency(cloudWatchConcurrency),
+			yace.TaggingAPIConcurrency(tagConcurrency),
+			// Enable max-dimension-associator feature flag
+			// https://github.com/nerdswords/yet-another-cloudwatch-exporter/blob/master/docs/feature_flags.md#new-associator-algorithm
+			yace.EnableFeatureFlag(yaceConf.MaxDimensionsAssociator),
 		)
-
-		// close concurrency channels
-		close(cwSemaphore)
-		close(tagSemaphore)
+		if err != nil {
+			e.logger.Error(err, "Error collecting cloudwatch metrics")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 
 		promhttp.HandlerFor(reg, promhttp.HandlerOpts{}).ServeHTTP(w, req)
 	})

@@ -32,7 +32,7 @@ metrics:
     scrape_timeout: 33s`
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
+	c, err := LoadFromFunc(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -48,7 +48,7 @@ func TestConfig_ConfigAPIFlag(t *testing.T) {
 	t.Run("Disabled", func(t *testing.T) {
 		cfg := `{}`
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
+		c, err := LoadFromFunc(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(cfg), false, c)
 		})
 		require.NoError(t, err)
@@ -58,7 +58,7 @@ func TestConfig_ConfigAPIFlag(t *testing.T) {
 	t.Run("Enabled", func(t *testing.T) {
 		cfg := `{}`
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		c, err := load(fs, []string{"-config.file", "test", "-config.enable-read-api"}, func(_, _ string, _ bool, c *Config) error {
+		c, err := LoadFromFunc(fs, []string{"-config.file", "test", "-config.enable-read-api"}, func(_, _ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(cfg), false, c)
 		})
 		require.NoError(t, err)
@@ -82,7 +82,7 @@ metrics:
 	}
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
+	c, err := LoadFromFunc(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -105,7 +105,7 @@ metrics:
 	t.Setenv("SCRAPE_TIMEOUT", "33s")
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
+	c, err := LoadFromFunc(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
@@ -122,7 +122,7 @@ metrics:
 	expect := labels.Labels{{Name: "foo", Value: "${1}"}}
 
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	c, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
+	c, err := LoadFromFunc(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
@@ -142,7 +142,7 @@ metrics:
 		"-config.expand-env",
 	}
 
-	c, err := load(fs, args, func(_, _ string, _ bool, c *Config) error {
+	c, err := LoadFromFunc(fs, args, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
@@ -225,7 +225,7 @@ traces:
 
 	for _, tc := range tests {
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		_, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
+		_, err := LoadFromFunc(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(tc.cfg), false, c)
 		})
 
@@ -321,7 +321,7 @@ traces:
 
 	for _, tc := range tests {
 		fs := flag.NewFlagSet("test", flag.ExitOnError)
-		_, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
+		_, err := LoadFromFunc(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 			return LoadBytes([]byte(tc.cfg), false, c)
 		})
 
@@ -382,7 +382,7 @@ logs:
           source: filename
           expression: '\\temp\\Logs\\(?P<log_app>.+?)\\'`
 	fs := flag.NewFlagSet("test", flag.ExitOnError)
-	myCfg, err := load(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
+	myCfg, err := LoadFromFunc(fs, []string{"-config.file", "test"}, func(_, _ string, _ bool, c *Config) error {
 		return LoadBytes([]byte(cfg), true, c)
 	})
 	require.NoError(t, err)
@@ -446,12 +446,6 @@ metrics:
 	}
 	require.Equal(t, expected, c.Metrics.Global.RemoteWrite[0])
 	require.True(t, c.Metrics.Global.RemoteWrite[0].SendExemplars)
-}
-
-func TestLoadDynamicConfigurationExpandError(t *testing.T) {
-	err := LoadDynamicConfiguration("", true, nil)
-	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "expand var is not supported when using dynamic configuration, use gomplate env instead"))
 }
 
 func TestAgent_OmitEmptyFields(t *testing.T) {

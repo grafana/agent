@@ -1,9 +1,10 @@
 ---
-title: Create a config file
-weight: 50
 aliases:
 - ../../set-up/create-config-file/
 - ../../configuration/create-config-file/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/create-config-file/
+title: Create a config file
+weight: 50
 ---
 
 # Create a configuration file
@@ -42,7 +43,7 @@ integrations:
 ```
 
 In this example, we first must configure the `wal_directory` which is used to
-store metrics in a Write-Ahead Log. This is required, but ensures that samples
+store metrics in a Write-Ahead Log (WAL). The WAL is required and ensures that samples
 will be redelivered in case of failure (e.g., network issues, machine reboot). We
 also configure `remote_write`, which is where all metrics should be sent by
 default.

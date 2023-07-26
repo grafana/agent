@@ -1,6 +1,7 @@
 ---
 aliases:
 - configuration-language/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/
 title: Configuration language
 weight: 400
 ---
@@ -65,3 +66,17 @@ within a block is not significant. The order of operations is determined by the
 relationship between components.
 
 [RFC]: https://github.com/grafana/agent/blob/97a55d0d908b26dbb1126cc08b6dcc18f6e30087/docs/rfcs/0005-river.md
+
+## Tooling
+
+To help you write configuration files in River, the following tools are available:
+
+* Experimental editor support for
+  * [vim](https://github.com/rfratto/vim-river)
+  * [VSCode](https://github.com/rfratto/vscode-river)
+  * [river-mode](https://github.com/jdbaldry/river-mode) for Emacs
+* Code formatting using the [`agent fmt` command]({{< relref "../reference/cli/fmt" >}})
+
+You can also start developing your own tooling using the agent repository as a
+go package or use the [tree-sitter
+grammar](https://github.com/grafana/tree-sitter-river) with other programming languages.

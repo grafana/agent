@@ -1,7 +1,8 @@
 ---
-title: mimir.rules.kubernetes
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/mimir.rules.kubernetes/
 labels:
   stage: beta
+title: mimir.rules.kubernetes
 ---
 
 # mimir.rules.kubernetes
@@ -128,9 +129,12 @@ Name       | Type           | Description                                       
 
 The `operator` argument should be one of the following strings:
 
-* `"in"`
-* `"notin"`
-* `"exists"`
+* `"In"`
+* `"NotIn"`
+* `"Exists"`
+* `"DoesNotExist"`
+
+The `values` argument must not be provided when `operator` is set to `"Exists"` or `"DoesNotExist"`.
 
 ### basic_auth block
 

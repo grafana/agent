@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-opentelemetry-data/
 title: Collect OpenTelemetry data
 weight: 300
 ---

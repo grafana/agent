@@ -1,7 +1,8 @@
 ---
-title: node_exporter_config
 aliases:
 - ../../../configuration/integrations/node-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/node-exporter-config/
+title: node_exporter_config
 ---
 
 # node_exporter_config
@@ -28,7 +29,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.33.0 \
+  grafana/agent:v0.35.0 \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -42,7 +43,7 @@ server:
 metrics:
   wal_directory: /tmp/agent
   global:
-    scrape_interval: 15s
+    scrape_interval: 60s
     remote_write:
     - url: https://prometheus-us-central1.grafana.net/api/prom/push
       basic_auth:
@@ -55,6 +56,7 @@ integrations:
     rootfs_path: /host/root
     sysfs_path: /host/sys
     procfs_path: /host/proc
+    udev_data_path: /host/root/run/udev/data
 ```
 
 For running on Kubernetes, ensure to set the equivalent mounts and capabilities
@@ -67,7 +69,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.33.0
+  - image: grafana/agent:v0.35.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -118,7 +120,7 @@ the Agent is running on is a no-op.
 | buddyinfo        | Exposes statistics of memory fragments as reported by /proc/buddyinfo. | Linux | no |
 | cgroups          | Exposes number of active and enabled cgroups. | Linux | no |
 | conntrack        | Shows conntrack statistics (does nothing if no /proc/sys/net/netfilter/ present). | Linux | yes |
-| cpu              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris | yes |
+| cpu              | Exposes CPU statistics. | Darwin, Dragonfly, FreeBSD, Linux, Solaris, NetBSD | yes |
 | cpufreq          | Exposes CPU frequency statistics. | Linux, Solaris | yes |
 | devstat          | Exposes device statistics. | Dragonfly, FreeBSD | no |
 | diskstats        | Exposes disk I/O statistics. | Darwin, Linux, OpenBSD | yes |
@@ -141,10 +143,11 @@ the Agent is running on is a no-op.
 | loadavg          | Exposes load average. | Darwin, Dragonfly, FreeBSD, Linux, NetBSD, OpenBSD, Solaris | yes |
 | logind           | Exposes session counts from logind. | Linux | no |
 | mdadm            | Exposes statistics about devices in /proc/mdstat (does nothing if no /proc/mdstat present). | Linux | yes |
-| meminfo          | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
+| meminfo          | Exposes memory statistics. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD, NetBSD | yes |
 | meminfo_numa     | Exposes memory statistics from /proc/meminfo_numa. | Linux | no |
 | mountstats       | Exposes filesystem statistics from /proc/self/mountstats. Exposes detailed NFS client statistics. | Linux | no |
 | netclass         | Exposes network interface info from /sys/class/net. | Linux | yes |
+| netisr           | Exposes netisr statistics. | FreeBSD | yes |
 | netdev           | Exposes network interface statistics such as bytes transferred. | Darwin, Dragonfly, FreeBSD, Linux, OpenBSD | yes |
 | netstat          | Exposes network statistics from /proc/net/netstat. This is the same information as netstat -s. | Linux | yes |
 | network_route    | Exposes network route statistics. | Linux | no |
@@ -163,6 +166,7 @@ the Agent is running on is a no-op.
 | schedstat        | Exposes task scheduler statistics from /proc/schedstat. | Linux | yes |
 | selinux          | Exposes SELinux statistics. | Linux | yes |
 | slabinfo         | Exposes slab statistics from `/proc/slabinfo`. | Linux | no |
+| softirqs         | Exposes detailed softirq statistics from `/proc/softirqs`. | Linux | no |
 | sockstat         | Exposes various statistics from /proc/net/sockstat. | Linux | yes |
 | softnet          | Exposes statistics from /proc/net/softnet_stat. | Linux | yes |
 | stat             | Exposes various statistics from /proc/stat. This includes boot time, forks and interrupts. | Linux | yes |
@@ -177,7 +181,7 @@ the Agent is running on is a no-op.
 | time             | Exposes the current system time. | any | yes |
 | timex            | Exposes selected adjtimex(2) system call stats. | Linux | yes |
 | udp_queues       | Exposes UDP total lengths of the rx_queue and tx_queue from /proc/net/udp and /proc/net/udp6. | Linux | yes |
-| uname            | Exposes system information as provided by the uname system call. | Darwin, FreeBSD, Linux, OpenBSD | yes |
+| uname            | Exposes system information as provided by the uname system call. | Darwin, FreeBSD, Linux, OpenBSD, NetBSD | yes |
 | vmstat           | Exposes statistics from /proc/vmstat. | Linux | yes |
 | wifi             | Exposes WiFi device and station statistics. | Linux | no |
 | xfs              | Exposes XFS runtime statistics. | Linux (kernel 4.4+) | yes |
@@ -263,6 +267,10 @@ the Agent is running on is a no-op.
   # directory.
   [rootfs_path: <string> | default = "/"]
 
+  # udev data path needed for diskstats from Node exporter. When running
+  # in Kubernetes it should be set to /host/root/run/udev/data.
+  [udev_data_path: <string> | default = "/run/udev/data"]
+
   # Expose expensive bcache priority stats.
   [enable_bcache_priority_stats: <boolean>]
 
@@ -278,10 +286,10 @@ the Agent is running on is a no-op.
   # Regexp of `flags` field in cpu info to filter.
   [cpu_flags_include: <string>]
 
-  # Regexp of devices to ignore for diskstats (mutually exclusive with diskstats_device_include).
+  # Regexp of devices to ignore for diskstats.
   [diskstats_device_exclude: <string> | default = "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$"]
 
-  # Regexp of devices to include for diskstats (mutually exclusive with diskstats_device_exclude).
+  # Regexp of devices to include for diskstats. If set, the diskstat_device_exclude field is ignored.
   [diskstats_device_include: <string>]
 
   # Regexp of ethtool devices to exclude (mutually exclusive with ethtool_device_include)
@@ -350,6 +358,27 @@ the Agent is running on is a no-op.
 
   # Array of perf tracepoints that should be collected.
   perf_tracepoint:
+    [- <string>]
+
+  # Disable perf hardware profilers.
+  [perf_disable_hardware_profilers: <boolean> | default = false]
+
+  # Perf hardware profilers that should be collected.
+  perf_hardware_profilers:
+    [- <string>]
+
+  # Disable perf software profilers.
+  [perf_disable_software_profilers: <boolean> | default = false]
+
+  # Perf software profilers that should be collected.
+  perf_software_profilers:
+    [- <string>]
+  
+  # Disable perf cache profilers.
+  [perf_disable_cache_profilers: <boolean> | default = false]
+
+  # Perf cache profilers that should be collected.
+  perf_cache_profilers:
     [- <string>]
 
   # Regexp of power supplies to ignore for the powersupplyclass collector.

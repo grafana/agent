@@ -21,6 +21,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"go.opentelemetry.io/collector/processor"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
 	"go.uber.org/atomic"
 )
@@ -53,7 +54,7 @@ type automaticLoggingProcessor struct {
 	logger log.Logger
 }
 
-func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig) (component.TracesProcessor, error) {
+func newTraceProcessor(nextConsumer consumer.Traces, cfg *AutomaticLoggingConfig) (processor.Traces, error) {
 	logger := log.With(util.Logger, "component", "traces automatic logging")
 
 	if nextConsumer == nil {
@@ -122,7 +123,7 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td ptrace
 			lastTraceID := ""
 			for k := 0; k < spanLen; k++ {
 				span := ss.Spans().At(k)
-				traceID := span.TraceID().HexString()
+				traceID := span.TraceID().String()
 
 				if p.cfg.Spans {
 					keyValues := append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)

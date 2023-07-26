@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
+	"go.opentelemetry.io/collector/config/configopaque"
 	otelconfigtls "go.opentelemetry.io/collector/config/configtls"
 )
 
@@ -64,28 +65,17 @@ type TLSSetting struct {
 	ReloadInterval time.Duration     `river:"reload_interval,attr,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler and reports whether the
-// unmarshaled TLSConfig is valid.
-func (t *TLSSetting) UnmarshalRiver(f func(interface{}) error) error {
-	type tlsSetting TLSSetting
-	if err := f((*tlsSetting)(t)); err != nil {
-		return err
-	}
-
-	return t.Validate()
-}
-
 func (args *TLSSetting) Convert() *otelconfigtls.TLSSetting {
 	if args == nil {
 		return nil
 	}
 
 	return &otelconfigtls.TLSSetting{
-		CAPem:          []byte(args.CA),
+		CAPem:          configopaque.String(args.CA),
 		CAFile:         args.CAFile,
-		CertPem:        []byte(args.Cert),
+		CertPem:        configopaque.String(args.Cert),
 		CertFile:       args.CertFile,
-		KeyPem:         []byte(string(args.Key)),
+		KeyPem:         configopaque.String(string(args.Key)),
 		KeyFile:        args.KeyFile,
 		MinVersion:     args.MinVersion,
 		MaxVersion:     args.MaxVersion,
@@ -93,7 +83,7 @@ func (args *TLSSetting) Convert() *otelconfigtls.TLSSetting {
 	}
 }
 
-// Validate reports whether t is valid.
+// Validate implements river.Validator.
 func (t *TLSSetting) Validate() error {
 	if len(t.CA) > 0 && len(t.CAFile) > 0 {
 		return fmt.Errorf("at most one of ca_pem and ca_file must be configured")

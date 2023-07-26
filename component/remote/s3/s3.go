@@ -14,7 +14,7 @@ import (
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -29,8 +29,8 @@ func init() {
 	})
 }
 
-// S3 handles reading content from a file located in an S3-compatible system.
-type S3 struct {
+// Component handles reading content from a file located in an Component-compatible system.
+type Component struct {
 	mut     sync.Mutex
 	opts    component.Options
 	args    Arguments
@@ -44,12 +44,12 @@ type S3 struct {
 }
 
 var (
-	_ component.Component       = (*S3)(nil)
-	_ component.HealthComponent = (*S3)(nil)
+	_ component.Component       = (*Component)(nil)
+	_ component.HealthComponent = (*Component)(nil)
 )
 
 // New initializes the S3 component.
-func New(o component.Options, args Arguments) (*S3, error) {
+func New(o component.Options, args Arguments) (*Component, error) {
 	s3cfg, err := generateS3Config(args)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func New(o component.Options, args Arguments) (*S3, error) {
 	})
 
 	bucket, file := getPathBucketAndFile(args.Path)
-	s := &S3{
+	s := &Component{
 		opts:       o,
 		args:       args,
 		health:     component.Health{},
@@ -93,7 +93,7 @@ func New(o component.Options, args Arguments) (*S3, error) {
 }
 
 // Run activates the content handler and watcher.
-func (s *S3) Run(ctx context.Context) error {
+func (s *Component) Run(ctx context.Context) error {
 	go s.handleContentUpdate(ctx)
 	go s.watcher.run(ctx)
 	<-ctx.Done()
@@ -102,7 +102,7 @@ func (s *S3) Run(ctx context.Context) error {
 }
 
 // Update is called whenever the arguments have changed.
-func (s *S3) Update(args component.Arguments) error {
+func (s *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
 	s3cfg, err := generateS3Config(newArgs)
@@ -124,7 +124,7 @@ func (s *S3) Update(args component.Arguments) error {
 }
 
 // CurrentHealth returns the health of the component.
-func (s *S3) CurrentHealth() component.Health {
+func (s *Component) CurrentHealth() component.Health {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 	return s.health
@@ -135,7 +135,9 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 	// Override the endpoint.
 	if args.Options.Endpoint != "" {
 		endFunc := aws.EndpointResolverWithOptionsFunc(func(service, region string, _ ...interface{}) (aws.Endpoint, error) {
-			return aws.Endpoint{URL: args.Options.Endpoint}, nil
+			// The S3 compatible system used for testing with does not require signing region, so it's fine to be blank
+			// but when using a proxy to real S3 it needs to be injected.
+			return aws.Endpoint{URL: args.Options.Endpoint, SigningRegion: args.Options.SigningRegion}, nil
 		})
 		endResolver := aws_config.WithEndpointResolverWithOptions(endFunc)
 		configOptions = append(configOptions, endResolver)
@@ -184,7 +186,7 @@ func generateS3Config(args Arguments) (*aws.Config, error) {
 }
 
 // handleContentUpdate reads from the update and error channels setting as appropriate
-func (s *S3) handleContentUpdate(ctx context.Context) {
+func (s *Component) handleContentUpdate(ctx context.Context) {
 	for {
 		select {
 		case r := <-s.updateChan:
@@ -196,7 +198,7 @@ func (s *S3) handleContentUpdate(ctx context.Context) {
 	}
 }
 
-func (s *S3) handleContentPolling(newContent string, err error) {
+func (s *Component) handleContentPolling(newContent string, err error) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
@@ -222,8 +224,8 @@ func (s *S3) handleContentPolling(newContent string, err error) {
 // getPathBucketAndFile takes the path and splits it into a bucket and file.
 func getPathBucketAndFile(path string) (bucket, file string) {
 	parts := strings.Split(path, "/")
-	file = parts[len(parts)-1]
-	bucket = strings.Join(parts[:len(parts)-1], "/")
+	file = strings.Join(parts[3:], "/")
+	bucket = strings.Join(parts[:3], "/")
 	bucket = strings.ReplaceAll(bucket, "s3://", "")
 	return
 }

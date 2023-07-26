@@ -3,9 +3,14 @@ package stdlib
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/grafana/agent/pkg/river/internal/value"
+	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/ohler55/ojg/jp"
+	"github.com/ohler55/ojg/oj"
 )
 
 // Identifiers holds a list of stdlib identifiers by name. All interface{}
@@ -19,6 +24,10 @@ var Identifiers = map[string]interface{}{
 	"constants": constants,
 
 	"env": os.Getenv,
+
+	"nonsensitive": func(secret rivertypes.Secret) string {
+		return string(secret)
+	},
 
 	// concat is implemented as a raw function so it can bypass allocations
 	// converting arguments into []interface{}. concat is optimized to allow it
@@ -74,6 +83,20 @@ var Identifiers = map[string]interface{}{
 		return res, nil
 	},
 
+	"json_path": func(jsonString string, path string) (interface{}, error) {
+		jsonPathExpr, err := jp.ParseString(path)
+		if err != nil {
+			return nil, err
+		}
+
+		jsonExpr, err := oj.ParseString(jsonString)
+		if err != nil {
+			return nil, err
+		}
+
+		return jsonPathExpr.Get(jsonExpr), nil
+	},
+
 	"coalesce": value.RawFunction(func(funcValue value.Value, args ...value.Value) (value.Value, error) {
 		if len(args) == 0 {
 			return value.Null, nil
@@ -95,4 +118,15 @@ var Identifiers = map[string]interface{}{
 
 		return args[len(args)-1], nil
 	}),
+
+	"format":      fmt.Sprintf,
+	"join":        strings.Join,
+	"replace":     strings.ReplaceAll,
+	"split":       strings.Split,
+	"to_lower":    strings.ToLower,
+	"to_upper":    strings.ToUpper,
+	"trim":        strings.Trim,
+	"trim_prefix": strings.TrimPrefix,
+	"trim_suffix": strings.TrimSuffix,
+	"trim_space":  strings.TrimSpace,
 }
