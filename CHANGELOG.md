@@ -36,6 +36,8 @@ Main (unreleased)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
+- Fix RPM file digests so that installation on FIPS-enabled systems succeeds. (@andrewimeson)
+
 ### Other changes
 
 - Compile journald support into builds of `grafana-agentctl` so
