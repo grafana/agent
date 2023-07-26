@@ -10,6 +10,9 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Set hostPID from values. (@korniltsev)
 
 0.17.0 (2023-07-19)
 -------------------
