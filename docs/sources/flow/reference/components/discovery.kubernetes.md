@@ -415,13 +415,19 @@ Replace the following:
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
 
-### Limit searched namespaces
+### Limit searched namespaces and filter by labels value
 
-This example limits the namespaces where pods are discovered using the `namespaces` block:
+This example limits the searched namespaces and only selects pods with a specific label value attached to them:
 
 ```river
 discovery.kubernetes "k8s_pods" {
   role = "pod"
+
+  selectors {
+    role = "pod"
+    label = "app.kubernetes.io/name=prometheus-node-exporter"
+  }
+
   namespaces {
     names = ["myapp"]
   }
