@@ -145,7 +145,7 @@ func appendScrapeConfig(
 	// Append all the SD components
 	b.AppendKubernetesSDs()
 	b.AppendDockerSDs()
-	b.AppendStaticSDs() //TODO
+	b.AppendStaticSDs()
 	b.AppendFileSDs()
 	b.AppendConsulSDs()
 	b.AppendConsulAgentSDs()
