@@ -26,7 +26,6 @@ Name | Type | Description | Default | Required
 `region` | `string` | Nomad region to use. | `global` | no
 `allow_stale` | `bool` | Allow reading from non-leader nomad instances. | `true` | no
 `tag_separator` | `string` | Seperator to join nomad tags into Prometheus labels. | `,` | no
-
 `refresh_interval` | `duration` | Frequency to refresh list of containers. | `"30s"` | no
 `bearer_token` | `secret` | Bearer token to authenticate with. | | no
 `bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
@@ -90,7 +89,6 @@ Name | Type | Description
 
 Each target includes the following labels:
 
-TODO:
 * `__meta_nomad_address`: the service address of the target.
 * `__meta_nomad_dc`: the datacenter name for the target.
 * `__meta_nomad_namespace`: the namespace of the target.
@@ -100,7 +98,6 @@ TODO:
 * `__meta_nomad_service_id`: the service ID of the target.
 * `__meta_nomad_service_port`: the service port of the target.
 * `__meta_nomad_tags`: the list of tags of the target joined by the tag separator.
-
 
 ## Component health
 
