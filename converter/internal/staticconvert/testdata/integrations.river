@@ -1,0 +1,30 @@
+prometheus.exporter.unix {
+	procfs_path    = ""
+	sysfs_path     = ""
+	rootfs_path    = ""
+	udev_data_path = ""
+
+	disk { }
+
+	ethtool { }
+
+	filesystem { }
+
+	ntp { }
+
+	netclass { }
+
+	netstat { }
+
+	powersupply { }
+
+	runit { }
+
+	supervisord { }
+
+	systemd { }
+
+	tapestats { }
+
+	vmstat { }
+}

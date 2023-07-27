@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/converter/internal/promtailconvert"
+	"github.com/grafana/agent/converter/internal/staticconvert/internal/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/river/token/builder"
@@ -61,8 +62,8 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 
 	diags.AddAll(appendStaticPrometheus(f, staticConfig))
 	diags.AddAll(appendStaticPromtail(f, staticConfig))
+	diags.AddAll(appendStaticIntegrations1(f, staticConfig))
 	// TODO otel
-	// TODO integrations
 	// TODO other
 
 	diags.AddAll(validate(staticConfig))
@@ -130,6 +131,19 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 		//   results in two prometheus.scrape components with the label "logs_agent_test_promtail"
 		diags = promtailconvert.AppendAll(f, &promtailConfig, "logs_"+logConfig.Name, diags)
 	}
+
+	return diags
+}
+
+func appendStaticIntegrations1(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if len(staticConfig.Integrations.EnabledIntegrations()) == 0 {
+		return diags
+	}
+
+	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{})
+	b.AppendIntegrations()
 
 	return diags
 }
