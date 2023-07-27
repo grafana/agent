@@ -51,32 +51,6 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAs
 		return nil, err
 	}
 
-	switch operationType {
-	case
-		promsdconsumer.OperationTypeUpsert,
-		promsdconsumer.OperationTypeInsert,
-		promsdconsumer.OperationTypeUpdate:
-	case "": // Use Upsert by default
-		operationType = promsdconsumer.OperationTypeUpsert
-	default:
-		cancel()
-		return nil, fmt.Errorf("unknown operation type %s", operationType)
-	}
-
-	for _, podAssociation := range podAssociations {
-		switch podAssociation {
-		case
-			promsdconsumer.PodAssociationIPLabel,
-			promsdconsumer.PodAssociationOTelIPLabel,
-			promsdconsumer.PodAssociationk8sIPLabel,
-			promsdconsumer.PodAssociationHostnameLabel,
-			promsdconsumer.PodAssociationConnectionIP:
-		default:
-			cancel()
-			return nil, fmt.Errorf("unknown pod association %s", podAssociation)
-		}
-	}
-
 	if len(podAssociations) == 0 {
 		podAssociations = []string{
 			promsdconsumer.PodAssociationIPLabel,
