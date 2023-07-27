@@ -6,12 +6,10 @@
 name: trivy scan
 
 on:
-  # Running on push to main for now. If we decide this uses too many GH Action resources, we can move to a cron job or something.
-  push:
-    branches: [ "main" ]
-  #pull_request:
-    # The branches below must be a subset of the branches above
-    # branches: [ "main" ]
+  schedule:
+    # triggers the workflow every day at 8:00 and 20:00 UTC:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '15 8,20 * * *'
 
 permissions:
   contents: read
@@ -27,12 +25,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Build an image from Dockerfile
-        env:
-          AGENT_IMAGE: 'grafana/agent:${{ github.sha }}'
-        run: |
-          make agent-image
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
         with:
