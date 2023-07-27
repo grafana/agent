@@ -28,6 +28,7 @@ Main (unreleased)
   components and modifies the names and attributes of the spans. (@ptodev)
   - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@spartan0x117)
   - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
+  - `loki.write` now exposes basic WAL support. (@thepalbi)
 
 ### Bugfixes
 
