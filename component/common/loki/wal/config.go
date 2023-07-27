@@ -23,7 +23,7 @@ type Config struct {
 	Enabled bool `yaml:"enabled" river:"enabled,attr,optional"`
 
 	// Path where the WAL is written to.
-	Dir string `yaml:"dir"`
+	Dir string `yaml:"dir" river:"-"`
 
 	// MaxSegmentAge is threshold at which a WAL segment is considered old enough to be cleaned up. Default: 1h.
 	//
