@@ -119,23 +119,29 @@ based on a hash of the endpoint settings.
 
 ### wal block (experimental)
 
-The optional `wal` block configures the write-ahead log used in the Loki remote-write client. If omitted, the WAL
+The optional `wal` block configures the Write-Ahead log used in the Loki remote-write client. If omitted, the WAL
 will be disabled. When enabled, the log entries sent to the `loki.write` component will be first written to a write-ahead
-log, under the `dir` directory, and then read from there into the remote-write client. This provides durability guarantees
-when an entry reaches this component. The client knows when to read from the WAL using the following two mechansims:
-- The WAL-writer side of the `loki.write` component notifies the reader side that there is new data available.
-- The WAL-reader side check periodically if there is new data, increasing the wait time exponentially, between
+log, and then read from there into the remote-write client. This provides durability guarantees when an entry reaches this
+component, buffering unsent logs data in case of intermittent network issues. The client knows when to read from the WAL
+using the following two mechanisms:
+- The WAL-Writer side of the `loki.write` component notifies the reader side that there is new data available.
+- The WAL-Reader side checks periodically if there is new data, increasing the wait time exponentially, between
   `min_read_frequency` and `max_read_frequency`.
+
+The WAL is located inside a component-specific directory relative to the
+storage path Grafana Agent is configured to use. See the
+[`agent run` documentation][run] for how to change the storage path.
 
 The following arguments are supported:
 
 Name                  | Type       | Description                                                                                                        | Default   | Required
 --------------------- |------------|--------------------------------------------------------------------------------------------------------------------|-----------| --------
 `enabled`                 | `bool`     | Wether to enable or not the WAL.                                                                                   | false     | no
-`dir`                | `string`   | Directory where the WAL will be located.                                                                           |           | yes, if enabled
 `max_segment_age`             | `duration` | Maximum time a WAL segment should be allowed to live. Segments older than this setting will be eventually deleted. | `"1h"`    | no
 `min_read_frequency`          | `duration` | Minimum backoff time in the backup read mechanism.                                                                 | `"250ms"` | no
 `max_read_frequency`          | `duration` | Maximum backoff time in the backup read mechanism.                                                                 | `"1s"`    | no
+
+[run]: {{< relref "../cli/run.md" >}}
 
 ## Exported fields
 

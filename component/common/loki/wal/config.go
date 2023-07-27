@@ -1,7 +1,6 @@
 package wal
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -24,7 +23,7 @@ type Config struct {
 	Enabled bool `yaml:"enabled" river:"enabled,attr,optional"`
 
 	// Path where the WAL is written to.
-	Dir string `yaml:"dir" river:"dir,attr,optional"`
+	Dir string `yaml:"dir"`
 
 	// MaxSegmentAge is threshold at which a WAL segment is considered old enough to be cleaned up. Default: 1h.
 	//
@@ -34,13 +33,6 @@ type Config struct {
 	// WatchConfig configures the backoff retry used by a WAL watcher when reading from segments not via
 	// the notification channel.
 	WatchConfig WatchConfig `yaml:"watchConfig" river:",squash"`
-}
-
-func (c *Config) Validate() error {
-	if c.Enabled && c.Dir == "" {
-		return fmt.Errorf("invalid wal directory")
-	}
-	return nil
 }
 
 // SetToDefault applies the default values to the watch config during unmarshalling

@@ -3,6 +3,7 @@ package write
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"sync"
 
 	"github.com/grafana/agent/component"
@@ -115,6 +116,9 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	cfgs := newArgs.convertClientConfigs()
+
+	// Update WAL dir with DataPath subdir
+	newArgs.WAL.Dir = filepath.Join(c.opts.DataPath, "wal")
 
 	var err error
 	var notifier client.WriterEventsNotifier = client.NilNotifier

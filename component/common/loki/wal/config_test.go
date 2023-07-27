@@ -24,18 +24,12 @@ func TestWALConfigUnmarshalledThroughRiver(t *testing.T) {
 				WatchConfig:   DefaultWatchConfig,
 			},
 		},
-		"wal enabled but no dir": {
-			raw:           "enabled = true",
-			errorExpected: true,
-		},
 		"wal enabled with defaults": {
 			raw: `
 			enabled = true
-			dir = "/tmp/wal"
 			`,
 			expected: Config{
 				Enabled:       true,
-				Dir:           "/tmp/wal",
 				MaxSegmentAge: defaultMaxSegmentAge,
 				WatchConfig:   DefaultWatchConfig,
 			},
@@ -43,13 +37,11 @@ func TestWALConfigUnmarshalledThroughRiver(t *testing.T) {
 		"wal enabled with some overrides": {
 			raw: `
 			enabled = true
-			dir = "/tmp/wal2"
 			max_segment_age = "10m"
 			min_read_frequency = "11m"
 			`,
 			expected: Config{
 				Enabled:       true,
-				Dir:           "/tmp/wal2",
 				MaxSegmentAge: time.Minute * 10,
 				WatchConfig: WatchConfig{
 					MinReadFrequency: time.Minute * 11,
