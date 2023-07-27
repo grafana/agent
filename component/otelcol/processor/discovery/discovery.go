@@ -87,7 +87,7 @@ var _ component.Component = (*Component)(nil)
 // New creates a new otelcol.exporter.discovery component.
 func New(o component.Options, c Arguments) (*Component, error) {
 	if c.Output.Logs != nil || c.Output.Metrics != nil {
-		level.Warn(o.Logger).Log("msg", "non-trace input detected; this component only works for traces")
+		level.Warn(o.Logger).Log("msg", "non-trace output detected; this component only works for traces")
 	}
 
 	nextTraces := fanoutconsumer.Traces(c.Output.Traces)
