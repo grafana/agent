@@ -38,6 +38,10 @@ Main (unreleased)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
+- Fix issue where series records would never get written to the WAL if a scrape
+  was rolled back, resulting in "dropped sample for series that was not
+  explicitly dropped via relabelling" log messages. (@rfratto)
+
 ### Other changes
 
 - Compile journald support into builds of `grafana-agentctl` so
@@ -50,7 +54,7 @@ v0.35.1 (2023-07-25)
 ### Bugfixes
 
 - Fix incorrect display of trace IDs in the automatic_logging processor of static mode's traces subsystem.
-  Users of the static mode's service graph processor are also advised to upgrade, 
+  Users of the static mode's service graph processor are also advised to upgrade,
   although the bug should theoretically not affect them. (@ptodev)
 
 v0.35.0 (2023-07-18)
