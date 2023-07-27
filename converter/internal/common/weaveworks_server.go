@@ -1,8 +1,10 @@
 package common
 
 import (
-	"github.com/grafana/agent/converter/diag"
 	"github.com/weaveworks/common/server"
+
+	fnet "github.com/grafana/agent/component/common/net"
+	"github.com/grafana/agent/converter/diag"
 )
 
 func DefaultWeaveWorksServerCfg() server.Config {
@@ -11,6 +13,31 @@ func DefaultWeaveWorksServerCfg() server.Config {
 	// we need to comment out the following line.
 	//cfg.RegisterFlags(flag.NewFlagSet("", flag.PanicOnError))
 	return cfg
+}
+
+func WeaveWorksServerToFlowServer(config server.Config) *fnet.ServerConfig {
+	return &fnet.ServerConfig{
+		HTTP: &fnet.HTTPConfig{
+			ListenAddress:      config.HTTPListenAddress,
+			ListenPort:         config.HTTPListenPort,
+			ConnLimit:          config.HTTPConnLimit,
+			ServerReadTimeout:  config.HTTPServerReadTimeout,
+			ServerWriteTimeout: config.HTTPServerWriteTimeout,
+			ServerIdleTimeout:  config.HTTPServerIdleTimeout,
+		},
+		GRPC: &fnet.GRPCConfig{
+			ListenAddress:              config.GRPCListenAddress,
+			ListenPort:                 config.GRPCListenPort,
+			ConnLimit:                  config.GRPCConnLimit,
+			MaxConnectionAge:           config.GRPCServerMaxConnectionAge,
+			MaxConnectionAgeGrace:      config.GRPCServerMaxConnectionAgeGrace,
+			MaxConnectionIdle:          config.GRPCServerMaxConnectionIdle,
+			ServerMaxRecvMsg:           config.GPRCServerMaxRecvMsgSize,
+			ServerMaxSendMsg:           config.GRPCServerMaxSendMsgSize,
+			ServerMaxConcurrentStreams: config.GPRCServerMaxConcurrentStreams,
+		},
+		GracefulShutdownTimeout: config.ServerGracefulShutdownTimeout,
+	}
 }
 
 func ValidateWeaveWorksServerCfg(cfg server.Config) diag.Diagnostics {
