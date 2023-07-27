@@ -16,6 +16,13 @@ Unreleased
 
 - Set nodeSelector at podlevel. (@Flasheh)
 
+0.18.0 (2023-07-26)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.35.1. (@ptodev)
+
 0.17.0 (2023-07-19)
 -------------------
 

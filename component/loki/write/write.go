@@ -8,10 +8,10 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/client"
+	"github.com/grafana/agent/component/common/loki/limit"
+	"github.com/grafana/agent/component/common/loki/wal"
 	"github.com/grafana/agent/pkg/build"
 )
-
-var streamLagLabels = []string{"filename"}
 
 func init() {
 	component.Register(component.Registration{
@@ -52,14 +52,14 @@ type Component struct {
 	mut      sync.RWMutex
 	args     Arguments
 	receiver loki.LogsReceiver
-	clients  []client.Client
+	manager  client.Client
 }
 
 // New creates a new loki.write component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:    o,
-		metrics: client.NewMetrics(o.Registerer, streamLagLabels),
+		metrics: client.NewMetrics(o.Registerer),
 	}
 
 	// Create and immediately export the receiver which remains the same for
@@ -82,15 +82,10 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver.Chan():
-			for _, client := range c.clients {
-				if client != nil {
-					select {
-					case <-ctx.Done():
-						return nil
-					case client.Chan() <- entry:
-						// no-op
-					}
-				}
+			select {
+			case <-ctx.Done():
+				return nil
+			case c.manager.Chan() <- entry:
 			}
 		}
 	}
@@ -104,24 +99,17 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
-	for _, client := range c.clients {
-		if client != nil {
-			client.Stop()
-		}
+	if c.manager != nil {
+		c.manager.Stop()
 	}
-	c.clients = make([]client.Client, len(newArgs.Endpoints))
 
 	cfgs := newArgs.convertClientConfigs()
-	// TODO (@tpaschalis) We could use a client.NewMulti here to push the
-	// fanout logic back to the client layer, but I opted to keep it explicit
-	// here a) for easier debugging and b) possible improvements in the future.
-	for _, cfg := range cfgs {
-		client, err := client.New(c.metrics, cfg, streamLagLabels, newArgs.MaxStreams, c.opts.Logger)
-		if err != nil {
-			return err
-		}
-		c.clients = append(c.clients, client)
-	}
 
-	return nil
+	var err error
+	// todo(thepalbi): Add river support for enabling and configuring WAL
+	c.manager, err = client.NewManager(c.metrics, c.opts.Logger, limit.Config{
+		MaxStreams: newArgs.MaxStreams,
+	}, c.opts.Registerer, wal.Config{}, client.NilNotifier, cfgs...)
+
+	return err
 }

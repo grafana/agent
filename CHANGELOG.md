@@ -13,7 +13,9 @@ Main (unreleased)
 ### Enhancements
 
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
+
 - Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
+
 - Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
 
 - New Grafana Agent Flow components:
@@ -243,6 +245,8 @@ v0.35.0 (2023-07-18)
 
 - Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to
   the `/loki` prefixed endpoints. (@mattdurham)
+
+- Upgrade `loki.write` dependencies to latest changes. (@thepalbi)
 
 ### Other changes
 
