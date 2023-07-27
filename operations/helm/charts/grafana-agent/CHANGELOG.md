@@ -10,11 +10,16 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.19.0 (2023-07-27)
+-------------------
+
 ### Enhancements
 
 - Set hostPID from values. (@korniltsev)
 
 - Set nodeSelector at podlevel. (@Flasheh)
+
+- Update Grafana Agent version to v0.35.2. (@rfratto)
 
 0.18.0 (2023-07-26)
 -------------------
