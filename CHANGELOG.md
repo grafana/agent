@@ -32,14 +32,19 @@ Main (unreleased)
 
 - Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
 
+- Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
+
+v0.35.2 (2023-07-27)
+--------------------
+
+### Bugfixes
+
 - Fix issue where the flow mode UI would show an empty page when navigating to
   an unhealthy `prometheus.operator` component or a healthy
   `prometheus.operator` component which discovered no custom resources.
   (@rfratto)
 
 - Fix panic when using `oauth2` without specifying `tls_config`. (@mattdurham)
-
-- Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
 - Fix issue where series records would never get written to the WAL if a scrape
   was rolled back, resulting in "dropped sample for series that was not
