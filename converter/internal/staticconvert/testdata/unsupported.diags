@@ -1,3 +1,6 @@
+(Error) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
+(Warning) server.log_level is not supported - Flow mode components may produce different logs
+(Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
 (Error) unsupported log_level server config was provided.
 (Error) unsupported log_format server config was provided.
 (Error) unsupported grpc_tls_config server config was provided.
@@ -5,7 +8,4 @@
 (Error) unsupported wal_directory metrics config was provided. use the run command flag --storage.path for Flow mode instead.
 (Error) unsupported integrations config was provided.
 (Error) unsupported traces config was provided.
-(Error) unsupported positions_directory logs config was provided.
-(Error) unsupported global logs config was provided.
-(Error) unsupported logs config was provided.
 (Error) unsupported agent_management config was provided.

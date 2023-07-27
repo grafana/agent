@@ -41,9 +41,8 @@ func ValidateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Di
 		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for digitalocean_sd_configs")
 	}
 
-	newDiags := ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+	diags.AddAll(ValidateHttpClientConfig(&sdConfig.HTTPClientConfig))
 
-	diags = append(diags, newDiags...)
 	return diags
 }
 

@@ -23,9 +23,10 @@ func (s *ScrapeConfigBuilder) AppendPushAPI() {
 			return val
 		}
 	}
+	compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
 		[]string{"loki", "source", "api"},
-		s.cfg.JobName,
+		compLabel,
 		args,
 		override,
 	))
