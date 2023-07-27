@@ -119,14 +119,14 @@ based on a hash of the endpoint settings.
 
 ### wal block (experimental)
 
-The optional `wal` block configures the Write-Ahead log used in the Loki remote-write client. If omitted, the WAL
-will be disabled. When enabled, the log entries sent to the `loki.write` component will be first written to a write-ahead
-log, and then read from there into the remote-write client. This provides durability guarantees when an entry reaches this
-component, buffering unsent logs data in case of intermittent network issues. The client knows when to read from the WAL
-using the following two mechanisms:
-- The WAL-Writer side of the `loki.write` component notifies the reader side that there is new data available.
-- The WAL-Reader side checks periodically if there is new data, increasing the wait time exponentially, between
-  `min_read_frequency` and `max_read_frequency`.
+The optional `wal` block configures the Write-Ahead Log (WAL) used in the Loki remote-write client. To enable the WAL,
+you must include the `wal` block in your configuration. When the WAL is enabled, the log entries sent to the `loki.write`
+component are first written to a WAL under the `dir` directory and then read into the remote-write client. This process
+provides durability guarantees when an entry reaches this component. The client knows when to read from the WAL using the
+following two mechanisms:
+- The WAL-writer side of the `loki.write` component notifies the reader side that new data is available.
+- The WAL-reader side periodically checks if there is new data, increasing the wait time exponentially between
+`min_read_frequency` and `max_read_frequency`.
 
 The WAL is located inside a component-specific directory relative to the
 storage path Grafana Agent is configured to use. See the
