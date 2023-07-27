@@ -45,6 +45,8 @@ Main (unreleased)
   was rolled back, resulting in "dropped sample for series that was not
   explicitly dropped via relabelling" log messages. (@rfratto)
 
+- Fix RPM file digests so that installation on FIPS-enabled systems succeeds. (@andrewimeson)
+
 ### Other changes
 
 - Compile journald support into builds of `grafana-agentctl` so
