@@ -13,6 +13,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/http"                           // Import discovery.http
 	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
+	_ "github.com/grafana/agent/component/discovery/openstack"                      // Import discovery.openstack
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/discovery/uyuni"                          // Import discovery.uyuni
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
