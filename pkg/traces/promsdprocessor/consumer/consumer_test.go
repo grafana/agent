@@ -75,7 +75,14 @@ func TestOperationType(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			mockProcessor := new(consumertest.TracesSink)
 			logger := util.TestLogger(t)
-			c, err := NewConsumer(mockProcessor, tc.operationType, nil, logger)
+			podAssociations := []string{
+				PodAssociationIPLabel,
+				PodAssociationOTelIPLabel,
+				PodAssociationk8sIPLabel,
+				PodAssociationHostnameLabel,
+				PodAssociationConnectionIP,
+			}
+			c, err := NewConsumer(mockProcessor, tc.operationType, podAssociations, logger)
 			require.NoError(t, err)
 
 			attrMap := pcommon.NewMap()
@@ -242,7 +249,18 @@ func TestPodAssociation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			mockProcessor := new(consumertest.TracesSink)
 			logger := util.TestLogger(t)
-			c, err := NewConsumer(mockProcessor, "", tc.podAssociations, logger)
+
+			if len(tc.podAssociations) == 0 {
+				tc.podAssociations = []string{
+					PodAssociationIPLabel,
+					PodAssociationOTelIPLabel,
+					PodAssociationk8sIPLabel,
+					PodAssociationHostnameLabel,
+					PodAssociationConnectionIP,
+				}
+			}
+
+			c, err := NewConsumer(mockProcessor, OperationTypeUpsert, tc.podAssociations, logger)
 			require.NoError(t, err)
 
 			ip := c.getPodIP(tc.ctxFn(t), tc.attrMapFn(t))

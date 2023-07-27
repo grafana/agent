@@ -17,14 +17,14 @@ func TestSyncGroups(t *testing.T) {
 		jobToSync   string
 		relabelCfgs map[string][]*relabel.Config
 		targets     []model.LabelSet
-		expected    map[string]model.LabelSet
+		expected    map[string]discovery.Target
 	}{
 		{
 			name:        "empty",
 			jobToSync:   "",
 			relabelCfgs: map[string][]*relabel.Config{},
 			targets:     []model.LabelSet{},
-			expected:    map[string]model.LabelSet{},
+			expected:    map[string]discovery.Target{},
 		},
 		{
 			name:      "no relabeling",
@@ -37,7 +37,7 @@ func TestSyncGroups(t *testing.T) {
 					"__address__": "127.0.0.1",
 				},
 			},
-			expected: map[string]model.LabelSet{
+			expected: map[string]discovery.Target{
 				"127.0.0.1": {},
 			},
 		},
@@ -53,7 +53,7 @@ func TestSyncGroups(t *testing.T) {
 					"label":       "val",
 				},
 			},
-			expected: map[string]model.LabelSet{
+			expected: map[string]discovery.Target{
 				"127.0.0.1": {
 					"label": "val",
 				},
@@ -71,7 +71,7 @@ func TestSyncGroups(t *testing.T) {
 					"label":       "val",
 				},
 			},
-			expected: map[string]model.LabelSet{
+			expected: map[string]discovery.Target{
 				"127.0.0.1": {
 					"label": "val",
 				},
@@ -89,7 +89,7 @@ func TestSyncGroups(t *testing.T) {
 					"__ignore":    "ignore",
 				},
 			},
-			expected: map[string]model.LabelSet{
+			expected: map[string]discovery.Target{
 				"127.0.0.1": {},
 			},
 		},

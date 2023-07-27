@@ -156,14 +156,14 @@ func (c *Consumer) processAttributes(ctx context.Context, attrs pcommon.Map) {
 	for k, v := range labels {
 		switch c.operationType {
 		case OperationTypeUpsert:
-			attrs.PutStr(string(k), string(v))
+			attrs.PutStr(k, v)
 		case OperationTypeInsert:
-			if _, ok := attrs.Get(string(k)); !ok {
-				attrs.PutStr(string(k), string(v))
+			if _, ok := attrs.Get(k); !ok {
+				attrs.PutStr(k, v)
 			}
 		case OperationTypeUpdate:
-			if toVal, ok := attrs.Get(string(k)); ok {
-				toVal.SetStr(string(v))
+			if toVal, ok := attrs.Get(k); ok {
+				toVal.SetStr(v)
 			}
 		}
 	}
@@ -228,7 +228,7 @@ func GetHostFromLabels(labels discovery.Target) (string, error) {
 		return "", fmt.Errorf("unable to find address in labels %q", labels.Labels())
 	}
 
-	host := string(address)
+	host := address
 	if strings.Contains(host, ":") {
 		var err error
 		host, _, err = net.SplitHostPort(host)
@@ -242,7 +242,7 @@ func GetHostFromLabels(labels discovery.Target) (string, error) {
 
 func CleanupLabels(labels discovery.Target) {
 	for k := range labels {
-		if strings.HasPrefix(string(k), "__") {
+		if strings.HasPrefix(k, "__") {
 			delete(labels, k)
 		}
 	}

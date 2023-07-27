@@ -117,7 +117,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	for _ = range ctx.Done() {
+	for range ctx.Done() {
 		return nil
 	}
 	return nil
@@ -125,7 +125,6 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements Component.
 func (c *Component) Update(newConfig component.Arguments) error {
-
 	cfg := newConfig.(Arguments)
 	c.cfg = cfg
 
