@@ -138,8 +138,8 @@ func NewInstance(reg prometheus.Registerer, c *InstanceConfig, g GlobalConfig, l
 }
 
 // DefaultConfig returns a default config for a Logs instance.
-func DefaultConfig() *config.Config {
-	return &config.Config{
+func DefaultConfig() config.Config {
+	return config.Config{
 		ServerConfig: server.Config{Disable: true},
 		Tracing:      tracing.Config{Enabled: false},
 		WAL:          wal.Config{Enabled: false},
@@ -184,7 +184,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, g GlobalConfig, dryRun bool) e
 	}
 
 	clientMetrics := client.NewMetrics(i.reg)
-	cfg := *DefaultConfig()
+	cfg := DefaultConfig()
 	cfg.Global = config.GlobalConfig{
 		FileWatch: file.WatchConfig{
 			MinPollFrequency: g.FileWatch.MinPollFrequency,
