@@ -19,6 +19,10 @@ Main (unreleased)
 
 - Fix panic when using `oauth2` without specifying `tls_config`. (@mattdurham)
 
+- Fix issue where series records would never get written to the WAL if a scrape
+  was rolled back, resulting in "dropped sample for series that was not
+  explicitly dropped via relabelling" log messages. (@rfratto)
+
 v0.35.1 (2023-07-25)
 --------------------
 

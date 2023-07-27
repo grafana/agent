@@ -861,6 +861,16 @@ func (a *appender) UpdateMetadata(ref storage.SeriesRef, _ labels.Labels, m meta
 
 // Commit submits the collected samples and purges the batch.
 func (a *appender) Commit() error {
+	if err := a.log(); err != nil {
+		return err
+	}
+
+	a.clearData()
+	a.w.appenderPool.Put(a)
+	return nil
+}
+
+func (a *appender) log() error {
 	a.w.walMtx.RLock()
 	defer a.w.walMtx.RUnlock()
 
@@ -870,6 +880,9 @@ func (a *appender) Commit() error {
 
 	var encoder record.Encoder
 	buf := a.w.bufPool.Get().([]byte)
+	defer func() {
+		a.w.bufPool.Put(buf) //nolint:staticcheck
+	}()
 
 	if len(a.pendingSeries) > 0 {
 		buf = encoder.Series(a.pendingSeries, buf)
@@ -931,12 +944,11 @@ func (a *appender) Commit() error {
 		}
 	}
 
-	//nolint:staticcheck
-	a.w.bufPool.Put(buf)
-	return a.Rollback()
+	return nil
 }
 
-func (a *appender) Rollback() error {
+// clearData clears all pending data.
+func (a *appender) clearData() {
 	a.pendingSeries = a.pendingSeries[:0]
 	a.pendingSamples = a.pendingSamples[:0]
 	a.pendingHistograms = a.pendingHistograms[:0]
@@ -945,6 +957,43 @@ func (a *appender) Rollback() error {
 	a.sampleSeries = a.sampleSeries[:0]
 	a.histogramSeries = a.histogramSeries[:0]
 	a.floatHistogramSeries = a.floatHistogramSeries[:0]
+}
+
+func (a *appender) Rollback() error {
+	// Series are created in-memory regardless of rollback. This means we must
+	// log them to the WAL, otherwise subsequent commits may reference a series
+	// which was never written to the WAL.
+	if err := a.logSeries(); err != nil {
+		return err
+	}
+
+	a.clearData()
 	a.w.appenderPool.Put(a)
+	return nil
+}
+
+// logSeries logs only pending series records to the WAL.
+func (a *appender) logSeries() error {
+	a.w.walMtx.RLock()
+	defer a.w.walMtx.RUnlock()
+
+	if a.w.walClosed {
+		return ErrWALClosed
+	}
+
+	if len(a.pendingSeries) > 0 {
+		var encoder record.Encoder
+		buf := a.w.bufPool.Get().([]byte)
+		defer func() {
+			a.w.bufPool.Put(buf) //nolint:staticcheck
+		}()
+
+		buf = encoder.Series(a.pendingSeries, buf)
+		if err := a.w.wal.Log(buf); err != nil {
+			return err
+		}
+		buf = buf[:0]
+	}
+
 	return nil
 }
