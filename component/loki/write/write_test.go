@@ -53,7 +53,22 @@ func TestBadRiverConfig(t *testing.T) {
 	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
 }
 
-func Test(t *testing.T) {
+func TestWriteToSingleEndpoint(t *testing.T) {
+	t.Run("wal disabled", func(t *testing.T) {
+		testSingleEndpoint(t, func(args *Arguments) {})
+	})
+
+	t.Run("wal enabled", func(t *testing.T) {
+		walDir, err := os.MkdirTemp("", "")
+		require.NoError(t, err)
+		testSingleEndpoint(t, func(args *Arguments) {
+			args.WAL.Enabled = true
+			args.WAL.Dir = walDir
+		})
+	})
+}
+
+func testSingleEndpoint(t *testing.T, alterConfig func(arguments *Arguments)) {
 	// Set up the server that will receive the log entry, and expose it on ch.
 	ch := make(chan logproto.PushRequest)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -80,6 +95,8 @@ func Test(t *testing.T) {
 	`, srv.URL)
 	var args Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+
+	alterConfig(&args)
 
 	// Set up and start the component.
 	tc, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.write")
@@ -118,6 +135,21 @@ func Test(t *testing.T) {
 }
 
 func TestEntrySentToTwoWriteComponents(t *testing.T) {
+	t.Run("wal disabled", func(t *testing.T) {
+		testMultipleEndpoint(t, func(arguments *Arguments) {})
+	})
+
+	t.Run("wal enabled", func(t *testing.T) {
+		testMultipleEndpoint(t, func(arguments *Arguments) {
+			walDir, err := os.MkdirTemp("", "")
+			require.NoError(t, err)
+			arguments.WAL.Enabled = true
+			arguments.WAL.Dir = walDir
+		})
+	})
+}
+
+func testMultipleEndpoint(t *testing.T, alterArgs func(arguments *Arguments)) {
 	ch1, ch2 := make(chan logproto.PushRequest), make(chan logproto.PushRequest)
 	srv1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var pushReq logproto.PushRequest
@@ -148,6 +180,8 @@ func TestEntrySentToTwoWriteComponents(t *testing.T) {
 	var args1, args2 Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg1), &args1))
 	require.NoError(t, river.Unmarshal([]byte(cfg2), &args2))
+	alterArgs(&args1)
+	alterArgs(&args2)
 
 	// Set up and start the component.
 	tc1, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.write")
