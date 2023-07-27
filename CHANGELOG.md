@@ -23,6 +23,8 @@ Main (unreleased)
   was rolled back, resulting in "dropped sample for series that was not
   explicitly dropped via relabelling" log messages. (@rfratto)
 
+- Fix RPM file digests so that installation on FIPS-enabled systems succeeds. (@andrewimeson)
+
 v0.35.1 (2023-07-25)
 --------------------
 
