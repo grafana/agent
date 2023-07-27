@@ -8,6 +8,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/digitalocean"                   // Import discovery.digitalocean
 	_ "github.com/grafana/agent/component/discovery/dns"                            // Import discovery.dns
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
+	_ "github.com/grafana/agent/component/discovery/eureka"                         // Import discovery.eureka
 	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file
 	_ "github.com/grafana/agent/component/discovery/gce"                            // Import discovery.gce
 	_ "github.com/grafana/agent/component/discovery/http"                           // Import discovery.http
