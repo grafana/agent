@@ -30,7 +30,7 @@ logs:
   positions_directory: /path
   global:
     file_watch_config:
-      min_poll_frequency: 1m
+      min_poll_frequency: 250ms
   configs:
     - name: log_config
 

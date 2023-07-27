@@ -1,17 +1,17 @@
-discovery.kubernetes "fun_0" {
+discovery.kubernetes "fun" {
 	role            = "pod"
 	kubeconfig_file = "/home/toby/.kube/config"
 }
 
-discovery.kubernetes "fun_1" {
+discovery.kubernetes "fun_2" {
 	role            = "node"
 	kubeconfig_file = "/home/toby/.kube/config"
 }
 
 discovery.relabel "fun" {
 	targets = concat(
-		discovery.kubernetes.fun_0.targets,
-		discovery.kubernetes.fun_1.targets,
+		discovery.kubernetes.fun.targets,
+		discovery.kubernetes.fun_2.targets,
 	)
 
 	rule {
@@ -25,7 +25,7 @@ local.file_match "fun" {
 }
 
 loki.process "fun" {
-	forward_to = [loki.write.default_0.receiver]
+	forward_to = [loki.write.default.receiver]
 
 	stage.json {
 		expressions = {
@@ -42,7 +42,7 @@ loki.source.file "fun" {
 	forward_to = [loki.process.fun.receiver]
 }
 
-loki.write "default_0" {
+loki.write "default" {
 	endpoint {
 		url              = "http://localhost/loki/api/v1/push"
 		follow_redirects = false

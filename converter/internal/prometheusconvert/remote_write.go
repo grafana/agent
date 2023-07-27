@@ -44,9 +44,7 @@ func validateRemoteWriteConfig(remoteWriteConfig *prom_config.RemoteWriteConfig)
 		diags.Add(diag.SeverityLevelError, "unsupported remote_write sigv4 config was provided")
 	}
 
-	newDiags := ValidateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig)
-	diags = append(diags, newDiags...)
-
+	diags.AddAll(ValidateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig))
 	return diags
 }
 

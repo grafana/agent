@@ -11,14 +11,14 @@ loki.source.journal "fun" {
 	format_as_json = true
 	max_age        = "20h0m0s"
 	relabel_rules  = discovery.relabel.fun.rules
-	forward_to     = [loki.write.default_0.receiver]
+	forward_to     = [loki.write.default.receiver]
 	labels         = {
 		region  = "chablis",
 		variety = "chardonnay",
 	}
 }
 
-loki.write "default_0" {
+loki.write "default" {
 	endpoint {
 		url              = "http://localhost/loki/api/v1/push"
 		follow_redirects = false
