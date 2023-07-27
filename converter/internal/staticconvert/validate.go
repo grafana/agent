@@ -31,7 +31,7 @@ func validate(staticConfig *config.Config) diag.Diagnostics {
 func validateCommandLine() diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.Add(diag.SeverityLevelWarn, "Please review your agent command line flags and ensure they are set in Flow mode config file where necessary.")
+	diags.Add(diag.SeverityLevelWarn, "Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.")
 
 	return diags
 }

@@ -124,7 +124,7 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 		//   logs config name = "agent_test"
 		//   scrape config job_name = "promtail"
 		//
-		//   metrics config name = "agent"
+		//   logs config name = "agent"
 		//   scrape config job_name = "test_promtail"
 		//
 		//   results in two prometheus.scrape components with the label "logs_agent_test_promtail"
