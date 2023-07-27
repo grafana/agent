@@ -21,8 +21,8 @@ import (
 	"github.com/prometheus/common/model"
 
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/pkg/build"
 	lokiutil "github.com/grafana/loki/pkg/util"
-	"github.com/grafana/loki/pkg/util/build"
 )
 
 const (
