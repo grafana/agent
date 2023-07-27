@@ -1,17 +1,23 @@
 name: bump-formula-pr
 on:
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
-      - '!v*-rc*' # Ignore release candidates
+  release:
+    types: [released]
+
 jobs:
   homebrew-core:
     name: homebrew-core
     runs-on: macos-latest
     steps:
+    - name: Get latest release
+      uses: rez0n/actions-github-release@main
+      id: latest_release
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: "${{ github.repository }}"
+        type: "stable"
+
     - name: Update Homebrew formula
+      if: 'steps.latest_release.outputs.release_id == github.event.release.id'
       uses: dawidd6/action-homebrew-bump-formula@v3
       with:
         # Required, custom GitHub access token with the 'public_repo' and 'workflow' scopes
@@ -24,11 +30,21 @@ jobs:
         revision: ${{github.sha}}
         # Optional, if don't want to check for already open PRs
         force: false # true
+
   homebrew-grafana:
     name: homebrew-grafana
     runs-on: macos-latest
     steps:
+    - name: Get latest release
+      uses: rez0n/actions-github-release@main
+      id: latest_release
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        repository: "${{ github.repository }}"
+        type: "stable"
+
     - name: Update Homebrew formula
+      if: 'steps.latest_release.outputs.release_id == github.event.release.id'
       uses: dawidd6/action-homebrew-bump-formula@v3
       with:
         # Required, custom GitHub access token with the 'public_repo' and 'workflow' scopes
