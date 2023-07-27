@@ -160,6 +160,24 @@ func TestHTTPClientConfigOath2ClientSecretFile(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestOath2TLSConvert(t *testing.T) {
+	var exampleRiverConfig = `
+	oauth2 {
+		client_id = "client_id"
+		client_secret_file = "/path/to/file.oath2"
+		scopes = ["scope1", "scope2"]
+		token_url = "token_url"
+		endpoint_params = {"param1" = "value1", "param2" = "value2"}
+	}
+`
+
+	var httpClientConfig HTTPClientConfig
+	err := river.Unmarshal([]byte(exampleRiverConfig), &httpClientConfig)
+	require.NoError(t, err)
+	newCfg := httpClientConfig.Convert()
+	require.NotNil(t, newCfg)
+}
+
 func TestHTTPClientBadConfig(t *testing.T) {
 	var exampleRiverConfig = `
 	bearer_token = "token"

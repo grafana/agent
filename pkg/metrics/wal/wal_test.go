@@ -99,6 +99,35 @@ func TestStorage(t *testing.T) {
 	require.Equal(t, expectedExemplars, actualExemplars)
 }
 
+func TestStorage_Rollback(t *testing.T) {
+	walDir := t.TempDir()
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, s.Close())
+	})
+
+	app := s.Appender(context.Background())
+
+	payload := buildSeries([]string{"foo", "bar", "baz", "blerg"})
+	for _, metric := range payload {
+		metric.Write(t, app)
+	}
+
+	require.NoError(t, app.Rollback())
+
+	var collector walDataCollector
+
+	replayer := walReplayer{w: &collector}
+	require.NoError(t, replayer.Replay(s.wal.Dir()))
+
+	require.Len(t, collector.series, 4, "Series records should be written on Rollback")
+	require.Len(t, collector.samples, 0, "Samples should not be written on rollback")
+	require.Len(t, collector.exemplars, 0, "Exemplars should not be written on rollback")
+	require.Len(t, collector.histograms, 0, "Histograms should not be written on rollback")
+	require.Len(t, collector.floatHistograms, 0, "Native histograms should not be written on rollback")
+}
+
 func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
 	walDir := t.TempDir()
 
