@@ -246,6 +246,8 @@ v0.35.0 (2023-07-18)
 - Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to
   the `/loki` prefixed endpoints. (@mattdurham)
 
+- Upgrade `loki.write` dependencies to latest changes. (@thepalbi)
+
 ### Other changes
 
 - Mongodb integration has been re-enabled. (@jcreixell, @marctc)
