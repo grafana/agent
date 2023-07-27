@@ -166,4 +166,5 @@ func appendScrapeConfig(
 	b.AppendJournalConfig()
 	b.AppendPushAPI()
 	b.AppendSyslogConfig()
+	b.AppendGCPLog()
 }
