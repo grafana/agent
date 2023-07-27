@@ -117,7 +117,7 @@ based on a hash of the endpoint settings.
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
 
-### wal block
+### wal block (experimental)
 
 The optional `wal` block configures the write-ahead log used in the Loki remote-write client. If omitted, the WAL
 will be disabled. When enabled, the log entries sent to the `loki.write` component will be first written to a write-ahead
