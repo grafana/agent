@@ -50,12 +50,17 @@ type Component struct {
 	opts    component.Options
 	metrics *client.Metrics
 
-	mut       sync.RWMutex
-	args      Arguments
-	receiver  loki.LogsReceiver
-	manager   client.Client
-	walWriter *wal.Writer
-	to        loki.EntryHandler
+	mut      sync.RWMutex
+	args     Arguments
+	receiver loki.LogsReceiver
+
+	// remote write components
+	clientManger client.Client
+	walWriter    *wal.Writer
+
+	// sink is the place where log entries received by this component should be written to. If WAL
+	// is enabled, this will be the WAL Writer, otherwise, the client manager
+	sink loki.EntryHandler
 }
 
 // New creates a new loki.write component.
@@ -88,7 +93,7 @@ func (c *Component) Run(ctx context.Context) error {
 			select {
 			case <-ctx.Done():
 				return nil
-			case c.to.Chan() <- entry:
+			case c.sink.Chan() <- entry:
 			}
 		}
 	}
@@ -105,30 +110,37 @@ func (c *Component) Update(args component.Arguments) error {
 	if c.walWriter != nil {
 		c.walWriter.Stop()
 	}
-	if c.manager != nil {
-		c.manager.Stop()
+	if c.clientManger != nil {
+		c.clientManger.Stop()
 	}
 
 	cfgs := newArgs.convertClientConfigs()
 
 	var err error
 	var notifier client.WriterEventsNotifier = client.NilNotifier
+	// nil-out wal writer in case WAL was disabled
 	c.walWriter = nil
+	// only configure WAL Writer if enabled
 	if newArgs.WAL.Enabled {
 		c.walWriter, err = wal.NewWriter(newArgs.WAL, c.opts.Logger, c.opts.Registerer)
 		if err != nil {
-			return fmt.Errorf("error creating wal writer")
+			return fmt.Errorf("error creating wal writer: %w", err)
 		}
 		notifier = c.walWriter
-		c.to = c.walWriter
 	}
 
-	c.manager, err = client.NewManager(c.metrics, c.opts.Logger, limit.Config{
+	c.clientManger, err = client.NewManager(c.metrics, c.opts.Logger, limit.Config{
 		MaxStreams: newArgs.MaxStreams,
 	}, c.opts.Registerer, newArgs.WAL, notifier, cfgs...)
+	if err != nil {
+		return fmt.Errorf("failed to create client manager: %w", err)
+	}
 
-	if !newArgs.WAL.Enabled {
-		c.to = c.manager
+	// if WAL is enabled, the WAL writer should be the destination sink. Otherwise, the client manager
+	if newArgs.WAL.Enabled {
+		c.sink = c.walWriter
+	} else {
+		c.sink = c.clientManger
 	}
 
 	return err
