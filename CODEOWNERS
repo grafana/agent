@@ -39,10 +39,10 @@
 /component/loki/source/podlogs/     @grafana/grafana-agent-infrastructure-maintainers
 /component/mimir/rules/kubernetes/  @grafana/grafana-agent-infrastructure-maintainers
 /component/otelcol/                 @grafana/grafana-agent-signals-maintainers
-/component/phlare/                  @grafana/grafana-agent-signals-maintainers
 /component/prometheus/              @grafana/grafana-agent-signals-maintainers
 /component/prometheus/exporter/     @grafana/grafana-agent-infrastructure-maintainers
 /component/prometheus/operator/     @grafana/grafana-agent-operator-maintainers
+/component/pyroscope/               @grafana/grafana-agent-profiling-maintainers
 /component/remote/                  @grafana/grafana-agent-infrastructure-maintainers
 
 # Static mode packages:
