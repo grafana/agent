@@ -70,7 +70,7 @@ func ValidatePodAssociations(podAssociations []string) error {
 type Consumer struct {
 	nextConsumer otelconsumer.Traces
 
-	mtx        sync.Mutex
+	mtx        sync.RWMutex
 	hostLabels map[string]discovery.Target
 
 	operationType   string
@@ -112,18 +112,6 @@ func (c *Consumer) SetHostLabels(hostLabels map[string]discovery.Target) {
 	c.hostLabels = hostLabels
 }
 
-func (c *Consumer) GetHostLabels(ip string) (map[string]string, error) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-
-	labels, ok := c.hostLabels[ip]
-	if !ok {
-		return nil, fmt.Errorf("unable to find labels for ip %q", ip)
-	}
-
-	return labels, nil
-}
-
 func (c *Consumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	rss := td.ResourceSpans()
 	for i := 0; i < rss.Len(); i++ {
@@ -147,9 +135,12 @@ func (c *Consumer) processAttributes(ctx context.Context, attrs pcommon.Map) {
 		return
 	}
 
-	labels, err := c.GetHostLabels(ip)
-	if err != nil {
-		level.Debug(c.logger).Log("msg", err)
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+
+	labels, ok := c.hostLabels[ip]
+	if !ok {
+		level.Debug(c.logger).Log("msg", "unable to find labels", "ip", ip)
 		return
 	}
 
