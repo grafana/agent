@@ -58,13 +58,7 @@ func Test_DefaultConfig(t *testing.T) {
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
 	require.Equal(t, args.OperationType, promsdconsumer.OperationTypeUpsert)
-	require.Equal(t, args.PodAssociations, []string{
-		promsdconsumer.PodAssociationIPLabel,
-		promsdconsumer.PodAssociationOTelIPLabel,
-		promsdconsumer.PodAssociationk8sIPLabel,
-		promsdconsumer.PodAssociationHostnameLabel,
-		promsdconsumer.PodAssociationConnectionIP,
-	})
+	require.Equal(t, args.PodAssociations, discovery.DefaultArguments.PodAssociations)
 
 	var inputTrace = `{
 		"resourceSpans": [{
@@ -163,13 +157,7 @@ func Test_Insert(t *testing.T) {
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
 	require.Equal(t, args.OperationType, promsdconsumer.OperationTypeInsert)
-	require.Equal(t, args.PodAssociations, []string{
-		promsdconsumer.PodAssociationIPLabel,
-		promsdconsumer.PodAssociationOTelIPLabel,
-		promsdconsumer.PodAssociationk8sIPLabel,
-		promsdconsumer.PodAssociationHostnameLabel,
-		promsdconsumer.PodAssociationConnectionIP,
-	})
+	require.Equal(t, args.PodAssociations, discovery.DefaultArguments.PodAssociations)
 
 	var inputTrace = `{
 		"resourceSpans": [{
@@ -277,13 +265,7 @@ func Test_Update(t *testing.T) {
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
 	require.Equal(t, args.OperationType, promsdconsumer.OperationTypeUpdate)
-	require.Equal(t, args.PodAssociations, []string{
-		promsdconsumer.PodAssociationIPLabel,
-		promsdconsumer.PodAssociationOTelIPLabel,
-		promsdconsumer.PodAssociationk8sIPLabel,
-		promsdconsumer.PodAssociationHostnameLabel,
-		promsdconsumer.PodAssociationConnectionIP,
-	})
+	require.Equal(t, args.PodAssociations, discovery.DefaultArguments.PodAssociations)
 
 	var inputTrace = `{
 		"resourceSpans": [{
