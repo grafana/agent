@@ -18,6 +18,9 @@ Main (unreleased)
 
 - Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
 
+- Flow: Allow the `logging` configuration block to tee the Agent's logs to one
+  or more loki.* components. (@tpaschalis)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics (@tburgessdev)
