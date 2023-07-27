@@ -9,7 +9,7 @@ on:
   schedule:
     # triggers the workflow every day at 8:00 and 20:00 UTC:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '0 8,20 * * *'
+    - cron:  '15 8,20 * * *'
 
 permissions:
   contents: read
@@ -23,6 +23,8 @@ jobs:
     name: Build
     runs-on: "ubuntu-20.04"
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
         with:
