@@ -20,7 +20,7 @@ func NewLokiWrite(client *client.Config, diags *diag.Diagnostics, index int, lab
 		label = labelPrefix
 	}
 
-	lokiWriteLabel := common.GetLabelWithIndex(index, label)
+	lokiWriteLabel := common.LabelWithIndex(index, label)
 
 	lokiWriteArgs := toLokiWriteArguments(client, diags)
 	block := common.NewBlockWithOverride([]string{"loki", "write"}, lokiWriteLabel, lokiWriteArgs)

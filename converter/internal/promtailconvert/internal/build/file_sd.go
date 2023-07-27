@@ -11,7 +11,7 @@ func (s *ScrapeConfigBuilder) AppendFileSDs() {
 	}
 	for i, sd := range s.cfg.ServiceDiscoveryConfig.FileSDConfigs {
 		args := prometheusconvert.ToDiscoveryFile(sd)
-		compLabel := common.GetLabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
+		compLabel := common.LabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"discovery", "file"}, compLabel, args))
 		s.allTargetsExps = append(s.allTargetsExps, "discovery.file."+compLabel+".targets")
 	}

@@ -12,7 +12,7 @@ func (s *ScrapeConfigBuilder) AppendConsulSDs() {
 
 	for i, sd := range s.cfg.ServiceDiscoveryConfig.ConsulSDConfigs {
 		args := prometheusconvert.ToDiscoveryConsul(sd)
-		compLabel := common.GetLabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
+		compLabel := common.LabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride(
 			[]string{"discovery", "consul"},
 			compLabel,

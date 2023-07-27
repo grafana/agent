@@ -2,4 +2,4 @@
 (Warning) server.log_level is not supported - Flow mode components may produce different logs
 (Error) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
 (Warning) server.log_level is not supported - Flow mode components may produce different logs
-(Warning) Static mode command line flags which modify the running agent are not supported for the static to flow converter.
+(Warning) Please review your agent command line flags and ensure they are set in Flow mode config file where necessary.

@@ -12,7 +12,7 @@ func (s *ScrapeConfigBuilder) AppendGCESDs() {
 	for i, sd := range s.cfg.ServiceDiscoveryConfig.GCESDConfigs {
 		s.diags.AddAll(prometheusconvert.ValidateDiscoveryGCE(sd))
 		args := prometheusconvert.ToDiscoveryGCE(sd)
-		compLabel := common.GetLabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
+		compLabel := common.LabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride(
 			[]string{"discovery", "gce"},
 			compLabel,

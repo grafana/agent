@@ -10,14 +10,11 @@ import (
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/converter/internal/promtailconvert"
 	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/river/token/builder"
-	"github.com/grafana/loki/clients/pkg/promtail/client"
 	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
-	"github.com/grafana/loki/clients/pkg/promtail/server"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
-	"github.com/grafana/loki/clients/pkg/promtail/wal"
-	"github.com/grafana/loki/pkg/tracing"
 	prom_config "github.com/prometheus/prometheus/config"
 
 	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations
@@ -105,19 +102,13 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 	}
 
 	for _, logConfig := range staticConfig.Logs.Configs {
-		promtailConfig := &promtail_config.Config{
-			Global:          promtail_config.GlobalConfig{FileWatch: staticConfig.Logs.Global.FileWatch},
-			ServerConfig:    server.Config{Disable: true},
-			ClientConfig:    client.Config{},
-			ClientConfigs:   logConfig.ClientConfigs,
-			PositionsConfig: logConfig.PositionsConfig,
-			ScrapeConfig:    logConfig.ScrapeConfig,
-			TargetConfig:    logConfig.TargetConfig,
-			LimitsConfig:    logConfig.LimitsConfig,
-			Options:         promtail_config.Options{},
-			Tracing:         tracing.Config{Enabled: false},
-			WAL:             wal.Config{Enabled: false},
-		}
+		promtailConfig := logs.DefaultConfig()
+		promtailConfig.Global = promtail_config.GlobalConfig{FileWatch: staticConfig.Logs.Global.FileWatch}
+		promtailConfig.ClientConfigs = logConfig.ClientConfigs
+		promtailConfig.PositionsConfig = logConfig.PositionsConfig
+		promtailConfig.ScrapeConfig = logConfig.ScrapeConfig
+		promtailConfig.TargetConfig = logConfig.TargetConfig
+		promtailConfig.LimitsConfig = logConfig.LimitsConfig
 
 		// We need to set this when empty so the promtail converter doesn't think it has been overridden
 		if promtailConfig.Global == (promtail_config.GlobalConfig{}) {

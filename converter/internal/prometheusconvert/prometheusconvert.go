@@ -106,34 +106,34 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 			targets = append(targets, getScrapeTargets(sdc)...)
 		case *prom_azure.SDConfig:
 			labelCounts["azure"]++
-			exports = appendDiscoveryAzure(pb, common.GetLabelWithIndex(labelCounts["azure"]-1, label), sdc)
+			exports = appendDiscoveryAzure(pb, common.LabelWithIndex(labelCounts["azure"]-1, label), sdc)
 		case *prom_consul.SDConfig:
 			labelCounts["consul"]++
-			exports = appendDiscoveryConsul(pb, common.GetLabelWithIndex(labelCounts["consul"]-1, label), sdc)
+			exports = appendDiscoveryConsul(pb, common.LabelWithIndex(labelCounts["consul"]-1, label), sdc)
 		case *prom_digitalocean.SDConfig:
 			labelCounts["digitalocean"]++
-			exports = appendDiscoveryDigitalOcean(pb, common.GetLabelWithIndex(labelCounts["digitalocean"]-1, label), sdc)
+			exports = appendDiscoveryDigitalOcean(pb, common.LabelWithIndex(labelCounts["digitalocean"]-1, label), sdc)
 		case *prom_dns.SDConfig:
 			labelCounts["dns"]++
-			exports = appendDiscoveryDns(pb, common.GetLabelWithIndex(labelCounts["dns"]-1, label), sdc)
+			exports = appendDiscoveryDns(pb, common.LabelWithIndex(labelCounts["dns"]-1, label), sdc)
 		case *prom_docker.DockerSDConfig:
 			labelCounts["docker"]++
-			exports = appendDiscoveryDocker(pb, common.GetLabelWithIndex(labelCounts["docker"]-1, label), sdc)
+			exports = appendDiscoveryDocker(pb, common.LabelWithIndex(labelCounts["docker"]-1, label), sdc)
 		case *prom_aws.EC2SDConfig:
 			labelCounts["ec2"]++
-			exports = appendDiscoveryEC2(pb, common.GetLabelWithIndex(labelCounts["ec2"]-1, label), sdc)
+			exports = appendDiscoveryEC2(pb, common.LabelWithIndex(labelCounts["ec2"]-1, label), sdc)
 		case *prom_file.SDConfig:
 			labelCounts["file"]++
-			exports = appendDiscoveryFile(pb, common.GetLabelWithIndex(labelCounts["file"]-1, label), sdc)
+			exports = appendDiscoveryFile(pb, common.LabelWithIndex(labelCounts["file"]-1, label), sdc)
 		case *prom_gce.SDConfig:
 			labelCounts["gce"]++
-			exports = appendDiscoveryGCE(pb, common.GetLabelWithIndex(labelCounts["gce"]-1, label), sdc)
+			exports = appendDiscoveryGCE(pb, common.LabelWithIndex(labelCounts["gce"]-1, label), sdc)
 		case *prom_kubernetes.SDConfig:
 			labelCounts["kubernetes"]++
-			exports = appendDiscoveryKubernetes(pb, common.GetLabelWithIndex(labelCounts["kubernetes"]-1, label), sdc)
+			exports = appendDiscoveryKubernetes(pb, common.LabelWithIndex(labelCounts["kubernetes"]-1, label), sdc)
 		case *prom_aws.LightsailSDConfig:
 			labelCounts["lightsail"]++
-			exports = appendDiscoveryLightsail(pb, common.GetLabelWithIndex(labelCounts["lightsail"]-1, label), sdc)
+			exports = appendDiscoveryLightsail(pb, common.LabelWithIndex(labelCounts["lightsail"]-1, label), sdc)
 		}
 
 		targets = append(exports.Targets, targets...)

@@ -1,1 +1,1 @@
-(Warning) Static mode command line flags which modify the running agent are not supported for the static to flow converter.
+(Warning) Please review your agent command line flags and ensure they are set in Flow mode config file where necessary.

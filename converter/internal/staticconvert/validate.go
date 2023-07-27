@@ -31,7 +31,7 @@ func validate(staticConfig *config.Config) diag.Diagnostics {
 func validateCommandLine() diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.Add(diag.SeverityLevelWarn, "Static mode command line flags which modify the running agent are not supported for the static to flow converter.")
+	diags.Add(diag.SeverityLevelWarn, "Please review your agent command line flags and ensure they are set in Flow mode config file where necessary.")
 
 	return diags
 }

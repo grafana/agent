@@ -12,7 +12,7 @@ func (s *ScrapeConfigBuilder) AppendDockerSDs() {
 	for i, sd := range s.cfg.DockerSDConfigs {
 		s.diags.AddAll(prometheusconvert.ValidateHttpClientConfig(&sd.HTTPClientConfig))
 		args := prometheusconvert.ToDiscoveryDocker(sd)
-		compLabel := common.GetLabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
+		compLabel := common.LabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride(
 			[]string{"discovery", "docker"},
 			compLabel,

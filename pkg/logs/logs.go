@@ -137,6 +137,15 @@ func NewInstance(reg prometheus.Registerer, c *InstanceConfig, g GlobalConfig, l
 	return &inst, nil
 }
 
+// DefaultConfig returns a default config for a Logs instance.
+func DefaultConfig() *config.Config {
+	return &config.Config{
+		ServerConfig: server.Config{Disable: true},
+		Tracing:      tracing.Config{Enabled: false},
+		WAL:          wal.Config{Enabled: false},
+	}
+}
+
 // ApplyConfig will apply a new InstanceConfig. If the config hasn't changed,
 // then nothing will happen, otherwise the old Promtail will be stopped and
 // then replaced with a new one.
@@ -175,20 +184,20 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, g GlobalConfig, dryRun bool) e
 	}
 
 	clientMetrics := client.NewMetrics(i.reg)
-	p, err := promtail.New(config.Config{
-		Global: config.GlobalConfig{FileWatch: file.WatchConfig{
+	cfg := *DefaultConfig()
+	cfg.Global = config.GlobalConfig{
+		FileWatch: file.WatchConfig{
 			MinPollFrequency: g.FileWatch.MinPollFrequency,
 			MaxPollFrequency: g.FileWatch.MaxPollFrequency,
-		}},
-		ServerConfig:    server.Config{Disable: true},
-		ClientConfigs:   c.ClientConfigs,
-		PositionsConfig: c.PositionsConfig,
-		ScrapeConfig:    c.ScrapeConfig,
-		TargetConfig:    c.TargetConfig,
-		LimitsConfig:    c.LimitsConfig,
-		Tracing:         tracing.Config{Enabled: false},
-		WAL:             wal.Config{Enabled: false},
-	}, nil, clientMetrics, dryRun, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
+		},
+	}
+	cfg.ClientConfigs = c.ClientConfigs
+	cfg.PositionsConfig = c.PositionsConfig
+	cfg.ScrapeConfig = c.ScrapeConfig
+	cfg.TargetConfig = c.TargetConfig
+	cfg.LimitsConfig = c.LimitsConfig
+
+	p, err := promtail.New(cfg, nil, clientMetrics, dryRun, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
 	if err != nil {
 		return fmt.Errorf("unable to create logs instance: %w", err)
 	}

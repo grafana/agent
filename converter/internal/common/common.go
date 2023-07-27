@@ -50,7 +50,9 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 	}
 }
 
-func GetLabelForParts(parts ...interface{}) string {
+// LabelForParts generates a consistent component label for a set of parts
+// delimited with an underscore.
+func LabelForParts(parts ...interface{}) string {
 	var sParts []string
 	for _, part := range parts {
 		if part != "" {
@@ -60,13 +62,16 @@ func GetLabelForParts(parts ...interface{}) string {
 	return strings.Join(sParts, "_")
 }
 
-func GetLabelWithIndex(index int, parts ...interface{}) string {
+// LabelWithIndex generates a consistent component label for a set of parts
+// delimited with an underscore and suffixed with the provided index. If the
+// index is 0, the label is generated without the index.
+func LabelWithIndex(index int, parts ...interface{}) string {
 	if index == 0 {
-		return GetLabelForParts(parts...)
+		return LabelForParts(parts...)
 	}
 
 	appendedIndex := index + 1
-	return GetLabelForParts(append(parts, appendedIndex)...)
+	return LabelForParts(append(parts, appendedIndex)...)
 }
 
 // PrettyPrint parses river config and returns it in a standardize format.
