@@ -132,7 +132,6 @@ func appendScrapeConfig(
 	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
 
 	//TODO(thampiotr): support/warn about the following log producing promtail configs:
-	//AzureEventHubsConfig *AzureEventHubsTargetConfig `mapstructure:"azure_event_hubs,omitempty" yaml:"azure_event_hubs,omitempty"`
 	//GelfConfig           *GelfTargetConfig           `mapstructure:"gelf,omitempty" yaml:"gelf,omitempty"`
 	//HerokuDrainConfig    *HerokuDrainTargetConfig    `mapstructure:"heroku_drain,omitempty" yaml:"heroku_drain,omitempty"`
 
@@ -168,4 +167,5 @@ func appendScrapeConfig(
 	b.AppendWindowsEventsConfig()
 	b.AppendKafka()
 	b.AppendAzureEventHubs()
+	b.AppendGelfConfig()
 }
