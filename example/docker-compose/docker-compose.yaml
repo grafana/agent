@@ -9,7 +9,7 @@ services:
   #
 
   grafana:
-    image: grafana/grafana:9.2.3
+    image: grafana/grafana:10.0.3
     entrypoint:
       - /usr/share/grafana/bin/grafana-server
       - --homepath=/usr/share/grafana
@@ -23,7 +23,7 @@ services:
       - "3000:3000"
 
   loki:
-    image: grafana/loki:2.6.1
+    image: grafana/loki:2.8.3
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
@@ -39,9 +39,8 @@ services:
       - "9009:9009"
 
   tempo:
-    image: grafana/tempo:1.5.0
+    image: grafana/tempo:2.1.0
     command:
-      - "-search.enabled=true"
       - "-storage.trace.backend=local"                  # tell tempo where to permanently put traces
       - "-storage.trace.local.path=/tmp/tempo/traces"
       - "-storage.trace.wal.path=/tmp/tempo/wal"        # tell tempo where to store the wal
@@ -60,15 +59,14 @@ services:
     ports:
       - "9001:9001"
 
-  # tracing load generator
-  synthetic-load-generator:
-    profiles: [agent] # Should only be run if the Agent is present
-    image: omnition/synthetic-load-generator:1.0.25
-    volumes:
-      - ./load-generator:/etc/load-generator
-    environment:
-      - TOPOLOGY_FILE=/etc/load-generator/load-generator.json
-      - JAEGER_COLLECTOR_URL=http://agent:14268
+  hotrod:
+    profiles: [agent]
+    image: yurishkuro/microsim:latest
+    ports:
+      - "8080:8080"
+    command:
+      - "-j=http://agent:14268/api/traces"
+      - "-d=1h"
     depends_on:
       - agent
 
