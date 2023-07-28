@@ -13,7 +13,7 @@ var DefaultConfig = Config{
 	LogsInstance:   "default",
 	InformerResync: 120,
 	FlushInterval:  10,
-	LogFormat:      "text",
+	LogFormat:      "logfmt",
 }
 
 // Config configures the eventhandler integration

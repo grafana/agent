@@ -41,7 +41,7 @@ func TestExtractEventJson(t *testing.T) {
 
 func TestExtractEventText(t *testing.T) {
 	var eh = new(EventHandler)
-	eh.logFormat = "text"
+	eh.logFormat = "logfmt"
 	var event = new(v1.Event)
 	event.InvolvedObject = v1.ObjectReference{
 		Name: "test-object",

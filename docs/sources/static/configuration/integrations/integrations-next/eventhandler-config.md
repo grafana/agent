@@ -86,8 +86,9 @@ Configuration reference:
   extra_labels:
     { <string>: <string> }
 
-  ## Format of the log line. The possible values are "text" and "json"
-  [log_format: <string> | default = "text"]
+  ## Format of the log line. The possible values are "logfmt" and "json".
+  ## The values are also LogQL parsers, which can be used for processing the logs
+  [log_format: <string> | default = "logfmt"]
 ```
 
 Sample agent config:
