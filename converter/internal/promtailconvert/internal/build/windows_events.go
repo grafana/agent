@@ -1,8 +1,6 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/loki/source/windowsevent"
 	"github.com/grafana/agent/converter/diag"
@@ -33,7 +31,7 @@ func (s *ScrapeConfigBuilder) AppendWindowsEventsConfig() {
 	override := func(val interface{}) interface{} {
 		switch val.(type) {
 		case []loki.LogsReceiver:
-			return common.CustomTokenizer{Expr: fmt.Sprintf("%s", s.getOrNewLokiRelabel())}
+			return common.CustomTokenizer{Expr: s.getOrNewLokiRelabel()}
 		default:
 			return val
 		}

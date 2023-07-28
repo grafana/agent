@@ -32,5 +32,4 @@ func (s *ScrapeConfigBuilder) AppendGelfConfig() {
 		args,
 		override,
 	))
-
 }

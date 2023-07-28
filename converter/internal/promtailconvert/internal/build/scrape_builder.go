@@ -114,7 +114,7 @@ func (s *ScrapeConfigBuilder) getOrNewLokiRelabel() string {
 		}
 		compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "relabel"}, compLabel, args))
-		s.lokiRelabelReceiverExpr = "loki.relabel." + compLabel + ".receiver"
+		s.lokiRelabelReceiverExpr = "[loki.relabel." + compLabel + ".receiver]"
 	}
 	return s.lokiRelabelReceiverExpr
 }
