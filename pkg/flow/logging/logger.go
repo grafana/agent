@@ -4,9 +4,13 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/prometheus/common/model"
 )
 
 // Logger implements the github.com/go-kit/log.Logger interface. It supports
@@ -50,12 +54,18 @@ func (l *Logger) Update(o Options) error {
 
 func buildLogger(w io.Writer, o Options) (log.Logger, error) {
 	var l log.Logger
+	var wr io.Writer
+	wr = w
+
+	if len(o.WriteTo) > 0 {
+		wr = io.MultiWriter(w, &lokiWriter{o.WriteTo})
+	}
 
 	switch o.Format {
 	case FormatLogfmt:
-		l = log.NewLogfmtLogger(log.NewSyncWriter(w))
+		l = log.NewLogfmtLogger(log.NewSyncWriter(wr))
 	case FormatJSON:
-		l = log.NewJSONLogger(log.NewSyncWriter(w))
+		l = log.NewJSONLogger(log.NewSyncWriter(wr))
 	default:
 		return nil, fmt.Errorf("unrecognized log format %q", o.Format)
 	}
@@ -64,4 +74,25 @@ func buildLogger(w io.Writer, o Options) (log.Logger, error) {
 
 	l = log.With(l, "ts", log.DefaultTimestampUTC)
 	return l, nil
+}
+
+type lokiWriter struct {
+	f []loki.LogsReceiver
+}
+
+func (fw *lokiWriter) Write(p []byte) (int, error) {
+	for _, receiver := range fw.f {
+		select {
+		case receiver.Chan() <- loki.Entry{
+			Labels: model.LabelSet{"component": "agent"},
+			Entry: logproto.Entry{
+				Timestamp: time.Now(),
+				Line:      string(p),
+			},
+		}:
+		default:
+			return 0, fmt.Errorf("lokiWriter failed to forward entry, channel was blocked")
+		}
+	}
+	return len(p), nil
 }

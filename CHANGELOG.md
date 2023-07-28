@@ -13,27 +13,61 @@ Main (unreleased)
 ### Enhancements
 
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
+
 - Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
 - Add `log_format` configuration to eventhandler integration. (@sadovnikov)
+
+- Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
+
+- Flow: Allow the `logging` configuration block to tee the Agent's logs to one
+  or more loki.* components. (@tpaschalis)
 
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics (@tburgessdev)
+  - `otelcol.processor.span` - accepts traces telemetry data from other `otelcol`
+  components and modifies the names and attributes of the spans. (@ptodev)
+  - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@spartan0x117)
+  - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
 
 ### Bugfixes
 
 - Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
+
+- Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
+
+v0.35.2 (2023-07-27)
+--------------------
+
+### Bugfixes
 
 - Fix issue where the flow mode UI would show an empty page when navigating to
   an unhealthy `prometheus.operator` component or a healthy
   `prometheus.operator` component which discovered no custom resources.
   (@rfratto)
 
+- Fix panic when using `oauth2` without specifying `tls_config`. (@mattdurham)
+
+- Fix issue where series records would never get written to the WAL if a scrape
+  was rolled back, resulting in "dropped sample for series that was not
+  explicitly dropped via relabelling" log messages. (@rfratto)
+
+- Fix RPM file digests so that installation on FIPS-enabled systems succeeds. (@andrewimeson)
+
 ### Other changes
 
 - Compile journald support into builds of `grafana-agentctl` so
   `grafana-agentctl test-logs` functions as expected when testing tailing the
   systemd journal. (@rfratto)
+
+v0.35.1 (2023-07-25)
+--------------------
+
+### Bugfixes
+
+- Fix incorrect display of trace IDs in the automatic_logging processor of static mode's traces subsystem.
+  Users of the static mode's service graph processor are also advised to upgrade,
+  although the bug should theoretically not affect them. (@ptodev)
 
 v0.35.0 (2023-07-18)
 --------------------
@@ -227,6 +261,8 @@ v0.35.0 (2023-07-18)
 
 - Fix bug where JSON requests to `loki.source.api` would not be handled correctly. This adds `/loki/api/v1/raw` and `/loki/api/v1/push` endpoints to `loki.source.api` and maps the `/api/v1/push` and `/api/v1/raw` to
   the `/loki` prefixed endpoints. (@mattdurham)
+
+- Upgrade `loki.write` dependencies to latest changes. (@thepalbi)
 
 ### Other changes
 

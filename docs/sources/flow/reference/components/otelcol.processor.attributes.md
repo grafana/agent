@@ -175,118 +175,23 @@ For example, adding a `span_names` filter could cause the component to error if 
 
 ### regexp block
 
-This block is an optional configuration for the `match_type` of `"regexp"`.
-It configures a Least Recently Used (LRU) cache.
-
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`cache_enabled` | `bool` | Determines whether match results are LRU cached. | `false` | no
-`cache_max_num_entries` | `int` | The max number of entries of the LRU cache that stores match results. | `0` | no
-
-Enabling `cache_enabled` could make subsequent matches faster.
-Cache size is unlimited unless `cache_max_num_entries` is also specified.
-
-`cache_max_num_entries` is ignored if `cache_enabled` is false.
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-regexp-block.md" source="agent" >}}
 
 ### attribute block
 
-This block specifies an attribute to match against:
-
-* More than one `attribute` block can be defined.
-* Only `match_type = "strict"` is allowed if `attribute` is specified.
-* All `attribute` blocks must match exactly for a match to occur.
-
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`key` | `string` | The attribute key. | | yes
-`value` | `any` | The attribute value to match against. | | no
-
-If `value` is not set, any value will match.
-The type of `value` could be a number, a string, or a boolean.
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-attribute-block.md" source="agent" >}}
 
 ### resource block
 
-This block specifies items to match the resources against:
-
-* More than one `resource` block can be defined.
-* A match occurs if the input data resources matches at least one `resource` block.
-
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`key` | `string` | The resource key. | | yes
-`value` | `any` | The resource value to match against. | | no
-
-If `value` is not set, any value will match.
-The type of `value` could be a number, a string or a boolean.
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-resource-block.md" source="agent" >}}
 
 ### library block
 
-This block specifies properties to match the implementation library against:
-
-* More than one `library` block can be defined.
-* A match occurs if the span's implementation library matches at least one `library` block.
-
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`name` | `string` | The attribute key. | | yes
-`version` | `string` | The version to match against. | null | no
-
-If `version` is unset, any version will match. If `version` is set to an empty string, it will only match 
-a library version which is also an empty string.
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-library-block.md" source="agent" >}}
 
 ### log_severity block
 
-This block defines how to match based on a log record's SeverityNumber field.
-
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`min` | `string` | The lowest severity that may be matched. | | yes
-`match_undefined` | `bool` | Whether logs with "undefined" severity match. | | yes
-
-If `match_undefined` is true, entries with undefined severity will match.
-
-The severities supported by Otel are listed in the table below. 
-The value for `min` should be one of the values in the "Log Severity" column.
-
-Log Severity | Severity number
------------- | ---------------
-TRACE        | 1
-TRACE2       | 2
-TRACE3       | 3
-TRACE4       | 4
-DEBUG        | 5
-DEBUG2       | 6
-DEBUG3       | 7
-DEBUG4       | 8
-INFO         | 9
-INFO2        | 10
-INFO3        | 11
-INFO4        | 12
-WARN         | 13
-WARN2        | 14
-WARN3        | 15
-WARN4        | 16
-ERROR        | 17
-ERROR2       | 18
-ERROR3       | 19
-ERROR4       | 20
-FATAL        | 21
-FATAL2       | 22
-FATAL3       | 23
-FATAL4       | 24
-
-For example, if the `min` attribute in the `log_severity` block is "INFO", then
-INFO, WARN, ERROR, and FATAL logs will match.
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-log-severity-block.md" source="agent" >}}
 
 ### output block
 

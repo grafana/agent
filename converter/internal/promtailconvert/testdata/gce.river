@@ -1,11 +1,11 @@
-discovery.gce "fun_0" {
+discovery.gce "fun" {
 	project = "your-project-id"
 	zone    = "us-central1-a"
 	port    = 8080
 }
 
 local.file_match "fun" {
-	path_targets = discovery.gce.fun_0.targets
+	path_targets = discovery.gce.fun.targets
 }
 
 loki.source.file "fun" {

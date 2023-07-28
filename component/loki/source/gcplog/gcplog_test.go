@@ -8,18 +8,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/loki"
-	fnet "github.com/grafana/agent/component/common/net"
-	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	gt "github.com/grafana/agent/component/loki/source/gcplog/internal/gcplogtarget"
-
-	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/regexp"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/loki/source/gcplog/gcptypes"
+	"github.com/grafana/agent/pkg/util"
 )
 
 // TODO (@tpaschalis) We can't test this easily as there's no way to inject
@@ -38,7 +38,7 @@ func TestPush(t *testing.T) {
 
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
-	args.PushTarget = &gt.PushConfig{
+	args.PushTarget = &gcptypes.PushConfig{
 		Server: &fnet.ServerConfig{
 			HTTP: &fnet.HTTPConfig{
 				ListenAddress: "localhost",

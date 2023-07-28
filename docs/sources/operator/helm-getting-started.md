@@ -14,8 +14,8 @@ In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref ".
 To deploy Agent Operator with Helm, make sure that you have the following:
 
 - A Kubernetes cluster
-- The `kubectl` command-line client installed and configured on your machine
-- The `helm` command-line client installed and configured on your machine
+- The `[kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)` command-line client installed and configured on your machine
+- The `[helm](https://helm.sh/docs/intro/install/)` command-line client installed and configured on your machine
 
 > **Note:** Agent Operator is currently in beta and its custom resources are subject to change.
 
