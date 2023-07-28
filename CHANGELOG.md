@@ -48,6 +48,11 @@ Main (unreleased)
 
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
 
+- (Agent static mode) Jaeger remote sampling works again, through a new `jaeger_remote_sampling`
+  entry in the traces config. It is no longer configurable through the jaeger receiver.
+  Support Jaeger remote sampling was removed accidentally in v0.35, and it is now restored, 
+  albeit via a different config entry.
+
 v0.35.2 (2023-07-27)
 --------------------
 
@@ -133,6 +138,10 @@ v0.35.0 (2023-07-18)
     - "traces_exporter_sent_metric_points" is renamed to "traces_exporter_sent_metric_points_total"
 
 - The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`. (@ptodev)
+
+- (Agent static mode) Jaeger remote sampling does not work. Jaeger remote sampling used to be configured via the jaeger receiver. 
+  This receiver was updated to a new version, and remote sampling has stopped working.
+  Jaeger remote sampling will be reintroduced in v35.3. It will be configured separately from the jaeger receiver. (@ptodev)
 
 ### Deprecations
 

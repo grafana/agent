@@ -21,6 +21,12 @@ Grafana Agent Flow.
 
 ## v0.35
 
+### Breaking change: Jaeger remote sampling does not work
+
+Jaeger remote sampling used to be configured via the jaeger receiver. This receiver was updated to a new version, and remote sampling has stopped working.
+
+Jaeger remote sampling will be reintroduced in v35.3. It will be configured separately from the jaeger receiver.
+
 ### Breaking change: `auth` and `version` attributes from `walk_params` block of `prometheus.exporter.snmp` have been removed
 
 The `prometheus.exporter.snmp` flow component wraps a new version of SNMP exporter which introduces a new configuration file format.

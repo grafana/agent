@@ -313,19 +313,21 @@ service:
 `,
 		},
 		{
-			name: "jaeger receiver remote_sampling TLS config",
+			name: "jaeger remote sampling multiple configs",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-    remote_sampling:
-      host_endpoint: example:54321
-      strategy_file: file_path
-      tls:
-        insecure: true
-        insecure_skip_verify: true
-        server_name_override: hostname
+jaeger_remote_sampling:
+  - source:
+      remote:
+        endpoint: jaeger-collector:14250
+        tls:
+          insecure: true
+  - source:
+      reload_interval: 1s
+      file: /etc/otelcol/sampling_strategies.json
 remote_write:
   - endpoint: example.com:12345
 `,
@@ -335,13 +337,6 @@ receivers:
   jaeger:
     protocols:
       grpc:
-    remote_sampling:
-      host_endpoint: example:54321
-      strategy_file: file_path
-      tls:
-        insecure: true
-        insecure_skip_verify: true
-        server_name_override: hostname
 exporters:
   otlp/0:
     endpoint: example.com:12345
@@ -349,13 +344,24 @@ exporters:
     retry_on_failure:
       max_elapsed_time: 60s
 processors: {}
-extensions: {}
+extensions:
+  jaegerremotesampling/0:
+    source:
+      remote:
+        endpoint: jaeger-collector:14250
+        tls:
+          insecure: true
+  jaegerremotesampling/1:
+    source:
+      reload_interval: 1s
+      file: /etc/otelcol/sampling_strategies.json
 service:
   pipelines:
     traces:
       exporters: ["otlp/0"]
       processors: []
       receivers: ["push_receiver", "jaeger"]
+  extensions: ["jaegerremotesampling/0", "jaegerremotesampling/1"]
 `,
 		},
 		{
@@ -756,13 +762,16 @@ tail_sampling:
           - value1
           - value2
 load_balancing:
-  receiver_port: 8080
+  receiver_port: 8181
+  routing_key: service
   exporter:
     insecure: true
   resolver:
     dns:
       hostname: agent
-      port: 8080
+      port: 8282
+      interval: 12m
+      timeout: 76s
 `,
 			expectedConfig: `
 receivers:
@@ -773,7 +782,7 @@ receivers:
   otlp/lb:
     protocols:
       grpc:
-        endpoint: "0.0.0.0:8080"
+        endpoint: "0.0.0.0:8181"
 exporters:
   otlp/0:
     endpoint: example.com:12345
@@ -781,6 +790,7 @@ exporters:
     retry_on_failure:
       max_elapsed_time: 60s
   loadbalancing:
+    routing_key: service
     protocol:
       otlp:
         tls:
@@ -792,7 +802,9 @@ exporters:
     resolver:
       dns:
         hostname: agent
-        port: 8080
+        port: 8282
+        interval: 12m
+        timeout: 76s
 processors:
   tail_sampling:
     decision_wait: 5s
@@ -1204,7 +1216,7 @@ service:
 `,
 		},
 		{
-			name: "oauth2 TLS",
+			name: "oauth2 TLS with certs and keys from files",
 			cfg: `
 receivers:
   jaeger:
@@ -1216,14 +1228,19 @@ remote_write:
     oauth2:
       client_id: someclientid
       client_secret: someclientsecret
+      endpoint_params:
+        audience: [someaudience]
       token_url: https://example.com/oauth2/default/v1/token
       scopes: ["api.metrics"]
       timeout: 2s
       tls:
         insecure: true
+        insecure_skip_verify: true
         ca_file: /var/lib/mycert.pem
         cert_file: certfile
         key_file: keyfile
+        min_version: 1.3
+        reload_interval: 1h
 `,
 			expectedConfig: `
 receivers:
@@ -1235,14 +1252,87 @@ extensions:
   oauth2client/otlphttp0:
     client_id: someclientid
     client_secret: someclientsecret
+    endpoint_params:
+      audience: someaudience
     token_url: https://example.com/oauth2/default/v1/token
     scopes: ["api.metrics"]
     timeout: 2s
     tls:
       insecure: true
+      insecure_skip_verify: true
       ca_file: /var/lib/mycert.pem
       cert_file: certfile
       key_file: keyfile
+      min_version: 1.3
+      reload_interval: 1h
+exporters:
+  otlphttp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlphttp0
+processors: {}
+service:
+  extensions: ["oauth2client/otlphttp0"]
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0"]
+      processors: []
+      receivers: ["push_receiver", "jaeger"]
+`,
+		},
+		{
+			name: "oauth2 TLS with certs and keys from strings",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: http
+    oauth2:
+      client_id: someclientid
+      client_secret: someclientsecret
+      endpoint_params:
+        audience: [someaudience]
+      token_url: https://example.com/oauth2/default/v1/token
+      scopes: ["api.metrics"]
+      timeout: 2s
+      tls:
+        insecure: true
+        insecure_skip_verify: true
+        ca_pem: secrety_secret_ca_pem_string
+        cert_pem: secrety_secret_cert_pem_string
+        key_pem: secrety_secret_key_pem_string
+        max_version: 1.2
+        reload_interval: 1h
+`,
+			expectedConfig: `
+receivers:
+  push_receiver: {}
+  jaeger:
+    protocols:
+      grpc:
+extensions:
+  oauth2client/otlphttp0:
+    client_id: someclientid
+    client_secret: someclientsecret
+    endpoint_params:
+      audience: someaudience
+    token_url: https://example.com/oauth2/default/v1/token
+    scopes: ["api.metrics"]
+    timeout: 2s
+    tls:
+      insecure: true
+      insecure_skip_verify: true
+      ca_pem: secrety_secret_ca_pem_string
+      cert_pem: secrety_secret_cert_pem_string
+      key_pem: secrety_secret_key_pem_string
+      max_version: 1.2
+      reload_interval: 1h
 exporters:
   otlphttp/0:
     endpoint: example.com:12345
