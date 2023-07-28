@@ -14,7 +14,7 @@ title: discovery.openstack
 ```river
 discovery.openstack "LABEL" {
   role   = "hypervisor"
-	region = "us-east-1"
+  region = "us-east-1"
 }
 ```
 
