@@ -22,6 +22,7 @@
 /cmd/grafana-agent-operator/  @grafana/grafana-agent-operator-maintainers
 
 # `make docs` procedure and related workflows are owned by @jdbaldry.
+/.github/workflows/doc-validator.yml                           @jdbaldry
 /.github/workflows/publish-technical-documentation-next.yml    @jdbaldry
 /.github/workflows/publish-technical-documentation-release.yml @jdbaldry
 /.github/workflows/update-make-docs.yml                        @jdbaldry
