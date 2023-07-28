@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Add support for initcontainers in helm chart. (@dwalker-sabiogroup)
+
 0.19.0 (2023-07-27)
 -------------------
 
