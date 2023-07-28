@@ -30,6 +30,8 @@ Main (unreleased)
   - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
 
+- Reduce memory footprint of metrics. (@bboreham)
+
 ### Bugfixes
 
 - Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
