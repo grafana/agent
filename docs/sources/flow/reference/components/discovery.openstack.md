@@ -31,9 +31,9 @@ Name                | Type       | Description                                  
 `userid`            | `string`   | OpenStack userid for the Identity V2 and V3 APIs.                      |                      | no
 `password`          | `secret`   | Password for the Identity V2 and V3 APIs.                              |                      | no
 `domain_name`       | `string`   | OpenStack domain name for the Identity V2 and V3 APIs.                 |                      | no
-`domain_id`         | `string`   | OpenStack domain id for the Identity V2 and V3 APIs.                   |                      | no
+`domain_id`         | `string`   | OpenStack domain ID for the Identity V2 and V3 APIs.                   |                      | no
 `project_name`      | `string`   | OpenStack project name for the Identity V2 and V3 APIs.                |                      | no
-`project_id`        | `string`   | OpenStack project id for the Identity V2 and V3 APIs.                  |                      | no
+`project_id`        | `string`   | OpenStack project ID for the Identity V2 and V3 APIs.                  |                      | no
 `application_credential_name` | `string`   | OpenStack application credential name for the Identity V2 and V3 APIs.   |          | no
 `application_credential_id`   | `string`   | OpenStack application credential id for the Identity V2 and V3 APIs.     |          | no
 `application_credential_secret` | `secret` | OpenStack application credential secret for the Identity V2 and V3 APIs. |          | no
