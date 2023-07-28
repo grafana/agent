@@ -10,7 +10,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/wal"
 	"github.com/grafana/agent/component/discovery"
 	lsf "github.com/grafana/agent/component/loki/source/file"
 	"github.com/grafana/agent/pkg/flow/componenttest"
@@ -18,8 +22,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
 	loki_util "github.com/grafana/loki/pkg/util"
-	"github.com/prometheus/common/model"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRiverConfig(t *testing.T) {
@@ -53,17 +55,69 @@ func TestBadRiverConfig(t *testing.T) {
 	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
 }
 
+func TestUnmarshallWalAttrributes(t *testing.T) {
+	type testcase struct {
+		raw           string
+		errorExpected bool
+		expected      WalArguments
+	}
+
+	for name, tc := range map[string]testcase{
+		"default config is wal disabled": {
+			raw: "",
+			expected: WalArguments{
+				Enabled:          false,
+				MaxSegmentAge:    wal.DefaultMaxSegmentAge,
+				MinReadFrequency: wal.DefaultWatchConfig.MinReadFrequency,
+				MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+			},
+		},
+		"wal enabled with defaults": {
+			raw: `
+			enabled = true
+			`,
+			expected: WalArguments{
+				Enabled:          true,
+				MaxSegmentAge:    wal.DefaultMaxSegmentAge,
+				MinReadFrequency: wal.DefaultWatchConfig.MinReadFrequency,
+				MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+			},
+		},
+		"wal enabled with some overrides": {
+			raw: `
+			enabled = true
+			max_segment_age = "10m"
+			min_read_frequency = "11m"
+			`,
+			expected: WalArguments{
+				Enabled:          true,
+				MaxSegmentAge:    time.Minute * 10,
+				MinReadFrequency: time.Minute * 11,
+				MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := WalArguments{}
+			err := river.Unmarshal([]byte(tc.raw), &cfg)
+			if tc.errorExpected {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.expected, cfg)
+		})
+	}
+}
+
 func TestWriteToSingleEndpoint(t *testing.T) {
 	t.Run("wal disabled", func(t *testing.T) {
 		testSingleEndpoint(t, func(args *Arguments) {})
 	})
 
 	t.Run("wal enabled", func(t *testing.T) {
-		walDir, err := os.MkdirTemp("", "")
-		require.NoError(t, err)
 		testSingleEndpoint(t, func(args *Arguments) {
 			args.WAL.Enabled = true
-			args.WAL.Dir = walDir
 		})
 	})
 }
@@ -141,10 +195,7 @@ func TestEntrySentToTwoWriteComponents(t *testing.T) {
 
 	t.Run("wal enabled", func(t *testing.T) {
 		testMultipleEndpoint(t, func(arguments *Arguments) {
-			walDir, err := os.MkdirTemp("", "")
-			require.NoError(t, err)
 			arguments.WAL.Enabled = true
-			arguments.WAL.Dir = walDir
 		})
 	})
 }

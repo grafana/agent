@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	defaultMaxSegmentAge = time.Hour
+	DefaultMaxSegmentAge = time.Hour
 )
 
 // DefaultWatchConfig is the opinionated defaults for operating the Watcher.
@@ -20,30 +20,19 @@ type Config struct {
 	//
 	// WAL support is a WIP. Do not enable in production setups until https://github.com/grafana/loki/issues/8197
 	// is finished.
-	Enabled bool `yaml:"enabled" river:"enabled,attr,optional"`
+	Enabled bool
 
 	// Path where the WAL is written to.
-	Dir string `yaml:"dir" river:"-"`
+	Dir string
 
 	// MaxSegmentAge is threshold at which a WAL segment is considered old enough to be cleaned up. Default: 1h.
 	//
 	// Note that this functionality will likely be deprecated in favour of a programmatic cleanup mechanism.
-	MaxSegmentAge time.Duration `yaml:"cleanSegmentsOlderThan" river:"max_segment_age,attr,optional"`
+	MaxSegmentAge time.Duration
 
 	// WatchConfig configures the backoff retry used by a WAL watcher when reading from segments not via
 	// the notification channel.
-	WatchConfig WatchConfig `yaml:"watchConfig" river:",squash"`
-}
-
-// SetToDefault applies the default values to the watch config during unmarshalling
-func (c *Config) SetToDefault() {
-	// todo(thepalbi): Once we are in a good state: replay implemented, and a better cleanup mechanism
-	// make WAL enabled the default
-	*c = Config{
-		Enabled:       false,
-		MaxSegmentAge: defaultMaxSegmentAge,
-		WatchConfig:   DefaultWatchConfig,
-	}
+	WatchConfig WatchConfig
 }
 
 // WatchConfig allows the user to configure the Watcher.
@@ -55,17 +44,17 @@ func (c *Config) SetToDefault() {
 type WatchConfig struct {
 	// MinReadFrequency controls the minimum read frequency the Watcher polls the WAL for new records. If the poll is successful,
 	// the frequency will remain the same. If not, it will be incremented using an exponential backoff.
-	MinReadFrequency time.Duration `yaml:"minReadFrequency" river:"min_read_frequency,attr,optional"`
+	MinReadFrequency time.Duration
 
 	// MaxReadFrequency controls the maximum read frequency the Watcher polls the WAL for new records. As mentioned above
 	// it caps the polling frequency to a maximum, to prevent to exponential backoff from making it too high.
-	MaxReadFrequency time.Duration `yaml:"maxReadFrequency" river:"max_read_frequency,attr,optional"`
+	MaxReadFrequency time.Duration
 }
 
 // UnmarshalYAML implement YAML Unmarshaler
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// Apply defaults
-	c.MaxSegmentAge = defaultMaxSegmentAge
+	c.MaxSegmentAge = DefaultMaxSegmentAge
 	c.WatchConfig = DefaultWatchConfig
 	type plain Config
 	return unmarshal((*plain)(c))

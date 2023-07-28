@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
@@ -33,7 +34,27 @@ type Arguments struct {
 	Endpoints      []EndpointOptions `river:"endpoint,block,optional"`
 	ExternalLabels map[string]string `river:"external_labels,attr,optional"`
 	MaxStreams     int               `river:"max_streams,attr,optional"`
-	WAL            wal.Config        `river:"wal,block,optional"`
+	WAL            WalArguments      `river:"wal,block,optional"`
+}
+
+// WalArguments holds the settings for configuring the Write-Ahead Log (WAL) used
+// by the underlying remote write client.
+type WalArguments struct {
+	Enabled          bool          `river:"enabled,attr,optional"`
+	MaxSegmentAge    time.Duration `river:"max_segment_age,attr,optional"`
+	MinReadFrequency time.Duration `river:"min_read_frequency,attr,optional"`
+	MaxReadFrequency time.Duration `river:"max_read_frequency,attr,optional"`
+}
+
+func (wa *WalArguments) SetToDefault() {
+	// todo(thepalbi): Once we are in a good state: replay implemented, and a better cleanup mechanism
+	// make WAL enabled the default
+	*wa = WalArguments{
+		Enabled:          false,
+		MaxSegmentAge:    wal.DefaultMaxSegmentAge,
+		MinReadFrequency: wal.DefaultWatchConfig.MinReadFrequency,
+		MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+	}
 }
 
 // Exports holds the receiver that is used to send log entries to the
@@ -116,17 +137,25 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	cfgs := newArgs.convertClientConfigs()
+	walCfg := wal.Config{
+		Enabled:       newArgs.WAL.Enabled,
+		MaxSegmentAge: newArgs.WAL.MaxSegmentAge,
+		WatchConfig: wal.WatchConfig{
+			MinReadFrequency: newArgs.WAL.MinReadFrequency,
+			MaxReadFrequency: newArgs.WAL.MaxReadFrequency,
+		},
+	}
 
 	// Update WAL dir with DataPath subdir
-	newArgs.WAL.Dir = filepath.Join(c.opts.DataPath, "wal")
+	walCfg.Dir = filepath.Join(c.opts.DataPath, "wal")
 
 	var err error
 	var notifier client.WriterEventsNotifier = client.NilNotifier
 	// nil-out wal writer in case WAL was disabled
 	c.walWriter = nil
 	// only configure WAL Writer if enabled
-	if newArgs.WAL.Enabled {
-		c.walWriter, err = wal.NewWriter(newArgs.WAL, c.opts.Logger, c.opts.Registerer)
+	if walCfg.Enabled {
+		c.walWriter, err = wal.NewWriter(walCfg, c.opts.Logger, c.opts.Registerer)
 		if err != nil {
 			return fmt.Errorf("error creating wal writer: %w", err)
 		}
@@ -135,13 +164,13 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.clientManger, err = client.NewManager(c.metrics, c.opts.Logger, limit.Config{
 		MaxStreams: newArgs.MaxStreams,
-	}, c.opts.Registerer, newArgs.WAL, notifier, cfgs...)
+	}, c.opts.Registerer, walCfg, notifier, cfgs...)
 	if err != nil {
 		return fmt.Errorf("failed to create client manager: %w", err)
 	}
 
 	// if WAL is enabled, the WAL writer should be the destination sink. Otherwise, the client manager
-	if newArgs.WAL.Enabled {
+	if walCfg.Enabled {
 		c.sink = c.walWriter
 	} else {
 		c.sink = c.clientManger
