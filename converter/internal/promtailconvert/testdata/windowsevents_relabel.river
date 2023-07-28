@@ -1,0 +1,30 @@
+loki.relabel "fun" {
+	forward_to = [loki.write.default.receiver]
+
+	rule {
+		source_labels = ["__trail__"]
+		target_label  = "__path__"
+	}
+	max_cache_size = 0
+}
+
+loki.source.windowsevent "fun" {
+	locale                 = 1033
+	eventlog_name          = "Application"
+	xpath_query            = "Event/System[EventID=1000]"
+	bookmark_path          = "C:/Users/username/Desktop/bookmark.txt"
+	poll_interval          = "10s"
+	exclude_event_data     = true
+	exclude_user_data      = true
+	use_incoming_timestamp = true
+	forward_to             = [loki.relabel.fun.receiver]
+}
+
+loki.write "default" {
+	endpoint {
+		url              = "http://localhost/loki/api/v1/push"
+		follow_redirects = false
+		enable_http2     = false
+	}
+	external_labels = {}
+}
