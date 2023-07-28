@@ -131,10 +131,6 @@ func appendScrapeConfig(
 	//Encoding               string                 `mapstructure:"encoding,omitempty" yaml:"encoding,omitempty"`
 	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
 
-	//TODO(thampiotr): support/warn about the following log producing promtail configs:
-	//GelfConfig           *GelfTargetConfig           `mapstructure:"gelf,omitempty" yaml:"gelf,omitempty"`
-	//HerokuDrainConfig    *HerokuDrainTargetConfig    `mapstructure:"heroku_drain,omitempty" yaml:"heroku_drain,omitempty"`
-
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
 	b.Validate()
 
@@ -168,4 +164,5 @@ func appendScrapeConfig(
 	b.AppendKafka()
 	b.AppendAzureEventHubs()
 	b.AppendGelfConfig()
+	b.AppendHerokuDrainConfig()
 }
