@@ -239,7 +239,7 @@ func convertPromLabels(labels model.LabelSet) map[string]string {
 func logsReceiversToExpr(r []loki.LogsReceiver) string {
 	var exprs []string
 	for _, r := range r {
-		clr := r.(*common.ConvertLogsReceiver)
+		clr := r.(common.ConvertLogsReceiver)
 		exprs = append(exprs, clr.Expr)
 	}
 	return "[" + strings.Join(exprs, ", ") + "]"
