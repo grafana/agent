@@ -26,6 +26,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `level` | `string` | Level at which log lines should be written | `"info"` | no
 `format` | `string` | Format to use for writing log lines | `"logfmt"` | no
+`write_to` | `list(LogsReceiver)` | List of receivers to send log entries to | | no
 
 ### Log level
 
@@ -44,6 +45,16 @@ The following strings are recognized as valid log line formats:
 * `"json"`: Write logs as JSON objects.
 
 [logfmt]: https://brandur.org/logfmt
+
+### Log receivers
+
+The `write_to` argument allows the Agent to tee its log entries to one or more
+`loki.*` component log receivers in addition to the default [location][].
+This, for example can be the export of a `loki.write` component to ship log
+entries directly to Loki, or a `loki.relabel` component to add a certain label
+first.
+
+[location]: #log-location
 
 ## Log location
 

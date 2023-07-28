@@ -1,4 +1,4 @@
-loki.write "default_0" {
+loki.write "default" {
 	endpoint {
 		url            = "http://localhost/loki/api/v1/push"
 		batch_wait     = "10s"

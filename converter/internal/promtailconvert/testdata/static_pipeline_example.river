@@ -1,11 +1,11 @@
-discovery.kubernetes "example_0" {
+discovery.kubernetes "example" {
 	role            = "pod"
 	kubeconfig_file = "/home/toby/.kube/config"
 }
 
 discovery.relabel "example" {
 	targets = concat(
-		discovery.kubernetes.example_0.targets,
+		discovery.kubernetes.example.targets,
 		[{
 			__path__          = "/var/log/captain_scott_last_expedition.log",
 			__path__exclude__ = "/var/log/sensational_news.log",
@@ -34,7 +34,7 @@ local.file_match "example" {
 }
 
 loki.process "example" {
-	forward_to = [loki.write.default_0.receiver]
+	forward_to = [loki.write.default.receiver]
 
 	stage.json {
 		expressions = {
@@ -51,7 +51,7 @@ loki.source.file "example" {
 	forward_to = [loki.process.example.receiver]
 }
 
-loki.write "default_0" {
+loki.write "default" {
 	endpoint {
 		url              = "http://localhost/loki/api/v1/push"
 		follow_redirects = false

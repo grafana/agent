@@ -104,17 +104,27 @@ func getExpectedDiags(t *testing.T, diagsFile string) []string {
 func validateDiags(t *testing.T, expectedDiags []string, actualDiags diag.Diagnostics) {
 	for ix, diag := range actualDiags {
 		if len(expectedDiags) > ix {
+			if expectedDiags[ix] != diag.String() {
+				printActualDiags(actualDiags)
+			}
 			require.Equal(t, expectedDiags[ix], diag.String())
 		} else {
-			fmt.Printf("=== EXTRA DIAGS FOUND ===\n%s\n===========================\n", actualDiags[ix:])
+			printActualDiags(actualDiags)
 			require.Fail(t, "unexpected diag count reach for diag: "+diag.String())
 		}
 	}
 
 	// If we expect more diags than we got
 	if len(expectedDiags) > len(actualDiags) {
+		printActualDiags(actualDiags)
 		require.Fail(t, "missing expected diag: "+expectedDiags[len(actualDiags)])
 	}
+}
+
+func printActualDiags(actualDiags diag.Diagnostics) {
+	fmt.Println("============== ACTUAL =============")
+	fmt.Println(string(normalizeLineEndings([]byte(actualDiags.Error()))))
+	fmt.Println("===================================")
 }
 
 // normalizeLineEndings will replace '\r\n' with '\n'.

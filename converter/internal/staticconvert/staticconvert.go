@@ -8,8 +8,13 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
+	"github.com/grafana/agent/converter/internal/promtailconvert"
 	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/river/token/builder"
+	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
+	"github.com/grafana/loki/clients/pkg/promtail/limit"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	prom_config "github.com/prometheus/prometheus/config"
 
 	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations
@@ -43,7 +48,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
-	diags = append(diags, newDiags...)
+	diags.AddAll(newDiags)
 	return prettyByte, diags
 }
 
@@ -54,24 +59,18 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	newDiags := AppendStaticPrometheus(f, staticConfig)
-	diags = append(diags, newDiags...)
-
-	// TODO promtail
-
+	diags.AddAll(appendStaticPrometheus(f, staticConfig))
+	diags.AddAll(appendStaticPromtail(f, staticConfig))
 	// TODO otel
-
 	// TODO integrations
-
 	// TODO other
 
-	newDiags = validate(staticConfig)
-	diags = append(diags, newDiags...)
+	diags.AddAll(validate(staticConfig))
 
 	return diags
 }
 
-func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 	for _, instance := range staticConfig.Metrics.Configs {
 		promConfig := &prom_config.Config{
@@ -88,9 +87,48 @@ func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		//   metrics config name = "agent"
 		//   scrape config job_name = "test_prometheus"
 		//
-		//   results in two prometheus.scrape components with the label "agent_test_prometheus"
-		newDiags := prometheusconvert.AppendAll(f, promConfig, instance.Name)
-		diags = append(diags, newDiags...)
+		//   results in two prometheus.scrape components with the label "metrics_agent_test_prometheus"
+		diags.AddAll(prometheusconvert.AppendAll(f, promConfig, "metrics_"+instance.Name))
+	}
+
+	return diags
+}
+
+func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if staticConfig.Logs == nil {
+		return diags
+	}
+
+	for _, logConfig := range staticConfig.Logs.Configs {
+		promtailConfig := logs.DefaultConfig()
+		promtailConfig.Global = promtail_config.GlobalConfig{FileWatch: staticConfig.Logs.Global.FileWatch}
+		promtailConfig.ClientConfigs = logConfig.ClientConfigs
+		promtailConfig.PositionsConfig = logConfig.PositionsConfig
+		promtailConfig.ScrapeConfig = logConfig.ScrapeConfig
+		promtailConfig.TargetConfig = logConfig.TargetConfig
+		promtailConfig.LimitsConfig = logConfig.LimitsConfig
+
+		// We need to set this when empty so the promtail converter doesn't think it has been overridden
+		if promtailConfig.Global == (promtail_config.GlobalConfig{}) {
+			promtailConfig.Global.FileWatch = file.DefaultWatchConig
+		}
+
+		if promtailConfig.LimitsConfig == (limit.Config{}) {
+			promtailConfig.LimitsConfig = promtailconvert.DefaultLimitsConfig()
+		}
+
+		// There is an edge case unhandled here with label collisions.
+		// For example,
+		//   logs config name = "agent_test"
+		//   scrape config job_name = "promtail"
+		//
+		//   logs config name = "agent"
+		//   scrape config job_name = "test_promtail"
+		//
+		//   results in two prometheus.scrape components with the label "logs_agent_test_promtail"
+		diags = promtailconvert.AppendAll(f, &promtailConfig, "logs_"+logConfig.Name, diags)
 	}
 
 	return diags
