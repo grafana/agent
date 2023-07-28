@@ -29,7 +29,7 @@ Name                | Type       | Description                                  
 `identity_endpoint` | `string`   | Specifies the HTTP endpoint that is required to work with te Identity API of the appropriate version | | no
 `username`          | `string`   | OpenStack username for the Identity V2 and V3 APIs.                    |                      | no
 `userid`            | `string`   | OpenStack userid for the Identity V2 and V3 APIs.                      |                      | no
-`password`          | `secret`   | password for the Identity V2 and V3 APIs.                              |                      | no
+`password`          | `secret`   | Password for the Identity V2 and V3 APIs.                              |                      | no
 `domain_name`       | `string`   | OpenStack domain name for the Identity V2 and V3 APIs.                 |                      | no
 `domain_id`         | `string`   | OpenStack domain id for the Identity V2 and V3 APIs.                   |                      | no
 `project_name`      | `string`   | OpenStack project name for the Identity V2 and V3 APIs.                |                      | no
