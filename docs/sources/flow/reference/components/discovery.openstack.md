@@ -54,7 +54,7 @@ Name                | Type       | Description                                  
 
 `all_tenants` is only relevant for the `instance` role and usually requires admin permissions.
 
-`availability` must be one of `public`, `admin` or `internal`.
+`availability` must be one of `public`, `admin`, or `internal`.
 
 ## Blocks
 The following blocks are supported inside the definition of `discovery.openstack`:
