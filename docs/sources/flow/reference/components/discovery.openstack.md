@@ -35,7 +35,7 @@ Name                | Type       | Description                                  
 `project_name`      | `string`   | OpenStack project name for the Identity V2 and V3 APIs.                |                      | no
 `project_id`        | `string`   | OpenStack project ID for the Identity V2 and V3 APIs.                  |                      | no
 `application_credential_name` | `string`   | OpenStack application credential name for the Identity V2 and V3 APIs.   |          | no
-`application_credential_id`   | `string`   | OpenStack application credential id for the Identity V2 and V3 APIs.     |          | no
+`application_credential_id`   | `string`   | OpenStack application credential ID for the Identity V2 and V3 APIs.     |          | no
 `application_credential_secret` | `secret` | OpenStack application credential secret for the Identity V2 and V3 APIs. |          | no
 `all_tenants`       | `bool`    | Whether the service discovery should list all instances for all projects. |      `false`       | no
 `refresh_interval`  | `duration`| Refresh interval to re-read the instance list.                          |          `60s`       | no
