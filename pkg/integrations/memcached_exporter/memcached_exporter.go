@@ -4,7 +4,10 @@ package memcached_exporter //nolint:golint
 import (
 	"time"
 
+	config_util "github.com/prometheus/common/config"
+
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
@@ -24,6 +27,9 @@ type Config struct {
 
 	// Timeout is the connection timeout for memcached.
 	Timeout time.Duration `yaml:"timeout,omitempty"`
+
+	// TLSConfig is used to configure TLS for connection to memcached.
+	TLSConfig config_util.TLSConfig `yaml:"tls_config,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -57,10 +63,15 @@ func init() {
 // New creates a new memcached_exporter integration. The integration scrapes metrics
 // from a memcached server.
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
+	tlsConfig, err := config_util.NewTLSConfig(&c.TLSConfig)
+	if err != nil {
+		level.Error(log).Log("msg", "invalid tls_config", "err", err)
+		return nil, err
+	}
 	return integrations.NewCollectorIntegration(
 		c.Name(),
 		integrations.WithCollectors(
-			exporter.New(c.MemcachedAddress, c.Timeout, log),
+			exporter.New(c.MemcachedAddress, c.Timeout, log, tlsConfig),
 		),
 	), nil
 }

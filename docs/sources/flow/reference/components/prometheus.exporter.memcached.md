@@ -22,8 +22,18 @@ Name             | Type       | Description                                     
 `timeout`        | `duration` | The timeout for connecting to the Memcached server. | `"1s"`                | no       |
 
 ## Blocks
-The `prometheus.exporter.memcached` component does not support any blocks, and is configured
-fully through arguments.
+The following blocks are supported inside the definition of `prometheus.exporter.memcached`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+tls_config | [tls_config][] | TLS configuration for requests to the Memcached server. | no
+
+[tls_config]: #tls_config-block
+
+### tls_config block
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+
 
 ## Exported fields
 The following fields are exported and can be referenced by other components:

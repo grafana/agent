@@ -140,7 +140,7 @@ require (
 	github.com/prometheus/client_model v0.4.0
 	github.com/prometheus/common v0.44.0
 	github.com/prometheus/consul_exporter v0.8.0
-	github.com/prometheus/memcached_exporter v0.10.0
+	github.com/prometheus/memcached_exporter v0.13.0
 	github.com/prometheus/mysqld_exporter v0.14.0
 	github.com/prometheus/node_exporter v1.6.0
 	github.com/prometheus/procfs v0.11.0
@@ -394,7 +394,7 @@ require (
 	github.com/gosnmp/gosnmp v1.35.0 // indirect
 	github.com/grafana/gomemcache v0.0.0-20230316202710-a081dae0aba9 // indirect
 	github.com/grafana/loki/pkg/push v0.0.0-20230127102416-571f88bc5765 // indirect
-	github.com/grobie/gomemcache v0.0.0-20201204163352-08d7c80fcac6 // indirect
+	github.com/grobie/gomemcache v0.0.0-20230213081705-239240bbc445 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hashicorp/cronexpr v1.1.1 // indirect

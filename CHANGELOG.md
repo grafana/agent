@@ -21,6 +21,9 @@ Main (unreleased)
 - Flow: Allow the `logging` configuration block to tee the Agent's logs to one
   or more loki.* components. (@tpaschalis)
 
+- Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
+  and the option to connect with TLS. (@spartan0x117)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)

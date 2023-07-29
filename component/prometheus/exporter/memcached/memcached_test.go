@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 	"github.com/grafana/agent/pkg/river"
@@ -26,6 +27,42 @@ timeout = "5s"`
 	}
 
 	assert.Equal(t, expected, args)
+}
+
+func TestRiverUnmarshalTLS(t *testing.T) {
+	var exampleRiverConfig = `
+address = "localhost:99"
+timeout = "5s"
+tls_config {
+  ca_file   = "/path/to/ca_file"
+  cert_file = "/path/to/cert_file"
+  key_file  = "/path/to/key_file"
+}`
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	assert.NoError(t, err)
+
+	expected := Arguments{
+		Address: "localhost:99",
+		Timeout: 5 * time.Second,
+		TLSConfig: config.TLSConfig{
+			CAFile:   "/path/to/ca_file",
+			CertFile: "/path/to/cert_file",
+			KeyFile:  "/path/to/key_file",
+		},
+	}
+	assert.Equal(t, expected, args)
+
+	var invalidRiverConfig = `
+address = "localhost:99"
+timeout = "5s"
+tls_config {
+	ca_pem  = "ca"
+	ca_file = "/path/to/ca_file"
+}`
+	err = river.Unmarshal([]byte(invalidRiverConfig), &args)
+	assert.Error(t, err)
+	assert.ErrorContains(t, err, "at most one of")
 }
 
 func TestRiverUnmarshalDefaults(t *testing.T) {

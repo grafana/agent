@@ -77,4 +77,31 @@ Full reference of options:
 
   # Timeout for connecting to memcached.
   [timeout: <duration> | default = "1s"]
+
+  # TLS configuration for requests to the memcached server.
+  tls_config:
+    # The CA cert to use.
+    [ca: <string>]
+    # The client cert to use.
+    [cert: <string>]
+    # The client key to use.
+    [key: <string>]
+
+    # Path to the CA cert file to use.
+    [ca_file: <string>]
+    # Path to the client cert file to use.
+    [cert_file: <string>]
+    # Path to the client key file to use.
+    [key_file: <string>]
+
+    # Used to verify the hostname for the memcached server.
+    [server_name: <string>]
+
+    # Disable memcached server certificate validation.
+    [insecure_skip_verify: <boolean> | default = false]
+
+    # Minimum TLS version.
+    [min_version: <tls_version>]
+    # Maximum TLS version.
+    [max_version: <tls_version>]
 ```

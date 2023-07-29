@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
@@ -46,6 +47,9 @@ type Arguments struct {
 	// Timeout is the timeout for the memcached exporter to use when connecting to the
 	// memcached server.
 	Timeout time.Duration `river:"timeout,attr,optional"`
+
+	// TLSConfig is used to configure TLS for connection to memcached.
+	TLSConfig config.TLSConfig `river:"tls_config,block,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -53,9 +57,15 @@ func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
 }
 
+// Validate implements river.Validator.
+func (a Arguments) Validate() error {
+	return a.TLSConfig.Validate()
+}
+
 func (a Arguments) Convert() *memcached_exporter.Config {
 	return &memcached_exporter.Config{
 		MemcachedAddress: a.Address,
 		Timeout:          a.Timeout,
+		TLSConfig:        *a.TLSConfig.Convert(),
 	}
 }
