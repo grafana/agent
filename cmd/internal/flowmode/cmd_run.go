@@ -10,15 +10,12 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/converter"
-	convert_diag "github.com/grafana/agent/converter/diag"
-	"go.opentelemetry.io/otel"
-	"golang.org/x/exp/maps"
-
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/converter"
+	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/instrumentation"
@@ -28,8 +25,11 @@ import (
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
 	httpservice "github.com/grafana/agent/service/http"
+	"github.com/grafana/ckit/peer"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel"
+	"golang.org/x/exp/maps"
 
 	// Install Components
 	_ "github.com/grafana/agent/component/all"
@@ -264,7 +264,7 @@ func (fr *flowRun) Run(configFile string) error {
 	}
 
 	// Start the Clusterer's Node implementation.
-	err = clusterer.Start(ctx)
+	err = clusterer.Start()
 	if err != nil {
 		return fmt.Errorf("failed to start the clusterer: %w", err)
 	}
@@ -292,6 +292,15 @@ func (fr *flowRun) Run(configFile string) error {
 
 		// Exit if the initial load files
 		return err
+	}
+
+	// By now, have either joined or started a new cluster.
+	// Nodes initially join in the Viewer state. After the graph has been
+	// loaded successfully, we can move to the Participant state to signal that
+	// we wish to participate in reading or writing data.
+	err = clusterer.ChangeState(peer.StateParticipant)
+	if err != nil {
+		return fmt.Errorf("failed to set clusterer state to Participant after initial load")
 	}
 
 	reloadSignal := make(chan os.Signal, 1)
