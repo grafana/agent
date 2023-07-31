@@ -36,7 +36,8 @@ type Loader struct {
 	mut               sync.RWMutex
 	graph             *dag.Graph
 	originalGraph     *dag.Graph
-	components        []*ComponentNode
+	componentNodes    []*ComponentNode
+	serviceNodes      []*ServiceNode
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
 	cm                *controllerMetrics
@@ -137,6 +138,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	var (
 		components   = make([]*ComponentNode, 0, len(componentBlocks))
 		componentIDs = make([]ComponentID, 0, len(componentBlocks))
+		services     = make([]*ServiceNode, 0, len(l.services))
 	)
 
 	tracer := l.tracer.Tracer("")
@@ -168,12 +170,12 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 
 		var err error
 
-		switch c := n.(type) {
+		switch n := n.(type) {
 		case *ComponentNode:
-			components = append(components, c)
-			componentIDs = append(componentIDs, c.ID())
+			components = append(components, n)
+			componentIDs = append(componentIDs, n.ID())
 
-			if err = l.evaluate(logger, c); err != nil {
+			if err = l.evaluate(logger, n); err != nil {
 				var evalDiags diag.Diagnostics
 				if errors.As(err, &evalDiags) {
 					diags = append(diags, evalDiags...)
@@ -181,18 +183,36 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 					diags.Add(diag.Diagnostic{
 						Severity: diag.SeverityLevelError,
 						Message:  fmt.Sprintf("Failed to build component: %s", err),
-						StartPos: ast.StartPos(c.Block()).Position(),
-						EndPos:   ast.EndPos(c.Block()).Position(),
+						StartPos: ast.StartPos(n.Block()).Position(),
+						EndPos:   ast.EndPos(n.Block()).Position(),
 					})
 				}
 			}
+
+		case *ServiceNode:
+			services = append(services, n)
+
+			if err = l.evaluate(logger, n); err != nil {
+				var evalDiags diag.Diagnostics
+				if errors.As(err, &evalDiags) {
+					diags = append(diags, evalDiags...)
+				} else {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("Failed to evaluate service: %s", err),
+						StartPos: ast.StartPos(n.Block()).Position(),
+						EndPos:   ast.EndPos(n.Block()).Position(),
+					})
+				}
+			}
+
 		case BlockNode:
-			if err = l.evaluate(logger, c); err != nil {
+			if err = l.evaluate(logger, n); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to evaluate node for config block: %s", err),
-					StartPos: ast.StartPos(c.Block()).Position(),
-					EndPos:   ast.EndPos(c.Block()).Position(),
+					StartPos: ast.StartPos(n.Block()).Position(),
+					EndPos:   ast.EndPos(n.Block()).Position(),
 				})
 			}
 			if exp, ok := n.(*ExportConfigNode); ok {
@@ -210,7 +230,8 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		return nil
 	})
 
-	l.components = components
+	l.componentNodes = components
+	l.serviceNodes = services
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
@@ -468,7 +489,14 @@ func (l *Loader) Variables() map[string]interface{} {
 func (l *Loader) Components() []*ComponentNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
-	return l.components
+	return l.componentNodes
+}
+
+// Services returns the current set of service nodes.
+func (l *Loader) Services() []*ServiceNode {
+	l.mut.RLock()
+	defer l.mut.RUnlock()
+	return l.serviceNodes
 }
 
 // Graph returns a copy of the DAG managed by the Loader.
