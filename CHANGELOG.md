@@ -33,8 +33,6 @@ Main (unreleased)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
   - `loki.write` now exposes basic WAL support. (@thepalbi)
 
-- Reduce memory footprint of metrics. (@bboreham)
-
 ### Bugfixes
 
 - Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
