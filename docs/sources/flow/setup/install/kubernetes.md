@@ -56,5 +56,5 @@ For more information on the Grafana Agent Helm chart, refer to the Helm chart do
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent#linux" >}})
+- [Start Grafana Agent]({{< relref "../start-agent" >}})
 - [Configure Grafana Agent]({{< relref "../configure/configure-kubernetes" >}})
