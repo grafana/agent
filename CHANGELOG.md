@@ -21,6 +21,9 @@ Main (unreleased)
 - Flow: Allow the `logging` configuration block to tee the Agent's logs to one
   or more loki.* components. (@tpaschalis)
 
+- Clustering: Nodes take part in distributing load only after loading their
+  component graph. (@tpaschalis)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
