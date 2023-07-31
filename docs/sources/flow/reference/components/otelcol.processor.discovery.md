@@ -39,7 +39,7 @@ Name | Type | Description | Default | Required
 `pod_associations` | `list(string)` | Configures how to decide the hostname of the span. | `["ip", "net.host.ip", "k8s.pod.ip", "hostname", "connection"]` | no
 
 `targets` could come from `discovery.*` components:
-1. The `__address__` label will be matched against the ip of incoming spans.
+1. The `__address__` label will be matched against the IP address of incoming spans.
    * If `__address__` contains a port, it is ignored. 
 2. If a match is found, then relabeling rules are applied.
    * Note that labels starting with `__` will not be added to the spans.
