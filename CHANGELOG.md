@@ -12,6 +12,8 @@ Main (unreleased)
 
 ### Enhancements
 
+- Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
+
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
 
 - Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
@@ -21,12 +23,18 @@ Main (unreleased)
 - Flow: Allow the `logging` configuration block to tee the Agent's logs to one
   or more loki.* components. (@tpaschalis)
 
+- Clustering: Nodes take part in distributing load only after loading their
+  component graph. (@tpaschalis)
+
 - New Grafana Agent Flow components:
 
-  - `prometheus.exporter.gcp` - scrape GCP metrics (@tburgessdev)
+  - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
   - `otelcol.processor.span` - accepts traces telemetry data from other `otelcol`
   components and modifies the names and attributes of the spans. (@ptodev)
   - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@sparta0x117)
+  - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
+  - `discovery.openstack` - service discovery for OpenStack. (@marctc)
+  - `loki.write` now exposes basic WAL support. (@thepalbi)
 
 ### Bugfixes
 

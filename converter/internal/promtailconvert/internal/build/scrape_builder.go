@@ -114,7 +114,7 @@ func (s *ScrapeConfigBuilder) getOrNewLokiRelabel() string {
 		}
 		compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "relabel"}, compLabel, args))
-		s.lokiRelabelReceiverExpr = "loki.relabel." + compLabel + ".receiver"
+		s.lokiRelabelReceiverExpr = "[loki.relabel." + compLabel + ".receiver]"
 	}
 	return s.lokiRelabelReceiverExpr
 }
@@ -239,7 +239,7 @@ func convertPromLabels(labels model.LabelSet) map[string]string {
 func logsReceiversToExpr(r []loki.LogsReceiver) string {
 	var exprs []string
 	for _, r := range r {
-		clr := r.(*common.ConvertLogsReceiver)
+		clr := r.(common.ConvertLogsReceiver)
 		exprs = append(exprs, clr.Expr)
 	}
 	return "[" + strings.Join(exprs, ", ") + "]"

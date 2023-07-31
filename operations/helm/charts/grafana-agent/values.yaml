@@ -18,6 +18,11 @@ global:
   # -- Security context to apply to the Grafana Agent pod.
   podSecurityContext: {}
 
+## The init containers to run.
+## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+##
+initContainers: []
+
 # Various agent settings.
 agent:
   # -- Mode to run Grafana Agent in. Can be "flow" or "static".
