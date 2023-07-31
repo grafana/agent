@@ -6,6 +6,7 @@ title: discovery.hetzner
 # discovery.hetzner
 
 `discovery.hetzner` allows retrieving scrape targets from [Hetzner Cloud API][] and [Robot API][].
+This service discovery uses the public IPv4 address by default, but that can be changed with relabeling.
 
 [Hetzner Cloud API]: https://www.hetzner.com/
 [Robot API]: https://docs.hetzner.com/robot/
