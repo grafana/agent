@@ -264,7 +264,7 @@ func (fr *flowRun) Run(configFile string) error {
 	}
 
 	// Start the Clusterer's Node implementation.
-	err = clusterer.Start(ctx)
+	err = clusterer.Start()
 	if err != nil {
 		return fmt.Errorf("failed to start the clusterer: %w", err)
 	}

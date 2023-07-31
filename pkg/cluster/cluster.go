@@ -192,7 +192,7 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 // new cluster of its own.
 // The gossipNode will start out as a Viewer; to participate in clustering,
 // the node needs to transition to the Participant state using ChangeState.
-func (c *Clusterer) Start(ctx context.Context) error {
+func (c *Clusterer) Start() error {
 	switch node := c.Node.(type) {
 	case *localNode:
 		return nil // no-op, always ready
