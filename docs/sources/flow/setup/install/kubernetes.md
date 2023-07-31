@@ -47,7 +47,7 @@ To deploy Grafana Agent on Kubernetes using Helm, run the following commands in 
    helm install RELEASE_NAME grafana/grafana-agent
    ```
 
-   Replace `RELEASE_NAME` with a name to use for your Grafana Agent
+   Replace `RELEASE_NAME` with a name for your Grafana Agent
    installation, such as `grafana-agent-flow`.
 
 For more information on the Grafana Agent Helm chart, refer to the Helm chart documentation on [Artifact Hub][].
