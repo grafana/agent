@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
 	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/agent/service"
 	"github.com/grafana/ckit"
 	"github.com/grafana/ckit/peer"
 	"github.com/hashicorp/go-multierror"
@@ -26,9 +27,11 @@ import (
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
-	log     log.Logger
-	tracer  trace.TracerProvider
-	globals ComponentGlobals
+	log      log.Logger
+	tracer   trace.TracerProvider
+	globals  ComponentGlobals
+	services []service.Service
+	host     service.Host
 
 	mut               sync.RWMutex
 	graph             *dag.Graph
@@ -45,19 +48,26 @@ type Loader struct {
 type LoaderOptions struct {
 	// ComponentGlobals contains data to use when creating components.
 	ComponentGlobals ComponentGlobals
+
+	Services []service.Service // Services to load into the DAG.
+	Host     service.Host      // Service host (when running services).
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
 func NewLoader(opts LoaderOptions) *Loader {
 	var (
-		globals = opts.ComponentGlobals
+		globals  = opts.ComponentGlobals
+		services = opts.Services
+		host     = opts.Host
 	)
 
 	l := &Loader{
-		log:     log.With(globals.Logger, "controller_id", globals.ControllerID),
-		tracer:  tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
-		globals: globals,
+		log:      log.With(globals.Logger, "controller_id", globals.ControllerID),
+		tracer:   tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
+		globals:  globals,
+		services: services,
+		host:     host,
 
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
@@ -224,8 +234,14 @@ func (l *Loader) Cleanup() {
 // loadNewGraph creates a new graph from the provided blocks and validates it.
 func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
+
+	// Fill our graph with service blocks, which must be added before any other
+	// block.
+	diags := l.populateServiceNodes(&g)
+
 	// Fill our graph with config blocks.
-	diags := l.populateConfigBlockNodes(args, &g, configBlocks)
+	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks)
+	diags = append(diags, configBlockDiags...)
 
 	// Fill our graph with components.
 	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks)
@@ -249,6 +265,34 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	dag.Reduce(&g)
 
 	return g, diags
+}
+
+// populateServiceNodes adds service nodes to the graph.
+func (l *Loader) populateServiceNodes(g *dag.Graph) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	for _, svc := range l.services {
+		id := svc.Definition().Name
+
+		if g.GetByID(id) != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("cannot add service %q; node with same ID already exists", id),
+			})
+		}
+
+		var node *ServiceNode
+
+		if exist := l.graph.GetByID(id); exist != nil {
+			node = exist.(*ServiceNode)
+		} else {
+			node = NewServiceNode(l.host, svc)
+		}
+
+		g.Add(node)
+	}
+
+	return diags
 }
 
 // populateConfigBlockNodes adds any config blocks to the graph.
@@ -383,6 +427,27 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
+		// First, wire up dependencies on services.
+		switch n := n.(type) {
+		case *ServiceNode: // Service depending on other services.
+			for _, depName := range n.Definition().DependsOn {
+				dep := g.GetByID(depName)
+				if dep == nil {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("service %q has invalid reference to service %q", n.NodeID(), depName),
+					})
+					continue
+				}
+
+				g.AddEdge(dag.Edge{From: n, To: dep})
+			}
+
+		case *ComponentNode: // Component depending on service.
+			// TODO(rfratto): Wire service dependencies of component.
+		}
+
+		// Finally, wire component references.
 		refs, nodeDiags := ComponentReferences(n, g)
 		for _, ref := range refs {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
