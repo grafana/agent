@@ -10,7 +10,7 @@ SHELL ["cmd", "/S", "/C"]
 # Creating new layers can be really slow on Windows so we clean up any caches
 # we can before moving on to the next step.
 RUN ""C:\Program Files\git\bin\bash.exe" -c "RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make generate-ui && rm -rf web/ui/node_modules && yarn cache clean --all""
-RUN ""C:\Program Files\git\bin\bash.exe" -c "RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} GO_TAGS="stringlabels builtinassets" make agent && go clean -cache -modcache""
+RUN ""C:\Program Files\git\bin\bash.exe" -c "RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} GO_TAGS='stringlabels builtinassets' make agent && go clean -cache -modcache""
 
 # Use the smallest container possible for the final image
 FROM mcr.microsoft.com/windows/nanoserver:1809
