@@ -72,6 +72,9 @@ const (
 
 	// otlp receiver
 	otlpReceiverName = "otlp"
+
+	// A string to print out when marshaling "secrets" strings, like passwords.
+	secretMarshalString = "<secret>"
 )
 
 // Config controls the configuration of Traces trace pipelines.
@@ -170,7 +173,7 @@ var (
 
 // MarshalYAML implements yaml.Marshaler.
 func (s SecretString) MarshalYAML() (interface{}, error) {
-	return "<secret>", nil
+	return secretMarshalString, nil
 }
 
 // JaegerRemoteSamplingMap is a set of Jaeger Remote Sampling extensions.
@@ -184,7 +187,7 @@ var (
 
 // MarshalYAML implements yaml.Marshaler.
 func (jrsm JaegerRemoteSamplingConfig) MarshalYAML() (interface{}, error) {
-	return "<secret>", nil
+	return secretMarshalString, nil
 }
 
 // ReceiverMap stores a set of receivers. Because receivers may be configured
@@ -238,7 +241,7 @@ func (r *ReceiverMap) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // MarshalYAML implements yaml.Marshaler.
 func (r ReceiverMap) MarshalYAML() (interface{}, error) {
-	return "<secret>", nil
+	return secretMarshalString, nil
 }
 
 const (

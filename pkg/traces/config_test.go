@@ -1304,9 +1304,9 @@ remote_write:
       tls:
         insecure: true
         insecure_skip_verify: true
-        ca_pem: secrety_secret_ca_pem_string
-        cert_pem: secrety_secret_cert_pem_string
-        key_pem: secrety_secret_key_pem_string
+        ca_pem: test_secret_ca_pem_string
+        cert_pem: test_secret_cert_pem_string
+        key_pem: test_secret_key_pem_string
         max_version: 1.2
         reload_interval: 1h
 `,
@@ -1328,9 +1328,9 @@ extensions:
     tls:
       insecure: true
       insecure_skip_verify: true
-      ca_pem: secrety_secret_ca_pem_string
-      cert_pem: secrety_secret_cert_pem_string
-      key_pem: secrety_secret_key_pem_string
+      ca_pem: test_secret_ca_pem_string
+      cert_pem: test_secret_cert_pem_string
+      key_pem: test_secret_key_pem_string
       max_version: 1.2
       reload_interval: 1h
 exporters:
