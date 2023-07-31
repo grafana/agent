@@ -65,7 +65,6 @@ func LabelForParts(parts ...interface{}) string {
 			sParts = append(sParts, fmt.Sprintf("%v", part))
 		}
 	}
-
 	return strings.Join(sParts, "_")
 }
 
