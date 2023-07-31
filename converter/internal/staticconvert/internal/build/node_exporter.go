@@ -1,23 +1,15 @@
 package build
 
 import (
-	"fmt"
-
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/unix"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
-
-	"github.com/prometheus/common/model"
-	prom_config "github.com/prometheus/prometheus/config"
 )
 
-func (b *IntegrationsV1ConfigBuilder) AppendNodeExporter(nodeConfig *node_exporter.Config, commonConfig *config.Common) {
-	if !commonConfig.Enabled {
-		return
-	}
-
+func (b *IntegrationsV1ConfigBuilder) AppendNodeExporter(nodeConfig *node_exporter.Config, commonConfig *config.Common) discovery.Exports {
 	args := ToNodeExporter(nodeConfig)
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
 		[]string{"prometheus", "exporter", "unix"},
@@ -25,37 +17,7 @@ func (b *IntegrationsV1ConfigBuilder) AppendNodeExporter(nodeConfig *node_export
 		args,
 	))
 
-	exports := prometheusconvert.NewDiscoverExports("prometheus.exporter.unix.targets")
-
-	scrapeConfigs := []*prom_config.ScrapeConfig{}
-	if b.cfg.Integrations.ConfigV1.ScrapeIntegrations {
-		// TODO: more from func (m *Manager) instanceConfigForIntegration(p *integrationProcess, cfg ManagerConfig) instance.Config {
-		scrapeConfig := prom_config.DefaultScrapeConfig
-		// scrapeConfig.JobName = fmt.Sprintf("integrations/%s", nodeConfig.Name())
-		scrapeConfig.MetricsPath = fmt.Sprintf("integrations/%s/metrics", nodeConfig.Name())
-		scrapeConfig.JobName = fmt.Sprintf("integrations/%s", nodeConfig.Name())
-		scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs
-		scrapeConfig.MetricRelabelConfigs = commonConfig.MetricRelabelConfigs
-
-		scrapeConfig.ScrapeInterval = model.Duration(commonConfig.ScrapeInterval)
-		if commonConfig.ScrapeInterval == 0 {
-			scrapeConfig.ScrapeInterval = b.cfg.Integrations.ConfigV1.PrometheusGlobalConfig.ScrapeInterval
-		}
-
-		scrapeConfig.ScrapeTimeout = model.Duration(commonConfig.ScrapeTimeout)
-		if commonConfig.ScrapeTimeout == 0 {
-			scrapeConfig.ScrapeTimeout = b.cfg.Integrations.ConfigV1.PrometheusGlobalConfig.ScrapeTimeout
-		}
-
-		scrapeConfigs = []*prom_config.ScrapeConfig{&scrapeConfig}
-	}
-
-	promConfig := &prom_config.Config{
-		GlobalConfig:       b.cfg.Integrations.ConfigV1.PrometheusGlobalConfig,
-		ScrapeConfigs:      scrapeConfigs,
-		RemoteWriteConfigs: b.cfg.Integrations.ConfigV1.PrometheusRemoteWrite,
-	}
-	b.diags.AddAll(prometheusconvert.AppendAll(b.f, promConfig, b.globalCtx.LabelPrefix, exports.Targets))
+	return prometheusconvert.NewDiscoverExports("prometheus.exporter.unix.targets")
 }
 
 func ToNodeExporter(config *node_exporter.Config) *unix.Arguments {
