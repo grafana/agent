@@ -562,27 +562,3 @@ func defaultZero(s *uint64) uint64 {
 	}
 	return *s
 }
-
-// unifySourceField reflects the implementation from promtail's clients/pkg/logentry/stages/drop.go
-func unifySourceField(i interface{}, diags *diag.Diagnostics) string {
-	if i == nil {
-		return ""
-	}
-
-	switch s := i.(type) {
-	case []string:
-		if len(s) == 0 {
-			return ""
-		}
-		if len(s) == 1 {
-			return s[0]
-		}
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("only single value for pipelina_stages.drop.source is supported - got: %v", s))
-		return ""
-	case string:
-		return s
-	}
-
-	diags.Add(diag.SeverityLevelError, fmt.Sprintf("invalid source field type: %T - %v", i, i))
-	return ""
-}
