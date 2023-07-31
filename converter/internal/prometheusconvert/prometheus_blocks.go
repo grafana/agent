@@ -12,6 +12,7 @@ import (
 // them to a River File. This gives control over the order they are written
 // versus appending them in the order the Blocks are created.
 type prometheusBlocks struct {
+	exporterBlocks              []prometheusBlock
 	discoveryBlocks             []prometheusBlock
 	discoveryRelabelBlocks      []prometheusBlock
 	prometheusScrapeBlocks      []prometheusBlock
@@ -21,6 +22,7 @@ type prometheusBlocks struct {
 
 func newPrometheusBlocks() *prometheusBlocks {
 	return &prometheusBlocks{
+		exporterBlocks:              []prometheusBlock{},
 		discoveryBlocks:             []prometheusBlock{},
 		discoveryRelabelBlocks:      []prometheusBlock{},
 		prometheusScrapeBlocks:      []prometheusBlock{},
@@ -38,6 +40,10 @@ func newPrometheusBlocks() *prometheusBlocks {
 // 4. Prometheus relabel component(s) (if any)
 // 5. Prometheus remote_write
 func (pb *prometheusBlocks) appendToFile(f *builder.File) {
+	for _, promBlock := range pb.exporterBlocks {
+		f.Body().AppendBlock(promBlock.block)
+	}
+
 	for _, promBlock := range pb.discoveryBlocks {
 		f.Body().AppendBlock(promBlock.block)
 	}

@@ -36,7 +36,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	f := builder.NewFile()
-	diags = AppendAll(f, promConfig, "")
+	diags = AppendAll(f, promConfig, "", []discovery.Target{})
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -58,7 +58,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 // Exports from other components are correctly referenced to build the Flow
 // pipeline. A non-empty labelPrefix can be provided for label uniqueness when
 // calling this function for the same builder.File multiple times.
-func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string) diag.Diagnostics {
+func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string, additionalTargets []discovery.Target) diag.Diagnostics {
 	pb := newPrometheusBlocks()
 
 	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
@@ -66,16 +66,18 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix stri
 
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
 		scrapeForwardTo := remoteWriteForwardTo
-		label := scrapeConfig.JobName
+		label := common.TrimLabel(scrapeConfig.JobName)
 		if labelPrefix != "" {
 			label = labelPrefix + "_" + label
 		}
+
 		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)
 		if promMetricsRelabelExports != nil {
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
 		scrapeTargets := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
+		scrapeTargets = append(scrapeTargets, additionalTargets...)
 
 		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
 		if promDiscoveryRelabelExports != nil {

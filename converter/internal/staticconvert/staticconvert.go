@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
@@ -62,7 +63,7 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 
 	diags.AddAll(appendStaticPrometheus(f, staticConfig))
 	diags.AddAll(appendStaticPromtail(f, staticConfig))
-	diags.AddAll(appendStaticIntegrations1(f, staticConfig))
+	diags.AddAll(appendStaticIntegrationsV1(f, staticConfig))
 	// TODO otel
 	// TODO other
 
@@ -89,7 +90,7 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		//   scrape config job_name = "test_prometheus"
 		//
 		//   results in two prometheus.scrape components with the label "metrics_agent_test_prometheus"
-		diags.AddAll(prometheusconvert.AppendAll(f, promConfig, "metrics_"+instance.Name))
+		diags.AddAll(prometheusconvert.AppendAll(f, promConfig, "metrics_"+instance.Name, []discovery.Target{}))
 	}
 
 	return diags
@@ -135,14 +136,14 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 	return diags
 }
 
-func appendStaticIntegrations1(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+func appendStaticIntegrationsV1(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if len(staticConfig.Integrations.EnabledIntegrations()) == 0 {
 		return diags
 	}
 
-	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{})
+	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
 	b.AppendIntegrations()
 
 	return diags

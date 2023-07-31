@@ -27,7 +27,7 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 	for _, integration := range b.cfg.Integrations.ConfigV1.Integrations {
 		switch itg := integration.Config.(type) {
 		case *node_exporter.Config:
-			b.AppendNodeExporter(itg)
+			b.AppendNodeExporter(itg, &integration.Common)
 		}
 	}
 }

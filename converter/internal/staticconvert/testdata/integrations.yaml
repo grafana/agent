@@ -1,3 +1,21 @@
+metrics:
+  global:
+    remote_write:
+      - url: http://localhost:9009/api/prom/push
+
 integrations:
   node_exporter:
     enabled: true
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_id
+      - source_labels: [__param_id]
+        target_label: thermostat
+      - target_label: __address__
+        replacement: localhost:8099
+    metric_relabel_configs:
+      - source_labels: [__metric_address1__]
+        target_label: __metric_param_target1
+      - source_labels: [__metric_address2__]
+        target_label: __metric_param_target2
+  scrape_integrations: true

@@ -50,6 +50,12 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 	}
 }
 
+// TrimLabel removes slashes from a label and anything preceding them.
+func TrimLabel(label string) string {
+	parts := strings.Split(label, "/")
+	return parts[len(parts)-1]
+}
+
 // LabelForParts generates a consistent component label for a set of parts
 // delimited with an underscore.
 func LabelForParts(parts ...interface{}) string {
@@ -59,6 +65,7 @@ func LabelForParts(parts ...interface{}) string {
 			sParts = append(sParts, fmt.Sprintf("%v", part))
 		}
 	}
+
 	return strings.Join(sParts, "_")
 }
 

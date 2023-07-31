@@ -1,30 +1,52 @@
-prometheus.exporter.unix {
-	procfs_path    = ""
-	sysfs_path     = ""
-	rootfs_path    = ""
-	udev_data_path = ""
+prometheus.exporter.unix { }
 
-	disk { }
+discovery.relabel "integrations_node_exporter" {
+	targets = prometheus.exporter.unix.targets
 
-	ethtool { }
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "__param_id"
+	}
 
-	filesystem { }
+	rule {
+		source_labels = ["__param_id"]
+		target_label  = "thermostat"
+	}
 
-	ntp { }
+	rule {
+		source_labels = []
+		target_label  = "__address__"
+		replacement   = "localhost:8099"
+	}
+}
 
-	netclass { }
+prometheus.scrape "integrations_node_exporter" {
+	targets      = discovery.relabel.integrations_node_exporter.output
+	forward_to   = [prometheus.relabel.integrations_node_exporter.receiver]
+	job_name     = "integrations/node_exporter"
+	metrics_path = "integrations/node_exporter/metrics"
+}
 
-	netstat { }
+prometheus.relabel "integrations_node_exporter" {
+	forward_to = [prometheus.remote_write.integrations.receiver]
 
-	powersupply { }
+	rule {
+		source_labels = ["__metric_address1__"]
+		target_label  = "__metric_param_target1"
+	}
 
-	runit { }
+	rule {
+		source_labels = ["__metric_address2__"]
+		target_label  = "__metric_param_target2"
+	}
+}
 
-	supervisord { }
+prometheus.remote_write "integrations" {
+	endpoint {
+		url = "http://localhost:9009/api/prom/push"
 
-	systemd { }
+		queue_config { }
 
-	tapestats { }
-
-	vmstat { }
+		metadata_config { }
+	}
 }
