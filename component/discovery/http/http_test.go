@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -48,7 +49,7 @@ func TestConvert(t *testing.T) {
 func TestComponent(t *testing.T) {
 	discovery.MaxUpdateFrequency = time.Second / 2
 	endpointCalled := false
-	stateChanged := false
+	var stateChanged atomic.Bool
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		endpointCalled = true
 		w.Header().Add("Content-Type", "application/json")
@@ -84,7 +85,7 @@ func TestComponent(t *testing.T) {
 	component, err := New(
 		component.Options{
 			OnStateChange: func(e component.Exports) {
-				stateChanged = true
+				stateChanged.Store(true)
 				args, ok := e.(discovery.Exports)
 				assert.Equal(t, true, ok)
 				assert.Equal(t, 8, len(args.Targets))
@@ -111,5 +112,5 @@ func TestComponent(t *testing.T) {
 	wg.Wait()
 	cancel()
 	assert.Equal(t, true, endpointCalled)
-	assert.Equal(t, true, stateChanged)
+	assert.Equal(t, true, stateChanged.Load())
 }
