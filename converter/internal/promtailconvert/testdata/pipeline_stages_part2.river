@@ -7,9 +7,52 @@ local.file_match "example" {
 	path_targets = discovery.kubernetes.example.targets
 }
 
+loki.process "example" {
+	forward_to = [loki.write.default.receiver]
+
+	stage.docker { }
+
+	stage.cri { }
+
+	stage.label_drop {
+		values = ["foo", "bar", "baz"]
+	}
+
+	stage.timestamp {
+		source            = "time"
+		format            = "2006-01-02T15:04:05.000Z07:00"
+		fallback_formats  = ["2006-01-02T15:04:05.000Z07.00", "2006-01-02T15:04:05.000Z07:0000"]
+		location          = "Europe/Berlin"
+		action_on_failure = "fudge"
+	}
+
+	stage.output {
+		source = "foo"
+	}
+
+	stage.template {
+		source   = "foo"
+		template = "foo_template"
+	}
+
+	stage.tenant {
+		label  = "sofa"
+		source = "party"
+		value  = "brad"
+	}
+
+	stage.limit {
+		rate                = 100.3
+		burst               = 1000
+		drop                = true
+		by_label_name       = "foobar"
+		max_distinct_labels = 10
+	}
+}
+
 loki.source.file "example" {
 	targets    = local.file_match.example.targets
-	forward_to = [loki.write.default.receiver]
+	forward_to = [loki.process.example.receiver]
 }
 
 loki.write "default" {

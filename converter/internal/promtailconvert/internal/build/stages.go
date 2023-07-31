@@ -5,6 +5,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/alecthomas/units"
+
 	promtailmetric "github.com/grafana/loki/clients/pkg/logentry/metric"
 	promtailstages "github.com/grafana/loki/clients/pkg/logentry/stages"
 	"github.com/mitchellh/mapstructure"
@@ -48,30 +50,28 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 			return convertMetrics(iCfg, diags)
 		case promtailstages.StageTypeLabel:
 			return convertLabels(iCfg, diags)
-			//case promtailstages.StageTypeLabelDrop:
-			//	return convertlabeldrop(iCfg, diags)
-			//case promtailstages.StageTypeTimestamp:
-			//	return converttimestamp(iCfg, diags)
-			//case promtailstages.StageTypeOutput:
-			//	return convertoutput(iCfg, diags)
-			//case promtailstages.StageTypeDocker:
-			//	return convertdocker(iCfg, diags)
-			//case promtailstages.StageTypeCRI:
-			//	return convertcri(iCfg, diags)
-			//case promtailstages.StageTypeMatch:
-			//	return convertmatch(iCfg, diags)
-			//case promtailstages.StageTypeTemplate:
-			//	return converttemplate(iCfg, diags)
-			//case promtailstages.StageTypePipeline:
-			//	return convertpipeline(iCfg, diags)
-			//case promtailstages.StageTypeTenant:
-			//	return converttenant(iCfg, diags)
-			//case promtailstages.StageTypeDrop:
-			//	return convertdrop(iCfg, diags)
-			//case promtailstages.StageTypeSampling:
-			//	return convertsampling(iCfg, diags)
-			//case promtailstages.StageTypeLimit:
-			//	return convertlimit(iCfg, diags)
+		case promtailstages.StageTypeLabelDrop:
+			return convertLabelDrop(iCfg, diags)
+		case promtailstages.StageTypeTimestamp:
+			return convertTimestamp(iCfg, diags)
+		case promtailstages.StageTypeOutput:
+			return convertOutput(iCfg, diags)
+		case promtailstages.StageTypeDocker:
+			return convertDocker()
+		case promtailstages.StageTypeCRI:
+			return convertCRI()
+		case promtailstages.StageTypeMatch:
+			return convertMatch(iCfg, diags)
+		case promtailstages.StageTypeTemplate:
+			return convertTemplate(iCfg, diags)
+		case promtailstages.StageTypeTenant:
+			return convertTenant(iCfg, diags)
+		case promtailstages.StageTypeDrop:
+			return convertDrop(iCfg, diags)
+		case promtailstages.StageTypeSampling:
+			return convertSampling(iCfg, diags)
+		case promtailstages.StageTypeLimit:
+			return convertLimit(iCfg, diags)
 			//case promtailstages.StageTypeMultiline:
 			//	return convertmultiline(iCfg, diags)
 			//case promtailstages.StageTypePack:
@@ -91,6 +91,199 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 
 	diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported pipeline stage: %v", st))
 	return stages.StageConfig{}, false
+}
+
+func convertLimit(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pLimit := &promtailstages.LimitConfig{}
+	if err := mapstructure.Decode(cfg, pLimit); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{
+		LimitConfig: &stages.LimitConfig{
+			Rate:              pLimit.Rate,
+			Burst:             pLimit.Burst,
+			Drop:              pLimit.Drop,
+			ByLabelName:       pLimit.ByLabelName,
+			MaxDistinctLabels: pLimit.MaxDistinctLabels,
+		},
+	}, true
+}
+
+func convertSampling(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	diags.Add(diag.SeverityLevelError, fmt.Sprintf("pipeline_stages.sampling is currently not supported: %v", cfg))
+	return stages.StageConfig{}, false
+}
+
+func convertDrop(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pDrop := &promtailstages.DropConfig{}
+	if err := mapstructure.Decode(cfg, pDrop); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+
+	source := ""
+	if pDrop.Source != nil {
+		switch s := pDrop.Source.(type) {
+		case []interface{}:
+			if len(s) == 1 {
+				str, ok := s[0].(string)
+				if !ok {
+					diags.Add(
+						diag.SeverityLevelError,
+						fmt.Sprintf("invalid pipeline_stages.drop.source[0] field type '%T': %v", s[0], s[0]),
+					)
+					return stages.StageConfig{}, false
+				}
+				source = str
+			} else if len(s) > 1 {
+				diags.Add(
+					diag.SeverityLevelError,
+					fmt.Sprintf("only single value for pipelina_stages.drop.source is supported - got: %v", s),
+				)
+				return stages.StageConfig{}, false
+			}
+		case string:
+			source = s
+		default:
+			diags.Add(
+				diag.SeverityLevelError,
+				fmt.Sprintf("invalid pipeline_stages.drop.source field type '%T': %v", pDrop.Source, pDrop.Source),
+			)
+			return stages.StageConfig{}, false
+		}
+	}
+
+	var olderThan time.Duration
+	if pDrop.OlderThan != nil {
+		d, err := time.ParseDuration(*pDrop.OlderThan)
+		if err != nil {
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("invalid pipeline_stages.drop.older_than field: %v", err))
+			return stages.StageConfig{}, false
+		}
+		olderThan = d
+	}
+
+	var longerThan units.Base2Bytes
+	if pDrop.LongerThan != nil {
+		lt, err := units.ParseBase2Bytes(*pDrop.LongerThan)
+		if err != nil {
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("invalid pipeline_stages.drop.longer_than field: %v", err))
+			return stages.StageConfig{}, false
+		}
+		longerThan = lt
+	}
+
+	if pDrop.Separator != nil && *pDrop.Separator != "" {
+		diags.Add(
+			diag.SeverityLevelWarn,
+			fmt.Sprintf("pipeline_stages.drop.separator is ignored since only one 'source' value is supported: %v", *pDrop.Separator),
+		)
+	}
+
+	return stages.StageConfig{DropConfig: &stages.DropConfig{
+		DropReason: defaultEmpty(pDrop.DropReason),
+		Source:     source,
+		Value:      defaultEmpty(pDrop.Value),
+		Expression: defaultEmpty(pDrop.Expression),
+		OlderThan:  olderThan,
+		LongerThan: longerThan,
+	}}, true
+}
+
+func convertTenant(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pTenant := &promtailstages.TenantConfig{}
+	if err := mapstructure.Decode(cfg, pTenant); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{TenantConfig: &stages.TenantConfig{
+		Label:  pTenant.Label,
+		Source: pTenant.Source,
+		Value:  pTenant.Value,
+	}}, true
+}
+
+func convertTemplate(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pTemplate := &promtailstages.TemplateConfig{}
+	if err := mapstructure.Decode(cfg, pTemplate); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{TemplateConfig: &stages.TemplateConfig{
+		Source:   pTemplate.Source,
+		Template: pTemplate.Template,
+	}}, true
+}
+
+func convertMatch(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pMatch := &promtailstages.MatcherConfig{}
+	if err := mapstructure.Decode(cfg, pMatch); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+
+	// convert nested stages
+	subStages := make([]stages.StageConfig, len(pMatch.Stages))
+	for i, ps := range pMatch.Stages {
+		if fs, ok := convertStage(ps, diags); ok {
+			subStages[i] = fs
+		}
+	}
+
+	return stages.StageConfig{MatchConfig: &stages.MatchConfig{
+		Selector:     pMatch.Selector,
+		Stages:       subStages,
+		Action:       pMatch.Action,
+		PipelineName: defaultEmpty(pMatch.PipelineName),
+		DropReason:   defaultEmpty(pMatch.DropReason),
+	}}, true
+}
+
+func convertCRI() (stages.StageConfig, bool) {
+	return stages.StageConfig{CRIConfig: &stages.CRIConfig{}}, true
+}
+
+func convertDocker() (stages.StageConfig, bool) {
+	return stages.StageConfig{DockerConfig: &stages.DockerConfig{}}, true
+}
+
+func convertOutput(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pOutput := &promtailstages.OutputConfig{}
+	if err := mapstructure.Decode(cfg, pOutput); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{OutputConfig: &stages.OutputConfig{
+		Source: pOutput.Source,
+	}}, true
+}
+
+func convertTimestamp(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pTimestamp := &promtailstages.TimestampConfig{}
+	if err := mapstructure.Decode(cfg, pTimestamp); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{TimestampConfig: &stages.TimestampConfig{
+		Source:          pTimestamp.Source,
+		Format:          pTimestamp.Format,
+		FallbackFormats: pTimestamp.FallbackFormats,
+		Location:        pTimestamp.Location,
+		ActionOnFailure: defaultEmpty(pTimestamp.ActionOnFailure),
+	},
+	}, true
+}
+
+func convertLabelDrop(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pLabelDrop := &promtailstages.LabelDropConfig{}
+	if err := mapstructure.Decode(cfg, pLabelDrop); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{LabelDropConfig: &stages.LabelDropConfig{
+		Values: *pLabelDrop,
+	}}, true
 }
 
 func convertLabels(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
@@ -272,4 +465,28 @@ func defaultFalse(s *bool) bool {
 		return false
 	}
 	return *s
+}
+
+// unifySourceField reflects the implementation from promtail's clients/pkg/logentry/stages/drop.go
+func unifySourceField(i interface{}, diags *diag.Diagnostics) string {
+	if i == nil {
+		return ""
+	}
+
+	switch s := i.(type) {
+	case []string:
+		if len(s) == 0 {
+			return ""
+		}
+		if len(s) == 1 {
+			return s[0]
+		}
+		diags.Add(diag.SeverityLevelError, fmt.Sprintf("only single value for pipelina_stages.drop.source is supported - got: %v", s))
+		return ""
+	case string:
+		return s
+	}
+
+	diags.Add(diag.SeverityLevelError, fmt.Sprintf("invalid source field type: %T - %v", i, i))
+	return ""
 }
