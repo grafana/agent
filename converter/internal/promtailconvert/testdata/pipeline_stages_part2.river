@@ -1,0 +1,22 @@
+discovery.kubernetes "example" {
+	role            = "pod"
+	kubeconfig_file = "/home/toby/.kube/config"
+}
+
+local.file_match "example" {
+	path_targets = discovery.kubernetes.example.targets
+}
+
+loki.source.file "example" {
+	targets    = local.file_match.example.targets
+	forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+	endpoint {
+		url              = "http://localhost/loki/api/v1/push"
+		follow_redirects = false
+		enable_http2     = false
+	}
+	external_labels = {}
+}

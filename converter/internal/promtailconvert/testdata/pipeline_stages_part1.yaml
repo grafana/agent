@@ -59,6 +59,9 @@ scrape_configs:
             config:
               value: something
               buckets: [0.1, 0.2, 0.3]
+      - labels:
+          source: bar
+          foo: destination
 
     kubernetes_sd_configs:
       - role: pod

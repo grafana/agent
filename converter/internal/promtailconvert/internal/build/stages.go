@@ -2,6 +2,7 @@ package build
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	promtailmetric "github.com/grafana/loki/clients/pkg/logentry/metric"
@@ -45,8 +46,8 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 			return convertReplace(iCfg, diags)
 		case promtailstages.StageTypeMetric:
 			return convertMetrics(iCfg, diags)
-			//case promtailstages.StageTypeLabel:
-			//	return convertlabels(iCfg, diags)
+		case promtailstages.StageTypeLabel:
+			return convertLabels(iCfg, diags)
 			//case promtailstages.StageTypeLabelDrop:
 			//	return convertlabeldrop(iCfg, diags)
 			//case promtailstages.StageTypeTimestamp:
@@ -92,6 +93,17 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 	return stages.StageConfig{}, false
 }
 
+func convertLabels(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pLabels := &promtailstages.LabelsConfig{}
+	if err := mapstructure.Decode(cfg, pLabels); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{LabelsConfig: &stages.LabelsConfig{
+		Values: *pLabels,
+	}}, true
+}
+
 func convertMetrics(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
 	pMetrics := &promtailstages.MetricsConfig{}
 	if err := mapstructure.Decode(cfg, pMetrics); err != nil {
@@ -100,7 +112,16 @@ func convertMetrics(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfi
 	}
 
 	var fMetrics []stages.MetricConfig
-	for name, pMetric := range *pMetrics {
+
+	// sort metric names to make conversion deterministic
+	var sortedNames []string
+	for name := range *pMetrics {
+		sortedNames = append(sortedNames, name)
+	}
+	sort.Strings(sortedNames)
+
+	for _, name := range sortedNames {
+		pMetric := (*pMetrics)[name]
 		fMetric, ok := toFlowMetricProcessStage(name, pMetric, diags)
 		if !ok {
 			return stages.StageConfig{}, false

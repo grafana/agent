@@ -39,26 +39,6 @@ loki.process "example" {
 	}
 
 	stage.metrics {
-		metric.gauge {
-			name              = "test_gauge"
-			description       = "A test gauge"
-			source            = "bar"
-			prefix            = "test_prefix_"
-			max_idle_duration = "10m0s"
-			value             = "something"
-			action            = "set"
-		}
-
-		metric.histogram {
-			name              = "test_histogram"
-			description       = "A test histogram"
-			source            = "bar"
-			prefix            = "test_prefix_"
-			max_idle_duration = "10m0s"
-			value             = "something"
-			buckets           = [0.1, 0.2, 0.3]
-		}
-
 		metric.counter {
 			name              = "test_counter_1"
 			description       = "A test counter"
@@ -78,6 +58,33 @@ loki.process "example" {
 			action            = "add"
 			match_all         = true
 			count_entry_bytes = true
+		}
+
+		metric.gauge {
+			name              = "test_gauge"
+			description       = "A test gauge"
+			source            = "bar"
+			prefix            = "test_prefix_"
+			max_idle_duration = "10m0s"
+			value             = "something"
+			action            = "set"
+		}
+
+		metric.histogram {
+			name              = "test_histogram"
+			description       = "A test histogram"
+			source            = "bar"
+			prefix            = "test_prefix_"
+			max_idle_duration = "10m0s"
+			value             = "something"
+			buckets           = [0.1, 0.2, 0.3]
+		}
+	}
+
+	stage.labels {
+		values = {
+			foo    = "destination",
+			source = "bar",
 		}
 	}
 }
