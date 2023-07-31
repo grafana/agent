@@ -31,63 +31,63 @@ dist-agent-binaries: dist/grafana-agent-linux-amd64       \
                      dist/grafana-agent-linux-amd64-boringcrypto  \
                      dist/grafana-agent-linux-arm64-boringcrypto
 
-dist/grafana-agent-linux-amd64: GO_TAGS += stringlabels builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-amd64: GO_TAGS += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-amd64: GOOS    := linux
 dist/grafana-agent-linux-amd64: GOARCH  := amd64
 dist/grafana-agent-linux-amd64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/grafana-agent-linux-arm64: GO_TAGS += stringlabels builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-arm64: GO_TAGS += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-arm64: GOOS    := linux
 dist/grafana-agent-linux-arm64: GOARCH  := arm64
 dist/grafana-agent-linux-arm64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/grafana-agent-linux-ppc64le: GO_TAGS += stringlabels builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-ppc64le: GO_TAGS += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-ppc64le: GOOS    := linux
 dist/grafana-agent-linux-ppc64le: GOARCH  := ppc64le
 dist/grafana-agent-linux-ppc64le: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/grafana-agent-linux-s390x: GO_TAGS += stringlabels builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-s390x: GO_TAGS += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-s390x: GOOS    := linux
 dist/grafana-agent-linux-s390x: GOARCH  := s390x
 dist/grafana-agent-linux-s390x: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/grafana-agent-darwin-amd64: GO_TAGS += stringlabels builtinassets
+dist/grafana-agent-darwin-amd64: GO_TAGS += builtinassets
 dist/grafana-agent-darwin-amd64: GOOS    := darwin
 dist/grafana-agent-darwin-amd64: GOARCH  := amd64
 dist/grafana-agent-darwin-amd64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/grafana-agent-darwin-arm64: GO_TAGS += stringlabels builtinassets
+dist/grafana-agent-darwin-arm64: GO_TAGS += builtinassets
 dist/grafana-agent-darwin-arm64: GOOS    := darwin
 dist/grafana-agent-darwin-arm64: GOARCH  := arm64
 dist/grafana-agent-darwin-arm64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/grafana-agent-windows-amd64.exe: GO_TAGS += stringlabels builtinassets
+dist/grafana-agent-windows-amd64.exe: GO_TAGS += builtinassets
 dist/grafana-agent-windows-amd64.exe: GOOS    := windows
 dist/grafana-agent-windows-amd64.exe: GOARCH  := amd64
 dist/grafana-agent-windows-amd64.exe: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/grafana-agent-freebsd-amd64: GO_TAGS += stringlabels builtinassets
+dist/grafana-agent-freebsd-amd64: GO_TAGS += builtinassets
 dist/grafana-agent-freebsd-amd64: GOOS    := freebsd
 dist/grafana-agent-freebsd-amd64: GOARCH  := amd64
 dist/grafana-agent-freebsd-amd64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
 
-dist/grafana-agent-linux-amd64-boringcrypto: GO_TAGS      += stringlabels builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-amd64-boringcrypto: GO_TAGS      += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-amd64-boringcrypto: GOOS         := linux
 dist/grafana-agent-linux-amd64-boringcrypto: GOARCH       := amd64
 dist/grafana-agent-linux-amd64-boringcrypto: GOEXPERIMENT := boringcrypto
 dist/grafana-agent-linux-amd64-boringcrypto: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent
 
-dist/grafana-agent-linux-arm64-boringcrypto: GO_TAGS      += stringlabels builtinassets promtail_journal_enabled
+dist/grafana-agent-linux-arm64-boringcrypto: GO_TAGS      += builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-arm64-boringcrypto: GOOS         := linux
 dist/grafana-agent-linux-arm64-boringcrypto: GOARCH       := arm64
 dist/grafana-agent-linux-arm64-boringcrypto: GOEXPERIMENT := boringcrypto
@@ -167,31 +167,31 @@ dist-agent-flow-binaries: dist.temp/grafana-agent-flow-linux-amd64       \
                           dist.temp/grafana-agent-flow-linux-s390x       \
                           dist.temp/grafana-agent-flow-windows-amd64.exe
 
-dist.temp/grafana-agent-flow-linux-amd64: GO_TAGS += stringlabels builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-amd64: GO_TAGS += builtinassets promtail_journal_enabled
 dist.temp/grafana-agent-flow-linux-amd64: GOOS    := linux
 dist.temp/grafana-agent-flow-linux-amd64: GOARCH  := amd64
 dist.temp/grafana-agent-flow-linux-amd64: generate-ui
 	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
-dist.temp/grafana-agent-flow-linux-arm64: GO_TAGS += stringlabels builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-arm64: GO_TAGS += builtinassets promtail_journal_enabled
 dist.temp/grafana-agent-flow-linux-arm64: GOOS    := linux
 dist.temp/grafana-agent-flow-linux-arm64: GOARCH  := arm64
 dist.temp/grafana-agent-flow-linux-arm64: generate-ui
 	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
-dist.temp/grafana-agent-flow-linux-ppc64le: GO_TAGS += stringlabels builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-ppc64le: GO_TAGS += builtinassets promtail_journal_enabled
 dist.temp/grafana-agent-flow-linux-ppc64le: GOOS    := linux
 dist.temp/grafana-agent-flow-linux-ppc64le: GOARCH  := ppc64le
 dist.temp/grafana-agent-flow-linux-ppc64le: generate-ui
 	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
-dist.temp/grafana-agent-flow-linux-s390x: GO_TAGS += stringlabels builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-s390x: GO_TAGS += builtinassets promtail_journal_enabled
 dist.temp/grafana-agent-flow-linux-s390x: GOOS    := linux
 dist.temp/grafana-agent-flow-linux-s390x: GOARCH  := s390x
 dist.temp/grafana-agent-flow-linux-s390x: generate-ui
 	$(PACKAGING_VARS) FLOW_BINARY=$@ $(MAKE) -f $(PARENT_MAKEFILE) agent-flow
 
-dist.temp/grafana-agent-flow-windows-amd64.exe: GO_TAGS += stringlabels builtinassets
+dist.temp/grafana-agent-flow-windows-amd64.exe: GO_TAGS += builtinassets
 dist.temp/grafana-agent-flow-windows-amd64.exe: GOOS    := windows
 dist.temp/grafana-agent-flow-windows-amd64.exe: GOARCH  := amd64
 dist.temp/grafana-agent-flow-windows-amd64.exe: generate-ui
@@ -209,7 +209,7 @@ dist.temp/grafana-agent-flow-windows-amd64.exe: generate-ui
 
 dist-agent-service-binaries: dist.temp/grafana-agent-service-windows-amd64.exe
 
-dist.temp/grafana-agent-service-windows-amd64.exe: GO_TAGS += stringlabels builtinassets
+dist.temp/grafana-agent-service-windows-amd64.exe: GO_TAGS += builtinassets
 dist.temp/grafana-agent-service-windows-amd64.exe: GOOS    := windows
 dist.temp/grafana-agent-service-windows-amd64.exe: GOARCH  := amd64
 dist.temp/grafana-agent-service-windows-amd64.exe: generate-ui
