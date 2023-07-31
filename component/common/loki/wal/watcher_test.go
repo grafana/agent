@@ -325,7 +325,6 @@ func TestWatcher(t *testing.T) {
 			}, logger, reg)
 			require.NoError(t, err)
 			defer wl.Close()
-
 			ew := newEntryWriter()
 			// run test case injecting resources
 			testCase(
