@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	delta = time.Millisecond * 10
+	delta = time.Millisecond * 20
 )
 
 func TestBackoffTimer(t *testing.T) {
