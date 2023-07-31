@@ -190,6 +190,8 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 // For the gossipNode implementation, Start will attempt to connect to the
 // configured list of peers; if this fails it will fall back to bootstrapping a
 // new cluster of its own.
+// The gossipNode will start out as a Viewer; to participate in clustering,
+// the node needs to transition to the Participant state using ChangeState.
 func (c *Clusterer) Start(ctx context.Context) error {
 	switch node := c.Node.(type) {
 	case *localNode:
