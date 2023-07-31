@@ -39,7 +39,7 @@ type Arguments struct {
 
 var DefaultArguments = Arguments{
 	Port:             80,
-	RefreshInterval:  time.Duration(60),
+	RefreshInterval:  60 * time.Second,
 	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
