@@ -110,7 +110,6 @@ local pipelines = import '../util/pipelines.jsonnet';
 
   pipelines.windows('Test (Windows)') {
     trigger: {
-      event: ['pull_request'],
       ref: ['refs/heads/main'],
     },
     steps: [{
