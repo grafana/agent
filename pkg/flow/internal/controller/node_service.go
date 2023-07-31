@@ -30,6 +30,9 @@ func NewServiceNode(host service.Host, svc service.Service) *ServiceNode {
 	}
 }
 
+// Service returns the service instance associated with the node.
+func (sn *ServiceNode) Service() service.Service { return sn.svc }
+
 // Definition returns the service definition associated with the node.
 func (sn *ServiceNode) Definition() service.Definition { return sn.def }
 

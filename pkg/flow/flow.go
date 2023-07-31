@@ -55,6 +55,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/agent/service"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -115,6 +116,12 @@ type Options struct {
 	// DialFunc is a function to use for components to properly connect to
 	// HTTPListenAddr. If nil, DialFunc defaults to (&net.Dialer{}).DialContext.
 	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+
+	// List of Services to run with the Flow controller.
+	//
+	// Services are configured when LoadFile is invoked. Services are started
+	// when the Flow controller runs after LoadFile is invoked at least once.
+	Services []service.Service
 }
 
 // Flow is the Flow system.
@@ -164,55 +171,57 @@ func newController(modReg *moduleRegistry, o Options) *Flow {
 		dialFunc = (&net.Dialer{}).DialContext
 	}
 
-	var (
-		queue  = controller.NewQueue()
-		sched  = controller.NewScheduler()
-		loader = controller.NewLoader(controller.LoaderOptions{
-			ComponentGlobals: controller.ComponentGlobals{
-				Logger:        log,
-				TraceProvider: tracer,
-				Clusterer:     clusterer,
-				DataPath:      o.DataPath,
-				OnComponentUpdate: func(cn *controller.ComponentNode) {
-					// Changed components should be queued for reevaluation.
-					queue.Enqueue(cn)
-				},
-				OnExportsChange: o.OnExportsChange,
-				Registerer:      o.Reg,
-				HTTPPathPrefix:  o.HTTPPathPrefix,
-				HTTPListenAddr:  o.HTTPListenAddr,
-				DialFunc:        dialFunc,
-				ControllerID:    o.ControllerID,
-				NewModuleController: func(id string) controller.ModuleController {
-					return newModuleController(&moduleControllerOptions{
-						ModuleRegistry: modReg,
-						Logger:         log,
-						Tracer:         tracer,
-						Clusterer:      clusterer,
-						Reg:            o.Reg,
-						DataPath:       o.DataPath,
-						HTTPListenAddr: o.HTTPListenAddr,
-						HTTPPath:       o.HTTPPathPrefix,
-						DialFunc:       o.DialFunc,
-						ID:             id,
-					})
-				},
-			},
-		})
-	)
-	return &Flow{
+	f := &Flow{
 		log:    log,
 		tracer: tracer,
 		opts:   o,
 
 		clusterer:   clusterer,
-		updateQueue: queue,
-		sched:       sched,
-		loader:      loader,
-		modules:     modReg,
+		updateQueue: controller.NewQueue(),
+		sched:       controller.NewScheduler(),
+
+		modules: modReg,
 
 		loadFinished: make(chan struct{}, 1),
 	}
+
+	f.loader = controller.NewLoader(controller.LoaderOptions{
+		ComponentGlobals: controller.ComponentGlobals{
+			Logger:        log,
+			TraceProvider: tracer,
+			Clusterer:     clusterer,
+			DataPath:      o.DataPath,
+			OnComponentUpdate: func(cn *controller.ComponentNode) {
+				// Changed components should be queued for reevaluation.
+				f.updateQueue.Enqueue(cn)
+			},
+			OnExportsChange: o.OnExportsChange,
+			Registerer:      o.Reg,
+			HTTPPathPrefix:  o.HTTPPathPrefix,
+			HTTPListenAddr:  o.HTTPListenAddr,
+			DialFunc:        dialFunc,
+			ControllerID:    o.ControllerID,
+			NewModuleController: func(id string) controller.ModuleController {
+				return newModuleController(&moduleControllerOptions{
+					ModuleRegistry: modReg,
+					Logger:         log,
+					Tracer:         tracer,
+					Clusterer:      clusterer,
+					Reg:            o.Reg,
+					DataPath:       o.DataPath,
+					HTTPListenAddr: o.HTTPListenAddr,
+					HTTPPath:       o.HTTPPathPrefix,
+					DialFunc:       o.DialFunc,
+					ID:             id,
+				})
+			},
+		},
+
+		Services: o.Services,
+		Host:     f,
+	})
+
+	return f
 }
 
 // Run starts the Flow controller, blocking until the provided context is
@@ -242,16 +251,24 @@ func (f *Flow) Run(ctx context.Context) {
 			}
 
 		case <-f.loadFinished:
-			level.Info(f.log).Log("msg", "scheduling loaded components")
+			level.Info(f.log).Log("msg", "scheduling loaded components and services")
 
-			components := f.loader.Components()
-			runnables := make([]controller.RunnableNode, 0, len(components))
-			for _, uc := range components {
-				runnables = append(runnables, uc)
+			var (
+				components = f.loader.Components()
+				services   = f.loader.Services()
+
+				runnables = make([]controller.RunnableNode, 0, len(components)+len(services))
+			)
+			for _, c := range components {
+				runnables = append(runnables, c)
 			}
+			for _, svc := range services {
+				runnables = append(runnables, svc)
+			}
+
 			err := f.sched.Synchronize(runnables)
 			if err != nil {
-				level.Error(f.log).Log("msg", "failed to load components", "err", err)
+				level.Error(f.log).Log("msg", "failed to load components and services", "err", err)
 			}
 		}
 	}
