@@ -1,3 +1,24 @@
+prometheus.exporter.apache "integrations_apache_http" {
+	scrape_uri = "http://0.0.0.0/server-status?auto"
+}
+
+prometheus.scrape "integrations_apache_http" {
+	targets      = prometheus.exporter.apache.integrations_apache_http.targets
+	forward_to   = [prometheus.remote_write.integrations.receiver]
+	job_name     = "integrations/apache_http"
+	metrics_path = "integrations/apache_http/metrics"
+}
+
+prometheus.remote_write "integrations" {
+	endpoint {
+		url = "http://localhost:9009/api/prom/push"
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}
+
 prometheus.exporter.unix { }
 
 discovery.relabel "integrations_node_exporter" {
@@ -38,15 +59,5 @@ prometheus.relabel "integrations_node_exporter" {
 	rule {
 		source_labels = ["__metric_address2__"]
 		target_label  = "__metric_param_target2"
-	}
-}
-
-prometheus.remote_write "integrations" {
-	endpoint {
-		url = "http://localhost:9009/api/prom/push"
-
-		queue_config { }
-
-		metadata_config { }
 	}
 }

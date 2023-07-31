@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/pkg/integrations/apache_http"
 	int_config "github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
@@ -38,6 +39,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 
 		var exports discovery.Exports
 		switch itg := integration.Config.(type) {
+		case *apache_http.Config:
+			exports = b.AppendApacheExporter(itg, &integration.Common)
 		case *node_exporter.Config:
 			exports = b.AppendNodeExporter(itg, &integration.Common)
 		}
@@ -48,7 +51,7 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 	}
 }
 
-func (b *IntegrationsV1ConfigBuilder) AppendExporter(commonConfig *int_config.Common, name string, additionalTargets []discovery.Target) {
+func (b *IntegrationsV1ConfigBuilder) AppendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
 	scrapeConfigs := []*prom_config.ScrapeConfig{}
 	if b.cfg.Integrations.ConfigV1.ScrapeIntegrations {
 		scrapeConfig := prom_config.DefaultScrapeConfig
@@ -76,5 +79,6 @@ func (b *IntegrationsV1ConfigBuilder) AppendExporter(commonConfig *int_config.Co
 		ScrapeConfigs:      scrapeConfigs,
 		RemoteWriteConfigs: b.cfg.Integrations.ConfigV1.PrometheusRemoteWrite,
 	}
-	b.diags.AddAll(prometheusconvert.AppendAll(b.f, promConfig, b.globalCtx.LabelPrefix, additionalTargets))
+	b.diags.AddAll(prometheusconvert.AppendAll(b.f, promConfig, b.globalCtx.LabelPrefix, extraTargets, b.globalCtx.RemoteWriteExports))
+	b.globalCtx.InitializeRemoteWriteExports()
 }

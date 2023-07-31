@@ -90,7 +90,7 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		//   scrape config job_name = "test_prometheus"
 		//
 		//   results in two prometheus.scrape components with the label "metrics_agent_test_prometheus"
-		diags.AddAll(prometheusconvert.AppendAll(f, promConfig, "metrics_"+instance.Name, []discovery.Target{}))
+		diags.AddAll(prometheusconvert.AppendAll(f, promConfig, "metrics_"+instance.Name, []discovery.Target{}, nil))
 	}
 
 	return diags

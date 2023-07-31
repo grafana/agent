@@ -4,6 +4,9 @@ metrics:
       - url: http://localhost:9009/api/prom/push
 
 integrations:
+  apache_http:
+    enabled: true
+    scrape_uri: http://0.0.0.0/server-status?auto
   node_exporter:
     enabled: true
     relabel_configs:

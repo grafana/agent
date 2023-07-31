@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
@@ -36,7 +37,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	f := builder.NewFile()
-	diags = AppendAll(f, promConfig, "", []discovery.Target{})
+	diags = AppendAll(f, promConfig, "", []discovery.Target{}, nil)
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -58,10 +59,12 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 // Exports from other components are correctly referenced to build the Flow
 // pipeline. A non-empty labelPrefix can be provided for label uniqueness when
 // calling this function for the same builder.File multiple times.
-func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string, additionalTargets []discovery.Target) diag.Diagnostics {
+func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string, extraScrapeTargets []discovery.Target, remoteWriteExports *remotewrite.Exports) diag.Diagnostics {
 	pb := newPrometheusBlocks()
 
-	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
+	if remoteWriteExports == nil {
+		remoteWriteExports = appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
+	}
 	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
 
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
@@ -77,7 +80,7 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix stri
 		}
 
 		scrapeTargets := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
-		scrapeTargets = append(scrapeTargets, additionalTargets...)
+		scrapeTargets = append(scrapeTargets, extraScrapeTargets...)
 
 		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
 		if promDiscoveryRelabelExports != nil {
