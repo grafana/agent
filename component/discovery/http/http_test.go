@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/grafana/agent/pkg/river"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
 	"gotest.tools/assert"
 )
 
