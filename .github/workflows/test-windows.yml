@@ -22,4 +22,4 @@ jobs:
         go-version: "1.20.3"
         cache: true
     - name: Test
-      run: make GO_TAGS="nodocker,nonetwork" test
+      run: make GO_TAGS="nodocker nonetwork" test
