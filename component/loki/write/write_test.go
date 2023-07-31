@@ -63,6 +63,14 @@ func TestUnmarshallWalAttrributes(t *testing.T) {
 	}
 
 	for name, tc := range map[string]testcase{
+		"min read frequency higher than max": {
+			raw: `
+			enabled = true
+			min_read_frequency = "1h"
+			max_read_frequency = "1m"
+			`,
+			errorExpected: true,
+		},
 		"default config is wal disabled": {
 			raw: "",
 			expected: WalArguments{
@@ -87,12 +95,12 @@ func TestUnmarshallWalAttrributes(t *testing.T) {
 			raw: `
 			enabled = true
 			max_segment_age = "10m"
-			min_read_frequency = "11m"
+			min_read_frequency = "11ms"
 			`,
 			expected: WalArguments{
 				Enabled:          true,
 				MaxSegmentAge:    time.Minute * 10,
-				MinReadFrequency: time.Minute * 11,
+				MinReadFrequency: time.Millisecond * 11,
 				MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
 			},
 		},

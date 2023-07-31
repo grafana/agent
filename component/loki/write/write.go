@@ -46,6 +46,13 @@ type WalArguments struct {
 	MaxReadFrequency time.Duration `river:"max_read_frequency,attr,optional"`
 }
 
+func (wa *WalArguments) Validate() error {
+	if wa.MinReadFrequency >= wa.MaxReadFrequency {
+		return fmt.Errorf("WAL min read frequency should be lower than max read frequency")
+	}
+	return nil
+}
+
 func (wa *WalArguments) SetToDefault() {
 	// todo(thepalbi): Once we are in a good state: replay implemented, and a better cleanup mechanism
 	// make WAL enabled the default
