@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
-
 	promtailmetric "github.com/grafana/loki/clients/pkg/logentry/metric"
 	promtailstages "github.com/grafana/loki/clients/pkg/logentry/stages"
 	"github.com/mitchellh/mapstructure"
@@ -76,21 +75,72 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 			return convertMultiline(iCfg, diags)
 		case promtailstages.StageTypePack:
 			return convertPack(iCfg, diags)
-			//case promtailstages.StageTypeLabelAllow:
-			//	return convertlabelallow(iCfg, diags)
-			//case promtailstages.StageTypeStaticLabels:
-			//	return convertstatic_labels(iCfg, diags)
-			//case promtailstages.StageTypeDecolorize:
-			//	return convertdecolorize(iCfg, diags)
-			//case promtailstages.StageTypeEventLogMessage:
-			//	return converteventlogmessage(iCfg, diags)
-			//case promtailstages.StageTypeGeoIP:
-			//	return convertgeoip(iCfg, diags)
+		case promtailstages.StageTypeLabelAllow:
+			return convertLabelAllow(iCfg, diags)
+		case promtailstages.StageTypeStaticLabels:
+			return convertStaticLabels(iCfg, diags)
+		case promtailstages.StageTypeDecolorize:
+			return convertDecolorize(diags)
+		case promtailstages.StageTypeEventLogMessage:
+			return convertEventLogMessage(diags)
+		case promtailstages.StageTypeGeoIP:
+			return convertGeoIP(iCfg, diags)
 		}
 	}
 
 	diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported pipeline stage: %v", st))
 	return stages.StageConfig{}, false
+}
+
+func convertGeoIP(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pCfg := &promtailstages.GeoIPConfig{}
+	if err := mapstructure.Decode(cfg, pCfg); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{
+		GeoIPConfig: &stages.GeoIPConfig{
+			DB:     pCfg.DB,
+			Source: pCfg.Source,
+			DBType: pCfg.DBType,
+		},
+	}, true
+}
+
+func convertEventLogMessage(diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	diags.Add(diag.SeverityLevelError, "pipeline_stages.eventlogmessage is not supported")
+	return stages.StageConfig{}, false
+}
+
+func convertDecolorize(diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	diags.Add(diag.SeverityLevelError, "pipeline_stages.decolorize is not supported")
+	return stages.StageConfig{}, false
+}
+
+func convertStaticLabels(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pCfg := &promtailstages.StaticLabelConfig{}
+	if err := mapstructure.Decode(cfg, pCfg); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{
+		StaticLabelsConfig: &stages.StaticLabelsConfig{
+			Values: *pCfg,
+		},
+	}, true
+}
+
+func convertLabelAllow(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pCfg := &promtailstages.LabelAllowConfig{}
+	if err := mapstructure.Decode(cfg, pCfg); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{
+		LabelAllowConfig: &stages.LabelAllowConfig{
+			Values: *pCfg,
+		},
+	}, true
 }
 
 func convertPack(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {

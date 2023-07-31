@@ -39,6 +39,17 @@ scrape_configs:
       - pack:
           labels: [ "foo", "bar" ]
           ingest_timestamp: true
+      - labelallow:
+          - one
+          - two
+          - three
+      - static_labels:
+          dont: label
+          who: me
+      - geoip:
+          db: /usr/share/GeoIP/GeoLite2-City.mmdb
+          source: internet
+          db_type: mmdb
     kubernetes_sd_configs:
       - role: pod
         kubeconfig_file: /home/toby/.kube/config

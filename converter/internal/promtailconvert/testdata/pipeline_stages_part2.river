@@ -58,6 +58,23 @@ loki.process "example" {
 	stage.pack {
 		labels = ["foo", "bar"]
 	}
+
+	stage.label_keep {
+		values = ["one", "two", "three"]
+	}
+
+	stage.static_labels {
+		values = {
+			dont = "label",
+			who  = "me",
+		}
+	}
+
+	stage.geoip {
+		db      = "/usr/share/GeoIP/GeoLite2-City.mmdb"
+		source  = "internet"
+		db_type = "mmdb"
+	}
 }
 
 loki.source.file "example" {

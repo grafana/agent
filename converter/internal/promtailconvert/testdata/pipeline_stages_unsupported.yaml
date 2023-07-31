@@ -5,6 +5,8 @@ scrape_configs:
     pipeline_stages:
       - sampling:
           rate: 100
+      - decolorize: { }
+      - eventlogmessage: { }
     kubernetes_sd_configs:
       - role: pod
         kubeconfig_file: /home/toby/.kube/config
