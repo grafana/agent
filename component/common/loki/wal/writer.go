@@ -83,7 +83,7 @@ func NewWriter(walCfg Config, logger log.Logger, reg prometheus.Registerer) (*Wr
 	}
 
 	wrt.reclaimedOldSegmentsSpaceCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "promtail",
+		Namespace: "loki_write",
 		Subsystem: "wal_writer",
 		Name:      "reclaimed_space",
 		Help:      "Number of bytes reclaimed from storage.",
