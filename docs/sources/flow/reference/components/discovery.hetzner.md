@@ -142,7 +142,7 @@ values.
 
 ## Example
 
-This example discovers targets from Hetzner for the specified list of services:
+This example discovers targets from Hetzner:
 
 ```river
 discovery.hetzner "example" {
