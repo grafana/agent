@@ -11,6 +11,13 @@ import (
 	prom_discovery "github.com/prometheus/prometheus/discovery/hetzner"
 )
 
+// TODO(marctc): hetzner role constants are not exported, we need to manual create them
+// Remove once this is merged: https://github.com/prometheus/prometheus/pull/12620
+const (
+	hetznerRoleRobot  string = "robot"
+	hetznerRoleHcloud string = "hcloud"
+)
+
 func init() {
 	component.Register(component.Registration{
 		Name:    "discovery.hetzner",
@@ -44,7 +51,7 @@ func (args *Arguments) SetToDefault() {
 // Validate implements river.Validator.
 func (args *Arguments) Validate() error {
 	switch args.Role {
-	case "robot", "hcloud":
+	case hetznerRoleRobot, hetznerRoleHcloud:
 	default:
 		return fmt.Errorf("unknown role %s, must be one of robot or hcloud", args.Role)
 	}
@@ -60,9 +67,10 @@ func (args *Arguments) Convert() *prom_discovery.SDConfig {
 		HTTPClientConfig: *httpClient.Convert(),
 	}
 	// TODO(marctc): hetzner.role is not exported, we need to manual convert it
-	if args.Role == "robot" {
+	// Remove once this is merged: https://github.com/prometheus/prometheus/pull/12620
+	if args.Role == hetznerRoleRobot {
 		cfg.Role = "robot"
-	} else if args.Role == "hcloud" {
+	} else if args.Role == hetznerRoleHcloud {
 		cfg.Role = "hcloud"
 	}
 	return cfg
