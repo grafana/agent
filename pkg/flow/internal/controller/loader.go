@@ -41,9 +41,19 @@ type Loader struct {
 	moduleExportIndex int
 }
 
+// LoaderOptions holds options for creating a Loader.
+type LoaderOptions struct {
+	// ComponentGlobals contains data to use when creating components.
+	ComponentGlobals ComponentGlobals
+}
+
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
-func NewLoader(globals ComponentGlobals) *Loader {
+func NewLoader(opts LoaderOptions) *Loader {
+	var (
+		globals = opts.ComponentGlobals
+	)
+
 	l := &Loader{
 		log:     log.With(globals.Logger, "controller_id", globals.ControllerID),
 		tracer:  tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),

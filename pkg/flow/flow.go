@@ -167,34 +167,36 @@ func newController(modReg *moduleRegistry, o Options) *Flow {
 	var (
 		queue  = controller.NewQueue()
 		sched  = controller.NewScheduler()
-		loader = controller.NewLoader(controller.ComponentGlobals{
-			Logger:        log,
-			TraceProvider: tracer,
-			Clusterer:     clusterer,
-			DataPath:      o.DataPath,
-			OnComponentUpdate: func(cn *controller.ComponentNode) {
-				// Changed components should be queued for reevaluation.
-				queue.Enqueue(cn)
-			},
-			OnExportsChange: o.OnExportsChange,
-			Registerer:      o.Reg,
-			HTTPPathPrefix:  o.HTTPPathPrefix,
-			HTTPListenAddr:  o.HTTPListenAddr,
-			DialFunc:        dialFunc,
-			ControllerID:    o.ControllerID,
-			NewModuleController: func(id string) controller.ModuleController {
-				return newModuleController(&moduleControllerOptions{
-					ModuleRegistry: modReg,
-					Logger:         log,
-					Tracer:         tracer,
-					Clusterer:      clusterer,
-					Reg:            o.Reg,
-					DataPath:       o.DataPath,
-					HTTPListenAddr: o.HTTPListenAddr,
-					HTTPPath:       o.HTTPPathPrefix,
-					DialFunc:       o.DialFunc,
-					ID:             id,
-				})
+		loader = controller.NewLoader(controller.LoaderOptions{
+			ComponentGlobals: controller.ComponentGlobals{
+				Logger:        log,
+				TraceProvider: tracer,
+				Clusterer:     clusterer,
+				DataPath:      o.DataPath,
+				OnComponentUpdate: func(cn *controller.ComponentNode) {
+					// Changed components should be queued for reevaluation.
+					queue.Enqueue(cn)
+				},
+				OnExportsChange: o.OnExportsChange,
+				Registerer:      o.Reg,
+				HTTPPathPrefix:  o.HTTPPathPrefix,
+				HTTPListenAddr:  o.HTTPListenAddr,
+				DialFunc:        dialFunc,
+				ControllerID:    o.ControllerID,
+				NewModuleController: func(id string) controller.ModuleController {
+					return newModuleController(&moduleControllerOptions{
+						ModuleRegistry: modReg,
+						Logger:         log,
+						Tracer:         tracer,
+						Clusterer:      clusterer,
+						Reg:            o.Reg,
+						DataPath:       o.DataPath,
+						HTTPListenAddr: o.HTTPListenAddr,
+						HTTPPath:       o.HTTPPathPrefix,
+						DialFunc:       o.DialFunc,
+						ID:             id,
+					})
+				},
 			},
 		})
 	)
