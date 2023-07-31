@@ -48,6 +48,16 @@ loki.process "example" {
 		by_label_name       = "foobar"
 		max_distinct_labels = 10
 	}
+
+	stage.multiline {
+		firstline     = ".*\n"
+		max_lines     = 100000
+		max_wait_time = "1s"
+	}
+
+	stage.pack {
+		labels = ["foo", "bar"]
+	}
 }
 
 loki.source.file "example" {

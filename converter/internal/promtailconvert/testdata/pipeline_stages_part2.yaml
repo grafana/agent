@@ -32,6 +32,13 @@ scrape_configs:
           drop: true
           by_label_name: foobar
           max_distinct_labels: 10
+      - multiline:
+          firstline: ".*\n"
+          max_lines: 100000
+          max_wait_time: 1s
+      - pack:
+          labels: [ "foo", "bar" ]
+          ingest_timestamp: true
     kubernetes_sd_configs:
       - role: pod
         kubeconfig_file: /home/toby/.kube/config

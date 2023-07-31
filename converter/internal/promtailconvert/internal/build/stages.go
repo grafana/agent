@@ -72,10 +72,10 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 			return convertSampling(iCfg, diags)
 		case promtailstages.StageTypeLimit:
 			return convertLimit(iCfg, diags)
-			//case promtailstages.StageTypeMultiline:
-			//	return convertmultiline(iCfg, diags)
-			//case promtailstages.StageTypePack:
-			//	return convertpack(iCfg, diags)
+		case promtailstages.StageTypeMultiline:
+			return convertMultiline(iCfg, diags)
+		case promtailstages.StageTypePack:
+			return convertPack(iCfg, diags)
 			//case promtailstages.StageTypeLabelAllow:
 			//	return convertlabelallow(iCfg, diags)
 			//case promtailstages.StageTypeStaticLabels:
@@ -91,6 +91,45 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 
 	diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported pipeline stage: %v", st))
 	return stages.StageConfig{}, false
+}
+
+func convertPack(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pPack := &promtailstages.PackConfig{}
+	if err := mapstructure.Decode(cfg, pPack); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{
+		PackConfig: &stages.PackConfig{
+			Labels:          pPack.Labels,
+			IngestTimestamp: defaultFalse(pPack.IngestTimestamp),
+		},
+	}, true
+}
+
+func convertMultiline(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pMulti := &promtailstages.MultilineConfig{}
+	if err := mapstructure.Decode(cfg, pMulti); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+
+	var maxWaitTime time.Duration
+	if pMulti.MaxWaitTime != nil {
+		d, err := time.ParseDuration(*pMulti.MaxWaitTime)
+		if err != nil {
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("invalid pipeline_stages.multiline.max_wait_time: %s", *pMulti.MaxWaitTime))
+		}
+		maxWaitTime = d
+	}
+
+	return stages.StageConfig{
+		MultilineConfig: &stages.MultilineConfig{
+			Expression:  defaultEmpty(pMulti.Expression),
+			MaxLines:    defaultZero(pMulti.MaxLines),
+			MaxWaitTime: maxWaitTime,
+		},
+	}, true
 }
 
 func convertLimit(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
@@ -463,6 +502,13 @@ func defaultEmpty(s *string) string {
 func defaultFalse(s *bool) bool {
 	if s == nil {
 		return false
+	}
+	return *s
+}
+
+func defaultZero(s *uint64) uint64 {
+	if s == nil {
+		return 0
 	}
 	return *s
 }
