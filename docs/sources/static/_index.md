@@ -69,10 +69,11 @@ Grafana Cloud integration workflows and the Kubernetes Monitoring solution are t
 
 | Topic | Description |
 |---|---|
-| [Install Grafana Agent](/docs/grafana-cloud/data-configuration/agent/install_agent/) | Install Grafana Agent using a script for Debian- and Red Hat-based systems. |
+| [Install and uninstall Grafana Agent][] | Install or uninstall Grafana Agent. |
 | [Monitor Grafana Agent](/docs/grafana-cloud/data-configuration/agent/agent_monitoring/) |  Grafana Agent lets you monitor services but you can also monitor Grafana Agent itself. Learn how to use PromQL to set up an alert for an Agent integration, as well as other methods to monitor Agent. |
-| [Uninstall Grafana Agent](/docs/grafana-cloud/data-configuration/agent/install_agent/#uninstall-grafana-agent) | Uninstalling an integration doesn't automatically stop Agent from scraping data. Learn how to uninstall Agent. |
 | [Troubleshoot Grafana Agent](/docs/grafana-cloud/data-configuration/agent/troubleshooting/) | Learn what to check when you are having trouble collecting data using Grafana Agent, and find solutions to common issues.  |
+
+[Install and uninstall Grafana Agent]: {{< relref set-up/install/" >}}
 
 ### Use Grafana Agent to send logs to Grafana Loki
 
