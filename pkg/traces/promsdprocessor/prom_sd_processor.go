@@ -117,7 +117,7 @@ func (p *promServiceDiscoProcessor) watchServiceDiscovery() {
 			for jobName, groups := range targetGroups {
 				p.syncGroups(jobName, groups, hostLabels)
 			}
-			p.consumer.SetHostLabels(hostLabels)
+			p.consumer.UpdateOptionsHostLabels(hostLabels)
 		case <-p.discoveryMgrCtx.Done():
 			return
 		}

@@ -96,7 +96,7 @@ func TestOperationType(t *testing.T) {
 					attrKey: tc.newValue,
 				},
 			}
-			c.hostLabels = hostLabels
+			c.opts.HostLabels = hostLabels
 			c.processAttributes(context.TODO(), attrMap)
 
 			actualAttrValue, _ := attrMap.Get(attrKey)

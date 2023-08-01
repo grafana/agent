@@ -70,13 +70,17 @@ func ValidatePodAssociations(podAssociations []string) error {
 type Consumer struct {
 	nextConsumer otelconsumer.Traces
 
-	mtx        sync.RWMutex
-	hostLabels map[string]discovery.Target
-
-	operationType   string
-	podAssociations []string
+	optsMut sync.RWMutex
+	opts    Options
 
 	logger log.Logger
+}
+
+// Options configure a Consumer
+type Options struct {
+	HostLabels      map[string]discovery.Target
+	OperationType   string
+	PodAssociations []string
 }
 
 var _ otelconsumer.Traces = (*Consumer)(nil)
@@ -97,19 +101,30 @@ func NewConsumer(nextConsumer otelconsumer.Traces, operationType string, podAsso
 	}
 
 	return &Consumer{
-		nextConsumer:    nextConsumer,
-		hostLabels:      make(map[string]discovery.Target),
-		operationType:   operationType,
-		podAssociations: podAssociations,
-		logger:          logger,
+		nextConsumer: nextConsumer,
+		opts: Options{
+			HostLabels:      make(map[string]discovery.Target),
+			OperationType:   operationType,
+			PodAssociations: podAssociations,
+		},
+		logger: logger,
 	}, nil
 }
 
-func (c *Consumer) SetHostLabels(hostLabels map[string]discovery.Target) {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
+// UpdateOptions is used in flow mode, where all options need to be updated.
+func (c *Consumer) UpdateOptions(opts Options) {
+	c.optsMut.Lock()
+	defer c.optsMut.Unlock()
 
-	c.hostLabels = hostLabels
+	c.opts = opts
+}
+
+// UpdateOptionsHostLabels is used in static mode, where only the host labels need to be updated.
+func (c *Consumer) UpdateOptionsHostLabels(hostLabels map[string]discovery.Target) {
+	c.optsMut.Lock()
+	defer c.optsMut.Unlock()
+
+	c.opts.HostLabels = hostLabels
 }
 
 func (c *Consumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
@@ -135,17 +150,17 @@ func (c *Consumer) processAttributes(ctx context.Context, attrs pcommon.Map) {
 		return
 	}
 
-	c.mtx.RLock()
-	defer c.mtx.RUnlock()
+	c.optsMut.RLock()
+	defer c.optsMut.RUnlock()
 
-	labels, ok := c.hostLabels[ip]
+	labels, ok := c.opts.HostLabels[ip]
 	if !ok {
 		level.Debug(c.logger).Log("msg", "unable to find labels", "ip", ip)
 		return
 	}
 
 	for k, v := range labels {
-		switch c.operationType {
+		switch c.opts.OperationType {
 		case OperationTypeUpsert:
 			attrs.PutStr(k, v)
 		case OperationTypeInsert:
@@ -161,7 +176,7 @@ func (c *Consumer) processAttributes(ctx context.Context, attrs pcommon.Map) {
 }
 
 func (c *Consumer) getPodIP(ctx context.Context, attrs pcommon.Map) string {
-	for _, podAssociation := range c.podAssociations {
+	for _, podAssociation := range c.opts.PodAssociations {
 		switch podAssociation {
 		case PodAssociationIPLabel, PodAssociationOTelIPLabel, PodAssociationk8sIPLabel:
 			ip := stringAttributeFromMap(attrs, podAssociation)

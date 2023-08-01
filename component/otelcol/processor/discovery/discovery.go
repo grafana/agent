@@ -140,7 +140,11 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		hostLabels[host] = labels
 	}
 
-	c.consumer.SetHostLabels(hostLabels)
+	c.consumer.UpdateOptions(promsdconsumer.Options{
+		HostLabels:      hostLabels,
+		OperationType:   cfg.OperationType,
+		PodAssociations: cfg.PodAssociations,
+	})
 
 	return nil
 }
