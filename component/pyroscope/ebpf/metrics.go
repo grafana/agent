@@ -5,7 +5,7 @@
 package ebpf
 
 import (
-	"github.com/grafana/phlare/ebpf/symtab"
+	"github.com/grafana/pyroscope/ebpf/symtab"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

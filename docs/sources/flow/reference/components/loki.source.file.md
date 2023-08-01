@@ -29,12 +29,16 @@ log entries to the list of receivers passed in `forward_to`.
 Name         | Type                   | Description          | Default | Required
 ------------ | ---------------------- | -------------------- | ------- | --------
 `targets`    | `list(map(string))`    | List of files to read from. | | yes
-`forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
+`forward_to` | `list(LogsReceiver)`   | List of receivers to send log entries to. | | yes
+`encoding`   | `string`               | The encoding to convert from when reading files. | `""` | no
 
 ## Blocks
 
 The `loki.source.file` component doesn't support any inner blocks and is
 configured fully through arguments.
+
+The `encoding` argument must be a valid [IANA encoding][] name. If not set, it
+defaults to UTF-8. 
 
 ## Exported fields
 
@@ -102,3 +106,5 @@ loki.write "local" {
   }
 }
 ```
+
+[IANA encoding]: https://www.iana.org/assignments/character-sets/character-sets.xhtml
