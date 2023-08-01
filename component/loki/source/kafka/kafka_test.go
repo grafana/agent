@@ -60,7 +60,10 @@ func TestSASLRiverConfig(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
 
-	require.NotEqual(t, "password", args.Authentication.SASLConfig.Password.String())
+	// Ensures that the rivertype.Secret is working properly and there's no error
+	password, err_ := ConvertSecretToString(args.Authentication.SASLConfig.Password)
+	require.NoError(t, err_)
+	require.Equal(t, "password", password)
 }
 
 func TestSASLOAuthRiverConfig(t *testing.T) {

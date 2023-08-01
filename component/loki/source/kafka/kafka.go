@@ -12,6 +12,7 @@ import (
 	kt "github.com/grafana/agent/component/loki/source/internal/kafkatarget"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/dskit/flagext"
+	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/model"
 )
 
@@ -24,6 +25,16 @@ func init() {
 			return New(opts, args.(Arguments))
 		},
 	})
+}
+
+// Takes in a variable of type `rivertypes.Secret`, converts it to an OptionalSecret in order to extract the string value
+func ConvertSecretToString(secret rivertypes.Secret) (string, error) {
+	var optSecret rivertypes.OptionalSecret
+	err := secret.ConvertInto(&optSecret)
+	if err != nil {
+		return "", err
+	}
+	return optSecret.Value, nil
 }
 
 // Arguments holds values which are used to configure the loki.source.kafka
@@ -53,7 +64,7 @@ type KafkaAuthentication struct {
 type KafkaSASLConfig struct {
 	Mechanism   string            `river:"mechanism,attr,optional"`
 	User        string            `river:"user,attr,optional"`
-	Password    flagext.Secret    `river:"password,attr,optional"`
+	Password    rivertypes.Secret `river:"password,attr,optional"`
 	UseTLS      bool              `river:"use_tls,attr,optional"`
 	TLSConfig   config.TLSConfig  `river:"tls_config,block,optional"`
 	OAuthConfig OAuthConfigConfig `river:"oauth_config,block,optional"`
@@ -192,21 +203,14 @@ func (args *Arguments) Convert() kt.Config {
 }
 
 func (auth KafkaAuthentication) Convert() kt.Authentication {
-	// var secret flagext.Secret
-	// if auth.SASLConfig.Password.String() != "" {
-	// 	err := secret.Set(auth.SASLConfig.Password)
-	// 	if err != nil {
-	// 		panic("Unable to set kafka SASLConfig password")
-	// 	}
-	// }
-
+	password, _ := ConvertSecretToString(auth.SASLConfig.Password)
 	return kt.Authentication{
 		Type:      kt.AuthenticationType(auth.Type),
 		TLSConfig: *auth.TLSConfig.Convert(),
 		SASLConfig: kt.SASLConfig{
 			Mechanism: sarama.SASLMechanism(auth.SASLConfig.Mechanism),
 			User:      auth.SASLConfig.User,
-			Password:  auth.SASLConfig.Password,
+			Password:  flagext.SecretWithValue(password),
 			UseTLS:    auth.SASLConfig.UseTLS,
 			TLSConfig: *auth.SASLConfig.TLSConfig.Convert(),
 			OAuthConfig: kt.OAuthConfig{

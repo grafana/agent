@@ -113,12 +113,12 @@ you must set the `tls_config` block. If `"sasl"` is used, you must set the `sasl
 The `sasl_config` block defines the listen address and port where the listener
 expects Kafka messages to be sent to.
 
- Name        | Type     | Description                                                                   | Default    | Required 
--------------|----------|-------------------------------------------------------------------------------|------------|----------
- `mechanism` | `string` | Specifies the SASL mechanism the client uses to authenticate with the broker. | `"PLAIN""` | no       
- `user`      | `string` | The user name to use for SASL authentication.                                 | `""`       | no       
- `password`  | `string` | The password to use for SASL authentication.                                  | `""`       | no       
- `use_tls`   | `bool`   | If true, SASL authentication is executed over TLS.                            | `false`    | no       
+ Name        | Type                 | Description                                                                   | Default    | Required 
+-------------|----------------------|--------------------------------------------------------------------|----------|-----------------------
+ `mechanism` | `string`             | Specifies the SASL mechanism the client uses to authenticate with the broker. | `"PLAIN""` | no       
+ `user`      | `string`             | The user name to use for SASL authentication.                                 | `""`       | no       
+ `password`  | `rivertypes.Secret`  | The password to use for SASL authentication.                                  | `""`       | no       
+ `use_tls`   | `bool`               | If true, SASL authentication is executed over TLS.                            | `false`    | no       
 
 ### oauth_config block
 
