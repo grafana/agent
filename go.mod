@@ -57,6 +57,8 @@ require (
 	github.com/grafana/dskit v0.0.0-20230518162305-3c92c534827e
 	github.com/grafana/go-gelf/v2 v2.0.1
 	github.com/grafana/loki v1.6.2-0.20230706113538-2eb6232f9818 // k157 branch
+	github.com/grafana/pyroscope/api v0.2.0
+	github.com/grafana/pyroscope/ebpf v0.2.0
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/tail v0.0.0-20230328181249-aa6682d7843a
@@ -145,6 +147,7 @@ require (
 	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.22.1-0.20230623130038-562ae9055ce3
 	github.com/prometheus/statsd_exporter v0.22.8
+	github.com/pyroscope-io/godeltaprof v0.1.1
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
 	github.com/rs/cors v1.9.0
 	github.com/shirou/gopsutil/v3 v3.23.5
@@ -618,12 +621,6 @@ require (
 )
 
 require (
-	github.com/grafana/pyroscope/api v0.2.0
-	github.com/grafana/pyroscope/ebpf v0.2.0
-	github.com/pyroscope-io/godeltaprof v0.1.1
-)
-
-require (
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
@@ -717,5 +714,3 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
-
-// replace github.com/grafana/pyroscope/ebpf => ../pyroscope/ebpf
