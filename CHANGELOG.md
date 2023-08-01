@@ -42,6 +42,8 @@ Main (unreleased)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
+- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
+
 v0.35.2 (2023-07-27)
 --------------------
 
