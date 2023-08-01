@@ -69,6 +69,9 @@ dist/grafana-agent-darwin-arm64: generate-ui
 
 # NOTE(rfratto): do not use netgo when building Windows binaries, which
 # prevents DNS short names from being resovable. See grafana/agent#4665.
+#
+# TODO(rfratto): add netgo back to Windows builds if a version of Go is
+# released which natively supports resolving DNS short names on Windows.
 dist/grafana-agent-windows-amd64.exe: GO_TAGS += builtinassets
 dist/grafana-agent-windows-amd64.exe: GOOS    := windows
 dist/grafana-agent-windows-amd64.exe: GOARCH  := amd64
