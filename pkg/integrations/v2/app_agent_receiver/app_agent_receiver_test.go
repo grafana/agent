@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"gopkg.in/yaml.v2"
@@ -136,20 +137,24 @@ traces_instance: TEST_TRACES
 `
 
 	integrationURL := fmt.Sprintf("http://127.0.0.1:%d/collect", integrationPort)
-	req, err := http.NewRequest("POST", integrationURL, bytes.NewBuffer([]byte(PAYLOAD)))
-	require.NoError(t, err)
 
-	res, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
+	var httpResponse *http.Response
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		req, err := http.NewRequest("POST", integrationURL, bytes.NewBuffer([]byte(PAYLOAD)))
+		assert.NoError(c, err)
+
+		httpResponse, err = http.DefaultClient.Do(req)
+		assert.NoError(c, err)
+	}, 5*time.Second, 250*time.Millisecond)
 
 	//
 	// Check that the data was received by the integration
 	//
-	resBody, err := io.ReadAll(res.Body)
+	resBody, err := io.ReadAll(httpResponse.Body)
 	require.NoError(t, err)
 	require.Equal(t, "ok", string(resBody[:]))
 
-	require.Equal(t, http.StatusAccepted, res.StatusCode)
+	require.Equal(t, http.StatusAccepted, httpResponse.StatusCode)
 
 	//
 	// Check that the traces subsystem remote wrote the integration
