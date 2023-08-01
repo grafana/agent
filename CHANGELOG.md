@@ -26,6 +26,8 @@ Main (unreleased)
 - Clustering: Nodes take part in distributing load only after loading their
   component graph. (@tpaschalis)
 
+- Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
