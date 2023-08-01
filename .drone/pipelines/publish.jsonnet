@@ -138,7 +138,6 @@ linux_containers_jobs + windows_containers_jobs + [
               ]
             }
           |||,
-          github_token: secrets.gh_token.fromSecret,
         },
       },
     ],
@@ -160,7 +159,9 @@ linux_containers_jobs + windows_containers_jobs + [
       environment: {
         DOCKER_LOGIN: secrets.docker_login.fromSecret,
         DOCKER_PASSWORD: secrets.docker_password.fromSecret,
-        GITHUB_TOKEN: secrets.gh_token.fromSecret,
+        GITHUB_APP_PRIVATE_KEY: secrets.private_key.fromSecret,
+        GITHUB_APP_ID: secrets.app_id.fromSecret,
+        GITHUB_APP_INSTALLATION_ID: secrets.app_installation_id.fromSecret,
         GPG_PRIVATE_KEY: secrets.gpg_private_key.fromSecret,
         GPG_PUBLIC_KEY: secrets.gpg_public_key.fromSecret,
         GPG_PASSPHRASE: secrets.gpg_passphrase.fromSecret,
