@@ -44,6 +44,8 @@ Main (unreleased)
 
 - Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
 
+- Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
+
 v0.35.2 (2023-07-27)
 --------------------
 
