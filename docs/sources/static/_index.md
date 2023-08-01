@@ -70,7 +70,6 @@ Grafana Cloud integration workflows and the Kubernetes Monitoring solution are t
 | Topic | Description |
 |---|---|
 | [Install Grafana Agent](/docs/grafana-cloud/data-configuration/agent/install_agent/) | Install Grafana Agent using a script for Debian- and Red Hat-based systems. |
-| [Manage Grafana Agent with systemd](/docs/grafana-cloud/data-configuration/agent/agent_as_service/) |  Run Grafana Agent as a [systemd](https://www.freedesktop.org/wiki/Software/systemd/) service to create a long-living process that can automatically restart when killed or when the host is rebooted. |
 | [Monitor Grafana Agent](/docs/grafana-cloud/data-configuration/agent/agent_monitoring/) |  Grafana Agent lets you monitor services but you can also monitor Grafana Agent itself. Learn how to use PromQL to set up an alert for an Agent integration, as well as other methods to monitor Agent. |
 | [Uninstall Grafana Agent](/docs/grafana-cloud/data-configuration/agent/install_agent/#uninstall-grafana-agent) | Uninstalling an integration doesn't automatically stop Agent from scraping data. Learn how to uninstall Agent. |
 | [Troubleshoot Grafana Agent](/docs/grafana-cloud/data-configuration/agent/troubleshooting/) | Learn what to check when you are having trouble collecting data using Grafana Agent, and find solutions to common issues.  |
