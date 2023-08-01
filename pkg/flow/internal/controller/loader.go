@@ -256,9 +256,12 @@ func (l *Loader) Cleanup() {
 func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
+	// Split component blocks into blocks for components and services.
+	componentBlocks, serviceBlocks := l.splitComponentBlocks(componentBlocks)
+
 	// Fill our graph with service blocks, which must be added before any other
 	// block.
-	diags := l.populateServiceNodes(&g)
+	diags := l.populateServiceNodes(&g, serviceBlocks)
 
 	// Fill our graph with config blocks.
 	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks)
@@ -288,10 +291,31 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	return g, diags
 }
 
+func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks, serviceBlocks []*ast.BlockStmt) {
+	componentBlocks = make([]*ast.BlockStmt, 0, len(blocks))
+	serviceBlocks = make([]*ast.BlockStmt, 0, len(l.services))
+
+	serviceNames := make(map[string]struct{}, len(l.services))
+	for _, svc := range l.services {
+		serviceNames[svc.Definition().Name] = struct{}{}
+	}
+
+	for _, block := range blocks {
+		if _, isService := serviceNames[BlockComponentID(block).String()]; isService {
+			serviceBlocks = append(serviceBlocks, block)
+		} else {
+			componentBlocks = append(componentBlocks, block)
+		}
+	}
+
+	return componentBlocks, serviceBlocks
+}
+
 // populateServiceNodes adds service nodes to the graph.
-func (l *Loader) populateServiceNodes(g *dag.Graph) diag.Diagnostics {
+func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockStmt) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	// First, build the services.
 	for _, svc := range l.services {
 		id := svc.Definition().Name
 
@@ -310,7 +334,29 @@ func (l *Loader) populateServiceNodes(g *dag.Graph) diag.Diagnostics {
 			node = NewServiceNode(l.host, svc)
 		}
 
+		node.UpdateBlock(nil) // Reset configuration to nil.
 		g.Add(node)
+	}
+
+	// Now, assign blocks to services.
+	for _, block := range serviceBlocks {
+		blockID := BlockComponentID(block).String()
+		node := g.GetByID(blockID).(*ServiceNode)
+
+		// Blocks assigned to services are reset to nil in the previous loop. If
+		// they're non-nil now, it means a service block incorrectly was provided
+		// twice.
+		if node.Block() != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("duplicate definition of %q", blockID),
+				StartPos: ast.StartPos(block).Position(),
+				EndPos:   ast.EndPos(block).Position(),
+			})
+			continue
+		}
+
+		node.UpdateBlock(block)
 	}
 
 	return diags
