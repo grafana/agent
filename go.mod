@@ -106,6 +106,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.80.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.80.0
@@ -551,7 +552,7 @@ require (
 	github.com/softlayer/softlayer-go v0.0.0-20180806151055-260589d94c7d // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
-	github.com/spf13/cast v1.5.0 // indirect
+	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.15.0 // indirect
