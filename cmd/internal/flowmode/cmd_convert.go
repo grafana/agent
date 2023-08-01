@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -13,6 +14,11 @@ import (
 	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/river/diag"
 )
+
+var supportedFormats = []string{
+	string(converter.InputPrometheus),
+	string(converter.InputPromtail),
+}
 
 func convertCommand() *cobra.Command {
 	f := &flowConvert{
@@ -68,7 +74,7 @@ output can still be generated.`,
 
 	cmd.Flags().StringVarP(&f.output, "output", "o", f.output, "The filepath and filename where the output is written.")
 	cmd.Flags().StringVarP(&f.report, "report", "r", f.report, "The filepath and filename where the report is written.")
-	cmd.Flags().StringVarP(&f.sourceFormat, "source-format", "f", f.sourceFormat, "The format of the source file. Supported formats: 'prometheus'.")
+	cmd.Flags().StringVarP(&f.sourceFormat, "source-format", "f", f.sourceFormat, fmt.Sprintf("The format of the source file. Supported formats: %s.", supportedFormatsList()))
 	cmd.Flags().BoolVarP(&f.bypassErrors, "bypass-errors", "b", f.bypassErrors, "Enable bypassing errors when converting")
 	return cmd
 }
@@ -164,4 +170,12 @@ func hasErrorLevel(ds convert_diag.Diagnostics, sev convert_diag.Severity) bool 
 	}
 
 	return false
+}
+
+func supportedFormatsList() string {
+	var ret = make([]string, len(supportedFormats))
+	for i, f := range supportedFormats {
+		ret[i] = fmt.Sprintf("'%s'", f)
+	}
+	return strings.Join(ret, ", ")
 }

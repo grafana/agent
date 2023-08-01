@@ -7,14 +7,17 @@ import (
 
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
+	"github.com/grafana/agent/converter/internal/promtailconvert"
 )
 
 // Input represents the type of config file being fed into the converter.
 type Input string
 
 const (
-	// InputPrometheus indicates that the input file is a prometheus.yaml file.
+	// InputPrometheus indicates that the input file is a prometheus YAML file.
 	InputPrometheus Input = "prometheus"
+	// InputPromtail indicates that the input file is a promtail YAML file.
+	InputPromtail Input = "promtail"
 )
 
 // Convert generates a Grafana Agent Flow config given an input configuration
@@ -33,6 +36,8 @@ func Convert(in []byte, kind Input) ([]byte, diag.Diagnostics) {
 	switch kind {
 	case InputPrometheus:
 		return prometheusconvert.Convert(in)
+	case InputPromtail:
+		return promtailconvert.Convert(in)
 	}
 
 	var diags diag.Diagnostics

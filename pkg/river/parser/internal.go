@@ -345,7 +345,7 @@ func (p *parser) parseBlockName() *blockName {
 			if len(p.lit) > 2 {
 				bn.Label = p.lit[1 : len(p.lit)-1]
 				if !isValidIdentifier(bn.Label) {
-					p.addErrorf("expected block label to be a valid identifier")
+					p.addErrorf("expected block label to be a valid identifier, but got '%s'", bn.Label)
 				}
 			}
 			bn.LabelPos = p.pos

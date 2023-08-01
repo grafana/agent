@@ -72,6 +72,10 @@ func (s *ScrapeConfigBuilder) Validate() {
 	}
 }
 
+func (s *ScrapeConfigBuilder) Sanitize() {
+	s.cfg.JobName = strings.ReplaceAll(s.cfg.JobName, "-", "_")
+}
+
 func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
 	// If there were no targets expressions collected, that means
 	// we didn't have any components that produced SD targets, so

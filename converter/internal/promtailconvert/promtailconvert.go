@@ -133,6 +133,7 @@ func appendScrapeConfig(
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
 	b.Validate()
+	b.Sanitize()
 
 	// Append all the SD components
 	b.AppendKubernetesSDs()
