@@ -1388,13 +1388,13 @@ volumes:
 ---
 get:
   name: app-id
-  path: infra/ci/agent/githubapp
+  path: infra/data/ci/agent/githubapp
 kind: secret
 name: app_id
 ---
 get:
   name: app-installation-id
-  path: infra/ci/agent/githubapp
+  path: infra/data/ci/agent/githubapp
 kind: secret
 name: app_installation_id
 ---
@@ -1442,11 +1442,11 @@ name: gpg_public_key
 ---
 get:
   name: private-key
-  path: infra/ci/agent/githubapp
+  path: infra/data/ci/agent/githubapp
 kind: secret
 name: private_key
 ---
 kind: signature
-hmac: 4f2594eb88298493e2641c50fa58d188679f96e4969fc64b1b7b2ffda2024d7b
+hmac: de1857cbe5a610f8d3f541caac9a6ada1cdb3e90a51b339e45485a948c4e82e3
 
 ...
