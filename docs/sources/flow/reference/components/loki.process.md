@@ -330,6 +330,30 @@ stage.labels {
 }
 ```
 
+### stage.non_indexed_labels block
+
+The `stage.non_indexed_labels` inner block configures a labels processing stage that can read
+data from the extracted values map and add them to log entries as non-indexed labels.
+
+The following arguments are supported:
+
+| Name     | Type          | Description                                                                 | Default | Required |
+| -------- | ------------- |-----------------------------------------------------------------------------| ------- | -------- |
+| `values` | `map(string)` | Specifies the list of labels to add from extracted values map to log entry. | `{}`    | no       |
+
+In a labels stage, the map's keys define the label to set and the values are
+how to look them up. If the value is empty, it is inferred to be the same as
+the key.
+
+```river
+stage.labels {
+    values = {
+      env  = "",         // Sets up an 'env' non-indexed label, based on the 'env' extracted value.
+      user = "username", // Sets up a 'user' non-indexed label, based on the 'username' extracted value.
+    }
+}
+```
+
 ### stage.limit block
 
 The `stage.limit` inner block configures a rate-limiting stage that throttles logs
