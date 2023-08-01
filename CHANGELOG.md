@@ -36,6 +36,7 @@ Main (unreleased)
   - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@sparta0x117)
   - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
+  - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
   - `loki.write` now exposes basic WAL support. (@thepalbi)
 
 ### Bugfixes
