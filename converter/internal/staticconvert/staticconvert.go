@@ -81,6 +81,13 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 			RemoteWriteConfigs: instance.RemoteWrite,
 		}
 
+		jobNameToCompLabelsFunc := func(jobName string) string {
+			if jobName == "" {
+				return fmt.Sprintf("metrics_%s", instance.Name)
+			}
+			return fmt.Sprintf("metrics_%s_%s", instance.Name, jobName)
+		}
+
 		// There is an edge case unhandled here with label collisions.
 		// For example,
 		//   metrics config name = "agent_test"
@@ -90,7 +97,7 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		//   scrape config job_name = "test_prometheus"
 		//
 		//   results in two prometheus.scrape components with the label "metrics_agent_test_prometheus"
-		diags.AddAll(prometheusconvert.AppendAll(f, promConfig, "metrics_"+instance.Name, []discovery.Target{}, nil))
+		diags.AddAll(prometheusconvert.AppendAllNested(f, promConfig, jobNameToCompLabelsFunc, []discovery.Target{}, nil))
 	}
 
 	return diags

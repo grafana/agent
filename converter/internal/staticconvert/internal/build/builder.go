@@ -2,6 +2,7 @@ package build
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
@@ -79,6 +80,16 @@ func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Co
 		ScrapeConfigs:      scrapeConfigs,
 		RemoteWriteConfigs: b.cfg.Integrations.ConfigV1.PrometheusRemoteWrite,
 	}
-	b.diags.AddAll(prometheusconvert.AppendAll(b.f, promConfig, b.globalCtx.LabelPrefix, extraTargets, b.globalCtx.RemoteWriteExports))
+
+	jobNameToCompLabelsFunc := func(jobName string) string {
+		labelSuffix := strings.TrimPrefix(jobName, "integrations/")
+		if labelSuffix == "" {
+			return b.globalCtx.LabelPrefix
+		}
+
+		return fmt.Sprintf("%s_%s", b.globalCtx.LabelPrefix, labelSuffix)
+	}
+
+	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, b.globalCtx.RemoteWriteExports))
 	b.globalCtx.InitializeRemoteWriteExports()
 }

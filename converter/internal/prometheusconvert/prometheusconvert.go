@@ -37,7 +37,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	f := builder.NewFile()
-	diags = AppendAll(f, promConfig, "", []discovery.Target{}, nil)
+	diags = AppendAll(f, promConfig)
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -57,21 +57,33 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 // AppendAll analyzes the entire prometheus config in memory and transforms it
 // into Flow Arguments. It then appends each argument to the file builder.
 // Exports from other components are correctly referenced to build the Flow
-// pipeline. A non-empty labelPrefix can be provided for label uniqueness when
-// calling this function for the same builder.File multiple times.
-func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string, extraScrapeTargets []discovery.Target, remoteWriteExports *remotewrite.Exports) diag.Diagnostics {
+// pipeline.
+func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics {
+	return AppendAllNested(f, promConfig, nil, []discovery.Target{}, nil)
+}
+
+// AppendAllNested analyzes the entire prometheus config in memory and transforms it
+// into Flow Arguments. It then appends each argument to the file builder.
+// Exports from other components are correctly referenced to build the Flow
+// pipeline. Additional options can be provided overriding the job name, extra
+// scrape targets, and predefined remote write exports.
+func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToCompLabelsFunc func(string) string, extraScrapeTargets []discovery.Target, remoteWriteExports *remotewrite.Exports) diag.Diagnostics {
 	pb := newPrometheusBlocks()
 
 	if remoteWriteExports == nil {
+		labelPrefix := ""
+		if jobNameToCompLabelsFunc != nil {
+			labelPrefix = jobNameToCompLabelsFunc("")
+		}
 		remoteWriteExports = appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
 	}
 	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
 
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
 		scrapeForwardTo := remoteWriteForwardTo
-		label := common.TrimLabel(scrapeConfig.JobName)
-		if labelPrefix != "" {
-			label = labelPrefix + "_" + label
+		label := scrapeConfig.JobName
+		if jobNameToCompLabelsFunc != nil {
+			label = jobNameToCompLabelsFunc(scrapeConfig.JobName)
 		}
 
 		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)

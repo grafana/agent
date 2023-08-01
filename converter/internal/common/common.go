@@ -50,12 +50,6 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 	}
 }
 
-// TrimLabel returns a suffix of the given label starting after the last occurrence of slash `/`.
-func TrimLabel(label string) string {
-	parts := strings.Split(label, "/")
-	return parts[len(parts)-1]
-}
-
 // LabelForParts generates a consistent component label for a set of parts
 // delimited with an underscore.
 func LabelForParts(parts ...interface{}) string {
