@@ -50,7 +50,7 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 	}
 }
 
-// TrimLabel removes slashes from a label and anything preceding them.
+// TrimLabel returns a suffix of the given label starting after the last occurrence of slash `/`.
 func TrimLabel(label string) string {
 	parts := strings.Split(label, "/")
 	return parts[len(parts)-1]
