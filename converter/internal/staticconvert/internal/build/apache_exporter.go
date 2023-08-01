@@ -8,10 +8,9 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
-	"github.com/grafana/agent/pkg/integrations/config"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendApacheExporter(config *apache_http.Config, commonConfig *config.Common) discovery.Exports {
+func (b *IntegrationsV1ConfigBuilder) appendApacheExporter(config *apache_http.Config) discovery.Exports {
 	args := toApacheExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

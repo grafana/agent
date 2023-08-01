@@ -5,12 +5,11 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter/unix"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
-	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendNodeExporter(nodeConfig *node_exporter.Config, commonConfig *config.Common) discovery.Exports {
-	args := toNodeExporter(nodeConfig)
+func (b *IntegrationsV1ConfigBuilder) appendNodeExporter(config *node_exporter.Config) discovery.Exports {
+	args := toNodeExporter(config)
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
 		[]string{"prometheus", "exporter", "unix"},
 		"",

@@ -40,9 +40,9 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 		var exports discovery.Exports
 		switch itg := integration.Config.(type) {
 		case *apache_http.Config:
-			exports = b.appendApacheExporter(itg, &integration.Common)
+			exports = b.appendApacheExporter(itg)
 		case *node_exporter.Config:
-			exports = b.appendNodeExporter(itg, &integration.Common)
+			exports = b.appendNodeExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {
