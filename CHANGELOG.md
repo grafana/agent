@@ -26,6 +26,8 @@ Main (unreleased)
 - Clustering: Nodes take part in distributing load only after loading their
   component graph. (@tpaschalis)
 
+- Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
+
 - Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
   and the option to connect with TLS. (@spartan0x117)
 
