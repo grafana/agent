@@ -53,7 +53,7 @@ type KafkaAuthentication struct {
 type KafkaSASLConfig struct {
 	Mechanism   string            `river:"mechanism,attr,optional"`
 	User        string            `river:"user,attr,optional"`
-	Password    string            `river:"password,attr,optional"`
+	Password    flagext.Secret    `river:"password,attr,optional"`
 	UseTLS      bool              `river:"use_tls,attr,optional"`
 	TLSConfig   config.TLSConfig  `river:"tls_config,block,optional"`
 	OAuthConfig OAuthConfigConfig `river:"oauth_config,block,optional"`
@@ -192,13 +192,13 @@ func (args *Arguments) Convert() kt.Config {
 }
 
 func (auth KafkaAuthentication) Convert() kt.Authentication {
-	var secret flagext.Secret
-	if auth.SASLConfig.Password != "" {
-		err := secret.Set(auth.SASLConfig.Password)
-		if err != nil {
-			panic("Unable to set kafka SASLConfig password")
-		}
-	}
+	// var secret flagext.Secret
+	// if auth.SASLConfig.Password.String() != "" {
+	// 	err := secret.Set(auth.SASLConfig.Password)
+	// 	if err != nil {
+	// 		panic("Unable to set kafka SASLConfig password")
+	// 	}
+	// }
 
 	return kt.Authentication{
 		Type:      kt.AuthenticationType(auth.Type),
@@ -206,7 +206,7 @@ func (auth KafkaAuthentication) Convert() kt.Authentication {
 		SASLConfig: kt.SASLConfig{
 			Mechanism: sarama.SASLMechanism(auth.SASLConfig.Mechanism),
 			User:      auth.SASLConfig.User,
-			Password:  secret,
+			Password:  auth.SASLConfig.Password,
 			UseTLS:    auth.SASLConfig.UseTLS,
 			TLSConfig: *auth.SASLConfig.TLSConfig.Convert(),
 			OAuthConfig: kt.OAuthConfig{

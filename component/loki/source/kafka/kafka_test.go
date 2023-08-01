@@ -59,6 +59,8 @@ func TestSASLRiverConfig(t *testing.T) {
 	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
+
+	require.NotEqual(t, "password", args.Authentication.SASLConfig.Password.String())
 }
 
 func TestSASLOAuthRiverConfig(t *testing.T) {
