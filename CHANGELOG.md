@@ -12,6 +12,13 @@ v0.35.2 (2023-07-27)
 
 ### Bugfixes
 
+- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
+
+v0.35.2 (2023-07-27)
+--------------------
+
+### Bugfixes
+
 - Fix issue where the flow mode UI would show an empty page when navigating to
   an unhealthy `prometheus.operator` component or a healthy
   `prometheus.operator` component which discovered no custom resources.
