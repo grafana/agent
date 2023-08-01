@@ -117,7 +117,7 @@ otelcol.processor.discovery "default" {
 
 ### Using more than one discovery process
 
-Outputs form more than one discovery process can be combined via the `concat` function.
+Outputs from more than one discovery process can be combined via the `concat` function.
 
 ```
 discovery.http "dynamic_targets" {
