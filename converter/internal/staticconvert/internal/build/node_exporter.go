@@ -9,8 +9,8 @@ import (
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) AppendNodeExporter(nodeConfig *node_exporter.Config, commonConfig *config.Common) discovery.Exports {
-	args := ToNodeExporter(nodeConfig)
+func (b *IntegrationsV1ConfigBuilder) appendNodeExporter(nodeConfig *node_exporter.Config, commonConfig *config.Common) discovery.Exports {
+	args := toNodeExporter(nodeConfig)
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
 		[]string{"prometheus", "exporter", "unix"},
 		"",
@@ -20,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) AppendNodeExporter(nodeConfig *node_export
 	return prometheusconvert.NewDiscoverExports("prometheus.exporter.unix.targets")
 }
 
-func ToNodeExporter(config *node_exporter.Config) *unix.Arguments {
+func toNodeExporter(config *node_exporter.Config) *unix.Arguments {
 	return &unix.Arguments{
 		IncludeExporterMetrics: config.IncludeExporterMetrics,
 		ProcFSPath:             config.ProcFSPath,

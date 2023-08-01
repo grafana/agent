@@ -40,18 +40,18 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 		var exports discovery.Exports
 		switch itg := integration.Config.(type) {
 		case *apache_http.Config:
-			exports = b.AppendApacheExporter(itg, &integration.Common)
+			exports = b.appendApacheExporter(itg, &integration.Common)
 		case *node_exporter.Config:
-			exports = b.AppendNodeExporter(itg, &integration.Common)
+			exports = b.appendNodeExporter(itg, &integration.Common)
 		}
 
 		if len(exports.Targets) > 0 {
-			b.AppendExporter(&integration.Common, integration.Name(), exports.Targets)
+			b.appendExporter(&integration.Common, integration.Name(), exports.Targets)
 		}
 	}
 }
 
-func (b *IntegrationsV1ConfigBuilder) AppendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
+func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
 	scrapeConfigs := []*prom_config.ScrapeConfig{}
 	if b.cfg.Integrations.ConfigV1.ScrapeIntegrations {
 		scrapeConfig := prom_config.DefaultScrapeConfig
