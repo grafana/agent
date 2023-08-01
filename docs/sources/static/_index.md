@@ -75,7 +75,7 @@ Grafana Cloud integration workflows and the Kubernetes Monitoring solution are t
 | [Troubleshoot Cloud Integrations installation on Mac](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-mac/) | Troubleshoot common errors when executing the Grafana Agent installation script on Mac.  |
 | [Troubleshoot Cloud Integrations installation on Windows](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-windows/) | Troubleshoot common errors when executing the Grafana Agent installation script on Windows.  |
 
-[Install and uninstall Grafana Agent]: {{< relref set-up/install/" >}}
+[Install and uninstall Grafana Agent]: {{< relref "./set-up/install/" >}}
 
 ### Use Grafana Agent to send logs to Grafana Loki
 
