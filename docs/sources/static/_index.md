@@ -58,9 +58,7 @@ Grafana Kubernetes Monitoring provides a simplified approach to monitoring your 
 
 | Topic | Description |
 |---|---|
-| [Configure Kubernetes Monitoring using Agent](/docs/grafana-cloud/kubernetes-monitoring/configuration/config-k8s-agent-guide/) | Use the Kubernetes Monitoring solution to set up monitoring of your Kubernetes cluster and to install preconfigured dashboards and alerts. |
-| [Ship Kubernetes metrics using Grafana Agent directly](/docs/grafana-cloud/kubernetes-monitoring/other-methods/k8s-agent-metrics/) |  Take a more hands-on approach and directly deploy Grafana Agent into a Kubernetes cluster without using the Kubernetes Monitoring interface. Use this guide to configure Agent to scrape the Kubelet and cAdvisor endpoints on your cluster Nodes. If you use this method, you still have access to the Kubernetes Monitoring preconfigured dashboards and alerts. |
-| [Ship Kubernetes logs using Grafana Agent directly](/docs/grafana-cloud/kubernetes-monitoring/other-methods/k8s-agent-logs/) | Deploy Grafana Agent into your Kubernetes cluster as a DaemonSet and configure it to collect logs for your Kubernetes workloads.  |
+| [Configure Kubernetes Monitoring using Agent](/docs/grafana-cloud/kubernetes-monitoring/configuration/) | Use the Kubernetes Monitoring solution to set up monitoring of your Kubernetes cluster and to install preconfigured dashboards and alerts. |
 | [Ship Kubernetes traces using Grafana Agent directly](/docs/grafana-cloud/kubernetes-monitoring/other-methods/k8s-agent-traces/) | Deploy Grafana Agent into your Kubernetes cluster as a deployment and configure it to collect traces for your Kubernetes workloads.  |
 
 ### Use Grafana Agent directly to scrape telemetry data
@@ -69,12 +67,12 @@ Grafana Cloud integration workflows and the Kubernetes Monitoring solution are t
 
 | Topic | Description |
 |---|---|
-| [Install and uninstall Grafana Agent][] | Install or uninstall Grafana Agent. |
+| [Install or uninstall Grafana Agent][] | Install or uninstall Grafana Agent. |
 | [Troubleshoot Cloud Integrations installation on Linux](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-linux/) | Troubleshoot common errors when executing the Grafana Agent installation script on Linux.  |
 | [Troubleshoot Cloud Integrations installation on Mac](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-mac/) | Troubleshoot common errors when executing the Grafana Agent installation script on Mac.  |
 | [Troubleshoot Cloud Integrations installation on Windows](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-windows/) | Troubleshoot common errors when executing the Grafana Agent installation script on Windows.  |
 
-[Install and uninstall Grafana Agent]: {{< relref "./set-up/install/" >}}
+[Install or uninstall Grafana Agent]: {{< relref "./set-up/install/" >}}
 
 ### Use Grafana Agent to send logs to Grafana Loki
 
