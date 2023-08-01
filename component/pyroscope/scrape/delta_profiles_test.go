@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	googlev1 "github.com/grafana/phlare/api/gen/proto/go/google/v1"
+	googlev1 "github.com/grafana/pyroscope/api/gen/proto/go/google/v1"
 
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/klauspost/compress/gzip"

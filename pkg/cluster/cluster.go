@@ -190,7 +190,9 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 // For the gossipNode implementation, Start will attempt to connect to the
 // configured list of peers; if this fails it will fall back to bootstrapping a
 // new cluster of its own.
-func (c *Clusterer) Start(ctx context.Context) error {
+// The gossipNode will start out as a Viewer; to participate in clustering,
+// the node needs to transition to the Participant state using ChangeState.
+func (c *Clusterer) Start() error {
 	switch node := c.Node.(type) {
 	case *localNode:
 		return nil // no-op, always ready
@@ -203,17 +205,6 @@ func (c *Clusterer) Start(ctx context.Context) error {
 			if err != nil {
 				return err
 			}
-		}
-
-		// We now have either joined or started a new cluster.
-		// Nodes initially join in the Viewer state. We can move to the
-		// Participant state to signal that we wish to participate in reading
-		// or writing data.
-		ctx, ccl := context.WithTimeout(ctx, 5*time.Second)
-		defer ccl()
-		err = node.ChangeState(ctx, peer.StateParticipant)
-		if err != nil {
-			return err
 		}
 
 		node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
@@ -237,16 +228,27 @@ func (c *Clusterer) Stop() error {
 	case *GossipNode:
 		// The node is going away. We move to the Terminating state to signal
 		// that we should not be owners for write hashing operations anymore.
-		ctx, ccl := context.WithTimeout(context.Background(), 5*time.Second)
-		defer ccl()
-
 		// TODO(rfratto): should we enter terminating state earlier to allow for
 		// some kind of hand-off between components?
-		err := node.ChangeState(ctx, peer.StateTerminating)
+		err := c.ChangeState(peer.StateTerminating)
 		if err != nil {
 			level.Error(node.log).Log("msg", "failed to change state to Terminating before shutting down", "err", err)
 		}
 		return node.Stop()
+	}
+
+	// Nothing to do for unrecognized types.
+	return nil
+}
+
+// ChangeState transitions the Clusterer's node toState.
+func (c *Clusterer) ChangeState(toState peer.State) error {
+	switch node := c.Node.(type) {
+	case *GossipNode:
+		ctx, ccl := context.WithTimeout(context.Background(), 5*time.Second)
+		defer ccl()
+
+		return node.ChangeState(ctx, toState)
 	}
 
 	// Nothing to do for unrecognized types.

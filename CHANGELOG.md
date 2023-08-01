@@ -12,6 +12,8 @@ Main (unreleased)
 
 ### Enhancements
 
+- Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
+
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
 
 - Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
@@ -20,6 +22,9 @@ Main (unreleased)
 
 - Flow: Allow the `logging` configuration block to tee the Agent's logs to one
   or more loki.* components. (@tpaschalis)
+
+- Clustering: Nodes take part in distributing load only after loading their
+  component graph. (@tpaschalis)
 
 - Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
   and the option to connect with TLS. (@spartan0x117)
@@ -32,12 +37,17 @@ Main (unreleased)
   - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@sparta0x117)
   - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
+  - `loki.write` now exposes basic WAL support. (@thepalbi)
 
 ### Bugfixes
 
 - Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
+
+- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
+
+- Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
 
 v0.35.2 (2023-07-27)
 --------------------
