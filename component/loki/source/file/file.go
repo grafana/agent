@@ -35,10 +35,10 @@ const (
 
 // Arguments holds values which are used to configure the loki.source.file
 // component.
-// TODO(@tpaschalis) Allow users to configure the encoding of the tailed files.
 type Arguments struct {
 	Targets   []discovery.Target  `river:"targets,attr"`
 	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
+	Encoding  string              `river:"encoding,attr,optional"`
 }
 
 var (
@@ -299,7 +299,7 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 			c.posFile,
 			path,
 			labels.String(),
-			"",
+			c.args.Encoding,
 		)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to start decompressor", "error", err, "filename", path)
@@ -315,7 +315,7 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 			c.posFile,
 			path,
 			labels.String(),
-			"",
+			c.args.Encoding,
 		)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to start tailer", "error", err, "filename", path)
