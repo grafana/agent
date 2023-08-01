@@ -67,7 +67,7 @@ func (sn *ServiceNode) Block() *ast.BlockStmt {
 // ServiceNode.
 func (sn *ServiceNode) UpdateBlock(b *ast.BlockStmt) {
 	if b != nil && !BlockComponentID(b).Equals([]string{sn.NodeID()}) {
-		panic("Updateblock called with a River block with a different block ID")
+		panic("UpdateBlock called with a River block with a different block ID")
 	}
 
 	sn.mut.Lock()
@@ -82,8 +82,9 @@ func (sn *ServiceNode) UpdateBlock(b *ast.BlockStmt) {
 	}
 }
 
-// Evaluate implements BlockNode. It is a no-op since ServiceNodes don't have
-// associated configs to evaluate.
+// Evaluate implements BlockNode, evaluating the configuration for a service.
+// Evalute returns an error if the service doesn't support being configured and
+// the ServiceNode has an associated block from a call to UpdateBlock.
 func (sn *ServiceNode) Evaluate(scope *vm.Scope) error {
 	sn.mut.Lock()
 	defer sn.mut.Unlock()

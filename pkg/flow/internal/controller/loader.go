@@ -324,10 +324,14 @@ func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockSt
 				Severity: diag.SeverityLevelError,
 				Message:  fmt.Sprintf("cannot add service %q; node with same ID already exists", id),
 			})
+
+			continue
 		}
 
 		var node *ServiceNode
 
+		// Check the graph from the previous call to Load to see we can copy an
+		// existing instance of ServiceNode.
 		if exist := l.graph.GetByID(id); exist != nil {
 			node = exist.(*ServiceNode)
 		} else {
@@ -343,9 +347,10 @@ func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockSt
 		blockID := BlockComponentID(block).String()
 		node := g.GetByID(blockID).(*ServiceNode)
 
-		// Blocks assigned to services are reset to nil in the previous loop. If
-		// they're non-nil now, it means a service block incorrectly was provided
-		// twice.
+		// Blocks assigned to services are reset to nil in the previous loop.
+		//
+		// If the block is non-nil, it means that there was a duplicate block
+		// configuring the same service found in a previous iteration of this loop.
 		if node.Block() != nil {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
@@ -432,8 +437,9 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		}
 		blockMap[id] = block
 
+		// Check the graph from the previous call to Load to see we can copy an
+		// existing instance of ComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
-			// Re-use the existing component and update its block
 			c = exist.(*ComponentNode)
 			c.UpdateBlock(block)
 		} else {
