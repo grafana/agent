@@ -71,7 +71,9 @@ Grafana Cloud integration workflows and the Kubernetes Monitoring solution are t
 |---|---|
 | [Install and uninstall Grafana Agent][] | Install or uninstall Grafana Agent. |
 | [Monitor Grafana Agent](/docs/grafana-cloud/data-configuration/agent/agent_monitoring/) |  Grafana Agent lets you monitor services but you can also monitor Grafana Agent itself. Learn how to use PromQL to set up an alert for an Agent integration, as well as other methods to monitor Agent. |
-| [Troubleshoot Grafana Agent](/docs/grafana-cloud/data-configuration/agent/troubleshooting/) | Learn what to check when you are having trouble collecting data using Grafana Agent, and find solutions to common issues.  |
+| [Troubleshoot Cloud Integrations installation on Linux](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-linux/) | Troubleshoot common errors when executing the Grafana Agent installation script on Linux.  |
+| [Troubleshoot Cloud Integrations installation on Mac](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-mac/) | Troubleshoot common errors when executing the Grafana Agent installation script on Mac.  |
+| [Troubleshoot Cloud Integrations installation on Windows](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-windows/) | Troubleshoot common errors when executing the Grafana Agent installation script on Windows.  |
 
 [Install and uninstall Grafana Agent]: {{< relref set-up/install/" >}}
 
