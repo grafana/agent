@@ -70,7 +70,6 @@ Grafana Cloud integration workflows and the Kubernetes Monitoring solution are t
 | Topic | Description |
 |---|---|
 | [Install and uninstall Grafana Agent][] | Install or uninstall Grafana Agent. |
-| [Monitor Grafana Agent](/docs/grafana-cloud/data-configuration/agent/agent_monitoring/) |  Grafana Agent lets you monitor services but you can also monitor Grafana Agent itself. Learn how to use PromQL to set up an alert for an Agent integration, as well as other methods to monitor Agent. |
 | [Troubleshoot Cloud Integrations installation on Linux](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-linux/) | Troubleshoot common errors when executing the Grafana Agent installation script on Linux.  |
 | [Troubleshoot Cloud Integrations installation on Mac](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-mac/) | Troubleshoot common errors when executing the Grafana Agent installation script on Mac.  |
 | [Troubleshoot Cloud Integrations installation on Windows](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-windows/) | Troubleshoot common errors when executing the Grafana Agent installation script on Windows.  |
@@ -90,4 +89,4 @@ Logs are included when you [set up a Cloud integration](/docs/grafana-cloud/data
 | Topic | Description |
 |---|---|
 | [Set up and use tracing](/docs/grafana-cloud/data-configuration/traces/set-up-and-use-tempo/) |  Install Grafana Agent to collect traces for use with Grafana Tempo, included with your [Grafana Cloud account](/docs/grafana-cloud/account-management/cloud-portal/). |
-| [Use Grafana Agent as a tracing pipeline](/docs/tempo/latest/grafana-agent/) | Grafana Agent can be configured to run a set of tracing pipelines to collect data from your applications and write it to Grafana Tempo. Pipelines are built using OpenTelemetry, and consist of receivers, processors, and exporters. |
+| [Use Grafana Agent as a tracing pipeline](/docs/tempo/latest/configuration/grafana-agent/) | Grafana Agent can be configured to run a set of tracing pipelines to collect data from your applications and write it to Grafana Tempo. Pipelines are built using OpenTelemetry, and consist of receivers, processors, and exporters. |
