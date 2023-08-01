@@ -26,6 +26,8 @@ Main (unreleased)
 - Clustering: Nodes take part in distributing load only after loading their
   component graph. (@tpaschalis)
 
+- Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
+
 - Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
 
 - New Grafana Agent Flow components:
@@ -43,6 +45,10 @@ Main (unreleased)
 - Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
+
+- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
+
+- Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
 
 v0.35.2 (2023-07-27)
 --------------------
