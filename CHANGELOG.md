@@ -139,9 +139,9 @@ v0.35.0 (2023-07-18)
 
 - The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`. (@ptodev)
 
-- (Agent static mode) Jaeger remote sampling does not work. Jaeger remote sampling used to be configured via the jaeger receiver. 
-  This receiver was updated to a new version, and remote sampling has stopped working.
-  Jaeger remote sampling will be reintroduced in v35.3. It will be configured separately from the jaeger receiver. (@ptodev)
+- (Agent static mode) Jaeger remote sampling used to be configured using the Jaeger receiver configuration. 
+  This receiver was updated to a new version, where support for remote sampling in the receiver was removed. 
+  Jaeger remote sampling is available as a separate configuration field starting in v0.35.3. (@ptodev)
 
 ### Deprecations
 
