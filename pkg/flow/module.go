@@ -107,19 +107,27 @@ var (
 func newModule(o *moduleOptions) *module {
 	return &module{
 		o: o,
-		f: newController(o.ModuleRegistry, Options{
-			ControllerID:   o.ID,
-			Tracer:         o.Tracer,
-			Clusterer:      o.Clusterer,
-			Reg:            o.Reg,
-			Logger:         o.Logger,
-			DataPath:       o.DataPath,
-			HTTPPathPrefix: o.HTTPPath,
-			HTTPListenAddr: o.HTTPListenAddr,
-			OnExportsChange: func(exports map[string]any) {
-				o.export(exports)
+		f: newController(controllerOptions{
+			IsModule:          true,
+			ModuleRegistry:    o.ModuleRegistry,
+			ComponentRegistry: o.ComponentRegistry,
+			Options: Options{
+				ControllerID:   o.ID,
+				Tracer:         o.Tracer,
+				Clusterer:      o.Clusterer,
+				Reg:            o.Reg,
+				Logger:         o.Logger,
+				DataPath:       o.DataPath,
+				HTTPPathPrefix: o.HTTPPath,
+				HTTPListenAddr: o.HTTPListenAddr,
+				OnExportsChange: func(exports map[string]any) {
+					if o.export != nil {
+						o.export(exports)
+					}
+				},
+				DialFunc: o.DialFunc,
+				Services: o.ServiceMap.List(),
 			},
-			DialFunc: o.DialFunc,
 		}),
 	}
 }
@@ -182,7 +190,14 @@ type moduleControllerOptions struct {
 	// ID is the attached components full ID.
 	ID string
 
+	// ComponentRegistry is where controllers can look up components.
+	ComponentRegistry controller.ComponentRegistry
+
 	// ModuleRegistry is a shared registry of running modules from the same root
 	// controller.
 	ModuleRegistry *moduleRegistry
+
+	// ServiceMap is a map of services which can be used in the module
+	// controller.
+	ServiceMap controller.ServiceMap
 }

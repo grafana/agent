@@ -12,7 +12,7 @@ func TestGlobalID(t *testing.T) {
 		DataPath:       "/data/",
 		HTTPPathPrefix: "/http/",
 		ControllerID:   "module.file",
-		NewModuleController: func(id string) ModuleController {
+		NewModuleController: func(id string, availableServices []string) ModuleController {
 			return nil
 		},
 	}, &ComponentNode{
@@ -28,7 +28,7 @@ func TestLocalID(t *testing.T) {
 		DataPath:       "/data/",
 		HTTPPathPrefix: "/http/",
 		ControllerID:   "",
-		NewModuleController: func(id string) ModuleController {
+		NewModuleController: func(id string, availableServices []string) ModuleController {
 			return nil
 		},
 	}, &ComponentNode{
