@@ -85,11 +85,24 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 			return convertEventLogMessage(diags)
 		case promtailstages.StageTypeGeoIP:
 			return convertGeoIP(iCfg, diags)
+		case promtailstages.StageTypeNonIndexedLabels:
+			return convertNonIndexedLabels(iCfg, diags)
 		}
 	}
 
 	diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported pipeline stage: %v", st))
 	return stages.StageConfig{}, false
+}
+
+func convertNonIndexedLabels(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pLabels := &promtailstages.LabelsConfig{}
+	if err := mapstructure.Decode(cfg, pLabels); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{NonIndexedLabelsConfig: &stages.LabelsConfig{
+		Values: *pLabels,
+	}}, true
 }
 
 func convertGeoIP(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
