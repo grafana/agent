@@ -1,12 +1,12 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/tools/
-title: grafana-agent tools
+title: grafana-agent-flow tools
 weight: 100
 ---
 
-# `grafana-agent tools` command
+# `grafana-agent-flow tools` command
 
-The `grafana-agent tools` command contains command line tooling grouped by Flow
+The `grafana-agent-flow tools` command contains command line tooling grouped by Flow
 component.
 
 {{% admonition type="note" %}}
@@ -18,7 +18,10 @@ guarantees and may change or be removed between releases.
 
 ### prometheus.remote_write sample-stats
 
-Usage: `grafana-agent tools prometheus.remote_write sample-stats [FLAG ...] WAL_DIRECTORY`
+Usage: 
+
+* `grafana-agent-flow tools prometheus.remote_write sample-stats [FLAG ...] WAL_DIRECTORY`
+* `AGENT_MODE=flow grafana-agent tools prometheus.remote_write sample-stats [FLAG ...] WAL_DIRECTORY`
 
 The `sample-stats` command reads the Write-Ahead Log (WAL) specified by
 `WAL_DIRECTORY` and collects information on metric samples within it.
@@ -38,7 +41,10 @@ The following flag is supported:
 
 ### prometheus.remote_write target-stats
 
-Usage: `grafana-agent tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`
+Usage: 
+
+* `grafana-agent tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`
+* `AGENT_MODE=flow grafana-agent tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`
 
 The `target-stats` command reads the Write-Ahead Log (WAL) specified by
 `WAL_DIRECTORY` and collects metric cardinality information for a specific
@@ -57,7 +63,10 @@ The `--job` and `--instance` labels are required.
 
 ### prometheus.remote_write wal-stats
 
-Usage: `grafana-agent tools prometheus.remote_write wal-stats WAL_DIRECTORY`
+Usage: 
+
+* `grafana-agent tools prometheus.remote_write wal-stats WAL_DIRECTORY`
+* `AGENT_MODE=flow grafana-agent tools prometheus.remote_write wal-stats WAL_DIRECTORY`
 
 The `wal-stats` command reads the Write-Ahead Log (WAL) specified by
 `WAL_DIRECTORY` and collects general information about it.

@@ -14,10 +14,12 @@ starts Grafana Agent Flow.
 
 Available commands:
 
-* [`grafana-agent run`][run]: Start Grafana Agent Flow, given a config file.
-* [`grafana-agent fmt`][fmt]: Format a Grafana Agent Flow config file.
-* `grafana-agent completion`: Generate shell completion for the `grafana-agent` CLI.
-* `grafana-agent help`: Print help for supported commands.
+* [`grafana-agent-flow run`][run]: Start Grafana Agent Flow, given a configuration file.
+* [`grafana-agent-flow fmt`][fmt]: Format a Grafana Agent Flow configuration file.
+* [`grafana-agent-flow convert`][convert]: Convert a Grafana Agent configuration file.
+* `grafana-agent-flow completion`: Generate shell completion for the `grafana-agent-flow` CLI.
+* `grafana-agent-flow help`: Print help for supported commands.
 
 [run]: {{< relref "./run.md" >}}
 [fmt]: {{< relref "./fmt.md" >}}
+[convert]: {{< relref "./convert.md" >}}

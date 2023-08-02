@@ -2,24 +2,27 @@
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/convert/
 labels:
   stage: beta
-title: grafana-agent convert
+title: grafana-agent-flow convert
 weight: 100
 ---
 
-# `grafana-agent convert` command
+# `grafana-agent-flow convert` command
 
-The `grafana-agent convert` command converts a supported configuration format
+The `grafana-agent-flow convert` command converts a supported configuration format
 to Grafana Agent Flow River format.
 
 ## Usage
 
-Usage: `grafana-agent convert [FLAG ...] FILE_NAME`
+Usage: 
+
+* `grafana-agent-flow convert [FLAG ...] FILE_NAME`
+* `AGENT_MODE=flow grafana-agent convert [FLAG ...] FILE_NAME`
 
 If the `FILE_NAME` argument is not provided or if the `FILE_NAME` argument is
-equal to `-`, `grafana-agent convert` converts the contents of standard input. Otherwise,
-`grafana-agent convert` reads and converts the file from disk specified by the argument.
+equal to `-`, `grafana-agent-flow convert` converts the contents of standard input. Otherwise,
+`grafana-agentflow convert` reads and converts the file from disk specified by the argument.
 
-There are several different flags available for the `grafana-agent convert` command. You can use the `--output` flag to write the contents of the converted config to a specified path. You can use the `--report` flag to generate a diagnostic report. The `--bypass-errors` flag allows you to bypass any [errors] generated during the file conversion.
+There are several different flags available for the `grafana-agent-flow convert` command. You can use the `--output` flag to write the contents of the converted config to a specified path. You can use the `--report` flag to generate a diagnostic report. The `--bypass-errors` flag allows you to bypass any [errors] generated during the file conversion.
 
 The command fails if the source config has syntactically incorrect
 configuration or cannot be converted to Grafana Agent Flow River format.
