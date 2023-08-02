@@ -1302,12 +1302,8 @@ steps:
           }
         ]
       }
-    github_app_id:
-      from_secret: app_id
-    github_app_installation_id:
-      from_secret: app_installation_id
-    github_app_private_key:
-      from_secret: private_key
+    github_token:
+      from_secret: gh_token
 trigger:
   ref:
   - refs/heads/main
@@ -1338,12 +1334,8 @@ steps:
       from_secret: docker_login
     DOCKER_PASSWORD:
       from_secret: docker_password
-    GITHUB_APP_ID:
-      from_secret: app_id
-    GITHUB_APP_INSTALLATION_ID:
-      from_secret: app_installation_id
-    GITHUB_APP_PRIVATE_KEY:
-      from_secret: private_key
+    GITHUB_TOKEN:
+      from_secret: gh_token
     GPG_PASSPHRASE:
       from_secret: gpg_passphrase
     GPG_PRIVATE_KEY:
@@ -1429,6 +1421,12 @@ kind: secret
 name: gcr_admin
 ---
 get:
+  name: pat
+  path: infra/data/ci/github/grafanabot
+kind: secret
+name: gh_token
+---
+get:
   name: passphrase
   path: infra/data/ci/packages-publish/gpg
 kind: secret
@@ -1453,6 +1451,6 @@ kind: secret
 name: private_key
 ---
 kind: signature
-hmac: a99cf1d4a00ef36a218a8cc40175525d3fe0db563abc09f61983fa24c08a251e
+hmac: 2ff5f7f665aaba388e272316c0b7aee419801f347d882577dbbb84a95e4be672
 
 ...

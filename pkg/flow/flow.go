@@ -130,7 +130,7 @@ type Flow struct {
 	log       *logging.Logger
 	tracer    *tracing.Tracer
 	clusterer *cluster.Clusterer
-	opts      Options
+	opts      controllerOptions
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -145,13 +145,27 @@ type Flow struct {
 
 // New creates a new, unstarted Flow controller. Call Run to run the controller.
 func New(o Options) *Flow {
-	return newController(newModuleRegistry(), o)
+	return newController(controllerOptions{
+		Options:        o,
+		ModuleRegistry: newModuleRegistry(),
+		IsModule:       false, // We are creating a new root controller.
+	})
+}
+
+// controllerOptions are internal options used to create both root Flow
+// controller and controllers for modules.
+type controllerOptions struct {
+	Options
+
+	ComponentRegistry controller.ComponentRegistry // Custom component registry used in tests.
+	ModuleRegistry    *moduleRegistry              // Where to register created modules.
+	IsModule          bool                         // Whether this controller is for a module.
 }
 
 // newController creates a new, unstarted Flow controller with a specific
 // moduleRegistry. Modules created by the controller will be passed to the
 // given modReg.
-func newController(modReg *moduleRegistry, o Options) *Flow {
+func newController(o controllerOptions) *Flow {
 	var (
 		log       = o.Logger
 		tracer    = o.Tracer
@@ -181,10 +195,12 @@ func newController(modReg *moduleRegistry, o Options) *Flow {
 		updateQueue: controller.NewQueue(),
 		sched:       controller.NewScheduler(),
 
-		modules: modReg,
+		modules: o.ModuleRegistry,
 
 		loadFinished: make(chan struct{}, 1),
 	}
+
+	serviceMap := controller.NewServiceMap(o.Services)
 
 	f.loader = controller.NewLoader(controller.LoaderOptions{
 		ComponentGlobals: controller.ComponentGlobals{
@@ -202,43 +218,37 @@ func newController(modReg *moduleRegistry, o Options) *Flow {
 			HTTPListenAddr:  o.HTTPListenAddr,
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
-			NewModuleController: func(id string) controller.ModuleController {
+			NewModuleController: func(id string, availableServices []string) controller.ModuleController {
 				return newModuleController(&moduleControllerOptions{
-					ModuleRegistry: modReg,
-					Logger:         log,
-					Tracer:         tracer,
-					Clusterer:      clusterer,
-					Reg:            o.Reg,
-					DataPath:       o.DataPath,
-					HTTPListenAddr: o.HTTPListenAddr,
-					HTTPPath:       o.HTTPPathPrefix,
-					DialFunc:       o.DialFunc,
-					ID:             id,
+					ComponentRegistry: o.ComponentRegistry,
+					ModuleRegistry:    o.ModuleRegistry,
+					Logger:            log,
+					Tracer:            tracer,
+					Clusterer:         clusterer,
+					Reg:               o.Reg,
+					DataPath:          o.DataPath,
+					HTTPListenAddr:    o.HTTPListenAddr,
+					HTTPPath:          o.HTTPPathPrefix,
+					DialFunc:          o.DialFunc,
+					ID:                id,
+					ServiceMap:        serviceMap.FilterByName(availableServices),
 				})
 			},
-			GetServiceData: buildGetServiceDataFunc(o.Services),
+			GetServiceData: func(name string) (interface{}, error) {
+				svc, found := serviceMap.Get(name)
+				if !found {
+					return nil, fmt.Errorf("service %q does not exist", name)
+				}
+				return svc.Data(), nil
+			},
 		},
 
-		Services: o.Services,
-		Host:     f,
+		Services:          o.Services,
+		Host:              f,
+		ComponentRegistry: o.ComponentRegistry,
 	})
 
 	return f
-}
-
-func buildGetServiceDataFunc(services []service.Service) func(name string) (interface{}, error) {
-	serviceNames := make(map[string]service.Service, len(services))
-	for _, svc := range services {
-		serviceNames[svc.Definition().Name] = svc
-	}
-
-	return func(name string) (interface{}, error) {
-		svc, found := serviceNames[name]
-		if !found {
-			return nil, fmt.Errorf("service %q does not exist", name)
-		}
-		return svc.Data(), nil
-	}
 }
 
 // Run starts the Flow controller, blocking until the provided context is
@@ -279,8 +289,13 @@ func (f *Flow) Run(ctx context.Context) {
 			for _, c := range components {
 				runnables = append(runnables, c)
 			}
-			for _, svc := range services {
-				runnables = append(runnables, svc)
+
+			// Only the root controller should run services, since modules share the
+			// same service instance as the root.
+			if !f.opts.IsModule {
+				for _, svc := range services {
+					runnables = append(runnables, svc)
+				}
 			}
 
 			err := f.sched.Synchronize(runnables)
