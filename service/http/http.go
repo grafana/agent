@@ -216,7 +216,7 @@ func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
 			return
 		}
 
-		component, ok := info.Component.(component.HTTPComponent)
+		component, ok := info.Component.(Component)
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -287,4 +287,15 @@ func (d Data) HTTPPathForComponent(componentID string) string {
 		return merged + "/"
 	}
 	return merged
+}
+
+// Component is a Flow component which also contains a custom HTTP handler.
+type Component interface {
+	component.Component
+
+	// Handler should return a valid HTTP handler for the component.
+	// All requests to the component will have the path trimmed such that the component is at the root.
+	// For example, f a request is made to `/component/{id}/metrics`, the component
+	// will receive a request to just `/metrics`.
+	Handler() http.Handler
 }

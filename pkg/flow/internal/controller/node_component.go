@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/http"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -500,16 +499,6 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 		Message:    msg,
 		UpdateTime: time.Now(),
 	}
-}
-
-// HTTPHandler returns an http handler for a component IF it implements HTTPComponent.
-// otherwise it will return nil.
-func (cn *ComponentNode) HTTPHandler() http.Handler {
-	handler, ok := cn.managed.(component.HTTPComponent)
-	if !ok {
-		return nil
-	}
-	return handler.Handler()
 }
 
 // ModuleIDs returns the current list of modules that this component is
