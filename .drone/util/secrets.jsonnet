@@ -12,6 +12,7 @@ local newSecret(name) = {
 {
   dockerconfigjson: newSecret('dockerconfigjson').getFrom(path='secret/data/common/gcr', name='.dockerconfigjson'),
   gcr_admin: newSecret('gcr_admin').getFrom(path='infra/data/ci/gcr-admin', name='.dockerconfigjson'),
+  gh_token: newSecret('gh_token').getFrom(path='infra/data/ci/github/grafanabot', name='pat'),
   private_key: newSecret('private_key').getFrom(path='infra/data/ci/agent/githubapp', name='private-key'),
   app_id: newSecret('app_id').getFrom(path='infra/data/ci/agent/githubapp', name='app-id'),
   app_installation_id: newSecret('app_installation_id').getFrom(path='infra/data/ci/agent/githubapp', name='app-installation-id'),
