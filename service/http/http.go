@@ -248,6 +248,7 @@ func (s *Service) Data() any {
 	return Data{
 		HTTPListenAddr:   s.opts.HTTPListenAddr,
 		MemoryListenAddr: s.opts.MemoryListenAddr,
+		BaseHTTPPath:     s.componentHttpPathPrefix,
 
 		DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
 			switch address {
@@ -269,8 +270,21 @@ type Data struct {
 	// traffic when [DialFunc] is used to establish a connection.
 	MemoryListenAddr string
 
+	// BaseHTTPPath is the base path where component HTTP routes are exposed.
+	BaseHTTPPath string
+
 	// DialFunc is a function which establishes in-memory network connection when
 	// address is MemoryListenAddr. If address is not MemoryListenAddr, DialFunc
 	// establishes an outbound network connection.
 	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+}
+
+// HTTPPathForComponent returns the full HTTP path for a given global component
+// ID.
+func (d Data) HTTPPathForComponent(componentID string) string {
+	merged := path.Join(d.BaseHTTPPath, componentID)
+	if !strings.HasSuffix(merged, "/") {
+		return merged + "/"
+	}
+	return merged
 }

@@ -131,11 +131,17 @@ var (
 
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	data, err := o.GetServiceData(http.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about HTTP server: %w", err)
+	}
+	httpData := data.(http.Data)
+
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	scrapeOptions := &scrape.Options{
 		ExtraMetrics: args.ExtraMetrics,
 		HTTPClientOptions: []config_util.HTTPClientOption{
-			config_util.WithDialContextFunc(o.DialFunc),
+			config_util.WithDialContextFunc(httpData.DialFunc),
 		},
 	}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
@@ -143,7 +149,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
 		Name: "agent_prometheus_scrape_targets_gauge",
 		Help: "Number of targets this component is configured to scrape"})
-	err := o.Registerer.Register(targetsGauge)
+	err = o.Registerer.Register(targetsGauge)
 	if err != nil {
 		return nil, err
 	}
