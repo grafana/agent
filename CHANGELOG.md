@@ -28,6 +28,9 @@ Main (unreleased)
 
 - Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
 
+- Enable graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
+  signals. (@tpaschalis)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)

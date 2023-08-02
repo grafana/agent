@@ -360,7 +360,7 @@ func interruptContext() (context.Context, context.CancelFunc) {
 	go func() {
 		defer cancel()
 		sig := make(chan os.Signal, 1)
-		signal.Notify(sig, os.Interrupt)
+		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 		select {
 		case <-sig:
 		case <-ctx.Done():
