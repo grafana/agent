@@ -45,7 +45,7 @@ tls_config {
 	expected := Arguments{
 		Address: "localhost:99",
 		Timeout: 5 * time.Second,
-		TLSConfig: config.TLSConfig{
+		TLSConfig: &config.TLSConfig{
 			CAFile:   "/path/to/ca_file",
 			CertFile: "/path/to/cert_file",
 			KeyFile:  "/path/to/key_file",
@@ -63,6 +63,12 @@ tls_config {
 	err = river.Unmarshal([]byte(invalidRiverConfig), &args)
 	assert.Error(t, err)
 	assert.ErrorContains(t, err, "at most one of")
+}
+
+func TestValidateNilTLSConfig(t *testing.T) {
+	var args Arguments = Arguments{}
+	err := args.Validate()
+	assert.NoError(t, err)
 }
 
 func TestRiverUnmarshalDefaults(t *testing.T) {

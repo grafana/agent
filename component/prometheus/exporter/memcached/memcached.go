@@ -49,7 +49,7 @@ type Arguments struct {
 	Timeout time.Duration `river:"timeout,attr,optional"`
 
 	// TLSConfig is used to configure TLS for connection to memcached.
-	TLSConfig config.TLSConfig `river:"tls_config,block,optional"`
+	TLSConfig *config.TLSConfig `river:"tls_config,block,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -59,6 +59,9 @@ func (a *Arguments) SetToDefault() {
 
 // Validate implements river.Validator.
 func (a Arguments) Validate() error {
+	if a.TLSConfig == nil {
+		return nil
+	}
 	return a.TLSConfig.Validate()
 }
 
@@ -66,6 +69,6 @@ func (a Arguments) Convert() *memcached_exporter.Config {
 	return &memcached_exporter.Config{
 		MemcachedAddress: a.Address,
 		Timeout:          a.Timeout,
-		TLSConfig:        *a.TLSConfig.Convert(),
+		TLSConfig:        a.TLSConfig.Convert(),
 	}
 }
