@@ -1302,6 +1302,12 @@ steps:
           }
         ]
       }
+    github_app_id:
+      from_secret: app_id
+    github_app_installation_id:
+      from_secret: app_installation_id
+    github_app_private_key:
+      from_secret: private_key
 trigger:
   ref:
   - refs/heads/main
@@ -1447,6 +1453,6 @@ kind: secret
 name: private_key
 ---
 kind: signature
-hmac: de1857cbe5a610f8d3f541caac9a6ada1cdb3e90a51b339e45485a948c4e82e3
+hmac: a99cf1d4a00ef36a218a8cc40175525d3fe0db563abc09f61983fa24c08a251e
 
 ...
