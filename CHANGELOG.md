@@ -30,6 +30,8 @@ Main (unreleased)
 
 - Enable graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
   signals. (@tpaschalis)
+  
+- Added support for `promtail` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@thampiotr)
 
 - New Grafana Agent Flow components:
 
