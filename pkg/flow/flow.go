@@ -197,6 +197,8 @@ func newController(o controllerOptions) *Flow {
 		loadFinished: make(chan struct{}, 1),
 	}
 
+	serviceMap := controller.NewServiceMap(o.Services)
+
 	f.loader = controller.NewLoader(controller.LoaderOptions{
 		ComponentGlobals: controller.ComponentGlobals{
 			Logger:        log,
@@ -227,7 +229,13 @@ func newController(o controllerOptions) *Flow {
 					ID:             id,
 				})
 			},
-			GetServiceData: buildGetServiceDataFunc(o.Services),
+			GetServiceData: func(name string) (interface{}, error) {
+				svc, found := serviceMap.Get(name)
+				if !found {
+					return nil, fmt.Errorf("service %q does not exist", name)
+				}
+				return svc.Data(), nil
+			},
 		},
 
 		Services: o.Services,
@@ -235,21 +243,6 @@ func newController(o controllerOptions) *Flow {
 	})
 
 	return f
-}
-
-func buildGetServiceDataFunc(services []service.Service) func(name string) (interface{}, error) {
-	serviceNames := make(map[string]service.Service, len(services))
-	for _, svc := range services {
-		serviceNames[svc.Definition().Name] = svc
-	}
-
-	return func(name string) (interface{}, error) {
-		svc, found := serviceNames[name]
-		if !found {
-			return nil, fmt.Errorf("service %q does not exist", name)
-		}
-		return svc.Data(), nil
-	}
 }
 
 // Run starts the Flow controller, blocking until the provided context is
