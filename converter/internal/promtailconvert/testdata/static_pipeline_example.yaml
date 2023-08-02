@@ -21,22 +21,27 @@ scrape_configs:
       - targets:
           - this
           - is
-          - not
+          - actually
           - used
         labels:
           __path__: /var/log/captain_scott_last_expedition.log
           __path__exclude__: /var/log/sensational_news.log
           category: fun
-      - labels:
+      - targets:
+          - one_more
+        labels:
           __path__: /shelf/books/star_trek*
           __path__exclude__: /shelf/books/star_wars*
           category: sf
           quality: high
-      - labels: {}
+      - labels:
+          __path__: /var/log/this_is_not_used.log
+          category: superfluous
+      - labels: { }
     # Include k8s config to demonstrate how other discovery features differ from static_configs
     kubernetes_sd_configs:
       - role: pod
         kubeconfig_file: /home/toby/.kube/config
 
-tracing: {enabled: false}
-server: {register_instrumentation: false}
+tracing: { enabled: false }
+server: { register_instrumentation: false }

@@ -8,5 +8,10 @@ scrape_configs:
       labels:
         variety: chardonnay
         region: chablis
+  - job_name: example
+    journal:
+      labels:
+        name: alice
+        best_friend: bob
 tracing: {enabled: false}
 server: {register_instrumentation: false}

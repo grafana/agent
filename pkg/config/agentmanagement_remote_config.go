@@ -100,6 +100,6 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 		c.Logs.Configs = append(c.Logs.Configs, &logsConfigs)
 	}
 
-	c.Integrations.configV1.Integrations = append(c.Integrations.configV1.Integrations, integrationConfigs.Integrations...)
+	c.Integrations.ConfigV1.Integrations = append(c.Integrations.ConfigV1.Integrations, integrationConfigs.Integrations...)
 	return nil
 }

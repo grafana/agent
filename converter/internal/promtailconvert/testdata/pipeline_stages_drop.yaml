@@ -10,24 +10,28 @@ scrape_configs:
           separator: "ignored"
           expression: ":joy:"
           older_than: 10m
-          longer_than: 1KiB
+          longer_than: 1KB
       - drop:
           drop_counter_reason: "nope"
           value: penny
-          longer_than: 1KiB
+          longer_than: 1kB
+      - drop:
+          drop_counter_reason: "nope"
+          value: penny
+          longer_than: 2048
       - drop:
           source: [ "string_one" ]
           drop_counter_reason: "nope"
           value: penny
-          longer_than: 1KiB
+          longer_than: 1MB
       - drop:
           source: [ ]
           drop_counter_reason: "nope"
           value: penny
-          longer_than: 1KiB
+          longer_than: 1KB
       - drop:
           source: [ "too", "many" ]
-          longer_than: 1KiB
+          longer_than: 1KB
       - drop:
           source: "invalid_longer_than"
           longer_than: 1.21GigaWatts
