@@ -122,19 +122,11 @@ var _ BlockNode = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
+func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *ast.BlockStmt) *ComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
 	)
-
-	reg, ok := component.Get(ComponentID(b.Name).String())
-	if !ok {
-		// NOTE(rfratto): It's normally not possible to get to this point; the
-		// blocks should have been validated by the graph loader in advance to
-		// guarantee that b is an expected component.
-		panic("NewComponentNode: could not find registration for component " + nodeID)
-	}
 
 	initHealth := component.Health{
 		Health:     component.HealthTypeUnknown,

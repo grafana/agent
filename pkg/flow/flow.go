@@ -157,8 +157,9 @@ func New(o Options) *Flow {
 type controllerOptions struct {
 	Options
 
-	ModuleRegistry *moduleRegistry // Where to register created modules.
-	IsModule       bool            // Whether this controller is for a module.
+	ComponentRegistry controller.ComponentRegistry // Custom component registry used in tests.
+	ModuleRegistry    *moduleRegistry              // Where to register created modules.
+	IsModule          bool                         // Whether this controller is for a module.
 }
 
 // newController creates a new, unstarted Flow controller with a specific
@@ -219,17 +220,18 @@ func newController(o controllerOptions) *Flow {
 			ControllerID:    o.ControllerID,
 			NewModuleController: func(id string, availableServices []string) controller.ModuleController {
 				return newModuleController(&moduleControllerOptions{
-					ModuleRegistry: o.ModuleRegistry,
-					Logger:         log,
-					Tracer:         tracer,
-					Clusterer:      clusterer,
-					Reg:            o.Reg,
-					DataPath:       o.DataPath,
-					HTTPListenAddr: o.HTTPListenAddr,
-					HTTPPath:       o.HTTPPathPrefix,
-					DialFunc:       o.DialFunc,
-					ID:             id,
-					ServiceMap:     serviceMap.FilterByName(availableServices),
+					ComponentRegistry: o.ComponentRegistry,
+					ModuleRegistry:    o.ModuleRegistry,
+					Logger:            log,
+					Tracer:            tracer,
+					Clusterer:         clusterer,
+					Reg:               o.Reg,
+					DataPath:          o.DataPath,
+					HTTPListenAddr:    o.HTTPListenAddr,
+					HTTPPath:          o.HTTPPathPrefix,
+					DialFunc:          o.DialFunc,
+					ID:                id,
+					ServiceMap:        serviceMap.FilterByName(availableServices),
 				})
 			},
 			GetServiceData: func(name string) (interface{}, error) {
@@ -241,8 +243,9 @@ func newController(o controllerOptions) *Flow {
 			},
 		},
 
-		Services: o.Services,
-		Host:     f,
+		Services:          o.Services,
+		Host:              f,
+		ComponentRegistry: o.ComponentRegistry,
 	})
 
 	return f

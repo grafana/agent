@@ -108,8 +108,9 @@ func newModule(o *moduleOptions) *module {
 	return &module{
 		o: o,
 		f: newController(controllerOptions{
-			IsModule:       true,
-			ModuleRegistry: o.ModuleRegistry,
+			IsModule:          true,
+			ModuleRegistry:    o.ModuleRegistry,
+			ComponentRegistry: o.ComponentRegistry,
 			Options: Options{
 				ControllerID:   o.ID,
 				Tracer:         o.Tracer,
@@ -120,7 +121,9 @@ func newModule(o *moduleOptions) *module {
 				HTTPPathPrefix: o.HTTPPath,
 				HTTPListenAddr: o.HTTPListenAddr,
 				OnExportsChange: func(exports map[string]any) {
-					o.export(exports)
+					if o.export != nil {
+						o.export(exports)
+					}
 				},
 				DialFunc: o.DialFunc,
 				Services: o.ServiceMap.List(),
@@ -186,6 +189,9 @@ type moduleControllerOptions struct {
 
 	// ID is the attached components full ID.
 	ID string
+
+	// ComponentRegistry is where controllers can look up components.
+	ComponentRegistry controller.ComponentRegistry
 
 	// ModuleRegistry is a shared registry of running modules from the same root
 	// controller.
