@@ -47,6 +47,7 @@ package flow
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"sync"
 
@@ -215,6 +216,7 @@ func newController(modReg *moduleRegistry, o Options) *Flow {
 					ID:             id,
 				})
 			},
+			GetServiceData: buildGetServiceDataFunc(o.Services),
 		},
 
 		Services: o.Services,
@@ -222,6 +224,21 @@ func newController(modReg *moduleRegistry, o Options) *Flow {
 	})
 
 	return f
+}
+
+func buildGetServiceDataFunc(services []service.Service) func(name string) (interface{}, error) {
+	serviceNames := make(map[string]service.Service, len(services))
+	for _, svc := range services {
+		serviceNames[svc.Definition().Name] = svc
+	}
+
+	return func(name string) (interface{}, error) {
+		svc, found := serviceNames[name]
+		if !found {
+			return nil, fmt.Errorf("service %q does not exist", name)
+		}
+		return svc.Data(), nil
+	}
 }
 
 // Run starts the Flow controller, blocking until the provided context is

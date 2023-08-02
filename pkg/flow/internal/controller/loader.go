@@ -517,7 +517,20 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 			}
 
 		case *ComponentNode: // Component depending on service.
-			// TODO(rfratto): Wire service dependencies of component.
+			for _, depName := range n.Registration().NeedsServices {
+				dep := g.GetByID(depName)
+				if dep == nil {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("component depends on undefined service %q; please report this issue to project maintainers", depName),
+						StartPos: ast.StartPos(n.Block()).Position(),
+						EndPos:   ast.EndPos(n.Block()).Position(),
+					})
+					continue
+				}
+
+				g.AddEdge(dag.Edge{From: n, To: dep})
+			}
 		}
 
 		// Finally, wire component references.
