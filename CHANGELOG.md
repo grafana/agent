@@ -26,6 +26,8 @@ Main (unreleased)
 - Clustering: Nodes take part in distributing load only after loading their
   component graph. (@tpaschalis)
 
+- Added support for `promtail` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@thampiotr)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
