@@ -48,7 +48,6 @@ package flow
 import (
 	"context"
 	"fmt"
-	"net"
 	"sync"
 
 	"github.com/go-kit/log/level"
@@ -94,29 +93,11 @@ type Options struct {
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
 
-	// HTTPPathPrefix is the path prefix given to managed components. May be
-	// empty. When provided, it should be an absolute path.
-	//
-	// Components will be given a path relative to HTTPPathPrefix using their
-	// local ID.
-	//
-	// If running multiple Flow controllers, each controller must have a
-	// different value for HTTPPathPrefix to prevent components from colliding.
-	HTTPPathPrefix string
-
-	// HTTPListenAddr is the base address (host:port) where component APIs are
-	// exposed to other components.
-	HTTPListenAddr string
-
 	// OnExportsChange is called when the exports of the controller change.
 	// Exports are controlled by "export" configuration blocks. If
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
 	// loaded config file.
 	OnExportsChange func(exports map[string]any)
-
-	// DialFunc is a function to use for components to properly connect to
-	// HTTPListenAddr. If nil, DialFunc defaults to (&net.Dialer{}).DialContext.
-	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
 
 	// List of Services to run with the Flow controller.
 	//
@@ -181,11 +162,6 @@ func newController(o controllerOptions) *Flow {
 		}
 	}
 
-	dialFunc := o.DialFunc
-	if dialFunc == nil {
-		dialFunc = (&net.Dialer{}).DialContext
-	}
-
 	f := &Flow{
 		log:    log,
 		tracer: tracer,
@@ -214,9 +190,6 @@ func newController(o controllerOptions) *Flow {
 			},
 			OnExportsChange: o.OnExportsChange,
 			Registerer:      o.Reg,
-			HTTPPathPrefix:  o.HTTPPathPrefix,
-			HTTPListenAddr:  o.HTTPListenAddr,
-			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
 			NewModuleController: func(id string, availableServices []string) controller.ModuleController {
 				return newModuleController(&moduleControllerOptions{
@@ -227,9 +200,6 @@ func newController(o controllerOptions) *Flow {
 					Clusterer:         clusterer,
 					Reg:               o.Reg,
 					DataPath:          o.DataPath,
-					HTTPListenAddr:    o.HTTPListenAddr,
-					HTTPPath:          o.HTTPPathPrefix,
-					DialFunc:          o.DialFunc,
 					ID:                id,
 					ServiceMap:        serviceMap.FilterByName(availableServices),
 				})

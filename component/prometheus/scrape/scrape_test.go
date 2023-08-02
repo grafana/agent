@@ -173,9 +173,6 @@ func TestCustomDialer(t *testing.T) {
 			Node: cluster.NewLocalNode("inmemory:80"),
 		},
 		Registerer: prometheus_client.NewRegistry(),
-		DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
-			return memLis.DialContext(ctx)
-		},
 		GetServiceData: func(name string) (interface{}, error) {
 			if name == http_service.ServiceName {
 				return http_service.Data{

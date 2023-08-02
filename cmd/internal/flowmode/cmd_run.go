@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"os"
 	"os/signal"
 	"sync"
@@ -204,19 +203,12 @@ func (fr *flowRun) Run(configFile string) error {
 	})
 
 	f := flow.New(flow.Options{
-		Logger:         l,
-		Tracer:         t,
-		Clusterer:      clusterer,
-		DataPath:       fr.storagePath,
-		Reg:            reg,
-		HTTPPathPrefix: "/api/v0/component/",
-		HTTPListenAddr: fr.inMemoryAddr,
-		Services:       []service.Service{httpService},
-
-		// Send requests to fr.inMemoryAddr directly to our in-memory listener.
-		DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
-			return httpService.Data().(httpservice.Data).DialFunc(ctx, network, address)
-		},
+		Logger:    l,
+		Tracer:    t,
+		Clusterer: clusterer,
+		DataPath:  fr.storagePath,
+		Reg:       reg,
+		Services:  []service.Service{httpService},
 	})
 
 	ready = f.Ready

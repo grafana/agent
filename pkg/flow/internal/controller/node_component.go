@@ -72,9 +72,6 @@ type ComponentGlobals struct {
 	OnComponentUpdate   func(cn *ComponentNode)                                      // Informs controller that we need to reevaluate
 	OnExportsChange     func(exports map[string]any)                                 // Invoked when the managed component updated its exports
 	Registerer          prometheus.Registerer                                        // Registerer for serving agent and component metrics
-	HTTPPathPrefix      string                                                       // HTTP prefix for components.
-	HTTPListenAddr      string                                                       // Base address for server
-	DialFunc            DialFunc                                                     // Function to connect to HTTPListenAddr.
 	ControllerID        string                                                       // ID of controller.
 	NewModuleController func(id string, availableServices []string) ModuleController // Func to generate a module controller.
 	GetServiceData      func(name string) (interface{}, error)                       // Get data for a service.
@@ -171,12 +168,6 @@ func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *a
 }
 
 func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
-	// Make sure the prefix is always absolute.
-	prefix := globals.HTTPPathPrefix
-	if !strings.HasPrefix(prefix, "/") {
-		prefix = "/" + prefix
-	}
-
 	allowedServices := make(map[string]struct{}, len(cn.Registration().NeedsServices))
 	for _, svc := range cn.Registration().NeedsServices {
 		allowedServices[svc] = struct{}{}
@@ -192,10 +183,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Tracer:    tracing.WrapTracer(globals.TraceProvider, cn.globalID),
 		Clusterer: globals.Clusterer,
 
-		DataPath:       filepath.Join(globals.DataPath, cn.globalID),
-		HTTPListenAddr: globals.HTTPListenAddr,
-		DialFunc:       globals.DialFunc,
-		HTTPPath:       path.Join(prefix, cn.globalID) + "/",
+		DataPath: filepath.Join(globals.DataPath, cn.globalID),
 
 		OnStateChange:    cn.setExports,
 		ModuleController: cn.moduleController,
