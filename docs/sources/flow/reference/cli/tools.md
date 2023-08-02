@@ -43,7 +43,7 @@ The following flag is supported:
 
 Usage: 
 
-* `grafana-agent tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`
+* `grafana-agent-flow tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`
 * `AGENT_MODE=flow grafana-agent tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`
 
 The `target-stats` command reads the Write-Ahead Log (WAL) specified by
@@ -65,7 +65,7 @@ The `--job` and `--instance` labels are required.
 
 Usage: 
 
-* `grafana-agent tools prometheus.remote_write wal-stats WAL_DIRECTORY`
+* `grafana-agent-flow tools prometheus.remote_write wal-stats WAL_DIRECTORY`
 * `AGENT_MODE=flow grafana-agent tools prometheus.remote_write wal-stats WAL_DIRECTORY`
 
 The `wal-stats` command reads the Write-Ahead Log (WAL) specified by
