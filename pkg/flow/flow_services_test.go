@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
 )
 
 func TestServices(t *testing.T) {
@@ -173,12 +174,28 @@ func TestComponents_Using_Services(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	componentBuilt := util.NewWaitTrigger()
+	var (
+		componentBuilt = util.NewWaitTrigger()
+		serviceStarted = util.NewWaitTrigger()
+
+		serviceStartedCount = atomic.NewInt64(0)
+	)
 
 	var (
 		dependencySvc = &testservices.Fake{
 			DefinitionFunc: func() service.Definition {
 				return service.Definition{Name: "dependency"}
+			},
+
+			RunFunc: func(ctx context.Context, host service.Host) error {
+				if serviceStartedCount.Add(1) > 1 {
+					require.FailNow(t, "service should only be started once by the root controller")
+				}
+
+				serviceStarted.Trigger()
+
+				<-ctx.Done()
+				return nil
 			},
 		}
 
@@ -223,6 +240,86 @@ func TestComponents_Using_Services(t *testing.T) {
 
 	opts := testOptions(t)
 	opts.Services = append(opts.Services, dependencySvc, nonDependencySvc)
+
+	ctrl := newController(controllerOptions{
+		Options:           opts,
+		ComponentRegistry: registry,
+		ModuleRegistry:    newModuleRegistry(),
+	})
+	require.NoError(t, ctrl.LoadFile(f, nil))
+	go ctrl.Run(ctx)
+
+	require.NoError(t, componentBuilt.Wait(5*time.Second), "Component should have been built")
+	require.NoError(t, serviceStarted.Wait(5*time.Second), "Service should have been started")
+}
+
+func TestComponents_Using_Services_In_Modules(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	componentBuilt := util.NewWaitTrigger()
+
+	var (
+		propagatedSvc = &testservices.Fake{
+			DefinitionFunc: func() service.Definition {
+				return service.Definition{Name: "propagated_service"}
+			},
+		}
+
+		nonPropagatedSvc = &testservices.Fake{
+			DefinitionFunc: func() service.Definition {
+				return service.Definition{Name: "non_propagated_service"}
+			},
+		}
+
+		registry = controller.RegistryMap{
+			"module_loader": component.Registration{
+				Name:          "module_loader",
+				Args:          struct{}{},
+				NeedsServices: []string{"propagated_service"},
+				Build: func(opts component.Options, _ component.Arguments) (component.Component, error) {
+					mod, err := opts.ModuleController.NewModule("", nil)
+					require.NoError(t, err, "Failed to create module")
+
+					err = mod.LoadConfig([]byte(`service_consumer "example" {}`), nil)
+					require.NoError(t, err, "Failed to load module config")
+
+					return &testcomponents.Fake{
+						RunFunc: func(ctx context.Context) error {
+							mod.Run(ctx)
+							<-ctx.Done()
+							return nil
+						},
+					}, nil
+				},
+			},
+
+			"service_consumer": component.Registration{
+				Name:          "service_consumer",
+				Args:          struct{}{},
+				NeedsServices: []string{"propagated_service"},
+				Build: func(opts component.Options, _ component.Arguments) (component.Component, error) {
+					// Call Trigger in a defer so we can make some extra assertions before
+					// the test exits.
+					defer componentBuilt.Trigger()
+
+					_, err := opts.GetServiceData("propagated_service")
+					require.NoError(t, err, "component should be able to access services that were propagated to it")
+
+					return &testcomponents.Fake{}, nil
+				},
+			},
+		}
+	)
+
+	cfg := `module_loader "example" {}`
+
+	f, err := ReadFile(t.Name(), []byte(cfg))
+	require.NoError(t, err)
+	require.NotNil(t, f)
+
+	opts := testOptions(t)
+	opts.Services = append(opts.Services, propagatedSvc, nonPropagatedSvc)
 
 	ctrl := newController(controllerOptions{
 		Options:           opts,
