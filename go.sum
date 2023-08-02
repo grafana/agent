@@ -1921,6 +1921,8 @@ github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a h1:D5NS
 github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a/go.mod h1:rjb/swXiCWLlC3gWlyugy/xEOZioF5PclbB8sf/9p/Q=
 github.com/grafana/opentelemetry-collector v0.4.1-0.20230705075940-537e02565521 h1:br7vc9p+3OoKdhCyjtxAxutrqNaqicQfDKuW7b3rDec=
 github.com/grafana/opentelemetry-collector v0.4.1-0.20230705075940-537e02565521/go.mod h1:WuFR0SJJbUsBF7YF8w0vjvfoxodzIAkFt+HIeF9eQ5A=
+github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090 h1:Ko80Xcl7xo1eYqkqLUb9AVVCLGVmuQp2jOV69hEEeZw=
+github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090/go.mod h1:MinSWm88jguXFFrGsP56PtleUb4Qtm4tNRH/wXNXRTI=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnFWqxhoSF3WC7sKAdMZ+SRXvHLVZlZ3sbQjuUlTqkw=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/pyroscope/api v0.2.0 h1:TzOxL0s6SiaLEy944ZAKgHcx/JDRJXu4O8ObwkqR6p4=
@@ -1938,8 +1940,8 @@ github.com/grafana/tail v0.0.0-20230510142333-77b18831edf0 h1:bjh0PVYSVVFxzINqPF
 github.com/grafana/tail v0.0.0-20230510142333-77b18831edf0/go.mod h1:7t5XR+2IA8P2qggOAHTj/GCZfoLBle3OvNSYh1VkRBU=
 github.com/grafana/vmware_exporter v0.0.4-beta h1:Tb8Edm/wDYh0Lvhm38HLNTlkflUrlPGB+jD+/hW4xHI=
 github.com/grafana/vmware_exporter v0.0.4-beta/go.mod h1:+SsUoWeCJ3nDm1gkw8xqBp4NNSUIrGVoEbnwJeeoIVU=
-github.com/grafana/windows_exporter v0.15.1-0.20230721232912-eb1b1ccb541e h1:g5hpVbERurrHJtv9EvpwkmR/LN4XrdM/Bfu5WMRlodc=
-github.com/grafana/windows_exporter v0.15.1-0.20230721232912-eb1b1ccb541e/go.mod h1:WEYAAeSohMKCmsTckD77gSm77R3TZG5k0MhBK8L0bHM=
+github.com/grafana/windows_exporter v0.15.1-0.20230612134738-fdb3ba7accd8 h1:xa9iGJ1pl7nzrmMxkVxgkOrXoIwozCe5RH5sYjGk8QM=
+github.com/grafana/windows_exporter v0.15.1-0.20230612134738-fdb3ba7accd8/go.mod h1:Fxr4FlDGM8TLI58WNi9Zu1Kd4Jg2x61Zv+DZdKI75DM=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=
 github.com/grobie/gomemcache v0.0.0-20201204163352-08d7c80fcac6 h1:vqwzYov9hrRoGAmy61um8mVteOCD0bEbKgXr1mmkTlI=
 github.com/grobie/gomemcache v0.0.0-20201204163352-08d7c80fcac6/go.mod h1:L69/dBlPQlWkcnU76WgcppK5e4rrxzQdi6LhLnK/ytA=

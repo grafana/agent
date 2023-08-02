@@ -623,6 +623,7 @@ require (
 require (
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
+	github.com/leoluk/perflib_exporter v0.2.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
 	github.com/prometheus-community/prom-label-proxy v0.6.0 // indirect
 	github.com/sercand/kuberesolver/v4 v4.0.0 // indirect
@@ -688,7 +689,7 @@ replace (
 	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
 
 	// TODO(mattdurham): this is to allow defaults to propogate properly.
-	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230721232912-eb1b1ccb541e
+	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230612134738-fdb3ba7accd8
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 )
 
