@@ -68,7 +68,7 @@ func TestConvert(t *testing.T) {
 		ApplicationCredentialID:   "exampleappcredid",
 		Role:                      "hypervisor",
 		Region:                    "us-east-1",
-		RefreshInterval:           time.Duration(60),
+		RefreshInterval:           60 * time.Second,
 		Port:                      80,
 		AllTenants:                true,
 		Availability:              "public",
@@ -87,7 +87,7 @@ func TestConvert(t *testing.T) {
 	require.Equal(t, "exampleappcredid", converted.ApplicationCredentialID)
 	require.Equal(t, openstack.Role("hypervisor"), converted.Role)
 	require.Equal(t, "us-east-1", converted.Region)
-	require.Equal(t, model.Duration(60), converted.RefreshInterval)
+	require.Equal(t, model.Duration(60*time.Second), converted.RefreshInterval)
 	require.Equal(t, 80, converted.Port)
 	require.Equal(t, true, converted.AllTenants)
 	require.Equal(t, "public", converted.Availability)

@@ -27,40 +27,40 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Server is a Tracing testing server that invokes a function every time a span
+// server is a Tracing testing server that invokes a function every time a span
 // is received.
-type Server struct {
+type server struct {
 	service *service.Service
 }
 
-// NewTestServer creates a new Server for testing, where received traces will
+// NewTestServer creates a new server for testing, where received traces will
 // call the callback function. The returned string is the address where traces
 // can be sent using OTLP.
 func NewTestServer(t *testing.T, callback func(ptrace.Traces)) string {
 	t.Helper()
 
-	srv, listenAddr, err := NewServerWithRandomPort(callback)
+	srv, listenAddr, err := newServerWithRandomPort(callback)
 	if err != nil {
 		t.Fatalf("failed to create OTLP server: %s", err)
 	}
 	t.Cleanup(func() {
-		err := srv.Stop()
+		err := srv.stop()
 		assert.NoError(t, err)
 	})
 
 	return listenAddr
 }
 
-// NewServerWithRandomPort calls NewServer with a random port >49152 and
+// newServerWithRandomPort calls NewServer with a random port >49152 and
 // <65535. It will try up to five times before failing.
-func NewServerWithRandomPort(callback func(ptrace.Traces)) (srv *Server, addr string, err error) {
+func newServerWithRandomPort(callback func(ptrace.Traces)) (srv *server, addr string, err error) {
 	var lastError error
 
 	for i := 0; i < 5; i++ {
 		port := rand.Intn(65535-49152) + 49152
 		listenAddr := fmt.Sprintf("127.0.0.1:%d", port)
 
-		srv, err = NewServer(listenAddr, callback)
+		srv, err = newServer(listenAddr, callback)
 		if err != nil {
 			lastError = err
 			continue
@@ -72,9 +72,9 @@ func NewServerWithRandomPort(callback func(ptrace.Traces)) (srv *Server, addr st
 	return nil, "", fmt.Errorf("failed 5 times to create a server. last error: %w", lastError)
 }
 
-// NewServer creates an OTLP-accepting server that calls a function when a
+// newServer creates an OTLP-accepting server that calls a function when a
 // trace is received. This is primarily useful for testing.
-func NewServer(addr string, callback func(ptrace.Traces)) (*Server, error) {
+func newServer(addr string, callback func(ptrace.Traces)) (*server, error) {
 	conf := util.Untab(fmt.Sprintf(`
 	processors:
 		func_processor:
@@ -163,13 +163,13 @@ func NewServer(addr string, callback func(ptrace.Traces)) (*Server, error) {
 		return nil, fmt.Errorf("failed to start Otel service: %w", err)
 	}
 
-	return &Server{
+	return &server{
 		service: svc,
 	}, nil
 }
 
-// Stop stops the testing server.
-func (s *Server) Stop() error {
+// stop stops the testing server.
+func (s *server) stop() error {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

@@ -70,6 +70,10 @@ func (s *ScrapeConfigBuilder) Validate() {
 	if len(s.cfg.ServiceDiscoveryConfig.TritonSDConfigs) != 0 {
 		s.diags.Add(diag.SeverityLevelError, "triton_sd_configs is not supported")
 	}
+	if s.cfg.DecompressionCfg != nil && s.cfg.DecompressionCfg.Enabled {
+		//TODO: Support this once issue https://github.com/grafana/agent/issues/4669 is resolved
+		s.diags.Add(diag.SeverityLevelError, "decompression is currently not supported")
+	}
 }
 
 func (s *ScrapeConfigBuilder) Sanitize() {
@@ -88,6 +92,7 @@ func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
 
 	args := lokisourcefile.Arguments{
 		ForwardTo: forwardTo,
+		Encoding:  s.cfg.Encoding,
 	}
 	overrideHook := func(val interface{}) interface{} {
 		if _, ok := val.([]discovery.Target); ok {
