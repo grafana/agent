@@ -113,8 +113,14 @@ linux_containers_jobs + windows_containers_jobs + [
           config_json: |||
             {
               "destination_branch": "master",
+              "git_author_email": "40108591+updater-for-ci[bot]@users.noreply.github.com",
+              "git_author_name": "updater-for-ci[bot]",
+              "git_committer_email": "40108591+updater-for-ci[bot]@users.noreply.github.com",
+              "git_committer_name": "updater-for-ci[bot]",
               "pull_request_branch_prefix": "cd-agent",
-              "pull_request_enabled": false,
+              "pull_request_enabled": true,
+              "pull_request_existing_strategy": "replace",
+              "pull_request_message": "Created by Grafana Agent Github App",
               "pull_request_team_reviewers": [
                 "agent-squad"
               ],

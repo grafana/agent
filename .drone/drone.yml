@@ -1278,8 +1278,14 @@ steps:
     config_json: |
       {
         "destination_branch": "master",
+        "git_author_email": "40108591+updater-for-ci[bot]@users.noreply.github.com",
+        "git_author_name": "updater-for-ci[bot]",
+        "git_committer_email": "40108591+updater-for-ci[bot]@users.noreply.github.com",
+        "git_committer_name": "updater-for-ci[bot]",
         "pull_request_branch_prefix": "cd-agent",
-        "pull_request_enabled": false,
+        "pull_request_enabled": true,
+        "pull_request_existing_strategy": "replace",
+        "pull_request_message": "Created by Grafana Agent Github App",
         "pull_request_team_reviewers": [
           "agent-squad"
         ],
@@ -1453,6 +1459,6 @@ kind: secret
 name: private_key
 ---
 kind: signature
-hmac: a99cf1d4a00ef36a218a8cc40175525d3fe0db563abc09f61983fa24c08a251e
+hmac: a48351fceab960c84825220f59dad09061a54f1b8b3482f38ea227e08d159414
 
 ...
