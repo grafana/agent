@@ -14,14 +14,16 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/service/http"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.blackbox",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
+		Name:          "prometheus.exporter.blackbox",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: []string{http.ServiceName},
+		Build:         exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
 	})
 }
 

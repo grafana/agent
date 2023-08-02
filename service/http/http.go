@@ -27,6 +27,9 @@ import (
 	"golang.org/x/net/http2/h2c"
 )
 
+// ServiceName defines the name used for the HTTP service.
+const ServiceName = "http"
+
 // Options are used to configure the HTTP service. Options are constant for the
 // lifetime of the HTTP service.
 type Options struct {
@@ -98,7 +101,7 @@ func New(opts Options) *Service {
 // Definition returns the definition of the HTTP service.
 func (s *Service) Definition() service.Definition {
 	return service.Definition{
-		Name:       "http",
+		Name:       ServiceName,
 		ConfigType: nil, // http does not accept configuration
 		DependsOn:  nil, // http has no dependencies.
 	}

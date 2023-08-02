@@ -10,16 +10,18 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
 	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/service/http"
 	"github.com/lib/pq"
 	config_util "github.com/prometheus/common/config"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.postgres",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "postgres", customizeTarget),
+		Name:          "prometheus.exporter.postgres",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: []string{http.ServiceName},
+		Build:         exporter.NewWithTargetBuilder(createExporter, "postgres", customizeTarget),
 	})
 }
 

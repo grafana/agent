@@ -11,15 +11,17 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/mssql"
 	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/service/http"
 	config_util "github.com/prometheus/common/config"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.mssql",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "mssql", customizeTarget),
+		Name:          "prometheus.exporter.mssql",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: []string{http.ServiceName},
+		Build:         exporter.NewWithTargetBuilder(createExporter, "mssql", customizeTarget),
 	})
 }
 

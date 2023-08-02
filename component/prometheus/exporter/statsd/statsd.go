@@ -6,14 +6,16 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/service/http"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.statsd",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "statsd"),
+		Name:          "prometheus.exporter.statsd",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: []string{http.ServiceName},
+		Build:         exporter.New(createExporter, "statsd"),
 	})
 }
 

@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/service/http"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -27,8 +28,9 @@ func init() {
 	scrape.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 
 	component.Register(component.Registration{
-		Name: "prometheus.scrape",
-		Args: Arguments{},
+		Name:          "prometheus.scrape",
+		Args:          Arguments{},
+		NeedsServices: []string{http.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

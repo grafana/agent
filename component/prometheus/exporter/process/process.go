@@ -5,15 +5,17 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
+	"github.com/grafana/agent/service/http"
 	exporter_config "github.com/ncabatoff/process-exporter/config"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.process",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.New(createIntegration, "process"),
+		Name:          "prometheus.exporter.process",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: []string{http.ServiceName},
+		Build:         exporter.New(createIntegration, "process"),
 	})
 }
 
