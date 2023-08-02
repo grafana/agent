@@ -35,6 +35,7 @@ The following flags are supported:
 * `--bypass-errors`, `-b`: Enable bypassing errors when converting.
 
 [prometheus]: #prometheus
+[promtail]: #promtail
 [errors]: #errors
 
 ### Defaults
