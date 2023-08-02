@@ -52,8 +52,7 @@ func NewServiceConsumer(o component.Options, args ServiceConsumerArguments) (*Se
 }
 
 var (
-	_ component.Component      = (*Passthrough)(nil)
-	_ component.DebugComponent = (*Passthrough)(nil)
+	_ component.Component      = (*ServiceConsumer)(nil)
 )
 
 // Run implements Component.
