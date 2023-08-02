@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
+	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Import test components
 	"github.com/grafana/agent/pkg/flow/internal/testservices"
 	"github.com/grafana/agent/pkg/util"
@@ -171,46 +173,66 @@ func TestComponents_Using_Services(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	componentBuilt := util.NewWaitTrigger()
+
+	var (
+		dependencySvc = &testservices.Fake{
+			DefinitionFunc: func() service.Definition {
+				return service.Definition{Name: "dependency"}
+			},
+		}
+
+		nonDependencySvc = &testservices.Fake{
+			DefinitionFunc: func() service.Definition {
+				return service.Definition{Name: "non_dependency"}
+			},
+		}
+
+		registry = controller.RegistryMap{
+			"service_consumer": component.Registration{
+				Name:          "service_consumer",
+				Args:          struct{}{},
+				NeedsServices: []string{"dependency"},
+				Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+					// Call Trigger in a defer so we can make some extra assertions before
+					// the test exits.
+					defer componentBuilt.Trigger()
+
+					_, err := opts.GetServiceData("dependency")
+					require.NoError(t, err, "component should be able to access services it depends on")
+
+					_, err = opts.GetServiceData("non_dependency")
+					require.Error(t, err, "component should not be able to access services it doesn't depend on")
+
+					_, err = opts.GetServiceData("does_not_exist")
+					require.Error(t, err, "component should not be able to access non-existent service")
+
+					return &testcomponents.Fake{}, nil
+				},
+			},
+		}
+	)
+
 	cfg := `
-		testcomponents.service_consumer "example" {}
+		service_consumer "example" {}
 	`
 
 	f, err := ReadFile(t.Name(), []byte(cfg))
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	hookCalled := util.NewWaitTrigger()
-
-	var (
-		fakeSvc = &testservices.Fake{
-			DefinitionFunc: func() service.Definition {
-				return service.Definition{Name: "not_a_dependency"}
-			},
-		}
-
-		hookSvc = testservices.NewHook(testservices.Hooks{
-			OnComponentCreate: func(o component.Options, _ component.Arguments) {
-				// Call Trigger in a defer so we can make some extra assertions before
-				// the test exits.
-				defer hookCalled.Trigger()
-
-				_, err := o.GetServiceData("not_a_dependency")
-				require.Error(t, err, "component should not be able to access services it doesn't depend on")
-
-				_, err = o.GetServiceData("does_not_exist")
-				require.Error(t, err, "component should not be able to access non-existent service")
-			},
-		})
-	)
-
 	opts := testOptions(t)
-	opts.Services = append(opts.Services, fakeSvc, hookSvc)
+	opts.Services = append(opts.Services, dependencySvc, nonDependencySvc)
 
-	ctrl := New(opts)
+	ctrl := newController(controllerOptions{
+		Options:           opts,
+		ComponentRegistry: registry,
+		ModuleRegistry:    newModuleRegistry(),
+	})
 	require.NoError(t, ctrl.LoadFile(f, nil))
 	go ctrl.Run(ctx)
 
-	require.NoError(t, hookCalled.Wait(5*time.Second), "Hook service should have been invoked")
+	require.NoError(t, componentBuilt.Wait(5*time.Second), "Component should have been built")
 }
 
 func makeEmptyFile(t *testing.T) *File {
