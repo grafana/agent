@@ -1302,8 +1302,6 @@ steps:
           }
         ]
       }
-    github_token:
-      from_secret: gh_token
 trigger:
   ref:
   - refs/heads/main
@@ -1334,8 +1332,12 @@ steps:
       from_secret: docker_login
     DOCKER_PASSWORD:
       from_secret: docker_password
-    GITHUB_TOKEN:
-      from_secret: gh_token
+    GITHUB_APP_ID:
+      from_secret: app_id
+    GITHUB_APP_INSTALLATION_ID:
+      from_secret: app_installation_id
+    GITHUB_APP_PRIVATE_KEY:
+      from_secret: private_key
     GPG_PASSPHRASE:
       from_secret: gpg_passphrase
     GPG_PRIVATE_KEY:
@@ -1385,6 +1387,18 @@ volumes:
   name: docker
 ---
 get:
+  name: app-id
+  path: infra/data/ci/agent/githubapp
+kind: secret
+name: app_id
+---
+get:
+  name: app-installation-id
+  path: infra/data/ci/agent/githubapp
+kind: secret
+name: app_installation_id
+---
+get:
   name: username
   path: infra/data/ci/docker_hub
 kind: secret
@@ -1409,12 +1423,6 @@ kind: secret
 name: gcr_admin
 ---
 get:
-  name: pat
-  path: infra/data/ci/github/grafanabot
-kind: secret
-name: gh_token
----
-get:
   name: passphrase
   path: infra/data/ci/packages-publish/gpg
 kind: secret
@@ -1432,7 +1440,13 @@ get:
 kind: secret
 name: gpg_public_key
 ---
+get:
+  name: private-key
+  path: infra/data/ci/agent/githubapp
+kind: secret
+name: private_key
+---
 kind: signature
-hmac: cdbbd7e715a892c48356bd5d381e47ffb29940cb24ac898c3e495765bdd982e5
+hmac: de1857cbe5a610f8d3f541caac9a6ada1cdb3e90a51b339e45485a948c4e82e3
 
 ...
