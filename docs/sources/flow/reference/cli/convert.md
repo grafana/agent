@@ -77,5 +77,5 @@ to Grafana Agent Flow configuration.
 Nearly all [Promtail features](https://grafana.com/docs/loki/v2.8.x/clients/promtail/configuration/)
 are supported and can be converted to Grafana Agent Flow config.
 
-If you have unsupported features in a source configuration, you will receive [errors] when you convert to a flow configuration.. The converter will
+If you have unsupported features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
 also raise warnings for configuration options that may require your attention.
