@@ -148,6 +148,7 @@ func New(o Options) *Flow {
 	return newController(controllerOptions{
 		Options:        o,
 		ModuleRegistry: newModuleRegistry(),
+		IsModule:       false, // We are creating a new root controller.
 	})
 }
 
@@ -157,6 +158,7 @@ type controllerOptions struct {
 	Options
 
 	ModuleRegistry *moduleRegistry // Where to register created modules.
+	IsModule       bool            // Whether this controller is for a module.
 }
 
 // newController creates a new, unstarted Flow controller with a specific
@@ -215,7 +217,7 @@ func newController(o controllerOptions) *Flow {
 			HTTPListenAddr:  o.HTTPListenAddr,
 			DialFunc:        dialFunc,
 			ControllerID:    o.ControllerID,
-			NewModuleController: func(id string) controller.ModuleController {
+			NewModuleController: func(id string, availableServices []string) controller.ModuleController {
 				return newModuleController(&moduleControllerOptions{
 					ModuleRegistry: o.ModuleRegistry,
 					Logger:         log,
@@ -227,6 +229,7 @@ func newController(o controllerOptions) *Flow {
 					HTTPPath:       o.HTTPPathPrefix,
 					DialFunc:       o.DialFunc,
 					ID:             id,
+					ServiceMap:     serviceMap.FilterByName(availableServices),
 				})
 			},
 			GetServiceData: func(name string) (interface{}, error) {
@@ -283,8 +286,13 @@ func (f *Flow) Run(ctx context.Context) {
 			for _, c := range components {
 				runnables = append(runnables, c)
 			}
-			for _, svc := range services {
-				runnables = append(runnables, svc)
+
+			// Only the root controller should run services, since modules share the
+			// same service instance as the root.
+			if !f.opts.IsModule {
+				for _, svc := range services {
+					runnables = append(runnables, svc)
+				}
 			}
 
 			err := f.sched.Synchronize(runnables)

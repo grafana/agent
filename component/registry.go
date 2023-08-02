@@ -174,6 +174,9 @@ type Registration struct {
 	// on to run. If NeedsServices includes an invalid service name (either
 	// because of a cyclic dependency or the named service doesn't exist),
 	// components will fail to evaluate.
+	//
+	// Modules which are loaded by the registered component will only be able to
+	// access services in this list.
 	NeedsServices []string
 
 	// Build should construct a new component from an initial Arguments and set
