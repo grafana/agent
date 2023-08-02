@@ -207,7 +207,7 @@ stage.drop {
 }
 
 stage.drop {
-    older_than  = "8KB"
+    longer_than = "8KB"
     drop_reason = "too long"
 }
 
