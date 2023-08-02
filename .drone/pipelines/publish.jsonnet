@@ -138,6 +138,9 @@ linux_containers_jobs + windows_containers_jobs + [
               ]
             }
           |||,
+          github_app_id: secrets.app_id.fromSecret,
+          github_app_installation_id: secrets.app_installation_id.fromSecret,
+          github_app_private_key: secrets.private_key.fromSecret,
         },
       },
     ],
