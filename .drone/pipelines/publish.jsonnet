@@ -113,18 +113,10 @@ linux_containers_jobs + windows_containers_jobs + [
           config_json: |||
             {
               "destination_branch": "master",
-              "git_author_email": "40108591+updater-for-ci[bot]@users.noreply.github.com",
-              "git_author_name": "updater-for-ci[bot]",
-              "git_committer_email": "40108591+updater-for-ci[bot]@users.noreply.github.com",
-              "git_committer_name": "updater-for-ci[bot]",
-              "pull_request_branch_prefix": "cd-agent",
-              "wait_for_ci": true,
-              "pull_request_existing_strategy": "replace",
-              "pull_request_message": "Created by Grafana Agent Github App",
-              "pull_request_team_reviewers": [
-                "grafana/agent-squad"
-              ],
               "repo_name": "deployment_tools",
+              "wait_for_ci": true,
+              "wait_for_ci_branch_prefix": "automation/agent-dev-deploy",
+              "wait_for_ci_timeout": "10m",
               "update_jsonnet_attribute_configs": [
                 {
                   "file_path": "ksonnet/environments/kowalski/dev-us-central-0.kowalski-dev/main.jsonnet",
