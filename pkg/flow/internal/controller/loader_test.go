@@ -74,7 +74,7 @@ func TestLoader(t *testing.T) {
 				DataPath:          t.TempDir(),
 				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
-				NewModuleController: func(id string) controller.ModuleController {
+				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
 					return nil
 				},
 			},
@@ -222,7 +222,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
 				Clusterer:         noOpClusterer(),
-				NewModuleController: func(id string) controller.ModuleController {
+				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
 					return nil
 				},
 			},
