@@ -130,7 +130,7 @@ type Flow struct {
 	log       *logging.Logger
 	tracer    *tracing.Tracer
 	clusterer *cluster.Clusterer
-	opts      Options
+	opts      controllerOptions
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -145,13 +145,24 @@ type Flow struct {
 
 // New creates a new, unstarted Flow controller. Call Run to run the controller.
 func New(o Options) *Flow {
-	return newController(newModuleRegistry(), o)
+	return newController(controllerOptions{
+		Options:        o,
+		ModuleRegistry: newModuleRegistry(),
+	})
+}
+
+// controllerOptions are internal options used to create both root Flow
+// controller and controllers for modules.
+type controllerOptions struct {
+	Options
+
+	ModuleRegistry *moduleRegistry // Where to register created modules.
 }
 
 // newController creates a new, unstarted Flow controller with a specific
 // moduleRegistry. Modules created by the controller will be passed to the
 // given modReg.
-func newController(modReg *moduleRegistry, o Options) *Flow {
+func newController(o controllerOptions) *Flow {
 	var (
 		log       = o.Logger
 		tracer    = o.Tracer
@@ -181,7 +192,7 @@ func newController(modReg *moduleRegistry, o Options) *Flow {
 		updateQueue: controller.NewQueue(),
 		sched:       controller.NewScheduler(),
 
-		modules: modReg,
+		modules: o.ModuleRegistry,
 
 		loadFinished: make(chan struct{}, 1),
 	}
@@ -204,7 +215,7 @@ func newController(modReg *moduleRegistry, o Options) *Flow {
 			ControllerID:    o.ControllerID,
 			NewModuleController: func(id string) controller.ModuleController {
 				return newModuleController(&moduleControllerOptions{
-					ModuleRegistry: modReg,
+					ModuleRegistry: o.ModuleRegistry,
 					Logger:         log,
 					Tracer:         tracer,
 					Clusterer:      clusterer,
