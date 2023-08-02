@@ -15,11 +15,6 @@ import (
 	"github.com/grafana/agent/pkg/river/diag"
 )
 
-var supportedFormats = []string{
-	string(converter.InputPrometheus),
-	string(converter.InputPromtail),
-}
-
 func convertCommand() *cobra.Command {
 	f := &flowConvert{
 		output:       "",
@@ -173,8 +168,8 @@ func hasErrorLevel(ds convert_diag.Diagnostics, sev convert_diag.Severity) bool 
 }
 
 func supportedFormatsList() string {
-	var ret = make([]string, len(supportedFormats))
-	for i, f := range supportedFormats {
+	var ret = make([]string, len(converter.SupportedFormats))
+	for i, f := range converter.SupportedFormats {
 		ret[i] = fmt.Sprintf("%q", f)
 	}
 	return strings.Join(ret, ", ")

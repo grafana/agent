@@ -20,6 +20,11 @@ const (
 	InputPromtail Input = "promtail"
 )
 
+var SupportedFormats = []string{
+	string(InputPrometheus),
+	string(InputPromtail),
+}
+
 // Convert generates a Grafana Agent Flow config given an input configuration
 // file.
 //
