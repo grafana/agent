@@ -27,11 +27,12 @@ import (
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
-	log      log.Logger
-	tracer   trace.TracerProvider
-	globals  ComponentGlobals
-	services []service.Service
-	host     service.Host
+	log          log.Logger
+	tracer       trace.TracerProvider
+	globals      ComponentGlobals
+	services     []service.Service
+	host         service.Host
+	componentReg ComponentRegistry
 
 	mut               sync.RWMutex
 	graph             *dag.Graph
@@ -50,8 +51,9 @@ type LoaderOptions struct {
 	// ComponentGlobals contains data to use when creating components.
 	ComponentGlobals ComponentGlobals
 
-	Services []service.Service // Services to load into the DAG.
-	Host     service.Host      // Service host (when running services).
+	Services          []service.Service // Services to load into the DAG.
+	Host              service.Host      // Service host (when running services).
+	ComponentRegistry ComponentRegistry // Registry to search for components.
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -61,14 +63,20 @@ func NewLoader(opts LoaderOptions) *Loader {
 		globals  = opts.ComponentGlobals
 		services = opts.Services
 		host     = opts.Host
+		reg      = opts.ComponentRegistry
 	)
 
+	if reg == nil {
+		reg = DefaultComponentRegistry{}
+	}
+
 	l := &Loader{
-		log:      log.With(globals.Logger, "controller_id", globals.ControllerID),
-		tracer:   tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
-		globals:  globals,
-		services: services,
-		host:     host,
+		log:          log.With(globals.Logger, "controller_id", globals.ControllerID),
+		tracer:       tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
+		globals:      globals,
+		services:     services,
+		host:         host,
+		componentReg: reg,
 
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
@@ -444,7 +452,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			c.UpdateBlock(block)
 		} else {
 			componentName := block.GetBlockName()
-			registration, exists := component.Get(componentName)
+			registration, exists := l.componentReg.Get(componentName)
 			if !exists {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
@@ -486,7 +494,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			}
 
 			// Create a new component
-			c = NewComponentNode(l.globals, block)
+			c = NewComponentNode(l.globals, registration, block)
 		}
 
 		g.Add(c)
