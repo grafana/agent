@@ -120,7 +120,7 @@ linux_containers_jobs + windows_containers_jobs + [
               "pull_request_branch_prefix": "cd-agent",
               "pull_request_enabled": true,
               "pull_request_existing_strategy": "replace",
-              "pull_request_message": "Created by scheduled Drone build https://drone.grafana.net/grafana/deployment_tools/${DRONE_BUILD_NUMBER}\n\nBuild commit: ${DRONE_COMMIT_LINK}\n",
+              "pull_request_message": "Created by Grafana Agent Github App",
               "pull_request_team_reviewers": [
                 "agent-squad"
               ],

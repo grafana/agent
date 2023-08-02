@@ -1285,7 +1285,7 @@ steps:
         "pull_request_branch_prefix": "cd-agent",
         "pull_request_enabled": true,
         "pull_request_existing_strategy": "replace",
-        "pull_request_message": "Created by scheduled Drone build https://drone.grafana.net/grafana/deployment_tools/${DRONE_BUILD_NUMBER}\n\nBuild commit: ${DRONE_COMMIT_LINK}\n",
+        "pull_request_message": "Created by Grafana Agent Github App",
         "pull_request_team_reviewers": [
           "agent-squad"
         ],
@@ -1459,6 +1459,6 @@ kind: secret
 name: private_key
 ---
 kind: signature
-hmac: d4e1171db301cf30c2ce008cf48ef30f320c14f01a12d572a0e103086fb3f55b
+hmac: a48351fceab960c84825220f59dad09061a54f1b8b3482f38ea227e08d159414
 
 ...
