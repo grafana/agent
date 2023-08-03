@@ -249,7 +249,7 @@ func convertDecompressionConfig(cfg *scrapeconfig.DecompressionConfig) lokisourc
 	return lokisourcefile.DecompressionConfig{
 		Enabled:      cfg.Enabled,
 		InitialDelay: cfg.InitialDelay,
-		Format:       cfg.Format,
+		Format:       lokisourcefile.CompressionFormat(cfg.Format),
 	}
 }
 

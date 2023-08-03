@@ -117,10 +117,10 @@ func newDecompressor(
 //
 // The selected reader implementation is based on the extension of the given file name.
 // It'll error if the extension isn't supported.
-func mountReader(f *os.File, logger log.Logger, format string) (reader io.Reader, err error) {
+func mountReader(f *os.File, logger log.Logger, format CompressionFormat) (reader io.Reader, err error) {
 	var decompressLib string
 
-	switch format {
+	switch format.String() {
 	case "gz":
 		decompressLib = "compress/gzip"
 		reader, err = gzip.NewReader(f)

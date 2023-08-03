@@ -15,7 +15,6 @@ import (
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/prometheus/common/model"
-	"golang.org/x/exp/maps"
 )
 
 func init() {
@@ -44,25 +43,9 @@ type Arguments struct {
 }
 
 type DecompressionConfig struct {
-	Enabled      bool          `river:"enabled,attr"`
-	InitialDelay time.Duration `river:"initial_delay,attr,optional"`
-	Format       string        `river:"format,attr"`
-}
-
-func (d DecompressionConfig) Validate() error {
-	if d.Format == "" {
-		return nil
-	}
-	for sf := range supportedCompressedFormats() {
-		if d.Format == sf {
-			return nil
-		}
-	}
-	return fmt.Errorf(
-		"unsupported compression format: %q - please use one of %q",
-		d.Format,
-		strings.Join(maps.Keys(supportedCompressedFormats()), ", "),
-	)
+	Enabled      bool              `river:"enabled,attr"`
+	InitialDelay time.Duration     `river:"initial_delay,attr,optional"`
+	Format       CompressionFormat `river:"format,attr"`
 }
 
 var (
