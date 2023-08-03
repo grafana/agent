@@ -15,8 +15,8 @@ interrupt is received.
 
 Usage:
 
-* `grafana-agent-flow run [FLAG ...] FILE_NAME`
 * `AGENT_MODE=flow grafana-agent run [FLAG ...] FILE_NAME`
+* `grafana-agent-flow run [FLAG ...] FILE_NAME`
 
 `grafana-agent-flow run` must be provided an argument which points at the River config file
 to use. `grafana-agent-flow run` will immediately exit with an error if the River file

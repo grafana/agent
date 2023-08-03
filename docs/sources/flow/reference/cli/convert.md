@@ -16,8 +16,8 @@ The `convert` command converts a supported configuration format to Grafana Agent
 
 Usage: 
 
-* `grafana-agent-flow convert [FLAG ...] FILE_NAME`
 * `AGENT_MODE=flow grafana-agent convert [FLAG ...] FILE_NAME`
+* `grafana-agent-flow convert [FLAG ...] FILE_NAME`
 
 If the `FILE_NAME` argument is not provided or if the `FILE_NAME` argument is
 equal to `-`, `grafana-agent-flow convert` converts the contents of standard input. Otherwise,

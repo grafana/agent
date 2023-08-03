@@ -14,8 +14,8 @@ The `fmt` command formats a given Grafana Agent Flow configuration file.
 
 Usage:
 
-* `grafana-agent-flow fmt [FLAG ...] FILE_NAME`
 * `AGENT_MODE=flow grafana-agent fmt [FLAG ...] FILE_NAME`
+* `grafana-agent-flow fmt [FLAG ...] FILE_NAME`
 
 If the `FILE_NAME` argument is not provided or if the `FILE_NAME` argument is
 equal to `-`, `grafana-agent-flow fmt` formats the contents of standard input. Otherwise,
