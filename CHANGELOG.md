@@ -15,7 +15,7 @@ Main (unreleased)
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
 
 - Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
-- Add `log_format` configuration to eventhandler integration. (@sadovnikov)
+- Add `log_format` configuration to eventhandler integration and the `loki.source.kubernetes_events` Flow component. (@sadovnikov)
 
 - Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
 

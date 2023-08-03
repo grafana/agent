@@ -33,6 +33,7 @@ import (
 const (
 	cacheFileMode = 0600
 	logFormatJson = "json"
+	logFormatFmt  = "logfmt"
 )
 
 // EventHandler watches for Kubernetes Event objects and hands them off to

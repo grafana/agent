@@ -26,11 +26,12 @@ log entries to the list of receivers passed in `forward_to`.
 
 `loki.source.kubernetes_events` supports the following arguments:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
+Name | Type | Description                                      | Default | Required
+---- | ---- |--------------------------------------------------| ------- | --------
 `job_name` | `string` | Value to use for `job` label for generated logs. | `"loki.source.kubernetes_events"` | no
-`namespaces` | `list(string)` | Namespaces to watch for Events in. | `[]` | no
-`forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
+`log_format` | `string` | Log format, either "logfmt" or "json". | `"logfmt"` | no
+`namespaces` | `list(string)` | Namespaces to watch for Events in.               | `[]` | no
+`forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to.        | | yes
 
 By default, `loki.source.kubernetes_events` will watch for events in all
 namespaces. A list of explicit namespaces to watch can be provided in the

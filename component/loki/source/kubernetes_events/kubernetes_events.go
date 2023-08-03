@@ -43,6 +43,7 @@ type Arguments struct {
 
 	JobName    string   `river:"job_name,attr,optional"`
 	Namespaces []string `river:"namespaces,attr,optional"`
+	LogFormat  string   `river:"log_format,attr,optional"`
 
 	// Client settings to connect to Kubernetes.
 	Client kubernetes.ClientArguments `river:"client,block,optional"`
@@ -50,7 +51,8 @@ type Arguments struct {
 
 // DefaultArguments holds default settings for loki.source.kubernetes_events.
 var DefaultArguments = Arguments{
-	JobName: "loki.source.kubernetes_events",
+	JobName:   "loki.source.kubernetes_events",
+	LogFormat: logFormatFmt,
 
 	Client: kubernetes.DefaultClientArguments,
 }
@@ -211,6 +213,7 @@ func (c *Component) Update(args component.Arguments) error {
 			Namespace:    namespace,
 			Receiver:     c.handler,
 			Positions:    c.positions,
+			LogFormat:    newArgs.LogFormat,
 		})
 	}
 
