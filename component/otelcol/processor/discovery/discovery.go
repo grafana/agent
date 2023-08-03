@@ -144,6 +144,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		HostLabels:      hostLabels,
 		OperationType:   cfg.OperationType,
 		PodAssociations: cfg.PodAssociations,
+		NextConsumer:    fanoutconsumer.Traces(cfg.Output.Traces),
 	})
 
 	return nil

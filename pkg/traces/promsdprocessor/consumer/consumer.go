@@ -68,8 +68,6 @@ func ValidatePodAssociations(podAssociations []string) error {
 
 // TODO: Put a private member so that this can't be created without calling NewConsumer?
 type Consumer struct {
-	nextConsumer otelconsumer.Traces
-
 	optsMut sync.RWMutex
 	opts    Options
 
@@ -81,6 +79,7 @@ type Options struct {
 	HostLabels      map[string]discovery.Target
 	OperationType   string
 	PodAssociations []string
+	NextConsumer    otelconsumer.Traces
 }
 
 var _ otelconsumer.Traces = (*Consumer)(nil)
@@ -101,11 +100,11 @@ func NewConsumer(nextConsumer otelconsumer.Traces, operationType string, podAsso
 	}
 
 	return &Consumer{
-		nextConsumer: nextConsumer,
 		opts: Options{
 			HostLabels:      make(map[string]discovery.Target),
 			OperationType:   operationType,
 			PodAssociations: podAssociations,
+			NextConsumer:    nextConsumer,
 		},
 		logger: logger,
 	}, nil
@@ -128,6 +127,9 @@ func (c *Consumer) UpdateOptionsHostLabels(hostLabels map[string]discovery.Targe
 }
 
 func (c *Consumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
+	c.optsMut.RLock()
+	defer c.optsMut.RUnlock()
+
 	rss := td.ResourceSpans()
 	for i := 0; i < rss.Len(); i++ {
 		rs := rss.At(i)
@@ -135,7 +137,7 @@ func (c *Consumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 		c.processAttributes(ctx, rs.Resource().Attributes())
 	}
 
-	return c.nextConsumer.ConsumeTraces(ctx, td)
+	return c.opts.NextConsumer.ConsumeTraces(ctx, td)
 }
 
 func (c *Consumer) Capabilities() otelconsumer.Capabilities {
@@ -149,9 +151,6 @@ func (c *Consumer) processAttributes(ctx context.Context, attrs pcommon.Map) {
 		level.Debug(c.logger).Log("msg", "unable to find ip in span attributes, skipping attribute addition")
 		return
 	}
-
-	c.optsMut.RLock()
-	defer c.optsMut.RUnlock()
 
 	labels, ok := c.opts.HostLabels[ip]
 	if !ok {
