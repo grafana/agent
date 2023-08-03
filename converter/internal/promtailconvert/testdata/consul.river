@@ -1,4 +1,4 @@
-discovery.consul "consul_sd_0" {
+discovery.consul "fun" {
 	datacenter    = "bigdata"
 	tag_separator = ";"
 	scheme        = "sketchy"
@@ -22,7 +22,7 @@ discovery.consul "consul_sd_0" {
 }
 
 discovery.relabel "fun" {
-	targets = discovery.consul.consul_sd_0.targets
+	targets = discovery.consul.fun.targets
 
 	rule {
 		source_labels = ["host"]

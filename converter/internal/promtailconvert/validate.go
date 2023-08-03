@@ -16,7 +16,7 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	}
 
 	// The positions global config is not supported in Flow Mode.
-	if cfg.PositionsConfig != defaultPositionsConfig() {
+	if cfg.PositionsConfig != DefaultPositionsConfig() {
 		diags.Add(
 			diag.SeverityLevelError,
 			"global positions configuration is not supported - each Flow Mode's loki.source.file component "+
@@ -43,7 +43,7 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	// Not yet supported, see https://github.com/grafana/agent/issues/4342. It's an error since we want to
 	// err on the safe side.
 	//TODO(thampiotr): seems like it's possible to support this using loki.process component
-	if cfg.LimitsConfig != defaultLimitsConfig() {
+	if cfg.LimitsConfig != DefaultLimitsConfig() {
 		diags.Add(
 			diag.SeverityLevelError,
 			"limits_config is not yet supported in Flow Mode",
@@ -56,7 +56,7 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	// flow config to translate this. See https://www.jaegertracing.io/docs/1.16/client-features/
 	if cfg.Tracing.Enabled {
 		diags.Add(
-			diag.SeverityLevelError,
+			diag.SeverityLevelWarn,
 			"tracing configuration cannot be migrated to Flow Mode automatically - please "+
 				"refer to documentation on how to configure tracing in Flow Mode",
 		)

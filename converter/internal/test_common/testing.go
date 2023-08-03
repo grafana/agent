@@ -15,6 +15,8 @@ import (
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/service"
+	http_service "github.com/grafana/agent/service/http"
 	"github.com/stretchr/testify/require"
 )
 
@@ -104,17 +106,27 @@ func getExpectedDiags(t *testing.T, diagsFile string) []string {
 func validateDiags(t *testing.T, expectedDiags []string, actualDiags diag.Diagnostics) {
 	for ix, diag := range actualDiags {
 		if len(expectedDiags) > ix {
+			if expectedDiags[ix] != diag.String() {
+				printActualDiags(actualDiags)
+			}
 			require.Equal(t, expectedDiags[ix], diag.String())
 		} else {
-			fmt.Printf("=== EXTRA DIAGS FOUND ===\n%s\n===========================\n", actualDiags[ix:])
+			printActualDiags(actualDiags)
 			require.Fail(t, "unexpected diag count reach for diag: "+diag.String())
 		}
 	}
 
 	// If we expect more diags than we got
 	if len(expectedDiags) > len(actualDiags) {
+		printActualDiags(actualDiags)
 		require.Fail(t, "missing expected diag: "+expectedDiags[len(actualDiags)])
 	}
+}
+
+func printActualDiags(actualDiags diag.Diagnostics) {
+	fmt.Println("============== ACTUAL =============")
+	fmt.Println(string(normalizeLineEndings([]byte(actualDiags.Error()))))
+	fmt.Println("===================================")
 }
 
 // normalizeLineEndings will replace '\r\n' with '\n'.
@@ -168,10 +180,15 @@ func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 	logger, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 	f := flow.New(flow.Options{
-		Logger:         logger,
-		Clusterer:      &cluster.Clusterer{Node: cluster.NewLocalNode("")},
-		DataPath:       t.TempDir(),
-		HTTPListenAddr: ":0",
+		Logger:    logger,
+		Clusterer: &cluster.Clusterer{Node: cluster.NewLocalNode("")},
+		DataPath:  t.TempDir(),
+		Services: []service.Service{
+			// The HTTP service isn't used, but we still need to provide an
+			// implementation of one so that components which rely on the HTTP
+			// service load properly.
+			http_service.New(http_service.Options{}),
+		},
 	})
 	err = f.LoadFile(cfg, nil)
 

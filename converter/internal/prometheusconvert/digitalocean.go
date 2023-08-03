@@ -19,7 +19,7 @@ func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *p
 	name := []string{"discovery", "digitalocean"}
 	block := common.NewBlockWithOverride(name, label, discoveryDigitalOceanArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return newDiscoverExports("discovery.digitalocean." + label + ".targets")
+	return NewDiscoverExports("discovery.digitalocean." + label + ".targets")
 }
 
 func ValidateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
@@ -41,9 +41,8 @@ func ValidateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Di
 		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for digitalocean_sd_configs")
 	}
 
-	newDiags := ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+	diags.AddAll(ValidateHttpClientConfig(&sdConfig.HTTPClientConfig))
 
-	diags = append(diags, newDiags...)
 	return diags
 }
 

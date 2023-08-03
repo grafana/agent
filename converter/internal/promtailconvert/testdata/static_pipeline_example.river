@@ -1,21 +1,38 @@
-discovery.kubernetes "example_0" {
+discovery.kubernetes "example" {
 	role            = "pod"
 	kubeconfig_file = "/home/toby/.kube/config"
 }
 
 discovery.relabel "example" {
 	targets = concat(
-		discovery.kubernetes.example_0.targets,
+		discovery.kubernetes.example.targets,
 		[{
+			__address__       = "this",
 			__path__          = "/var/log/captain_scott_last_expedition.log",
 			__path__exclude__ = "/var/log/sensational_news.log",
 			category          = "fun",
 		}, {
+			__address__       = "is",
+			__path__          = "/var/log/captain_scott_last_expedition.log",
+			__path__exclude__ = "/var/log/sensational_news.log",
+			category          = "fun",
+		}, {
+			__address__       = "actually",
+			__path__          = "/var/log/captain_scott_last_expedition.log",
+			__path__exclude__ = "/var/log/sensational_news.log",
+			category          = "fun",
+		}, {
+			__address__       = "used",
+			__path__          = "/var/log/captain_scott_last_expedition.log",
+			__path__exclude__ = "/var/log/sensational_news.log",
+			category          = "fun",
+		}, {
+			__address__       = "one_more",
 			__path__          = "/shelf/books/star_trek*",
 			__path__exclude__ = "/shelf/books/star_wars*",
 			category          = "sf",
 			quality           = "high",
-		}, {}],
+		}],
 	)
 
 	rule {
@@ -34,7 +51,7 @@ local.file_match "example" {
 }
 
 loki.process "example" {
-	forward_to = [loki.write.default_0.receiver]
+	forward_to = [loki.write.default.receiver]
 
 	stage.json {
 		expressions = {
@@ -49,13 +66,12 @@ loki.process "example" {
 loki.source.file "example" {
 	targets    = local.file_match.example.targets
 	forward_to = [loki.process.example.receiver]
+	encoding   = "UTF-16"
 }
 
-loki.write "default_0" {
+loki.write "default" {
 	endpoint {
-		url              = "http://localhost/loki/api/v1/push"
-		follow_redirects = false
-		enable_http2     = false
+		url = "http://localhost/loki/api/v1/push"
 	}
 	external_labels = {}
 }
