@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/foxcpp/go-mockdns"
 	"github.com/go-kit/log"
 	"github.com/grafana/ckit/advertise"
 	"github.com/hashicorp/go-discover"
@@ -237,12 +238,45 @@ func TestGetPeers(t *testing.T) {
 	t.Run("GetPeers refreshes the list from DiscoverPeers", func(t *testing.T) {
 		gc := defaultConfig
 		gc.DiscoverPeers = `provider=random addrs=one,two,three,four,five,six`
-
 		err := gc.ApplyDefaults()
 		require.NoError(t, err)
 		require.Equal(t, []string{fmt.Sprintf("five:%d", examplePort)}, getPeers(t, gc))
 		require.Equal(t, []string{fmt.Sprintf("three:%d", examplePort)}, getPeers(t, gc))
 		require.Equal(t, []string{fmt.Sprintf("six:%d", examplePort)}, getPeers(t, gc))
 		require.Equal(t, []string{fmt.Sprintf("six:%d", examplePort)}, getPeers(t, gc))
+	})
+
+	t.Run("GetPeers refreshes a DNS record from JoinPeers", func(t *testing.T) {
+		gc := defaultConfig
+		gc.JoinPeers = []string{"192.168.1.14", "192.168.1.15:9999", "foo"}
+
+		err := gc.ApplyDefaults()
+		require.NoError(t, err)
+		defer mockdns.UnpatchNet(net.DefaultResolver)
+
+		srv, err := mockdns.NewServer(map[string]mockdns.Zone{
+			"foo.": {SRV: []net.SRV{{Target: "machine-a."}}},
+		}, false)
+		require.NoError(t, err)
+		defer srv.Close()
+
+		srv.PatchNet(net.DefaultResolver)
+		require.Equal(t, []string{fmt.Sprintf("192.168.1.14:%d", examplePort), "192.168.1.15:9999", "machine-a.:8888"}, getPeers(t, gc))
+
+		srv2, err := mockdns.NewServer(map[string]mockdns.Zone{
+			"foo.": {SRV: []net.SRV{{Target: "machine-b."}}},
+		}, false)
+		require.NoError(t, err)
+		defer srv2.Close()
+
+		srv2.PatchNet(net.DefaultResolver)
+		require.Equal(t, []string{fmt.Sprintf("192.168.1.14:%d", examplePort), "192.168.1.15:9999", "machine-b.:8888"}, getPeers(t, gc))
+	})
+
+	t.Run("GetPeers without JoinPeers or DiscoverPeers", func(t *testing.T) {
+		gc := defaultConfig
+		err := gc.ApplyDefaults()
+		require.NoError(t, err)
+		require.Equal(t, []string(nil), getPeers(t, gc))
 	})
 }
