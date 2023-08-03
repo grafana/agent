@@ -56,7 +56,7 @@ The following flags are supported:
 [usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
 [components]: {{< relref "../../concepts/components.md" >}}
 
-## Updating the configuration file
+## Update the configuration file
 
 The configuration file can be reloaded from disk by either:
 
