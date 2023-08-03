@@ -27,6 +27,9 @@ import (
 	"golang.org/x/net/http2/h2c"
 )
 
+// ServiceName defines the name used for the HTTP service.
+const ServiceName = "http"
+
 // Options are used to configure the HTTP service. Options are constant for the
 // lifetime of the HTTP service.
 type Options struct {
@@ -98,7 +101,7 @@ func New(opts Options) *Service {
 // Definition returns the definition of the HTTP service.
 func (s *Service) Definition() service.Definition {
 	return service.Definition{
-		Name:       "http",
+		Name:       ServiceName,
 		ConfigType: nil, // http does not accept configuration
 		DependsOn:  nil, // http has no dependencies.
 	}
@@ -213,7 +216,7 @@ func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
 			return
 		}
 
-		component, ok := info.Component.(component.HTTPComponent)
+		component, ok := info.Component.(Component)
 		if !ok {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -245,6 +248,7 @@ func (s *Service) Data() any {
 	return Data{
 		HTTPListenAddr:   s.opts.HTTPListenAddr,
 		MemoryListenAddr: s.opts.MemoryListenAddr,
+		BaseHTTPPath:     s.componentHttpPathPrefix,
 
 		DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
 			switch address {
@@ -266,8 +270,32 @@ type Data struct {
 	// traffic when [DialFunc] is used to establish a connection.
 	MemoryListenAddr string
 
+	// BaseHTTPPath is the base path where component HTTP routes are exposed.
+	BaseHTTPPath string
+
 	// DialFunc is a function which establishes in-memory network connection when
 	// address is MemoryListenAddr. If address is not MemoryListenAddr, DialFunc
 	// establishes an outbound network connection.
 	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+}
+
+// HTTPPathForComponent returns the full HTTP path for a given global component
+// ID.
+func (d Data) HTTPPathForComponent(componentID string) string {
+	merged := path.Join(d.BaseHTTPPath, componentID)
+	if !strings.HasSuffix(merged, "/") {
+		return merged + "/"
+	}
+	return merged
+}
+
+// Component is a Flow component which also contains a custom HTTP handler.
+type Component interface {
+	component.Component
+
+	// Handler should return a valid HTTP handler for the component.
+	// All requests to the component will have the path trimmed such that the component is at the root.
+	// For example, f a request is made to `/component/{id}/metrics`, the component
+	// will receive a request to just `/metrics`.
+	Handler() http.Handler
 }

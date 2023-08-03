@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations"
+	http_service "github.com/grafana/agent/service/http"
 	"github.com/prometheus/common/model"
 )
 
@@ -126,10 +127,16 @@ func newExporter(creator Creator, name string, targetBuilderFunc func(discovery.
 		jobName := fmt.Sprintf("integrations/%s", name)
 		instance := defaultInstance()
 
+		data, err := opts.GetServiceData(http_service.ServiceName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get HTTP information: %w", err)
+		}
+		httpData := data.(http_service.Data)
+
 		c.baseTarget = discovery.Target{
-			model.AddressLabel:                  opts.HTTPListenAddr,
+			model.AddressLabel:                  httpData.MemoryListenAddr,
 			model.SchemeLabel:                   "http",
-			model.MetricsPathLabel:              path.Join(opts.HTTPPath, "metrics"),
+			model.MetricsPathLabel:              path.Join(httpData.HTTPPathForComponent(opts.ID), "metrics"),
 			"instance":                          instance,
 			"job":                               jobName,
 			"__meta_agent_integration_name":     jobName,
