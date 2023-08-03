@@ -1,12 +1,14 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
-title: grafana-agent-flow run
-weight: 100
+description: The `run` command runs Grafana Agent in the foreground until an interrupt is received.
+title: run command
+menuTitle: run
+weight: 300
 ---
 
-# `grafana-agent-flow run` command
+# `run` command
 
-The `grafana-agent-flow run` command runs Grafana Agent Flow in the foreground until an
+The `run` command runs Grafana Agent Flow in the foreground until an
 interrupt is received.
 
 ## Usage

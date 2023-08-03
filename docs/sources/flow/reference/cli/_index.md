@@ -1,6 +1,8 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/
-title: Command-line interface
+description: The Grafana Agent command line interface provides subcommands to perform various operations.
+title: The Grafana Agent command line interface
+menuTitle: Command-line interface
 weight: 100
 ---
 

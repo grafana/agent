@@ -1,12 +1,14 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/fmt/
-title: grafana-agent-flow fmt
-weight: 100
+description: The `fmt` command formats a Grafana Agent configuration file.
+title: fmt command
+menuTitle: fmt
+weight: 200
 ---
 
-# `grafana-agent-flow fmt` command
+# `fmt` command
 
-The `grafana-agent-flow fmt` command formats a given Grafana Agent Flow configuration file.
+The `fmt` command formats a given Grafana Agent Flow configuration file.
 
 ## Usage
 
