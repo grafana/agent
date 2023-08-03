@@ -9,6 +9,18 @@ local.file_match "example" {
 
 loki.process "example" {
 	forward_to = [loki.write.default.receiver]
+
+	stage.logfmt {
+		mapping = {
+			app = "",
+		}
+	}
+
+	stage.non_indexed_labels {
+		values = {
+			app = "app",
+		}
+	}
 }
 
 loki.source.file "example" {
