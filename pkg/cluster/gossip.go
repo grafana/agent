@@ -63,7 +63,6 @@ type GossipConfig struct {
 	// Discover peers to connect to using go-discover. Mutually exclusive with
 	// JoinPeers.
 	DiscoverPeers string
-	discoverer    *discover.Discover
 
 	// How often to rediscover peers and try to connect to them.
 	RejoinInterval time.Duration
@@ -81,8 +80,6 @@ var DefaultGossipConfig = GossipConfig{
 }
 
 // ApplyDefaults mutates c with default settings applied.
-// ApplyDefaults must be called successfully before using it to create a
-// NewGossipNode.
 //
 // An error will be returned if the configuration is invalid or if an error
 // occurred while applying defaults.
@@ -111,24 +108,6 @@ func (c *GossipConfig) ApplyDefaults() error {
 
 	if len(c.JoinPeers) > 0 && c.DiscoverPeers != "" {
 		return fmt.Errorf("at most one of join peers and discover peers may be set")
-	} else if c.DiscoverPeers != "" {
-		providers := make(map[string]discover.Provider, len(discover.Providers)+1)
-		for k, v := range discover.Providers {
-			providers[k] = v
-		}
-		// Extra providers used by tests
-		for k, v := range extraDiscoverProviders {
-			providers[k] = v
-		}
-
-		// Custom providers that aren't enabled by default
-		providers["k8s"] = &k8s.Provider{}
-
-		d, err := discover.New(discover.WithProviders(providers))
-		if err != nil {
-			return fmt.Errorf("bootstrapping peer discovery: %w", err)
-		}
-		c.discoverer = d
 	}
 
 	return nil
@@ -143,7 +122,7 @@ func (n *GossipNode) GetPeers() ([]string, error) {
 			peers = appendJoinAddr(peers, jaddr)
 		}
 	} else if n.cfg.DiscoverPeers != "" {
-		addrs, err := n.cfg.discoverer.Addrs(n.cfg.DiscoverPeers, stdlog.New(log.NewStdlibAdapter(n.log), "", 0))
+		addrs, err := n.discoverer.Addrs(n.cfg.DiscoverPeers, stdlog.New(log.NewStdlibAdapter(n.log), "", 0))
 		if err != nil {
 			return nil, fmt.Errorf("discovering peers: %w", err)
 		}
@@ -175,18 +154,18 @@ type GossipNode struct {
 	// still abstracted out as its own type to have more agent-specific control
 	// over the exposed API.
 
-	cfg       *GossipConfig
-	innerNode *ckit.Node
-	log       log.Logger
-	sharder   shard.Sharder
+	cfg        *GossipConfig
+	innerNode  *ckit.Node
+	log        log.Logger
+	sharder    shard.Sharder
+	discoverer *discover.Discover
 
 	started atomic.Bool
 }
 
 // NewGossipNode creates an unstarted GossipNode. The GossipNode will use the
 // passed http.Client to create a new HTTP/2-compatible Transport that can
-// communicate with other nodes over HTTP/2. GossipConfig is expected to be
-// valid and have already had ApplyDefaults called on it.
+// communicate with other nodes over HTTP/2.
 //
 // GossipNode operations are unavailable until the node is started.
 func NewGossipNode(l log.Logger, reg prometheus.Registerer, cli *http.Client, c *GossipConfig) (*GossipNode, error) {
@@ -194,7 +173,29 @@ func NewGossipNode(l log.Logger, reg prometheus.Registerer, cli *http.Client, c 
 		l = log.NewNopLogger()
 	}
 
+	err := c.ApplyDefaults()
+	if err != nil {
+		return nil, err
+	}
+
 	sharder := shard.Ring(tokensPerNode)
+
+	providers := make(map[string]discover.Provider, len(discover.Providers)+1)
+	for k, v := range discover.Providers {
+		providers[k] = v
+	}
+	// Extra providers used by tests
+	for k, v := range extraDiscoverProviders {
+		providers[k] = v
+	}
+
+	// Custom providers that aren't enabled by default
+	providers["k8s"] = &k8s.Provider{}
+
+	discoverer, err := discover.New(discover.WithProviders(providers))
+	if err != nil {
+		return nil, fmt.Errorf("bootstrapping peer discovery: %w", err)
+	}
 
 	ckitConfig := ckit.Config{
 		Name:          c.NodeName,
@@ -210,10 +211,11 @@ func NewGossipNode(l log.Logger, reg prometheus.Registerer, cli *http.Client, c 
 	reg.MustRegister(inner.Metrics())
 
 	return &GossipNode{
-		cfg:       c,
-		innerNode: inner,
-		log:       l,
-		sharder:   sharder,
+		cfg:        c,
+		innerNode:  inner,
+		log:        l,
+		sharder:    sharder,
+		discoverer: discoverer,
 	}, nil
 }
 

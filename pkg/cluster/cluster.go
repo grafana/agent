@@ -146,11 +146,6 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 	gossipConfig.DiscoverPeers = discoverPeers
 	gossipConfig.RejoinInterval = rejoinInterval
 
-	err = gossipConfig.ApplyDefaults()
-	if err != nil {
-		return nil, err
-	}
-
 	cli := &http.Client{
 		Transport: &http2.Transport{
 			AllowHTTP: true,
