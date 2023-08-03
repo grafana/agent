@@ -23,7 +23,7 @@ If the `FILE_NAME` argument is not provided or if the `FILE_NAME` argument is
 equal to `-`, `grafana-agent-flow convert` converts the contents of standard input. Otherwise,
 `grafana-agent-flow convert` reads and converts the file from disk specified by the argument.
 
-There are several different flags available for the ``convert` command. You can use the `--output` flag to write the contents of the converted config to a specified path. You can use the `--report` flag to generate a diagnostic report. The `--bypass-errors` flag allows you to bypass any [errors] generated during the file conversion.
+There are several different flags available for the `convert` command. You can use the `--output` flag to write the contents of the converted config to a specified path. You can use the `--report` flag to generate a diagnostic report. The `--bypass-errors` flag allows you to bypass any [errors] generated during the file conversion.
 
 The command fails if the source config has syntactically incorrect
 configuration or cannot be converted to Grafana Agent Flow River format.
