@@ -170,6 +170,76 @@ func TestFlow_GetServiceConsumers(t *testing.T) {
 	require.Equal(t, []any{svcB}, consumers)
 }
 
+func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	componentBuilt := util.NewWaitTrigger()
+
+	var (
+		svc = &testservices.Fake{
+			DefinitionFunc: func() service.Definition {
+				return service.Definition{Name: "service"}
+			},
+		}
+
+		registry = controller.RegistryMap{
+			"module_loader": component.Registration{
+				Name:          "module_loader",
+				Args:          struct{}{},
+				NeedsServices: []string{"service"},
+				Build: func(opts component.Options, _ component.Arguments) (component.Component, error) {
+					mod, err := opts.ModuleController.NewModule("", nil)
+					require.NoError(t, err, "Failed to create module")
+
+					err = mod.LoadConfig([]byte(`service_consumer "example" {}`), nil)
+					require.NoError(t, err, "Failed to load module config")
+
+					return &testcomponents.Fake{
+						RunFunc: func(ctx context.Context) error {
+							mod.Run(ctx)
+							<-ctx.Done()
+							return nil
+						},
+					}, nil
+				},
+			},
+
+			"service_consumer": component.Registration{
+				Name:          "service_consumer",
+				Args:          struct{}{},
+				NeedsServices: []string{"service"},
+				Build: func(_ component.Options, _ component.Arguments) (component.Component, error) {
+					componentBuilt.Trigger()
+					return &testcomponents.Fake{}, nil
+				},
+			},
+		}
+	)
+
+	cfg := `module_loader "example" {}`
+
+	f, err := ReadFile(t.Name(), []byte(cfg))
+	require.NoError(t, err)
+	require.NotNil(t, f)
+
+	opts := testOptions(t)
+	opts.Services = append(opts.Services, svc)
+
+	ctrl := newController(controllerOptions{
+		Options:           opts,
+		ComponentRegistry: registry,
+		ModuleRegistry:    newModuleRegistry(),
+	})
+	require.NoError(t, ctrl.LoadFile(f, nil))
+	go ctrl.Run(ctx)
+
+	require.NoError(t, componentBuilt.Wait(5*time.Second), "Component should have been built")
+
+	consumers := ctrl.GetServiceConsumers("service")
+	require.Len(t, consumers, 2, "There should be a consumer for the module loader and the module's component")
+}
+
 func TestComponents_Using_Services(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
