@@ -67,6 +67,12 @@ loki.source.file "example" {
 	targets    = local.file_match.example.targets
 	forward_to = [loki.process.example.receiver]
 	encoding   = "UTF-16"
+
+	decompression {
+		enabled       = true
+		initial_delay = "30s"
+		format        = "z"
+	}
 }
 
 loki.write "default" {

@@ -18,4 +18,3 @@
 (Error) marathon_sd_configs is not supported
 (Error) openstack_sd_configs is not supported
 (Error) triton_sd_configs is not supported
-(Error) decompression is currently not supported

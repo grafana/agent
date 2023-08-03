@@ -51,7 +51,3 @@ scrape_configs:
         dns_suffix: .example.com
         endpoint: triton.example.com
     encoding: utf-16
-    decompression:
-      enabled: true
-      format: z
-      initial_delay: 30s
