@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	stdlog "log"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -21,6 +22,8 @@ import (
 // ckit, since we can rely on the existing ckit tests for correctness.
 
 const examplePort = 8888
+
+var rnd = rand.New(rand.NewSource(1337))
 
 func TestConfig_ApplyDefaults(t *testing.T) {
 	ifaces, err := net.Interfaces()
@@ -177,6 +180,32 @@ func (sp *staticProvider) Help() string {
 		addrs:    Comma-separated list of addresses to return`
 }
 
+type randomProvider struct{}
+
+var _ discover.Provider = (*randomProvider)(nil)
+
+func (sp *randomProvider) Addrs(args map[string]string, l *stdlog.Logger) ([]string, error) {
+	if args["provider"] != "random" {
+		return nil, fmt.Errorf("discover-random: invalid provider " + args["provider"])
+	}
+	if rawSet, ok := args["addrs"]; ok {
+		addrs := strings.Split(rawSet, ",")
+		if len(addrs) == 0 {
+			return nil, nil
+		}
+
+		return []string{addrs[rnd.Intn(len(addrs))]}, nil
+	}
+	return nil, nil
+}
+
+func (sp *randomProvider) Help() string {
+	return `random:
+
+    provider: "random"
+		addrs:    Returns a random address from a comma-separated list of addresses`
+}
+
 func getPeers(t *testing.T, gc GossipConfig) []string {
 	gc.NodeName = "gossip-node"
 	node, err := NewGossipNode(log.NewLogfmtLogger(io.Discard), prometheus.NewRegistry(), &http.Client{}, &gc)
@@ -184,4 +213,36 @@ func getPeers(t *testing.T, gc GossipConfig) []string {
 	peers, err := node.GetPeers()
 	require.NoError(t, err)
 	return peers
+}
+
+func TestGetPeers(t *testing.T) {
+	ifaces, err := net.Interfaces()
+	require.NoError(t, err)
+
+	var advertiseInterfaces []string
+	for _, iface := range ifaces {
+		if iface.Flags != net.FlagLoopback {
+			advertiseInterfaces = append(advertiseInterfaces, iface.Name)
+		}
+	}
+
+	defaultConfig := DefaultGossipConfig
+	defaultConfig.AdvertiseInterfaces = advertiseInterfaces
+	defaultConfig.DefaultPort = examplePort
+
+	setTestProviders(t, map[string]discover.Provider{
+		"random": &randomProvider{},
+	})
+
+	t.Run("GetPeers refreshes the list from DiscoverPeers", func(t *testing.T) {
+		gc := defaultConfig
+		gc.DiscoverPeers = `provider=random addrs=one,two,three,four,five,six`
+
+		err := gc.ApplyDefaults()
+		require.NoError(t, err)
+		require.Equal(t, []string{fmt.Sprintf("five:%d", examplePort)}, getPeers(t, gc))
+		require.Equal(t, []string{fmt.Sprintf("three:%d", examplePort)}, getPeers(t, gc))
+		require.Equal(t, []string{fmt.Sprintf("six:%d", examplePort)}, getPeers(t, gc))
+		require.Equal(t, []string{fmt.Sprintf("six:%d", examplePort)}, getPeers(t, gc))
+	})
 }
