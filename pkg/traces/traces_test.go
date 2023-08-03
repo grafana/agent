@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/server"
-	"github.com/grafana/agent/pkg/traces/internal/traceutils"
+	"github.com/grafana/agent/pkg/traces/traceutils"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"

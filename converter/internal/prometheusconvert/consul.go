@@ -16,7 +16,7 @@ func appendDiscoveryConsul(pb *prometheusBlocks, label string, sdConfig *prom_co
 	name := []string{"discovery", "consul"}
 	block := common.NewBlockWithOverride(name, label, discoveryConsulArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return newDiscoverExports("discovery.consul." + label + ".targets")
+	return NewDiscoverExports("discovery.consul." + label + ".targets")
 }
 
 func validateDiscoveryConsul(sdConfig *prom_consul.SDConfig) diag.Diagnostics {

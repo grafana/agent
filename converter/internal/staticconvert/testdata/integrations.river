@@ -1,0 +1,63 @@
+prometheus.exporter.apache "integrations_apache_http" {
+	scrape_uri = "http://0.0.0.0/server-status?auto"
+}
+
+prometheus.scrape "integrations_apache_http" {
+	targets      = prometheus.exporter.apache.integrations_apache_http.targets
+	forward_to   = [prometheus.remote_write.integrations.receiver]
+	job_name     = "integrations/apache_http"
+	metrics_path = "integrations/apache_http/metrics"
+}
+
+prometheus.remote_write "integrations" {
+	endpoint {
+		url = "http://localhost:9009/api/prom/push"
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}
+
+prometheus.exporter.unix { }
+
+discovery.relabel "integrations_node_exporter" {
+	targets = prometheus.exporter.unix.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "__param_id"
+	}
+
+	rule {
+		source_labels = ["__param_id"]
+		target_label  = "thermostat"
+	}
+
+	rule {
+		source_labels = []
+		target_label  = "__address__"
+		replacement   = "localhost:8099"
+	}
+}
+
+prometheus.scrape "integrations_node_exporter" {
+	targets      = discovery.relabel.integrations_node_exporter.output
+	forward_to   = [prometheus.relabel.integrations_node_exporter.receiver]
+	job_name     = "integrations/node_exporter"
+	metrics_path = "integrations/node_exporter/metrics"
+}
+
+prometheus.relabel "integrations_node_exporter" {
+	forward_to = [prometheus.remote_write.integrations.receiver]
+
+	rule {
+		source_labels = ["__metric_address1__"]
+		target_label  = "__metric_param_target1"
+	}
+
+	rule {
+		source_labels = ["__metric_address2__"]
+		target_label  = "__metric_param_target2"
+	}
+}

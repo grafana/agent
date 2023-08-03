@@ -56,7 +56,7 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	// flow config to translate this. See https://www.jaegertracing.io/docs/1.16/client-features/
 	if cfg.Tracing.Enabled {
 		diags.Add(
-			diag.SeverityLevelError,
+			diag.SeverityLevelWarn,
 			"tracing configuration cannot be migrated to Flow Mode automatically - please "+
 				"refer to documentation on how to configure tracing in Flow Mode",
 		)

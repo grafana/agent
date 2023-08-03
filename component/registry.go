@@ -3,7 +3,6 @@ package component
 import (
 	"context"
 	"fmt"
-	"net"
 	"reflect"
 	"strings"
 
@@ -101,18 +100,15 @@ type Options struct {
 	// controller.
 	Clusterer *cluster.Clusterer
 
-	// HTTPListenAddr is the address the server is configured to listen on.
-	HTTPListenAddr string
-
-	// DialFunc is a function for components to use to properly communicate to
-	// HTTPListenAddr. If set, components which send HTTP requests to
-	// HTTPListenAddr must use this function to establish connections.
-	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
-
-	// HTTPPath is the base path that requests need in order to route to this
-	// component. Requests received by a component handler will have this already
-	// trimmed off.
-	HTTPPath string
+	// GetServiceData retrieves data for a service by calling
+	// [service.Service.Data] for the specified service.
+	//
+	// GetServiceData will return an error if the service does not exist or was
+	// not listed as a dependency with the registration of the component.
+	//
+	// The result of GetServiceData may be cached as the value will not change at
+	// runtime.
+	GetServiceData func(name string) (interface{}, error)
 }
 
 // Registration describes a single component.
@@ -159,6 +155,15 @@ type Registration struct {
 	// An example Exports value that the registered component may emit as output.
 	// A component which does not expose exports must leave this set to nil.
 	Exports Exports
+
+	// NeedsServices holds the set of service names which this component depends
+	// on to run. If NeedsServices includes an invalid service name (either
+	// because of a cyclic dependency or the named service doesn't exist),
+	// components will fail to evaluate.
+	//
+	// Modules which are loaded by the registered component will only be able to
+	// access services in this list.
+	NeedsServices []string
 
 	// Build should construct a new component from an initial Arguments and set
 	// of options.
