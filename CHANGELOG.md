@@ -45,6 +45,7 @@ Main (unreleased)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
   - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
   - `loki.write` now exposes basic WAL support. (@thepalbi)
+  - `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
 
 ### Bugfixes
 
