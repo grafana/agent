@@ -166,8 +166,12 @@ func TestFlow_GetServiceConsumers(t *testing.T) {
 	ctrl := New(opts)
 	require.NoError(t, ctrl.LoadFile(makeEmptyFile(t), nil))
 
-	consumers := ctrl.GetServiceConsumers("svc_a")
-	require.Equal(t, []any{svcB}, consumers)
+	expectConsumers := []service.Consumer{{
+		Type:  service.ConsumerTypeService,
+		ID:    "svc_b",
+		Value: svcB,
+	}}
+	require.Equal(t, expectConsumers, ctrl.GetServiceConsumers("svc_a"))
 }
 
 func TestFlow_GetServiceConsumers_Modules(t *testing.T) {

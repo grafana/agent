@@ -3,12 +3,13 @@ package flow
 import (
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/service"
 )
 
 // GetServiceConsumers implements [service.Host]. It returns a slice of
 // [component.Component] and [service.Service]s which declared a dependency on
 // the named service.
-func (f *Flow) GetServiceConsumers(serviceName string) []any {
+func (f *Flow) GetServiceConsumers(serviceName string) []service.Consumer {
 	consumers := serviceConsumersForGraph(f.loader.OriginalGraph(), serviceName, true)
 
 	// Iterate through all modules to find other components that depend on the
@@ -22,21 +23,25 @@ func (f *Flow) GetServiceConsumers(serviceName string) []any {
 	return consumers
 }
 
-func serviceConsumersForGraph(graph *dag.Graph, serviceName string, includePeerServices bool) []any {
+func serviceConsumersForGraph(graph *dag.Graph, serviceName string, includePeerServices bool) []service.Consumer {
 	serviceNode, _ := graph.GetByID(serviceName).(*controller.ServiceNode)
 	if serviceNode == nil {
 		return nil
 	}
 	dependants := graph.Dependants(serviceNode)
 
-	consumers := make([]any, 0, len(dependants))
+	consumers := make([]service.Consumer, 0, len(dependants))
 
 	for _, consumer := range dependants {
 		// Only return instances of component.Component and service.Service.
 		switch consumer := consumer.(type) {
 		case *controller.ComponentNode:
-			if c := consumer.Component(); c != nil {
-				consumers = append(consumers, c)
+			if component := consumer.Component(); component != nil {
+				consumers = append(consumers, service.Consumer{
+					Type:  service.ConsumerTypeComponent,
+					ID:    consumer.NodeID(),
+					Value: component,
+				})
 			}
 
 		case *controller.ServiceNode:
@@ -45,7 +50,11 @@ func serviceConsumersForGraph(graph *dag.Graph, serviceName string, includePeerS
 			}
 
 			if svc := consumer.Service(); svc != nil {
-				consumers = append(consumers, svc)
+				consumers = append(consumers, service.Consumer{
+					Type:  service.ConsumerTypeService,
+					ID:    consumer.NodeID(),
+					Value: svc,
+				})
 			}
 		}
 	}
