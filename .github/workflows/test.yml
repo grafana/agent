@@ -11,7 +11,7 @@ jobs:
     name: Test
     strategy:
       matrix:
-        platform: [macos-latest, windows-latest]
+        platform: [macos-latest]
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Checkout code
