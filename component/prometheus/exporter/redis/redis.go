@@ -11,7 +11,6 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	"github.com/grafana/agent/service/http"
 	config_util "github.com/prometheus/common/config"
 )
 
@@ -20,7 +19,7 @@ func init() {
 		Name:          "prometheus.exporter.redis",
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
-		NeedsServices: []string{http.ServiceName},
+		NeedsServices: exporter.RequiredServices(),
 		Build:         exporter.NewWithTargetBuilder(createExporter, "redis", customizeTarget),
 	})
 }

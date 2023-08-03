@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
-	"github.com/grafana/agent/service/http"
 	config_util "github.com/prometheus/common/config"
 )
 
@@ -54,7 +53,7 @@ func init() {
 		Name:          "prometheus.exporter.kafka",
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
-		NeedsServices: []string{http.ServiceName},
+		NeedsServices: exporter.RequiredServices(),
 		Build:         exporter.NewWithTargetBuilder(createIntegration, "kafka", customizeTarget),
 	})
 }

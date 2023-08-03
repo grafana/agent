@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	"github.com/grafana/agent/service/http"
 )
 
 func init() {
@@ -22,7 +21,7 @@ func init() {
 		Name:          "prometheus.exporter.blackbox",
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
-		NeedsServices: []string{http.ServiceName},
+		NeedsServices: exporter.RequiredServices(),
 		Build:         exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
 	})
 }

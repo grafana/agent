@@ -11,7 +11,6 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	"github.com/grafana/agent/pkg/river/rivertypes"
-	"github.com/grafana/agent/service/http"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 	"gopkg.in/yaml.v2"
 )
@@ -21,7 +20,7 @@ func init() {
 		Name:          "prometheus.exporter.snmp",
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
-		NeedsServices: []string{http.ServiceName},
+		NeedsServices: exporter.RequiredServices(),
 		Build:         exporter.NewWithTargetBuilder(createExporter, "snmp", buildSNMPTargets),
 	})
 }

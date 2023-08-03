@@ -5,7 +5,6 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	node_integration "github.com/grafana/agent/pkg/integrations/node_exporter"
-	"github.com/grafana/agent/service/http"
 )
 
 func init() {
@@ -14,7 +13,7 @@ func init() {
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
 		Singleton:     true,
-		NeedsServices: []string{http.ServiceName},
+		NeedsServices: exporter.RequiredServices(),
 		Build:         exporter.New(createExporter, "unix"),
 	})
 }
