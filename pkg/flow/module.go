@@ -112,20 +112,17 @@ func newModule(o *moduleOptions) *module {
 			ModuleRegistry:    o.ModuleRegistry,
 			ComponentRegistry: o.ComponentRegistry,
 			Options: Options{
-				ControllerID:   o.ID,
-				Tracer:         o.Tracer,
-				Clusterer:      o.Clusterer,
-				Reg:            o.Reg,
-				Logger:         o.Logger,
-				DataPath:       o.DataPath,
-				HTTPPathPrefix: o.HTTPPath,
-				HTTPListenAddr: o.HTTPListenAddr,
+				ControllerID: o.ID,
+				Tracer:       o.Tracer,
+				Clusterer:    o.Clusterer,
+				Reg:          o.Reg,
+				Logger:       o.Logger,
+				DataPath:     o.DataPath,
 				OnExportsChange: func(exports map[string]any) {
 					if o.export != nil {
 						o.export(exports)
 					}
 				},
-				DialFunc: o.DialFunc,
 				Services: o.ServiceMap.List(),
 			},
 		}),
@@ -173,19 +170,6 @@ type moduleControllerOptions struct {
 	// The directory may not exist when the component is created; components
 	// should create the directory if needed.
 	DataPath string
-
-	// HTTPListenAddr is the address the server is configured to listen on.
-	HTTPListenAddr string
-
-	// HTTPPath is the base path that requests need in order to route to this
-	// component. Requests received by a component handler will have this already
-	// trimmed off.
-	HTTPPath string
-
-	// DialFunc is a function for components to use to properly communicate to
-	// HTTPListenAddr. If set, components which send HTTP requests to
-	// HTTPListenAddr must use this function to establish connections.
-	controller.DialFunc
 
 	// ID is the attached components full ID.
 	ID string

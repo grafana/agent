@@ -3,7 +3,6 @@ package component
 import (
 	"context"
 	"fmt"
-	"net"
 	"reflect"
 	"strings"
 
@@ -100,19 +99,6 @@ type Options struct {
 	// clusterer is shared between all components initialized by a Flow
 	// controller.
 	Clusterer *cluster.Clusterer
-
-	// HTTPListenAddr is the address the server is configured to listen on.
-	HTTPListenAddr string
-
-	// DialFunc is a function for components to use to properly communicate to
-	// HTTPListenAddr. If set, components which send HTTP requests to
-	// HTTPListenAddr must use this function to establish connections.
-	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
-
-	// HTTPPath is the base path that requests need in order to route to this
-	// component. Requests received by a component handler will have this already
-	// trimmed off.
-	HTTPPath string
 
 	// GetServiceData retrieves data for a service by calling
 	// [service.Service.Data] for the specified service.

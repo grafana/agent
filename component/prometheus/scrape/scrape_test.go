@@ -2,6 +2,7 @@ package scrape
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	http_service "github.com/grafana/agent/service/http"
 	"github.com/grafana/ckit/memconn"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -71,6 +73,18 @@ func TestForwardingToAppendable(t *testing.T) {
 	opts := component.Options{
 		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus_client.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			if name == http_service.ServiceName {
+				return http_service.Data{
+					HTTPListenAddr:   "localhost:12345",
+					MemoryListenAddr: "agent.internal:1245",
+					BaseHTTPPath:     "/",
+					DialFunc:         (&net.Dialer{}).DialContext,
+				}, nil
+			}
+
+			return nil, fmt.Errorf("service %q does not exist", name)
+		},
 	}
 
 	nilReceivers := []storage.Appendable{nil, nil}
@@ -159,8 +173,19 @@ func TestCustomDialer(t *testing.T) {
 			Node: cluster.NewLocalNode("inmemory:80"),
 		},
 		Registerer: prometheus_client.NewRegistry(),
-		DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
-			return memLis.DialContext(ctx)
+		GetServiceData: func(name string) (interface{}, error) {
+			if name == http_service.ServiceName {
+				return http_service.Data{
+					HTTPListenAddr:   "inmemory:80",
+					MemoryListenAddr: "inmemory:80",
+					BaseHTTPPath:     "/",
+					DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
+						return memLis.DialContext(ctx)
+					},
+				}, nil
+			}
+
+			return nil, fmt.Errorf("service %q does not exist", name)
 		},
 	}
 

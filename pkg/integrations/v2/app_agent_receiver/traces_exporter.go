@@ -14,7 +14,7 @@ type TracesExporter struct {
 }
 
 // NewTracesExporter creates a trace exporter for the app agent receiver.
-func NewTracesExporter(getTracesConsumer tracesConsumerGetter) appAgentReceiverExporter {
+func NewTracesExporter(getTracesConsumer tracesConsumerGetter) AppAgentReceiverExporter {
 	return &TracesExporter{getTracesConsumer}
 }
 
@@ -34,3 +34,8 @@ func (te *TracesExporter) Export(ctx context.Context, payload Payload) error {
 	}
 	return consumer.ConsumeTraces(ctx, payload.Traces.Traces)
 }
+
+// Static typecheck tests
+var (
+	_ AppAgentReceiverExporter = (*TracesExporter)(nil)
+)

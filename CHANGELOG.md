@@ -33,6 +33,8 @@ Main (unreleased)
   
 - Added support for `promtail` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@thampiotr)
 
+- Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)

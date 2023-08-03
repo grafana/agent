@@ -19,27 +19,28 @@ import (
 // We define these as pointers types so we can use reflection to check that
 // exactly one is set.
 type StageConfig struct {
-	JSONConfig         *JSONConfig         `river:"json,block,optional"`
-	LogfmtConfig       *LogfmtConfig       `river:"logfmt,block,optional"`
-	LabelsConfig       *LabelsConfig       `river:"labels,block,optional"`
-	LabelAllowConfig   *LabelAllowConfig   `river:"label_keep,block,optional"`
-	LabelDropConfig    *LabelDropConfig    `river:"label_drop,block,optional"`
-	StaticLabelsConfig *StaticLabelsConfig `river:"static_labels,block,optional"`
-	DockerConfig       *DockerConfig       `river:"docker,block,optional"`
-	CRIConfig          *CRIConfig          `river:"cri,block,optional"`
-	RegexConfig        *RegexConfig        `river:"regex,block,optional"`
-	TimestampConfig    *TimestampConfig    `river:"timestamp,block,optional"`
-	OutputConfig       *OutputConfig       `river:"output,block,optional"`
-	ReplaceConfig      *ReplaceConfig      `river:"replace,block,optional"`
-	MultilineConfig    *MultilineConfig    `river:"multiline,block,optional"`
-	MatchConfig        *MatchConfig        `river:"match,block,optional"`
-	DropConfig         *DropConfig         `river:"drop,block,optional"`
-	PackConfig         *PackConfig         `river:"pack,block,optional"`
-	TemplateConfig     *TemplateConfig     `river:"template,block,optional"`
-	TenantConfig       *TenantConfig       `river:"tenant,block,optional"`
-	LimitConfig        *LimitConfig        `river:"limit,block,optional"`
-	MetricsConfig      *MetricsConfig      `river:"metrics,block,optional"`
-	GeoIPConfig        *GeoIPConfig        `river:"geoip,block,optional"`
+	JSONConfig             *JSONConfig         `river:"json,block,optional"`
+	LogfmtConfig           *LogfmtConfig       `river:"logfmt,block,optional"`
+	LabelsConfig           *LabelsConfig       `river:"labels,block,optional"`
+	NonIndexedLabelsConfig *LabelsConfig       `river:"non_indexed_labels,block,optional"`
+	LabelAllowConfig       *LabelAllowConfig   `river:"label_keep,block,optional"`
+	LabelDropConfig        *LabelDropConfig    `river:"label_drop,block,optional"`
+	StaticLabelsConfig     *StaticLabelsConfig `river:"static_labels,block,optional"`
+	DockerConfig           *DockerConfig       `river:"docker,block,optional"`
+	CRIConfig              *CRIConfig          `river:"cri,block,optional"`
+	RegexConfig            *RegexConfig        `river:"regex,block,optional"`
+	TimestampConfig        *TimestampConfig    `river:"timestamp,block,optional"`
+	OutputConfig           *OutputConfig       `river:"output,block,optional"`
+	ReplaceConfig          *ReplaceConfig      `river:"replace,block,optional"`
+	MultilineConfig        *MultilineConfig    `river:"multiline,block,optional"`
+	MatchConfig            *MatchConfig        `river:"match,block,optional"`
+	DropConfig             *DropConfig         `river:"drop,block,optional"`
+	PackConfig             *PackConfig         `river:"pack,block,optional"`
+	TemplateConfig         *TemplateConfig     `river:"template,block,optional"`
+	TenantConfig           *TenantConfig       `river:"tenant,block,optional"`
+	LimitConfig            *LimitConfig        `river:"limit,block,optional"`
+	MetricsConfig          *MetricsConfig      `river:"metrics,block,optional"`
+	GeoIPConfig            *GeoIPConfig        `river:"geoip,block,optional"`
 }
 
 var rateLimiter *rate.Limiter
