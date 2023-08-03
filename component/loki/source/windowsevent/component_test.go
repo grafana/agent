@@ -25,20 +25,8 @@ func TestEventLogger(t *testing.T) {
 	dataPath := t.TempDir()
 	rec := loki.NewLogsReceiver()
 	c, err := New(component.Options{
-		ID:     "loki.source.windowsevent.test",
-		Logger: util.TestFlowLogger(t),
-		GetServiceData: func(name string) (interface{}, error) {
-			if name == http_service.ServiceName {
-				return http_service.Data{
-					HTTPListenAddr:   "localhost:12345",
-					MemoryListenAddr: "agent.internal:1245",
-					BaseHTTPPath:     "/",
-					DialFunc:         (&net.Dialer{}).DialContext,
-				}, nil
-			}
-
-			return nil, fmt.Errorf("service %q does not exist", name)
-		},
+		ID:       "loki.source.windowsevent.test",
+		Logger:   util.TestFlowLogger(t),
 		DataPath: dataPath,
 		OnStateChange: func(e component.Exports) {
 
