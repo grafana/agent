@@ -67,6 +67,9 @@ func (args *Arguments) Validate() error {
 	if args.JobName == "" {
 		return fmt.Errorf("job_name must not be an empty string")
 	}
+	if args.LogFormat != logFormatFmt && args.LogFormat != logFormatJson {
+		return fmt.Errorf("supported values of log_format are %s and %s", logFormatFmt, logFormatJson)
+	}
 	return nil
 }
 
