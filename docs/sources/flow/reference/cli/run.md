@@ -18,17 +18,21 @@ Usage:
 * `AGENT_MODE=flow grafana-agent run [FLAG ...] FILE_NAME`
 * `grafana-agent-flow run [FLAG ...] FILE_NAME`
 
-`grafana-agent-flow run` must be provided an argument which points at the River config file
-to use. `grafana-agent-flow run` will immediately exit with an error if the River file
-wasn't specified, can't be loaded, or contained errors during the initial load.
+   Replace the following:
 
-Grafana Agent Flow will continue to run if subsequent reloads of the config
+   * `FLAG`: One or more flags that define the input and output of the command.
+   * `FILE_NAME`: Required. The Grafana Agent configuration file.
+
+If the `FILE_NAME` argument is not provided, or if the configuration file can't be loaded or 
+contains errors during the initial load, the `run` command will immediately exit and show an error message.
+
+Grafana Agent Flow will continue to run if subsequent reloads of the configuration
 file fail, potentially marking components as unhealthy depending on the nature
 of the failure. When this happens, Grafana Agent Flow will continue functioning
 in the last valid state.
 
-`grafana-agent-flow run` launches an HTTP server for expose metrics about itself and
-components. The HTTP server is also used for exposing a UI at `/` for debugging
+`run` launches an HTTP server that exposes metrics about itself and its
+components. The HTTP server is also exposes a UI at `/` for debugging
 running components.
 
 The following flags are supported:
@@ -37,7 +41,7 @@ The following flags are supported:
 * `--server.http.memory-addr`: Address to listen for [in-memory HTTP traffic][] on
   (default `agent.internal:12345`).
 * `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
-* `--server.http.ui-path-prefix`: Base path where the UI will be exposed (default `/`).
+* `--server.http.ui-path-prefix`: Base path where the UI is exposed (default `/`).
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
 * `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
 * `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
@@ -52,17 +56,17 @@ The following flags are supported:
 [usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
 [components]: {{< relref "../../concepts/components.md" >}}
 
-## Updating the config file
+## Updating the configuration file
 
-The config file can be reloaded from disk by either:
+The configuration file can be reloaded from disk by either:
 
 * Sending an HTTP POST request to the `/-/reload` endpoint.
 * Sending a `SIGHUP` signal to the Grafana Agent process.
 
 When this happens, the [component controller][] synchronizes the set of running
-components with the latest set of components specified in the config file.
-Components that are no longer defined in the config file after reloading are
-shut down, and components that have been added to the config file since the
+components with the latest set of components specified in the configuration file.
+Components that are no longer defined in the configuration file after reloading are
+shut down, and components that have been added to the configuration file since the
 previous reload are created.
 
 All components managed by the component controller are reevaluated after
@@ -99,13 +103,13 @@ align the port numbers on as many nodes as possible to simplify the deployment
 process.
 
 The `--cluster.discover-peers` command-line flag expects a list of tuples in
-the form of `provider=XXX key=val key=val ...`. Clustering makes use of the
+the form of `provider=XXX key=val key=val ...`. Clustering uses the
 [go-discover] package to discover peers and fetch their IP addresses, based
 on the chosen provider and the filtering key-values it supports. Clustering
 supports the default set of providers available in go-discover and registers
 the `k8s` provider on top.
 
-If either the key or the value in a pair contains a space, a backslash or
+If either the key or the value in a pair contains a space, a backslash, or
 double quotes, then it must be quoted with double quotes. Within this quoted
 string, the backslash can be used to escape double quotes or the backslash
 itself.
@@ -127,13 +131,13 @@ Clustered agents are in one of three states:
   participating in workload distribution.
 
 * **Participant**: The agent is participating in workload distribution for
-  components which have clustering enabled.
+  components that have clustering enabled.
 
-* **Terminating**: The agent is shutting down, and will no longer assign new
+* **Terminating**: The agent is shutting down and will no longer assign new
   work to itself.
 
-Agents initially join the cluster in the viewer state, and then transition to
-the participant state after the processs startup completes. Agents then
+Agents initially join the cluster in the viewer state and then transition to
+the participant state after the process startup completes. Agents then
 transition to the terminating state when shutting down.
 
 The current state of a clustered agent is shown on the clustering page in the
