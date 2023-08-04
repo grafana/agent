@@ -1,6 +1,6 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/filtering-metrics/
-description: Learn how to filter your Prometheus metrics
+description: Learn how to filter Prometheus metrics
 title: Filter Prometheus metrics 
 menuTitle: Filter Prometheus metrics
 aliases:
