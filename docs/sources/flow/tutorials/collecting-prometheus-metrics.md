@@ -28,18 +28,18 @@ The `runt.sh` script does:
 
 Allow the Grafana Agent to run for two minutes, then navigate to [Grafana](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D).
 
-![](../assets/agent_build_info.png)
+![Dashboard showing agent_build_info metrics](/media/docs/agent/screenshot-grafana-agent-collect-metrics-build-info.png)
 
 This example scrapes the Grafana Agent's `http://localhost:12345/metrics` endpoint and pushes those metrics to the Mimir instance.
 
 Navigate to `http://localhost:12345/graph` to view the Grafana Agent Flow UI.
 
-![](../assets/graph.png)
+![The Grafana Agent UI](/media/docs/agent/screenshot-grafana-agent-collect-metrics-graph.png)
 
 The Agent displays the component pipeline in a dependency graph.  See [Scraping component](#scraping-component) and [Remote Write component](#remote-write-component) for details about the components used in this configuration.
 Click the nodes to navigate to the associated component page. There, you can view the state, health information, and, if applicable, the debug information.
 
-![](../assets/comp_info.png)
+![Component information](/media/docs/agent/screenshot-grafana-agent-collect-metrics-comp-info.png)
 
 ## Scraping component
 

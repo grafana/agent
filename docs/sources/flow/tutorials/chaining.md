@@ -72,4 +72,4 @@ In the above Flow block, `prometheus.relabel.service` is being forwarded metrics
 
 In `multiple-input.river` add a new `prometheus.relabel` component that adds a `version` label with the value of `v2` to all metrics after the `prometheus.relabel.service`.
 
-![](../assets/scrape_v2.png)
+![Add a new label with the value v2](/media/docs/agent/screenshot-grafana-agent-chaining-scrape-v2.png)
