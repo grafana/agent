@@ -1,6 +1,6 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/collecting-prometheus-metrics/
-description: Learn how to collect Prometheus metrics with Grafana Agent
+description: Learn how to collect Prometheus metrics
 title: Collect Prometheus metrics
 menuTitle: Collect Prometheus metrics
 aliases:

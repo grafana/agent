@@ -1,10 +1,14 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/chaining/
-title: Chaining Prometheus components
+description: Learn how to chain Prometheus components
+title: Chain Prometheus components
+menuTitle: Chain Prometheus components
+aliases:
+- ./chaining/
 weight: 400
 ---
 
-# Chaining Prometheus components
+# Chain Prometheus components
 
 This tutorial shows how to use [multiple-inputs.river](../assets/flow_configs/multiple-inputs.river) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "filtering-metrics.md">}}). 
 
