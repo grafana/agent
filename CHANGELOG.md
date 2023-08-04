@@ -7,7 +7,7 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.35.2 (2023-07-27)
+v0.35.3 (2023-08-07)
 --------------------
 
 ### Bugfixes
