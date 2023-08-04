@@ -117,7 +117,7 @@ func Test_ComponentIO(t *testing.T) {
 			labels = ["attribute1", "res_attribute1"]
 			span_attributes = ["attribute1"]
 			process_attributes = ["res_attribute1"]
-	
+
 			output {
 				// no-op: will be overridden by test code.
 			}
@@ -190,16 +190,16 @@ func Test_ComponentIO(t *testing.T) {
 			labels = ["attribute1", "res_attribute1"]
 			span_attributes = ["attribute1"]
 			process_attributes = ["res_attribute1"]
-	
+
 			overrides {
 				logs_instance_tag = "override_traces"
 				service_key = "override_svc"
 				span_name_key = "override_span"
 				status_key = "override_status"
-				duration_key = "override_dur"			
-				trace_id_key = "override_tid"			
+				duration_key = "override_dur"
+				trace_id_key = "override_tid"
 			}
-	
+
 			output {
 				// no-op: will be overridden by test code.
 			}
@@ -322,7 +322,7 @@ func Test_ComponentIO(t *testing.T) {
 			cfg: `
 			spans = true
 			labels = ["attribute1", "redact_trace", "account_id"]
-	
+
 			output {
 				// no-op: will be overridden by test code.
 			}
@@ -354,7 +354,7 @@ func Test_ComponentIO(t *testing.T) {
 			processes = true
 			labels = ["res_attribute1", "res_redact_trace", "res_account_id"]
 			process_attributes = ["res_attribute1", "res_redact_trace", "res_account_id"]
-	
+
 			output {
 				// no-op: will be overridden by test code.
 			}
@@ -400,7 +400,7 @@ func Test_ComponentIO(t *testing.T) {
 			cfg: `
 			processes = true
 			labels = ["res_attribute1", "res_redact_trace", "res_account_id"]
-	
+
 			output {
 				// no-op: will be overridden by test code.
 			}
@@ -432,7 +432,7 @@ func Test_ComponentIO(t *testing.T) {
 			roots = true
 			labels = ["attribute1", "redact_trace", "account_id"]
 			span_attributes = ["attribute1", "redact_trace", "account_id"]
-	
+
 			output {
 				// no-op: will be overridden by test code.
 			}
@@ -477,11 +477,10 @@ func Test_ComponentIO(t *testing.T) {
 			roots = true
 			labels = ["attribute1", "redact_trace", "account_id"]
 			span_attributes = ["attribute1", "redact_trace", "account_id"]
-	
+
 			output {
 				// no-op: will be overridden by test code.
-			}
-		`,
+			}`,
 			expectedUnmarshaledCfg: spanlogs.Arguments{
 				Roots:          true,
 				SpanAttributes: []string{"attribute1", "redact_trace", "account_id"},
@@ -543,6 +542,154 @@ func Test_ComponentIO(t *testing.T) {
 				"resourceLogs": [{
 					"scopeLogs": [{
 						"log_records": []
+						}]
+					}]
+				}]
+			}`,
+		},
+		{
+			testName: "SpanStatusCode",
+			cfg: `
+			spans = true
+			labels = ["attribute1", "redact_trace", "account_id"]
+
+			output {
+				// no-op: will be overridden by test code.
+			}`,
+			expectedUnmarshaledCfg: spanlogs.Arguments{
+				Spans:     true,
+				Overrides: defaultOverrides,
+				Labels:    []string{"attribute1", "redact_trace", "account_id"},
+				Output:    &otelcol.ConsumerArguments{},
+			},
+			inputTraceJson: `{
+				"resourceSpans": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "TestSvcName" }
+						}]
+					},
+					"scopeSpans": [{
+						"spans": [{
+							"trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+							"span_id": "086e83747d0e381e",
+							"name": "TestSpan",
+							"attributes": [{
+								"key": "attribute1",
+								"value": { "intValue": "78" }
+							}],
+							"status": {
+								"code": 2,
+								"message": "some additional error description"
+							}
+						}]
+					}]
+				}]
+			}`,
+			expectedOutputLogJson: `{
+				"resourceLogs": [{
+					"scopeLogs": [{
+						"log_records": [{
+							"body": { "stringValue": "span=TestSpan dur=0ns status=Error svc=TestSvcName tid=7bba9f33312b3dbb8b2c2c62bb7abe2d" },
+							"attributes": [{
+								"key": "traces",
+								"value": { "stringValue": "span" }
+							}]
+						}]
+					}]
+				}]
+			}`,
+		},
+		{
+			testName: "MultipleResourceSpans",
+			cfg: `
+			spans = true
+			span_attributes = ["attribute1", "redact_trace", "account_id"]
+			labels = ["attribute1", "redact_trace", "account_id"]
+
+			output {
+				// no-op: will be overridden by test code.
+			}`,
+			expectedUnmarshaledCfg: spanlogs.Arguments{
+				Spans:          true,
+				SpanAttributes: []string{"attribute1", "redact_trace", "account_id"},
+				Overrides:      defaultOverrides,
+				Labels:         []string{"attribute1", "redact_trace", "account_id"},
+				Output:         &otelcol.ConsumerArguments{},
+			},
+			inputTraceJson: `{
+				"resourceSpans": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "TestSvcName" }
+						}]
+					},
+					"scopeSpans": [{
+						"spans": [{
+							"trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+							"span_id": "086e83747d0e381e",
+							"name": "TestSpan",
+							"attributes": [{
+								"key": "attribute1",
+								"value": { "intValue": "11111" }
+							}],
+							"status": {
+								"code": 2,
+								"message": "some additional error description"
+							}
+						}]
+					}]
+				},
+				{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "TestSvcName" }
+						}]
+					},
+					"scopeSpans": [{
+						"spans": [{
+							"trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+							"span_id": "086e83747d0e381e",
+							"name": "TestSpan",
+							"attributes": [{
+								"key": "attribute1",
+								"value": { "intValue": "22222" }
+							}]
+						}]
+					}]
+				}]
+			}`,
+			expectedOutputLogJson: `{
+				"resourceLogs": [{
+					"scopeLogs": [{
+						"log_records": [{
+							"body": { "stringValue": "span=TestSpan dur=0ns status=Error attribute1=11111 svc=TestSvcName tid=7bba9f33312b3dbb8b2c2c62bb7abe2d" },
+							"attributes": [{
+								"key": "traces",
+								"value": { "stringValue": "span" }
+							},
+							{
+								"key": "attribute1",
+								"value": { "intValue": "11111" }
+							}]
+						}]
+					}]
+				},
+				{
+					"scopeLogs": [{
+						"log_records": [{
+							"body": { "stringValue": "span=TestSpan dur=0ns attribute1=22222 svc=TestSvcName tid=7bba9f33312b3dbb8b2c2c62bb7abe2d" },
+							"attributes": [{
+								"key": "traces",
+								"value": { "stringValue": "span" }
+							},
+							{
+								"key": "attribute1",
+								"value": { "intValue": "22222" }
+							}]
 						}]
 					}]
 				}]

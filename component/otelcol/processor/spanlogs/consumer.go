@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconsumer "go.opentelemetry.io/collector/consumer"
@@ -26,8 +24,6 @@ const (
 type consumer struct {
 	optsMut sync.RWMutex
 	opts    options
-
-	logger log.Logger
 }
 
 type options struct {
@@ -43,10 +39,8 @@ type options struct {
 
 var _ otelconsumer.Traces = (*consumer)(nil)
 
-func NewConsumer(args Arguments, nextConsumer otelconsumer.Logs, logger log.Logger) (*consumer, error) {
-	c := &consumer{
-		logger: logger,
-	}
+func NewConsumer(args Arguments, nextConsumer otelconsumer.Logs) (*consumer, error) {
+	c := &consumer{}
 
 	c.UpdateOptions(args, nextConsumer)
 
@@ -113,38 +107,46 @@ func (c *consumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 				span := ss.Spans().At(k)
 				traceID := span.TraceID().String()
 
+				//TODO: We could reuse the same maps in a lot of this processing. It's very repetitive.
+				//TODO: Use a Go map instead of pcommon.NewMap, and convert to pcommon.NewMap only at the very end?
+				//      Unfortunately pcommon.NewMap can be inefficient during insertions,
+				//      because it traverses the whole map on every insertion.
 				if c.opts.spans {
-					keyValues := append(c.spanKeyVals(span), c.processKeyVals(rs.Resource(), svc)...)
+					keyValues := pcommon.NewMap()
 
-					newLogRecord := c.createLogRecord(typeSpan, traceID, keyValues)
-					if newLogRecord == nil {
-						//TODO: Make a meaningful error
-						return fmt.Errorf("")
+					c.spanKeyVals(keyValues, span)
+					c.processKeyVals(keyValues, rs.Resource(), svc)
+
+					newLogRecord, err := c.createLogRecord(typeSpan, traceID, keyValues)
+					if err != nil {
+						return err
 					}
 					logRecord := logRecords.AppendEmpty()
 					newLogRecord.MoveTo(logRecord)
 				}
 
 				if c.opts.roots && span.ParentSpanID().IsEmpty() {
-					keyValues := append(c.spanKeyVals(span), c.processKeyVals(rs.Resource(), svc)...)
+					keyValues := pcommon.NewMap()
 
-					newLogRecord := c.createLogRecord(typeRoot, traceID, keyValues)
-					if newLogRecord == nil {
-						//TODO: Make a meaningful error
-						return fmt.Errorf("")
+					c.spanKeyVals(keyValues, span)
+					c.processKeyVals(keyValues, rs.Resource(), svc)
+
+					newLogRecord, err := c.createLogRecord(typeRoot, traceID, keyValues)
+					if err != nil {
+						return err
 					}
 					logRecord := logRecords.AppendEmpty()
 					newLogRecord.MoveTo(logRecord)
 				}
 
 				if c.opts.processes && lastTraceID != traceID {
-					lastTraceID = traceID
-					keyValues := c.processKeyVals(rs.Resource(), svc)
+					keyValues := pcommon.NewMap()
 
-					newLogRecord := c.createLogRecord(typeProcess, traceID, keyValues)
-					if newLogRecord == nil {
-						//TODO: Make a meaningful error
-						return fmt.Errorf("")
+					c.processKeyVals(keyValues, rs.Resource(), svc)
+
+					newLogRecord, err := c.createLogRecord(typeProcess, traceID, keyValues)
+					if err != nil {
+						return err
 					}
 					logRecord := logRecords.AppendEmpty()
 					newLogRecord.MoveTo(logRecord)
@@ -153,21 +155,45 @@ func (c *consumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 		}
 	}
 
-	//TODO: If the log records are empty, should we send anything downstream?
 	return c.opts.nextConsumer.ConsumeLogs(ctx, logs)
 }
 
-func (c *consumer) createLogRecord(kind string, traceID string, keyValues []interface{}) *plog.LogRecord {
+func copyOtelMap(out pcommon.Map, in pcommon.Map, pred func(key string, val pcommon.Value) bool) {
+	in.Range(func(k string, v pcommon.Value) bool {
+		if pred(k, v) {
+			newVal := out.PutEmpty(k)
+			v.CopyTo(newVal)
+		}
+		return true
+	})
+}
+
+func convertOtelMapToSlice(m pcommon.Map) []any {
+	res := make([]any, 0, m.Len())
+
+	m.Range(func(k string, v pcommon.Value) bool {
+		res = append(res, k)
+		res = append(res, v.AsRaw())
+		return true
+	})
+
+	return res
+}
+
+func (c *consumer) createLogRecord(kind string, traceID string, keyValues pcommon.Map) (*plog.LogRecord, error) {
 	// Create an empty log record
 	res := plog.NewLogRecord()
 
+	// Add a trace ID to the key values
+	keyValues.PutStr(c.opts.overrides.TraceIDKey, traceID)
+
 	// Add the log line
-	keyValues = append(keyValues, []interface{}{c.opts.overrides.TraceIDKey, traceID}...)
-	logLine, err := logfmt.MarshalKeyvals(keyValues...)
+	keyValuesSlice := convertOtelMapToSlice(keyValues)
+	logLine, err := logfmt.MarshalKeyvals(keyValuesSlice...)
 	if err != nil {
-		level.Warn(c.logger).Log("msg", "unable to marshal keyvals", "err", err)
-		return nil
+		return nil, fmt.Errorf("unable to marshal keyvals due to error: %w", err)
 	}
+
 	if logLine != nil {
 		res.Body().SetStr(string(logLine))
 	}
@@ -178,84 +204,49 @@ func (c *consumer) createLogRecord(kind string, traceID string, keyValues []inte
 	// Add logs instance label
 	logAttributes.PutStr(c.opts.overrides.LogsTag, kind)
 
-	var (
-		k  string
-		ok bool
-	)
-	for i := 0; i < len(keyValues); i += 2 {
-		if k, ok = keyValues[i].(string); !ok {
-			// Should never happen, all keys are strings
-			level.Error(c.logger).Log("msg", "error casting label key to string", "key", keyValues[i])
-			continue
-		}
-
+	copyOtelMap(logAttributes, keyValues, func(key string, val pcommon.Value) bool {
 		// Check if we have to include this label
-		if _, ok := c.opts.labels[k]; !ok {
-			continue
+		if _, ok := c.opts.labels[key]; ok {
+			return true
 		}
+		return false
+	})
 
-		//TODO: Can we make this more accurate?
-		switch v := keyValues[i+1].(type) {
-		case int64:
-			logAttributes.PutInt(k, v)
-		case bool:
-			logAttributes.PutBool(k, v)
-		case float64:
-			logAttributes.PutDouble(k, v)
-		default:
-			var val pcommon.Value
-			val.FromRaw(v)
-			logAttributes.PutStr(k, val.AsString())
-		}
-	}
-
-	return &res
+	return &res, nil
 }
 
-func (c *consumer) processKeyVals(resource pcommon.Resource, svc string) []interface{} {
-	atts := make([]interface{}, 0, 2) // 2 for service name
+func (c *consumer) processKeyVals(output pcommon.Map, resource pcommon.Resource, svc string) {
 	rsAtts := resource.Attributes()
 
 	// name
-	atts = append(atts, c.opts.overrides.ServiceKey)
-	atts = append(atts, svc)
+	output.PutStr(c.opts.overrides.ServiceKey, svc)
 
 	for _, name := range c.opts.processAttributes {
 		att, ok := rsAtts.Get(name)
 		if ok {
 			// name/key val pairs
-			atts = append(atts, name)
-			atts = append(atts, att.AsRaw())
+			val := output.PutEmpty(name)
+			att.CopyTo(val)
 		}
 	}
-
-	return atts
 }
 
-func (c *consumer) spanKeyVals(span ptrace.Span) []interface{} {
-	atts := make([]interface{}, 0, 8) // 8 for name, duration, service name and status
-
-	atts = append(atts, c.opts.overrides.SpanNameKey)
-	atts = append(atts, span.Name())
-
-	atts = append(atts, c.opts.overrides.DurationKey)
-	atts = append(atts, spanDuration(span))
+func (c *consumer) spanKeyVals(output pcommon.Map, span ptrace.Span) {
+	output.PutStr(c.opts.overrides.SpanNameKey, span.Name())
+	output.PutStr(c.opts.overrides.DurationKey, spanDuration(span))
 
 	// Skip STATUS_CODE_UNSET to be less spammy
 	if span.Status().Code() != ptrace.StatusCodeUnset {
-		atts = append(atts, c.opts.overrides.StatusKey)
-		atts = append(atts, span.Status().Code())
+		output.PutStr(c.opts.overrides.StatusKey, span.Status().Code().String())
 	}
 
 	for _, name := range c.opts.spanAttributes {
 		att, ok := span.Attributes().Get(name)
 		if ok {
-			atts = append(atts, name)
-			atts = append(atts, att.AsRaw())
+			val := output.PutEmpty(name)
+			att.CopyTo(val)
 		}
 	}
-
-	return atts
 }
 
 func spanDuration(span ptrace.Span) string {

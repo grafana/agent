@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
@@ -73,7 +72,6 @@ func (args *Arguments) SetToDefault() {
 // Component is the otelcol.exporter.spanlogs component.
 type Component struct {
 	consumer *consumer
-	logger   log.Logger
 }
 
 var _ component.Component = (*Component)(nil)
@@ -85,14 +83,13 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	}
 
 	nextLogs := fanoutconsumer.Logs(c.Output.Logs)
-	consumer, err := NewConsumer(c, nextLogs, o.Logger)
+	consumer, err := NewConsumer(c, nextLogs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a traces consumer due to error: %w", err)
 	}
 
 	res := &Component{
 		consumer: consumer,
-		logger:   o.Logger,
 	}
 
 	if err := res.Update(c); err != nil {
