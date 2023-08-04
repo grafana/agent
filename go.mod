@@ -625,7 +625,9 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
+	github.com/parquet-go/parquet-go v0.17.0 // indirect
 	github.com/prometheus-community/prom-label-proxy v0.6.0 // indirect
+	github.com/segmentio/encoding v0.3.6 // indirect
 	github.com/sercand/kuberesolver/v4 v4.0.0 // indirect
 	github.com/sony/gobreaker v0.5.0 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
