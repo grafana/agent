@@ -35,6 +35,8 @@ Main (unreleased)
 
 - Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
 
+- `loki.write` now exposes basic WAL support. (@thepalbi)
+
 - `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
 
 - New Grafana Agent Flow components:
@@ -46,7 +48,6 @@ Main (unreleased)
   - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
   - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
-  - `loki.write` now exposes basic WAL support. (@thepalbi)
 
 ### Bugfixes
 
