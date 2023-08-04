@@ -65,6 +65,9 @@ Currently supported compression formats are:
 * `z` - for zlib
 * `bz2` - for bzip2
 
+The component can only support one compression format at a time, in order to
+handle multiple formats, you will need to create multiple components.
+
 ## Exported fields
 
 `loki.source.file` does not export any fields.

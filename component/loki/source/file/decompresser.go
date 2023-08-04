@@ -115,8 +115,10 @@ func newDecompressor(
 
 // mountReader instantiate a reader ready to be used by the decompressor.
 //
-// The selected reader implementation is based on the extension of the given file name.
-// It'll error if the extension isn't supported.
+// The reader implementation is selected based on the given CompressionFormat.
+// If the actual file format is incorrect, the reading of the header may fail and return an error - depending on the
+// implementation of the underlying compression library. In any case, when a file is corrupted, the subsequent reading
+// of lines will fail.
 func mountReader(f *os.File, logger log.Logger, format CompressionFormat) (reader io.Reader, err error) {
 	var decompressLib string
 
