@@ -10,6 +10,16 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- `loki.source.file` component will no longer automatically detect and
+  decompress logs from compressed files. A new configuration block is available
+  to enable decompression explicitly. See the [upgrade guide][] for migration
+  instructions. (@thampiotr)
+
 ### Enhancements
 
 - Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
