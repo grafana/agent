@@ -92,7 +92,7 @@ discovery {
 	role {
 		role_arn = "arn:aws:iam::878167871295:role/yace_testing"
 	}
-    dimension_name_requirements = ["BucketName"]
+	dimension_name_requirements = ["BucketName"]
 	metric {
 		name = "BucketSizeBytes"
 		statistics = ["Sum"]
