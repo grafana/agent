@@ -198,6 +198,9 @@ Configuration reference:
   # the following format: `custom_tag_{Key}`.
   custom_tags: [ <aws_tag> ]
 
+  # Optional: List of metric dimensions to query. Before querying metric values, the total list of metrics will be filtered to only those that contain exactly this list of dimensions. An empty or undefined list results in all dimension combinations being included.
+  dimension_name_requirements: [ <string> ]
+
   # Required: List of metric definitions to scrape.
   metrics: [ <metric> ]
 ```

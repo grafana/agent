@@ -92,6 +92,7 @@ discovery {
 	role {
 		role_arn = "arn:aws:iam::878167871295:role/yace_testing"
 	}
+    dimension_name_requirements = ["BucketName"]
 	metric {
 		name = "BucketSizeBytes"
 		statistics = ["Sum"]
@@ -238,9 +239,10 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 							Roles: []yaceConf.Role{{
 								RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
 							}},
-							Type:       "s3",
-							SearchTags: []yaceModel.Tag{},
-							CustomTags: []yaceModel.Tag{},
+							Type:                      "s3",
+							SearchTags:                []yaceModel.Tag{},
+							CustomTags:                []yaceModel.Tag{},
+							DimensionNameRequirements: []string{"BucketName"},
 							Metrics: []*yaceConf.Metric{
 								{
 									Name:                   "BucketSizeBytes",

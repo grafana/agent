@@ -35,11 +35,12 @@ type TagsPerNamespace = cloudwatch_exporter.TagsPerNamespace
 
 // DiscoveryJob configures a discovery job for a given service.
 type DiscoveryJob struct {
-	Auth       RegionAndRoles `river:",squash"`
-	CustomTags Tags           `river:"custom_tags,attr,optional"`
-	SearchTags Tags           `river:"search_tags,attr,optional"`
-	Type       string         `river:"type,attr"`
-	Metrics    []Metric       `river:"metric,block"`
+	Auth                      RegionAndRoles `river:",squash"`
+	CustomTags                Tags           `river:"custom_tags,attr,optional"`
+	SearchTags                Tags           `river:"search_tags,attr,optional"`
+	Type                      string         `river:"type,attr"`
+	DimensionNameRequirements []string       `river:"dimension_name_requirements,attr,optional"`
+	Metrics                   []Metric       `river:"metric,block"`
 }
 
 // Tags represents a series of tags configured on an AWS resource. Each tag is a
@@ -190,11 +191,12 @@ func toYACEStaticJob(sj StaticJob) *yaceConf.Static {
 
 func toYACEDiscoveryJob(rj DiscoveryJob) *yaceConf.Job {
 	job := &yaceConf.Job{
-		Regions:    rj.Auth.Regions,
-		Roles:      toYACERoles(rj.Auth.Roles),
-		Type:       rj.Type,
-		CustomTags: rj.CustomTags.toYACE(),
-		SearchTags: rj.SearchTags.toYACE(),
+		Regions:                   rj.Auth.Regions,
+		Roles:                     toYACERoles(rj.Auth.Roles),
+		Type:                      rj.Type,
+		CustomTags:                rj.CustomTags.toYACE(),
+		SearchTags:                rj.SearchTags.toYACE(),
+		DimensionNameRequirements: rj.DimensionNameRequirements,
 		// By setting RoundingPeriod to nil, the exporter will align the start and end times for retrieving CloudWatch
 		// metrics, with the smallest period in the retrieved batch.
 		RoundingPeriod: nil,
