@@ -207,4 +207,4 @@ Furthermore, it is recommended to go through the following checklist:
 
 [expanded in the config file]: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#use-environment-variables-in-the-configuration
 
-[Grafana Agent Flow UI]: http://localhost:3003/docs/agent/latest/flow/monitoring/debugging/#grafana-agent-flow-ui
+[Grafana Agent Flow UI]: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/#grafana-agent-flow-ui
