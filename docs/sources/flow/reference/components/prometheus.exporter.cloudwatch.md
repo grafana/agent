@@ -189,12 +189,13 @@ prometheus.exporter.cloudwatch "discover_instances" {
 You can configure the `discovery` block one or multiple times to scrape metrics from different services or with
 different `search_tags`.
 
-| Name          | Type           | Description                                                                                                                                                  | Default | Required |
-|---------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|----------|
-| `regions`     | `list(string)` | List of AWS regions.                                                                                                                                         |         | yes      |
-| `type`        | `string`       | Cloudwatch service alias (`"alb"`, `"ec2"`, etc) or namespace name (`"AWS/EC2"`, `"AWS/S3"`, etc). See [supported-services][] for a complete list.           |         | yes      |
-| `custom_tags` | `map(string)`  | Custom tags to be added as a list of key / value pairs. When exported to Prometheus format, the label name follows the following format: `custom_tag_{key}`. | `{}`    | no       |
-| `search_tags` | `map(string)`  | List of key / value pairs to use for tag filtering (all must match). Value can be a regex.                                                                   | `{}`    | no       |
+| Name                           | Type           | Description                                                                                                                                                                                                                                                | Default | Required |
+|--------------------------------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|----------|
+| `regions`                      | `list(string)` | List of AWS regions.                                                                                                                                                                                                                                       |         | yes      |
+| `type`                         | `string`       | Cloudwatch service alias (`"alb"`, `"ec2"`, etc) or namespace name (`"AWS/EC2"`, `"AWS/S3"`, etc). See [supported-services][] for a complete list.                                                                                                         |         | yes      |
+| `custom_tags`                  | `map(string)`  | Custom tags to be added as a list of key / value pairs. When exported to Prometheus format, the label name follows the following format: `custom_tag_{key}`.                                                                                               | `{}`    | no       |
+| `search_tags`                  | `map(string)`  | List of key / value pairs to use for tag filtering (all must match). Value can be a regex.                                                                                                                                                                 | `{}`    | no       |
+| `dimension_name_requirements`  | `list(string)` | List of metric dimensions to query. Before querying metric values, the total list of metrics will be filtered to only those that contain exactly this list of dimensions. An empty or undefined list results in all dimension combinations being included. | `{}`    | no       |
 
 [supported-services]: #supported-services-in-discovery-jobs
 
