@@ -10,6 +10,16 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- `loki.source.file` component will no longer automatically detect and
+  decompress logs from compressed files. A new configuration block is available
+  to enable decompression explicitly. See the [upgrade guide][] for migration
+  instructions. (@thampiotr)
+
 ### Enhancements
 
 - Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
@@ -38,6 +48,10 @@ Main (unreleased)
 
 - Allow specification of `dimension_name_requirements` for Cloudwatch discovery exports. (@cvdv-au)
 
+- `loki.write` now exposes basic WAL support. (@thepalbi)
+
+- `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
@@ -47,7 +61,6 @@ Main (unreleased)
   - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
   - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
-  - `loki.write` now exposes basic WAL support. (@thepalbi)
 
 ### Bugfixes
 
