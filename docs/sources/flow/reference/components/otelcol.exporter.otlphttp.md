@@ -67,7 +67,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`endpoint`           | `string`      | `host:port` to send telemetry data to. | | yes
+`endpoint`           | `string`      | `protocol://host:port` to send telemetry data to. | | yes
 `read_buffer_size`   | `string`      | Size of the read buffer the HTTP client uses for reading server responses. | `0` | no
 `write_buffer_size`  | `string`      | Size of the write buffer the HTTP client uses for writing requests. | `"512KiB"` | no
 `timeout`            | `duration`    | Time to wait before marking a request as failed. | `"30s"` | no
