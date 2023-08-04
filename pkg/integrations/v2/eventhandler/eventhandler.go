@@ -32,6 +32,8 @@ import (
 
 const (
 	cacheFileMode = 0600
+	logFormatJson = "json"
+	logFormatFmt  = "logfmt"
 )
 
 // EventHandler watches for Kubernetes Event objects and hands them off to
@@ -48,6 +50,7 @@ type EventHandler struct {
 	ticker        *time.Ticker
 	instance      string
 	extraLabels   labels.Labels
+	logFormat     string
 	sync.Mutex
 }
 
@@ -112,6 +115,7 @@ func newEventHandler(l log.Logger, globals integrations.Globals, c *Config) (int
 		SendTimeout:   time.Duration(c.SendTimeout) * time.Second,
 		instance:      id,
 		extraLabels:   c.ExtraLabels,
+		logFormat:     c.LogFormat,
 	}
 	// set the resource handler fns
 	if err := eh.initInformer(eventInformer); err != nil {
@@ -203,15 +207,21 @@ func (eh *EventHandler) deleteEvent(obj interface{}) {
 // instead of hardcoding labels here
 func (eh *EventHandler) extractEvent(event *v1.Event) (model.LabelSet, string, error) {
 	var (
-		msg    strings.Builder
-		labels = make(model.LabelSet)
+		msg      strings.Builder
+		fields   = make(map[string]any)
+		labels   = make(model.LabelSet)
+		appender = appendTextMsg
 	)
+
+	if eh.logFormat == logFormatJson {
+		appender = appendJsonMsg
+	}
 
 	obj := event.InvolvedObject
 	if obj.Name == "" {
 		return nil, "", fmt.Errorf("no involved object for event")
 	}
-	msg.WriteString(fmt.Sprintf("name=%s ", obj.Name))
+	appender(&msg, fields, "name", obj.Name, "%s")
 
 	labels[model.LabelName("namespace")] = model.LabelValue(obj.Namespace)
 	// TODO(hjet) omit "kubernetes"
@@ -224,45 +234,68 @@ func (eh *EventHandler) extractEvent(event *v1.Event) (model.LabelSet, string, e
 
 	// we add these fields to the log line to reduce label bloat and cardinality
 	if obj.Kind != "" {
-		msg.WriteString(fmt.Sprintf("kind=%s ", obj.Kind))
+		appender(&msg, fields, "kind", obj.Kind, "%s")
 	}
 	if event.Action != "" {
-		msg.WriteString(fmt.Sprintf("action=%s ", event.Action))
+		appender(&msg, fields, "action", event.Action, "%s")
 	}
 	if obj.APIVersion != "" {
-		msg.WriteString(fmt.Sprintf("objectAPIversion=%s ", obj.APIVersion))
+		appender(&msg, fields, "objectAPIversion", obj.APIVersion, "%s")
 	}
 	if obj.ResourceVersion != "" {
-		msg.WriteString(fmt.Sprintf("objectRV=%s ", obj.ResourceVersion))
+		appender(&msg, fields, "objectRV", obj.ResourceVersion, "%s")
 	}
 	if event.ResourceVersion != "" {
-		msg.WriteString(fmt.Sprintf("eventRV=%s ", event.ResourceVersion))
+		appender(&msg, fields, "eventRV", event.ResourceVersion, "%s")
 	}
 	if event.ReportingInstance != "" {
-		msg.WriteString(fmt.Sprintf("reportinginstance=%s ", event.ReportingInstance))
+		appender(&msg, fields, "reportinginstance", event.ReportingInstance, "%s")
 	}
 	if event.ReportingController != "" {
-		msg.WriteString(fmt.Sprintf("reportingcontroller=%s ", event.ReportingController))
+		appender(&msg, fields, "reportingcontroller", event.ReportingController, "%s")
 	}
 	if event.Source.Component != "" {
-		msg.WriteString(fmt.Sprintf("sourcecomponent=%s ", event.Source.Component))
+		appender(&msg, fields, "sourcecomponent", event.Source.Component, "%s")
 	}
 	if event.Source.Host != "" {
-		msg.WriteString(fmt.Sprintf("sourcehost=%s ", event.Source.Host))
+		appender(&msg, fields, "sourcehost", event.Source.Host, "%s")
 	}
 	if event.Reason != "" {
-		msg.WriteString(fmt.Sprintf("reason=%s ", event.Reason))
+		appender(&msg, fields, "reason", event.Reason, "%s")
 	}
 	if event.Type != "" {
-		msg.WriteString(fmt.Sprintf("type=%s ", event.Type))
+		appender(&msg, fields, "type", event.Type, "%s")
 	}
 	if event.Count != 0 {
-		msg.WriteString(fmt.Sprintf("count=%d ", event.Count))
+		appender(&msg, fields, "count", event.Count, "%d")
 	}
 
-	msg.WriteString(fmt.Sprintf("msg=%q", event.Message))
+	appender(&msg, fields, "msg", event.Message, "%q")
 
-	return labels, msg.String(), nil
+	if eh.logFormat == logFormatJson {
+		bb, err := json.Marshal(fields)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to marshal Event to JSON: %w", err)
+		}
+		msg.WriteString(string(bb))
+	}
+
+	return labels, strings.TrimSpace(msg.String()), nil
+}
+
+// Appends the "fields" map with an entry for the provided event field
+// Signatures of "appendJsonMsg" and "appendTextMsg" must match
+func appendJsonMsg(msg *strings.Builder, fields map[string]any, key string, value any, format string) {
+	fields[key] = value
+}
+
+// Appends the message builder with the provided event field
+// Signatures of "appendJsonMsg" and "appendTextMsg" must match
+func appendTextMsg(msg *strings.Builder, fields map[string]any, key string, value any, format string) {
+	msg.WriteString(key)
+	msg.WriteByte('=')
+	msg.WriteString(fmt.Sprintf(format, value))
+	msg.WriteByte(' ')
 }
 
 func getTimestamp(event *v1.Event) time.Time {
