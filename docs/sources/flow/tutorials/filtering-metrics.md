@@ -1,10 +1,14 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/filtering-metrics/
-title: Filtering Prometheus metrics
+description: Learn how to filter Prometheus metrics
+title: Filter Prometheus metrics 
+menuTitle: Filter Prometheus metrics
+aliases:
+- ./filtering-metrics/  
 weight: 300
 ---
 
-# Filtering Prometheus metrics
+# Filter Prometheus metrics
 
 In this tutorial, you'll add a new component [prometheus.relabel]({{< ref "../reference/components/prometheus.relabel.md" >}}) using [relabel.river](../assets/flow_configs/relabel.river) to filter metrics. This tutorial uses the same base as [Collecting Prometheus metrics]({{< relref "./collecting-prometheus-metrics.md">}}).
 
@@ -25,7 +29,7 @@ The `runt.sh` script does:
 
 Allow the Grafana Agent to run for two minutes, then navigate to [Grafana](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D) page and the `service` label will be there with the `api_server` value.
 
-![](../assets/filter.png)
+![Dashboard showing api_server](/media/docs/agent/screenshot-grafana-agent-filtering-metrics-filter.png)
 
 ## What's happening?
 
@@ -37,4 +41,4 @@ Allow the Grafana Agent to run for two minutes, then navigate to [Grafana](http:
 
 Open the `relabel.river` file that was downloaded and change the name of the service to `api_server_v2`, then run `bash ./runt.sh relabel.river`. Allow the Grafana Agent to run for two minutes, then navigate to [Grafana](http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D) page, and the new label will be updated. The old value `api_server` may still show up in the graph but hovering over the lines will show that that value stopped being scraped and was replaced with `api_server_v2`.
 
-![](../assets/transition.png)
+![Updated dashboard showing api_server_v2](/media/docs/agent/screenshot-grafana-agent-filtering-metrics-transition.png)
