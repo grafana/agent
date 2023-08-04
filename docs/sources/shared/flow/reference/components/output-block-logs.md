@@ -1,7 +1,7 @@
 ---
 aliases:
-- ../../otelcol/output-block-traces/
-canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/output-block-traces/
+- ../../otelcol/output-block-logs/
+canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/output-block-logs/
 headless: true
 ---
 
@@ -12,8 +12,8 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`traces` | `list(otelcol.Consumer)` | List of consumers to send traces to. | `[]` | no
+`logs` | `list(otelcol.Consumer)` | List of consumers to send logs to. | `[]` | no
 
 The `output` block must be specified, but all of its arguments are optional. By
 default, telemetry data is dropped. To send telemetry data to other components,
-configure the `traces` argument accordingly.
+configure the `logs` argument accordingly.

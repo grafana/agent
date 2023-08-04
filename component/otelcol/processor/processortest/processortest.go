@@ -71,6 +71,44 @@ func TestRunProcessor(c ProcessorRunConfig) {
 }
 
 //
+// Trace to Logs
+//
+
+type traceToLogSignal struct {
+	logCh              chan plog.Logs
+	inputTrace         ptrace.Traces
+	expectedOuutputLog plog.Logs
+}
+
+func NewTraceToLogSignal(inputJson string, expectedOutputJson string) Signal {
+	return &traceToLogSignal{
+		logCh:              make(chan plog.Logs),
+		inputTrace:         createTestTraces(inputJson),
+		expectedOuutputLog: createTestLogs(expectedOutputJson),
+	}
+}
+
+func (s traceToLogSignal) MakeOutput() *otelcol.ConsumerArguments {
+	return makeLogsOutput(s.logCh)
+}
+
+func (s traceToLogSignal) ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error {
+	return consumer.ConsumeTraces(ctx, s.inputTrace)
+}
+
+func (s traceToLogSignal) CheckOutput(t *testing.T) {
+	// Wait for our processor to finish and forward data to logCh.
+	select {
+	case <-time.After(time.Second):
+		require.FailNow(t, "failed waiting for logs")
+	case tr := <-s.logCh:
+		trStr := marshalLogs(tr)
+		expStr := marshalLogs(s.expectedOuutputLog)
+		require.JSONEq(t, expStr, trStr)
+	}
+}
+
+//
 // Traces
 //
 
