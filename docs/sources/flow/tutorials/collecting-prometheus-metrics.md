@@ -1,10 +1,14 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/collecting-prometheus-metrics/
-title: Collecting Prometheus metrics
+description: Learn how to collect Prometheus metrics with Grafana Agent
+title: Collect Prometheus metrics
+menuTitle: Collect Prometheus metrics
+aliases:
+- ./collecting-prometheus-metrics/
 weight: 200
 ---
 
-# Collecting Prometheus metrics
+# Collect Prometheus metrics
 
 Grafana Agent is a telemetry collector with the primary goal of moving telemetry data from one location to another. In this tutorial, you'll set up a Grafana Agent in Flow mode.
 
