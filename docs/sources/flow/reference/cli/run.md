@@ -40,7 +40,7 @@ The following flags are supported:
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`). Mutually exclusive with `--cluster.discover-peers`.
 * `--cluster.discover-peers`: List of key-value tuples for discovering peers (default `""`). Mutually exclusive with `--cluster.join-addresses`.
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
-* `--config.format`: The format of the source file. Supported formats: 'flow', 'prometheus', 'promtail' (default `"flow"`).
+* `--config.format`: The format of the source file. Supported formats: `flow`, `prometheus`, `promtail` (default `"flow"`).
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
