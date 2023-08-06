@@ -64,6 +64,8 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Update to config converter so default relabel `source_labels` are left off the river output. (@erikbaranowski)
+
 - Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
