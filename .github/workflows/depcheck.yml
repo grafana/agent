@@ -10,8 +10,13 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-
+    - name: Generate token
+      id: generate_token
+      uses: tibdex/github-app-token@1c002dd
+      with:
+        app_id: ${{ secrets.APP_ID }}
+        private_key: ${{ secrets.APP_PEM }}
     - name: Invoke action
       uses: rfratto/depcheck@main
       with:
-        github-token: ${{ secrets.MANAGE_ISSUES_GH_TOKEN }}
+        github-token: ${{ env.TOKEN }}
