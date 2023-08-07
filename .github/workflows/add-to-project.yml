@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Generate token
         id: generate_token
-        uses: tibdex/github-app-token@c2055a00597a80f713b78b1650e8d3418f4d9a65
+        uses: tibdex/github-app-token@v1.7.0
         with:
             app_id: ${{ secrets.APP_ID }}
             private_key: ${{ secrets.APP_PEM }}
