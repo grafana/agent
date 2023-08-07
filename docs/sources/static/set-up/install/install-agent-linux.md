@@ -49,7 +49,7 @@ To uninstall Grafana Agent on Debian or Ubuntu, run the following commands in a 
 1. Uninstall Grafana Agent:
 
    ```shell
-   sudo apt-get remove grafana-agent-flow
+   sudo apt-get remove grafana-agent
    ```
 
 1. Optional: Remove the Grafana repository:
@@ -103,13 +103,13 @@ To uninstall Grafana Agent on RHEL or Fedora, run the following commands in a te
 1. Stop the systemd service for Grafana Agent:
 
    ```shell
-   sudo systemctl stop grafana-agent-flow
+   sudo systemctl stop grafana-agent
    ```
 
 1. Uninstall Grafana Agent:
 
    ```shell
-   sudo dnf remove grafana-agent-flow
+   sudo dnf remove grafana-agent
    ```
 
 1. Optional: Remove the Grafana repository:
@@ -149,13 +149,13 @@ To uninstall Grafana Agent on SUSE or openSUSE, run the following commands in a 
 1. Stop the systemd service for Grafana Agent:
 
    ```shell
-   sudo systemctl stop grafana-agent-flow
+   sudo systemctl stop grafana-agent
    ````
 
 1. Uninstall Grafana Agent:
 
    ```shell
-   sudo zypper remove grafana-agent-flow
+   sudo zypper remove grafana-agent
    ```
 
 1. Optional: Remove the Grafana repository:
