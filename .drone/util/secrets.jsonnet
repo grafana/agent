@@ -20,9 +20,9 @@ local newSecret(name) = {
   app_installation_id: newSecret('app_installation_id').getFrom(path='infra/data/ci/agent/githubapp', name='app-installation-id'),
 
   // Updater secrets for pushing to deployment_tools
-  updater_private_key: newSecret('updater_private_key').getFrom(path='infra/data/ci/github/updater-app', name='updater-private-key'),
-  updater_app_id: newSecret('updater_app_id').getFrom(path='infra/data/ci/github/updater-app', name='updater-app-id'),
-  updater_app_installation_id: newSecret('updater_app_installation_id').getFrom(path='infra/data/ci/github/updater-app', name='updater-app-installation-id'),
+  updater_private_key: newSecret('updater_private_key').getFrom(path='infra/data/ci/github/updater-app', name='private-key'),
+  updater_app_id: newSecret('updater_app_id').getFrom(path='infra/data/ci/github/updater-app', name='app-id'),
+  updater_app_installation_id: newSecret('updater_app_installation_id').getFrom(path='infra/data/ci/github/updater-app', name='app-installation-id'),
 
   gpg_public_key: newSecret('gpg_public_key').getFrom(path='infra/data/ci/packages-publish/gpg', name='public-key'),
   gpg_private_key: newSecret('gpg_private_key').getFrom(path='infra/data/ci/packages-publish/gpg', name='private-key'),
