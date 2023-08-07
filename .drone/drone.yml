@@ -1454,24 +1454,24 @@ kind: secret
 name: private_key
 ---
 get:
-  name: updater-app-id
+  name: app-id
   path: infra/data/ci/github/updater-app
 kind: secret
 name: updater_app_id
 ---
 get:
-  name: updater-app-installation-id
+  name: app-installation-id
   path: infra/data/ci/github/updater-app
 kind: secret
 name: updater_app_installation_id
 ---
 get:
-  name: updater-private-key
+  name: private-key
   path: infra/data/ci/github/updater-app
 kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 276a782a6456854b6702a2500452d1702a14e8f840e0001b939860c3e8a5005d
+hmac: 34d8fb10b7203bd97d29de3930322207cb5a5e618d5b7827af927e319b734ff5
 
 ...
