@@ -1,14 +1,14 @@
 apiVersion: 1
 
 deleteDatasources:
-  - name: Cortex
+  - name: Mimir
 
 datasources:
-- name: Cortex
+- name: Mimir
   type: prometheus
   access: proxy
   orgId: 1
-  url: http://cortex:9009/api/prom
+  url: http://mimir:9009/prometheus
   basicAuth: false
   isDefault: false
   version: 1
