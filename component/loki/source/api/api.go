@@ -20,6 +20,9 @@ func init() {
 	component.Register(component.Registration{
 		Name: "loki.source.api",
 		Args: Arguments{},
+		Metadata: component.Metadata{
+			Outputs: []component.DataType{component.LokiLogs},
+		},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},

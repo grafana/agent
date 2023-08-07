@@ -3,6 +3,7 @@ package component
 import (
 	"context"
 	"fmt"
+	"golang.org/x/exp/maps"
 	"reflect"
 	"strings"
 
@@ -127,6 +128,10 @@ type Registration struct {
 	// A component which does not expose exports must leave this set to nil.
 	Exports Exports
 
+	// Component metadata that can be used to validate pipelines or generate
+	// documentation.
+	Metadata Metadata
+
 	// NeedsServices holds the set of service names which this component depends
 	// on to run. If NeedsServices includes an invalid service name (either
 	// because of a cyclic dependency or the named service doesn't exist),
@@ -211,4 +216,8 @@ func validatePrefixMatch(check parsedName, against map[string]parsedName) error 
 func Get(name string) (Registration, bool) {
 	r, ok := registered[name]
 	return r, ok
+}
+
+func AllNames() []string {
+	return maps.Keys(registered)
 }

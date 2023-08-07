@@ -67,3 +67,12 @@ loki.source.file "logs" {
 
 loki.echo "example" { }
 ```
+
+## Compatible components
+
+`loki.echo` can accept data from the following components:
+
+- Loki Logs:
+  - [`loki.source.api`]()
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.

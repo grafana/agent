@@ -14,6 +14,9 @@ func init() {
 		Name:    "loki.echo",
 		Args:    Arguments{},
 		Exports: Exports{},
+		Metadata: component.Metadata{
+			Accepts: []component.DataType{component.LokiLogs},
+		},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
