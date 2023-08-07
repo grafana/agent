@@ -127,12 +127,10 @@ func appendScrapeConfig(
 	diags *diag.Diagnostics,
 	gctx *build.GlobalContext,
 ) {
-	//TODO(thampiotr): need to support/warn about the following fields:
-	//Encoding               string                 `mapstructure:"encoding,omitempty" yaml:"encoding,omitempty"`
-	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
 	b.Validate()
+	b.Sanitize()
 
 	// Append all the SD components
 	b.AppendKubernetesSDs()

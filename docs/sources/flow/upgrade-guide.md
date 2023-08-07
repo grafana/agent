@@ -19,6 +19,42 @@ Grafana Agent Flow.
 > [upgrade-guide-static]: {{< relref "../static/upgrade-guide.md" >}}
 > [upgrade-guide-operator]: {{< relref "../operator/upgrade-guide.md" >}}
 
+## v0.36
+
+## Breaking change: `loki.source.file` no longer automatically extracts logs from compressed files
+
+`loki.source.file` component will no longer automatically detect and decompress
+logs from compressed files (this was an undocumented behaviour).
+
+This file-extension-based detection of compressed files has been replaced by a
+new configuration block that explicitly enables and specifies the compression
+format. By default, the decompression of files is entirely disabled.
+
+How to migrate:
+
+* If your agent never reads logs from files with
+  extensions `.gz`, `.tar.gz`, `.z` or `.bz2` then no action is required.
+  > You can check what are the file extensions your agent reads from by looking
+  at the `path` label on `loki_source_file_file_bytes_total` metric.
+
+* If your agent extracts data from compressed files, please add the following
+  configuration block to your `loki.source.file` component:
+
+    ```river
+    loki.source.file "example" {
+      ...
+      decompression {
+        enabled       = true
+        format        = "<compression format>"
+      }
+    }
+    ``` 
+
+    where the `<compression format>` is the appropriate compression format -
+    see [`loki.source.file` documentation][loki-source-file-docs] for details.
+    
+    [loki-source-file-docs]: {{< relref "./reference/components/loki.source.file.md" >}}
+
 ## v0.35
 
 ### Breaking change: `auth` and `version` attributes from `walk_params` block of `prometheus.exporter.snmp` have been removed

@@ -8,6 +8,7 @@ import (
 	"github.com/alecthomas/units"
 	promtailmetric "github.com/grafana/loki/clients/pkg/logentry/metric"
 	promtailstages "github.com/grafana/loki/clients/pkg/logentry/stages"
+	"github.com/grafana/loki/pkg/util/flagext"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/grafana/agent/component/loki/process/metric"
@@ -85,11 +86,24 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 			return convertEventLogMessage(diags)
 		case promtailstages.StageTypeGeoIP:
 			return convertGeoIP(iCfg, diags)
+		case promtailstages.StageTypeNonIndexedLabels:
+			return convertNonIndexedLabels(iCfg, diags)
 		}
 	}
 
 	diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported pipeline stage: %v", st))
 	return stages.StageConfig{}, false
+}
+
+func convertNonIndexedLabels(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pLabels := &promtailstages.LabelsConfig{}
+	if err := mapstructure.Decode(cfg, pLabels); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	return stages.StageConfig{NonIndexedLabelsConfig: &stages.LabelsConfig{
+		Values: *pLabels,
+	}}, true
 }
 
 func convertGeoIP(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
@@ -145,7 +159,8 @@ func convertLabelAllow(cfg interface{}, diags *diag.Diagnostics) (stages.StageCo
 
 func convertPack(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
 	pPack := &promtailstages.PackConfig{}
-	if err := mapstructure.Decode(cfg, pPack); err != nil {
+	// NOTE: using WeakDecode to match promtail behaviour
+	if err := mapstructure.WeakDecode(cfg, pPack); err != nil {
 		addInvalidStageError(diags, cfg, err)
 		return stages.StageConfig{}, false
 	}
@@ -159,7 +174,8 @@ func convertPack(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 
 func convertMultiline(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
 	pMulti := &promtailstages.MultilineConfig{}
-	if err := mapstructure.Decode(cfg, pMulti); err != nil {
+	// NOTE: using WeakDecode to match promtail behaviour
+	if err := mapstructure.WeakDecode(cfg, pMulti); err != nil {
 		addInvalidStageError(diags, cfg, err)
 		return stages.StageConfig{}, false
 	}
@@ -184,7 +200,8 @@ func convertMultiline(cfg interface{}, diags *diag.Diagnostics) (stages.StageCon
 
 func convertLimit(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
 	pLimit := &promtailstages.LimitConfig{}
-	if err := mapstructure.Decode(cfg, pLimit); err != nil {
+	// NOTE: using WeakDecode to match promtail behaviour
+	if err := mapstructure.WeakDecode(cfg, pLimit); err != nil {
 		addInvalidStageError(diags, cfg, err)
 		return stages.StageConfig{}, false
 	}
@@ -206,7 +223,8 @@ func convertSampling(cfg interface{}, diags *diag.Diagnostics) (stages.StageConf
 
 func convertDrop(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
 	pDrop := &promtailstages.DropConfig{}
-	if err := mapstructure.Decode(cfg, pDrop); err != nil {
+	// NOTE: using WeakDecode to match promtail behaviour
+	if err := mapstructure.WeakDecode(cfg, pDrop); err != nil {
 		addInvalidStageError(diags, cfg, err)
 		return stages.StageConfig{}, false
 	}
@@ -255,12 +273,17 @@ func convertDrop(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 
 	var longerThan units.Base2Bytes
 	if pDrop.LongerThan != nil {
-		lt, err := units.ParseBase2Bytes(*pDrop.LongerThan)
+		var pLongerThan flagext.ByteSize
+		err := pLongerThan.Set(*pDrop.LongerThan)
 		if err != nil {
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("invalid pipeline_stages.drop.longer_than field: %v", err))
 			return stages.StageConfig{}, false
 		}
-		longerThan = lt
+		longerThan, err = units.ParseBase2Bytes(fmt.Sprintf("%dB", pLongerThan.Val()))
+		if err != nil {
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("invalid pipeline_stages.drop.longer_than field: failed river type conversion: %v", err))
+			return stages.StageConfig{}, false
+		}
 	}
 
 	if pDrop.Separator != nil && *pDrop.Separator != "" {

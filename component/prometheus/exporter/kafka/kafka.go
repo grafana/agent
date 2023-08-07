@@ -50,10 +50,11 @@ type Arguments struct {
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.kafka",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createIntegration, "kafka", customizeTarget),
+		Name:          "prometheus.exporter.kafka",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.NewWithTargetBuilder(createIntegration, "kafka", customizeTarget),
 	})
 }
 

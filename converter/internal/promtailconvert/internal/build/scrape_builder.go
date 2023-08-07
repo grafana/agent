@@ -72,6 +72,10 @@ func (s *ScrapeConfigBuilder) Validate() {
 	}
 }
 
+func (s *ScrapeConfigBuilder) Sanitize() {
+	s.cfg.JobName = strings.ReplaceAll(s.cfg.JobName, "-", "_")
+}
+
 func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
 	// If there were no targets expressions collected, that means
 	// we didn't have any components that produced SD targets, so
@@ -83,7 +87,9 @@ func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
 	forwardTo := s.getOrNewProcessStageReceivers()
 
 	args := lokisourcefile.Arguments{
-		ForwardTo: forwardTo,
+		ForwardTo:           forwardTo,
+		Encoding:            s.cfg.Encoding,
+		DecompressionConfig: convertDecompressionConfig(s.cfg.DecompressionCfg),
 	}
 	overrideHook := func(val interface{}) interface{} {
 		if _, ok := val.([]discovery.Target); ok {
@@ -234,6 +240,17 @@ func convertPromLabels(labels model.LabelSet) map[string]string {
 		result[string(k)] = string(v)
 	}
 	return result
+}
+
+func convertDecompressionConfig(cfg *scrapeconfig.DecompressionConfig) lokisourcefile.DecompressionConfig {
+	if cfg == nil {
+		return lokisourcefile.DecompressionConfig{}
+	}
+	return lokisourcefile.DecompressionConfig{
+		Enabled:      cfg.Enabled,
+		InitialDelay: cfg.InitialDelay,
+		Format:       lokisourcefile.CompressionFormat(cfg.Format),
+	}
 }
 
 func logsReceiversToExpr(r []loki.LogsReceiver) string {

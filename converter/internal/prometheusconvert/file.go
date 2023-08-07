@@ -15,7 +15,7 @@ func appendDiscoveryFile(pb *prometheusBlocks, label string, sdConfig *prom_file
 	name := []string{"discovery", "file"}
 	block := common.NewBlockWithOverride(name, label, discoveryFileArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return newDiscoverExports("discovery.file." + label + ".targets")
+	return NewDiscoverExports("discovery.file." + label + ".targets")
 }
 
 func validateDiscoveryFile(sdConfig *prom_file.SDConfig) diag.Diagnostics {

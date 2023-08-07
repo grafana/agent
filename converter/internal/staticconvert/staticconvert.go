@@ -5,10 +5,12 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/converter/internal/promtailconvert"
+	"github.com/grafana/agent/converter/internal/staticconvert/internal/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/river/token/builder"
@@ -61,8 +63,8 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 
 	diags.AddAll(appendStaticPrometheus(f, staticConfig))
 	diags.AddAll(appendStaticPromtail(f, staticConfig))
+	diags.AddAll(appendStaticIntegrationsV1(f, staticConfig))
 	// TODO otel
-	// TODO integrations
 	// TODO other
 
 	diags.AddAll(validate(staticConfig))
@@ -79,6 +81,13 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 			RemoteWriteConfigs: instance.RemoteWrite,
 		}
 
+		jobNameToCompLabelsFunc := func(jobName string) string {
+			if jobName == "" {
+				return fmt.Sprintf("metrics_%s", instance.Name)
+			}
+			return fmt.Sprintf("metrics_%s_%s", instance.Name, jobName)
+		}
+
 		// There is an edge case unhandled here with label collisions.
 		// For example,
 		//   metrics config name = "agent_test"
@@ -88,7 +97,7 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		//   scrape config job_name = "test_prometheus"
 		//
 		//   results in two prometheus.scrape components with the label "metrics_agent_test_prometheus"
-		diags.AddAll(prometheusconvert.AppendAll(f, promConfig, "metrics_"+instance.Name))
+		diags.AddAll(prometheusconvert.AppendAllNested(f, promConfig, jobNameToCompLabelsFunc, []discovery.Target{}, nil))
 	}
 
 	return diags
@@ -130,6 +139,19 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 		//   results in two prometheus.scrape components with the label "logs_agent_test_promtail"
 		diags = promtailconvert.AppendAll(f, &promtailConfig, "logs_"+logConfig.Name, diags)
 	}
+
+	return diags
+}
+
+func appendStaticIntegrationsV1(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if len(staticConfig.Integrations.EnabledIntegrations()) == 0 {
+		return diags
+	}
+
+	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
+	b.AppendIntegrations()
 
 	return diags
 }

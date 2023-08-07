@@ -1,9 +1,13 @@
 package staticconvert
 
 import (
+	"fmt"
+
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/pkg/integrations/apache_http"
+	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
@@ -73,8 +77,17 @@ func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diag
 func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if len(integrationsConfig.EnabledIntegrations()) > 0 {
-		diags.Add(diag.SeverityLevelError, "unsupported integrations config was provided.")
+	if len(integrationsConfig.EnabledIntegrations()) == 0 {
+		return diags
+	}
+
+	for _, integration := range integrationsConfig.ConfigV1.Integrations {
+		switch itg := integration.Config.(type) {
+		case *apache_http.Config:
+		case *node_exporter.Config:
+		default:
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
+		}
 	}
 
 	return diags

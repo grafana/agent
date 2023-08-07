@@ -1385,6 +1385,18 @@ volumes:
   name: docker
 ---
 get:
+  name: app-id
+  path: infra/data/ci/agent/githubapp
+kind: secret
+name: app_id
+---
+get:
+  name: app-installation-id
+  path: infra/data/ci/agent/githubapp
+kind: secret
+name: app_installation_id
+---
+get:
   name: username
   path: infra/data/ci/docker_hub
 kind: secret
@@ -1432,7 +1444,13 @@ get:
 kind: secret
 name: gpg_public_key
 ---
+get:
+  name: private-key
+  path: infra/data/ci/agent/githubapp
+kind: secret
+name: private_key
+---
 kind: signature
-hmac: cdbbd7e715a892c48356bd5d381e47ffb29940cb24ac898c3e495765bdd982e5
+hmac: 2ff5f7f665aaba388e272316c0b7aee419801f347d882577dbbb84a95e4be672
 
 ...

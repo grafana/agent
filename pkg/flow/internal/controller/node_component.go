@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/http"
 	"path"
 	"path/filepath"
 	"reflect"
@@ -65,18 +64,16 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	Logger              *logging.Logger                  // Logger shared between all managed components.
-	TraceProvider       trace.TracerProvider             // Tracer shared between all managed components.
-	Clusterer           *cluster.Clusterer               // Clusterer shared between all managed components.
-	DataPath            string                           // Shared directory where component data may be stored
-	OnComponentUpdate   func(cn *ComponentNode)          // Informs controller that we need to reevaluate
-	OnExportsChange     func(exports map[string]any)     // Invoked when the managed component updated its exports
-	Registerer          prometheus.Registerer            // Registerer for serving agent and component metrics
-	HTTPPathPrefix      string                           // HTTP prefix for components.
-	HTTPListenAddr      string                           // Base address for server
-	DialFunc            DialFunc                         // Function to connect to HTTPListenAddr.
-	ControllerID        string                           // ID of controller.
-	NewModuleController func(id string) ModuleController // Func to generate a module controller.
+	Logger              *logging.Logger                                              // Logger shared between all managed components.
+	TraceProvider       trace.TracerProvider                                         // Tracer shared between all managed components.
+	Clusterer           *cluster.Clusterer                                           // Clusterer shared between all managed components.
+	DataPath            string                                                       // Shared directory where component data may be stored
+	OnComponentUpdate   func(cn *ComponentNode)                                      // Informs controller that we need to reevaluate
+	OnExportsChange     func(exports map[string]any)                                 // Invoked when the managed component updated its exports
+	Registerer          prometheus.Registerer                                        // Registerer for serving agent and component metrics
+	ControllerID        string                                                       // ID of controller.
+	NewModuleController func(id string, availableServices []string) ModuleController // Func to generate a module controller.
+	GetServiceData      func(name string) (interface{}, error)                       // Get data for a service.
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -121,19 +118,11 @@ var _ BlockNode = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode {
+func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *ast.BlockStmt) *ComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
 	)
-
-	reg, ok := component.Get(ComponentID(b.Name).String())
-	if !ok {
-		// NOTE(rfratto): It's normally not possible to get to this point; the
-		// blocks should have been validated by the graph loader in advance to
-		// guarantee that b is an expected component.
-		panic("NewComponentNode: could not find registration for component " + nodeID)
-	}
 
 	initHealth := component.Health{
 		Health:     component.HealthTypeUnknown,
@@ -159,7 +148,7 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 		componentName:     strings.Join(b.Name, "."),
 		reg:               reg,
 		exportsType:       getExportsType(reg),
-		moduleController:  globals.NewModuleController(globalID),
+		moduleController:  globals.NewModuleController(globalID, reg.NeedsServices),
 		OnComponentUpdate: globals.OnComponentUpdate,
 
 		block: b,
@@ -178,10 +167,9 @@ func NewComponentNode(globals ComponentGlobals, b *ast.BlockStmt) *ComponentNode
 }
 
 func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
-	// Make sure the prefix is always absolute.
-	prefix := globals.HTTPPathPrefix
-	if !strings.HasPrefix(prefix, "/") {
-		prefix = "/" + prefix
+	allowedServices := make(map[string]struct{}, len(cn.Registration().NeedsServices))
+	for _, svc := range cn.Registration().NeedsServices {
+		allowedServices[svc] = struct{}{}
 	}
 
 	cn.registry = prometheus.NewRegistry()
@@ -194,13 +182,17 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Tracer:    tracing.WrapTracer(globals.TraceProvider, cn.globalID),
 		Clusterer: globals.Clusterer,
 
-		DataPath:       filepath.Join(globals.DataPath, cn.globalID),
-		HTTPListenAddr: globals.HTTPListenAddr,
-		DialFunc:       globals.DialFunc,
-		HTTPPath:       path.Join(prefix, cn.globalID) + "/",
+		DataPath: filepath.Join(globals.DataPath, cn.globalID),
 
 		OnStateChange:    cn.setExports,
 		ModuleController: cn.moduleController,
+
+		GetServiceData: func(name string) (interface{}, error) {
+			if _, allowed := allowedServices[name]; !allowed {
+				return nil, fmt.Errorf("cannot access service data for service %q because it was not listed as a dependency", name)
+			}
+			return globals.GetServiceData(name)
+		},
 	}
 }
 
@@ -507,16 +499,6 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 		Message:    msg,
 		UpdateTime: time.Now(),
 	}
-}
-
-// HTTPHandler returns an http handler for a component IF it implements HTTPComponent.
-// otherwise it will return nil.
-func (cn *ComponentNode) HTTPHandler() http.Handler {
-	handler, ok := cn.managed.(component.HTTPComponent)
-	if !ok {
-		return nil
-	}
-	return handler.Handler()
 }
 
 // ModuleIDs returns the current list of modules that this component is

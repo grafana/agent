@@ -1,6 +1,6 @@
 (Warning) pipeline_stages.drop.separator is ignored since only one 'source' value is supported: ignored
 (Error) only single value for pipelina_stages.drop.source is supported - got: [too many]
-(Error) invalid pipeline_stages.drop.longer_than field: units: unknown unit GigaWatts in 1.21GigaWatts
+(Error) invalid pipeline_stages.drop.longer_than field: strconv.UnmarshalText: parsing "1.21GIGAWATTS": invalid syntax
 (Error) invalid pipeline_stages.drop.older_than field: time: invalid duration "lightyear"
 (Error) invalid pipeline_stages.drop.source field type 'map[interface {}]interface {}': map[invalid:object]
 (Error) invalid pipeline_stages.drop.source[0] field type 'map[interface {}]interface {}': map[invalid:object]

@@ -15,7 +15,7 @@ func appendDiscoveryDocker(pb *prometheusBlocks, label string, sdConfig *prom_do
 	name := []string{"discovery", "docker"}
 	block := common.NewBlockWithOverride(name, label, discoveryDockerArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return newDiscoverExports("discovery.docker." + label + ".targets")
+	return NewDiscoverExports("discovery.docker." + label + ".targets")
 }
 
 func validateDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) diag.Diagnostics {

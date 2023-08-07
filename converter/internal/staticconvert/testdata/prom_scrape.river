@@ -52,9 +52,8 @@ discovery.relabel "metrics_agent_promobee" {
 	}
 
 	rule {
-		source_labels = []
-		target_label  = "__address__"
-		replacement   = "localhost:8099"
+		target_label = "__address__"
+		replacement  = "localhost:8099"
 	}
 }
 

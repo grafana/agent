@@ -25,6 +25,18 @@ func (reg *moduleRegistry) Get(id string) (*module, bool) {
 	return mod, ok
 }
 
+// List returns the set of all modules. The return order is not guaranteed.
+func (reg *moduleRegistry) List() []*module {
+	reg.mut.RLock()
+	defer reg.mut.RUnlock()
+
+	list := make([]*module, 0, len(reg.modules))
+	for _, mod := range reg.modules {
+		list = append(list, mod)
+	}
+	return list
+}
+
 // Register registers a module by ID. It returns an error if that module is
 // already registered.
 func (reg *moduleRegistry) Register(id string, mod *module) error {

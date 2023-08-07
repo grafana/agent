@@ -36,9 +36,16 @@ const (
 // Arguments holds values which are used to configure the loki.source.file
 // component.
 type Arguments struct {
-	Targets   []discovery.Target  `river:"targets,attr"`
-	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
-	Encoding  string              `river:"encoding,attr,optional"`
+	Targets             []discovery.Target  `river:"targets,attr"`
+	ForwardTo           []loki.LogsReceiver `river:"forward_to,attr"`
+	Encoding            string              `river:"encoding,attr,optional"`
+	DecompressionConfig DecompressionConfig `river:"decompression,block,optional"`
+}
+
+type DecompressionConfig struct {
+	Enabled      bool              `river:"enabled,attr"`
+	InitialDelay time.Duration     `river:"initial_delay,attr,optional"`
+	Format       CompressionFormat `river:"format,attr"`
 }
 
 var (
@@ -290,7 +297,7 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 	}
 
 	var reader reader
-	if isCompressed(path) {
+	if c.args.DecompressionConfig.Enabled {
 		level.Debug(c.opts.Logger).Log("msg", "reading from compressed file", "filename", path)
 		decompressor, err := newDecompressor(
 			c.metrics,
@@ -300,6 +307,7 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 			path,
 			labels.String(),
 			c.args.Encoding,
+			c.args.DecompressionConfig,
 		)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to start decompressor", "error", err, "filename", path)
