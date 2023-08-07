@@ -4,7 +4,7 @@ services:
   # Core services. These services allow a Grafana Agent to send data somewhere
   # and visualize it in Grafana.
   #
-  # Backends: grafana, loki, cortex, tempo
+  # Backends: grafana, loki, mimir, tempo
   # Example services: avalanche
   #
 
@@ -28,13 +28,13 @@ services:
     ports:
       - "3100:3100"
 
-  cortex:
-    image: cortexproject/cortex:v1.8.1
+  mimir:
+    image: grafana/mimir:2.9.0
     volumes:
-      - ./cortex/config:/etc/cortex-config
+      - ./mimir/config:/etc/mimir-config
     entrypoint:
-      - /bin/cortex
-      - -config.file=/etc/cortex-config/cortex.yaml
+      - /bin/mimir
+      - -config.file=/etc/mimir-config/mimir.yaml
     ports:
       - "9009:9009"
 
@@ -72,7 +72,7 @@ services:
 
   #
   # Optional Grafana Agent which can collect telemetry and send it to
-  # Loki/Cortex/Tempo.
+  # Loki/Mimir/Tempo.
   #
   # Enable with the "agent" profile.
   #
@@ -92,7 +92,7 @@ services:
       - -config.enable-read-api
     environment:
       HOSTNAME: agent
-      REMOTE_WRITE_HOST: cortex:9009
+      REMOTE_WRITE_HOST: mimir:9009
       LOKI_HOST: loki:3100
       TEMPO_HOST: tempo:4317
       AVALANCHE_HOST: avalanche:9001
@@ -108,7 +108,7 @@ services:
     ports:
       - "12345:12345"
     depends_on:
-      - cortex
+      - mimir
       - loki
       - tempo
 
