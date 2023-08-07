@@ -19,4 +19,5 @@ jobs:
     - name: Invoke action
       uses: rfratto/depcheck@main
       with:
-        github-token: ${{ env.TOKEN }}
+        github-token: ${{ steps.generate_token.outputs.token }}
+
