@@ -1,22 +1,28 @@
 activity_tracker: {}
+
 alertmanager: {}
+
 alertmanager_storage:
   backend: local
-blocks_storage:
-  backend: filesystem
-  bucket_store:
-    sync_dir: /tmp/mimir/tsdb-sync
-  filesystem:
-    dir: /tmp/mimir/blocks
-  tsdb:
-    dir: /tmp/mimir/tsdb
-compactor:
-  sharding_ring:
-    kvstore:
-      store: inmemory
+
+server:
+  http_listen_port: 9009
+
+  # Configure the server to allow messages up to 100MB.
+  grpc_server_max_recv_msg_size: 104857600
+  grpc_server_max_send_msg_size: 104857600
+  grpc_server_max_concurrent_streams: 1000
+
 distributor:
   pool:
     health_check_ingesters: true
+
+ingester_client:
+  grpc_client_config:
+    grpc_compression: gzip
+    max_recv_msg_size: 104857600
+    max_send_msg_size: 104857600
+
 ingester:
   ring:
     final_sleep: 0s
@@ -25,23 +31,30 @@ ingester:
     min_ready_duration: 0s
     num_tokens: 512
     replication_factor: 1
-ingester_client:
-  grpc_client_config:
-    grpc_compression: gzip
-    max_recv_msg_size: 104857600
-    max_send_msg_size: 104857600
-limits:
-  ingestion_burst_size: 500000
-  ingestion_rate: 250000
-multitenancy_enabled: false
+
+blocks_storage:
+  backend: filesystem
+  bucket_store:
+    sync_dir: /tmp/mimir/tsdb-sync
+  filesystem:
+    dir: /tmp/mimir/blocks
+  tsdb:
+    dir: /tmp/mimir/tsdb
+
+compactor:
+  sharding_ring:
+    kvstore:
+      store: inmemory
+
 ruler:
   enable_api: true
+
 ruler_storage:
   backend: filesystem
   local:
     directory: /tmp/mimir/rules
-server:
-  grpc_server_max_concurrent_streams: 1000
-  grpc_server_max_recv_msg_size: 104857600
-  grpc_server_max_send_msg_size: 104857600
-  http_listen_port: 9009
+
+limits:
+  ingestion_burst_size: 500000
+  ingestion_rate: 250000
+  multitenancy_enabled: false
