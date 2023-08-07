@@ -16,7 +16,7 @@ jobs:
             private_key: ${{ secrets.APP_PEM }}
       - name: add to project
         id: add_to_project
-        uses: actions/add-to-project@v0.4.1
+        uses: actions/add-to-project@v0.5.0
         with:
           project-url: https://github.com/orgs/grafana/projects/269
           github-token: ${{ steps.generate_token.outputs.token }}
