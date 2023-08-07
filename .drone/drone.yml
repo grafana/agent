@@ -1277,12 +1277,11 @@ steps:
   settings:
     config_json: |
       {
+        "git_committer_name": "updater-for-ci[bot]",
+        "git_author_name": "updater-for-ci[bot]",
+        "git_committer_email": "119986603+updater-for-ci[bot]@users.noreply.github.com",
+        "git_author_email": "119986603+updater-for-ci[bot]@users.noreply.github.com",
         "destination_branch": "master",
-        "pull_request_branch_prefix": "cd-agent",
-        "pull_request_enabled": false,
-        "pull_request_team_reviewers": [
-          "agent-squad"
-        ],
         "repo_name": "deployment_tools",
         "update_jsonnet_attribute_configs": [
           {
@@ -1302,8 +1301,12 @@ steps:
           }
         ]
       }
-    github_token:
-      from_secret: gh_token
+    github_app_id:
+      from_secret: updater_app_id
+    github_app_installation_id:
+      from_secret: updater_app_installation_id
+    github_app_private_key:
+      from_secret: updater_private_key
 trigger:
   ref:
   - refs/heads/main
@@ -1450,7 +1453,25 @@ get:
 kind: secret
 name: private_key
 ---
+get:
+  name: updater-app-id
+  path: infra/data/ci/github/updater-app
+kind: secret
+name: updater_app_id
+---
+get:
+  name: updater-app-installation-id
+  path: infra/data/ci/github/updater-app
+kind: secret
+name: updater_app_installation_id
+---
+get:
+  name: updater-private-key
+  path: infra/data/ci/github/updater-app
+kind: secret
+name: updater_private_key
+---
 kind: signature
-hmac: 2ff5f7f665aaba388e272316c0b7aee419801f347d882577dbbb84a95e4be672
+hmac: 276a782a6456854b6702a2500452d1702a14e8f840e0001b939860c3e8a5005d
 
 ...
