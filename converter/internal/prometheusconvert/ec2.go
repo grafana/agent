@@ -18,7 +18,7 @@ func appendDiscoveryEC2(pb *prometheusBlocks, label string, sdConfig *prom_aws.E
 	name := []string{"discovery", "ec2"}
 	block := common.NewBlockWithOverride(name, label, discoveryec2Args)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return newDiscoverExports("discovery.ec2." + label + ".targets")
+	return NewDiscoverExports("discovery.ec2." + label + ".targets")
 }
 
 func ValidateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {

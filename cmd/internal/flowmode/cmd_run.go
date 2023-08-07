@@ -4,21 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/converter"
-	convert_diag "github.com/grafana/agent/converter/diag"
-	"go.opentelemetry.io/otel"
-	"golang.org/x/exp/maps"
-
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/converter"
+	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/instrumentation"
@@ -27,9 +23,13 @@ import (
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
+	"github.com/grafana/agent/service"
 	httpservice "github.com/grafana/agent/service/http"
+	"github.com/grafana/ckit/peer"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel"
+	"golang.org/x/exp/maps"
 
 	// Install Components
 	_ "github.com/grafana/agent/component/all"
@@ -177,31 +177,42 @@ func (fr *flowRun) Run(configFile string) error {
 		}
 	}()
 
-	var httpData httpservice.Data
+	// There's a cyclic dependency between the definition of the Flow controller,
+	// the reload/ready functions, and the HTTP service.
+	//
+	// To work around this, we lazily create variables for the functions the HTTP
+	// service needs and set them after the Flow controller exists.
+	var (
+		reload func() error
+		ready  func() bool
+	)
 
-	f := flow.New(flow.Options{
-		Logger:         l,
-		Tracer:         t,
-		Clusterer:      clusterer,
-		DataPath:       fr.storagePath,
-		Reg:            reg,
-		HTTPPathPrefix: "/api/v0/component/",
-		HTTPListenAddr: fr.inMemoryAddr,
+	httpService := httpservice.New(httpservice.Options{
+		Logger:   log.With(l, "service", "http"),
+		Tracer:   t,
+		Gatherer: prometheus.DefaultGatherer,
 
-		// Send requests to fr.inMemoryAddr directly to our in-memory listener.
-		DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
-			// NOTE(rfratto): this references a variable because httpData isn't
-			// non-zero by the time we are constructing the Flow controller.
-			//
-			// This is a temporary hack while services are being built out.
-			//
-			// It is not possibl for this to panic, since we will always have the service
-			// constructed by the time anything in Flow invokes this function.
-			return httpData.DialFunc(ctx, network, address)
-		},
+		Clusterer:  clusterer,
+		ReadyFunc:  func() bool { return ready() },
+		ReloadFunc: func() error { return reload() },
+
+		HTTPListenAddr:   fr.httpListenAddr,
+		MemoryListenAddr: fr.inMemoryAddr,
+		UIPrefix:         fr.uiPrefix,
+		EnablePProf:      fr.enablePprof,
 	})
 
-	reload := func() error {
+	f := flow.New(flow.Options{
+		Logger:    l,
+		Tracer:    t,
+		Clusterer: clusterer,
+		DataPath:  fr.storagePath,
+		Reg:       reg,
+		Services:  []service.Service{httpService},
+	})
+
+	ready = f.Ready
+	reload = func() error {
 		flowCfg, err := loadFlowFile(configFile, fr.configFormat, fr.configBypassConversionErrors)
 		defer instrumentation.InstrumentLoad(err == nil)
 
@@ -215,37 +226,12 @@ func (fr *flowRun) Run(configFile string) error {
 		return nil
 	}
 
-	httpService := httpservice.New(httpservice.Options{
-		Logger:   log.With(l, "service", "http"),
-		Tracer:   t,
-		Gatherer: prometheus.DefaultGatherer,
-
-		Clusterer:  clusterer,
-		ReadyFunc:  func() bool { return f.Ready() },
-		ReloadFunc: reload,
-
-		HTTPListenAddr:   fr.httpListenAddr,
-		MemoryListenAddr: fr.inMemoryAddr,
-		UIPrefix:         fr.uiPrefix,
-		EnablePProf:      fr.enablePprof,
-	})
-	httpData = httpService.Data().(httpservice.Data)
-
 	// Flow controller
 	{
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			f.Run(ctx)
-		}()
-	}
-
-	// HTTP service
-	{
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			_ = httpService.Run(ctx, f)
 		}()
 	}
 
@@ -264,7 +250,7 @@ func (fr *flowRun) Run(configFile string) error {
 	}
 
 	// Start the Clusterer's Node implementation.
-	err = clusterer.Start(ctx)
+	err = clusterer.Start()
 	if err != nil {
 		return fmt.Errorf("failed to start the clusterer: %w", err)
 	}
@@ -292,6 +278,15 @@ func (fr *flowRun) Run(configFile string) error {
 
 		// Exit if the initial load files
 		return err
+	}
+
+	// By now, have either joined or started a new cluster.
+	// Nodes initially join in the Viewer state. After the graph has been
+	// loaded successfully, we can move to the Participant state to signal that
+	// we wish to participate in reading or writing data.
+	err = clusterer.ChangeState(peer.StateParticipant)
+	if err != nil {
+		return fmt.Errorf("failed to set clusterer state to Participant after initial load")
 	}
 
 	reloadSignal := make(chan os.Signal, 1)
@@ -351,7 +346,7 @@ func interruptContext() (context.Context, context.CancelFunc) {
 	go func() {
 		defer cancel()
 		sig := make(chan os.Signal, 1)
-		signal.Notify(sig, os.Interrupt)
+		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 		select {
 		case <-sig:
 		case <-ctx.Done():

@@ -109,11 +109,11 @@ func ToTLSConfig(tlsConfig *prom_config.TLSConfig) *config.TLSConfig {
 	}
 }
 
-// newDiscoverExports will return a new [discovery.Exports] with a specific
+// NewDiscoverExports will return a new [discovery.Exports] with a specific
 // key for converter component exports. The argument will be tokenized
 // as a component export string rather than the standard [discovery.Target]
 // RiverTokenize.
-func newDiscoverExports(expr string) discovery.Exports {
+func NewDiscoverExports(expr string) discovery.Exports {
 	return discovery.Exports{
 		Targets: newDiscoveryTargets(expr),
 	}

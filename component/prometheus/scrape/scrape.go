@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/service/http"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -27,8 +28,9 @@ func init() {
 	scrape.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 
 	component.Register(component.Registration{
-		Name: "prometheus.scrape",
-		Args: Arguments{},
+		Name:          "prometheus.scrape",
+		Args:          Arguments{},
+		NeedsServices: []string{http.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -129,11 +131,17 @@ var (
 
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	data, err := o.GetServiceData(http.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about HTTP server: %w", err)
+	}
+	httpData := data.(http.Data)
+
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	scrapeOptions := &scrape.Options{
 		ExtraMetrics: args.ExtraMetrics,
 		HTTPClientOptions: []config_util.HTTPClientOption{
-			config_util.WithDialContextFunc(o.DialFunc),
+			config_util.WithDialContextFunc(httpData.DialFunc),
 		},
 	}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
@@ -141,7 +149,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
 		Name: "agent_prometheus_scrape_targets_gauge",
 		Help: "Number of targets this component is configured to scrape"})
-	err := o.Registerer.Register(targetsGauge)
+	err = o.Registerer.Register(targetsGauge)
 	if err != nil {
 		return nil, err
 	}

@@ -29,12 +29,17 @@ log entries to the list of receivers passed in `forward_to`.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `job_name` | `string` | Value to use for `job` label for generated logs. | `"loki.source.kubernetes_events"` | no
+`log_format` | `string` | Format of the log. | `"logfmt"` | no
 `namespaces` | `list(string)` | Namespaces to watch for Events in. | `[]` | no
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
 
 By default, `loki.source.kubernetes_events` will watch for events in all
 namespaces. A list of explicit namespaces to watch can be provided in the
 `namespaces` argument.
+
+By default, the generated log lines will be in the `logfmt` format. Use the 
+`log_format` argument to change it to `json`. These formats are also names of
+LogQL parsers, which can be used for processing the logs.
 
 > **NOTE**: When watching all namespaces, Grafana Agent must have permissions
 > to watch events at the cluster scope (such as using a ClusterRoleBinding). If

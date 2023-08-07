@@ -64,30 +64,32 @@ func TestLoader(t *testing.T) {
 		},
 	}
 
-	newGlobals := func() controller.ComponentGlobals {
+	newLoaderOptions := func() controller.LoaderOptions {
 		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
-		return controller.ComponentGlobals{
-			Logger:            l,
-			TraceProvider:     trace.NewNoopTracerProvider(),
-			Clusterer:         noOpClusterer(),
-			DataPath:          t.TempDir(),
-			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:        prometheus.NewRegistry(),
-			NewModuleController: func(id string) controller.ModuleController {
-				return nil
+		return controller.LoaderOptions{
+			ComponentGlobals: controller.ComponentGlobals{
+				Logger:            l,
+				TraceProvider:     trace.NewNoopTracerProvider(),
+				Clusterer:         noOpClusterer(),
+				DataPath:          t.TempDir(),
+				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+				Registerer:        prometheus.NewRegistry(),
+				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
+					return nil
+				},
 			},
 		}
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig))
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
 
 	t.Run("New Graph No Config", func(t *testing.T) {
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(testFile), nil)
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
@@ -105,7 +107,7 @@ func TestLoader(t *testing.T) {
 				frequency = "1m"
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(startFile), []byte(testConfig))
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
@@ -124,7 +126,7 @@ func TestLoader(t *testing.T) {
 			doesnotexist "bad_component" {
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
 	})
@@ -143,7 +145,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.tick.doesnotexist.tick_time
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
 
@@ -171,7 +173,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.passthrough.ticker.output
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
 	})
@@ -183,7 +185,7 @@ func TestLoader(t *testing.T) {
 			testcomponents.singleton "first" {
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.ErrorContains(t, diags[0], `Component "testcomponents.tick" must have a label`)
 		require.ErrorContains(t, diags[1], `Component "testcomponents.singleton" does not support labels`)
@@ -210,22 +212,24 @@ func TestScopeWithFailingComponent(t *testing.T) {
 			input = testcomponents.passthrough.ticker.output
 		}
 	`
-	newGlobals := func() controller.ComponentGlobals {
+	newLoaderOptions := func() controller.LoaderOptions {
 		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
-		return controller.ComponentGlobals{
-			Logger:            l,
-			TraceProvider:     trace.NewNoopTracerProvider(),
-			DataPath:          t.TempDir(),
-			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:        prometheus.NewRegistry(),
-			Clusterer:         noOpClusterer(),
-			NewModuleController: func(id string) controller.ModuleController {
-				return nil
+		return controller.LoaderOptions{
+			ComponentGlobals: controller.ComponentGlobals{
+				Logger:            l,
+				TraceProvider:     trace.NewNoopTracerProvider(),
+				DataPath:          t.TempDir(),
+				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+				Registerer:        prometheus.NewRegistry(),
+				Clusterer:         noOpClusterer(),
+				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
+					return nil
+				},
 			},
 		}
 	}
 
-	l := controller.NewLoader(newGlobals())
+	l := controller.NewLoader(newLoaderOptions())
 	diags := applyFromContent(t, l, []byte(testFile), nil)
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)

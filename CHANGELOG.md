@@ -10,16 +10,45 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- `loki.source.file` component will no longer automatically detect and
+  decompress logs from compressed files. A new configuration block is available
+  to enable decompression explicitly. See the [upgrade guide][] for migration
+  instructions. (@thampiotr)
+
 ### Enhancements
+
+- Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
 
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
 
 - Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
+- Add `log_format` configuration to eventhandler integration and the `loki.source.kubernetes_events` Flow component. (@sadovnikov)
 
 - Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
 
 - Flow: Allow the `logging` configuration block to tee the Agent's logs to one
   or more loki.* components. (@tpaschalis)
+
+- Clustering: Nodes take part in distributing load only after loading their
+  component graph. (@tpaschalis)
+
+- Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
+
+- Enable graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
+  signals. (@tpaschalis)
+  
+- Added support for `promtail` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@thampiotr)
+
+- Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
+
+- `loki.write` now exposes basic WAL support. (@thepalbi)
+
+- `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
 
 - New Grafana Agent Flow components:
 
@@ -29,12 +58,24 @@ Main (unreleased)
   - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@sparta0x117)
   - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
+  - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
 
 ### Bugfixes
+
+- Update to config converter so default relabel `source_labels` are left off the river output. (@erikbaranowski)
 
 - Rename `GrafanaAgentManagement` mixin rules to `GrafanaAgentConfig` and update individual alerts to be more accurate. (@spartan0x117)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
+
+- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
+
+- Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
+
+- (Agent static mode) Jaeger remote sampling works again, through a new `jaeger_remote_sampling`
+  entry in the traces config. It is no longer configurable through the jaeger receiver.
+  Support Jaeger remote sampling was removed accidentally in v0.35, and it is now restored, 
+  albeit via a different config entry.
 
 v0.35.2 (2023-07-27)
 --------------------
@@ -121,6 +162,10 @@ v0.35.0 (2023-07-18)
     - "traces_exporter_sent_metric_points" is renamed to "traces_exporter_sent_metric_points_total"
 
 - The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`. (@ptodev)
+
+- (Agent static mode) Jaeger remote sampling used to be configured using the Jaeger receiver configuration. 
+  This receiver was updated to a new version, where support for remote sampling in the receiver was removed. 
+  Jaeger remote sampling is available as a separate configuration field starting in v0.35.3. (@ptodev)
 
 ### Deprecations
 

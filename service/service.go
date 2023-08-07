@@ -8,6 +8,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/grafana/agent/component"
 )
@@ -50,11 +51,44 @@ type Host interface {
 	// exist.
 	ListComponents(moduleID string, opts component.InfoOptions) ([]*component.Info, error)
 
-	// GetServiceConsumers gets the list of components and
-	// services which depend on a service by name. The returned
-	// values will be an instance of [component.Component] or
-	// [Service].
-	GetServiceConsumers(serviceName string) []any
+	// GetServiceConsumers gets the list of components and services which depend
+	// on a service by name.
+	GetServiceConsumers(serviceName string) []Consumer
+}
+
+type Consumer struct {
+	Type ConsumerType // Type of consumer.
+	ID   string       // Unique identifier for the consumer.
+
+	// Value of the consumer. When Type is ConsumerTypeComponent, this is an
+	// instance of [component.Component]. When Type is ConsumerTypeServcice, this
+	// is an instance of [Service].
+	Value any
+}
+
+// ConsumerType represents the type of consumer who is consuming a service.
+type ConsumerType int
+
+const (
+	// ConsumerTypeInvalid is the default value for ConsumerType.
+	ConsumerTypeInvalid ConsumerType = iota
+
+	ConsumerTypeComponent // ConsumerTypeComponent represents a component which uses a service.
+	ConsumerTypeService   // ConsumerTypeService represents a serviec which uses another service.
+)
+
+// String returns a string representation of the ConsumerType.
+func (ct ConsumerType) String() string {
+	switch ct {
+	case ConsumerTypeInvalid:
+		return "invalid"
+	case ConsumerTypeComponent:
+		return "component"
+	case ConsumerTypeService:
+		return "service"
+	}
+
+	return fmt.Sprintf("ConsumerType(%d)", ct)
 }
 
 // Service is an individual service to run.

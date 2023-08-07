@@ -14,10 +14,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.mongodb",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "mongodb", customizeTarget),
+		Name:          "prometheus.exporter.mongodb",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.NewWithTargetBuilder(createExporter, "mongodb", customizeTarget),
 	})
 }
 

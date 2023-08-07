@@ -7,10 +7,10 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -141,7 +141,7 @@ const _ = grpc.SupportPackageIsVersion4
 type ScrapingServiceClient interface {
 	// Reshard tells the implementing service to reshard all of its running
 	// configs.
-	Reshard(ctx context.Context, in *ReshardRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	Reshard(ctx context.Context, in *ReshardRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type scrapingServiceClient struct {
@@ -152,8 +152,8 @@ func NewScrapingServiceClient(cc *grpc.ClientConn) ScrapingServiceClient {
 	return &scrapingServiceClient{cc}
 }
 
-func (c *scrapingServiceClient) Reshard(ctx context.Context, in *ReshardRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
-	out := new(empty.Empty)
+func (c *scrapingServiceClient) Reshard(ctx context.Context, in *ReshardRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/agentproto.ScrapingService/Reshard", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -165,14 +165,14 @@ func (c *scrapingServiceClient) Reshard(ctx context.Context, in *ReshardRequest,
 type ScrapingServiceServer interface {
 	// Reshard tells the implementing service to reshard all of its running
 	// configs.
-	Reshard(context.Context, *ReshardRequest) (*empty.Empty, error)
+	Reshard(context.Context, *ReshardRequest) (*emptypb.Empty, error)
 }
 
 // UnimplementedScrapingServiceServer can be embedded to have forward compatible implementations.
 type UnimplementedScrapingServiceServer struct {
 }
 
-func (*UnimplementedScrapingServiceServer) Reshard(ctx context.Context, req *ReshardRequest) (*empty.Empty, error) {
+func (*UnimplementedScrapingServiceServer) Reshard(ctx context.Context, req *ReshardRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Reshard not implemented")
 }
 
@@ -333,6 +333,7 @@ func (m *ReshardRequest) Unmarshal(dAtA []byte) error {
 func skipAgent(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
+	depth := 0
 	for iNdEx < l {
 		var wire uint64
 		for shift := uint(0); ; shift += 7 {
@@ -364,10 +365,8 @@ func skipAgent(dAtA []byte) (n int, err error) {
 					break
 				}
 			}
-			return iNdEx, nil
 		case 1:
 			iNdEx += 8
-			return iNdEx, nil
 		case 2:
 			var length int
 			for shift := uint(0); ; shift += 7 {
@@ -388,55 +387,30 @@ func skipAgent(dAtA []byte) (n int, err error) {
 				return 0, ErrInvalidLengthAgent
 			}
 			iNdEx += length
-			if iNdEx < 0 {
-				return 0, ErrInvalidLengthAgent
-			}
-			return iNdEx, nil
 		case 3:
-			for {
-				var innerWire uint64
-				var start int = iNdEx
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return 0, ErrIntOverflowAgent
-					}
-					if iNdEx >= l {
-						return 0, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					innerWire |= (uint64(b) & 0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				innerWireType := int(innerWire & 0x7)
-				if innerWireType == 4 {
-					break
-				}
-				next, err := skipAgent(dAtA[start:])
-				if err != nil {
-					return 0, err
-				}
-				iNdEx = start + next
-				if iNdEx < 0 {
-					return 0, ErrInvalidLengthAgent
-				}
-			}
-			return iNdEx, nil
+			depth++
 		case 4:
-			return iNdEx, nil
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupAgent
+			}
+			depth--
 		case 5:
 			iNdEx += 4
-			return iNdEx, nil
 		default:
 			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
 		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthAgent
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
 	}
-	panic("unreachable")
+	return 0, io.ErrUnexpectedEOF
 }
 
 var (
-	ErrInvalidLengthAgent = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowAgent   = fmt.Errorf("proto: integer overflow")
+	ErrInvalidLengthAgent        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowAgent          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupAgent = fmt.Errorf("proto: unexpected end of group")
 )

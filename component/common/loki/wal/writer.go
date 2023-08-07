@@ -58,6 +58,7 @@ type Writer struct {
 	writeSubscribers     []WriteEventSubscriber
 
 	reclaimedOldSegmentsSpaceCounter *prometheus.CounterVec
+	lastReclaimedSegment             *prometheus.GaugeVec
 
 	closeCleaner chan struct{}
 }
@@ -83,14 +84,22 @@ func NewWriter(walCfg Config, logger log.Logger, reg prometheus.Registerer) (*Wr
 	}
 
 	wrt.reclaimedOldSegmentsSpaceCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Namespace: "promtail",
+		Namespace: "loki_write",
 		Subsystem: "wal_writer",
 		Name:      "reclaimed_space",
 		Help:      "Number of bytes reclaimed from storage.",
 	}, []string{})
 
+	wrt.lastReclaimedSegment = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "loki_write",
+		Subsystem: "wal_writer",
+		Name:      "last_reclaimed_segment",
+		Help:      "Last reclaimed segment number",
+	}, []string{})
+
 	if reg != nil {
 		_ = reg.Register(wrt.reclaimedOldSegmentsSpaceCounter)
+		_ = reg.Register(wrt.lastReclaimedSegment)
 	}
 
 	wrt.start(walCfg.MaxSegmentAge)
@@ -202,6 +211,7 @@ func (wrt *Writer) cleanSegments(maxAge time.Duration) error {
 		for _, subscriber := range wrt.cleanupSubscribers {
 			subscriber.SeriesReset(maxReclaimed)
 		}
+		wrt.lastReclaimedSegment.WithLabelValues().Set(float64(maxReclaimed))
 	}
 	return nil
 }

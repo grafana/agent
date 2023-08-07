@@ -19,6 +19,9 @@ contributors around things like how to update the changelog.
 
 #### PR Checklist
 
-- [ ] CHANGELOG updated
+<!-- Remove items that do not apply. For completed items, change [ ] to [x]. -->
+
+- [ ] CHANGELOG.md updated
 - [ ] Documentation added
 - [ ] Tests updated
+- [ ] Config converters updated

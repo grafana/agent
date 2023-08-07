@@ -50,3 +50,4 @@ scrape_configs:
       - account: account
         dns_suffix: .example.com
         endpoint: triton.example.com
+    encoding: utf-16

@@ -14,10 +14,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.github",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "github", customizeTarget),
+		Name:          "prometheus.exporter.github",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.NewWithTargetBuilder(createExporter, "github", customizeTarget),
 	})
 }
 

@@ -22,6 +22,33 @@ static mode.
 
 ## v0.35
 
+### Breaking change: Jaeger remote sampling no longer configurable using the Jaeger receiver
+
+Jaeger remote sampling used to be configured using the Jaeger receiver configuration. This receiver was updated to a new version, where support for remote sampling in the receiver was removed. 
+
+Jaeger remote sampling is available as a separate configuration field starting in v0.35.3.  
+
+Old configuration example:
+
+```yaml
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+    remote_sampling:
+      strategy_file: /etc/agent/strategies.json
+      strategy_file_reload_interval: 1s
+```
+
+New configuration example:
+
+```yaml
+jaeger_remote_sampling:
+  - source:
+      file: /etc/agent/strategies.json
+      reload_interval: 1s
+```
+
 ### Breaking change: `auth` and `version` attributes from `walk_params` block of SNMP integration have been removed
 
 The SNMP integrations (both v1 and v2) wrap a new version of SNMP exporter which introduces a new configuration file format. 
