@@ -287,3 +287,18 @@ Special labels added after a scrape
 * `__name__` is the label name indicating the metric name of a timeseries.
 * `job` is the label name indicating the job from which a timeseries was scraped.
 * `instance` is the label name used for the instance label.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.scrape` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

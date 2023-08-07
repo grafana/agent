@@ -242,7 +242,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`receiver` | `receiver` | A value which other components can use to send metrics to.
+`receiver` | `MetricsReceiver` | A value which other components can use to send metrics to.
 
 ## Component health
 
@@ -405,3 +405,15 @@ Any labels that start with `__` will be removed before sending to the endpoint.
 
 {{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT_VERSION>" >}}
 
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.remote_write` has exports that can be consumed by the following components:
+
+- Components that consume [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-consumers" >}})
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -40,7 +40,7 @@ The component will start an HTTP server supporting the following endpoint:
 
 Name         | Type             | Description                           | Default | Required
 -------------|------------------|---------------------------------------|---------|---------
-`forward_to` | `list(receiver)` | List of receivers to send metrics to. |         | yes
+`forward_to` | `list(MetricsReceiver)` | List of receivers to send metrics to. |         | yes
 
 ## Blocks
 
@@ -129,3 +129,16 @@ prometheus.remote_write "local" {
 ## Technical details
 
 `prometheus.receive_http` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.receive_http` can accept arguments from the following components:
+
+- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

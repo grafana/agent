@@ -215,3 +215,16 @@ Replace the following:
 
 > **NOTE**: This example requires the "Expose daemon on tcp://localhost:2375
 > without TLS" setting to be enabled in the Docker Engine settings.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.docker` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->
