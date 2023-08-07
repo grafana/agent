@@ -1337,8 +1337,6 @@ steps:
       from_secret: docker_login
     DOCKER_PASSWORD:
       from_secret: docker_password
-    GITHUB_TOKEN:
-      from_secret: gh_token
     GPG_PASSPHRASE:
       from_secret: gpg_passphrase
     GPG_PRIVATE_KEY:
@@ -1424,12 +1422,6 @@ kind: secret
 name: gcr_admin
 ---
 get:
-  name: pat
-  path: infra/data/ci/github/grafanabot
-kind: secret
-name: gh_token
----
-get:
   name: passphrase
   path: infra/data/ci/packages-publish/gpg
 kind: secret
@@ -1472,6 +1464,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 34d8fb10b7203bd97d29de3930322207cb5a5e618d5b7827af927e319b734ff5
+hmac: 25d237e0e89cc8cb868363dcb1c0016776b16181321abf804d210f5762d79f5d
 
 ...

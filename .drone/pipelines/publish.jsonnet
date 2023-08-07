@@ -161,7 +161,6 @@ linux_containers_jobs + windows_containers_jobs + [
       environment: {
         DOCKER_LOGIN: secrets.docker_login.fromSecret,
         DOCKER_PASSWORD: secrets.docker_password.fromSecret,
-        GITHUB_TOKEN: secrets.gh_token.fromSecret,
         GPG_PRIVATE_KEY: secrets.gpg_private_key.fromSecret,
         GPG_PUBLIC_KEY: secrets.gpg_public_key.fromSecret,
         GPG_PASSPHRASE: secrets.gpg_passphrase.fromSecret,
