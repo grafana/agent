@@ -62,12 +62,10 @@ func init() {
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	logrusLogger := integrations.NewLogger(logger)
 
-	tlsConfigPath := ""
+	tlsConfigPath := string(c.TLSBasicAuthConfigPath)
 
-	if string(c.TLSBasicAuthConfigPath) != "" {
-		if _, err := os.Stat(string(c.TLSBasicAuthConfigPath)); err == nil {
-			tlsConfigPath = string(c.TLSBasicAuthConfigPath)
-		} else {
+	if tlsConfigPath != "" {
+		if _, err := os.Stat(string(c.TLSBasicAuthConfigPath)); err != nil {
 			return nil, fmt.Errorf("tls config file path is invalid: %w. error: %w", string(c.TLSBasicAuthConfigPath), err)
 		}
 	}
