@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/river/encoding/riverjson"
+	"github.com/grafana/agent/pkg/agentstate"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,13 +27,13 @@ func TestGetAgentState(t *testing.T) {
 		},
 	}
 
-	expected := []Component{{
+	expected := []agentstate.Component{{
 		ID:       "",
 		ModuleID: "",
-		Health: Health{
+		Health: agentstate.Health{
 			Health: "unknown",
 		},
-		ComponentDetail: []riverjson.ComponentDetail{
+		ComponentDetail: []agentstate.ComponentDetail{
 			{
 				ID:        1,
 				ParentID:  0,

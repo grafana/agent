@@ -3,6 +3,7 @@ package riverjson_test
 import (
 	"testing"
 
+	"github.com/grafana/agent/pkg/agentstate"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/river/encoding/riverjson"
 	"github.com/grafana/agent/pkg/river/rivertypes"
@@ -60,7 +61,7 @@ func TestGetComponentDetail(t *testing.T) {
 		},
 	}
 
-	expect := []riverjson.ComponentDetail{
+	expect := []agentstate.ComponentDetail{
 		{
 			ID:         1,
 			ParentID:   0,

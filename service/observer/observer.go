@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/agentstate"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/river/encoding/riverjson"
 	"github.com/grafana/agent/service"
@@ -102,8 +103,8 @@ func (o *Observer) observe(host service.Host) {
 
 }
 
-func getAgentState(components []*component.Info) []Component {
-	res := []Component{}
+func getAgentState(components []*component.Info) []agentstate.Component {
+	res := []agentstate.Component{}
 
 	for _, cInfo := range components {
 		componentDetail := riverjson.GetComponentDetail(componentDetailInfo{
@@ -112,10 +113,10 @@ func getAgentState(components []*component.Info) []Component {
 			DebugInfo: cInfo.DebugInfo,
 		})
 
-		componentState := Component{
+		componentState := agentstate.Component{
 			ID:       cInfo.ID.LocalID,
 			ModuleID: cInfo.ID.ModuleID,
-			Health: Health{
+			Health: agentstate.Health{
 				Health:     cInfo.Health.Health.String(),
 				Message:    cInfo.Health.Message,
 				UpdateTime: cInfo.Health.UpdateTime,
@@ -135,8 +136,8 @@ type componentDetailInfo struct {
 	DebugInfo any `river:"debug_info,block"`
 }
 
-func getTopLevelComponentDetail(componentName string, parentId uint, idCounter *uint) riverjson.ComponentDetail {
-	res := riverjson.ComponentDetail{
+func getTopLevelComponentDetail(componentName string, parentId uint, idCounter *uint) agentstate.ComponentDetail {
+	res := agentstate.ComponentDetail{
 		ID:         *idCounter,
 		ParentID:   parentId,
 		Name:       componentName,
@@ -167,28 +168,4 @@ func (o *Observer) Update(newConfig any) error {
 	}
 
 	return nil
-}
-
-//-----------------------------------------
-// TODO: Remove these structs later
-//-----------------------------------------
-
-// Metadata
-type AgentState struct {
-	ID     string
-	Labels map[string]string
-}
-
-// RG type
-type Component struct {
-	ID              string                      `parquet:"id"`
-	ModuleID        string                      `parquet:"module_id"`
-	Health          Health                      `parquet:"health"`
-	ComponentDetail []riverjson.ComponentDetail `parquet:"component_detail"`
-}
-
-type Health struct {
-	Health     string    `parquet:"state"`
-	Message    string    `parquet:"message"`
-	UpdateTime time.Time `parquet:"update_time"`
 }
