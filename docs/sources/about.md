@@ -25,16 +25,19 @@ Grafana Agent is available in three different variants:
 
 ## Stability
 
-| Project | Stability |
+| Project | Release stage |
 | ------- | --------- |
-| Static mode | Stable |
-| Static mode Kubernetes operator | Beta |
-| Flow mode | Stable |
+| Static mode | Public preview |
+| Static mode Kubernetes operator | Experimental |
+| Flow mode | Public preview |
+
+Refer to the [Release life cycle for Grafana Labs](/docs/release-life-cycle/) for more information about the release stages.
 
 ## Choose which variant of Grafana Agent to run
 
-> **NOTE**: You do not have to pick just one variant; it is possible to
-> mix-and-match installations of Grafana Agent.
+{{% admonition type="note" %}}
+You do not have to pick just one variant; it is possible to mix-and-match installations of Grafana Agent.
+{{% /admonition %}}>
 
 ### Static mode
 
@@ -53,7 +56,7 @@ You should run Static mode when:
 ### Static mode Kubernetes operator
 
 The [Static mode Kubernetes operator][] is a variant of Grafana Agent first
-introduced on June 17, 2021. It is currently in beta.
+introduced on June 17, 2021.
 
 The Static mode Kubernetes operator was introduced for compatibility with
 Prometheus Operator, allowing static mode to support resources from Prometheus
