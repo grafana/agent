@@ -18,7 +18,7 @@ telemetry collection:
 * Prometheus Operator [Probe][] resources for collecting metrics from Kubernetes [Ingresses][].
 * Custom [PodLogs][] resources for collecting logs.
 
-Grafana Agent Operator is currently in [Beta][], and is subject to change or
+Grafana Agent Operator is currently [Experimental](/docs/release-life-cycle/), and is subject to change or
 being removed with functionality which covers the same use case.
 
 > **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes
@@ -53,7 +53,6 @@ The following sections describe how to use Grafana Agent Operator:
 [Pods]: https://kubernetes.io/docs/concepts/workloads/pods/
 [Ingresses]: https://kubernetes.io/docs/concepts/services-networking/ingress/
 [custom resources]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
-[Beta]: {{< relref "../stability.md#beta" >}}
 [ServiceMonitor]: https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.ServiceMonitor
 [PodMonitor]: https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.PodMonitor
 [Probe]: https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe
