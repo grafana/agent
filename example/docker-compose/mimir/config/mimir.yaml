@@ -1,4 +1,9 @@
-auth_enabled: false
+activity_tracker: {}
+
+alertmanager: {}
+
+alertmanager_storage:
+  backend: local
 
 server:
   http_listen_port: 9009
@@ -9,58 +14,47 @@ server:
   grpc_server_max_concurrent_streams: 1000
 
 distributor:
-  shard_by_all_labels: true
   pool:
     health_check_ingesters: true
 
 ingester_client:
   grpc_client_config:
+    grpc_compression: gzip
     max_recv_msg_size: 104857600
     max_send_msg_size: 104857600
-    grpc_compression: gzip
 
 ingester:
-  lifecycler:
-    join_after: 0
-    min_ready_duration: 0s
+  ring:
     final_sleep: 0s
+    kvstore:
+      store: inmemory
+    min_ready_duration: 0s
     num_tokens: 512
-
-    ring:
-      kvstore:
-        store: inmemory
-      replication_factor: 1
-
-storage:
-  engine: blocks
+    replication_factor: 1
 
 blocks_storage:
-  tsdb:
-    dir: /tmp/cortex/tsdb
-  bucket_store:
-    sync_dir: /tmp/cortex/tsdb-sync
-
   backend: filesystem
+  bucket_store:
+    sync_dir: /tmp/mimir/tsdb-sync
   filesystem:
-    dir: /tmp/cortex/blocks
+    dir: /tmp/mimir/blocks
+  tsdb:
+    dir: /tmp/mimir/tsdb
 
 compactor:
-  data_dir: /tmp/cortex/compactor
   sharding_ring:
     kvstore:
       store: inmemory
 
-frontend_worker:
-  match_max_concurrent: true
-
 ruler:
   enable_api: true
-  enable_sharding: false
-  storage:
-    type: local
-    local:
-      directory: /tmp/cortex/rules
+
+ruler_storage:
+  backend: filesystem
+  local:
+    directory: /tmp/mimir/rules
 
 limits:
-  ingestion_rate: 250000
   ingestion_burst_size: 500000
+  ingestion_rate: 250000
+  multitenancy_enabled: false

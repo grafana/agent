@@ -5,7 +5,7 @@ Grafana Agent.
 
 By default, the following services are exposed:
 
-1. Cortex for storing metrics (localhost:9009)
+1. Mimir for storing metrics (localhost:9009)
 2. Grafana for visualizing telemetry (localhost:3000)
 3. Loki for storing logs (localhost:3100)
 4. Tempo for storing traces (localhost:3200)
@@ -48,7 +48,7 @@ dashboards:
 * The `Agent` dashboard gives a very high-level overview of running agents.
 
 * The `Agent Prometheus Remote Write` dashboard visualizes the current state of
-  writing metrics to Cortex.
+  writing metrics to Mimir.
 
 * The `Agent Tracing Pipeline` dashboard visualizes the current state of the
   tracing pipeline (if spans are being processed).

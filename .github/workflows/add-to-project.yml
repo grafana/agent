@@ -10,13 +10,13 @@ jobs:
     steps:
       - name: Generate token
         id: generate_token
-        uses: tibdex/github-app-token@c2055a00597a80f713b78b1650e8d3418f4d9a65
+        uses: tibdex/github-app-token@v1.7.0
         with:
             app_id: ${{ secrets.APP_ID }}
             private_key: ${{ secrets.APP_PEM }}
       - name: add to project
         id: add_to_project
-        uses: actions/add-to-project@v0.4.1
+        uses: actions/add-to-project@v0.5.0
         with:
           project-url: https://github.com/orgs/grafana/projects/269
-          github-token: ${{ env.TOKEN }}
+          github-token: ${{ steps.generate_token.outputs.token }}
