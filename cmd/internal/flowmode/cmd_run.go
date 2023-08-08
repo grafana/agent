@@ -203,7 +203,7 @@ func (fr *flowRun) Run(configFile string) error {
 		EnablePProf:      fr.enablePprof,
 	})
 
-	observerService := observerservice.New(observerservice.Arguments{})
+	observerService := observerservice.New()
 
 	f := flow.New(flow.Options{
 		Logger:    l,

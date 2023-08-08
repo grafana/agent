@@ -42,10 +42,11 @@ type Observer struct {
 var _ service.Service = (*Observer)(nil)
 
 // New returns a new, unstarted instance of the HTTP service.
-func New(args Arguments) *Observer {
+func New() *Observer {
+	//TODO: Make sure that not setting "args" here is ok
 	return &Observer{
-		mtx:          sync.Mutex{},
-		args:         args,
+		mtx: sync.Mutex{},
+		// args:         args,
 		configUpdate: make(chan struct{}, 1),
 	}
 }
