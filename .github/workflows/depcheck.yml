@@ -14,4 +14,4 @@ jobs:
       - name: Invoke action
         uses: rfratto/depcheck@main
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.MANAGE_ISSUES_GH_TOKEN }}
