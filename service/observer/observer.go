@@ -53,6 +53,7 @@ func New(l log.Logger) *Observer {
 	return &Observer{
 		log:          l,
 		configUpdate: make(chan struct{}, 1),
+		args:         DefaultArguments,
 
 		client: agentstate.NewParquetClient(
 			agentstate.NewAgentState(nil),
@@ -97,10 +98,15 @@ func (o *Observer) Run(ctx context.Context, host service.Host) error {
 }
 
 func (o *Observer) observe(ctx context.Context, host service.Host) {
-	level.Info(o.log).Log("msg", "sending state payload to remote server")
-
 	o.mtx.Lock()
 	defer o.mtx.Unlock()
+
+	if o.args.RemoteEndpoint == "" {
+		// No server to send state to; skipping.
+		return
+	}
+
+	level.Info(o.log).Log("msg", "sending state payload to remote server")
 
 	rawComponents := component.GetAllComponents(host, component.InfoOptions{
 		GetHealth:    true,
