@@ -23,7 +23,6 @@ basic_auth {
 `
 
 func TestRiverConfig(t *testing.T) {
-
 	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
