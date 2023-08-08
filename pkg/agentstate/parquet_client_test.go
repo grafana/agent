@@ -124,27 +124,27 @@ var componentState2 []agentstate.Component = []agentstate.Component{
 }
 
 func TestClientWrite(t *testing.T) {
-	client := agentstate.NewClient(agentState, componentState)
-	err := client.Write()
+	client := agentstate.NewParquetClient(agentState, componentState)
+	buf, err := client.Write()
 	require.NoError(t, err)
-	validateMetadata(t, client.Buf(), agentState)
-	validateComponentState(t, client.Buf(), componentState)
-	validateFakeComponentState(t, client.Buf(), componentState)
-	validateFakeComponent2State(t, client.Buf(), componentState)
+	validateMetadata(t, buf, agentState)
+	validateComponentState(t, buf, componentState)
+	validateFakeComponentState(t, buf, componentState)
+	validateFakeComponent2State(t, buf, componentState)
 
 	// Make sure we can write multiple times without issue.
 	client.SetAgentState(agentState2)
 	client.SetComponents(componentState2)
-	err = client.Write()
+	buf, err = client.Write()
 	require.NoError(t, err)
-	validateMetadata(t, client.Buf(), agentState2)
-	validateComponentState(t, client.Buf(), componentState2)
-	validateFakeComponentState(t, client.Buf(), componentState2)
-	validateFakeComponent2State(t, client.Buf(), componentState2)
+	validateMetadata(t, buf, agentState2)
+	validateComponentState(t, buf, componentState2)
+	validateFakeComponentState(t, buf, componentState2)
+	validateFakeComponent2State(t, buf, componentState2)
 }
 
 func TestClientWriteToFile(t *testing.T) {
-	client := agentstate.NewClient(agentState, componentState)
+	client := agentstate.NewParquetClient(agentState, componentState)
 	filepath := t.TempDir() + "/agent_state.parquet"
 	err := client.WriteToFile(filepath)
 	require.NoError(t, err)
