@@ -3,9 +3,10 @@ package generator
 import (
 	"bytes"
 	"fmt"
+	"os"
+
 	"github.com/grafana/agent/component"
 	"golang.org/x/exp/slices"
-	"os"
 )
 
 const (

@@ -2,14 +2,13 @@ package docs
 
 import (
 	"flag"
-	"fmt"
-	"github.com/grafana/agent/docs/sources/generator"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 
 	"github.com/grafana/agent/component"
 	_ "github.com/grafana/agent/component/all"
+	"github.com/grafana/agent/docs/sources/generator"
+	"github.com/stretchr/testify/require"
 )
 
 // Run the below generate command to automatically update the Markdown docs with generated content
@@ -24,7 +23,7 @@ func TestCompatibleComponentsSectionUpdated(t *testing.T) {
 			require.NoError(t, err, "failed to generate references section for %q", name)
 
 			if generated == "" {
-				t.Skip(fmt.Sprintf("no compatible components section defined for %q", name))
+				t.Skipf("no compatible components section defined for %q", name)
 			}
 
 			if *fixTestsFlag {

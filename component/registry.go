@@ -3,8 +3,6 @@ package component
 import (
 	"context"
 	"fmt"
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 	"reflect"
 	"strings"
 
@@ -12,6 +10,8 @@ import (
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 // The parsedName of a component is the parts of its name ("remote.http") split
