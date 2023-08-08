@@ -10,10 +10,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:     "discovery.kubernetes",
-		Args:     Arguments{},
-		Exports:  discovery.Exports{},
-		Metadata: component.TargetDiscoveryMetadata(),
+		Name:    "discovery.kubernetes",
+		Args:    Arguments{},
+		Exports: discovery.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

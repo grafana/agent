@@ -3,6 +3,7 @@ package generator
 import (
 	"bytes"
 	"fmt"
+	"github.com/grafana/agent/component/metadata"
 	"os"
 
 	"github.com/grafana/agent/component"
@@ -64,17 +65,17 @@ func ReadCompatibleComponentsSection(componentName string) (string, error) {
 }
 
 func GenerateCompatibleComponentsSection(componentName string) (string, error) {
-	c, ok := component.Get(componentName)
-	if !ok {
-		return "", fmt.Errorf("component %q not found", componentName)
+	meta, err := metadata.ForComponent(componentName)
+	if err != nil {
+		return "", err
 	}
-	if c.Metadata.Empty() {
+	if meta.Empty() {
 		return "", nil
 	}
 
 	heading := "\n## Compatible components\n\n"
-	acceptingSection := acceptingComponentsSection(componentName, c)
-	outputSection := outputComponentsSection(componentName, c)
+	acceptingSection := acceptingComponentsSection(componentName, meta)
+	outputSection := outputComponentsSection(componentName, meta)
 
 	if acceptingSection == "" && outputSection == "" {
 		return "", nil
@@ -87,36 +88,36 @@ func GenerateCompatibleComponentsSection(componentName string) (string, error) {
 	return heading + acceptingSection + outputSection + note, nil
 }
 
-func allComponentsThat(f func(registration component.Registration) bool) []string {
+func allComponentsThat(f func(meta metadata.Metadata) bool) []string {
 	var result []string
 	for _, name := range component.AllNames() {
-		c, ok := component.Get(name)
-		if !ok {
-			continue
+		meta, err := metadata.ForComponent(name)
+		if err != nil {
+			panic(err) // should never happen
 		}
 
-		if f(c) {
+		if f(meta) {
 			result = append(result, name)
 		}
 	}
 	return result
 }
 
-func allComponentsThatOutput(dataType component.DataType) []string {
-	return allComponentsThat(func(reg component.Registration) bool {
-		return slices.Contains(reg.Metadata.Outputs, dataType)
+func allComponentsThatOutput(dataType metadata.DataType) []string {
+	return allComponentsThat(func(meta metadata.Metadata) bool {
+		return slices.Contains(meta.Outputs, dataType)
 	})
 }
 
-func allComponentsThatAccept(dataType component.DataType) []string {
-	return allComponentsThat(func(reg component.Registration) bool {
-		return slices.Contains(reg.Metadata.Accepts, dataType)
+func allComponentsThatAccept(dataType metadata.DataType) []string {
+	return allComponentsThat(func(meta metadata.Metadata) bool {
+		return slices.Contains(meta.Accepts, dataType)
 	})
 }
 
-func outputComponentsSection(name string, c component.Registration) string {
+func outputComponentsSection(name string, meta metadata.Metadata) string {
 	section := ""
-	for _, outputDataType := range c.Metadata.Outputs {
+	for _, outputDataType := range meta.Outputs {
 		if list := listOfComponentsAccepting(outputDataType); list != "" {
 			section += fmt.Sprintf("- Components that accept %s:\n", outputDataType) + list
 		}
@@ -127,9 +128,9 @@ func outputComponentsSection(name string, c component.Registration) string {
 	return section
 }
 
-func acceptingComponentsSection(componentName string, c component.Registration) string {
+func acceptingComponentsSection(componentName string, meta metadata.Metadata) string {
 	section := ""
-	for _, acceptedDataType := range c.Metadata.Accepts {
+	for _, acceptedDataType := range meta.Accepts {
 		if list := listOfComponentsOutputting(acceptedDataType); list != "" {
 			section += fmt.Sprintf("- Components that output %s:\n", acceptedDataType) + list
 		}
@@ -140,11 +141,11 @@ func acceptingComponentsSection(componentName string, c component.Registration) 
 	return section
 }
 
-func listOfComponentsAccepting(dataType component.DataType) string {
+func listOfComponentsAccepting(dataType metadata.DataType) string {
 	return listOfLinksToComponents(allComponentsThatAccept(dataType))
 }
 
-func listOfComponentsOutputting(dataType component.DataType) string {
+func listOfComponentsOutputting(dataType metadata.DataType) string {
 	return listOfLinksToComponents(allComponentsThatOutput(dataType))
 }
 

@@ -241,9 +241,48 @@ loki.write "local" {
 `loki.source.file` can accept data from the following components:
 
 - Components that output Targets:
+  - [`discovery.azure`]({{< relref "../components/discovery.azure.md" >}})
+  - [`discovery.consul`]({{< relref "../components/discovery.consul.md" >}})
+  - [`discovery.digitalocean`]({{< relref "../components/discovery.digitalocean.md" >}})
+  - [`discovery.dns`]({{< relref "../components/discovery.dns.md" >}})
+  - [`discovery.docker`]({{< relref "../components/discovery.docker.md" >}})
   - [`discovery.ec2`]({{< relref "../components/discovery.ec2.md" >}})
+  - [`discovery.eureka`]({{< relref "../components/discovery.eureka.md" >}})
+  - [`discovery.file`]({{< relref "../components/discovery.file.md" >}})
+  - [`discovery.gce`]({{< relref "../components/discovery.gce.md" >}})
+  - [`discovery.hetzner`]({{< relref "../components/discovery.hetzner.md" >}})
+  - [`discovery.http`]({{< relref "../components/discovery.http.md" >}})
+  - [`discovery.kubelet`]({{< relref "../components/discovery.kubelet.md" >}})
   - [`discovery.kubernetes`]({{< relref "../components/discovery.kubernetes.md" >}})
+  - [`discovery.lightsail`]({{< relref "../components/discovery.lightsail.md" >}})
+  - [`discovery.nomad`]({{< relref "../components/discovery.nomad.md" >}})
+  - [`discovery.openstack`]({{< relref "../components/discovery.openstack.md" >}})
   - [`discovery.relabel`]({{< relref "../components/discovery.relabel.md" >}})
+  - [`discovery.uyuni`]({{< relref "../components/discovery.uyuni.md" >}})
+  - [`local.file_match`]({{< relref "../components/local.file_match.md" >}})
+  - [`prometheus.exporter.apache`]({{< relref "../components/prometheus.exporter.apache.md" >}})
+  - [`prometheus.exporter.blackbox`]({{< relref "../components/prometheus.exporter.blackbox.md" >}})
+  - [`prometheus.exporter.cloudwatch`]({{< relref "../components/prometheus.exporter.cloudwatch.md" >}})
+  - [`prometheus.exporter.consul`]({{< relref "../components/prometheus.exporter.consul.md" >}})
+  - [`prometheus.exporter.dnsmasq`]({{< relref "../components/prometheus.exporter.dnsmasq.md" >}})
+  - [`prometheus.exporter.elasticsearch`]({{< relref "../components/prometheus.exporter.elasticsearch.md" >}})
+  - [`prometheus.exporter.gcp`]({{< relref "../components/prometheus.exporter.gcp.md" >}})
+  - [`prometheus.exporter.github`]({{< relref "../components/prometheus.exporter.github.md" >}})
+  - [`prometheus.exporter.kafka`]({{< relref "../components/prometheus.exporter.kafka.md" >}})
+  - [`prometheus.exporter.memcached`]({{< relref "../components/prometheus.exporter.memcached.md" >}})
+  - [`prometheus.exporter.mongodb`]({{< relref "../components/prometheus.exporter.mongodb.md" >}})
+  - [`prometheus.exporter.mssql`]({{< relref "../components/prometheus.exporter.mssql.md" >}})
+  - [`prometheus.exporter.mysql`]({{< relref "../components/prometheus.exporter.mysql.md" >}})
+  - [`prometheus.exporter.oracledb`]({{< relref "../components/prometheus.exporter.oracledb.md" >}})
+  - [`prometheus.exporter.postgres`]({{< relref "../components/prometheus.exporter.postgres.md" >}})
+  - [`prometheus.exporter.process`]({{< relref "../components/prometheus.exporter.process.md" >}})
+  - [`prometheus.exporter.redis`]({{< relref "../components/prometheus.exporter.redis.md" >}})
+  - [`prometheus.exporter.snmp`]({{< relref "../components/prometheus.exporter.snmp.md" >}})
+  - [`prometheus.exporter.snowflake`]({{< relref "../components/prometheus.exporter.snowflake.md" >}})
+  - [`prometheus.exporter.squid`]({{< relref "../components/prometheus.exporter.squid.md" >}})
+  - [`prometheus.exporter.statsd`]({{< relref "../components/prometheus.exporter.statsd.md" >}})
+  - [`prometheus.exporter.unix`]({{< relref "../components/prometheus.exporter.unix.md" >}})
+  - [`prometheus.exporter.windows`]({{< relref "../components/prometheus.exporter.windows.md" >}})
 
 `loki.source.file` can output data to the following components:
 
@@ -252,6 +291,7 @@ loki.write "local" {
   - [`loki.process`]({{< relref "../components/loki.process.md" >}})
   - [`loki.relabel`]({{< relref "../components/loki.relabel.md" >}})
   - [`loki.write`]({{< relref "../components/loki.write.md" >}})
+  - [`otelcol.receiver.loki`]({{< relref "../components/otelcol.receiver.loki.md" >}})
 
 Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	_ "github.com/grafana/agent/component/all"
-	"github.com/grafana/agent/docs/sources/generator"
+	"github.com/grafana/agent/docs/generator"
 	"github.com/stretchr/testify/require"
 )
 

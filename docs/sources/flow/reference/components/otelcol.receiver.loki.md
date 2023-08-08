@@ -99,3 +99,34 @@ otelcol.exporter.otlp "default" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.receiver.loki` can accept data from the following components:
+
+- Components that output Loki Logs:
+  - [`loki.process`]({{< relref "../components/loki.process.md" >}})
+  - [`loki.relabel`]({{< relref "../components/loki.relabel.md" >}})
+  - [`loki.source.api`]({{< relref "../components/loki.source.api.md" >}})
+  - [`loki.source.awsfirehose`]({{< relref "../components/loki.source.awsfirehose.md" >}})
+  - [`loki.source.azure_event_hubs`]({{< relref "../components/loki.source.azure_event_hubs.md" >}})
+  - [`loki.source.cloudflare`]({{< relref "../components/loki.source.cloudflare.md" >}})
+  - [`loki.source.docker`]({{< relref "../components/loki.source.docker.md" >}})
+  - [`loki.source.file`]({{< relref "../components/loki.source.file.md" >}})
+  - [`loki.source.gcplog`]({{< relref "../components/loki.source.gcplog.md" >}})
+  - [`loki.source.gelf`]({{< relref "../components/loki.source.gelf.md" >}})
+  - [`loki.source.heroku`]({{< relref "../components/loki.source.heroku.md" >}})
+  - [`loki.source.journal`]({{< relref "../components/loki.source.journal.md" >}})
+  - [`loki.source.kafka`]({{< relref "../components/loki.source.kafka.md" >}})
+  - [`loki.source.kubernetes`]({{< relref "../components/loki.source.kubernetes.md" >}})
+  - [`loki.source.kubernetes_events`]({{< relref "../components/loki.source.kubernetes_events.md" >}})
+  - [`loki.source.podlogs`]({{< relref "../components/loki.source.podlogs.md" >}})
+  - [`loki.source.syslog`]({{< relref "../components/loki.source.syslog.md" >}})
+  - [`loki.source.windowsevent`]({{< relref "../components/loki.source.windowsevent.md" >}})
+  - [`otelcol.exporter.loki`]({{< relref "../components/otelcol.exporter.loki.md" >}})
+
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

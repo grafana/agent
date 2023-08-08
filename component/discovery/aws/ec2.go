@@ -16,10 +16,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:     "discovery.ec2",
-		Args:     EC2Arguments{},
-		Exports:  discovery.Exports{},
-		Metadata: component.TargetDiscoveryMetadata(),
+		Name:    "discovery.ec2",
+		Args:    EC2Arguments{},
+		Exports: discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return NewEC2(opts, args.(EC2Arguments))
 		},

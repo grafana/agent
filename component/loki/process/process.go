@@ -20,10 +20,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:     "loki.process",
-		Args:     Arguments{},
-		Exports:  Exports{},
-		Metadata: component.LokiLogsProcessingMetadata(),
+		Name:    "loki.process",
+		Args:    Arguments{},
+		Exports: Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},

@@ -17,10 +17,6 @@ func init() {
 		Name:    "otelcol.exporter.loki",
 		Args:    Arguments{},
 		Exports: otelcol.ConsumerExports{},
-		Metadata: component.Metadata{
-			Accepts: []component.DataType{component.DataTypeOTELTelemetry},
-			Outputs: []component.DataType{component.DataTypeLokiLogs},
-		},
 
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))

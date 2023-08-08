@@ -20,9 +20,8 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:     "loki.source.file",
-		Args:     Arguments{},
-		Metadata: component.LokiLogsScraperMetadata(),
+		Name: "loki.source.file",
+		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
