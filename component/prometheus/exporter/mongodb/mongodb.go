@@ -38,9 +38,9 @@ func customizeTarget(baseTarget discovery.Target, args component.Arguments) []di
 
 type Arguments struct {
 	URI                    rivertypes.Secret `river:"mongodb_uri,attr"`
-	DirectConnect          bool              `river:"direct-connect,attr,optional"`
-	DiscoveringMode        bool              `river:"discovering-mode,attr,optional"`
-	TLSBasicAuthConfigPath string            `river:"tls-basic-auth-config-path,attr,optional"`
+	DirectConnect          bool              `river:"direct_connect,attr,optional"`
+	DiscoveringMode        bool              `river:"discovering_mode,attr,optional"`
+	TLSBasicAuthConfigPath string            `river:"tls_basic_auth_config_path,attr,optional"`
 }
 
 func (a *Arguments) Convert() *mongodb_exporter.Config {
