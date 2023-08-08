@@ -25,6 +25,7 @@ import (
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/service"
 	httpservice "github.com/grafana/agent/service/http"
+	observerservice "github.com/grafana/agent/service/observer"
 	"github.com/grafana/ckit/peer"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
@@ -202,13 +203,15 @@ func (fr *flowRun) Run(configFile string) error {
 		EnablePProf:      fr.enablePprof,
 	})
 
+	observerService := observerservice.New(observerservice.Options{})
+
 	f := flow.New(flow.Options{
 		Logger:    l,
 		Tracer:    t,
 		Clusterer: clusterer,
 		DataPath:  fr.storagePath,
 		Reg:       reg,
-		Services:  []service.Service{httpService},
+		Services:  []service.Service{httpService, observerService},
 	})
 
 	ready = f.Ready

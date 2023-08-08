@@ -73,7 +73,7 @@ func (id ID) String() string {
 	return id.ModuleID + "/" + id.LocalID
 }
 
-// Info ia detailed information about a component.
+// Info is detailed information about a component.
 type Info struct {
 	// Component is the instance of the component. Component may be nil if a
 	// component exists in the controller's DAG but it has not been successfully
