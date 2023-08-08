@@ -22,9 +22,9 @@ var DefaultConfig = Config{
 type Config struct {
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
 	URI                    config_util.Secret `yaml:"mongodb_uri"`
-	DirectConnect          bool               `yaml:"direct-connect"`
-	DiscoveringMode        bool               `yaml:discovering-mode`
-	TLSBasicAuthConfigPath string             `yaml:tls-basic-auth-config-path`
+	DirectConnect          bool               `yaml:"direct-connect,omitempty"`
+	DiscoveringMode        bool               `yaml:"discovering-mode,omitempty"`
+	TLSBasicAuthConfigPath string             `yaml:"tls-basic-auth-config-path,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -43,7 +43,7 @@ func (c *Config) Name() string {
 func (c *Config) InstanceKey(_ string) (string, error) {
 	u, err := url.Parse(string(c.URI))
 	if err != nil {
-		return "", fmt.Errorf("could not parse mongodb_uri: %w. error: %w", string(c.URI), err)
+		return "", fmt.Errorf("could not parse mongodb_uri: %s. error: %w", string(c.URI), err)
 	}
 	return u.Host, nil
 }
@@ -65,8 +65,8 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	tlsConfigPath := string(c.TLSBasicAuthConfigPath)
 
 	if tlsConfigPath != "" {
-		if _, err := os.Stat(string(c.TLSBasicAuthConfigPath)); err != nil {
-			return nil, fmt.Errorf("tls config file path is invalid: %w. error: %w", string(c.TLSBasicAuthConfigPath), err)
+		if _, err := os.Stat(tlsConfigPath); err != nil {
+			return nil, fmt.Errorf("tls config file path is invalid: %s. error: %w", tlsConfigPath, err)
 		}
 	}
 
@@ -81,8 +81,8 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		// configurable in the future.
 		CompatibleMode:  true,
 		CollectAll:      true,
-		DirectConnect:   bool(c.DirectConnect),
-		DiscoveringMode: bool(c.DiscoveringMode),
+		DirectConnect:   c.DirectConnect,
+		DiscoveringMode: c.DiscoveringMode,
 		TLSConfigPath:   tlsConfigPath,
 	})
 

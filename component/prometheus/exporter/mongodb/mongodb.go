@@ -45,6 +45,9 @@ type Arguments struct {
 
 func (a *Arguments) Convert() *mongodb_exporter.Config {
 	return &mongodb_exporter.Config{
-		URI: config_util.Secret(a.URI),
+		URI:                    config_util.Secret(a.URI),
+		DirectConnect:          a.DirectConnect,
+		DiscoveringMode:        a.DiscoveringMode,
+		TLSBasicAuthConfigPath: a.TLSBasicAuthConfigPath,
 	}
 }
