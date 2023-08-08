@@ -18,7 +18,7 @@ WORKDIR /src/agent
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-    GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} \
+    GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} GO_TAGS=netgo \
     RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
     make operator
 

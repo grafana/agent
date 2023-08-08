@@ -18,6 +18,7 @@ echo "%_gpg_name Grafana Labs <engineering@grafana.com>
 %_gpg_path /root/.gnupg
 %_gpgbin /usr/bin/gpg
 %_gpg_digest_algo sha256
+%_binary_filedigest_algorithm 8
 %__gpg /usr/bin/gpg
 %__gpg_sign_cmd     %{__gpg} \
          gpg --no-tty --batch --yes --no-verbose --no-armor \

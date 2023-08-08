@@ -22,27 +22,13 @@ import (
 
 func validate(promConfig *prom_config.Config) diag.Diagnostics {
 	diags := validateGlobalConfig(&promConfig.GlobalConfig)
-
-	newDiags := validateAlertingConfig(&promConfig.AlertingConfig)
-	diags = append(diags, newDiags...)
-
-	newDiags = validateRuleFilesConfig(promConfig.RuleFiles)
-	diags = append(diags, newDiags...)
-
-	newDiags = validateScrapeConfigs(promConfig.ScrapeConfigs)
-	diags = append(diags, newDiags...)
-
-	newDiags = validateStorageConfig(&promConfig.StorageConfig)
-	diags = append(diags, newDiags...)
-
-	newDiags = validateTracingConfig(&promConfig.TracingConfig)
-	diags = append(diags, newDiags...)
-
-	newDiags = validateRemoteWriteConfigs(promConfig.RemoteWriteConfigs)
-	diags = append(diags, newDiags...)
-
-	newDiags = validateRemoteReadConfigs(promConfig.RemoteReadConfigs)
-	diags = append(diags, newDiags...)
+	diags.AddAll(validateAlertingConfig(&promConfig.AlertingConfig))
+	diags.AddAll(validateRuleFilesConfig(promConfig.RuleFiles))
+	diags.AddAll(validateScrapeConfigs(promConfig.ScrapeConfigs))
+	diags.AddAll(validateStorageConfig(&promConfig.StorageConfig))
+	diags.AddAll(validateTracingConfig(&promConfig.TracingConfig))
+	diags.AddAll(validateRemoteWriteConfigs(promConfig.RemoteWriteConfigs))
+	diags.AddAll(validateRemoteReadConfigs(promConfig.RemoteReadConfigs))
 
 	return diags
 }
@@ -82,39 +68,35 @@ func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagn
 	var diags diag.Diagnostics
 
 	for _, scrapeConfig := range scrapeConfigs {
-		newDiags := validatePrometheusScrape(scrapeConfig)
-		diags = append(diags, newDiags...)
+		diags.AddAll(validatePrometheusScrape(scrapeConfig))
 
 		for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
-			newDiags = make(diag.Diagnostics, 0)
 			switch sdc := serviceDiscoveryConfig.(type) {
 			case prom_discover.StaticConfig:
-				newDiags = validateScrapeTargets(sdc)
+				diags.AddAll(validateScrapeTargets(sdc))
 			case *prom_azure.SDConfig:
-				newDiags = ValidateDiscoveryAzure(sdc)
+				diags.AddAll(ValidateDiscoveryAzure(sdc))
 			case *prom_consul.SDConfig:
-				newDiags = validateDiscoveryConsul(sdc)
+				diags.AddAll(validateDiscoveryConsul(sdc))
 			case *prom_digitalocean.SDConfig:
-				newDiags = ValidateDiscoveryDigitalOcean(sdc)
+				diags.AddAll(ValidateDiscoveryDigitalOcean(sdc))
 			case *prom_dns.SDConfig:
-				newDiags = validateDiscoveryDns(sdc)
+				diags.AddAll(validateDiscoveryDns(sdc))
 			case *prom_docker.DockerSDConfig:
-				newDiags = validateDiscoveryDocker(sdc)
+				diags.AddAll(validateDiscoveryDocker(sdc))
 			case *prom_aws.EC2SDConfig:
-				newDiags = ValidateDiscoveryEC2(sdc)
+				diags.AddAll(ValidateDiscoveryEC2(sdc))
 			case *prom_file.SDConfig:
-				newDiags = validateDiscoveryFile(sdc)
+				diags.AddAll(validateDiscoveryFile(sdc))
 			case *prom_gce.SDConfig:
-				newDiags = ValidateDiscoveryGCE(sdc)
+				diags.AddAll(ValidateDiscoveryGCE(sdc))
 			case *prom_kubernetes.SDConfig:
-				newDiags = validateDiscoveryKubernetes(sdc)
+				diags.AddAll(validateDiscoveryKubernetes(sdc))
 			case *prom_aws.LightsailSDConfig:
-				newDiags = validateDiscoveryLightsail(sdc)
+				diags.AddAll(validateDiscoveryLightsail(sdc))
 			default:
 				diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 			}
-
-			diags = append(diags, newDiags...)
 		}
 	}
 
@@ -143,8 +125,7 @@ func validateRemoteWriteConfigs(remoteWriteConfigs []*prom_config.RemoteWriteCon
 	var diags diag.Diagnostics
 
 	for _, remoteWriteConfig := range remoteWriteConfigs {
-		newDiags := validateRemoteWriteConfig(remoteWriteConfig)
-		diags = append(diags, newDiags...)
+		diags.AddAll(validateRemoteWriteConfig(remoteWriteConfig))
 	}
 
 	return diags

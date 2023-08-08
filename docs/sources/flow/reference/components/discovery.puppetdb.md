@@ -126,25 +126,25 @@ This example discovers targets from puppetdb for all the servers that have a spe
 
 ```river
 discovery.puppetdb "example" {
-  url = "http://puppetdb.local:8080"
-  query = "resources { type = \"Package\" and title = \"node_exporter\" }"
-  port = 9100
+	url   = "http://puppetdb.local:8080"
+	query = "resources { type = \"Package\" and title = \"node_exporter\" }"
+	port  = 9100
 }
 
 prometheus.scrape "demo" {
-  targets    = discovery.puppetdb.example.targets
-  forward_to = [prometheus.remote_write.demo.receiver]
+	targets    = discovery.puppetdb.example.targets
+	forward_to = [prometheus.remote_write.demo.receiver]
 }
 
 prometheus.remote_write "demo" {
-  endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+	endpoint {
+		url = PROMETHEUS_REMOTE_WRITE_URL
 
-    basic_auth {
-      username = USERNAME
-      password = PASSWORD
-    }
-  }
+		basic_auth {
+			username = USERNAME
+			password = PASSWORD
+		}
+	}
 }
 ```
 Replace the following:

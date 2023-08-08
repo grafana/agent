@@ -1,7 +1,6 @@
 package build
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/grafana/agent/component/common/loki"
@@ -26,16 +25,17 @@ func (s *ScrapeConfigBuilder) AppendCloudFlareConfig() {
 	override := func(val interface{}) interface{} {
 		switch conv := val.(type) {
 		case []loki.LogsReceiver:
-			return common.CustomTokenizer{Expr: fmt.Sprintf("[%s]", s.getOrNewLokiRelabel())}
+			return common.CustomTokenizer{Expr: s.getOrNewLokiRelabel()}
 		case rivertypes.Secret:
 			return string(conv)
 		default:
 			return val
 		}
 	}
+	compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
 		[]string{"loki", "source", "cloudflare"},
-		s.cfg.JobName,
+		compLabel,
 		args,
 		override,
 	))

@@ -1,12 +1,12 @@
-prometheus.scrape "agent_prometheus" {
+prometheus.scrape "metrics_agent_prometheus" {
 	targets = [{
 		__address__ = "localhost:9099",
 	}]
-	forward_to = [prometheus.remote_write.agent.receiver]
+	forward_to = [prometheus.remote_write.metrics_agent.receiver]
 	job_name   = "prometheus"
 }
 
-prometheus.remote_write "agent" {
+prometheus.remote_write "metrics_agent" {
 	endpoint {
 		name = "agent-72cf3f"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"

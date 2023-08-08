@@ -9,17 +9,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/common/loki/client/fake"
-
-	"github.com/grafana/agent/component/common/loki"
-	fnet "github.com/grafana/agent/component/common/net"
-
 	"github.com/go-kit/log"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"
+
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/client/fake"
+	fnet "github.com/grafana/agent/component/common/net"
+	"github.com/grafana/agent/component/loki/source/gcplog/gcptypes"
 )
 
 const localhost = "127.0.0.1"
@@ -164,7 +164,7 @@ func TestPushTarget(t *testing.T) {
 			for k, v := range tc.args.Labels {
 				lbls[string(k)] = string(v)
 			}
-			config := &PushConfig{
+			config := &gcptypes.PushConfig{
 				Labels:               lbls,
 				UseIncomingTimestamp: false,
 				Server: &fnet.ServerConfig{
@@ -233,7 +233,7 @@ func TestPushTarget_UseIncomingTimestamp(t *testing.T) {
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
 	require.NoError(t, err, "error generating server config or finding open port")
-	config := &PushConfig{
+	config := &gcptypes.PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
 		Server: &fnet.ServerConfig{
@@ -283,7 +283,7 @@ func TestPushTarget_UseTenantIDHeaderIfPresent(t *testing.T) {
 
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
-	config := &PushConfig{
+	config := &gcptypes.PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
 		Server: &fnet.ServerConfig{
@@ -342,7 +342,7 @@ func TestPushTarget_ErroneousPayloadsAreRejected(t *testing.T) {
 
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
-	config := &PushConfig{
+	config := &gcptypes.PushConfig{
 		Labels: nil,
 		Server: &fnet.ServerConfig{
 			HTTP: &fnet.HTTPConfig{
@@ -428,7 +428,7 @@ func TestPushTarget_UsePushTimeout(t *testing.T) {
 
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
-	config := &PushConfig{
+	config := &gcptypes.PushConfig{
 		Labels:               nil,
 		UseIncomingTimestamp: true,
 		PushTimeout:          time.Second,

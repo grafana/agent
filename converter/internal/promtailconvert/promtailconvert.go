@@ -61,7 +61,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	f := builder.NewFile()
-	diags = AppendAll(f, &cfg.Config, diags)
+	diags = AppendAll(f, &cfg.Config, "", diags)
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -74,13 +74,13 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
-	diags = append(diags, newDiags...)
+	diags.AddAll(newDiags)
 	return prettyByte, diags
 }
 
 // AppendAll analyzes the entire promtail config in memory and transforms it
 // into Flow components. It then appends each argument to the file builder.
-func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics) diag.Diagnostics {
+func AppendAll(f *builder.File, cfg *promtailcfg.Config, labelPrefix string, diags diag.Diagnostics) diag.Diagnostics {
 	validateTopLevelConfig(cfg, &diags)
 
 	var writeReceivers = make([]loki.LogsReceiver, len(cfg.ClientConfigs))
@@ -88,12 +88,13 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics)
 	// Each client config needs to be a separate remote_write,
 	// because they may have different ExternalLabels fields.
 	for i, cc := range cfg.ClientConfigs {
-		writeBlocks[i], writeReceivers[i] = build.NewLokiWrite(&cc, &diags, i)
+		writeBlocks[i], writeReceivers[i] = build.NewLokiWrite(&cc, &diags, i, labelPrefix)
 	}
 
 	gc := &build.GlobalContext{
 		WriteReceivers:   writeReceivers,
 		TargetSyncPeriod: cfg.TargetConfig.SyncPeriod,
+		LabelPrefix:      labelPrefix,
 	}
 
 	for _, sc := range cfg.ScrapeConfig {
@@ -107,14 +108,14 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics)
 	return diags
 }
 
-func defaultPositionsConfig() positions.Config {
+func DefaultPositionsConfig() positions.Config {
 	// We obtain the default by registering the flags
 	cfg := positions.Config{}
 	cfg.RegisterFlags(flag.NewFlagSet("", flag.PanicOnError))
 	return cfg
 }
 
-func defaultLimitsConfig() limit.Config {
+func DefaultLimitsConfig() limit.Config {
 	cfg := limit.Config{}
 	cfg.RegisterFlagsWithPrefix("", flag.NewFlagSet("", flag.PanicOnError))
 	return cfg
@@ -126,20 +127,10 @@ func appendScrapeConfig(
 	diags *diag.Diagnostics,
 	gctx *build.GlobalContext,
 ) {
-	//TODO(thampiotr): need to support/warn about the following fields:
-	//Encoding               string                 `mapstructure:"encoding,omitempty" yaml:"encoding,omitempty"`
-	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
-
-	//TODO(thampiotr): support/warn about the following log producing promtail configs:
-	//GcplogConfig         *GcplogTargetConfig         `mapstructure:"gcplog,omitempty" yaml:"gcplog,omitempty"`
-	//WindowsConfig        *WindowsEventsTargetConfig  `mapstructure:"windows_events,omitempty" yaml:"windows_events,omitempty"`
-	//KafkaConfig          *KafkaTargetConfig          `mapstructure:"kafka,omitempty" yaml:"kafka,omitempty"`
-	//AzureEventHubsConfig *AzureEventHubsTargetConfig `mapstructure:"azure_event_hubs,omitempty" yaml:"azure_event_hubs,omitempty"`
-	//GelfConfig           *GelfTargetConfig           `mapstructure:"gelf,omitempty" yaml:"gelf,omitempty"`
-	//HerokuDrainConfig    *HerokuDrainTargetConfig    `mapstructure:"heroku_drain,omitempty" yaml:"heroku_drain,omitempty"`
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
 	b.Validate()
+	b.Sanitize()
 
 	// Append all the SD components
 	b.AppendKubernetesSDs()
@@ -166,4 +157,10 @@ func appendScrapeConfig(
 	b.AppendJournalConfig()
 	b.AppendPushAPI()
 	b.AppendSyslogConfig()
+	b.AppendGCPLog()
+	b.AppendWindowsEventsConfig()
+	b.AppendKafka()
+	b.AppendAzureEventHubs()
+	b.AppendGelfConfig()
+	b.AppendHerokuDrainConfig()
 }

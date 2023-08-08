@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/river/token/builder"
@@ -36,7 +37,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	f := builder.NewFile()
-	diags = AppendAll(f, promConfig, "")
+	diags = AppendAll(f, promConfig)
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -49,33 +50,49 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
-	diags = append(diags, newDiags...)
+	diags.AddAll(newDiags)
 	return prettyByte, diags
 }
 
 // AppendAll analyzes the entire prometheus config in memory and transforms it
 // into Flow Arguments. It then appends each argument to the file builder.
 // Exports from other components are correctly referenced to build the Flow
-// pipeline. A non-empty labelPrefix can be provided for label uniqueness when
-// calling this function for the same builder.File multiple times.
-func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix string) diag.Diagnostics {
+// pipeline.
+func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics {
+	return AppendAllNested(f, promConfig, nil, []discovery.Target{}, nil)
+}
+
+// AppendAllNested analyzes the entire prometheus config in memory and transforms it
+// into Flow Arguments. It then appends each argument to the file builder.
+// Exports from other components are correctly referenced to build the Flow
+// pipeline. Additional options can be provided overriding the job name, extra
+// scrape targets, and predefined remote write exports.
+func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToCompLabelsFunc func(string) string, extraScrapeTargets []discovery.Target, remoteWriteExports *remotewrite.Exports) diag.Diagnostics {
 	pb := newPrometheusBlocks()
 
-	remoteWriteExports := appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
+	if remoteWriteExports == nil {
+		labelPrefix := ""
+		if jobNameToCompLabelsFunc != nil {
+			labelPrefix = jobNameToCompLabelsFunc("")
+		}
+		remoteWriteExports = appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
+	}
 	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
 
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
 		scrapeForwardTo := remoteWriteForwardTo
 		label := scrapeConfig.JobName
-		if labelPrefix != "" {
-			label = labelPrefix + "_" + label
+		if jobNameToCompLabelsFunc != nil {
+			label = jobNameToCompLabelsFunc(scrapeConfig.JobName)
 		}
+
 		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)
 		if promMetricsRelabelExports != nil {
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
 		scrapeTargets := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
+		scrapeTargets = append(scrapeTargets, extraScrapeTargets...)
 
 		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
 		if promDiscoveryRelabelExports != nil {
@@ -86,7 +103,7 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config, labelPrefix stri
 	}
 
 	diags := validate(promConfig)
-	diags = append(diags, pb.getScrapeInfo()...)
+	diags.AddAll(pb.getScrapeInfo())
 
 	pb.appendToFile(f)
 
@@ -106,34 +123,34 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 			targets = append(targets, getScrapeTargets(sdc)...)
 		case *prom_azure.SDConfig:
 			labelCounts["azure"]++
-			exports = appendDiscoveryAzure(pb, common.GetUniqueLabel(label, labelCounts["azure"]), sdc)
+			exports = appendDiscoveryAzure(pb, common.LabelWithIndex(labelCounts["azure"]-1, label), sdc)
 		case *prom_consul.SDConfig:
 			labelCounts["consul"]++
-			exports = appendDiscoveryConsul(pb, common.GetUniqueLabel(label, labelCounts["consul"]), sdc)
+			exports = appendDiscoveryConsul(pb, common.LabelWithIndex(labelCounts["consul"]-1, label), sdc)
 		case *prom_digitalocean.SDConfig:
 			labelCounts["digitalocean"]++
-			exports = appendDiscoveryDigitalOcean(pb, common.GetUniqueLabel(label, labelCounts["digitalocean"]), sdc)
+			exports = appendDiscoveryDigitalOcean(pb, common.LabelWithIndex(labelCounts["digitalocean"]-1, label), sdc)
 		case *prom_dns.SDConfig:
 			labelCounts["dns"]++
-			exports = appendDiscoveryDns(pb, common.GetUniqueLabel(label, labelCounts["dns"]), sdc)
+			exports = appendDiscoveryDns(pb, common.LabelWithIndex(labelCounts["dns"]-1, label), sdc)
 		case *prom_docker.DockerSDConfig:
 			labelCounts["docker"]++
-			exports = appendDiscoveryDocker(pb, common.GetUniqueLabel(label, labelCounts["docker"]), sdc)
+			exports = appendDiscoveryDocker(pb, common.LabelWithIndex(labelCounts["docker"]-1, label), sdc)
 		case *prom_aws.EC2SDConfig:
 			labelCounts["ec2"]++
-			exports = appendDiscoveryEC2(pb, common.GetUniqueLabel(label, labelCounts["ec2"]), sdc)
+			exports = appendDiscoveryEC2(pb, common.LabelWithIndex(labelCounts["ec2"]-1, label), sdc)
 		case *prom_file.SDConfig:
 			labelCounts["file"]++
-			exports = appendDiscoveryFile(pb, common.GetUniqueLabel(label, labelCounts["file"]), sdc)
+			exports = appendDiscoveryFile(pb, common.LabelWithIndex(labelCounts["file"]-1, label), sdc)
 		case *prom_gce.SDConfig:
 			labelCounts["gce"]++
-			exports = appendDiscoveryGCE(pb, common.GetUniqueLabel(label, labelCounts["gce"]), sdc)
+			exports = appendDiscoveryGCE(pb, common.LabelWithIndex(labelCounts["gce"]-1, label), sdc)
 		case *prom_kubernetes.SDConfig:
 			labelCounts["kubernetes"]++
-			exports = appendDiscoveryKubernetes(pb, common.GetUniqueLabel(label, labelCounts["kubernetes"]), sdc)
+			exports = appendDiscoveryKubernetes(pb, common.LabelWithIndex(labelCounts["kubernetes"]-1, label), sdc)
 		case *prom_aws.LightsailSDConfig:
 			labelCounts["lightsail"]++
-			exports = appendDiscoveryLightsail(pb, common.GetUniqueLabel(label, labelCounts["lightsail"]), sdc)
+			exports = appendDiscoveryLightsail(pb, common.LabelWithIndex(labelCounts["lightsail"]-1, label), sdc)
 		}
 
 		targets = append(exports.Targets, targets...)
