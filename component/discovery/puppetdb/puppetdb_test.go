@@ -47,3 +47,23 @@ func TestConvert(t *testing.T) {
 	assert.Equal(t, true, sd.IncludeParameters)
 	assert.Equal(t, 29, sd.Port)
 }
+
+func TestValidate(t *testing.T) {
+	riverArgsBadUrl := Arguments{
+		URL: string([]byte{0x7f}), // a control character to make url.Parse fail
+	}
+	err := riverArgsBadUrl.Validate()
+	assert.ErrorContains(t, err, "net/url: invalid")
+
+	riverArgsBadScheme := Arguments{
+		URL: "smtp://foo.bar",
+	}
+	err = riverArgsBadScheme.Validate()
+	assert.ErrorContains(t, err, "URL scheme must be")
+
+	riverArgsNoHost := Arguments{
+		URL: "http://#abc",
+	}
+	err = riverArgsNoHost.Validate()
+	assert.ErrorContains(t, err, "host is missing in URL")
+}
