@@ -97,6 +97,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/operator/podmonitors"          // Import prometheus.operator.podmonitors
 	_ "github.com/grafana/agent/component/prometheus/operator/probes"               // Import prometheus.operator.probes
 	_ "github.com/grafana/agent/component/prometheus/operator/servicemonitors"      // Import prometheus.operator.servicemonitors
+	_ "github.com/grafana/agent/component/prometheus/println"                       // Import prometheus.println
 	_ "github.com/grafana/agent/component/prometheus/receive_http"                  // Import prometheus.receive_http
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write

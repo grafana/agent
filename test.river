@@ -1,0 +1,11 @@
+prometheus.exporter.unix { 
+    set_collectors = ["cpu"]
+}
+
+// Configure a prometheus.scrape component to collect unix metrics.
+prometheus.scrape "demo" {
+  targets    = prometheus.exporter.unix.targets
+  forward_to = [prometheus.println.demo.receiver]
+}
+
+prometheus.println "demo" { }
