@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/agentstate"
 	"github.com/grafana/agent/pkg/river"
@@ -35,20 +37,27 @@ func (args *Arguments) SetToDefault() {
 }
 
 type Observer struct {
+	log log.Logger
+
 	mtx          sync.Mutex
 	args         Arguments
 	configUpdate chan struct{}
+
+	client *agentstate.ParquetClient
 }
 
 var _ service.Service = (*Observer)(nil)
 
 // New returns a new, unstarted instance of the HTTP service.
-func New() *Observer {
-	//TODO: Make sure that not setting "args" here is ok
+func New(l log.Logger) *Observer {
 	return &Observer{
-		mtx: sync.Mutex{},
-		// args:         args,
+		log:          l,
 		configUpdate: make(chan struct{}, 1),
+
+		client: agentstate.NewParquetClient(
+			agentstate.NewAgentState(nil),
+			nil,
+		),
 	}
 }
 
@@ -68,36 +77,50 @@ func (*Observer) Definition() service.Definition {
 
 // Run implements service.Service.
 func (o *Observer) Run(ctx context.Context, host service.Host) error {
+	o.observe(ctx, host)
+
 	for {
 		o.mtx.Lock()
 		refreshFrequency := o.args.RefreshFrequency
 		o.mtx.Unlock()
 
-		o.observe(host)
+		level.Debug(o.log).Log("msg", "waiting for next refresh before sending state payload", "refresh_frequency", refreshFrequency)
 
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-time.After(refreshFrequency):
-			o.observe(host)
-		case <-o.configUpdate:
-			continue
+			o.observe(ctx, host)
+		case <-o.configUpdate: // no-op
 		}
 	}
 }
 
-func (o *Observer) observe(host service.Host) {
-	components := component.GetAllComponents(host, component.InfoOptions{
+func (o *Observer) observe(ctx context.Context, host service.Host) {
+	level.Info(o.log).Log("msg", "sending state payload to remote server")
+
+	o.mtx.Lock()
+	defer o.mtx.Unlock()
+
+	rawComponents := component.GetAllComponents(host, component.InfoOptions{
 		GetHealth:    true,
 		GetArguments: true,
 		GetExports:   true,
 		GetDebugInfo: true,
 	})
+	components := getAgentState(rawComponents)
 
-	getAgentState(components)
+	// TODO(rfratto): replace this with labels from config.
+	o.client.SetAgentState(agentstate.NewAgentState(map[string]string{
+		"hello": "world",
+	}))
+	o.client.SetComponents(components)
 
-	//TODO: Acquire the config mutex where necessary
-
+	if err := o.client.Send(ctx, o.args.RemoteEndpoint, "default"); err != nil {
+		level.Error(o.log).Log("msg", "failed to send payload", "err", err)
+	} else {
+		level.Info(o.log).Log("msg", "sent state payload to remote server")
+	}
 }
 
 func getAgentState(components []*component.Info) []agentstate.Component {
@@ -158,10 +181,10 @@ func (o *Observer) Update(newConfig any) error {
 
 	o.args = cfg
 
-	// Only send an update signal if there isn't one already, so that Update() doesn't block
-	//TODO: Not sure how thread safe this is, but it should do for now.
-	if len(o.configUpdate) == 0 {
-		o.configUpdate <- struct{}{}
+	select {
+	case o.configUpdate <- struct{}{}:
+	default:
+		// No-op; update is already scheduled.
 	}
 
 	return nil

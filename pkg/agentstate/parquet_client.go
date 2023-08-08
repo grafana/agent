@@ -23,7 +23,7 @@ type ParquetClient struct {
 var _ Client = (*ParquetClient)(nil)
 
 // NewParquetClient creates a new client for managing and writing agent state.
-func NewParquetClient(agentState AgentState, components []Component, endpoint string, tenant string) *ParquetClient {
+func NewParquetClient(agentState AgentState, components []Component) *ParquetClient {
 	return &ParquetClient{
 		agentState: agentState,
 		components: components,
