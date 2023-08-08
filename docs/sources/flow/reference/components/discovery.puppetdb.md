@@ -31,7 +31,6 @@ Name | Type | Description | Default | Required
 `query` | `string` | Puppet Query Language (PQL) query. Only resources are supported. | | yes
 `include_parameters` | `bool` | Whether to include the parameters as meta labels. Due to the differences between parameter types and Prometheus labels, some parameters might not be rendered. The format of the parameters might also change in future releases. Make sure that you don't have secrets exposed as parameters if you enable this. | `false` | no
 `port` | `int` | The port to scrape metrics from.. | `80` | no
-
 `refresh_interval` | `duration` | Frequency to refresh targets. | `"30s"` | no
 `bearer_token` | `secret` | Bearer token to authenticate with. | | no
 `bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
