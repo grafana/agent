@@ -23,7 +23,7 @@ Grafana Agent is available in three different variants:
 [Static mode Kubernetes operator]: {{< relref "./operator/" >}}
 [Flow mode]: {{< relref "./flow/" >}}
 
-## Stability
+## Release stage
 
 | Project | Release stage |
 | ------- | --------- |
