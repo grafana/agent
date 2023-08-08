@@ -12,6 +12,9 @@ import (
 func TestRiverUnmarshal(t *testing.T) {
 	riverConfig := `
 	mongodb_uri = "mongodb://127.0.0.1:27017"
+	direct-connect = true
+	discovering-mode = true
+	tls-basic-auth-config-path = "/etc/path-to-file"
 	`
 
 	var args Arguments
@@ -19,7 +22,10 @@ func TestRiverUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	expected := Arguments{
-		URI: "mongodb://127.0.0.1:27017",
+		URI:                    "mongodb://127.0.0.1:27017",
+		DirectConnect:          true,
+		DiscoveringMode:        true,
+		TLSBasicAuthConfigPath: "/etc/path-to-file",
 	}
 
 	require.Equal(t, expected, args)
@@ -28,6 +34,9 @@ func TestRiverUnmarshal(t *testing.T) {
 func TestConvert(t *testing.T) {
 	riverConfig := `
 	mongodb_uri = "mongodb://127.0.0.1:27017"
+	direct-connect = true
+	discovering-mode = true
+	tls-basic-auth-config-path = "/etc/path-to-file"
 	`
 	var args Arguments
 	err := river.Unmarshal([]byte(riverConfig), &args)
@@ -36,7 +45,10 @@ func TestConvert(t *testing.T) {
 	res := args.Convert()
 
 	expected := mongodb_exporter.Config{
-		URI: "mongodb://127.0.0.1:27017",
+		URI:                    "mongodb://127.0.0.1:27017",
+		DirectConnect:          true,
+		DiscoveringMode:        true,
+		TLSBasicAuthConfigPath: "/etc/path-to-file",
 	}
 	require.Equal(t, expected, *res)
 }

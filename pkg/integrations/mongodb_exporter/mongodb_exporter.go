@@ -3,6 +3,7 @@ package mongodb_exporter //nolint:golint
 import (
 	"fmt"
 	"net/url"
+	"os"
 
 	"github.com/go-kit/log"
 	"github.com/percona/mongodb_exporter/exporter"
@@ -13,14 +14,22 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
+var DefaultConfig = Config{
+	DirectConnect: true,
+}
+
 // Config controls mongodb_exporter
 type Config struct {
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
-	URI config_util.Secret `yaml:"mongodb_uri"`
+	URI                    config_util.Secret `yaml:"mongodb_uri"`
+	DirectConnect          bool               `yaml:"direct-connect"`
+	DiscoveringMode        bool               `yaml:discovering-mode`
+	TLSBasicAuthConfigPath string             `yaml:tls-basic-auth-config-path`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
 	type plain Config
 	return unmarshal((*plain)(c))
 }
@@ -34,7 +43,7 @@ func (c *Config) Name() string {
 func (c *Config) InstanceKey(_ string) (string, error) {
 	u, err := url.Parse(string(c.URI))
 	if err != nil {
-		return "", fmt.Errorf("could not parse url: %w", err)
+		return "", fmt.Errorf("could not parse mongodb_uri: %w. error: %w", string(c.URI), err)
 	}
 	return u.Host, nil
 }
@@ -53,6 +62,16 @@ func init() {
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	logrusLogger := integrations.NewLogger(logger)
 
+	tlsConfigPath := ""
+
+	if string(c.TLSBasicAuthConfigPath) != "" {
+		if _, err := os.Stat(string(c.TLSBasicAuthConfigPath)); err == nil {
+			tlsConfigPath = string(c.TLSBasicAuthConfigPath)
+		} else {
+			return nil, fmt.Errorf("tls config file path is invalid: %w. error: %w", string(c.TLSBasicAuthConfigPath), err)
+		}
+	}
+
 	exp := exporter.New(&exporter.Opts{
 		URI:                    string(c.URI),
 		Logger:                 logrusLogger,
@@ -62,9 +81,11 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		// names from mongodb_exporter <v0.20.0. Many existing dashboards rely on
 		// the old names, so we hard-code it to true now. We may wish to make this
 		// configurable in the future.
-		CompatibleMode: true,
-		CollectAll:     true,
-		DirectConnect:  true,
+		CompatibleMode:  true,
+		CollectAll:      true,
+		DirectConnect:   bool(c.DirectConnect),
+		DiscoveringMode: bool(c.DiscoveringMode),
+		TLSConfigPath:   tlsConfigPath,
 	})
 
 	return integrations.NewHandlerIntegration(c.Name(), exp.Handler()), nil
