@@ -9,4 +9,4 @@ headless: true
 > components are subject to frequent breaking changes, and may be removed with
 > no equivalent replacement.
 
-[experimental]: {{< relref "../../../stability.md#experimental" >}}
+[experimental]: {{< relref "/docs/release-life-cycle/" >}}
