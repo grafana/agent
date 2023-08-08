@@ -16,8 +16,6 @@ import (
 type ParquetClient struct {
 	agentState AgentState
 	components []Component
-	endpoint   string
-	tenant     string
 
 	httpClient *http.Client
 }
@@ -29,8 +27,6 @@ func NewParquetClient(agentState AgentState, components []Component, endpoint st
 	return &ParquetClient{
 		agentState: agentState,
 		components: components,
-		endpoint:   endpoint,
-		tenant:     tenant,
 		httpClient: &http.Client{Timeout: 5 * time.Second},
 	}
 }
@@ -46,18 +42,18 @@ func (pc *ParquetClient) SetComponents(components []Component) {
 }
 
 // Implements agentstate.Client
-func (pc *ParquetClient) Send(ctx context.Context) error {
+func (pc *ParquetClient) Send(ctx context.Context, endpoint string, tenant string) error {
 	buf, err := pc.Write()
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, pc.endpoint, &buf)
+	req, err := http.NewRequest(http.MethodPost, endpoint, &buf)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/parquet")
-	req.Header.Set("X-TenantID", pc.tenant)
+	req.Header.Set("X-TenantID", tenant)
 
 	resp, err := pc.httpClient.Do(req.WithContext(ctx))
 	if err != nil {
