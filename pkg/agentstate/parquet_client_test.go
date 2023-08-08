@@ -124,7 +124,7 @@ var componentState2 []agentstate.Component = []agentstate.Component{
 }
 
 func TestClientWrite(t *testing.T) {
-	client := agentstate.NewParquetClient(agentState, componentState)
+	client := agentstate.NewParquetClient(agentState, componentState, "", "")
 	buf, err := client.Write()
 	require.NoError(t, err)
 	validateMetadata(t, buf, agentState)
@@ -144,7 +144,7 @@ func TestClientWrite(t *testing.T) {
 }
 
 func TestClientWriteToFile(t *testing.T) {
-	client := agentstate.NewParquetClient(agentState, componentState)
+	client := agentstate.NewParquetClient(agentState, componentState, "", "")
 	filepath := t.TempDir() + "/agent_state.parquet"
 	err := client.WriteToFile(filepath)
 	require.NoError(t, err)
