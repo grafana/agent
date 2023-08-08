@@ -59,6 +59,8 @@ Main (unreleased)
   - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
   - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
+  - `discovery.nomad` - service discovery from Nomad. (@captncraig)
+  - `discovery.puppetdb` - service discovery from PuppetDB. (@captncraig)
 
 ### Bugfixes
 
