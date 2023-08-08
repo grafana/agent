@@ -68,10 +68,9 @@ func getAgentState(components []*component.Info) []Component {
 	res := []Component{}
 
 	parentId := uint(0)
-	idCounter := parentId + 1
 	for _, cInfo := range components {
-		currentComponentId := idCounter
-		currentComponentId += 1
+		// ComponentDetail should start at index 0 for each component
+		idCounter := parentId + 1
 
 		componentDetail := []riverjson.ComponentDetail{}
 
@@ -95,7 +94,6 @@ func getAgentState(components []*component.Info) []Component {
 				Message:    cInfo.Health.Message,
 				UpdateTime: cInfo.Health.UpdateTime,
 			},
-			//TODO: Why not start from 0 for each cInfo.Arguments? I.e., the counter is relative to the parent component.
 			ComponentDetail: componentDetail,
 		}
 
