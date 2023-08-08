@@ -91,7 +91,6 @@ func (c *ParquetClient) Write() (bytes.Buffer, error) {
 	}
 
 	// Write the metadata to the buffer.
-	writer.SetKeyValueMetadata("ID", c.agentState.ID)
 	for key, label := range c.agentState.Labels {
 		writer.SetKeyValueMetadata(key, label)
 	}

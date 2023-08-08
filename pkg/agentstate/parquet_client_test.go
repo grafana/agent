@@ -177,12 +177,8 @@ func validateMetadata(t *testing.T, buf bytes.Buffer, expected agentstate.AgentS
 	f, err := parquet.OpenFile(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
 	require.NoError(t, err)
 
-	value, found := f.Lookup("ID")
-	require.True(t, found)
-	require.Equal(t, expected.ID, value)
-
 	for key, label := range expected.Labels {
-		value, found = f.Lookup(key)
+		value, found := f.Lookup(key)
 		require.True(t, found)
 		require.Equal(t, label, value)
 	}
