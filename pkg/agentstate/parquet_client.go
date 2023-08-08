@@ -48,7 +48,8 @@ func (pc *ParquetClient) Send(ctx context.Context, endpoint string, tenant strin
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, endpoint, &buf)
+	fullEndpoint := fmt.Sprintf("%s/agents/%s", endpoint, pc.agentState.ID)
+	req, err := http.NewRequest(http.MethodPost, fullEndpoint, &buf)
 	if err != nil {
 		return err
 	}
