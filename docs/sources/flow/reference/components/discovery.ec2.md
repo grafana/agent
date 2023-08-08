@@ -134,3 +134,16 @@ Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.ec2` can output data to the following components:
+
+- Components that accept Targets:
+  - [`discovery.relabel`]({{< relref "../components/discovery.relabel.md" >}})
+  - [`loki.source.file`]({{< relref "../components/loki.source.file.md" >}})
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

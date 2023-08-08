@@ -13,9 +13,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.relabel",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:     "discovery.relabel",
+		Args:     Arguments{},
+		Exports:  Exports{},
+		Metadata: component.TargetsProcessingMetadata(),
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

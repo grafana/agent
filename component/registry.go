@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 	"reflect"
 	"strings"
 
@@ -219,5 +220,7 @@ func Get(name string) (Registration, bool) {
 }
 
 func AllNames() []string {
-	return maps.Keys(registered)
+	keys := maps.Keys(registered)
+	slices.Sort(keys)
+	return keys
 }

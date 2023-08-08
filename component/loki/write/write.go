@@ -17,9 +17,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "loki.write",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:     "loki.write",
+		Args:     Arguments{},
+		Exports:  Exports{},
+		Metadata: component.LokiLogsSinkMetadata(),
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

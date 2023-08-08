@@ -17,9 +17,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "loki.relabel",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:     "loki.relabel",
+		Args:     Arguments{},
+		Exports:  Exports{},
+		Metadata: component.LokiLogsProcessingMetadata(),
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},

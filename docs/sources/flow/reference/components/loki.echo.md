@@ -47,6 +47,25 @@ Name | Type | Description
 
 `loki.echo` does not expose any component-specific debug information.
 
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.echo` can accept data from the following components:
+
+- Components that output Loki Logs:
+  - [`loki.process`]({{< relref "../components/loki.process.md" >}})
+  - [`loki.relabel`]({{< relref "../components/loki.relabel.md" >}})
+  - [`loki.source.api`]({{< relref "../components/loki.source.api.md" >}})
+  - [`loki.source.file`]({{< relref "../components/loki.source.file.md" >}})
+  - [`loki.source.gcplog`]({{< relref "../components/loki.source.gcplog.md" >}})
+  - [`otelcol.exporter.loki`]({{< relref "../components/otelcol.exporter.loki.md" >}})
+
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->
+
 ## Example
 
 This example creates a pipeline that reads log files from `/var/log` and
@@ -67,16 +86,3 @@ loki.source.file "logs" {
 
 loki.echo "example" { }
 ```
-
-<!-- START GENERATED COMPATIBLE COMPONENTS -->
-
-## Compatible components
-
-`loki.echo` can accept data from the following components:
-
-- Components that output Loki Logs:
-  - [`loki.source.api`]({{< relref "../components/loki.source.api.md" >}})
-
-Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
-
-<!-- END GENERATED COMPATIBLE COMPONENTS -->

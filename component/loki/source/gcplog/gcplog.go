@@ -20,8 +20,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.gcplog",
-		Args: Arguments{},
+		Name:     "loki.source.gcplog",
+		Args:     Arguments{},
+		Metadata: component.LokiLogsSourceMetadata(),
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

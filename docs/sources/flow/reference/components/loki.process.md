@@ -1694,3 +1694,28 @@ loki.process "local" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.process` can accept data from the following components:
+
+- Components that output Loki Logs:
+  - [`loki.process`]({{< relref "../components/loki.process.md" >}})
+  - [`loki.relabel`]({{< relref "../components/loki.relabel.md" >}})
+  - [`loki.source.api`]({{< relref "../components/loki.source.api.md" >}})
+  - [`loki.source.file`]({{< relref "../components/loki.source.file.md" >}})
+  - [`loki.source.gcplog`]({{< relref "../components/loki.source.gcplog.md" >}})
+  - [`otelcol.exporter.loki`]({{< relref "../components/otelcol.exporter.loki.md" >}})
+
+`loki.process` can output data to the following components:
+
+- Components that accept Loki Logs:
+  - [`loki.echo`]({{< relref "../components/loki.echo.md" >}})
+  - [`loki.process`]({{< relref "../components/loki.process.md" >}})
+  - [`loki.relabel`]({{< relref "../components/loki.relabel.md" >}})
+  - [`loki.write`]({{< relref "../components/loki.write.md" >}})
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

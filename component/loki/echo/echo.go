@@ -11,12 +11,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "loki.echo",
-		Args:    Arguments{},
-		Exports: Exports{},
-		Metadata: component.Metadata{
-			Accepts: []component.DataType{component.LokiLogs},
-		},
+		Name:     "loki.echo",
+		Args:     Arguments{},
+		Exports:  Exports{},
+		Metadata: component.LokiLogsSinkMetadata(),
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

@@ -134,7 +134,7 @@ func acceptingComponentsSection(componentName string, c component.Registration) 
 		}
 	}
 	if section != "" {
-		section = fmt.Sprintf("`%s` can accept data from the following components:\n\n", componentName) + section
+		section = fmt.Sprintf("`%s` can accept data from the following components:\n\n", componentName) + section + "\n"
 	}
 	return section
 }
