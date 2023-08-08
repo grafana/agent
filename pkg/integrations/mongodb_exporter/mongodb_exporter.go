@@ -62,11 +62,9 @@ func init() {
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	logrusLogger := integrations.NewLogger(logger)
 
-	tlsConfigPath := string(c.TLSBasicAuthConfigPath)
-
-	if tlsConfigPath != "" {
-		if _, err := os.Stat(tlsConfigPath); err != nil {
-			return nil, fmt.Errorf("tls config file path is invalid: %s. error: %w", tlsConfigPath, err)
+	if c.TLSBasicAuthConfigPath != "" {
+		if _, err := os.Stat(c.TLSBasicAuthConfigPath); err != nil {
+			return nil, fmt.Errorf("tls config file path is invalid: %s. error: %w", c.TLSBasicAuthConfigPath, err)
 		}
 	}
 
@@ -83,7 +81,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		CollectAll:      true,
 		DirectConnect:   c.DirectConnect,
 		DiscoveringMode: c.DiscoveringMode,
-		TLSConfigPath:   tlsConfigPath,
+		TLSConfigPath:   c.TLSBasicAuthConfigPath,
 	})
 
 	return integrations.NewHandlerIntegration(c.Name(), exp.Handler()), nil
