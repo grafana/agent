@@ -4,9 +4,11 @@ package observer
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/river/encoding/riverjson"
 	"github.com/grafana/agent/service"
 )
@@ -14,21 +16,37 @@ import (
 // ServiceName defines the name used for the Observer service.
 const ServiceName = "observer"
 
-type Options struct {
-	refreshFrequency time.Duration
-	remoteEndpoint   string
+type Arguments struct {
+	RefreshFrequency time.Duration `river:"refresh_frequency,attr,optional"`
+	RemoteEndpoint   string        `river:"remote_endpoint,attr"`
+}
+
+var _ river.Defaulter = (*Arguments)(nil)
+
+// DefaultArguments holds default values for Arguments.
+var DefaultArguments = Arguments{
+	RefreshFrequency: time.Minute,
+}
+
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
+	*args = DefaultArguments
 }
 
 type Observer struct {
-	opts Options
+	mtx          sync.Mutex
+	args         Arguments
+	configUpdate chan struct{}
 }
 
 var _ service.Service = (*Observer)(nil)
 
 // New returns a new, unstarted instance of the HTTP service.
-func New(opts Options) *Observer {
+func New(args Arguments) *Observer {
 	return &Observer{
-		opts: opts,
+		mtx:          sync.Mutex{},
+		args:         args,
+		configUpdate: make(chan struct{}, 1),
 	}
 }
 
@@ -41,13 +59,32 @@ func (*Observer) Data() any {
 func (*Observer) Definition() service.Definition {
 	return service.Definition{
 		Name:       ServiceName,
-		ConfigType: nil, // observer does not accept configuration
+		ConfigType: Arguments{},
 		DependsOn:  nil, // observer has no dependencies.
 	}
 }
 
 // Run implements service.Service.
-func (*Observer) Run(ctx context.Context, host service.Host) error {
+func (o *Observer) Run(ctx context.Context, host service.Host) error {
+	for {
+		o.mtx.Lock()
+		refreshFrequency := o.args.RefreshFrequency
+		o.mtx.Unlock()
+
+		o.observe(host)
+
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-time.After(refreshFrequency):
+			o.observe(host)
+		case <-o.configUpdate:
+			continue
+		}
+	}
+}
+
+func (o *Observer) observe(host service.Host) {
 	components, err := host.ListComponents("", component.InfoOptions{
 		GetHealth:    true,
 		GetArguments: true,
@@ -60,8 +97,8 @@ func (*Observer) Run(ctx context.Context, host service.Host) error {
 
 	getAgentState(components)
 
-	<-ctx.Done()
-	return nil
+	//TODO: Acquire the config mutex where necessary
+
 }
 
 func getAgentState(components []*component.Info) []Component {
@@ -117,8 +154,24 @@ func getTopLevelComponentDetail(componentName string, parentId uint, idCounter *
 }
 
 // Update implements service.Service.
-func (*Observer) Update(newConfig any) error {
-	return fmt.Errorf("Observer service does not support configuration")
+func (o *Observer) Update(newConfig any) error {
+	cfg, ok := newConfig.(Arguments)
+	if !ok {
+		return fmt.Errorf("invalid configuration passed to the %q service", ServiceName)
+	}
+
+	o.mtx.Lock()
+	defer o.mtx.Unlock()
+
+	o.args = cfg
+
+	// Only send an update signal if there isn't one already, so that Update() doesn't block
+	//TODO: Not sure how thread safe this is, but it should do for now.
+	if len(o.configUpdate) == 0 {
+		o.configUpdate <- struct{}{}
+	}
+
+	return nil
 }
 
 //-----------------------------------------
