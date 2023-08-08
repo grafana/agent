@@ -13,7 +13,7 @@ You can install Grafana Agent in static mode on Linux.
 
 ## Install on Debian or Ubuntu
 
-To install Grafana Agent in static mode on Debian or Ubuntu, run the following commands in a terminal window.
+To install Grafana Agent in static mode on Debian or Ubuntu, run the following commands in a terminal window. 
 
 1. Import the GPG key and add the Grafana package repository:
 
