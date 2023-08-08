@@ -1,7 +1,6 @@
 package riverjson_test
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/grafana/agent/pkg/river"
@@ -23,7 +22,7 @@ type testBlock2 struct {
 
 type labeledBlock2 struct {
 	TestBlock testBlock3 `river:",squash"`
-	Label     string     `river:"label,attr"`
+	Label     string     `river:",label"`
 }
 
 type testBlock3 struct {
@@ -68,7 +67,7 @@ func TestGetComponentDetail(t *testing.T) {
 			Name:       "number",
 			Label:      "",
 			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"number","value":5}]`),
+			RiverValue: []byte(`{"type":"number","value":5}`),
 		},
 		{
 			ID:         2,
@@ -76,7 +75,7 @@ func TestGetComponentDetail(t *testing.T) {
 			Name:       "string",
 			Label:      "",
 			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"string","value":"example string value"}]`),
+			RiverValue: []byte(`{"type":"string","value":"example string value"}`),
 		},
 		{
 			ID:         3,
@@ -84,7 +83,7 @@ func TestGetComponentDetail(t *testing.T) {
 			Name:       "boolean",
 			Label:      "",
 			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"bool","value":true}]`),
+			RiverValue: []byte(`{"type":"bool","value":true}`),
 		},
 		{
 			ID:         4,
@@ -92,7 +91,7 @@ func TestGetComponentDetail(t *testing.T) {
 			Name:       "array",
 			Label:      "",
 			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"array","value":[{"type":"number","value":1},{"type":"number","value":2},{"type":"number","value":3}]}]`),
+			RiverValue: []byte(`{"type":"array","value":[{"type":"number","value":1},{"type":"number","value":2},{"type":"number","value":3}]}`),
 		},
 		{
 			ID:         5,
@@ -100,15 +99,14 @@ func TestGetComponentDetail(t *testing.T) {
 			Name:       "object",
 			Label:      "",
 			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"object","value":[{"key":"key1","value":{"type":"string","value":"val1"}},{"key":"key2","value":{"type":"string","value":"val2"}}]}]`),
+			RiverValue: []byte(`{"type":"object","value":[{"key":"key1","value":{"type":"string","value":"val1"}},{"key":"key2","value":{"type":"string","value":"val2"}}]}`),
 		},
 		{
-			ID:         6,
-			ParentID:   0,
-			Name:       "labeled_block",
-			Label:      "",
-			RiverType:  "block",
-			RiverValue: json.RawMessage{},
+			ID:        6,
+			ParentID:  0,
+			Name:      "labeled_block",
+			Label:     "label_a",
+			RiverType: "block",
 		},
 		{
 			ID:         7,
@@ -116,7 +114,7 @@ func TestGetComponentDetail(t *testing.T) {
 			Name:       "number",
 			Label:      "",
 			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"number","value":33}]`),
+			RiverValue: []byte(`{"type":"number","value":33}`),
 		},
 		{
 			ID:         8,
@@ -124,39 +122,30 @@ func TestGetComponentDetail(t *testing.T) {
 			Name:       "string",
 			Label:      "",
 			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"string","value":"asdf"}]`),
+			RiverValue: []byte(`{"type":"string","value":"asdf"}`),
 		},
 		{
-			ID:         9,
-			ParentID:   6,
-			Name:       "label",
-			Label:      "",
-			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"string","value":"label_a"}]`),
+			ID:        9,
+			ParentID:  0,
+			Name:      "labeled_block",
+			Label:     "label_b",
+			RiverType: "block",
 		},
 		{
 			ID:         10,
-			ParentID:   6,
+			ParentID:   9,
 			Name:       "number",
 			Label:      "",
 			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"number","value":77}]`),
+			RiverValue: []byte(`{"type":"number","value":77}`),
 		},
 		{
 			ID:         11,
-			ParentID:   6,
+			ParentID:   9,
 			Name:       "string",
 			Label:      "",
 			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"string","value":"qwerty"}]`),
-		},
-		{
-			ID:         12,
-			ParentID:   6,
-			Name:       "label",
-			Label:      "",
-			RiverType:  "attr",
-			RiverValue: []byte(`[{"type":"string","value":"label_b"}]`),
+			RiverValue: []byte(`{"type":"string","value":"qwerty"}`),
 		},
 	}
 	actual := riverjson.GetComponentDetail(val)

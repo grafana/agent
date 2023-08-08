@@ -104,24 +104,12 @@ func (o *Observer) observe(host service.Host) {
 func getAgentState(components []*component.Info) []Component {
 	res := []Component{}
 
-	parentId := uint(0)
 	for _, cInfo := range components {
-		// ComponentDetail should start at index 0 for each component
-		idCounter := parentId + 1
-
-		componentDetail := []riverjson.ComponentDetail{}
-
-		// Add the arguments
-		componentDetail = append(componentDetail, getTopLevelComponentDetail("arguments", parentId, &idCounter))
-		componentDetail = append(componentDetail, riverjson.GetComponentDetail(cInfo.Arguments, parentId, &idCounter)...)
-
-		// Add the exports
-		componentDetail = append(componentDetail, getTopLevelComponentDetail("exports", parentId, &idCounter))
-		componentDetail = append(componentDetail, riverjson.GetComponentDetail(cInfo.Exports, parentId, &idCounter)...)
-
-		// Add the debug info
-		componentDetail = append(componentDetail, getTopLevelComponentDetail("debug_info", parentId, &idCounter))
-		componentDetail = append(componentDetail, riverjson.GetComponentDetail(cInfo.DebugInfo, parentId, &idCounter)...)
+		componentDetail := riverjson.GetComponentDetail(componentDetailInfo{
+			Arguments: cInfo.Arguments,
+			Exports:   cInfo.Exports,
+			DebugInfo: cInfo.DebugInfo,
+		})
 
 		componentState := Component{
 			ID:       cInfo.ID.LocalID,
@@ -138,6 +126,12 @@ func getAgentState(components []*component.Info) []Component {
 	}
 
 	return res
+}
+
+type componentDetailInfo struct {
+	Arguments any `river:"arguments,block"`
+	Exports   any `river:"exports,block"`
+	DebugInfo any `river:"debug_info,block"`
 }
 
 func getTopLevelComponentDetail(componentName string, parentId uint, idCounter *uint) riverjson.ComponentDetail {

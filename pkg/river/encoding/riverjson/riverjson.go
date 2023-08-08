@@ -25,23 +25,23 @@ type ComponentDetail struct {
 	RiverValue json.RawMessage `parquet:"river_value,json"`
 }
 
-func GetComponentDetail(val interface{}, parentId uint, idCounter *uint) []ComponentDetail {
+func GetComponentDetail(val interface{}) []ComponentDetail {
 	rv := reflect.ValueOf(val)
-	return getComponentDetailInt(rv, parentId, idCounter)
+
+	var idCounter uint = 1
+	return getComponentDetailInt(rv, 0, &idCounter)
 }
 
 func getComponentDetailInt(rv reflect.Value, parentId uint, idCounter *uint) []ComponentDetail {
 	for rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
-			//TODO: return an error?
-			return nil
+			return []ComponentDetail{}
 		}
 		rv = rv.Elem()
 	}
 
 	if rv.Kind() == reflect.Invalid {
-		//TODO: return an error?
-		return nil
+		return []ComponentDetail{}
 	} else if rv.Kind() != reflect.Struct {
 		panic(fmt.Sprintf("river/encoding/riverjson: can only encode struct values to bodies, got %s", rv.Kind()))
 	}
@@ -56,24 +56,23 @@ func getComponentDetailInt(rv reflect.Value, parentId uint, idCounter *uint) []C
 
 	for _, field := range fields {
 		fieldVal := reflectutil.Get(rv, field)
+		fieldValDefault := reflectutil.Get(defaults, field)
 
-		//TODO: Should we include optional types here?
-		// fieldValDefault := reflectutil.Get(defaults, field)
-		// var isEqual = fieldVal.Comparable() && fieldVal.Equal(fieldValDefault)
-		// var isZero = fieldValDefault.IsZero() && fieldVal.IsZero()
-		// if field.IsOptional() && (isEqual || isZero) {
-		// 	continue
-		// }
+		var isEqual = fieldVal.Comparable() && fieldVal.Equal(fieldValDefault)
+		var isZero = fieldValDefault.IsZero() && fieldVal.IsZero()
 
-		componentDetail := encodeFieldAsComponentDetail(parentId, idCounter, field, fieldVal)
+		if field.IsOptional() && (isEqual || isZero) {
+			continue
+		}
 
-		componentDetails = mergeSlices[ComponentDetail](componentDetails, componentDetail)
+		componentDetail := encodeFieldAsComponentDetail(nil, parentId, idCounter, field, fieldVal)
+		componentDetails = append(componentDetails, componentDetail...)
 	}
 
 	return componentDetails
 }
 
-func encodeFieldAsComponentDetail(parentId uint, idCounter *uint, field rivertags.Field, fieldValue reflect.Value) []ComponentDetail {
+func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uint, field rivertags.Field, fieldValue reflect.Value) []ComponentDetail {
 	fieldName := strings.Join(field.Name, ".")
 
 	for fieldValue.Kind() == reflect.Pointer {
@@ -85,10 +84,9 @@ func encodeFieldAsComponentDetail(parentId uint, idCounter *uint, field rivertag
 
 	switch {
 	case field.IsAttr():
-		jsonVal, err := json.Marshal([]jsonValue{buildJSONValue(value.FromRaw(fieldValue))})
+		jsonVal, err := MarshalValue(fieldValue.Interface())
 		if err != nil {
-			//TODO: Return error?
-			return nil
+			panic("river/encoding/riverjson: failed to create a JSON value: " + err.Error())
 		}
 
 		curId := *idCounter
@@ -105,6 +103,8 @@ func encodeFieldAsComponentDetail(parentId uint, idCounter *uint, field rivertag
 		}
 
 	case field.IsBlock():
+		fullName := mergeSlices(prefix, field.Name)
+
 		switch {
 		case fieldValue.Kind() == reflect.Map:
 			// Iterate over the map and add each element as an attribute into it.
@@ -113,35 +113,33 @@ func encodeFieldAsComponentDetail(parentId uint, idCounter *uint, field rivertag
 				panic("river/encoding/riverjson: unsupported map type for block; expected map[string]T, got " + fieldValue.Type().String())
 			}
 
-			curIdMap := *idCounter
+			blockID := *idCounter
 			*idCounter += 1
+
 			componentDetails := []ComponentDetail{{
-				ID:        curIdMap,
+				ID:        blockID,
 				ParentID:  parentId,
-				Name:      fieldName,
+				Name:      strings.Join(fullName, "."),
 				Label:     "",
 				RiverType: "block",
-				// RiverValue: "",
 			}}
 
 			iter := fieldValue.MapRange()
 			for iter.Next() {
 				mapKey, mapValue := iter.Key(), iter.Value()
 
-				jsonVal, err := json.Marshal(buildJSONValue(value.FromRaw(mapValue)))
+				jsonVal, err := MarshalValue(mapValue.Interface())
 				if err != nil {
-					//TODO: Return an error?
-					return nil
+					panic("river/encoding/riverjson: failed to create a JSON value: " + err.Error())
 				}
 
 				curId := *idCounter
 				*idCounter += 1
 				cd := ComponentDetail{
-					ID:       curId,
-					ParentID: curIdMap,
-					Name:     mapKey.String(),
-					Label:    "",
-					//TODO: Should this be labeled as an attribute?
+					ID:         curId,
+					ParentID:   blockID,
+					Name:       mapKey.String(),
+					Label:      "",
 					RiverType:  "attr",
 					RiverValue: jsonVal,
 				}
@@ -152,16 +150,7 @@ func encodeFieldAsComponentDetail(parentId uint, idCounter *uint, field rivertag
 			return componentDetails
 
 		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
-			curId := *idCounter
-			*idCounter += 1
-			componentDetails := []ComponentDetail{{
-				ID:         curId,
-				ParentID:   parentId,
-				Name:       fieldName,
-				Label:      "",
-				RiverType:  "block",
-				RiverValue: []byte{},
-			}}
+			componentDetails := []ComponentDetail{}
 
 			for i := 0; i < fieldValue.Len(); i++ {
 				elem := fieldValue.Index(i)
@@ -169,34 +158,96 @@ func encodeFieldAsComponentDetail(parentId uint, idCounter *uint, field rivertag
 				// Recursively call encodeField for each element in the slice/array.
 				// The recursive call will hit the case below and add a new block for
 				// each field encountered.
-
-				componentDetails = append(componentDetails, encodeFieldAsComponentDetail(curId, idCounter, field, elem)...)
+				componentDetails = append(componentDetails, encodeFieldAsComponentDetail(prefix, parentId, idCounter, field, elem)...)
 			}
 
 			return componentDetails
 
 		case fieldValue.Kind() == reflect.Struct:
-			return getComponentDetailInt(fieldValue, parentId, idCounter)
+			if fieldValue.IsZero() {
+				curId := *idCounter
+				*idCounter += 1
+
+				// It shouldn't be possible to have a required block which is unset,
+				// but we'll encode something anyway.
+				return []ComponentDetail{{
+					ID:        curId,
+					ParentID:  parentId,
+					Name:      strings.Join(fullName, "."),
+					Label:     "",
+					RiverType: "block",
+				}}
+			}
+
+			blockID := *idCounter
+			*idCounter += 1
+
+			componentDetails := []ComponentDetail{{
+				ID:        blockID,
+				ParentID:  parentId,
+				Name:      strings.Join(fullName, "."),
+				Label:     getBlockLabel(fieldValue),
+				RiverType: "block",
+			}}
+
+			componentDetails = append(componentDetails, getComponentDetailInt(fieldValue, blockID, idCounter)...)
+			return componentDetails
+
+		case fieldValue.Kind() == reflect.Interface:
+			// Special case: try to get the underlying value as a block instead.
+			if fieldValue.IsNil() {
+				return []ComponentDetail{}
+			}
+			return encodeFieldAsComponentDetail(prefix, parentId, idCounter, field, fieldValue.Elem())
 
 		default:
 			panic(fmt.Sprintf("river/encoding/riverjson: unrecognized block kind %s", fieldValue.Kind()))
 		}
 
 	case field.IsEnum():
-		// switch {
-		// case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
-		// 	statements := []jsonStatement{}
-		// 	for i := 0; i < fieldValue.Len(); i++ {
-		// 		statements = append(statements, encodeEnumElementToStatements(newPrefix, fieldValue.Index(i))...)
-		// 	}
-		// 	return statements
+		// Blocks within an enum have a prefix set.
+		newPrefix := mergeSlices(prefix, field.Name)
 
-		// default:
-		// 	panic(fmt.Sprintf("river/encoding/riverjson: unrecognized enum kind %s", fieldValue.Kind()))
-		// }
+		switch {
+		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
+			details := []ComponentDetail{}
+			for i := 0; i < fieldValue.Len(); i++ {
+				details = append(details, encodeEnumElementToDetails(newPrefix, fieldValue.Index(i), parentId, idCounter)...)
+			}
+			return details
+
+		default:
+			panic(fmt.Sprintf("river/encoding/riverjson: unrecognized enum kind %s", fieldValue.Kind()))
+		}
 	}
 
 	return nil
+}
+
+func encodeEnumElementToDetails(prefix []string, enumElement reflect.Value, parentId uint, idCounter *uint) []ComponentDetail {
+	for enumElement.Kind() == reflect.Pointer {
+		if enumElement.IsNil() {
+			return nil
+		}
+		enumElement = enumElement.Elem()
+	}
+
+	fields := rivertags.Get(enumElement.Type())
+
+	details := []ComponentDetail{}
+
+	// Find the first non-zero field and encode it.
+	for _, field := range fields {
+		fieldVal := reflectutil.Get(enumElement, field)
+		if !fieldVal.IsValid() || fieldVal.IsZero() {
+			continue
+		}
+
+		details = append(details, encodeFieldAsComponentDetail(prefix, parentId, idCounter, field, fieldVal)...)
+		break
+	}
+
+	return details
 }
 
 // MarshalBody marshals the provided Go value to a JSON representation of
@@ -267,7 +318,7 @@ func encodeFieldAsStatements(prefix []string, field rivertags.Field, fieldValue 
 		}}
 
 	case field.IsBlock():
-		fullName := mergeSlices[string](prefix, field.Name)
+		fullName := mergeSlices(prefix, field.Name)
 
 		switch {
 		case fieldValue.Kind() == reflect.Map:
@@ -334,7 +385,7 @@ func encodeFieldAsStatements(prefix []string, field rivertags.Field, fieldValue 
 
 	case field.IsEnum():
 		// Blocks within an enum have a prefix set.
-		newPrefix := mergeSlices[string](prefix, field.Name)
+		newPrefix := mergeSlices(prefix, field.Name)
 
 		switch {
 		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
