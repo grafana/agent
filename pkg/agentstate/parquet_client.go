@@ -19,7 +19,7 @@ type ParquetClient struct {
 	endpoint   string
 	tenant     string
 
-	httpClient http.Client
+	httpClient *http.Client
 }
 
 var _ Client = (*ParquetClient)(nil)
@@ -31,7 +31,7 @@ func NewParquetClient(agentState AgentState, components []Component, endpoint st
 		components: components,
 		endpoint:   endpoint,
 		tenant:     tenant,
-		httpClient: http.Client{Timeout: 5 * time.Second},
+		httpClient: &http.Client{Timeout: 5 * time.Second},
 	}
 }
 
