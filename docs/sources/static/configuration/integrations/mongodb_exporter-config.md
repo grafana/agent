@@ -77,11 +77,11 @@ Besides that, there's not much to configure. Please refer to the full reference 
   [mongodb_uri: <string>]
 
   #Whether or not a direct connect should be made. Direct connections are not valid if multiple hosts are specified or an SRV URI is used
-  [direct-connect: <boolean> | default = true]
+  [direct_connect: <boolean> | default = true]
 
   #Enable autodiscover collections
-  [discovering-mode: <boolean> | default = false]
+  [discovering_mode: <boolean> | default = false]
 
   #Path to the file having Prometheus TLS config for basic auth. Only enable if you want to use TLS based authentication. Check [`tls_config`](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tls_config) for reference on the file format
-  [tls-basic-auth-config-path: <string> | default = ""]
+  [tls_basic_auth_config_path: <string> | default = ""]
 ```

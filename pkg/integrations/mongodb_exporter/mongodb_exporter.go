@@ -22,9 +22,9 @@ var DefaultConfig = Config{
 type Config struct {
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
 	URI                    config_util.Secret `yaml:"mongodb_uri"`
-	DirectConnect          bool               `yaml:"direct-connect,omitempty"`
-	DiscoveringMode        bool               `yaml:"discovering-mode,omitempty"`
-	TLSBasicAuthConfigPath string             `yaml:"tls-basic-auth-config-path,omitempty"`
+	DirectConnect          bool               `yaml:"direct_connect,omitempty"`
+	DiscoveringMode        bool               `yaml:"discovering_mode,omitempty"`
+	TLSBasicAuthConfigPath string             `yaml:"tls_basic_auth_config_path,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
