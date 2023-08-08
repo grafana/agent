@@ -87,15 +87,12 @@ func (o *Observer) Run(ctx context.Context, host service.Host) error {
 }
 
 func (o *Observer) observe(host service.Host) {
-	components, err := host.ListComponents("", component.InfoOptions{
+	components := component.GetAllComponents(host, component.InfoOptions{
 		GetHealth:    true,
 		GetArguments: true,
 		GetExports:   true,
 		GetDebugInfo: true,
 	})
-	if err != nil {
-		//TODO: Log a warning and continue?
-	}
 
 	getAgentState(components)
 
