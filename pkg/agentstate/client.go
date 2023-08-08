@@ -3,6 +3,8 @@ package agentstate
 import (
 	"bytes"
 	"os"
+	"path/filepath"
+	"runtime"
 
 	"github.com/parquet-go/parquet-go"
 )
@@ -11,36 +13,33 @@ import (
 type Client struct {
 	agentState AgentState
 	components []Component
-	writer     *parquet.GenericWriter[Component]
-	buf        bytes.Buffer
-}
 
-// PushConfig contains the configuration for pushing agent state to a remote endpoint.
-type PushConfig struct {
-	endpoint string
+	writer *parquet.GenericWriter[Component]
+	buf    bytes.Buffer
+
+	agentSeedController *AgentSeedController
 }
 
 // NewClient creates a new client for managing and writing agent state.
 func NewClient(agentState AgentState, components []Component) *Client {
 	var buf bytes.Buffer
+	agentSeedController := NewAgentSeedController(agentSeedFileName())
 
 	return &Client{
-		agentState: agentState,
-		components: components,
-		writer:     parquet.NewGenericWriter[Component](&buf),
-		buf:        buf,
+		agentState:          agentState,
+		components:          components,
+		writer:              parquet.NewGenericWriter[Component](&buf),
+		buf:                 buf,
+		agentSeedController: agentSeedController,
 	}
 }
 
-// PushData pushes the agent state to the configured endpoint.
-func (c *Client) PushData() error {
-	if err := c.Write(); err != nil {
-		return err
+func agentSeedFileName() string {
+	if runtime.GOOS == "windows" {
+		return filepath.Join(os.Getenv("APPDATA"), "grafana_agent_seed.json")
 	}
-
-	// TODO push the buf data to the configured endpoint
-
-	return nil
+	// linux/mac
+	return "/tmp/grafana_agent_seed.json"
 }
 
 // SetAgentState sets the current agent state for the client.
@@ -60,6 +59,7 @@ func (c *Client) Buf() bytes.Buffer {
 
 // Write writes the agent state to the buffer.
 func (c *Client) Write() error {
+	c.buf.Reset()
 	c.writer.Reset(&c.buf)
 	if err := c.writeRowGroups(); err != nil {
 		return err
@@ -69,17 +69,19 @@ func (c *Client) Write() error {
 	return c.writer.Close()
 }
 
-// WriteToFile writes the agent state to a file at the given filepath.
+// WriteToFile writes the agent state to a file at the given filepath. This
+// will overwrite the file if it already exists.
 func (c *Client) WriteToFile(filepath string) error {
 	if err := c.Write(); err != nil {
 		return err
 	}
 
-	if err := os.WriteFile(filepath, c.buf.Bytes(), 0644); err != nil {
+	f, err := os.Create(filepath)
+	if err != nil {
 		return err
 	}
-
-	return nil
+	_, err = f.Write(c.buf.Bytes())
+	return err
 }
 
 // writeRowGroups writes the agent state components to the parquet file.

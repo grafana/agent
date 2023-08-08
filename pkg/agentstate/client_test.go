@@ -3,6 +3,7 @@ package agentstate_test
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"testing"
 	"time"
 
@@ -13,6 +14,14 @@ import (
 
 var agentState agentstate.AgentState = agentstate.AgentState{
 	ID: "agent-1",
+	Labels: map[string]string{
+		"app1": ".net",
+		"app2": ".net",
+	},
+}
+
+var agentState2 agentstate.AgentState = agentstate.AgentState{
+	ID: "agent-2",
 	Labels: map[string]string{
 		"app1": ".net",
 		"app2": ".net",
@@ -93,17 +102,75 @@ var componentState []agentstate.Component = []agentstate.Component{
 	},
 }
 
-func TestClient(t *testing.T) {
+var componentState2 []agentstate.Component = []agentstate.Component{
+	{
+		ID: "prometheus.remote_write.default",
+		Health: agentstate.Health{
+			Health:     "healthy",
+			Message:    "Everything is fine",
+			UpdateTime: time.Now().UTC(),
+		},
+		ComponentDetail: []agentstate.ComponentDetail{
+			{
+				ID:         1,
+				ParentID:   0,
+				Name:       "module.file.default",
+				Label:      "module.file.default",
+				RiverType:  "file",
+				RiverValue: json.RawMessage(`"/var/log/messages"`),
+			},
+		},
+	},
+}
+
+func TestClientWrite(t *testing.T) {
 	client := agentstate.NewClient(agentState, componentState)
 	err := client.Write()
 	require.NoError(t, err)
-	err = client.Write()
-	require.NoError(t, err)
-
 	validateMetadata(t, client.Buf(), agentState)
 	validateComponentState(t, client.Buf(), componentState)
 	validateFakeComponentState(t, client.Buf(), componentState)
 	validateFakeComponent2State(t, client.Buf(), componentState)
+
+	// Make sure we can write multiple times without issue.
+	client.SetAgentState(agentState2)
+	client.SetComponents(componentState2)
+	err = client.Write()
+	require.NoError(t, err)
+	validateMetadata(t, client.Buf(), agentState2)
+	validateComponentState(t, client.Buf(), componentState2)
+	validateFakeComponentState(t, client.Buf(), componentState2)
+	validateFakeComponent2State(t, client.Buf(), componentState2)
+}
+
+func TestClientWriteToFile(t *testing.T) {
+	client := agentstate.NewClient(agentState, componentState)
+	filepath := t.TempDir() + "/agent_state.parquet"
+	err := client.WriteToFile(filepath)
+	require.NoError(t, err)
+	data, err := os.ReadFile(filepath)
+	var buffer bytes.Buffer
+	buffer.Write(data)
+	require.NoError(t, err)
+	validateMetadata(t, buffer, agentState)
+	validateComponentState(t, buffer, componentState)
+	validateFakeComponentState(t, buffer, componentState)
+	validateFakeComponent2State(t, buffer, componentState)
+
+	// Make sure we can write multiple times without issue.
+	filepath = t.TempDir() + "/agent_state2.parquet"
+	client.SetAgentState(agentState2)
+	client.SetComponents(componentState2)
+	err = client.WriteToFile(filepath)
+	require.NoError(t, err)
+	data, err = os.ReadFile(filepath)
+	buffer.Reset()
+	buffer.Write(data)
+	require.NoError(t, err)
+	validateMetadata(t, buffer, agentState2)
+	validateComponentState(t, buffer, componentState2)
+	validateFakeComponentState(t, buffer, componentState2)
+	validateFakeComponent2State(t, buffer, componentState2)
 }
 
 func validateMetadata(t *testing.T, buf bytes.Buffer, expected agentstate.AgentState) {
