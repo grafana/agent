@@ -123,8 +123,8 @@ loki.source.api "loki_push_api" {
 
 `loki.source.api` can output data to the following components:
 
-- Loki Logs:
-  - [`loki.echo`]()
+- Components that accept Loki Logs:
+  - [`loki.echo`]({{< relref "../components/loki.echo.md" >}})
 
 Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
 

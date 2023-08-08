@@ -117,7 +117,7 @@ func outputComponentsSection(name string, c component.Registration) string {
 	section := ""
 	for _, outputDataType := range c.Metadata.Outputs {
 		if list := listOfComponentsAccepting(outputDataType); list != "" {
-			section += fmt.Sprintf("- %s:\n", outputDataType) + list
+			section += fmt.Sprintf("- Components that accept %s:\n", outputDataType) + list
 		}
 	}
 	if section != "" {
@@ -130,7 +130,7 @@ func acceptingComponentsSection(componentName string, c component.Registration) 
 	section := ""
 	for _, acceptedDataType := range c.Metadata.Accepts {
 		if list := listOfComponentsOutputting(acceptedDataType); list != "" {
-			section += fmt.Sprintf("- %s:\n", acceptedDataType) + list
+			section += fmt.Sprintf("- Components that output %s:\n", acceptedDataType) + list
 		}
 	}
 	if section != "" {
@@ -150,7 +150,7 @@ func listOfComponentsOutputting(dataType component.DataType) string {
 func listOfLinksToComponents(components []string) string {
 	str := ""
 	for _, comp := range components {
-		str += fmt.Sprintf("  - [`%s`]()\n", comp)
+		str += fmt.Sprintf("  - [`%[1]s`]({{< relref \"../components/%[1]s.md\" >}})\n", comp)
 	}
 	return str
 }

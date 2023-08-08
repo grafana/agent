@@ -74,8 +74,8 @@ loki.echo "example" { }
 
 `loki.echo` can accept data from the following components:
 
-- Loki Logs:
-  - [`loki.source.api`]()
+- Components that output Loki Logs:
+  - [`loki.source.api`]({{< relref "../components/loki.source.api.md" >}})
 
 Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
 
