@@ -31,13 +31,14 @@ func init() {
 // Arguments holds values which are used to configure the
 // loki.source.cloudflare component.
 type Arguments struct {
-	APIToken   rivertypes.Secret   `river:"api_token,attr"`
-	ZoneID     string              `river:"zone_id,attr"`
-	Labels     map[string]string   `river:"labels,attr,optional"`
-	Workers    int                 `river:"workers,attr,optional"`
-	PullRange  time.Duration       `river:"pull_range,attr,optional"`
-	FieldsType string              `river:"fields_type,attr,optional"`
-	ForwardTo  []loki.LogsReceiver `river:"forward_to,attr"`
+	APIToken     rivertypes.Secret   `river:"api_token,attr"`
+	ZoneID       string              `river:"zone_id,attr"`
+	Labels       map[string]string   `river:"labels,attr,optional"`
+	Workers      int                 `river:"workers,attr,optional"`
+	PullRange    time.Duration       `river:"pull_range,attr,optional"`
+	FieldsType   string              `river:"fields_type,attr,optional"`
+	CustomFields []string            `river:"custom_fields,attr,optional"`
+	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
 }
 
 // Convert returns a cloudflaretarget Config struct from the Arguments.
@@ -47,12 +48,13 @@ func (c Arguments) Convert() *cft.Config {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 	return &cft.Config{
-		APIToken:   string(c.APIToken),
-		ZoneID:     c.ZoneID,
-		Labels:     lbls,
-		Workers:    c.Workers,
-		PullRange:  model.Duration(c.PullRange),
-		FieldsType: c.FieldsType,
+		APIToken:     string(c.APIToken),
+		ZoneID:       c.ZoneID,
+		Labels:       lbls,
+		Workers:      c.Workers,
+		PullRange:    model.Duration(c.PullRange),
+		FieldsType:   c.FieldsType,
+		CustomFields: c.CustomFields,
 	}
 }
 
@@ -73,11 +75,38 @@ func (c *Arguments) Validate() error {
 	if c.PullRange < 0 {
 		return fmt.Errorf("pull_range must be a positive duration")
 	}
-	_, err := cft.Fields(cft.FieldsType(c.FieldsType))
+	fields, err := cft.Fields(cft.FieldsType(c.FieldsType))
 	if err != nil {
-		return fmt.Errorf("invalid fields_type set; the available values are 'default', 'minimal', 'extended' and 'all'")
+		return fmt.Errorf("invalid fields_type set; the available values are 'default', 'minimal', 'extended', 'custom' and 'all'")
 	}
+
+	if invalidFields := cft.FindInvalidFields(c.CustomFields); len(invalidFields) > 0 {
+		return fmt.Errorf("invalid custom_fields: %v", invalidFields)
+	}
+
+	if commonFields := findCommonElement(fields, c.CustomFields); len(commonFields) > 0 {
+		return fmt.Errorf("duplicated fields; the following fields are already part of %s: %v", c.FieldsType, commonFields)
+	}
+
 	return nil
+}
+
+// Find the common values between two slices
+func findCommonElement(slice1, slice2 []string) []string {
+	elements := make(map[string]bool)
+	var common []string
+
+	for _, element := range slice1 {
+		elements[element] = true
+	}
+
+	for _, element := range slice2 {
+		if elements[element] {
+			common = append(common, element)
+		}
+	}
+
+	return common
 }
 
 // Component implements the loki.source.cloudflare component.

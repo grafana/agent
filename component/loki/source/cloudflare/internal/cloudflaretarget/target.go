@@ -38,12 +38,13 @@ var defaultBackoff = backoff.Config{
 
 // Config defines how to connect to Cloudflare's Logpull API.
 type Config struct {
-	APIToken   string
-	ZoneID     string
-	Labels     model.LabelSet
-	Workers    int
-	PullRange  model.Duration
-	FieldsType string
+	APIToken     string
+	ZoneID       string
+	Labels       model.LabelSet
+	Workers      int
+	PullRange    model.Duration
+	FieldsType   string
+	CustomFields []string
 }
 
 // Target enables pulling HTTP log messages from Cloudflare using the Logpull
@@ -66,10 +67,11 @@ type Target struct {
 
 // NewTarget creates and runs a Cloudflare target.
 func NewTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, position positions.Positions, config *Config) (*Target, error) {
-	fields, err := Fields(FieldsType(config.FieldsType))
+	fieldsSubset, err := Fields(FieldsType(config.FieldsType))
 	if err != nil {
 		return nil, err
 	}
+	fields := append(fieldsSubset, config.CustomFields...)
 	client, err := getClient(config.APIToken, config.ZoneID, fields)
 	if err != nil {
 		return nil, err

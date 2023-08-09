@@ -17,6 +17,7 @@ const (
 	FieldsTypeMinimal  FieldsType = "minimal"
 	FieldsTypeExtended FieldsType = "extended"
 	FieldsTypeAll      FieldsType = "all"
+	FieldsTypeCustom   FieldsType = "custom"
 )
 
 var (
@@ -39,6 +40,7 @@ var (
 		"FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID",
 		"RequestHeaders", "ResponseHeaders",
 	}...)
+	allFieldsMap = buildAllFieldsMap(allFields)
 )
 
 // Fields returns the mapping of FieldsType to the set of fields it represents.
@@ -52,7 +54,28 @@ func Fields(t FieldsType) ([]string, error) {
 		return extendedFields, nil
 	case FieldsTypeAll:
 		return allFields, nil
+	case FieldsTypeCustom:
+		return []string{}, nil
 	default:
 		return nil, fmt.Errorf("unknown fields type: %s", t)
 	}
+}
+
+func buildAllFieldsMap(allFields []string) map[string]bool {
+	fieldsMap := make(map[string]bool)
+	for _, field := range allFields {
+		fieldsMap[field] = true
+	}
+	return fieldsMap
+}
+
+func FindInvalidFields(fields []string) []string {
+	var invalidFields []string
+
+	for _, field := range fields {
+		if !allFieldsMap[field] {
+			invalidFields = append(invalidFields, field)
+		}
+	}
+	return invalidFields
 }
