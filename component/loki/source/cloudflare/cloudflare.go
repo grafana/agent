@@ -80,7 +80,7 @@ func (c *Arguments) Validate() error {
 		return fmt.Errorf("invalid fields_type set; the available values are 'default', 'minimal', 'extended', 'custom' and 'all'")
 	}
 
-	if c.FieldsType == "all" && len(c.CustomFields) > 0 {
+	if cft.FieldsType(c.FieldsType) == cft.FieldsTypeAll && len(c.CustomFields) > 0 {
 		return fmt.Errorf("no need to provide custom fields when fields_type is set to 'all' as it contains already all available fields")
 	}
 
