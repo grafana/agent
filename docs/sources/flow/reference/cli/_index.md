@@ -1,6 +1,8 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/
-title: Command-line interface
+description: The Grafana Agent command line interface provides subcommands to perform various operations.
+title: The Grafana Agent command line interface
+menuTitle: Command-line interface
 weight: 100
 ---
 
@@ -14,10 +16,14 @@ starts Grafana Agent Flow.
 
 Available commands:
 
-* [`grafana-agent run`][run]: Start Grafana Agent Flow, given a config file.
-* [`grafana-agent fmt`][fmt]: Format a Grafana Agent Flow config file.
-* `grafana-agent completion`: Generate shell completion for the `grafana-agent` CLI.
-* `grafana-agent help`: Print help for supported commands.
+* [`convert`][convert]: Convert a Grafana Agent configuration file.
+* [`fmt`][fmt]: Format a Grafana Agent Flow configuration file.
+* [`run`][run]: Start Grafana Agent Flow, given a configuration file.
+* [`tools`][tools]: Read the WAL and provide statistical information.
+* `completion`: Generate shell completion for the `grafana-agent-flow` CLI.
+* `help`: Print help for supported commands.
 
 [run]: {{< relref "./run.md" >}}
 [fmt]: {{< relref "./fmt.md" >}}
+[convert]: {{< relref "./convert.md" >}}
+[tools]: {{< relref "./tools.md" >}}

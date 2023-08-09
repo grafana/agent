@@ -184,6 +184,8 @@ loki.write "local" {
 }
 ```
 
-## Compression
+## Technical details
 
 `loki.write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
+
+Any labels that start with `__` will be removed before sending to the endpoint. 

@@ -35,9 +35,8 @@ discovery.relabel "integrations_node_exporter" {
 	}
 
 	rule {
-		source_labels = []
-		target_label  = "__address__"
-		replacement   = "localhost:8099"
+		target_label = "__address__"
+		replacement  = "localhost:8099"
 	}
 }
 
