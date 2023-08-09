@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
+	"github.com/grafana/agent/component/otelcol/internal/views"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
@@ -125,7 +126,10 @@ func (r *Receiver) Update(args component.Arguments) error {
 			Logger: zapadapter.New(r.opts.Logger),
 
 			TracerProvider: r.opts.Tracer,
-			MeterProvider:  metric.NewMeterProvider(metric.WithReader(promExporter)),
+			MeterProvider: metric.NewMeterProvider(
+				metric.WithReader(promExporter),
+				metric.WithView(views.DropHighCardinalityServerAttributes()...),
+			),
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{
