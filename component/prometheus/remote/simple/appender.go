@@ -1,4 +1,4 @@
-package badger
+package simple
 
 import (
 	"sync"
@@ -13,7 +13,7 @@ import (
 
 type appender struct {
 	mut             sync.Mutex
-	parent          *Component
+	parent          *Simple
 	metrics         []prometheus.Sample
 	exemplars       []prometheus.Exemplar
 	histogram       []prometheus.Histogram
@@ -21,7 +21,7 @@ type appender struct {
 	metadata        []prometheus.Metadata
 }
 
-func newAppender(parent *Component) *appender {
+func newAppender(parent *Simple) *appender {
 	return &appender{
 		parent:          parent,
 		metrics:         make([]prometheus.Sample, 0),

@@ -1,4 +1,4 @@
-package wal
+package simple
 
 import (
 	badgerdb "github.com/dgraph-io/badger/v3"

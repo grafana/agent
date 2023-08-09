@@ -1,4 +1,4 @@
-package wal
+package simple
 
 import (
 	"testing"

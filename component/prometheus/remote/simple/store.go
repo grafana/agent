@@ -1,4 +1,4 @@
-package wal
+package simple
 
 import (
 	"github.com/prometheus/prometheus/model/histogram"

@@ -1,4 +1,4 @@
-package wal
+package simple
 
 import (
 	"context"
@@ -29,9 +29,10 @@ const (
 	floathistogram_signal
 	metadata_signal
 	exemplar_signal
+	bookmark_type
 )
 
-func newDBStore(ctx context.Context, inMemory bool, ttl time.Duration, ttlUpdate time.Duration, directory string, l *logging.Logger) (*dbstore, error) {
+func newDBStore(inMemory bool, ttl time.Duration, ttlUpdate time.Duration, directory string, l *logging.Logger) (*dbstore, error) {
 	bookmark, err := newDb(path.Join(directory, "bookmark"), l)
 	if err != nil {
 		return nil, err
@@ -44,6 +45,11 @@ func newDBStore(ctx context.Context, inMemory bool, ttl time.Duration, ttlUpdate
 		callbacks: make([]func(oldestID uint64), 0),
 	}
 	return store, nil
+}
+
+func (dbs *dbstore) Run(ctx context.Context) {
+	dbs.ctx = ctx
+	go dbs.startTTL()
 }
 
 func (dbs *dbstore) startTTL() {
@@ -64,43 +70,26 @@ func (dbs *dbstore) evict() {
 	dbs.mut.Lock()
 	dbs.sampleDB.evict()
 	dbs.mut.Unlock()
-
-	// TODO call callbacks so cache can be cleaned.
 }
 
 func (dbs *dbstore) WriteBookmark(key string, value any) error {
 	return dbs.bookmark.writeRecord([]byte(key), value, 0*time.Second)
 }
 
-func (dbs *dbstore) GetBookmark(key string, into any) bool {
-	found, _ := dbs.bookmark.getRecordByString(key, into)
-	return found
+func (dbs *dbstore) GetBookmark(key string) (*Bookmark, bool) {
+	bk, found, _ := dbs.bookmark.getRecordByString(key)
+	return bk.(*Bookmark), found
 }
 
 func (dbs *dbstore) WriteSignal(value any) (uint64, error) {
 	return dbs.sampleDB.writeRecordWithAutoKey(value, dbs.ttl)
 }
 
-func (dbs *dbstore) GetSignal(key uint64, value any) bool {
-	found, err := dbs.sampleDB.getRecordByUint(key, value)
+func (dbs *dbstore) GetSignal(key uint64) (any, bool) {
+	val, found, err := dbs.sampleDB.getRecordByUint(key)
 	if err != nil {
 		level.Error(dbs.l).Log("error finding key", err, "key", key)
 		return false
 	}
 	return found
-}
-
-func (dbs *dbstore) RegisterTTLCallback(f func(oldestID uint64)) {
-	dbs.mut.Lock()
-	defer dbs.mut.Unlock()
-
-	dbs.callbacks = append(dbs.callbacks, f)
-}
-
-func (dbs *dbstore) WriteSignalCache(key string, value any) error {
-	return nil
-}
-
-func (dbs *dbstore) GetSignalCache(key string, into any) bool {
-	return false
 }

@@ -1,4 +1,4 @@
-package wal
+package simple
 
 import (
 	"bytes"
@@ -81,4 +81,3 @@ func (w *writer) incrementKey() error {
 	binary.PutUvarint(buf, w.currentKey)
 	return w.bm.writeBookmark(name, buf)
 }
-  

@@ -2,32 +2,20 @@ package badger
 
 import (
 	"context"
+	"github.com/grafana/agent/component/prometheus/remote/simple"
 	"path"
 	"sync"
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/prometheus"
 	"github.com/prometheus/prometheus/storage"
 )
-
-func init() {
-	component.Register(component.Registration{
-		Name:      "prometheus.wal.badger",
-		Singleton: false,
-		Args:      Arguments{},
-		Exports:   Exports{},
-		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return NewComponent(opts, args.(Arguments))
-		},
-	})
-}
 
 type Component struct {
 	mut     sync.RWMutex
 	args    Arguments
 	opts    component.Options
-	metrics *db
+	metrics *d
 }
 
 var _ component.Component = (*Component)(nil)
@@ -68,10 +56,10 @@ func (c *Component) Update(args component.Arguments) error {
 // can choose whether or not to use the context, for deadlines or to check
 // for errors.
 func (c *Component) Appender(ctx context.Context) storage.Appender {
-	return newAppender(c)
+	return simple.newAppender(c)
 }
 
-func (c *Component) commit(a *appender) {
+func (c *Component) commit(a *simple.appender) {
 	c.mut.RLock()
 	defer c.mut.Unlock()
 
@@ -91,12 +79,4 @@ func (c *Component) commit(a *appender) {
 
 type seqSettable interface {
 	SetSeq(uint64)
-}
-type Arguments struct {
-	TTL       time.Duration        `river:"ttl,attr,optional"`
-	ForwardTo []prometheus.WriteTo `river:"forward_to,attr"`
-}
-
-type Exports struct {
-	Receiver storage.Appendable `river:"receiver,attr"`
 }

@@ -1,4 +1,4 @@
-package wal
+package simple
 
 import (
 	"bytes"
@@ -109,9 +109,10 @@ func (d *signaldb) getNextKey(k uint64) uint64 {
 	return k + 1
 }
 
-func (d *signaldb) getValueForKey(k []byte, into any) (bool, error) {
+func (d *signaldb) getValueForKey(k []byte) (any, bool, error) {
 	var value []byte
 	var found bool
+	var t int8
 	err := d.d.View(func(txn *badgerdb.Txn) error {
 		item, err := txn.Get(k)
 		if err == badgerdb.ErrKeyNotFound {
@@ -120,25 +121,27 @@ func (d *signaldb) getValueForKey(k []byte, into any) (bool, error) {
 		}
 		found = true
 		value, err = item.ValueCopy(nil)
+		t = int8(item.UserMeta())
 		return err
 	})
 	if err != nil {
-		return false, err
+		return nil, false, err
 	}
 	buf := bytes.NewBuffer(value)
 	dec := gob.NewDecoder(buf)
-	err = dec.Decode(into)
-	return found, err
+	val := getRecord(t)
+	err = dec.Decode(val)
+	return val, found, err
 }
 
-func (d *signaldb) getRecordByString(key string, into any) (bool, error) {
-	return d.getValueForKey([]byte(key), into)
+func (d *signaldb) getRecordByString(key string) (any, bool, error) {
+	return d.getValueForKey([]byte(key))
 }
 
-func (d *signaldb) getRecordByUint(key uint64, into any) (bool, error) {
+func (d *signaldb) getRecordByUint(key uint64) (any, bool, error) {
 	buf := make([]byte, 8)
 	binary.PutUvarint(buf, key)
-	return d.getValueForKey(buf, into)
+	return d.getValueForKey(buf)
 }
 
 // writeRecordWithAutoKey will gob encode the data and set a TTL from now.
@@ -197,8 +200,29 @@ func getType(data any) (int8, error) {
 		return histogram_signal, nil
 	case []FloatHistogram:
 		return floathistogram_signal, nil
+	case Bookmark:
+		return bookmark_type, nil
 	default:
 		return 0, fmt.Errorf("unknown data type %v", v)
+	}
+}
+
+func getRecord(t int8) any {
+	switch t {
+	case metric_signal:
+		return []Sample{}
+	case exemplar_signal:
+		return []Exemplar{}
+	case metadata_signal:
+		return []Metadata{}
+	case histogram_signal:
+		return []Histogram{}
+	case floathistogram_signal:
+		return []FloatHistogram{}
+	case bookmark_type:
+		return &Bookmark{}
+	default:
+		return nil
 	}
 }
 
@@ -215,4 +239,3 @@ func (d *signaldb) evict() {
 	}
 
 }
-  

@@ -39,8 +39,6 @@ type WriteClient interface {
 	Endpoint() string
 }
 
-var _ prometheus.WriteTo = (*QueueManager)(nil)
-
 // QueueManager manages a queue of samples to be sent to the Storage
 // indicated by the provided WriteClient. Implements writeTo interface
 // used by WAL Watcher.
