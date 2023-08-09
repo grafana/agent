@@ -7,7 +7,7 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.35.3 (2023-08-07)
+v0.35.3 (2023-08-09)
 --------------------
 
 ### Bugfixes
@@ -18,6 +18,12 @@ v0.35.3 (2023-08-07)
   entry in the traces config. It is no longer configurable through the jaeger receiver.
   Support Jaeger remote sampling was removed accidentally in v0.35, and it is now restored, 
   albeit via a different config entry.
+
+- Clustering: Nodes take part in distributing load only after loading their
+  component graph. (@tpaschalis)
+
+- Fix graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
+  signals. (@tpaschalis)
 
 v0.35.2 (2023-07-27)
 --------------------
