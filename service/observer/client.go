@@ -17,7 +17,7 @@ type Client interface {
 	SetComponents(components []riveragentstate.Component)
 
 	// Send encodes and sends the agent state to the configured destination.
-	Send(ctx context.Context, endpoint string, agentID string, tenant string) error
+	Send(ctx context.Context, agentID string, args Arguments) error
 
 	// Write writes the agent state to the buffer.
 	Write() (bytes.Buffer, error)

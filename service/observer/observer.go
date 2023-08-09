@@ -10,6 +10,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
 	"github.com/grafana/agent/service"
@@ -19,9 +20,11 @@ import (
 const ServiceName = "observer"
 
 type Arguments struct {
-	RefreshFrequency time.Duration     `river:"refresh_frequency,attr,optional"`
-	RemoteEndpoint   string            `river:"remote_endpoint,attr,optional"`
-	Labels           map[string]string `river:"labels,attr,optional"`
+	RefreshFrequency time.Duration           `river:"refresh_frequency,attr,optional"`
+	RemoteEndpoint   string                  `river:"remote_endpoint,attr,optional"`
+	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
+	Headers          map[string]string       `river:"headers,attr,optional"`
+	Labels           map[string]string       `river:"labels,attr,optional"`
 }
 
 var _ river.Defaulter = (*Arguments)(nil)
@@ -29,6 +32,7 @@ var _ river.Defaulter = (*Arguments)(nil)
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
 	RefreshFrequency: time.Minute,
+	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -56,13 +60,7 @@ func New(l log.Logger, agentID string) *Observer {
 		agentID:      agentID,
 		configUpdate: make(chan struct{}, 1),
 		args:         DefaultArguments,
-
-		//TODO: Why not just set client to nil?
-		//      We have not fully loaded the observer config yet. We can't send the any data anyway.
-		client: NewParquetClient(
-			riveragentstate.NewAgentState(nil),
-			nil,
-		),
+		client:       nil,
 	}
 }
 
@@ -130,7 +128,7 @@ func (o *Observer) observe(ctx context.Context, host service.Host) {
 	o.client.SetAgentState(riveragentstate.NewAgentState(labelsCopy))
 	o.client.SetComponents(components)
 
-	if err := o.client.Send(ctx, o.args.RemoteEndpoint, o.agentID, "default"); err != nil {
+	if err := o.client.Send(ctx, o.agentID, o.args); err != nil {
 		level.Error(o.log).Log("msg", "failed to send payload", "err", err)
 	} else {
 		level.Info(o.log).Log("msg", "sent state payload to remote server")
@@ -177,6 +175,11 @@ func (o *Observer) Update(newConfig any) error {
 	defer o.mtx.Unlock()
 
 	o.args = cfg
+	o.client = NewParquetClient(
+		riveragentstate.NewAgentState(o.args.Labels),
+		nil,
+		&o.args,
+	)
 
 	select {
 	case o.configUpdate <- struct{}{}:

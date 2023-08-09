@@ -60,6 +60,8 @@ var componentState []riveragentstate.Component = []riveragentstate.Component{
 				RiverValue: json.RawMessage(`"/var/log/messages"`),
 			},
 		},
+		Exports:   []riveragentstate.ComponentDetail{},
+		DebugInfo: []riveragentstate.ComponentDetail{},
 	},
 	{
 		ID: "prometheus.remote_write.default",
@@ -69,6 +71,8 @@ var componentState []riveragentstate.Component = []riveragentstate.Component{
 			UpdateTime: time.Now().UTC(),
 		},
 		Arguments: []riveragentstate.ComponentDetail{},
+		Exports:   []riveragentstate.ComponentDetail{},
+		DebugInfo: []riveragentstate.ComponentDetail{},
 	},
 	{
 		ID: "prometheus.scrape.first",
@@ -78,6 +82,8 @@ var componentState []riveragentstate.Component = []riveragentstate.Component{
 			UpdateTime: time.Now().UTC(),
 		},
 		Arguments: []riveragentstate.ComponentDetail{},
+		Exports:   []riveragentstate.ComponentDetail{},
+		DebugInfo: []riveragentstate.ComponentDetail{},
 	},
 	{
 		ID:       "module.file.nested",
@@ -88,6 +94,8 @@ var componentState []riveragentstate.Component = []riveragentstate.Component{
 			UpdateTime: time.Now().UTC(),
 		},
 		Arguments: []riveragentstate.ComponentDetail{},
+		Exports:   []riveragentstate.ComponentDetail{},
+		DebugInfo: []riveragentstate.ComponentDetail{},
 	},
 	{
 		ID: "prometheus.scrape.second",
@@ -97,6 +105,8 @@ var componentState []riveragentstate.Component = []riveragentstate.Component{
 			UpdateTime: time.Now().UTC(),
 		},
 		Arguments: []riveragentstate.ComponentDetail{},
+		Exports:   []riveragentstate.ComponentDetail{},
+		DebugInfo: []riveragentstate.ComponentDetail{},
 	},
 }
 
@@ -118,11 +128,13 @@ var componentState2 []riveragentstate.Component = []riveragentstate.Component{
 				RiverValue: json.RawMessage(`"/var/log/messages"`),
 			},
 		},
+		Exports:   []riveragentstate.ComponentDetail{},
+		DebugInfo: []riveragentstate.ComponentDetail{},
 	},
 }
 
 func TestClientWrite(t *testing.T) {
-	client := NewParquetClient(agentState, componentState)
+	client := NewParquetClient(agentState, componentState, nil)
 	buf, err := client.Write()
 	require.NoError(t, err)
 	validateMetadata(t, buf, agentState)
@@ -142,7 +154,7 @@ func TestClientWrite(t *testing.T) {
 }
 
 func TestClientWriteToFile(t *testing.T) {
-	client := NewParquetClient(agentState, componentState)
+	client := NewParquetClient(agentState, componentState, nil)
 	filepath := t.TempDir() + "/agent_state.parquet"
 	err := client.WriteToFile(filepath)
 	require.NoError(t, err)
@@ -191,7 +203,7 @@ func validateComponentState(t *testing.T, buf bytes.Buffer, expected []riveragen
 
 func validateFakeComponentState(t *testing.T, buf bytes.Buffer, expected []riveragentstate.Component) {
 	type FakeComponent struct {
-		Arguments []riveragentstate.ComponentDetail `parquet:"component_detail"`
+		Arguments []riveragentstate.ComponentDetail `parquet:"arguments"`
 	}
 
 	var fakeComponent []FakeComponent
