@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,21 +18,21 @@ type AgentSeed struct {
 	Version   string    `json:"version"`
 }
 
-func RetrieveAgentSeed(filepath string) (*AgentSeed, error) {
-	if fileExists(filepath) {
-		return readSeedFile(filepath)
+func RetrieveAgentSeed(fp string) (*AgentSeed, error) {
+	if fileExists(fp) {
+		return readSeedFile(fp)
 	}
 
-	return writeSeedFile(filepath)
+	return writeSeedFile(fp)
 }
 
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
+func fileExists(fp string) bool {
+	_, err := os.Stat(fp)
 	return !errors.Is(err, os.ErrNotExist)
 }
 
-func readSeedFile(filepath string) (*AgentSeed, error) {
-	data, err := os.ReadFile(filepath)
+func readSeedFile(fp string) (*AgentSeed, error) {
+	data, err := os.ReadFile(fp)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +41,7 @@ func readSeedFile(filepath string) (*AgentSeed, error) {
 	return agentSeed, err
 }
 
-func writeSeedFile(filepath string) (*AgentSeed, error) {
+func writeSeedFile(fp string) (*AgentSeed, error) {
 	agentSeed := &AgentSeed{
 		UID:       uuid.NewString(),
 		Version:   version.Version,
@@ -52,6 +53,11 @@ func writeSeedFile(filepath string) (*AgentSeed, error) {
 		return nil, err
 	}
 
-	err = os.WriteFile(filepath, data, 0644)
+	err = os.MkdirAll(filepath.Dir(fp), 0755)
+	if err != nil {
+		return nil, err
+	}
+
+	err = os.WriteFile(fp, data, 0644)
 	return agentSeed, err
 }
