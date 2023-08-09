@@ -13,7 +13,6 @@ import (
 )
 
 var agentState agentstate.AgentState = agentstate.AgentState{
-	ID: "agent-1",
 	Labels: map[string]string{
 		"app1": ".net",
 		"app2": ".net",
@@ -21,7 +20,6 @@ var agentState agentstate.AgentState = agentstate.AgentState{
 }
 
 var agentState2 agentstate.AgentState = agentstate.AgentState{
-	ID: "agent-2",
 	Labels: map[string]string{
 		"app1": ".net",
 		"app2": ".net",

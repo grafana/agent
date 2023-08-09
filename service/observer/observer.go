@@ -38,7 +38,8 @@ func (args *Arguments) SetToDefault() {
 }
 
 type Observer struct {
-	log log.Logger
+	log     log.Logger
+	agentID string
 
 	mtx          sync.Mutex
 	args         Arguments
@@ -50,9 +51,10 @@ type Observer struct {
 var _ service.Service = (*Observer)(nil)
 
 // New returns a new, unstarted instance of the HTTP service.
-func New(l log.Logger) *Observer {
+func New(l log.Logger, agentID string) *Observer {
 	return &Observer{
 		log:          l,
+		agentID:      agentID,
 		configUpdate: make(chan struct{}, 1),
 		args:         DefaultArguments,
 
@@ -129,7 +131,7 @@ func (o *Observer) observe(ctx context.Context, host service.Host) {
 	o.client.SetAgentState(agentstate.NewAgentState(labelsCopy))
 	o.client.SetComponents(components)
 
-	if err := o.client.Send(ctx, o.args.RemoteEndpoint, "default"); err != nil {
+	if err := o.client.Send(ctx, o.args.RemoteEndpoint, o.agentID, "default"); err != nil {
 		level.Error(o.log).Log("msg", "failed to send payload", "err", err)
 	} else {
 		level.Info(o.log).Log("msg", "sent state payload to remote server")
@@ -167,19 +169,6 @@ type componentDetailInfo struct {
 	Arguments any `river:"arguments,block"`
 	Exports   any `river:"exports,block"`
 	DebugInfo any `river:"debug_info,block"`
-}
-
-func getTopLevelComponentDetail(componentName string, parentId uint, idCounter *uint) agentstate.ComponentDetail {
-	res := agentstate.ComponentDetail{
-		ID:         *idCounter,
-		ParentID:   parentId,
-		Name:       componentName,
-		Label:      "",
-		RiverType:  "",
-		RiverValue: []byte{},
-	}
-	*idCounter += 1
-	return res
 }
 
 // Update implements service.Service.

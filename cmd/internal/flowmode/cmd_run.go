@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sync"
 	"syscall"
 
@@ -203,7 +204,12 @@ func (fr *flowRun) Run(configFile string) error {
 		EnablePProf:      fr.enablePprof,
 	})
 
-	observerService := observerservice.New(log.With(l, "service", "observer"))
+	seedpath := filepath.Join(fr.storagePath, "grafana-agent-seed.json")
+	agentSeed, err := flow.RetrieveAgentSeed(seedpath)
+	if err != nil {
+		return fmt.Errorf("retrieving agent seed from %s: %w", seedpath, err)
+	}
+	observerService := observerservice.New(log.With(l, "service", "observer"), agentSeed.UID)
 
 	f := flow.New(flow.Options{
 		Logger:    l,

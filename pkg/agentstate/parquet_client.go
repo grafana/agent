@@ -42,13 +42,13 @@ func (pc *ParquetClient) SetComponents(components []Component) {
 }
 
 // Implements agentstate.Client
-func (pc *ParquetClient) Send(ctx context.Context, endpoint string, tenant string) error {
+func (pc *ParquetClient) Send(ctx context.Context, endpoint string, agentID string, tenant string) error {
 	buf, err := pc.Write()
 	if err != nil {
 		return err
 	}
 
-	fullEndpoint := fmt.Sprintf("%s/agents/%s", endpoint, pc.agentState.ID)
+	fullEndpoint := fmt.Sprintf("%s/agents/%s", endpoint, agentID)
 	req, err := http.NewRequest(http.MethodPost, fullEndpoint, &buf)
 	if err != nil {
 		return err

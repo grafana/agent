@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
-	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Import test components
 	"github.com/grafana/agent/pkg/flow/internal/testservices"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service"
