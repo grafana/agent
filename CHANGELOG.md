@@ -66,6 +66,8 @@ Main (unreleased)
 
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
 
+- Drop high cardinality metric labels from otelcol receiver components in flow mode. (@glindstedt)
+
 v0.35.3 (2023-08-09)
 --------------------
 
