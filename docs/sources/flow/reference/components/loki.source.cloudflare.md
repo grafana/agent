@@ -39,12 +39,11 @@ Name            | Type                 | Description          | Default | Requir
 `workers`       | `int`                | The number of workers to use for parsing logs.     |  `3` | no
 `pull_range`    | `duration`           | The timeframe to fetch for each pull request.      | `"1m"` | no
 `fields_type`   | `string`             | The set of fields to fetch for log entries.        | `"default"` | no
-`custom_fields` | `list(string)`       | The addional list of fields to supplement those provided via `fields_type`. |  | no
+`additional_fields` | `list(string)`       | The addional list of fields to supplement those provided via `fields_type`. |  | no
 
 
-By default `loki.source.cloudflare` fetches logs with the `default` set of
-fields. Here are the different sets of `fields_type` available for selection,
-and the fields they include:
+By default `loki.source.cloudflare` fetches logs with the `default` set of fields + the fields passed through `additional_fields`. 
+Here are the different sets of `fields_type` available for selection, and the fields they include:
 
 * `default` includes:
 ```
@@ -66,7 +65,7 @@ and the fields they include:
  "BotScore", "BotScoreSrc", "ClientRequestBytes", "ClientSrcPort", "ClientXRequestedWith", "CacheTieredFill", "EdgeResponseCompressionRatio", "EdgeServerIP", "FirewallMatchesSources", "FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID", "RequestHeaders", "ResponseHeaders"`k
 ```
 
-* `custom` includes only the fields defined in `custom_fields`.
+* `custom` includes only the fields defined in `additional_fields`.
 
 The component saves the last successfully-fetched timestamp in its positions
 file. If a position is found in the file for a given zone ID, the component

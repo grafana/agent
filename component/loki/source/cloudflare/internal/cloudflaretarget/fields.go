@@ -40,31 +40,31 @@ var (
 		"FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID",
 		"RequestHeaders", "ResponseHeaders",
 	}...)
-	allFieldsMap = buildAllFieldsMap(allFields)
+	allFieldsMap = buildAllFieldsSet(allFields)
 )
 
-// Fields returns the concatenation of set of fields represented by the Fieldtype and the give custom fields without duplicates.
-func Fields(t FieldsType, customFields []string) ([]string, error) {
+// Fields returns the concatenation of set of fields represented by the Fieldtype and the given custom fields without duplicates.
+func Fields(t FieldsType, additionalFields []string) ([]string, error) {
 	fieldsSubset, err := getFieldSubset(t)
 	if err != nil {
 		return nil, err
 	}
-	return mergeAndRemoveDuplicatedFields(fieldsSubset, customFields), nil
+	return mergeAndRemoveDuplicates(fieldsSubset, additionalFields), nil
 }
 
-func mergeAndRemoveDuplicatedFields(fieldsSubset, customFields []string) []string {
-	usedFields := make(map[string]bool)
+func mergeAndRemoveDuplicates(fieldsSubset, additionalFields []string) []string {
+	usedFields := make(map[string]struct{})
 	var fields []string
 
 	for _, field := range fieldsSubset {
 		fields = append(fields, field)
-		usedFields[field] = true
+		usedFields[field] = struct{}{}
 	}
 
-	for _, field := range customFields {
-		if !usedFields[field] {
+	for _, field := range additionalFields {
+		if _, found := usedFields[field]; !found {
 			fields = append(fields, field)
-			usedFields[field] = true
+			usedFields[field] = struct{}{}
 		}
 	}
 	return fields
@@ -88,10 +88,10 @@ func getFieldSubset(t FieldsType) ([]string, error) {
 	}
 }
 
-func buildAllFieldsMap(allFields []string) map[string]bool {
-	fieldsMap := make(map[string]bool)
+func buildAllFieldsSet(allFields []string) map[string]struct{} {
+	fieldsMap := make(map[string]struct{})
 	for _, field := range allFields {
-		fieldsMap[field] = true
+		fieldsMap[field] = struct{}{}
 	}
 	return fieldsMap
 }
@@ -101,7 +101,7 @@ func FindInvalidFields(fields []string) []string {
 	var invalidFields []string
 
 	for _, field := range fields {
-		if !allFieldsMap[field] {
+		if _, found := allFieldsMap[field]; !found {
 			invalidFields = append(invalidFields, field)
 		}
 	}

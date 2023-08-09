@@ -8,40 +8,40 @@ import (
 
 func TestFields(t *testing.T) {
 	tests := []struct {
-		name         string
-		fieldsType   FieldsType
-		customFields []string
-		expected     []string
+		name             string
+		fieldsType       FieldsType
+		additionalFields []string
+		expected         []string
 	}{
 		{
-			name:         "Default fields",
-			fieldsType:   FieldsTypeDefault,
-			customFields: []string{},
-			expected:     defaultFields,
+			name:             "Default fields",
+			fieldsType:       FieldsTypeDefault,
+			additionalFields: []string{},
+			expected:         defaultFields,
 		},
 		{
-			name:         "Custom fields",
-			fieldsType:   FieldsTypeCustom,
-			customFields: []string{"ClientIP", "OriginResponseBytes"},
-			expected:     []string{"ClientIP", "OriginResponseBytes"},
+			name:             "Custom fields",
+			fieldsType:       FieldsTypeCustom,
+			additionalFields: []string{"ClientIP", "OriginResponseBytes"},
+			expected:         []string{"ClientIP", "OriginResponseBytes"},
 		},
 		{
-			name:         "Default fields with added custom fields",
-			fieldsType:   FieldsTypeDefault,
-			customFields: []string{"WAFFlags", "WAFMatchedVar"},
-			expected:     append(defaultFields, "WAFFlags", "WAFMatchedVar"),
+			name:             "Default fields with added custom fields",
+			fieldsType:       FieldsTypeDefault,
+			additionalFields: []string{"WAFFlags", "WAFMatchedVar"},
+			expected:         append(defaultFields, "WAFFlags", "WAFMatchedVar"),
 		},
 		{
-			name:         "Default fields with duplicated custom fields",
-			fieldsType:   FieldsTypeDefault,
-			customFields: []string{"WAFFlags", "WAFFlags", "ClientIP"},
-			expected:     append(defaultFields, "WAFFlags"), // clientIP is already part of defaultFields
+			name:             "Default fields with duplicated custom fields",
+			fieldsType:       FieldsTypeDefault,
+			additionalFields: []string{"WAFFlags", "WAFFlags", "ClientIP"},
+			expected:         append(defaultFields, "WAFFlags"), // clientIP is already part of defaultFields
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := Fields(test.fieldsType, test.customFields)
+			result, err := Fields(test.fieldsType, test.additionalFields)
 			assert.NoError(t, err)
 			assert.ElementsMatch(t, test.expected, result)
 		})
@@ -49,8 +49,8 @@ func TestFields(t *testing.T) {
 }
 
 func TestFindInvalidFields(t *testing.T) {
-	invalidFields := []string{"InvalidField1", "InvalidField2"}
+	invalidFields := []string{"InvalidField1", "InvalidField2", "ClientIP"}
 
 	result := FindInvalidFields(invalidFields)
-	assert.ElementsMatch(t, invalidFields, result)
+	assert.ElementsMatch(t, []string{"InvalidField1", "InvalidField2"}, result)
 }

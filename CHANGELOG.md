@@ -50,7 +50,7 @@ Main (unreleased)
 
 - `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
 
-- Flow: Users can now define `custom_fields` in `loki.source.cloudflare` (@wildum)
+- Flow: Users can now define `additional_fields` in `loki.source.cloudflare` (@wildum)
 
 - New Grafana Agent Flow components:
 
