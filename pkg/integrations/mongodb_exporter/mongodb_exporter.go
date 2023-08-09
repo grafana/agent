@@ -1,6 +1,7 @@
 package mongodb_exporter //nolint:golint
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -43,7 +44,7 @@ func (c *Config) Name() string {
 func (c *Config) InstanceKey(_ string) (string, error) {
 	u, err := url.Parse(string(c.URI))
 	if err != nil {
-		return "", fmt.Errorf("could not parse mongodb_uri: %s. error: %w", string(c.URI), err)
+		return "", fmt.Errorf("could not parse mongodb_uri: %w", errors.Unwrap(err))
 	}
 	return u.Host, nil
 }
@@ -64,7 +65,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
 	if c.TLSBasicAuthConfigPath != "" {
 		if _, err := os.Stat(c.TLSBasicAuthConfigPath); err != nil {
-			return nil, fmt.Errorf("tls config file path is invalid: %s. error: %w", c.TLSBasicAuthConfigPath, err)
+			return nil, fmt.Errorf("tls config file path is invalid: %s. error: %w", c.TLSBasicAuthConfigPath, errors.Unwrap(err))
 		}
 	}
 
