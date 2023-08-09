@@ -22,6 +22,8 @@ Main (unreleased)
 
 ### Enhancements
 
+- Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
+
 - Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
 
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
