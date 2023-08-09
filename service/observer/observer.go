@@ -20,8 +20,9 @@ import (
 const ServiceName = "observer"
 
 type Arguments struct {
-	RefreshFrequency time.Duration `river:"refresh_frequency,attr,optional"`
-	RemoteEndpoint   string        `river:"remote_endpoint,attr,optional"`
+	RefreshFrequency time.Duration     `river:"refresh_frequency,attr,optional"`
+	RemoteEndpoint   string            `river:"remote_endpoint,attr,optional"`
+	Labels           map[string]string `river:"labels,attr,optional"`
 }
 
 var _ river.Defaulter = (*Arguments)(nil)
@@ -55,6 +56,8 @@ func New(l log.Logger) *Observer {
 		configUpdate: make(chan struct{}, 1),
 		args:         DefaultArguments,
 
+		//TODO: Why not just set client to nil?
+		//      We have not fully loaded the observer config yet. We can't send the any data anyway.
 		client: agentstate.NewParquetClient(
 			agentstate.NewAgentState(nil),
 			nil,
@@ -116,10 +119,14 @@ func (o *Observer) observe(ctx context.Context, host service.Host) {
 	})
 	components := getAgentState(rawComponents)
 
-	// TODO(rfratto): replace this with labels from config.
-	o.client.SetAgentState(agentstate.NewAgentState(map[string]string{
-		"hello": "world",
-	}))
+	// Copy the labels so that o.client doesn't reference the map inside the observer.
+	//TODO: Would it be cleaner and safer if agentstate.NewAgentState copies the map?
+	//      Not sure what the conventions are in such cases.
+	labelsCopy := make(map[string]string)
+	for k, v := range o.args.Labels {
+		labelsCopy[k] = v
+	}
+	o.client.SetAgentState(agentstate.NewAgentState(labelsCopy))
 	o.client.SetComponents(components)
 
 	if err := o.client.Send(ctx, o.args.RemoteEndpoint, "default"); err != nil {
