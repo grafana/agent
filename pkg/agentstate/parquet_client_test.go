@@ -34,7 +34,7 @@ var componentState []agentstate.Component = []agentstate.Component{
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		ComponentDetail: []agentstate.ComponentDetail{
+		Arguments: []agentstate.ComponentDetail{
 			{
 				ID:         1,
 				ParentID:   0,
@@ -68,7 +68,7 @@ var componentState []agentstate.Component = []agentstate.Component{
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		ComponentDetail: []agentstate.ComponentDetail{},
+		Arguments: []agentstate.ComponentDetail{},
 	},
 	{
 		ID: "prometheus.scrape.first",
@@ -77,7 +77,7 @@ var componentState []agentstate.Component = []agentstate.Component{
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		ComponentDetail: []agentstate.ComponentDetail{},
+		Arguments: []agentstate.ComponentDetail{},
 	},
 	{
 		ID:       "module.file.nested",
@@ -87,7 +87,7 @@ var componentState []agentstate.Component = []agentstate.Component{
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		ComponentDetail: []agentstate.ComponentDetail{},
+		Arguments: []agentstate.ComponentDetail{},
 	},
 	{
 		ID: "prometheus.scrape.second",
@@ -96,7 +96,7 @@ var componentState []agentstate.Component = []agentstate.Component{
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		ComponentDetail: []agentstate.ComponentDetail{},
+		Arguments: []agentstate.ComponentDetail{},
 	},
 }
 
@@ -108,7 +108,7 @@ var componentState2 []agentstate.Component = []agentstate.Component{
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		ComponentDetail: []agentstate.ComponentDetail{
+		Arguments: []agentstate.ComponentDetail{
 			{
 				ID:         1,
 				ParentID:   0,
@@ -191,12 +191,12 @@ func validateComponentState(t *testing.T, buf bytes.Buffer, expected []agentstat
 
 func validateFakeComponentState(t *testing.T, buf bytes.Buffer, expected []agentstate.Component) {
 	type FakeComponent struct {
-		ComponentDetail []agentstate.ComponentDetail `parquet:"component_detail"`
+		Arguments []agentstate.ComponentDetail `parquet:"arguments"`
 	}
 
 	var fakeComponent []FakeComponent
 	for _, component := range expected {
-		fakeComponent = append(fakeComponent, FakeComponent{ComponentDetail: component.ComponentDetail})
+		fakeComponent = append(fakeComponent, FakeComponent{Arguments: component.Arguments})
 	}
 
 	actual, err := parquet.Read[FakeComponent](bytes.NewReader(buf.Bytes()), int64(buf.Len()))

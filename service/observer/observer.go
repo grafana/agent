@@ -142,12 +142,11 @@ func getAgentState(components []*component.Info) []agentstate.Component {
 	res := []agentstate.Component{}
 
 	for _, cInfo := range components {
-		componentDetail := riverjson.GetComponentDetail(componentDetailInfo{
-			Arguments: cInfo.Arguments,
-			Exports:   cInfo.Exports,
-			DebugInfo: cInfo.DebugInfo,
-		})
-
+		var (
+			args      = riverjson.GetComponentDetail(cInfo.Arguments)
+			exports   = riverjson.GetComponentDetail(cInfo.Exports)
+			debugInfo = riverjson.GetComponentDetail(cInfo.DebugInfo)
+		)
 		componentState := agentstate.Component{
 			ID:       cInfo.ID.LocalID,
 			ModuleID: cInfo.ID.ModuleID,
@@ -156,19 +155,15 @@ func getAgentState(components []*component.Info) []agentstate.Component {
 				Message:    cInfo.Health.Message,
 				UpdateTime: cInfo.Health.UpdateTime,
 			},
-			ComponentDetail: componentDetail,
+			Arguments: args,
+			Exports:   exports,
+			DebugInfo: debugInfo,
 		}
 
 		res = append(res, componentState)
 	}
 
 	return res
-}
-
-type componentDetailInfo struct {
-	Arguments any `river:"arguments,block"`
-	Exports   any `river:"exports,block"`
-	DebugInfo any `river:"debug_info,block"`
 }
 
 // Update implements service.Service.

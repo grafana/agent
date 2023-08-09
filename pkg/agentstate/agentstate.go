@@ -16,10 +16,12 @@ func NewAgentState(labels map[string]string) AgentState {
 }
 
 type Component struct {
-	ID              string            `parquet:"id"`
-	ModuleID        string            `parquet:"module_id"`
-	Health          Health            `parquet:"health"`
-	ComponentDetail []ComponentDetail `parquet:"component_detail"`
+	ID        string            `parquet:"id"`
+	ModuleID  string            `parquet:"module_id"`
+	Health    Health            `parquet:"health"`
+	Arguments []ComponentDetail `parquet:"arguments"`
+	Exports   []ComponentDetail `parquet:"exports"`
+	DebugInfo []ComponentDetail `parquet:"debug_info"`
 }
 
 type Health struct {
