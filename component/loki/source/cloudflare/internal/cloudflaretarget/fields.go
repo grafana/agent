@@ -43,8 +43,35 @@ var (
 	allFieldsMap = buildAllFieldsMap(allFields)
 )
 
-// Fields returns the mapping of FieldsType to the set of fields it represents.
-func Fields(t FieldsType) ([]string, error) {
+// Fields returns the concatenation of set of fields represented by the Fieldtype and the give custom fields without duplicates
+func Fields(t FieldsType, customFields []string) ([]string, error) {
+	fieldsSubset, err := getFieldSubset(t)
+	if err != nil {
+		return nil, err
+	}
+	return mergeAndRemoveDuplicatedFields(fieldsSubset, customFields), nil
+}
+
+func mergeAndRemoveDuplicatedFields(fieldsSubset, customFields []string) []string {
+	usedFields := make(map[string]bool)
+	var fields []string
+
+	for _, field := range fieldsSubset {
+		fields = append(fields, field)
+		usedFields[field] = true
+	}
+
+	for _, field := range customFields {
+		if !usedFields[field] {
+			fields = append(fields, field)
+			usedFields[field] = true
+		}
+	}
+	return fields
+}
+
+// getFieldSubset returns the mapping of FieldsType to the set of fields it represents.
+func getFieldSubset(t FieldsType) ([]string, error) {
 	switch t {
 	case FieldsTypeDefault:
 		return defaultFields, nil

@@ -75,38 +75,20 @@ func (c *Arguments) Validate() error {
 	if c.PullRange < 0 {
 		return fmt.Errorf("pull_range must be a positive duration")
 	}
-	fields, err := cft.Fields(cft.FieldsType(c.FieldsType))
+	_, err := cft.Fields(cft.FieldsType(c.FieldsType), c.CustomFields)
 	if err != nil {
 		return fmt.Errorf("invalid fields_type set; the available values are 'default', 'minimal', 'extended', 'custom' and 'all'")
+	}
+
+	if c.FieldsType == "all" && len(c.CustomFields) > 0 {
+		return fmt.Errorf("no need to provide custom fields when fields_type is set to 'all' as it contains already all available fields")
 	}
 
 	if invalidFields := cft.FindInvalidFields(c.CustomFields); len(invalidFields) > 0 {
 		return fmt.Errorf("invalid custom_fields: %v", invalidFields)
 	}
 
-	if commonFields := findCommonElement(fields, c.CustomFields); len(commonFields) > 0 {
-		return fmt.Errorf("duplicated fields; the following fields are already part of %s: %v", c.FieldsType, commonFields)
-	}
-
 	return nil
-}
-
-// Find the common values between two slices
-func findCommonElement(slice1, slice2 []string) []string {
-	elements := make(map[string]bool)
-	var common []string
-
-	for _, element := range slice1 {
-		elements[element] = true
-	}
-
-	for _, element := range slice2 {
-		if elements[element] {
-			common = append(common, element)
-		}
-	}
-
-	return common
 }
 
 // Component implements the loki.source.cloudflare component.

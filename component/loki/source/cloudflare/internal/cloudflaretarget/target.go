@@ -67,11 +67,10 @@ type Target struct {
 
 // NewTarget creates and runs a Cloudflare target.
 func NewTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, position positions.Positions, config *Config) (*Target, error) {
-	fieldsSubset, err := Fields(FieldsType(config.FieldsType))
+	fields, err := Fields(FieldsType(config.FieldsType), config.CustomFields)
 	if err != nil {
 		return nil, err
 	}
-	fields := append(fieldsSubset, config.CustomFields...)
 	client, err := getClient(config.APIToken, config.ZoneID, fields)
 	if err != nil {
 		return nil, err
@@ -223,7 +222,7 @@ func (t *Target) Ready() bool {
 
 // Details returns debug details about the Cloudflare target.
 func (t *Target) Details() map[string]string {
-	fields, _ := Fields(FieldsType(t.config.FieldsType))
+	fields, _ := Fields(FieldsType(t.config.FieldsType), t.config.CustomFields)
 	var errMsg string
 	if t.err != nil {
 		errMsg = t.err.Error()
