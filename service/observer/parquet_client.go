@@ -1,4 +1,4 @@
-package agentstate
+package observer
 
 import (
 	"bytes"
@@ -9,13 +9,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
 	"github.com/parquet-go/parquet-go"
 )
 
 // ParquetClient manages and writes agent state to a parquet file.
 type ParquetClient struct {
-	agentState AgentState
-	components []Component
+	agentState riveragentstate.AgentState
+	components []riveragentstate.Component
 
 	httpClient *http.Client
 }
@@ -23,7 +24,7 @@ type ParquetClient struct {
 var _ Client = (*ParquetClient)(nil)
 
 // NewParquetClient creates a new client for managing and writing agent state.
-func NewParquetClient(agentState AgentState, components []Component) *ParquetClient {
+func NewParquetClient(agentState riveragentstate.AgentState, components []riveragentstate.Component) *ParquetClient {
 	return &ParquetClient{
 		agentState: agentState,
 		components: components,
@@ -32,12 +33,12 @@ func NewParquetClient(agentState AgentState, components []Component) *ParquetCli
 }
 
 // Implements agentstate.Client
-func (pc *ParquetClient) SetAgentState(agentState AgentState) {
+func (pc *ParquetClient) SetAgentState(agentState riveragentstate.AgentState) {
 	pc.agentState = agentState
 }
 
 // Implements agentstate.Client
-func (pc *ParquetClient) SetComponents(components []Component) {
+func (pc *ParquetClient) SetComponents(components []riveragentstate.Component) {
 	pc.components = components
 }
 
@@ -76,10 +77,10 @@ func (pc *ParquetClient) Send(ctx context.Context, endpoint string, agentID stri
 // Implements agentstate.Client
 func (c *ParquetClient) Write() (bytes.Buffer, error) {
 	var buf bytes.Buffer
-	writer := parquet.NewGenericWriter[Component](&buf)
+	writer := parquet.NewGenericWriter[riveragentstate.Component](&buf)
 
 	// Write the component data to the buffer.
-	rowGroup := parquet.NewGenericBuffer[Component]()
+	rowGroup := parquet.NewGenericBuffer[riveragentstate.Component]()
 	_, err := rowGroup.Write(c.components)
 	if err != nil {
 		return buf, err

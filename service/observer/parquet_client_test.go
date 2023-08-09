@@ -1,4 +1,4 @@
-package agentstate_test
+package observer
 
 import (
 	"bytes"
@@ -7,34 +7,34 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/agentstate"
+	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
 	"github.com/parquet-go/parquet-go"
 	"github.com/stretchr/testify/require"
 )
 
-var agentState agentstate.AgentState = agentstate.AgentState{
+var agentState riveragentstate.AgentState = riveragentstate.AgentState{
 	Labels: map[string]string{
 		"app1": ".net",
 		"app2": ".net",
 	},
 }
 
-var agentState2 agentstate.AgentState = agentstate.AgentState{
+var agentState2 riveragentstate.AgentState = riveragentstate.AgentState{
 	Labels: map[string]string{
 		"app1": ".net",
 		"app2": ".net",
 	},
 }
 
-var componentState []agentstate.Component = []agentstate.Component{
+var componentState []riveragentstate.Component = []riveragentstate.Component{
 	{
 		ID: "module.file.default",
-		Health: agentstate.Health{
+		Health: riveragentstate.Health{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []agentstate.ComponentDetail{
+		Arguments: []riveragentstate.ComponentDetail{
 			{
 				ID:         1,
 				ParentID:   0,
@@ -63,52 +63,52 @@ var componentState []agentstate.Component = []agentstate.Component{
 	},
 	{
 		ID: "prometheus.remote_write.default",
-		Health: agentstate.Health{
+		Health: riveragentstate.Health{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []agentstate.ComponentDetail{},
+		Arguments: []riveragentstate.ComponentDetail{},
 	},
 	{
 		ID: "prometheus.scrape.first",
-		Health: agentstate.Health{
+		Health: riveragentstate.Health{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []agentstate.ComponentDetail{},
+		Arguments: []riveragentstate.ComponentDetail{},
 	},
 	{
 		ID:       "module.file.nested",
 		ModuleID: "module.file.default",
-		Health: agentstate.Health{
+		Health: riveragentstate.Health{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []agentstate.ComponentDetail{},
+		Arguments: []riveragentstate.ComponentDetail{},
 	},
 	{
 		ID: "prometheus.scrape.second",
-		Health: agentstate.Health{
+		Health: riveragentstate.Health{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []agentstate.ComponentDetail{},
+		Arguments: []riveragentstate.ComponentDetail{},
 	},
 }
 
-var componentState2 []agentstate.Component = []agentstate.Component{
+var componentState2 []riveragentstate.Component = []riveragentstate.Component{
 	{
 		ID: "prometheus.remote_write.default",
-		Health: agentstate.Health{
+		Health: riveragentstate.Health{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []agentstate.ComponentDetail{
+		Arguments: []riveragentstate.ComponentDetail{
 			{
 				ID:         1,
 				ParentID:   0,
@@ -122,7 +122,7 @@ var componentState2 []agentstate.Component = []agentstate.Component{
 }
 
 func TestClientWrite(t *testing.T) {
-	client := agentstate.NewParquetClient(agentState, componentState)
+	client := NewParquetClient(agentState, componentState)
 	buf, err := client.Write()
 	require.NoError(t, err)
 	validateMetadata(t, buf, agentState)
@@ -142,7 +142,7 @@ func TestClientWrite(t *testing.T) {
 }
 
 func TestClientWriteToFile(t *testing.T) {
-	client := agentstate.NewParquetClient(agentState, componentState)
+	client := NewParquetClient(agentState, componentState)
 	filepath := t.TempDir() + "/agent_state.parquet"
 	err := client.WriteToFile(filepath)
 	require.NoError(t, err)
@@ -171,7 +171,7 @@ func TestClientWriteToFile(t *testing.T) {
 	validateFakeComponent2State(t, buffer, componentState2)
 }
 
-func validateMetadata(t *testing.T, buf bytes.Buffer, expected agentstate.AgentState) {
+func validateMetadata(t *testing.T, buf bytes.Buffer, expected riveragentstate.AgentState) {
 	f, err := parquet.OpenFile(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
 	require.NoError(t, err)
 
@@ -182,16 +182,16 @@ func validateMetadata(t *testing.T, buf bytes.Buffer, expected agentstate.AgentS
 	}
 }
 
-func validateComponentState(t *testing.T, buf bytes.Buffer, expected []agentstate.Component) {
-	actual, err := parquet.Read[agentstate.Component](bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+func validateComponentState(t *testing.T, buf bytes.Buffer, expected []riveragentstate.Component) {
+	actual, err := parquet.Read[riveragentstate.Component](bytes.NewReader(buf.Bytes()), int64(buf.Len()))
 	require.NoError(t, err)
 
 	require.Equal(t, expected, actual)
 }
 
-func validateFakeComponentState(t *testing.T, buf bytes.Buffer, expected []agentstate.Component) {
+func validateFakeComponentState(t *testing.T, buf bytes.Buffer, expected []riveragentstate.Component) {
 	type FakeComponent struct {
-		Arguments []agentstate.ComponentDetail `parquet:"arguments"`
+		Arguments []riveragentstate.ComponentDetail `parquet:"component_detail"`
 	}
 
 	var fakeComponent []FakeComponent
@@ -205,11 +205,11 @@ func validateFakeComponentState(t *testing.T, buf bytes.Buffer, expected []agent
 	require.Equal(t, fakeComponent, actual)
 }
 
-func validateFakeComponent2State(t *testing.T, buf bytes.Buffer, expected []agentstate.Component) {
+func validateFakeComponent2State(t *testing.T, buf bytes.Buffer, expected []riveragentstate.Component) {
 	type FakeComponent struct {
-		ID       string            `parquet:"id"`
-		ModuleID string            `parquet:"module_id"`
-		Health   agentstate.Health `parquet:"health"`
+		ID       string                 `parquet:"id"`
+		ModuleID string                 `parquet:"module_id"`
+		Health   riveragentstate.Health `parquet:"health"`
 	}
 
 	var fakeComponent []FakeComponent

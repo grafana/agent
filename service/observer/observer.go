@@ -10,9 +10,8 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/agentstate"
 	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/encoding/riverjson"
+	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
 	"github.com/grafana/agent/service"
 )
 
@@ -45,7 +44,7 @@ type Observer struct {
 	args         Arguments
 	configUpdate chan struct{}
 
-	client *agentstate.ParquetClient
+	client *ParquetClient
 }
 
 var _ service.Service = (*Observer)(nil)
@@ -60,8 +59,8 @@ func New(l log.Logger, agentID string) *Observer {
 
 		//TODO: Why not just set client to nil?
 		//      We have not fully loaded the observer config yet. We can't send the any data anyway.
-		client: agentstate.NewParquetClient(
-			agentstate.NewAgentState(nil),
+		client: NewParquetClient(
+			riveragentstate.NewAgentState(nil),
 			nil,
 		),
 	}
@@ -122,13 +121,13 @@ func (o *Observer) observe(ctx context.Context, host service.Host) {
 	components := getAgentState(rawComponents)
 
 	// Copy the labels so that o.client doesn't reference the map inside the observer.
-	//TODO: Would it be cleaner and safer if agentstate.NewAgentState copies the map?
+	//TODO: Would it be cleaner and safer if NewAgentState copies the map?
 	//      Not sure what the conventions are in such cases.
 	labelsCopy := make(map[string]string)
 	for k, v := range o.args.Labels {
 		labelsCopy[k] = v
 	}
-	o.client.SetAgentState(agentstate.NewAgentState(labelsCopy))
+	o.client.SetAgentState(riveragentstate.NewAgentState(labelsCopy))
 	o.client.SetComponents(components)
 
 	if err := o.client.Send(ctx, o.args.RemoteEndpoint, o.agentID, "default"); err != nil {
@@ -138,19 +137,20 @@ func (o *Observer) observe(ctx context.Context, host service.Host) {
 	}
 }
 
-func getAgentState(components []*component.Info) []agentstate.Component {
-	res := []agentstate.Component{}
+func getAgentState(components []*component.Info) []riveragentstate.Component {
+	res := []riveragentstate.Component{}
 
 	for _, cInfo := range components {
 		var (
-			args      = riverjson.GetComponentDetail(cInfo.Arguments)
-			exports   = riverjson.GetComponentDetail(cInfo.Exports)
-			debugInfo = riverjson.GetComponentDetail(cInfo.DebugInfo)
+			args      = riveragentstate.GetComponentDetail(cInfo.Arguments)
+			exports   = riveragentstate.GetComponentDetail(cInfo.Exports)
+			debugInfo = riveragentstate.GetComponentDetail(cInfo.DebugInfo)
 		)
-		componentState := agentstate.Component{
+
+		componentState := riveragentstate.Component{
 			ID:       cInfo.ID.LocalID,
 			ModuleID: cInfo.ID.ModuleID,
-			Health: agentstate.Health{
+			Health: riveragentstate.Health{
 				Health:     cInfo.Health.Health.String(),
 				Message:    cInfo.Health.Message,
 				UpdateTime: cInfo.Health.UpdateTime,
