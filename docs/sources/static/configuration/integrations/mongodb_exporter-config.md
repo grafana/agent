@@ -76,12 +76,14 @@ Besides that, there's not much to configure. Please refer to the full reference 
   # MongoDB node connection URL, which must be in the [`Standard Connection String Format`](https://docs.mongodb.com/manual/reference/connection-string/#std-label-connections-standard-connection-string-format)
   [mongodb_uri: <string>]
 
-  #Whether or not a direct connect should be made. Direct connections are not valid if multiple hosts are specified or an SRV URI is used
+  # Whether or not a direct connect should be made. Direct connections are not valid if multiple hosts are specified or an SRV URI is used
   [direct_connect: <boolean> | default = true]
 
-  #Enable autodiscover collections
+  # Enable autodiscover collections
   [discovering_mode: <boolean> | default = false]
 
-  #Path to the file having Prometheus TLS config for basic auth. Only enable if you want to use TLS based authentication. Check [`tls_config`](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tls_config) for reference on the file format
+  # Path to the file having Prometheus TLS config for basic auth. Only enable if you want to use TLS based authentication.
   [tls_basic_auth_config_path: <string> | default = ""]
 ```
+
+For `tls_basic_auth_config_path`, check [`tls_config`](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tls_config) for reference on the file format to be used.
