@@ -21,7 +21,7 @@ const ServiceName = "observer"
 
 type Arguments struct {
 	RefreshFrequency time.Duration `river:"refresh_frequency,attr,optional"`
-	RemoteEndpoint   string        `river:"remote_endpoint,attr"`
+	RemoteEndpoint   string        `river:"remote_endpoint,attr,optional"`
 }
 
 var _ river.Defaulter = (*Arguments)(nil)
