@@ -34,14 +34,8 @@ Main (unreleased)
 - Flow: Allow the `logging` configuration block to tee the Agent's logs to one
   or more loki.* components. (@tpaschalis)
 
-- Clustering: Nodes take part in distributing load only after loading their
-  component graph. (@tpaschalis)
-
 - Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
 
-- Enable graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
-  signals. (@tpaschalis)
-  
 - Added support for `promtail` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@thampiotr)
 
 - Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
@@ -70,14 +64,25 @@ Main (unreleased)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
-- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
-
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
+
+v0.35.3 (2023-08-09)
+--------------------
+
+### Bugfixes
+
+- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
 
 - (Agent static mode) Jaeger remote sampling works again, through a new `jaeger_remote_sampling`
   entry in the traces config. It is no longer configurable through the jaeger receiver.
   Support Jaeger remote sampling was removed accidentally in v0.35, and it is now restored, 
   albeit via a different config entry.
+
+- Clustering: Nodes take part in distributing load only after loading their
+  component graph. (@tpaschalis)
+
+- Fix graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
+  signals. (@tpaschalis)
 
 v0.35.2 (2023-07-27)
 --------------------
