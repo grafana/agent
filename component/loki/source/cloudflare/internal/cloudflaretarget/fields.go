@@ -43,7 +43,7 @@ var (
 	allFieldsMap = buildAllFieldsMap(allFields)
 )
 
-// Fields returns the concatenation of set of fields represented by the Fieldtype and the give custom fields without duplicates
+// Fields returns the concatenation of set of fields represented by the Fieldtype and the give custom fields without duplicates.
 func Fields(t FieldsType, customFields []string) ([]string, error) {
 	fieldsSubset, err := getFieldSubset(t)
 	if err != nil {
@@ -96,6 +96,7 @@ func buildAllFieldsMap(allFields []string) map[string]bool {
 	return fieldsMap
 }
 
+// Returns fields which are not part of the defined allFields list.
 func FindInvalidFields(fields []string) []string {
 	var invalidFields []string
 
