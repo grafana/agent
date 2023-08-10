@@ -57,7 +57,7 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	if cfg.Tracing.Enabled {
 		diags.Add(
 			diag.SeverityLevelWarn,
-			"If you have a tracing set up for Promtail, it cannot be migrated to Flow Mode automatically."+
+			"If you have a tracing set up for Promtail, it cannot be migrated to Flow Mode automatically. "+
 				"Refer to the documentation on how to configure tracing in Flow Mode.",
 		)
 	}
