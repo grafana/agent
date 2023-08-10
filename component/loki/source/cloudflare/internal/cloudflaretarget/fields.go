@@ -6,6 +6,8 @@ package cloudflaretarget
 
 import (
 	"fmt"
+
+	"golang.org/x/exp/maps"
 )
 
 // FieldsType defines the set of fields to fetch alongside logs.
@@ -44,46 +46,29 @@ var (
 
 // Fields returns the union of a set of fields represented by the Fieldtype and the given additional fields. The returned slice will contain no duplicates.
 func Fields(t FieldsType, additionalFields []string) ([]string, error) {
-	fieldsSubset, err := getFieldSubset(t)
-	if err != nil {
-		return nil, err
-	}
-	return mergeAndRemoveDuplicates(fieldsSubset, additionalFields), nil
-}
-
-func mergeAndRemoveDuplicates(fieldsSubset, additionalFields []string) []string {
-	usedFields := make(map[string]struct{})
 	var fields []string
-
-	for _, field := range fieldsSubset {
-		fields = append(fields, field)
-		usedFields[field] = struct{}{}
-	}
-
-	for _, field := range additionalFields {
-		if _, found := usedFields[field]; !found {
-			fields = append(fields, field)
-			usedFields[field] = struct{}{}
-		}
-	}
-	return fields
-}
-
-// getFieldSubset returns the mapping of FieldsType to the set of fields it represents.
-func getFieldSubset(t FieldsType) ([]string, error) {
 	switch t {
 	case FieldsTypeDefault:
-		return defaultFields, nil
+		fields = append(defaultFields, additionalFields...)
 	case FieldsTypeMinimal:
-		return minimalFields, nil
+		fields = append(minimalFields, additionalFields...)
 	case FieldsTypeExtended:
-		return extendedFields, nil
+		fields = append(extendedFields, additionalFields...)
 	case FieldsTypeAll:
-		return allFields, nil
+		fields = append(allFields, additionalFields...)
 	case FieldsTypeCustom:
-		// Additional fields will be added later.
-		return []string{}, nil
+		fields = make([]string, len(additionalFields))
+		copy(fields, additionalFields)
 	default:
 		return nil, fmt.Errorf("unknown fields type: %s", t)
 	}
+	return removeDuplicates(fields), nil
+}
+
+func removeDuplicates(fields []string) []string {
+	m := map[string]struct{}{}
+	for _, field := range fields {
+		m[field] = struct{}{}
+	}
+	return maps.Keys(m)
 }
