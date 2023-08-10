@@ -40,10 +40,10 @@ var (
 		"FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID",
 		"RequestHeaders", "ResponseHeaders",
 	}...)
-	allFieldsMap = buildAllFieldsSet(allFields)
+	allFieldsSet = buildAllFieldsSet(allFields)
 )
 
-// Fields returns the concatenation of set of fields represented by the Fieldtype and the given custom fields without duplicates.
+// Fields returns the union of a set of fields represented by the Fieldtype and the given additional fields. The returned slice will contain no duplicates.
 func Fields(t FieldsType, additionalFields []string) ([]string, error) {
 	fieldsSubset, err := getFieldSubset(t)
 	if err != nil {
@@ -82,6 +82,7 @@ func getFieldSubset(t FieldsType) ([]string, error) {
 	case FieldsTypeAll:
 		return allFields, nil
 	case FieldsTypeCustom:
+		// Additional fields will be added later.
 		return []string{}, nil
 	default:
 		return nil, fmt.Errorf("unknown fields type: %s", t)
@@ -101,7 +102,7 @@ func FindInvalidFields(fields []string) []string {
 	var invalidFields []string
 
 	for _, field := range fields {
-		if _, found := allFieldsMap[field]; !found {
+		if _, found := allFieldsSet[field]; !found {
 			invalidFields = append(invalidFields, field)
 		}
 	}
