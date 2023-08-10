@@ -198,7 +198,7 @@ Furthermore, we recommend that you review the following checklist:
   setup, for example, a Kubernetes Persistent Volume, that you must update to use the new
   positions file path.
 * Metrics exposed by the Flow Mode usually match Promtail metrics but
-  will use a different name. Make sure that you use the new metric names,for example,
+  will use a different name. Make sure that you use the new metric names, for example,
   in your alerts and dashboards queries.
 * Note that the logs produced by the Agent will differ from those
   produced by Promtail.
