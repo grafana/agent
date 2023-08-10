@@ -57,8 +57,7 @@ func Fields(t FieldsType, additionalFields []string) ([]string, error) {
 	case FieldsTypeAll:
 		fields = append(allFields, additionalFields...)
 	case FieldsTypeCustom:
-		fields = make([]string, len(additionalFields))
-		copy(fields, additionalFields)
+		fields = append(fields, additionalFields)
 	default:
 		return nil, fmt.Errorf("unknown fields type: %s", t)
 	}
