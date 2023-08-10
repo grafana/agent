@@ -1,4 +1,4 @@
-package riveragentstate
+package riverparquet
 
 import (
 	"fmt"
@@ -13,23 +13,23 @@ import (
 
 var goRiverDefaulter = reflect.TypeOf((*value.Defaulter)(nil)).Elem()
 
-func GetComponentDetail(val interface{}) []ComponentDetail {
+func GetComponentDetail(val interface{}) []Row {
 	rv := reflect.ValueOf(val)
 
 	var idCounter uint = 1
 	return getComponentDetailInt(rv, 0, &idCounter)
 }
 
-func getComponentDetailInt(rv reflect.Value, parentId uint, idCounter *uint) []ComponentDetail {
+func getComponentDetailInt(rv reflect.Value, parentId uint, idCounter *uint) []Row {
 	for rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
-			return []ComponentDetail{}
+			return []Row{}
 		}
 		rv = rv.Elem()
 	}
 
 	if rv.Kind() == reflect.Invalid {
-		return []ComponentDetail{}
+		return []Row{}
 	} else if rv.Kind() != reflect.Struct {
 		panic(fmt.Sprintf("river/encoding/riverjson: can only encode struct values to bodies, got %s", rv.Kind()))
 	}
@@ -40,7 +40,7 @@ func getComponentDetailInt(rv reflect.Value, parentId uint, idCounter *uint) []C
 		defaults.Addr().Interface().(value.Defaulter).SetToDefault()
 	}
 
-	componentDetails := make([]ComponentDetail, 0, len(fields))
+	componentDetails := make([]Row, 0, len(fields))
 
 	for _, field := range fields {
 		fieldVal := reflectutil.Get(rv, field)
@@ -60,7 +60,7 @@ func getComponentDetailInt(rv reflect.Value, parentId uint, idCounter *uint) []C
 	return componentDetails
 }
 
-func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uint, field rivertags.Field, fieldValue reflect.Value) []ComponentDetail {
+func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uint, field rivertags.Field, fieldValue reflect.Value) []Row {
 	fieldName := strings.Join(field.Name, ".")
 
 	for fieldValue.Kind() == reflect.Pointer {
@@ -79,7 +79,7 @@ func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uin
 
 		curId := *idCounter
 		*idCounter += 1
-		return []ComponentDetail{
+		return []Row{
 			{
 				ID:         curId,
 				ParentID:   parentId,
@@ -104,7 +104,7 @@ func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uin
 			blockID := *idCounter
 			*idCounter += 1
 
-			componentDetails := []ComponentDetail{{
+			componentDetails := []Row{{
 				ID:        blockID,
 				ParentID:  parentId,
 				Name:      strings.Join(fullName, "."),
@@ -123,7 +123,7 @@ func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uin
 
 				curId := *idCounter
 				*idCounter += 1
-				cd := ComponentDetail{
+				cd := Row{
 					ID:         curId,
 					ParentID:   blockID,
 					Name:       mapKey.String(),
@@ -138,7 +138,7 @@ func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uin
 			return componentDetails
 
 		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
-			componentDetails := []ComponentDetail{}
+			componentDetails := []Row{}
 
 			for i := 0; i < fieldValue.Len(); i++ {
 				elem := fieldValue.Index(i)
@@ -158,7 +158,7 @@ func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uin
 
 				// It shouldn't be possible to have a required block which is unset,
 				// but we'll encode something anyway.
-				return []ComponentDetail{{
+				return []Row{{
 					ID:        curId,
 					ParentID:  parentId,
 					Name:      strings.Join(fullName, "."),
@@ -170,7 +170,7 @@ func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uin
 			blockID := *idCounter
 			*idCounter += 1
 
-			componentDetails := []ComponentDetail{{
+			componentDetails := []Row{{
 				ID:        blockID,
 				ParentID:  parentId,
 				Name:      strings.Join(fullName, "."),
@@ -184,7 +184,7 @@ func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uin
 		case fieldValue.Kind() == reflect.Interface:
 			// Special case: try to get the underlying value as a block instead.
 			if fieldValue.IsNil() {
-				return []ComponentDetail{}
+				return []Row{}
 			}
 			return encodeFieldAsComponentDetail(prefix, parentId, idCounter, field, fieldValue.Elem())
 
@@ -198,7 +198,7 @@ func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uin
 
 		switch {
 		case fieldValue.Kind() == reflect.Slice, fieldValue.Kind() == reflect.Array:
-			details := []ComponentDetail{}
+			details := []Row{}
 			for i := 0; i < fieldValue.Len(); i++ {
 				details = append(details, encodeEnumElementToDetails(newPrefix, fieldValue.Index(i), parentId, idCounter)...)
 			}
@@ -212,7 +212,7 @@ func encodeFieldAsComponentDetail(prefix []string, parentId uint, idCounter *uin
 	return nil
 }
 
-func encodeEnumElementToDetails(prefix []string, enumElement reflect.Value, parentId uint, idCounter *uint) []ComponentDetail {
+func encodeEnumElementToDetails(prefix []string, enumElement reflect.Value, parentId uint, idCounter *uint) []Row {
 	for enumElement.Kind() == reflect.Pointer {
 		if enumElement.IsNil() {
 			return nil
@@ -222,7 +222,7 @@ func encodeEnumElementToDetails(prefix []string, enumElement reflect.Value, pare
 
 	fields := rivertags.Get(enumElement.Type())
 
-	details := []ComponentDetail{}
+	details := []Row{}
 
 	// Find the first non-zero field and encode it.
 	for _, field := range fields {

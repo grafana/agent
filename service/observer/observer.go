@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
+	"github.com/grafana/agent/pkg/river/encoding/riverparquet"
 	"github.com/grafana/agent/service"
 )
 
@@ -130,20 +130,20 @@ func (o *Observer) observe(ctx context.Context, host service.Host) {
 	}
 }
 
-func getAgentState(components []*component.Info) []riveragentstate.Component {
-	res := []riveragentstate.Component{}
+func getAgentState(components []*component.Info) []componentRow {
+	res := []componentRow{}
 
 	for _, cInfo := range components {
 		var (
-			args      = riveragentstate.GetComponentDetail(cInfo.Arguments)
-			exports   = riveragentstate.GetComponentDetail(cInfo.Exports)
-			debugInfo = riveragentstate.GetComponentDetail(cInfo.DebugInfo)
+			args      = riverparquet.GetComponentDetail(cInfo.Arguments)
+			exports   = riverparquet.GetComponentDetail(cInfo.Exports)
+			debugInfo = riverparquet.GetComponentDetail(cInfo.DebugInfo)
 		)
 
-		componentState := riveragentstate.Component{
+		componentState := componentRow{
 			ID:       cInfo.ID.LocalID,
 			ModuleID: cInfo.ID.ModuleID,
-			Health: riveragentstate.Health{
+			Health: componentHealth{
 				Health:     cInfo.Health.Health.String(),
 				Message:    cInfo.Health.Message,
 				UpdateTime: cInfo.Health.UpdateTime,
@@ -190,4 +190,19 @@ func (o *Observer) Update(newConfig any) error {
 	}
 
 	return nil
+}
+
+type componentRow struct {
+	ID        string             `parquet:"id"`
+	ModuleID  string             `parquet:"module_id"`
+	Health    componentHealth    `parquet:"health"`
+	Arguments []riverparquet.Row `parquet:"arguments"`
+	Exports   []riverparquet.Row `parquet:"exports"`
+	DebugInfo []riverparquet.Row `parquet:"debug_info"`
+}
+
+type componentHealth struct {
+	Health     string    `parquet:"state"`
+	Message    string    `parquet:"message"`
+	UpdateTime time.Time `parquet:"update_time"`
 }

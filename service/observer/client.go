@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
 	"github.com/parquet-go/parquet-go"
 )
 
@@ -14,12 +13,12 @@ type AgentStateWriter interface {
 }
 
 // GetAgentStateParquet creates the parquet file out of agent state structures.
-func GetAgentStateParquet(labels map[string]string, components []riveragentstate.Component) ([]byte, error) {
+func GetAgentStateParquet(labels map[string]string, components []componentRow) ([]byte, error) {
 	var buf bytes.Buffer
-	writer := parquet.NewGenericWriter[riveragentstate.Component](&buf)
+	writer := parquet.NewGenericWriter[componentRow](&buf)
 
 	// Write the component data to the buffer.
-	rowGroup := parquet.NewGenericBuffer[riveragentstate.Component]()
+	rowGroup := parquet.NewGenericBuffer[componentRow]()
 	_, err := rowGroup.Write(components)
 	if err != nil {
 		return nil, err

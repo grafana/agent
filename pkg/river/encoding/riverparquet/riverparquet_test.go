@@ -1,9 +1,9 @@
-package riveragentstate_test
+package riverparquet_test
 
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
+	"github.com/grafana/agent/pkg/river/encoding/riverparquet"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,7 +58,7 @@ func TestGetComponentDetail(t *testing.T) {
 		},
 	}
 
-	expect := []riveragentstate.ComponentDetail{
+	expect := []riverparquet.Row{
 		{
 			ID:         1,
 			ParentID:   0,
@@ -146,6 +146,6 @@ func TestGetComponentDetail(t *testing.T) {
 			RiverValue: []byte(`{"type":"string","value":"qwerty"}`),
 		},
 	}
-	actual := riveragentstate.GetComponentDetail(val)
+	actual := riverparquet.GetComponentDetail(val)
 	require.Equal(t, expect, actual)
 }

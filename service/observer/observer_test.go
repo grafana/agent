@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
+	"github.com/grafana/agent/pkg/river/encoding/riverparquet"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,13 +27,13 @@ func TestGetAgentState(t *testing.T) {
 		},
 	}
 
-	expected := []riveragentstate.Component{{
+	expected := []componentRow{{
 		ID:       "",
 		ModuleID: "",
-		Health: riveragentstate.Health{
+		Health: componentHealth{
 			Health: "unknown",
 		},
-		Arguments: []riveragentstate.ComponentDetail{
+		Arguments: []riverparquet.Row{
 			{
 				ID:         1,
 				ParentID:   0,
@@ -49,7 +49,7 @@ func TestGetAgentState(t *testing.T) {
 				RiverValue: json.RawMessage(`{"type":"number","value":32}`),
 			},
 		},
-		Exports: []riveragentstate.ComponentDetail{
+		Exports: []riverparquet.Row{
 			{
 				ID:         1,
 				ParentID:   0,
@@ -65,7 +65,7 @@ func TestGetAgentState(t *testing.T) {
 				RiverValue: json.RawMessage(`{"type":"number","value":35}`),
 			},
 		},
-		DebugInfo: []riveragentstate.ComponentDetail{
+		DebugInfo: []riverparquet.Row{
 			{
 				ID:         1,
 				ParentID:   0,

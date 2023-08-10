@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
+	"github.com/grafana/agent/pkg/river/encoding/riverparquet"
 	"github.com/parquet-go/parquet-go"
 	"github.com/stretchr/testify/require"
 )
@@ -23,15 +23,15 @@ var AgentStateLabels2 = map[string]string{
 	"app2": ".net",
 }
 
-var componentState1 []riveragentstate.Component = []riveragentstate.Component{
+var componentState1 []componentRow = []componentRow{
 	{
 		ID: "module.file.default",
-		Health: riveragentstate.Health{
+		Health: componentHealth{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []riveragentstate.ComponentDetail{
+		Arguments: []riverparquet.Row{
 			{
 				ID:         1,
 				ParentID:   0,
@@ -57,65 +57,65 @@ var componentState1 []riveragentstate.Component = []riveragentstate.Component{
 				RiverValue: json.RawMessage(`"/var/log/messages"`),
 			},
 		},
-		Exports:   []riveragentstate.ComponentDetail{},
-		DebugInfo: []riveragentstate.ComponentDetail{},
+		Exports:   []riverparquet.Row{},
+		DebugInfo: []riverparquet.Row{},
 	},
 	{
 		ID: "prometheus.remote_write.default",
-		Health: riveragentstate.Health{
+		Health: componentHealth{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []riveragentstate.ComponentDetail{},
-		Exports:   []riveragentstate.ComponentDetail{},
-		DebugInfo: []riveragentstate.ComponentDetail{},
+		Arguments: []riverparquet.Row{},
+		Exports:   []riverparquet.Row{},
+		DebugInfo: []riverparquet.Row{},
 	},
 	{
 		ID: "prometheus.scrape.first",
-		Health: riveragentstate.Health{
+		Health: componentHealth{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []riveragentstate.ComponentDetail{},
-		Exports:   []riveragentstate.ComponentDetail{},
-		DebugInfo: []riveragentstate.ComponentDetail{},
+		Arguments: []riverparquet.Row{},
+		Exports:   []riverparquet.Row{},
+		DebugInfo: []riverparquet.Row{},
 	},
 	{
 		ID:       "module.file.nested",
 		ModuleID: "module.file.default",
-		Health: riveragentstate.Health{
+		Health: componentHealth{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []riveragentstate.ComponentDetail{},
-		Exports:   []riveragentstate.ComponentDetail{},
-		DebugInfo: []riveragentstate.ComponentDetail{},
+		Arguments: []riverparquet.Row{},
+		Exports:   []riverparquet.Row{},
+		DebugInfo: []riverparquet.Row{},
 	},
 	{
 		ID: "prometheus.scrape.second",
-		Health: riveragentstate.Health{
+		Health: componentHealth{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []riveragentstate.ComponentDetail{},
-		Exports:   []riveragentstate.ComponentDetail{},
-		DebugInfo: []riveragentstate.ComponentDetail{},
+		Arguments: []riverparquet.Row{},
+		Exports:   []riverparquet.Row{},
+		DebugInfo: []riverparquet.Row{},
 	},
 }
 
-var componentState2 []riveragentstate.Component = []riveragentstate.Component{
+var componentState2 []componentRow = []componentRow{
 	{
 		ID: "prometheus.remote_write.default",
-		Health: riveragentstate.Health{
+		Health: componentHealth{
 			Health:     "healthy",
 			Message:    "Everything is fine",
 			UpdateTime: time.Now().UTC(),
 		},
-		Arguments: []riveragentstate.ComponentDetail{
+		Arguments: []riverparquet.Row{
 			{
 				ID:         1,
 				ParentID:   0,
@@ -125,8 +125,8 @@ var componentState2 []riveragentstate.Component = []riveragentstate.Component{
 				RiverValue: json.RawMessage(`"/var/log/messages"`),
 			},
 		},
-		Exports:   []riveragentstate.ComponentDetail{},
-		DebugInfo: []riveragentstate.ComponentDetail{},
+		Exports:   []riverparquet.Row{},
+		DebugInfo: []riverparquet.Row{},
 	},
 }
 
@@ -190,16 +190,16 @@ func validateMetadata(t *testing.T, buf bytes.Buffer, expected map[string]string
 	}
 }
 
-func validateComponentState(t *testing.T, buf bytes.Buffer, expected []riveragentstate.Component) {
-	actual, err := parquet.Read[riveragentstate.Component](bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+func validateComponentState(t *testing.T, buf bytes.Buffer, expected []componentRow) {
+	actual, err := parquet.Read[componentRow](bytes.NewReader(buf.Bytes()), int64(buf.Len()))
 	require.NoError(t, err)
 
 	require.Equal(t, expected, actual)
 }
 
-func validateFakeComponentState(t *testing.T, buf bytes.Buffer, expected []riveragentstate.Component) {
+func validateFakeComponentState(t *testing.T, buf bytes.Buffer, expected []componentRow) {
 	type FakeComponent struct {
-		Arguments []riveragentstate.ComponentDetail `parquet:"arguments"`
+		Arguments []riverparquet.Row `parquet:"arguments"`
 	}
 
 	var fakeComponent []FakeComponent
@@ -213,11 +213,11 @@ func validateFakeComponentState(t *testing.T, buf bytes.Buffer, expected []river
 	require.Equal(t, fakeComponent, actual)
 }
 
-func validateFakeComponent2State(t *testing.T, buf bytes.Buffer, expected []riveragentstate.Component) {
+func validateFakeComponent2State(t *testing.T, buf bytes.Buffer, expected []componentRow) {
 	type FakeComponent struct {
-		ID       string                 `parquet:"id"`
-		ModuleID string                 `parquet:"module_id"`
-		Health   riveragentstate.Health `parquet:"health"`
+		ID       string          `parquet:"id"`
+		ModuleID string          `parquet:"module_id"`
+		Health   componentHealth `parquet:"health"`
 	}
 
 	var fakeComponent []FakeComponent
