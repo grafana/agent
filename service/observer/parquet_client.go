@@ -8,75 +8,52 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
-	"github.com/parquet-go/parquet-go"
+	"github.com/grafana/agent/component/common/config"
 	prom_config "github.com/prometheus/common/config"
 )
 
-// ParquetClient manages and writes agent state to a parquet file.
-type ParquetClient struct {
-	agentState riveragentstate.AgentState
-	components []riveragentstate.Component
-
-	httpClient *http.Client
+// HttpAgentStateWriter sends the Agent state via HTTP
+type HttpAgentStateWriter struct {
+	HttpClient     *http.Client
+	AgentID        string
+	RemoteEndpoint string
+	Headers        map[string]string
 }
 
-var _ Client = (*ParquetClient)(nil)
+var _ AgentStateWriter = (*HttpAgentStateWriter)(nil)
 
-// NewParquetClient creates a new client for managing and writing agent state.
-func NewParquetClient(agentState riveragentstate.AgentState, components []riveragentstate.Component, args *Arguments) *ParquetClient {
-	if args != nil {
-		cli, err := prom_config.NewClientFromConfig(
-			*args.HTTPClientConfig.Convert(),
-			"agent_observer",
-		)
-		if err != nil {
-			panic(fmt.Sprintf("failed to create http client: %s", err))
-		}
-
-		return &ParquetClient{
-			agentState: agentState,
-			components: components,
-			httpClient: cli,
-		}
-	}
-
-	return &ParquetClient{
-		agentState: agentState,
-		components: components,
-		httpClient: nil,
-	}
-}
-
-// Implements agentstate.Client
-func (pc *ParquetClient) SetAgentState(agentState riveragentstate.AgentState) {
-	pc.agentState = agentState
-}
-
-// Implements agentstate.Client
-func (pc *ParquetClient) SetComponents(components []riveragentstate.Component) {
-	pc.components = components
-}
-
-// Implements agentstate.Client
-func (pc *ParquetClient) Send(ctx context.Context, agentID string, args Arguments) error {
-	buf, err := pc.Write()
+func NewHttpAgentStateWriter(httpConfig config.HTTPClientConfig, agentID string, remoteEndpoint string, headers map[string]string) (*HttpAgentStateWriter, error) {
+	httpClient, err := prom_config.NewClientFromConfig(
+		*httpConfig.Convert(),
+		"agent_observer",
+	)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to create http client for HttpAgentStateWriter: %w", err)
 	}
 
-	fullEndpoint := fmt.Sprintf("%s/agents/%s", args.RemoteEndpoint, agentID)
-	req, err := http.NewRequest(http.MethodPost, fullEndpoint, &buf)
+	return &HttpAgentStateWriter{
+		HttpClient:     httpClient,
+		AgentID:        agentID,
+		RemoteEndpoint: remoteEndpoint,
+		Headers:        headers,
+	}, nil
+}
+
+func (w *HttpAgentStateWriter) Write(ctx context.Context, agentState []byte) error {
+	fullEndpoint := fmt.Sprintf("%s/agents/%s", w.RemoteEndpoint, w.AgentID)
+	agentStateReader := bytes.NewReader(agentState)
+
+	req, err := http.NewRequest(http.MethodPost, fullEndpoint, agentStateReader)
 	if err != nil {
 		return err
 	}
 
 	req.Header.Set("Content-Type", "application/parquet")
-	for key, value := range args.Headers {
+	for key, value := range w.Headers {
 		req.Header.Set(key, value)
 	}
 
-	resp, err := pc.httpClient.Do(req.WithContext(ctx))
+	resp, err := w.HttpClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return err
 	}
@@ -93,43 +70,18 @@ func (pc *ParquetClient) Send(ctx context.Context, agentID string, args Argument
 	return nil
 }
 
-// Implements agentstate.Client
-func (c *ParquetClient) Write() (bytes.Buffer, error) {
-	var buf bytes.Buffer
-	writer := parquet.NewGenericWriter[riveragentstate.Component](&buf)
-
-	// Write the component data to the buffer.
-	rowGroup := parquet.NewGenericBuffer[riveragentstate.Component]()
-	_, err := rowGroup.Write(c.components)
-	if err != nil {
-		return buf, err
-	}
-
-	_, err = writer.WriteRowGroup(rowGroup)
-	if err != nil {
-		return buf, err
-	}
-
-	// Write the metadata to the buffer.
-	for key, label := range c.agentState.Labels {
-		writer.SetKeyValueMetadata(key, label)
-	}
-
-	err = writer.Close()
-	return buf, err
+// FileAgentStateWriter writes the Agent state to a file
+type FileAgentStateWriter struct {
+	filepath string
 }
 
-// Implements agentstate.Client
-func (c *ParquetClient) WriteToFile(filepath string) error {
-	buf, err := c.Write()
-	if err != nil {
-		return err
-	}
+var _ AgentStateWriter = (*FileAgentStateWriter)(nil)
 
-	f, err := os.Create(filepath)
+func (w *FileAgentStateWriter) Write(_ context.Context, agentState []byte) error {
+	f, err := os.Create(w.filepath)
 	if err != nil {
 		return err
 	}
-	_, err = f.Write(buf.Bytes())
+	_, err = f.Write(agentState)
 	return err
 }
