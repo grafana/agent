@@ -70,7 +70,7 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	}
 	if cfg.ServerConfig.ProfilingEnabled {
 		diags.Add(diag.SeverityLevelWarn, "server.profiling_enabled is not supported - use Agent's "+
-			"main HTTP server's profiling endpoints instead.")
+			"main HTTP server's profiling endpoints instead")
 	}
 
 	if cfg.ServerConfig.RegisterInstrumentation {
