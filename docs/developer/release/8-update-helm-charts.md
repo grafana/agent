@@ -34,4 +34,4 @@ Our Helm charts require some version updates as well.
    2. Update `CHANGELOG.md` with a new section for the helm version.
    3. Run `make docs rebuild-tests` from the repo root.
 
-6. Open a PR, following the pattern in PR [#3126](https://github.com/grafana/agent/3126).
+6. Open a PR, following the pattern in PR [#3126](https://github.com/grafana/agent/pull/3126).

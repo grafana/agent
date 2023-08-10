@@ -22,6 +22,8 @@ Main (unreleased)
 
 ### Enhancements
 
+- Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
+
 - Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
 
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
@@ -40,9 +42,13 @@ Main (unreleased)
 
 - Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
 
+- Allow specification of `dimension_name_requirements` for Cloudwatch discovery exports. (@cvdv-au)
+
 - `loki.write` now exposes basic WAL support. (@thepalbi)
 
 - `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
+
+- Flow: Users can now define `additional_fields` in `loki.source.cloudflare` (@wildum)
 
 - New Grafana Agent Flow components:
 
