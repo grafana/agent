@@ -57,8 +57,8 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	if cfg.Tracing.Enabled {
 		diags.Add(
 			diag.SeverityLevelWarn,
-			"If you have a tracing set up for Promtail, it cannot be migrated to Flow Mode automatically - please "+
-				"refer to documentation on how to configure tracing in Flow Mode",
+			"If you have a tracing set up for Promtail, it cannot be migrated to Flow Mode automatically."+
+				"Refer to the documentation on how to configure tracing in Flow Mode.",
 		)
 	}
 
@@ -76,8 +76,8 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	if cfg.ServerConfig.RegisterInstrumentation {
 		diags.Add(
 			diag.SeverityLevelWarn,
-			"The Agent Flow Mode's metrics are different from the metrics emitted by Promtail. If you "+
-				"rely on Promtail's metrics you will need to change your configuration (e.g. alerts and dashboards).",
+			"The Agent's Flow Mode metrics are different from the metrics emitted by Promtail. If you "+
+				"rely on Promtail's metrics, you must change your configuration, for example, your alerts and dashboards.",
 		)
 	}
 

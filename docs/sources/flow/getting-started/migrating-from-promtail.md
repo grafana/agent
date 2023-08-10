@@ -4,7 +4,7 @@ description: Learn how to migrate your configuration from Promtail to Grafana Ag
   Flow Mode
 menuTitle: Migrate from Promtail
 title: Migrate from Promtail to Grafana Agent Flow Mode
-weight: 320
+weight: 330
 ---
 
 # Migrate from Promtail to Grafana Agent
@@ -44,7 +44,7 @@ This topic describes how to:
 
 ## Convert a Promtail configuration
 
-To fully migrate from [Promtail] to Grafana Agent in Flow Mode, you must convert
+To fully migrate from [Promtail] to Grafana Agent Flow Mode, you must convert
 your Promtail configuration into a Grafana Agent Flow Mode configuration. This
 conversion will enable you to take full advantage of the many additional
 features available in Grafana Agent Flow Mode.
@@ -62,7 +62,7 @@ features available in Grafana Agent Flow Mode.
     * `INPUT_CONFIG_PATH`: The full path to the Promtail configuration.
     * `OUTPUT_CONFIG_PATH`: The full path to output the flow configuration.
 
-1. [Start the agent][] in Flow Mode using the new flow configuration
+1. [Start the Agent][] in Flow Mode using the new flow configuration
    from `OUTPUT_CONFIG_PATH`:
 
 ### Debugging
@@ -90,8 +90,8 @@ features available in Grafana Agent Flow Mode.
    report provides the following information:
 
     ```plaintext
-    (Warning) If you have a tracing set up for Promtail, it cannot be migrated to Flow Mode automatically - please refer to documentation on how to configure tracing in Flow Mode
-    (Warning) The Agent Flow Mode's metrics are different from the metrics emitted by Promtail. If you rely on Promtail's metrics you will need to change your configuration (e.g. alerts and dashboards).
+    (Warning) If you have a tracing set up for Promtail, it cannot be migrated to Flow Mode automatically. Refer to the documentation on how to configure tracing in Flow Mode.
+    (Warning) The Agent Flow Mode's metrics are different from the metrics emitted by Promtail. If you rely on Promtail's metrics, you must change your configuration, for example, your alerts and dashboards.
     ```
 
 ## Run a Promtail configuration
@@ -106,7 +106,7 @@ Promtail configuration infrastructure.
 > In this task, we will use the [run][] CLI command to run Grafana Agent in Flow
 > Mode using a Promtail configuration.
 
-[Start the agent][] in Flow Mode and include the command line flag
+[Start the Agent][] in flow mode and include the command line flag
 `--config.format=promtail`. Your configuration file must be a valid Promtail
 configuration file rather than a Flow Mode configuration file.
 
@@ -115,7 +115,7 @@ configuration file rather than a Flow Mode configuration file.
 1. You can follow the convert CLI command [debugging][] instructions to generate
    a diagnostic report.
 
-1. Refer to the Grafana Agent [Flow Debugging][] for more information about a
+1. Refer to the Grafana Agent [Flow Debugging][] for more information about
    running Grafana Agent in Flow Mode.
 
 1. If your Promtail configuration cannot be converted and loaded directly into
@@ -179,30 +179,30 @@ loki.write "default" {
 
 ## Limitations
 
-Config conversion is done on the best-effort basis; the Agent will issue
+Configuration conversion is done on a best-effort basis. The Agent will issue
 warnings or errors where the conversion cannot be performed.
 
-Once the configuration is converted, it is recommended for users to understand
-and review the output Flow Mode configuration and verify that it is correct
+Once the configuration is converted, we recommend that you review
+the Flow Mode configuration file created, and verify that it is correct
 before starting to use it in a production environment.
 
-Furthermore, it is recommended to go through the following checklist:
+Furthermore, we recommend that you review the following checklist:
 
 * Check if you are using any extra command line arguments with Promtail which
-  are not present in your config file, e.g. `-max-line-size`
-* Check if you are setting any environment variables -
+  are not present in your config file, for example, `-max-line-size`
+* Check if you are setting any environment variables,
   whether [expanded in the config file][] itself or consumed directly by
-  Promtail such as `JAEGER_AGENT_HOST`.
-* In Flow Mode, the positions file will be saved at a different location -
-  see [loki.source.file][] for more details. Check if you have any existing
-  setup (e.g. Kubernetes Persistent Volume) that needs changing to use the new
+  Promtail, such as `JAEGER_AGENT_HOST`.
+* In Flow Mode, the positions file is saved at a different location.
+  Refer to the [loki.source.file][] documentation for more details. Check if you have any existing
+  setup, for example, a Kubernetes Persistent Volume, that you must update to use the new
   positions file path.
-* Metrics exposed by the Flow Mode will usually match those of Promtail, but
-  will use a different name. Make sure that you use the new metric names, e.g.
+* Metrics exposed by the Flow Mode usually match Promtail metrics but
+  will use a different name. Make sure that you use the new metric names,for example,
   in your alerts and dashboards queries.
-* Please note that the logs produced by the Agent will differ from those
+* Note that the logs produced by the Agent will differ from those
   produced by Promtail.
-* Please note that the Agent exposes [Grafana Agent Flow UI][], which differs
+* Note that the Agent exposes the [Grafana Agent Flow UI][], which differs
   from Promtail's Web UI.
 
 [expanded in the config file]: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#use-environment-variables-in-the-configuration
