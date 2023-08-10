@@ -42,6 +42,8 @@ Main (unreleased)
 
 - Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
 
+- Allow specification of `dimension_name_requirements` for Cloudwatch discovery exports. (@cvdv-au)
+
 - `loki.write` now exposes basic WAL support. (@thepalbi)
 
 - `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
