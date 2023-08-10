@@ -40,7 +40,6 @@ var (
 		"FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID",
 		"RequestHeaders", "ResponseHeaders",
 	}...)
-	allFieldsSet = buildAllFieldsSet(allFields)
 )
 
 // Fields returns the union of a set of fields represented by the Fieldtype and the given additional fields. The returned slice will contain no duplicates.
@@ -87,24 +86,4 @@ func getFieldSubset(t FieldsType) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("unknown fields type: %s", t)
 	}
-}
-
-func buildAllFieldsSet(allFields []string) map[string]struct{} {
-	fieldsMap := make(map[string]struct{})
-	for _, field := range allFields {
-		fieldsMap[field] = struct{}{}
-	}
-	return fieldsMap
-}
-
-// Returns fields which are not part of the defined allFields list.
-func FindInvalidFields(fields []string) []string {
-	var invalidFields []string
-
-	for _, field := range fields {
-		if _, found := allFieldsSet[field]; !found {
-			invalidFields = append(invalidFields, field)
-		}
-	}
-	return invalidFields
 }

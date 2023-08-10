@@ -47,10 +47,3 @@ func TestFields(t *testing.T) {
 		})
 	}
 }
-
-func TestFindInvalidFields(t *testing.T) {
-	invalidFields := []string{"InvalidField1", "InvalidField2", "ClientIP"}
-
-	result := FindInvalidFields(invalidFields)
-	assert.ElementsMatch(t, []string{"InvalidField1", "InvalidField2"}, result)
-}

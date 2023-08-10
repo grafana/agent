@@ -79,11 +79,6 @@ func (c *Arguments) Validate() error {
 	if err != nil {
 		return fmt.Errorf("invalid fields_type set; the available values are 'default', 'minimal', 'extended', 'custom' and 'all'")
 	}
-
-	if invalidFields := cft.FindInvalidFields(c.AdditionalFields); len(invalidFields) > 0 {
-		return fmt.Errorf("invalid additional_fields: %v", invalidFields)
-	}
-
 	return nil
 }
 
