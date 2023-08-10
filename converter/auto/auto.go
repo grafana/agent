@@ -14,9 +14,69 @@ type ConversionCfg struct {
 	ToTagNameExtractor   func(string) string
 }
 
+var YamlToRiver = ConversionCfg{
+	FromTags:             "yaml",
+	ToTags:               "river",
+	FromTagNameExtractor: FistInCSV,
+	ToTagNameExtractor:   FistInCSV,
+}
+
+var RiverToYaml = ConversionCfg{
+	FromTags:             "river",
+	ToTags:               "yaml",
+	FromTagNameExtractor: FistInCSV,
+	ToTagNameExtractor:   FistInCSV,
+}
+
 type setter func(value reflect.Value) error
 
-func Convert(from interface{}, to interface{}, cfg ConversionCfg) error {
+func ConvertByFieldNames(from interface{}, to interface{}, cfg ConversionCfg) error {
+
+	fromVal := getDereferencedValue(from)
+	if fromVal.Kind() == reflect.Slice {
+		toVal := getDereferencedValue(to)
+		return convertSlice(fromVal, toVal, cfg)
+	} else {
+		return convertNonSlice(from, to, cfg)
+
+	}
+}
+
+func convertSlice(fromSlice reflect.Value, toSlice reflect.Value, cfg ConversionCfg) error {
+	if fromSlice.Kind() != reflect.Slice || toSlice.Kind() != reflect.Slice {
+		return fmt.Errorf(
+			"both source and target values should be a slice, got: %v, %v",
+			fromSlice.Kind(),
+			toSlice.Kind(),
+		)
+	}
+
+	// Iterate over the slice of A and call the conversion function on each element
+	for i := 0; i < fromSlice.Len(); i++ {
+		a := fromSlice.Index(i)
+		var b reflect.Value
+		if a.Kind() == reflect.Ptr {
+			b = reflect.New(toSlice.Type().Elem().Elem())
+			err := ConvertByFieldNames(a.Interface(), b.Interface(), cfg)
+			if err != nil {
+				return err
+			}
+			toSlice.Index(i).Set(b.Elem().Addr())
+		} else {
+			a = a.Addr()
+			b = reflect.New(toSlice.Type().Elem())
+			err := ConvertByFieldNames(a.Interface(), b.Interface(), cfg)
+			if err != nil {
+				return err
+			}
+			toSlice.Index(i).Set(b.Elem())
+		}
+	}
+
+	return nil
+}
+
+func convertNonSlice(from interface{}, to interface{}, cfg ConversionCfg) error {
 	return walkFields(from, func(fieldValue reflect.Value, structField reflect.StructField) error {
 
 		frName := determineFieldName(structField, cfg.FromTags, cfg.FromTagNameExtractor)
@@ -29,7 +89,7 @@ func Convert(from interface{}, to interface{}, cfg ConversionCfg) error {
 
 		err = setter(fieldValue)
 		if err != nil {
-			fmt.Printf("error setting value for %q: %s\n", frName, err)
+			fmt.Printf("error setting fromVal for %q: %s\n", frName, err)
 			return nil
 		}
 
@@ -59,7 +119,7 @@ func findSetter(to interface{}, name string, cfg ConversionCfg) (setter, error) 
 		toName := determineFieldName(structField, cfg.ToTags, cfg.ToTagNameExtractor)
 		if toName == name {
 			setter = func(v reflect.Value) error {
-				return setValue(fieldValue, v)
+				return setValue(v, fieldValue, cfg)
 			}
 			return nil
 		}
@@ -74,13 +134,32 @@ func findSetter(to interface{}, name string, cfg ConversionCfg) (setter, error) 
 	return setter, nil
 }
 
-func setValue(target reflect.Value, val reflect.Value) error {
+func setValue(val reflect.Value, target reflect.Value, cfg ConversionCfg) error {
 	if !val.CanSet() {
 		return fmt.Errorf("value not settable: %v", val.Kind())
 	}
 
 	if !val.Type().AssignableTo(target.Type()) {
-		return fmt.Errorf("provided value is not assignable to %v", target.Type())
+		fmt.Printf("value %v not assignable to %v\n", val.Type(), target.Type())
+		nestedTarget := target
+		nestedValue := val
+		if target.Kind() != reflect.Ptr {
+			nestedTarget = target.Addr()
+		}
+		if val.Kind() != reflect.Ptr {
+			nestedValue = val.Addr()
+		}
+
+		if nestedValue.Elem().Kind() == reflect.Slice {
+			targetSlice := reflect.MakeSlice(nestedTarget.Type().Elem(), nestedValue.Elem().Len(), nestedValue.Elem().Len())
+			nestedTarget.Elem().Set(targetSlice)
+		}
+
+		if nestedTarget.IsNil() && !nestedValue.IsNil() {
+			nestedTarget.Set(reflect.New(nestedTarget.Type().Elem()))
+		}
+
+		return ConvertByFieldNames(nestedValue.Interface(), nestedTarget.Interface(), cfg)
 	}
 
 	// Use the appropriate Set method based on the type of the value
@@ -104,14 +183,15 @@ func setValue(target reflect.Value, val reflect.Value) error {
 type walker func(fieldValue reflect.Value, structField reflect.StructField) error
 
 func walkFields(s interface{}, f walker) error {
-	v := reflect.ValueOf(s)
+	//fmt.Printf("walking fields of %+v\n", s)
+	v := getDereferencedValue(s)
 
-	for v.Kind() == reflect.Ptr {
-		v = v.Elem()
+	if !v.CanAddr() {
+		return fmt.Errorf("cannot walk unaddressable value: %+v", v)
 	}
 
-	if v.Kind() != reflect.Struct && v.Kind() != reflect.Interface {
-		return fmt.Errorf("not a struct or interface: %v", v)
+	if v.Kind() != reflect.Struct {
+		return fmt.Errorf("not a struct: %v", v)
 	}
 
 	for i := 0; i < v.NumField(); i++ {
@@ -120,6 +200,15 @@ func walkFields(s interface{}, f walker) error {
 		}
 	}
 	return nil
+}
+
+func getDereferencedValue(s interface{}) reflect.Value {
+	v := reflect.ValueOf(s)
+
+	for v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	return v
 }
 
 // FistInCSV returns the first element of a comma-separated string.
