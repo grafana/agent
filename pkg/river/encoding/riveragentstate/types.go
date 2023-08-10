@@ -5,16 +5,6 @@ import (
 	"time"
 )
 
-type AgentState struct {
-	Labels map[string]string
-}
-
-func NewAgentState(labels map[string]string) AgentState {
-	return AgentState{
-		Labels: labels,
-	}
-}
-
 type Component struct {
 	ID        string            `parquet:"id"`
 	ModuleID  string            `parquet:"module_id"`

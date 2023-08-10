@@ -48,7 +48,7 @@ type Observer struct {
 	args         Arguments
 	configUpdate chan struct{}
 
-	client *ParquetClient
+	stateWriter AgentStateWriter
 }
 
 var _ service.Service = (*Observer)(nil)
@@ -60,7 +60,6 @@ func New(l log.Logger, agentID string) *Observer {
 		agentID:      agentID,
 		configUpdate: make(chan struct{}, 1),
 		args:         DefaultArguments,
-		client:       nil,
 	}
 }
 
@@ -103,12 +102,10 @@ func (o *Observer) observe(ctx context.Context, host service.Host) {
 	o.mtx.Lock()
 	defer o.mtx.Unlock()
 
-	if o.args.RemoteEndpoint == "" {
-		// No server to send state to; skipping.
+	if o.stateWriter == nil {
+		level.Error(o.log).Log("msg", "not sending agent state", "err", "no writer has been initialized")
 		return
 	}
-
-	level.Info(o.log).Log("msg", "sending state payload to remote server")
 
 	rawComponents := component.GetAllComponents(host, component.InfoOptions{
 		GetHealth:    true,
@@ -118,17 +115,15 @@ func (o *Observer) observe(ctx context.Context, host service.Host) {
 	})
 	components := getAgentState(rawComponents)
 
-	// Copy the labels so that o.client doesn't reference the map inside the observer.
-	//TODO: Would it be cleaner and safer if NewAgentState copies the map?
-	//      Not sure what the conventions are in such cases.
-	labelsCopy := make(map[string]string)
-	for k, v := range o.args.Labels {
-		labelsCopy[k] = v
+	stateBuf, err := GetAgentStateParquet(o.args.Labels, components)
+	if err != nil {
+		level.Error(o.log).Log("msg", "failed to create an agent state parquet file", "err", err)
+		return
 	}
-	o.client.SetAgentState(riveragentstate.NewAgentState(labelsCopy))
-	o.client.SetComponents(components)
 
-	if err := o.client.Send(ctx, o.agentID, o.args); err != nil {
+	level.Info(o.log).Log("msg", "sending state payload to remote server")
+
+	if err := o.stateWriter.Write(ctx, stateBuf); err != nil {
 		level.Error(o.log).Log("msg", "failed to send payload", "err", err)
 	} else {
 		level.Info(o.log).Log("msg", "sent state payload to remote server")
@@ -175,11 +170,18 @@ func (o *Observer) Update(newConfig any) error {
 	defer o.mtx.Unlock()
 
 	o.args = cfg
-	o.client = NewParquetClient(
-		riveragentstate.NewAgentState(o.args.Labels),
-		nil,
-		&o.args,
-	)
+
+	// Copy the labels so that o.stateWriter doesn't reference the map inside the observer.
+	labelsCopy := make(map[string]string)
+	for k, v := range o.args.Labels {
+		labelsCopy[k] = v
+	}
+
+	var err error
+	o.stateWriter, err = NewHttpAgentStateWriter(o.args.HTTPClientConfig, o.agentID, o.args.RemoteEndpoint, labelsCopy)
+	if err != nil {
+		return fmt.Errorf("failed to create an HTTP agent state writer: %w", err)
+	}
 
 	select {
 	case o.configUpdate <- struct{}{}:

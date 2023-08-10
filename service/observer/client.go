@@ -1,3 +1,4 @@
+// TODO: Does this file have to exist? Should we move its contents elsewhere?
 package observer
 
 import (
@@ -5,24 +6,39 @@ import (
 	"context"
 
 	"github.com/grafana/agent/pkg/river/encoding/riveragentstate"
+	"github.com/parquet-go/parquet-go"
 )
 
-type Client interface {
-	// SetAgentState sets the current agent state for the client. This must be
-	// called each time the agent state changes.
-	SetAgentState(agentState riveragentstate.AgentState)
+type AgentStateWriter interface {
+	Write(ctx context.Context, agentState []byte) error
+}
 
-	// SetComponents sets the current components state for the client. This must
-	// be called each time the component state changes.
-	SetComponents(components []riveragentstate.Component)
+// GetAgentStateParquet creates the parquet file out of agent state structures.
+func GetAgentStateParquet(labels map[string]string, components []riveragentstate.Component) ([]byte, error) {
+	var buf bytes.Buffer
+	writer := parquet.NewGenericWriter[riveragentstate.Component](&buf)
 
-	// Send encodes and sends the agent state to the configured destination.
-	Send(ctx context.Context, agentID string, args Arguments) error
+	// Write the component data to the buffer.
+	rowGroup := parquet.NewGenericBuffer[riveragentstate.Component]()
+	_, err := rowGroup.Write(components)
+	if err != nil {
+		return nil, err
+	}
 
-	// Write writes the agent state to the buffer.
-	Write() (bytes.Buffer, error)
+	_, err = writer.WriteRowGroup(rowGroup)
+	if err != nil {
+		return nil, err
+	}
 
-	// WriteToFile writes the agent state to a file at the given filepath. This
-	// will overwrite the file if it already exists.
-	WriteToFile(filepath string) error
+	// Write the metadata to the buffer.
+	for key, label := range labels {
+		writer.SetKeyValueMetadata(key, label)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }

@@ -2,6 +2,7 @@ package observer
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"os"
 	"testing"
@@ -12,21 +13,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var agentState riveragentstate.AgentState = riveragentstate.AgentState{
-	Labels: map[string]string{
-		"app1": ".net",
-		"app2": ".net",
-	},
+var AgentStateLabels1 = map[string]string{
+	"app1": ".net",
+	"app2": ".net",
 }
 
-var agentState2 riveragentstate.AgentState = riveragentstate.AgentState{
-	Labels: map[string]string{
-		"app1": ".net",
-		"app2": ".net",
-	},
+var AgentStateLabels2 = map[string]string{
+	"app1": ".net",
+	"app2": ".net",
 }
 
-var componentState []riveragentstate.Component = []riveragentstate.Component{
+var componentState1 []riveragentstate.Component = []riveragentstate.Component{
 	{
 		ID: "module.file.default",
 		Health: riveragentstate.Health{
@@ -133,61 +130,60 @@ var componentState2 []riveragentstate.Component = []riveragentstate.Component{
 	},
 }
 
-func TestClientWrite(t *testing.T) {
-	client := NewParquetClient(agentState, componentState, nil)
-	buf, err := client.Write()
-	require.NoError(t, err)
-	validateMetadata(t, buf, agentState)
-	validateComponentState(t, buf, componentState)
-	validateFakeComponentState(t, buf, componentState)
-	validateFakeComponent2State(t, buf, componentState)
-
-	// Make sure we can write multiple times without issue.
-	client.SetAgentState(agentState2)
-	client.SetComponents(componentState2)
-	buf, err = client.Write()
-	require.NoError(t, err)
-	validateMetadata(t, buf, agentState2)
-	validateComponentState(t, buf, componentState2)
-	validateFakeComponentState(t, buf, componentState2)
-	validateFakeComponent2State(t, buf, componentState2)
-}
-
 func TestClientWriteToFile(t *testing.T) {
-	client := NewParquetClient(agentState, componentState, nil)
 	filepath := t.TempDir() + "/agent_state.parquet"
-	err := client.WriteToFile(filepath)
-	require.NoError(t, err)
+
+	stateWriter := FileAgentStateWriter{
+		filepath: filepath,
+	}
+
+	{
+		stateBuf, err := GetAgentStateParquet(AgentStateLabels1, componentState1)
+		require.NoError(t, err)
+
+		err = stateWriter.Write(context.Background(), stateBuf)
+		require.NoError(t, err)
+	}
+
 	data, err := os.ReadFile(filepath)
-	var buffer bytes.Buffer
-	buffer.Write(data)
 	require.NoError(t, err)
-	validateMetadata(t, buffer, agentState)
-	validateComponentState(t, buffer, componentState)
-	validateFakeComponentState(t, buffer, componentState)
-	validateFakeComponent2State(t, buffer, componentState)
+	var buffer bytes.Buffer
+	_, err = buffer.Write(data)
+	require.NoError(t, err)
+	validateMetadata(t, buffer, AgentStateLabels1)
+	validateComponentState(t, buffer, componentState1)
+	validateFakeComponentState(t, buffer, componentState1)
+	validateFakeComponent2State(t, buffer, componentState1)
 
 	// Make sure we can write multiple times without issue.
 	filepath = t.TempDir() + "/agent_state2.parquet"
-	client.SetAgentState(agentState2)
-	client.SetComponents(componentState2)
-	err = client.WriteToFile(filepath)
+	stateWriter.filepath = filepath
+
+	{
+		stateBuf, err := GetAgentStateParquet(AgentStateLabels2, componentState2)
+		require.NoError(t, err)
+
+		err = stateWriter.Write(context.Background(), stateBuf)
+		require.NoError(t, err)
+	}
+
 	require.NoError(t, err)
 	data, err = os.ReadFile(filepath)
-	buffer.Reset()
-	buffer.Write(data)
 	require.NoError(t, err)
-	validateMetadata(t, buffer, agentState2)
+	buffer.Reset()
+	_, err = buffer.Write(data)
+	require.NoError(t, err)
+	validateMetadata(t, buffer, AgentStateLabels2)
 	validateComponentState(t, buffer, componentState2)
 	validateFakeComponentState(t, buffer, componentState2)
 	validateFakeComponent2State(t, buffer, componentState2)
 }
 
-func validateMetadata(t *testing.T, buf bytes.Buffer, expected riveragentstate.AgentState) {
+func validateMetadata(t *testing.T, buf bytes.Buffer, expected map[string]string) {
 	f, err := parquet.OpenFile(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
 	require.NoError(t, err)
 
-	for key, label := range expected.Labels {
+	for key, label := range expected {
 		value, found := f.Lookup(key)
 		require.True(t, found)
 		require.Equal(t, label, value)
