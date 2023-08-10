@@ -20,6 +20,9 @@ Main (unreleased)
   to enable decompression explicitly. See the [upgrade guide][] for migration
   instructions. (@thampiotr)
 
+- `otelcol.exporter.prometheus`: Set `include_scope_info` to `false` by default. You can set 
+  it to `true` to preserve previous behavior. (@gouthamve)
+
 ### Enhancements
 
 - Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
