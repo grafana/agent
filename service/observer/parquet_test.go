@@ -2,7 +2,6 @@ package observer
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"os"
 	"testing"
@@ -13,12 +12,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var AgentStateLabels1 = map[string]string{
+var agentStateLabels1 = map[string]string{
 	"app1": ".net",
 	"app2": ".net",
 }
 
-var AgentStateLabels2 = map[string]string{
+var agentStateLabels2 = map[string]string{
 	"app1": ".net",
 	"app2": ".net",
 }
@@ -132,48 +131,35 @@ var componentState2 []componentRow = []componentRow{
 
 func TestClientWriteToFile(t *testing.T) {
 	filepath := t.TempDir() + "/agent_state.parquet"
+	stateWriter := fileAgentStateWriter{filepath: filepath}
 
-	stateWriter := FileAgentStateWriter{
-		filepath: filepath,
-	}
-
-	{
-		stateBuf, err := GetAgentStateParquet(AgentStateLabels1, componentState1)
-		require.NoError(t, err)
-
-		err = stateWriter.Write(context.Background(), stateBuf)
-		require.NoError(t, err)
-	}
+	stateBuf, err := createParquet(agentStateLabels1, componentState1)
+	require.NoError(t, err)
+	_, err = stateWriter.Write(stateBuf)
+	require.NoError(t, err)
 
 	data, err := os.ReadFile(filepath)
 	require.NoError(t, err)
 	var buffer bytes.Buffer
 	_, err = buffer.Write(data)
 	require.NoError(t, err)
-	validateMetadata(t, buffer, AgentStateLabels1)
+	validateMetadata(t, buffer, agentStateLabels1)
 	validateComponentState(t, buffer, componentState1)
 	validateFakeComponentState(t, buffer, componentState1)
 	validateFakeComponent2State(t, buffer, componentState1)
 
-	// Make sure we can write multiple times without issue.
-	filepath = t.TempDir() + "/agent_state2.parquet"
-	stateWriter.filepath = filepath
-
-	{
-		stateBuf, err := GetAgentStateParquet(AgentStateLabels2, componentState2)
-		require.NoError(t, err)
-
-		err = stateWriter.Write(context.Background(), stateBuf)
-		require.NoError(t, err)
-	}
-
+	// Make sure we can overwrite the file with new data.
+	stateBuf, err = createParquet(agentStateLabels2, componentState2)
 	require.NoError(t, err)
+	_, err = stateWriter.Write(stateBuf)
+	require.NoError(t, err)
+
 	data, err = os.ReadFile(filepath)
 	require.NoError(t, err)
 	buffer.Reset()
 	_, err = buffer.Write(data)
 	require.NoError(t, err)
-	validateMetadata(t, buffer, AgentStateLabels2)
+	validateMetadata(t, buffer, agentStateLabels2)
 	validateComponentState(t, buffer, componentState2)
 	validateFakeComponentState(t, buffer, componentState2)
 	validateFakeComponent2State(t, buffer, componentState2)

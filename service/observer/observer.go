@@ -12,7 +12,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/encoding/riverparquet"
 	"github.com/grafana/agent/service"
 )
 
@@ -48,7 +47,7 @@ type Observer struct {
 	args         Arguments
 	configUpdate chan struct{}
 
-	stateWriter AgentStateWriter
+	stateWriter agentStateWriter
 }
 
 var _ service.Service = (*Observer)(nil)
@@ -79,6 +78,7 @@ func (*Observer) Definition() service.Definition {
 
 // Run implements service.Service.
 func (o *Observer) Run(ctx context.Context, host service.Host) error {
+	o.stateWriter.SetContext(ctx)
 	o.observe(ctx, host)
 
 	for {
@@ -107,15 +107,15 @@ func (o *Observer) observe(ctx context.Context, host service.Host) {
 		return
 	}
 
-	rawComponents := component.GetAllComponents(host, component.InfoOptions{
+	components := component.GetAllComponents(host, component.InfoOptions{
 		GetHealth:    true,
 		GetArguments: true,
 		GetExports:   true,
 		GetDebugInfo: true,
 	})
-	components := getAgentState(rawComponents)
+	parquetRows := convertToParquetRows(components)
 
-	stateBuf, err := GetAgentStateParquet(o.args.Labels, components)
+	parquet, err := createParquet(o.args.Labels, parquetRows)
 	if err != nil {
 		level.Error(o.log).Log("msg", "failed to create an agent state parquet file", "err", err)
 		return
@@ -123,40 +123,11 @@ func (o *Observer) observe(ctx context.Context, host service.Host) {
 
 	level.Info(o.log).Log("msg", "sending state payload to remote server")
 
-	if err := o.stateWriter.Write(ctx, stateBuf); err != nil {
+	if _, err := o.stateWriter.Write(parquet); err != nil {
 		level.Error(o.log).Log("msg", "failed to send payload", "err", err)
 	} else {
 		level.Info(o.log).Log("msg", "sent state payload to remote server")
 	}
-}
-
-func getAgentState(components []*component.Info) []componentRow {
-	res := []componentRow{}
-
-	for _, cInfo := range components {
-		var (
-			args      = riverparquet.GetComponentDetail(cInfo.Arguments)
-			exports   = riverparquet.GetComponentDetail(cInfo.Exports)
-			debugInfo = riverparquet.GetComponentDetail(cInfo.DebugInfo)
-		)
-
-		componentState := componentRow{
-			ID:       cInfo.ID.LocalID,
-			ModuleID: cInfo.ID.ModuleID,
-			Health: componentHealth{
-				Health:     cInfo.Health.Health.String(),
-				Message:    cInfo.Health.Message,
-				UpdateTime: cInfo.Health.UpdateTime,
-			},
-			Arguments: args,
-			Exports:   exports,
-			DebugInfo: debugInfo,
-		}
-
-		res = append(res, componentState)
-	}
-
-	return res
 }
 
 // Update implements service.Service.
@@ -178,7 +149,7 @@ func (o *Observer) Update(newConfig any) error {
 	}
 
 	var err error
-	o.stateWriter, err = NewHttpAgentStateWriter(o.args.HTTPClientConfig, o.agentID, o.args.RemoteEndpoint, labelsCopy)
+	o.stateWriter, err = newHttpAgentStateWriter(o.args.HTTPClientConfig, o.agentID, o.args.RemoteEndpoint, o.args.Headers)
 	if err != nil {
 		return fmt.Errorf("failed to create an HTTP agent state writer: %w", err)
 	}
@@ -190,19 +161,4 @@ func (o *Observer) Update(newConfig any) error {
 	}
 
 	return nil
-}
-
-type componentRow struct {
-	ID        string             `parquet:"id"`
-	ModuleID  string             `parquet:"module_id"`
-	Health    componentHealth    `parquet:"health"`
-	Arguments []riverparquet.Row `parquet:"arguments"`
-	Exports   []riverparquet.Row `parquet:"exports"`
-	DebugInfo []riverparquet.Row `parquet:"debug_info"`
-}
-
-type componentHealth struct {
-	Health     string    `parquet:"state"`
-	Message    string    `parquet:"message"`
-	UpdateTime time.Time `parquet:"update_time"`
 }

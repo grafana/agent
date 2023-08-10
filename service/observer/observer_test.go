@@ -82,7 +82,7 @@ func TestGetAgentState(t *testing.T) {
 			},
 		},
 	}}
-	actual := getAgentState(components)
+	actual := convertToParquetRows(components)
 
 	require.Equal(t, expected, actual)
 }
