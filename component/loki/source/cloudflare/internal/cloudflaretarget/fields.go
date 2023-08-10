@@ -7,7 +7,7 @@ package cloudflaretarget
 import (
 	"fmt"
 
-	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 // FieldsType defines the set of fields to fetch alongside logs.
@@ -62,13 +62,7 @@ func Fields(t FieldsType, additionalFields []string) ([]string, error) {
 	default:
 		return nil, fmt.Errorf("unknown fields type: %s", t)
 	}
-	return removeDuplicates(fields), nil
-}
-
-func removeDuplicates(fields []string) []string {
-	m := map[string]struct{}{}
-	for _, field := range fields {
-		m[field] = struct{}{}
-	}
-	return maps.Keys(m)
+	// remove duplicates
+	slices.Sort(fields)
+	return slices.Compact(fields), nil
 }
