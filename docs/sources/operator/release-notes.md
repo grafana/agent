@@ -22,7 +22,7 @@ Other release notes for the different Grafana Agent variants are contained on se
 * [Flow mode release notes][release-notes-flow]
 
 [release-notes-static]: {{< relref "../static/release-notes.md" >}}
-[release-notes-flow]: {{< relref "../flow/upgrade-guide.md" >}}
+[release-notes-flow]: {{< relref "../flow/release-notes.md" >}}
 {{% /admonition %}}
 
 ## v0.33

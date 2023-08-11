@@ -22,7 +22,7 @@ Other release notes for the different Grafana Agent variants are contained on se
 * [Static mode Kubernetes operator release notes][release-notes-operator]
 
 [release-notes-static]: {{< relref "../static/release-notes.md" >}}
-[release-notes-operator]: {{< relref "../operator/upgrade-guide.md" >}}
+[release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{% /admonition %}}
 
 ## v0.36
