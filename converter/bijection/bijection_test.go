@@ -55,7 +55,7 @@ func TestCustomConversions(t *testing.T) {
 	bi := StructBijection[RiverExample, YamlExample]{}
 
 	// Test inverting a bijection too
-	inverted := Inverted[int32, int64](Cast[int32, int64]())
+	inverted := Inverted(Cast[int32, int64]())
 	BindField(&bi, Names{A: "TestRiver", B: "TestYAML"}, inverted)
 	BindField(&bi, Names{A: "UInt", B: "UIntValue"}, Cast[uint64, float64]())
 	BindField(&bi, Names{A: "Str", B: "Bytes"}, Cast[string, []byte]())
