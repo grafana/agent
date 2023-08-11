@@ -5,49 +5,6 @@ import (
 	"testing"
 )
 
-func TestNew(t *testing.T) {
-	type RiverExample struct {
-		TestRiver int
-		UInt      uint
-		Str       string
-	}
-
-	type YamlExample struct {
-		TestYAML  int
-		String    string
-		UIntValue uint
-	}
-
-	bi := StructBijection[RiverExample, YamlExample]{
-		Mappings: map[PropertyPair]interface{}{
-			{A: "TestRiver", B: "TestYAML"}: Identiy,
-			{A: "UInt", B: "UIntValue"}:     Identiy,
-			{A: "Str", B: "String"}:         Identiy,
-		},
-	}
-
-	from := RiverExample{
-		TestRiver: 42,
-		UInt:      123,
-		Str:       "hello",
-	}
-	to := YamlExample{}
-
-	err := bi.ConvertAToB(&from, &to)
-	require.NoError(t, err)
-	require.Equal(t, YamlExample{
-		TestYAML:  42,
-		UIntValue: 123,
-		String:    "hello",
-	}, to)
-
-	reversed := RiverExample{}
-	err = bi.ConvertBToA(&to, &reversed)
-	require.NoError(t, err)
-	require.Equal(t, from, reversed)
-
-}
-
 func TestSimple(t *testing.T) {
 	type RiverExample struct {
 		TestRiver int
@@ -61,83 +18,87 @@ func TestSimple(t *testing.T) {
 		UIntValue uint
 	}
 
-	bi := NewBijection(RiverExample{}, YamlExample{})
-
-	bi.Bind("TestRiver", "TestYAML", identity, identity)
-	bi.Bind("UInt", "UIntValue", identity, identity)
-	bi.Bind("Str", "String", identity, identity)
+	bi := StructBijection[RiverExample, YamlExample]{}
+	BindField(&bi, PropertyNames{A: "TestRiver", B: "TestYAML"}, Copy[int]())
+	BindField(&bi, PropertyNames{A: "UInt", B: "UIntValue"}, Copy[uint]())
+	BindField(&bi, PropertyNames{A: "Str", B: "String"}, Copy[string]())
 
 	from := RiverExample{
 		TestRiver: 42,
 		UInt:      123,
 		Str:       "hello",
 	}
-	to := YamlExample{}
-
-	err := bi.ConvertAToB(&from, &to)
-	require.NoError(t, err)
-	require.Equal(t, YamlExample{
+	expectedTo := YamlExample{
 		TestYAML:  42,
 		UIntValue: 123,
 		String:    "hello",
-	}, to)
+	}
 
-	reversed := RiverExample{}
-	err = bi.ConvertBToA(&to, &reversed)
-	require.NoError(t, err)
-	require.Equal(t, from, reversed)
+	testTwoWayConversion(t, bi, from, expectedTo)
 }
 
-func TestConvertTypes(t *testing.T) {
+func TestNested(t *testing.T) {
 	type RiverExample struct {
-		TestRiver int
-		UInt      uint
+		TestRiver int32
+		UInt      uint64
+		Str       string
 	}
 
 	type YamlExample struct {
-		TestYAML  int32
-		UIntValue float32
+		TestYAML  int64
+		UIntValue float64
+		Bytes     []byte
 	}
 
-	a := RiverExample{}
-	b := YamlExample{}
-	bi := NewBijection(a, b)
+	bi := StructBijection[RiverExample, YamlExample]{}
 
-	bi.Bind(
-		"TestRiver",
-		"TestYAML",
-		func(a any) (any, error) {
-			return int32(a.(int)), nil
+	int32ToInt64 := FnBijection[int32, int64]{
+		AtoB: func(a *int32, b *int64) error {
+			*b = int64(*a)
+			return nil
 		},
-		func(a any) (any, error) {
-			return int(a.(int32)), nil
+		BtoA: func(b *int64, a *int32) error {
+			*a = int32(*b)
+			return nil
 		},
-	)
-	bi.Bind(
-		"UInt",
-		"UIntValue",
-		func(a any) (any, error) {
-			return float32(a.(uint)), nil
+	}
+
+	uint64ToFloat64 := FnBijection[uint64, float64]{
+		AtoB: func(a *uint64, b *float64) error {
+			*b = float64(*a)
+			return nil
 		},
-		func(a any) (any, error) {
-			return uint(a.(float32)), nil
+		BtoA: func(b *float64, a *uint64) error {
+			*a = uint64(*b)
+			return nil
 		},
-	)
+	}
+
+	BindField[RiverExample, YamlExample, int32, int64](&bi, PropertyNames{A: "TestRiver", B: "TestYAML"}, int32ToInt64)
+	BindField[RiverExample, YamlExample, uint64, float64](&bi, PropertyNames{A: "UInt", B: "UIntValue"}, uint64ToFloat64)
+	BindField(&bi, PropertyNames{A: "Str", B: "Bytes"}, Copy[string]())
 
 	from := RiverExample{
 		TestRiver: 42,
 		UInt:      123,
+		Str:       "hello",
 	}
-	to := YamlExample{}
-
-	err := bi.ConvertAToB(&from, &to)
-	require.NoError(t, err)
-	require.Equal(t, YamlExample{
+	expectedTo := YamlExample{
 		TestYAML:  42,
 		UIntValue: 123,
-	}, to)
+		Bytes:     []byte("hello"),
+	}
 
-	reversed := RiverExample{}
+	testTwoWayConversion(t, bi, from, expectedTo)
+}
+
+func testTwoWayConversion[A any, B any](t *testing.T, bi StructBijection[A, B], from A, expectedTo B) {
+	var to B
+	err := bi.ConvertAToB(&from, &to)
+	require.NoError(t, err)
+	require.Equal(t, expectedTo, to)
+
+	var reversed A
 	err = bi.ConvertBToA(&to, &reversed)
 	require.NoError(t, err)
 	require.Equal(t, from, reversed)
