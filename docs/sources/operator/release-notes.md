@@ -1,23 +1,29 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/operator/upgrade-guide/
-title: Upgrade guide
+canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
+description: Release notes for Grafana Agent static mode Kubernetes operator
+title: Release notes for Grafana Agent
+menuTitle: Release notes
+aliases:
+- ./upgrade-guide/
 weight: 999
 ---
 
-# Upgrade guide
+# Release notes
 
-This guide describes required steps when upgrading from older versions of the
-Static mode Kubernetes operator.
+The release notes provide information about deprecations and breaking changes in Grafana Agent static mode Kubernetes operator.
 
-> **NOTE**: This upgrade guide is specific to the Static mode Kubernetes
-> Operator. Other upgrade guides for the different Grafana Agent variants are
-> contained on separate pages:
->
-> * [Static mode upgrade guide][upgrade-guide-static]
-> * [Flow mode upgrade guide][upgrade-guide-flow]
->
-> [upgrade-guide-static]: {{< relref "../static/upgrade-guide.md" >}}
-> [upgrade-guide-flow]: {{< relref "../flow/upgrade-guide.md" >}}
+For a complete list of changes to Grafana Agent, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
+
+{{% admonition type="note" %}}
+These release notes are specific to the Static mode Kubernetes Operator.
+Other release notes for the different Grafana Agent variants are contained on separate pages:
+
+* [Static mode release notes][release-notes-static]
+* [Flow mode release notes][release-notes-flow]
+
+[release-notes-static]: {{< relref "../static/release-notes.md" >}}
+[release-notes-flow]: {{< relref "../flow/upgrade-guide.md" >}}
+{{% /admonition %}}
 
 ## v0.33
 
