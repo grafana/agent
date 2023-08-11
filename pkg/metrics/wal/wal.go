@@ -155,7 +155,7 @@ func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string
 		wal:     w,
 		logger:  logger,
 		deleted: map[chunks.HeadSeriesRef]int{},
-		series:  newStripeSeries(tsdb.DefaultStripeSize),
+		series:  newStripeSeries(1024),
 		metrics: newStorageMetrics(registerer),
 		nextRef: atomic.NewUint64(0),
 	}
