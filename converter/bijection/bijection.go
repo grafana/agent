@@ -5,42 +5,77 @@ import (
 	"reflect"
 )
 
-type Bijection[A any, B any] struct {
-	TypeA reflect.Type
-	TypeB reflect.Type
-	props []PropertyBijection
+type Bijection[A interface{}, B interface{}] interface {
+	ConvertAToB(a *A, b *B) error
+	ConvertBToA(b *B, a *A) error
 }
 
-type PropertyBijection struct {
-	AProp string
-	BProp string
-	AB    func(any) (any, error)
-	BA    func(any) (any, error)
+type StructBijection[A interface{}, B interface{}] struct {
+	Mappings map[PropertyPair]interface{}
 }
 
-func (b *Bijection[A, B]) Bind(
+type FnBijection[A interface{}, B interface{}] struct {
+	AtoB func(*A, *B) error
+	BtoA func(*B, *A) error
+}
+
+var Identiy = FnBijection[any, any]{
+	AtoB: func(a *any, b *any) error {
+		*b = *a
+		return nil
+	},
+	BtoA: func(b *any, a *any) error {
+		*a = *b
+		return nil
+	},
+}
+
+func (f FnBijection[A, B]) ConvertAToB(a *A, b *B) error {
+	return f.AtoB(a, b)
+}
+
+func (f FnBijection[A, B]) ConvertBToA(b *B, a *A) error {
+	return f.BtoA(b, a)
+}
+
+type PropertyPair struct {
+	A string
+	B string
+}
+
+func NewBijection[A interface{}, B interface{}](a A, b B) StructBijection[A, B] {
+	return StructBijection[A, B]{}
+}
+
+func (bj *StructBijection[A, B]) Bind(
 	fromProp string,
 	toProp string,
-	fwd func(any) (any, error),
-	rev func(any) (any, error),
+	fwd func(interface{}) (interface{}, error),
+	rev func(interface{}) (interface{}, error),
 ) {
-	if _, ok := b.TypeA.FieldByName(fromProp); !ok {
-		panic(fmt.Sprintf("field %s not found in type %s", fromProp, b.TypeA.Name()))
+	var (
+		a A
+		b B
+	)
+
+	typeA := reflect.TypeOf(a)
+	if _, ok := typeA.FieldByName(fromProp); !ok {
+		panic(fmt.Sprintf("field %s not found in type %s", fromProp, typeA.Name()))
 	}
-	if _, ok := b.TypeB.FieldByName(toProp); !ok {
-		panic(fmt.Sprintf("field %s not found in type %s", toProp, b.TypeB.Name()))
+
+	typeB := reflect.TypeOf(b)
+	if _, ok := typeB.FieldByName(toProp); !ok {
+		panic(fmt.Sprintf("field %s not found in type %s", toProp, typeB.Name()))
 	}
-	b.props = append(b.props, PropertyBijection{
-		AProp: fromProp,
-		BProp: toProp,
-		AB:    fwd,
-		BA:    rev,
-	})
+
+	bj.Mappings[PropertyPair{fromProp, toProp}] = FnBijection[any, any]{
+		AtoB: fwd,
+	}
 }
 
-func (b *Bijection[A, B]) ConvertAToB(from *A, to *B) error {
-	for _, conv := range b.props {
-		fromProp := reflect.ValueOf(from).Elem().FieldByName(conv.AProp)
+func (bj *StructBijection[A, B]) ConvertAToB(from *A, to *B) error {
+	for props, fn := range bj.Mappings {
+		fromProp := reflect.ValueOf(from).Elem().FieldByName(conv.A)
 		toProp := reflect.ValueOf(to).Elem().FieldByName(conv.BProp)
 		converted, err := conv.AB(fromProp.Interface())
 		if err != nil {
@@ -51,8 +86,8 @@ func (b *Bijection[A, B]) ConvertAToB(from *A, to *B) error {
 	return nil
 }
 
-func (b *Bijection[A, B]) ConvertBToA(from *B, to *A) error {
-	for _, conv := range b.props {
+func (bj *StructBijection[A, B]) ConvertBToA(from *B, to *A) error {
+	for _, conv := range bj.props {
 		fromProp := reflect.ValueOf(from).Elem().FieldByName(conv.BProp)
 		toProp := reflect.ValueOf(to).Elem().FieldByName(conv.AProp)
 		converted, err := conv.BA(fromProp.Interface())
@@ -62,13 +97,6 @@ func (b *Bijection[A, B]) ConvertBToA(from *B, to *A) error {
 		toProp.Set(reflect.ValueOf(converted))
 	}
 	return nil
-}
-
-func NewBijection[A any, B any](a A, b B) Bijection[A, B] {
-	return Bijection[A, B]{
-		TypeA: reflect.TypeOf(a),
-		TypeB: reflect.TypeOf(b),
-	}
 }
 
 func identity(a interface{}) (b interface{}, err error) {

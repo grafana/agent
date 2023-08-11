@@ -5,6 +5,49 @@ import (
 	"testing"
 )
 
+func TestNew(t *testing.T) {
+	type RiverExample struct {
+		TestRiver int
+		UInt      uint
+		Str       string
+	}
+
+	type YamlExample struct {
+		TestYAML  int
+		String    string
+		UIntValue uint
+	}
+
+	bi := StructBijection[RiverExample, YamlExample]{
+		Mappings: map[PropertyPair]interface{}{
+			{A: "TestRiver", B: "TestYAML"}: Identiy,
+			{A: "UInt", B: "UIntValue"}:     Identiy,
+			{A: "Str", B: "String"}:         Identiy,
+		},
+	}
+
+	from := RiverExample{
+		TestRiver: 42,
+		UInt:      123,
+		Str:       "hello",
+	}
+	to := YamlExample{}
+
+	err := bi.ConvertAToB(&from, &to)
+	require.NoError(t, err)
+	require.Equal(t, YamlExample{
+		TestYAML:  42,
+		UIntValue: 123,
+		String:    "hello",
+	}, to)
+
+	reversed := RiverExample{}
+	err = bi.ConvertBToA(&to, &reversed)
+	require.NoError(t, err)
+	require.Equal(t, from, reversed)
+
+}
+
 func TestSimple(t *testing.T) {
 	type RiverExample struct {
 		TestRiver int
