@@ -34,7 +34,7 @@ func TestSimple(t *testing.T) {
 		String:    "hello",
 	}
 
-	testTwoWayConversion(t, bi, from, expectedTo)
+	testTwoWayConversion(t, &bi, from, expectedTo)
 }
 
 func TestCustomConversions(t *testing.T) {
@@ -74,10 +74,10 @@ func TestCustomConversions(t *testing.T) {
 		Str:       "hello2",
 	}
 
-	testTwoWayConversion(t, bi, from, expectedTo)
+	testTwoWayConversion(t, &bi, from, expectedTo)
 }
 
-func testTwoWayConversion[A any, B any](t *testing.T, bi StructBijection[A, B], from A, expectedTo B) {
+func testTwoWayConversion[A any, B any](t *testing.T, bi *StructBijection[A, B], from A, expectedTo B) {
 	var to B
 	err := bi.ConvertAToB(&from, &to)
 	require.NoError(t, err)

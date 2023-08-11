@@ -19,6 +19,14 @@ type Names struct {
 	B string
 }
 
+func MatchingNames(name string) Names {
+	return Names{A: name, B: name}
+}
+
+func BindMatchingField[A any, B any, Field any](si *StructBijection[A, B], name string) {
+	BindField[A, B, Field, Field](si, MatchingNames(name), Copy[Field]())
+}
+
 // BindField needs to be a function, because methods cannot have extra generic parameters
 // other than the ones defined on the structure.
 func BindField[A any, B any, FieldA any, FieldB any](si *StructBijection[A, B], names Names, fBijection Bijection[FieldA, FieldB]) {
@@ -34,7 +42,7 @@ func BindField[A any, B any, FieldA any, FieldB any](si *StructBijection[A, B], 
 		panic(fmt.Sprintf("cannot find field %s in type %T", names.A, exampleA))
 	}
 	if fieldOfA.Type != reflect.TypeOf(exampleFieldA) {
-		panic(fmt.Sprintf("field %s in type %T is not of specified type %T", names.A, exampleA, exampleFieldA))
+		panic(fmt.Sprintf("field %s in type %T is of type %s not of specified type %T", names.A, exampleA, fieldOfA.Type.String(), exampleFieldA))
 	}
 
 	fieldOfB, ok := reflect.TypeOf(exampleB).FieldByName(names.B)
@@ -42,7 +50,7 @@ func BindField[A any, B any, FieldA any, FieldB any](si *StructBijection[A, B], 
 		panic(fmt.Sprintf("cannot find field %s in type %T", names.B, exampleB))
 	}
 	if fieldOfB.Type != reflect.TypeOf(exampleFieldB) {
-		panic(fmt.Sprintf("field %s in type %T is not of specified type %T", names.B, exampleB, exampleFieldB))
+		panic(fmt.Sprintf("field %s in type %T is of type %s not of specified type %T", names.B, exampleB, fieldOfB.Type.String(), exampleFieldB))
 	}
 
 	si.aToBMap[names] = func(a interface{}, b interface{}) error {

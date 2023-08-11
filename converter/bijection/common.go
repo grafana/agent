@@ -9,6 +9,25 @@ func Inverted[A any, B any](bj Bijection[A, B]) Bijection[B, A] {
 	}
 }
 
+func Compose[A any, B any, C any](b1 Bijection[A, B], b2 Bijection[B, C]) Bijection[A, C] {
+	return FnBijection[A, C]{
+		AtoB: func(a *A, c *C) error {
+			var b B
+			if err := b1.ConvertAToB(a, &b); err != nil {
+				return err
+			}
+			return b2.ConvertAToB(&b, c)
+		},
+		BtoA: func(c *C, a *A) error {
+			var b B
+			if err := b2.ConvertBToA(c, &b); err != nil {
+				return err
+			}
+			return b1.ConvertBToA(&b, a)
+		},
+	}
+}
+
 func Copy[A any]() Bijection[A, A] {
 	return FnBijection[A, A]{
 		AtoB: func(a *A, b *A) error {
