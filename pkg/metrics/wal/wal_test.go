@@ -403,6 +403,8 @@ func TestStorage_Corruption(t *testing.T) {
 	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
 	require.NoError(t, err)
 	require.NotNil(t, s)
+
+	require.NoError(t, s.Close())
 }
 
 func TestGlobalReferenceID_Normal(t *testing.T) {
