@@ -3,6 +3,8 @@ package wal
 import (
 	"context"
 	"math"
+	"os"
+	"path/filepath"
 	"sort"
 	"testing"
 	"time"
@@ -386,6 +388,21 @@ func TestStorage_TruncateAfterClose(t *testing.T) {
 
 	require.NoError(t, s.Close())
 	require.Error(t, ErrWALClosed, s.Truncate(0))
+}
+
+func TestStorage_Corruption(t *testing.T) {
+	walDir := t.TempDir()
+
+	// Write a corrupt segment
+	err := os.Mkdir(filepath.Join(walDir, "wal"), 0755)
+	require.NoError(t, err)
+	err = os.WriteFile(filepath.Join(walDir, "wal", "00000000"), []byte("hello world"), 0644)
+	require.NoError(t, err)
+
+	// The storage should be initialized correctly anyway.
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	require.NotNil(t, s)
 }
 
 func TestGlobalReferenceID_Normal(t *testing.T) {

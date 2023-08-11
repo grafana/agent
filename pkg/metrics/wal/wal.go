@@ -451,7 +451,7 @@ func (w *Storage) loadWAL(r *wlog.Reader, multiRef map[chunks.HeadSeriesRef]chun
 		return err
 	default:
 		if r.Err() != nil {
-			return fmt.Errorf("read records: %w", err)
+			return fmt.Errorf("read records: %w", r.Err())
 		}
 		return nil
 	}
