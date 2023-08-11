@@ -19,9 +19,9 @@ func TestSimple(t *testing.T) {
 	}
 
 	bi := StructBijection[RiverExample, YamlExample]{}
-	BindField(&bi, PropertyNames{A: "TestRiver", B: "TestYAML"}, Copy[int]())
-	BindField(&bi, PropertyNames{A: "UInt", B: "UIntValue"}, Copy[uint]())
-	BindField(&bi, PropertyNames{A: "Str", B: "String"}, Copy[string]())
+	BindField(&bi, Names{A: "TestRiver", B: "TestYAML"}, Copy[int]())
+	BindField(&bi, Names{A: "UInt", B: "UIntValue"}, Copy[uint]())
+	BindField(&bi, Names{A: "Str", B: "String"}, Copy[string]())
 
 	from := RiverExample{
 		TestRiver: 42,
@@ -37,56 +37,41 @@ func TestSimple(t *testing.T) {
 	testTwoWayConversion(t, bi, from, expectedTo)
 }
 
-func TestNested(t *testing.T) {
+func TestCustomConversions(t *testing.T) {
 	type RiverExample struct {
-		TestRiver int32
+		TestRiver int64
 		UInt      uint64
 		Str       string
+		Bytes     []byte
 	}
 
 	type YamlExample struct {
-		TestYAML  int64
+		TestYAML  int32
 		UIntValue float64
 		Bytes     []byte
+		Str       string
 	}
 
 	bi := StructBijection[RiverExample, YamlExample]{}
 
-	int32ToInt64 := FnBijection[int32, int64]{
-		AtoB: func(a *int32, b *int64) error {
-			*b = int64(*a)
-			return nil
-		},
-		BtoA: func(b *int64, a *int32) error {
-			*a = int32(*b)
-			return nil
-		},
-	}
-
-	uint64ToFloat64 := FnBijection[uint64, float64]{
-		AtoB: func(a *uint64, b *float64) error {
-			*b = float64(*a)
-			return nil
-		},
-		BtoA: func(b *float64, a *uint64) error {
-			*a = uint64(*b)
-			return nil
-		},
-	}
-
-	BindField[RiverExample, YamlExample, int32, int64](&bi, PropertyNames{A: "TestRiver", B: "TestYAML"}, int32ToInt64)
-	BindField[RiverExample, YamlExample, uint64, float64](&bi, PropertyNames{A: "UInt", B: "UIntValue"}, uint64ToFloat64)
-	BindField(&bi, PropertyNames{A: "Str", B: "Bytes"}, Copy[string]())
+	// Test inverting a bijection too
+	inverted := Inverted[int32, int64](Cast[int32, int64]())
+	BindField(&bi, Names{A: "TestRiver", B: "TestYAML"}, inverted)
+	BindField(&bi, Names{A: "UInt", B: "UIntValue"}, Cast[uint64, float64]())
+	BindField(&bi, Names{A: "Str", B: "Bytes"}, Cast[string, []byte]())
+	BindField(&bi, Names{A: "Bytes", B: "Str"}, Cast[[]byte, string]())
 
 	from := RiverExample{
 		TestRiver: 42,
 		UInt:      123,
 		Str:       "hello",
+		Bytes:     []byte("hello2"),
 	}
 	expectedTo := YamlExample{
 		TestYAML:  42,
 		UIntValue: 123,
 		Bytes:     []byte("hello"),
+		Str:       "hello2",
 	}
 
 	testTwoWayConversion(t, bi, from, expectedTo)

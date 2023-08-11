@@ -5,27 +5,46 @@ import (
 	"reflect"
 )
 
-type Bijection[A interface{}, B interface{}] interface {
-	ConvertAToB(a *A, b *B) error
-	ConvertBToA(b *B, a *A) error
-}
-
 type StructBijection[A interface{}, B interface{}] struct {
-	aToBMap map[PropertyNames]unsafeConversionFn
-	bToAMap map[PropertyNames]unsafeConversionFn
+	aToBMap map[Names]unsafeConversionFn
+	bToAMap map[Names]unsafeConversionFn
 }
 
+// We need to use unsafe conversion function because we cannot store types
+// with different generic parameters in the same map.
 type unsafeConversionFn func(interface{}, interface{}) error
 
-type FnBijection[A interface{}, B interface{}] struct {
-	AtoB func(*A, *B) error
-	BtoA func(*B, *A) error
+type Names struct {
+	A string
+	B string
 }
 
 // BindField needs to be a function, because methods cannot have extra generic parameters
 // other than the ones defined on the structure.
-func BindField[A any, B any, FieldA any, FieldB any](si *StructBijection[A, B], names PropertyNames, fBijection Bijection[FieldA, FieldB]) {
+func BindField[A any, B any, FieldA any, FieldB any](si *StructBijection[A, B], names Names, fBijection Bijection[FieldA, FieldB]) {
 	si.ensureInitialised()
+	var (
+		exampleA      A
+		exampleB      B
+		exampleFieldA FieldA
+		exampleFieldB FieldB
+	)
+	fieldOfA, ok := reflect.TypeOf(exampleA).FieldByName(names.A)
+	if !ok {
+		panic(fmt.Sprintf("cannot find field %s in type %T", names.A, exampleA))
+	}
+	if fieldOfA.Type != reflect.TypeOf(exampleFieldA) {
+		panic(fmt.Sprintf("field %s in type %T is not of specified type %T", names.A, exampleA, exampleFieldA))
+	}
+
+	fieldOfB, ok := reflect.TypeOf(exampleB).FieldByName(names.B)
+	if !ok {
+		panic(fmt.Sprintf("cannot find field %s in type %T", names.B, exampleB))
+	}
+	if fieldOfB.Type != reflect.TypeOf(exampleFieldB) {
+		panic(fmt.Sprintf("field %s in type %T is not of specified type %T", names.B, exampleB, exampleFieldB))
+	}
+
 	si.aToBMap[names] = func(a interface{}, b interface{}) error {
 		typedA, ok := a.(*FieldA)
 		if !ok {
@@ -53,41 +72,11 @@ func BindField[A any, B any, FieldA any, FieldB any](si *StructBijection[A, B], 
 
 func (si *StructBijection[A, B]) ensureInitialised() {
 	if si.aToBMap == nil {
-		si.aToBMap = make(map[PropertyNames]unsafeConversionFn)
+		si.aToBMap = make(map[Names]unsafeConversionFn)
 	}
 	if si.bToAMap == nil {
-		si.bToAMap = make(map[PropertyNames]unsafeConversionFn)
+		si.bToAMap = make(map[Names]unsafeConversionFn)
 	}
-}
-
-func Copy[A any]() Bijection[A, A] {
-	return FnBijection[A, A]{
-		AtoB: func(a *A, b *A) error {
-			*b = *a
-			return nil
-		},
-		BtoA: func(b *A, a *A) error {
-			*a = *b
-			return nil
-		},
-	}
-}
-
-func (f FnBijection[A, B]) ConvertAToB(a *A, b *B) error {
-	return f.AtoB(a, b)
-}
-
-func (f FnBijection[A, B]) ConvertBToA(b *B, a *A) error {
-	return f.BtoA(b, a)
-}
-
-type PropertyNames struct {
-	A string
-	B string
-}
-
-func NewBijection[A interface{}, B interface{}](a A, b B) StructBijection[A, B] {
-	return StructBijection[A, B]{}
 }
 
 func (si *StructBijection[A, B]) ConvertAToB(from *A, to *B) error {
@@ -112,8 +101,4 @@ func (si *StructBijection[A, B]) ConvertBToA(from *B, to *A) error {
 		}
 	}
 	return nil
-}
-
-func identity(a interface{}) (b interface{}, err error) {
-	return a, nil
 }
