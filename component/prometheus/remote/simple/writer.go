@@ -1,65 +1,85 @@
 package simple
 
 import (
-	"bytes"
 	"context"
-	"encoding/binary"
 	"fmt"
+	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging"
 	"time"
 
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/component/prometheus/remote"
 )
 
 type writer struct {
-	parentId   string
-	keys       []uint64
-	currentKey uint64
-	to         remote.RemoteWrite
-	bm         *bookmark
-	metrics    *signaldb
-	ctx        context.Context
+	parentId    string
+	keys        []uint64
+	currentKey  uint64
+	to          *QueueManager
+	store       *dbstore
+	ctx         context.Context
+	bookmarkKey string
+	l           *logging.Logger
 }
 
-func (w *writer) Start() error {
-	name := fmt.Sprintf("metrics_write_to_%s_parent_%s", w.to.Name(), w.parentId)
-	v, found, err := w.bm.getValueForKey(name)
-	if err != nil {
-		return err
+func newWriter(parent string, to *QueueManager, store *dbstore, l *logging.Logger) *writer {
+
+	name := fmt.Sprintf("metrics_write_to_%s_parent_%s", to.Name(), parent)
+	return &writer{
+		parentId:    parent,
+		keys:        make([]uint64, 0),
+		currentKey:  0,
+		to:          to,
+		store:       store,
+		bookmarkKey: name,
+		l:           l,
 	}
+}
+
+func (w *writer) Start(ctx context.Context) error {
+	w.ctx = ctx
+	v, found := w.store.GetBookmark(w.bookmarkKey)
 	// If we dont have a bookmark then grab the oldest key.
 	if !found {
-		keys, err := w.metrics.getKeys()
-		if err != nil {
-			return err
-		}
-
-		if len(keys) > 0 {
-			w.currentKey = keys[0]
-		}
+		w.currentKey = w.store.GetOldestKey()
 	} else {
-		// We do have a bookmark so read that.
-		buf := bytes.NewBuffer(v)
-		k, err := binary.ReadUvarint(buf)
-		if err != nil {
-			return err
-		}
-		w.currentKey = k
+		w.currentKey = v.Key
+	}
+	if w.currentKey == 0 {
+		w.currentKey = 1
 	}
 	for {
-		var samples []prometheus.Sample
-		found, err := w.metrics.getRecordByUint(w.currentKey, samples)
+		val, signalFound := w.store.GetSignal(w.currentKey)
+		if !signalFound {
+			continue
+		}
+		switch v := val.(type) {
+		case []prometheus.Sample:
+			w.to.Append(v)
+		case []prometheus.Metadata:
+			w.to.AppendMetadata(v)
+		case []prometheus.Exemplar:
+			w.to.AppendExemplars(v)
+		case []prometheus.FloatHistogram:
+			w.to.AppendFloatHistograms(v)
+		case []prometheus.Histogram:
+			w.to.AppendHistograms(v)
+		default:
+			return fmt.Errorf("Unknown value %s ", v)
+		}
 
-		w.incrementKey()
+		newKey, err := w.incrementKey()
 		if err != nil {
 			return err
 		}
-		if !found {
-			continue
-		}
-		w.to.Append(samples)
 
-		tmr := time.NewTimer(100 * time.Millisecond)
+		timeOut := 100 * time.Millisecond
+		// If there is a new key then dont wait long but we still need to check for the ctx being done.
+		if newKey {
+			level.Info(w.l).Log("key", w.currentKey)
+			timeOut = 1 * time.Millisecond
+		}
+
+		tmr := time.NewTimer(timeOut)
 		select {
 		case <-w.ctx.Done():
 			return nil
@@ -69,15 +89,16 @@ func (w *writer) Start() error {
 	}
 }
 
-func (w *writer) incrementKey() error {
+// incrementKey returns true if key changed
+func (w *writer) incrementKey() (bool, error) {
 	prev := w.currentKey
-	w.currentKey = w.metrics.getNextKey(w.currentKey)
+	w.currentKey = w.store.GetNextKey(w.currentKey)
 	// No need to update bookmark if nothing has changed.
 	if prev == w.currentKey {
-		return nil
+		return false, nil
 	}
-	name := fmt.Sprintf("metrics_write_to_%s_parent_%s", w.to.Name(), w.parentId)
-	buf := make([]byte, 8)
-	binary.PutUvarint(buf, w.currentKey)
-	return w.bm.writeBookmark(name, buf)
+	err := w.store.WriteBookmark(w.bookmarkKey, &Bookmark{
+		Key: w.currentKey,
+	})
+	return true, err
 }

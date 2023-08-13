@@ -80,10 +80,9 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/operator/servicemonitors"      // Import prometheus.operator.servicemonitors
 	_ "github.com/grafana/agent/component/prometheus/receive_http"                  // Import prometheus.receive_http
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel
-	_ "github.com/grafana/agent/component/prometheus/remote"                        // Import prometheus.remote
+	_ "github.com/grafana/agent/component/prometheus/remote/simple"                 // Import prometheus.remote.simple
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape
-	_ "github.com/grafana/agent/component/prometheus/wal/badger"                    // Import prometheus.wal.badger
 	_ "github.com/grafana/agent/component/remote/http"                              // Import remote.http
 	_ "github.com/grafana/agent/component/remote/s3"                                // Import remote.s3
 	_ "github.com/grafana/agent/component/remote/vault"                             // Import remote.vault

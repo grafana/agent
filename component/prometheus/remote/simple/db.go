@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"sort"
 	"sync"
 	"time"
 
 	badgerdb "github.com/dgraph-io/badger/v3"
+	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/logging"
 )
 
@@ -21,7 +23,10 @@ type signaldb struct {
 }
 
 func newDb(dir string, l *logging.Logger) (*signaldb, error) {
-	bdb, err := badgerdb.Open(badgerdb.DefaultOptions(dir))
+	opts := badgerdb.DefaultOptions(dir)
+	opts.SyncWrites = true
+	opts.MetricsEnabled = true
+	bdb, err := badgerdb.Open(opts)
 	if err != nil {
 		return nil, err
 	}
@@ -51,9 +56,6 @@ func (d *signaldb) getNewKey() uint64 {
 }
 
 func (d *signaldb) getOldestKey() uint64 {
-	d.mut.RLock()
-	defer d.mut.Unlock()
-
 	var buf []byte
 	d.d.View(func(txn *badgerdb.Txn) error {
 		iterator := txn.NewIterator(badgerdb.IteratorOptions{
@@ -115,7 +117,7 @@ func (d *signaldb) getValueForKey(k []byte) (any, bool, error) {
 	var t int8
 	err := d.d.View(func(txn *badgerdb.Txn) error {
 		item, err := txn.Get(k)
-		if err == badgerdb.ErrKeyNotFound {
+		if errors.Is(err, badgerdb.ErrKeyNotFound) {
 			found = false
 			return nil
 		}
@@ -127,10 +129,38 @@ func (d *signaldb) getValueForKey(k []byte) (any, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
+	if !found {
+		return nil, false, nil
+	}
 	buf := bytes.NewBuffer(value)
 	dec := gob.NewDecoder(buf)
-	val := getRecord(t)
-	err = dec.Decode(val)
+	var val any
+	switch t {
+	case metricSignal:
+		smp := []prometheus.Sample{}
+		err = dec.Decode(&smp)
+		val = smp
+	case exemplarSignal:
+		smp := []prometheus.Exemplar{}
+		err = dec.Decode(&smp)
+		val = smp
+	case metadataSignal:
+		smp := []prometheus.Metadata{}
+		err = dec.Decode(&smp)
+		val = smp
+	case histogramSignal:
+		smp := []prometheus.Histogram{}
+		err = dec.Decode(&smp)
+		val = smp
+	case floathistogramSignal:
+		smp := []prometheus.FloatHistogram{}
+		err = dec.Decode(&smp)
+		val = smp
+	case bookmarkType:
+		smp := &Bookmark{}
+		err = dec.Decode(&smp)
+		val = smp
+	}
 	return val, found, err
 }
 
@@ -179,7 +209,7 @@ func (d *signaldb) writeRecord(key []byte, data any, ttl time.Duration) error {
 			Value:    buf.Bytes(),
 			UserMeta: byte(signalType),
 		}
-		if ttl > 0*time.Second {
+		if ttl > 0 {
 			entry.ExpiresAt = uint64(time.Now().Add(ttl).Unix())
 		}
 		inErr := txn.SetEntry(entry)
@@ -190,18 +220,18 @@ func (d *signaldb) writeRecord(key []byte, data any, ttl time.Duration) error {
 
 func getType(data any) (int8, error) {
 	switch v := data.(type) {
-	case []Sample:
-		return metric_signal, nil
-	case []Exemplar:
-		return exemplar_signal, nil
-	case []Metadata:
-		return metadata_signal, nil
-	case []Histogram:
-		return histogram_signal, nil
-	case []FloatHistogram:
-		return floathistogram_signal, nil
-	case Bookmark:
-		return bookmark_type, nil
+	case []prometheus.Sample:
+		return metricSignal, nil
+	case []prometheus.Exemplar:
+		return exemplarSignal, nil
+	case []prometheus.Metadata:
+		return metadataSignal, nil
+	case []prometheus.Histogram:
+		return histogramSignal, nil
+	case []prometheus.FloatHistogram:
+		return floathistogramSignal, nil
+	case *Bookmark:
+		return bookmarkType, nil
 	default:
 		return 0, fmt.Errorf("unknown data type %v", v)
 	}
@@ -209,17 +239,17 @@ func getType(data any) (int8, error) {
 
 func getRecord(t int8) any {
 	switch t {
-	case metric_signal:
-		return []Sample{}
-	case exemplar_signal:
-		return []Exemplar{}
-	case metadata_signal:
-		return []Metadata{}
-	case histogram_signal:
-		return []Histogram{}
-	case floathistogram_signal:
-		return []FloatHistogram{}
-	case bookmark_type:
+	case metricSignal:
+		return []prometheus.Sample{}
+	case exemplarSignal:
+		return []prometheus.Exemplar{}
+	case metadataSignal:
+		return []prometheus.Metadata{}
+	case histogramSignal:
+		return []prometheus.Histogram{}
+	case floathistogramSignal:
+		return []prometheus.FloatHistogram{}
+	case bookmarkType:
 		return &Bookmark{}
 	default:
 		return nil
@@ -237,5 +267,4 @@ func (d *signaldb) evict() {
 			return
 		}
 	}
-
 }

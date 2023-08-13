@@ -2,13 +2,18 @@ package simple
 
 import (
 	"context"
+	"net/url"
 	"path"
 	"sync"
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/prometheus/remote"
+	promtype "github.com/grafana/agent/component/prometheus"
+	"github.com/prometheus/client_golang/prometheus"
+	config_util "github.com/prometheus/common/config"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/storage"
+	promremote "github.com/prometheus/prometheus/storage/remote"
 )
 
 func init() {
@@ -46,11 +51,60 @@ type Simple struct {
 // suffers a fatal error. Run is guaranteed to be called exactly once per
 // Component.
 //
-// Implementations of Component should perform any necessary cleanup before
+// Implementations of Componen should perform any necessary cleanup before
 // returning from Run.
 func (s *Simple) Run(ctx context.Context) error {
-	ctx.Done()
+	qm, err := s.newQueueManager()
+	if err != nil {
+		return err
+	}
+	wr := newWriter(s.opts.ID, qm, s.database, s.opts.Logger)
+	go wr.Start(ctx)
+	go qm.Start()
+	<-ctx.Done()
 	return nil
+}
+
+func (s *Simple) newQueueManager() (*QueueManager, error) {
+	ew := newEWMARate(ewmaWeight, shardUpdateDuration)
+	endUrl, err := url.Parse(s.args.Endpoint.URL)
+	if err != nil {
+		return nil, err
+	}
+	cfgURL := &config_util.URL{URL: endUrl}
+	wr, err := promremote.NewWriteClient(s.opts.ID, &promremote.ClientConfig{
+		URL:              cfgURL,
+		Timeout:          model.Duration(s.args.Endpoint.RemoteTimeout),
+		HTTPClientConfig: *s.args.Endpoint.HTTPClientConfig.Convert(),
+		SigV4Config:      nil,
+		Headers:          s.args.Endpoint.Headers,
+		RetryOnRateLimit: s.args.Endpoint.QueueOptions.toPrometheusType().RetryOnRateLimit,
+	})
+	if err != nil {
+		return nil, err
+	}
+	met := newQueueManagerMetrics(s.opts.Registerer, "", wr.Endpoint())
+
+	qm := NewQueueManager(
+		met,
+		s.opts.Logger,
+		ew,
+		s.args.Endpoint.QueueOptions.toPrometheusType(),
+		s.args.Endpoint.MetadataOptions.toPrometheusType(),
+		wr,
+		1*time.Minute,
+		&maxTimestamp{
+			Gauge: prometheus.NewGauge(prometheus.GaugeOpts{
+				Namespace: "prometheus",
+				Subsystem: "remote_storage",
+				Name:      "highest_timestamp_in_seconds",
+				Help:      "Highest timestamp that has come into the remote storage via the Appender interface, in seconds since epoch.",
+			}),
+		},
+		true,
+		true,
+	)
+	return qm, nil
 }
 
 // Update provides a new Config to the component. The type of newConfig will
@@ -78,29 +132,18 @@ func (c *Simple) Appender(ctx context.Context) storage.Appender {
 }
 
 func (c *Simple) commit(a *appender) {
-	c.mut.RLock()
+	c.mut.Lock()
 	defer c.mut.Unlock()
-
 	endpoint := time.Now().UnixMilli() - int64(c.args.TTL.Seconds())
 
-	timestampedMetrics := make([]any, 0)
+	timestampedMetrics := make([]promtype.Sample, 0)
 	for _, x := range a.metrics {
-		// No need to write if already outside of range.
-		if x.Timestamp < endpoint {
+		// No need to write if already outside of range and a ttl is set.
+		if x.Timestamp < endpoint && (c.args.TTL.Seconds() != 0) {
 			continue
 		}
 		timestampedMetrics = append(timestampedMetrics, x)
 	}
 
 	c.database.WriteSignal(timestampedMetrics)
-}
-
-type Arguments struct {
-	TTL time.Duration `river:"ttl,attr,optional"`
-
-	Endpoint *remote.EndpointOptions `river:"endpoint,block,optional"`
-}
-
-type Exports struct {
-	Receiver storage.Appendable `river:"receiver,attr"`
 }

@@ -1,7 +1,7 @@
 /*
-Copied from prometheus with edits to facilate passing in vars.
+Copied from prometheus with edits to simplify.
 */
-package remote
+package simple
 
 import (
 	"context"

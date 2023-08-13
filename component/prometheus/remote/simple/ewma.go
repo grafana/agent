@@ -1,4 +1,4 @@
-package remote
+package simple
 
 import (
 	"sync"
@@ -53,3 +53,13 @@ func (r *ewmaRate) tick() {
 func (r *ewmaRate) incr(incr int64) {
 	r.newEvents.Add(incr)
 }
+
+const (
+	// We track samples in/out and how long pushes take using an Exponentially
+	// Weighted Moving Average.
+	ewmaWeight          = 0.2
+	shardUpdateDuration = 10 * time.Second
+
+	// Allow 30% too many shards before scaling down.
+	shardToleranceFraction = 0.3
+)
