@@ -74,6 +74,8 @@ Main (unreleased)
 
 - Fix issue where corrupt WAL segments lead to crash looping. (@tpaschalis)
 
+- Clarify usage documentation surrounding `loki.source.file` (@joshuapare)
+
 v0.35.3 (2023-08-09)
 --------------------
 

@@ -11,6 +11,8 @@ title: loki.source.file
 Multiple `loki.source.file` components can be specified by giving them
 different labels.
 
+> **NOTE:**  `loki.source.file` does not handle file discovery. See the [File Globbing](#file-globbing) example below for usage with `local.file_match`.
+
 ## Usage
 
 ```river
