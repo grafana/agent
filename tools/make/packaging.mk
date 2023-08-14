@@ -231,6 +231,7 @@ define generate_agent_fpm =
 		--license "Apache 2.0" \
 		--vendor "Grafana Labs" \
 		--url "https://github.com/grafana/agent" \
+		--rpm-digest sha256 \
 		-t $(1) \
 		--after-install packaging/grafana-agent/$(1)/control/postinst \
 		--before-remove packaging/grafana-agent/$(1)/control/prerm \
@@ -306,6 +307,7 @@ define generate_flow_fpm =
 		--license "Apache 2.0" \
 		--vendor "Grafana Labs" \
 		--url "https://github.com/grafana/agent" \
+		--rpm-digest sha256 \
 		-t $(1) \
 		--after-install packaging/grafana-agent-flow/$(1)/control/postinst \
 		--before-remove packaging/grafana-agent-flow/$(1)/control/prerm \
