@@ -74,6 +74,8 @@ Main (unreleased)
 
 - Fix issue where corrupt WAL segments lead to crash looping. (@tpaschalis)
 
+- Sign RPMs with SHA256 for FIPs compatbility. (@mattdurham)
+
 v0.35.3 (2023-08-09)
 --------------------
 
