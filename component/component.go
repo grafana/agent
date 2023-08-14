@@ -121,5 +121,8 @@ type ClusteredComponent interface {
 
 	// NotifyClusterChange notifies the component that the state of the cluster
 	// has changed.
+	//
+	// Implementations of ClusteredComponent should ignore calls to this method
+	// if they are configured to not utilize clustering.
 	NotifyClusterChange()
 }
