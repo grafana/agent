@@ -18,7 +18,8 @@ echo "%_gpg_name Grafana Labs <engineering@grafana.com>
 %_gpg_path /root/.gnupg
 %_gpgbin /usr/bin/gpg
 %_gpg_digest_algo sha256
-%_binary_filedigest_algorithm 8
+%_binary_filedigest_algorithm sha256
+%_source_filedigest_algorithm sha256
 %__gpg /usr/bin/gpg
 %__gpg_sign_cmd     %{__gpg} \
          gpg --no-tty --batch --yes --no-verbose --no-armor \
@@ -30,6 +31,6 @@ echo "%_gpg_name Grafana Labs <engineering@grafana.com>
 " > ~/.rpmmacros
 
 for f in dist/*.rpm; do
-  rpm --addsign "${f}"
+  rpm -addsign -fips --rpm-digest sha256 "${f}"
   rpm --checksig "${f}"
 done
