@@ -119,5 +119,7 @@ type DebugComponent interface {
 type ClusteredComponent interface {
 	Component
 
-	ClusterUpdatesRegistration() bool
+	// NotifyClusterChange notifies the component that the state of the cluster
+	// has changed.
+	NotifyClusterChange()
 }
