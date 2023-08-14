@@ -42,7 +42,7 @@ func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiw
 	if config.DropRateLimitedBatches {
 		diags.Add(
 			diag.SeverityLevelError,
-			"DropRateLimitedBatches is currently not supported in Grafana Agent Flow.",
+			"DropRateLimitedBatches is currently not supported in Grafana Agent Flow",
 		)
 	}
 

@@ -42,9 +42,13 @@ Main (unreleased)
 
 - Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
 
+- Allow specification of `dimension_name_requirements` for Cloudwatch discovery exports. (@cvdv-au)
+
 - `loki.write` now exposes basic WAL support. (@thepalbi)
 
 - `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
+
+- Flow: Users can now define `additional_fields` in `loki.source.cloudflare` (@wildum)
 
 - New Grafana Agent Flow components:
 
@@ -67,6 +71,8 @@ Main (unreleased)
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
+
+- Fix issue where corrupt WAL segments lead to crash looping. (@tpaschalis)
 
 - Sign RPMs with SHA256 for FIPs compatbility. (@mattdurham)
 
