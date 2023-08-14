@@ -175,7 +175,7 @@ otelcol.exporter.otlp "tempo" {
 }
 ```
 
-### Send data to managed service
+### Send data to a managed service
 
 You can create an `otlp` exporter that sends your data to a managed service, for example, Grafana Cloud. The Tempo username and Grafana Cloud API Key are injected in this example through environment variables.
 

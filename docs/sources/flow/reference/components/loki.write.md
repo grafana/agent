@@ -158,9 +158,9 @@ loki.write "local" {
 }
 ```
 
-### Send log entries to Grafana Cloud
+### Send log entries to a managed service
 
-You can create a `loki.write` component that sends your log entries Grafana Cloud. The Loki username and Grafana Cloud API Key are injected in this example through environment variables.
+You can create a `loki.write` component that sends your log entries to a managed service, for example, Grafana Cloud.. The Loki username and Grafana Cloud API Key are injected in this example through environment variables.
 
 ```river
 loki.write "default" {
