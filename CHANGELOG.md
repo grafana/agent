@@ -68,6 +68,8 @@ Main (unreleased)
 
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
 
+- Sign RPMs with SHA256 for FIPs compatbility. (@mattdurham)
+
 v0.35.3 (2023-08-09)
 --------------------
 
