@@ -1,8 +1,9 @@
 package bijection
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSimple(t *testing.T) {
@@ -18,10 +19,10 @@ func TestSimple(t *testing.T) {
 		UIntValue uint
 	}
 
-	bi := StructBijection[RiverExample, YamlExample]{}
-	BindField(&bi, Names{A: "TestRiver", B: "TestYAML"}, Copy[int]())
-	BindField(&bi, Names{A: "UInt", B: "UIntValue"}, Copy[uint]())
-	BindField(&bi, Names{A: "Str", B: "String"}, Copy[string]())
+	sb := StructBijection[RiverExample, YamlExample]{}
+	BindField(&sb, Names{A: "TestRiver", B: "TestYAML"}, Copy[int]())
+	BindField(&sb, Names{A: "UInt", B: "UIntValue"}, Copy[uint]())
+	BindField(&sb, Names{A: "Str", B: "String"}, Copy[string]())
 
 	from := RiverExample{
 		TestRiver: 42,
@@ -34,7 +35,8 @@ func TestSimple(t *testing.T) {
 		String:    "hello",
 	}
 
-	testTwoWayConversion(t, &bi, from, expectedTo)
+	var b Bijection[RiverExample, YamlExample] = &sb
+	testTwoWayConversion(t, b, from, expectedTo)
 }
 
 func TestCustomConversions(t *testing.T) {
@@ -52,14 +54,14 @@ func TestCustomConversions(t *testing.T) {
 		Str       string
 	}
 
-	bi := StructBijection[RiverExample, YamlExample]{}
+	sb := StructBijection[RiverExample, YamlExample]{}
 
 	// Test inverting a bijection too
 	inverted := Inverted(Cast[int32, int64]())
-	BindField(&bi, Names{A: "TestRiver", B: "TestYAML"}, inverted)
-	BindField(&bi, Names{A: "UInt", B: "UIntValue"}, Cast[uint64, float64]())
-	BindField(&bi, Names{A: "Str", B: "Bytes"}, Cast[string, []byte]())
-	BindField(&bi, Names{A: "Bytes", B: "Str"}, Cast[[]byte, string]())
+	BindField(&sb, Names{A: "TestRiver", B: "TestYAML"}, inverted)
+	BindField(&sb, Names{A: "UInt", B: "UIntValue"}, Cast[uint64, float64]())
+	BindField(&sb, Names{A: "Str", B: "Bytes"}, Cast[string, []byte]())
+	BindField(&sb, Names{A: "Bytes", B: "Str"}, Cast[[]byte, string]())
 
 	from := RiverExample{
 		TestRiver: 42,
@@ -74,10 +76,11 @@ func TestCustomConversions(t *testing.T) {
 		Str:       "hello2",
 	}
 
-	testTwoWayConversion(t, &bi, from, expectedTo)
+	var b Bijection[RiverExample, YamlExample] = &sb
+	testTwoWayConversion(t, b, from, expectedTo)
 }
 
-func testTwoWayConversion[A any, B any](t *testing.T, bi *StructBijection[A, B], from A, expectedTo B) {
+func testTwoWayConversion[A any, B any](t *testing.T, bi Bijection[A, B], from A, expectedTo B) {
 	var to B
 	err := bi.ConvertAToB(&from, &to)
 	require.NoError(t, err)
