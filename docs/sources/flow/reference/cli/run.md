@@ -110,7 +110,7 @@ on the chosen provider and the filtering key-values it supports. Clustering
 supports the default set of providers available in go-discover and registers
 the `k8s` provider on top.
 
-If either the key or the value in a tuple pair contains a space, a backslash or
+If either the key or the value in a tuple pair contains a space, a backslash, or
 double quotes, then it must be quoted with double quotes. Within this quoted
 string, the backslash can be used to escape double quotes or the backslash
 itself.
