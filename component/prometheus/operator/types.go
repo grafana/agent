@@ -1,7 +1,6 @@
 package operator
 
 import (
-	"reflect"
 	"time"
 
 	"github.com/grafana/agent/component/common/config"
@@ -28,10 +27,6 @@ type Arguments struct {
 	Clustering Clustering `river:"clustering,block,optional"`
 
 	RelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
-}
-
-func (a *Arguments) Equals(b *Arguments) bool {
-	return reflect.DeepEqual(a, b)
 }
 
 // Clustering holds values that configure clustering-specific behavior.

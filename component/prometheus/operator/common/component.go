@@ -51,7 +51,6 @@ func (c *Component) Run(ctx context.Context) error {
 		}
 	}()
 
-	var runningConfig *operator.Arguments
 	c.reportHealth(nil)
 	errChan := make(chan error, 1)
 	for {
@@ -64,28 +63,20 @@ func (c *Component) Run(ctx context.Context) error {
 		case err := <-errChan:
 			c.reportHealth(err)
 		case <-c.onUpdate:
-
 			c.mut.Lock()
 			nextConfig := c.config
-			// only restart crd manager if our config has changed.
-			// NOT on cluster changes.
-			if !nextConfig.Equals(runningConfig) {
-				runningConfig = nextConfig
-				manager := newCrdManager(c.opts, c.opts.Logger, nextConfig, c.kind)
-				c.manager = manager
-				if cancel != nil {
-					cancel()
-				}
-				innerCtx, cancel = context.WithCancel(ctx)
-				go func() {
-					if err := manager.Run(innerCtx); err != nil {
-						level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
-						errChan <- err
-					}
-				}()
-			} else {
-				c.manager.ClusteringUpdated()
+			manager := newCrdManager(c.opts, c.opts.Logger, nextConfig, c.kind)
+			c.manager = manager
+			if cancel != nil {
+				cancel()
 			}
+			innerCtx, cancel = context.WithCancel(ctx)
+			go func() {
+				if err := manager.Run(innerCtx); err != nil {
+					level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
+					errChan <- err
+				}
+			}()
 			c.mut.Unlock()
 		}
 	}
@@ -115,11 +106,7 @@ func (c *Component) NotifyClusterChange() {
 		return // no-op
 	}
 
-	// Schedule a reload so targets get redistributed.
-	select {
-	case c.onUpdate <- struct{}{}:
-	default:
-	}
+	c.manager.ClusteringUpdated()
 }
 
 // DebugInfo returns debug information for this component.
