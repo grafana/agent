@@ -74,6 +74,7 @@ func (s *ScrapeConfigBuilder) Validate() {
 
 func (s *ScrapeConfigBuilder) Sanitize() {
 	s.cfg.JobName = strings.ReplaceAll(s.cfg.JobName, "-", "_")
+	s.cfg.JobName = strings.ReplaceAll(s.cfg.JobName, "/", "_")
 }
 
 func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
