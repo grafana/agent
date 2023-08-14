@@ -72,7 +72,7 @@ Main (unreleased)
 
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
 
-v0.35.3 (2023-08-14)
+v0.35.4 (2023-08-14)
 --------------------
 
 ### Bugfixes
