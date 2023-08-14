@@ -171,15 +171,35 @@ information.
 * `loki_write_batch_retries_total` (counter): Number of times batches have had to be retried.
 * `loki_write_stream_lag_seconds` (gauge): Difference between current time and last batch timestamp for successful sends.
 
-## Example
+## Examples
 
-This example creates a `loki.write` component that sends received entries to a
-local Loki instance:
+The following examples show you how to create `loki.write` components that send log entries to different destinations.
+
+### Send log entries to a local Loki instance
+
+You can create a `loki.write` component that sends your log entries to a local Loki instance:
+
 
 ```river
 loki.write "local" {
     endpoint {
         url = "http://loki:3100/loki/api/v1/push"
+    }
+}
+```
+
+### Send log entries to a managed service
+￼
+You can create a `loki.write` component that sends your log entries to a managed service, for example, Grafana Cloud. The Loki username and Grafana Cloud API Key are injected in this example through environment variables.
+￼
+```river
+loki.write "default" {
+    endpoint {
+        url = "https://logs-xxx.grafana.net"
+        basic_auth {
+            username = env("LOKI_USERNAME")
+            password = env("GRAFANA_CLOUD_API_KEY")
+        }
     }
 }
 ```
