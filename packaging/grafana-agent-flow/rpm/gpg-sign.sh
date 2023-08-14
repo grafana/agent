@@ -31,6 +31,6 @@ echo "%_gpg_name Grafana Labs <engineering@grafana.com>
 " > ~/.rpmmacros
 
 for f in dist/*.rpm; do
-  rpm --addsign --fips --rpm-digest sha256 "${f}"
+  rpm --addsign  "${f}"
   rpm --checksig "${f}"
 done
