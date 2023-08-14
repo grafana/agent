@@ -11,6 +11,7 @@ import (
 	"time"
 
 	badgerdb "github.com/dgraph-io/badger/v3"
+	"github.com/go-kit/kit/log/level"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/logging"
 )
@@ -26,6 +27,7 @@ func newDb(dir string, l *logging.Logger) (*signaldb, error) {
 	opts := badgerdb.DefaultOptions(dir)
 	opts.SyncWrites = true
 	opts.MetricsEnabled = true
+	opts.Logger = &dbLog{l: l}
 	bdb, err := badgerdb.Open(opts)
 	if err != nil {
 		return nil, err
@@ -267,4 +269,21 @@ func (d *signaldb) evict() {
 			return
 		}
 	}
+}
+
+type dbLog struct {
+	l *logging.Logger
+}
+
+func (dbl *dbLog) Errorf(s string, args ...interface{}) {
+	level.Error(dbl.l).Log("msg", fmt.Sprintf(s, args...))
+}
+func (dbl *dbLog) Warningf(s string, args ...interface{}) {
+	level.Warn(dbl.l).Log("msg", fmt.Sprintf(s, args...))
+}
+func (dbl *dbLog) Infof(s string, args ...interface{}) {
+	level.Info(dbl.l).Log("msg", fmt.Sprintf(s, args...))
+}
+func (dbl *dbLog) Debugf(s string, args ...interface{}) {
+	level.Debug(dbl.l).Log("msg", fmt.Sprintf(s, args...))
 }
