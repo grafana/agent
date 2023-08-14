@@ -11,7 +11,7 @@ import (
 )
 
 type Component struct {
-	mut     sync.Mutex
+	mut     sync.RWMutex
 	config  *operator.Arguments
 	manager *crdManager
 
@@ -108,8 +108,8 @@ func (c *Component) Update(args component.Arguments) error {
 
 // NotifyClusterChange implements component.ClusterComponent.
 func (c *Component) NotifyClusterChange() {
-	c.mut.Lock()
-	defer c.mut.Unlock()
+	c.mut.RLock()
+	defer c.mut.RUnlock()
 
 	if !c.config.Clustering.Enabled {
 		return // no-op
