@@ -182,7 +182,7 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 // new cluster of its own.
 // The gossipNode will start out as a Viewer; to participate in clustering,
 // the node needs to transition to the Participant state using ChangeState.
-func (c *Clusterer) Start() error {
+func (c *Clusterer) Start(ctx context.Context) error {
 	switch node := c.Node.(type) {
 	case *localNode:
 		return nil // no-op, always ready
@@ -204,15 +204,20 @@ func (c *Clusterer) Start() error {
 			go func() {
 				t := time.NewTicker(node.cfg.RejoinInterval)
 				for {
-					<-t.C
-					peers, err := node.GetPeers()
-					if err != nil {
-						level.Error(node.log).Log("msg", "failed to refresh the list of peers", "err", err)
-						continue // we'll try on the next tick
-					}
-					err = node.Start(peers)
-					if err != nil {
-						level.Error(node.log).Log("msg", "failed to rejoin the list of peers", "err", err)
+					select {
+					case <-t.C:
+						peers, err := node.GetPeers()
+						if err != nil {
+							level.Error(node.log).Log("msg", "failed to refresh the list of peers", "err", err)
+							continue // we'll try on the next tick
+						}
+						err = node.Start(peers)
+						if err != nil {
+							level.Error(node.log).Log("msg", "failed to rejoin the list of peers", "err", err)
+						}
+					case <-ctx.Done():
+						t.Stop()
+						return
 					}
 				}
 			}()
