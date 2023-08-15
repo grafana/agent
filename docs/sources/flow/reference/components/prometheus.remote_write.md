@@ -336,9 +336,8 @@ prometheus.scrape "demo" {
 }
 ```
 
-
 ### Send metrics to a managed service
-￼
+
 You can create a `prometheus.remote_write` component that sends your metrics to a managed service, for example, Grafana Cloud. The Prometheus username and the Grafana Cloud API Key are injected in this example through environment variables.
 ￼
 ```river
@@ -352,7 +351,6 @@ prometheus.remote_write "default" {
   }
 }
 ```
-
 ## Technical details
 
 `prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.

@@ -179,7 +179,6 @@ The following examples show you how to create `loki.write` components that send 
 
 You can create a `loki.write` component that sends your log entries to a local Loki instance:
 
-
 ```river
 loki.write "local" {
     endpoint {
@@ -189,7 +188,7 @@ loki.write "local" {
 ```
 
 ### Send log entries to a managed service
-￼
+
 You can create a `loki.write` component that sends your log entries to a managed service, for example, Grafana Cloud. The Loki username and Grafana Cloud API Key are injected in this example through environment variables.
 ￼
 ```river
@@ -203,7 +202,6 @@ loki.write "default" {
     }
 }
 ```
-
 ## Technical details
 
 `loki.write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
