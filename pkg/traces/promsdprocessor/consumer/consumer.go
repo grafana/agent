@@ -84,38 +84,40 @@ type Options struct {
 
 var _ otelconsumer.Traces = (*Consumer)(nil)
 
-func NewConsumer(nextConsumer otelconsumer.Traces, operationType string, podAssociations []string, logger log.Logger) (*Consumer, error) {
-	if nextConsumer == nil {
-		return nil, otelcomponent.ErrNilNextConsumer
-	}
-
-	err := ValidateOperationType(operationType)
-	if err != nil {
-		return nil, err
-	}
-
-	err = ValidatePodAssociations(podAssociations)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Consumer{
-		opts: Options{
-			HostLabels:      make(map[string]discovery.Target),
-			OperationType:   operationType,
-			PodAssociations: podAssociations,
-			NextConsumer:    nextConsumer,
-		},
+func NewConsumer(opts Options, logger log.Logger) (*Consumer, error) {
+	c := &Consumer{
 		logger: logger,
-	}, nil
+	}
+
+	err := c.UpdateOptions(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
 // UpdateOptions is used in flow mode, where all options need to be updated.
-func (c *Consumer) UpdateOptions(opts Options) {
+func (c *Consumer) UpdateOptions(opts Options) error {
 	c.optsMut.Lock()
 	defer c.optsMut.Unlock()
 
+	if opts.NextConsumer == nil {
+		return otelcomponent.ErrNilNextConsumer
+	}
+
+	err := ValidateOperationType(opts.OperationType)
+	if err != nil {
+		return err
+	}
+
+	err = ValidatePodAssociations(opts.PodAssociations)
+	if err != nil {
+		return err
+	}
+
 	c.opts = opts
+	return nil
 }
 
 // UpdateOptionsHostLabels is used in static mode, where only the host labels need to be updated.

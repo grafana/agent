@@ -91,7 +91,15 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	}
 
 	nextTraces := fanoutconsumer.Traces(c.Output.Traces)
-	consumer, err := promsdconsumer.NewConsumer(nextTraces, c.OperationType, c.PodAssociations, o.Logger)
+
+	consumerOpts := promsdconsumer.Options{
+		// Don't bother setting up labels - this will be done by the Update() function.
+		HostLabels:      map[string]discovery.Target{},
+		OperationType:   c.OperationType,
+		PodAssociations: c.PodAssociations,
+		NextConsumer:    nextTraces,
+	}
+	consumer, err := promsdconsumer.NewConsumer(consumerOpts, o.Logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a traces consumer due to error: %w", err)
 	}

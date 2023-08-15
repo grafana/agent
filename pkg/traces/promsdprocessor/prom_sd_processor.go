@@ -61,7 +61,14 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAs
 		}
 	}
 
-	consumer, err := promsdconsumer.NewConsumer(nextConsumer, operationType, podAssociations, logger)
+	consumerOpts := promsdconsumer.Options{
+		// Don't bother setting up labels - this will be done by the UpdateOptionsHostLabels() function.
+		HostLabels:      map[string]discovery.Target{},
+		OperationType:   operationType,
+		PodAssociations: podAssociations,
+		NextConsumer:    nextConsumer,
+	}
+	consumer, err := promsdconsumer.NewConsumer(consumerOpts, logger)
 	if err != nil {
 		cancel()
 		return nil, fmt.Errorf("cannot create a new consumer %w", err)

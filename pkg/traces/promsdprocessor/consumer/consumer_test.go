@@ -82,7 +82,17 @@ func TestOperationType(t *testing.T) {
 				PodAssociationHostnameLabel,
 				PodAssociationConnectionIP,
 			}
-			c, err := NewConsumer(mockProcessor, tc.operationType, podAssociations, logger)
+			consumerOpts := Options{
+				HostLabels: map[string]discovery.Target{
+					attrIP: {
+						attrKey: tc.newValue,
+					},
+				},
+				OperationType:   tc.operationType,
+				PodAssociations: podAssociations,
+				NextConsumer:    mockProcessor,
+			}
+			c, err := NewConsumer(consumerOpts, logger)
 			require.NoError(t, err)
 
 			attrMap := pcommon.NewMap()
@@ -91,12 +101,6 @@ func TestOperationType(t *testing.T) {
 			}
 			attrMap.PutStr(semconv.AttributeNetHostIP, attrIP)
 
-			hostLabels := map[string]discovery.Target{
-				attrIP: {
-					attrKey: tc.newValue,
-				},
-			}
-			c.opts.HostLabels = hostLabels
 			c.processAttributes(context.TODO(), attrMap)
 
 			actualAttrValue, _ := attrMap.Get(attrKey)
@@ -260,7 +264,14 @@ func TestPodAssociation(t *testing.T) {
 				}
 			}
 
-			c, err := NewConsumer(mockProcessor, OperationTypeUpsert, tc.podAssociations, logger)
+			consumerOpts := Options{
+				// Don't bother setting up labels - this is not needed for this unit test.
+				HostLabels:      map[string]discovery.Target{},
+				OperationType:   OperationTypeUpsert,
+				PodAssociations: tc.podAssociations,
+				NextConsumer:    mockProcessor,
+			}
+			c, err := NewConsumer(consumerOpts, logger)
 			require.NoError(t, err)
 
 			ip := c.getPodIP(tc.ctxFn(t), tc.attrMapFn(t))
