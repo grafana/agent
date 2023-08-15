@@ -14,7 +14,7 @@ func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *pro
 	name := []string{"discovery", "kubernetes"}
 	block := common.NewBlockWithOverride(name, label, discoveryKubernetesArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return newDiscoverExports("discovery.kubernetes." + label + ".targets")
+	return NewDiscoverExports("discovery.kubernetes." + label + ".targets")
 }
 
 func validateDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) diag.Diagnostics {

@@ -146,8 +146,8 @@ GO_LDFLAGS   := -X $(VPREFIX).Branch=$(GIT_BRANCH)                        \
                 -X $(VPREFIX).BuildDate=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 DEFAULT_FLAGS    := $(GO_FLAGS)
-DEBUG_GO_FLAGS   := -ldflags "$(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
-RELEASE_GO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "netgo $(GO_TAGS)"
+DEBUG_GO_FLAGS   := -ldflags "$(GO_LDFLAGS)" -tags "$(GO_TAGS)"
+RELEASE_GO_FLAGS := -ldflags "-s -w $(GO_LDFLAGS)" -tags "$(GO_TAGS)"
 
 ifeq ($(RELEASE_BUILD),1)
 GO_FLAGS := $(DEFAULT_FLAGS) $(RELEASE_GO_FLAGS)
@@ -254,7 +254,7 @@ endif
 # Targets for building Docker images
 #
 
-DOCKER_FLAGS := --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg VERSION=$(VERSION) 
+DOCKER_FLAGS := --build-arg RELEASE_BUILD=$(RELEASE_BUILD) --build-arg VERSION=$(VERSION)
 
 ifneq ($(DOCKER_PLATFORM),)
 DOCKER_FLAGS += --platform=$(DOCKER_PLATFORM)

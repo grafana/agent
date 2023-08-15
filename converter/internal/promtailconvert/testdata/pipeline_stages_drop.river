@@ -27,9 +27,15 @@ loki.process "example" {
 
 	stage.drop {
 		drop_counter_reason = "nope"
+		value               = "penny"
+		longer_than         = "2KiB"
+	}
+
+	stage.drop {
+		drop_counter_reason = "nope"
 		source              = "string_one"
 		value               = "penny"
-		longer_than         = "1KiB"
+		longer_than         = "1MiB"
 	}
 
 	stage.drop {
@@ -46,9 +52,7 @@ loki.source.file "example" {
 
 loki.write "default" {
 	endpoint {
-		url              = "http://localhost/loki/api/v1/push"
-		follow_redirects = false
-		enable_http2     = false
+		url = "http://localhost/loki/api/v1/push"
 	}
 	external_labels = {}
 }

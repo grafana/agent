@@ -60,7 +60,6 @@ package component
 
 import (
 	"context"
-	"net/http"
 )
 
 // The Arguments contains the input fields for a specific component, which is
@@ -115,21 +114,15 @@ type DebugComponent interface {
 	DebugInfo() interface{}
 }
 
-// HTTPComponent is an extension interface for components which contain their own HTTP handlers.
-type HTTPComponent interface {
-	Component
-
-	// Handler should return a valid HTTP handler for the component.
-	// All requests to the component will have the path trimmed such that the component is at the root.
-	// For example, f a request is made to `/component/{id}/metrics`, the component
-	// will receive a request to just `/metrics`.
-	Handler() http.Handler
-}
-
 // ClusteredComponent is an extension interface for components which implement
 // clustering-specific behavior.
 type ClusteredComponent interface {
 	Component
 
-	ClusterUpdatesRegistration() bool
+	// NotifyClusterChange notifies the component that the state of the cluster
+	// has changed.
+	//
+	// Implementations of ClusteredComponent should ignore calls to this method
+	// if they are configured to not utilize clustering.
+	NotifyClusterChange()
 }

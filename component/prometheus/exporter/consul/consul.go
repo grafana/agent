@@ -13,10 +13,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.consul",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "consul", customizeTarget),
+		Name:          "prometheus.exporter.consul",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.NewWithTargetBuilder(createExporter, "consul", customizeTarget),
 	})
 }
 

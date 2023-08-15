@@ -320,6 +320,22 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
+// NotifyClusterChange implements component.ClusterComponent.
+func (c *Component) NotifyClusterChange() {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	if !c.args.Clustering.Enabled {
+		return // no-op
+	}
+
+	// Schedule a reload so targets get redistributed.
+	select {
+	case c.reloadTargets <- struct{}{}:
+	default:
+	}
+}
+
 func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {
 	promGroup := &targetgroup.Group{Source: jobName}
 	for _, tg := range tgs {
@@ -335,13 +351,6 @@ func convertLabelSet(tg discovery.Target) model.LabelSet {
 		lset[model.LabelName(k)] = model.LabelValue(v)
 	}
 	return lset
-}
-
-// ClusterUpdatesRegistration implements component.ClusterComponent.
-func (c *Component) ClusterUpdatesRegistration() bool {
-	c.mut.RLock()
-	defer c.mut.RUnlock()
-	return c.args.Clustering.Enabled
 }
 
 // DebugInfo implements component.DebugComponent.

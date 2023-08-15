@@ -1,15 +1,16 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/tools/
-title: grafana-agent tools
-weight: 100
+description: Command line tools that read the WAL and provide statistical information.
+title: tools command
+menuTitle: tools
+weight: 400
 ---
 
-# `grafana-agent tools` command
+# `tools` command
 
-The `grafana-agent tools` command contains command line tooling grouped by Flow
-component.
+The `tools` command contains command line tooling grouped by Flow component.
 
-{{% admonition type="note" %}}
+{{% admonition type="caution" %}}
 Utilities in this command have no backward compatibility
 guarantees and may change or be removed between releases.
 {{% /admonition %}}
@@ -18,7 +19,10 @@ guarantees and may change or be removed between releases.
 
 ### prometheus.remote_write sample-stats
 
-Usage: `grafana-agent tools prometheus.remote_write sample-stats [FLAG ...] WAL_DIRECTORY`
+Usage: 
+
+* `AGENT_MODE=flow grafana-agent tools prometheus.remote_write sample-stats [FLAG ...] WAL_DIRECTORY`
+* `grafana-agent-flow tools prometheus.remote_write sample-stats [FLAG ...] WAL_DIRECTORY`
 
 The `sample-stats` command reads the Write-Ahead Log (WAL) specified by
 `WAL_DIRECTORY` and collects information on metric samples within it.
@@ -38,7 +42,10 @@ The following flag is supported:
 
 ### prometheus.remote_write target-stats
 
-Usage: `grafana-agent tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`
+Usage: 
+
+* `AGENT_MODE=flow grafana-agent tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`
+* `grafana-agent-flow tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`
 
 The `target-stats` command reads the Write-Ahead Log (WAL) specified by
 `WAL_DIRECTORY` and collects metric cardinality information for a specific
@@ -57,7 +64,10 @@ The `--job` and `--instance` labels are required.
 
 ### prometheus.remote_write wal-stats
 
-Usage: `grafana-agent tools prometheus.remote_write wal-stats WAL_DIRECTORY`
+Usage: 
+
+* `AGENT_MODE=flow grafana-agent tools prometheus.remote_write wal-stats WAL_DIRECTORY`
+* `grafana-agent-flow tools prometheus.remote_write wal-stats WAL_DIRECTORY`
 
 The `wal-stats` command reads the Write-Ahead Log (WAL) specified by
 `WAL_DIRECTORY` and collects general information about it.

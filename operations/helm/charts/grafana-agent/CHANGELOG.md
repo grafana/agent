@@ -10,6 +10,11 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.20.0 (2023-08-09)
+----------
+
+- Update Grafana Agent version to v0.35.3. (@tpaschalis)
+
 ### Enhancements
 
 - Add support for initcontainers in helm chart. (@dwalker-sabiogroup)

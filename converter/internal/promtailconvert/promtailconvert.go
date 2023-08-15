@@ -62,6 +62,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 	diags = AppendAll(f, &cfg.Config, "", diags)
+	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -127,12 +128,10 @@ func appendScrapeConfig(
 	diags *diag.Diagnostics,
 	gctx *build.GlobalContext,
 ) {
-	//TODO(thampiotr): need to support/warn about the following fields:
-	//Encoding               string                 `mapstructure:"encoding,omitempty" yaml:"encoding,omitempty"`
-	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
 	b.Validate()
+	b.Sanitize()
 
 	// Append all the SD components
 	b.AppendKubernetesSDs()

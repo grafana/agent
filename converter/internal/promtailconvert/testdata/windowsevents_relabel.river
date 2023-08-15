@@ -22,9 +22,7 @@ loki.source.windowsevent "fun" {
 
 loki.write "default" {
 	endpoint {
-		url              = "http://localhost/loki/api/v1/push"
-		follow_redirects = false
-		enable_http2     = false
+		url = "http://localhost/loki/api/v1/push"
 	}
 	external_labels = {}
 }

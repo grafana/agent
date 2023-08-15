@@ -55,9 +55,8 @@ func TestWriter_EntriesAreWrittenToWAL(t *testing.T) {
 	require.NoError(t, writer.wal.Sync(), "failed to sync wal")
 
 	// assert over WAL entries
-	readEntries, err := ReadWAL(dir)
-	require.NoError(t, err)
-	require.Len(t, readEntries, len(lines), "written lines and seen differ")
+	readEntries := eventuallyReadWAL(t, len(lines), dir)
+	require.NotNil(t, readEntries)
 	require.Equal(t, testLabels, readEntries[0].Labels)
 }
 
@@ -121,9 +120,8 @@ func TestWriter_OldSegmentsAreCleanedUp(t *testing.T) {
 	require.NoError(t, writer.wal.Sync(), "failed to sync wal")
 
 	// assert over WAL entries
-	readEntries, err := ReadWAL(dir)
-	require.NoError(t, err)
-	require.Len(t, readEntries, len(lines), "written lines and seen differ")
+	readEntries := eventuallyReadWAL(t, len(lines), dir)
+	require.NotNil(t, readEntries)
 	require.Equal(t, testLabels, readEntries[0].Labels)
 
 	watchAndLogDirEntries(t, dir)
@@ -203,9 +201,8 @@ func TestWriter_NoSegmentIsCleanedUpIfTheresOnlyOne(t *testing.T) {
 	require.NoError(t, writer.wal.Sync(), "failed to sync wal")
 
 	// assert over WAL entries
-	readEntries, err := ReadWAL(dir)
-	require.NoError(t, err)
-	require.Len(t, readEntries, len(lines), "written lines and seen differ")
+	readEntries := eventuallyReadWAL(t, len(lines), dir)
+	require.NotNil(t, readEntries)
 	require.Equal(t, testLabels, readEntries[0].Labels)
 
 	watchAndLogDirEntries(t, dir)
@@ -235,6 +232,21 @@ func watchAndLogDirEntries(t *testing.T, path string) {
 	for _, dir := range dirs {
 		t.Logf("dir entry found: %s", dir.Name())
 	}
+}
+
+// eventuallyReadWAL reads the WAL several times until the expected number of entries is found, or times out.
+func eventuallyReadWAL(t *testing.T, expectedEntries int, dir string) []loki.Entry {
+	var err error
+	var readEntries []loki.Entry
+	require.Eventually(t, func() bool {
+		// read WAL and assert over read entries
+		readEntries, err = ReadWAL(dir)
+		if err != nil {
+			return false
+		}
+		return len(readEntries) == expectedEntries
+	}, time.Second*5, time.Second, "timed out waiting for WAL")
+	return readEntries
 }
 
 func BenchmarkWriter_WriteEntries(b *testing.B) {

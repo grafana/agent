@@ -15,13 +15,18 @@ func (s *ScrapeConfigBuilder) AppendJournalConfig() {
 	if jc == nil {
 		return
 	}
-	maxAge, err := time.ParseDuration(jc.MaxAge)
-	if err != nil {
-		s.diags.Add(
-			diag.SeverityLevelError,
-			fmt.Sprintf("failed to parse max_age duration for journal config: %s, will use default", err),
-		)
-		maxAge = time.Hour * 7 // use default value
+	//TODO(thampiotr): this default value should be imported from promtail once it's made public there.
+	var maxAge = time.Hour * 7 // use default value
+	if len(jc.MaxAge) > 0 {
+		parsedAge, err := time.ParseDuration(jc.MaxAge)
+		if err != nil {
+			s.diags.Add(
+				diag.SeverityLevelError,
+				fmt.Sprintf("failed to parse max_age duration for journal config: %s, will use default", err),
+			)
+		} else {
+			maxAge = parsedAge
+		}
 	}
 	args := journal.Arguments{
 		FormatAsJson: jc.JSON,

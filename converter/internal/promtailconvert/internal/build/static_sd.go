@@ -2,6 +2,7 @@ package build
 
 import (
 	"github.com/grafana/agent/converter/diag"
+	"golang.org/x/exp/maps"
 )
 
 func (s *ScrapeConfigBuilder) AppendStaticSDs() {
@@ -11,7 +12,13 @@ func (s *ScrapeConfigBuilder) AppendStaticSDs() {
 
 	var allStaticTargets []map[string]string
 	for _, sd := range s.cfg.ServiceDiscoveryConfig.StaticConfigs {
-		allStaticTargets = append(allStaticTargets, convertPromLabels(sd.Labels))
+		labels := convertPromLabels(sd.Labels)
+		for _, target := range sd.Targets {
+			mergedTarget := map[string]string{}
+			maps.Copy(mergedTarget, labels)
+			maps.Copy(mergedTarget, convertPromLabels(target))
+			allStaticTargets = append(allStaticTargets, mergedTarget)
+		}
 	}
 
 	targetsExpr, err := toRiverExpression(allStaticTargets)

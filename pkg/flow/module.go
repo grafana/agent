@@ -107,19 +107,24 @@ var (
 func newModule(o *moduleOptions) *module {
 	return &module{
 		o: o,
-		f: newController(o.ModuleRegistry, Options{
-			ControllerID:   o.ID,
-			Tracer:         o.Tracer,
-			Clusterer:      o.Clusterer,
-			Reg:            o.Reg,
-			Logger:         o.Logger,
-			DataPath:       o.DataPath,
-			HTTPPathPrefix: o.HTTPPath,
-			HTTPListenAddr: o.HTTPListenAddr,
-			OnExportsChange: func(exports map[string]any) {
-				o.export(exports)
+		f: newController(controllerOptions{
+			IsModule:          true,
+			ModuleRegistry:    o.ModuleRegistry,
+			ComponentRegistry: o.ComponentRegistry,
+			Options: Options{
+				ControllerID: o.ID,
+				Tracer:       o.Tracer,
+				Clusterer:    o.Clusterer,
+				Reg:          o.Reg,
+				Logger:       o.Logger,
+				DataPath:     o.DataPath,
+				OnExportsChange: func(exports map[string]any) {
+					if o.export != nil {
+						o.export(exports)
+					}
+				},
+				Services: o.ServiceMap.List(),
 			},
-			DialFunc: o.DialFunc,
 		}),
 	}
 }
@@ -166,23 +171,17 @@ type moduleControllerOptions struct {
 	// should create the directory if needed.
 	DataPath string
 
-	// HTTPListenAddr is the address the server is configured to listen on.
-	HTTPListenAddr string
-
-	// HTTPPath is the base path that requests need in order to route to this
-	// component. Requests received by a component handler will have this already
-	// trimmed off.
-	HTTPPath string
-
-	// DialFunc is a function for components to use to properly communicate to
-	// HTTPListenAddr. If set, components which send HTTP requests to
-	// HTTPListenAddr must use this function to establish connections.
-	controller.DialFunc
-
 	// ID is the attached components full ID.
 	ID string
+
+	// ComponentRegistry is where controllers can look up components.
+	ComponentRegistry controller.ComponentRegistry
 
 	// ModuleRegistry is a shared registry of running modules from the same root
 	// controller.
 	ModuleRegistry *moduleRegistry
+
+	// ServiceMap is a map of services which can be used in the module
+	// controller.
+	ServiceMap controller.ServiceMap
 }

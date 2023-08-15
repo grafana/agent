@@ -16,10 +16,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.redis",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "redis", customizeTarget),
+		Name:          "prometheus.exporter.redis",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.NewWithTargetBuilder(createExporter, "redis", customizeTarget),
 	})
 }
 

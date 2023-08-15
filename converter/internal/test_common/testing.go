@@ -15,6 +15,8 @@ import (
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/service"
+	http_service "github.com/grafana/agent/service/http"
 	"github.com/stretchr/testify/require"
 )
 
@@ -178,10 +180,15 @@ func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 	logger, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 	f := flow.New(flow.Options{
-		Logger:         logger,
-		Clusterer:      &cluster.Clusterer{Node: cluster.NewLocalNode("")},
-		DataPath:       t.TempDir(),
-		HTTPListenAddr: ":0",
+		Logger:    logger,
+		Clusterer: &cluster.Clusterer{Node: cluster.NewLocalNode("")},
+		DataPath:  t.TempDir(),
+		Services: []service.Service{
+			// The HTTP service isn't used, but we still need to provide an
+			// implementation of one so that components which rely on the HTTP
+			// service load properly.
+			http_service.New(http_service.Options{}),
+		},
 	})
 	err = f.LoadFile(cfg, nil)
 

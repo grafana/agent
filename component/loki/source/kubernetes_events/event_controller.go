@@ -2,6 +2,7 @@ package kubernetes_events
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -23,6 +24,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const (
+	logFormatJson = "json"
+	logFormatFmt  = "logfmt"
+)
+
 type eventControllerTask struct {
 	Log          log.Logger
 	Config       *rest.Config // Config to connect to Kubernetes.
@@ -31,6 +37,7 @@ type eventControllerTask struct {
 	InstanceName string       // Label value to use for instance.
 	Receiver     loki.LogsReceiver
 	Positions    positions.Positions
+	LogFormat    string
 }
 
 // Hash implements [runner.Task].
@@ -231,8 +238,10 @@ func (ctrl *eventController) handleEvent(ctx context.Context, event *corev1.Even
 
 func (ctrl *eventController) parseEvent(event *corev1.Event) (model.LabelSet, string, error) {
 	var (
-		msg  strings.Builder
-		lset = make(model.LabelSet)
+		msg      strings.Builder
+		lset     = make(model.LabelSet)
+		fields   = make(map[string]any)
+		appender = appendTextMsg
 	)
 
 	obj := event.InvolvedObject
@@ -244,47 +253,74 @@ func (ctrl *eventController) parseEvent(event *corev1.Event) (model.LabelSet, st
 	lset[model.LabelName("job")] = model.LabelValue(ctrl.task.JobName)
 	lset[model.LabelName("instance")] = model.LabelValue(ctrl.task.InstanceName)
 
-	fmt.Fprintf(&msg, "name=%s ", obj.Name)
+	if ctrl.task.LogFormat == logFormatJson {
+		appender = appendJsonMsg
+	}
+
+	appender(&msg, fields, "name", obj.Name, "%s")
 	if obj.Kind != "" {
-		fmt.Fprintf(&msg, "kind=%s ", obj.Kind)
+		appender(&msg, fields, "kind", obj.Kind, "%s")
 	}
 	if event.Action != "" {
-		fmt.Fprintf(&msg, "action=%s ", event.Action)
+		appender(&msg, fields, "action", event.Action, "%s")
 	}
 	if obj.APIVersion != "" {
-		fmt.Fprintf(&msg, "objectAPIversion=%s ", obj.APIVersion)
+		appender(&msg, fields, "objectAPIversion", obj.APIVersion, "%s")
 	}
 	if obj.ResourceVersion != "" {
-		fmt.Fprintf(&msg, "objectRV=%s ", obj.ResourceVersion)
+		appender(&msg, fields, "objectRV", obj.ResourceVersion, "%s")
 	}
 	if event.ResourceVersion != "" {
-		fmt.Fprintf(&msg, "eventRV=%s ", event.ResourceVersion)
+		appender(&msg, fields, "eventRV", event.ResourceVersion, "%s")
 	}
 	if event.ReportingInstance != "" {
-		fmt.Fprintf(&msg, "reportinginstance=%s ", event.ReportingInstance)
+		appender(&msg, fields, "reportinginstance", event.ReportingInstance, "%s")
 	}
 	if event.ReportingController != "" {
-		fmt.Fprintf(&msg, "reportingcontroller=%s ", event.ReportingController)
+		appender(&msg, fields, "reportingcontroller", event.ReportingController, "%s")
 	}
 	if event.Source.Component != "" {
-		fmt.Fprintf(&msg, "sourcecomponent=%s ", event.Source.Component)
+		appender(&msg, fields, "sourcecomponent", event.Source.Component, "%s")
 	}
 	if event.Source.Host != "" {
-		fmt.Fprintf(&msg, "sourcehost=%s ", event.Source.Host)
+		appender(&msg, fields, "sourcehost", event.Source.Host, "%s")
 	}
 	if event.Reason != "" {
-		fmt.Fprintf(&msg, "reason=%s ", event.Reason)
+		appender(&msg, fields, "reason", event.Reason, "%s")
 	}
 	if event.Type != "" {
-		fmt.Fprintf(&msg, "type=%s ", event.Type)
+		appender(&msg, fields, "type", event.Type, "%s")
 	}
 	if event.Count != 0 {
-		fmt.Fprintf(&msg, "count=%d ", event.Count)
+		appender(&msg, fields, "count", event.Count, "%d")
 	}
 
-	fmt.Fprintf(&msg, "msg=%q ", event.Message)
+	appender(&msg, fields, "msg", event.Message, "%q")
+
+	if ctrl.task.LogFormat == logFormatJson {
+		bb, err := json.Marshal(fields)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to marshal Event to JSON: %w", err)
+		}
+		msg.WriteString(string(bb))
+	}
 
 	return lset, msg.String(), nil
+}
+
+// Appends the "fields" map with an entry for the provided event field
+// Signatures of "appendJsonMsg" and "appendTextMsg" must match
+func appendJsonMsg(msg *strings.Builder, fields map[string]any, key string, value any, format string) {
+	fields[key] = value
+}
+
+// Appends the message builder with the provided event field
+// Signatures of "appendJsonMsg" and "appendTextMsg" must match
+func appendTextMsg(msg *strings.Builder, fields map[string]any, key string, value any, format string) {
+	msg.WriteString(key)
+	msg.WriteByte('=')
+	msg.WriteString(fmt.Sprintf(format, value))
+	msg.WriteByte(' ')
 }
 
 func eventTimestamp(event *corev1.Event) time.Time {

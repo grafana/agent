@@ -72,9 +72,7 @@ loki.source.file "logs_name_jobName" {
 
 loki.write "logs_name" {
 	endpoint {
-		url              = "http://localhost/loki/api/v1/push"
-		follow_redirects = false
-		enable_http2     = false
+		url = "http://localhost/loki/api/v1/push"
 	}
 	external_labels = {}
 }
@@ -122,9 +120,7 @@ loki.source.file "logs_name2_jobName" {
 
 loki.write "logs_name2" {
 	endpoint {
-		url              = "http://localhost/loki/api/v1/push"
-		follow_redirects = false
-		enable_http2     = false
+		url = "http://localhost/loki/api/v1/push"
 	}
 	external_labels = {}
 }

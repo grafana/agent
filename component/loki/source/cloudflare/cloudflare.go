@@ -31,13 +31,14 @@ func init() {
 // Arguments holds values which are used to configure the
 // loki.source.cloudflare component.
 type Arguments struct {
-	APIToken   rivertypes.Secret   `river:"api_token,attr"`
-	ZoneID     string              `river:"zone_id,attr"`
-	Labels     map[string]string   `river:"labels,attr,optional"`
-	Workers    int                 `river:"workers,attr,optional"`
-	PullRange  time.Duration       `river:"pull_range,attr,optional"`
-	FieldsType string              `river:"fields_type,attr,optional"`
-	ForwardTo  []loki.LogsReceiver `river:"forward_to,attr"`
+	APIToken         rivertypes.Secret   `river:"api_token,attr"`
+	ZoneID           string              `river:"zone_id,attr"`
+	Labels           map[string]string   `river:"labels,attr,optional"`
+	Workers          int                 `river:"workers,attr,optional"`
+	PullRange        time.Duration       `river:"pull_range,attr,optional"`
+	FieldsType       string              `river:"fields_type,attr,optional"`
+	AdditionalFields []string            `river:"additional_fields,attr,optional"`
+	ForwardTo        []loki.LogsReceiver `river:"forward_to,attr"`
 }
 
 // Convert returns a cloudflaretarget Config struct from the Arguments.
@@ -47,12 +48,13 @@ func (c Arguments) Convert() *cft.Config {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 	return &cft.Config{
-		APIToken:   string(c.APIToken),
-		ZoneID:     c.ZoneID,
-		Labels:     lbls,
-		Workers:    c.Workers,
-		PullRange:  model.Duration(c.PullRange),
-		FieldsType: c.FieldsType,
+		APIToken:         string(c.APIToken),
+		ZoneID:           c.ZoneID,
+		Labels:           lbls,
+		Workers:          c.Workers,
+		PullRange:        model.Duration(c.PullRange),
+		FieldsType:       c.FieldsType,
+		AdditionalFields: c.AdditionalFields,
 	}
 }
 
@@ -73,9 +75,9 @@ func (c *Arguments) Validate() error {
 	if c.PullRange < 0 {
 		return fmt.Errorf("pull_range must be a positive duration")
 	}
-	_, err := cft.Fields(cft.FieldsType(c.FieldsType))
+	_, err := cft.Fields(cft.FieldsType(c.FieldsType), c.AdditionalFields)
 	if err != nil {
-		return fmt.Errorf("invalid fields_type set; the available values are 'default', 'minimal', 'extended' and 'all'")
+		return fmt.Errorf("invalid fields_type set; the available values are 'default', 'minimal', 'extended', 'custom' and 'all'")
 	}
 	return nil
 }

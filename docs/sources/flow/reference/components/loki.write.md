@@ -83,7 +83,7 @@ Name                  | Type          | Description                           | 
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#endpoint-block).
- - [`bearer_token_file` argument](#endpoint-block). 
+ - [`bearer_token_file` argument](#endpoint-block).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -92,7 +92,7 @@ If no `tenant_id` is provided, the component assumes that the Loki instance at
 `endpoint` is running in single-tenant mode and no X-Scope-OrgID header is
 sent.
 
-When multiple `endpoint` blocks are provided, the `loki.write` component 
+When multiple `endpoint` blocks are provided, the `loki.write` component
 creates a client for each. Received log entries are fanned-out to these clients
 in succession. That means that if one client is bottlenecked, it may impact
 the rest.
@@ -171,10 +171,13 @@ information.
 * `loki_write_batch_retries_total` (counter): Number of times batches have had to be retried.
 * `loki_write_stream_lag_seconds` (gauge): Difference between current time and last batch timestamp for successful sends.
 
-## Example
+## Examples
 
-This example creates a `loki.write` component that sends received entries to a
-local Loki instance:
+The following examples show you how to create `loki.write` components that send log entries to different destinations.
+
+### Send log entries to a local Loki instance
+
+You can create a `loki.write` component that sends your log entries to a local Loki instance:
 
 ```river
 loki.write "local" {
@@ -184,6 +187,23 @@ loki.write "local" {
 }
 ```
 
-## Compression
+### Send log entries to a managed service
+
+You can create a `loki.write` component that sends your log entries to a managed service, for example, Grafana Cloud. The Loki username and Grafana Cloud API Key are injected in this example through environment variables.
+
+```river
+loki.write "default" {
+    endpoint {
+        url = "https://logs-xxx.grafana.net"
+        basic_auth {
+            username = env("LOKI_USERNAME")
+            password = env("GRAFANA_CLOUD_API_KEY")
+        }
+    }
+}
+```
+## Technical details
 
 `loki.write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
+
+Any labels that start with `__` will be removed before sending to the endpoint.
