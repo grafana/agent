@@ -36,9 +36,9 @@ you can follow the common workflows described in this topic.
 
 {{% docs/reference %}}
 [set up]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/static/set-up"
-[set up]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up"
+[set up]: "/docs/grafana-cloud/ -> /docs/agent/<GRAFANA VERSION>/static/set-up"
 [configure]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/static/configuration"
-[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration"
+[configure]: "/docs/grafana-cloud/ -> /docs/agent/<GRAFANA VERSION>/static/configuration"
 {{% /docs/reference %}}
 
 ## Topics
