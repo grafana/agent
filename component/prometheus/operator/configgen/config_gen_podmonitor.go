@@ -182,9 +182,8 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 			Regex:        regex,
 		})
 	} else if ep.TargetPort != nil { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		if ep.TargetPort.StrVal != "" {
-			//nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-			regex, err := relabel.NewRegexp(ep.TargetPort.String())
+		if ep.TargetPort.StrVal != "" { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			regex, err := relabel.NewRegexp(ep.TargetPort.String()) //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
 			if err != nil {
 				return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
 			}
