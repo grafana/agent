@@ -22,8 +22,12 @@ Other release notes for the different Grafana Agent variants are contained on se
 * [Static mode Kubernetes operator release notes][release-notes-operator]
 * [Flow mode release notes][release-notes-flow]
 
-[release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
-[release-notes-flow]: {{< relref "../flow/release-notes.md" >}}
+{{% docs/reference %}}
+[release-notes-operator]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/operator/release-notes/"
+[release-notes-operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/release-notes/"
+[release-notes-flow]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/flow/release-notes/"
+[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/release-notes/"
+{{% /docs/reference %}}
 {{% /admonition %}}
 
 ## v0.35

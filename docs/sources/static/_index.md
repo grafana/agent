@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/static/
 title: Static mode
+menuTitle: Static mode
 weight: 200
 ---
 
@@ -19,7 +20,7 @@ Static mode is composed of different _subsystems_:
   traces and forwarding them to Grafana Tempo or any OpenTelemetry-compatible
   endpoint.
 
-Static mode is [configured][] with a YAML file.
+Static mode is [configured][configure] with a YAML file.
 
 Static mode works with:
 
@@ -33,9 +34,12 @@ use Grafana Agent to meet your goals.
 You can [set up][] and [configure][] Grafana Agent in static mode manually, or
 you can follow the common workflows described in this topic.
 
-[set up]: {{< relref "./set-up" >}}
-[configure]: {{< relref "./configuration/" >}}
-[configured]: {{< relref "./configuration/" >}}
+{{% docs/reference %}}
+[set up]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/static/set-up/"
+[set up]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up/"
+[configure]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/static/configuration/"
+[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/"
+{{% /docs/reference %}}
 
 ## Topics
 
