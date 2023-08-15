@@ -107,7 +107,10 @@ func (c *consumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 
 			ss := rs.ScopeSpans().At(j)
 
-			c.consumeSpans(svc, ss, rs.Resource(), logRecords)
+			err := c.consumeSpans(svc, ss, rs.Resource(), logRecords)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
