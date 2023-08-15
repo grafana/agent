@@ -7,8 +7,7 @@ title: otelcol.processor.spanlogs
 
 `otelcol.processor.spanlogs` accepts traces telemetry data from other `otelcol`
 components and outputs logs telemetry data for each span, root, or process.
-This allows for automatically building a mechanism for trace
-discovery.
+This allows you to automatically build a mechanism for trace discovery.
 
 > **NOTE**: `otelcol.processor.spanlogs` is a custom component unrelated 
 > to any processors from the OpenTelemetry Collector. It is based on the 
@@ -16,7 +15,7 @@ discovery.
 > [traces](../../../static/configuration/traces-config.md) 
 > subsystem of the Agent static mode.
 
-Multiple `otelcol.processor.spanlogs` components can be specified by giving them
+You can specify multiple `otelcol.processor.spanlogs` components by giving them
 different labels.
 
 ## Usage
@@ -40,9 +39,9 @@ Name | Type | Description | Default | Required
 `processes` | `bool` | Log one line for every process. | `false` | no
 `span_attributes` | `list(string)` | Additional span attributes to log. | `[]` | no
 `process_attributes` | `list(string)` | Additional process attributes to log. | `[]` | no
-`labels` | `list(string)` | A lists of keys which will be logged as labels. | `[]` | no
+`labels` | `list(string)` | A list of keys that will be logged as labels. | `[]` | no
 
-The values listed in `labels` should be values of either span or process attributes.
+The values listed in `labels` should be the values of either span or process attributes.
 
 > **WARNING**: Setting `spans` to `true` could lead to a high volume of logs.
 
@@ -61,13 +60,13 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### overrides block
 
-The `overrides` block configures overrides for keys which will be logged in the body of the log line.
+The `overrides` block configures overrides for keys that will be logged in the body of the log line.
 
 The following attributes are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`logs_instance_tag` | `string` | Indicates if the log line is for a span, root or process. | `traces` | no
+`logs_instance_tag` | `string` | Indicates if the log line is for a span, root, or process. | `traces` | no
 `service_key` | `string` | Log key for the service name of the resource. | `svc` | no
 `span_name_key` | `string` | Log key for the name of the span. | `span` | no
 `status_key` | `string` | Log key for the status of the span. | `status` | no
@@ -101,7 +100,7 @@ information.
 
 ## Example
 
-The configuration below sends logs derived from spans to Loki.
+The following configuration sends logs derived from spans to Loki.
 
 ```river
 otelcol.receiver.otlp "default" {
