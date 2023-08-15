@@ -148,12 +148,15 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		hostLabels[host] = labels
 	}
 
-	c.consumer.UpdateOptions(promsdconsumer.Options{
+	err := c.consumer.UpdateOptions(promsdconsumer.Options{
 		HostLabels:      hostLabels,
 		OperationType:   cfg.OperationType,
 		PodAssociations: cfg.PodAssociations,
 		NextConsumer:    fanoutconsumer.Traces(cfg.Output.Traces),
 	})
+	if err != nil {
+		return fmt.Errorf("failed to update consumer options due to error: %w", err)
+	}
 
 	return nil
 }
