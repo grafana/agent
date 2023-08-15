@@ -35,10 +35,10 @@ You can [set up][] and [configure][] Grafana Agent in static mode manually, or
 you can follow the common workflows described in this topic.
 
 {{% docs/reference %}}
-[set up]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/static/set-up/"
-[set up]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up/"
-[configure]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/static/configuration/"
-[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/"
+[set up]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/static/set-up"
+[set up]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up"
+[configure]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/static/configuration"
+[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration"
 {{% /docs/reference %}}
 
 ## Topics
