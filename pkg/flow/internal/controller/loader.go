@@ -96,16 +96,12 @@ func NewLoader(opts LoaderOptions) *Loader {
 		defer span.End()
 		for _, cmp := range l.Components() {
 			if cc, ok := cmp.managed.(component.ClusteredComponent); ok {
-				if cc.ClusterUpdatesRegistration() {
-					_, span := tracer.Start(spanCtx, "ClusteredComponentReevaluation", trace.WithSpanKind(trace.SpanKindInternal))
-					span.SetAttributes(attribute.String("node_id", cmp.NodeID()))
-					defer span.End()
+				_, span := tracer.Start(spanCtx, "NotifyClusterChange", trace.WithSpanKind(trace.SpanKindInternal))
+				span.SetAttributes(attribute.String("node_id", cmp.NodeID()))
 
-					err := cmp.Reevaluate()
-					if err != nil {
-						level.Error(l.log).Log("msg", "failed to reevaluate component", "componentID", cmp.NodeID(), "err", err)
-					}
-				}
+				cc.NotifyClusterChange()
+
+				span.End()
 			}
 		}
 		return true

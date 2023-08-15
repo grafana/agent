@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"strings"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
@@ -38,6 +39,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 	diags = AppendAll(f, staticConfig)
+	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -85,10 +87,15 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 			if jobName == "" {
 				return fmt.Sprintf("metrics_%s", instance.Name)
 			}
-			return fmt.Sprintf("metrics_%s_%s", instance.Name, jobName)
+
+			name := fmt.Sprintf("metrics_%s_%s", instance.Name, jobName)
+			name = strings.ReplaceAll(name, "-", "_")
+			name = strings.ReplaceAll(name, "/", "_")
+			return name
 		}
 
-		// There is an edge case unhandled here with label collisions.
+		// There is an edge case here with label collisions that will be caught
+		// by a validation [common.ValidateNodes].
 		// For example,
 		//   metrics config name = "agent_test"
 		//   scrape config job_name = "prometheus"
@@ -128,7 +135,8 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 			promtailConfig.LimitsConfig = promtailconvert.DefaultLimitsConfig()
 		}
 
-		// There is an edge case unhandled here with label collisions.
+		// There is an edge case here with label collisions that will be caught
+		// by a validation [common.ValidateNodes].
 		// For example,
 		//   logs config name = "agent_test"
 		//   scrape config job_name = "promtail"

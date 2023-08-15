@@ -4,12 +4,12 @@ services:
   # Core services. These services allow a Grafana Agent to send data somewhere
   # and visualize it in Grafana.
   #
-  # Backends: grafana, loki, cortex, tempo
+  # Backends: grafana, loki, mimir, tempo
   # Example services: avalanche
   #
 
   grafana:
-    image: grafana/grafana:9.2.3
+    image: grafana/grafana:10.0.3
     entrypoint:
       - /usr/share/grafana/bin/grafana-server
       - --homepath=/usr/share/grafana
@@ -23,25 +23,24 @@ services:
       - "3000:3000"
 
   loki:
-    image: grafana/loki:2.6.1
+    image: grafana/loki:2.8.3
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
 
-  cortex:
-    image: cortexproject/cortex:v1.8.1
+  mimir:
+    image: grafana/mimir:2.9.0
     volumes:
-      - ./cortex/config:/etc/cortex-config
+      - ./mimir/config:/etc/mimir-config
     entrypoint:
-      - /bin/cortex
-      - -config.file=/etc/cortex-config/cortex.yaml
+      - /bin/mimir
+      - -config.file=/etc/mimir-config/mimir.yaml
     ports:
       - "9009:9009"
 
   tempo:
-    image: grafana/tempo:1.5.0
+    image: grafana/tempo:2.1.0
     command:
-      - "-search.enabled=true"
       - "-storage.trace.backend=local"                  # tell tempo where to permanently put traces
       - "-storage.trace.local.path=/tmp/tempo/traces"
       - "-storage.trace.wal.path=/tmp/tempo/wal"        # tell tempo where to store the wal
@@ -60,21 +59,20 @@ services:
     ports:
       - "9001:9001"
 
-  # tracing load generator
-  synthetic-load-generator:
-    profiles: [agent] # Should only be run if the Agent is present
-    image: omnition/synthetic-load-generator:1.0.25
-    volumes:
-      - ./load-generator:/etc/load-generator
-    environment:
-      - TOPOLOGY_FILE=/etc/load-generator/load-generator.json
-      - JAEGER_COLLECTOR_URL=http://agent:14268
+  hotrod:
+    profiles: [agent]
+    image: yurishkuro/microsim:latest
+    ports:
+      - "8080:8080"
+    command:
+      - "-j=http://agent:14268/api/traces"
+      - "-d=1h"
     depends_on:
       - agent
 
   #
   # Optional Grafana Agent which can collect telemetry and send it to
-  # Loki/Cortex/Tempo.
+  # Loki/Mimir/Tempo.
   #
   # Enable with the "agent" profile.
   #
@@ -94,7 +92,7 @@ services:
       - -config.enable-read-api
     environment:
       HOSTNAME: agent
-      REMOTE_WRITE_HOST: cortex:9009
+      REMOTE_WRITE_HOST: mimir:9009
       LOKI_HOST: loki:3100
       TEMPO_HOST: tempo:4317
       AVALANCHE_HOST: avalanche:9001
@@ -110,7 +108,7 @@ services:
     ports:
       - "12345:12345"
     depends_on:
-      - cortex
+      - mimir
       - loki
       - tempo
 

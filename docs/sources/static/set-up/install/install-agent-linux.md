@@ -49,7 +49,7 @@ To uninstall Grafana Agent on Debian or Ubuntu, run the following commands in a 
 1. Uninstall Grafana Agent:
 
    ```shell
-   sudo apt-get remove grafana-agent-flow
+   sudo apt-get remove grafana-agent
    ```
 
 1. Optional: Remove the Grafana repository:
@@ -60,7 +60,7 @@ To uninstall Grafana Agent on Debian or Ubuntu, run the following commands in a 
 
 ## Install on RHEL or Fedora
 
-To install Grafana Agent in flow mode on RHEL or Fedora, run the following commands in a terminal window.
+To install Grafana Agent in static mode on RHEL or Fedora, run the following commands in a terminal window.
 
 1. Import the GPG key:
 
@@ -103,13 +103,13 @@ To uninstall Grafana Agent on RHEL or Fedora, run the following commands in a te
 1. Stop the systemd service for Grafana Agent:
 
    ```shell
-   sudo systemctl stop grafana-agent-flow
+   sudo systemctl stop grafana-agent
    ```
 
 1. Uninstall Grafana Agent:
 
    ```shell
-   sudo dnf remove grafana-agent-flow
+   sudo dnf remove grafana-agent
    ```
 
 1. Optional: Remove the Grafana repository:
@@ -120,7 +120,7 @@ To uninstall Grafana Agent on RHEL or Fedora, run the following commands in a te
 
 ## Install on SUSE or openSUSE
 
-To install Grafana Agent in flow mode on SUSE or openSUSE, run the following commands in a terminal window.
+To install Grafana Agent in static mode on SUSE or openSUSE, run the following commands in a terminal window.
 
 1. Import the GPG key and add the Grafana package repository:
 
@@ -149,13 +149,13 @@ To uninstall Grafana Agent on SUSE or openSUSE, run the following commands in a 
 1. Stop the systemd service for Grafana Agent:
 
    ```shell
-   sudo systemctl stop grafana-agent-flow
+   sudo systemctl stop grafana-agent
    ````
 
 1. Uninstall Grafana Agent:
 
    ```shell
-   sudo zypper remove grafana-agent-flow
+   sudo zypper remove grafana-agent
    ```
 
 1. Optional: Remove the Grafana repository:
@@ -184,7 +184,7 @@ To check the status of Grafana Agent, run the following command in a terminal:
 
 ### Run Grafana Agent on startup
 
-To automatically run Grafana Agent Flow when the system starts, run the following command in a terminal:
+To automatically run Grafana Agent when the system starts, run the following command in a terminal:
 
    ```shell
    sudo systemctl enable grafana-agent.service
