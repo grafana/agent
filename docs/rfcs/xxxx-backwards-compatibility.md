@@ -25,7 +25,7 @@ Backwards compatibility means that a user can upgrade their version of Grafana A
 
 The following will be protected by backwards compatibility between minor releases: 
 
-- **User configuration**, including configuration file syntax and the command-line interface. 
+- **User configuration**, including the syntax and functional semantics of the configuration file and command-line interface.
 
 - **Versioned network APIs**, if any versioned APIs are introduced prior to the 1.0 release.
 
@@ -57,11 +57,13 @@ If a breaking change is introduced in a minor change accidentally, and that brea
 
 It's impossible to guarantee that full backwards compatibility is achieved. There are some exceptions which may cause a breaking change without a new major version:
 
-- Non-stable functionality: Functionality which is explicitly marked as non-stable (for example, experimental or beta) are exempt from backwards compatibility between minor releases.
+- Non-stable functionality: Functionality which is explicitly marked as non-stable are exempt from backwards compatibility between minor releases.
 
   Non-stable functionality should be backwards compatible between patch releases, unless a breaking change is required for that patch release.
 
 - Security: a breaking change may be made if a security fix requires making a breaking change. 
+
+- Legal requirements: a breaking change may be made if functionality depends on software with a license incompatible with our own.
 
 - Non-versioned network APIs: internal network APIs, such as the internal API used to drive the Flow web UI, are not subject to backwards compatibility guarantees.
 
