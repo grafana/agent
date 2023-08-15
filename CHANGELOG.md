@@ -75,6 +75,8 @@ Main (unreleased)
 
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
 
+- Fix panic in `prometheus.operator.*` when no Port supplied in Monitor crds. (@captncraig)
+
 v0.35.4 (2023-08-14)
 --------------------
 

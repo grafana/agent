@@ -42,17 +42,12 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 					Name:      "svcmonitor",
 				},
 			},
-			ep: promopv1.Endpoint{
-				Port: "metrics",
-			},
+			ep: promopv1.Endpoint{},
 			expectedRelabels: util.Untab(`
 				- target_label: __meta_foo
 				  replacement: bar
 				- source_labels: [job]
 				  target_label: __tmp_prometheus_job_name
-				- source_labels: [__meta_kubernetes_endpoint_port_name]
-				  regex: metrics
-				  action: keep
 				- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]
 				  regex: Node;(.*)
 				  target_label: node
@@ -76,9 +71,6 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 				- source_labels: [__meta_kubernetes_service_name]
 				  target_label: job
 				  replacement: ${1}
-				- target_label: endpoint
-				  replacement: metrics
-				  action: replace
 			`),
 			expected: &config.ScrapeConfig{
 				JobName:         "serviceMonitor/operator/svcmonitor/0",
