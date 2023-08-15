@@ -92,6 +92,10 @@ func (b *Body) SetValueOverrideHook(valueOverrideHook ValueOverrideHook) {
 	b.valueOverrideHook = valueOverrideHook
 }
 
+func (b *Body) Nodes() []tokenNode {
+	return b.nodes
+}
+
 // A tokenNode is a structural element which can be converted into a set of
 // Tokens.
 type tokenNode interface {

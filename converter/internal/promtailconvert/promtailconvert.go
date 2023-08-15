@@ -62,6 +62,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 	diags = AppendAll(f, &cfg.Config, "", diags)
+	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {

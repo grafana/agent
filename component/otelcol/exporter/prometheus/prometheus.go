@@ -39,7 +39,7 @@ type Arguments struct {
 // DefaultArguments holds defaults values.
 var DefaultArguments = Arguments{
 	IncludeTargetInfo: true,
-	IncludeScopeInfo:  true,
+	IncludeScopeInfo:  false,
 	GCFrequency:       5 * time.Minute,
 }
 
@@ -77,7 +77,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 
 	converter := convert.New(o.Logger, fanout, convert.Options{
 		IncludeTargetInfo: true,
-		IncludeScopeInfo:  true,
+		IncludeScopeInfo:  false,
 	})
 
 	res := &Component{
