@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"crypto/tls"
+
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/go-kit/log"
@@ -66,7 +67,7 @@ func init() {
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	var tlsConfig *tls.Config
 	var err error
-	// NewTLSConfig uses Validate, which does not have a check if the config is nil, 
+	// NewTLSConfig uses Validate, which does not have a check if the config is nil,
 	// so we need to check it
 	if c.TLSConfig != nil {
 		tlsConfig, err = config_util.NewTLSConfig(c.TLSConfig)
