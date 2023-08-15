@@ -42,7 +42,10 @@ var _ otelconsumer.Traces = (*consumer)(nil)
 func NewConsumer(args Arguments, nextConsumer otelconsumer.Logs) (*consumer, error) {
 	c := &consumer{}
 
-	c.UpdateOptions(args, nextConsumer)
+	err := c.UpdateOptions(args, nextConsumer)
+	if err != nil {
+		return nil, err
+	}
 
 	return c, nil
 }

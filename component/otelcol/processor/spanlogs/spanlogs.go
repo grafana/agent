@@ -79,7 +79,7 @@ var _ component.Component = (*Component)(nil)
 // New creates a new otelcol.exporter.spanlogs component.
 func New(o component.Options, c Arguments) (*Component, error) {
 	if c.Output.Traces != nil || c.Output.Metrics != nil {
-		level.Warn(o.Logger).Log("msg", "non-log input detected; this component only works for trace inputs")
+		level.Warn(o.Logger).Log("msg", "non-log output detected; this component only works for log outputs and trace inputs")
 	}
 
 	nextLogs := fanoutconsumer.Logs(c.Output.Logs)
