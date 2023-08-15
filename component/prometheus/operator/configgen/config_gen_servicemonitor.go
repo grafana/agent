@@ -168,28 +168,30 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 			Regex:        regex,
 		})
 	} else if ep.TargetPort != nil { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		//nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		regex, err := relabel.NewRegexp(ep.TargetPort.String())
-		if err != nil {
-			return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
-		}
 		if ep.TargetPort.StrVal != "" {
+			//nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			regex, err := relabel.NewRegexp(ep.TargetPort.String())
+			if err != nil {
+				return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
+			}
+			if ep.TargetPort.StrVal != "" {
+				relabels.add(&relabel.Config{
+					SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
+					Action:       "keep",
+					Regex:        regex,
+				})
+			}
+		} else if ep.TargetPort.IntVal != 0 { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			regex, err := relabel.NewRegexp(ep.TargetPort.String()) //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			if err != nil {
+				return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
+			}
 			relabels.add(&relabel.Config{
-				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
+				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
 				Action:       "keep",
 				Regex:        regex,
 			})
 		}
-	} else if ep.TargetPort.IntVal != 0 { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		regex, err := relabel.NewRegexp(ep.TargetPort.String()) //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		if err != nil {
-			return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
-		}
-		relabels.add(&relabel.Config{
-			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
-			Action:       "keep",
-			Regex:        regex,
-		})
 	}
 
 	sourceLabels := model.LabelNames{"__meta_kubernetes_endpoint_address_target_kind", "__meta_kubernetes_endpoint_address_target_name"}
