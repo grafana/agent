@@ -137,6 +137,17 @@ func Test_ComponentIO(t *testing.T) {
 				"resourceLogs": [{
 					"scopeLogs": [{
 						"log_records": [{
+							"body": { "stringValue": "svc=TestSvcName res_attribute1=78 tid=7bba9f33312b3dbb8b2c2c62bb7abe2d" },
+							"attributes": [{
+								"key": "traces",
+								"value": { "stringValue": "process" }
+							},
+							{
+								"key": "res_attribute1",
+								"value": { "intValue": "78" }
+							}]
+						},
+						{
 							"body": { "stringValue": "span=TestSpan dur=0ns attribute1=78 svc=TestSvcName res_attribute1=78 tid=7bba9f33312b3dbb8b2c2c62bb7abe2d" },
 							"attributes": [{
 								"key": "traces",
@@ -160,17 +171,6 @@ func Test_ComponentIO(t *testing.T) {
 							{
 								"key": "attribute1",
 								"value": { "intValue": "78" }
-							},
-							{
-								"key": "res_attribute1",
-								"value": { "intValue": "78" }
-							}]
-						},
-						{
-							"body": { "stringValue": "svc=TestSvcName res_attribute1=78 tid=7bba9f33312b3dbb8b2c2c62bb7abe2d" },
-							"attributes": [{
-								"key": "traces",
-								"value": { "stringValue": "process" }
 							},
 							{
 								"key": "res_attribute1",
@@ -226,6 +226,17 @@ func Test_ComponentIO(t *testing.T) {
 				"resourceLogs": [{
 					"scopeLogs": [{
 						"log_records": [{
+							"body": { "stringValue": "override_svc=TestSvcName res_attribute1=78 override_tid=7bba9f33312b3dbb8b2c2c62bb7abe2d" },
+							"attributes": [{
+								"key": "override_traces",
+								"value": { "stringValue": "process" }
+							},
+							{
+								"key": "res_attribute1",
+								"value": { "intValue": "78" }
+							}]
+						},
+						{
 							"body": { "stringValue": "override_span=TestSpan override_dur=0ns attribute1=78 override_svc=TestSvcName res_attribute1=78 override_tid=7bba9f33312b3dbb8b2c2c62bb7abe2d" },
 							"attributes": [{
 								"key": "override_traces",
@@ -249,17 +260,6 @@ func Test_ComponentIO(t *testing.T) {
 							{
 								"key": "attribute1",
 								"value": { "intValue": "78" }
-							},
-							{
-								"key": "res_attribute1",
-								"value": { "intValue": "78" }
-							}]
-						},
-						{
-							"body": { "stringValue": "override_svc=TestSvcName res_attribute1=78 override_tid=7bba9f33312b3dbb8b2c2c62bb7abe2d" },
-							"attributes": [{
-								"key": "override_traces",
-								"value": { "stringValue": "process" }
 							},
 							{
 								"key": "res_attribute1",

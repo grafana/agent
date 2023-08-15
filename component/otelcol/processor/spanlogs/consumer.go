@@ -78,11 +78,13 @@ func (c *consumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 	c.optsMut.RLock()
 	defer c.optsMut.RUnlock()
 
+	// Create the logs structure which will be sent to the component's outputs
 	logs := plog.NewLogs()
 	resourceLogs := logs.ResourceLogs()
 
 	rsLen := td.ResourceSpans().Len()
 	for i := 0; i < rsLen; i++ {
+		// Create a logs scope
 		resLog := resourceLogs.AppendEmpty()
 		scopeLogs := resLog.ScopeLogs()
 
@@ -96,66 +98,75 @@ func (c *consumer) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 		}
 
 		for j := 0; j < ssLen; j++ {
+			// Create a log records slice
 			scopeLog := scopeLogs.AppendEmpty()
 			logRecords := scopeLog.LogRecords()
 
 			ss := rs.ScopeSpans().At(j)
-			spanLen := ss.Spans().Len()
 
-			lastTraceID := ""
-			for k := 0; k < spanLen; k++ {
-				span := ss.Spans().At(k)
-				traceID := span.TraceID().String()
-
-				//TODO: We could reuse the same maps in a lot of this processing. It's very repetitive.
-				//TODO: Use a Go map instead of pcommon.NewMap, and convert to pcommon.NewMap only at the very end?
-				//      Unfortunately pcommon.NewMap can be inefficient during insertions,
-				//      because it traverses the whole map on every insertion.
-				if c.opts.spans {
-					keyValues := pcommon.NewMap()
-
-					c.spanKeyVals(keyValues, span)
-					c.processKeyVals(keyValues, rs.Resource(), svc)
-
-					newLogRecord, err := c.createLogRecord(typeSpan, traceID, keyValues)
-					if err != nil {
-						return err
-					}
-					logRecord := logRecords.AppendEmpty()
-					newLogRecord.MoveTo(logRecord)
-				}
-
-				if c.opts.roots && span.ParentSpanID().IsEmpty() {
-					keyValues := pcommon.NewMap()
-
-					c.spanKeyVals(keyValues, span)
-					c.processKeyVals(keyValues, rs.Resource(), svc)
-
-					newLogRecord, err := c.createLogRecord(typeRoot, traceID, keyValues)
-					if err != nil {
-						return err
-					}
-					logRecord := logRecords.AppendEmpty()
-					newLogRecord.MoveTo(logRecord)
-				}
-
-				if c.opts.processes && lastTraceID != traceID {
-					keyValues := pcommon.NewMap()
-
-					c.processKeyVals(keyValues, rs.Resource(), svc)
-
-					newLogRecord, err := c.createLogRecord(typeProcess, traceID, keyValues)
-					if err != nil {
-						return err
-					}
-					logRecord := logRecords.AppendEmpty()
-					newLogRecord.MoveTo(logRecord)
-				}
-			}
+			c.consumeSpans(svc, ss, rs.Resource(), logRecords)
 		}
 	}
 
 	return c.opts.nextConsumer.ConsumeLogs(ctx, logs)
+}
+
+func (c *consumer) consumeSpans(serviceName string, ss ptrace.ScopeSpans, rs pcommon.Resource, logRecords plog.LogRecordSlice) error {
+	lastTraceID := ""
+
+	// Loop through the spans
+	spanLen := ss.Spans().Len()
+	for k := 0; k < spanLen; k++ {
+		span := ss.Spans().At(k)
+		traceID := span.TraceID().String()
+
+		logSpans := c.opts.spans
+		logRoots := c.opts.roots && span.ParentSpanID().IsEmpty()
+		logProcesses := c.opts.processes && lastTraceID != traceID
+
+		if !logSpans && !logRoots && !logProcesses {
+			return nil
+		}
+
+		if logProcesses {
+			keyValuesProcesses := pcommon.NewMap()
+
+			c.processKeyVals(keyValuesProcesses, rs, serviceName)
+
+			// Add a trace ID to the key values
+			keyValuesProcesses.PutStr(c.opts.overrides.TraceIDKey, traceID)
+
+			lastTraceID = traceID
+			err := c.appendLogRecord(typeProcess, keyValuesProcesses, logRecords)
+			if err != nil {
+				return err
+			}
+		}
+
+		// Construct the key values
+		keyValues := pcommon.NewMap()
+
+		c.spanKeyVals(keyValues, span)
+		c.processKeyVals(keyValues, rs, serviceName)
+
+		// Add a trace ID to the key values
+		keyValues.PutStr(c.opts.overrides.TraceIDKey, traceID)
+
+		if logSpans {
+			err := c.appendLogRecord(typeSpan, keyValues, logRecords)
+			if err != nil {
+				return err
+			}
+		}
+
+		if logRoots {
+			err := c.appendLogRecord(typeRoot, keyValues, logRecords)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func copyOtelMap(out pcommon.Map, in pcommon.Map, pred func(key string, val pcommon.Value) bool) {
@@ -180,12 +191,20 @@ func convertOtelMapToSlice(m pcommon.Map) []any {
 	return res
 }
 
-func (c *consumer) createLogRecord(kind string, traceID string, keyValues pcommon.Map) (*plog.LogRecord, error) {
+func (c *consumer) appendLogRecord(kind string, keyValues pcommon.Map, logRecords plog.LogRecordSlice) error {
+	newLogRecord, err := c.createLogRecord(kind, keyValues)
+	if err != nil {
+		return err
+	}
+
+	logRecord := logRecords.AppendEmpty()
+	newLogRecord.MoveTo(logRecord)
+	return nil
+}
+
+func (c *consumer) createLogRecord(kind string, keyValues pcommon.Map) (*plog.LogRecord, error) {
 	// Create an empty log record
 	res := plog.NewLogRecord()
-
-	// Add a trace ID to the key values
-	keyValues.PutStr(c.opts.overrides.TraceIDKey, traceID)
 
 	// Add the log line
 	keyValuesSlice := convertOtelMapToSlice(keyValues)
@@ -206,10 +225,8 @@ func (c *consumer) createLogRecord(kind string, traceID string, keyValues pcommo
 
 	copyOtelMap(logAttributes, keyValues, func(key string, val pcommon.Value) bool {
 		// Check if we have to include this label
-		if _, ok := c.opts.labels[key]; ok {
-			return true
-		}
-		return false
+		_, ok := c.opts.labels[key]
+		return ok
 	})
 
 	return &res, nil
@@ -218,7 +235,7 @@ func (c *consumer) createLogRecord(kind string, traceID string, keyValues pcommo
 func (c *consumer) processKeyVals(output pcommon.Map, resource pcommon.Resource, svc string) {
 	rsAtts := resource.Attributes()
 
-	// name
+	// Add an attribute with the service name
 	output.PutStr(c.opts.overrides.ServiceKey, svc)
 
 	for _, name := range c.opts.processAttributes {
