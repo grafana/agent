@@ -15,7 +15,6 @@ The release notes provide information about deprecations and breaking changes in
 
 For a complete list of changes to Grafana Agent, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
 
-{{% admonition type="note" %}}
 These release notes are specific to Grafana Agent static mode. 
 Other release notes for the different Grafana Agent variants are contained on separate pages:
 
@@ -28,7 +27,6 @@ Other release notes for the different Grafana Agent variants are contained on se
 [release-notes-flow]: "/docs/agent/ -> /docs/agent/<GRAFANA VERSION>/flow/release-notes/"
 [release-notes-flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/release-notes/"
 {{% /docs/reference %}}
-{{% /admonition %}}
 
 ## v0.35
 
