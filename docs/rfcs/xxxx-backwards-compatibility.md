@@ -35,23 +35,14 @@ The following will be protected by backwards compatibility between minor release
 
 - **Externally importable Go packages**. If a user is importing our code as a dependency, they should be able to upgrade to a new minor release without having to make changes to their code.
 
-  This means that names, signatures, and meanings may not change; a function called Calculate may not be changed from returning the sum of two numbers to returning the difference of two numbers.
-
-  Protecting Go packages with backwards compatibility is expected to be a contentious proposal. However, it has positive benefits: 
-
-  - It makes us good open-source citizens, allowing people to use Grafana Agent as a library with the same upgrade confidence as people who use Grafana Agent as a binary.  
-
-  - It allows us to get in the habit of being deliberate around when something should be consumable downstream, and will help us strengthen our skills with designing good APIs in general. Ideally, this helps us get better at writing Go code _and_ writing Flow components.
-
-  - It will help train us to more easily recognize when any kind of change is breaking. 
-
-  The easiest way to commit to this without any effort is to put everything in an top-level internal folder, effectively saying that Grafana Agent has no code API that can be consumed downstream.
+  The backwards compatibility rules of these packages follow the same expectations as the [Go 1 compatibility][] expectations.
 
 - **The scope of backwards compatibility**. Backwards compatibility is only defined for major version 1; we reserve the right to change the definition of backwards compatibility between major versions. 
 
 If a breaking change is introduced in a minor change accidentally, and that breaking change is not covered by one of the [exceptions][] defined below, it is a bug. In these cases, a patch release should be introduced to undo the breaking change. 
 
 [exceptions]: #exceptions-to-backwards-compatibility
+[Go 1 compatibility]: https://go.dev/doc/go1compat
 
 ### Exceptions to backwards compatibility 
 
