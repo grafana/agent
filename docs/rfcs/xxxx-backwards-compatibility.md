@@ -64,23 +64,6 @@ It's impossible to guarantee that full backwards compatibility is achieved. Ther
 
 - Other telemetry data: metrics, logs, and traces may change between releases. Only telemetry data which is used in official dashboards is protected under backwards compatibility.
 
-### Avoiding breaking changes 
-
-Backwards compatibility guarantees introduce new challenges while writing code,
-as it means finding creative ways to iterate without making breaking changes
-immediately. Here are some example strategies one could use to avoid making a
-breaking change:
-
-- Keep things internal: the easiest route is to just not expose things publicly. For example, put Go code in `internal/` packages, or use unexported methods or types.
-
-- Rely on deprecations: if a publicly exposed thing must be changed, consider deprecating it.
-
-  - Instead of removing something, consider making it a no-operation and adding a deprecation warning. 
-
-  - Instead of replacing something (Go methods, Flow components, Flow attribute names), consider introducing the new approach and deprecating the old approach. 
-
-A list of deprecations will accumulate over the course of a major version's lifecycle. This list must be tracked so that deprecated functionality can be removed with the next major version. 
-
 ### Avoiding major release burnout 
 
 As a new major release implies a user must put extra effort into upgrading, it is possible to burn out users by releasing breaking changes too frequently. 
