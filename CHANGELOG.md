@@ -20,6 +20,9 @@ Main (unreleased)
   to enable decompression explicitly. See the [upgrade guide][] for migration
   instructions. (@thampiotr)
 
+- `otelcol.exporter.prometheus`: Set `include_scope_info` to `false` by default. You can set 
+  it to `true` to preserve previous behavior. (@gouthamve)
+
 ### Enhancements
 
 - Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
@@ -72,9 +75,16 @@ Main (unreleased)
 
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
 
-- Fix issue where corrupt WAL segments lead to crash looping. (@tpaschalis)
+v0.35.4 (2023-08-14)
+--------------------
+
+### Bugfixes
 
 - Sign RPMs with SHA256 for FIPs compatbility. (@mattdurham)
+
+- Fix issue where corrupt WAL segments lead to crash looping. (@tpaschalis)
+
+- Clarify usage documentation surrounding `loki.source.file` (@joshuapare)
 
 v0.35.3 (2023-08-09)
 --------------------
