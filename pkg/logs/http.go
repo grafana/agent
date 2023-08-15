@@ -30,6 +30,8 @@ func (l *Logs) ListInstancesHandler(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		level.Error(l.l).Log("msg", "failed to write response", "err", err)
 	}
+	t := make([]any, 0)
+	t = append(t, []string{})
 }
 
 // ListTargetsHandler retrieves the full set of targets across all instances and shows
