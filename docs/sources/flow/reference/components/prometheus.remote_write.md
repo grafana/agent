@@ -305,11 +305,11 @@ information.
   remote storage.
 
 # Examples
-￼
-￼The following examples show you how to create `prometheus.remote_write` components that send metrics to different destinations.
-￼
+
+The following examples show you how to create `prometheus.remote_write` components that send metrics to different destinations.
+
 ### Send metrics to a local Mimir instance
-￼
+
 You can create a `prometheus.remote_write` component that sends your metrics to a local Mimir instance:
 
 ```river
@@ -339,7 +339,7 @@ prometheus.scrape "demo" {
 ### Send metrics to a managed service
 
 You can create a `prometheus.remote_write` component that sends your metrics to a managed service, for example, Grafana Cloud. The Prometheus username and the Grafana Cloud API Key are injected in this example through environment variables.
-￼
+
 ```river
 prometheus.remote_write "default" {
   endpoint {
@@ -355,4 +355,4 @@ prometheus.remote_write "default" {
 
 `prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
 
-Any labels that start with `__` will be removed before sending to the endpoint. 
+Any labels that start with `__` will be removed before sending to the endpoint.
