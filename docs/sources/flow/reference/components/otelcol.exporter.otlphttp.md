@@ -131,7 +131,7 @@ Tempo without TLS:
 ```river
 otelcol.exporter.otlphttp "tempo" {
     client {
-        endpoint = "tempo:4317"
+        endpoint = "http://tempo:4317"
         tls {
             insecure             = true
             insecure_skip_verify = true
