@@ -81,6 +81,8 @@ Main (unreleased)
 
 - Fix issue where Agent crashes when a blackbox modules config file is specified for blackbox integration. (@marctc)
 
+- Fix issue where getting the support bundle failed due to using an HTTP Client that was not able to access the agent in-memory address. (@spartan0x117)
+
 v0.35.4 (2023-08-14)
 --------------------
 
