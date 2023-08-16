@@ -1929,8 +1929,8 @@ github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnF
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/pyroscope/api v0.2.0 h1:TzOxL0s6SiaLEy944ZAKgHcx/JDRJXu4O8ObwkqR6p4=
 github.com/grafana/pyroscope/api v0.2.0/go.mod h1:nhH+xai9cYFgs6lMy/+L0pKj0d5yCMwji/QAiQFCP+U=
-github.com/grafana/pyroscope/ebpf v0.2.0 h1:4UIWnso+Wfb9fXaUdrEF1cSEoJJhyjfvxdnGC3om6D0=
-github.com/grafana/pyroscope/ebpf v0.2.0/go.mod h1:P0nKy0Pp3A3/S1ByHCzo/+NS7KF3uWnGl6UYThie9dQ=
+github.com/grafana/pyroscope/ebpf v0.2.1 h1:OE/i5NMsM8cuD9ibRhC2Ms7wz1t5vW1Ijb9UkmTWMSE=
+github.com/grafana/pyroscope/ebpf v0.2.1/go.mod h1:KTvAJ+C8PFW2C0aI0KzSUhsqslQCcWvw3eECQkuvfSQ=
 github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db h1:7aN5cccjIqCLTzedH7MZzRZt5/lsAHch6Z3L2ZGn5FA=
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
