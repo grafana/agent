@@ -7,5 +7,9 @@ jobs:
     - name: "Check out code"
       uses: "actions/checkout@v3"
     - name: "Build technical documentation"
-      run: |
-        docker run -v ${PWD}/docs/sources:/hugo/content/docs/agent/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
+      run: >
+        docker run
+        --volume "${PWD}/docs/sources:/hugo/content/docs/agent/latest"
+        --env HUGO_REFLINKSERRORLEVEL=ERROR
+        --rm grafana/docs-base:latest
+        /bin/bash -c 'echo -e "---\\n{redirectURL: /hugo/content/docs/agent/latest/, type: redirect, versioned: true }\\n---\\n" > "/hugo/content/docs/agent/_index.md}" && make hugo'
