@@ -182,28 +182,29 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 			Regex:        regex,
 		})
 	} else if ep.TargetPort != nil { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		//nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		regex, err := relabel.NewRegexp(ep.TargetPort.String())
-		if err != nil {
-			return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
-		}
 		if ep.TargetPort.StrVal != "" { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			regex, err := relabel.NewRegexp(ep.TargetPort.String()) //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			if err != nil {
+				return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
+			}
+			if ep.TargetPort.StrVal != "" { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+				relabels.add(&relabel.Config{
+					SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
+					Action:       "keep",
+					Regex:        regex,
+				})
+			}
+		} else if ep.TargetPort.IntVal != 0 { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			regex, err := relabel.NewRegexp(ep.TargetPort.String()) //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			if err != nil {
+				return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
+			}
 			relabels.add(&relabel.Config{
-				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
+				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
 				Action:       "keep",
 				Regex:        regex,
 			})
 		}
-	} else if ep.TargetPort.IntVal != 0 { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		regex, err := relabel.NewRegexp(ep.TargetPort.String()) //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		if err != nil {
-			return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
-		}
-		relabels.add(&relabel.Config{
-			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
-			Action:       "keep",
-			Regex:        regex,
-		})
 	}
 
 	// Relabel namespace and pod and service labels into proper labels.

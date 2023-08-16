@@ -11,7 +11,7 @@ import (
 )
 
 type Component struct {
-	mut     sync.Mutex
+	mut     sync.RWMutex
 	config  *operator.Arguments
 	manager *crdManager
 
@@ -106,16 +106,25 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
+// NotifyClusterChange implements component.ClusterComponent.
+func (c *Component) NotifyClusterChange() {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	if !c.config.Clustering.Enabled {
+		return // no-op
+	}
+
+	// Schedule a reload so targets get redistributed.
+	select {
+	case c.onUpdate <- struct{}{}:
+	default:
+	}
+}
+
 // DebugInfo returns debug information for this component.
 func (c *Component) DebugInfo() interface{} {
 	return c.manager.DebugInfo()
-}
-
-// ClusterUpdatesRegistration implements component.ClusterComponent.
-func (c *Component) ClusterUpdatesRegistration() bool {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	return c.config.Clustering.Enabled
 }
 
 func (c *Component) reportHealth(err error) {

@@ -40,6 +40,8 @@ discovery:
         - us-east-2
       roles:
         - role_arn: arn:aws:iam::878167871295:role/yace_testing
+      dimension_name_requirements:
+        - BucketName
       metrics:
         - name: BucketSizeBytes
           period: 5m
@@ -95,6 +97,8 @@ discovery:
         - us-east-2
       roles:
         - role_arn: arn:aws:iam::878167871295:role/yace_testing
+      dimension_name_requirements:
+        - BucketName
       metrics:
         - name: BucketSizeBytes
           period: 5m
@@ -178,8 +182,9 @@ var expectedConfig = yaceConf.ScrapeConf{
 						RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
 					},
 				},
-				SearchTags: []yaceModel.Tag{},
-				CustomTags: []yaceModel.Tag{},
+				SearchTags:                []yaceModel.Tag{},
+				CustomTags:                []yaceModel.Tag{},
+				DimensionNameRequirements: []string{"BucketName"},
 				Metrics: []*yaceConf.Metric{
 					{
 						Name:       "BucketSizeBytes",
