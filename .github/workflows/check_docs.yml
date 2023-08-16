@@ -12,4 +12,4 @@ jobs:
         --volume "${PWD}/docs/sources:/hugo/content/docs/agent/latest"
         --env HUGO_REFLINKSERRORLEVEL=ERROR
         --rm grafana/docs-base:latest
-        /bin/bash -c 'echo -e "---\\n{redirectURL: /hugo/content/docs/agent/latest/, type: redirect, versioned: true }\\n---\\n" > "/hugo/content/docs/agent/_index.md}" && make hugo'
+        /bin/bash -c 'echo -e "---\\nredirectURL: /docs/agent/latest/\\ntype: redirect\\nversioned: true\\n---\\n" > /hugo/content/docs/agent/_index.md && make hugo'
