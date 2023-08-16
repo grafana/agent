@@ -53,6 +53,8 @@ Main (unreleased)
 
 - Flow: Users can now define `additional_fields` in `loki.source.cloudflare` (@wildum)
 
+- Clustering: Enable nodes to periodically rediscover and rejoin peers. (@tpaschalis)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
