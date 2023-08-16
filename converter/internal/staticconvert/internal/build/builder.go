@@ -9,6 +9,8 @@ import (
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
+	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	int_config "github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
@@ -44,6 +46,10 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendApacheExporter(itg)
 		case *node_exporter.Config:
 			exports = b.appendNodeExporter(itg)
+		case *blackbox_exporter.Config:
+			exports = b.appendBlackboxExporter(itg)
+		case *cloudwatch_exporter.Config:
+			exports = b.appendCloudwatchExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {
@@ -56,7 +62,6 @@ func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Co
 	scrapeConfigs := []*prom_config.ScrapeConfig{}
 	if b.cfg.Integrations.ConfigV1.ScrapeIntegrations {
 		scrapeConfig := prom_config.DefaultScrapeConfig
-		scrapeConfig.MetricsPath = fmt.Sprintf("integrations/%s/metrics", name)
 		scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
 		scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs
 		scrapeConfig.MetricRelabelConfigs = commonConfig.MetricRelabelConfigs
