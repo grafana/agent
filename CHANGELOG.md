@@ -53,6 +53,8 @@ Main (unreleased)
 
 - Flow: Users can now define `additional_fields` in `loki.source.cloudflare` (@wildum)
 
+- Clustering: Enable nodes to periodically rediscover and rejoin peers. (@tpaschalis)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
@@ -75,7 +77,10 @@ Main (unreleased)
 
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
 
+- Fix panic in `prometheus.operator.*` when no Port supplied in Monitor crds. (@captncraig)
+
 - Fix issue where Agent crashes when a blackbox modules config file is specified for blackbox integration. (@marctc)
+
 
 v0.35.4 (2023-08-14)
 --------------------
