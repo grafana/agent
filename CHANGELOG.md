@@ -79,6 +79,8 @@ Main (unreleased)
 
 - Fix panic in `prometheus.operator.*` when no Port supplied in Monitor crds. (@captncraig)
 
+- Fix issue where getting the support bundle failed due to using an HTTP Client that was not able to access the agent in-memory address. (@spartan0x117)
+
 v0.35.4 (2023-08-14)
 --------------------
 
