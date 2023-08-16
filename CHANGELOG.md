@@ -53,6 +53,8 @@ Main (unreleased)
 
 - Flow: Users can now define `additional_fields` in `loki.source.cloudflare` (@wildum)
 
+- Clustering: Enable nodes to periodically rediscover and rejoin peers. (@tpaschalis)
+
 - Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
   and the option to connect with TLS. (@spartan0x117)
 
