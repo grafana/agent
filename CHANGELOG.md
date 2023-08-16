@@ -81,7 +81,6 @@ Main (unreleased)
 
 - Fix issue where Agent crashes when a blackbox modules config file is specified for blackbox integration. (@marctc)
 
-
 v0.35.4 (2023-08-14)
 --------------------
 
