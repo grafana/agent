@@ -72,6 +72,15 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	oldDataPath := filepath.Join(o.DataPath, "wal", o.ID)
 	_ = os.RemoveAll(oldDataPath)
 
+	// When experimental delete WAL on startup is enabled, we delete the WAL. This is a useful workaround for a range
+	// of issues where processing WAL leads to a failure of the agent. This should be used sparingly and the root cause
+	// of each issue should be investigated.
+	if os.Getenv("EXPERIMENTAL_DELETE_WAL_ON_STARTUP") == "true" {
+		walPath := wal.SubDirectory(o.DataPath)
+		err := os.RemoveAll(walPath)
+		level.Info(o.Logger).Log("msg", "Deleted WAL directory on startup", "path", walPath, "err", err)
+	}
+
 	walLogger := log.With(o.Logger, "subcomponent", "wal")
 	walStorage, err := wal.NewStorage(walLogger, o.Registerer, o.DataPath)
 	if err != nil {
