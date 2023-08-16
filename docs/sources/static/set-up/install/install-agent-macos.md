@@ -1,10 +1,11 @@
 ---
-title: Install Grafana Agent in static mode on macOS
-menuTitle: macOS
-weight: 500
 aliases:
 - ../../set-up/install-agent-macos/
 - ../set-up/install-agent-macos/
+canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-macos/
+menuTitle: macOS
+title: Install Grafana Agent in static mode on macOS
+weight: 500
 ---
 
 # Install Grafana Agent in static mode on macOS

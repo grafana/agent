@@ -1,7 +1,8 @@
 ---
-title: github_exporter_config
 aliases:
 - ../../../configuration/integrations/github-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/github-exporter-config/
+title: github_exporter_config
 ---
 
 # github_exporter_config

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/pkg/river"
 )
 
@@ -13,7 +14,7 @@ type Options struct {
 	Level  Level  `river:"level,attr,optional"`
 	Format Format `river:"format,attr,optional"`
 
-	// TODO: log sink parameter (e.g., to use the Windows Event logger)
+	WriteTo []loki.LogsReceiver `river:"write_to,attr,optional"`
 }
 
 // DefaultOptions holds defaults for creating a Logger.

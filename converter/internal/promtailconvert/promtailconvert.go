@@ -5,22 +5,17 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/common/loki"
-	lokiwrite "github.com/grafana/agent/component/loki/write"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/converter/internal/promtailconvert/internal/build"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/dskit/flagext"
-	"github.com/grafana/loki/clients/pkg/promtail/client"
 	promtailcfg "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	lokicfgutil "github.com/grafana/loki/pkg/util/cfg"
-	lokiflag "github.com/grafana/loki/pkg/util/flagext"
 	"gopkg.in/yaml.v2"
 )
 
@@ -66,7 +61,8 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	f := builder.NewFile()
-	diags = AppendAll(f, &cfg.Config, diags)
+	diags = AppendAll(f, &cfg.Config, "", diags)
+	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -79,13 +75,13 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
-	diags = append(diags, newDiags...)
+	diags.AddAll(newDiags)
 	return prettyByte, diags
 }
 
 // AppendAll analyzes the entire promtail config in memory and transforms it
 // into Flow components. It then appends each argument to the file builder.
-func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics) diag.Diagnostics {
+func AppendAll(f *builder.File, cfg *promtailcfg.Config, labelPrefix string, diags diag.Diagnostics) diag.Diagnostics {
 	validateTopLevelConfig(cfg, &diags)
 
 	var writeReceivers = make([]loki.LogsReceiver, len(cfg.ClientConfigs))
@@ -93,12 +89,13 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics)
 	// Each client config needs to be a separate remote_write,
 	// because they may have different ExternalLabels fields.
 	for i, cc := range cfg.ClientConfigs {
-		writeBlocks[i], writeReceivers[i] = newLokiWrite(&cc, &diags, i)
+		writeBlocks[i], writeReceivers[i] = build.NewLokiWrite(&cc, &diags, i, labelPrefix)
 	}
 
 	gc := &build.GlobalContext{
 		WriteReceivers:   writeReceivers,
 		TargetSyncPeriod: cfg.TargetConfig.SyncPeriod,
+		LabelPrefix:      labelPrefix,
 	}
 
 	for _, sc := range cfg.ScrapeConfig {
@@ -112,14 +109,14 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics)
 	return diags
 }
 
-func defaultPositionsConfig() positions.Config {
+func DefaultPositionsConfig() positions.Config {
 	// We obtain the default by registering the flags
 	cfg := positions.Config{}
 	cfg.RegisterFlags(flag.NewFlagSet("", flag.PanicOnError))
 	return cfg
 }
 
-func defaultLimitsConfig() limit.Config {
+func DefaultLimitsConfig() limit.Config {
 	cfg := limit.Config{}
 	cfg.RegisterFlagsWithPrefix("", flag.NewFlagSet("", flag.PanicOnError))
 	return cfg
@@ -133,10 +130,20 @@ func appendScrapeConfig(
 ) {
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
+	b.Validate()
+	b.Sanitize()
 
 	// Append all the SD components
 	b.AppendKubernetesSDs()
-	//TODO(thampiotr): add support for other SDs
+	b.AppendDockerSDs()
+	b.AppendStaticSDs()
+	b.AppendFileSDs()
+	b.AppendConsulSDs()
+	b.AppendConsulAgentSDs()
+	b.AppendDigitalOceanSDs()
+	b.AppendGCESDs()
+	b.AppendEC2SDs()
+	b.AppendAzureSDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.
@@ -147,69 +154,14 @@ func appendScrapeConfig(
 	// Append all the components that produce logs directly.
 	// If any relabelling is required, it will be done via a loki.relabel component.
 	// The logs are sent to loki.process if processing is needed, or directly to loki.write components.
-	//TODO(thampiotr): add support for other integrations
 	b.AppendCloudFlareConfig()
 	b.AppendJournalConfig()
-}
-
-func newLokiWrite(client *client.Config, diags *diag.Diagnostics, index int) (*builder.Block, loki.LogsReceiver) {
-	label := fmt.Sprintf("default_%d", index)
-	lokiWriteArgs := toLokiWriteArguments(client, diags)
-	block := common.NewBlockWithOverride([]string{"loki", "write"}, label, lokiWriteArgs)
-	return block, common.ConvertLogsReceiver{
-		Expr: fmt.Sprintf("loki.write.%s.receiver", label),
-	}
-}
-
-func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiwrite.Arguments {
-	batchSize, err := units.ParseBase2Bytes(fmt.Sprintf("%dB", config.BatchSize))
-	if err != nil {
-		diags.Add(
-			diag.SeverityLevelError,
-			fmt.Sprintf("failed to parse BatchSize for client config %s: %s", config.Name, err.Error()),
-		)
-	}
-
-	// This is not supported yet - see https://github.com/grafana/agent/issues/4335.
-	if config.DropRateLimitedBatches {
-		diags.Add(
-			diag.SeverityLevelError,
-			"DropRateLimitedBatches is currently not supported in Grafana Agent Flow.",
-		)
-	}
-
-	// Also deprecated in promtail.
-	if len(config.StreamLagLabels) != 0 {
-		diags.Add(
-			diag.SeverityLevelWarn,
-			"stream_lag_labels is deprecated and the associated metric has been removed",
-		)
-	}
-
-	return &lokiwrite.Arguments{
-		Endpoints: []lokiwrite.EndpointOptions{
-			{
-				Name:              config.Name,
-				URL:               config.URL.String(),
-				BatchWait:         config.BatchWait,
-				BatchSize:         batchSize,
-				HTTPClientConfig:  prometheusconvert.ToHttpClientConfig(&config.Client),
-				Headers:           config.Headers,
-				MinBackoff:        config.BackoffConfig.MinBackoff,
-				MaxBackoff:        config.BackoffConfig.MaxBackoff,
-				MaxBackoffRetries: config.BackoffConfig.MaxRetries,
-				RemoteTimeout:     config.Timeout,
-				TenantID:          config.TenantID,
-			},
-		},
-		ExternalLabels: convertFlagLabels(config.ExternalLabels),
-	}
-}
-
-func convertFlagLabels(labels lokiflag.LabelSet) map[string]string {
-	result := map[string]string{}
-	for k, v := range labels.LabelSet {
-		result[string(k)] = string(v)
-	}
-	return result
+	b.AppendPushAPI()
+	b.AppendSyslogConfig()
+	b.AppendGCPLog()
+	b.AppendWindowsEventsConfig()
+	b.AppendKafka()
+	b.AppendAzureEventHubs()
+	b.AppendGelfConfig()
+	b.AppendHerokuDrainConfig()
 }

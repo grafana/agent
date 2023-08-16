@@ -112,12 +112,11 @@ linux_containers_jobs + windows_containers_jobs + [
         settings: {
           config_json: |||
             {
+              "git_committer_name": "updater-for-ci[bot]",
+              "git_author_name": "updater-for-ci[bot]",
+              "git_committer_email": "119986603+updater-for-ci[bot]@users.noreply.github.com",
+              "git_author_email": "119986603+updater-for-ci[bot]@users.noreply.github.com",
               "destination_branch": "master",
-              "pull_request_branch_prefix": "cd-agent",
-              "pull_request_enabled": false,
-              "pull_request_team_reviewers": [
-                "agent-squad"
-              ],
               "repo_name": "deployment_tools",
               "update_jsonnet_attribute_configs": [
                 {
@@ -138,7 +137,9 @@ linux_containers_jobs + windows_containers_jobs + [
               ]
             }
           |||,
-          github_token: secrets.gh_token.fromSecret,
+          github_app_id: secrets.updater_app_id.fromSecret,
+          github_app_installation_id: secrets.updater_app_installation_id.fromSecret,
+          github_app_private_key: secrets.updater_private_key.fromSecret,
         },
       },
     ],
@@ -160,7 +161,6 @@ linux_containers_jobs + windows_containers_jobs + [
       environment: {
         DOCKER_LOGIN: secrets.docker_login.fromSecret,
         DOCKER_PASSWORD: secrets.docker_password.fromSecret,
-        GITHUB_TOKEN: secrets.gh_token.fromSecret,
         GPG_PRIVATE_KEY: secrets.gpg_private_key.fromSecret,
         GPG_PUBLIC_KEY: secrets.gpg_public_key.fromSecret,
         GPG_PASSPHRASE: secrets.gpg_passphrase.fromSecret,

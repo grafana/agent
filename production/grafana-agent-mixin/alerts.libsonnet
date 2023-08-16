@@ -237,10 +237,10 @@ local _config = config._config;
         ],
       },
       {
-        name: 'GrafanaAgentManagement',
+        name: 'GrafanaAgentConfig',
         rules: [
           {
-            alert: 'AgentManagementBadAPIRequests',
+            alert: 'AgentRemoteConfigBadAPIRequests',
             expr: |||
               100 * sum(rate(agent_remote_config_fetches_total{status_code="(4|5).."}[10m])) by (%(group_by_cluster)s)
                 /
@@ -258,7 +258,7 @@ local _config = config._config;
             },
           },
           {
-            alert: 'AgentManagementBadAPIRequests',
+            alert: 'AgentRemoteConfigBadAPIRequests',
             expr: |||
               100 * sum(rate(agent_remote_config_fetches_total{status_code="(4|5).."}[10m])) by (%(group_by_cluster)s)
                 /
@@ -276,7 +276,7 @@ local _config = config._config;
             },
           },
           {
-            alert: 'AgentManagementRequestFailures',
+            alert: 'AgentRemoteConfigFetchErrors',
             expr: |||
               100 * sum(rate(agent_remote_config_fetch_errors_total[10m])) by (%(group_by_cluster)s)
                 /
@@ -294,7 +294,7 @@ local _config = config._config;
             },
           },
           {
-            alert: 'AgentManagementRequestFailures',
+            alert: 'AgentRemoteConfigFetchErrors',
             expr: |||
               100 * sum(rate(agent_remote_config_fetch_errors_total[10m])) by (%(group_by_cluster)s)
                 /
@@ -312,7 +312,7 @@ local _config = config._config;
             },
           },
           {
-            alert: 'AgentManagementInvalidAPIResponses',
+            alert: 'AgentRemoteConfigInvalidAPIResponse',
             expr: |||
               100 * sum(rate(agent_remote_config_invalid_total{reason=~".+"}[10m])) by (%(group_by_cluster)s)
                 /
@@ -330,7 +330,7 @@ local _config = config._config;
             },
           },
           {
-            alert: 'AgentManagementInvalidAPIResponses',
+            alert: 'AgentRemoteConfigInvalidAPIResponse',
             expr: |||
               100 * sum(rate(agent_remote_config_invalid_total{reason=~".+"}[10m])) by (%(group_by_cluster)s)
                 /
@@ -348,7 +348,7 @@ local _config = config._config;
             },
           },
           {
-            alert: 'AgentManagementFailureToReload',
+            alert: 'AgentFailureToReloadConfig',
             expr: |||
               avg_over_time(agent_config_last_load_successful[10m]) < 0.9
             ||| % _config,
@@ -363,7 +363,7 @@ local _config = config._config;
             },
           },
           {
-            alert: 'AgentManagementFailureToReload',
+            alert: 'AgentFailureToReloadConfig',
             expr: |||
               avg_over_time(agent_config_last_load_successful[10m]) < 0.9
             ||| % _config,

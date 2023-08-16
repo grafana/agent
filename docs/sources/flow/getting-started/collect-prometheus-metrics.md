@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-prometheus-metrics/
 title: Collect Prometheus metrics
 weight: 200
 ---

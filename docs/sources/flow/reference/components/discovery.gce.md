@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.gce/
 title: discovery.gce
 ---
 

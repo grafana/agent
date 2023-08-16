@@ -1,9 +1,10 @@
 ---
-title: Grafana Agent clustering concepts
-menuTitle: Clustering
-weight: 500
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/clustering/
 labels:
   stage: beta
+menuTitle: Clustering
+title: Grafana Agent clustering concepts
+weight: 500
 ---
 
 # Clustering (beta)

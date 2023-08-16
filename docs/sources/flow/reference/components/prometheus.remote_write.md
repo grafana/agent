@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
 title: prometheus.remote_write
 ---
 
@@ -303,7 +304,13 @@ information.
 * `prometheus_remote_storage_exemplars_in_total` (counter): Exemplars read into
   remote storage.
 
-## Example
+# Examples
+
+The following examples show you how to create `prometheus.remote_write` components that send metrics to different destinations.
+
+### Send metrics to a local Mimir instance
+
+You can create a `prometheus.remote_write` component that sends your metrics to a local Mimir instance:
 
 ```river
 prometheus.remote_write "staging" {
@@ -329,6 +336,23 @@ prometheus.scrape "demo" {
 }
 ```
 
-## Compression
+### Send metrics to a managed service
+
+You can create a `prometheus.remote_write` component that sends your metrics to a managed service, for example, Grafana Cloud. The Prometheus username and the Grafana Cloud API Key are injected in this example through environment variables.
+
+```river
+prometheus.remote_write "default" {
+  endpoint {
+    url = "https://prometheus-xxx.grafana.net/api/prom/push"
+      basic_auth {
+        username = env("PROMETHEUS_USERNAME")
+        password = env("GRAFANA_CLOUD_API_KEY")
+      }
+  }
+}
+```
+## Technical details
 
 `prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
+
+Any labels that start with `__` will be removed before sending to the endpoint.

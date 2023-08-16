@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/flow/reference/components/discovery.dns
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.dns/
 title: discovery.dns
 ---
 

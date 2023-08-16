@@ -23,8 +23,8 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
-	"github.com/grafana/agent/pkg/traces/internal/traceutils"
 	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
+	"github.com/grafana/agent/pkg/traces/traceutils"
 	"github.com/grafana/agent/pkg/util"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
@@ -125,6 +125,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	if err != nil {
 		return fmt.Errorf("failed to load tracing factories: %w", err)
 	}
+	i.factories = factories
 
 	appinfo := component.BuildInfo{
 		Command:     "agent",
@@ -160,11 +161,11 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 
 	i.service, err = service.New(ctx, service.Settings{
 		BuildInfo:                appinfo,
-		Receivers:                receiver.NewBuilder(otelConfig.Receivers, factories.Receivers),
-		Processors:               processor.NewBuilder(otelConfig.Processors, factories.Processors),
-		Exporters:                otelexporter.NewBuilder(otelConfig.Exporters, factories.Exporters),
-		Connectors:               connector.NewBuilder(otelConfig.Connectors, factories.Connectors),
-		Extensions:               extension.NewBuilder(otelConfig.Extensions, factories.Extensions),
+		Receivers:                receiver.NewBuilder(otelConfig.Receivers, i.factories.Receivers),
+		Processors:               processor.NewBuilder(otelConfig.Processors, i.factories.Processors),
+		Exporters:                otelexporter.NewBuilder(otelConfig.Exporters, i.factories.Exporters),
+		Connectors:               connector.NewBuilder(otelConfig.Connectors, i.factories.Connectors),
+		Extensions:               extension.NewBuilder(otelConfig.Extensions, i.factories.Extensions),
 		OtelMetricViews:          servicegraphprocessor.OtelMetricViews(),
 		OtelMetricReader:         promExporter,
 		DisableProcessMetrics:    true,

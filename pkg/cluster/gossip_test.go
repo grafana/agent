@@ -2,14 +2,20 @@ package cluster
 
 import (
 	"fmt"
+	"io"
 	stdlog "log"
+	"math/rand"
 	"net"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/foxcpp/go-mockdns"
+	"github.com/go-kit/log"
 	"github.com/grafana/ckit/advertise"
 	"github.com/hashicorp/go-discover"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,6 +23,8 @@ import (
 // ckit, since we can rely on the existing ckit tests for correctness.
 
 const examplePort = 8888
+
+var rnd = rand.New(rand.NewSource(1337))
 
 func TestConfig_ApplyDefaults(t *testing.T) {
 	ifaces, err := net.Interfaces()
@@ -31,6 +39,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 
 	defaultConfig := DefaultGossipConfig
 	defaultConfig.AdvertiseInterfaces = advertiseInterfaces
+	defaultConfig.DefaultPort = examplePort
 
 	setTestProviders(t, map[string]discover.Provider{
 		"static": &staticProvider{},
@@ -43,7 +52,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		gc := defaultConfig
 		gc.NodeName = ""
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.NoError(t, err)
 		require.Equal(t, hostName, gc.NodeName)
 	})
@@ -52,7 +61,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		gc := defaultConfig
 		gc.NodeName = "foobar"
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.NoError(t, err)
 		require.Equal(t, "foobar", gc.NodeName)
 	})
@@ -61,7 +70,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		gc := defaultConfig
 		gc.AdvertiseInterfaces = nil
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.EqualError(t, err, "one of advertise address or advertise interfaces must be set")
 	})
 
@@ -69,7 +78,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		gc := defaultConfig
 		gc.AdvertiseInterfaces = advertiseInterfaces
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.NoError(t, err)
 
 		expect, err := advertise.FirstAddress(gc.AdvertiseInterfaces)
@@ -81,7 +90,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		gc := defaultConfig
 		gc.AdvertiseAddr = "foobar:9999"
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.NoError(t, err)
 		require.Equal(t, "foobar:9999", gc.AdvertiseAddr)
 	})
@@ -90,7 +99,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		gc := defaultConfig
 		gc.AdvertiseAddr = "foobar"
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.NoError(t, err)
 		require.Equal(t, fmt.Sprintf("foobar:%d", examplePort), gc.AdvertiseAddr)
 	})
@@ -100,7 +109,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		gc.JoinPeers = []string{"foobar:9999"}
 		gc.DiscoverPeers = `provider=static addrs=fizzbuzz:5555`
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.EqualError(t, err, "at most one of join peers and discover peers may be set")
 	})
 
@@ -108,7 +117,7 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		gc := defaultConfig
 		gc.JoinPeers = []string{"foobar:9999"}
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.NoError(t, err)
 		require.Equal(t, []string{"foobar:9999"}, []string(gc.JoinPeers))
 	})
@@ -117,27 +126,27 @@ func TestConfig_ApplyDefaults(t *testing.T) {
 		gc := defaultConfig
 		gc.DiscoverPeers = `provider=static addrs=fizzbuzz:5555`
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.NoError(t, err)
-		require.Equal(t, []string{"fizzbuzz:5555"}, []string(gc.JoinPeers))
+		require.Equal(t, []string{"fizzbuzz:5555"}, getPeers(t, gc))
 	})
 
 	t.Run("peers can use default port", func(t *testing.T) {
 		gc := defaultConfig
-		gc.JoinPeers = []string{"foobar"}
+		gc.JoinPeers = []string{"192.168.1.14"}
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.NoError(t, err)
-		require.Equal(t, []string{fmt.Sprintf("foobar:%d", examplePort)}, []string(gc.JoinPeers))
+		require.Equal(t, []string{fmt.Sprintf("192.168.1.14:%d", examplePort)}, getPeers(t, gc))
 	})
 
 	t.Run("discovered peers can use default port", func(t *testing.T) {
 		gc := defaultConfig
 		gc.DiscoverPeers = `provider=static addrs=fizzbuzz`
 
-		err := gc.ApplyDefaults(examplePort)
+		err := gc.ApplyDefaults()
 		require.NoError(t, err)
-		require.Equal(t, []string{fmt.Sprintf("fizzbuzz:%d", examplePort)}, []string(gc.JoinPeers))
+		require.Equal(t, []string{fmt.Sprintf("fizzbuzz:%d", examplePort)}, getPeers(t, gc))
 	})
 }
 
@@ -170,4 +179,104 @@ func (sp *staticProvider) Help() string {
 
     provider: "static"
 		addrs:    Comma-separated list of addresses to return`
+}
+
+type randomProvider struct{}
+
+var _ discover.Provider = (*randomProvider)(nil)
+
+func (sp *randomProvider) Addrs(args map[string]string, l *stdlog.Logger) ([]string, error) {
+	if args["provider"] != "random" {
+		return nil, fmt.Errorf("discover-random: invalid provider " + args["provider"])
+	}
+	if rawSet, ok := args["addrs"]; ok {
+		addrs := strings.Split(rawSet, ",")
+		if len(addrs) == 0 {
+			return nil, nil
+		}
+
+		return []string{addrs[rnd.Intn(len(addrs))]}, nil
+	}
+	return nil, nil
+}
+
+func (sp *randomProvider) Help() string {
+	return `random:
+
+    provider: "random"
+		addrs:    Returns a random address from a comma-separated list of addresses`
+}
+
+func getPeers(t *testing.T, gc GossipConfig) []string {
+	gc.NodeName = "gossip-node"
+	node, err := NewGossipNode(log.NewLogfmtLogger(io.Discard), prometheus.NewRegistry(), &http.Client{}, &gc)
+	require.NoError(t, err)
+	peers, err := node.GetPeers()
+	require.NoError(t, err)
+	return peers
+}
+
+func TestGetPeers(t *testing.T) {
+	ifaces, err := net.Interfaces()
+	require.NoError(t, err)
+
+	var advertiseInterfaces []string
+	for _, iface := range ifaces {
+		if iface.Flags != net.FlagLoopback {
+			advertiseInterfaces = append(advertiseInterfaces, iface.Name)
+		}
+	}
+
+	defaultConfig := DefaultGossipConfig
+	defaultConfig.AdvertiseInterfaces = advertiseInterfaces
+	defaultConfig.DefaultPort = examplePort
+
+	setTestProviders(t, map[string]discover.Provider{
+		"random": &randomProvider{},
+	})
+
+	t.Run("GetPeers refreshes the list from DiscoverPeers", func(t *testing.T) {
+		gc := defaultConfig
+		gc.DiscoverPeers = `provider=random addrs=one,two,three,four,five,six`
+		err := gc.ApplyDefaults()
+		require.NoError(t, err)
+		require.Equal(t, []string{fmt.Sprintf("five:%d", examplePort)}, getPeers(t, gc))
+		require.Equal(t, []string{fmt.Sprintf("three:%d", examplePort)}, getPeers(t, gc))
+		require.Equal(t, []string{fmt.Sprintf("six:%d", examplePort)}, getPeers(t, gc))
+		require.Equal(t, []string{fmt.Sprintf("six:%d", examplePort)}, getPeers(t, gc))
+	})
+
+	t.Run("GetPeers refreshes a DNS record from JoinPeers", func(t *testing.T) {
+		gc := defaultConfig
+		gc.JoinPeers = []string{"192.168.1.14", "192.168.1.15:9999", "foo"}
+
+		err := gc.ApplyDefaults()
+		require.NoError(t, err)
+		defer mockdns.UnpatchNet(net.DefaultResolver)
+
+		srv, err := mockdns.NewServer(map[string]mockdns.Zone{
+			"foo.": {SRV: []net.SRV{{Target: "machine-a."}}},
+		}, false)
+		require.NoError(t, err)
+		defer srv.Close()
+
+		srv.PatchNet(net.DefaultResolver)
+		require.Equal(t, []string{fmt.Sprintf("192.168.1.14:%d", examplePort), "192.168.1.15:9999", "machine-a.:8888"}, getPeers(t, gc))
+
+		srv2, err := mockdns.NewServer(map[string]mockdns.Zone{
+			"foo.": {SRV: []net.SRV{{Target: "machine-b."}}},
+		}, false)
+		require.NoError(t, err)
+		defer srv2.Close()
+
+		srv2.PatchNet(net.DefaultResolver)
+		require.Equal(t, []string{fmt.Sprintf("192.168.1.14:%d", examplePort), "192.168.1.15:9999", "machine-b.:8888"}, getPeers(t, gc))
+	})
+
+	t.Run("GetPeers without JoinPeers or DiscoverPeers", func(t *testing.T) {
+		gc := defaultConfig
+		err := gc.ApplyDefaults()
+		require.NoError(t, err)
+		require.Equal(t, []string(nil), getPeers(t, gc))
+	})
 }

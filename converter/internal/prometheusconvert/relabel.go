@@ -49,7 +49,7 @@ func appendDiscoveryRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel
 	pb.discoveryRelabelBlocks = append(pb.discoveryRelabelBlocks, newPrometheusBlock(block, name, label, "", ""))
 
 	return &disc_relabel.Exports{
-		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.targets", label)),
+		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.output", label)),
 	}
 }
 
@@ -67,9 +67,12 @@ func ToFlowRelabelConfigs(relabelConfigs []*prom_relabel.Config) []*flow_relabel
 
 	var metricRelabelConfigs []*flow_relabel.Config
 	for _, relabelConfig := range relabelConfigs {
-		sourceLabels := make([]string, len(relabelConfig.SourceLabels))
-		for i, sourceLabel := range relabelConfig.SourceLabels {
-			sourceLabels[i] = string(sourceLabel)
+		var sourceLabels []string
+		if len(relabelConfig.SourceLabels) > 0 {
+			sourceLabels = make([]string, len(relabelConfig.SourceLabels))
+			for i, sourceLabel := range relabelConfig.SourceLabels {
+				sourceLabels[i] = string(sourceLabel)
+			}
 		}
 
 		metricRelabelConfigs = append(metricRelabelConfigs, &flow_relabel.Config{

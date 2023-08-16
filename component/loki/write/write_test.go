@@ -10,7 +10,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/wal"
 	"github.com/grafana/agent/component/discovery"
 	lsf "github.com/grafana/agent/component/loki/source/file"
 	"github.com/grafana/agent/pkg/flow/componenttest"
@@ -18,8 +22,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
 	loki_util "github.com/grafana/loki/pkg/util"
-	"github.com/prometheus/common/model"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRiverConfig(t *testing.T) {
@@ -53,7 +55,82 @@ func TestBadRiverConfig(t *testing.T) {
 	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
 }
 
-func Test(t *testing.T) {
+func TestUnmarshallWalAttrributes(t *testing.T) {
+	type testcase struct {
+		raw           string
+		errorExpected bool
+		expected      WalArguments
+	}
+
+	for name, tc := range map[string]testcase{
+		"min read frequency higher than max": {
+			raw: `
+			enabled = true
+			min_read_frequency = "1h"
+			max_read_frequency = "1m"
+			`,
+			errorExpected: true,
+		},
+		"default config is wal disabled": {
+			raw: "",
+			expected: WalArguments{
+				Enabled:          false,
+				MaxSegmentAge:    wal.DefaultMaxSegmentAge,
+				MinReadFrequency: wal.DefaultWatchConfig.MinReadFrequency,
+				MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+			},
+		},
+		"wal enabled with defaults": {
+			raw: `
+			enabled = true
+			`,
+			expected: WalArguments{
+				Enabled:          true,
+				MaxSegmentAge:    wal.DefaultMaxSegmentAge,
+				MinReadFrequency: wal.DefaultWatchConfig.MinReadFrequency,
+				MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+			},
+		},
+		"wal enabled with some overrides": {
+			raw: `
+			enabled = true
+			max_segment_age = "10m"
+			min_read_frequency = "11ms"
+			`,
+			expected: WalArguments{
+				Enabled:          true,
+				MaxSegmentAge:    time.Minute * 10,
+				MinReadFrequency: time.Millisecond * 11,
+				MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := WalArguments{}
+			err := river.Unmarshal([]byte(tc.raw), &cfg)
+			if tc.errorExpected {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.expected, cfg)
+		})
+	}
+}
+
+func TestWriteToSingleEndpoint(t *testing.T) {
+	t.Run("wal disabled", func(t *testing.T) {
+		testSingleEndpoint(t, func(args *Arguments) {})
+	})
+
+	t.Run("wal enabled", func(t *testing.T) {
+		testSingleEndpoint(t, func(args *Arguments) {
+			args.WAL.Enabled = true
+		})
+	})
+}
+
+func testSingleEndpoint(t *testing.T, alterConfig func(arguments *Arguments)) {
 	// Set up the server that will receive the log entry, and expose it on ch.
 	ch := make(chan logproto.PushRequest)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -80,6 +157,8 @@ func Test(t *testing.T) {
 	`, srv.URL)
 	var args Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+
+	alterConfig(&args)
 
 	// Set up and start the component.
 	tc, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.write")
@@ -118,6 +197,18 @@ func Test(t *testing.T) {
 }
 
 func TestEntrySentToTwoWriteComponents(t *testing.T) {
+	t.Run("wal disabled", func(t *testing.T) {
+		testMultipleEndpoint(t, func(arguments *Arguments) {})
+	})
+
+	t.Run("wal enabled", func(t *testing.T) {
+		testMultipleEndpoint(t, func(arguments *Arguments) {
+			arguments.WAL.Enabled = true
+		})
+	})
+}
+
+func testMultipleEndpoint(t *testing.T, alterArgs func(arguments *Arguments)) {
 	ch1, ch2 := make(chan logproto.PushRequest), make(chan logproto.PushRequest)
 	srv1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var pushReq logproto.PushRequest
@@ -148,6 +239,8 @@ func TestEntrySentToTwoWriteComponents(t *testing.T) {
 	var args1, args2 Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg1), &args1))
 	require.NoError(t, river.Unmarshal([]byte(cfg2), &args2))
+	alterArgs(&args1)
+	alterArgs(&args2)
 
 	// Set up and start the component.
 	tc1, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.write")

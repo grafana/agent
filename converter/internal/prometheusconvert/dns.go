@@ -15,7 +15,7 @@ func appendDiscoveryDns(pb *prometheusBlocks, label string, sdConfig *prom_dns.S
 	name := []string{"discovery", "dns"}
 	block := common.NewBlockWithOverride(name, label, discoveryDnsArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return newDiscoverExports("discovery.dns." + label + ".targets")
+	return NewDiscoverExports("discovery.dns." + label + ".targets")
 }
 
 func validateDiscoveryDns(sdConfig *prom_dns.SDConfig) diag.Diagnostics {

@@ -1,11 +1,5 @@
 ---
-# NOTE(rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.unix/
 title: prometheus.exporter.unix
 ---
 
@@ -41,6 +35,7 @@ Name | Type | Description | Default | Required
 `procfs_path`              | `string`       | The procfs mountpoint. | `/proc` | no
 `sysfs_path`               | `string`       | The sysfs mountpoint.  | `/sys`   | no
 `rootfs_path`              | `string`       | Specify a prefix for accessing the host filesystem. | `/` | no
+`udev_data_path`           | `string`       | The udev data path.  | `/run/udev/data` | no
 
 `set_collectors` defines a hand-picked list of enabled-by-default
 collectors. If set, anything not provided in that list is disabled by

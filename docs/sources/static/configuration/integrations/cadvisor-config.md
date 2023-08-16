@@ -1,7 +1,8 @@
 ---
-title: cadvisor_config
 aliases:
 - ../../../configuration/integrations/cadvisor-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cadvisor-config/
+title: cadvisor_config
 ---
 
 # cadvisor_config

@@ -1,10 +1,11 @@
 ---
-description: Learn how to install Grafana Agent in flow mode as a standalone binary
-title: Install Grafana Agent in flow mode as a standalone binary
-menuTitle: Standalone
-weight: 600
 aliases:
- - ../../install/binary/
+- ../../install/binary/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/install/binary/
+description: Learn how to install Grafana Agent in flow mode as a standalone binary
+menuTitle: Standalone
+title: Install Grafana Agent in flow mode as a standalone binary
+weight: 600
 ---
 
 # Install Grafana Agent in flow mode as a standalone binary
@@ -24,7 +25,7 @@ To download the Grafana Agent as a standalone binary, perform the following step
 
 1. Scroll down to the **Assets** section.
 
-1. Download the `grafana-agent-flow` zip file that matches your operating system and machine's architecture.
+1. Download the `grafana-agent` zip file that matches your operating system and machine's architecture.
 
 1. Extract the package contents into a directory.
 

@@ -26,7 +26,7 @@ Grafana Agent can collect, transform, and send data to:
 [Grafana]: https://github.com/grafana/grafana
 [Tempo]: https://github.com/grafana/tempo
 [Mimir]: https://github.com/grafana/mimir
-[Phlare]: https://github.com/grafana/phlare
+[Pyroscope]: https://github.com/grafana/pyroscope
 
 ## Why use Grafana Agent?
 

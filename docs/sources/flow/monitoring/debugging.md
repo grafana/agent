@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/
 title: Debugging
 weight: 300
 ---

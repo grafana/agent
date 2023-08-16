@@ -1,7 +1,8 @@
 ---
-title: otelcol.receiver.prometheus
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.prometheus/
 labels:
   stage: beta
+title: otelcol.receiver.prometheus
 ---
 
 # otelcol.receiver.prometheus

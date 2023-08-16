@@ -1,6 +1,6 @@
 local dashboard = import './utils/dashboard.jsonnet';
 local panel = import './utils/panel.jsonnet';
-local filename = 'agent-flow-prometheus.remote_write.json';
+local filename = 'agent-flow-prometheus-remote-write.json';
 
 local stackedPanelMixin = {
   fieldConfig+: {

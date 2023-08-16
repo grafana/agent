@@ -10,13 +10,15 @@ import (
 	"github.com/grafana/agent/component/local/file"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/service/http"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "module.file",
-		Args:    Arguments{},
-		Exports: module.Exports{},
+		Name:          "module.file",
+		Args:          Arguments{},
+		Exports:       module.Exports{},
+		NeedsServices: []string{http.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

@@ -13,7 +13,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/config"
 	commonk8s "github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
@@ -45,9 +44,7 @@ type Arguments struct {
 
 // DefaultArguments holds default settings for loki.source.kubernetes.
 var DefaultArguments = Arguments{
-	Client: commonk8s.ClientArguments{
-		HTTPClientConfig: config.DefaultHTTPClientConfig,
-	},
+	Client: commonk8s.DefaultClientArguments,
 }
 
 // SetToDefault implements river.Defaulter.

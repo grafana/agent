@@ -1,7 +1,8 @@
 ---
-title: loki.echo
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.echo/
 labels:
   stage: beta
+title: loki.echo
 ---
 
 # loki.echo

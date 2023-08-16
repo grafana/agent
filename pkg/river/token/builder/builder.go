@@ -92,6 +92,10 @@ func (b *Body) SetValueOverrideHook(valueOverrideHook ValueOverrideHook) {
 	b.valueOverrideHook = valueOverrideHook
 }
 
+func (b *Body) Nodes() []tokenNode {
+	return b.nodes
+}
+
 // A tokenNode is a structural element which can be converted into a set of
 // Tokens.
 type tokenNode interface {
@@ -216,13 +220,6 @@ func (b *Body) encodeField(prefix []string, field rivertags.Field, fieldValue re
 		fullName := mergeStringSlice(prefix, field.Name)
 
 		switch {
-		case fieldValue.IsZero():
-			// It shouldn't be possible to have a required block which is unset, but
-			// we'll encode something anyway.
-			inner := NewBlock(fullName, "")
-			inner.body.SetValueOverrideHook(b.valueOverrideHook)
-			b.AppendBlock(inner)
-
 		case fieldValue.Kind() == reflect.Map:
 			// Iterate over the map and add each element as an attribute into it.
 			if fieldValue.Type().Key().Kind() != reflect.String {

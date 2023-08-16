@@ -5,23 +5,17 @@ import (
 	"fmt"
 	"net"
 	"testing"
-	"time"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/otelcol"
-	"github.com/grafana/agent/component/otelcol/internal/fakeconsumer"
 	"github.com/grafana/agent/component/otelcol/processor/attributes"
+	"github.com/grafana/agent/component/otelcol/processor/processortest"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/dskit/backoff"
 	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/client"
-	"go.opentelemetry.io/collector/pdata/plog"
-	"go.opentelemetry.io/collector/pdata/pmetric"
-	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
 // These are tests for SeverityLevel and not for the attributes processor as a whole.
@@ -110,6 +104,34 @@ func TestSeverityLevelMatchesOtel(t *testing.T) {
 // A lot of the TestDecode tests were inspired by tests in the Otel repo:
 // https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.63.0/processor/attributesprocessor/testdata/config.yaml
 
+func testRunProcessor(t *testing.T, processorConfig string, testSignal processortest.Signal) {
+	ctx := componenttest.TestContext(t)
+	testRunProcessorWithContext(ctx, t, processorConfig, testSignal)
+}
+
+func testRunProcessorWithContext(ctx context.Context, t *testing.T, processorConfig string, testSignal processortest.Signal) {
+	l := util.TestLogger(t)
+
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.attributes")
+	require.NoError(t, err)
+
+	var args attributes.Arguments
+	require.NoError(t, river.Unmarshal([]byte(processorConfig), &args))
+
+	// Override the arguments so signals get forwarded to the test channel.
+	args.Output = testSignal.MakeOutput()
+
+	prc := processortest.ProcessorRunConfig{
+		Ctx:        ctx,
+		T:          t,
+		Args:       args,
+		TestSignal: testSignal,
+		Ctrl:       ctrl,
+		L:          l,
+	}
+	processortest.TestRunProcessor(prc)
+}
+
 func Test_Insert(t *testing.T) {
 	cfg := `
 		action {
@@ -182,7 +204,7 @@ func Test_Insert(t *testing.T) {
 			}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_RegexExtract(t *testing.T) {
@@ -245,7 +267,7 @@ func Test_RegexExtract(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_Update(t *testing.T) {
@@ -326,7 +348,7 @@ func Test_Update(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_Upsert(t *testing.T) {
@@ -399,7 +421,7 @@ func Test_Upsert(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_Delete(t *testing.T) {
@@ -468,7 +490,7 @@ func Test_Delete(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_Hash(t *testing.T) {
@@ -537,7 +559,7 @@ func Test_Hash(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_Convert(t *testing.T) {
@@ -592,7 +614,7 @@ func Test_Convert(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_ExcludeMulti(t *testing.T) {
@@ -824,7 +846,7 @@ func Test_ExcludeMulti(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_ExcludeResources(t *testing.T) {
@@ -986,7 +1008,7 @@ func Test_ExcludeResources(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_ExcludeLibrary(t *testing.T) {
@@ -1163,7 +1185,7 @@ func Test_ExcludeLibrary(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_ExcludeLibraryAnyVersion(t *testing.T) {
@@ -1339,7 +1361,7 @@ func Test_ExcludeLibraryAnyVersion(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_ExcludeLibraryBlankVersion(t *testing.T) {
@@ -1574,7 +1596,7 @@ func Test_ExcludeLibraryBlankVersion(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_ExcludeServices(t *testing.T) {
@@ -1790,7 +1812,7 @@ func Test_ExcludeServices(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_SelectiveProcessing(t *testing.T) {
@@ -1962,7 +1984,7 @@ func Test_SelectiveProcessing(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_Complex(t *testing.T) {
@@ -2071,7 +2093,7 @@ func Test_Complex(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_ExampleActions(t *testing.T) {
@@ -2186,7 +2208,7 @@ func Test_ExampleActions(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_Regexp(t *testing.T) {
@@ -2323,7 +2345,7 @@ func Test_Regexp(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_Regexp2(t *testing.T) {
@@ -2414,7 +2436,7 @@ func Test_Regexp2(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewTraceSignal(inputTrace, expectedOutputTrace))
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTrace, expectedOutputTrace))
 }
 
 func Test_LogBodyRegexp(t *testing.T) {
@@ -2536,7 +2558,7 @@ func Test_LogBodyRegexp(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewLogSignal(inputLog, expectedOutputLog))
+	testRunProcessor(t, cfg, processortest.NewLogSignal(inputLog, expectedOutputLog))
 }
 
 func Test_LogSeverityTextsRegexp(t *testing.T) {
@@ -2658,7 +2680,7 @@ func Test_LogSeverityTextsRegexp(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewLogSignal(inputLog, expectedOutputLog))
+	testRunProcessor(t, cfg, processortest.NewLogSignal(inputLog, expectedOutputLog))
 }
 
 func Test_LogSeverity(t *testing.T) {
@@ -2784,7 +2806,7 @@ func Test_LogSeverity(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewLogSignal(inputLog, expectedOutputLog))
+	testRunProcessor(t, cfg, processortest.NewLogSignal(inputLog, expectedOutputLog))
 }
 
 func Test_FromContext(t *testing.T) {
@@ -2874,7 +2896,7 @@ func Test_FromContext(t *testing.T) {
 		Auth:     fakeAuthData{},
 		Metadata: client.NewMetadata(map[string][]string{"origin": {"fake_origin"}}),
 	})
-	testRunProcessorWithContext(ctx, t, cfg, NewLogSignal(inputLog, expectedOutputLog))
+	testRunProcessorWithContext(ctx, t, cfg, processortest.NewLogSignal(inputLog, expectedOutputLog))
 }
 
 var _ client.AuthData = (*fakeAuthData)(nil)
@@ -3032,278 +3054,5 @@ func Test_MetricNames(t *testing.T) {
 		}]
 	}`
 
-	testRunProcessor(t, cfg, NewMetricSignal(inputMetric, expectedOutputMetric))
-}
-
-type signal interface {
-	MakeOutput() *otelcol.ConsumerArguments
-	ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error
-	CheckOutput(t *testing.T)
-}
-
-type traceSignal struct {
-	traceCh              chan ptrace.Traces
-	inputTrace           ptrace.Traces
-	expectedOuutputTrace ptrace.Traces
-}
-
-func NewTraceSignal(inputJson string, expectedOutputJson string) signal {
-	return &traceSignal{
-		traceCh:              make(chan ptrace.Traces),
-		inputTrace:           createTestTraces(inputJson),
-		expectedOuutputTrace: createTestTraces(expectedOutputJson),
-	}
-}
-
-func (s traceSignal) MakeOutput() *otelcol.ConsumerArguments {
-	return makeTracesOutput(s.traceCh)
-}
-
-func (s traceSignal) ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error {
-	return consumer.ConsumeTraces(ctx, s.inputTrace)
-}
-
-func (s traceSignal) CheckOutput(t *testing.T) {
-	// Wait for our processor to finish and forward data to traceCh.
-	select {
-	case <-time.After(time.Second):
-		require.FailNow(t, "failed waiting for traces")
-	case tr := <-s.traceCh:
-		trStr := marshalTraces(tr)
-		expStr := marshalTraces(s.expectedOuutputTrace)
-		require.JSONEq(t, expStr, trStr)
-	}
-}
-
-type logSignal struct {
-	logCh              chan plog.Logs
-	inputLog           plog.Logs
-	expectedOuutputLog plog.Logs
-}
-
-func NewLogSignal(inputJson string, expectedOutputJson string) signal {
-	return &logSignal{
-		logCh:              make(chan plog.Logs),
-		inputLog:           createTestLogs(inputJson),
-		expectedOuutputLog: createTestLogs(expectedOutputJson),
-	}
-}
-
-func (s logSignal) MakeOutput() *otelcol.ConsumerArguments {
-	return makeLogsOutput(s.logCh)
-}
-
-func (s logSignal) ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error {
-	return consumer.ConsumeLogs(ctx, s.inputLog)
-}
-
-func (s logSignal) CheckOutput(t *testing.T) {
-	// Wait for our processor to finish and forward data to logCh.
-	select {
-	case <-time.After(time.Second):
-		require.FailNow(t, "failed waiting for logs")
-	case tr := <-s.logCh:
-		trStr := marshalLogs(tr)
-		expStr := marshalLogs(s.expectedOuutputLog)
-		require.JSONEq(t, expStr, trStr)
-	}
-}
-
-type metricSignal struct {
-	metricCh              chan pmetric.Metrics
-	inputMetric           pmetric.Metrics
-	expectedOuutputMetric pmetric.Metrics
-}
-
-func NewMetricSignal(inputJson string, expectedOutputJson string) signal {
-	return &metricSignal{
-		metricCh:              make(chan pmetric.Metrics),
-		inputMetric:           createTestMetrics(inputJson),
-		expectedOuutputMetric: createTestMetrics(expectedOutputJson),
-	}
-}
-
-func (s metricSignal) MakeOutput() *otelcol.ConsumerArguments {
-	return makeMetricsOutput(s.metricCh)
-}
-
-func (s metricSignal) ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error {
-	return consumer.ConsumeMetrics(ctx, s.inputMetric)
-}
-
-func (s metricSignal) CheckOutput(t *testing.T) {
-	// Wait for our processor to finish and forward data to logCh.
-	select {
-	case <-time.After(time.Second):
-		require.FailNow(t, "failed waiting for logs")
-	case tr := <-s.metricCh:
-		trStr := marshalMetrics(tr)
-		expStr := marshalMetrics(s.expectedOuutputMetric)
-		require.JSONEq(t, expStr, trStr)
-	}
-}
-
-func testRunProcessor(t *testing.T, processorConfig string, testSignal signal) {
-	ctx := componenttest.TestContext(t)
-	testRunProcessorWithContext(ctx, t, processorConfig, testSignal)
-}
-
-func testRunProcessorWithContext(ctx context.Context, t *testing.T, processorConfig string, testSignal signal) {
-	l := util.TestLogger(t)
-
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.attributes")
-	require.NoError(t, err)
-
-	var args attributes.Arguments
-	require.NoError(t, river.Unmarshal([]byte(processorConfig), &args))
-
-	// Override the arguments so signals get forwarded to the test channel.
-	args.Output = testSignal.MakeOutput()
-
-	go func() {
-		err := ctrl.Run(ctx, args)
-		require.NoError(t, err)
-	}()
-
-	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
-	require.NoError(t, ctrl.WaitExports(time.Second), "component never exported anything")
-
-	// Send signals in the background to our processor.
-	go func() {
-		exports := ctrl.Exports().(otelcol.ConsumerExports)
-
-		bo := backoff.New(ctx, backoff.Config{
-			MinBackoff: 10 * time.Millisecond,
-			MaxBackoff: 100 * time.Millisecond,
-		})
-		for bo.Ongoing() {
-			err := testSignal.ConsumeInput(ctx, exports.Input)
-			if err != nil {
-				level.Error(l).Log("msg", "failed to send traces", "err", err)
-				bo.Wait()
-				continue
-			}
-
-			return
-		}
-	}()
-
-	testSignal.CheckOutput(t)
-}
-
-// makeTracesOutput returns ConsumerArguments which will forward traces to the
-// provided channel.
-func makeTracesOutput(ch chan ptrace.Traces) *otelcol.ConsumerArguments {
-	traceConsumer := fakeconsumer.Consumer{
-		ConsumeTracesFunc: func(ctx context.Context, t ptrace.Traces) error {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case ch <- t:
-				return nil
-			}
-		},
-	}
-
-	return &otelcol.ConsumerArguments{
-		Traces: []otelcol.Consumer{&traceConsumer},
-	}
-}
-
-// traceJson should match format from the protobuf definition:
-// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
-func createTestTraces(traceJson string) ptrace.Traces {
-	decoder := &ptrace.JSONUnmarshaler{}
-	data, err := decoder.UnmarshalTraces([]byte(traceJson))
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
-
-func marshalTraces(trace ptrace.Traces) string {
-	marshaler := &ptrace.JSONMarshaler{}
-	data, err := marshaler.MarshalTraces(trace)
-	if err != nil {
-		panic(err)
-	}
-	return string(data)
-}
-
-// makeLogsOutput returns ConsumerArguments which will forward logs to the
-// provided channel.
-func makeLogsOutput(ch chan plog.Logs) *otelcol.ConsumerArguments {
-	logConsumer := fakeconsumer.Consumer{
-		ConsumeLogsFunc: func(ctx context.Context, t plog.Logs) error {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case ch <- t:
-				return nil
-			}
-		},
-	}
-
-	return &otelcol.ConsumerArguments{
-		Logs: []otelcol.Consumer{&logConsumer},
-	}
-}
-
-// logJson should match format from the protobuf definition:
-// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/logs/v1/logs.proto
-func createTestLogs(logJson string) plog.Logs {
-	decoder := &plog.JSONUnmarshaler{}
-	data, err := decoder.UnmarshalLogs([]byte(logJson))
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
-
-func marshalLogs(log plog.Logs) string {
-	marshaler := &plog.JSONMarshaler{}
-	data, err := marshaler.MarshalLogs(log)
-	if err != nil {
-		panic(err)
-	}
-	return string(data)
-}
-
-// makeMetricsOutput returns ConsumerArguments which will forward metrics to the
-// provided channel.
-func makeMetricsOutput(ch chan pmetric.Metrics) *otelcol.ConsumerArguments {
-	metricConsumer := fakeconsumer.Consumer{
-		ConsumeMetricsFunc: func(ctx context.Context, t pmetric.Metrics) error {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case ch <- t:
-				return nil
-			}
-		},
-	}
-
-	return &otelcol.ConsumerArguments{
-		Metrics: []otelcol.Consumer{&metricConsumer},
-	}
-}
-
-// metricJson should match format from the protobuf definition:
-// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/metrics/v1/metrics.proto
-func createTestMetrics(metricJson string) pmetric.Metrics {
-	decoder := &pmetric.JSONUnmarshaler{}
-	data, err := decoder.UnmarshalMetrics([]byte(metricJson))
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
-
-func marshalMetrics(metrics pmetric.Metrics) string {
-	marshaler := &pmetric.JSONMarshaler{}
-	data, err := marshaler.MarshalMetrics(metrics)
-	if err != nil {
-		panic(err)
-	}
-	return string(data)
+	testRunProcessor(t, cfg, processortest.NewMetricSignal(inputMetric, expectedOutputMetric))
 }

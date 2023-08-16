@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
+	"github.com/prometheus-operator/prometheus-operator/pkg/namespacelabeler"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"

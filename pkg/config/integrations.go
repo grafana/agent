@@ -28,7 +28,7 @@ func DefaultVersionedIntegrations() VersionedIntegrations {
 	configV1 := v1.DefaultManagerConfig()
 	return VersionedIntegrations{
 		version:  integrationsVersion1,
-		configV1: &configV1,
+		ConfigV1: &configV1,
 	}
 }
 
@@ -38,7 +38,7 @@ type VersionedIntegrations struct {
 	version integrationsVersion
 	raw     util.RawYAML
 
-	configV1 *v1.ManagerConfig
+	ConfigV1 *v1.ManagerConfig
 	configV2 *v2.SubsystemOptions
 
 	// ExtraIntegrations is used when adding any integrations NOT in the default agent configuration
@@ -53,7 +53,7 @@ var (
 // UnmarshalYAML implements yaml.Unmarshaler. Full unmarshaling is deferred until
 // setVersion is invoked.
 func (c *VersionedIntegrations) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	c.configV1 = nil
+	c.ConfigV1 = nil
 	c.configV2 = nil
 	return unmarshal(&c.raw)
 }
@@ -61,8 +61,8 @@ func (c *VersionedIntegrations) UnmarshalYAML(unmarshal func(interface{}) error)
 // MarshalYAML implements yaml.Marshaler.
 func (c VersionedIntegrations) MarshalYAML() (interface{}, error) {
 	switch {
-	case c.configV1 != nil:
-		return c.configV1, nil
+	case c.ConfigV1 != nil:
+		return c.ConfigV1, nil
 	case c.configV2 != nil:
 		return c.configV2, nil
 	default:
@@ -74,8 +74,8 @@ func (c VersionedIntegrations) MarshalYAML() (interface{}, error) {
 // IsZero implements yaml.IsZeroer.
 func (c VersionedIntegrations) IsZero() bool {
 	switch {
-	case c.configV1 != nil:
-		return reflect.ValueOf(*c.configV1).IsZero()
+	case c.ConfigV1 != nil:
+		return reflect.ValueOf(*c.ConfigV1).IsZero()
 	case c.configV2 != nil:
 		return reflect.ValueOf(*c.configV2).IsZero()
 	default:
@@ -86,7 +86,7 @@ func (c VersionedIntegrations) IsZero() bool {
 // ApplyDefaults applies defaults to the subsystem based on globals.
 func (c *VersionedIntegrations) ApplyDefaults(sflags *server.Flags, mcfg *metrics.Config) error {
 	if c.version != integrationsVersion2 {
-		return c.configV1.ApplyDefaults(sflags, mcfg)
+		return c.ConfigV1.ApplyDefaults(sflags, mcfg)
 	}
 	return c.configV2.ApplyDefaults(mcfg)
 }
@@ -101,18 +101,18 @@ func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {
 		// Do not overwrite the config if it's already been set. This is relevant for
 		// cases where the config has already been loaded via other means (example: Agent
 		// Management snippets).
-		if c.configV1 != nil {
+		if c.ConfigV1 != nil {
 			return nil
 		}
 
 		cfg := v1.DefaultManagerConfig()
-		c.configV1 = &cfg
-		return yaml.UnmarshalStrict(c.raw, c.configV1)
+		c.ConfigV1 = &cfg
+		return yaml.UnmarshalStrict(c.raw, c.ConfigV1)
 	case integrationsVersion2:
 		cfg := v2.DefaultSubsystemOptions
 		// this is needed for dynamic configuration, the unmarshal doesn't work correctly if
 		// this is not nil.
-		c.configV1 = nil
+		c.ConfigV1 = nil
 		c.configV2 = &cfg
 		err := yaml.UnmarshalStrict(c.raw, c.configV2)
 		if err != nil {
@@ -128,8 +128,8 @@ func (c *VersionedIntegrations) setVersion(v integrationsVersion) error {
 // EnabledIntegrations returns a slice of enabled integrations
 func (c *VersionedIntegrations) EnabledIntegrations() []string {
 	integrations := map[string]struct{}{}
-	if c.configV1 != nil {
-		for _, integration := range c.configV1.Integrations {
+	if c.ConfigV1 != nil {
+		for _, integration := range c.ConfigV1.Integrations {
 			integrations[integration.Name()] = struct{}{}
 		}
 	}
@@ -156,7 +156,7 @@ type Integrations interface {
 // is set to IntegrationsVersion2.
 func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals IntegrationsGlobals) (Integrations, error) {
 	if cfg.version != integrationsVersion2 {
-		instance, err := v1.NewManager(*cfg.configV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
+		instance, err := v1.NewManager(*cfg.ConfigV1, logger, globals.Metrics.InstanceManager(), globals.Metrics.Validate)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +176,7 @@ func NewIntegrations(logger log.Logger, cfg *VersionedIntegrations, globals Inte
 type v1Integrations struct{ *v1.Manager }
 
 func (s *v1Integrations) ApplyConfig(cfg *VersionedIntegrations, _ IntegrationsGlobals) error {
-	return s.Manager.ApplyConfig(*cfg.configV1)
+	return s.Manager.ApplyConfig(*cfg.ConfigV1)
 }
 
 type v2Integrations struct{ *v2.Subsystem }

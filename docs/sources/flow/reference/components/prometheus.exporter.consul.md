@@ -1,12 +1,6 @@
 ---
-# NOTE(rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
-title: prometheus.exporter.​consul
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.consul/
+title: prometheus.exporter.consul
 ---
 
 # prometheus.exporter.consul

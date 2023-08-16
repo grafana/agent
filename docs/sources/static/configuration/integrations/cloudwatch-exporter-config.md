@@ -1,7 +1,8 @@
 ---
-title: cloudwatch_exporter_config
 aliases:
 - ../../../configuration/integrations/cloudwatch-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cloudwatch-exporter-config/
+title: cloudwatch_exporter_config
 ---
 
 # cloudwatch_exporter_config
@@ -196,6 +197,9 @@ Configuration reference:
   # Optional: Custom tags to be added as a list of `Key/Value` pairs. When exported to Prometheus format, the label name follows
   # the following format: `custom_tag_{Key}`.
   custom_tags: [ <aws_tag> ]
+
+  # Optional: List of metric dimensions to query. Before querying metric values, the total list of metrics will be filtered to only those that contain exactly this list of dimensions. An empty or undefined list results in all dimension combinations being included.
+  dimension_name_requirements: [ <string> ]
 
   # Required: List of metric definitions to scrape.
   metrics: [ <metric> ]

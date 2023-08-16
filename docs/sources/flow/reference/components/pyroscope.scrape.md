@@ -1,7 +1,8 @@
 ---
-title: pyroscope.scrape
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.scrape/
 labels:
   stage: beta
+title: pyroscope.scrape
 ---
 
 # pyroscope.scrape
@@ -69,22 +70,25 @@ Name | Type | Description | Default | Required
 
 The following blocks are supported inside the definition of `pyroscope.scrape`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to targets. | no
-authorization | [authorization][] | Configure generic authorization to targets. | no
-oauth2 | [oauth2][] | Configure OAuth2 for authenticating to targets. | no
-oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to targets via OAuth2. | no
-tls_config | [tls_config][] | Configure TLS settings for connecting to targets. | no
-profiling_config | [profiling_config][] | Configure profiling settings for the scrape job. | no
-profiling_config > profile.memory | [profile.memory][] | Collect memory profiles. | no
-profiling_config > profile.block | [profile.block][] | Collect profiles on blocks. | no
-profiling_config > profile.goroutine | [profile.goroutine][] | Collect goroutine profiles. | no
-profiling_config > profile.mutex | [profile.mutex][] | Collect mutex profiles. | no
-profiling_config > profile.process_cpu | [profile.process_cpu][] | Collect CPU profiles. | no
-profiling_config > profile.fgprof | [profile.fgprof][] | Collect [fgprof][] profiles. | no
-profiling_config > profile.custom | [profile.custom][] | Collect custom profiles. | no
-clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
+| Hierarchy                                     | Block                          | Description                                                              | Required |
+|-----------------------------------------------|--------------------------------|--------------------------------------------------------------------------|----------|
+| basic_auth                                    | [basic_auth][]                 | Configure basic_auth for authenticating to targets.                      | no       |
+| authorization                                 | [authorization][]              | Configure generic authorization to targets.                              | no       |
+| oauth2                                        | [oauth2][]                     | Configure OAuth2 for authenticating to targets.                          | no       |
+| oauth2 > tls_config                           | [tls_config][]                 | Configure TLS settings for connecting to targets via OAuth2.             | no       |
+| tls_config                                    | [tls_config][]                 | Configure TLS settings for connecting to targets.                        | no       |
+| profiling_config                              | [profiling_config][]           | Configure profiling settings for the scrape job.                         | no       |
+| profiling_config > profile.memory             | [profile.memory][]             | Collect memory profiles.                                                 | no       |
+| profiling_config > profile.block              | [profile.block][]              | Collect profiles on blocks.                                              | no       |
+| profiling_config > profile.goroutine          | [profile.goroutine][]          | Collect goroutine profiles.                                              | no       |
+| profiling_config > profile.mutex              | [profile.mutex][]              | Collect mutex profiles.                                                  | no       |
+| profiling_config > profile.process_cpu        | [profile.process_cpu][]        | Collect CPU profiles.                                                    | no       |
+| profiling_config > profile.fgprof             | [profile.fgprof][]             | Collect [fgprof][] profiles.                                             | no       |
+| profiling_config > profile.godeltaprof_memory | [profile.godeltaprof_memory][] | Collect [godeltaprof][] memory profiles.                                 | no       |
+| profiling_config > profile.godeltaprof_mutex  | [profile.godeltaprof_mutex][]  | Collect [godeltaprof][] mutex profiles.                                  | no       |
+| profiling_config > profile.godeltaprof_block  | [profile.godeltaprof_block][]        | Collect [godeltaprof][] block profiles.                                  | no       |
+| profiling_config > profile.custom             | [profile.custom][]             | Collect custom profiles.                                                 | no       |
+| clustering                                    | [clustering][]                 | Configure the component for when the Agent is running in clustered mode. | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -101,11 +105,15 @@ an `oauth2` block.
 [profile.mutex]: #profile.mutex-block
 [profile.process_cpu]: #profile.process_cpu-block
 [profile.fgprof]: #profile.fgprof-block
+[profile.godeltaprof_memory]: #profile.godeltaprof_memory-block
+[profile.godeltaprof_mutex]: #profile.godeltaprof_mutex-block
+[profile.godeltaprof_block]: #profile.godeltaprof_block-block
 [profile.custom]: #profile.custom-block
 [pprof]: https://github.com/google/pprof/blob/main/doc/README.md
 [clustering]: #clustering-beta
 
 [fgprof]: https://github.com/felixge/fgprof
+[godeltaprof]: https://github.com/grafana/godeltaprof
 
 ### basic_auth block
 
@@ -224,6 +232,40 @@ Name | Type | Description | Default | Required
 
 When the `delta` argument is `true`, a `seconds` query parameter is
 automatically added to requests.
+
+### profile.godeltaprof_memory block
+
+The `profile.godeltaprof_memory` block collects profiles from [godeltaprof][] memory endpoint. The delta is computed on the target.
+
+It accepts the following arguments:
+
+| Name      | Type      | Description                                 | Default                     | Required |
+|-----------|-----------|---------------------------------------------|-----------------------------|----------|
+| `enabled` | `boolean` | Enable this profile type to be scraped.     | `false`                     | no       |
+| `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/delta_heap"` | no       |
+
+### profile.godeltaprof_mutex block
+
+The `profile.godeltaprof_mutex` block collects profiles from [godeltaprof][] mutex endpoint. The delta is computed on the target.
+
+It accepts the following arguments:
+
+| Name      | Type      | Description                                 | Default                      | Required |
+|-----------|-----------|---------------------------------------------|------------------------------|----------|
+| `enabled` | `boolean` | Enable this profile type to be scraped.     | `false`                      | no       |
+| `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/delta_mutex"` | no       |
+
+### profile.godeltaprof_block block
+
+The `profile.godeltaprof_block` block collects profiles from [godeltaprof][] block endpoint. The delta is computed on the target.
+
+It accepts the following arguments:
+
+| Name      | Type      | Description                                 | Default                      | Required |
+|-----------|-----------|---------------------------------------------|------------------------------|----------|
+| `enabled` | `boolean` | Enable this profile type to be scraped.     | `false`                      | no       |
+| `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/delta_block"` | no       |
+
 
 ### profile.custom block
 

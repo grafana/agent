@@ -132,14 +132,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		switch recordType {
 		case OriginDirectPUT:
 			h.sender.Send(req.Context(), loki.Entry{
-				Labels: h.postProcessLabels(commonLabels.Labels(nil)),
+				Labels: h.postProcessLabels(commonLabels.Labels()),
 				Entry: logproto.Entry{
 					Timestamp: ts,
 					Line:      string(decodedRecord),
 				},
 			})
 		case OriginCloudwatchLogs:
-			err = h.handleCloudwatchLogsRecord(req.Context(), decodedRecord, commonLabels.Labels(nil), ts)
+			err = h.handleCloudwatchLogsRecord(req.Context(), decodedRecord, commonLabels.Labels(), ts)
 		}
 		if err != nil {
 			h.metrics.errorsRecord.WithLabelValues(getReason(err)).Inc()
@@ -247,7 +247,7 @@ func (h *Handler) handleCloudwatchLogsRecord(ctx context.Context, data []byte, c
 
 	for _, event := range cwRecord.LogEvents {
 		h.sender.Send(ctx, loki.Entry{
-			Labels: h.postProcessLabels(cwLogsLabels.Labels(nil)),
+			Labels: h.postProcessLabels(cwLogsLabels.Labels()),
 			Entry: logproto.Entry{
 				Timestamp: timestamp,
 				Line:      event.Message,

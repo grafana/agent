@@ -292,16 +292,19 @@ func (o *OAuth2Config) Convert() *config.OAuth2 {
 	if o == nil {
 		return nil
 	}
-	return &config.OAuth2{
+	oa := &config.OAuth2{
 		ClientID:         o.ClientID,
 		ClientSecret:     config.Secret(o.ClientSecret),
 		ClientSecretFile: o.ClientSecretFile,
 		Scopes:           o.Scopes,
 		TokenURL:         o.TokenURL,
 		EndpointParams:   o.EndpointParams,
-		TLSConfig:        *o.TLSConfig.Convert(),
 		ProxyConfig: config.ProxyConfig{
 			ProxyURL: o.ProxyURL.Convert(),
 		},
 	}
+	if o.TLSConfig != nil {
+		oa.TLSConfig = *o.TLSConfig.Convert()
+	}
+	return oa
 }

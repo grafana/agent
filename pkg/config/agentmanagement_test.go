@@ -459,7 +459,7 @@ func TestGetRemoteConfig_ValidBaseConfig(t *testing.T) {
 	assert.Equal(t, "278220", cfg.Logs.Global.ClientConfigs[0].Client.BasicAuth.Username)
 	assert.Equal(t, "prometheus", cfg.Metrics.Configs[0].ScrapeConfigs[0].JobName)
 	assert.Equal(t, "yologs", cfg.Logs.Configs[0].ScrapeConfig[0].JobName)
-	assert.Equal(t, 1, len(cfg.Integrations.configV1.Integrations))
+	assert.Equal(t, 1, len(cfg.Integrations.ConfigV1.Integrations))
 }
 
 func TestGetRemoteConfig_ExpandsEnvVars(t *testing.T) {

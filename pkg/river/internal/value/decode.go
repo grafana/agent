@@ -13,6 +13,17 @@ import (
 
 // The Defaulter interface allows a type to implement default functionality
 // in River evaluation.
+//
+// Defaulter will be called only on block and body river types.
+//
+// When using nested blocks, the wrapping type must also implement
+// Defaulter to propagate the defaults of the wrapped type. Otherwise,
+// defaults used for the wrapped type become inconsistent:
+//
+//   - If the wrapped block is NOT defined in the River config, the wrapping
+//     type's defaults are used.
+//   - If the wrapped block IS defined in the River config, the wrapped type's
+//     defaults are used.
 type Defaulter interface {
 	// SetToDefault is called when evaluating a block or body to set the value
 	// to its defaults.

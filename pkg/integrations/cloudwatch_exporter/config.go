@@ -55,11 +55,12 @@ type TagsPerNamespace map[string][]string
 
 // DiscoveryJob configures a discovery job for a given service.
 type DiscoveryJob struct {
-	InlineRegionAndRoles `yaml:",inline"`
-	InlineCustomTags     `yaml:",inline"`
-	SearchTags           []Tag    `yaml:"search_tags"`
-	Type                 string   `yaml:"type"`
-	Metrics              []Metric `yaml:"metrics"`
+	InlineRegionAndRoles      `yaml:",inline"`
+	InlineCustomTags          `yaml:",inline"`
+	SearchTags                []Tag    `yaml:"search_tags"`
+	Type                      string   `yaml:"type"`
+	DimensionNameRequirements []string `yaml:"dimension_name_requirements"`
+	Metrics                   []Metric `yaml:"metrics"`
 }
 
 // StaticJob will scrape metrics that match all defined dimensions.
@@ -206,12 +207,13 @@ func toYACEDimensions(dim []Dimension) []yaceConf.Dimension {
 func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 	roles := toYACERoles(job.Roles)
 	yaceJob := yaceConf.Job{
-		Regions:    job.Regions,
-		Roles:      roles,
-		CustomTags: toYACETags(job.CustomTags),
-		Type:       job.Type,
-		Metrics:    toYACEMetrics(job.Metrics),
-		SearchTags: toYACETags(job.SearchTags),
+		Regions:                   job.Regions,
+		Roles:                     roles,
+		CustomTags:                toYACETags(job.CustomTags),
+		Type:                      job.Type,
+		Metrics:                   toYACEMetrics(job.Metrics),
+		SearchTags:                toYACETags(job.SearchTags),
+		DimensionNameRequirements: job.DimensionNameRequirements,
 
 		// By setting RoundingPeriod to nil, the exporter will align the start and end times for retrieving CloudWatch
 		// metrics, with the smallest period in the retrieved batch.

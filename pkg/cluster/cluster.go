@@ -93,7 +93,7 @@ type Clusterer struct {
 	Node Node
 }
 
-func getJoinAddr(addrs []string, in string) []string {
+func appendJoinAddr(addrs []string, in string) []string {
 	_, _, err := net.SplitHostPort(in)
 	if err == nil {
 		addrs = append(addrs, in)
@@ -117,7 +117,7 @@ func getJoinAddr(addrs []string, in string) []string {
 }
 
 // New creates a Clusterer.
-func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, listenAddr, advertiseAddr, joinAddr string) (*Clusterer, error) {
+func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, listenAddr, advertiseAddr, joinAddr, discoverPeers string, rejoinInterval time.Duration) (*Clusterer, error) {
 	// Standalone node.
 	if !clusterEnabled {
 		return &Clusterer{Node: NewLocalNode(listenAddr)}, nil
@@ -125,13 +125,13 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 
 	gossipConfig := DefaultGossipConfig
 
-	defaultPort := 80
 	_, portStr, err := net.SplitHostPort(listenAddr)
 	if err == nil { // there was a port
-		defaultPort, err = strconv.Atoi(portStr)
+		defaultPort, err := strconv.Atoi(portStr)
 		if err != nil {
 			return nil, err
 		}
+		gossipConfig.DefaultPort = defaultPort
 	}
 
 	if name != "" {
@@ -142,18 +142,9 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 		gossipConfig.AdvertiseAddr = advertiseAddr
 	}
 
-	if joinAddr != "" {
-		gossipConfig.JoinPeers = []string{}
-		jaddrs := strings.Split(joinAddr, ",")
-		for _, jaddr := range jaddrs {
-			gossipConfig.JoinPeers = getJoinAddr(gossipConfig.JoinPeers, jaddr)
-		}
-	}
-
-	err = gossipConfig.ApplyDefaults(defaultPort)
-	if err != nil {
-		return nil, err
-	}
+	gossipConfig.JoinPeers = strings.Split(joinAddr, ",")
+	gossipConfig.DiscoverPeers = discoverPeers
+	gossipConfig.RejoinInterval = rejoinInterval
 
 	cli := &http.Client{
 		Transport: &http2.Transport{
@@ -174,7 +165,7 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 		},
 	}
 
-	level.Info(log).Log("msg", "starting a new gossip node", "join-peers", gossipConfig.JoinPeers)
+	level.Info(log).Log("msg", "starting a new gossip node", "join-peers", gossipConfig.JoinPeers, "discover-peers", gossipConfig.DiscoverPeers)
 
 	gossipNode, err := NewGossipNode(log, reg, cli, &gossipConfig)
 	if err != nil {
@@ -189,30 +180,47 @@ func New(log log.Logger, reg prometheus.Registerer, clusterEnabled bool, name, l
 // For the gossipNode implementation, Start will attempt to connect to the
 // configured list of peers; if this fails it will fall back to bootstrapping a
 // new cluster of its own.
+// The gossipNode will start out as a Viewer; to participate in clustering,
+// the node needs to transition to the Participant state using ChangeState.
 func (c *Clusterer) Start(ctx context.Context) error {
 	switch node := c.Node.(type) {
 	case *localNode:
 		return nil // no-op, always ready
 	case *GossipNode:
-		err := node.Start() // TODO(@tpaschalis) Should we backoff and retry before moving on to the fallback here?
+		peers, err := node.GetPeers()
+		if err != nil {
+			return err
+		}
+		err = node.Start(peers) // TODO(@tpaschalis) Should we backoff and retry before moving on to the fallback here?
 		if err != nil {
 			level.Debug(node.log).Log("msg", "failed to connect to peers; bootstrapping a new cluster")
-			node.cfg.JoinPeers = nil
-			err = node.Start()
+			err = node.Start(nil)
 			if err != nil {
 				return err
 			}
 		}
 
-		// We now have either joined or started a new cluster.
-		// Nodes initially join in the Viewer state. We can move to the
-		// Participant state to signal that we wish to participate in reading
-		// or writing data.
-		ctx, ccl := context.WithTimeout(ctx, 5*time.Second)
-		defer ccl()
-		err = node.ChangeState(ctx, peer.StateParticipant)
-		if err != nil {
-			return err
+		if node.cfg.RejoinInterval > 0 {
+			go func() {
+				t := time.NewTicker(node.cfg.RejoinInterval)
+				for {
+					select {
+					case <-t.C:
+						peers, err := node.GetPeers()
+						if err != nil {
+							level.Error(node.log).Log("msg", "failed to refresh the list of peers", "err", err)
+							continue // we'll try on the next tick
+						}
+						err = node.Start(peers)
+						if err != nil {
+							level.Error(node.log).Log("msg", "failed to rejoin the list of peers", "err", err)
+						}
+					case <-ctx.Done():
+						t.Stop()
+						return
+					}
+				}
+			}()
 		}
 
 		node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
@@ -236,16 +244,27 @@ func (c *Clusterer) Stop() error {
 	case *GossipNode:
 		// The node is going away. We move to the Terminating state to signal
 		// that we should not be owners for write hashing operations anymore.
-		ctx, ccl := context.WithTimeout(context.Background(), 5*time.Second)
-		defer ccl()
-
 		// TODO(rfratto): should we enter terminating state earlier to allow for
 		// some kind of hand-off between components?
-		err := node.ChangeState(ctx, peer.StateTerminating)
+		err := c.ChangeState(peer.StateTerminating)
 		if err != nil {
 			level.Error(node.log).Log("msg", "failed to change state to Terminating before shutting down", "err", err)
 		}
 		return node.Stop()
+	}
+
+	// Nothing to do for unrecognized types.
+	return nil
+}
+
+// ChangeState transitions the Clusterer's node toState.
+func (c *Clusterer) ChangeState(toState peer.State) error {
+	switch node := c.Node.(type) {
+	case *GossipNode:
+		ctx, ccl := context.WithTimeout(context.Background(), 5*time.Second)
+		defer ccl()
+
+		return node.ChangeState(ctx, toState)
 	}
 
 	// Nothing to do for unrecognized types.

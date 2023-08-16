@@ -1,7 +1,8 @@
 ---
-title: eventhandler_config
 aliases:
 - ../../../../configuration/integrations/integrations-next/eventhandler-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/eventhandler-config/
+title: eventhandler_config
 ---
 
 # eventhandler_config
@@ -84,6 +85,10 @@ Configuration reference:
   ## Configure extra labels to add to log lines
   extra_labels:
     { <string>: <string> }
+
+  ## Format of the log line. The possible values are "logfmt" and "json".
+  ## The values are also LogQL parsers, which can be used for processing the logs
+  [log_format: <string> | default = "logfmt"]
 ```
 
 Sample agent config:

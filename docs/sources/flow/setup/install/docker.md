@@ -1,10 +1,11 @@
 ---
-description: Learn how to install Grafana Agent in flow mode on Docker
-title: Run Grafana Agent in flow mode in a Docker container
-menuTitle: Docker
-weight: 100
 aliases:
- - ../../install/docker/
+- ../../install/docker/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/install/docker/
+description: Learn how to install Grafana Agent in flow mode on Docker
+menuTitle: Docker
+title: Run Grafana Agent in flow mode in a Docker container
+weight: 100
 ---
 
 # Run Grafana Agent in flow mode in a Docker container
@@ -51,7 +52,7 @@ Refer to the documentation for [run][] for more information about the options av
 
 {{% admonition type="note" %}}
 Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
-If you don't pass this argument, the [debugging UI](../../monitoring/debugging.md#grafana-agent-flow-ui) won't be available outside of the Docker container.
+If you don't pass this argument, the [debugging UI](../../../monitoring/debugging#grafana-agent-flow-ui) won't be available outside of the Docker container.
 {{% /admonition %}}
 
 [run]: {{< relref "../../reference/cli/run.md" >}}
@@ -76,7 +77,7 @@ Refer to the documentation for [run][] for more information about the options av
 
 {{% admonition type="note" %}}
 Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
-If you don't pass this argument, the [debugging UI](../../monitoring/debugging.md#grafana-agent-flow-ui) won't be available outside of the Docker container.
+If you don't pass this argument, the [debugging UI](../../../monitoring/debugging#grafana-agent-flow-ui) won't be available outside of the Docker container.
 {{% /admonition %}}
 
 [run]: {{< relref "../../reference/cli/run.md" >}}

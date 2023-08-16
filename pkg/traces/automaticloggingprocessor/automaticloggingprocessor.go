@@ -2,7 +2,6 @@ package automaticloggingprocessor
 
 import (
 	"context"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"strconv"
@@ -124,7 +123,7 @@ func (p *automaticLoggingProcessor) ConsumeTraces(ctx context.Context, td ptrace
 			lastTraceID := ""
 			for k := 0; k < spanLen; k++ {
 				span := ss.Spans().At(k)
-				traceID := hex.EncodeToString([]byte(span.TraceID().String()))
+				traceID := span.TraceID().String()
 
 				if p.cfg.Spans {
 					keyValues := append(p.spanKeyVals(span), p.processKeyVals(rs.Resource(), svc)...)

@@ -31,10 +31,8 @@ func TestEventLogger(t *testing.T) {
 		OnStateChange: func(e component.Exports) {
 
 		},
-		Registerer:     prometheus.DefaultRegisterer,
-		Tracer:         nil,
-		HTTPListenAddr: "",
-		HTTPPath:       "",
+		Registerer: prometheus.DefaultRegisterer,
+		Tracer:     nil,
 	}, Arguments{
 		Locale:               0,
 		EventLogName:         "Application",

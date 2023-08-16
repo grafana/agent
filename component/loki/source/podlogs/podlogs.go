@@ -48,9 +48,7 @@ type Arguments struct {
 
 // DefaultArguments holds default settings for loki.source.kubernetes.
 var DefaultArguments = Arguments{
-	Client: commonk8s.ClientArguments{
-		HTTPClientConfig: config.DefaultHTTPClientConfig,
-	},
+	Client: commonk8s.DefaultClientArguments,
 }
 
 // SetToDefault implements river.Defaulter.

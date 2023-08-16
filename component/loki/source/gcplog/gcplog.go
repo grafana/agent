@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/loki/source/gcplog/gcptypes"
 	gt "github.com/grafana/agent/component/loki/source/gcplog/internal/gcplogtarget"
 	"github.com/grafana/agent/pkg/util"
 )
@@ -31,13 +32,10 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.gcplog
 // component.
 type Arguments struct {
-	// TODO(@tpaschalis) Having these types defined in an internal package
-	// means that an external caller cannot build this component's Arguments
-	// by hand for now.
-	PullTarget   *gt.PullConfig      `river:"pull,block,optional"`
-	PushTarget   *gt.PushConfig      `river:"push,block,optional"`
-	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
-	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+	PullTarget   *gcptypes.PullConfig `river:"pull,block,optional"`
+	PushTarget   *gcptypes.PushConfig `river:"push,block,optional"`
+	ForwardTo    []loki.LogsReceiver  `river:"forward_to,attr"`
+	RelabelRules flow_relabel.Rules   `river:"relabel_rules,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.

@@ -1,7 +1,8 @@
 ---
-title: pyroscope.ebpf
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.ebpf/
 labels:
   stage: beta
+title: pyroscope.ebpf
 ---
 
 # pyroscope.ebpf
@@ -10,6 +11,10 @@ labels:
 
 `pyroscope.ebpf` configures an ebpf profiling job for the current host. The collected performance profiles are forwarded
 to the list of receivers passed in `forward_to`.
+
+{{% admonition type="note" %}}
+To use the  `pyroscope.ebpf` component you must run Grafana Agent as root and inside host pid namespace.
+{{% /admonition %}}
 
 You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended as
 it can lead to additional memory and CPU usage.
@@ -151,8 +156,8 @@ strip elf -o elf.stripped
 objcopy --add-gnu-debuglink=elf.debug elf.stripped elf.debuglink
 ```
 
-For system libraries, ensure that debug symbols are installed. On Ubuntu, for example, you can install them by
-executing:
+For system libraries, ensure that debug symbols are installed. On Ubuntu, for example, you can install debug symbols 
+for `libc` by executing:
 
 ```bash
 apt install libc6-dbg

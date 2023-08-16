@@ -10,6 +10,36 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.20.0 (2023-08-09)
+----------
+
+- Update Grafana Agent version to v0.35.3. (@tpaschalis)
+
+### Enhancements
+
+- Add support for initcontainers in helm chart. (@dwalker-sabiogroup)
+
+0.19.0 (2023-07-27)
+-------------------
+
+### Enhancements
+
+- Set hostPID from values. (@korniltsev)
+
+- Set nodeSelector at podlevel. (@Flasheh)
+
+- Update Grafana Agent version to v0.35.2. (@rfratto)
+
+0.18.0 (2023-07-26)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.35.1. (@ptodev)
+
+0.17.0 (2023-07-19)
+-------------------
+
 ### Features
 
 - Add native support for Flow mode clustering with the
@@ -19,6 +49,10 @@ Unreleased
 ### Enhancements
 
 - Set securityContext for configReloader container. (@yanehi)
+
+- Set securityContext at podlevel. (@yanehi)
+
+- Update Grafana Agent version to v0.35.0. (@mattdurham)
 
 0.16.0 (2023-06-20)
 -------------------

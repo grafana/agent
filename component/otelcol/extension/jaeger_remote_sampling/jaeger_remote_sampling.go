@@ -56,10 +56,10 @@ type Arguments struct {
 }
 
 type ArgumentsSource struct {
-	Content        string                       `river:"content,attr,optional"`
-	Remote         *otelcol.GRPCClientArguments `river:"remote,block,optional"`
-	File           string                       `river:"file,attr,optional"`
-	ReloadInterval time.Duration                `river:"reload_interval,attr,optional"`
+	Content        string               `river:"content,attr,optional"`
+	Remote         *GRPCClientArguments `river:"remote,block,optional"`
+	File           string               `river:"file,attr,optional"`
+	ReloadInterval time.Duration        `river:"reload_interval,attr,optional"`
 }
 
 var (
@@ -72,7 +72,7 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 		HTTPServerSettings: (*otelcol.HTTPServerArguments)(args.HTTP).Convert(),
 		GRPCServerSettings: (*otelcol.GRPCServerArguments)(args.GRPC).Convert(),
 		Source: jaegerremotesampling.Source{
-			Remote:         args.Source.Remote.Convert(),
+			Remote:         (*otelcol.GRPCClientArguments)(args.Source.Remote).Convert(),
 			File:           args.Source.File,
 			ReloadInterval: args.Source.ReloadInterval,
 			Contents:       args.Source.Content,
@@ -131,4 +131,23 @@ func (args *GRPCServerArguments) SetToDefault() {
 // SetToDefault implements river.Defaulter.
 func (args *HTTPServerArguments) SetToDefault() {
 	*args = DefaultHTTPServerArguments
+}
+
+// GRPCClientArguments is used to configure
+// otelcol.extension.jaeger_remote_sampling with
+// component-specific defaults.
+type GRPCClientArguments otelcol.GRPCClientArguments
+
+// DefaultGRPCClientArguments holds component-specific
+// default settings for GRPCClientArguments.
+var DefaultGRPCClientArguments = GRPCClientArguments{
+	Headers:         map[string]string{},
+	Compression:     otelcol.CompressionTypeGzip,
+	WriteBufferSize: 512 * 1024,
+	BalancerName:    "pick_first",
+}
+
+// SetToDefault implements river.Defaulter.
+func (args *GRPCClientArguments) SetToDefault() {
+	*args = DefaultGRPCClientArguments
 }

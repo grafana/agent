@@ -11,18 +11,18 @@ import (
 )
 
 func appendDiscoveryDocker(pb *prometheusBlocks, label string, sdConfig *prom_docker.DockerSDConfig) discovery.Exports {
-	discoveryDockerArgs := toDiscoveryDocker(sdConfig)
+	discoveryDockerArgs := ToDiscoveryDocker(sdConfig)
 	name := []string{"discovery", "docker"}
 	block := common.NewBlockWithOverride(name, label, discoveryDockerArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return newDiscoverExports("discovery.docker." + label + ".targets")
+	return NewDiscoverExports("discovery.docker." + label + ".targets")
 }
 
 func validateDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) diag.Diagnostics {
 	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
-func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
+func ToDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
