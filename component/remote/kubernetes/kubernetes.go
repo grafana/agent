@@ -211,6 +211,18 @@ func (c *Component) pollError() error {
 // poll is forced.
 func (c *Component) Update(args component.Arguments) (err error) {
 
+	// defer initial poll so the lock is released first
+	defer func() {
+		if err != nil {
+			return
+		}
+		// Poll after updating and propagate the error if the poll fails. If an error
+		// occurred during Update, we don't bother to do anything.
+		// It is important to set err and the health so startup works correctly
+		err = c.pollError()
+		c.updatePollHealth(err)
+	}()
+
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
@@ -226,10 +238,6 @@ func (c *Component) Update(args component.Arguments) (err error) {
 		return fmt.Errorf("creating kubernetes client: %w", err)
 	}
 
-	// Poll after updating and propagate the error if the poll fails. If an error
-	// occurred during Update, we don't bother to do anything.
-	err = c.pollError()
-	c.updatePollHealth(err)
 	return err
 }
 
