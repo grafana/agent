@@ -124,10 +124,7 @@ configuration file rather than a Flow Mode configuration file.
    `--config.bypass-conversion-errors` flag in addition to
    `--config.format=promtail`.
 
-   {{% admonition type="caution" %}}If you bypass the errors, the behavior of
-   the converted configuration may not match the original Promtail
-   configuration. Do not use this flag in a production environment.{{%
-   /admonition %}}
+   {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Promtail configuration. Do not use this flag in a production environment.{{%/admonition %}}
 
 ## Example
 

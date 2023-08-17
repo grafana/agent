@@ -119,7 +119,7 @@ func Export(ctx context.Context, enabledFeatures []string, cfg []byte, srvAddres
 		return nil, fmt.Errorf("failed to read Agent logs instances: %s", err)
 	}
 
-	resp, err = http.DefaultClient.Get("http://" + srvAddress + "/agent/api/v1/logs/targets")
+	resp, err = httpClient.Get("http://" + srvAddress + "/agent/api/v1/logs/targets")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get Agent logs targets: %s", err)
 	}

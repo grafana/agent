@@ -55,6 +55,9 @@ Main (unreleased)
 
 - Clustering: Enable nodes to periodically rediscover and rejoin peers. (@tpaschalis)
 
+- Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
+  and the option to connect with TLS. (@spartan0x117)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
@@ -66,6 +69,8 @@ Main (unreleased)
   - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
   - `discovery.nomad` - service discovery from Nomad. (@captncraig)
   - `discovery.puppetdb` - service discovery from PuppetDB. (@captncraig)
+  - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes 
+  keys and values are sourced from `discovery.*` components. (@ptodev)
 
 ### Bugfixes
 
@@ -78,6 +83,10 @@ Main (unreleased)
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
 
 - Fix panic in `prometheus.operator.*` when no Port supplied in Monitor crds. (@captncraig)
+
+- Fix issue where Agent crashes when a blackbox modules config file is specified for blackbox integration. (@marctc)
+
+- Fix issue where getting the support bundle failed due to using an HTTP Client that was not able to access the agent in-memory address. (@spartan0x117)
 
 v0.35.4 (2023-08-14)
 --------------------
