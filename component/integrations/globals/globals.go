@@ -5,6 +5,9 @@ import (
 
 	"github.com/grafana/agent/component"
 	internal "github.com/grafana/agent/pkg/integrations/v2"
+	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/pkg/traces"
 )
 
 func init() {
@@ -21,6 +24,12 @@ func init() {
 
 type Arguments struct {
 	agentIdentifier string `river:"agent_identifier,string"`
+
+	metrics *metrics.Agent `river:"metrics,attr"`
+	logs    *logs.Logs     `river:"logs,attr"`
+	tracing *traces.Traces `river:"traces,attr"`
+
+	subsystemOpts subsystemOptions `river:"subsystem_opts,block"`
 }
 
 type Exports struct {

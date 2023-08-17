@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/metrics/instance"
 	"github.com/grafana/agent/pkg/integrations/v2"
 	internal "github.com/grafana/agent/pkg/integrations/v2"
 )
@@ -51,7 +50,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		integrations = append(integrations, i)
 	}
 
-	subSystem, err := internal.NewSubsystem(o.Logger, args.Globals)
+	_, err := internal.NewSubsystem(o.Logger, args.Globals)
 	if err != nil {
 		return nil, err
 	}
