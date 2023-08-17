@@ -1,5 +1,5 @@
 // Package http implements the remote.http component.
-package http
+package kubernetes
 
 import (
 	"context"
@@ -11,27 +11,25 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/kubernetes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	client_go "k8s.io/client-go/kubernetes"
 )
 
-func init() {
-	component.Register(component.Registration{
-		Name:    "remote.kubernetes.secret",
-		Args:    Arguments{},
-		Exports: Exports{},
-		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return New(opts, args.(Arguments))
-		},
-	})
-}
+type ResourceType string
 
-// Arguments control the remote.http component.
+const (
+	TypeSecret    ResourceType = "secret"
+	TypeConfigMap ResourceType = "configmap"
+)
+
+// Arguments control the component.
 type Arguments struct {
 	Namespace     string        `river:"namespace,attr"`
 	Name          string        `river:"name,attr"`
 	PollFrequency time.Duration `river:"poll_frequency,attr,optional"`
+	PollTimeout   time.Duration `river:"poll_timeout,attr,optional"`
 
 	// Client settings to connect to Kubernetes.
 	Client kubernetes.ClientArguments `river:"client,block,optional"`
@@ -40,6 +38,7 @@ type Arguments struct {
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
 	PollFrequency: 1 * time.Minute,
+	PollTimeout:   15 * time.Second,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -55,12 +54,12 @@ func (args *Arguments) Validate() error {
 	return nil
 }
 
-// Exports holds settings exported by remote.http.
+// Exports holds settings exported by this component.
 type Exports struct {
-	Data map[string]string `river:"data,attr"`
+	Data map[string]rivertypes.OptionalSecret `river:"data,attr"`
 }
 
-// Component implements the remote.http component.
+// Component implements the remote.kubernetes.* component.
 type Component struct {
 	log  log.Logger
 	opts component.Options
@@ -69,6 +68,7 @@ type Component struct {
 	args Arguments
 
 	client *client_go.Clientset
+	kind   ResourceType
 
 	lastPoll    time.Time
 	lastExports Exports // Used for determining whether exports should be updated
@@ -86,13 +86,13 @@ var (
 )
 
 // New returns a new, unstarted, remote.http component.
-func New(opts component.Options, args Arguments) (*Component, error) {
+func New(opts component.Options, args Arguments, rType ResourceType) (*Component, error) {
 	c := &Component{
 		log:  opts.Logger,
 		opts: opts,
 
 		updated: make(chan struct{}, 1),
-
+		kind:    rType,
 		health: component.Health{
 			Health:     component.HealthTypeUnknown,
 			Message:    "component started",
@@ -170,15 +170,34 @@ func (c *Component) pollError() error {
 
 	c.lastPoll = time.Now()
 
-	// TODO: add timeout
-	secret, err := c.client.CoreV1().Secrets(c.args.Namespace).Get(context.Background(), c.args.Name, v1.GetOptions{})
-	if err != nil {
-		return err
+	ctx, cancel := context.WithTimeout(context.Background(), c.args.PollTimeout)
+	defer cancel()
+
+	data := map[string]rivertypes.OptionalSecret{}
+	if c.kind == TypeSecret {
+		secret, err := c.client.CoreV1().Secrets(c.args.Namespace).Get(ctx, c.args.Name, v1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		for k, v := range secret.Data {
+			data[k] = rivertypes.OptionalSecret{
+				Value:    string(v),
+				IsSecret: true,
+			}
+		}
+	} else if c.kind == TypeConfigMap {
+		cmap, err := c.client.CoreV1().ConfigMaps(c.args.Namespace).Get(ctx, c.args.Name, v1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		for k, v := range cmap.Data {
+			data[k] = rivertypes.OptionalSecret{
+				Value:    v,
+				IsSecret: false,
+			}
+		}
 	}
-	data := map[string]string{}
-	for k, v := range secret.Data {
-		data[k] = string(v)
-	}
+
 	newExports := Exports{
 		Data: data,
 	}
