@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
 	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
@@ -677,7 +678,7 @@ func (c *InstanceConfig) otelConfig() (*otelcol.Config, error) {
 	processors := map[string]interface{}{}
 	processorNames := []string{}
 	if c.ScrapeConfigs != nil {
-		opType := promsdprocessor.OperationTypeUpsert
+		opType := promsdconsumer.OperationTypeUpsert
 		if c.OperationType != "" {
 			opType = c.OperationType
 		}

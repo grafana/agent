@@ -20,7 +20,12 @@ Main (unreleased)
   to enable decompression explicitly. See the [upgrade guide][] for migration
   instructions. (@thampiotr)
 
+- `otelcol.exporter.prometheus`: Set `include_scope_info` to `false` by default. You can set 
+  it to `true` to preserve previous behavior. (@gouthamve)
+
 ### Enhancements
+
+- Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
 
 - Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
 
@@ -34,21 +39,24 @@ Main (unreleased)
 - Flow: Allow the `logging` configuration block to tee the Agent's logs to one
   or more loki.* components. (@tpaschalis)
 
-- Clustering: Nodes take part in distributing load only after loading their
-  component graph. (@tpaschalis)
-
 - Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
 
-- Enable graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
-  signals. (@tpaschalis)
-  
 - Added support for `promtail` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@thampiotr)
 
 - Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
 
+- Allow specification of `dimension_name_requirements` for Cloudwatch discovery exports. (@cvdv-au)
+
 - `loki.write` now exposes basic WAL support. (@thepalbi)
 
 - `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
+
+- Flow: Users can now define `additional_fields` in `loki.source.cloudflare` (@wildum)
+
+- Clustering: Enable nodes to periodically rediscover and rejoin peers. (@tpaschalis)
+
+- Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
+  and the option to connect with TLS. (@spartan0x117)
 
 - New Grafana Agent Flow components:
 
@@ -61,6 +69,8 @@ Main (unreleased)
   - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
   - `discovery.nomad` - service discovery from Nomad. (@captncraig)
   - `discovery.puppetdb` - service discovery from PuppetDB. (@captncraig)
+  - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes 
+  keys and values are sourced from `discovery.*` components. (@ptodev)
 
 ### Bugfixes
 
@@ -70,14 +80,42 @@ Main (unreleased)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
-- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
-
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
+
+- Fix panic in `prometheus.operator.*` when no Port supplied in Monitor crds. (@captncraig)
+
+- Fix issue where Agent crashes when a blackbox modules config file is specified for blackbox integration. (@marctc)
+
+- Fix issue where getting the support bundle failed due to using an HTTP Client that was not able to access the agent in-memory address. (@spartan0x117)
+
+v0.35.4 (2023-08-14)
+--------------------
+
+### Bugfixes
+
+- Sign RPMs with SHA256 for FIPs compatbility. (@mattdurham)
+
+- Fix issue where corrupt WAL segments lead to crash looping. (@tpaschalis)
+
+- Clarify usage documentation surrounding `loki.source.file` (@joshuapare)
+
+v0.35.3 (2023-08-09)
+--------------------
+
+### Bugfixes
+
+- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
 
 - (Agent static mode) Jaeger remote sampling works again, through a new `jaeger_remote_sampling`
   entry in the traces config. It is no longer configurable through the jaeger receiver.
   Support Jaeger remote sampling was removed accidentally in v0.35, and it is now restored, 
   albeit via a different config entry.
+
+- Clustering: Nodes take part in distributing load only after loading their
+  component graph. (@tpaschalis)
+
+- Fix graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
+  signals. (@tpaschalis)
 
 v0.35.2 (2023-07-27)
 --------------------

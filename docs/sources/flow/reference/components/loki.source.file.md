@@ -11,6 +11,10 @@ title: loki.source.file
 Multiple `loki.source.file` components can be specified by giving them
 different labels.
 
+{{% admonition type="note" %}}
+`loki.source.file` does not handle file discovery. You can use `local.file_match` for file discovery. Refer to the [File Globbing](#file-globbing) example for more information.
+{{% /admonition %}}
+
 ## Usage
 
 ```river

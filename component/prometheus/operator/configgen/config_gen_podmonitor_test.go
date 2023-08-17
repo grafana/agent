@@ -42,9 +42,7 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 					Name:      "podmonitor",
 				},
 			},
-			ep: promopv1.PodMetricsEndpoint{
-				Port: "metrics",
-			},
+			ep: promopv1.PodMetricsEndpoint{},
 			expectedRelabels: util.Untab(`
 				- target_label: __meta_foo
 				  replacement: bar
@@ -53,9 +51,6 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				- source_labels: [__meta_kubernetes_pod_phase]
 				  regex: (Failed|Succeeded)
 				  action: drop
-				- source_labels: [__meta_kubernetes_pod_container_port_name]
-				  regex: metrics
-				  action: keep
 				- source_labels: [__meta_kubernetes_namespace]
 				  target_label: namespace
 				- source_labels: [__meta_kubernetes_pod_container_name]
@@ -64,8 +59,6 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				  target_label: pod
 				- target_label: job
 				  replacement: operator/podmonitor
-				- target_label: endpoint
-				  replacement: metrics
 			`),
 			expected: &config.ScrapeConfig{
 				JobName:         "podMonitor/operator/podmonitor/0",

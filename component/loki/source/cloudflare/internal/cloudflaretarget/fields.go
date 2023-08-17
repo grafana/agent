@@ -6,6 +6,8 @@ package cloudflaretarget
 
 import (
 	"fmt"
+
+	"golang.org/x/exp/slices"
 )
 
 // FieldsType defines the set of fields to fetch alongside logs.
@@ -17,6 +19,7 @@ const (
 	FieldsTypeMinimal  FieldsType = "minimal"
 	FieldsTypeExtended FieldsType = "extended"
 	FieldsTypeAll      FieldsType = "all"
+	FieldsTypeCustom   FieldsType = "custom"
 )
 
 var (
@@ -41,18 +44,24 @@ var (
 	}...)
 )
 
-// Fields returns the mapping of FieldsType to the set of fields it represents.
-func Fields(t FieldsType) ([]string, error) {
+// Fields returns the union of a set of fields represented by the Fieldtype and the given additional fields. The returned slice will contain no duplicates.
+func Fields(t FieldsType, additionalFields []string) ([]string, error) {
+	var fields []string
 	switch t {
 	case FieldsTypeDefault:
-		return defaultFields, nil
+		fields = append(defaultFields, additionalFields...)
 	case FieldsTypeMinimal:
-		return minimalFields, nil
+		fields = append(minimalFields, additionalFields...)
 	case FieldsTypeExtended:
-		return extendedFields, nil
+		fields = append(extendedFields, additionalFields...)
 	case FieldsTypeAll:
-		return allFields, nil
+		fields = append(allFields, additionalFields...)
+	case FieldsTypeCustom:
+		fields = append(fields, additionalFields...)
 	default:
 		return nil, fmt.Errorf("unknown fields type: %s", t)
 	}
+	// remove duplicates
+	slices.Sort(fields)
+	return slices.Compact(fields), nil
 }

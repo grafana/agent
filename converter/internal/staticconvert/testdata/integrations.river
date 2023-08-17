@@ -3,10 +3,9 @@ prometheus.exporter.apache "integrations_apache_http" {
 }
 
 prometheus.scrape "integrations_apache_http" {
-	targets      = prometheus.exporter.apache.integrations_apache_http.targets
-	forward_to   = [prometheus.remote_write.integrations.receiver]
-	job_name     = "integrations/apache_http"
-	metrics_path = "integrations/apache_http/metrics"
+	targets    = prometheus.exporter.apache.integrations_apache_http.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/apache_http"
 }
 
 prometheus.remote_write "integrations" {
@@ -17,6 +16,50 @@ prometheus.remote_write "integrations" {
 
 		metadata_config { }
 	}
+}
+
+prometheus.exporter.blackbox "integrations_blackbox" {
+	target "example" {
+		address = "http://example.com"
+		module  = "http_2xx"
+	}
+	probe_timeout_offset = "0s"
+}
+
+prometheus.scrape "integrations_blackbox" {
+	targets    = prometheus.exporter.blackbox.integrations_blackbox.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/blackbox"
+}
+
+prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
+	sts_region    = "us-east-2"
+	fips_disabled = false
+
+	discovery {
+		regions     = ["us-east-2"]
+		custom_tags = {}
+		search_tags = {}
+		type        = "AWS/EC2"
+
+		metric {
+			name       = "CPUUtilization"
+			statistics = ["Average"]
+			period     = "5m0s"
+		}
+
+		metric {
+			name       = "NetworkPacketsIn"
+			statistics = ["Average"]
+			period     = "5m0s"
+		}
+	}
+}
+
+prometheus.scrape "integrations_cloudwatch_exporter" {
+	targets    = prometheus.exporter.cloudwatch.integrations_cloudwatch_exporter.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/cloudwatch_exporter"
 }
 
 prometheus.exporter.unix { }
@@ -41,10 +84,9 @@ discovery.relabel "integrations_node_exporter" {
 }
 
 prometheus.scrape "integrations_node_exporter" {
-	targets      = discovery.relabel.integrations_node_exporter.output
-	forward_to   = [prometheus.relabel.integrations_node_exporter.receiver]
-	job_name     = "integrations/node_exporter"
-	metrics_path = "integrations/node_exporter/metrics"
+	targets    = discovery.relabel.integrations_node_exporter.output
+	forward_to = [prometheus.relabel.integrations_node_exporter.receiver]
+	job_name   = "integrations/node_exporter"
 }
 
 prometheus.relabel "integrations_node_exporter" {

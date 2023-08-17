@@ -299,7 +299,7 @@ func (ep *Entrypoint) supportHandler(rw http.ResponseWriter, r *http.Request) {
 	ep.mut.Lock()
 	var (
 		enabledFeatures = ep.cfg.EnabledFeatures
-		httpSrvAddress  = ep.cfg.ServerFlags.HTTP.InMemoryAddr
+		httpSrvAddress  = ep.cfg.ServerFlags.HTTP.ListenAddress
 	)
 	ep.mut.Unlock()
 
