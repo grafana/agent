@@ -64,12 +64,10 @@ Grafana Cloud integration workflows and the Kubernetes Monitoring solution are t
 
 | Topic | Description |
 |---|---|
-| [Install or uninstall Grafana Agent][] | Install or uninstall Grafana Agent. |
+| [Install or uninstall Grafana Agent][install] | Install or uninstall Grafana Agent. |
 | [Troubleshoot Cloud Integrations installation on Linux](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-linux/) | Troubleshoot common errors when executing the Grafana Agent installation script on Linux.  |
 | [Troubleshoot Cloud Integrations installation on Mac](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-mac/) | Troubleshoot common errors when executing the Grafana Agent installation script on Mac.  |
 | [Troubleshoot Cloud Integrations installation on Windows](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-windows/) | Troubleshoot common errors when executing the Grafana Agent installation script on Windows.  |
-
-[Install or uninstall Grafana Agent]: {{< relref "./set-up/install/" >}}
 
 ### Use Grafana Agent to send logs to Grafana Loki
 
@@ -91,4 +89,6 @@ Logs are included when you [set up a Cloud integration](/docs/grafana-cloud/data
 [set up]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up"
 [configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
 [configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration"
+[install]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install"
+[install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up/install"
 {{% /docs/reference %}}

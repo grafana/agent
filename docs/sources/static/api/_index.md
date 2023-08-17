@@ -405,7 +405,7 @@ A support bundle contains the following data:
 ## Integrations API (Experimental)
 
 > **WARNING**: This API is currently only available when the experimental
-> [integrations revamp]({{< relref "../configuration/integrations/integrations-next" >}})
+> [integrations revamp][integrations]
 > is enabled. Both the revamp and this API are subject to change while they
 > are still experimental.
 
@@ -522,4 +522,6 @@ Agent is Healthy.
 [scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/scraping-service
 [metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
 [metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/metrics-config"
+[integrations]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations/integrations-next"
+[integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/integrations/integrations-next"
 {{% /docs/reference %}}

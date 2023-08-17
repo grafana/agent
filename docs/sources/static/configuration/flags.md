@@ -33,7 +33,7 @@ Valid feature names are:
 * `remote-configs`: Enable [retrieving][retrieving] config files over HTTP/HTTPS
 * `integrations-next`: Enable [revamp][revamp] of the integrations subsystem
 * `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/2.45/feature_flags/#extra-scrape-metrics).
-* `agent-management`: Enable support for [agent management]({{< relref "./agent-management" >}}).
+* `agent-management`: Enable support for [agent management][management].
 
 ## Report information usage
 
@@ -148,4 +148,6 @@ YAML configuration when the `-server.http.tls-enabled` flag is used.
 [retrieving]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration#remote-configuration-experimental"
 [revamp]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations/integrations-next/"
 [revamp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/integrations/integrations-next/"
+[management]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/agent-management"
+[management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/agent-management"
 {{% /docs/reference %}}
