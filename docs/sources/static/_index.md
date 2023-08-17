@@ -34,13 +34,6 @@ use Grafana Agent to meet your goals.
 You can [set up][] and [configure][] Grafana Agent in static mode manually, or
 you can follow the common workflows described in this topic.
 
-{{% docs/reference %}}
-[set up]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up"
-[set up]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
-[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration"
-{{% /docs/reference %}}
-
 ## Topics
 
 ### Static mode Grafana Agent for Grafana Cloud integrations
@@ -92,3 +85,10 @@ Logs are included when you [set up a Cloud integration](/docs/grafana-cloud/data
 |---|---|
 | [Set up and use tracing](/docs/grafana-cloud/data-configuration/traces/set-up-and-use-tempo/) |  Install Grafana Agent to collect traces for use with Grafana Tempo, included with your [Grafana Cloud account](/docs/grafana-cloud/account-management/cloud-portal/). |
 | [Use Grafana Agent as a tracing pipeline](/docs/tempo/latest/configuration/grafana-agent/) | Grafana Agent can be configured to run a set of tracing pipelines to collect data from your applications and write it to Grafana Tempo. Pipelines are built using OpenTelemetry, and consist of receivers, processors, and exporters. |
+
+{{% docs/reference %}}
+[set up]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up"
+[set up]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
+[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration"
+{{% /docs/reference %}}
