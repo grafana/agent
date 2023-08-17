@@ -15,12 +15,12 @@ This guide helps you operate the Grafana Agent.
 There are three options to horizontally scale your deployment of Grafana Agents:
 
 - [Host filtering](#host-filtering) requires you to run one Agent on every
-   machine you wish to collect metrics from. Agents will only collect metrics
-   from the machines they run on.
+  machine you wish to collect metrics from. Agents will only collect metrics
+  from the machines they run on.
 - [Hashmod sharding](#hashmod-sharding) allows you to roughly shard the
-   discovered set of targets by using hashmod/keep relabel rules.
-- The [scraping service]({{< relref "../configuration/scraping-service/" >}}) allows you to cluster Grafana
-   Agents and have them distribute per-tenant configs throughout the cluster.
+  discovered set of targets by using hashmod/keep relabel rules.
+- The [scraping service][scrape] allows you to cluster Grafana
+  Agents and have them distribute per-tenant configs throughout the cluster.
 
 Each has their own set of tradeoffs:
 
@@ -54,7 +54,7 @@ Each has their own set of tradeoffs:
     - Smallest load on SD compared to host filtering, as only one Agent is
       responsible for a config.
   - Cons
-    - Centralized configs must discover a [minimal set of targets]({{< relref "../configuration/scraping-service#best-practices" >}})
+    - Centralized configs must discover a [minimal set of targets][targets]
       to distribute evenly.
     - Requires running a separate KV store to store the centralized configs.
     - Managing centralized configs adds operational burden over managing a config
@@ -78,8 +78,8 @@ running the Grafana Agent on GKE, you would have a DaemonSet with
 for scraping other targets that are not running on a cluster node, such as the
 Kubernetes control plane API.
 
-If you want to scale your scrape load without host filtering, you may use the
-[scraping service]({{< relref "../configuration/scraping-service/" >}}) instead.
+If you want to scale your scrape load without host filtering, you can use the
+[scraping service][scrape] instead.
 
 The host name of the Agent is determined by reading `$HOSTNAME`. If `$HOSTNAME`
 isn't defined, the Agent will use Go's [os.Hostname](https://golang.org/pkg/os/#Hostname)
@@ -110,8 +110,7 @@ logic; only `host_filter_relabel_configs` will work.
 
 If the determined hostname matches any of the meta labels, the discovered target
 is allowed. Otherwise, the target is ignored, and will not show up in the
-[targets
-API]({{< relref "../api#list-current-scrape-targets" >}}).
+[targets API][api].
 
 ## Hashmod sharding (Stable)
 
@@ -156,10 +155,9 @@ Instances allow for fine grained control of what data gets scraped and where it
 gets sent. Users can easily define two Instances that scrape different subsets
 of metrics and send them to two completely different remote_write systems.
 
-Instances are especially relevant to the [scraping service
-mode]({{< relref "../configuration/scraping-service/" >}}), where breaking up your scrape configs into
-multiple Instances is required for sharding and balancing scrape load across a
-cluster of Agents.
+Instances are especially relevant to the [scraping service mode][scrape],
+where breaking up your scrape configs into multiple Instances is required for 
+sharding and balancing scrape load across a cluster of Agents.
 
 ## Instance sharing (Stable)
 
@@ -176,10 +174,8 @@ first six characters of the group name and the first six characters of the hash
 from that `remote_write` config separated by a `-`.
 
 The shared instances mode is the new default, and the previous behavior is
-deprecated. If you wish to restore the old behavior, set `instance_mode:
-distinct` in the
-[`metrics_config`]({{< relref "../configuration/metrics-config" >}}) block of
-your config file.
+deprecated. If you wish to restore the old behavior, set `instance_mode: distinct`
+in the [`metrics_config`][metrics] block of your config file.
 
 Shared instances are completely transparent to the user with the exception of
 exposed metrics. With `instance_mode: shared`, metrics for Prometheus components
@@ -191,6 +187,16 @@ individual Instance config. It is recommended to use the default of
 `instance_mode: shared` unless you don't mind the performance hit and really
 need granular metrics.
 
-Users can use the [targets API]({{< relref "../api#list-current-scrape-targets" >}})
-to see all scraped targets, and the name of the shared instance they were
-assigned to.
+Users can use the [targets API][api] to see all scraped targets, and the name 
+of the shared instance they were assigned to.
+
+{{% docs/reference %}}
+[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
+[scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/scraping-service"
+[targets]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service#best-practices"
+[targets]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/scraping-service#best-practices"
+[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api#agent-api"
+[api]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/api#agent-api"
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/metrics-config"
+{{% /docs/reference %}}

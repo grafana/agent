@@ -19,10 +19,12 @@ API endpoints are stable unless otherwise noted.
 
 ## Config management API (Beta)
 
-Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode]({{< relref "../configuration/scraping-service/" >}}).
+Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode][scrape].
 
-(Note that scraping service mode is a requirement for the config management
-API, however this is not a prerequisite for the Agent API or Ready/Healthy API)
+{{% admonition type="note" %}}
+The scraping service mode is a requirement for the config management
+API, however this is not a prerequisite for the Agent API or Ready/Healthy API.
+{{% /admonition %}}
 
 The following endpoints are exposed:
 
@@ -116,17 +118,18 @@ with the same name already exists, then it will be completely overwritten.
 URL-encoded names are stored in decoded form. e.g., `hello%2Fworld` will
 represent the config named `hello/world`.
 
-The request body passed to this endpoint must match the format of
-[metrics_instance_config]({{< relref "../configuration/metrics-config" >}})
+The request body passed to this endpoint must match the format of [metrics_instance_config][metrics]
 defined in the Configuration Reference. The name field of the configuration is
 ignored and the name in the URL takes precedence. The request body must be
 formatted as YAML.
 
-**WARNING**: By default, all instance configuration files that read
+{{% admonition type="warning" %}}
+By default, all instance configuration files that read
 credentials from a file on disk will be rejected. This prevents malicious users
 from reading the contents of arbitrary files as passwords and sending their
 contents to fake remote_write endpoints. To change the behavior, set
 `dangerous_allow_reading_files` to true in the `scraping_service` block.
+{{% /admonition %}}
 
 Status code: 201 with a new config, 200 on updated config.
 Response on success:
@@ -166,7 +169,10 @@ Response on success:
 ```
 GET /agent/api/v1/metrics/instances
 ```
-*note:* deprecated alias is `/agent/api/v1/instances`
+
+{{% admonition type="note" %}}
+The deprecated alias is `/agent/api/v1/instances`
+{{% /admonition %}}
 
 Status code: 200 on success.
 Response on success:
@@ -185,7 +191,10 @@ Response on success:
 ```
 GET /agent/api/v1/metrics/targets
 ```
-*note:* deprecated alias is `/agent/api/v1/targets`
+
+{{% admonition type="note" %}}
+The deprecated alias is `/agent/api/v1/targets`
+{{% /admonition %}}
 
 This endpoint collects all metrics subsystem targets known to the Agent across all
 running instances. Only targets being scraped from the local Agent will be returned. If
@@ -407,8 +416,7 @@ GET /agent/api/v1/metrics/integrations/sd
 ```
 
 This endpoint returns all running metrics-based integrations. It conforms to
-the Prometheus [http_sd_config
-API](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#http_sd_config).
+the Prometheus [http_sd_config API](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#http_sd_config).
 Targets include integrations regardless of autoscrape being enabled; this
 allows for manually configuring scrape jobs to collect metrics from an
 integration running on an external agent.
@@ -508,3 +516,10 @@ Response:
 ```
 Agent is Healthy.
 ```
+
+{{% docs/reference %}}
+[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
+[scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/scraping-service
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/metrics-config"
+{{% /docs/reference %}}
