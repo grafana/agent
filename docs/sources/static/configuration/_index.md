@@ -11,7 +11,7 @@ weight: 300
 The configuration of static mode is split across two places:
 
 * A YAML file
-* [Command-line flags]({{< relref "./flags.md" >}})
+* [Command-line flags][flags]
 
 The YAML file is used to configure settings which are dynamic and can be
 changed at runtime. The command-line flags then configure things which cannot
@@ -19,11 +19,11 @@ change at runtime, such as the listen port for the HTTP server.
 
 This file describes the YAML configuration, which is usually in a file named `config.yaml`.
 
-- [server_config]({{< relref "./server-config" >}})
-- [metrics_config]({{< relref "./metrics-config" >}})
-- [logs_config]({{< relref "./logs-config.md" >}})
-- [traces_config]({{< relref "./traces-config" >}})
-- [integrations_config]({{< relref "./integrations/_index.md" >}})
+- [server_config][server]
+- [metrics_config][metrics]
+- [logs_config][logs]
+- [traces_config][traces]
+- [integrations_config][integrations]
 
 The configuration of Grafana Agent is "stable," but subject to breaking changes
 as individual features change. Breaking changes to configuration will be
@@ -76,8 +76,7 @@ which may be slightly unexpected.
 
 ## Reloading (beta)
 
-The configuration file can be reloaded at runtime. Read the [API
-documentation]({{< relref "../api#reload-configuration-file-beta" >}}) for more information.
+The configuration file can be reloaded at runtime. Read the [API documentation][api] for more information.
 
 This functionality is in beta, and may have issues. Please open GitHub issues
 for any problems you encounter.
@@ -135,4 +134,23 @@ The following flags will configure basic auth for requests made to HTTP/S remote
 - `-config.url.basic-auth-user <user>`: the basic auth username
 - `-config.url.basic-auth-password-file <file>`: path to a file containing the basic auth password
 
-Note that this beta feature is subject to change in future releases.
+{{% admonition type="note" %}}
+This beta feature is subject to change in future releases.
+{{% /admonition %}}
+
+{{% docs/reference %}}
+[flags]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/flags"
+[flags]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/flags"
+[server]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/server-config"
+[server]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/server-config"
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/metrics-config"
+[logs]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/logs-config"
+[logs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/logs-config"
+[traces]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/traces-config"
+[traces]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/traces-config"
+[integrations]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations"
+[integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/integrations"
+[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api#reload-configuration-file-beta"
+[api]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/api#reload-configuration-file-beta"
+{{% /docs/reference %}}
