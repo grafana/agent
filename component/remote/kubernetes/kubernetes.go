@@ -1,9 +1,10 @@
-// Package http implements the remote.http component.
+// Package kubernetes implements the logic for remote.kubernetes.secret and remote.kubernetes.configmap component.
 package kubernetes
 
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sync"
 	"time"
 
@@ -73,9 +74,6 @@ type Component struct {
 	lastPoll    time.Time
 	lastExports Exports // Used for determining whether exports should be updated
 
-	// Updated is written to whenever args updates.
-	updated chan struct{}
-
 	healthMut sync.RWMutex
 	health    component.Health
 }
@@ -91,8 +89,7 @@ func New(opts component.Options, args Arguments, rType ResourceType) (*Component
 		log:  opts.Logger,
 		opts: opts,
 
-		updated: make(chan struct{}, 1),
-		kind:    rType,
+		kind: rType,
 		health: component.Health{
 			Health:     component.HealthTypeUnknown,
 			Message:    "component started",
@@ -114,8 +111,6 @@ func (c *Component) Run(ctx context.Context) error {
 			return nil
 		case <-time.After(c.nextPoll()):
 			c.poll()
-		case <-c.updated:
-			// no-op; force the next wait to be reread.
 		}
 	}
 }
@@ -151,7 +146,7 @@ func (c *Component) updatePollHealth(err error) {
 	if err == nil {
 		c.health = component.Health{
 			Health:     component.HealthTypeHealthy,
-			Message:    "got secret",
+			Message:    "got " + string(c.kind),
 			UpdateTime: time.Now(),
 		}
 	} else {
@@ -202,33 +197,19 @@ func (c *Component) pollError() error {
 		Data: data,
 	}
 
-	// TODO: deep compare
 	// Only send a state change event if the exports have changed from the
 	// previous poll.
-	//if c.lastExports != newExports {
-	//	c.opts.OnStateChange(newExports)
-	//}
+	if !reflect.DeepEqual(newExports.Data, c.lastExports.Data) {
+		c.opts.OnStateChange(newExports)
+	}
 
 	c.lastExports = newExports
 	return nil
 }
 
-// Update updates the remote.http component. After the update completes, a
+// Update updates the remote.kubernetes.* component. After the update completes, a
 // poll is forced.
 func (c *Component) Update(args component.Arguments) (err error) {
-	// Poll after updating and propagate the error if the poll fails. If an error
-	// occurred during Update, we don't bother to do anything.
-	//
-	// It's important to propagate the error in update so the initial state of
-	// the component is calculated correctly, otherwise the exports will be empty
-	// and may cause unexpected errors in downstream components.
-	defer func() {
-		if err != nil {
-			return
-		}
-		err = c.pollError()
-		c.updatePollHealth(err)
-	}()
 
 	c.mut.Lock()
 	defer c.mut.Unlock()
@@ -245,12 +226,11 @@ func (c *Component) Update(args component.Arguments) (err error) {
 		return fmt.Errorf("creating kubernetes client: %w", err)
 	}
 
-	// Send an updated event if one wasn't already read.
-	select {
-	case c.updated <- struct{}{}:
-	default:
-	}
-	return nil
+	// Poll after updating and propagate the error if the poll fails. If an error
+	// occurred during Update, we don't bother to do anything.
+	err = c.pollError()
+	c.updatePollHealth(err)
+	return err
 }
 
 // CurrentHealth returns the current health of the component.
