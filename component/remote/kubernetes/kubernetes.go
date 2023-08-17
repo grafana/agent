@@ -210,7 +210,6 @@ func (c *Component) pollError() error {
 // Update updates the remote.kubernetes.* component. After the update completes, a
 // poll is forced.
 func (c *Component) Update(args component.Arguments) (err error) {
-
 	// defer initial poll so the lock is released first
 	defer func() {
 		if err != nil {
