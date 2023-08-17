@@ -56,8 +56,8 @@ To download the Grafana Agent as a standalone binary, perform the following step
 [macos]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up/install/install-agent-mac-os"
 [windows]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-on-windows"
 [windows]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up/install/install-agent-on-windows"
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
-[start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up/start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
-[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/create-config-file"
+[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent#standalone-binary"
+[start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up/start-agent#standalone-binary"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
+[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration"
 {{% /docs/reference %}}

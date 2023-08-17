@@ -79,5 +79,12 @@ To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent/" >}})
-- [Configure Grafana Agent]({{< relref "../../configuration/" >}})
+- [Start Grafana Agent][start]
+- [Configure Grafana Agent][configure]
+
+{{% docs/reference %}}
+[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up/start-agent"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/create-config-file"
+{{% /docs/reference %}}
