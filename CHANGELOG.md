@@ -69,6 +69,8 @@ Main (unreleased)
   - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
   - `discovery.nomad` - service discovery from Nomad. (@captncraig)
   - `discovery.puppetdb` - service discovery from PuppetDB. (@captncraig)
+  - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes 
+  keys and values are sourced from `discovery.*` components. (@ptodev)
 
 ### Bugfixes
 
