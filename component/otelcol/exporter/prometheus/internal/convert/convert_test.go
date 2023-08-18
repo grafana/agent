@@ -127,16 +127,16 @@ func TestConverter(t *testing.T) {
 											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 										},
 										{
-											"time_unix_nano": 1000000002,
-											"as_double": 0.5,
-											"span_id": "bbbbbbbbbbbbbbbb",
-											"trace_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-										},
-										{
 											"time_unix_nano": 1000000003,
 											"as_double": 1.5,
 											"span_id": "cccccccccccccccc",
 											"trace_id": "cccccccccccccccccccccccccccccccc"
+										},
+										{
+											"time_unix_nano": 1000000002,
+											"as_double": 0.5,
+											"span_id": "bbbbbbbbbbbbbbbb",
+											"trace_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 										}
 									]
 								}]

@@ -58,7 +58,7 @@ Main (unreleased)
 - Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
   and the option to connect with TLS. (@spartan0x117)
 
-- Flow: Exemplar support for the otelcol exporter prometheus. (@wildum)
+- Flow: Added exemplar support for the `otelcol.exporter.prometheus`. (@wildum)
 
 - New Grafana Agent Flow components:
 

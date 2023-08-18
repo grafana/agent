@@ -110,8 +110,7 @@ func (series *memorySeries) WriteExemplarsTo(app storage.Appender, e exemplar.Ex
 	series.Lock()
 	defer series.Unlock()
 
-	_, err := app.AppendExemplar(series.id, series.labels, e)
-	if err != nil {
+	if _, err := app.AppendExemplar(series.id, series.labels, e); err != nil {
 		return err
 	}
 
