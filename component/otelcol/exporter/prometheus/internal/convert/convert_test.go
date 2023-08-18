@@ -58,7 +58,15 @@ func TestConverter(t *testing.T) {
 								"data_points": [{
 									"start_time_unix_nano": 1000000000,
 									"time_unix_nano": 1000000000,
-									"as_double": 15
+									"as_double": 15,
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 0.3,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										}
+									]
 								}]
 							}
 						}]
@@ -67,7 +75,7 @@ func TestConverter(t *testing.T) {
 			}`,
 			expect: `
 				# TYPE test_metric_seconds counter
-				test_metric_seconds_total 15.0
+				test_metric_seconds_total 15.0 # {span_id="aaaaaaaaaaaaaaaa",trace_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} 0.3
 			`,
 		},
 		{
@@ -110,7 +118,27 @@ func TestConverter(t *testing.T) {
 									"count": 333,
 									"sum": 100,
 									"bucket_counts": [0, 111, 0, 222],
-									"explicit_bounds": [0.25, 0.5, 0.75, 1.0]
+									"explicit_bounds": [0.25, 0.5, 0.75, 1.0],
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 0.3,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										},
+										{
+											"time_unix_nano": 1000000002,
+											"as_double": 0.5,
+											"span_id": "bbbbbbbbbbbbbbbb",
+											"trace_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+										},
+										{
+											"time_unix_nano": 1000000003,
+											"as_double": 1.5,
+											"span_id": "cccccccccccccccc",
+											"trace_id": "cccccccccccccccccccccccccccccccc"
+										}
+									]
 								}]
 							}
 						}]
@@ -120,10 +148,10 @@ func TestConverter(t *testing.T) {
 			expect: `
 				# TYPE test_metric_seconds histogram
 				test_metric_seconds_bucket{le="0.25"} 0
-				test_metric_seconds_bucket{le="0.5"} 111
-				test_metric_seconds_bucket{le="0.75"} 111
+				test_metric_seconds_bucket{le="0.5"} 111 # {span_id="aaaaaaaaaaaaaaaa",trace_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} 0.3
+				test_metric_seconds_bucket{le="0.75"} 111 # {span_id="bbbbbbbbbbbbbbbb",trace_id="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"} 0.5
 				test_metric_seconds_bucket{le="1.0"} 333
-				test_metric_seconds_bucket{le="+Inf"} 333
+				test_metric_seconds_bucket{le="+Inf"} 333 # {span_id="cccccccccccccccc",trace_id="cccccccccccccccccccccccccccccccc"} 1.5
 				test_metric_seconds_sum 100.0
 				test_metric_seconds_count 333
 			`,

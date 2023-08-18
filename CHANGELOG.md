@@ -50,6 +50,8 @@ Main (unreleased)
 
 - Flow: Users can now define `additional_fields` in `loki.source.cloudflare` (@wildum)
 
+- Flow: Exemplar support for the otelcol exporter prometheus. (@wildum)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)

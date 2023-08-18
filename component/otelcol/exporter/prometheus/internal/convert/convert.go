@@ -9,6 +9,7 @@ package convert
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math"
 	"sort"
@@ -19,9 +20,11 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/model/textparse"
+	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/storage"
 	"go.opentelemetry.io/collector/consumer"
@@ -36,8 +39,6 @@ var (
 	scopeNameLabel    = "otel_scope_name"
 	scopeVersionLabel = "otel_scope_version"
 )
-
-// TODO(rfratto): Exemplars are not currently supported.
 
 // Converter implements consumer.Metrics and converts received metrics
 // into Prometheus-compatible metrics.
@@ -325,6 +326,16 @@ func writeSeries(app storage.Appender, series *memorySeries, dp otelcolDataPoint
 	return series.WriteTo(app, ts)
 }
 
+func (conv *Converter) writeExemplar(app storage.Appender, series *memorySeries, otelExemplar pmetric.Exemplar) error {
+	ts := otelExemplar.Timestamp().AsTime()
+	if ts.Before(series.Timestamp()) {
+		// Out-of-order; skip.
+		return nil
+	}
+	promExemplar := conv.convertExemplar(otelExemplar, ts)
+	return series.WriteExemplarsTo(app, promExemplar)
+}
+
 // getOrCreateSeries gets or creates a [*memorySeries] from the provided
 // resource, scope, metric, and attributes. The LastSeen field of the
 // *memorySeries is updated before returning.
@@ -421,6 +432,14 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 		if err := writeSeries(app, memSeries, dp, val); err != nil {
 			level.Error(conv.log).Log("msg", "failed to write metric sample", "err", err)
 		}
+
+		if convType == textparse.MetricTypeCounter {
+			for i := 0; i < dp.Exemplars().Len(); i++ {
+				if err := conv.writeExemplar(app, memSeries, dp.Exemplars().At(i)); err != nil {
+					level.Error(conv.log).Log("msg", "failed to write exemplar for metric sample", "err", err)
+				}
+			}
+		}
 	}
 }
 
@@ -488,6 +507,17 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			buckets[bound] = c
 		}
 
+		// Sort the exemplars by value.
+		exemplars := make([]pmetric.Exemplar, dp.Exemplars().Len())
+		for i := 0; i < dp.Exemplars().Len(); i++ {
+			exemplars[i] = dp.Exemplars().At(i)
+		}
+		sort.Slice(exemplars, func(i, j int) bool {
+			return exemplars[i].DoubleValue() < exemplars[j].DoubleValue()
+		})
+
+		exemplarsIndex := 0
+
 		// Process the boundaries. The number of buckets = number of explicit
 		// bounds + 1.
 		for i := 0; i < dp.ExplicitBounds().Len() && i < dp.BucketCounts().Len(); i++ {
@@ -508,6 +538,15 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			if err := writeSeries(app, bucket, dp, bucketVal); err != nil {
 				level.Error(conv.log).Log("msg", "failed to write histogram bucket sample", "bucket", bucketLabel.Value, "err", err)
 			}
+
+			for j := exemplarsIndex; j < len(exemplars); j++ {
+				if exemplars[j].DoubleValue() < bound {
+					if err := conv.writeExemplar(app, bucket, exemplars[j]); err != nil {
+						level.Error(conv.log).Log("msg", "failed to add exemplar to bucket", bucketLabel.Value, "err", err)
+					}
+					exemplarsIndex += 1
+				}
+			}
 		}
 
 		// Add le=+Inf bucket. All values are <= +Inf, so the value is the same as
@@ -524,7 +563,41 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			if err := writeSeries(app, infBucket, dp, infBucketVal); err != nil {
 				level.Error(conv.log).Log("msg", "failed to write histogram bucket sample", "bucket", bucketLabel.Value, "err", err)
 			}
+
+			// Add remaining exemplars.
+			for j := exemplarsIndex; j < len(exemplars); j++ {
+				if err := conv.writeExemplar(app, infBucket, exemplars[j]); err != nil {
+					level.Error(conv.log).Log("msg", "failed to add exemplar to bucket", bucketLabel.Value, "err", err)
+				}
+			}
 		}
+	}
+}
+
+// Convert Otel Exemplar to Prometheus Exemplar.
+func (conv *Converter) convertExemplar(otelExemplar pmetric.Exemplar, ts time.Time) exemplar.Exemplar {
+	exemplarLabels := make(labels.Labels, 0)
+
+	if traceID := otelExemplar.TraceID(); !traceID.IsEmpty() {
+		exemplarLabels = append(exemplarLabels, labels.Label{Name: "trace_id", Value: hex.EncodeToString(traceID[:])})
+	}
+
+	if spanID := otelExemplar.SpanID(); !spanID.IsEmpty() {
+		exemplarLabels = append(exemplarLabels, labels.Label{Name: "span_id", Value: hex.EncodeToString(spanID[:])})
+	}
+
+	var value float64
+	switch otelExemplar.ValueType() {
+	case pmetric.ExemplarValueTypeDouble:
+		value = otelExemplar.DoubleValue()
+	case pmetric.ExemplarValueTypeInt:
+		value = float64(otelExemplar.IntValue())
+	}
+
+	return exemplar.Exemplar{
+		Value:  value,
+		Labels: exemplarLabels,
+		Ts:     timestamp.FromTime(ts),
 	}
 }
 
