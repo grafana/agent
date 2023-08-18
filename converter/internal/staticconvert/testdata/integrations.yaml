@@ -22,3 +22,61 @@ integrations:
       - source_labels: [__metric_address2__]
         target_label: __metric_param_target2
   scrape_integrations: true
+  azure_exporter:
+    enabled: true
+    scrape_interval: 60s
+    subscriptions:
+      - ABCDEFGH-1234-ABCD-1234-ABCDEFGHIJKL
+    resource_type: microsoft.containerservice/managedclusters
+    metrics:
+      - node_cpu_usage_millicores
+      - node_cpu_usage_percentage
+      - node_disk_usage_bytes
+      - node_disk_usage_percentage
+      - node_memory_rss_bytes
+      - node_memory_rss_percentage
+      - node_memory_working_set_bytes
+      - node_memory_working_set_percentage
+      - node_network_in_bytes
+      - node_network_out_bytes
+    included_resource_tags:
+      - environment
+    included_dimensions:
+      - node
+      - nodepool
+  blackbox:
+    enabled: true
+    blackbox_targets:
+      - name: example
+        address: http://example.com
+        module: http_2xx
+    blackbox_config:
+      modules:
+        http_2xx:
+          prober: http
+          timeout: 5s
+          http:
+            method: POST
+            headers:
+              Content-Type: application/json
+            body: '{}'
+            preferred_ip_protocol: "ip4"
+  cadvisor:
+    enabled: true
+  cloudwatch_exporter:
+    enabled: true
+    sts_region: us-east-2
+    discovery:
+      jobs:
+        - type: AWS/EC2
+          regions:
+            - us-east-2
+          metrics:
+            - name: CPUUtilization
+              period: 5m
+              statistics:
+                - Average
+            - name: NetworkPacketsIn
+              period: 5m
+              statistics:
+                - Average

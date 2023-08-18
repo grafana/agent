@@ -265,37 +265,6 @@ func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
 	return err
 }
 
-// Reevaluate calls Update on the managed component with its last used
-// arguments.Reevaluate does not build the component if it is not already built
-// and does not re-evaluate the River block itself.
-// Its only use case is for components opting-in to clustering where calling
-// Update with the same Arguments may result in different functionality.
-func (cn *ComponentNode) Reevaluate() error {
-	cn.mut.Lock()
-	defer cn.mut.Unlock()
-
-	cn.doingEval.Store(true)
-	defer cn.doingEval.Store(false)
-
-	if cn.managed == nil {
-		// We haven't built the managed component successfully yet.
-		return nil
-	}
-
-	// Update the existing managed component with the same arguments.
-	err := cn.managed.Update(cn.args)
-
-	switch err {
-	case nil:
-		cn.setEvalHealth(component.HealthTypeHealthy, "component evaluated")
-		return nil
-	default:
-		msg := fmt.Sprintf("component evaluation failed: %s", err)
-		cn.setEvalHealth(component.HealthTypeUnhealthy, msg)
-		return err
-	}
-}
-
 func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()

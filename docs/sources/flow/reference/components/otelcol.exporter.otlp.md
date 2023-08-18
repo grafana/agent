@@ -158,10 +158,13 @@ configuration.
 `otelcol.exporter.otlp` does not expose any component-specific debug
 information.
 
-## Example
+## Examples
 
-This example creates an exporter to send data to a locally running Grafana
-Tempo without TLS:
+The following examples show you how to create an exporter to send data to different destinations.
+
+### Send data to a local Tempo instance
+
+You can create an exporter that sends your data to a local Grafana Tempo instance without TLS:
 
 ```river
 otelcol.exporter.otlp "tempo" {
@@ -172,5 +175,22 @@ otelcol.exporter.otlp "tempo" {
             insecure_skip_verify = true
         }
     }
+}
+```
+
+### Send data to a managed service
+
+You can create an `otlp` exporter that sends your data to a managed service, for example, Grafana Cloud. The Tempo username and Grafana Cloud API Key are injected in this example through environment variables.
+
+```river
+otelcol.exporter.otlp "grafana_cloud_tempo" {
+    client {
+        endpoint = "https://tempo-xxx.grafana.net/tempo"
+        auth     = otelcol.auth.basic.grafana_cloud_tempo.handler
+    }
+}
+otelcol.auth.basic "grafana_cloud_tempo" {
+    username = env("TEMPO_USERNAME")
+    password = env("GRAFANA_CLOUD_API_KEY")
 }
 ```
