@@ -398,6 +398,12 @@ func convertExemplar(mt dto.MetricType, e exemplar.Exemplar) *dto.Exemplar {
 
 func findBucket(h *dto.Histogram, bound float64) *dto.Bucket {
 	for _, b := range h.GetBucket() {
+
+		// Special handling because Inf - Inf returns NaN.
+		if bound == math.Inf(1) && b.GetUpperBound() == math.Inf(1) {
+			return b
+		}
+
 		// If it's close enough, use the bucket.
 		if math.Abs(b.GetUpperBound()-bound) < 1e-9 {
 			return b
