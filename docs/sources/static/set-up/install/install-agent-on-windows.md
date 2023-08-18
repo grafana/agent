@@ -1,4 +1,4 @@
----
+y-stetep0eriteide---
 aliases:
 - ../../set-up/install-agent-on-windows/
 - ../set-up/install-agent-on-windows/
@@ -82,6 +82,8 @@ If you are using `remote_write` you must enable Windows Exporter and set the glo
 1. Optional: You can adjust `C:\Program Files\Grafana Agent\agent-config.yaml` to meet your specific needs. After changing the configuration file, restart the Grafana Agent service to load changes to the configuration.
 
 Existing configuration files are kept when re-installing or upgrading the Grafana Agent.
+
+**These are just comments but we should definitely make it easier for customers/prospects to get started. The Windows Grafana gent configuration does not provide a prometheus_remote_write block to send the metrics somewhere. Just running the agent and not sending the metrics to a metrics backend is not a complete solution/step-by-step guide. I added more steps over here - https://docs.google.com/document/d/1WPoZgvZzSnxQI_5vSYu_PzTP4DXPyEAz7sX7kvXI5xg/edit?usp=sharing - these could potentially address the missing parts in this documentation. Please have a look.**
 
 ## Security
 
