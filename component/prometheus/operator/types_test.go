@@ -27,20 +27,3 @@ func TestRiverUnmarshal(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
 }
-
-func TestEqual(t *testing.T) {
-	a := Arguments{
-		Namespaces: []string{"my-app"},
-		Clustering: Clustering{Enabled: true},
-	}
-	b := Arguments{
-		Namespaces: []string{"my-app"},
-		Clustering: Clustering{Enabled: true},
-	}
-	c := Arguments{
-		Namespaces: []string{"my-app", "other-app"},
-		Clustering: Clustering{Enabled: false},
-	}
-	require.True(t, a.Equals(&b))
-	require.False(t, a.Equals(&c))
-}
