@@ -64,8 +64,7 @@ func (c *Component) Run(ctx context.Context) error {
 			c.reportHealth(err)
 		case <-c.onUpdate:
 			c.mut.Lock()
-			nextConfig := c.config
-			manager := newCrdManager(c.opts, c.opts.Logger, nextConfig, c.kind)
+			manager := newCrdManager(c.opts, c.opts.Logger, c.config, c.kind)
 			c.manager = manager
 			if cancel != nil {
 				cancel()
