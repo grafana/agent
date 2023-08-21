@@ -80,6 +80,7 @@ Name                  | Type          | Description                           | 
 `proxy_url`           | `string`      | HTTP proxy to proxy requests through. | | no
 `follow_redirects`    | `bool`        | Whether redirects returned by the server should be followed. | `true` | no
 `enable_http2`        | `bool`        | Whether HTTP2 is supported for requests. | `true` | no
+`retry_on_http_429`   | `bool`        | Retry when an HTTP 429 status code is received. | `true` | no
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#endpoint-block).

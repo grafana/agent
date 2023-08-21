@@ -60,6 +60,8 @@ Main (unreleased)
 
 - Flow: Added exemplar support for the `otelcol.exporter.prometheus`. (@wildum)
 
+- `loki.write` now supports retries on HTTP429. (@wildum)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
