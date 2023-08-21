@@ -1,7 +1,6 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/static/
 title: Static mode
-menuTitle: Static mode
 weight: 200
 ---
 
@@ -86,9 +85,9 @@ Logs are included when you [set up a Cloud integration](/docs/grafana-cloud/data
 
 {{% docs/reference %}}
 [set up]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up"
-[set up]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up"
+[set up]: "/docs/grafana-cloud/ -> ./set-up"
 [configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
-[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration"
+[configure]: "/docs/grafana-cloud/ -> ./configuration"
 [install]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install"
-[install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up/install"
+[install]: "/docs/grafana-cloud/ -> ./set-up/install"
 {{% /docs/reference %}}

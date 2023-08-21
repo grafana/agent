@@ -155,5 +155,5 @@ Replace the following:
 
 {{% docs/reference %}}
 [configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-macos#configure"
-[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/set-up/install/install-agent-macos#configure"
+[configure]: "/docs/grafana-cloud/ -> ./install/install-agent-macos/#configure"
 {{% /docs/reference %}}

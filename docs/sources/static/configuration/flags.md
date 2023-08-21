@@ -145,9 +145,9 @@ YAML configuration when the `-server.http.tls-enabled` flag is used.
 
 {{% docs/reference %}}
 [retrieving]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration#remote-configuration-experimental"
-[retrieving]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration#remote-configuration-experimental"
+[retrieving]: "/docs/grafana-cloud/ -> ./configuration#remote-configuration-experimental"
 [revamp]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations/integrations-next/"
-[revamp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/integrations/integrations-next/"
+[revamp]: "/docs/grafana-cloud/ -> ./integrations/integrations-next/"
 [management]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/agent-management"
-[management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/agent-management"
+[management]: "/docs/grafana-cloud/ -> ./agent-management"
 {{% /docs/reference %}}

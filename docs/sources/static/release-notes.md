@@ -23,9 +23,9 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 
 {{% docs/reference %}}
 [release-notes-operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator/release-notes"
-[release-notes-operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/release-notes"
+[release-notes-operator]: "/docs/grafana-cloud/ -> ../operator/release-notes"
 [release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/release-notes"
+[release-notes-flow]: "/docs/grafana-cloud/ -> ../flow/release-notes"
 {{% /docs/reference %}}
 
 ## v0.35

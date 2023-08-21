@@ -171,7 +171,7 @@ are planned for the future.
 
 {{% docs/reference %}}
 [api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api"
-[api]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/api"
+[api]: "/docs/grafana-cloud/ -> ../api"
 [metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
-[metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/metrics-config"
+[metrics]: "/docs/grafana-cloud/ -> ./metrics-config"
 {{% /docs/reference %}}

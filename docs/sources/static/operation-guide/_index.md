@@ -192,11 +192,11 @@ of the shared instance they were assigned to.
 
 {{% docs/reference %}}
 [scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
-[scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/scraping-service"
+[scrape]: "/docs/grafana-cloud/ -> ../configuration/scraping-service"
 [targets]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service#best-practices"
-[targets]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/scraping-service#best-practices"
+[targets]: "/docs/grafana-cloud/ -> ../configuration/scraping-service#best-practices"
 [api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api#agent-api"
-[api]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/api#agent-api"
+[api]: "/docs/grafana-cloud/ -> ../api#agent-api"
 [metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
-[metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/metrics-config"
+[metrics]: "/docs/grafana-cloud/ -> ../configuration/metrics-config"
 {{% /docs/reference %}}

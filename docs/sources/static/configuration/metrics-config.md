@@ -337,5 +337,5 @@ remote_write:
 
 {{% docs/reference %}}
 [scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
-[scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/integrations/agent/static/configuration/scraping-service"
+[scrape]: "/docs/grafana-cloud/ -> ./scraping-service"
 {{% /docs/reference %}}
