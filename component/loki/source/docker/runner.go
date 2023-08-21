@@ -73,7 +73,7 @@ func (tt *tailerTask) Equals(other runner.Task) bool {
 
 	// Slow path: check individual fields which are part of the task.
 	return tt.options == otherTask.options &&
-		tt.target.Labels().String() == otherTask.target.Labels().String()
+		tt.target.LabelsStr() == otherTask.target.LabelsStr()
 }
 
 // A tailer tails the logs of a docker container. It is created by a [Manager].
@@ -177,7 +177,7 @@ func entryForTarget(t *dt.Target) positions.Entry {
 	// entry when it can't find it.
 	return positions.Entry{
 		Path:   positions.CursorKey(t.Name()),
-		Labels: t.Labels().String(),
+		Labels: t.LabelsStr(),
 	}
 }
 
