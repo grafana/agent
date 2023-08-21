@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/model/timestamp"
@@ -101,6 +102,18 @@ func (series *memorySeries) WriteTo(app storage.Appender, ts time.Time) error {
 	if newID != series.id {
 		series.id = newID
 	}
+
+	return nil
+}
+
+func (series *memorySeries) WriteExemplarsTo(app storage.Appender, e exemplar.Exemplar) error {
+	series.Lock()
+	defer series.Unlock()
+
+	if _, err := app.AppendExemplar(series.id, series.labels, e); err != nil {
+		return err
+	}
+
 	return nil
 }
 
