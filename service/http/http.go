@@ -15,7 +15,6 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/ckit/memconn"
 	"github.com/prometheus/client_golang/prometheus"
@@ -36,7 +35,6 @@ type Options struct {
 	Tracer   trace.TracerProvider // Where to send traces.
 	Gatherer prometheus.Gatherer  // Where to collect metrics from.
 
-	Clusterer  cluster.Node
 	ReadyFunc  func() bool
 	ReloadFunc func() error
 
@@ -52,7 +50,6 @@ type Service struct {
 	opts     Options
 
 	memLis *memconn.Listener
-	node   cluster.Node
 
 	componentHttpPathPrefix string
 }
@@ -84,7 +81,6 @@ func New(opts Options) *Service {
 		opts:     opts,
 
 		memLis: memconn.NewListener(l),
-		node:   opts.Clusterer,
 
 		componentHttpPathPrefix: "/api/v0/component/",
 	}
@@ -128,11 +124,6 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 	}
 
 	r.PathPrefix(s.componentHttpPathPrefix).Handler(s.componentHandler(host))
-
-	if s.node != nil {
-		cr, ch := s.node.Handler()
-		r.PathPrefix(cr).Handler(ch)
-	}
 
 	if s.opts.ReadyFunc != nil {
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, _ *http.Request) {

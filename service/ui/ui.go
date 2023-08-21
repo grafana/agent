@@ -8,8 +8,8 @@ import (
 	"path"
 
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
@@ -21,8 +21,8 @@ const ServiceName = "ui"
 // Options are used to configure the UI service. Options are constant for the
 // lifetime of the UI service.
 type Options struct {
-	Clusterer cluster.Node
-	UIPrefix  string // Path prefix to host the UI at.
+	Cluster  cluster.Cluster
+	UIPrefix string // Path prefix to host the UI at.
 }
 
 // Service implements the UI service.
@@ -75,7 +75,9 @@ func (s *Service) Data() any {
 func (s *Service) ServiceHandler(host service.Host) (base string, handler http.Handler) {
 	r := mux.NewRouter()
 
-	fa := api.NewFlowAPI(host, s.opts.Clusterer)
+	// TODO(rfratto): allow service.Host to return services so we don't have to
+	// pass the clustering service in Options.
+	fa := api.NewFlowAPI(host, s.opts.Cluster)
 	fa.RegisterRoutes(path.Join(s.opts.UIPrefix, "/api/v0/web"), r)
 	ui.RegisterRoutes(s.opts.UIPrefix, r)
 
