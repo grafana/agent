@@ -82,3 +82,10 @@ integrations:
                 - Average
   consul_exporter:
     enabled: true
+  dnsmasq_exporter:
+    enabled: true
+    dnsmasq_address: dnsmasq-a:53
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: instance
+      replacement: dnsmasq-a

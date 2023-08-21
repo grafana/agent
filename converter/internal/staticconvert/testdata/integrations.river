@@ -70,6 +70,26 @@ prometheus.scrape "integrations_consul_exporter" {
 	job_name   = "integrations/consul_exporter"
 }
 
+prometheus.exporter.dnsmasq "integrations_dnsmasq_exporter" {
+	address = "dnsmasq-a:53"
+}
+
+discovery.relabel "integrations_dnsmasq_exporter" {
+	targets = prometheus.exporter.dnsmasq.integrations_dnsmasq_exporter.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "instance"
+		replacement   = "dnsmasq-a"
+	}
+}
+
+prometheus.scrape "integrations_dnsmasq_exporter" {
+	targets    = discovery.relabel.integrations_dnsmasq_exporter.output
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/dnsmasq_exporter"
+}
+
 prometheus.exporter.unix { }
 
 discovery.relabel "integrations_node_exporter" {
