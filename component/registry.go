@@ -98,7 +98,7 @@ type Options struct {
 	// Clusterer allows components to work in a clustered fashion. The
 	// clusterer is shared between all components initialized by a Flow
 	// controller.
-	Clusterer *cluster.Clusterer
+	Clusterer cluster.Node
 
 	// GetServiceData retrieves data for a service by calling
 	// [service.Service.Data] for the specified service.

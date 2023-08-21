@@ -129,13 +129,13 @@ func (c *crdManager) Run(ctx context.Context) error {
 		case m := <-c.discoveryManager.SyncCh():
 			cachedTargets = m
 			if c.args.Clustering.Enabled {
-				m = filterTargets(m, c.opts.Clusterer.Node)
+				m = filterTargets(m, c.opts.Clusterer)
 			}
 			targetSetsChan <- m
 		case <-c.clusteringUpdated:
 			// if clustering updates while running, just re-filter the targets and pass them
 			// into scrape manager again, instead of reloading everything
-			targetSetsChan <- filterTargets(cachedTargets, c.opts.Clusterer.Node)
+			targetSetsChan <- filterTargets(cachedTargets, c.opts.Clusterer)
 		}
 	}
 }

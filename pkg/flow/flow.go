@@ -81,7 +81,7 @@ type Options struct {
 
 	// Clusterer for implementing distributed behavior among components running
 	// on different nodes.
-	Clusterer *cluster.Clusterer
+	Clusterer cluster.Node
 
 	// Directory where components can write data. Constructed components will be
 	// given a subdirectory of DataPath using the local ID of the component.
@@ -110,7 +110,7 @@ type Options struct {
 type Flow struct {
 	log       *logging.Logger
 	tracer    *tracing.Tracer
-	clusterer *cluster.Clusterer
+	clusterer cluster.Node
 	opts      controllerOptions
 
 	updateQueue *controller.Queue

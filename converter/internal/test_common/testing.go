@@ -181,7 +181,7 @@ func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 	require.NoError(t, err)
 	f := flow.New(flow.Options{
 		Logger:    logger,
-		Clusterer: &cluster.Clusterer{Node: cluster.NewLocalNode("")},
+		Clusterer: cluster.NewLocalNode(""),
 		DataPath:  t.TempDir(),
 		Services: []service.Service{
 			// The HTTP service isn't used, but we still need to provide an

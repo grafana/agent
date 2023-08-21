@@ -32,7 +32,7 @@ func TestComponent(t *testing.T) {
 		Logger:        util.TestFlowLogger(t),
 		Registerer:    prometheus.NewRegistry(),
 		OnStateChange: func(e component.Exports) {},
-		Clusterer:     &cluster.Clusterer{Node: cluster.NewLocalNode("")},
+		Clusterer:     cluster.NewLocalNode(""),
 	}, arg)
 	require.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -193,7 +193,7 @@ func TestUpdateWhileScraping(t *testing.T) {
 		Logger:        util.TestFlowLogger(t),
 		Registerer:    prometheus.NewRegistry(),
 		OnStateChange: func(e component.Exports) {},
-		Clusterer:     &cluster.Clusterer{Node: cluster.NewLocalNode("")},
+		Clusterer:     cluster.NewLocalNode(""),
 	}, args)
 	require.NoError(t, err)
 	scraping := atomic.NewBool(false)

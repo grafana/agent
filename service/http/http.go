@@ -36,7 +36,7 @@ type Options struct {
 	Tracer   trace.TracerProvider // Where to send traces.
 	Gatherer prometheus.Gatherer  // Where to collect metrics from.
 
-	Clusterer  *cluster.Clusterer
+	Clusterer  cluster.Node
 	ReadyFunc  func() bool
 	ReloadFunc func() error
 
@@ -65,8 +65,6 @@ func New(opts Options) *Service {
 		l = opts.Logger
 		t = opts.Tracer
 		r = opts.Gatherer
-
-		n cluster.Node
 	)
 
 	if l == nil {
@@ -79,10 +77,6 @@ func New(opts Options) *Service {
 		r = prometheus.NewRegistry()
 	}
 
-	if opts.Clusterer != nil {
-		n = opts.Clusterer.Node
-	}
-
 	return &Service{
 		log:      l,
 		tracer:   t,
@@ -90,7 +84,7 @@ func New(opts Options) *Service {
 		opts:     opts,
 
 		memLis: memconn.NewListener(l),
-		node:   n,
+		node:   opts.Clusterer,
 
 		componentHttpPathPrefix: "/api/v0/component/",
 	}

@@ -66,12 +66,10 @@ func testOptions(t *testing.T) Options {
 	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 
-	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
-
 	return Options{
 		Logger:    s,
 		DataPath:  t.TempDir(),
 		Reg:       nil,
-		Clusterer: c,
+		Clusterer: cluster.NewLocalNode(""),
 	}
 }

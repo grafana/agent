@@ -236,9 +236,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
 }
 
-func noOpClusterer() *cluster.Clusterer {
-	return &cluster.Clusterer{Node: cluster.NewLocalNode("")}
-}
+func noOpClusterer() cluster.Node { return cluster.NewLocalNode("") }
 
 func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte) diag.Diagnostics {
 	t.Helper()

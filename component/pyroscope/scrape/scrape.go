@@ -283,7 +283,7 @@ func (c *Component) Run(ctx context.Context) error {
 
 			// NOTE(@tpaschalis) First approach, manually building the
 			// 'clustered' targets implementation every time.
-			ct := discovery.NewDistributedTargets(clustering, c.opts.Clusterer.Node, tgs)
+			ct := discovery.NewDistributedTargets(clustering, c.opts.Clusterer, tgs)
 			promTargets := c.componentTargetsToProm(jobName, ct.Get())
 
 			select {

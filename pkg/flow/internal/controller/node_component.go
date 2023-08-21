@@ -66,7 +66,7 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 type ComponentGlobals struct {
 	Logger              *logging.Logger                                              // Logger shared between all managed components.
 	TraceProvider       trace.TracerProvider                                         // Tracer shared between all managed components.
-	Clusterer           *cluster.Clusterer                                           // Clusterer shared between all managed components.
+	Clusterer           cluster.Node                                                 // Clusterer shared between all managed components.
 	DataPath            string                                                       // Shared directory where component data may be stored
 	OnComponentUpdate   func(cn *ComponentNode)                                      // Informs controller that we need to reevaluate
 	OnExportsChange     func(exports map[string]any)                                 // Invoked when the managed component updated its exports

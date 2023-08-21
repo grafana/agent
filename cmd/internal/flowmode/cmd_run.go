@@ -199,7 +199,7 @@ func (fr *flowRun) Run(configFile string) error {
 		Tracer:   t,
 		Gatherer: prometheus.DefaultGatherer,
 
-		Clusterer:  clusterer,
+		Clusterer:  clusterer.Node,
 		ReadyFunc:  func() bool { return ready() },
 		ReloadFunc: func() error { return reload() },
 
@@ -210,13 +210,13 @@ func (fr *flowRun) Run(configFile string) error {
 
 	uiService := uiservice.New(uiservice.Options{
 		UIPrefix:  fr.uiPrefix,
-		Clusterer: clusterer,
+		Clusterer: clusterer.Node,
 	})
 
 	f := flow.New(flow.Options{
 		Logger:    l,
 		Tracer:    t,
-		Clusterer: clusterer,
+		Clusterer: clusterer.Node,
 		DataPath:  fr.storagePath,
 		Reg:       reg,
 		Services: []service.Service{

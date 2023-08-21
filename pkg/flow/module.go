@@ -159,7 +159,7 @@ type moduleControllerOptions struct {
 
 	// Clusterer for implementing distributed behavior among components running
 	// on different nodes.
-	Clusterer *cluster.Clusterer
+	Clusterer cluster.Node
 
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer

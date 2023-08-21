@@ -90,7 +90,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 		globals.Registerer.MustRegister(l.cm)
 	}
 
-	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
+	globals.Clusterer.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
 		tracer := l.tracer.Tracer("")
 		spanCtx, span := tracer.Start(context.Background(), "ClusterStateChange", trace.WithSpanKind(trace.SpanKindInternal))
 		defer span.End()

@@ -168,10 +168,8 @@ func TestCustomDialer(t *testing.T) {
 	require.NoError(t, err)
 
 	opts := component.Options{
-		Logger: util.TestFlowLogger(t),
-		Clusterer: &cluster.Clusterer{
-			Node: cluster.NewLocalNode("inmemory:80"),
-		},
+		Logger:     util.TestFlowLogger(t),
+		Clusterer:  cluster.NewLocalNode("inmemory:80"),
 		Registerer: prometheus_client.NewRegistry(),
 		GetServiceData: func(name string) (interface{}, error) {
 			if name == http_service.ServiceName {

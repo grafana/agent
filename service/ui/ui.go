@@ -21,7 +21,7 @@ const ServiceName = "ui"
 // Options are used to configure the UI service. Options are constant for the
 // lifetime of the UI service.
 type Options struct {
-	Clusterer *cluster.Clusterer
+	Clusterer cluster.Node
 	UIPrefix  string // Path prefix to host the UI at.
 }
 
@@ -75,7 +75,7 @@ func (s *Service) Data() any {
 func (s *Service) ServiceHandler(host service.Host) (base string, handler http.Handler) {
 	r := mux.NewRouter()
 
-	fa := api.NewFlowAPI(host, s.opts.Clusterer.Node)
+	fa := api.NewFlowAPI(host, s.opts.Clusterer)
 	fa.RegisterRoutes(path.Join(s.opts.UIPrefix, "/api/v0/web"), r)
 	ui.RegisterRoutes(s.opts.UIPrefix, r)
 
