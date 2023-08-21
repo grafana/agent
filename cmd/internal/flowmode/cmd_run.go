@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -17,7 +18,6 @@ import (
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/boringcrypto"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -25,6 +25,7 @@ import (
 	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
 	uiservice "github.com/grafana/agent/service/ui"
 	"github.com/grafana/ckit/peer"
@@ -173,17 +174,6 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
-	clusterer, err := cluster.New(l, reg, fr.clusterEnabled, fr.clusterNodeName, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr, fr.clusterDiscoverPeers, fr.clusterRejoinInterval)
-	if err != nil {
-		return fmt.Errorf("building clusterer: %w", err)
-	}
-	defer func() {
-		err := clusterer.Stop()
-		if err != nil {
-			level.Error(l).Log("msg", "failed to terminate clusterer", "err", err)
-		}
-	}()
-
 	// There's a cyclic dependency between the definition of the Flow controller,
 	// the reload/ready functions, and the HTTP service.
 	//
@@ -194,12 +184,29 @@ func (fr *flowRun) Run(configFile string) error {
 		ready  func() bool
 	)
 
+	clusterService, err := buildClusterService(clusterOptions{
+		Log:     l,
+		Tracer:  t,
+		Metrics: reg,
+
+		EnableClustering: fr.clusterEnabled,
+		NodeName:         fr.clusterNodeName,
+		AdvertiseAddress: fr.clusterAdvAddr,
+		ListenAddress:    fr.httpListenAddr,
+		JoinPeers:        strings.Split(fr.clusterJoinAddr, ","),
+		DiscoverPeers:    fr.clusterDiscoverPeers,
+		RejoinInterval:   fr.clusterRejoinInterval,
+	})
+	if err != nil {
+		return err
+	}
+
 	httpService := httpservice.New(httpservice.Options{
 		Logger:   log.With(l, "service", "http"),
 		Tracer:   t,
 		Gatherer: prometheus.DefaultGatherer,
 
-		Clusterer:  clusterer.Node,
+		Clusterer:  clusterService.Data().(cluster.Cluster),
 		ReadyFunc:  func() bool { return ready() },
 		ReloadFunc: func() error { return reload() },
 
@@ -210,18 +217,19 @@ func (fr *flowRun) Run(configFile string) error {
 
 	uiService := uiservice.New(uiservice.Options{
 		UIPrefix:  fr.uiPrefix,
-		Clusterer: clusterer.Node,
+		Clusterer: clusterService.Data().(cluster.Cluster),
 	})
 
 	f := flow.New(flow.Options{
 		Logger:    l,
 		Tracer:    t,
-		Clusterer: clusterer.Node,
+		Clusterer: clusterService.Data().(cluster.Cluster),
 		DataPath:  fr.storagePath,
 		Reg:       reg,
 		Services: []service.Service{
 			httpService,
 			uiService,
+			// TODO(rfratto): add clusterService once hard wiring is removed.
 		},
 	})
 
@@ -263,10 +271,17 @@ func (fr *flowRun) Run(configFile string) error {
 		}()
 	}
 
-	// Start the Clusterer's Node implementation.
-	err = clusterer.Start(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to start the clusterer: %w", err)
+	// Clusterer.
+	{
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			defer cancel()
+
+			if err := clusterService.Run(ctx, f); err != nil {
+				level.Error(l).Log("msg", "failed to start the clusterer", "err", err)
+			}
+		}()
 	}
 
 	// Perform the initial reload. This is done after starting the HTTP server so
@@ -298,7 +313,7 @@ func (fr *flowRun) Run(configFile string) error {
 	// Nodes initially join in the Viewer state. After the graph has been
 	// loaded successfully, we can move to the Participant state to signal that
 	// we wish to participate in reading or writing data.
-	err = clusterer.ChangeState(peer.StateParticipant)
+	err = clusterService.ChangeState(ctx, peer.StateParticipant)
 	if err != nil {
 		return fmt.Errorf("failed to set clusterer state to Participant after initial load")
 	}
