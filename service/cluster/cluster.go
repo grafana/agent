@@ -339,11 +339,22 @@ type Cluster interface {
 
 	// Peers returns the current set of peers for a Node.
 	Peers() []peer.Peer
+
+	// Observe registers an Observer to receive notifications when the set of
+	// Peers for a Node changes.
+	Observe(ckit.Observer)
+
+	Handler() (string, http.Handler)
 }
 
 // sharderCluster shims an implmentation of [shard.Sharder] to [Cluster] which
 // removes the ability to change peers.
-type sharderCluster struct{ sharder shard.Sharder }
+type sharderCluster struct {
+	sharder shard.Sharder
+	node    *ckit.Node
+}
+
+var _ Cluster = (*sharderCluster)(nil)
 
 func (sc *sharderCluster) Lookup(key shard.Key, replicationFactor int, op shard.Op) ([]peer.Peer, error) {
 	return sc.sharder.Lookup(key, replicationFactor, op)
@@ -351,4 +362,16 @@ func (sc *sharderCluster) Lookup(key shard.Key, replicationFactor int, op shard.
 
 func (sc *sharderCluster) Peers() []peer.Peer {
 	return sc.sharder.Peers()
+}
+
+func (sc *sharderCluster) Observe(o ckit.Observer) {
+	// TODO(rfratto): remove Observe method from Cluster interface once migration
+	// off of pkg/cluster is completed.
+	sc.node.Observe(o)
+}
+
+func (sc *sharderCluster) Handler() (string, http.Handler) {
+	// TODO(rfratto): remove Handler method from Cluster interface once migration
+	// off of pkg/cluster is completed.
+	return sc.node.Handler()
 }
