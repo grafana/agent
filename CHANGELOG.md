@@ -90,6 +90,9 @@ Main (unreleased)
 
 - Fix issue where getting the support bundle failed due to using an HTTP Client that was not able to access the agent in-memory address. (@spartan0x117)
 
+- Fix an issue that lead the `loki.source.docker` container to use excessive
+  CPU and memory. (@tpaschalis)
+
 v0.35.4 (2023-08-14)
 --------------------
 
