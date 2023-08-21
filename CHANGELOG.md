@@ -90,6 +90,8 @@ Main (unreleased)
 
 - Fix issue where getting the support bundle failed due to using an HTTP Client that was not able to access the agent in-memory address. (@spartan0x117)
 
+- Agent Management: Fix issue where an integration defined multiple times could lead to undefined behaviour. (@jcreixell)
+
 v0.35.4 (2023-08-14)
 --------------------
 
