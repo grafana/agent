@@ -38,15 +38,8 @@ GitHub uses an aggressive rate limit for unauthenticated requests based on IP ad
 When provided, `api_token_file` takes precedence over `api_token`.
 
 ## Exported fields
-The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `github` metrics.
-
-For example, the `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metric's label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 
