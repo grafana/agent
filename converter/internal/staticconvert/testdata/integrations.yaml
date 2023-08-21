@@ -80,3 +80,5 @@ integrations:
               period: 5m
               statistics:
                 - Average
+  consul_exporter:
+    enabled: true

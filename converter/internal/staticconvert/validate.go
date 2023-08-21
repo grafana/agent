@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/apache_http"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
+	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -89,6 +90,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *node_exporter.Config:
 		case *blackbox_exporter.Config:
 		case *cloudwatch_exporter.Config:
+		case *consul_exporter.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}

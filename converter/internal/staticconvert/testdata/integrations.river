@@ -62,6 +62,14 @@ prometheus.scrape "integrations_cloudwatch_exporter" {
 	job_name   = "integrations/cloudwatch_exporter"
 }
 
+prometheus.exporter.consul "integrations_consul_exporter" { }
+
+prometheus.scrape "integrations_consul_exporter" {
+	targets    = prometheus.exporter.consul.integrations_consul_exporter.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/consul_exporter"
+}
+
 prometheus.exporter.unix { }
 
 discovery.relabel "integrations_node_exporter" {

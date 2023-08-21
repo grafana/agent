@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	int_config "github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/common/model"
@@ -50,6 +51,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendBlackboxExporter(itg)
 		case *cloudwatch_exporter.Config:
 			exports = b.appendCloudwatchExporter(itg)
+		case *consul_exporter.Config:
+			exports = b.appendConsulExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {
