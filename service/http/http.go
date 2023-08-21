@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"path"
+	"sort"
 	"strings"
 	"sync"
 
@@ -175,6 +176,15 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 	fa.RegisterRoutes(path.Join(s.opts.UIPrefix, "/api/v0/web"), r)
 	ui.RegisterRoutes(s.opts.UIPrefix, r)
 
+	// Wire custom service handlers for services which depend on the http
+	// service.
+	//
+	// NOTE(rfratto): keep this at the bottom of all other routes, otherwise a
+	// service with a colliding path takes precedence over a predefined route.
+	for _, route := range s.getServiceRoutes(host) {
+		r.PathPrefix(route.Base).Handler(route.Handler)
+	}
+
 	srv := &http.Server{Handler: h2c.NewHandler(r, &http2.Server{})}
 
 	level.Info(s.log).Log("msg", "now listening for http traffic", "addr", s.opts.HTTPListenAddr)
@@ -196,6 +206,35 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 	<-ctx.Done()
 	return nil
+}
+
+// getServiceRoutes returns a sorted list of service routes for services which
+// depend on the HTTP service.
+//
+// Longer paths are prioritized over shorter paths so that a service with a
+// more specific base route takes precedence.
+func (s *Service) getServiceRoutes(host service.Host) []serviceRoute {
+	var routes serviceRoutes
+
+	for _, consumer := range host.GetServiceConsumers(ServiceName) {
+		if consumer.Type != service.ConsumerTypeService {
+			continue
+		}
+
+		sh, ok := consumer.Value.(ServiceHandler)
+		if !ok {
+			continue
+		}
+		base, handler := sh.ServiceHandler(host)
+
+		routes = append(routes, serviceRoute{
+			Base:    base,
+			Handler: handler,
+		})
+	}
+
+	sort.Sort(routes)
+	return routes
 }
 
 func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
@@ -298,4 +337,20 @@ type Component interface {
 	// For example, f a request is made to `/component/{id}/metrics`, the component
 	// will receive a request to just `/metrics`.
 	Handler() http.Handler
+}
+
+// ServiceHandler is a Service which exposes custom HTTP handlers.
+type ServiceHandler interface {
+	service.Service
+
+	// ServiceHandler returns the base route and HTTP handlers to register for
+	// the provided service.
+	//
+	// This method is only called for services that declare a dependency on
+	// the http service.
+	//
+	// The http service prioritizes longer base routes. Given two base routes of
+	// /foo and /foo/bar, an HTTP URL of /foo/bar/baz will be routed to the
+	// longer base route (/foo/bar).
+	ServiceHandler(host service.Host) (base string, handler http.Handler)
 }
