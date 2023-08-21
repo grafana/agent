@@ -6,9 +6,10 @@ import (
 
 	"github.com/go-kit/log"
 	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
+	yaceClients "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/clients"
+	yaceClientsV1 "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/clients/v1"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logging"
-	yaceSess "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/session"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -19,7 +20,7 @@ import (
 type exporter struct {
 	name         string
 	logger       yaceLoggerWrapper
-	sessionCache yaceSess.SessionCache
+	sessionCache yaceClients.Factory
 	scrapeConf   yaceConf.ScrapeConf
 }
 
@@ -32,7 +33,7 @@ func NewCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeC
 	return &exporter{
 		name:         name,
 		logger:       loggerWrapper,
-		sessionCache: yaceSess.NewSessionCache(conf, fipsEnabled, loggerWrapper),
+		sessionCache: yaceClientsV1.NewFactory(conf, fipsEnabled, loggerWrapper),
 		scrapeConf:   conf,
 	}
 }
