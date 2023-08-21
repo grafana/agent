@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -70,7 +69,6 @@ func TestLoader(t *testing.T) {
 			ComponentGlobals: controller.ComponentGlobals{
 				Logger:            l,
 				TraceProvider:     trace.NewNoopTracerProvider(),
-				Clusterer:         noOpClusterer(),
 				DataPath:          t.TempDir(),
 				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
@@ -221,7 +219,6 @@ func TestScopeWithFailingComponent(t *testing.T) {
 				DataPath:          t.TempDir(),
 				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
-				Clusterer:         noOpClusterer(),
 				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
 					return nil
 				},
@@ -235,8 +232,6 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	require.Len(t, diags, 1)
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
 }
-
-func noOpClusterer() cluster.Node { return cluster.NewLocalNode("") }
 
 func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte) diag.Diagnostics {
 	t.Helper()

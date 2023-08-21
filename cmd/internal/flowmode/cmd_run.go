@@ -221,15 +221,14 @@ func (fr *flowRun) Run(configFile string) error {
 	})
 
 	f := flow.New(flow.Options{
-		Logger:    l,
-		Tracer:    t,
-		Clusterer: clusterService.Data().(cluster.Cluster),
-		DataPath:  fr.storagePath,
-		Reg:       reg,
+		Logger:   l,
+		Tracer:   t,
+		DataPath: fr.storagePath,
+		Reg:      reg,
 		Services: []service.Service{
 			httpService,
 			uiService,
-			// TODO(rfratto): add clusterService once hard wiring is removed.
+			clusterService,
 		},
 	})
 
@@ -267,19 +266,6 @@ func (fr *flowRun) Run(configFile string) error {
 			err := reporter.Start(ctx, getEnabledComponentsFunc(f))
 			if err != nil {
 				level.Error(l).Log("msg", "failed to start reporter", "err", err)
-			}
-		}()
-	}
-
-	// Clusterer.
-	{
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			defer cancel()
-
-			if err := clusterService.Run(ctx, f); err != nil {
-				level.Error(l).Log("msg", "failed to start the clusterer", "err", err)
 			}
 		}()
 	}

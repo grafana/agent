@@ -15,7 +15,6 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/river/ast"
@@ -66,7 +65,6 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 type ComponentGlobals struct {
 	Logger              *logging.Logger                                              // Logger shared between all managed components.
 	TraceProvider       trace.TracerProvider                                         // Tracer shared between all managed components.
-	Clusterer           cluster.Node                                                 // Clusterer shared between all managed components.
 	DataPath            string                                                       // Shared directory where component data may be stored
 	OnComponentUpdate   func(cn *ComponentNode)                                      // Informs controller that we need to reevaluate
 	OnExportsChange     func(exports map[string]any)                                 // Invoked when the managed component updated its exports
@@ -179,8 +177,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": cn.globalID,
 		}, cn.registry),
-		Tracer:    tracing.WrapTracer(globals.TraceProvider, cn.globalID),
-		Clusterer: globals.Clusterer,
+		Tracer: tracing.WrapTracer(globals.TraceProvider, cn.globalID),
 
 		DataPath: filepath.Join(globals.DataPath, cn.globalID),
 

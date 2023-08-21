@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
@@ -94,11 +93,6 @@ type Options struct {
 	// Tracer allows components to record spans. The tracer will include an
 	// attribute denoting the component ID.
 	Tracer trace.TracerProvider
-
-	// Clusterer allows components to work in a clustered fashion. The
-	// clusterer is shared between all components initialized by a Flow
-	// controller.
-	Clusterer cluster.Node
 
 	// GetServiceData retrieves data for a service by calling
 	// [service.Service.Data] for the specified service.

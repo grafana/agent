@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/http"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
@@ -30,7 +31,7 @@ func init() {
 	component.Register(component.Registration{
 		Name:          "prometheus.scrape",
 		Args:          Arguments{},
-		NeedsServices: []string{http.ServiceName},
+		NeedsServices: []string{http.ServiceName, cluster.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -114,7 +115,8 @@ func (arg *Arguments) Validate() error {
 
 // Component implements the prometheus.scrape component.
 type Component struct {
-	opts component.Options
+	opts    component.Options
+	cluster cluster.Cluster
 
 	reloadTargets chan struct{}
 
@@ -137,6 +139,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 	httpData := data.(http.Data)
 
+	data, err = o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about cluster: %w", err)
+	}
+	clusterData := data.(cluster.Cluster)
+
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	scrapeOptions := &scrape.Options{
 		ExtraMetrics: args.ExtraMetrics,
@@ -156,6 +164,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	c := &Component{
 		opts:          o,
+		cluster:       clusterData,
 		reloadTargets: make(chan struct{}, 1),
 		scraper:       scraper,
 		appendable:    flowAppendable,
@@ -202,7 +211,7 @@ func (c *Component) Run(ctx context.Context) error {
 
 			// NOTE(@tpaschalis) First approach, manually building the
 			// 'clustered' targets implementation every time.
-			ct := discovery.NewDistributedTargets(cl, c.opts.Clusterer, tgs)
+			ct := discovery.NewDistributedTargets(cl, c.cluster, tgs)
 			promTargets := c.componentTargetsToProm(jobName, ct.Get())
 
 			select {

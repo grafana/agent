@@ -12,10 +12,10 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/converter/diag"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/service"
+	cluster_service "github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
 	"github.com/stretchr/testify/require"
 )
@@ -179,15 +179,24 @@ func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 
 	logger, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
+
+	clusterService, err := cluster_service.New(cluster_service.Options{
+		Log:              logger,
+		EnableClustering: false,
+		NodeName:         "test-node",
+		AdvertiseAddress: "127.0.0.1:80",
+	})
+	require.NoError(t, err)
+
 	f := flow.New(flow.Options{
-		Logger:    logger,
-		Clusterer: cluster.NewLocalNode(""),
-		DataPath:  t.TempDir(),
+		Logger:   logger,
+		DataPath: t.TempDir(),
 		Services: []service.Service{
-			// The HTTP service isn't used, but we still need to provide an
-			// implementation of one so that components which rely on the HTTP
-			// service load properly.
+			// The services here aren't used, but we still need to provide an
+			// implementations so that components which rely on the services load
+			// properly.
 			http_service.New(http_service.Options{}),
+			clusterService,
 		},
 	})
 	err = f.LoadFile(cfg, nil)
