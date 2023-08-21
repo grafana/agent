@@ -141,8 +141,8 @@ func (t *Target) processLoop(ctx context.Context) {
 
 	// Start processing
 	t.wg.Add(2)
-	go t.process(rstdout, "stdout")
-	go t.process(rstderr, "stderr")
+	go t.process(rstdout, t.getStreamLabels("stdout"))
+	go t.process(rstderr, t.getStreamLabels("stderr"))
 
 	// Wait until done
 	<-ctx.Done()
@@ -180,7 +180,7 @@ func readLine(r *bufio.Reader) (string, error) {
 	return string(ln), err
 }
 
-func (t *Target) process(r io.Reader, logStream string) {
+func (t *Target) process(r io.Reader, logStreamLset model.LabelSet) {
 	defer func() {
 		t.wg.Done()
 	}()
@@ -203,24 +203,8 @@ func (t *Target) process(r io.Reader, logStream string) {
 			continue
 		}
 
-		// Add all labels from the config, relabel and filter them.
-		lb := labels.NewBuilder(nil)
-		for k, v := range t.labels {
-			lb.Set(string(k), string(v))
-		}
-		lb.Set(dockerLabelLogStream, logStream)
-		processed, _ := relabel.Process(lb.Labels(), t.relabelConfig...)
-
-		filtered := make(model.LabelSet)
-		for _, lbl := range processed {
-			if strings.HasPrefix(lbl.Name, "__") {
-				continue
-			}
-			filtered[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
-		}
-
 		t.handler.Chan() <- loki.Entry{
-			Labels: filtered,
+			Labels: logStreamLset,
 			Entry: logproto.Entry{
 				Timestamp: ts,
 				Line:      line,
@@ -293,4 +277,24 @@ func (t *Target) Details() interface{} {
 		"position": t.positions.GetString(positions.CursorKey(t.containerName), t.labelsStr),
 		"running":  strconv.FormatBool(t.running.Load()),
 	}
+}
+
+func (t *Target) getStreamLabels(logStream string) model.LabelSet {
+	// Add all labels from the config, relabel and filter them.
+	lb := labels.NewBuilder(nil)
+	for k, v := range t.labels {
+		lb.Set(string(k), string(v))
+	}
+	lb.Set(dockerLabelLogStream, logStream)
+	processed, _ := relabel.Process(lb.Labels(), t.relabelConfig...)
+
+	filtered := make(model.LabelSet)
+	for _, lbl := range processed {
+		if strings.HasPrefix(lbl.Name, "__") {
+			continue
+		}
+		filtered[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
+	}
+
+	return filtered
 }
