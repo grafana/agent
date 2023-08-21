@@ -66,7 +66,6 @@ are forwarded to the `forward_to` argument.
 The following are dropped during the conversion process:
 
 * Metrics that use the delta aggregation temporality
-* Exemplars on OpenTelemetry cumulative sums and OpenTelemetry Histograms
 * ExponentialHistogram data points
 
 ## Component health
