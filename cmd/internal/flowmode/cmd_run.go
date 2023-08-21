@@ -26,6 +26,7 @@ import (
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/service"
 	httpservice "github.com/grafana/agent/service/http"
+	uiservice "github.com/grafana/agent/service/ui"
 	"github.com/grafana/ckit/peer"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
@@ -204,8 +205,12 @@ func (fr *flowRun) Run(configFile string) error {
 
 		HTTPListenAddr:   fr.httpListenAddr,
 		MemoryListenAddr: fr.inMemoryAddr,
-		UIPrefix:         fr.uiPrefix,
 		EnablePProf:      fr.enablePprof,
+	})
+
+	uiService := uiservice.New(uiservice.Options{
+		UIPrefix:  fr.uiPrefix,
+		Clusterer: clusterer,
 	})
 
 	f := flow.New(flow.Options{
@@ -214,7 +219,10 @@ func (fr *flowRun) Run(configFile string) error {
 		Clusterer: clusterer,
 		DataPath:  fr.storagePath,
 		Reg:       reg,
-		Services:  []service.Service{httpService},
+		Services: []service.Service{
+			httpService,
+			uiService,
+		},
 	})
 
 	ready = f.Ready

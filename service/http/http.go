@@ -17,8 +17,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/service"
-	"github.com/grafana/agent/web/api"
-	"github.com/grafana/agent/web/ui"
 	"github.com/grafana/ckit/memconn"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -44,7 +42,6 @@ type Options struct {
 
 	HTTPListenAddr   string // Address to listen for HTTP traffic on.
 	MemoryListenAddr string // Address to accept in-memory traffic on.
-	UIPrefix         string // Path prefix to host the UI at.
 	EnablePProf      bool   // Whether pprof endpoints should be exposed.
 }
 
@@ -168,13 +165,6 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 			fmt.Fprintln(w, "config reloaded")
 		}).Methods(http.MethodGet, http.MethodPost)
 	}
-
-	// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
-	// will take precedence over anything else with collides with
-	// s.opts.UIPrefix.
-	fa := api.NewFlowAPI(host, s.node)
-	fa.RegisterRoutes(path.Join(s.opts.UIPrefix, "/api/v0/web"), r)
-	ui.RegisterRoutes(s.opts.UIPrefix, r)
 
 	// Wire custom service handlers for services which depend on the http
 	// service.
