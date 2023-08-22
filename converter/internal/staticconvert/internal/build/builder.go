@@ -25,6 +25,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/integrations/oracledb_exporter"
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
+	"github.com/grafana/agent/pkg/integrations/process_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
@@ -86,6 +87,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendOracledbExporter(itg)
 		case *postgres_exporter.Config:
 			exports = b.appendPostgresExporter(itg)
+		case *process_exporter.Config:
+			exports = b.appendProcessExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {

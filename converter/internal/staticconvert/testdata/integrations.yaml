@@ -149,3 +149,9 @@ integrations:
     - source_labels: [__address__]
       target_label: instance
       replacement: postgres-a
+  process_exporter:
+    enabled: true
+    process_names:
+    - name: "{{.Comm}}"
+      cmdline:
+      - '.+'

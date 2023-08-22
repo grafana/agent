@@ -276,3 +276,16 @@ prometheus.scrape "integrations_postgres_exporter" {
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/postgres_exporter"
 }
+
+prometheus.exporter.process "integrations_process_exporter" {
+	matcher {
+		name    = "{{.Comm}}"
+		cmdline = [".+"]
+	}
+}
+
+prometheus.scrape "integrations_process_exporter" {
+	targets    = prometheus.exporter.process.integrations_process_exporter.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/process_exporter"
+}

@@ -22,6 +22,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/integrations/oracledb_exporter"
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
+	"github.com/grafana/agent/pkg/integrations/process_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
@@ -113,6 +114,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *mysqld_exporter.Config:
 		case *oracledb_exporter.Config:
 		case *postgres_exporter.Config:
+		case *process_exporter.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}
