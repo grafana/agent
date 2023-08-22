@@ -179,6 +179,11 @@ func PatchYACEDefaults(yc *yaceConf.ScrapeConf) {
 			metric.Delay = 0
 		}
 	}
+	for _, staticConf := range yc.Static {
+		for _, metric := range staticConf.Metrics {
+			metric.Delay = 0
+		}
+	}
 }
 
 func toYACEStaticJob(job StaticJob) *yaceConf.Static {
