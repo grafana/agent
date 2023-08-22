@@ -20,7 +20,7 @@ Grafana Agent is available as a Docker container image on the following platform
 ## Before you begin
 
 * Install [Docker][] on your computer.
-* Create and save a Grafana Agent YAML [configuration file]({{< relref "../../configuration/create-config-file/" >}}) on your computer.
+* Create and save a Grafana Agent YAML [configuration file][configure] on your computer.
 
 [Docker]: https://docker.io
 
@@ -63,5 +63,12 @@ For the flags to work correctly, you must expose the paths on your Windows host 
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent/" >}})
-- [Configure Grafana Agent]({{< relref "../../configuration/" >}})
+- [Start Grafana Agent][start]
+- [Configure Grafana Agent][configure]
+
+{{% docs/reference %}}
+[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/grafana-cloud/ -> ../start-agent"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
+{{% /docs/reference %}}

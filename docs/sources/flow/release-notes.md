@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/flow/upgrade-guide/
+canonical: https://grafana.com/docs/agent/latest/flow/release-notes/
 description: Release notes for Grafana Agent flow mode
 title: Release notes for Grafana Agentflow mode
 menuTitle: Release notes
