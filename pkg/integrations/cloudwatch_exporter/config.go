@@ -37,11 +37,18 @@ func init() {
 
 // Config is the configuration for the CloudWatch metrics integration
 type Config struct {
-	STSRegion    string          `yaml:"sts_region"`
-	FIPSDisabled bool            `yaml:"fips_disabled"`
-	Discovery    DiscoveryConfig `yaml:"discovery"`
-	Static       []StaticJob     `yaml:"static"`
-	Debug        bool            `yaml:"debug"`
+	STSRegion    string            `yaml:"sts_region"`
+	FIPSDisabled bool              `yaml:"fips_disabled"`
+	Discovery    DiscoveryConfig   `yaml:"discovery"`
+	Static       []StaticJob       `yaml:"static"`
+	Debug        bool              `yaml:"debug"`
+	AsyncScrape  AsyncScrapeConfig `yaml:"async-scrape"`
+}
+
+// AsyncScrapeConfig is the configuration for decoupled scraping feature.
+type AsyncScrapeConfig struct {
+	Enabled        bool          `yaml:"enabled"`
+	ScrapeInterval time.Duration `yaml:"scrape-interval"`
 }
 
 // DiscoveryConfig configures scraping jobs that will auto-discover metrics dimensions for a given service.
@@ -121,6 +128,10 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
+	if c.AsyncScrape.Enabled {
+		return NewAsyncCloudwatchExporter(c.Name(), l, exporterConfig, c.AsyncScrape.ScrapeInterval, fipsEnabled, c.Debug), nil
+	}
+
 	return NewCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled, c.Debug), nil
 }
 
