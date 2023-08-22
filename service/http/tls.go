@@ -13,18 +13,17 @@ import (
 
 // TLSArguments configures TLS settings for the HTTP service.
 type TLSArguments struct {
-	Cert                     string            `river:"cert_pem,attr,optional"`
-	CertFile                 string            `river:"cert_file,attr,optional"`
-	Key                      rivertypes.Secret `river:"key_pem,attr,optional"`
-	KeyFile                  string            `river:"key_file,attr,optional"`
-	ClientCA                 string            `river:"client_ca_pem,attr,optional"`
-	ClientCAFile             string            `river:"client_ca_file,attr,optional"`
-	ClientAuth               ClientAuth        `river:"client_auth_type,attr,optional"`
-	CipherSuites             []TLSCipher       `river:"cipher_suites,attr,optional"`
-	CurvePreferences         []TLSCurve        `river:"curve_preferences,attr,optional"`
-	MinVersion               TLSVersion        `river:"min_version,attr,optional"`
-	MaxVersion               TLSVersion        `river:"max_version,attr,optional"`
-	PreferServerCipherSuites bool              `river:"prefer_server_cipher_suites,attr,optional"`
+	Cert             string            `river:"cert_pem,attr,optional"`
+	CertFile         string            `river:"cert_file,attr,optional"`
+	Key              rivertypes.Secret `river:"key_pem,attr,optional"`
+	KeyFile          string            `river:"key_file,attr,optional"`
+	ClientCA         string            `river:"client_ca_pem,attr,optional"`
+	ClientCAFile     string            `river:"client_ca_file,attr,optional"`
+	ClientAuth       ClientAuth        `river:"client_auth_type,attr,optional"`
+	CipherSuites     []TLSCipher       `river:"cipher_suites,attr,optional"`
+	CurvePreferences []TLSCurve        `river:"curve_preferences,attr,optional"`
+	MinVersion       TLSVersion        `river:"min_version,attr,optional"`
+	MaxVersion       TLSVersion        `river:"max_version,attr,optional"`
 
 	// TODO(rfratto): windows certificate filter.
 }
@@ -65,10 +64,9 @@ func (args *TLSArguments) Validate() error {
 // tlsConfig generates a tls.Config from args.
 func (args *TLSArguments) tlsConfig() (*tls.Config, error) {
 	config := &tls.Config{
-		MinVersion:               uint16(args.MinVersion),
-		MaxVersion:               uint16(args.MaxVersion),
-		PreferServerCipherSuites: args.PreferServerCipherSuites,
-		ClientAuth:               tls.ClientAuthType(args.ClientAuth),
+		MinVersion: uint16(args.MinVersion),
+		MaxVersion: uint16(args.MaxVersion),
+		ClientAuth: tls.ClientAuthType(args.ClientAuth),
 
 		GetCertificate: func(_ *tls.ClientHelloInfo) (*tls.Certificate, error) {
 			return args.tlsCertificate()
