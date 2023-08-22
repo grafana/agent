@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/gcp_exporter"
 	"github.com/grafana/agent/pkg/integrations/github_exporter"
 	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
+	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/common/model"
@@ -68,6 +69,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendGithubExporter(itg)
 		case *kafka_exporter.Config:
 			exports = b.appendKafkaExporter(itg)
+		case *memcached_exporter.Config:
+			exports = b.appendMemcachedExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {

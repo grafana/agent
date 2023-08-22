@@ -108,3 +108,10 @@ integrations:
       - grafana/agent-modules
   kafka_exporter:
     enabled: true
+  memcached_exporter:
+    enabled: true
+    memcached_address: memcached-a:53
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: instance
+      replacement: memcached-a

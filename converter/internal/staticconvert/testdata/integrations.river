@@ -129,6 +129,26 @@ prometheus.scrape "integrations_kafka_exporter" {
 	job_name   = "integrations/kafka_exporter"
 }
 
+prometheus.exporter.memcached "integrations_memcached_exporter" {
+	address = "memcached-a:53"
+}
+
+discovery.relabel "integrations_memcached_exporter" {
+	targets = prometheus.exporter.memcached.integrations_memcached_exporter.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "instance"
+		replacement   = "memcached-a"
+	}
+}
+
+prometheus.scrape "integrations_memcached_exporter" {
+	targets    = discovery.relabel.integrations_memcached_exporter.output
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/memcached_exporter"
+}
+
 prometheus.exporter.unix { }
 
 discovery.relabel "integrations_node_exporter" {
