@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
+	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
@@ -125,6 +126,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *snowflake_exporter.Config:
 		case *squid_exporter.Config:
 		case *statsd_exporter.Config:
+		case *windows_exporter.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}

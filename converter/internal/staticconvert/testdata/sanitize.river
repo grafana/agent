@@ -95,3 +95,34 @@ loki.write "logs_integrations" {
 	}
 	external_labels = {}
 }
+
+prometheus.exporter.windows "integrations_windows_exporter" {
+	enabled_collectors = ["cpu", "cs", "logical_disk", "net", "os", "service", "system"]
+
+	dfsr { }
+
+	exchange { }
+
+	mssql { }
+}
+
+prometheus.scrape "integrations_windows_exporter" {
+	targets    = prometheus.exporter.windows.integrations_windows_exporter.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/windows_exporter"
+}
+
+prometheus.remote_write "integrations" {
+	endpoint {
+		url = "https://region.grafana.net/api/prom/push"
+
+		basic_auth {
+			username = "id"
+			password = "token"
+		}
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}

@@ -31,6 +31,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
+	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
@@ -104,6 +105,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendSquidExporter(itg)
 		case *statsd_exporter.Config:
 			exports = b.appendStatsdExporter(itg)
+		case *windows_exporter.Config:
+			exports = b.appendWindowsExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {
@@ -151,4 +154,12 @@ func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Co
 
 	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, b.globalCtx.RemoteWriteExports))
 	b.globalCtx.InitializeRemoteWriteExports()
+}
+
+func splitNullOnEmpty(s string, sep string) []string {
+	if s == "" {
+		return nil
+	}
+
+	return strings.Split(s, sep)
 }

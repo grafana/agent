@@ -5,4 +5,3 @@
 (Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
 (Error) unsupported wal_directory metrics config was provided. use the run command flag --storage.path for Flow mode instead.
 (Error) unsupported integration agent was provided.
-(Error) unsupported integration windows_exporter was provided.

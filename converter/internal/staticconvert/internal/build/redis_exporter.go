@@ -2,7 +2,6 @@ package build
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/redis"
@@ -58,12 +57,4 @@ func toRedisExporter(config *redis_exporter.Config) *redis.Arguments {
 		InclSystemMetrics:       config.InclSystemMetrics,
 		SkipTLSVerification:     config.SkipTLSVerification,
 	}
-}
-
-func splitNullOnEmpty(s string, sep string) []string {
-	if s == "" {
-		return nil
-	}
-
-	return strings.Split(s, sep)
 }
