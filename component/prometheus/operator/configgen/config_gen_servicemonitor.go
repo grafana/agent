@@ -175,7 +175,7 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 			}
 			if ep.TargetPort.StrVal != "" {
 				relabels.add(&relabel.Config{
-					SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
+					SourceLabels: model.LabelNames{"__meta_kubernetes_endpoint_port_name"},
 					Action:       "keep",
 					Regex:        regex,
 				})
