@@ -21,7 +21,7 @@ func (s *ScrapeConfigBuilder) AppendWindowsEventsConfig() {
 		ExcludeUserdata:      winCfg.ExcludeUserData,
 		UseIncomingTimestamp: winCfg.UseIncomingTimestamp,
 		ForwardTo:            make([]loki.LogsReceiver, 0),
-		Labels:               winCfg.Labels,
+		Labels:               convertPromLabels(winCfg.Labels),
 	}
 
 	override := func(val interface{}) interface{} {

@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/prometheus/common/model"
 )
 
 // Arguments holds values which are used to configure the loki.source.windowsevent
@@ -19,7 +18,7 @@ type Arguments struct {
 	ExcludeUserdata      bool                `river:"exclude_user_data,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
-	Labels               model.LabelSet      `river:"labels,attr,optional"`
+	Labels               map[string]string   `river:"labels,attr,optional"`
 }
 
 func defaultArgs() Arguments {

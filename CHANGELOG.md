@@ -62,6 +62,8 @@ Main (unreleased)
 
 - `loki.write` now supports configuring retries on HTTP status code 429. (@wildum)
 
+- `loki.source.windowsevent` now supports labels. (@wildum)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
