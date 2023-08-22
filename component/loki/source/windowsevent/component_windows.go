@@ -152,5 +152,6 @@ func convertConfig(arg Arguments) *scrapeconfig.WindowsEventsTargetConfig {
 		ExcludeEventData:     arg.ExcludeEventData,
 		ExcludeEventMessage:  false,
 		ExcludeUserData:      arg.ExcludeUserdata,
+		Labels:               arg.Labels,
 	}
 }
