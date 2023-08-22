@@ -102,6 +102,11 @@ Endpoints can be named for easier identification in debug metrics by using the
 `name` argument. If the `name` argument isn't provided, a name is generated
 based on a hash of the endpoint settings.
 
+The `retry_on_http_429` argument specifies whether `HTTP 429` status code
+responses should be treated as recoverable errors; other `HTTP 4xx` status code
+responses are never considered recoverable errors. When `retry_on_http_429` is
+enabled, the retry mechanism will be governed by the specified `backoff` configuration.
+
 ### basic_auth block
 
 {{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}

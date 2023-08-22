@@ -13,5 +13,7 @@ clients:
       max_retries: 20
     drop_rate_limited_batches: true
     timeout: 30s
+  - url: http://localhost/loki/api/v1/push
+    drop_rate_limited_batches: false
 tracing: {enabled: false}
 server: {register_instrumentation: false}
