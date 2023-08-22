@@ -289,3 +289,23 @@ prometheus.scrape "integrations_process_exporter" {
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/process_exporter"
 }
+
+prometheus.exporter.redis "integrations_redis_exporter" {
+	redis_addr = "redis-2:6379"
+}
+
+discovery.relabel "integrations_redis_exporter" {
+	targets = prometheus.exporter.redis.integrations_redis_exporter.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "instance"
+		replacement   = "redis-2"
+	}
+}
+
+prometheus.scrape "integrations_redis_exporter" {
+	targets    = discovery.relabel.integrations_redis_exporter.output
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/redis_exporter"
+}

@@ -26,6 +26,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/oracledb_exporter"
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
+	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
@@ -89,6 +90,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendPostgresExporter(itg)
 		case *process_exporter.Config:
 			exports = b.appendProcessExporter(itg)
+		case *redis_exporter.Config:
+			exports = b.appendRedisExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {
