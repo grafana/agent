@@ -60,8 +60,6 @@ Main (unreleased)
 
 - Flow: Added exemplar support for the `otelcol.exporter.prometheus`. (@wildum)
 
-- `loki.write` now supports configuring retries on HTTP status code 429. (@wildum)
-
 - `loki.source.windowsevent` now supports labels. (@wildum)
 
 - New Grafana Agent Flow components:

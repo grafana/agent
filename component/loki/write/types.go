@@ -27,7 +27,6 @@ type EndpointOptions struct {
 	MaxBackoff        time.Duration           `river:"max_backoff_period,attr,optional"`  // increase exponentially to this level
 	MaxBackoffRetries int                     `river:"max_backoff_retries,attr,optional"` // give up after this many; zero means infinite retries
 	TenantID          string                  `river:"tenant_id,attr,optional"`
-	RetryOnHTTP429    bool                    `river:"retry_on_http_429,attr,optional"`
 	HTTPClientConfig  *types.HTTPClientConfig `river:",squash"`
 }
 
@@ -45,7 +44,6 @@ func GetDefaultEndpointOptions() EndpointOptions {
 		MaxBackoff:        5 * time.Minute,
 		MaxBackoffRetries: 10,
 		HTTPClientConfig:  types.CloneDefaultHTTPClientConfig(),
-		RetryOnHTTP429:    true,
 	}
 
 	return defaultEndpointOptions
@@ -86,10 +84,9 @@ func (args Arguments) convertClientConfigs() []client.Config {
 				MaxBackoff: cfg.MaxBackoff,
 				MaxRetries: cfg.MaxBackoffRetries,
 			},
-			ExternalLabels:         lokiflagext.LabelSet{LabelSet: toLabelSet(args.ExternalLabels)},
-			Timeout:                cfg.RemoteTimeout,
-			TenantID:               cfg.TenantID,
-			DropRateLimitedBatches: !cfg.RetryOnHTTP429,
+			ExternalLabels: lokiflagext.LabelSet{LabelSet: toLabelSet(args.ExternalLabels)},
+			Timeout:        cfg.RemoteTimeout,
+			TenantID:       cfg.TenantID,
 		}
 		res = append(res, cc)
 	}
