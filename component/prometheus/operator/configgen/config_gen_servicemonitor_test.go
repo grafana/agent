@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func TestGenerateServiceMonitorConfig(t *testing.T) {
@@ -73,7 +74,143 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 				  replacement: ${1}
 			`),
 			expected: &config.ScrapeConfig{
-				JobName:         "serviceMonitor/operator/svcmonitor/0",
+				JobName:         "serviceMonitor/operator/svcmonitor/1",
+				HonorTimestamps: true,
+				ScrapeInterval:  model.Duration(time.Minute),
+				ScrapeTimeout:   model.Duration(10 * time.Second),
+				MetricsPath:     "/metrics",
+				Scheme:          "http",
+				HTTPClientConfig: commonConfig.HTTPClientConfig{
+					FollowRedirects: true,
+					EnableHTTP2:     true,
+				},
+				ServiceDiscoveryConfigs: discovery.Configs{
+					&promk8s.SDConfig{
+						Role: "endpoints",
+
+						NamespaceDiscovery: promk8s.NamespaceDiscovery{
+							IncludeOwnNamespace: false,
+							Names:               []string{"operator"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "targetport_string",
+			m: &promopv1.ServiceMonitor{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "operator",
+					Name:      "svcmonitor",
+				},
+			},
+			ep: promopv1.Endpoint{
+				TargetPort: &intstr.IntOrString{StrVal: "http_metrics", Type: intstr.String},
+			},
+			expectedRelabels: util.Untab(`
+				- target_label: __meta_foo
+				  replacement: bar
+				- source_labels: [job]
+				  target_label: __tmp_prometheus_job_name
+				- source_labels: ["__meta_kubernetes_pod_container_port_name"]
+				  regex: "http_metrics"
+				  action: "keep"
+				- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]
+				  regex: Node;(.*)
+				  target_label: node
+				  replacement: ${1}
+				- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]
+				  regex: Pod;(.*)
+				  target_label: pod
+				  action: replace
+				  replacement: ${1}
+				- source_labels: [__meta_kubernetes_namespace]
+				  target_label: namespace
+				- source_labels: [__meta_kubernetes_service_name]
+				  target_label: service
+				- source_labels: [__meta_kubernetes_pod_container_name]
+				  target_label: container
+				- source_labels: [__meta_kubernetes_pod_name]
+				  target_label: pod
+				- source_labels: [__meta_kubernetes_pod_phase]
+				  regex: (Failed|Succeeded)
+				  action: drop
+				- source_labels: [__meta_kubernetes_service_name]
+				  target_label: job
+				  replacement: ${1}
+				- target_label: endpoint
+				  replacement: http_metrics
+			`),
+			expected: &config.ScrapeConfig{
+				JobName:         "serviceMonitor/operator/svcmonitor/1",
+				HonorTimestamps: true,
+				ScrapeInterval:  model.Duration(time.Minute),
+				ScrapeTimeout:   model.Duration(10 * time.Second),
+				MetricsPath:     "/metrics",
+				Scheme:          "http",
+				HTTPClientConfig: commonConfig.HTTPClientConfig{
+					FollowRedirects: true,
+					EnableHTTP2:     true,
+				},
+				ServiceDiscoveryConfigs: discovery.Configs{
+					&promk8s.SDConfig{
+						Role: "endpoints",
+
+						NamespaceDiscovery: promk8s.NamespaceDiscovery{
+							IncludeOwnNamespace: false,
+							Names:               []string{"operator"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "targetport_int",
+			m: &promopv1.ServiceMonitor{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "operator",
+					Name:      "svcmonitor",
+				},
+			},
+			ep: promopv1.Endpoint{
+				TargetPort: &intstr.IntOrString{IntVal: 4242, Type: intstr.Int},
+			},
+			expectedRelabels: util.Untab(`
+				- target_label: __meta_foo
+				  replacement: bar
+				- source_labels: [job]
+				  target_label: __tmp_prometheus_job_name
+				- source_labels: ["__meta_kubernetes_pod_container_port_number"]
+				  regex: "4242"
+				  action: "keep"
+				- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]
+				  regex: Node;(.*)
+				  target_label: node
+				  replacement: ${1}
+				- source_labels: [__meta_kubernetes_endpoint_address_target_kind, __meta_kubernetes_endpoint_address_target_name]
+				  regex: Pod;(.*)
+				  target_label: pod
+				  action: replace
+				  replacement: ${1}
+				- source_labels: [__meta_kubernetes_namespace]
+				  target_label: namespace
+				- source_labels: [__meta_kubernetes_service_name]
+				  target_label: service
+				- source_labels: [__meta_kubernetes_pod_container_name]
+				  target_label: container
+				- source_labels: [__meta_kubernetes_pod_name]
+				  target_label: pod
+				- source_labels: [__meta_kubernetes_pod_phase]
+				  regex: (Failed|Succeeded)
+				  action: drop
+				- source_labels: [__meta_kubernetes_service_name]
+				  target_label: job
+				  replacement: ${1}
+				- target_label: endpoint
+				  replacement: "4242"
+			`),
+			expected: &config.ScrapeConfig{
+				JobName:         "serviceMonitor/operator/svcmonitor/1",
 				HonorTimestamps: true,
 				ScrapeInterval:  model.Duration(time.Minute),
 				ScrapeTimeout:   model.Duration(10 * time.Second),
@@ -273,7 +410,7 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 			},
 		},
 	}
-	for i, tc := range suite {
+	for _, tc := range suite {
 		t.Run(tc.name, func(t *testing.T) {
 			cg := &ConfigGenerator{
 				Client: &kubernetes.ClientArguments{},
@@ -281,7 +418,7 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 					{TargetLabel: "__meta_foo", Replacement: "bar"},
 				},
 			}
-			cfg, err := cg.GenerateServiceMonitorConfig(tc.m, tc.ep, i)
+			cfg, err := cg.GenerateServiceMonitorConfig(tc.m, tc.ep, 1)
 			require.NoError(t, err)
 			// check relabel configs separately
 			rlcs := cfg.RelabelConfigs
