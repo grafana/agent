@@ -105,7 +105,9 @@ func (c *Component) NotifyClusterChange() {
 		return // no-op
 	}
 
-	c.manager.ClusteringUpdated()
+	if c.manager != nil {
+		c.manager.ClusteringUpdated()
+	}
 }
 
 // DebugInfo returns debug information for this component.
