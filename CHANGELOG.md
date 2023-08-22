@@ -74,6 +74,8 @@ Main (unreleased)
   - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes 
   keys and values are sourced from `discovery.*` components. (@ptodev)
 
+- Update `YACE` to `v0.54.0`, which includes bugfixes for FIPS support. (@ashrayjain)
+
 ### Bugfixes
 
 - Update to config converter so default relabel `source_labels` are left off the river output. (@erikbaranowski)
@@ -89,6 +91,9 @@ Main (unreleased)
 - Fix issue where Agent crashes when a blackbox modules config file is specified for blackbox integration. (@marctc)
 
 - Fix issue where getting the support bundle failed due to using an HTTP Client that was not able to access the agent in-memory address. (@spartan0x117)
+
+- Fix an issue that lead the `loki.source.docker` container to use excessive
+  CPU and memory. (@tpaschalis)
 
 v0.35.4 (2023-08-14)
 --------------------
