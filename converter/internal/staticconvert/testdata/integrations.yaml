@@ -141,3 +141,11 @@ integrations:
     enabled: true
     connection_string: oracle://user:password@localhost:1521/orcl.localnet
     scrape_integration: true
+  postgres_exporter:
+    enabled: true
+    data_source_names: 
+    - postgres://postgres:password@localhost:5432/postgres?sslmode=disable
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: instance
+      replacement: postgres-a

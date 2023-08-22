@@ -256,3 +256,23 @@ prometheus.scrape "integrations_oracledb" {
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/oracledb"
 }
+
+prometheus.exporter.postgres "integrations_postgres_exporter" {
+	data_source_names = ["postgres://postgres:password@localhost:5432/postgres?sslmode=disable"]
+}
+
+discovery.relabel "integrations_postgres_exporter" {
+	targets = prometheus.exporter.postgres.integrations_postgres_exporter.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "instance"
+		replacement   = "postgres-a"
+	}
+}
+
+prometheus.scrape "integrations_postgres_exporter" {
+	targets    = discovery.relabel.integrations_postgres_exporter.output
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/postgres_exporter"
+}
