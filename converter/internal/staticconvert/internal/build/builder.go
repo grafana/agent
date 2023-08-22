@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
+	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
@@ -95,6 +96,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendRedisExporter(itg)
 		case *snmp_exporter.Config:
 			exports = b.appendSnmpExporter(itg)
+		case *snowflake_exporter.Config:
+			exports = b.appendSnowflakeExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {

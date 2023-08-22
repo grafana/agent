@@ -339,3 +339,16 @@ prometheus.scrape "integrations_snmp" {
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/snmp"
 }
+
+prometheus.exporter.snowflake "integrations_snowflake" {
+	account_name = "XXXXXXX-YYYYYYY"
+	username     = "snowflake-user"
+	password     = "snowflake-pass"
+	warehouse    = "SNOWFLAKE_WAREHOUSE"
+}
+
+prometheus.scrape "integrations_snowflake" {
+	targets    = prometheus.exporter.snowflake.integrations_snowflake.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/snowflake"
+}
