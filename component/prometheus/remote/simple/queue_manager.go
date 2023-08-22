@@ -1,7 +1,7 @@
 /*
-Copied from prometheus with edits to facilate passing in vars.
+Copied from prometheus with edits to simplify.
 */
-package remote
+package simple
 
 import (
 	"context"
@@ -201,6 +201,7 @@ func (t *QueueManager) sendMetadataWithBackoff(ctx context.Context, metadata []p
 // Append queues a sample to be sent to the remote storage. Blocks until all samples are
 // enqueued on their shards or a shutdown signal is received.
 func (t *QueueManager) Append(samples []prometheus.Sample) bool {
+	enqueued := false
 outer:
 	for _, s := range samples {
 		// Start with a very small backoff. This should not be t.cfg.MinBackoff
@@ -214,13 +215,13 @@ outer:
 				return false
 			default:
 			}
-			if t.shards.enqueue(s.GlobalRefID, timeSeries{
+			enqueued = t.shards.enqueue(s.GlobalRefID, timeSeries{
 				seriesLabels: s.L,
 				timestamp:    s.Timestamp,
 				value:        s.Value,
 				sType:        tSample,
-			}) {
-
+			})
+			if enqueued {
 				continue outer
 			}
 
@@ -234,7 +235,7 @@ outer:
 			}
 		}
 	}
-	return true
+	return enqueued
 }
 
 func (t *QueueManager) AppendExemplars(exemplars []prometheus.Exemplar) bool {
@@ -1048,7 +1049,8 @@ func sendWriteRequestWithBackoff(ctx context.Context, cfg config.QueueConfig, l 
 		}
 
 		// If the error is unrecoverable, we should not retry.
-		backoffErr, ok := err.(RecoverableError)
+		var backoffErr RecoverableError
+		ok := errors.As(err, &backoffErr)
 		if !ok {
 			return err
 		}

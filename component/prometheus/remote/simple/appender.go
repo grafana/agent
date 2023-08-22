@@ -42,10 +42,14 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 }
 
 func (a *appender) Commit() (_ error) {
-	panic("not implemented") // TODO: Implement
+	a.parent.commit(a)
+	return nil
 }
 
-func (a *appender) Rollback() error { return nil }
+func (a *appender) Rollback() error {
+	// Since nothing is committed we dont need to do any cleanup here.
+	return nil
+}
 
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (_ storage.SeriesRef, _ error) {
 	a.exemplars = append(a.exemplars, prometheus.Exemplar{

@@ -1,4 +1,4 @@
-package remote
+package simple
 
 import "github.com/prometheus/client_golang/prometheus"
 

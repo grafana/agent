@@ -1,6 +1,7 @@
 package simple
 
 import (
+	"github.com/grafana/agent/component/prometheus/remote/simple/badger"
 	"testing"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 
 func TestDBWriteGet(t *testing.T) {
 	l := logging.New(nil)
-	database, err := newDb(t.TempDir(), l)
+	database, err := badger.newDb(t.TempDir(), l)
 	require.NoError(t, err)
 	var insert string
 	insert = "hello world"

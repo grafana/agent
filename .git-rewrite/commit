@@ -1,0 +1,23 @@
+tree 88980642d7503a3f89548a3f5e8d4fc3e77f2bac
+parent 579ae1d852ce4598fbb701c3a7182179a7a65d60
+author Robert Fratto <robert.fratto@grafana.com> 1580146166 -0500
+committer Robert Fratto <robert.fratto@grafana.com> 1580146166 -0500
+gpgsig -----BEGIN PGP SIGNATURE-----
+ 
+ iQJOBAABCAA4FiEEMg9Iy9cQ121X0UDQ3xjy9o6MeLMFAl4vHggaHHJvYmVydC5m
+ cmF0dG9AZ3JhZmFuYS5jb20ACgkQ3xjy9o6MeLMdsxAAhYhlj/7CsZoHgtM9tCLs
+ +GtldB797dLSH9J8mWxJUzzsqI+uFog39LyoKkjCOl4dPrr5SK4+Ae85m690V0lg
+ T44AdAi4eSCTzJD8JHk7U8pAB9IOe3ZvzON8CmBe2hQdoGQrLlAWfzjQUc8iVeY8
+ npce4K/e7ma9Rh7wj7v7bTDeskIOgolScXpOCtMVkDWua0pTt1fOW8JGL1fSfb+C
+ jRzhND4np3jGQ8mpqzo6aEg/L1Q5v9ykq7/WRYkMSF8xYMeMUwcomFgYKbrhUo2Y
+ XX0EEMEPg7JZVcO54cgCVx8TMrwoDPupZeVUj7p/aWfrlYuW3o00LwLMchd67C73
+ +CEHDcSbkr5T51QMuNUsVVs+DwfHT9j6Re24uFVLJaHK5w+bhyoKQnrxL9atu54X
+ dVm7Oo/6smMhCFK6zZkXw6UJuEB4sO9TMrzH9YBOHUB4a3KyBurmuUeFSGGbU/yn
+ k9BwVL9tb5Zvz76fG0ZNvFi1kNLLbB6ErSuojsfqN5814OQSaY1saIqlc7+FxDZU
+ FOwL/0uDCvIcDu0XFIY/DLKd69xIh7bQKF64t5FzP2aGANnFK+nfRWAksFr0Larx
+ yKJT9SeQ52FC90Zu0ksrskE5r/C9RGGlIgd0gY1q+1qqpxHRtw5j/wTf642ngukp
+ Vvv1YhfB1cYnqooKxRWQRTA=
+ =7wzK
+ -----END PGP SIGNATURE-----
+
+refactor prometheus agent into pkg/prometheus

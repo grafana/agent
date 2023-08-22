@@ -2,12 +2,17 @@ package simple
 
 import (
 	"context"
+	"github.com/go-kit/log/level"
+	"net/url"
 	"path"
 	"sync"
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/prometheus/remote"
+	promtype "github.com/grafana/agent/component/prometheus"
+	"github.com/prometheus/client_golang/prometheus"
+	config_util "github.com/prometheus/common/config"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/storage"
 )
 
@@ -24,7 +29,7 @@ func init() {
 }
 
 func NewComponent(opts component.Options, args Arguments) (*Simple, error) {
-	database, err := newDBStore(false, args.TTL, 5*time.Minute, path.Join(opts.DataPath, "wal"), opts.Logger)
+	database, err := newDBStore(false, args.TTL, path.Join(opts.DataPath, "wal"), opts.Registerer, opts.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -40,17 +45,70 @@ type Simple struct {
 	database *dbstore
 	args     Arguments
 	opts     component.Options
+	wr       *writer
 }
 
 // Run starts the component, blocking until ctx is canceled or the component
 // suffers a fatal error. Run is guaranteed to be called exactly once per
 // Component.
 //
-// Implementations of Component should perform any necessary cleanup before
+// Implementations of Componen should perform any necessary cleanup before
 // returning from Run.
 func (s *Simple) Run(ctx context.Context) error {
-	ctx.Done()
+	qm, err := s.newQueueManager()
+	if err != nil {
+		return err
+	}
+	go s.database.Run(ctx)
+	wr := newWriter(s.opts.ID, qm, s.database, s.opts.Logger)
+	s.wr = wr
+	go wr.Start(ctx)
+	go qm.Start()
+	go s.cleanupDB(ctx)
+	<-ctx.Done()
 	return nil
+}
+
+func (s *Simple) newQueueManager() (*QueueManager, error) {
+	ew := newEWMARate(ewmaWeight, shardUpdateDuration)
+	endUrl, err := url.Parse(s.args.Endpoint.URL)
+	if err != nil {
+		return nil, err
+	}
+	cfgURL := &config_util.URL{URL: endUrl}
+	wr, err := NewWriteClient(s.opts.ID, &ClientConfig{
+		URL:              cfgURL,
+		Timeout:          model.Duration(s.args.Endpoint.RemoteTimeout),
+		HTTPClientConfig: *s.args.Endpoint.HTTPClientConfig.Convert(),
+		SigV4Config:      nil,
+		Headers:          s.args.Endpoint.Headers,
+		RetryOnRateLimit: s.args.Endpoint.QueueOptions.toPrometheusType().RetryOnRateLimit,
+	})
+	if err != nil {
+		return nil, err
+	}
+	met := newQueueManagerMetrics(s.opts.Registerer, "", wr.Endpoint())
+
+	qm := NewQueueManager(
+		met,
+		s.opts.Logger,
+		ew,
+		s.args.Endpoint.QueueOptions.toPrometheusType(),
+		s.args.Endpoint.MetadataOptions.toPrometheusType(),
+		wr,
+		1*time.Minute,
+		&maxTimestamp{
+			Gauge: prometheus.NewGauge(prometheus.GaugeOpts{
+				Namespace: "prometheus",
+				Subsystem: "remote_storage",
+				Name:      "highest_timestamp_in_seconds",
+				Help:      "Highest timestamp that has come into the remote storage via the Appender interface, in seconds since epoch.",
+			}),
+		},
+		true,
+		true,
+	)
+	return qm, nil
 }
 
 // Update provides a new Config to the component. The type of newConfig will
@@ -78,29 +136,42 @@ func (c *Simple) Appender(ctx context.Context) storage.Appender {
 }
 
 func (c *Simple) commit(a *appender) {
-	c.mut.RLock()
+	c.mut.Lock()
 	defer c.mut.Unlock()
-
 	endpoint := time.Now().UnixMilli() - int64(c.args.TTL.Seconds())
 
-	timestampedMetrics := make([]any, 0)
+	timestampedMetrics := make([]promtype.Sample, 0)
 	for _, x := range a.metrics {
-		// No need to write if already outside of range.
-		if x.Timestamp < endpoint {
+		// No need to write if already outside of range and a ttl is set.
+		if x.Timestamp < endpoint && (c.args.TTL.Seconds() != 0) {
 			continue
 		}
 		timestampedMetrics = append(timestampedMetrics, x)
 	}
 
-	c.database.WriteSignal(timestampedMetrics)
+	_, err := c.database.WriteSignal(timestampedMetrics)
+	if err != nil {
+		level.Error(c.opts.Logger).Log("msg", "error writing signals", "err", err)
+	}
 }
 
-type Arguments struct {
-	TTL time.Duration `river:"ttl,attr,optional"`
-
-	Endpoint *remote.EndpointOptions `river:"endpoint,block,optional"`
+func (c *Simple) cleanupDB(ctx context.Context) {
+	c.cleanup()
+	ttlTimer := time.NewTicker(5 * time.Minute)
+	for {
+		select {
+		case <-ttlTimer.C:
+			c.cleanup()
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
-type Exports struct {
-	Receiver storage.Appendable `river:"receiver,attr"`
+func (c *Simple) cleanup() {
+	level.Info(c.opts.Logger).Log("msg", "starting evict")
+	oldestKey := c.wr.GetKey()
+	c.database.sampleDB.DeleteKeysOlderThan(oldestKey)
+	c.database.evict()
+	level.Info(c.opts.Logger).Log("msg", "finishing evict")
 }

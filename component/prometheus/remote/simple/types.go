@@ -1,4 +1,4 @@
-package remote
+package simple
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/storage"
 
 	types "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/river"
@@ -18,7 +19,9 @@ import (
 
 // Defaults for config blocks.
 var (
-	DefaultArguments = Arguments{}
+	DefaultArguments = Arguments{
+		TTL: 2 * time.Hour,
+	}
 
 	DefaultQueueOptions = QueueOptions{
 		Capacity:          10000,
@@ -40,10 +43,14 @@ var (
 	_ river.Unmarshaler = (*QueueOptions)(nil)
 )
 
-// Arguments represents the input state of the prometheus.remote_write
-// component.
 type Arguments struct {
+	TTL time.Duration `river:"ttl,attr,optional"`
+
 	Endpoint *EndpointOptions `river:"endpoint,block,optional"`
+}
+
+type Exports struct {
+	Receiver storage.Appendable `river:"receiver,attr"`
 }
 
 // UnmarshalRiver implements river.Unmarshaler.
@@ -159,10 +166,6 @@ func (o *MetadataOptions) toPrometheusType() config.MetadataConfig {
 		SendInterval:      model.Duration(o.SendInterval),
 		MaxSamplesPerSend: o.MaxSamplesPerSend,
 	}
-}
-
-type Exports struct {
-	Receiver RemoteWrite `river:"receiver,attr"`
 }
 
 func convertConfigs(cfg Arguments) (*config.Config, error) {
