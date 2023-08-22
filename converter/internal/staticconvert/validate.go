@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/github_exporter"
 	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
+	"github.com/grafana/agent/pkg/integrations/mongodb_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -103,6 +104,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *github_exporter.Config:
 		case *kafka_exporter.Config:
 		case *memcached_exporter.Config:
+		case *mongodb_exporter.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}

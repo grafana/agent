@@ -149,6 +149,33 @@ prometheus.scrape "integrations_memcached_exporter" {
 	job_name   = "integrations/memcached_exporter"
 }
 
+prometheus.exporter.mongodb "integrations_mongodb_exporter" {
+	mongodb_uri    = "mongodb://mongodb-a:27017"
+	direct_connect = true
+}
+
+discovery.relabel "integrations_mongodb_exporter" {
+	targets = prometheus.exporter.mongodb.integrations_mongodb_exporter.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "service_name"
+		replacement   = "replicaset1-node1"
+	}
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "mongodb_cluster"
+		replacement   = "prod-cluster"
+	}
+}
+
+prometheus.scrape "integrations_mongodb_exporter" {
+	targets    = discovery.relabel.integrations_mongodb_exporter.output
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/mongodb_exporter"
+}
+
 prometheus.exporter.unix { }
 
 discovery.relabel "integrations_node_exporter" {
