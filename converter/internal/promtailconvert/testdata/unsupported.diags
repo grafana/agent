@@ -10,6 +10,7 @@
 (Warning) server.log_level is not supported - Flow mode components may produce different logs
 (Error) server.http_path_prefix is not supported
 (Warning) server.health_check_target disabling is not supported in Flow mode
+(Error) DropRateLimitedBatches is currently not supported in Grafana Agent Flow
 (Warning) stream_lag_labels is deprecated and the associated metric has been removed
 (Error) dockerswarm_sd_configs is not supported
 (Error) serverset_sd_configs is not supported
