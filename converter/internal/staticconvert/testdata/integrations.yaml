@@ -125,3 +125,6 @@ integrations:
     - source_labels: [__address__]
       target_label: mongodb_cluster
       replacement: 'prod-cluster'
+  mssql:
+    enabled: true
+    connection_string: sqlserver://<USERNAME>:<PASSWORD>@<HOST>:<PORT>
