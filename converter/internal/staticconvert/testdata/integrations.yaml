@@ -106,3 +106,5 @@ integrations:
     repositories:
       - grafana/agent
       - grafana/agent-modules
+  kafka_exporter:
+    enabled: true
