@@ -75,13 +75,7 @@ For `ingest_delay`, you can see the values for this in documented metrics as `Af
 
 ## Exported fields
 
-The following fields are exported and can be referenced by other components.
-
-| Name      | Type                | Description                                                        |
-|-----------|---------------------|--------------------------------------------------------------------|
-| `targets` | `list(map(string))` | The targets that can be used to collect the scraped `gcp` metrics. |
-
-For example, `targets` can either be passed to a `prometheus.relabel` component to rewrite the metrics' label set, or to a `prometheus.scrape` component that collects the exposed metrics.
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 

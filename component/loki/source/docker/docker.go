@@ -243,7 +243,7 @@ func (c *Component) DebugInfo() interface{} {
 	for _, tgt := range c.manager.targets() {
 		details := tgt.Details().(map[string]string)
 		res.TargetsInfo = append(res.TargetsInfo, targetInfo{
-			Labels:     tgt.Labels().String(),
+			Labels:     tgt.LabelsStr(),
 			ID:         details["id"],
 			LastError:  details["error"],
 			IsRunning:  details["running"],

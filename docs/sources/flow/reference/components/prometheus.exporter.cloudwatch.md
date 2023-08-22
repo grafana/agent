@@ -325,21 +325,7 @@ is exported to CloudWatch.
 
 ## Exported fields
 
-The following fields are exported and can be referenced by other components.
-
-| Name      | Type                | Description                                                               |
-|-----------|---------------------|---------------------------------------------------------------------------|
-| `targets` | `list(map(string))` | The targets that can be used to collect the scraped `cloudwatch` metrics. |
-
-For example, `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metrics' label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 
@@ -370,6 +356,7 @@ See the examples described under each [discovery][] and [static] sections.
 The following is a list of AWS services that are supported in `cloudwatch_exporter` discovery jobs. When configuring a
 discovery job, the `type` field of each `discovery_job` must match either the desired job namespace or alias.
 
+- Namespace: `CWAgent` or Alias: `cwagent`
 - Namespace: `AWS/Usage` or Alias: `usage`
 - Namespace: `AWS/CertificateManager` or Alias: `acm`
 - Namespace: `AWS/ACMPrivateCA` or Alias: `acm-pca`
@@ -395,6 +382,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/DynamoDB` or Alias: `dynamodb`
 - Namespace: `AWS/EBS` or Alias: `ebs`
 - Namespace: `AWS/ElastiCache` or Alias: `ec`
+- Namespace: `AWS/MemoryDB` or Alias: `memorydb`
 - Namespace: `AWS/EC2` or Alias: `ec2`
 - Namespace: `AWS/EC2Spot` or Alias: `ec2Spot`
 - Namespace: `AWS/ECS` or Alias: `ecs-svc`
@@ -416,6 +404,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/KinesisAnalytics` or Alias: `kinesis-analytics`
 - Namespace: `AWS/Lambda` or Alias: `lambda`
 - Namespace: `AWS/MediaConnect` or Alias: `mediaconnect`
+- Namespace: `AWS/MediaConvert` or Alias: `mediaconvert`
 - Namespace: `AWS/MediaLive` or Alias: `medialive`
 - Namespace: `AWS/MediaTailor` or Alias: `mediatailor`
 - Namespace: `AWS/Neptune` or Alias: `neptune`
@@ -436,7 +425,18 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/SQS` or Alias: `sqs`
 - Namespace: `AWS/StorageGateway` or Alias: `storagegateway`
 - Namespace: `AWS/TransitGateway` or Alias: `tgw`
+- Namespace: `AWS/TrustedAdvisor` or Alias: `trustedadvisor`
 - Namespace: `AWS/VPN` or Alias: `vpn`
 - Namespace: `AWS/WAFV2` or Alias: `wafv2`
 - Namespace: `AWS/WorkSpaces` or Alias: `workspaces`
 - Namespace: `AWS/AOSS` or Alias: `aoss`
+- Namespace: `AWS/SageMaker` or Alias: `sagemaker`
+- Namespace: `/aws/sagemaker/Endpoints` or Alias: `sagemaker-endpoints`
+- Namespace: `/aws/sagemaker/TrainingJobs` or Alias: `sagemaker-training`
+- Namespace: `/aws/sagemaker/ProcessingJobs` or Alias: `sagemaker-processing`
+- Namespace: `/aws/sagemaker/TransformJobs` or Alias: `sagemaker-transform`
+- Namespace: `/aws/sagemaker/InferenceRecommendationsJobs` or Alias: `sagemaker-inf-rec`
+- Namespace: `AWS/Sagemaker/ModelBuildingPipeline` or Alias: `sagemaker-model-building-pipeline`
+
+
+

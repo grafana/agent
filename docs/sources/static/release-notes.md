@@ -15,16 +15,18 @@ The release notes provide information about deprecations and breaking changes in
 
 For a complete list of changes to Grafana Agent, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
 
-{{% admonition type="note" %}}
-These release notes are specific to Grafana Agent static mode. 
-Other release notes for the different Grafana Agent variants are contained on separate pages:
+> **Note:** These release notes are specific to Grafana Agent static mode. 
+> Other release notes for the different Grafana Agent variants are contained on separate pages:
+>
+> * [Static mode Kubernetes operator release notes][release-notes-operator]
+> * [Flow mode release notes][release-notes-flow]
 
-* [Static mode Kubernetes operator release notes][release-notes-operator]
-* [Flow mode release notes][release-notes-flow]
-
-[release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
-[release-notes-flow]: {{< relref "../flow/release-notes.md" >}}
-{{% /admonition %}}
+{{% docs/reference %}}
+[release-notes-operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator/release-notes"
+[release-notes-operator]: "/docs/grafana-cloud/ -> ../operator/release-notes"
+[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
+[release-notes-flow]: "/docs/grafana-cloud/ -> ../flow/release-notes"
+{{% /docs/reference %}}
 
 ## v0.35
 
