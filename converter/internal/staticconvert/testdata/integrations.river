@@ -309,3 +309,33 @@ prometheus.scrape "integrations_redis_exporter" {
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/redis_exporter"
 }
+
+prometheus.exporter.snmp "integrations_snmp" {
+	target "network_switch_1" {
+		address     = "192.168.1.2"
+		module      = "if_mib"
+		auth        = "public"
+		walk_params = "public"
+	}
+
+	target "network_router_2" {
+		address     = "192.168.1.3"
+		module      = "mikrotik"
+		auth        = "private"
+		walk_params = "private"
+	}
+
+	walk_param "private" {
+		retries = 2
+	}
+
+	walk_param "public" {
+		retries = 1
+	}
+}
+
+prometheus.scrape "integrations_snmp" {
+	targets    = prometheus.exporter.snmp.integrations_snmp.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/snmp"
+}
