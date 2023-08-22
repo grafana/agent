@@ -89,3 +89,5 @@ integrations:
     - source_labels: [__address__]
       target_label: instance
       replacement: dnsmasq-a
+  elasticsearch_exporter:
+    enabled: true

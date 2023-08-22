@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
+	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -93,6 +94,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *cloudwatch_exporter.Config:
 		case *consul_exporter.Config:
 		case *dnsmasq_exporter.Config:
+		case *elasticsearch_exporter.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}

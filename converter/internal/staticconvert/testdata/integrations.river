@@ -90,6 +90,14 @@ prometheus.scrape "integrations_dnsmasq_exporter" {
 	job_name   = "integrations/dnsmasq_exporter"
 }
 
+prometheus.exporter.elasticsearch "integrations_elasticsearch_exporter" { }
+
+prometheus.scrape "integrations_elasticsearch_exporter" {
+	targets    = prometheus.exporter.elasticsearch.integrations_elasticsearch_exporter.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/elasticsearch_exporter"
+}
+
 prometheus.exporter.unix { }
 
 discovery.relabel "integrations_node_exporter" {

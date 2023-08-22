@@ -14,6 +14,7 @@ import (
 	int_config "github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
+	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/common/model"
@@ -56,6 +57,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendConsulExporter(itg)
 		case *dnsmasq_exporter.Config:
 			exports = b.appendDnsmasqExporter(itg)
+		case *elasticsearch_exporter.Config:
+			exports = b.appendElasticsearchExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {
