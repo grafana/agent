@@ -233,15 +233,8 @@ name | type | description | default | required
 `fields` | `string` | Regexp of fields to return for the vmstat collector. | `"^(oom_kill\|pgpg\|pswp\|pg.*fault).*"` | no
 
 ## Exported fields
-The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `unix` metrics.
-
-For example, the `targets` could either be passed to a `prometheus.relabel`
-component to rewrite the metrics' label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 

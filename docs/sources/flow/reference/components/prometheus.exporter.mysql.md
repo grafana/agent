@@ -144,15 +144,8 @@ The full list of supported collectors is:
 | slave_status                                     | Scrape information from `SHOW SLAVE STATUS`. | yes |
 
 ## Exported fields
-The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | Targets that expose `mysql_exporter` metrics.
-
-For example, the `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metric's label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 

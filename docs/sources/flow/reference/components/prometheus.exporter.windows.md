@@ -166,15 +166,8 @@ Name | Type     | Description | Default | Required
 Volume names must match the regular expression specified by `whitelist` and must _not_ match the regular expression specified by `blacklist` to be included.
 
 ## Exported fields
-The following fields are exported and can be referenced by other components:
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `windows` metrics.
-
-For example, the `targets` could either be passed to a `prometheus.relabel`
-component to rewrite the metrics' label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 
