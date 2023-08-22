@@ -90,6 +90,8 @@ Main (unreleased)
 
 - Fix issue where Agent crashes when a blackbox modules config file is specified for blackbox integration. (@marctc)
 
+- Fix issue where the code from agent would not return to the Windows Service Manager (@jkroepke)
+
 - Fix issue where getting the support bundle failed due to using an HTTP Client that was not able to access the agent in-memory address. (@spartan0x117)
 
 - Fix an issue that lead the `loki.source.docker` container to use excessive
