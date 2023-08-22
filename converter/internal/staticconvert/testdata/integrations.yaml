@@ -128,3 +128,10 @@ integrations:
   mssql:
     enabled: true
     connection_string: sqlserver://<USERNAME>:<PASSWORD>@<HOST>:<PORT>
+  mysqld_exporter:
+    enabled: true
+    data_source_name: root@(server-a:3306)/
+    relabel_configs:
+    - source_labels: [__address__]
+      target_label: instance
+      replacement: server-a

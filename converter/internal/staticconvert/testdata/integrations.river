@@ -186,6 +186,26 @@ prometheus.scrape "integrations_mssql" {
 	job_name   = "integrations/mssql"
 }
 
+prometheus.exporter.mysql "integrations_mysqld_exporter" {
+	data_source_name = "root@(server-a:3306)/"
+}
+
+discovery.relabel "integrations_mysqld_exporter" {
+	targets = prometheus.exporter.mysql.integrations_mysqld_exporter.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "instance"
+		replacement   = "server-a"
+	}
+}
+
+prometheus.scrape "integrations_mysqld_exporter" {
+	targets    = discovery.relabel.integrations_mysqld_exporter.output
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/mysqld_exporter"
+}
+
 prometheus.exporter.unix { }
 
 discovery.relabel "integrations_node_exporter" {

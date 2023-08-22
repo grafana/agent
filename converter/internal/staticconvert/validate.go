@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 	"github.com/grafana/agent/pkg/integrations/mongodb_exporter"
 	mssql_exporter "github.com/grafana/agent/pkg/integrations/mssql"
+	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -107,6 +108,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *memcached_exporter.Config:
 		case *mongodb_exporter.Config:
 		case *mssql_exporter.Config:
+		case *mysqld_exporter.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}

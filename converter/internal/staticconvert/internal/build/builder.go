@@ -21,6 +21,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 	"github.com/grafana/agent/pkg/integrations/mongodb_exporter"
 	mssql_exporter "github.com/grafana/agent/pkg/integrations/mssql"
+	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/common/model"
@@ -77,6 +78,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendMongodbExporter(itg)
 		case *mssql_exporter.Config:
 			exports = b.appendMssqlExporter(itg)
+		case *mysqld_exporter.Config:
+			exports = b.appendMysqldExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {
