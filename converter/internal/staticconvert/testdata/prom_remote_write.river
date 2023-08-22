@@ -3,7 +3,9 @@ prometheus.remote_write "metrics_test1" {
 		name = "test1-ca06cf"
 		url  = "http://localhost:9009/api/prom/push"
 
-		queue_config { }
+		queue_config {
+			retry_on_http_429 = false
+		}
 
 		metadata_config { }
 	}
@@ -11,7 +13,7 @@ prometheus.remote_write "metrics_test1" {
 
 prometheus.remote_write "metrics_test2" {
 	endpoint {
-		name = "test2-85b8a7"
+		name = "test2-625ad5"
 		url  = "http://localhost:9010/api/prom/push"
 
 		queue_config { }
@@ -25,7 +27,9 @@ prometheus.remote_write "metrics_test3" {
 		name = "test3-c8fbbe"
 		url  = "http://localhost:9011/api/prom/push"
 
-		queue_config { }
+		queue_config {
+			retry_on_http_429 = false
+		}
 
 		metadata_config { }
 	}
@@ -34,7 +38,9 @@ prometheus.remote_write "metrics_test3" {
 		name = "test3-41df1c"
 		url  = "http://localhost:9012/api/prom/push"
 
-		queue_config { }
+		queue_config {
+			retry_on_http_429 = false
+		}
 
 		metadata_config { }
 	}
