@@ -1,3 +1,4 @@
 (Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
+(Error) unsupported integration agent was provided.
 (Error) unsupported integration azure_exporter was provided.
 (Error) unsupported integration cadvisor was provided.

@@ -4,6 +4,8 @@ metrics:
       - url: http://localhost:9009/api/prom/push
 
 integrations:
+  agent:
+    enabled: true
   apache_http:
     enabled: true
     scrape_uri: http://0.0.0.0/server-status?auto
