@@ -20,6 +20,7 @@ import (
 	mssql_exporter "github.com/grafana/agent/pkg/integrations/mssql"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
+	"github.com/grafana/agent/pkg/integrations/oracledb_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
@@ -109,6 +110,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *mongodb_exporter.Config:
 		case *mssql_exporter.Config:
 		case *mysqld_exporter.Config:
+		case *oracledb_exporter.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}

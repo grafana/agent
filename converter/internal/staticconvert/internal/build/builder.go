@@ -23,6 +23,7 @@ import (
 	mssql_exporter "github.com/grafana/agent/pkg/integrations/mssql"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
+	"github.com/grafana/agent/pkg/integrations/oracledb_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
@@ -80,6 +81,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendMssqlExporter(itg)
 		case *mysqld_exporter.Config:
 			exports = b.appendMysqldExporter(itg)
+		case *oracledb_exporter.Config:
+			exports = b.appendOracledbExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {

@@ -246,3 +246,13 @@ prometheus.relabel "integrations_node_exporter" {
 		target_label  = "__metric_param_target2"
 	}
 }
+
+prometheus.exporter.oracledb "integrations_oracledb" {
+	connection_string = "oracle://user:password@localhost:1521/orcl.localnet"
+}
+
+prometheus.scrape "integrations_oracledb" {
+	targets    = prometheus.exporter.oracledb.integrations_oracledb.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/oracledb"
+}

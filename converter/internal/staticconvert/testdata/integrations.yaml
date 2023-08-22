@@ -4,26 +4,12 @@ metrics:
       - url: http://localhost:9009/api/prom/push
 
 integrations:
+  scrape_integrations: true
   agent:
     enabled: true
   apache_http:
     enabled: true
     scrape_uri: http://0.0.0.0/server-status?auto
-  node_exporter:
-    enabled: true
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_id
-      - source_labels: [__param_id]
-        target_label: thermostat
-      - target_label: __address__
-        replacement: localhost:8099
-    metric_relabel_configs:
-      - source_labels: [__metric_address1__]
-        target_label: __metric_param_target1
-      - source_labels: [__metric_address2__]
-        target_label: __metric_param_target2
-  scrape_integrations: true
   azure_exporter:
     enabled: true
     scrape_interval: 60s
@@ -137,3 +123,21 @@ integrations:
     - source_labels: [__address__]
       target_label: instance
       replacement: server-a
+  node_exporter:
+    enabled: true
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_id
+      - source_labels: [__param_id]
+        target_label: thermostat
+      - target_label: __address__
+        replacement: localhost:8099
+    metric_relabel_configs:
+      - source_labels: [__metric_address1__]
+        target_label: __metric_param_target1
+      - source_labels: [__metric_address2__]
+        target_label: __metric_param_target2
+  oracledb:
+    enabled: true
+    connection_string: oracle://user:password@localhost:1521/orcl.localnet
+    scrape_integration: true
