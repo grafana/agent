@@ -122,7 +122,6 @@ func (c *Component) Update(args component.Arguments) error {
 		_ = f.Close()
 	}
 
-	// TODO: Add support for labels - see https://github.com/grafana/agent/issues/4634 for more details
 	winTarget, err := windows.New(c.opts.Logger, c.handle, nil, convertConfig(newArgs))
 	if err != nil {
 		return err
