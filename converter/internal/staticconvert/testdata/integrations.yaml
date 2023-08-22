@@ -5,33 +5,9 @@ metrics:
 
 integrations:
   scrape_integrations: true
-  agent:
-    enabled: true
   apache_http:
     enabled: true
     scrape_uri: http://0.0.0.0/server-status?auto
-  azure_exporter:
-    enabled: true
-    scrape_interval: 60s
-    subscriptions:
-      - ABCDEFGH-1234-ABCD-1234-ABCDEFGHIJKL
-    resource_type: microsoft.containerservice/managedclusters
-    metrics:
-      - node_cpu_usage_millicores
-      - node_cpu_usage_percentage
-      - node_disk_usage_bytes
-      - node_disk_usage_percentage
-      - node_memory_rss_bytes
-      - node_memory_rss_percentage
-      - node_memory_working_set_bytes
-      - node_memory_working_set_percentage
-      - node_network_in_bytes
-      - node_network_out_bytes
-    included_resource_tags:
-      - environment
-    included_dimensions:
-      - node
-      - nodepool
   blackbox:
     enabled: true
     blackbox_targets:
@@ -49,8 +25,6 @@ integrations:
               Content-Type: application/json
             body: '{}'
             preferred_ip_protocol: "ip4"
-  cadvisor:
-    enabled: true
   cloudwatch_exporter:
     enabled: true
     sts_region: us-east-2
@@ -195,3 +169,5 @@ integrations:
     scrape_interval: 1m
     scrape_timeout: 1m
     scrape_integration: true
+  statsd_exporter:
+    enabled: true

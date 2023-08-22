@@ -30,6 +30,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
+	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
@@ -101,6 +102,8 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendSnowflakeExporter(itg)
 		case *squid_exporter.Config:
 			exports = b.appendSquidExporter(itg)
+		case *statsd_exporter.Config:
+			exports = b.appendStatsdExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {
