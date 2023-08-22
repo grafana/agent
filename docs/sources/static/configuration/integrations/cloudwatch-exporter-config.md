@@ -435,5 +435,3 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `/aws/sagemaker/InferenceRecommendationsJobs` or Alias: `sagemaker-inf-rec`
 - Namespace: `AWS/Sagemaker/ModelBuildingPipeline` or Alias: `sagemaker-model-building-pipeline`
 
-
-
