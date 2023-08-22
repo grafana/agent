@@ -252,9 +252,10 @@ prometheus.exporter.oracledb "integrations_oracledb" {
 }
 
 prometheus.scrape "integrations_oracledb" {
-	targets    = prometheus.exporter.oracledb.integrations_oracledb.targets
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/oracledb"
+	targets        = prometheus.exporter.oracledb.integrations_oracledb.targets
+	forward_to     = [prometheus.remote_write.integrations.receiver]
+	job_name       = "integrations/oracledb"
+	scrape_timeout = "1m0s"
 }
 
 prometheus.exporter.postgres "integrations_postgres_exporter" {
@@ -351,4 +352,15 @@ prometheus.scrape "integrations_snowflake" {
 	targets    = prometheus.exporter.snowflake.integrations_snowflake.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/snowflake"
+}
+
+prometheus.exporter.squid "integrations_squid" {
+	address = "localhost:3128"
+}
+
+prometheus.scrape "integrations_squid" {
+	targets        = prometheus.exporter.squid.integrations_squid.targets
+	forward_to     = [prometheus.remote_write.integrations.receiver]
+	job_name       = "integrations/squid"
+	scrape_timeout = "1m0s"
 }

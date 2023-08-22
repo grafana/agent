@@ -77,6 +77,8 @@ integrations:
   oracledb:
     enabled: true
     connection_string: oracle://user:password@localhost:1521/orcl.localnet
+    scrape_interval: 1m
+    scrape_timeout: 1m
     scrape_integration: true
 metrics:
   wal_directory: /tmp/grafana-agent-wal

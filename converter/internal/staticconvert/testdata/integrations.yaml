@@ -140,6 +140,8 @@ integrations:
   oracledb:
     enabled: true
     connection_string: oracle://user:password@localhost:1521/orcl.localnet
+    scrape_interval: 1m
+    scrape_timeout: 1m
     scrape_integration: true
   postgres_exporter:
     enabled: true
@@ -187,3 +189,9 @@ integrations:
     password: snowflake-pass
     warehouse: SNOWFLAKE_WAREHOUSE
     role: ACCOUNTADMIN
+  squid:
+    enabled: true
+    address: localhost:3128
+    scrape_interval: 1m
+    scrape_timeout: 1m
+    scrape_integration: true
