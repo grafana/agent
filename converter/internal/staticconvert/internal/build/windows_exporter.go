@@ -24,12 +24,12 @@ func (b *IntegrationsV1ConfigBuilder) appendWindowsExporter(config *windows_expo
 
 func toWindowsExporter(config *windows_exporter.Config) *windows.Arguments {
 	return &windows.Arguments{
-		EnabledCollectors: splitNullOnEmpty(config.EnabledCollectors, ","),
+		EnabledCollectors: splitByCommaNullOnEmpty(config.EnabledCollectors),
 		Dfsr: windows.DfsrConfig{
-			SourcesEnabled: splitNullOnEmpty(config.Dfsr.SourcesEnabled, ","),
+			SourcesEnabled: splitByCommaNullOnEmpty(config.Dfsr.SourcesEnabled),
 		},
 		Exchange: windows.ExchangeConfig{
-			EnabledList: splitNullOnEmpty(config.Exchange.EnabledList, ","),
+			EnabledList: splitByCommaNullOnEmpty(config.Exchange.EnabledList),
 		},
 		IIS: windows.IISConfig{
 			AppBlackList:  config.IIS.AppBlackList,
@@ -51,7 +51,7 @@ func toWindowsExporter(config *windows_exporter.Config) *windows.Arguments {
 			Where: config.MSMQ.Where,
 		},
 		MSSQL: windows.MSSQLConfig{
-			EnabledClasses: splitNullOnEmpty(config.MSSQL.EnabledClasses, ","),
+			EnabledClasses: splitByCommaNullOnEmpty(config.MSSQL.EnabledClasses),
 		},
 		Network: windows.NetworkConfig{
 			BlackList: config.Network.BlackList,

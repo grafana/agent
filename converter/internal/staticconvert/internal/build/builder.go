@@ -156,10 +156,10 @@ func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Co
 	b.globalCtx.InitializeRemoteWriteExports()
 }
 
-func splitNullOnEmpty(s string, sep string) []string {
+func splitByCommaNullOnEmpty(s string) []string {
 	if s == "" {
 		return nil
 	}
 
-	return strings.Split(s, sep)
+	return strings.Split(s, ",")
 }
