@@ -100,3 +100,9 @@ integrations:
       - loadbalancing.googleapis.com/https/total_latencies
     extra_filters:
       - loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"
+  github_exporter:
+    enabled: true
+    api_token: ABCDEFGH-1234-ABCD-1234-ABCDEFGHIJKL
+    repositories:
+      - grafana/agent
+      - grafana/agent-modules

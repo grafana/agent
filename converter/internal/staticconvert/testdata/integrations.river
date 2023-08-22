@@ -110,6 +110,17 @@ prometheus.scrape "integrations_gcp_exporter" {
 	job_name   = "integrations/gcp_exporter"
 }
 
+prometheus.exporter.github "integrations_github_exporter" {
+	repositories = ["grafana/agent", "grafana/agent-modules"]
+	api_token    = "ABCDEFGH-1234-ABCD-1234-ABCDEFGHIJKL"
+}
+
+prometheus.scrape "integrations_github_exporter" {
+	targets    = prometheus.exporter.github.integrations_github_exporter.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/github_exporter"
+}
+
 prometheus.exporter.unix { }
 
 discovery.relabel "integrations_node_exporter" {
