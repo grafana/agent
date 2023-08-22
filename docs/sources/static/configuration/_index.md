@@ -151,6 +151,6 @@ This beta feature is subject to change in future releases.
 [traces]: "/docs/grafana-cloud/ -> ./traces-config"
 [integrations]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations"
 [integrations]: "/docs/grafana-cloud/ -> ./integrations"
-[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api/#reload-configuration-file-beta"
-[api]: "/docs/grafana-cloud/ -> ../api/#reload-configuration-file-beta"
+[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api#reload-configuration-file-beta"
+[api]: "/docs/grafana-cloud/ -> ../api#reload-configuration-file-beta"
 {{% /docs/reference %}}
