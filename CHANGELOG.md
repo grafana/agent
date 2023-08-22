@@ -60,7 +60,7 @@ Main (unreleased)
 
 - Flow: Added exemplar support for the `otelcol.exporter.prometheus`. (@wildum)
 
-- `loki.write` now supports retries on HTTP429. (@wildum)
+- `loki.write` now supports configuring retries on HTTP status code 429. (@wildum)
 
 - New Grafana Agent Flow components:
 
