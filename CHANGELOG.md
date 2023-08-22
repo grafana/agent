@@ -74,6 +74,8 @@ Main (unreleased)
   - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes 
   keys and values are sourced from `discovery.*` components. (@ptodev)
 
+- Update `YACE` to `v0.54.0`, which includes bugfixes for FIPS support. (@ashrayjain)
+
 ### Bugfixes
 
 - Update to config converter so default relabel `source_labels` are left off the river output. (@erikbaranowski)
