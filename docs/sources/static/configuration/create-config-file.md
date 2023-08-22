@@ -60,8 +60,7 @@ the Grafana Agent is running on. This label helps to uniquely identify the
 source of metrics if you are running multiple Grafana Agents across multiple
 machines.
 
-Full configuration options can be found in the
-[configuration reference]({{< relref "../configuration/_index.md" >}}).
+Full configuration options can be found in the [configuration reference][configure].
 
 ## Prometheus config/migrating from Prometheus
 
@@ -106,7 +105,7 @@ metrics:
 ```
 
 Like with integrations, full configuration options can be found in the
-[configuration]({{< relref "../configuration/_index.md" >}}).
+[configuration][configure].
 
 ## Loki Config/Migrating from Promtail
 
@@ -182,3 +181,8 @@ integrations:
   node_exporter:
     enabled: true
 ```
+
+{{% docs/reference %}}
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
+[configure]: "/docs/grafana-cloud/ -> ./configuration"
+{{% /docs/reference %}}

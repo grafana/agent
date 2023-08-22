@@ -29,10 +29,10 @@ names to enable.
 
 Valid feature names are:
 
-* `remote-configs`: Enable [retrieving]({{< relref "./_index.md#remote-configuration-experimental" >}}) config files over HTTP/HTTPS
-* `integrations-next`: Enable [revamp]({{< relref "./integrations/integrations-next/" >}}) of the integrations subsystem
-* `dynamic-config`: Enable support for [dynamic configuration]({{< relref "./dynamic-config" >}})
-* `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/latest/feature_flags/#extra-scrape-metrics).
+* `remote-configs`: Enable [retrieving][retrieving] config files over HTTP/HTTPS
+* `integrations-next`: Enable [revamp][revamp] of the integrations subsystem
+* `extra-scrape-metrics`: When enabled, additional time series  are exposed for each metrics instance scrape. See [Extra scrape metrics](https://prometheus.io/docs/prometheus/2.45/feature_flags/#extra-scrape-metrics).
+* `agent-management`: Enable support for [agent management][management].
 
 ## Report information usage
 
@@ -146,3 +146,12 @@ YAML configuration when the `-server.http.tls-enabled` flag is used.
 ## Metrics
 
 * `-metrics.wal-directory`: Directory to store the metrics Write-Ahead Log in
+
+{{% docs/reference %}}
+[retrieving]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration#remote-configuration-experimental"
+[retrieving]: "/docs/grafana-cloud/ -> ./configuration#remote-configuration-experimental"
+[revamp]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations/integrations-next/"
+[revamp]: "/docs/grafana-cloud/ -> ./integrations/integrations-next/"
+[management]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/agent-management"
+[management]: "/docs/grafana-cloud/ -> ./agent-management"
+{{% /docs/reference %}}

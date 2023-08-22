@@ -13,7 +13,7 @@ that allows for clustering a set of Agent processes and distributing scrape load
 across them.
 
 Determining what to scrape is done by writing instance configuration files to an
-[API]({{< relref "../api" >}}), which then stores the configuration files in a KV store backend.
+[API][api], which then stores the configuration files in a KV store backend.
 All agents in the cluster **must** use the same KV store so they see the same set
 of config files.
 
@@ -43,7 +43,7 @@ remote_write:
 
 The full set of supported options for an instance configuration file is
 available in the
-[`metrics-config.md` file]({{< relref "metrics-config" >}}).
+[`metrics-config.md` file][metrics].
 
 Having multiple instance configuration files is necessary for sharding; each
 config file is distributed to a particular agent on the cluster based on the
@@ -167,3 +167,10 @@ Entries in the API not in the synced directory will be deleted.
 container with the `grafana/agentctl` image. Tanka configurations that
 utilize `grafana/agentctl` and sync a set of configurations to the API
 are planned for the future.
+
+{{% docs/reference %}}
+[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api"
+[api]: "/docs/grafana-cloud/ -> ../api"
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/grafana-cloud/ -> ./metrics-config"
+{{% /docs/reference %}}
