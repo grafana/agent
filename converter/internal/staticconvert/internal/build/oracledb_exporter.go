@@ -20,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendOracledbExporter(config *oracledb_ex
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.oracledb.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.oracledb.%s.targets", compLabel))
 }
 
 func toOracledbExporter(config *oracledb_exporter.Config) *oracledb.Arguments {

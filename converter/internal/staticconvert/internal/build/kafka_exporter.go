@@ -19,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendKafkaExporter(config *kafka_exporter
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.kafka.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.kafka.%s.targets", compLabel))
 }
 
 func toKafkaExporter(config *kafka_exporter.Config) *kafka.Arguments {

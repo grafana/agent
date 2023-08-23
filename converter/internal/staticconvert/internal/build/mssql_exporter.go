@@ -20,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendMssqlExporter(config *mssql_exporter
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.mssql.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.mssql.%s.targets", compLabel))
 }
 
 func toMssqlExporter(config *mssql_exporter.Config) *mssql.Arguments {

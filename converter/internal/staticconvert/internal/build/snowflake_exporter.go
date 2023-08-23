@@ -20,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendSnowflakeExporter(config *snowflake_
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.snowflake.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.snowflake.%s.targets", compLabel))
 }
 
 func toSnowflakeExporter(config *snowflake_exporter.Config) *snowflake.Arguments {

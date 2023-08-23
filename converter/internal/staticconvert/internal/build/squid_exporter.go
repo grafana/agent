@@ -20,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendSquidExporter(config *squid_exporter
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.squid.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.squid.%s.targets", compLabel))
 }
 
 func toSquidExporter(config *squid_exporter.Config) *squid.Arguments {

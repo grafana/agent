@@ -20,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendMongodbExporter(config *mongodb_expo
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.mongodb.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.mongodb.%s.targets", compLabel))
 }
 
 func toMongodbExporter(config *mongodb_exporter.Config) *mongodb.Arguments {

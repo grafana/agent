@@ -21,7 +21,7 @@ func (b *IntegrationsV1ConfigBuilder) appendSnmpExporter(config *snmp_exporter.C
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.snmp.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.snmp.%s.targets", compLabel))
 }
 
 func toSnmpExporter(config *snmp_exporter.Config) *snmp.Arguments {

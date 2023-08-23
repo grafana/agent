@@ -20,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendGithubExporter(config *github_export
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.github.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.github.%s.targets", compLabel))
 }
 
 func toGithubExporter(config *github_exporter.Config) *github.Arguments {

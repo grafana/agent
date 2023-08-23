@@ -20,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendRedisExporter(config *redis_exporter
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.redis.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.redis.%s.targets", compLabel))
 }
 
 func toRedisExporter(config *redis_exporter.Config) *redis.Arguments {

@@ -20,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendPostgresExporter(config *postgres_ex
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.postgres.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.postgres.%s.targets", compLabel))
 }
 
 func toPostgresExporter(config *postgres_exporter.Config) *postgres.Arguments {

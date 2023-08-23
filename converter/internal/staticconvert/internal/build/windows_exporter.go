@@ -19,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendWindowsExporter(config *windows_expo
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.windows.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.windows.%s.targets", compLabel))
 }
 
 func toWindowsExporter(config *windows_exporter.Config) *windows.Arguments {

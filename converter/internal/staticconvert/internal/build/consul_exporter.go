@@ -19,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendConsulExporter(config *consul_export
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.consul.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.consul.%s.targets", compLabel))
 }
 
 func toConsulExporter(config *consul_exporter.Config) *consul.Arguments {

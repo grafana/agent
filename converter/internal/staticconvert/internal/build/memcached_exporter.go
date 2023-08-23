@@ -19,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendMemcachedExporter(config *memcached_
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.memcached.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.memcached.%s.targets", compLabel))
 }
 
 func toMemcachedExporter(config *memcached_exporter.Config) *memcached.Arguments {

@@ -19,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendDnsmasqExporter(config *dnsmasq_expo
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.dnsmasq.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.dnsmasq.%s.targets", compLabel))
 }
 
 func toDnsmasqExporter(config *dnsmasq_exporter.Config) *dnsmasq.Arguments {

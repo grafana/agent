@@ -20,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendMysqldExporter(config *mysqld_export
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.mysql.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.mysql.%s.targets", compLabel))
 }
 
 func toMysqldExporter(config *mysqld_exporter.Config) *mysql.Arguments {

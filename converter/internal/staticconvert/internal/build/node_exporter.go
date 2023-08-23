@@ -16,7 +16,7 @@ func (b *IntegrationsV1ConfigBuilder) appendNodeExporter(config *node_exporter.C
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports("prometheus.exporter.unix.targets")
+	return prometheusconvert.NewDiscoveryExports("prometheus.exporter.unix.targets")
 }
 
 func toNodeExporter(config *node_exporter.Config) *unix.Arguments {

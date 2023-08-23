@@ -19,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendElasticsearchExporter(config *elasti
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.elasticsearch.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.elasticsearch.%s.targets", compLabel))
 }
 
 func toElasticsearchExporter(config *elasticsearch_exporter.Config) *elasticsearch.Arguments {

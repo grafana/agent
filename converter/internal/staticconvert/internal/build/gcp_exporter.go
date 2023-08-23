@@ -19,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendGcpExporter(config *gcp_exporter.Con
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.gcp.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.gcp.%s.targets", compLabel))
 }
 
 func toGcpExporter(config *gcp_exporter.Config) *gcp.Arguments {

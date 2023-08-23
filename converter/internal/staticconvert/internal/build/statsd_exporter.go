@@ -24,7 +24,7 @@ func (b *IntegrationsV1ConfigBuilder) appendStatsdExporter(config *statsd_export
 		b.diags.Add(diag.SeverityLevelError, "mapping_config is not supported in statsd_exporter integrations config")
 	}
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.statsd.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.statsd.%s.targets", compLabel))
 }
 
 func toStatsdExporter(config *statsd_exporter.Config) *statsd.Arguments {

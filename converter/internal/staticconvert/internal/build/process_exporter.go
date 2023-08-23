@@ -19,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendProcessExporter(config *process_expo
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.process.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.process.%s.targets", compLabel))
 }
 
 func toProcessExporter(config *process_exporter.Config) *process.Arguments {
