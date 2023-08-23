@@ -328,12 +328,12 @@ prometheus.exporter.snmp "integrations_snmp" {
 		walk_params = "private"
 	}
 
-	walk_param "public" {
-		retries = 1
-	}
-
 	walk_param "private" {
 		retries = 2
+	}
+
+	walk_param "public" {
+		retries = 1
 	}
 }
 
