@@ -2,7 +2,7 @@ package utils
 
 import "github.com/prometheus/common/model"
 
-// Convert a map of strings to a prometheus LabelSet.
+// ToLabelSet converts a map of strings to a prometheus LabelSet.
 func ToLabelSet(in map[string]string) model.LabelSet {
 	res := make(model.LabelSet, len(in))
 	for k, v := range in {
