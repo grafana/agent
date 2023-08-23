@@ -38,14 +38,6 @@ func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiw
 		)
 	}
 
-	// This is not supported yet - see https://github.com/grafana/agent/issues/4335.
-	if config.DropRateLimitedBatches {
-		diags.Add(
-			diag.SeverityLevelError,
-			"DropRateLimitedBatches is currently not supported in Grafana Agent Flow",
-		)
-	}
-
 	// Also deprecated in promtail.
 	if len(config.StreamLagLabels) != 0 {
 		diags.Add(
@@ -68,6 +60,7 @@ func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiw
 				MaxBackoffRetries: config.BackoffConfig.MaxRetries,
 				RemoteTimeout:     config.Timeout,
 				TenantID:          config.TenantID,
+				RetryOnHTTP429:    !config.DropRateLimitedBatches,
 			},
 		},
 		ExternalLabels: convertFlagLabels(config.ExternalLabels),

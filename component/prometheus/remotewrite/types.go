@@ -30,7 +30,7 @@ var (
 		BatchSendDeadline: 5 * time.Second,
 		MinBackoff:        30 * time.Millisecond,
 		MaxBackoff:        5 * time.Second,
-		RetryOnHTTP429:    false,
+		RetryOnHTTP429:    true,
 	}
 
 	DefaultMetadataOptions = MetadataOptions{
