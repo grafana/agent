@@ -97,7 +97,7 @@ You will implement the following pipelines to send your data to Loki, Tempo, and
 ```
 Metrics: OTel → batch processor → Mimir or Prometheus remote write
 Logs: OTel → batch processor → Loki exporter
-Traces: OTel → batch processor → OTel exporter
+Traces: OTel → batch processor → Tempo exporter
 ```
 ## Grafana Loki
 
