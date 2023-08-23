@@ -3,7 +3,6 @@ package cloudwatch_exporter
 import (
 	"context"
 	"net/http"
-	"sync/atomic"
 	"time"
 
 	"github.com/go-kit/log"
@@ -12,6 +11,7 @@ import (
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.uber.org/atomic"
 
 	"github.com/grafana/agent/pkg/integrations/config"
 )
