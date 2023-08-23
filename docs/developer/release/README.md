@@ -25,6 +25,7 @@ responsible for ownership of the following workflows:
 5. [Publish Release](./6-publish-release.md)
 6. [Test Release](./7-test-release.md)
 7. [Announce Release](./9-announce-release.md)
+8. [Update OTEL Contrib](./10-update-otel.mdyy)
 
 ## Additional Release Candidate[s] Publish
 1. [Cherry Pick Commits](./2-cherry-pick-commits.md)
@@ -33,6 +34,7 @@ responsible for ownership of the following workflows:
 4. [Publish Release](./6-publish-release.md)
 5. [Test Release](./7-test-release.md)
 6. [Announce Release](./9-announce-release.md)
+7. [Update OTEL Contrib](./10-update-otel.mdyy)
 
 ## Stable Release Publish
 1. [Cherry Pick Commits](./2-cherry-pick-commits.md)
@@ -43,6 +45,7 @@ responsible for ownership of the following workflows:
 6. [Test Release](./7-test-release.md)
 7. [Update Helm Charts](./8-update-helm-charts.md)
 8. [Announce Release](./9-announce-release.md)
+9. [Update OTEL Contrib](./10-update-otel.mdyy)
 
 ## Patch Release Publish (latest version)
 1. [Cherry Pick Commits](./2-cherry-pick-commits.md)
@@ -52,6 +55,7 @@ responsible for ownership of the following workflows:
 5. [Update Release Branch](./5-update-release-branch.md) 
 6. [Update Helm Charts](./8-update-helm-charts.md)
 7. [Announce Release](./9-announce-release.md)
+8. [Update OTEL Contrib](./10-update-otel.mdyy)
 
 ## Patch Release Publish (older version)
 - Not documented yet (but here are some hints)
