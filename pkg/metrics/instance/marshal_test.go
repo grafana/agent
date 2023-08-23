@@ -60,6 +60,7 @@ remote_write:
     batch_send_deadline: 5s
     min_backoff: 30ms
     max_backoff: 100ms
+    retry_on_http_429: true
   follow_redirects: true
   enable_http2: true
   metadata_config:
@@ -115,6 +116,7 @@ remote_write:
     batch_send_deadline: 5s
     min_backoff: 30ms
     max_backoff: 100ms
+    retry_on_http_429: true
   follow_redirects: true
   enable_http2: true
   metadata_config:
