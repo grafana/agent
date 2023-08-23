@@ -43,14 +43,14 @@ type Config struct {
 	Discovery       DiscoveryConfig       `yaml:"discovery"`
 	Static          []StaticJob           `yaml:"static"`
 	Debug           bool                  `yaml:"debug"`
-	DecoupledScrape DecoupledScrapeConfig `yaml:"decoupled-scraping"`
+	DecoupledScrape DecoupledScrapeConfig `yaml:"decoupled_scraping"`
 }
 
 // DecoupledScrapeConfig is the configuration for decoupled scraping feature.
 type DecoupledScrapeConfig struct {
 	Enabled bool `yaml:"enabled"`
 	// ScrapeInterval defines the decoupled scraping interval. If left empty, a default interval of 5m is used
-	ScrapeInterval *time.Duration `yaml:"scrape-interval,omitempty"`
+	ScrapeInterval *time.Duration `yaml:"scrape_interval,omitempty"`
 }
 
 // DiscoveryConfig configures scraping jobs that will auto-discover metrics dimensions for a given service.
