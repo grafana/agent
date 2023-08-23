@@ -1,0 +1,35 @@
+prometheus.exporter.windows "integrations_windows_exporter" {
+	enabled_collectors = ["cpu", "cs", "logical_disk", "net", "os", "service", "system"]
+
+	dfsr {
+		sources_enabled = ["connection", "folder", "volume"]
+	}
+
+	exchange { }
+
+	mssql {
+		enabled_classes = ["accessmethods", "availreplica", "bufman", "databases", "dbreplica", "genstats", "locks", "memmgr", "sqlstats", "sqlerrors", "transactions", "waitstats"]
+	}
+
+	network {
+		exclude = ".+"
+	}
+}
+
+prometheus.scrape "integrations_windows_exporter" {
+	targets    = prometheus.exporter.windows.integrations_windows_exporter.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/windows_exporter"
+}
+
+prometheus.remote_write "integrations" {
+	endpoint {
+		url = "http://localhost:9009/api/prom/push"
+
+		queue_config {
+			retry_on_http_429 = false
+		}
+
+		metadata_config { }
+	}
+}

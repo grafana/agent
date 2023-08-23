@@ -171,5 +171,3 @@ integrations:
     scrape_integration: true
   statsd_exporter:
     enabled: true
-  windows_exporter:
-    enabled: true
