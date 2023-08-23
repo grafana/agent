@@ -20,12 +20,10 @@ prometheus.scrape "metrics_name_jobName" {
 
 prometheus.remote_write "metrics_name" {
 	endpoint {
-		name = "name-ca06cf"
+		name = "name-8be96f"
 		url  = "http://localhost:9009/api/prom/push"
 
-		queue_config {
-			retry_on_http_429 = false
-		}
+		queue_config { }
 
 		metadata_config { }
 	}

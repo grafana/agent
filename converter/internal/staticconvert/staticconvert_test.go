@@ -5,6 +5,7 @@ import (
 
 	"github.com/grafana/agent/converter/internal/staticconvert"
 	"github.com/grafana/agent/converter/internal/test_common"
+	_ "github.com/grafana/agent/pkg/metrics/instance"
 )
 
 func TestConvert(t *testing.T) {

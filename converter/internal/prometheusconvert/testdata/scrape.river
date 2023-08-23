@@ -43,13 +43,10 @@ prometheus.remote_write "default" {
 	}
 
 	endpoint {
-		name           = "remote1"
-		url            = "http://remote-write-url1"
-		send_exemplars = false
+		name = "remote1"
+		url  = "http://remote-write-url1"
 
-		queue_config {
-			retry_on_http_429 = false
-		}
+		queue_config { }
 
 		metadata_config { }
 
@@ -65,13 +62,10 @@ prometheus.remote_write "default" {
 	}
 
 	endpoint {
-		name           = "remote2"
-		url            = "http://remote-write-url2"
-		send_exemplars = false
+		name = "remote2"
+		url  = "http://remote-write-url2"
 
-		queue_config {
-			retry_on_http_429 = false
-		}
+		queue_config { }
 
 		metadata_config { }
 	}
