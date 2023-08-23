@@ -23,7 +23,9 @@ prometheus.remote_write "metrics_name" {
 		name = "name-ca06cf"
 		url  = "http://localhost:9009/api/prom/push"
 
-		queue_config { }
+		queue_config {
+			retry_on_http_429 = false
+		}
 
 		metadata_config { }
 	}

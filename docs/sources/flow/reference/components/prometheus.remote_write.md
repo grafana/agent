@@ -138,7 +138,7 @@ Name | Type | Description | Default | Required
 `batch_send_deadline` | `duration` | Maximum time samples will wait in the buffer before sending. | `"5s"` | no
 `min_backoff` | `duration` | Initial retry delay. The backoff time gets doubled for each retry. | `"30ms"` | no
 `max_backoff` | `duration` | Maximum retry delay. | `"5s"` | no
-`retry_on_http_429` | `bool` | Retry when an HTTP 429 status code is received. | `false` | no
+`retry_on_http_429` | `bool` | Retry when an HTTP 429 status code is received. | `true` | no
 
 Each queue then manages a number of concurrent _shards_ which is responsible
 for sending a fraction of data to their respective endpoints. The number of
