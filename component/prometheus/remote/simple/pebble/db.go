@@ -5,13 +5,16 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"errors"
-	"github.com/golang/snappy"
-	"github.com/grafana/agent/pkg/flow/logging"
-	"sort"
 	"sync"
 	"time"
+
+	"github.com/go-kit/log/level"
+
+	"github.com/golang/snappy"
+	"github.com/grafana/agent/pkg/flow/logging"
+
+	pdb "github.com/cockroachdb/pebble"
 )
-import pdb "github.com/cockroachdb/pebble"
 
 type DB struct {
 	mut sync.RWMutex
@@ -19,15 +22,14 @@ type DB struct {
 	log *logging.Logger
 	// Trying to avoid unbounded lists, this thankfully is one key for each commit so its unlikely to be in the millions
 	// of active commits.
-	keys         []uint64
+	keyCache     *keys
 	currentIndex uint64
 	getValue     func([]byte, int8) any
-	getType      func(data any) (int8, error)
+	getType      func(data any) (int8, int, error)
 }
 
-func NewDB(dir string, getValue func([]byte, int8) any, getType func(data any) (int8, error), l *logging.Logger) (*DB, error) {
+func NewDB(dir string, getValue func([]byte, int8) any, getType func(data any) (int8, int, error), l *logging.Logger) (*DB, error) {
 	pebbleDB, err := pdb.Open(dir, &pdb.Options{})
-
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +38,11 @@ func NewDB(dir string, getValue func([]byte, int8) any, getType func(data any) (
 		getType:  getType,
 		getValue: getValue,
 		log:      l,
-		keys:     make([]uint64, 0),
+		keyCache: &keys{
+			ks:   make([]uint64, 0),
+			ttls: make(map[uint64]int64),
+			size: make(map[uint64]int),
+		},
 	}
 	keys, err := d.GetKeys()
 	if err != nil {
@@ -55,7 +61,7 @@ func (d *DB) GetNewKey() uint64 {
 	defer d.mut.Unlock()
 
 	d.currentIndex = d.currentIndex + 1
-	d.keys = append(d.keys, d.currentIndex)
+	d.keyCache.add(d.currentIndex, 0, 0)
 	return d.currentIndex
 }
 
@@ -73,23 +79,29 @@ func (d *DB) GetKeys() ([]uint64, error) {
 	defer d.mut.Unlock()
 
 	// Return the cached keys
-	if len(d.keys) != 0 {
-		retKeys := make([]uint64, len(d.keys))
-		copy(retKeys, d.keys)
-		return retKeys, nil
+	ks := d.keyCache.keys()
+	if len(ks) > 0 {
+		return ks, nil
 	}
 
 	iter, _ := d.db.NewIter(&pdb.IterOptions{})
 	defer iter.Close()
 	if iter.First() {
-		d.keys = append(d.keys, byteToKey(iter.Key()))
+		it, err := d.convertItem(iter.Value())
+		if err != nil {
+			return nil, err
+		}
+		d.keyCache.add(byteToKey(iter.Key()), it.TTL, it.Count)
 	}
 
 	for iter.Next() {
-		d.keys = append(d.keys, byteToKey(iter.Key()))
+		it, err := d.convertItem(iter.Value())
+		if err != nil {
+			return nil, err
+		}
+		d.keyCache.add(byteToKey(iter.Key()), it.TTL, it.Count)
 	}
-	sort.Slice(d.keys, func(i, j int) bool { return d.keys[i] < d.keys[j] })
-	return d.keys, nil
+	return d.keyCache.keys(), nil
 }
 
 func (d *DB) GetCurrentKey() uint64 {
@@ -110,26 +122,48 @@ func (d *DB) GetNextKey(k uint64) uint64 {
 }
 
 func (d *DB) DeleteKeysOlderThan(k uint64) {
-	d.mut.Lock()
-	defer d.mut.Unlock()
-
-	keys, _ := d.GetKeys()
+	ks, _ := d.GetKeys()
 	batch := d.db.NewBatch()
 
-	for _, lk := range keys {
+	for _, lk := range ks {
 		if lk >= k {
 			continue
 		}
-		batch.Delete(keyToByte(lk), nil)
+		err := batch.Delete(keyToByte(lk), nil)
+		if err != nil {
+			level.Error(d.log).Log("msg", "error deleting key", "key", lk, "err", err)
+		}
 	}
 	// Force a refresh of keys.
-	d.keys = make([]uint64, 0)
+	d.keyCache.clear()
 	_, _ = d.GetKeys()
-	batch.Commit(&pdb.WriteOptions{Sync: true})
-	batch.Close()
+	err := batch.Commit(&pdb.WriteOptions{Sync: true})
+	if err != nil {
+		level.Error(d.log).Log("msg", "error committing batch", "err", err)
+	}
+	err = batch.Close()
+	if err != nil {
+		level.Error(d.log).Log("msg", "error closing batch", "err", err)
+	}
 }
 
 func (d *DB) GetValueByByte(k []byte) (any, bool, error) {
+	it, found, err := d.getItem(k)
+	if err != nil {
+		return nil, false, err
+	}
+	if !found {
+		return nil, found, err
+	}
+	// TTL is implemented on pulling the record.
+	if it.TTL < time.Now().Unix() {
+		return nil, false, nil
+	}
+	finalVal := d.getValue(it.Value, it.Type)
+	return finalVal, true, nil
+}
+
+func (d *DB) getItem(k []byte) (*item, bool, error) {
 	val, closer, err := d.db.Get(k)
 	if closer != nil {
 		defer closer.Close()
@@ -140,24 +174,23 @@ func (d *DB) GetValueByByte(k []byte) (any, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
+	it, err := d.convertItem(val)
+	return it, true, err
+}
 
+func (d *DB) convertItem(val []byte) (*item, error) {
 	unsnapped, err := snappy.Decode(nil, val)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 	buf := bytes.NewBuffer(unsnapped)
 	dec := gob.NewDecoder(buf)
 	it := &item{}
 	err = dec.Decode(it)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
-	// TTL is implemented on pulling the record.
-	if it.TTL < time.Now().Unix() {
-		return nil, false, nil
-	}
-	finalVal := d.getValue(it.Value, it.Type)
-	return finalVal, true, nil
+	return it, nil
 }
 
 func (d *DB) GetValueByString(k string) (any, bool, error) {
@@ -174,7 +207,7 @@ func (d *DB) WriteValueWithAutokey(data any, ttl time.Duration) (uint64, error) 
 }
 
 func (d *DB) WriteValue(key []byte, data any, ttl time.Duration) error {
-	t, err := d.getType(data)
+	t, count, err := d.getType(data)
 	if err != nil {
 		return err
 	}
@@ -190,6 +223,7 @@ func (d *DB) WriteValue(key []byte, data any, ttl time.Duration) error {
 	if ttl > 0 {
 		it.TTL = time.Now().Add(ttl).Unix()
 	}
+	it.Count = count
 	buf = bytes.NewBuffer(nil)
 	enc = gob.NewEncoder(buf)
 	err = enc.Encode(it)
@@ -201,18 +235,43 @@ func (d *DB) WriteValue(key []byte, data any, ttl time.Duration) error {
 }
 
 func (d *DB) Evict() error {
-	if len(d.keys) == 0 {
+	d.mut.Lock()
+	defer d.mut.Unlock()
+
+	if d.keyCache.len() == 0 {
 		return nil
 	}
-	return d.db.Compact(keyToByte(d.keys[0]), keyToByte(d.keys[len(d.keys)-1]), true)
+
+	// Find all the expired TTLs and remove them.
+	expired := d.keyCache.keysWithExpiredTTL(time.Now().Unix())
+	for _, k := range expired {
+		err := d.db.Delete(keyToByte(k), &pdb.WriteOptions{Sync: true})
+		if err != nil {
+			return err
+		}
+	}
+	d.keyCache.removeKeys(expired)
+	ks := d.keyCache.keys()
+	if len(ks) == 0 {
+		return nil
+	}
+	return d.db.Compact(keyToByte(ks[0]), keyToByte(ks[len(ks)-1]), true)
 }
 
 func (d *DB) Size() uint64 {
-	if len(d.keys) == 0 {
+	if d.keyCache.len() == 0 {
 		return 0
 	}
-	size, _ := d.db.EstimateDiskUsage(keyToByte(d.keys[0]), keyToByte(d.keys[len(d.keys)-1]))
+	ks := d.keyCache.keys()
+	if len(ks) == 0 {
+		return 0
+	}
+	size, _ := d.db.EstimateDiskUsage(keyToByte(ks[0]), keyToByte(ks[len(ks)-1]))
 	return size
+}
+
+func (d *DB) SeriesCount() int64 {
+	return d.keyCache.seriesLen()
 }
 
 func byteToKey(b []byte) uint64 {
@@ -234,4 +293,5 @@ type item struct {
 	Value []byte
 	Type  int8
 	TTL   int64
+	Count int
 }

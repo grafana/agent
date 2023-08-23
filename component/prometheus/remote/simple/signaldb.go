@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	"github.com/grafana/agent/component/prometheus"
 	"time"
+
+	"github.com/grafana/agent/component/prometheus"
 )
 
 type SignalDB interface {
@@ -25,55 +26,61 @@ type SignalDB interface {
 
 	Evict() error
 	Size() uint64
+	SeriesCount() int64
 }
 
-func GetType(data any) (int8, error) {
+func GetType(data any) (int8, int, error) {
 	switch v := data.(type) {
 	case []prometheus.Sample:
-		return MetricSignal, nil
+		return MetricSignal, len(v), nil
 	case []prometheus.Exemplar:
-		return ExemplarSignal, nil
+		return ExemplarSignal, len(v), nil
 	case []prometheus.Metadata:
-		return MetadataSignal, nil
+		return MetadataSignal, len(v), nil
 	case []prometheus.Histogram:
-		return HistogramSignal, nil
+		return HistogramSignal, len(v), nil
 	case []prometheus.FloatHistogram:
-		return FloathistogramSignal, nil
+		return FloathistogramSignal, len(v), nil
 	case *Bookmark:
-		return BookmarkType, nil
+		return BookmarkType, 1, nil
 	default:
-		return 0, fmt.Errorf("unknown data type %v", v)
+		return 0, 0, fmt.Errorf("unknown data type %v", v)
 	}
 }
 
 func GetValue(data []byte, t int8) any {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
-
+	var err error
+	defer func() {
+		if err != nil {
+			println(err)
+		}
+	}()
 	switch t {
 	case MetricSignal:
 		var val []prometheus.Sample
-		dec.Decode(&val)
+		err = dec.Decode(&val)
 		return val
 	case ExemplarSignal:
 		var val []prometheus.Exemplar
-		dec.Decode(&val)
+		err = dec.Decode(&val)
 		return val
 	case MetadataSignal:
 		var val []prometheus.Metadata
-		dec.Decode(&val)
+		err = dec.Decode(&val)
 		return val
 	case HistogramSignal:
 		var val []prometheus.Histogram
-		dec.Decode(&val)
+		err = dec.Decode(&val)
 		return val
 	case FloathistogramSignal:
 		var val []prometheus.FloatHistogram
-		dec.Decode(&val)
+		err = dec.Decode(&val)
 		return val
 	case BookmarkType:
 		val := &Bookmark{}
-		dec.Decode(val)
+		err = dec.Decode(val)
 		return val
 	default:
 		return nil

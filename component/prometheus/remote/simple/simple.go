@@ -138,15 +138,19 @@ func (c *Simple) Appender(ctx context.Context) storage.Appender {
 func (c *Simple) commit(a *appender) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	endpoint := time.Now().UnixMilli() - int64(c.args.TTL.Seconds())
+
+	endTime := time.Now().UnixMilli() - int64(c.args.TTL.Seconds())
 
 	timestampedMetrics := make([]promtype.Sample, 0)
 	for _, x := range a.metrics {
 		// No need to write if already outside of range and a ttl is set.
-		if x.Timestamp < endpoint && (c.args.TTL.Seconds() != 0) {
+		if x.Timestamp < endTime && (c.args.TTL.Seconds() != 0) {
 			continue
 		}
 		timestampedMetrics = append(timestampedMetrics, x)
+	}
+	if len(timestampedMetrics) == 0 {
+		return
 	}
 
 	_, err := c.database.WriteSignal(timestampedMetrics)

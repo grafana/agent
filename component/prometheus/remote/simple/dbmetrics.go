@@ -6,11 +6,12 @@ type dbmetrics struct {
 	r prometheus.Registerer
 	d *dbstore
 
-	writeTime  prometheus.Histogram
-	readTime   prometheus.Histogram
-	currentKey prometheus.Gauge
-	totalKeys  *prometheus.Desc
-	diskSize   *prometheus.Desc
+	writeTime    prometheus.Histogram
+	readTime     prometheus.Histogram
+	currentKey   prometheus.Gauge
+	totalKeys    *prometheus.Desc
+	diskSize     *prometheus.Desc
+	serriesCount *prometheus.Desc
 
 	evictionTime prometheus.Histogram
 	lastEviction prometheus.Gauge
@@ -60,6 +61,9 @@ func newDbMetrics(r prometheus.Registerer, d *dbstore) *dbmetrics {
 	dbm.diskSize = prometheus.NewDesc("agent_simple_wal_disk_size",
 		"Size of WAL in kilobytes", nil, nil)
 
+	dbm.serriesCount = prometheus.NewDesc("agent_simple_wal_sample_count",
+		"Total number of samples in the WAL", nil, nil)
+
 	dbm.r.MustRegister(
 		dbm.lastEviction,
 		dbm.evictionTime,
@@ -76,6 +80,7 @@ func newDbMetrics(r prometheus.Registerer, d *dbstore) *dbmetrics {
 func (dbm *dbmetrics) Describe(ch chan<- *prometheus.Desc) {
 	ch <- dbm.totalKeys
 	ch <- dbm.diskSize
+	ch <- dbm.serriesCount
 }
 
 func (dbm *dbmetrics) Collect(ch chan<- prometheus.Metric) {
@@ -83,4 +88,6 @@ func (dbm *dbmetrics) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(dbm.totalKeys, prometheus.GaugeValue, float64(keyCount))
 	fileSize := dbm.d.getFileSize()
 	ch <- prometheus.MustNewConstMetric(dbm.diskSize, prometheus.GaugeValue, float64(fileSize))
+	sampleCount := dbm.d.sampleCount()
+	ch <- prometheus.MustNewConstMetric(dbm.serriesCount, prometheus.GaugeValue, sampleCount)
 }

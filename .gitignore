@@ -12,6 +12,7 @@ data-agent
 /cmd/agentctl/agentctl
 /cmd/agent-operator/agent-operator
 /cmd/grafana-agent-crow/grafana-agent-crow
+**/grafana-agent-flow
 /build/
 /dist/
 /dist.temp/

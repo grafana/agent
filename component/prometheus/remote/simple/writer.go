@@ -69,7 +69,7 @@ func (w *writer) Start(ctx context.Context) error {
 			}
 		}
 		// If this is the first record we ALWAYS want to try sending.
-		if newKey || first {
+		if newKey || first || !success {
 			first = false
 			level.Info(w.l).Log("msg", "looking for signal", "key", w.currentKey)
 			// Eventually this will expire from the TTL.
@@ -89,6 +89,9 @@ func (w *writer) Start(ctx context.Context) error {
 				default:
 					return fmt.Errorf("Unknown value %s ", v)
 				}
+			} else {
+				// No signal found so move on
+				success = true
 			}
 		}
 

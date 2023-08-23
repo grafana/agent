@@ -2,10 +2,11 @@ package simple
 
 import (
 	"context"
-	"github.com/grafana/agent/component/prometheus/remote/simple/pebble"
 	"path"
 	"sync"
 	"time"
+
+	"github.com/grafana/agent/component/prometheus/remote/simple/pebble"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -35,14 +36,14 @@ const (
 )
 
 func newDBStore(inMemory bool, ttl time.Duration, directory string, r prometheus.Registerer, l *logging.Logger) (*dbstore, error) {
-	//bookmarkSize := 1024 * 1024 * 1 // 1MB
-	//bookmark, err := badger.NewDB(path.Join(directory, "bookmark"), int64(bookmarkSize), l, GetValue, GetType)
+	// bookmarkSize := 1024 * 1024 * 1 // 1MB
+	// bookmark, err := badger.NewDB(path.Join(directory, "bookmark"), int64(bookmarkSize), l, GetValue, GetType)
 	bookmark, err := pebble.NewDB(path.Join(directory, "bookmark"), GetValue, GetType, l)
 	if err != nil {
 		return nil, err
 	}
-	//sampleSize := 1024 * 1024 * 256 // 256MB
-	//sample, err := badger.NewDB(path.Join(directory, "signals"), int64(sampleSize), l, GetValue, GetType)
+	// sampleSize := 1024 * 1024 * 256 // 256MB
+	// sample, err := badger.NewDB(path.Join(directory, "signals"), int64(sampleSize), l, GetValue, GetType)
 	sample, err := pebble.NewDB(path.Join(directory, "sample"), GetValue, GetType, l)
 	if err != nil {
 		return nil, err
@@ -65,7 +66,6 @@ func (dbs *dbstore) Run(ctx context.Context) {
 	dbs.ctx = ctx
 	// Evict on startup to clean up any TTL files.
 	dbs.evict()
-
 }
 
 func (dbs *dbstore) evict() {
@@ -133,4 +133,8 @@ func (dbs *dbstore) getKeyCount() uint64 {
 
 func (dbs *dbstore) getFileSize() float64 {
 	return float64(dbs.sampleDB.Size() + dbs.bookmark.Size())
+}
+
+func (dbs *dbstore) sampleCount() float64 {
+	return float64(dbs.sampleDB.SeriesCount())
 }
