@@ -2,10 +2,10 @@
 aliases:
 - ../../../../configuration/integrations/integrations-next/blackbox-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/blackbox-config/
-title: blackbox_config
+title: blackbox_config revamp
 ---
 
-# blackbox_config
+# blackbox_config revamp
 
 The `blackbox_config` block configures the `blackbox_exporter`
 integration, which is an embedded version of
