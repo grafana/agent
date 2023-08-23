@@ -151,11 +151,6 @@ integrations:
         module: mikrotik
         walk_params: private
         auth: private
-    walk_params:
-      private:
-        retries: 2
-      public:
-        retries: 1
   snowflake:
     enabled: true
     account_name: XXXXXXX-YYYYYYY

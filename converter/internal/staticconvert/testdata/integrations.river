@@ -327,14 +327,6 @@ prometheus.exporter.snmp "integrations_snmp" {
 		auth        = "private"
 		walk_params = "private"
 	}
-
-	walk_param "private" {
-		retries = 2
-	}
-
-	walk_param "public" {
-		retries = 1
-	}
 }
 
 prometheus.scrape "integrations_snmp" {
