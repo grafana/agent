@@ -353,6 +353,7 @@ is exported to CloudWatch.
 The following is a list of AWS services that are supported in `cloudwatch_exporter` discovery jobs. When configuring a
 discovery job, the `type` field of each `discovery_job` must match either the desired job namespace or alias.
 
+- Namespace: `CWAgent` or Alias: `cwagent`
 - Namespace: `AWS/Usage` or Alias: `usage`
 - Namespace: `AWS/CertificateManager` or Alias: `acm`
 - Namespace: `AWS/ACMPrivateCA` or Alias: `acm-pca`
@@ -378,6 +379,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/DynamoDB` or Alias: `dynamodb`
 - Namespace: `AWS/EBS` or Alias: `ebs`
 - Namespace: `AWS/ElastiCache` or Alias: `ec`
+- Namespace: `AWS/MemoryDB` or Alias: `memorydb`
 - Namespace: `AWS/EC2` or Alias: `ec2`
 - Namespace: `AWS/EC2Spot` or Alias: `ec2Spot`
 - Namespace: `AWS/ECS` or Alias: `ecs-svc`
@@ -399,6 +401,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/KinesisAnalytics` or Alias: `kinesis-analytics`
 - Namespace: `AWS/Lambda` or Alias: `lambda`
 - Namespace: `AWS/MediaConnect` or Alias: `mediaconnect`
+- Namespace: `AWS/MediaConvert` or Alias: `mediaconvert`
 - Namespace: `AWS/MediaLive` or Alias: `medialive`
 - Namespace: `AWS/MediaTailor` or Alias: `mediatailor`
 - Namespace: `AWS/Neptune` or Alias: `neptune`
@@ -419,7 +422,16 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/SQS` or Alias: `sqs`
 - Namespace: `AWS/StorageGateway` or Alias: `storagegateway`
 - Namespace: `AWS/TransitGateway` or Alias: `tgw`
+- Namespace: `AWS/TrustedAdvisor` or Alias: `trustedadvisor`
 - Namespace: `AWS/VPN` or Alias: `vpn`
 - Namespace: `AWS/WAFV2` or Alias: `wafv2`
 - Namespace: `AWS/WorkSpaces` or Alias: `workspaces`
 - Namespace: `AWS/AOSS` or Alias: `aoss`
+- Namespace: `AWS/SageMaker` or Alias: `sagemaker`
+- Namespace: `/aws/sagemaker/Endpoints` or Alias: `sagemaker-endpoints`
+- Namespace: `/aws/sagemaker/TrainingJobs` or Alias: `sagemaker-training`
+- Namespace: `/aws/sagemaker/ProcessingJobs` or Alias: `sagemaker-processing`
+- Namespace: `/aws/sagemaker/TransformJobs` or Alias: `sagemaker-transform`
+- Namespace: `/aws/sagemaker/InferenceRecommendationsJobs` or Alias: `sagemaker-inf-rec`
+- Namespace: `AWS/Sagemaker/ModelBuildingPipeline` or Alias: `sagemaker-model-building-pipeline`
+

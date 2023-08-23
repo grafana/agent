@@ -11,7 +11,9 @@ prometheus.remote_write "metrics_agent" {
 		name = "agent-72cf3f"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
-		queue_config { }
+		queue_config {
+			retry_on_http_429 = false
+		}
 
 		metadata_config { }
 	}

@@ -29,7 +29,9 @@ prometheus.remote_write "default" {
 		url            = "http://remote-write-url1"
 		send_exemplars = false
 
-		queue_config { }
+		queue_config {
+			retry_on_http_429 = false
+		}
 
 		metadata_config { }
 	}

@@ -68,21 +68,8 @@ The `is_cluster` argument must be set to `true` when connecting to a Redis clust
 Note that setting `export_client_port` increases the cardinality of all Redis metrics.
 
 ## Exported fields
-The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `redis` metrics.
-
-For example, `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metrics' label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 
