@@ -123,7 +123,9 @@ prometheus.remote_write "integrations" {
 			password = "token"
 		}
 
-		queue_config { }
+		queue_config {
+			retry_on_http_429 = false
+		}
 
 		metadata_config { }
 	}
