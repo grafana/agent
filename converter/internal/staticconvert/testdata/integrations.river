@@ -374,19 +374,3 @@ prometheus.scrape "integrations_statsd_exporter" {
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/statsd_exporter"
 }
-
-prometheus.exporter.windows "integrations_windows_exporter" {
-	enabled_collectors = ["cpu", "cs", "logical_disk", "net", "os", "service", "system"]
-
-	dfsr { }
-
-	exchange { }
-
-	mssql { }
-}
-
-prometheus.scrape "integrations_windows_exporter" {
-	targets    = prometheus.exporter.windows.integrations_windows_exporter.targets
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/windows_exporter"
-}
