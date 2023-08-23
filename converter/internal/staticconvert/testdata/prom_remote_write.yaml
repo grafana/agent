@@ -7,6 +7,8 @@ metrics:
     - name: "test2"
       remote_write:
         - url: http://localhost:9010/api/prom/push
+          queue_config:
+            retry_on_http_429: true
     - name: "test3"
       remote_write:
         - url: http://localhost:9011/api/prom/push

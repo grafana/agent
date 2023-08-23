@@ -18,6 +18,7 @@ type Arguments struct {
 	ExcludeUserdata      bool                `river:"exclude_user_data,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
+	Labels               map[string]string   `river:"labels,attr,optional"`
 }
 
 func defaultArgs() Arguments {
