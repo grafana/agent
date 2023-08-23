@@ -99,6 +99,7 @@ require (
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.51.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.80.0
@@ -626,6 +627,7 @@ require (
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
+	github.com/lightstep/go-expohisto v1.0.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
 	github.com/prometheus-community/prom-label-proxy v0.6.0 // indirect
 	github.com/sercand/kuberesolver/v4 v4.0.0 // indirect
