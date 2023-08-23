@@ -28,10 +28,10 @@ type asyncExporter struct {
 	scrapeInterval time.Duration
 }
 
-// NewAsyncCloudwatchExporter creates a new YACE wrapper, that implements Integration. The async feature spawns a
+// NewDecoupledCloudwatchExporter creates a new YACE wrapper, that implements Integration. The decouple feature spawns a
 // background go-routine to perform YACE metric collection allowing for a decoupled collection of AWS metrics from the
 // ServerHandler.
-func NewAsyncCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeConf, scrapeInterval time.Duration, fipsEnabled, debug bool) *asyncExporter {
+func NewDecoupledCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeConf, scrapeInterval time.Duration, fipsEnabled, debug bool) *asyncExporter {
 	loggerWrapper := yaceLoggerWrapper{
 		debug: debug,
 		log:   logger,
