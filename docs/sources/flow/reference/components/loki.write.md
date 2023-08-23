@@ -105,7 +105,7 @@ based on a hash of the endpoint settings.
 The `retry_on_http_429` argument specifies whether `HTTP 429` status code
 responses should be treated as recoverable errors; other `HTTP 4xx` status code
 responses are never considered recoverable errors. When `retry_on_http_429` is
-enabled, the retry mechanism will be governed by the specified `backoff` configuration.
+enabled, the retry mechanism will be governed by the backoff configuration specified through `min_backoff_period`, `max_backoff_period ` and `max_backoff_retries` attributes.
 
 ### basic_auth block
 
