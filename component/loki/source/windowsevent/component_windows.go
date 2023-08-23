@@ -8,10 +8,10 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/windows"
-	"github.com/prometheus/common/model"
 )
 
 func init() {
@@ -152,14 +152,6 @@ func convertConfig(arg Arguments) *scrapeconfig.WindowsEventsTargetConfig {
 		ExcludeEventData:     arg.ExcludeEventData,
 		ExcludeEventMessage:  false,
 		ExcludeUserData:      arg.ExcludeUserdata,
-		Labels:               toLabelSet(arg.Labels),
+		Labels:               utils.ToLabelSet(arg.Labels),
 	}
-}
-
-func toLabelSet(in map[string]string) model.LabelSet {
-	res := make(model.LabelSet, len(in))
-	for k, v := range in {
-		res[model.LabelName(k)] = model.LabelValue(v)
-	}
-	return res
 }

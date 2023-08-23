@@ -60,7 +60,7 @@ Main (unreleased)
 
 - Flow: Added exemplar support for the `otelcol.exporter.prometheus`. (@wildum)
 
-- `loki.source.windowsevent` now supports labels. (@wildum)
+- Add a `labels` argument in `loki.source.windowsevent` to associate additional labels with incoming logs. (@wildum)
 
 - New Grafana Agent Flow components:
 
