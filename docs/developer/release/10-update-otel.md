@@ -10,4 +10,4 @@ Grafana Agent is listed has a distribution for Open Telemetry. If there are any 
 
 3. Find those OTEL components in contrib and add Grafana Agent as a distribution.
 
-4. Tag Juraci on the PR.
+4. Tag Juraci ([jpkrohling](https://github.com/jpkrohling)) on the PR.
