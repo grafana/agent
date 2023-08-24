@@ -210,7 +210,7 @@ func (c *Client) Store(ctx context.Context, req []byte) error {
 		return RecoverableError{err, defaultBackoff}
 	}
 	defer func() {
-		io.Copy(io.Discard, httpResp.Body)
+		_, _ = io.Copy(io.Discard, httpResp.Body)
 		httpResp.Body.Close()
 	}()
 
@@ -297,7 +297,7 @@ func (c *Client) Read(ctx context.Context, query *prompb.Query) (*prompb.QueryRe
 		return nil, fmt.Errorf("error sending request: %w", err)
 	}
 	defer func() {
-		io.Copy(io.Discard, httpResp.Body)
+		_, _ = io.Copy(io.Discard, httpResp.Body)
 		httpResp.Body.Close()
 	}()
 	c.readQueriesDuration.Observe(time.Since(start).Seconds())

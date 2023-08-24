@@ -3,10 +3,13 @@ package simple
 import (
 	"context"
 	"fmt"
-	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging"
 
 	"github.com/grafana/agent/component/prometheus"
 )
@@ -20,11 +23,10 @@ type writer struct {
 	store       *dbstore
 	ctx         context.Context
 	bookmarkKey string
-	l           *logging.Logger
+	l           log.Logger
 }
 
 func newWriter(parent string, to *QueueManager, store *dbstore, l *logging.Logger) *writer {
-
 	name := fmt.Sprintf("metrics_write_to_%s_parent_%s", to.Name(), parent)
 	w := &writer{
 		parentId:    parent,
@@ -33,7 +35,7 @@ func newWriter(parent string, to *QueueManager, store *dbstore, l *logging.Logge
 		to:          to,
 		store:       store,
 		bookmarkKey: name,
-		l:           l,
+		l:           log.With(l, "name", name),
 	}
 	v, found := w.store.GetBookmark(w.bookmarkKey)
 	// If we dont have a bookmark then grab the oldest key.
@@ -48,55 +50,64 @@ func newWriter(parent string, to *QueueManager, store *dbstore, l *logging.Logge
 	return w
 }
 
-func (w *writer) Start(ctx context.Context) error {
+func (w *writer) Start(ctx context.Context) {
 	w.mut.Lock()
 	w.ctx = ctx
 	w.mut.Unlock()
 
-	newKey := false
-	var err error
+	newKey := w.incrementKey()
 	success := true
-	first := true
-	for {
-		timeOut := 10 * time.Second
 
-		// If there is a new key then dont wait long but we still need to check for the ctx being done.
-		// TODO this code is starting to get ugly, separate it out.
-		if success {
-			newKey, err = w.incrementKey()
-			if err != nil {
-				return err
-			}
-		}
-		// If this is the first record we ALWAYS want to try sending.
-		if newKey || first || !success {
-			first = false
+	var err error
+	for {
+		recoverableError := true
+		timeOut := 10 * time.Second
+		// If we got a new key or the previous record did not enqueue then continue trying to send.
+		if newKey || !success {
 			level.Info(w.l).Log("msg", "looking for signal", "key", w.currentKey)
 			// Eventually this will expire from the TTL.
 			val, signalFound := w.store.GetSignal(w.currentKey)
 			if signalFound {
 				switch v := val.(type) {
 				case []prometheus.Sample:
-					success = w.to.Append(v)
+					success, err = w.to.Append(ctx, v)
 				case []prometheus.Metadata:
 					success = w.to.AppendMetadata(v)
 				case []prometheus.Exemplar:
-					success = w.to.AppendExemplars(v)
+					success, err = w.to.AppendExemplars(ctx, v)
 				case []prometheus.FloatHistogram:
-					success = w.to.AppendFloatHistograms(v)
+					success, err = w.to.AppendFloatHistograms(ctx, v)
 				case []prometheus.Histogram:
-					success = w.to.AppendHistograms(v)
-				default:
-					return fmt.Errorf("Unknown value %s ", v)
+					success, err = w.to.AppendHistograms(ctx, v)
 				}
-			} else {
-				// No signal found so move on
-				success = true
+				if err != nil {
+					// Let's check if it's an `out of order sample`. Yes this is some hand waving going on here.
+					// TODO add metric for unrecoverable error
+					if strings.Contains(err.Error(), "the sample has been rejected") {
+						recoverableError = false
+					}
+					level.Error(w.l).Log("msg", "error sending samples", "err", err)
+				}
+
+				// We need to succeed or hit an unrecoverable error.
+				if success || !recoverableError {
+					// Write our bookmark of the last written record.
+					err = w.store.WriteBookmark(w.bookmarkKey, &Bookmark{
+						Key: w.currentKey,
+					})
+					if err != nil {
+						level.Error(w.l).Log("msg", "error writing bookmark", "err", err)
+					}
+				}
 			}
 		}
 
-		level.Info(w.l).Log("msg", "sending success", "success", success)
+		if success || !recoverableError {
+			newKey = w.incrementKey()
+		}
+
 		// If we were successful and have a newkey the quickly move on.
+		// If the queue is not full then give time for it to send.
 		if success && newKey {
 			timeOut = 10 * time.Millisecond
 		}
@@ -104,7 +115,7 @@ func (w *writer) Start(ctx context.Context) error {
 		tmr := time.NewTimer(timeOut)
 		select {
 		case <-w.ctx.Done():
-			return nil
+			return
 		case <-tmr.C:
 			continue
 		}
@@ -119,18 +130,12 @@ func (w *writer) GetKey() uint64 {
 }
 
 // incrementKey returns true if key changed
-func (w *writer) incrementKey() (bool, error) {
+func (w *writer) incrementKey() bool {
 	w.mut.Lock()
 	defer w.mut.Unlock()
 
 	prev := w.currentKey
 	w.currentKey = w.store.GetNextKey(w.currentKey)
 	// No need to update bookmark if nothing has changed.
-	if prev == w.currentKey {
-		return false, nil
-	}
-	err := w.store.WriteBookmark(w.bookmarkKey, &Bookmark{
-		Key: w.currentKey,
-	})
-	return true, err
+	return prev != w.currentKey
 }

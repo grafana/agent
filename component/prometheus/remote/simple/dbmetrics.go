@@ -87,7 +87,7 @@ func (dbm *dbmetrics) Collect(ch chan<- prometheus.Metric) {
 	keyCount := dbm.d.getKeyCount()
 	ch <- prometheus.MustNewConstMetric(dbm.totalKeys, prometheus.GaugeValue, float64(keyCount))
 	fileSize := dbm.d.getFileSize()
-	ch <- prometheus.MustNewConstMetric(dbm.diskSize, prometheus.GaugeValue, float64(fileSize))
+	ch <- prometheus.MustNewConstMetric(dbm.diskSize, prometheus.GaugeValue, fileSize)
 	sampleCount := dbm.d.sampleCount()
 	ch <- prometheus.MustNewConstMetric(dbm.serriesCount, prometheus.GaugeValue, sampleCount)
 }

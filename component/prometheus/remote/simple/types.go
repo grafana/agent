@@ -1,8 +1,6 @@
 package simple
 
 import (
-	"fmt"
-	"net/url"
 	"sync"
 	"time"
 
@@ -13,7 +11,6 @@ import (
 
 	types "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/river"
-	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 )
 
@@ -166,34 +163,6 @@ func (o *MetadataOptions) toPrometheusType() config.MetadataConfig {
 		SendInterval:      model.Duration(o.SendInterval),
 		MaxSamplesPerSend: o.MaxSamplesPerSend,
 	}
-}
-
-func convertConfigs(cfg Arguments) (*config.Config, error) {
-
-	rw := cfg.Endpoint
-	parsedURL, err := url.Parse(rw.URL)
-	if err != nil {
-		return nil, fmt.Errorf("cannot parse remote_write url %q: %w", rw.URL, err)
-	}
-	rwCfg := &config.RemoteWriteConfig{
-		URL:                  &common.URL{URL: parsedURL},
-		RemoteTimeout:        model.Duration(rw.RemoteTimeout),
-		Headers:              rw.Headers,
-		WriteRelabelConfigs:  nil, // WriteRelabelConfigs are currently not supported
-		Name:                 rw.Name,
-		SendExemplars:        rw.SendExemplars,
-		SendNativeHistograms: rw.SendNativeHistograms,
-
-		HTTPClientConfig: *rw.HTTPClientConfig.Convert(),
-		QueueConfig:      rw.QueueOptions.toPrometheusType(),
-		MetadataConfig:   rw.MetadataOptions.toPrometheusType(),
-		// TODO(rfratto): SigV4Config
-	}
-
-	return &config.Config{
-		GlobalConfig:       config.GlobalConfig{},
-		RemoteWriteConfigs: []*config.RemoteWriteConfig{rwCfg},
-	}, nil
 }
 
 type maxTimestamp struct {

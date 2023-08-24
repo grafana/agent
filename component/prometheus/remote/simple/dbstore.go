@@ -16,7 +16,6 @@ import (
 type dbstore struct {
 	mut           sync.RWMutex
 	l             *logging.Logger
-	dir           string
 	ttl           time.Duration
 	inMemory      bool
 	sampleDB      SignalDB
@@ -73,9 +72,15 @@ func (dbs *dbstore) evict() {
 	defer dbs.mut.Unlock()
 
 	start := time.Now()
-	defer dbs.metrics.evictionTime.Observe(time.Now().Sub(start).Seconds())
-	dbs.bookmark.Evict()
-	dbs.sampleDB.Evict()
+	defer dbs.metrics.evictionTime.Observe(time.Since(start).Seconds())
+	err := dbs.bookmark.Evict()
+	if err != nil {
+		level.Error(dbs.l).Log("msg", "failure evicting bookmark db", "err", err)
+	}
+	err = dbs.sampleDB.Evict()
+	if err != nil {
+		level.Error(dbs.l).Log("msg", "failure evicting sample db", "err", err)
+	}
 }
 
 func (dbs *dbstore) WriteBookmark(key string, value any) error {
@@ -92,7 +97,7 @@ func (dbs *dbstore) GetBookmark(key string) (*Bookmark, bool) {
 
 func (dbs *dbstore) WriteSignal(value any) (uint64, error) {
 	start := time.Now()
-	defer dbs.metrics.writeTime.Observe(float64(time.Now().Sub(start).Seconds()))
+	defer dbs.metrics.writeTime.Observe(time.Since(start).Seconds())
 
 	key, err := dbs.sampleDB.WriteValueWithAutokey(value, dbs.ttl)
 	dbs.metrics.currentKey.Set(float64(key))
@@ -116,7 +121,7 @@ func (dbs *dbstore) UpdateOldestKey(k uint64) {
 
 func (dbs *dbstore) GetSignal(key uint64) (any, bool) {
 	start := time.Now()
-	defer dbs.metrics.readTime.Observe(float64(time.Now().Sub(start).Seconds()))
+	defer dbs.metrics.readTime.Observe(time.Since(start).Seconds())
 
 	val, found, err := dbs.sampleDB.GetValueByUint(key)
 	if err != nil {

@@ -5,14 +5,25 @@ import (
 	"sync"
 )
 
-type keys struct {
+// metadata is used to hold various metadata for pebbledb. This is so we don't have to slam the disk
+// whenever we want to check for something. It is an unbounded queue but it has a 1 to 1 mapping with commits
+// and therefore should not grow to millions.
+type metadata struct {
 	mut  sync.RWMutex
 	ks   []uint64
 	ttls map[uint64]int64
 	size map[uint64]int
 }
 
-func (ks *keys) add(k uint64, ttl int64, size int) {
+func newMetadata() *metadata {
+	return &metadata{
+		ks:   []uint64{},
+		ttls: map[uint64]int64{},
+		size: map[uint64]int{},
+	}
+}
+
+func (ks *metadata) add(k uint64, ttl int64, size int) {
 	ks.mut.Lock()
 	defer ks.mut.Unlock()
 
@@ -22,14 +33,7 @@ func (ks *keys) add(k uint64, ttl int64, size int) {
 	sort.Slice(ks.ks, func(i, j int) bool { return ks.ks[i] < ks.ks[j] })
 }
 
-func (ks *keys) setTTL(k uint64, ttl int64) {
-	ks.mut.Lock()
-	defer ks.mut.Unlock()
-
-	ks.ttls[k] = ttl
-}
-
-func (ks *keys) keys() []uint64 {
+func (ks *metadata) keys() []uint64 {
 	ks.mut.RLock()
 	defer ks.mut.RUnlock()
 
@@ -41,7 +45,7 @@ func (ks *keys) keys() []uint64 {
 	return make([]uint64, 0)
 }
 
-func (ks *keys) clear() {
+func (ks *metadata) clear() {
 	ks.mut.Lock()
 	defer ks.mut.Unlock()
 
@@ -50,14 +54,14 @@ func (ks *keys) clear() {
 	ks.size = make(map[uint64]int)
 }
 
-func (ks *keys) len() int {
+func (ks *metadata) len() int {
 	ks.mut.RLock()
 	defer ks.mut.RUnlock()
 
 	return len(ks.ks)
 }
 
-func (ks *keys) keysWithExpiredTTL(ttl int64) []uint64 {
+func (ks *metadata) keysWithExpiredTTL(ttl int64) []uint64 {
 	ks.mut.RLock()
 	defer ks.mut.RUnlock()
 
@@ -70,7 +74,7 @@ func (ks *keys) keysWithExpiredTTL(ttl int64) []uint64 {
 	return expired
 }
 
-func (ks *keys) removeKeys(keys []uint64) {
+func (ks *metadata) removeKeys(keys []uint64) {
 	ks.mut.Lock()
 	defer ks.mut.Unlock()
 
@@ -97,7 +101,7 @@ func (ks *keys) removeKeys(keys []uint64) {
 	ks.ks = newKS
 }
 
-func (ks *keys) seriesLen() int64 {
+func (ks *metadata) seriesLen() int64 {
 	ks.mut.RLock()
 	defer ks.mut.RUnlock()
 

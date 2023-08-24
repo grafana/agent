@@ -22,7 +22,7 @@ type DB struct {
 	log *logging.Logger
 	// Trying to avoid unbounded lists, this thankfully is one key for each commit so its unlikely to be in the millions
 	// of active commits.
-	keyCache     *keys
+	keyCache     *metadata
 	currentIndex uint64
 	getValue     func([]byte, int8) any
 	getType      func(data any) (int8, int, error)
@@ -38,11 +38,7 @@ func NewDB(dir string, getValue func([]byte, int8) any, getType func(data any) (
 		getType:  getType,
 		getValue: getValue,
 		log:      l,
-		keyCache: &keys{
-			ks:   make([]uint64, 0),
-			ttls: make(map[uint64]int64),
-			size: make(map[uint64]int),
-		},
+		keyCache: newMetadata(),
 	}
 	keys, err := d.GetKeys()
 	if err != nil {
@@ -66,19 +62,19 @@ func (d *DB) GetNewKey() uint64 {
 }
 
 func (d *DB) GetOldestKey() uint64 {
-	iter, _ := d.db.NewIter(&pdb.IterOptions{})
-	defer iter.Close()
-	if iter.Last() {
-		return byteToKey(iter.Key())
+	ks := d.keyCache.keys()
+	if len(ks) == 0 {
+		return 0
 	}
-	return 0
+	// Keys are garaunteed to be sorted oldest to newest.
+	return ks[0]
 }
 
 func (d *DB) GetKeys() ([]uint64, error) {
 	d.mut.Lock()
 	defer d.mut.Unlock()
 
-	// Return the cached keys
+	// Return the cached keys, if they exist.
 	ks := d.keyCache.keys()
 	if len(ks) > 0 {
 		return ks, nil
@@ -201,21 +197,24 @@ func (d *DB) GetValueByUint(k uint64) (any, bool, error) {
 	return d.GetValueByByte(keyToByte(k))
 }
 
-func (d *DB) WriteValueWithAutokey(data any, ttl time.Duration) (uint64, error) {
+func (d *DB) WriteValueWithAutokey(data any, ttl time.Duration, buf *bytes.Buffer) (uint64, *bytes.Buffer, error) {
 	nextKey := d.GetNewKey()
-	return nextKey, d.WriteValue(keyToByte(nextKey), data, ttl)
+	retBuf, err := d.WriteValue(keyToByte(nextKey), data, ttl, buf)
+	return nextKey, retBuf, err
 }
 
-func (d *DB) WriteValue(key []byte, data any, ttl time.Duration) error {
+func (d *DB) WriteValue(key []byte, data any, ttl time.Duration, buf *bytes.Buffer) (*bytes.Buffer, error) {
 	t, count, err := d.getType(data)
 	if err != nil {
-		return err
+		return buf, err
 	}
-	buf := bytes.NewBuffer(nil)
+	if buf == nil {
+		buf = bytes.NewBuffer(nil)
+	}
 	enc := gob.NewEncoder(buf)
 	err = enc.Encode(data)
 	if err != nil {
-		return err
+		return buf, err
 	}
 	it := &item{}
 	it.Value = buf.Bytes()
@@ -224,14 +223,15 @@ func (d *DB) WriteValue(key []byte, data any, ttl time.Duration) error {
 		it.TTL = time.Now().Add(ttl).Unix()
 	}
 	it.Count = count
-	buf = bytes.NewBuffer(nil)
+	buf.Reset()
 	enc = gob.NewEncoder(buf)
 	err = enc.Encode(it)
 	if err != nil {
-		return err
+		return buf, err
 	}
 	snappied := snappy.Encode(nil, buf.Bytes())
-	return d.db.Set(key, snappied, &pdb.WriteOptions{Sync: true})
+	buf.Reset()
+	return buf, d.db.Set(key, snappied, &pdb.WriteOptions{Sync: true})
 }
 
 func (d *DB) Evict() error {

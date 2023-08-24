@@ -1,8 +1,6 @@
 package simple
 
 import (
-	"sync"
-
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
@@ -12,7 +10,6 @@ import (
 )
 
 type appender struct {
-	mut             sync.Mutex
 	parent          *Simple
 	metrics         []prometheus.Sample
 	exemplars       []prometheus.Exemplar

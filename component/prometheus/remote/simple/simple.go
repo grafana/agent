@@ -2,11 +2,12 @@ package simple
 
 import (
 	"context"
-	"github.com/go-kit/log/level"
 	"net/url"
 	"path"
 	"sync"
 	"time"
+
+	"github.com/go-kit/log/level"
 
 	"github.com/grafana/agent/component"
 	promtype "github.com/grafana/agent/component/prometheus"
@@ -70,7 +71,6 @@ func (s *Simple) Run(ctx context.Context) error {
 }
 
 func (s *Simple) newQueueManager() (*QueueManager, error) {
-	ew := newEWMARate(ewmaWeight, shardUpdateDuration)
 	endUrl, err := url.Parse(s.args.Endpoint.URL)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,6 @@ func (s *Simple) newQueueManager() (*QueueManager, error) {
 	qm := NewQueueManager(
 		met,
 		s.opts.Logger,
-		ew,
 		s.args.Endpoint.QueueOptions.toPrometheusType(),
 		s.args.Endpoint.MetadataOptions.toPrometheusType(),
 		wr,
