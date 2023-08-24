@@ -33,14 +33,14 @@ type Arguments struct {
 	DiscoveryExportedTags TagsPerNamespace      `river:"discovery_exported_tags,attr,optional"`
 	Discovery             []DiscoveryJob        `river:"discovery,block,optional"`
 	Static                []StaticJob           `river:"static,block,optional"`
-	DecoupledScrape       DecoupledScrapeConfig `river:"decoupled_scraping"`
+	DecoupledScrape       DecoupledScrapeConfig `river:"decoupled_scraping,block,optional"`
 }
 
 // DecoupledScrapeConfig is the configuration for decoupled scraping feature.
 type DecoupledScrapeConfig struct {
-	Enabled bool `river:"enabled,optional"`
+	Enabled bool `river:"enabled,attr,optional"`
 	// ScrapeInterval defines the decoupled scraping interval. If left empty, a default interval of 5m is used
-	ScrapeInterval time.Duration `river:"scrape_interval,optional"`
+	ScrapeInterval time.Duration `river:"scrape_interval,attr,optional"`
 }
 
 type TagsPerNamespace = cloudwatch_exporter.TagsPerNamespace
