@@ -77,6 +77,11 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 			return nil, err
 		}
 		config.DiscoverPeers = discoverFunc
+
+	default:
+		// Here, both JoinPeers and DiscoverPeers are empty. This is desirable when
+		// starting a seed node that other nodes connect to, so we don't require
+		// one of the fields to be set.
 	}
 
 	return cluster.New(config)

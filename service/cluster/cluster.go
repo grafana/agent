@@ -124,7 +124,9 @@ func New(opts Options) (*Service, error) {
 		return nil, fmt.Errorf("failed to create cluster node: %w", err)
 	}
 	if opts.Metrics != nil {
-		opts.Metrics.MustRegister(node.Metrics())
+		if err := opts.Metrics.Register(node.Metrics()); err != nil {
+			return nil, fmt.Errorf("failed to register metrics: %w", err)
+		}
 	}
 
 	return &Service{
@@ -194,6 +196,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 	s.node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
 		if ctx.Err() != nil {
+			// Unregister our observer if we exited.
 			return false
 		}
 
@@ -210,6 +213,8 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		// Notify dependant components about the clustering change.
 		for _, consumer := range host.GetServiceConsumers(ServiceName) {
 			if ctx.Err() != nil {
+				// Stop early if we exited so we don't do unnecessary work notifying
+				// consumers that do not need to be notified.
 				break
 			}
 
@@ -233,6 +238,8 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 	if err != nil {
 		return fmt.Errorf("failed to get peers to join: %w", err)
 	}
+
+	level.Info(s.log).Log("msg", "starting cluster node", "peers", peers, "advertise_addr", s.opts.AdvertiseAddress)
 
 	if err := s.node.Start(peers); err != nil {
 		level.Warn(s.log).Log("msg", "failed to connect to peers; bootstrapping a new cluster", "err", err)
@@ -303,8 +310,8 @@ func (s *Service) stop() {
 	}
 }
 
-// Update implements [service.Service]. It is a no-op since the cluster service
-// does not support runtime configuration.
+// Update implements [service.Service]. It returns an error since the cluster
+// service does not support runtime configuration.
 func (s *Service) Update(newConfig any) error {
 	return fmt.Errorf("cluster service does not support configuration")
 }
