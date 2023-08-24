@@ -11,7 +11,6 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/pyroscope"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	ebpfspy "github.com/grafana/pyroscope/ebpf"
@@ -72,7 +71,6 @@ func TestShutdownOnError(t *testing.T) {
 			Logger:        logger,
 			Registerer:    prometheus.NewRegistry(),
 			OnStateChange: func(e component.Exports) {},
-			Clusterer:     &cluster.Clusterer{Node: cluster.NewLocalNode("")},
 		},
 		arguments,
 		session,
@@ -100,7 +98,6 @@ func TestContextShutdown(t *testing.T) {
 			Logger:        logger,
 			Registerer:    prometheus.NewRegistry(),
 			OnStateChange: func(e component.Exports) {},
-			Clusterer:     &cluster.Clusterer{Node: cluster.NewLocalNode("")},
 		},
 		arguments,
 		session,
