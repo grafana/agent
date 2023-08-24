@@ -140,7 +140,7 @@ You can use the following blocks in`prometheus.exporter.cloudwatch` to configure
 | static             | [static][]             | Configures a static job. Multiple jobs can be configured.                                                                               | no*      |
 | static > role      | [role][]               | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
 | static > metric    | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
-| decoupled_scraping | [decoupled_scraping][] | Configured decoupled scraping feature to retrieve metrics on schedule return the cached metrics.                                        | no       |
+| decoupled_scraping | [decoupled_scraping][] | Configures the decoupled scraping feature to retrieve metrics on a schedule and return the cached metrics.                                        | no       |
 
 {{% admonition type="note" %}}
 The `static` and `discovery` blocks are marked as not required, but you must configure at least one static or discovery
@@ -328,18 +328,17 @@ is exported to CloudWatch.
 
 ## decoupled scraping block
 
-The decoupled scraping block configures an optional feature which scrapes cloudwatch metrics in the background at a
-fixed interval. When enabled, cloudwatch metrics are gathered asynchronously at the decoupled scraped interval instead
-of synchronously when the cloudwatch component is scraped.
+The decoupled scraping block configures an optional feature that scrapes CloudWatch metrics in the background on a
+scheduled interval. When this feature is enabled, CloudWatch metrics are gathered asynchronously at the scheduled interval instead
+of synchronously when the CloudWatch component is scraped.
 
-The decoupled scraping feature is useful to avoid against abuse of API requests that can caused extra billing in an AWS
-account. It is also useful to avoid scrape timeouts when running in very large AWS accounts where the number of
-cloudwatch metrics being gathered can not completed before the component scrape timeout.
+The decoupled scraping feature reduces the number of API requests sent to AWS.
+This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics
 
 | Name              | Type     | Description                                                             | Default | Required |
 |-------------------|----------|-------------------------------------------------------------------------|---------|----------|
 | `enabled`         | `bool`   | Controls whether the decoupled scraping featured is enabled             | false   | no       |
-| `scrape_interval` | `string` | Controls how frequently to asynchronously gather new cloudwatch metrics | 5m      | no       |
+| `scrape_interval` | `string` | Controls how frequently to asynchronously gather new CloudWatch metrics | 5m      | no       |
 
 ## Exported fields
 
