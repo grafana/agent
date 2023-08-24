@@ -1,6 +1,6 @@
 # Update Open Telemetry Contrib
 
-Grafana Agent is listed has a distribution for Open Telemetry. If there are any new OTel components then Grafana Agent needs to be associated with then open a PR in [OpenTelemetry Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) and add the Agent to the list of distributions. [Example](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/653ab064bb797ed2b4ae599936a7b9cfdad18a29/receiver/kafkareceiver/README.md?plain=1#L7)
+Grafana Agent is listed as a distribution of the OpenTelemetry Collector. If there are any new OTel components that Grafana Agent needs to be associated with, then open a PR in [OpenTelemetry Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib) and add the Agent to the list of distributions. [Example](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/653ab064bb797ed2b4ae599936a7b9cfdad18a29/receiver/kafkareceiver/README.md?plain=1#L7)
 
 ## Steps
 
