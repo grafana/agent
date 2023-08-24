@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/common/loki/client"
+	"github.com/grafana/agent/component/common/loki/utils"
 
 	"github.com/alecthomas/units"
 	types "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/flagext"
 	lokiflagext "github.com/grafana/loki/pkg/util/flagext"
-	"github.com/prometheus/common/model"
 )
 
 // EndpointOptions describes an individual location to send logs to.
@@ -86,7 +86,7 @@ func (args Arguments) convertClientConfigs() []client.Config {
 				MaxBackoff: cfg.MaxBackoff,
 				MaxRetries: cfg.MaxBackoffRetries,
 			},
-			ExternalLabels:         lokiflagext.LabelSet{LabelSet: toLabelSet(args.ExternalLabels)},
+			ExternalLabels:         lokiflagext.LabelSet{LabelSet: utils.ToLabelSet(args.ExternalLabels)},
 			Timeout:                cfg.RemoteTimeout,
 			TenantID:               cfg.TenantID,
 			DropRateLimitedBatches: !cfg.RetryOnHTTP429,
@@ -94,13 +94,5 @@ func (args Arguments) convertClientConfigs() []client.Config {
 		res = append(res, cc)
 	}
 
-	return res
-}
-
-func toLabelSet(in map[string]string) model.LabelSet {
-	res := make(model.LabelSet, len(in))
-	for k, v := range in {
-		res[model.LabelName(k)] = model.LabelValue(v)
-	}
 	return res
 }

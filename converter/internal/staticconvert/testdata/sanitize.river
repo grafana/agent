@@ -47,6 +47,9 @@ loki.source.windowsevent "logs_integrations_integrations_windows_exporter_applic
 	poll_interval          = "0s"
 	use_incoming_timestamp = true
 	forward_to             = [loki.relabel.logs_integrations_integrations_windows_exporter_application.receiver]
+	labels                 = {
+		job = "integrations/windows_exporter",
+	}
 }
 
 loki.process "logs_integrations_integrations_windows_exporter_system" {
@@ -82,6 +85,9 @@ loki.source.windowsevent "logs_integrations_integrations_windows_exporter_system
 	poll_interval          = "0s"
 	use_incoming_timestamp = true
 	forward_to             = [loki.relabel.logs_integrations_integrations_windows_exporter_system.receiver]
+	labels                 = {
+		job = "integrations/windows_exporter",
+	}
 }
 
 loki.write "logs_integrations" {

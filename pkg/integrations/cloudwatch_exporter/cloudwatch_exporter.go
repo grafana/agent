@@ -16,12 +16,20 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 )
 
+type cachingFactory interface {
+	yaceClients.Factory
+	Refresh()
+	Clear()
+}
+
+var _ cachingFactory = &yaceClientsV1.CachingFactory{}
+
 // exporter wraps YACE entrypoint around an Integration implementation
 type exporter struct {
-	name         string
-	logger       yaceLoggerWrapper
-	sessionCache yaceClients.Factory
-	scrapeConf   yaceConf.ScrapeConf
+	name                 string
+	logger               yaceLoggerWrapper
+	cachingClientFactory cachingFactory
+	scrapeConf           yaceConf.ScrapeConf
 }
 
 // NewCloudwatchExporter creates a new YACE wrapper, that implements Integration
@@ -31,10 +39,10 @@ func NewCloudwatchExporter(name string, logger log.Logger, conf yaceConf.ScrapeC
 		log:   logger,
 	}
 	return &exporter{
-		name:         name,
-		logger:       loggerWrapper,
-		sessionCache: yaceClientsV1.NewFactory(conf, fipsEnabled, loggerWrapper),
-		scrapeConf:   conf,
+		name:                 name,
+		logger:               loggerWrapper,
+		cachingClientFactory: yaceClientsV1.NewFactory(conf, fipsEnabled, loggerWrapper),
+		scrapeConf:           conf,
 	}
 }
 
@@ -43,13 +51,19 @@ func (e *exporter) MetricsHandler() (http.Handler, error) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		e.logger.Debug("Running collect in cloudwatch_exporter")
 
+		// since we have called refresh, we have loaded all the credentials
+		// into the clients and it is now safe to call concurrently. Defer the
+		// clearing, so we always clear credentials before the next scrape
+		e.cachingClientFactory.Refresh()
+		defer e.cachingClientFactory.Clear()
+
 		reg := prometheus.NewRegistry()
 		err := yace.UpdateMetrics(
 			context.Background(),
 			e.logger,
 			e.scrapeConf,
 			reg,
-			e.sessionCache,
+			e.cachingClientFactory,
 			yace.MetricsPerQuery(metricsPerQuery),
 			yace.LabelsSnakeCase(labelsSnakeCase),
 			yace.CloudWatchAPIConcurrency(cloudWatchConcurrency),
