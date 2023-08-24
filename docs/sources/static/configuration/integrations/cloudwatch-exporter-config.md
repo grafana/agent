@@ -139,7 +139,7 @@ Configuration reference:
     # Enable decoupled scraping.
     [enabled: <boolean> | default = false ]
 
-    # How often to scrape for AWS metrics.
+    # How often to scrape for CloudWatch metrics.
     [scrape_interval: <duration> | default = "5m"]
 
   discovery:
