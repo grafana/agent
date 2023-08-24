@@ -17,10 +17,11 @@ import (
 )
 
 const (
-	metricsPerQuery       = 500
-	cloudWatchConcurrency = 5
-	tagConcurrency        = 5
-	labelsSnakeCase       = false
+	metricsPerQuery                  = 500
+	cloudWatchConcurrency            = 5
+	tagConcurrency                   = 5
+	labelsSnakeCase                  = false
+	defaultDecoupledScrapingInterval = time.Minute * 5
 )
 
 // Since we are gathering metrics from CloudWatch and writing them in prometheus during each scrape, the timestamp
@@ -37,11 +38,19 @@ func init() {
 
 // Config is the configuration for the CloudWatch metrics integration
 type Config struct {
-	STSRegion    string          `yaml:"sts_region"`
-	FIPSDisabled bool            `yaml:"fips_disabled"`
-	Discovery    DiscoveryConfig `yaml:"discovery"`
-	Static       []StaticJob     `yaml:"static"`
-	Debug        bool            `yaml:"debug"`
+	STSRegion       string                `yaml:"sts_region"`
+	FIPSDisabled    bool                  `yaml:"fips_disabled"`
+	Discovery       DiscoveryConfig       `yaml:"discovery"`
+	Static          []StaticJob           `yaml:"static"`
+	Debug           bool                  `yaml:"debug"`
+	DecoupledScrape DecoupledScrapeConfig `yaml:"decoupled_scraping"`
+}
+
+// DecoupledScrapeConfig is the configuration for decoupled scraping feature.
+type DecoupledScrapeConfig struct {
+	Enabled bool `yaml:"enabled"`
+	// ScrapeInterval defines the decoupled scraping interval. If left empty, a default interval of 5m is used
+	ScrapeInterval *time.Duration `yaml:"scrape_interval,omitempty"`
 }
 
 // DiscoveryConfig configures scraping jobs that will auto-discover metrics dimensions for a given service.
@@ -121,6 +130,14 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
+	if c.DecoupledScrape.Enabled {
+		scrapeInterval := defaultDecoupledScrapingInterval
+		if v := c.DecoupledScrape.ScrapeInterval; v != nil {
+			scrapeInterval = *v
+		}
+		return NewDecoupledCloudwatchExporter(c.Name(), l, exporterConfig, scrapeInterval, fipsEnabled, c.Debug), nil
+	}
+
 	return NewCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled, c.Debug), nil
 }
 

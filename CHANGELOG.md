@@ -84,6 +84,8 @@ Main (unreleased)
 
 - Update `YACE` to `v0.54.0`, which includes bugfixes for FIPS support. (@ashrayjain)
 
+- Support decoupled scraping in the cloudwatch_exporter integration (@dtrejod).
+
 ### Bugfixes
 
 - Update to config converter so default relabel `source_labels` are left off the river output. (@erikbaranowski)
@@ -104,6 +106,7 @@ Main (unreleased)
 
 - Fix an issue that lead the `loki.source.docker` container to use excessive
   CPU and memory. (@tpaschalis)
+
 
 v0.35.4 (2023-08-14)
 --------------------
