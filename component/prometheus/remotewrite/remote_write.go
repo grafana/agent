@@ -193,7 +193,7 @@ func (c *Component) Run(ctx context.Context) error {
 				ts = 0
 			}
 
-			// Network issues can prevent the result of getRemoteWriteTimestamp from
+			// Network issues can prevent the result of LowestSentTimestamp from
 			// changing. We don't want data in the WAL to grow forever, so we set a cap
 			// on the maximum age data can be. If our ts is older than this cutoff point,
 			// we'll shift it forward to start deleting very stale data.

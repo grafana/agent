@@ -11,19 +11,19 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/service/cluster"
 	"github.com/prometheus/prometheus/util/httputil"
 )
 
 // FlowAPI is a wrapper around the component API.
 type FlowAPI struct {
-	flow component.Provider
-	node cluster.Node
+	flow    component.Provider
+	cluster cluster.Cluster
 }
 
 // NewFlowAPI instantiates a new Flow API.
-func NewFlowAPI(flow component.Provider, node cluster.Node) *FlowAPI {
-	return &FlowAPI{flow: flow, node: node}
+func NewFlowAPI(flow component.Provider, cluster cluster.Cluster) *FlowAPI {
+	return &FlowAPI{flow: flow, cluster: cluster}
 }
 
 // RegisterRoutes registers all the API's routes.
@@ -93,7 +93,7 @@ func (f *FlowAPI) getClusteringPeersHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
 		// TODO(@tpaschalis) Detect if clustering is disabled and propagate to
 		// the Typescript code (eg. via the returned status code?).
-		peers := f.node.Peers()
+		peers := f.cluster.Peers()
 		bb, err := json.Marshal(peers)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

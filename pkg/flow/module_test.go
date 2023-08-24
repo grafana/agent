@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -205,13 +204,10 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 
-	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
-
 	return &moduleControllerOptions{
 		Logger:         s,
 		DataPath:       t.TempDir(),
 		Reg:            prometheus.NewRegistry(),
-		Clusterer:      c,
 		ModuleRegistry: newModuleRegistry(),
 	}
 }

@@ -132,6 +132,16 @@ Configuration reference:
   # Optional: Disable use of FIPS endpoints. Set 'true' when running outside of USA regions.
   [fips_disabled: <boolean> | default = false]
 
+
+  # Instead of retrieving metrics on request, decouple scraping retrieves the
+  # metrics on a schedule and returns the cached metrics.
+  decoupled_scraping:
+    # Enable decoupled scraping.
+    [enabled: <boolean> | default = false ]
+
+    # How often to scrape for CloudWatch metrics.
+    [scrape_interval: <duration> | default = "5m"]
+
   discovery:
 
     # Optional: List of tags (value) per service (key) to export in all metrics. For example defining the ["name", "type"] under
