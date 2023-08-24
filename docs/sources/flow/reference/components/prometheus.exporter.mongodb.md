@@ -39,7 +39,7 @@ For `tls_basic_auth_config_path`, check [`tls_config`](https://prometheus.io/doc
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporters-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 

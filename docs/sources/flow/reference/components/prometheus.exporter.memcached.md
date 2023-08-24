@@ -37,7 +37,7 @@ tls_config | [tls_config][] | TLS configuration for requests to the Memcached se
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporters-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 `prometheus.exporter.memcached` is only reported as unhealthy if given
