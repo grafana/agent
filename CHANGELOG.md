@@ -80,6 +80,7 @@ Main (unreleased)
   - `discovery.puppetdb` - service discovery from PuppetDB. (@captncraig)
   - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes 
   keys and values are sourced from `discovery.*` components. (@ptodev)
+  - `otelcol.connector.spanmetrics` - creates OpenTelemetry metrics from traces. (@ptodev)
 
 - Update `YACE` to `v0.54.0`, which includes bugfixes for FIPS support. (@ashrayjain)
 
