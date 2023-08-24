@@ -19,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendApacheExporter(config *apache_http.C
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.apache.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.apache.%s.targets", compLabel))
 }
 
 func toApacheExporter(config *apache_http.Config) *apache.Arguments {

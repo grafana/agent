@@ -21,7 +21,7 @@ func (b *IntegrationsV1ConfigBuilder) appendBlackboxExporter(config *blackbox_ex
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.blackbox.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.blackbox.%s.targets", compLabel))
 }
 
 func toBlackboxExporter(config *blackbox_exporter.Config) *blackbox.Arguments {
