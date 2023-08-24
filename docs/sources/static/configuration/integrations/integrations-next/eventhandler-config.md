@@ -2,10 +2,10 @@
 aliases:
 - ../../../../configuration/integrations/integrations-next/eventhandler-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/eventhandler-config/
-title: eventhandler_config
+title: eventhandler_config next
 ---
 
-# eventhandler_config
+# eventhandler_config next
 
 `eventhandler_config` configures the Kubernetes eventhandler integration. This
 integration watches
