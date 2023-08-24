@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/tail/watch"
 	"github.com/prometheus/common/model"
 )
 
@@ -40,6 +41,24 @@ type Arguments struct {
 	ForwardTo           []loki.LogsReceiver `river:"forward_to,attr"`
 	Encoding            string              `river:"encoding,attr,optional"`
 	DecompressionConfig DecompressionConfig `river:"decompression,block,optional"`
+	Backoff             Backoff             `river:"backoff,block,optional"`
+}
+
+type Backoff struct {
+	MinBackoff time.Duration `river:"min_backoff,attr,optional"`
+	MaxBackoff time.Duration `river:"max_backoff,attr,optional"`
+}
+
+var DefaultArguments = Arguments{
+	Backoff: Backoff{
+		MinBackoff: 250 * time.Millisecond,
+		MaxBackoff: 250 * time.Millisecond,
+	},
+}
+
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultArguments
 }
 
 type DecompressionConfig struct {
@@ -316,6 +335,10 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 		reader = decompressor
 	} else {
 		level.Debug(c.opts.Logger).Log("msg", "tailing new file", "filename", path)
+		pollOptions := watch.PollingFileWatcherOptions{
+			MinPollFrequency: c.args.Backoff.MinBackoff,
+			MaxPollFrequency: c.args.Backoff.MaxBackoff,
+		}
 		tailer, err := newTailer(
 			c.metrics,
 			c.opts.Logger,
@@ -324,6 +347,7 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 			path,
 			labels.String(),
 			c.args.Encoding,
+			pollOptions,
 		)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to start tailer", "error", err, "filename", path)

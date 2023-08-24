@@ -67,6 +67,8 @@ Main (unreleased)
 
 - `loki.write` now supports configuring retries on HTTP status code 429. (@wildum)
 
+- Add a `backoff` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_backoff` and `max_backoff`. (@wildum)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
