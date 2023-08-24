@@ -31,7 +31,7 @@ func init() {
 type Arguments struct {
 	// Dimensions defines the list of additional dimensions on top of the provided:
 	// - service.name
-	// - span.kind
+	// - span.name
 	// - span.kind
 	// - status.code
 	// The dimensions will be fetched from the span's attributes. Examples of some conventionally used attributes:
