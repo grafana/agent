@@ -1,4 +1,4 @@
-// Package spanlogs provides an otelcol.processor.spanlogs component.
+// Package spanlogs provides an otelcol.connector.spanlogs component.
 package spanlogs
 
 import (
@@ -15,7 +15,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.processor.spanlogs",
+		Name:    "otelcol.connector.spanlogs",
 		Args:    Arguments{},
 		Exports: otelcol.ConsumerExports{},
 
@@ -25,7 +25,7 @@ func init() {
 	})
 }
 
-// Arguments configures the otelcol.processor.spanlogs component.
+// Arguments configures the otelcol.connector.spanlogs component.
 type Arguments struct {
 	Spans             bool           `river:"spans,attr,optional"`
 	Roots             bool           `river:"roots,attr,optional"`

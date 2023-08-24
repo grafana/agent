@@ -1,27 +1,27 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.spanlogs/
-title: otelcol.processor.spanlogs
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanlogs/
+title: otelcol.connector.spanlogs
 ---
 
-# otelcol.processor.spanlogs
+# otelcol.connector.spanlogs
 
-`otelcol.processor.spanlogs` accepts traces telemetry data from other `otelcol`
+`otelcol.connector.spanlogs` accepts traces telemetry data from other `otelcol`
 components and outputs logs telemetry data for each span, root, or process.
 This allows you to automatically build a mechanism for trace discovery.
 
-> **NOTE**: `otelcol.processor.spanlogs` is a custom component unrelated 
-> to any processors from the OpenTelemetry Collector. It is based on the 
-> `automatic_logging` processor in the 
+> **NOTE**: `otelcol.connector.spanlogs` is a custom component unrelated 
+> to any components from the OpenTelemetry Collector. It is based on the 
+> `automatic_logging` component in the 
 > [traces](../../../static/configuration/traces-config.md) 
 > subsystem of the Agent static mode.
 
-You can specify multiple `otelcol.processor.spanlogs` components by giving them
+You can specify multiple `otelcol.connector.spanlogs` components by giving them
 different labels.
 
 ## Usage
 
 ```river
-otelcol.processor.spanlogs "LABEL" {
+otelcol.connector.spanlogs "LABEL" {
   output {
     logs    = [...]
   }
@@ -30,7 +30,7 @@ otelcol.processor.spanlogs "LABEL" {
 
 ## Arguments
 
-`otelcol.processor.spanlogs` supports the following arguments:
+`otelcol.connector.spanlogs` supports the following arguments:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -48,7 +48,7 @@ The values listed in `labels` should be the values of either span or process att
 ## Blocks
 
 The following blocks are supported inside the definition of
-`otelcol.processor.spanlogs`:
+`otelcol.connector.spanlogs`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -90,38 +90,53 @@ logs, or traces).
 
 ## Component health
 
-`otelcol.processor.spanlogs` is only reported as unhealthy if given an invalid
+`otelcol.connector.spanlogs` is only reported as unhealthy if given an invalid
 configuration.
 
 ## Debug information
 
-`otelcol.processor.spanlogs` does not expose any component-specific debug
+`otelcol.connector.spanlogs` does not expose any component-specific debug
 information.
 
 ## Example
 
 The following configuration sends logs derived from spans to Loki.
 
+Additionally, `otelcol.processor.attributes` is configured with a "hint" so that
+`otelcol.exporter.loki` promotes the span's "attribute1" attribute to a Loki label.
+
 ```river
 otelcol.receiver.otlp "default" {
   grpc {}
 
   output {
-    traces = [otelcol.processor.spanlogs.default.input]
+    traces = [otelcol.connector.spanlogs.default.input]
   }
 }
 
-otelcol.processor.spanlogs "default" {
-    spans              = true
-    roots              = true
-    processes          = true
-    labels             = ["attribute1", "res_attribute1"]
-    span_attributes    = ["attribute1"]
-    process_attributes = ["res_attribute1"]
+otelcol.connector.spanlogs "default" {
+  spans              = true
+  roots              = true
+  processes          = true
+  labels             = ["attribute1", "res_attribute1"]
+  span_attributes    = ["attribute1"]
+  process_attributes = ["res_attribute1"]
 
-    output {
-        logs = [otelcol.exporter.loki.default.input]
-    }
+  output {
+    logs = [otelcol.processor.attributes.default.input]
+  }
+}
+
+otelcol.processor.attributes "default" {
+  action {
+    key = "loki.attribute.labels"
+    action = "insert"
+    value = "attribute1"
+  }
+
+  output {
+    logs = [otelcol.exporter.loki.default.input]
+  }
 }
 
 otelcol.exporter.loki "default" {
@@ -129,9 +144,10 @@ otelcol.exporter.loki "default" {
 }
 
 loki.write "local" {
-    endpoint {
-        url = "loki:3100"
-    }
+  endpoint {
+    url = "loki:3100"
+  }
+}
 ```
 
 For an input trace like this...
@@ -180,7 +196,7 @@ For an input trace like this...
 }
 ```
 
-... the output log coming out of `otelcol.processor.spanlogs` will look like this:
+... the output log coming out of `otelcol.connector.spanlogs` will look like this:
 
 ```json
 {

@@ -21,7 +21,7 @@ func testRunProcessor(t *testing.T, processorConfig string, testSignal processor
 func testRunProcessorWithContext(ctx context.Context, t *testing.T, processorConfig string, testSignal processortest.Signal) {
 	l := util.TestLogger(t)
 
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.spanlogs")
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.connector.spanlogs")
 	require.NoError(t, err)
 
 	var args spanlogs.Arguments
