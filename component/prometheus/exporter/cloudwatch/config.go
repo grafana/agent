@@ -19,16 +19,28 @@ var defaults = Arguments{
 	Debug:                 false,
 	DiscoveryExportedTags: nil,
 	FIPSDisabled:          true,
+	DecoupledScrape: DecoupledScrapeConfig{
+		Enabled:        false,
+		ScrapeInterval: 5 * time.Minute,
+	},
 }
 
 // Arguments are the river based options to configure the embedded CloudWatch exporter.
 type Arguments struct {
-	STSRegion             string           `river:"sts_region,attr"`
-	FIPSDisabled          bool             `river:"fips_disabled,attr,optional"`
-	Debug                 bool             `river:"debug,attr,optional"`
-	DiscoveryExportedTags TagsPerNamespace `river:"discovery_exported_tags,attr,optional"`
-	Discovery             []DiscoveryJob   `river:"discovery,block,optional"`
-	Static                []StaticJob      `river:"static,block,optional"`
+	STSRegion             string                `river:"sts_region,attr"`
+	FIPSDisabled          bool                  `river:"fips_disabled,attr,optional"`
+	Debug                 bool                  `river:"debug,attr,optional"`
+	DiscoveryExportedTags TagsPerNamespace      `river:"discovery_exported_tags,attr,optional"`
+	Discovery             []DiscoveryJob        `river:"discovery,block,optional"`
+	Static                []StaticJob           `river:"static,block,optional"`
+	DecoupledScrape       DecoupledScrapeConfig `river:"decoupled_scraping"`
+}
+
+// DecoupledScrapeConfig is the configuration for decoupled scraping feature.
+type DecoupledScrapeConfig struct {
+	Enabled bool `river:"enabled,optional"`
+	// ScrapeInterval defines the decoupled scraping interval. If left empty, a default interval of 5m is used
+	ScrapeInterval time.Duration `river:"scrape_interval,optional"`
 }
 
 type TagsPerNamespace = cloudwatch_exporter.TagsPerNamespace
