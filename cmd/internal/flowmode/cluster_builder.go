@@ -55,7 +55,17 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	}
 
 	if config.AdvertiseAddress == "" {
-		config.AdvertiseAddress = findAdvertiseAddress(opts, listenPort)
+		advertiseAddress := fmt.Sprintf("%s:%d", net.ParseIP("127.0.0.1"), listenPort)
+		if opts.EnableClustering {
+			// TODO(rfratto): allow advertise interfaces to be configurable.
+			addr, err := advertise.FirstAddress(advertise.DefaultInterfaces)
+			if err != nil {
+				level.Warn(opts.Log).Log("msg", "could not find advertise address using default interface names, "+
+					"falling back to localhost", "err", err)
+			}
+			advertiseAddress = fmt.Sprintf("%s:%d", addr.String(), listenPort)
+		}
+		config.AdvertiseAddress = advertiseAddress
 	} else {
 		config.AdvertiseAddress = appendDefaultPort(config.AdvertiseAddress, listenPort)
 	}
@@ -81,26 +91,6 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	}
 
 	return cluster.New(config)
-}
-
-func findAdvertiseAddress(opts clusterOptions, port int) string {
-	var (
-		localhost = net.ParseIP("127.0.0.1")
-		addr      = localhost
-		err       error
-	)
-	if opts.EnableClustering {
-		// TODO(rfratto): allow advertise interfaces to be configurable.
-		addr, err = advertise.FirstAddress(advertise.DefaultInterfaces)
-		if err != nil {
-			level.Warn(opts.Log).Log("msg", "could not find advertise address using default interface names, "+
-				"falling back to localhost", "err", err)
-			addr = localhost
-		}
-	}
-	address := fmt.Sprintf("%s:%d", addr.String(), port)
-	level.Debug(opts.Log).Log("msg", "using cluster advertise address", "addr", address)
-	return address
 }
 
 func findPort(addr string, defaultPort int) int {

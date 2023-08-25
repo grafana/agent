@@ -251,7 +251,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		}
 	}
 
-	if s.opts.RejoinInterval > 0 {
+	if s.opts.EnableClustering && s.opts.RejoinInterval > 0 {
 		wg.Add(1)
 
 		go func() {
