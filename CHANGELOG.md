@@ -107,6 +107,8 @@ Main (unreleased)
 - Fix an issue that lead the `loki.source.docker` container to use excessive
   CPU and memory. (@tpaschalis)
 
+- Fix issue where `otelcol.exporter.loki` was not normalizing label names 
+  to comply with Prometheus conventions. (@ptodev)
 
 v0.35.4 (2023-08-14)
 --------------------
