@@ -94,7 +94,7 @@ If the `--cluster.advertise-address` flag is not explicitly set, the agent
 tries to infer a suitable one from `--cluster.advertise-interfaces`.
 If `--cluster.advertise-interfaces` is not explicitly set, the agent will
 infer one from the `eth0` and `en0` local network interfaces.
-If the advertised address cannot be determined, the agent will fail to start.
+The agent will fail to start if it can't determine the advertised address.
 Since Windows does not use the interface names `eth0` or `en0`, Windows users must explicitly pass
 at least one valid network interface for `--cluster.advertise-interfaces` or a value for `--cluster.advertise-address`.
 
