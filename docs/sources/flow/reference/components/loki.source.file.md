@@ -46,10 +46,10 @@ The following blocks are supported inside the definition of `loki.source.file`:
  Hierarchy      | Name               | Description                                                       | Required 
 ----------------|--------------------|-------------------------------------------------------------------|----------
  decompresssion | [decompresssion][] | Configure reading logs from compressed files.                     | no   
- backoff        | [backoff][]        | Configure how often files should be polled from disk for changes. | no     
+ file_watch     | [file_watch][]     | Configure how often files should be polled from disk for changes. | no     
 
 [decompresssion]: #decompresssion-block
-[backoff]: #backoff-block
+[file_watch]: #file_watch-block
 
 ### decompresssion block
 
@@ -74,19 +74,19 @@ Currently supported compression formats are:
 The component can only support one compression format at a time, in order to
 handle multiple formats, you will need to create multiple components.
 
-### backoff block
+### file_watch block
 
-The `backoff` block configures how often log files are polled from disk for changes.
+The `file_watch` block configures how often log files are polled from disk for changes.
 The following arguments are supported:
 
- Name            | Type       | Description                               | Default | Required 
------------------|------------|-------------------------------------------|---------|----------
- `min_backoff`   | `duration` | Minimum frequency to poll for files.      |  250ms  | no      
- `max_backoff`   | `duration` | Maximum frequency to poll for files.      |  250ms  | no       
+ Name                 | Type       | Description                               | Default | Required 
+----------------------|------------|-------------------------------------------|---------|----------
+ `min_poll_frequency` | `duration` | Minimum frequency to poll for files.      |  250ms  | no      
+ `max_poll_frequency` | `duration` | Maximum frequency to poll for files.      |  250ms  | no       
 
-Any time file changes are detected, the poll frequency gets reset to `min_backoff`.
+Any time file changes are detected, the poll frequency gets reset to `min_poll_frequency`.
 
-Any time no files changes are detected, the poll frenquency doubles in value to the maximum duration specified by `max_backoff`.
+Any time no files changes are detected, the poll frequency doubles in value to the maximum duration specified by `max_poll_frequency`.
 
 ## Exported fields
 

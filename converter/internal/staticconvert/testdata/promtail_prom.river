@@ -71,9 +71,9 @@ loki.source.file "logs_name_jobName" {
 	targets    = local.file_match.logs_name_jobName.targets
 	forward_to = [loki.write.logs_name.receiver]
 
-	backoff {
-		min_backoff = "1s"
-		max_backoff = "5s"
+	file_watch {
+		min_poll_frequency = "1s"
+		max_poll_frequency = "5s"
 	}
 }
 
@@ -124,9 +124,9 @@ loki.source.file "logs_name2_jobName" {
 	targets    = local.file_match.logs_name2_jobName.targets
 	forward_to = [loki.write.logs_name2.receiver]
 
-	backoff {
-		min_backoff = "1s"
-		max_backoff = "5s"
+	file_watch {
+		min_poll_frequency = "1s"
+		max_poll_frequency = "5s"
 	}
 }
 

@@ -92,7 +92,7 @@ func (s *ScrapeConfigBuilder) AppendLokiSourceFile(watchConfig *file.WatchConfig
 		ForwardTo:           forwardTo,
 		Encoding:            s.cfg.Encoding,
 		DecompressionConfig: convertDecompressionConfig(s.cfg.DecompressionCfg),
-		Backoff:             convertBackoffConfig(watchConfig),
+		FileWatch:           convertFileWatchConfig(watchConfig),
 	}
 	overrideHook := func(val interface{}) interface{} {
 		if _, ok := val.([]discovery.Target); ok {
@@ -256,13 +256,13 @@ func convertDecompressionConfig(cfg *scrapeconfig.DecompressionConfig) lokisourc
 	}
 }
 
-func convertBackoffConfig(watchConfig *file.WatchConfig) lokisourcefile.Backoff {
+func convertFileWatchConfig(watchConfig *file.WatchConfig) lokisourcefile.FileWatch {
 	if watchConfig == nil {
-		return lokisourcefile.Backoff{}
+		return lokisourcefile.FileWatch{}
 	}
-	return lokisourcefile.Backoff{
-		MinBackoff: watchConfig.MinPollFrequency,
-		MaxBackoff: watchConfig.MaxPollFrequency,
+	return lokisourcefile.FileWatch{
+		MinPollFrequency: watchConfig.MinPollFrequency,
+		MaxPollFrequency: watchConfig.MaxPollFrequency,
 	}
 }
 

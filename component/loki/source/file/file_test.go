@@ -76,7 +76,7 @@ func Test(t *testing.T) {
 	}
 }
 
-func TestBackoff(t *testing.T) {
+func TestFileWatch(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 	ctx, cancel := context.WithCancel(componenttest.TestContext(t))
 
@@ -96,9 +96,9 @@ func TestBackoff(t *testing.T) {
 			"foo":      "bar",
 		}},
 		ForwardTo: []loki.LogsReceiver{ch1},
-		Backoff: Backoff{
-			MinBackoff: time.Millisecond * 500,
-			MaxBackoff: time.Millisecond * 500,
+		FileWatch: FileWatch{
+			MinPollFrequency: time.Millisecond * 500,
+			MaxPollFrequency: time.Millisecond * 500,
 		},
 	}
 
@@ -111,7 +111,7 @@ func TestBackoff(t *testing.T) {
 
 	timeBeforeWriting := time.Now()
 
-	// Sleep for 600ms to miss the first poll, the next poll should be 2*MinBackoff later.
+	// Sleep for 600ms to miss the first poll, the next poll should be 2*MinPollFrequency later.
 	time.Sleep(time.Millisecond * 600)
 
 	_, err = f.Write([]byte("writing some text\n"))

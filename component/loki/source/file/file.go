@@ -41,18 +41,18 @@ type Arguments struct {
 	ForwardTo           []loki.LogsReceiver `river:"forward_to,attr"`
 	Encoding            string              `river:"encoding,attr,optional"`
 	DecompressionConfig DecompressionConfig `river:"decompression,block,optional"`
-	Backoff             Backoff             `river:"backoff,block,optional"`
+	FileWatch           FileWatch           `river:"file_watch,block,optional"`
 }
 
-type Backoff struct {
-	MinBackoff time.Duration `river:"min_backoff,attr,optional"`
-	MaxBackoff time.Duration `river:"max_backoff,attr,optional"`
+type FileWatch struct {
+	MinPollFrequency time.Duration `river:"min_poll_frequency,attr,optional"`
+	MaxPollFrequency time.Duration `river:"max_poll_frequency,attr,optional"`
 }
 
 var DefaultArguments = Arguments{
-	Backoff: Backoff{
-		MinBackoff: 250 * time.Millisecond,
-		MaxBackoff: 250 * time.Millisecond,
+	FileWatch: FileWatch{
+		MinPollFrequency: 250 * time.Millisecond,
+		MaxPollFrequency: 250 * time.Millisecond,
 	},
 }
 
@@ -336,8 +336,8 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 	} else {
 		level.Debug(c.opts.Logger).Log("msg", "tailing new file", "filename", path)
 		pollOptions := watch.PollingFileWatcherOptions{
-			MinPollFrequency: c.args.Backoff.MinBackoff,
-			MaxPollFrequency: c.args.Backoff.MaxBackoff,
+			MinPollFrequency: c.args.FileWatch.MinPollFrequency,
+			MaxPollFrequency: c.args.FileWatch.MaxPollFrequency,
 		}
 		tailer, err := newTailer(
 			c.metrics,
