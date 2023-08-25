@@ -27,12 +27,10 @@ prometheus.scrape "integrations_statsd_exporter" {
 
 prometheus.remote_write "integrations" {
 	endpoint {
-		name = "agent-72cf3f"
+		name = "agent-d885f6"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
-		queue_config {
-			retry_on_http_429 = false
-		}
+		queue_config { }
 
 		metadata_config { }
 	}
