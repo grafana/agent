@@ -2,7 +2,6 @@ package flowmode
 
 import (
 	"fmt"
-	"github.com/go-kit/log/level"
 	stdlog "log"
 	"net"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/ckit/advertise"
 	"github.com/hashicorp/go-discover"
