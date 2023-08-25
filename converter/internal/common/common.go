@@ -38,6 +38,12 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 		switch value := val.(type) {
 		case rivertypes.Secret:
 			return string(value)
+		case []rivertypes.Secret:
+			secrets := make([]string, 0, len(value))
+			for _, secret := range value {
+				secrets = append(secrets, string(secret))
+			}
+			return secrets
 		case flow_relabel.Regexp:
 			return value.String()
 		case []discovery.Target:

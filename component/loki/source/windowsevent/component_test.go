@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/windows/svc/eventlog"
 )
@@ -43,6 +44,7 @@ func TestEventLogger(t *testing.T) {
 		ExcludeUserdata:      false,
 		UseIncomingTimestamp: false,
 		ForwardTo:            []loki.LogsReceiver{rec},
+		Labels:               map[string]string{"job": "windows"},
 	})
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -57,6 +59,7 @@ func TestEventLogger(t *testing.T) {
 		// Fail!
 		require.True(t, false)
 	case e := <-rec.Chan():
+		require.Equal(t, model.LabelValue("windows"), e.Labels["job"])
 		if strings.Contains(e.Line, tm) {
 			found = true
 			break

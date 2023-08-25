@@ -2,10 +2,10 @@
 aliases:
 - ../../../../configuration/integrations/integrations-next/vsphere-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/vsphere-config/
-title: vsphere_config
+title: vsphere_config next
 ---
 
-# vsphere config (beta)
+# vsphere config (beta) next
 
 The `vsphere_config` block configures the `vmware_exporter` integration, an embedded
 version of [`vmware_exporter`](https://github.com/grafana/vmware_exporter), configured

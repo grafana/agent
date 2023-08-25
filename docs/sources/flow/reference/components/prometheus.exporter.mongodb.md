@@ -29,7 +29,7 @@ Omitted fields take their default values.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `mongodb_uri` | `string` | MongoDB node connection URI. | | yes
-`direct_connect` | `boolean` | Whether or not a direct connect should be made. Direct connections are not valid if multiple hosts are specified or an SRV URI is used. | true | no
+`direct_connect` | `boolean` | Whether or not a direct connect should be made. Direct connections are not valid if multiple hosts are specified or an SRV URI is used. | false | no
 `discovering_mode` | `boolean` | Wheter or not to enable autodiscover collections. | false | no
 `tls_basic_auth_config_path` | `string` | Path to the file having Prometheus TLS config for basic auth. Only enable if you want to use TLS based authentication. | | no
 
@@ -38,21 +38,8 @@ MongoDB node connection URI must be in the [`Standard Connection String Format`]
 For `tls_basic_auth_config_path`, check [`tls_config`](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#tls_config) for reference on the file format to be used.
 
 ## Exported fields
-The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `mongodb` metrics.
-
-For example, `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metrics' label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 
