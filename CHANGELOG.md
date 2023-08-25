@@ -10,6 +10,13 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- New Grafana Agent Flow components:
+
+  - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
+  to static mode's `automatic_logging` processor. (@ptodev)
+
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
@@ -33,52 +40,30 @@ v0.36.0-rc.0 (2023-08-25)
 - `prometheus.remote_write`: Set `retry_on_http_429` to `true` by default in the `queue_config` block.
   You can set it to `false` to preserve previous behavior. (@wildum)
 
-### Enhancements
-
-- Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
-
-- Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
+### Features
 
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
 
-- Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
-- Add `log_format` configuration to eventhandler integration and the `loki.source.kubernetes_events` Flow component. (@sadovnikov)
-
-- Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
-
 - Flow: Allow the `logging` configuration block to tee the Agent's logs to one
   or more loki.* components. (@tpaschalis)
-
-- Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
 
 - Added support for `promtail` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@thampiotr)
 
 - Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
 
-- Allow specification of `dimension_name_requirements` for Cloudwatch discovery exports. (@cvdv-au)
-
 - `loki.write` now exposes basic WAL support. (@thepalbi)
 
-- `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
-
 - Flow: Users can now define `additional_fields` in `loki.source.cloudflare` (@wildum)
-
-- Clustering: Enable nodes to periodically rediscover and rejoin peers. (@tpaschalis)
-
-- Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
-  and the option to connect with TLS. (@spartan0x117)
 
 - Flow: Added exemplar support for the `otelcol.exporter.prometheus`. (@wildum)
 
 - Add a `labels` argument in `loki.source.windowsevent` to associate additional labels with incoming logs. (@wildum)
 
-- `loki.write` now supports configuring retries on HTTP status code 429. (@wildum)
-
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
   - `otelcol.processor.span` - accepts traces telemetry data from other `otelcol`
-  components and modifies the names and attributes of the spans. (@ptodev)
+    components and modifies the names and attributes of the spans. (@ptodev)
   - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@sparta0x117)
   - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
@@ -86,8 +71,34 @@ v0.36.0-rc.0 (2023-08-25)
   - `discovery.nomad` - service discovery from Nomad. (@captncraig)
   - `discovery.puppetdb` - service discovery from PuppetDB. (@captncraig)
   - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes
-  keys and values are sourced from `discovery.*` components. (@ptodev)
+    keys and values are sourced from `discovery.*` components. (@ptodev)
   - `otelcol.connector.spanmetrics` - creates OpenTelemetry metrics from traces. (@ptodev)
+
+
+### Enhancements
+
+- Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
+
+- Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
+
+- Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
+
+- Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
+
+- Add `log_format` configuration to eventhandler integration and the `loki.source.kubernetes_events` Flow component. (@sadovnikov)
+
+- Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
+
+- Allow specification of `dimension_name_requirements` for Cloudwatch discovery exports. (@cvdv-au)
+
+- Clustering: Enable nodes to periodically rediscover and rejoin peers. (@tpaschalis)
+
+- `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
+
+- Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
+  and the option to connect with TLS. (@spartan0x117)
+
+- `loki.write` now supports configuring retries on HTTP status code 429. (@wildum)
 
 - Update `YACE` to `v0.54.0`, which includes bugfixes for FIPS support. (@ashrayjain)
 
