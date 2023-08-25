@@ -10,7 +10,7 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Enhancements
+### Features
 
 - New Grafana Agent Flow components:
 
