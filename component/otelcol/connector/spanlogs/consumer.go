@@ -134,6 +134,10 @@ func (c *consumer) consumeSpans(serviceName string, ss ptrace.ScopeSpans, rs pco
 			return nil
 		}
 
+		//TODO: This code uses pcommon.Map a extensively. Should we use map[string]pcommon.Value instead?
+		// It may be more efficient, because a pcommon.Map is actually just an slice.
+		// Inserting to it is slow, because it has to traverse the whole slice to see if the element
+		// is already in the map.
 		if logProcesses {
 			keyValuesProcesses := pcommon.NewMap()
 
@@ -186,7 +190,7 @@ func copyOtelMap(out pcommon.Map, in pcommon.Map, pred func(key string, val pcom
 }
 
 func convertOtelMapToSlice(m pcommon.Map) []any {
-	res := make([]any, 0, m.Len())
+	res := make([]any, 0, m.Len()*2)
 
 	m.Range(func(k string, v pcommon.Value) bool {
 		res = append(res, k)
