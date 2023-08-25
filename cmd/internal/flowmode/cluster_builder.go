@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/ckit/advertise"
 	"github.com/hashicorp/go-discover"
@@ -54,12 +55,18 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	}
 
 	if config.AdvertiseAddress == "" {
-		// TODO(rfratto): allow advertise interfaces to be configurable.
-		addr, err := advertise.FirstAddress(advertise.DefaultInterfaces)
-		if err != nil {
-			return nil, fmt.Errorf("determining advertise address: %w", err)
+		advertiseAddress := fmt.Sprintf("%s:%d", net.ParseIP("127.0.0.1"), listenPort)
+		if opts.EnableClustering {
+			// TODO(rfratto): allow advertise interfaces to be configurable.
+			addr, err := advertise.FirstAddress(advertise.DefaultInterfaces)
+			if err != nil {
+				level.Warn(opts.Log).Log("msg", "could not find advertise address using default interface names, "+
+					"falling back to localhost", "err", err)
+			} else {
+				advertiseAddress = fmt.Sprintf("%s:%d", addr.String(), listenPort)
+			}
 		}
-		config.AdvertiseAddress = fmt.Sprintf("%s:%d", addr.String(), listenPort)
+		config.AdvertiseAddress = advertiseAddress
 	} else {
 		config.AdvertiseAddress = appendDefaultPort(config.AdvertiseAddress, listenPort)
 	}
