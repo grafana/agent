@@ -64,6 +64,9 @@ Unfortunately, updating Otel dependencies is not straightforward:
    1. Compare the old and new version of Otel's documentation.
    2. Compare the config.go file to see if new parameters were added.
 4. Update the Agent's code and documentation where needed.
+   * Pay particular attention to whether the component's stability has changed. 
+   Stability is labeled at the top of the Collector documentation. 
+   The stability label in Collector's docs should match the one in the Agent's docs.
 
 ## Testing
 
