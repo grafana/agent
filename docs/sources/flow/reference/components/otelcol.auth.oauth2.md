@@ -1,5 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.oauth2/
+labels:
+  stage: beta
 title: otelcol.auth.oauth2
 ---
 

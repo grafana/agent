@@ -1,5 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.memory_limiter/
+labels:
+  stage: beta
 title: otelcol.processor.memory_limiter
 ---
 

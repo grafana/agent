@@ -1,5 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.loki/
+labels:
+  stage: beta
 title: otelcol.exporter.loki
 ---
 

@@ -1,5 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.jaeger/
+labels:
+  stage: deprecated
 title: otelcol.exporter.jaeger
 ---
 

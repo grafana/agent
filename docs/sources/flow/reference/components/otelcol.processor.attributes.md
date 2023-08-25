@@ -1,5 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.attributes/
+labels:
+  stage: beta
 title: otelcol.processor.attributes
 ---
 

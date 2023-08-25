@@ -1,5 +1,9 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.otlp/
+labels:
+  stage (metrics): stable
+  stage (traces): stable
+  stage (logs): beta
 title: otelcol.receiver.otlp
 ---
 

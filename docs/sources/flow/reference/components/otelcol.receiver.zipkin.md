@@ -1,5 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.zipkin/
+labels:
+  stage: beta
 title: otelcol.receiver.zipkin
 ---
 

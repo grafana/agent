@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.span/
 labels:
-  stage: alpha
+  stage: experimental
 title: otelcol.processor.span
 ---
 

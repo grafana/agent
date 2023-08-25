@@ -1,5 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.headers/
+labels:
+  stage: experimental
 title: otelcol.auth.headers
 ---
 

@@ -1,5 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanlogs/
+labels:
+  stage: experimental
 title: otelcol.connector.spanlogs
 ---
 
