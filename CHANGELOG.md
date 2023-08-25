@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.36.0-rc.0 (2023-08-25)
+--------------------
+
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
