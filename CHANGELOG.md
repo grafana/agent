@@ -14,8 +14,12 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
-  - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent 
+  - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
+
+### Other changes
+
+- Use Go 1.21.0 for builds. (@rfratto)
 
 v0.36.0-rc.0 (2023-08-25)
 --------------------
@@ -30,7 +34,7 @@ v0.36.0-rc.0 (2023-08-25)
   to enable decompression explicitly. See the [upgrade guide][] for migration
   instructions. (@thampiotr)
 
-- `otelcol.exporter.prometheus`: Set `include_scope_info` to `false` by default. You can set 
+- `otelcol.exporter.prometheus`: Set `include_scope_info` to `false` by default. You can set
   it to `true` to preserve previous behavior. (@gouthamve)
 
 - `prometheus.remote_write`: Set `retry_on_http_429` to `true` by default in the `queue_config` block.
@@ -123,7 +127,7 @@ v0.36.0-rc.0 (2023-08-25)
 - Fix an issue that lead the `loki.source.docker` container to use excessive
   CPU and memory. (@tpaschalis)
 
-- Fix issue where `otelcol.exporter.loki` was not normalizing label names 
+- Fix issue where `otelcol.exporter.loki` was not normalizing label names
   to comply with Prometheus conventions. (@ptodev)
 
 - Agent Management: Fix issue where an integration defined multiple times could lead to undefined behaviour. (@jcreixell)
@@ -148,7 +152,7 @@ v0.35.3 (2023-08-09)
 
 - (Agent static mode) Jaeger remote sampling works again, through a new `jaeger_remote_sampling`
   entry in the traces config. It is no longer configurable through the jaeger receiver.
-  Support Jaeger remote sampling was removed accidentally in v0.35, and it is now restored, 
+  Support Jaeger remote sampling was removed accidentally in v0.35, and it is now restored,
   albeit via a different config entry.
 
 - Clustering: Nodes take part in distributing load only after loading their
@@ -243,8 +247,8 @@ v0.35.0 (2023-07-18)
 
 - The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`. (@ptodev)
 
-- (Agent static mode) Jaeger remote sampling used to be configured using the Jaeger receiver configuration. 
-  This receiver was updated to a new version, where support for remote sampling in the receiver was removed. 
+- (Agent static mode) Jaeger remote sampling used to be configured using the Jaeger receiver configuration.
+  This receiver was updated to a new version, where support for remote sampling in the receiver was removed.
   Jaeger remote sampling is available as a separate configuration field starting in v0.35.3. (@ptodev)
 
 ### Deprecations
