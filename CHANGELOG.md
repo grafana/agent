@@ -67,7 +67,8 @@ Main (unreleased)
 
 - `loki.write` now supports configuring retries on HTTP status code 429. (@wildum)
 
-- Add a `backoff` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_backoff` and `max_backoff`. (@wildum)
+- Add a `backoff` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_backoff` and `max_backoff`.
+  In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`.  (@wildum)
 
 - New Grafana Agent Flow components:
 
