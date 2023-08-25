@@ -83,8 +83,8 @@ type traceToLogSignal struct {
 func NewTraceToLogSignal(inputJson string, expectedOutputJson string) Signal {
 	return &traceToLogSignal{
 		logCh:              make(chan plog.Logs),
-		inputTrace:         createTestTraces(inputJson),
-		expectedOuutputLog: createTestLogs(expectedOutputJson),
+		inputTrace:         CreateTestTraces(inputJson),
+		expectedOuutputLog: CreateTestLogs(expectedOutputJson),
 	}
 }
 
