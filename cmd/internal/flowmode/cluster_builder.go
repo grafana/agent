@@ -58,11 +58,7 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	if config.AdvertiseAddress == "" {
 		advertiseAddress := fmt.Sprintf("%s:%d", net.ParseIP("127.0.0.1"), listenPort)
 		if opts.EnableClustering {
-			advertiseInterfaces := advertise.DefaultInterfaces
-			if opts.AdvertiseInterfaces != nil {
-				advertiseInterfaces = opts.AdvertiseInterfaces
-			}
-			addr, err := advertise.FirstAddress(advertiseInterfaces)
+			addr, err := advertise.FirstAddress(opts.AdvertiseInterfaces)
 			if err != nil {
 				level.Warn(opts.Log).Log("msg", "could not find advertise address using default interface names, "+
 					"falling back to localhost", "err", err)

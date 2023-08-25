@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
 	uiservice "github.com/grafana/agent/service/ui"
+	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
@@ -40,13 +41,14 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		inMemoryAddr:     "agent.internal:12345",
-		httpListenAddr:   "127.0.0.1:12345",
-		storagePath:      "data-agent/",
-		uiPrefix:         "/",
-		disableReporting: false,
-		enablePprof:      true,
-		configFormat:     "flow",
+		inMemoryAddr:         "agent.internal:12345",
+		httpListenAddr:       "127.0.0.1:12345",
+		storagePath:          "data-agent/",
+		uiPrefix:             "/",
+		disableReporting:     false,
+		enablePprof:          true,
+		configFormat:         "flow",
+		clusterAdvInterfaces: advertise.DefaultInterfaces,
 
 		clusterRejoinInterval: 60 * time.Second,
 	}
