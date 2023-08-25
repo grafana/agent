@@ -132,14 +132,15 @@ Omitted fields take their default values.
 
 You can use the following blocks in`prometheus.exporter.cloudwatch` to configure collector-specific options:
 
-| Hierarchy          | Name          | Description                                                                                                                             | Required |
-|--------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------|----------|
-| discovery          | [discovery][] | Configures a discovery job. Multiple jobs can be configured.                                                                            | no*      |
-| discovery > role   | [role][]      | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
-| discovery > metric | [metric][]    | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
-| static             | [static][]    | Configures a static job. Multiple jobs can be configured.                                                                               | no*      |
-| static > role      | [role][]      | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
-| static > metric    | [metric][]    | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
+| Hierarchy          | Name                   | Description                                                                                                                             | Required |
+|--------------------|------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|----------|
+| discovery          | [discovery][]          | Configures a discovery job. Multiple jobs can be configured.                                                                            | no*      |
+| discovery > role   | [role][]               | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
+| discovery > metric | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
+| static             | [static][]             | Configures a static job. Multiple jobs can be configured.                                                                               | no*      |
+| static > role      | [role][]               | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
+| static > metric    | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
+| decoupled_scraping | [decoupled_scraping][] | Configures the decoupled scraping feature to retrieve metrics on a schedule and return the cached metrics.                                        | no       |
 
 {{% admonition type="note" %}}
 The `static` and `discovery` blocks are marked as not required, but you must configure at least one static or discovery
@@ -153,6 +154,8 @@ job.
 [metric]: #metric-block
 
 [role]: #role-block
+
+[decoupled_scraping]: #decoupled-scraping-block
 
 ## discovery block
 
@@ -322,6 +325,20 @@ the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs
 is exported to CloudWatch.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
+
+## decoupled scraping block
+
+The decoupled scraping block configures an optional feature that scrapes CloudWatch metrics in the background on a
+scheduled interval. When this feature is enabled, CloudWatch metrics are gathered asynchronously at the scheduled interval instead
+of synchronously when the CloudWatch component is scraped.
+
+The decoupled scraping feature reduces the number of API requests sent to AWS.
+This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics
+
+| Name              | Type     | Description                                                             | Default | Required |
+|-------------------|----------|-------------------------------------------------------------------------|---------|----------|
+| `enabled`         | `bool`   | Controls whether the decoupled scraping featured is enabled             | false   | no       |
+| `scrape_interval` | `string` | Controls how frequently to asynchronously gather new CloudWatch metrics | 5m      | no       |
 
 ## Exported fields
 
