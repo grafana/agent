@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"path"
+	"sort"
 	"strings"
 	"sync"
 
@@ -14,10 +15,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/service"
-	"github.com/grafana/agent/web/api"
-	"github.com/grafana/agent/web/ui"
 	"github.com/grafana/ckit/memconn"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -37,13 +35,11 @@ type Options struct {
 	Tracer   trace.TracerProvider // Where to send traces.
 	Gatherer prometheus.Gatherer  // Where to collect metrics from.
 
-	Clusterer  *cluster.Clusterer
 	ReadyFunc  func() bool
 	ReloadFunc func() error
 
 	HTTPListenAddr   string // Address to listen for HTTP traffic on.
 	MemoryListenAddr string // Address to accept in-memory traffic on.
-	UIPrefix         string // Path prefix to host the UI at.
 	EnablePProf      bool   // Whether pprof endpoints should be exposed.
 }
 
@@ -54,7 +50,6 @@ type Service struct {
 	opts     Options
 
 	memLis *memconn.Listener
-	node   cluster.Node
 
 	componentHttpPathPrefix string
 }
@@ -67,8 +62,6 @@ func New(opts Options) *Service {
 		l = opts.Logger
 		t = opts.Tracer
 		r = opts.Gatherer
-
-		n cluster.Node
 	)
 
 	if l == nil {
@@ -81,10 +74,6 @@ func New(opts Options) *Service {
 		r = prometheus.NewRegistry()
 	}
 
-	if opts.Clusterer != nil {
-		n = opts.Clusterer.Node
-	}
-
 	return &Service{
 		log:      l,
 		tracer:   t,
@@ -92,7 +81,6 @@ func New(opts Options) *Service {
 		opts:     opts,
 
 		memLis: memconn.NewListener(l),
-		node:   n,
 
 		componentHttpPathPrefix: "/api/v0/component/",
 	}
@@ -137,11 +125,6 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 	r.PathPrefix(s.componentHttpPathPrefix).Handler(s.componentHandler(host))
 
-	if s.node != nil {
-		cr, ch := s.node.Handler()
-		r.PathPrefix(cr).Handler(ch)
-	}
-
 	if s.opts.ReadyFunc != nil {
 		r.HandleFunc("/-/ready", func(w http.ResponseWriter, _ *http.Request) {
 			if s.opts.ReadyFunc() {
@@ -168,12 +151,14 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		}).Methods(http.MethodGet, http.MethodPost)
 	}
 
-	// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
-	// will take precedence over anything else with collides with
-	// s.opts.UIPrefix.
-	fa := api.NewFlowAPI(host, s.node)
-	fa.RegisterRoutes(path.Join(s.opts.UIPrefix, "/api/v0/web"), r)
-	ui.RegisterRoutes(s.opts.UIPrefix, r)
+	// Wire custom service handlers for services which depend on the http
+	// service.
+	//
+	// NOTE(rfratto): keep this at the bottom of all other routes, otherwise a
+	// service with a colliding path takes precedence over a predefined route.
+	for _, route := range s.getServiceRoutes(host) {
+		r.PathPrefix(route.Base).Handler(route.Handler)
+	}
 
 	srv := &http.Server{Handler: h2c.NewHandler(r, &http2.Server{})}
 
@@ -196,6 +181,35 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 	<-ctx.Done()
 	return nil
+}
+
+// getServiceRoutes returns a sorted list of service routes for services which
+// depend on the HTTP service.
+//
+// Longer paths are prioritized over shorter paths so that a service with a
+// more specific base route takes precedence.
+func (s *Service) getServiceRoutes(host service.Host) []serviceRoute {
+	var routes serviceRoutes
+
+	for _, consumer := range host.GetServiceConsumers(ServiceName) {
+		if consumer.Type != service.ConsumerTypeService {
+			continue
+		}
+
+		sh, ok := consumer.Value.(ServiceHandler)
+		if !ok {
+			continue
+		}
+		base, handler := sh.ServiceHandler(host)
+
+		routes = append(routes, serviceRoute{
+			Base:    base,
+			Handler: handler,
+		})
+	}
+
+	sort.Sort(routes)
+	return routes
 }
 
 func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
@@ -298,4 +312,20 @@ type Component interface {
 	// For example, f a request is made to `/component/{id}/metrics`, the component
 	// will receive a request to just `/metrics`.
 	Handler() http.Handler
+}
+
+// ServiceHandler is a Service which exposes custom HTTP handlers.
+type ServiceHandler interface {
+	service.Service
+
+	// ServiceHandler returns the base route and HTTP handlers to register for
+	// the provided service.
+	//
+	// This method is only called for services that declare a dependency on
+	// the http service.
+	//
+	// The http service prioritizes longer base routes. Given two base routes of
+	// /foo and /foo/bar, an HTTP URL of /foo/bar/baz will be routed to the
+	// longer base route (/foo/bar).
+	ServiceHandler(host service.Host) (base string, handler http.Handler)
 }
