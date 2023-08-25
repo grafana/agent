@@ -23,13 +23,14 @@ type clusterOptions struct {
 	Metrics prometheus.Registerer
 	Tracer  trace.TracerProvider
 
-	EnableClustering bool
-	NodeName         string
-	AdvertiseAddress string
-	ListenAddress    string
-	JoinPeers        []string
-	DiscoverPeers    string
-	RejoinInterval   time.Duration
+	EnableClustering    bool
+	NodeName            string
+	AdvertiseAddress    string
+	ListenAddress       string
+	JoinPeers           []string
+	DiscoverPeers       string
+	RejoinInterval      time.Duration
+	AdvertiseInterfaces []string
 }
 
 func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
@@ -57,8 +58,11 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	if config.AdvertiseAddress == "" {
 		advertiseAddress := fmt.Sprintf("%s:%d", net.ParseIP("127.0.0.1"), listenPort)
 		if opts.EnableClustering {
-			// TODO(rfratto): allow advertise interfaces to be configurable.
-			addr, err := advertise.FirstAddress(advertise.DefaultInterfaces)
+			advertiseInterfaces := advertise.DefaultInterfaces
+			if opts.AdvertiseInterfaces != nil {
+				advertiseInterfaces = opts.AdvertiseInterfaces
+			}
+			addr, err := advertise.FirstAddress(advertiseInterfaces)
 			if err != nil {
 				level.Warn(opts.Log).Log("msg", "could not find advertise address using default interface names, "+
 					"falling back to localhost", "err", err)

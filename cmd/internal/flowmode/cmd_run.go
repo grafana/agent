@@ -192,13 +192,14 @@ func (fr *flowRun) Run(configFile string) error {
 		Tracer:  t,
 		Metrics: reg,
 
-		EnableClustering: fr.clusterEnabled,
-		NodeName:         fr.clusterNodeName,
-		AdvertiseAddress: fr.clusterAdvAddr,
-		ListenAddress:    fr.httpListenAddr,
-		JoinPeers:        strings.Split(fr.clusterJoinAddr, ","),
-		DiscoverPeers:    fr.clusterDiscoverPeers,
-		RejoinInterval:   fr.clusterRejoinInterval,
+		EnableClustering:    fr.clusterEnabled,
+		NodeName:            fr.clusterNodeName,
+		AdvertiseAddress:    fr.clusterAdvAddr,
+		ListenAddress:       fr.httpListenAddr,
+		JoinPeers:           strings.Split(fr.clusterJoinAddr, ","),
+		DiscoverPeers:       fr.clusterDiscoverPeers,
+		RejoinInterval:      fr.clusterRejoinInterval,
+		AdvertiseInterfaces: fr.clusterAdvInterfaces,
 	})
 	if err != nil {
 		return err
