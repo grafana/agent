@@ -18,10 +18,10 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	lsf "github.com/grafana/agent/component/loki/source/file"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
 	loki_util "github.com/grafana/loki/pkg/util"
+	"github.com/grafana/river"
 )
 
 func TestRiverConfig(t *testing.T) {

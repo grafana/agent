@@ -8,9 +8,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/parser"
-	"github.com/grafana/agent/pkg/river/printer"
+	"github.com/grafana/river/diag"
+	"github.com/grafana/river/parser"
+	"github.com/grafana/river/printer"
 )
 
 func main() {

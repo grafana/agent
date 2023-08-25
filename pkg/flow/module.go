@@ -10,8 +10,8 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/scanner"
-	"github.com/grafana/agent/pkg/river/token"
+	"github.com/grafana/river/scanner"
+	"github.com/grafana/river/token"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/maps"
 )
