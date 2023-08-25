@@ -55,11 +55,7 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	}
 
 	if config.AdvertiseAddress == "" {
-		addr, err := findAdvertiseAddress(opts)
-		if err != nil {
-			return nil, err
-		}
-		config.AdvertiseAddress = fmt.Sprintf("%s:%d", addr.String(), listenPort)
+		config.AdvertiseAddress = findAdvertiseAddress(opts, listenPort)
 	} else {
 		config.AdvertiseAddress = appendDefaultPort(config.AdvertiseAddress, listenPort)
 	}
@@ -87,27 +83,24 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	return cluster.New(config)
 }
 
-func findAdvertiseAddress(opts clusterOptions) (net.IP, error) {
-	// TODO(rfratto): allow advertise interfaces to be configurable.
-	addr, err := advertise.FirstAddress(advertise.DefaultInterfaces)
-	if err != nil {
-		level.Warn(opts.Log).Log("msg", "could not find advertise address using default interface names, "+
-			"falling back to all available interfaces", "err", err)
-		ifaces, err := net.Interfaces()
+func findAdvertiseAddress(opts clusterOptions, port int) string {
+	var (
+		localhost = net.ParseIP("127.0.0.1")
+		addr      = localhost
+		err       error
+	)
+	if opts.EnableClustering {
+		// TODO(rfratto): allow advertise interfaces to be configurable.
+		addr, err = advertise.FirstAddress(advertise.DefaultInterfaces)
 		if err != nil {
-			return nil, fmt.Errorf("listing interfaces: %w", err)
-		}
-		names := make([]string, len(ifaces))
-		for i, iface := range ifaces {
-			names[i] = iface.Name
-		}
-		addr, err = advertise.FirstAddress(names)
-		if err != nil {
-			return nil, fmt.Errorf("determining advertise address: %w", err)
+			level.Warn(opts.Log).Log("msg", "could not find advertise address using default interface names, "+
+				"falling back to localhost", "err", err)
+			addr = localhost
 		}
 	}
-	level.Debug(opts.Log).Log("msg", "using cluster advertise address", "addr", addr.String())
-	return addr, nil
+	address := fmt.Sprintf("%s:%d", addr.String(), port)
+	level.Debug(opts.Log).Log("msg", "using cluster advertise address", "addr", address)
+	return address
 }
 
 func findPort(addr string, defaultPort int) int {

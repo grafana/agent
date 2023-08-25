@@ -239,7 +239,8 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		return fmt.Errorf("failed to get peers to join: %w", err)
 	}
 
-	level.Info(s.log).Log("msg", "starting cluster node", "peers", peers, "advertise_addr", s.opts.AdvertiseAddress)
+	level.Info(s.log).Log("msg", "starting cluster node", "peers", strings.Join(peers, ","),
+		"advertise_addr", s.opts.AdvertiseAddress)
 
 	if err := s.node.Start(peers); err != nil {
 		level.Warn(s.log).Log("msg", "failed to connect to peers; bootstrapping a new cluster", "err", err)
