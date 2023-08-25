@@ -17,6 +17,10 @@ Main (unreleased)
   - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent 
   to static mode's `automatic_logging` processor. (@ptodev)
 
+### Enhancements
+
+- Label the stability of most `otelcol` flow components in the Agent documentation.
+
 v0.36.0-rc.0 (2023-08-25)
 --------------------
 
