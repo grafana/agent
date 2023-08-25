@@ -164,6 +164,8 @@ linux_containers_jobs + windows_containers_jobs + [
         GPG_PRIVATE_KEY: secrets.gpg_private_key.fromSecret,
         GPG_PUBLIC_KEY: secrets.gpg_public_key.fromSecret,
         GPG_PASSPHRASE: secrets.gpg_passphrase.fromSecret,
+        GITHUB_APP_ID: secrets.updater_app_id.fromSecret,
+        GITHUB_APP_PRIVATE_KEY: secrets.updater_private_key.fromSecret,
       },
       commands: [
         'docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD',

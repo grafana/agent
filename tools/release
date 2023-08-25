@@ -16,6 +16,8 @@ find dist/ -type f \
 # Get the SHA256SUMS before continuing.
 pushd dist && sha256sum -- * > SHA256SUMS && popd || exit
 
+GITHUB_TOKEN=$(go run tools/gen-github-token/main.go)
+
 ghr \
   -t "${GITHUB_TOKEN}" \
   -u "grafana" \

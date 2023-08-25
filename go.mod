@@ -18,6 +18,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.28
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.34.1
 	github.com/bmatcuk/doublestar v1.3.4
+	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/bufbuild/connect-go v1.9.0
 	github.com/buger/jsonparser v1.1.1
 	github.com/burningalchemist/sql_exporter v0.0.0-20221222155641-2ff59aa75200
@@ -47,6 +48,7 @@ require (
 	github.com/google/cadvisor v0.47.0
 	github.com/google/dnsmasq_exporter v0.2.1-0.20230620100026-44b14480804a
 	github.com/google/go-cmp v0.5.9
+	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-jsonnet v0.18.0
 	github.com/google/pprof v0.0.0-20230705174524-200ffdc848b8
 	github.com/google/renameio/v2 v2.0.0
@@ -621,10 +623,10 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
 
-require github.com/foxcpp/go-mockdns v1.0.0
-
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
+	github.com/google/go-github/v29 v29.0.2 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
