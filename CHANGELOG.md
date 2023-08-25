@@ -1,3 +1,4 @@
+TEST
 # Changelog
 
 > _Contributors should read our [contributors guide][] for instructions on how
