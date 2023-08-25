@@ -80,8 +80,13 @@ Main (unreleased)
   - `discovery.puppetdb` - service discovery from PuppetDB. (@captncraig)
   - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes 
   keys and values are sourced from `discovery.*` components. (@ptodev)
+  - `otelcol.connector.spanmetrics` - creates OpenTelemetry metrics from traces. (@ptodev)
 
 - Update `YACE` to `v0.54.0`, which includes bugfixes for FIPS support. (@ashrayjain)
+
+- Support decoupled scraping in the cloudwatch_exporter integration (@dtrejod).
+
+- Agent Management: Enable proxying support (@spartan0x117)
 
 ### Bugfixes
 
@@ -103,6 +108,11 @@ Main (unreleased)
 
 - Fix an issue that lead the `loki.source.docker` container to use excessive
   CPU and memory. (@tpaschalis)
+
+- Fix issue where `otelcol.exporter.loki` was not normalizing label names 
+  to comply with Prometheus conventions. (@ptodev)
+
+- Agent Management: Fix issue where an integration defined multiple times could lead to undefined behaviour. (@jcreixell)
 
 v0.35.4 (2023-08-14)
 --------------------

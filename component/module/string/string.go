@@ -6,6 +6,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/http"
 )
 
@@ -14,7 +15,7 @@ func init() {
 		Name:          "module.string",
 		Args:          Arguments{},
 		Exports:       module.Exports{},
-		NeedsServices: []string{http.ServiceName},
+		NeedsServices: []string{http.ServiceName, cluster.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
