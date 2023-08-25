@@ -110,6 +110,8 @@ Main (unreleased)
 - Fix issue where `otelcol.exporter.loki` was not normalizing label names 
   to comply with Prometheus conventions. (@ptodev)
 
+- Agent Management: Fix issue where an integration defined multiple times could lead to undefined behaviour. (@jcreixell)
+
 v0.35.4 (2023-08-14)
 --------------------
 
