@@ -529,7 +529,7 @@ ignored.
 
 ### Traces: Changes to receiver's TLS config (Breaking change).
 
-Upgrading to OpenTelemetry v0.36.0-rc.0 contains a change in the receivers TLS config.
+Upgrading to OpenTelemetry v0.36.0 contains a change in the receivers TLS config.
 TLS params have been changed from being squashed to being in its own block.
 This affect the jaeger receiver's `remote_sampling` config.
 
