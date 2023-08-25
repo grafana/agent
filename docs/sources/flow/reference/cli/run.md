@@ -50,7 +50,7 @@ The following flags are supported:
 * `--cluster.discover-peers`: List of key-value tuples for discovering peers (default `""`). Mutually exclusive with `--cluster.join-addresses`.
 * `--cluster.rejoin-interval`: How often to rejoin the list of peers (default `"60s"`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
-* `--cluster.advertise-interfaces`: List of interfaces used to infer an address to advertise. The first one available in the list will be selected (default `["eth0", "en0"]`).
+* `--cluster.advertise-interfaces`: List of interfaces used to infer an address to advertise. The first one available in the list will be selected (default `"eth0,en0"`).
 * `--config.format`: The format of the source file. Supported formats: `flow`, `prometheus`, `promtail` (default `"flow"`).
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 
@@ -94,8 +94,8 @@ If the `--cluster.advertise-address` flag is not explicitly set, the agent
 tries to infer a suitable one from `--cluster.advertise-interfaces`.
 If `--cluster.advertise-interfaces` is not explicitly set, the agent will
 infer one from the `eth0` and `en0` local network interfaces.
-If the advertised address cannot be determined, the agent will fail to start.
-Since Windows does not have interfaces name `eth0` or `en0`, Windows users must explicitly pass
+The agent will fail to start if it can't determine the advertised address.
+Since Windows does not use the interface names `eth0` or `en0`, Windows users must explicitly pass
 at least one valid network interface for `--cluster.advertise-interfaces` or a value for `--cluster.advertise-address`.
 
 The comma-separated list of addresses provided in `--cluster.join-addresses`
