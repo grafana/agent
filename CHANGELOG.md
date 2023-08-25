@@ -23,6 +23,9 @@ Main (unreleased)
 - `otelcol.exporter.prometheus`: Set `include_scope_info` to `false` by default. You can set 
   it to `true` to preserve previous behavior. (@gouthamve)
 
+- `prometheus.remote_write`: Set `retry_on_http_429` to `true` by default in the `queue_config` block.
+  You can set it to `false` to preserve previous behavior. (@wildum)
+
 ### Enhancements
 
 - Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
@@ -60,6 +63,10 @@ Main (unreleased)
 
 - Flow: Added exemplar support for the `otelcol.exporter.prometheus`. (@wildum)
 
+- Add a `labels` argument in `loki.source.windowsevent` to associate additional labels with incoming logs. (@wildum)
+
+- `loki.write` now supports configuring retries on HTTP status code 429. (@wildum)
+
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
@@ -73,6 +80,11 @@ Main (unreleased)
   - `discovery.puppetdb` - service discovery from PuppetDB. (@captncraig)
   - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes 
   keys and values are sourced from `discovery.*` components. (@ptodev)
+  - `otelcol.connector.spanmetrics` - creates OpenTelemetry metrics from traces. (@ptodev)
+
+- Update `YACE` to `v0.54.0`, which includes bugfixes for FIPS support. (@ashrayjain)
+
+- Support decoupled scraping in the cloudwatch_exporter integration (@dtrejod).
 
 ### Bugfixes
 
@@ -88,7 +100,15 @@ Main (unreleased)
 
 - Fix issue where Agent crashes when a blackbox modules config file is specified for blackbox integration. (@marctc)
 
+- Fix issue where the code from agent would not return to the Windows Service Manager (@jkroepke)
+
 - Fix issue where getting the support bundle failed due to using an HTTP Client that was not able to access the agent in-memory address. (@spartan0x117)
+
+- Fix an issue that lead the `loki.source.docker` container to use excessive
+  CPU and memory. (@tpaschalis)
+
+- Fix issue where `otelcol.exporter.loki` was not normalizing label names 
+  to comply with Prometheus conventions. (@ptodev)
 
 - Agent Management: Fix issue where an integration defined multiple times could lead to undefined behaviour. (@jcreixell)
 

@@ -3,7 +3,6 @@ package build
 import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/loki/source/windowsevent"
-	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 )
 
@@ -12,10 +11,6 @@ func (s *ScrapeConfigBuilder) AppendWindowsEventsConfig() {
 		return
 	}
 	winCfg := s.cfg.WindowsConfig
-	if len(winCfg.Labels) != 0 {
-		// TODO: Add support for labels - see https://github.com/grafana/agent/issues/4634 for more details
-		s.diags.Add(diag.SeverityLevelError, "windows_events.labels are currently not supported")
-	}
 	args := windowsevent.Arguments{
 		Locale:               int(winCfg.Locale),
 		EventLogName:         winCfg.EventlogName,
@@ -26,6 +21,7 @@ func (s *ScrapeConfigBuilder) AppendWindowsEventsConfig() {
 		ExcludeUserdata:      winCfg.ExcludeUserData,
 		UseIncomingTimestamp: winCfg.UseIncomingTimestamp,
 		ForwardTo:            make([]loki.LogsReceiver, 0),
+		Labels:               convertPromLabels(winCfg.Labels),
 	}
 
 	override := func(val interface{}) interface{} {

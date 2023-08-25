@@ -19,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendCloudwatchExporter(config *cloudwatc
 		args,
 	))
 
-	return prometheusconvert.NewDiscoverExports(fmt.Sprintf("prometheus.exporter.cloudwatch.%s.targets", compLabel))
+	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.cloudwatch.%s.targets", compLabel))
 }
 
 func toCloudwatchExporter(config *cloudwatch_exporter.Config) *cloudwatch.Arguments {
