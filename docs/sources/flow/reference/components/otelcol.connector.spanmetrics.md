@@ -1,5 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanmetrics/
+labels:
+  stage: alpha
 title: otelcol.connector.spanmetrics
 ---
 
