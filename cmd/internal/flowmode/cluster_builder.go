@@ -2,6 +2,7 @@ package flowmode
 
 import (
 	"fmt"
+	"github.com/go-kit/log/level"
 	stdlog "log"
 	"net"
 	"os"
@@ -54,10 +55,9 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	}
 
 	if config.AdvertiseAddress == "" {
-		// TODO(rfratto): allow advertise interfaces to be configurable.
-		addr, err := advertise.FirstAddress(advertise.DefaultInterfaces)
+		addr, err := findAdvertiseAddress(opts)
 		if err != nil {
-			return nil, fmt.Errorf("determining advertise address: %w", err)
+			return nil, err
 		}
 		config.AdvertiseAddress = fmt.Sprintf("%s:%d", addr.String(), listenPort)
 	} else {
@@ -85,6 +85,29 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	}
 
 	return cluster.New(config)
+}
+
+func findAdvertiseAddress(opts clusterOptions) (net.IP, error) {
+	// TODO(rfratto): allow advertise interfaces to be configurable.
+	addr, err := advertise.FirstAddress(advertise.DefaultInterfaces)
+	if err != nil {
+		level.Warn(opts.Log).Log("msg", "could not find advertise address using default interface names, "+
+			"falling back to all available interfaces", "err", err)
+		ifaces, err := net.Interfaces()
+		if err != nil {
+			return nil, fmt.Errorf("listing interfaces: %w", err)
+		}
+		names := make([]string, len(ifaces))
+		for i, iface := range ifaces {
+			names[i] = iface.Name
+		}
+		addr, err = advertise.FirstAddress(names)
+		if err != nil {
+			return nil, fmt.Errorf("determining advertise address: %w", err)
+		}
+	}
+	level.Debug(opts.Log).Log("msg", "using cluster advertise address", "addr", addr.String())
+	return addr, nil
 }
 
 func findPort(addr string, defaultPort int) int {

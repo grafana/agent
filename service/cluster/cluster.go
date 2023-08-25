@@ -123,7 +123,7 @@ func New(opts Options) (*Service, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cluster node: %w", err)
 	}
-	if opts.Metrics != nil {
+	if opts.EnableClustering && opts.Metrics != nil {
 		if err := opts.Metrics.Register(node.Metrics()); err != nil {
 			return nil, fmt.Errorf("failed to register metrics: %w", err)
 		}
