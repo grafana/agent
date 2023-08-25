@@ -119,7 +119,7 @@ func TestBackoff(t *testing.T) {
 
 	select {
 	case logEntry := <-ch1.Chan():
-		require.Greater(t, time.Now().Sub(timeBeforeWriting), 1*time.Second)
+		require.Greater(t, time.Since(timeBeforeWriting), 1*time.Second)
 		require.WithinDuration(t, time.Now(), timeBeforeWriting, 2*time.Second)
 		require.Equal(t, "writing some text", logEntry.Line)
 	case <-time.After(5 * time.Second):
