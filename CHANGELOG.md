@@ -23,7 +23,10 @@ Main (unreleased)
 - `otelcol.exporter.prometheus`: Set `include_scope_info` to `false` by default. You can set 
   it to `true` to preserve previous behavior. (@gouthamve)
 
-- `prometheus.remote_write`: Set `retry_on_http_429` to `true` by default in the `queue_config` block for flow and static modes.
+- `prometheus.remote_write` (flow): Set `retry_on_http_429` to `true` by default in the `queue_config` block.
+  You can set it to `false` to preserve previous behavior. (@wildum)
+
+- `remote_write` (static): Override prometheus default value of `retry_on_http_429` in the `queue_config` to `true`.
   You can set it to `false` to preserve previous behavior. (@wildum)
 
 ### Enhancements

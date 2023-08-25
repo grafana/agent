@@ -28,6 +28,16 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 [release-notes-flow]: "/docs/grafana-cloud/ -> ../flow/release-notes"
 {{% /docs/reference %}}
 
+## v0.36
+
+### Breaking change: The prometheus default value of `retry_on_http_429` is overriden to `true` for the `queue_config` in `remote_write`
+
+The prometheus default value of `retry_on_http_429` is overriden to `true` for the `queue_config` in `remote_write`
+so that the agent can retry sending and avoid data being lost for metric pipelines by default.
+
+* If you set the `retry_on_http_429` explicitly - no action is required.
+* If you do not set `retry_on_http_429` explicitly and you do *not* want to retry on HTTP 429, make sure you set it to `false` as you upgrade to this new version.
+
 ## v0.35
 
 ### Breaking change: Jaeger remote sampling no longer configurable using the Jaeger receiver
