@@ -121,9 +121,7 @@ func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) er
 // FetchRemoteConfig fetches the raw bytes of the config from a remote API using
 // the values in r.AgentManagement.
 func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
-	httpClientConfig := &config.HTTPClientConfig{
-		BasicAuth: &r.InitialConfig.BasicAuth,
-	}
+	httpClientConfig := &r.InitialConfig.HTTPClientConfig
 
 	dir, err := os.Getwd()
 	if err != nil {
@@ -169,11 +167,11 @@ type RemoteConfiguration struct {
 }
 
 type AgentManagementConfig struct {
-	Enabled         bool             `yaml:"-"` // Derived from enable-features=agent-management
-	Host            string           `yaml:"host"`
-	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
-	Protocol        string           `yaml:"protocol"`
-	PollingInterval time.Duration    `yaml:"polling_interval"`
+	Enabled          bool                    `yaml:"-"` // Derived from enable-features=agent-management
+	Host             string                  `yaml:"host"`
+	Protocol         string                  `yaml:"protocol"`
+	PollingInterval  time.Duration           `yaml:"polling_interval"`
+	HTTPClientConfig config.HTTPClientConfig `yaml:",inline"`
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
@@ -290,7 +288,7 @@ func (am *AgentManagementConfig) JitterTime() time.Duration {
 
 // Validate checks that necessary portions of the config have been set.
 func (am *AgentManagementConfig) Validate() error {
-	if am.BasicAuth.Username == "" || am.BasicAuth.PasswordFile == "" {
+	if am.HTTPClientConfig.BasicAuth == nil || am.HTTPClientConfig.BasicAuth.Username == "" || am.HTTPClientConfig.BasicAuth.PasswordFile == "" {
 		return errors.New("both username and password_file fields must be specified")
 	}
 

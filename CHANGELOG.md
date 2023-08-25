@@ -86,6 +86,8 @@ Main (unreleased)
 
 - Support decoupled scraping in the cloudwatch_exporter integration (@dtrejod).
 
+- Agent Management: Enable proxying support (@spartan0x117)
+
 ### Bugfixes
 
 - Update to config converter so default relabel `source_labels` are left off the river output. (@erikbaranowski)
