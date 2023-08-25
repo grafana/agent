@@ -51,10 +51,13 @@ func (t *testRemoteConfigProvider) CacheRemoteConfig(r []byte) error {
 var validAgentManagementConfig = AgentManagementConfig{
 	Enabled: true,
 	Host:    "localhost:1234",
-	BasicAuth: config.BasicAuth{
-		Username:     "test",
-		PasswordFile: "/test/path",
+	HTTPClientConfig: config.HTTPClientConfig{
+		BasicAuth: &config.BasicAuth{
+			Username:     "test",
+			PasswordFile: "/test/path",
+		},
 	},
+
 	Protocol:        "https",
 	PollingInterval: time.Minute,
 	RemoteConfiguration: RemoteConfiguration{
@@ -72,23 +75,28 @@ func TestValidateValidConfig(t *testing.T) {
 
 func TestValidateInvalidBasicAuth(t *testing.T) {
 	invalidConfig := &AgentManagementConfig{
-		Enabled:         true,
-		Host:            "localhost:1234",
-		BasicAuth:       config.BasicAuth{},
-		Protocol:        "https",
-		PollingInterval: time.Minute,
+		Enabled:          true,
+		Host:             "localhost:1234",
+		HTTPClientConfig: config.HTTPClientConfig{},
+		Protocol:         "https",
+		PollingInterval:  time.Minute,
 		RemoteConfiguration: RemoteConfiguration{
 			Namespace:     "test_namespace",
 			CacheLocation: "/test/path/",
 		},
 	}
+	// This should error as the BasicAuth is nil
 	assert.Error(t, invalidConfig.Validate())
 
-	invalidConfig.BasicAuth.Username = "test"
+	// This should error as the BasicAuth is empty
+	invalidConfig.HTTPClientConfig.BasicAuth = &config.BasicAuth{}
+	assert.Error(t, invalidConfig.Validate())
+
+	invalidConfig.HTTPClientConfig.BasicAuth.Username = "test"
 	assert.Error(t, invalidConfig.Validate()) // Should still error as there is no password file set
 
-	invalidConfig.BasicAuth.Username = ""
-	invalidConfig.BasicAuth.PasswordFile = "/test/path"
+	invalidConfig.HTTPClientConfig.BasicAuth.Username = ""
+	invalidConfig.HTTPClientConfig.BasicAuth.PasswordFile = "/test/path"
 	assert.Error(t, invalidConfig.Validate()) // Should still error as there is no username set
 }
 
@@ -96,9 +104,11 @@ func TestMissingCacheLocation(t *testing.T) {
 	invalidConfig := &AgentManagementConfig{
 		Enabled: true,
 		Host:    "localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username:     "test",
-			PasswordFile: "/test/path",
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     "test",
+				PasswordFile: "/test/path",
+			},
 		},
 		Protocol:        "https",
 		PollingInterval: 1 * time.Minute,
@@ -113,9 +123,11 @@ func TestValidateLabelManagement(t *testing.T) {
 	cfg := &AgentManagementConfig{
 		Enabled: true,
 		Host:    "localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username:     "test",
-			PasswordFile: "/test/path",
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     "test",
+				PasswordFile: "/test/path",
+			},
 		},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
@@ -197,9 +209,11 @@ func TestNewRemoteConfigProvider_ValidInitialConfig(t *testing.T) {
 	invalidAgentManagementConfig := &AgentManagementConfig{
 		Enabled: true,
 		Host:    "localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username:     "test",
-			PasswordFile: "/test/path",
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     "test",
+				PasswordFile: "/test/path",
+			},
 		},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
@@ -221,9 +235,11 @@ func TestNewRemoteConfigProvider_InvalidProtocol(t *testing.T) {
 	invalidAgentManagementConfig := &AgentManagementConfig{
 		Enabled: true,
 		Host:    "localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username:     "test",
-			PasswordFile: "/test/path",
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     "test",
+				PasswordFile: "/test/path",
+			},
 		},
 		Protocol:        "ws",
 		PollingInterval: time.Minute,
@@ -246,8 +262,10 @@ func TestNewRemoteConfigHTTPProvider_InvalidInitialConfig(t *testing.T) {
 	invalidAgentManagementConfig := &AgentManagementConfig{
 		Enabled: true,
 		Host:    "localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username: "test",
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username: "test",
+			},
 		},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
