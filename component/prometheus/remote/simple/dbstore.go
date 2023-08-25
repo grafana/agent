@@ -13,11 +13,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+// dbstore is a helper interface around the bookmark and sample stores.
 type dbstore struct {
 	mut           sync.RWMutex
 	l             *logging.Logger
 	ttl           time.Duration
-	inMemory      bool
 	sampleDB      SignalDB
 	bookmark      SignalDB
 	ctx           context.Context
@@ -34,21 +34,16 @@ const (
 	BookmarkType
 )
 
-func newDBStore(inMemory bool, ttl time.Duration, directory string, r prometheus.Registerer, l *logging.Logger) (*dbstore, error) {
-	// bookmarkSize := 1024 * 1024 * 1 // 1MB
-	// bookmark, err := badger.NewDB(path.Join(directory, "bookmark"), int64(bookmarkSize), l, GetValue, GetType)
+func newDBStore(ttl time.Duration, directory string, r prometheus.Registerer, l *logging.Logger) (*dbstore, error) {
 	bookmark, err := pebble.NewDB(path.Join(directory, "bookmark"), GetValue, GetType, l)
 	if err != nil {
 		return nil, err
 	}
-	// sampleSize := 1024 * 1024 * 256 // 256MB
-	// sample, err := badger.NewDB(path.Join(directory, "signals"), int64(sampleSize), l, GetValue, GetType)
 	sample, err := pebble.NewDB(path.Join(directory, "sample"), GetValue, GetType, l)
 	if err != nil {
 		return nil, err
 	}
 	store := &dbstore{
-		inMemory: inMemory,
 		bookmark: bookmark,
 		sampleDB: sample,
 		ttl:      ttl,
@@ -65,22 +60,7 @@ func (dbs *dbstore) Run(ctx context.Context) {
 	dbs.ctx = ctx
 	// Evict on startup to clean up any TTL files.
 	dbs.evict()
-}
-
-func (dbs *dbstore) evict() {
-	dbs.mut.Lock()
-	defer dbs.mut.Unlock()
-
-	start := time.Now()
-	defer dbs.metrics.evictionTime.Observe(time.Since(start).Seconds())
-	err := dbs.bookmark.Evict()
-	if err != nil {
-		level.Error(dbs.l).Log("msg", "failure evicting bookmark db", "err", err)
-	}
-	err = dbs.sampleDB.Evict()
-	if err != nil {
-		level.Error(dbs.l).Log("msg", "failure evicting sample db", "err", err)
-	}
+	<-ctx.Done()
 }
 
 func (dbs *dbstore) WriteBookmark(key string, value any) error {
@@ -123,7 +103,7 @@ func (dbs *dbstore) GetSignal(key uint64) (any, bool) {
 	start := time.Now()
 	defer dbs.metrics.readTime.Observe(time.Since(start).Seconds())
 
-	val, found, err := dbs.sampleDB.GetValueByUint(key)
+	val, found, err := dbs.sampleDB.GetValueByKey(key)
 	if err != nil {
 		level.Error(dbs.l).Log("error finding key", err, "key", key)
 		return nil, false
@@ -142,4 +122,24 @@ func (dbs *dbstore) getFileSize() float64 {
 
 func (dbs *dbstore) sampleCount() float64 {
 	return float64(dbs.sampleDB.SeriesCount())
+}
+
+func (dbs *dbstore) averageCompressionRatio() float64 {
+	return dbs.sampleDB.AverageCompressionRatio()
+}
+
+func (dbs *dbstore) evict() {
+	dbs.mut.Lock()
+	defer dbs.mut.Unlock()
+
+	start := time.Now()
+	defer dbs.metrics.evictionTime.Observe(time.Since(start).Seconds())
+	err := dbs.bookmark.Evict()
+	if err != nil {
+		level.Error(dbs.l).Log("msg", "failure evicting bookmark db", "err", err)
+	}
+	err = dbs.sampleDB.Evict()
+	if err != nil {
+		level.Error(dbs.l).Log("msg", "failure evicting sample db", "err", err)
+	}
 }

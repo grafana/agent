@@ -233,18 +233,18 @@ func (c *Client) Store(ctx context.Context, req []byte) error {
 
 // retryAfterDuration returns the duration for the Retry-After header. In case of any errors, it
 // returns the defaultBackoff as if the header was never supplied.
-func retryAfterDuration(t string) model.Duration {
+func retryAfterDuration(t string) time.Duration {
 	parsedDuration, err := time.Parse(http.TimeFormat, t)
 	if err == nil {
 		s := time.Until(parsedDuration).Seconds()
-		return model.Duration(s) * model.Duration(time.Second)
+		return time.Duration(s) * time.Second
 	}
 	// The duration can be in seconds.
 	d, err := strconv.Atoi(t)
 	if err != nil {
 		return defaultBackoff
 	}
-	return model.Duration(d) * model.Duration(time.Second)
+	return time.Duration(d) * time.Second
 }
 
 // Name uniquely identifies the client.

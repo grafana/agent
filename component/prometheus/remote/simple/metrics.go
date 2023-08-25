@@ -293,37 +293,3 @@ func (m *queueManagerMetrics) register() {
 		)
 	}
 }
-
-func (m *queueManagerMetrics) unregister() {
-	if m.reg != nil {
-		m.reg.Unregister(m.samplesTotal)
-		m.reg.Unregister(m.exemplarsTotal)
-		m.reg.Unregister(m.histogramsTotal)
-		m.reg.Unregister(m.metadataTotal)
-		m.reg.Unregister(m.failedSamplesTotal)
-		m.reg.Unregister(m.failedExemplarsTotal)
-		m.reg.Unregister(m.failedHistogramsTotal)
-		m.reg.Unregister(m.failedMetadataTotal)
-		m.reg.Unregister(m.retriedSamplesTotal)
-		m.reg.Unregister(m.retriedExemplarsTotal)
-		m.reg.Unregister(m.retriedHistogramsTotal)
-		m.reg.Unregister(m.retriedMetadataTotal)
-		m.reg.Unregister(m.droppedSamplesTotal)
-		m.reg.Unregister(m.droppedExemplarsTotal)
-		m.reg.Unregister(m.droppedHistogramsTotal)
-		m.reg.Unregister(m.enqueueRetriesTotal)
-		m.reg.Unregister(m.sentBatchDuration)
-		m.reg.Unregister(m.highestSentTimestamp)
-		m.reg.Unregister(m.pendingSamples)
-		m.reg.Unregister(m.pendingExemplars)
-		m.reg.Unregister(m.pendingHistograms)
-		m.reg.Unregister(m.shardCapacity)
-		m.reg.Unregister(m.numShards)
-		m.reg.Unregister(m.maxNumShards)
-		m.reg.Unregister(m.minNumShards)
-		m.reg.Unregister(m.desiredNumShards)
-		m.reg.Unregister(m.sentBytesTotal)
-		m.reg.Unregister(m.metadataBytesTotal)
-		m.reg.Unregister(m.maxSamplesPerSend)
-	}
-}

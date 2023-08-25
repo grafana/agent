@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log/level"
+	"go.uber.org/atomic"
 
 	"github.com/golang/snappy"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -21,24 +22,34 @@ type DB struct {
 	db  *pdb.DB
 	log *logging.Logger
 	// Trying to avoid unbounded lists, this thankfully is one key for each commit so its unlikely to be in the millions
-	// of active commits.
-	keyCache     *metadata
-	currentIndex uint64
-	getValue     func([]byte, int8) any
-	getType      func(data any) (int8, int, error)
+	// of active commits. KeyCache really doesnt make sense for bookmarks.
+	keyCache              *metadata
+	currentIndex          uint64
+	getValue              func([]byte, int8) (any, error)
+	getType               func(data any) (int8, int, error)
+	bufPool               sync.Pool
+	numberOfCompressions  *atomic.Uint64
+	totalCompressionRatio *atomic.Float64
 }
 
-func NewDB(dir string, getValue func([]byte, int8) any, getType func(data any) (int8, int, error), l *logging.Logger) (*DB, error) {
+func NewDB(dir string, getValue func([]byte, int8) (any, error), getType func(data any) (int8, int, error), l *logging.Logger) (*DB, error) {
 	pebbleDB, err := pdb.Open(dir, &pdb.Options{})
 	if err != nil {
 		return nil, err
 	}
 	d := &DB{
-		db:       pebbleDB,
-		getType:  getType,
-		getValue: getValue,
-		log:      l,
-		keyCache: newMetadata(),
+		db:                    pebbleDB,
+		getType:               getType,
+		getValue:              getValue,
+		log:                   l,
+		keyCache:              newMetadata(),
+		numberOfCompressions:  atomic.NewUint64(0),
+		totalCompressionRatio: atomic.NewFloat64(0),
+	}
+	d.bufPool.New = func() any {
+		// Return a 1 MB buffer
+		b := make([]byte, 0, 1024*1024)
+		return b
 	}
 	keys, err := d.GetKeys()
 	if err != nil {
@@ -49,6 +60,7 @@ func NewDB(dir string, getValue func([]byte, int8) any, getType func(data any) (
 	} else {
 		d.currentIndex = keys[len(keys)-1]
 	}
+
 	return d, nil
 }
 
@@ -152,11 +164,12 @@ func (d *DB) GetValueByByte(k []byte) (any, bool, error) {
 		return nil, found, err
 	}
 	// TTL is implemented on pulling the record.
-	if it.TTL < time.Now().Unix() {
+	if it.TTL != 0 && it.TTL < time.Now().Unix() {
+		// Lets go ahead and clear it out.
 		return nil, false, nil
 	}
-	finalVal := d.getValue(it.Value, it.Type)
-	return finalVal, true, nil
+	finalVal, err := d.getValue(it.Value, it.Type)
+	return finalVal, true, err
 }
 
 func (d *DB) getItem(k []byte) (*item, bool, error) {
@@ -175,7 +188,10 @@ func (d *DB) getItem(k []byte) (*item, bool, error) {
 }
 
 func (d *DB) convertItem(val []byte) (*item, error) {
-	unsnapped, err := snappy.Decode(nil, val)
+	tempBuf := d.bufPool.Get().([]byte)
+	defer clear(tempBuf)
+
+	unsnapped, err := snappy.Decode(tempBuf, val)
 	if err != nil {
 		return nil, err
 	}
@@ -193,29 +209,38 @@ func (d *DB) GetValueByString(k string) (any, bool, error) {
 	return d.GetValueByByte([]byte(k))
 }
 
-func (d *DB) GetValueByUint(k uint64) (any, bool, error) {
-	return d.GetValueByByte(keyToByte(k))
+func (d *DB) GetValueByKey(k uint64) (any, bool, error) {
+	val, found, err := d.GetValueByByte(keyToByte(k))
+	// We are going to do a bit of sleight of hand to keep the keycache in check.
+	// Since GetValueByByte doesnt know if its working on a key it cannot handle this.
+	// So unilaterly delete this if we dont find it.
+	if !found {
+		d.keyCache.removeKeys([]uint64{k})
+	}
+	return val, found, err
 }
 
-func (d *DB) WriteValueWithAutokey(data any, ttl time.Duration, buf *bytes.Buffer) (uint64, *bytes.Buffer, error) {
+func (d *DB) WriteValueWithAutokey(data any, ttl time.Duration) (uint64, error) {
 	nextKey := d.GetNewKey()
-	retBuf, err := d.WriteValue(keyToByte(nextKey), data, ttl, buf)
-	return nextKey, retBuf, err
+	err := d.WriteValue(keyToByte(nextKey), data, ttl)
+	return nextKey, err
 }
 
-func (d *DB) WriteValue(key []byte, data any, ttl time.Duration, buf *bytes.Buffer) (*bytes.Buffer, error) {
+func (d *DB) WriteValue(key []byte, data any, ttl time.Duration) error {
 	t, count, err := d.getType(data)
 	if err != nil {
-		return buf, err
+		return err
 	}
-	if buf == nil {
-		buf = bytes.NewBuffer(nil)
-	}
+
+	tempBuf := d.bufPool.Get().([]byte)
+	defer clear(tempBuf)
+	buf := bytes.NewBuffer(tempBuf)
 	enc := gob.NewEncoder(buf)
 	err = enc.Encode(data)
 	if err != nil {
-		return buf, err
+		return err
 	}
+	rawByteCount := buf.Len()
 	it := &item{}
 	it.Value = buf.Bytes()
 	it.Type = t
@@ -223,15 +248,20 @@ func (d *DB) WriteValue(key []byte, data any, ttl time.Duration, buf *bytes.Buff
 		it.TTL = time.Now().Add(ttl).Unix()
 	}
 	it.Count = count
-	buf.Reset()
-	enc = gob.NewEncoder(buf)
+
+	gobBuf := bytes.NewBuffer(nil)
+	enc = gob.NewEncoder(gobBuf)
 	err = enc.Encode(it)
 	if err != nil {
-		return buf, err
+		return err
 	}
-	snappied := snappy.Encode(nil, buf.Bytes())
-	buf.Reset()
-	return buf, d.db.Set(key, snappied, &pdb.WriteOptions{Sync: true})
+	snappyBuf := d.bufPool.Get().([]byte)
+	defer clear(snappyBuf)
+	snappied := snappy.Encode(snappyBuf, gobBuf.Bytes())
+	ratio := float64(rawByteCount) / float64(len(snappied))
+	d.totalCompressionRatio.Add(ratio)
+	d.numberOfCompressions.Add(1)
+	return d.db.Set(key, snappied, &pdb.WriteOptions{Sync: true})
 }
 
 func (d *DB) Evict() error {
@@ -272,6 +302,16 @@ func (d *DB) Size() uint64 {
 
 func (d *DB) SeriesCount() int64 {
 	return d.keyCache.seriesLen()
+}
+
+func (d *DB) AverageCompressionRatio() float64 {
+	d.mut.RLock()
+	defer d.mut.RUnlock()
+
+	if d.numberOfCompressions.Load() == 0 {
+		return 0
+	}
+	return d.totalCompressionRatio.Load() / float64(d.numberOfCompressions.Load())
 }
 
 func byteToKey(b []byte) uint64 {

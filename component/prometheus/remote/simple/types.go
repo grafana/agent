@@ -6,24 +6,15 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/storage"
 
 	types "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/river"
-	"github.com/prometheus/common/model"
 )
 
 // Defaults for config blocks.
 var (
-	DefaultArguments = Arguments{
-		TTL: 2 * time.Hour,
-	}
-
 	DefaultQueueOptions = QueueOptions{
-		Capacity:          10000,
-		MaxShards:         50,
-		MinShards:         1,
 		MaxSamplesPerSend: 2000,
 		BatchSendDeadline: 5 * time.Second,
 		MinBackoff:        30 * time.Millisecond,
@@ -40,8 +31,16 @@ var (
 	_ river.Unmarshaler = (*QueueOptions)(nil)
 )
 
+func defaultArgs() Arguments {
+	return Arguments{
+		TTL:   2 * time.Hour,
+		Evict: 15 * time.Minute,
+	}
+}
+
 type Arguments struct {
-	TTL time.Duration `river:"ttl,attr,optional"`
+	TTL   time.Duration `river:"ttl,attr,optional"`
+	Evict time.Duration `river:"evict_interval,attr,optional"`
 
 	Endpoint *EndpointOptions `river:"endpoint,block,optional"`
 }
@@ -52,7 +51,7 @@ type Exports struct {
 
 // UnmarshalRiver implements river.Unmarshaler.
 func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*rc = DefaultArguments
+	*rc = defaultArgs()
 
 	type config Arguments
 	return f((*config)(rc))
@@ -102,9 +101,9 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 
 // QueueOptions handles the low level queue config options for a remote_write
 type QueueOptions struct {
-	Capacity          int           `river:"capacity,attr,optional"`
-	MaxShards         int           `river:"max_shards,attr,optional"`
-	MinShards         int           `river:"min_shards,attr,optional"`
+	// Capacity          int           `river:"capacity,attr,optional"`
+	// MaxShards         int           `river:"max_shards,attr,optional"`
+	// MinShards         int           `river:"min_shards,attr,optional"`
 	MaxSamplesPerSend int           `river:"max_samples_per_send,attr,optional"`
 	BatchSendDeadline time.Duration `river:"batch_send_deadline,attr,optional"`
 	MinBackoff        time.Duration `river:"min_backoff,attr,optional"`
@@ -118,23 +117,6 @@ func (r *QueueOptions) UnmarshalRiver(f func(v interface{}) error) error {
 
 	type arguments QueueOptions
 	return f((*arguments)(r))
-}
-
-func (r *QueueOptions) toPrometheusType() config.QueueConfig {
-	if r == nil {
-		return config.DefaultQueueConfig
-	}
-
-	return config.QueueConfig{
-		Capacity:          r.Capacity,
-		MaxShards:         r.MaxShards,
-		MinShards:         r.MinShards,
-		MaxSamplesPerSend: r.MaxSamplesPerSend,
-		BatchSendDeadline: model.Duration(r.BatchSendDeadline),
-		MinBackoff:        model.Duration(r.MinBackoff),
-		MaxBackoff:        model.Duration(r.MaxBackoff),
-		RetryOnRateLimit:  r.RetryOnHTTP429,
-	}
 }
 
 // MetadataOptions configures how metadata gets sent over the remote_write
@@ -151,18 +133,6 @@ func (o *MetadataOptions) UnmarshalRiver(f func(v interface{}) error) error {
 
 	type options MetadataOptions
 	return f((*options)(o))
-}
-
-func (o *MetadataOptions) toPrometheusType() config.MetadataConfig {
-	if o == nil {
-		return config.DefaultMetadataConfig
-	}
-
-	return config.MetadataConfig{
-		Send:              o.Send,
-		SendInterval:      model.Duration(o.SendInterval),
-		MaxSamplesPerSend: o.MaxSamplesPerSend,
-	}
 }
 
 type maxTimestamp struct {
@@ -190,4 +160,8 @@ func (m *maxTimestamp) Collect(c chan<- prometheus.Metric) {
 	if m.Get() > 0 {
 		m.Gauge.Collect(c)
 	}
+}
+
+type Bookmark struct {
+	Key uint64
 }

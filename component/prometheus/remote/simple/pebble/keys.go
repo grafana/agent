@@ -61,6 +61,7 @@ func (ks *metadata) len() int {
 	return len(ks.ks)
 }
 
+// keysWithExpiredTTL returns any keys that are older than the TTL.
 func (ks *metadata) keysWithExpiredTTL(ttl int64) []uint64 {
 	ks.mut.RLock()
 	defer ks.mut.RUnlock()
@@ -78,6 +79,16 @@ func (ks *metadata) removeKeys(keys []uint64) {
 	ks.mut.Lock()
 	defer ks.mut.Unlock()
 
+	if len(keys) == 0 {
+		return
+	}
+
+	if len(keys) == 1 {
+		// If there is only one key then see if it even exists.
+		if _, found := ks.size[keys[0]]; !found {
+			return
+		}
+	}
 	newKS := make([]uint64, 0)
 	// Find all non matching items.
 	for _, k := range ks.ks {

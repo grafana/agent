@@ -6,12 +6,13 @@ type dbmetrics struct {
 	r prometheus.Registerer
 	d *dbstore
 
-	writeTime    prometheus.Histogram
-	readTime     prometheus.Histogram
-	currentKey   prometheus.Gauge
-	totalKeys    *prometheus.Desc
-	diskSize     *prometheus.Desc
-	serriesCount *prometheus.Desc
+	writeTime      prometheus.Histogram
+	readTime       prometheus.Histogram
+	currentKey     prometheus.Gauge
+	totalKeys      *prometheus.Desc
+	diskSize       *prometheus.Desc
+	seriesCount    *prometheus.Desc
+	avgCompression *prometheus.Desc
 
 	evictionTime prometheus.Histogram
 	lastEviction prometheus.Gauge
@@ -61,8 +62,11 @@ func newDbMetrics(r prometheus.Registerer, d *dbstore) *dbmetrics {
 	dbm.diskSize = prometheus.NewDesc("agent_simple_wal_disk_size",
 		"Size of WAL in kilobytes", nil, nil)
 
-	dbm.serriesCount = prometheus.NewDesc("agent_simple_wal_sample_count",
+	dbm.seriesCount = prometheus.NewDesc("agent_simple_wal_sample_count",
 		"Total number of samples in the WAL", nil, nil)
+
+	dbm.avgCompression = prometheus.NewDesc("agent_simple_wal_compression_ratio",
+		"Average compression ratio for WAL.", nil, nil)
 
 	dbm.r.MustRegister(
 		dbm.lastEviction,
@@ -80,7 +84,8 @@ func newDbMetrics(r prometheus.Registerer, d *dbstore) *dbmetrics {
 func (dbm *dbmetrics) Describe(ch chan<- *prometheus.Desc) {
 	ch <- dbm.totalKeys
 	ch <- dbm.diskSize
-	ch <- dbm.serriesCount
+	ch <- dbm.seriesCount
+	ch <- dbm.avgCompression
 }
 
 func (dbm *dbmetrics) Collect(ch chan<- prometheus.Metric) {
@@ -89,5 +94,6 @@ func (dbm *dbmetrics) Collect(ch chan<- prometheus.Metric) {
 	fileSize := dbm.d.getFileSize()
 	ch <- prometheus.MustNewConstMetric(dbm.diskSize, prometheus.GaugeValue, fileSize)
 	sampleCount := dbm.d.sampleCount()
-	ch <- prometheus.MustNewConstMetric(dbm.serriesCount, prometheus.GaugeValue, sampleCount)
+	ch <- prometheus.MustNewConstMetric(dbm.seriesCount, prometheus.GaugeValue, sampleCount)
+	ch <- prometheus.MustNewConstMetric(dbm.avgCompression, prometheus.GaugeValue, dbm.d.averageCompressionRatio())
 }

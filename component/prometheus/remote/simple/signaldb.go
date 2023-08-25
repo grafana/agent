@@ -3,7 +3,9 @@ package simple
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/grafana/agent/component/prometheus"
@@ -19,7 +21,7 @@ type SignalDB interface {
 
 	GetValueByByte(k []byte) (any, bool, error)
 	GetValueByString(k string) (any, bool, error)
-	GetValueByUint(k uint64) (any, bool, error)
+	GetValueByKey(k uint64) (any, bool, error)
 
 	WriteValueWithAutokey(data any, ttl time.Duration) (uint64, error)
 	WriteValue(key []byte, data any, ttl time.Duration) error
@@ -27,6 +29,7 @@ type SignalDB interface {
 	Evict() error
 	Size() uint64
 	SeriesCount() int64
+	AverageCompressionRatio() float64
 }
 
 func GetType(data any) (int8, int, error) {
@@ -48,41 +51,55 @@ func GetType(data any) (int8, int, error) {
 	}
 }
 
-func GetValue(data []byte, t int8) any {
+func GetValue(data []byte, t int8) (any, error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
 	var err error
-	defer func() {
-		if err != nil {
-			println(err)
-		}
-	}()
+
 	switch t {
 	case MetricSignal:
 		var val []prometheus.Sample
 		err = dec.Decode(&val)
-		return val
+		if errors.Is(err, io.EOF) {
+			err = nil
+		}
+		return val, err
 	case ExemplarSignal:
 		var val []prometheus.Exemplar
 		err = dec.Decode(&val)
-		return val
+		if errors.Is(err, io.EOF) {
+			err = nil
+		}
+		return val, err
 	case MetadataSignal:
 		var val []prometheus.Metadata
 		err = dec.Decode(&val)
-		return val
+		if errors.Is(err, io.EOF) {
+			err = nil
+		}
+		return val, err
 	case HistogramSignal:
 		var val []prometheus.Histogram
 		err = dec.Decode(&val)
-		return val
+		if errors.Is(err, io.EOF) {
+			err = nil
+		}
+		return val, err
 	case FloathistogramSignal:
 		var val []prometheus.FloatHistogram
 		err = dec.Decode(&val)
-		return val
+		if errors.Is(err, io.EOF) {
+			err = nil
+		}
+		return val, err
 	case BookmarkType:
 		val := &Bookmark{}
 		err = dec.Decode(val)
-		return val
+		if errors.Is(err, io.EOF) {
+			err = nil
+		}
+		return val, err
 	default:
-		return nil
+		return nil, err
 	}
 }

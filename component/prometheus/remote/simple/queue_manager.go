@@ -1,5 +1,10 @@
 /*
- */
+This is a VERY heavily editted version of queue manager that removes a lot of functionality.
+Most notability sharding has changed meaning. Instead of the shards being long lived they are created
+on each append request.
+
+This likely should be renamed, things that were kept were the actual sending of data are *mostly* unchanged.
+*/
 package simple
 
 import (
@@ -15,11 +20,9 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/prometheus/common/model"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/textparse"
@@ -42,8 +45,8 @@ type WriteClient interface {
 type QueueManager struct {
 	logger               log.Logger
 	flushDeadline        time.Duration
-	cfg                  config.QueueConfig
-	mcfg                 config.MetadataConfig
+	cfg                  *QueueOptions
+	mcfg                 *MetadataOptions
 	sendExemplars        bool
 	sendNativeHistograms bool
 
@@ -62,8 +65,8 @@ type QueueManager struct {
 func NewQueueManager(
 	metrics *queueManagerMetrics,
 	logger log.Logger,
-	cfg config.QueueConfig,
-	mCfg config.MetadataConfig,
+	cfg *QueueOptions,
+	mCfg *MetadataOptions,
 	client WriteClient,
 	flushDeadline time.Duration,
 	highestRecvTimestamp *maxTimestamp,
@@ -105,7 +108,7 @@ func (t *QueueManager) AppendMetadata(metadata []prometheus.Metadata) bool {
 		})
 	}
 	ctx := context.Background()
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(t.cfg.BatchSendDeadline))
+	ctx, cancel := context.WithTimeout(ctx, t.cfg.BatchSendDeadline)
 	defer cancel()
 	numSends := int(math.Ceil(float64(len(metadata)) / float64(t.mcfg.MaxSamplesPerSend)))
 	for i := 0; i < numSends; i++ {
@@ -166,6 +169,32 @@ func (t *QueueManager) sendMetadataWithBackoff(ctx context.Context, metadata []p
 	return nil
 }
 
+func fillQueues(protoSamples []prompb.TimeSeries, maxSamplesPerSend int) map[int][][]prompb.TimeSeries {
+	maxShards := 4
+	currentShard := 0
+	queues := make(map[int][][]prompb.TimeSeries)
+	for {
+		if len(protoSamples) == 0 {
+			return queues
+		}
+		if maxSamplesPerSend > len(protoSamples) {
+			queues[currentShard] = append(queues[currentShard], protoSamples)
+			break
+		}
+		subset := protoSamples[:maxSamplesPerSend]
+
+		queues[currentShard] = append(queues[currentShard], subset)
+		protoSamples = protoSamples[maxSamplesPerSend:]
+		currentShard = currentShard + 1
+		if currentShard >= maxShards {
+			currentShard = 0
+		}
+	}
+	return queues
+}
+
+// append shards the data and sends it. It has an issue/bug? that if a non recoverable error is returned then the
+// whole session is failed. A better way would be to return the data that WASNT sent and the requeue JUST that data.
 func (t *QueueManager) append(ctx context.Context, samples []timeSeries) (bool, error) {
 	/*
 		1. Determine number of shards
@@ -180,34 +209,19 @@ func (t *QueueManager) append(ctx context.Context, samples []timeSeries) (bool, 
 		return s.sendSamplesWithBackoff(ctx, protoSamples)
 	}
 	// Lets divide the work.
-	// TODO remove hard coding.
-	numShards := 4
-	currentShard := 0
-	queus := make(map[int][][]prompb.TimeSeries)
-	for {
-		if t.cfg.MaxSamplesPerSend > len(protoSamples) {
-			queus[currentShard] = append(queus[currentShard], protoSamples)
-			break
-		}
+	queues := fillQueues(protoSamples, t.cfg.MaxSamplesPerSend)
 
-		subset := protoSamples[:t.cfg.MaxSamplesPerSend]
-		queus[currentShard] = append(queus[currentShard], subset)
-		protoSamples = protoSamples[t.cfg.MaxSamplesPerSend:]
-		currentShard = currentShard + 1
-		if currentShard >= numShards {
-			currentShard = 0
-		}
-	}
 	// Now lets do the actual work.
 	wg := &sync.WaitGroup{}
-	wg.Add(numShards)
+	wg.Add(len(queues))
 
 	overallSuccess := true
 	var errMut sync.Mutex
 	var overallError error
-	for i := 0; i < numShards; i++ {
+	// For each shard kick off the sending.
+	for i := 0; i < len(queues); i++ {
 		go func(k int) {
-			success, err := startSendingShard(t, queus[k], wg, ctx)
+			success, err := startSendingShard(t, queues[k], wg, ctx)
 			if !success {
 				overallSuccess = false
 			}
@@ -345,37 +359,13 @@ func (t *QueueManager) AppendFloatHistograms(ctx context.Context, floatHistogram
 func (t *QueueManager) Start() {
 	// Register and initialise some metrics.
 	t.metrics.register()
-	t.metrics.shardCapacity.Set(float64(t.cfg.Capacity))
-	t.metrics.maxNumShards.Set(float64(t.cfg.MaxShards))
-	t.metrics.minNumShards.Set(float64(t.cfg.MinShards))
-	t.metrics.desiredNumShards.Set(float64(t.cfg.MinShards))
 	t.metrics.maxSamplesPerSend.Set(float64(t.cfg.MaxSamplesPerSend))
-}
-
-// Stop stops sending samples to the remote storage and waits for pending
-// sends to complete.
-func (t *QueueManager) Stop() {
-	level.Info(t.logger).Log("msg", "Stopping remote storage...")
-	defer level.Info(t.logger).Log("msg", "Remote storage stopped.")
-
-	// Wait for all QueueManager routines to end before stopping shards, metadata watcher, and WAL watcher. This
-	// is to ensure we don't end up executing a reshard and shards.stop() at the same time, which
-	// causes a closed channel panic.
-
-	t.metrics.unregister()
-}
-
-// SetClient updates the client used by a queue. Used when only client specific
-// fields are updated to avoid restarting the queue.
-func (t *QueueManager) SetClient(c WriteClient) {
-	t.clientMtx.Lock()
-	t.storeClient = c
-	t.clientMtx.Unlock()
 }
 
 func (t *QueueManager) client() WriteClient {
 	t.clientMtx.RLock()
 	defer t.clientMtx.RUnlock()
+
 	return t.storeClient
 }
 
@@ -454,9 +444,9 @@ func (s *shard) sendSamplesWithBackoff(ctx context.Context, samples []prompb.Tim
 	return err == nil, err
 }
 
-func sendWriteRequestWithBackoff(ctx context.Context, cfg config.QueueConfig, l log.Logger, attempt func(int) error, onRetry func()) error {
+func sendWriteRequestWithBackoff(ctx context.Context, cfg *QueueOptions, l log.Logger, attempt func(int) error, onRetry func()) error {
 	backoff := cfg.MinBackoff
-	sleepDuration := model.Duration(0)
+	sleepDuration := time.Duration(0)
 	try := 0
 
 	for {
@@ -489,7 +479,7 @@ func sendWriteRequestWithBackoff(ctx context.Context, cfg config.QueueConfig, l 
 
 		select {
 		case <-ctx.Done():
-		case <-time.After(time.Duration(sleepDuration)):
+		case <-time.After(sleepDuration):
 		}
 
 		// If we make it this far, we've encountered a recoverable error and will retry.
@@ -549,7 +539,7 @@ func metricTypeToMetricTypeProto(t textparse.MetricType) prompb.MetricMetadata_M
 
 type RecoverableError struct {
 	error
-	retryAfter model.Duration
+	retryAfter time.Duration
 }
 
 // labelsToLabelsProto transforms labels into prompb labels. The buffer slice

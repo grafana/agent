@@ -30,7 +30,7 @@ func init() {
 }
 
 func NewComponent(opts component.Options, args Arguments) (*Simple, error) {
-	database, err := newDBStore(false, args.TTL, path.Join(opts.DataPath, "wal"), opts.Registerer, opts.Logger)
+	database, err := newDBStore(args.TTL, path.Join(opts.DataPath, "wal"), opts.Registerer, opts.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (s *Simple) newQueueManager() (*QueueManager, error) {
 		HTTPClientConfig: *s.args.Endpoint.HTTPClientConfig.Convert(),
 		SigV4Config:      nil,
 		Headers:          s.args.Endpoint.Headers,
-		RetryOnRateLimit: s.args.Endpoint.QueueOptions.toPrometheusType().RetryOnRateLimit,
+		RetryOnRateLimit: s.args.Endpoint.QueueOptions.RetryOnHTTP429,
 	})
 	if err != nil {
 		return nil, err
@@ -92,8 +92,8 @@ func (s *Simple) newQueueManager() (*QueueManager, error) {
 	qm := NewQueueManager(
 		met,
 		s.opts.Logger,
-		s.args.Endpoint.QueueOptions.toPrometheusType(),
-		s.args.Endpoint.MetadataOptions.toPrometheusType(),
+		s.args.Endpoint.QueueOptions,
+		s.args.Endpoint.MetadataOptions,
 		wr,
 		1*time.Minute,
 		&maxTimestamp{
@@ -160,7 +160,7 @@ func (c *Simple) commit(a *appender) {
 
 func (c *Simple) cleanupDB(ctx context.Context) {
 	c.cleanup()
-	ttlTimer := time.NewTicker(5 * time.Minute)
+	ttlTimer := time.NewTicker(c.args.Evict)
 	for {
 		select {
 		case <-ttlTimer.C:
