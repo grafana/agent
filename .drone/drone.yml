@@ -1321,6 +1321,8 @@ depends_on:
 - Publish Linux crow container
 - Publish Windows agent container
 - Publish Windows agentctl container
+image_pull_secrets:
+- dockerconfigjson
 kind: pipeline
 name: Publish release
 platform:
@@ -1476,6 +1478,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 4e46433a52fe5de7de0667c779539a2da5ffcf28bea4b357c5e9e8feda8e9fd7
+hmac: bbc1b5483052b9570167f52dcc1b17fe17c1a0ab2f0e81f27e540e1e7a6689e3
 
 ...
