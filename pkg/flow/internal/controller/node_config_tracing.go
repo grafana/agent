@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/vm"
 	"go.opentelemetry.io/otel/trace"
 )
 

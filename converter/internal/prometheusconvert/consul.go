@@ -7,7 +7,7 @@ import (
 	"github.com/grafana/agent/component/discovery/consul"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	prom_consul "github.com/prometheus/prometheus/discovery/consul"
 )
 

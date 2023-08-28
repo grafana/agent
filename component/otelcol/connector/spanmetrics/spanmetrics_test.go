@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/otelcol/connector/spanmetrics"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	"github.com/stretchr/testify/require"
 )

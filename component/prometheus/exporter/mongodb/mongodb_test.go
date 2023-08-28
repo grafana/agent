@@ -5,7 +5,7 @@ import (
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/mongodb_exporter"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/vm"
 )
 
 type ArgumentConfigNode struct {

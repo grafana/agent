@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 )
 
 func TestParseConfig(t *testing.T) {

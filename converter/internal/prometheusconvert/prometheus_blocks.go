@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/converter/diag"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/river/token/builder"
 )
 
 // prometheusBlocks is a type for categorizing River Blocks before appending
