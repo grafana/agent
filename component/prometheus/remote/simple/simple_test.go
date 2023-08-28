@@ -2,16 +2,15 @@ package simple
 
 import (
 	"context"
-	"github.com/go-kit/log"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-
+	"github.com/go-kit/log"
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
 	"github.com/grafana/agent/component"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"

@@ -37,9 +37,8 @@ func defaultArgs() Arguments {
 }
 
 type Arguments struct {
-	TTL   time.Duration `river:"ttl,attr,optional"`
-	Evict time.Duration `river:"evict_interval,attr,optional"`
-
+	TTL      time.Duration   `river:"ttl,attr,optional"`
+	Evict    time.Duration   `river:"evict_interval,attr,optional"`
 	Endpoint EndpointOptions `river:"endpoint,block,optional"`
 }
 
