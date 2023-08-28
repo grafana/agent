@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
 	uiservice "github.com/grafana/agent/service/ui"
+	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
@@ -40,13 +41,14 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		inMemoryAddr:     "agent.internal:12345",
-		httpListenAddr:   "127.0.0.1:12345",
-		storagePath:      "data-agent/",
-		uiPrefix:         "/",
-		disableReporting: false,
-		enablePprof:      true,
-		configFormat:     "flow",
+		inMemoryAddr:         "agent.internal:12345",
+		httpListenAddr:       "127.0.0.1:12345",
+		storagePath:          "data-agent/",
+		uiPrefix:             "/",
+		disableReporting:     false,
+		enablePprof:          true,
+		configFormat:         "flow",
+		clusterAdvInterfaces: advertise.DefaultInterfaces,
 
 		clusterRejoinInterval: 60 * time.Second,
 	}
@@ -103,6 +105,8 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		StringVar(&r.clusterDiscoverPeers, "cluster.discover-peers", r.clusterDiscoverPeers, "List of key-value tuples for discovering peers")
 	cmd.Flags().
+		StringSliceVar(&r.clusterAdvInterfaces, "cluster.advertise-interfaces", r.clusterAdvInterfaces, "List of interfaces used to infer an address to advertise")
+	cmd.Flags().
 		DurationVar(&r.clusterRejoinInterval, "cluster.rejoin-interval", r.clusterRejoinInterval, "How often to rejoin the list of peers")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
@@ -123,6 +127,7 @@ type flowRun struct {
 	clusterAdvAddr               string
 	clusterJoinAddr              string
 	clusterDiscoverPeers         string
+	clusterAdvInterfaces         []string
 	clusterRejoinInterval        time.Duration
 	configFormat                 string
 	configBypassConversionErrors bool
@@ -189,13 +194,14 @@ func (fr *flowRun) Run(configFile string) error {
 		Tracer:  t,
 		Metrics: reg,
 
-		EnableClustering: fr.clusterEnabled,
-		NodeName:         fr.clusterNodeName,
-		AdvertiseAddress: fr.clusterAdvAddr,
-		ListenAddress:    fr.httpListenAddr,
-		JoinPeers:        strings.Split(fr.clusterJoinAddr, ","),
-		DiscoverPeers:    fr.clusterDiscoverPeers,
-		RejoinInterval:   fr.clusterRejoinInterval,
+		EnableClustering:    fr.clusterEnabled,
+		NodeName:            fr.clusterNodeName,
+		AdvertiseAddress:    fr.clusterAdvAddr,
+		ListenAddress:       fr.httpListenAddr,
+		JoinPeers:           strings.Split(fr.clusterJoinAddr, ","),
+		DiscoverPeers:       fr.clusterDiscoverPeers,
+		RejoinInterval:      fr.clusterRejoinInterval,
+		AdvertiseInterfaces: fr.clusterAdvInterfaces,
 	})
 	if err != nil {
 		return err

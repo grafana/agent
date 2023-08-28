@@ -106,6 +106,8 @@ v0.36.0-rc.0 (2023-08-25)
 
 - Agent Management: Enable proxying support (@spartan0x117)
 
+- Clustering: Allow advertise interfaces to be configurable. (@wildum)
+
 ### Bugfixes
 
 - Update to config converter so default relabel `source_labels` are left off the river output. (@erikbaranowski)
