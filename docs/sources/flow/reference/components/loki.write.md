@@ -27,7 +27,7 @@ loki.write "LABEL" {
 
 Name              | Type          | Description                                      | Default | Required
 ----------------- | ------------- | ------------------------------------------------ | ------- | --------
-`max_streams`     | `int`         | Time to wait before marking a request as failed. | `"5s"`  | no
+`max_streams`     | `int`         | Maximum number of active streams. | 0 (no limit)  | no
 `external_labels` | `map(string)` | Labels to add to logs sent over the network.     |         | no
 
 ## Blocks
