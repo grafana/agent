@@ -61,7 +61,7 @@ func (ks *metadata) len() int {
 	return len(ks.ks)
 }
 
-// keysWithExpiredTTL returns any keys that are older than the TTL.
+// keysWithExpiredTTL returns any keys that are older than the TTL (unix timestamp).
 func (ks *metadata) keysWithExpiredTTL(ttl int64) []uint64 {
 	ks.mut.RLock()
 	defer ks.mut.RUnlock()

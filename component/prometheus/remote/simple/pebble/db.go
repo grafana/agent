@@ -5,9 +5,10 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"errors"
-	"github.com/go-kit/log"
 	"sync"
 	"time"
+
+	"github.com/go-kit/log"
 
 	"github.com/go-kit/log/level"
 	"go.uber.org/atomic"
@@ -16,6 +17,7 @@ import (
 	"github.com/golang/snappy"
 )
 
+// DB is a wrapper around the pebbleDB.
 type DB struct {
 	mut sync.RWMutex
 	db  *pdb.DB
@@ -31,6 +33,8 @@ type DB struct {
 	totalCompressionRatio *atomic.Float64
 }
 
+// NewDB creates a new DB, getValue and getType allow conversion of the []byte into real types. GetType returns the type
+// of an object and that is encoded into the stored value. Then getValue takes in that type to convert it into a real object.
 func NewDB(dir string, getValue func([]byte, int8) (any, error), getType func(data any) (int8, int, error), l log.Logger) (*DB, error) {
 	pebbleDB, err := pdb.Open(dir, &pdb.Options{})
 	if err != nil {
@@ -46,7 +50,7 @@ func NewDB(dir string, getValue func([]byte, int8) (any, error), getType func(da
 		totalCompressionRatio: atomic.NewFloat64(0),
 	}
 	d.bufPool.New = func() any {
-		// Return a 1 MB buffer
+		// Return a 1 MB buffer, this may not be big enough and we should maybe have several tiers of buffers.
 		b := make([]byte, 0, 1024*1024)
 		return b
 	}
@@ -63,6 +67,7 @@ func NewDB(dir string, getValue func([]byte, int8) (any, error), getType func(da
 	return d, nil
 }
 
+// GetNewKey increments the current key and returns the new value.
 func (d *DB) GetNewKey() uint64 {
 	d.mut.Lock()
 	defer d.mut.Unlock()
@@ -72,6 +77,7 @@ func (d *DB) GetNewKey() uint64 {
 	return d.currentIndex
 }
 
+// GetOldestKey returns the oldest key, it returns 0 if no keys are found.
 func (d *DB) GetOldestKey() uint64 {
 	ks := d.keyCache.keys()
 	if len(ks) == 0 {
@@ -81,6 +87,7 @@ func (d *DB) GetOldestKey() uint64 {
 	return ks[0]
 }
 
+// GetKeys returns all keys sorted by oldest to newest.
 func (d *DB) GetKeys() ([]uint64, error) {
 	d.mut.Lock()
 	defer d.mut.Unlock()
@@ -111,6 +118,7 @@ func (d *DB) GetKeys() ([]uint64, error) {
 	return d.keyCache.keys(), nil
 }
 
+// GetCurrentKey returns the current index.
 func (d *DB) GetCurrentKey() uint64 {
 	d.mut.RLock()
 	defer d.mut.RUnlock()
@@ -118,6 +126,7 @@ func (d *DB) GetCurrentKey() uint64 {
 	return d.currentIndex
 }
 
+// GetNextKey returns the next key that has been allocated. If k is the newest key return k.
 func (d *DB) GetNextKey(k uint64) uint64 {
 	keys, _ := d.GetKeys()
 	for _, lk := range keys {
@@ -128,6 +137,7 @@ func (d *DB) GetNextKey(k uint64) uint64 {
 	return k
 }
 
+// Delete any keys older than k.
 func (d *DB) DeleteKeysOlderThan(k uint64) {
 	ks, _ := d.GetKeys()
 	batch := d.db.NewBatch()
@@ -154,6 +164,8 @@ func (d *DB) DeleteKeysOlderThan(k uint64) {
 	}
 }
 
+// GetValueByByte returns the value specified by k, whether it was found and any error.
+// An expired TTL is considered not found.
 func (d *DB) GetValueByByte(k []byte) (any, bool, error) {
 	it, found, err := d.getItem(k)
 	if err != nil {
@@ -164,7 +176,6 @@ func (d *DB) GetValueByByte(k []byte) (any, bool, error) {
 	}
 	// TTL is implemented on pulling the record.
 	if it.TTL != 0 && it.TTL < time.Now().Unix() {
-		// Lets go ahead and clear it out.
 		return nil, false, nil
 	}
 	finalVal, err := d.getValue(it.Value, it.Type)
@@ -204,10 +215,12 @@ func (d *DB) convertItem(val []byte) (*item, error) {
 	return it, nil
 }
 
+// GetValueByString follows GetValueByByte conventions.
 func (d *DB) GetValueByString(k string) (any, bool, error) {
 	return d.GetValueByByte([]byte(k))
 }
 
+// GetValueByKey follows GetValueByByte conventions but also updates the keycache if not found.
 func (d *DB) GetValueByKey(k uint64) (any, bool, error) {
 	val, found, err := d.GetValueByByte(keyToByte(k))
 	// We are going to do a bit of sleight of hand to keep the keycache in check.
@@ -219,12 +232,14 @@ func (d *DB) GetValueByKey(k uint64) (any, bool, error) {
 	return val, found, err
 }
 
+// WriteValueWithAutokey is GetNewKey + WriteValue and returns the next key. If ttl > 0 it will honor it.
 func (d *DB) WriteValueWithAutokey(data any, ttl time.Duration) (uint64, error) {
 	nextKey := d.GetNewKey()
 	err := d.WriteValue(keyToByte(nextKey), data, ttl)
 	return nextKey, err
 }
 
+// WriteValue writes a given value into the database.
 func (d *DB) WriteValue(key []byte, data any, ttl time.Duration) error {
 	t, count, err := d.getType(data)
 	if err != nil {
@@ -263,6 +278,7 @@ func (d *DB) WriteValue(key []byte, data any, ttl time.Duration) error {
 	return d.db.Set(key, snappied, &pdb.WriteOptions{Sync: true})
 }
 
+// Evict clears out any expired TTLs and compacts the database.
 func (d *DB) Evict() error {
 	d.mut.Lock()
 	defer d.mut.Unlock()
@@ -287,6 +303,7 @@ func (d *DB) Evict() error {
 	return d.db.Compact(keyToByte(ks[0]), keyToByte(ks[len(ks)-1]), true)
 }
 
+// Size returns the estimated disk usage.
 func (d *DB) Size() uint64 {
 	if d.keyCache.len() == 0 {
 		return 0
@@ -299,6 +316,7 @@ func (d *DB) Size() uint64 {
 	return size
 }
 
+// SeriesCount returns the total number of samples in the database.
 func (d *DB) SeriesCount() int64 {
 	return d.keyCache.seriesLen()
 }
@@ -328,9 +346,12 @@ func keyToByte(k uint64) []byte {
 	return buf
 }
 
+// item represents a value stored in the database.
 type item struct {
 	Value []byte
-	Type  int8
+	// Type is used to convert Value to a concrete value. Value is Gob Encoded and Snappy compressed.
+	Type int8
+	// Unix timestamp to expire.
 	TTL   int64
 	Count int
 }

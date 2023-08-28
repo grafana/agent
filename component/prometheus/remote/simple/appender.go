@@ -9,6 +9,7 @@ import (
 	"github.com/prometheus/prometheus/storage"
 )
 
+// appender is used to transfer from incoming samples to the PebbleDB.
 type appender struct {
 	parent          *Simple
 	metrics         []prometheus.Sample
@@ -29,6 +30,7 @@ func newAppender(parent *Simple) *appender {
 	}
 }
 
+// Append metric
 func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	a.metrics = append(a.metrics, prometheus.Sample{
 		L:         l,
@@ -38,16 +40,19 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	return ref, nil
 }
 
+// Commit metrics to the DB
 func (a *appender) Commit() (_ error) {
 	a.parent.commit(a)
 	return nil
 }
 
+// Rollback does nothing.
 func (a *appender) Rollback() error {
 	// Since nothing is committed we dont need to do any cleanup here.
 	return nil
 }
 
+// AppendExemplar appends exemplar to cache.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (_ storage.SeriesRef, _ error) {
 	a.exemplars = append(a.exemplars, prometheus.Exemplar{
 		Sample: prometheus.Sample{
@@ -60,6 +65,7 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exem
 	return ref, nil
 }
 
+// AppendHistogram appends histogram
 func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (_ storage.SeriesRef, _ error) {
 	if h != nil {
 		a.histogram = append(a.histogram, prometheus.Histogram{
@@ -77,6 +83,7 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 	return ref, nil
 }
 
+// UpdateMetadata updates metadata.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (_ storage.SeriesRef, _ error) {
 	a.metadata = append(a.metadata, prometheus.Metadata{
 		L:    l,

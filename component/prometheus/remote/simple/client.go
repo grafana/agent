@@ -1,16 +1,6 @@
-// Copyright 2016 The Prometheus Authors
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
+/*
+This is mostly a port of the prometheus client.go
+*/
 package simple
 
 import (
@@ -103,36 +93,6 @@ type ClientConfig struct {
 	SigV4Config      *sigv4.SigV4Config
 	Headers          map[string]string
 	RetryOnRateLimit bool
-}
-
-// ReadClient uses the SAMPLES method of remote read to read series samples from remote server.
-// TODO(bwplotka): Add streamed chunked remote read method as well (https://github.com/prometheus/prometheus/issues/5926).
-type ReadClient interface {
-	Read(ctx context.Context, query *prompb.Query) (*prompb.QueryResult, error)
-}
-
-// NewReadClient creates a new client for remote read.
-func NewReadClient(name string, conf *ClientConfig) (ReadClient, error) {
-	httpClient, err := config_util.NewClientFromConfig(conf.HTTPClientConfig, "remote_storage_read_client")
-	if err != nil {
-		return nil, err
-	}
-
-	t := httpClient.Transport
-	if len(conf.Headers) > 0 {
-		t = newInjectHeadersRoundTripper(conf.Headers, t)
-	}
-	httpClient.Transport = otelhttp.NewTransport(t)
-
-	return &Client{
-		remoteName:          name,
-		url:                 conf.URL,
-		Client:              httpClient,
-		timeout:             time.Duration(conf.Timeout),
-		readQueries:         remoteReadQueries.WithLabelValues(name, conf.URL.String()),
-		readQueriesTotal:    remoteReadQueriesTotal.MustCurryWith(prometheus.Labels{remoteName: name, endpoint: conf.URL.String()}),
-		readQueriesDuration: remoteReadQueryDuration.WithLabelValues(name, conf.URL.String()),
-	}, nil
 }
 
 // NewWriteClient creates a new client for remote write.

@@ -87,7 +87,7 @@ func NewQueueManager(
 	return t
 }
 
-// The Name of the queuemanager for identification.
+// Name of the queuemanager for identification.
 func (t *QueueManager) Name() string {
 	return t.client().Name()
 }

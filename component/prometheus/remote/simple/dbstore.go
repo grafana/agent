@@ -2,12 +2,13 @@ package simple
 
 import (
 	"context"
-	"github.com/go-kit/log"
 	"os"
 	"path"
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/go-kit/log"
 
 	"github.com/grafana/agent/component/prometheus/remote/simple/pebble"
 
@@ -17,15 +18,15 @@ import (
 
 // dbstore is a helper interface around the bookmark and sample stores.
 type dbstore struct {
-	mut           sync.RWMutex
-	directory     string
-	l             log.Logger
-	ttl           time.Duration
-	sampleDB      SignalDB
-	bookmark      SignalDB
-	ctx           context.Context
-	metrics       *dbmetrics
-	oldestInUsKey uint64
+	mut            sync.RWMutex
+	directory      string
+	l              log.Logger
+	ttl            time.Duration
+	sampleDB       SignalDB
+	bookmark       SignalDB
+	ctx            context.Context
+	metrics        *dbmetrics
+	oldestInUseKey uint64
 }
 
 const (
@@ -67,10 +68,12 @@ func (dbs *dbstore) Run(ctx context.Context) {
 	<-ctx.Done()
 }
 
+// WriteBookmark writes a bookmark for Writer.
 func (dbs *dbstore) WriteBookmark(key string, value any) error {
 	return dbs.bookmark.WriteValue([]byte(key), value, 0*time.Second)
 }
 
+// GetBookmark returns the bookmark for a given write name.
 func (dbs *dbstore) GetBookmark(key string) (*Bookmark, bool) {
 	bk, found, _ := dbs.bookmark.GetValueByString(key)
 	if bk == nil {
@@ -79,6 +82,7 @@ func (dbs *dbstore) GetBookmark(key string) (*Bookmark, bool) {
 	return bk.(*Bookmark), found
 }
 
+// WriteSignal writes a signal and applies an autokey.
 func (dbs *dbstore) WriteSignal(value any) (uint64, error) {
 	start := time.Now()
 	defer dbs.metrics.writeTime.Observe(time.Since(start).Seconds())
@@ -89,20 +93,25 @@ func (dbs *dbstore) WriteSignal(value any) (uint64, error) {
 	return key, err
 }
 
+// GetOldestKey returns the oldest key in use.
 func (dbs *dbstore) GetOldestKey() uint64 {
 	return dbs.sampleDB.GetOldestKey()
 }
 
+// GetNextKey returns the next key that is in use, returns k if no newer items found.
 func (dbs *dbstore) GetNextKey(k uint64) uint64 {
 	return dbs.sampleDB.GetNextKey(k)
 }
 
+// UpdateOldestKey updates the oldest key in use to k.
 func (dbs *dbstore) UpdateOldestKey(k uint64) {
 	dbs.mut.Lock()
 	defer dbs.mut.Unlock()
-	dbs.oldestInUsKey = k
+
+	dbs.oldestInUseKey = k
 }
 
+// GetSignal returns the value and whether it was found.
 func (dbs *dbstore) GetSignal(key uint64) (any, bool) {
 	start := time.Now()
 	defer dbs.metrics.readTime.Observe(time.Since(start).Seconds())
@@ -148,6 +157,7 @@ func (dbs *dbstore) evict() {
 	}
 }
 
+// DirSize returns the size of the WAL on the filesystem.
 func DirSize(path string) float64 {
 	var size int64
 	_ = filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
