@@ -3,7 +3,7 @@ package remotewrite
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,6 +20,12 @@ func TestRiverConfig(t *testing.T) {
 
 			queue_config {
 				batch_send_deadline = "100ms"
+			}
+
+			write_relabel_config {
+				source_labels = ["instance"]
+				target_label  = "instance"
+				action        = "lowercase"
 			}
 		}
 `

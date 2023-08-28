@@ -87,7 +87,7 @@ func publicLabels(lset labels.Labels) labels.Labels {
 		}
 	}
 
-	return lb.Labels(nil)
+	return lb.Labels()
 }
 
 // NamespacedName returns the key of the Pod being targeted.
@@ -225,7 +225,7 @@ func PrepareLabels(lset labels.Labels, defaultJob string) (res labels.Labels, er
 		lb.Set(model.InstanceLabel, defaultInstance)
 	}
 
-	res = lb.Labels(nil)
+	res = lb.Labels()
 	for _, l := range res {
 		// Check label values are valid, drop the target if not.
 		if !model.LabelValue(l.Value).IsValid() {

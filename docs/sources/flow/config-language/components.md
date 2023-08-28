@@ -1,11 +1,12 @@
 ---
 aliases:
 - ../configuration-language/components/
-title: Components
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/components/
+title: Components config language
 weight: 300
 ---
 
-# Components
+# Components config language
 Components are the defining feature of Grafana Agent Flow. They are small,
 reusable pieces of business logic that perform a single task (like retrieving
 secrets or collecting Prometheus metrics) and can be wired together to form

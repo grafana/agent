@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	semconv "go.opentelemetry.io/collector/semconv/v1.8.0"
 	"go.uber.org/zap"
@@ -653,6 +654,13 @@ type metricsAdjusterTest struct {
 	adjusted    pmetric.Metrics
 }
 
+func marshalMetric(t *testing.T, m pmetric.Metrics) string {
+	jm := &pmetric.JSONMarshaler{}
+	bytes, err := jm.MarshalMetrics(m)
+	assert.NoError(t, err)
+	return string(bytes)
+}
+
 func runScript(t *testing.T, ma MetricsAdjuster, job, instance string, tests []*metricsAdjusterTest) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
@@ -666,7 +674,7 @@ func runScript(t *testing.T, ma MetricsAdjuster, job, instance string, tests []*
 			// Add the instance/job to the expected metrics as well.
 			test.adjusted.ResourceMetrics().At(0).Resource().Attributes().PutStr(semconv.AttributeServiceInstanceID, instance)
 			test.adjusted.ResourceMetrics().At(0).Resource().Attributes().PutStr(semconv.AttributeServiceName, job)
-			assert.EqualValues(t, test.adjusted, adjusted)
+			require.JSONEq(t, marshalMetric(t, test.adjusted), marshalMetric(t, adjusted))
 		})
 	}
 }

@@ -9,13 +9,11 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/flow/logging"
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/ckit"
-	"github.com/grafana/ckit/peer"
+	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/agent/service"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/diag"
 	"github.com/hashicorp/go-multierror"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -26,58 +24,68 @@ import (
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
-	log     *logging.Logger
-	tracer  trace.TracerProvider
-	globals ComponentGlobals
+	log          log.Logger
+	tracer       trace.TracerProvider
+	globals      ComponentGlobals
+	services     []service.Service
+	host         service.Host
+	componentReg ComponentRegistry
 
 	mut               sync.RWMutex
 	graph             *dag.Graph
 	originalGraph     *dag.Graph
-	components        []*ComponentNode
+	componentNodes    []*ComponentNode
+	serviceNodes      []*ServiceNode
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
 	cm                *controllerMetrics
+	cc                *controllerCollector
 	moduleExportIndex int
+}
+
+// LoaderOptions holds options for creating a Loader.
+type LoaderOptions struct {
+	// ComponentGlobals contains data to use when creating components.
+	ComponentGlobals ComponentGlobals
+
+	Services          []service.Service // Services to load into the DAG.
+	Host              service.Host      // Service host (when running services).
+	ComponentRegistry ComponentRegistry // Registry to search for components.
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
 // with co for their options.
-func NewLoader(globals ComponentGlobals) *Loader {
+func NewLoader(opts LoaderOptions) *Loader {
+	var (
+		globals  = opts.ComponentGlobals
+		services = opts.Services
+		host     = opts.Host
+		reg      = opts.ComponentRegistry
+	)
+
+	if reg == nil {
+		reg = DefaultComponentRegistry{}
+	}
+
 	l := &Loader{
-		log:     globals.Logger,
-		tracer:  globals.TraceProvider,
-		globals: globals,
+		log:          log.With(globals.Logger, "controller_id", globals.ControllerID),
+		tracer:       tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
+		globals:      globals,
+		services:     services,
+		host:         host,
+		componentReg: reg,
 
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
-		cm:            newControllerMetrics(globals.Registerer),
+		cm:            newControllerMetrics(globals.ControllerID),
 	}
-	cc := newControllerCollector(l)
+	l.cc = newControllerCollector(l, globals.ControllerID)
+
 	if globals.Registerer != nil {
-		globals.Registerer.MustRegister(cc)
+		globals.Registerer.MustRegister(l.cc)
+		globals.Registerer.MustRegister(l.cm)
 	}
-
-	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
-		tracer := l.tracer.Tracer("")
-		spanCtx, span := tracer.Start(context.Background(), "ClusterStateChange", trace.WithSpanKind(trace.SpanKindInternal))
-		defer span.End()
-		for _, cmp := range l.Components() {
-			if cc, ok := cmp.managed.(component.ClusteredComponent); ok {
-				if cc.ClusterUpdatesRegistration() {
-					_, span := tracer.Start(spanCtx, "ClusteredComponentReevaluation", trace.WithSpanKind(trace.SpanKindInternal))
-					span.SetAttributes(attribute.String("node_id", cmp.NodeID()))
-					defer span.End()
-
-					err := cmp.Reevaluate()
-					if err != nil {
-						level.Error(globals.Logger).Log("msg", "failed to reevaluate component", "componentID", cmp.NodeID(), "err", err)
-					}
-				}
-			}
-		}
-		return true
-	}))
 
 	return l
 }
@@ -114,6 +122,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	var (
 		components   = make([]*ComponentNode, 0, len(componentBlocks))
 		componentIDs = make([]ComponentID, 0, len(componentBlocks))
+		services     = make([]*ServiceNode, 0, len(l.services))
 	)
 
 	tracer := l.tracer.Tracer("")
@@ -131,6 +140,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}()
 
 	l.cache.ClearModuleExports()
+
 	// Evaluate all the components.
 	_ = dag.WalkTopological(&newGraph, newGraph.Leaves(), func(n dag.Node) error {
 		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
@@ -144,12 +154,12 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 
 		var err error
 
-		switch c := n.(type) {
+		switch n := n.(type) {
 		case *ComponentNode:
-			components = append(components, c)
-			componentIDs = append(componentIDs, c.ID())
+			components = append(components, n)
+			componentIDs = append(componentIDs, n.ID())
 
-			if err = l.evaluate(logger, c); err != nil {
+			if err = l.evaluate(logger, n); err != nil {
 				var evalDiags diag.Diagnostics
 				if errors.As(err, &evalDiags) {
 					diags = append(diags, evalDiags...)
@@ -157,18 +167,36 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 					diags.Add(diag.Diagnostic{
 						Severity: diag.SeverityLevelError,
 						Message:  fmt.Sprintf("Failed to build component: %s", err),
-						StartPos: ast.StartPos(c.Block()).Position(),
-						EndPos:   ast.EndPos(c.Block()).Position(),
+						StartPos: ast.StartPos(n.Block()).Position(),
+						EndPos:   ast.EndPos(n.Block()).Position(),
 					})
 				}
 			}
+
+		case *ServiceNode:
+			services = append(services, n)
+
+			if err = l.evaluate(logger, n); err != nil {
+				var evalDiags diag.Diagnostics
+				if errors.As(err, &evalDiags) {
+					diags = append(diags, evalDiags...)
+				} else {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("Failed to evaluate service: %s", err),
+						StartPos: ast.StartPos(n.Block()).Position(),
+						EndPos:   ast.EndPos(n.Block()).Position(),
+					})
+				}
+			}
+
 		case BlockNode:
-			if err = l.evaluate(logger, c); err != nil {
+			if err = l.evaluate(logger, n); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to evaluate node for config block: %s", err),
-					StartPos: ast.StartPos(c.Block()).Position(),
-					EndPos:   ast.EndPos(c.Block()).Position(),
+					StartPos: ast.StartPos(n.Block()).Position(),
+					EndPos:   ast.EndPos(n.Block()).Position(),
 				})
 			}
 			if exp, ok := n.(*ExportConfigNode); ok {
@@ -186,7 +214,8 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		return nil
 	})
 
-	l.components = components
+	l.componentNodes = components
+	l.serviceNodes = services
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
@@ -198,11 +227,29 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	return diags
 }
 
+// Cleanup unregisters any existing metrics.
+func (l *Loader) Cleanup() {
+	if l.globals.Registerer == nil {
+		return
+	}
+	l.globals.Registerer.Unregister(l.cm)
+	l.globals.Registerer.Unregister(l.cc)
+}
+
 // loadNewGraph creates a new graph from the provided blocks and validates it.
 func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
+
+	// Split component blocks into blocks for components and services.
+	componentBlocks, serviceBlocks := l.splitComponentBlocks(componentBlocks)
+
+	// Fill our graph with service blocks, which must be added before any other
+	// block.
+	diags := l.populateServiceNodes(&g, serviceBlocks)
+
 	// Fill our graph with config blocks.
-	diags := l.populateConfigBlockNodes(args, &g, configBlocks)
+	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks)
+	diags = append(diags, configBlockDiags...)
 
 	// Fill our graph with components.
 	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks)
@@ -226,6 +273,82 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	dag.Reduce(&g)
 
 	return g, diags
+}
+
+func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks, serviceBlocks []*ast.BlockStmt) {
+	componentBlocks = make([]*ast.BlockStmt, 0, len(blocks))
+	serviceBlocks = make([]*ast.BlockStmt, 0, len(l.services))
+
+	serviceNames := make(map[string]struct{}, len(l.services))
+	for _, svc := range l.services {
+		serviceNames[svc.Definition().Name] = struct{}{}
+	}
+
+	for _, block := range blocks {
+		if _, isService := serviceNames[BlockComponentID(block).String()]; isService {
+			serviceBlocks = append(serviceBlocks, block)
+		} else {
+			componentBlocks = append(componentBlocks, block)
+		}
+	}
+
+	return componentBlocks, serviceBlocks
+}
+
+// populateServiceNodes adds service nodes to the graph.
+func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockStmt) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// First, build the services.
+	for _, svc := range l.services {
+		id := svc.Definition().Name
+
+		if g.GetByID(id) != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("cannot add service %q; node with same ID already exists", id),
+			})
+
+			continue
+		}
+
+		var node *ServiceNode
+
+		// Check the graph from the previous call to Load to see we can copy an
+		// existing instance of ServiceNode.
+		if exist := l.graph.GetByID(id); exist != nil {
+			node = exist.(*ServiceNode)
+		} else {
+			node = NewServiceNode(l.host, svc)
+		}
+
+		node.UpdateBlock(nil) // Reset configuration to nil.
+		g.Add(node)
+	}
+
+	// Now, assign blocks to services.
+	for _, block := range serviceBlocks {
+		blockID := BlockComponentID(block).String()
+		node := g.GetByID(blockID).(*ServiceNode)
+
+		// Blocks assigned to services are reset to nil in the previous loop.
+		//
+		// If the block is non-nil, it means that there was a duplicate block
+		// configuring the same service found in a previous iteration of this loop.
+		if node.Block() != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("duplicate definition of %q", blockID),
+				StartPos: ast.StartPos(block).Position(),
+				EndPos:   ast.EndPos(block).Position(),
+			})
+			continue
+		}
+
+		node.UpdateBlock(block)
+	}
+
+	return diags
 }
 
 // populateConfigBlockNodes adds any config blocks to the graph.
@@ -298,13 +421,14 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		}
 		blockMap[id] = block
 
+		// Check the graph from the previous call to Load to see we can copy an
+		// existing instance of ComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
-			// Re-use the existing component and update its block
 			c = exist.(*ComponentNode)
 			c.UpdateBlock(block)
 		} else {
 			componentName := block.GetBlockName()
-			registration, exists := component.Get(componentName)
+			registration, exists := l.componentReg.Get(componentName)
 			if !exists {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
@@ -346,7 +470,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			}
 
 			// Create a new component
-			c = NewComponentNode(l.globals, block)
+			c = NewComponentNode(l.globals, registration, block)
 		}
 
 		g.Add(c)
@@ -360,6 +484,40 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
+		// First, wire up dependencies on services.
+		switch n := n.(type) {
+		case *ServiceNode: // Service depending on other services.
+			for _, depName := range n.Definition().DependsOn {
+				dep := g.GetByID(depName)
+				if dep == nil {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("service %q has invalid reference to service %q", n.NodeID(), depName),
+					})
+					continue
+				}
+
+				g.AddEdge(dag.Edge{From: n, To: dep})
+			}
+
+		case *ComponentNode: // Component depending on service.
+			for _, depName := range n.Registration().NeedsServices {
+				dep := g.GetByID(depName)
+				if dep == nil {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("component depends on undefined service %q; please report this issue to project maintainers", depName),
+						StartPos: ast.StartPos(n.Block()).Position(),
+						EndPos:   ast.EndPos(n.Block()).Position(),
+					})
+					continue
+				}
+
+				g.AddEdge(dag.Edge{From: n, To: dep})
+			}
+		}
+
+		// Finally, wire component references.
 		refs, nodeDiags := ComponentReferences(n, g)
 		for _, ref := range refs {
 			g.AddEdge(dag.Edge{From: n, To: ref.Target})
@@ -380,7 +538,14 @@ func (l *Loader) Variables() map[string]interface{} {
 func (l *Loader) Components() []*ComponentNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
-	return l.components
+	return l.componentNodes
+}
+
+// Services returns the current set of service nodes.
+func (l *Loader) Services() []*ServiceNode {
+	l.mut.RLock()
+	defer l.mut.RUnlock()
+	return l.serviceNodes
 }
 
 // Graph returns a copy of the DAG managed by the Loader.
@@ -443,6 +608,11 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
 		span.SetAttributes(attribute.String("node_id", n.NodeID()))
 		defer span.End()
+
+		start := time.Now()
+		defer func() {
+			level.Info(logger).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", time.Since(start))
+		}()
 
 		var err error
 

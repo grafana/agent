@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/latest/flow/reference/components/loki.source.docker
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.docker/
 title: loki.source.docker
 ---
 
@@ -62,6 +63,12 @@ configuration.
 
 * `loki_source_docker_target_entries_total` (gauge): Total number of successful entries sent to the Docker target.
 * `loki_source_docker_target_parsing_errors_total` (gauge): Total number of parsing errors while receiving Docker messages.
+
+## Component behavior
+The component uses its data path (a directory named after the domain's
+fully qualified name) to store its _positions file_. The positions file
+stores the read offsets so that if there is a component or Agent restart,
+`loki.source.docker` can pick up tailing from the same spot.
 
 ## Example
 

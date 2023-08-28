@@ -1,11 +1,13 @@
 ---
-title: About Grafana Agent
-weight: 100
 aliases:
-  - ./about-agent/
+- ./about-agent/
+canonical: https://grafana.com/docs/agent/latest/about/
+title: Introduction to Grafana Agent
+menuTitle: Introduction
+weight: 100
 ---
 
-# About Grafana Agent
+# Introduction to Grafana Agent
 
 Grafana Agent is a vendor-neutral, batteries-included telemetry collector. It
 is designed to be flexible, performant, and compatible with multiple ecosystems
@@ -95,5 +97,12 @@ You should run Flow mode when:
   * **Grafana Phlare support**: Support for collecting profiles for Grafana
     Phlare.
 
+
+### BoringCrypto
+
+[BoringCrypto](https://pkg.go.dev/crypto/internal/boring) is an **EXPERIMENTAL** feature for building Grafana Agent
+binaries and images with BoringCrypto enabled. Builds and Docker images for Linux arm64/amd64 are made available.
+
 [integrations]: {{< relref "./static/configuration/integrations/" >}}
 [components]: {{< relref "./flow/reference/components/" >}}
+

@@ -1,0 +1,58 @@
+discovery.kubernetes "example" {
+	role            = "pod"
+	kubeconfig_file = "/home/toby/.kube/config"
+}
+
+local.file_match "example" {
+	path_targets = discovery.kubernetes.example.targets
+}
+
+loki.process "example" {
+	forward_to = [loki.write.default.receiver]
+
+	stage.drop {
+		drop_counter_reason = "nope"
+		source              = "string"
+		value               = "penny"
+		expression          = ":joy:"
+		older_than          = "10m0s"
+		longer_than         = "1KiB"
+	}
+
+	stage.drop {
+		drop_counter_reason = "nope"
+		value               = "penny"
+		longer_than         = "1KiB"
+	}
+
+	stage.drop {
+		drop_counter_reason = "nope"
+		value               = "penny"
+		longer_than         = "2KiB"
+	}
+
+	stage.drop {
+		drop_counter_reason = "nope"
+		source              = "string_one"
+		value               = "penny"
+		longer_than         = "1MiB"
+	}
+
+	stage.drop {
+		drop_counter_reason = "nope"
+		value               = "penny"
+		longer_than         = "1KiB"
+	}
+}
+
+loki.source.file "example" {
+	targets    = local.file_match.example.targets
+	forward_to = [loki.process.example.receiver]
+}
+
+loki.write "default" {
+	endpoint {
+		url = "http://localhost/loki/api/v1/push"
+	}
+	external_labels = {}
+}

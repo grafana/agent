@@ -3,7 +3,6 @@ package otelcol
 import (
 	"fmt"
 
-	"github.com/grafana/agent/pkg/river"
 	otelexporterhelper "go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
@@ -16,8 +15,6 @@ type QueueArguments struct {
 
 	// TODO(rfratto): queues can send to persistent storage through an extension.
 }
-
-var _ river.Unmarshaler = (*QueueArguments)(nil)
 
 // DefaultQueueArguments holds default settings for QueueArguments.
 var DefaultQueueArguments = QueueArguments{
@@ -36,11 +33,9 @@ var DefaultQueueArguments = QueueArguments{
 	QueueSize: 5000,
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *QueueArguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *QueueArguments) SetToDefault() {
 	*args = DefaultQueueArguments
-	type arguments QueueArguments
-	return f((*arguments)(args))
 }
 
 // Convert converts args into the upstream type.

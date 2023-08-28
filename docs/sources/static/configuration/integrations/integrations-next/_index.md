@@ -1,11 +1,12 @@
 ---
-title: Integrations Revamp
-weight: 100
 aliases:
 - ../../../configuration/integrations/integrations-next/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/
+title: Integrations next
+weight: 100
 ---
 
-# Integrations Revamp (Experimental)
+# Integrations next (Experimental)
 
 Release v0.22.0 of Grafana Agent includes experimental support for a revamped
 integrations subsystem. The integrations subsystem is the second oldest part of
@@ -42,7 +43,7 @@ original subsystem:
 * Autoscrape, when enabled, now works completely in-memory without using the
   network.
 
-[http_sd_config]: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#http_sd_config
+[http_sd_config]: https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#http_sd_config
 
 ## Config changes
 
@@ -130,8 +131,20 @@ integrations:
   apache_http_configs:
     [- <apache_http_config>]
 
+  squid_configs:
+    [- <squid_config> ...]
+
   vsphere_configs:
     [- <vsphere_config>]
+
+  gcp_configs:
+    [- <gcp_config>]
+    
+  azure_configs:
+    [- <azure_config>]   
+    
+  cloudwatch_configs:
+    [- <cloudwatch_config>]    
 ```
 
 Note that most integrations are no longer configured with the `_exporter` name.

@@ -292,7 +292,7 @@ func buildTargetLabels(opts discoveredContainer) promlabels.Labels {
 	targetLabels.Set(model.InstanceLabel, fmt.Sprintf("%s/%s:%s", opts.Pod.Namespace, opts.Pod.Name, opts.Container.Name))
 	targetLabels.Set(model.JobLabel, fmt.Sprintf("%s/%s", opts.PodLogs.Namespace, opts.PodLogs.Name))
 
-	res := targetLabels.Labels(nil)
+	res := targetLabels.Labels()
 	sort.Sort(res)
 	return res
 }

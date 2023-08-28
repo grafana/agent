@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/common/kubernetes"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/pkg/util"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
@@ -20,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func TestGeneratePodMonitorConfig(t *testing.T) {
@@ -41,18 +43,70 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 					Name:      "podmonitor",
 				},
 			},
-			ep: promopv1.PodMetricsEndpoint{
-				Port: "metrics",
-			},
+			ep: promopv1.PodMetricsEndpoint{},
 			expectedRelabels: util.Untab(`
+				- target_label: __meta_foo
+				  replacement: bar
 				- source_labels: [job]
 				  target_label: __tmp_prometheus_job_name
 				- source_labels: [__meta_kubernetes_pod_phase]
 				  regex: (Failed|Succeeded)
 				  action: drop
-				- source_labels: [__meta_kubernetes_pod_container_port_name]
-				  regex: metrics
-				  action: keep
+				- source_labels: [__meta_kubernetes_namespace]
+				  target_label: namespace
+				- source_labels: [__meta_kubernetes_pod_container_name]
+				  target_label: container
+				- source_labels: [__meta_kubernetes_pod_name]
+				  target_label: pod
+				- target_label: job
+				  replacement: operator/podmonitor
+				
+			`),
+			expected: &config.ScrapeConfig{
+				JobName:         "podMonitor/operator/podmonitor/1",
+				HonorTimestamps: true,
+				ScrapeInterval:  model.Duration(time.Minute),
+				ScrapeTimeout:   model.Duration(10 * time.Second),
+				MetricsPath:     "/metrics",
+				Scheme:          "http",
+				HTTPClientConfig: commonConfig.HTTPClientConfig{
+					FollowRedirects: true,
+					EnableHTTP2:     true,
+				},
+				ServiceDiscoveryConfigs: discovery.Configs{
+					&promk8s.SDConfig{
+						Role: "pod",
+
+						NamespaceDiscovery: promk8s.NamespaceDiscovery{
+							IncludeOwnNamespace: false,
+							Names:               []string{"operator"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "targetport_string",
+			m: &promopv1.PodMonitor{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "operator",
+					Name:      "podmonitor",
+				},
+			},
+			ep: promopv1.PodMetricsEndpoint{
+				TargetPort: &intstr.IntOrString{StrVal: "http_metrics", Type: intstr.String},
+			},
+			expectedRelabels: util.Untab(`
+				- target_label: __meta_foo
+				  replacement: bar
+				- source_labels: [job]
+				  target_label: __tmp_prometheus_job_name
+				- source_labels: [__meta_kubernetes_pod_phase]
+				  regex: (Failed|Succeeded)
+				  action: drop
+				- source_labels: ["__meta_kubernetes_pod_container_port_name"]
+				  regex: "http_metrics"
+				  action: "keep"
 				- source_labels: [__meta_kubernetes_namespace]
 				  target_label: namespace
 				- source_labels: [__meta_kubernetes_pod_container_name]
@@ -62,10 +116,66 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				- target_label: job
 				  replacement: operator/podmonitor
 				- target_label: endpoint
-				  replacement: metrics
+				  replacement: http_metrics
 			`),
 			expected: &config.ScrapeConfig{
-				JobName:         "podMonitor/operator/podmonitor/0",
+				JobName:         "podMonitor/operator/podmonitor/1",
+				HonorTimestamps: true,
+				ScrapeInterval:  model.Duration(time.Minute),
+				ScrapeTimeout:   model.Duration(10 * time.Second),
+				MetricsPath:     "/metrics",
+				Scheme:          "http",
+				HTTPClientConfig: commonConfig.HTTPClientConfig{
+					FollowRedirects: true,
+					EnableHTTP2:     true,
+				},
+				ServiceDiscoveryConfigs: discovery.Configs{
+					&promk8s.SDConfig{
+						Role: "pod",
+
+						NamespaceDiscovery: promk8s.NamespaceDiscovery{
+							IncludeOwnNamespace: false,
+							Names:               []string{"operator"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "targetport_int",
+			m: &promopv1.PodMonitor{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "operator",
+					Name:      "podmonitor",
+				},
+			},
+			ep: promopv1.PodMetricsEndpoint{
+				TargetPort: &intstr.IntOrString{IntVal: 8080, Type: intstr.Int},
+			},
+			expectedRelabels: util.Untab(`
+				- target_label: __meta_foo
+				  replacement: bar
+				- source_labels: [job]
+				  target_label: __tmp_prometheus_job_name
+				- source_labels: [__meta_kubernetes_pod_phase]
+				  regex: (Failed|Succeeded)
+				  action: drop
+				- source_labels: ["__meta_kubernetes_pod_container_port_number"]
+				  regex: "8080"
+				  action: "keep"
+				- source_labels: [__meta_kubernetes_namespace]
+				  target_label: namespace
+				- source_labels: [__meta_kubernetes_pod_container_name]
+				  target_label: container
+				- source_labels: [__meta_kubernetes_pod_name]
+				  target_label: pod
+				- target_label: job
+				  replacement: operator/podmonitor
+				- target_label: endpoint
+				  replacement: "8080"
+			`),
+			expected: &config.ScrapeConfig{
+				JobName:         "podMonitor/operator/podmonitor/1",
 				HonorTimestamps: true,
 				ScrapeInterval:  model.Duration(time.Minute),
 				ScrapeTimeout:   model.Duration(10 * time.Second),
@@ -148,8 +258,16 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 						InsecureSkipVerify: true,
 					},
 				},
+				RelabelConfigs: []*promopv1.RelabelConfig{
+					{
+						SourceLabels: []promopv1.LabelName{"foo"},
+						TargetLabel:  "bar",
+					},
+				},
 			},
 			expectedRelabels: util.Untab(`
+				- target_label: __meta_foo
+				  replacement: bar
 				- source_labels: [job]
 				  target_label: __tmp_prometheus_job_name
 				- action: keep
@@ -198,9 +316,10 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				  replacement: "${1}"
 				  regex: "(.+)"
 				  target_label: job
-				
 				- target_label: endpoint
 				  replacement: metrics
+				- target_label: bar
+				  source_labels: [foo]
 			`),
 			expected: &config.ScrapeConfig{
 				JobName:         "podMonitor/operator/podmonitor/1",
@@ -242,10 +361,15 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 			},
 		},
 	}
-	for i, tc := range suite {
+	for _, tc := range suite {
 		t.Run(tc.name, func(t *testing.T) {
-			cg := &ConfigGenerator{Client: &kubernetes.ClientArguments{}}
-			cfg, err := cg.GeneratePodMonitorConfig(tc.m, tc.ep, i)
+			cg := &ConfigGenerator{
+				Client: &kubernetes.ClientArguments{},
+				AdditionalRelabelConfigs: []*flow_relabel.Config{
+					{TargetLabel: "__meta_foo", Replacement: "bar"},
+				},
+			}
+			cfg, err := cg.GeneratePodMonitorConfig(tc.m, tc.ep, 1)
 			require.NoError(t, err)
 			// check relabel configs separately
 			rlcs := cfg.RelabelConfigs

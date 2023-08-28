@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.docker/
 title: discovery.docker
 ---
 
@@ -12,7 +13,7 @@ title: discovery.docker
 
 ```river
 discovery.docker "LABEL" {
-  host = "DOCKER_ENGINE_HOST"
+  host = DOCKER_ENGINE_HOST
 }
 ```
 
@@ -154,7 +155,27 @@ Linux:
 discovery.docker "containers" {
   host = "unix:///var/run/docker.sock"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.docker.containers.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Windows hosts
 
@@ -164,7 +185,27 @@ This example discovers Docker containers when the host machine is Windows:
 discovery.docker "containers" {
   host = "tcp://localhost:2375"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.docker.containers.example.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 > **NOTE**: This example requires the "Expose daemon on tcp://localhost:2375
 > without TLS" setting to be enabled in the Docker Engine settings.

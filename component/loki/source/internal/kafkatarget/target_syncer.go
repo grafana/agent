@@ -14,7 +14,6 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/prometheus/client_golang/prometheus"
 	promconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
@@ -33,7 +32,6 @@ type TopicManager interface {
 type TargetSyncer struct {
 	logger log.Logger
 	cfg    Config
-	reg    prometheus.Registerer
 	client loki.EntryHandler
 
 	topicManager TopicManager
@@ -48,7 +46,6 @@ type TargetSyncer struct {
 }
 
 func NewSyncer(
-	reg prometheus.Registerer,
 	logger log.Logger,
 	cfg Config,
 	pushClient loki.EntryHandler,
@@ -99,7 +96,6 @@ func NewSyncer(
 		cancel:       cancel,
 		topicManager: topicManager,
 		cfg:          cfg,
-		reg:          reg,
 		client:       pushClient,
 		close: func() error {
 			if err := group.Close(); err != nil {

@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/config"
 	blackbox_config "github.com/prometheus/blackbox_exporter/config"
 	"github.com/prometheus/blackbox_exporter/prober"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // DefaultConfig holds the default settings for the blackbox_exporter integration.
@@ -20,9 +21,8 @@ var DefaultConfig = Config{
 }
 
 func loadFile(filename string, log log.Logger) (*blackbox_config.Config, error) {
-	sc := &blackbox_config.SafeConfig{
-		C: &blackbox_config.Config{},
-	}
+	r := prometheus.NewRegistry()
+	sc := blackbox_config.NewSafeConfig(r)
 	err := sc.ReloadConfig(filename, log)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ type Integration struct {
 // MetricsHandler implements Integration.
 func (i *Integration) MetricsHandler() (http.Handler, error) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		prober.Handler(w, r, i.modules, i.log, &prober.ResultHistory{}, i.cfg.ProbeTimeoutOffset, nil)
+		prober.Handler(w, r, i.modules, i.log, &prober.ResultHistory{}, i.cfg.ProbeTimeoutOffset, nil, nil)
 	}), nil
 }
 

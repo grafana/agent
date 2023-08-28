@@ -92,12 +92,9 @@ type Arguments struct {
 	TextFile      TextFileConfig      `river:"text_file,block,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	return f((*args)(a))
 }
 
 // Convert converts the component's Arguments to the integration's Config.

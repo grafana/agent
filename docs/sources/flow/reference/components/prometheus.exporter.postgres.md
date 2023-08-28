@@ -1,14 +1,8 @@
 ---
-# NOTE(rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
-title: prometheus.exporter.postgres
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.postgres/
 labels:
   stage: beta
+title: prometheus.exporter.postgres
 ---
 
 # prometheus.exporter.postgres
@@ -67,21 +61,8 @@ If `enabled` is set to `true` and no allowlist or denylist is specified, the exp
 If `autodiscovery` is disabled, neither `database_allowlist` nor `database_denylist` will have any effect.
 
 ## Exported fields
-The following fields are exported and can be referenced by other components:
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `postgres` metrics.
-
-For example, `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metrics' label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 
@@ -100,7 +81,9 @@ debug metrics.
 
 ## Examples
 
-This minimal example uses a `prometheus.exporter.postgres` component to collect metrics from a Postgres
+### Collect metrics from a PostgreSQL server
+
+This example uses a `prometheus.exporter.postgres` component to collect metrics from a Postgres
 server running locally with all default settings:
 
 ```river
@@ -112,28 +95,40 @@ prometheus.exporter.postgres "example" {
 
 prometheus.scrape "default" {
   targets    = prometheus.exporter.postgres.example.targets
-  forward_to = [prometheus.remote_write.default.receiver]
+  forward_to = [prometheus.remote_write.demo.receiver]
 }
 
-prometheus.remote_write "default" {
-  client {
-    url = env("PROMETHEUS_URL")
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
   }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+
+### Collect custom metrics from an allowlisted set of databases
 
 This example uses a `prometheus.exporter.postgres` component to collect custom metrics from a set of
 specific databases, replacing default metrics with custom metrics derived from queries in `/etc/agent/custom-postgres-metrics.yaml`:
 
 ```river
 prometheus.exporter.postgres "example" {
-  data_source_names       = ["postgresql://username:password@localhost:5432/database_name?sslmode=disable"]
+  data_source_names = ["postgresql://username:password@localhost:5432/database_name?sslmode=disable"]
 
   // This block configures autodiscovery to check for databases outside of the 'database_name' db
   // specified in the DSN above. The database_allowlist field means that only the 'frontend_app' and 'backend_app'
   // databases will be scraped.
   autodiscovery {
-    enabled = true
+    enabled            = true
     database_allowlist = ["frontend_app", "backend_app"]
   }
 
@@ -143,42 +138,64 @@ prometheus.exporter.postgres "example" {
 
 prometheus.scrape "default" {
   targets    = prometheus.exporter.postgres.example.targets
-  forward_to = [prometheus.remote_write.default.receiver]
+  forward_to = [prometheus.remote_write.demo.receiver]
 }
 
-prometheus.remote_write "default" {
-  client {
-    url = env("PROMETHEUS_URL")
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
   }
 }
 ```
+
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+### Collect metrics from all databases except for a denylisted database
 
 This example uses a `prometheus.exporter.postgres` component to collect custom metrics from all databases except
 for the `secrets` database.
 ```river
 prometheus.exporter.postgres "example" {
-  data_source_names       = ["postgresql://username:password@localhost:5432/database_name?sslmode=disable"]
+  data_source_names = ["postgresql://username:password@localhost:5432/database_name?sslmode=disable"]
 
   // The database_denylist field will filter out those databases from the list of databases to scrape,
   // meaning that all databases *except* these will be scraped.
   //
   // In this example it will scrape all databases except for the one named 'secrets'.
   autodiscovery {
-    enabled = true
+    enabled           = true
     database_denylist = ["secrets"]
   }
 }
 
 prometheus.scrape "default" {
   targets    = prometheus.exporter.postgres.example.targets
-  forward_to = [prometheus.remote_write.default.receiver]
+  forward_to = [prometheus.remote_write.demo.receiver]
 }
 
-prometheus.remote_write "default" {
-  client {
-    url = env("PROMETHEUS_URL")
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
   }
 }
 ```
+
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

@@ -3,11 +3,14 @@ package app_agent_receiver
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+
+	"github.com/zeebo/xxh3"
 )
 
 // Payload is the body of the receiver request
@@ -45,11 +48,12 @@ type Stacktrace struct {
 
 // Exception struct controls all the data regarding an exception
 type Exception struct {
-	Type       string       `json:"type,omitempty"`
-	Value      string       `json:"value,omitempty"`
-	Stacktrace *Stacktrace  `json:"stacktrace,omitempty"`
-	Timestamp  time.Time    `json:"timestamp"`
-	Trace      TraceContext `json:"trace,omitempty"`
+	Type       string           `json:"type,omitempty"`
+	Value      string           `json:"value,omitempty"`
+	Stacktrace *Stacktrace      `json:"stacktrace,omitempty"`
+	Timestamp  time.Time        `json:"timestamp"`
+	Trace      TraceContext     `json:"trace,omitempty"`
+	Context    ExceptionContext `json:"context,omitempty"`
 }
 
 // Message string is concatenating of the Exception.Type and Exception.Value
@@ -76,9 +80,15 @@ func (e Exception) KeyVal() *KeyVal {
 	KeyValAdd(kv, "type", e.Type)
 	KeyValAdd(kv, "value", e.Value)
 	KeyValAdd(kv, "stacktrace", e.String())
+	KeyValAdd(kv, "hash", strconv.FormatUint(xxh3.HashString(e.Value), 10))
+	MergeKeyValWithPrefix(kv, KeyValFromMap(e.Context), "context_")
 	MergeKeyVal(kv, e.Trace.KeyVal())
 	return kv
 }
+
+// ExceptionContext is a string to string map structure that
+// represents the context of an exception
+type ExceptionContext map[string]string
 
 // TraceContext holds trace id and span id associated to an entity (log, exception, measurement...).
 type TraceContext struct {
@@ -143,11 +153,11 @@ func SpanToKeyVal(s ptrace.Span) *KeyVal {
 		KeyValAdd(kv, "end_timestamp", s.StartTimestamp().AsTime().String())
 	}
 	KeyValAdd(kv, "kind", "span")
-	KeyValAdd(kv, "traceID", s.TraceID().HexString())
-	KeyValAdd(kv, "spanID", s.SpanID().HexString())
+	KeyValAdd(kv, "traceID", s.TraceID().String())
+	KeyValAdd(kv, "spanID", s.SpanID().String())
 	KeyValAdd(kv, "span_kind", s.Kind().String())
 	KeyValAdd(kv, "name", s.Name())
-	KeyValAdd(kv, "parent_spanID", s.ParentSpanID().HexString())
+	KeyValAdd(kv, "parent_spanID", s.ParentSpanID().String())
 	s.Attributes().Range(func(k string, v pcommon.Value) bool {
 		KeyValAdd(kv, "attr_"+k, fmt.Sprintf("%v", v))
 		return true

@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/vm"
 )
 
 // BlockNode is a node in the DAG which manages a River block

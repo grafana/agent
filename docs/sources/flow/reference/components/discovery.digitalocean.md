@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.digitalocean/
 title: discovery.digitalocean
 ---
 
@@ -13,8 +14,8 @@ title: discovery.digitalocean
 ```river
 discovery.digitalocean "LABEL" {
     // Use one of:
-    // bearer_token      = "BEARER_TOKEN"
-    // bearer_token_file = "PATH_TO_BEARER_TOKEN_FILE"
+    // bearer_token      = BEARER_TOKEN
+    // bearer_token_file = PATH_TO_BEARER_TOKEN_FILE
 }
 ```
 
@@ -83,13 +84,33 @@ values.
 
 `discovery.digitalocean` does not expose any component-specific debug metrics.
 
-## Examples
+## Example
 
 This would result in targets with `__address__` labels like: `192.0.2.1:8080`:
 ```river
 discovery.digitalocean "example" {
-    port             = 8080
-    refresh_interval = "5m"
-    bearer_token     = "BEARER_TOKEN"
+  port             = 8080
+  refresh_interval = "5m"
+  bearer_token     = "my-secret-bearer-token"
+}
+
+prometheus.scrape "demo" {
+  targets    = discovery.digitalocean.example.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.

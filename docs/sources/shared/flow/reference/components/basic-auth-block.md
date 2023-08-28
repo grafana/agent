@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/shared/flow/reference/components/basic-auth-block/
+canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/basic-auth-block/
 headless: true
 ---
 

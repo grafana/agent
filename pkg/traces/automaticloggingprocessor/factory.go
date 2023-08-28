@@ -7,8 +7,8 @@ import (
 
 	"github.com/grafana/agent/pkg/logs"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/processor"
 )
 
 // TypeStr is the unique identifier for the Automatic Logging processor.
@@ -16,8 +16,6 @@ const TypeStr = "automatic_logging"
 
 // Config holds the configuration for the Automatic Logging processor.
 type Config struct {
-	config.ProcessorSettings `mapstructure:",squash"`
-
 	LoggingConfig *AutomaticLoggingConfig `mapstructure:"automatic_logging"`
 }
 
@@ -106,26 +104,24 @@ const (
 )
 
 // NewFactory returns a new factory for the Attributes processor.
-func NewFactory() component.ProcessorFactory {
-	return component.NewProcessorFactory(
+func NewFactory() processor.Factory {
+	return processor.NewFactory(
 		TypeStr,
 		createDefaultConfig,
-		component.WithTracesProcessor(createTraceProcessor, component.StabilityLevelUndefined),
+		processor.WithTraces(createTraceProcessor, component.StabilityLevelUndefined),
 	)
 }
 
-func createDefaultConfig() config.Processor {
-	return &Config{
-		ProcessorSettings: config.NewProcessorSettings(config.NewComponentIDWithName(TypeStr, TypeStr)),
-	}
+func createDefaultConfig() component.Config {
+	return &Config{}
 }
 
 func createTraceProcessor(
 	_ context.Context,
-	cp component.ProcessorCreateSettings,
-	cfg config.Processor,
+	cp processor.CreateSettings,
+	cfg component.Config,
 	nextConsumer consumer.Traces,
-) (component.TracesProcessor, error) {
+) (processor.Traces, error) {
 
 	oCfg := cfg.(*Config)
 	return newTraceProcessor(nextConsumer, oCfg.LoggingConfig)

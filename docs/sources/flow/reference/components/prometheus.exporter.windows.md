@@ -1,11 +1,5 @@
 ---
-# NOTE(rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.windows/
 title: prometheus.exporter.windows
 ---
 
@@ -32,10 +26,10 @@ prometheus.exporter.windows "LABEL" {
 The following arguments can be used to configure the exporter's behavior.
 All arguments are optional. Omitted fields take their default values.
 
-| Name                 | Type       | Description                               | Default | Required |
-|----------------------|------------|-------------------------------------------|---------|----------|
-| `enabled_collectors` | `string`   | List of collectors to enable.             |         | no       |
-| `timeout`            | `duration` | Configure timeout for collecting metrics. | `4m`    | no       |
+| Name                 | Type             | Description                               | Default | Required |
+|----------------------|------------------|-------------------------------------------|---------|----------|
+| `enabled_collectors` | `list(string)`   | List of collectors to enable.             | `["cpu","cs","logical_disk","net","os","service","system"]` | no       |
+| `timeout`            | `duration`       | Configure timeout for collecting metrics. | `4m`    | no       |
 
 `enabled_collectors` defines a hand-picked list of enabled-by-default
 collectors. If set, anything not provided in that list is disabled by
@@ -48,8 +42,8 @@ The following blocks are supported inside the definition of
 
 Hierarchy      | Name               | Description                              | Required
 ---------------|--------------------|------------------------------------------|----------
-dfsr           | [dfsr][]           | Configures the iis collector.            | no       
-exchange       | [exchange][]       | Configures the exchange collector.        | no
+dfsr           | [dfsr][]           | Configures the dfsr collector.           | no       
+exchange       | [exchange][]       | Configures the exchange collector.       | no
 iis            | [iis][]            | Configures the iis collector.            | no
 logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no       
 msmq           | [msmq][]           | Configures the msmq collector.           | no
@@ -77,13 +71,13 @@ text_file      | [text_file][]      | Configures the text_file collector.      |
 ### dfsr block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`source_enabled` | `list(string)` | Comma-seperated list of DFSR Perflib sources to use. | `["connection","folder","volume"]` | no
+`source_enabled` | `list(string)` | Comma-separated list of DFSR Perflib sources to use. | `["connection","folder","volume"]` | no
 
 
 ### exchange block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`enabled_list` | `list(string)` | Comma-separated list of collectors to use. | `["cpu", "cs", "logical_disk", "net", "os", "service", "system"]` | no
+`enabled_list` | `string` | Comma-separated list of collectors to use. | `""` | no
 
 The collectors specified by `enabled_list` can include the following:
 
@@ -187,21 +181,8 @@ When `text_file_directory` is set, only files with the extension `.prom` inside 
 
 
 ## Exported fields
-The following fields are exported and can be referenced by other components:
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `windows` metrics.
-
-For example, the `targets` could either be passed to a `prometheus.relabel`
-component to rewrite the metrics' label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 
@@ -290,14 +271,28 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.windows`:
 
 ```river
-prometheus.exporter.windows "default" {
-}
+prometheus.exporter.windows "default" { }
 
 // Configure a prometheus.scrape component to collect windows metrics.
 prometheus.scrape "example" {
   targets    = prometheus.exporter.windows.default.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

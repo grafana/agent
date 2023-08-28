@@ -17,21 +17,21 @@ import (
 
 const apiKeyHeader = "x-api-key"
 
-type appAgentReceiverExporter interface {
+type AppAgentReceiverExporter interface {
 	Name() string
 	Export(ctx context.Context, payload Payload) error
 }
 
 // AppAgentReceiverHandler struct controls the data ingestion http handler of the receiver
 type AppAgentReceiverHandler struct {
-	exporters               []appAgentReceiverExporter
+	exporters               []AppAgentReceiverExporter
 	config                  *Config
 	rateLimiter             *rate.Limiter
 	exporterErrorsCollector *prometheus.CounterVec
 }
 
 // NewAppAgentReceiverHandler creates a new AppReceiver instance based on the given configuration
-func NewAppAgentReceiverHandler(conf *Config, exporters []appAgentReceiverExporter, reg prometheus.Registerer) AppAgentReceiverHandler {
+func NewAppAgentReceiverHandler(conf *Config, exporters []AppAgentReceiverExporter, reg prometheus.Registerer) AppAgentReceiverHandler {
 	var rateLimiter *rate.Limiter
 	if conf.Server.RateLimiting.Enabled {
 		var rps float64
@@ -100,7 +100,7 @@ func (ar *AppAgentReceiverHandler) HTTPHandler(logger log.Logger) http.Handler {
 
 		for _, exporter := range ar.exporters {
 			wg.Add(1)
-			go func(exp appAgentReceiverExporter) {
+			go func(exp AppAgentReceiverExporter) {
 				defer wg.Done()
 				if err := exp.Export(r.Context(), p); err != nil {
 					level.Error(logger).Log("msg", "exporter error", "exporter", exp.Name(), "error", err)

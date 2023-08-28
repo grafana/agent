@@ -20,6 +20,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
+	"golang.org/x/text/encoding/unicode"
 )
 
 func Test(t *testing.T) {
@@ -36,7 +37,7 @@ func Test(t *testing.T) {
 	ctrl, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.source.file")
 	require.NoError(t, err)
 
-	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 
 	go func() {
 		err := ctrl.Run(ctx, Arguments{
@@ -61,11 +62,11 @@ func Test(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "writing some text", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, "writing some text", logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -133,7 +134,7 @@ func TestTwoTargets(t *testing.T) {
 	defer f.Close()
 	defer f2.Close()
 
-	ch1 := make(chan loki.Entry)
+	ch1 := loki.NewLogsReceiver()
 	args := Arguments{}
 	args.Targets = []discovery.Target{
 		{"__path__": f.Name(), "foo": "bar"},
@@ -157,7 +158,7 @@ func TestTwoTargets(t *testing.T) {
 	foundF1, foundF2 := false, false
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			if logEntry.Line == "text" {
 				foundF1 = true
@@ -174,6 +175,74 @@ func TestTwoTargets(t *testing.T) {
 	cancel()
 	// Verify that positions.yml is written. NOTE: if we didn't wait for it, there would be a race condition between
 	// temporary directory being cleaned up and this file being created.
+	require.Eventually(
+		t,
+		func() bool {
+			if _, err := os.Stat(filepath.Join(opts.DataPath, "positions.yml")); errors.Is(err, os.ErrNotExist) {
+				return false
+			}
+			return true
+		},
+		5*time.Second,
+		10*time.Millisecond,
+		"expected positions.yml file to be written eventually",
+	)
+}
+
+func TestEncoding(t *testing.T) {
+	// Create opts for component
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+		DataPath:      t.TempDir(),
+	}
+
+	// Create a file to write to and set up the component's Arguments.
+	f, err := os.CreateTemp(opts.DataPath, "example")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	ch1 := loki.NewLogsReceiver()
+	args := Arguments{}
+	args.Targets = []discovery.Target{{"__path__": f.Name(), "lbl1": "val1"}}
+	args.Encoding = "UTF-16BE"
+	args.ForwardTo = []loki.LogsReceiver{ch1}
+
+	// Create and run the component.
+	c, err := New(opts, args)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go c.Run(ctx)
+	require.Eventually(t, func() bool { return c.DebugInfo() != nil }, 500*time.Millisecond, 20*time.Millisecond)
+
+	// Write a UTF-16BE encoded byte slice to the file.
+	utf16Encoder := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM).NewEncoder()
+	utf16Bytes, err := utf16Encoder.Bytes([]byte("hello world!\n"))
+	require.Nil(t, err)
+
+	_, err = f.Write(utf16Bytes)
+	require.Nil(t, err)
+
+	// Make sure the log was received successfully with the correct format.
+	select {
+	case logEntry := <-ch1.Chan():
+		require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+		require.Equal(t, "hello world!�", logEntry.Line)
+
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "failed waiting for log line")
+	}
+
+	// Shut down the component
+	cancel()
+
+	// Verify that positions.yml is written. NOTE: if we didn't wait for it,
+	// there would be a race condition between temporary directory being
+	// cleaned up and this file being created.
 	require.Eventually(
 		t,
 		func() bool {

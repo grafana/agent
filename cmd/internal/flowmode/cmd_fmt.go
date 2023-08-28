@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/parser"
-	"github.com/grafana/agent/pkg/river/printer"
+	"github.com/grafana/river/diag"
+	"github.com/grafana/river/parser"
+	"github.com/grafana/river/printer"
 )
 
 func fmtCommand() *cobra.Command {

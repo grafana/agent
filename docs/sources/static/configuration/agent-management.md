@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/static/configuration/agent-management/
 title: Agent Management
 weight: 700
 ---
@@ -37,6 +38,21 @@ agent_management:
     [ username: <string> ]
     [ password_file: <string> ]
 
+  # Optional proxy URL.
+  [ proxy_url: <string> ]
+
+  # Comma-separated string that can contain IPs, CIDR notation, domain names
+  # that should be excluded from proxying. IP and domain names can
+  # contain port numbers.
+  [ no_proxy: <string> ]
+
+  # Use proxy URL indicated by environment variables (HTTP_PROXY, https_proxy, HTTPs_PROXY, https_proxy, and no_proxy)
+  [ proxy_from_environment: <boolean> | default: false ]
+
+  # Specifies headers to send to proxies during CONNECT requests.
+  [ proxy_connect_header:
+    [ <string>: [<secret>, ...] ] ]
+
   # Fields specific to remote configuration.
   remote_configuration:
     # A path to a directory where the remote configuration will be cached. The directory must be writeable.
@@ -48,6 +64,12 @@ agent_management:
     # Set of self-identifying labels used for snippet selection.
     labels:
       [ <labelname>: <labelvalue> ... ]
+
+    # Whether to use labels from the label management service. If enabled, labels from the API supersede the ones configured in the agent.
+    label_management_enabled: <bool> | default = false
+
+    # A unique ID for the agent, which is used to identify the agent.
+    agent_id: <string>
 ```
 
 ## API (v2)
@@ -87,7 +109,7 @@ selector:
 
 > **Note:** More information on the following types can be found in their respective documentation pages:
 >
-> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#scrape_config)
+> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
 > * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
 > * [`integrations_config`](https://grafana.com/docs/agent/latest/static/configuration/integrations)
 
@@ -120,7 +142,7 @@ snippets:
     config: |
       metrics_scrape_configs:
       - job_name: 'prometheus'
-        scrape_interval: 15s
+        scrape_interval: 60s
         static_configs:
         - targets: ['localhost:9090']
       logs_scrape_configs:

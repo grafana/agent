@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/operator/architecture/
 title: Architecture
 weight: 300
 ---

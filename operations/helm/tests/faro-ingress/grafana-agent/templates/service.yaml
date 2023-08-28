@@ -23,4 +23,4 @@ spec:
     - name: faro
       port: 12347
       targetPort: 12347
-      protocol: "TCP"
+      protocol: TCP

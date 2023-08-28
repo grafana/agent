@@ -10,16 +10,17 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/mssql"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.mssql",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "mssql", customizeTarget),
+		Name:          "prometheus.exporter.mssql",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.NewWithTargetBuilder(createExporter, "mssql", customizeTarget),
 	})
 }
 
@@ -56,17 +57,12 @@ type Arguments struct {
 	Timeout            time.Duration     `river:"timeout,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Arguments.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	if err := f((*args)(a)); err != nil {
-		return err
-	}
-	return a.Validate()
 }
 
+// Validate implements river.Validator.
 func (a *Arguments) Validate() error {
 	if a.MaxOpenConnections < 1 {
 		return errors.New("max_open_connections must be at least 1")

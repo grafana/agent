@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/shared/flow/reference/components/authorization-block/
+canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/authorization-block/
 headless: true
 ---
 

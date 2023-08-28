@@ -18,7 +18,6 @@ import (
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/loki/source/kubernetes"
 	"github.com/grafana/agent/component/loki/source/kubernetes/kubetail"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/oklog/run"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -47,21 +46,14 @@ type Arguments struct {
 	NamespaceSelector config.LabelSelector `river:"namespace_selector,block,optional"`
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
 // DefaultArguments holds default settings for loki.source.kubernetes.
 var DefaultArguments = Arguments{
-	Client: commonk8s.ClientArguments{
-		HTTPClientConfig: config.DefaultHTTPClientConfig,
-	},
+	Client: commonk8s.DefaultClientArguments,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies defaults.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(args))
 }
 
 // Component implements the loki.source.podlogs component.
@@ -119,7 +111,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		controller: controller,
 
 		positions: positionsFile,
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 	}
 	if err := c.Update(args); err != nil {
 		return nil, err
@@ -172,13 +164,13 @@ func (c *Component) runHandler(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.receiversMut.RLock()
 			receivers := c.receivers
 			c.receiversMut.RUnlock()
 
 			for _, receiver := range receivers {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 		}
 	}
@@ -227,7 +219,7 @@ func (c *Component) updateTailer(args Arguments) error {
 
 	managerOpts := &kubetail.Options{
 		Client:    clientSet,
-		Handler:   loki.NewEntryHandler(c.handler, func() {}),
+		Handler:   loki.NewEntryHandler(c.handler.Chan(), func() {}),
 		Positions: c.positions,
 	}
 	c.lastOptions = managerOpts

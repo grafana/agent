@@ -43,6 +43,7 @@ type Target struct {
 	positions     positions.Positions
 	containerName string
 	labels        model.LabelSet
+	labelsStr     string
 	relabelConfig []*relabel.Config
 	metrics       *Metrics
 
@@ -55,7 +56,8 @@ type Target struct {
 
 // NewTarget starts a new target to read logs from a given container ID.
 func NewTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, position positions.Positions, containerID string, labels model.LabelSet, relabelConfig []*relabel.Config, client client.APIClient) (*Target, error) {
-	pos, err := position.Get(positions.CursorKey(containerID), labels.String())
+	labelsStr := labels.String()
+	pos, err := position.Get(positions.CursorKey(containerID), labelsStr)
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +73,7 @@ func NewTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, p
 		positions:     position,
 		containerName: containerID,
 		labels:        labels,
+		labelsStr:     labelsStr,
 		relabelConfig: relabelConfig,
 		metrics:       metrics,
 
@@ -138,8 +141,8 @@ func (t *Target) processLoop(ctx context.Context) {
 
 	// Start processing
 	t.wg.Add(2)
-	go t.process(rstdout, "stdout")
-	go t.process(rstderr, "stderr")
+	go t.process(rstdout, t.getStreamLabels("stdout"))
+	go t.process(rstderr, t.getStreamLabels("stderr"))
 
 	// Wait until done
 	<-ctx.Done()
@@ -177,7 +180,7 @@ func readLine(r *bufio.Reader) (string, error) {
 	return string(ln), err
 }
 
-func (t *Target) process(r io.Reader, logStream string) {
+func (t *Target) process(r io.Reader, logStreamLset model.LabelSet) {
 	defer func() {
 		t.wg.Done()
 	}()
@@ -200,24 +203,8 @@ func (t *Target) process(r io.Reader, logStream string) {
 			continue
 		}
 
-		// Add all labels from the config, relabel and filter them.
-		lb := labels.NewBuilder(nil)
-		for k, v := range t.labels {
-			lb.Set(string(k), string(v))
-		}
-		lb.Set(dockerLabelLogStream, logStream)
-		processed, _ := relabel.Process(lb.Labels(nil), t.relabelConfig...)
-
-		filtered := make(model.LabelSet)
-		for _, lbl := range processed {
-			if strings.HasPrefix(lbl.Name, "__") {
-				continue
-			}
-			filtered[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
-		}
-
 		t.handler.Chan() <- loki.Entry{
-			Labels: filtered,
+			Labels: logStreamLset,
 			Entry: logproto.Entry{
 				Timestamp: ts,
 				Line:      line,
@@ -231,7 +218,7 @@ func (t *Target) process(r io.Reader, logStream string) {
 		// problematic if we have the same container with a different set of
 		// labels (e.g. duplicated and relabeled), but this shouldn't be the
 		// case anyway.
-		t.positions.Put(positions.CursorKey(t.containerName), t.labels.String(), ts.Unix())
+		t.positions.Put(positions.CursorKey(t.containerName), t.labelsStr, ts.Unix())
 	}
 }
 
@@ -259,9 +246,9 @@ func (t *Target) Ready() bool {
 	return t.running.Load()
 }
 
-// Labels reports the target's labels.
-func (t *Target) Labels() model.LabelSet {
-	return t.labels
+// LabelsStr returns the target's original labels string representation.
+func (t *Target) LabelsStr() string {
+	return t.labelsStr
 }
 
 // Name reports the container name.
@@ -287,7 +274,27 @@ func (t *Target) Details() interface{} {
 	return map[string]string{
 		"id":       t.containerName,
 		"error":    errMsg,
-		"position": t.positions.GetString(positions.CursorKey(t.containerName), t.labels.String()),
+		"position": t.positions.GetString(positions.CursorKey(t.containerName), t.labelsStr),
 		"running":  strconv.FormatBool(t.running.Load()),
 	}
+}
+
+func (t *Target) getStreamLabels(logStream string) model.LabelSet {
+	// Add all labels from the config, relabel and filter them.
+	lb := labels.NewBuilder(nil)
+	for k, v := range t.labels {
+		lb.Set(string(k), string(v))
+	}
+	lb.Set(dockerLabelLogStream, logStream)
+	processed, _ := relabel.Process(lb.Labels(), t.relabelConfig...)
+
+	filtered := make(model.LabelSet)
+	for _, lbl := range processed {
+		if strings.HasPrefix(lbl.Name, "__") {
+			continue
+		}
+		filtered[model.LabelName(lbl.Name)] = model.LabelValue(lbl.Value)
+	}
+
+	return filtered
 }

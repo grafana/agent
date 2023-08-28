@@ -6,16 +6,17 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.snowflake",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "snowflake", customizeTarget),
+		Name:          "prometheus.exporter.snowflake",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.NewWithTargetBuilder(createExporter, "snowflake", customizeTarget),
 	})
 }
 
@@ -46,12 +47,9 @@ type Arguments struct {
 	Warehouse   string            `river:"warehouse,attr"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Arguments.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	return f((*args)(a))
 }
 
 func (a *Arguments) Convert() *snowflake_exporter.Config {

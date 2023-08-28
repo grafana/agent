@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
@@ -63,15 +62,12 @@ func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, 
 func testOptions(t *testing.T) Options {
 	t.Helper()
 
-	s, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
+	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 
-	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
-
 	return Options{
-		LogSink:   s,
-		DataPath:  t.TempDir(),
-		Reg:       nil,
-		Clusterer: c,
+		Logger:   s,
+		DataPath: t.TempDir(),
+		Reg:      nil,
 	}
 }

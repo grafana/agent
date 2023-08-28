@@ -1,12 +1,6 @@
 ---
-# NOTE(rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
-title: prometheus.exporter.​process
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.process/
+title: prometheus.exporter.process
 ---
 
 # prometheus.exporter.process
@@ -70,21 +64,8 @@ For values in `exe`, if there are no slashes, only the basename of `argv[0]` nee
 Each regex in `cmdline` must match the corresponding argv for the process to be tracked. The first element that is matched is `argv[1]`. Regex captures are added to the .Matches map for use in the name.
 
 ## Exported fields
-The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | Targets that expose `process_exporter` metrics.
-
-For example, the `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metric's label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 
@@ -110,6 +91,7 @@ from `prometheus.exporter.process`:
 ```river
 prometheus.exporter.process "example" {
   track_children = false
+
   matcher {
     comm = ["grafana-agent"]
   }
@@ -118,8 +100,23 @@ prometheus.exporter.process "example" {
 // Configure a prometheus.scrape component to collect process_exporter metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.process.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

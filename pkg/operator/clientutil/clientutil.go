@@ -137,12 +137,16 @@ func CreateOrUpdateStatefulSet(ctx context.Context, c client.Client, ss *apps_v1
 		ss.SetAnnotations(mergeMaps(ss.Annotations, exist.Annotations))
 
 		err := c.Update(ctx, ss)
+		// Statefulsets have a large number of fields that are immutable after creation,
+		// so we sometimes need to delete and recreate.
+		// We should be mindful when making changes to try and avoid this when possible.
 		if k8s_errors.IsNotAcceptable(err) || k8s_errors.IsInvalid(err) {
 			level.Error(l).Log("msg", "error updating StatefulSet. Attempting to recreate", "err", err.Error())
 			// Resource version should only be set when updating
 			ss.ResourceVersion = ""
 
-			err = c.Delete(ctx, ss)
+			// do a quicker deletion of the old statefulset to minimize downtime before we spin up new pods
+			err = c.Delete(ctx, ss, client.GracePeriodSeconds(5))
 			if err != nil {
 				return fmt.Errorf("failed to update statefulset when deleting old statefulset: %w", err)
 			}

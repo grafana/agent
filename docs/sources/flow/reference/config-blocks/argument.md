@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/argument/
 title: argument
 ---
 

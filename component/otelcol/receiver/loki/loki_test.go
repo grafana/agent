@@ -9,9 +9,9 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fakeconsumer"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/river"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -58,7 +58,7 @@ func Test(t *testing.T) {
 				Line:      "It's super effective!",
 			},
 		}
-		exports.Receiver <- entry
+		exports.Receiver.Chan() <- entry
 	}()
 
 	wantAttributes := map[string]interface{}{

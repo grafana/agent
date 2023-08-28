@@ -24,7 +24,7 @@ func TestGelf(t *testing.T) {
 	}
 
 	testMsg := `{"version":"1.1","host":"example.org","short_message":"A short message","timestamp":1231231123,"level":5,"_some_extra":"extra"}`
-	ch1 := make(chan loki.Entry)
+	ch1 := loki.NewLogsReceiver()
 
 	udpListenerAddr := getFreeAddr(t)
 	args := Arguments{
@@ -46,7 +46,7 @@ func TestGelf(t *testing.T) {
 	case <-ctx.Done():
 		// If this is called then it failed.
 		require.True(t, false)
-	case e := <-ch1:
+	case e := <-ch1.Chan():
 		require.True(t, strings.Contains(e.Entry.Line, "A short message"))
 		found = true
 	}

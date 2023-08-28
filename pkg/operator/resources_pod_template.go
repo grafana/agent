@@ -154,11 +154,13 @@ func generatePodTemplate(
 	}
 
 	var (
-		podAnnotations    = map[string]string{}
-		podLabels         = map[string]string{}
+		podAnnotations = map[string]string{}
+		podLabels      = map[string]string{
+			// version can be a pod label, but should not go in selectors
+			versionLabelName: clientutil.SanitizeVolumeName(build.Version),
+		}
 		podSelectorLabels = map[string]string{
 			"app.kubernetes.io/name":     "grafana-agent",
-			"app.kubernetes.io/version":  clientutil.SanitizeVolumeName(build.Version),
 			"app.kubernetes.io/instance": d.Agent.Name,
 			"grafana-agent":              d.Agent.Name,
 			managedByOperatorLabel:       managedByOperatorLabelValue,
@@ -196,10 +198,19 @@ func generatePodTemplate(
 	}}
 	envVars = append(envVars, opts.ExtraEnvVars...)
 
+	useConfigReloaderVersion := d.Agent.Spec.ConfigReloaderVersion
+	if useConfigReloaderVersion == "" {
+		useConfigReloaderVersion = DefaultConfigReloaderVersion
+	}
+	imagePathConfigReloader := fmt.Sprintf("%s:%s", DefaultConfigReloaderBaseImage, useConfigReloaderVersion)
+	if d.Agent.Spec.ConfigReloaderImage != nil && *d.Agent.Spec.ConfigReloaderImage != "" {
+		imagePathConfigReloader = *d.Agent.Spec.ConfigReloaderImage
+	}
+
 	operatorContainers := []core_v1.Container{
 		{
 			Name:         "config-reloader",
-			Image:        "quay.io/prometheus-operator/prometheus-config-reloader:v0.62.0",
+			Image:        imagePathConfigReloader,
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &core_v1.SecurityContext{

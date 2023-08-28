@@ -1,7 +1,8 @@
 ---
-title: cloudwatch_exporter_config
 aliases:
 - ../../../configuration/integrations/cloudwatch-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cloudwatch-exporter-config/
+title: cloudwatch_exporter_config
 ---
 
 # cloudwatch_exporter_config
@@ -131,6 +132,16 @@ Configuration reference:
   # Optional: Disable use of FIPS endpoints. Set 'true' when running outside of USA regions.
   [fips_disabled: <boolean> | default = false]
 
+
+  # Instead of retrieving metrics on request, decouple scraping retrieves the
+  # metrics on a schedule and returns the cached metrics.
+  decoupled_scraping:
+    # Enable decoupled scraping.
+    [enabled: <boolean> | default = false ]
+
+    # How often to scrape for CloudWatch metrics.
+    [scrape_interval: <duration> | default = "5m"]
+
   discovery:
 
     # Optional: List of tags (value) per service (key) to export in all metrics. For example defining the ["name", "type"] under
@@ -147,6 +158,9 @@ Configuration reference:
 
   # List of static jobs
   static: [ <static_job> ]
+
+  # Optional: Enable debug logging on CloudWatch exporter internals.
+  [debug: <boolean> | default = false]
 ```
 
 ### discovery_job
@@ -193,6 +207,9 @@ Configuration reference:
   # Optional: Custom tags to be added as a list of `Key/Value` pairs. When exported to Prometheus format, the label name follows
   # the following format: `custom_tag_{Key}`.
   custom_tags: [ <aws_tag> ]
+
+  # Optional: List of metric dimensions to query. Before querying metric values, the total list of metrics will be filtered to only those that contain exactly this list of dimensions. An empty or undefined list results in all dimension combinations being included.
+  dimension_name_requirements: [ <string> ]
 
   # Required: List of metric definitions to scrape.
   metrics: [ <metric> ]
@@ -306,24 +323,37 @@ pick the ones you need.
   # Required: List of statistic types, e.g. "Minimum", "Maximum", etc.
   statistics: [ <string> ]
 
-  # Optional: See the `Period` section below.
+  # Optional: See the `period and length` section below.
   period: [ <duration> | default = 5m ]
+
+  # Optional: See the `period and length` section below.
+  length: [ <duration> | default = calculated based on `period` ]
 ```
 
-### Period
+### Period and length
 
-Period controls how far back in time CloudWatch metrics are considered, during each agent scrape. We can split how these
-settings affects the produced values in two different scenarios.
+`period` controls the width of the time bucket used for aggregating metrics collected from CloudWatch.
+`length` controls how far back in time CloudWatch metrics are considered during each agent scrape.
+If both settings are configured, the time parameters when calling CloudWatch APIs work as follows:
 
-If all metrics within a job (discovery or static) have the same `Period` value configured, CloudWatch APIs will be requested
-for metrics from the scrape time, to `Periods` seconds in the past. The values of these are exported to Prometheus.
+![](https://grafana.com/media/docs/agent/cloudwatch-period-and-length-time-model-2.png)
+
+As noted above, if there is a different `period` or `length` across multiple metrics under the same static or discovery job, 
+the minimum of all periods, and maximum of all lengths is configured.
+
+On the other hand, if `length` is not configured, both period and length settings are calculated based on 
+the required `period` configuration attribute.
+
+If all metrics within a job (discovery or static) have the same `period` value configured, CloudWatch APIs will be
+requested for metrics from the scrape time, to `period`s seconds in the past. 
+The values of these metrics are exported to Prometheus.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-single-period-time-model.png)
 
-On the other hand, if metrics with different `Periods` are configured under an individual job, this works differently.
+On the other hand, if metrics with different `period`s are configured under an individual job, this works differently.
 First, two variables are calculated aggregating all periods: `length`, taking the maximum value of all periods, and
 the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs will be requested for metrics from
-`now - length` to `now`, aggregating each in samples for `period` seconds. For each metrics, the most recent sample
+`now - length` to `now`, aggregating each in samples for `period` seconds. For each metric, the most recent sample
 is exported to CloudWatch.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
@@ -333,8 +363,12 @@ is exported to CloudWatch.
 The following is a list of AWS services that are supported in `cloudwatch_exporter` discovery jobs. When configuring a
 discovery job, the `type` field of each `discovery_job` must match either the desired job namespace or alias.
 
+- Namespace: `CWAgent` or Alias: `cwagent`
+- Namespace: `AWS/Usage` or Alias: `usage`
 - Namespace: `AWS/CertificateManager` or Alias: `acm`
+- Namespace: `AWS/ACMPrivateCA` or Alias: `acm-pca`
 - Namespace: `AmazonMWAA` or Alias: `airflow`
+- Namespace: `AWS/MWAA` or Alias: `mwaa`
 - Namespace: `AWS/ApplicationELB` or Alias: `alb`
 - Namespace: `AWS/AppStream` or Alias: `appstream`
 - Namespace: `AWS/Backup` or Alias: `backup`
@@ -355,6 +389,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/DynamoDB` or Alias: `dynamodb`
 - Namespace: `AWS/EBS` or Alias: `ebs`
 - Namespace: `AWS/ElastiCache` or Alias: `ec`
+- Namespace: `AWS/MemoryDB` or Alias: `memorydb`
 - Namespace: `AWS/EC2` or Alias: `ec2`
 - Namespace: `AWS/EC2Spot` or Alias: `ec2Spot`
 - Namespace: `AWS/ECS` or Alias: `ecs-svc`
@@ -375,6 +410,9 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/Kinesis` or Alias: `kinesis`
 - Namespace: `AWS/KinesisAnalytics` or Alias: `kinesis-analytics`
 - Namespace: `AWS/Lambda` or Alias: `lambda`
+- Namespace: `AWS/MediaConnect` or Alias: `mediaconnect`
+- Namespace: `AWS/MediaConvert` or Alias: `mediaconvert`
+- Namespace: `AWS/MediaLive` or Alias: `medialive`
 - Namespace: `AWS/MediaTailor` or Alias: `mediatailor`
 - Namespace: `AWS/Neptune` or Alias: `neptune`
 - Namespace: `AWS/NetworkFirewall` or Alias: `nfw`
@@ -394,6 +432,16 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/SQS` or Alias: `sqs`
 - Namespace: `AWS/StorageGateway` or Alias: `storagegateway`
 - Namespace: `AWS/TransitGateway` or Alias: `tgw`
+- Namespace: `AWS/TrustedAdvisor` or Alias: `trustedadvisor`
 - Namespace: `AWS/VPN` or Alias: `vpn`
 - Namespace: `AWS/WAFV2` or Alias: `wafv2`
 - Namespace: `AWS/WorkSpaces` or Alias: `workspaces`
+- Namespace: `AWS/AOSS` or Alias: `aoss`
+- Namespace: `AWS/SageMaker` or Alias: `sagemaker`
+- Namespace: `/aws/sagemaker/Endpoints` or Alias: `sagemaker-endpoints`
+- Namespace: `/aws/sagemaker/TrainingJobs` or Alias: `sagemaker-training`
+- Namespace: `/aws/sagemaker/ProcessingJobs` or Alias: `sagemaker-processing`
+- Namespace: `/aws/sagemaker/TransformJobs` or Alias: `sagemaker-transform`
+- Namespace: `/aws/sagemaker/InferenceRecommendationsJobs` or Alias: `sagemaker-inf-rec`
+- Namespace: `AWS/Sagemaker/ModelBuildingPipeline` or Alias: `sagemaker-model-building-pipeline`
+

@@ -3,10 +3,9 @@ package sigv4
 import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/auth"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -30,17 +29,15 @@ type Arguments struct {
 }
 
 var (
-	_ river.Unmarshaler = (*Arguments)(nil)
-	_ auth.Arguments    = Arguments{}
+	_ auth.Arguments = Arguments{}
 )
 
 // Convert implements auth.Arguments.
-func (args Arguments) Convert() (otelconfig.Extension, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	res := sigv4authextension.Config{
-		ExtensionSettings: otelconfig.NewExtensionSettings(otelconfig.NewComponentID("sigv4")),
-		Region:            args.Region,
-		Service:           args.Service,
-		AssumeRole:        *args.AssumeRole.Convert(),
+		Region:     args.Region,
+		Service:    args.Service,
+		AssumeRole: *args.AssumeRole.Convert(),
 	}
 	// sigv4authextension.Config has a private member called "credsProvider" which gets initialized when we call Validate().
 	// If we don't call validate, the unit tests for this component will fail.
@@ -50,23 +47,19 @@ func (args Arguments) Convert() (otelconfig.Extension, error) {
 	return &res, nil
 }
 
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args Arguments) Validate() error {
 	_, err := args.Convert()
 	return err
 }
 
 // Extensions implements auth.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements auth.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

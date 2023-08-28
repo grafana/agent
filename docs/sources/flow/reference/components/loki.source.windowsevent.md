@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.windowsevent/
 title: loki.source.windowsevent
 ---
 
@@ -34,8 +35,9 @@ Name         | Type                 | Description                               
 `poll_interval`    | `duration`      | How often to poll the event log.                                               | `"3s"`                         | no
 `exclude_event_data`    | `bool`               | Exclude event data.                                                            | `false`                      | no
 `exclude_user_data`    | `bool`               | Exclude user data.                                                             | `false`                      | no
-`user_incoming_timestamp`    | `bool`               | When false, assigns the current timestamp to the log when it was processed. | `false`                      | no
+`use_incoming_timestamp`    | `bool`               | When false, assigns the current timestamp to the log when it was processed. | `false`                      | no
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to.                                      |                            | yes
+`labels`     | `map(string)` | The labels to associate with incoming logs.                                           |                            | no 
 
 
 > **NOTE**: `eventlog_name` is required if `xpath_query` does not specify the event log.

@@ -24,8 +24,10 @@ func Run() {
 	cmd.SetVersionTemplate("{{ .Version }}\n")
 
 	cmd.AddCommand(
+		convertCommand(),
 		fmtCommand(),
 		runCommand(),
+		toolsCommand(),
 	)
 
 	if err := cmd.Execute(); err != nil {

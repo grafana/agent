@@ -14,11 +14,13 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/dskit/backoff"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"google.golang.org/api/option"
+
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/loki/source/gcplog/gcptypes"
 )
 
 // PullTarget represents a target that scrapes logs from a GCP project id and
@@ -27,7 +29,7 @@ type PullTarget struct {
 	metrics       *Metrics
 	logger        log.Logger
 	handler       loki.EntryHandler
-	config        *PullConfig
+	config        *gcptypes.PullConfig
 	relabelConfig []*relabel.Config
 	jobName       string
 
@@ -56,7 +58,7 @@ type pubsubSubscription interface {
 }
 
 // NewPullTarget returns the new instance of PullTarget.
-func NewPullTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PullConfig, relabel []*relabel.Config, clientOptions ...option.ClientOption) (*PullTarget, error) {
+func NewPullTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *gcptypes.PullConfig, relabel []*relabel.Config, clientOptions ...option.ClientOption) (*PullTarget, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ps, err := pubsub.NewClient(ctx, config.ProjectID, clientOptions...)
 	if err != nil {
@@ -82,7 +84,7 @@ func NewPullTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandle
 	go func() {
 		err := target.run()
 		if err != nil {
-			level.Error(logger).Log("msg", "loki.source.gcplog pull target shutdown with error", "err", err)
+			_ = level.Error(logger).Log("msg", "loki.source.gcplog pull target shutdown with error", "err", err)
 		}
 	}()
 
@@ -105,7 +107,7 @@ func (t *PullTarget) run() error {
 		case <-t.ctx.Done():
 			return t.ctx.Err()
 		case m := <-t.msgs:
-			entry, err := parseGCPLogsEntry(m.Data, lbls, nil, t.config.UseIncomingTimestamp, t.relabelConfig)
+			entry, err := parseGCPLogsEntry(m.Data, lbls, nil, t.config.UseIncomingTimestamp, t.config.UseFullLine, t.relabelConfig)
 			if err != nil {
 				level.Error(t.logger).Log("event", "error formating log entry", "cause", err)
 				m.Ack()

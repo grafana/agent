@@ -2,16 +2,18 @@ package common
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/operator"
+	"github.com/grafana/agent/service/cluster"
 )
 
 type Component struct {
-	mut     sync.Mutex
+	mut     sync.RWMutex
 	config  *operator.Arguments
 	manager *crdManager
 
@@ -20,14 +22,22 @@ type Component struct {
 	healthMut sync.RWMutex
 	health    component.Health
 
-	kind string
+	kind    string
+	cluster cluster.Cluster
 }
 
 func New(o component.Options, args component.Arguments, kind string) (*Component, error) {
+	data, err := o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about cluster service: %w", err)
+	}
+	clusterData := data.(cluster.Cluster)
+
 	c := &Component{
 		opts:     o,
 		onUpdate: make(chan struct{}, 1),
 		kind:     kind,
+		cluster:  clusterData,
 	}
 	return c, c.Update(args)
 }
@@ -63,21 +73,20 @@ func (c *Component) Run(ctx context.Context) error {
 		case err := <-errChan:
 			c.reportHealth(err)
 		case <-c.onUpdate:
+			c.mut.Lock()
+			manager := newCrdManager(c.opts, c.cluster, c.opts.Logger, c.config, c.kind)
+			c.manager = manager
 			if cancel != nil {
 				cancel()
 			}
 			innerCtx, cancel = context.WithCancel(ctx)
-			c.mut.Lock()
-			componentCfg := c.config
-			manager := newCrdManager(c.opts, c.opts.Logger, componentCfg, c.kind)
-			c.manager = manager
-			c.mut.Unlock()
 			go func() {
 				if err := manager.Run(innerCtx); err != nil {
 					level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
 					errChan <- err
 				}
 			}()
+			c.mut.Unlock()
 		}
 	}
 }
@@ -95,6 +104,20 @@ func (c *Component) Update(args component.Arguments) error {
 	default:
 	}
 	return nil
+}
+
+// NotifyClusterChange implements component.ClusterComponent.
+func (c *Component) NotifyClusterChange() {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	if !c.config.Clustering.Enabled {
+		return // no-op
+	}
+
+	if c.manager != nil {
+		c.manager.ClusteringUpdated()
+	}
 }
 
 // DebugInfo returns debug information for this component.

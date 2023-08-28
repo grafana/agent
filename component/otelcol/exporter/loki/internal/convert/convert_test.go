@@ -2,480 +2,362 @@ package convert_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/otelcol/exporter/loki/internal/convert"
+	"github.com/grafana/agent/component/otelcol/processor/processortest"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/loki/pkg/push"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/pdata/plog"
 )
 
-func TestConverter(t *testing.T) {
-	tt := []struct {
-		name            string
-		input           string
-		expectLine      string
-		expectLabels    string
-		expectTimestamp time.Time
+func TestConsumeLogs(t *testing.T) {
+	maxTestedLogEntries := 2
+
+	tests := []struct {
+		testName        string
+		inputLogJson    string
+		expectedEntries []loki.Entry
 	}{
 		{
-			name: "log line without format hint",
-			input: `{
-  "resourceLogs": [
-    {
-      "resource": {
-        "attributes": [
-          {
-            "key": "host.name",
-            "value": {
-              "stringValue": "testHost"
-            }
-          }
-        ],
-        "droppedAttributesCount": 1
-      },
-      "scopeLogs": [
-        {
-          "scope": {
-            "name": "name",
-            "version": "version",
-            "droppedAttributesCount": 1
-          },
-          "logRecords": [
-            {
-              "timeUnixNano": "1672827031972869000",
-              "observedTimeUnixNano": "1672827031972869000",
-              "severityNumber": 17,
-              "severityText": "Error",
-              "body": {
-                "stringValue": "hello world"
-              },
-              "attributes": [
-                {
-                  "key": "sdkVersion",
-                  "value": {
-                    "stringValue": "1.0.1"
-                  }
-                }
-              ],
-              "droppedAttributesCount": 1,
-              "traceId": "0102030405060708090a0b0c0d0e0f10",
-              "spanId": "1112131415161718"
-            }
-          ],
-          "schemaUrl": "ScopeLogsSchemaURL"
-        }
-      ],
-      "schemaUrl": "testSchemaURL"
-    }
-  ]
-}`,
-			expectLine:      `{"body":"hello world","traceid":"0102030405060708090a0b0c0d0e0f10","spanid":"1112131415161718","severity":"Error","attributes":{"sdkVersion":"1.0.1"},"resources":{"host.name":"testHost"}}`,
-			expectLabels:    `{exporter="OTLP", level="ERROR"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
+			testName: "LabelHint",
+			inputLogJson: `{
+				"resourceLogs": [{
+					"scopeLogs": [{
+						"log_records": [{
+							"timeUnixNano": "1581452773000000111",
+							"severityNumber": 9,
+							"severityText": "Info",
+							"name": "logA",
+							"body": { "stringValue": "AUTH log message" },
+							"attributes": [{
+								"key": "attr.1",
+								"value": { "stringValue": "12345" }
+							},
+							{
+								"key": "attr.2",
+								"value": { "stringValue": "fake_token" }
+							},
+							{
+								"key": "loki.attribute.labels",
+								"value": { "stringValue": "attr.1" }
+							}]
+						}]
+					}]
+				}]
+			}`,
+			expectedEntries: []loki.Entry{
+				{
+					Labels: map[model.LabelName]model.LabelValue{
+						"exporter": model.LabelValue("OTLP"),
+						"attr_1":   model.LabelValue("12345"),
+						"level":    model.LabelValue("INFO"),
+					},
+					Entry: push.Entry{
+						Timestamp:        time.Unix(0, int64(1581452773000000111)),
+						Line:             `{"body":"AUTH log message","severity":"Info","attributes":{"attr.2":"fake_token"}}`,
+						NonIndexedLabels: nil,
+					},
+				},
+			},
 		},
 		{
-			name: "log line with logfmt format hint in resource attributes",
-			input: `{
-  "resourceLogs": [
-    {
-      "resource": {
-        "attributes": [
-          {
-            "key": "host.name",
-            "value": {
-              "stringValue": "testHost"
-            }
-          },
-          {
-            "key": "loki.format",
-            "value": {
-              "stringValue": "logfmt"
-            }
-          }
-        ],
-        "droppedAttributesCount": 1
-      },
-      "scopeLogs": [
-        {
-          "scope": {
-            "name": "name",
-            "version": "version",
-            "droppedAttributesCount": 1
-          },
-          "logRecords": [
-            {
-              "timeUnixNano": "1672827031972869000",
-              "observedTimeUnixNano": "1672827031972869000",
-              "severityNumber": 17,
-              "severityText": "Error",
-              "body": {
-                "stringValue": "msg=\"hello world\""
-              },
-              "attributes": [
-                {
-                  "key": "sdkVersion",
-                  "value": {
-                    "stringValue": "1.0.1"
-                  }
-                }
-              ],
-              "droppedAttributesCount": 1,
-              "traceId": "0102030405060708090a0b0c0d0e0f10",
-              "spanId": "1112131415161718"
-            }
-          ],
-          "schemaUrl": "ScopeLogsSchemaURL"
-        }
-      ],
-      "schemaUrl": "testSchemaURL"
-    }
-  ]
-}`,
-			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost`,
-			expectLabels:    `{exporter="OTLP", level="ERROR"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
+			testName: "NoLabelHint",
+			inputLogJson: `{
+				"resourceLogs": [{
+					"scopeLogs": [{
+						"log_records": [{
+							"timeUnixNano": "1581452773000000111",
+							"severityNumber": 9,
+							"severityText": "Info",
+							"name": "logA",
+							"body": { "stringValue": "AUTH log message" },
+							"attributes": [{
+								"key": "attr.1",
+								"value": { "stringValue": "12345" }
+							},
+							{
+								"key": "attr.2",
+								"value": { "stringValue": "fake_token" }
+							}]
+						}]
+					}]
+				}]
+			}`,
+			expectedEntries: []loki.Entry{
+				{
+					Labels: map[model.LabelName]model.LabelValue{
+						"exporter": model.LabelValue("OTLP"),
+						"level":    model.LabelValue("INFO"),
+					},
+					Entry: push.Entry{
+						Timestamp:        time.Unix(0, int64(1581452773000000111)),
+						Line:             `{"body":"AUTH log message","severity":"Info","attributes":{"attr.1":"12345","attr.2":"fake_token"}}`,
+						NonIndexedLabels: nil,
+					},
+				},
+			},
 		},
 		{
-			name: "log line with logfmt format hint in log attributes",
-			input: `{
-  "resourceLogs": [
-    {
-      "resource": {
-        "attributes": [
-          {
-            "key": "host.name",
-            "value": {
-              "stringValue": "testHost"
-            }
-          }
-        ],
-        "droppedAttributesCount": 1
-      },
-      "scopeLogs": [
-        {
-          "scope": {
-            "name": "name",
-            "version": "version",
-            "droppedAttributesCount": 1
-          },
-          "logRecords": [
-            {
-              "timeUnixNano": "1672827031972869000",
-              "observedTimeUnixNano": "1672827031972869000",
-              "severityNumber": 17,
-              "severityText": "Error",
-              "body": {
-                "stringValue": "msg=\"hello world\""
-              },
-              "attributes": [
-                {
-                  "key": "sdkVersion",
-                  "value": {
-                    "stringValue": "1.0.1"
-                  }
-                },
-                {
-                  "key": "loki.format",
-                  "value": {
-                    "stringValue": "logfmt"
-                  }
-                }
-              ],
-              "droppedAttributesCount": 1,
-              "traceId": "0102030405060708090a0b0c0d0e0f10",
-              "spanId": "1112131415161718"
-            }
-          ],
-          "schemaUrl": "ScopeLogsSchemaURL"
-        }
-      ],
-      "schemaUrl": "testSchemaURL"
-    }
-  ]
-}`,
-			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost`,
-			expectLabels:    `{exporter="OTLP", level="ERROR"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
+			testName: "ScopeAttributeWhenResourceAttributeHasSameName",
+			inputLogJson: `{
+				"resourceLogs": [{
+					"resource": {
+						"attributes": [{
+							"key": "attr.1",
+							"value": { "stringValue": "77777" }
+						}]
+					},
+					"scopeLogs": [{
+						"log_records": [{
+							"timeUnixNano": "1581452773000000111",
+							"severityNumber": 9,
+							"severityText": "Info",
+							"name": "logA",
+							"body": { "stringValue": "AUTH log message" },
+							"attributes": [{
+								"key": "attr.1",
+								"value": { "stringValue": "11111" }
+							},
+							{
+								"key": "attr.2",
+								"value": { "stringValue": "fake_token" }
+							},
+							{
+								"key": "loki.attribute.labels",
+								"value": { "stringValue": "attr.1" }
+							}]
+						}]
+					}]
+				}]
+			}`,
+			expectedEntries: []loki.Entry{
+				{
+					Labels: map[model.LabelName]model.LabelValue{
+						"exporter": model.LabelValue("OTLP"),
+						"attr_1":   model.LabelValue("11111"),
+						"level":    model.LabelValue("INFO"),
+					},
+					Entry: push.Entry{
+						Timestamp:        time.Unix(0, int64(1581452773000000111)),
+						Line:             `{"body":"AUTH log message","severity":"Info","attributes":{"attr.2":"fake_token"}}`,
+						NonIndexedLabels: nil,
+					},
+				},
+			},
 		},
 		{
-			name: "resource attributes converted to labels",
-			input: `{
-  "resourceLogs": [
-    {
-      "resource": {
-        "attributes": [
-          {
-            "key": "host.name",
-            "value": {
-              "stringValue": "testHost"
-            }
-          },
-		  {
-		    "key": "loki.resource.labels",
-			"value": {
-			  "stringValue": "mylabel_1,mylabel_2"
-			}
-		  },
-		  {
-		    "key": "mylabel_1",
-			"value": {
-			  "stringValue": "value_1"
-			}
-		  },
-		  {
-		    "key": "mylabel_2",
-			"value": {
-			  "intValue": "42"
-			}
-		  },
-		  {
-		    "key": "mylabel_3",
-			"value": {
-			  "stringValue": "value_3"
-			}
-		  }
-        ],
-        "droppedAttributesCount": 1
-      },
-      "scopeLogs": [
-        {
-          "scope": {
-            "name": "name",
-            "version": "version",
-            "droppedAttributesCount": 1
-          },
-          "logRecords": [
-            {
-              "timeUnixNano": "1672827031972869000",
-              "observedTimeUnixNano": "1672827031972869000",
-              "severityNumber": 17,
-              "severityText": "Error",
-              "body": {
-                "stringValue": "msg=\"hello world\""
-              },
-              "attributes": [
-                {
-                  "key": "sdkVersion",
-                  "value": {
-                    "stringValue": "1.0.1"
-                  }
-                },
-                {
-                  "key": "loki.format",
-                  "value": {
-                    "stringValue": "logfmt"
-                  }
-                }
-              ],
-              "droppedAttributesCount": 1,
-              "traceId": "0102030405060708090a0b0c0d0e0f10",
-              "spanId": "1112131415161718"
-            }
-          ],
-          "schemaUrl": "ScopeLogsSchemaURL"
-        }
-      ],
-      "schemaUrl": "testSchemaURL"
-    }
-  ]
-}`,
-			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 resource_host.name=testHost resource_mylabel_3=value_3`,
-			expectLabels:    `{exporter="OTLP", level="ERROR", mylabel_1="value_1", mylabel_2="42"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
+			testName: "ResourceAttributeWhenScopeAttributeHasSameName",
+			inputLogJson: `{
+				"resourceLogs": [{
+					"resource": {
+						"attributes": [{
+							"key": "attr.1",
+							"value": { "stringValue": "77777" }
+						}]
+					},
+					"scopeLogs": [{
+						"log_records": [{
+							"timeUnixNano": "1581452773000000111",
+							"severityNumber": 9,
+							"severityText": "Info",
+							"name": "logA",
+							"body": { "stringValue": "AUTH log message" },
+							"attributes": [{
+								"key": "attr.1",
+								"value": { "stringValue": "11111" }
+							},
+							{
+								"key": "attr.2",
+								"value": { "stringValue": "fake_token" }
+							},
+							{
+								"key": "loki.resource.labels",
+								"value": { "stringValue": "attr.1" }
+							}]
+						}]
+					}]
+				}]
+			}`,
+			expectedEntries: []loki.Entry{
+				{
+					Labels: map[model.LabelName]model.LabelValue{
+						"exporter": model.LabelValue("OTLP"),
+						"attr_1":   model.LabelValue("77777"),
+						"level":    model.LabelValue("INFO"),
+					},
+					Entry: push.Entry{
+						Timestamp:        time.Unix(0, int64(1581452773000000111)),
+						Line:             `{"body":"AUTH log message","severity":"Info","attributes":{"attr.2":"fake_token"}}`,
+						NonIndexedLabels: nil,
+					},
+				},
+			},
 		},
 		{
-			name: "log attributes converted to labels",
-			input: `{
-  "resourceLogs": [
-    {
-      "resource": {
-        "attributes": [
-          {
-            "key": "host.name",
-            "value": {
-              "stringValue": "testHost"
-            }
-          }
-        ],
-        "droppedAttributesCount": 1
-      },
-      "scopeLogs": [
-        {
-          "scope": {
-            "name": "name",
-            "version": "version",
-            "droppedAttributesCount": 1
-          },
-          "logRecords": [
-            {
-              "timeUnixNano": "1672827031972869000",
-              "observedTimeUnixNano": "1672827031972869000",
-              "severityNumber": 17,
-              "severityText": "Error",
-              "body": {
-                "stringValue": "msg=\"hello world\""
-              },
-              "attributes": [
-                {
-                  "key": "sdkVersion",
-                  "value": {
-                    "stringValue": "1.0.1"
-                  }
-                },
-                {
-                  "key": "loki.format",
-                  "value": {
-                    "stringValue": "logfmt"
-                  }
-                },
-		        {
-		          "key": "loki.attribute.labels",
-		          "value": {
-		            "stringValue": "mylabel_1,mylabel_2"
-		          }
-		        },
-		        {
-		          "key": "mylabel_1",
-		          "value": {
-		            "stringValue": "value_1"
-		          }
-		        },
-		        {
-		          "key": "mylabel_2",
-		          "value": {
-		            "intValue": "42"
-		          }
-		        },
-		        {
-		          "key": "mylabel_3",
-		          "value": {
-		            "stringValue": "value_3"
-		          }
-		        }
-              ],
-              "droppedAttributesCount": 1,
-              "traceId": "0102030405060708090a0b0c0d0e0f10",
-              "spanId": "1112131415161718"
-            }
-          ],
-          "schemaUrl": "ScopeLogsSchemaURL"
-        }
-      ],
-      "schemaUrl": "testSchemaURL"
-    }
-  ]
-}`,
-			expectLine:      `msg="hello world" traceID=0102030405060708090a0b0c0d0e0f10 spanID=1112131415161718 severity=Error attribute_sdkVersion=1.0.1 attribute_mylabel_3=value_3 resource_host.name=testHost`,
-			expectLabels:    `{exporter="OTLP", level="ERROR", mylabel_1="value_1", mylabel_2="42"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
+			testName: "ResourceAttributeOnly",
+			inputLogJson: `{
+				"resourceLogs": [{
+					"resource": {
+						"attributes": [{
+							"key": "attr.1",
+							"value": { "stringValue": "77777" }
+						}]
+					},
+					"scopeLogs": [{
+						"log_records": [{
+							"timeUnixNano": "1581452773000000111",
+							"severityNumber": 9,
+							"severityText": "Info",
+							"name": "logA",
+							"body": { "stringValue": "AUTH log message" },
+							"attributes": [{
+								"key": "attr.2",
+								"value": { "stringValue": "fake_token" }
+							},
+							{
+								"key": "loki.resource.labels",
+								"value": { "stringValue": "attr.1" }
+							}]
+						}]
+					}]
+				}]
+			}`,
+			expectedEntries: []loki.Entry{
+				{
+					Labels: map[model.LabelName]model.LabelValue{
+						"exporter": model.LabelValue("OTLP"),
+						"attr_1":   model.LabelValue("77777"),
+						"level":    model.LabelValue("INFO"),
+					},
+					Entry: push.Entry{
+						Timestamp:        time.Unix(0, int64(1581452773000000111)),
+						Line:             `{"body":"AUTH log message","severity":"Info","attributes":{"attr.2":"fake_token"}}`,
+						NonIndexedLabels: nil,
+					},
+				},
+			},
 		},
 		{
-			name: "tenant resource attribute converted to label",
-			input: `{
-  "resourceLogs": [
-    {
-      "resource": {
-        "attributes": [
-          {
-            "key": "host.name",
-            "value": {
-              "stringValue": "testHost"
-            }
-          }
-        ],
-        "droppedAttributesCount": 1
-      },
-      "scopeLogs": [
-        {
-          "scope": {
-            "name": "name",
-            "version": "version",
-            "droppedAttributesCount": 1
-          },
-          "logRecords": [
-            {
-              "timeUnixNano": "1672827031972869000",
-              "observedTimeUnixNano": "1672827031972869000",
-              "severityNumber": 17,
-              "severityText": "Error",
-              "body": {
-                "stringValue": "hello world"
-              },
-              "attributes": [
-                {
-                  "key": "sdkVersion",
-                  "value": {
-                    "stringValue": "1.0.1"
-                  }
-                },
-                {
-                  "key": "loki.format",
-                  "value": {
-                    "stringValue": "json"
-                  }
-                },
-                {
-                  "key": "loki.tenant",
-                  "value": {
-                    "stringValue": "tenant.id"
-                  }
-                },
-                {
-                  "key": "tenant.id",
-                  "value": {
-                    "stringValue": "tenant_2"
-                  }
-                }
-              ],
-              "droppedAttributesCount": 1,
-              "traceId": "0102030405060708090a0b0c0d0e0f10",
-              "spanId": "1112131415161718"
-            }
-          ],
-          "schemaUrl": "ScopeLogsSchemaURL"
-        }
-      ],
-      "schemaUrl": "testSchemaURL"
-    }
-  ]
-}`,
-			expectLine:      `{"body":"hello world","traceid":"0102030405060708090a0b0c0d0e0f10","spanid":"1112131415161718","severity":"Error","attributes":{"sdkVersion":"1.0.1"},"resources":{"host.name":"testHost"}}`,
-			expectLabels:    `{exporter="OTLP", level="ERROR", tenant.id="tenant_2"}`,
-			expectTimestamp: time.Date(2023, time.January, 4, 10, 10, 31, 972869000, time.UTC),
+			testName: "MultipleLogs",
+			inputLogJson: `{
+				"resourceLogs": [{
+					"scopeLogs": [{
+						"log_records": [{
+							"timeUnixNano": "1581452773000000111",
+							"severityNumber": 9,
+							"severityText": "Info",
+							"name": "logA",
+							"body": { "stringValue": "AUTH log message" },
+							"attributes": [{
+								"key": "attr.1",
+								"value": { "stringValue": "12345" }
+							},
+							{
+								"key": "attr.2",
+								"value": { "stringValue": "fake_token" }
+							}]
+						}]
+					},
+					{
+						"log_records": [{
+							"timeUnixNano": "1581452773000000211",
+							"severityNumber": 9,
+							"severityText": "Info",
+							"name": "logA",
+							"body": { "stringValue": "Another AUTH log message" },
+							"attributes": [{
+								"key": "attr.1",
+								"value": { "stringValue": "12345" }
+							},
+							{
+								"key": "attr.2",
+								"value": { "stringValue": "fake_token" }
+							}]
+						}]
+					}]
+				}]
+			}`,
+			expectedEntries: []loki.Entry{
+				{
+					Labels: map[model.LabelName]model.LabelValue{
+						"exporter": model.LabelValue("OTLP"),
+						"level":    model.LabelValue("INFO"),
+					},
+					Entry: push.Entry{
+						Timestamp:        time.Unix(0, int64(1581452773000000111)),
+						Line:             `{"body":"AUTH log message","severity":"Info","attributes":{"attr.1":"12345","attr.2":"fake_token"}}`,
+						NonIndexedLabels: nil,
+					},
+				},
+				{
+					Labels: map[model.LabelName]model.LabelValue{
+						"exporter": model.LabelValue("OTLP"),
+						"level":    model.LabelValue("INFO"),
+					},
+					Entry: push.Entry{
+						Timestamp:        time.Unix(0, int64(1581452773000000211)),
+						Line:             `{"body":"Another AUTH log message","severity":"Info","attributes":{"attr.1":"12345","attr.2":"fake_token"}}`,
+						NonIndexedLabels: nil,
+					},
+				},
+			},
 		},
 	}
 
-	decoder := &plog.JSONUnmarshaler{}
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			payload, err := decoder.UnmarshalLogs([]byte(tc.input))
-			require.NoError(t, err)
+	for _, tc := range tests {
+		t.Run(tc.testName, func(t *testing.T) {
+			logger := util.TestFlowLogger(t)
+			promReg := prometheus.NewRegistry()
+			receiver := loki.NewLogsReceiverWithChannel(make(chan loki.Entry, maxTestedLogEntries))
 
-			l := util.TestLogger(t)
-			ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
-			conv := convert.New(l, prometheus.NewRegistry(), []loki.LogsReceiver{ch1, ch2})
-			go func() {
-				require.NoError(t, conv.ConsumeLogs(context.Background(), payload))
-			}()
+			converter := convert.New(logger, promReg, []loki.LogsReceiver{receiver})
 
-			for i := 0; i < 2; i++ {
-				select {
-				case l := <-ch1:
-					require.Equal(t, tc.expectLine, l.Line)
-					require.Equal(t, tc.expectLabels, l.Labels.String())
-					require.Equal(t, tc.expectTimestamp, l.Timestamp.UTC())
-				case l := <-ch2:
-					require.Equal(t, tc.expectLine, l.Line)
-					require.Equal(t, tc.expectLabels, l.Labels.String())
-					require.Equal(t, tc.expectTimestamp, l.Timestamp.UTC())
-				case <-time.After(time.Second):
-					require.FailNow(t, "failed waiting for logs")
+			ctx := context.Background()
+
+			log := processortest.CreateTestLogs(tc.inputLogJson)
+
+			require.NoError(t, converter.ConsumeLogs(ctx, log))
+			ctx.Done()
+			close(receiver.Chan())
+
+			receivedEntries := 0
+			for _, expectedEntry := range tc.expectedEntries {
+				for entry := range receiver.Chan() {
+					compareLokiEntries(t, &expectedEntry, &entry)
+					receivedEntries += 1
+					break
 				}
 			}
+			require.Equal(t, receivedEntries, len(tc.expectedEntries))
 		})
+	}
+}
+
+// Compare two loki entries by converting them to json strings.
+func compareLokiEntries(t *testing.T, expectedEntry, actualEntry *loki.Entry) {
+	expectedStream := entryToStream(expectedEntry)
+	expectedBuf, err := json.Marshal(expectedStream)
+	require.NoError(t, err)
+
+	actualStream := entryToStream(actualEntry)
+	actualBuf, err := json.Marshal(actualStream)
+	require.NoError(t, err)
+
+	require.JSONEq(t, string(expectedBuf), string(actualBuf))
+}
+
+// Convert loki entry to a loki stream.
+func entryToStream(entry *loki.Entry) push.Stream {
+	return push.Stream{
+		Labels: entry.Labels.String(),
+		Entries: []push.Entry{
+			entry.Entry,
+		},
 	}
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/kubernetes"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	apiv1 "k8s.io/api/core/v1"
@@ -22,6 +23,16 @@ type Arguments struct {
 
 	// LabelSelector allows filtering discovered monitor resources by labels
 	LabelSelector *config.LabelSelector `river:"selector,block,optional"`
+
+	Clustering Clustering `river:"clustering,block,optional"`
+
+	RelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
+}
+
+// Clustering holds values that configure clustering-specific behavior.
+type Clustering struct {
+	// TODO(@tpaschalis) Move this block to a shared place for all components using clustering.
+	Enabled bool `river:"enabled,attr"`
 }
 
 var DefaultArguments = Arguments{
@@ -30,18 +41,16 @@ var DefaultArguments = Arguments{
 	},
 }
 
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if len(args.Namespaces) == 0 {
 		args.Namespaces = []string{apiv1.NamespaceAll}
 	}
-
 	return nil
 }
 

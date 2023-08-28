@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/nonsensitive/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/nonsensitive/
 title: nonsensitive
 ---
 

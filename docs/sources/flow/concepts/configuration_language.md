@@ -1,11 +1,12 @@
 ---
 aliases:
 - ../../concepts/configuration-language/
-title: Configuration language
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/configuration_language/
+title: Configuration language concepts
 weight: 400
 ---
 
-# Configuration language
+# Configuration language concepts
 
 The Grafana Agent Flow _configuration language_ refers to the language used in
 configuration files which define and configure components to run.

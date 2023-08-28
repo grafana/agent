@@ -205,6 +205,10 @@
       "trace": {
         "trace_id": "abcd",
         "span_id": "def"
+      },
+      "context": {
+        "component": "ReactErrorBoundary",
+        "ReactError": "Annoying Error"
       }
     }
   ],

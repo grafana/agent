@@ -1,10 +1,11 @@
 package controller
 
 import (
+	"reflect"
 	"sync"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/river/vm"
 )
 
 // valueCache caches component arguments and exports to expose as variables for
@@ -86,8 +87,7 @@ func (vc *valueCache) CacheModuleExportValue(name string, value any) {
 	v, found := vc.moduleExports[name]
 	if !found {
 		vc.moduleChangedIndex++
-	}
-	if v != value {
+	} else if !reflect.DeepEqual(v, value) {
 		vc.moduleChangedIndex++
 	}
 

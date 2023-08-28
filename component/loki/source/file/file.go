@@ -35,10 +35,17 @@ const (
 
 // Arguments holds values which are used to configure the loki.source.file
 // component.
-// TODO(@tpaschalis) Allow users to configure the encoding of the tailed files.
 type Arguments struct {
-	Targets   []discovery.Target  `river:"targets,attr"`
-	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
+	Targets             []discovery.Target  `river:"targets,attr"`
+	ForwardTo           []loki.LogsReceiver `river:"forward_to,attr"`
+	Encoding            string              `river:"encoding,attr,optional"`
+	DecompressionConfig DecompressionConfig `river:"decompression,block,optional"`
+}
+
+type DecompressionConfig struct {
+	Enabled      bool              `river:"enabled,attr"`
+	InitialDelay time.Duration     `river:"initial_delay,attr,optional"`
+	Format       CompressionFormat `river:"format,attr"`
 }
 
 var (
@@ -80,7 +87,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:    o,
 		metrics: newMetrics(o.Registerer),
 
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 		receivers: args.ForwardTo,
 		posFile:   positionsFile,
 		readers:   make(map[positions.Entry]reader),
@@ -106,7 +113,7 @@ func (c *Component) Run(ctx context.Context) error {
 			r.Stop()
 		}
 		c.posFile.Stop()
-		close(c.handler)
+		close(c.handler.Chan())
 		c.mut.RUnlock()
 	}()
 
@@ -114,10 +121,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.receivers {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -184,7 +191,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 		c.reportSize(path, labels.String())
 
-		handler := loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler, func() {}))
+		handler := loki.AddLabelsMiddleware(labels).Wrap(loki.NewEntryHandler(c.handler.Chan(), func() {}))
 		reader, err := c.startTailing(path, labels, handler)
 		if err != nil {
 			continue
@@ -290,7 +297,7 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 	}
 
 	var reader reader
-	if isCompressed(path) {
+	if c.args.DecompressionConfig.Enabled {
 		level.Debug(c.opts.Logger).Log("msg", "reading from compressed file", "filename", path)
 		decompressor, err := newDecompressor(
 			c.metrics,
@@ -299,7 +306,8 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 			c.posFile,
 			path,
 			labels.String(),
-			"",
+			c.args.Encoding,
+			c.args.DecompressionConfig,
 		)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to start decompressor", "error", err, "filename", path)
@@ -315,7 +323,7 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 			c.posFile,
 			path,
 			labels.String(),
-			"",
+			c.args.Encoding,
 		)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to start tailer", "error", err, "filename", path)

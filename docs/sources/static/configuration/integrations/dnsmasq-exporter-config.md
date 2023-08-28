@@ -1,7 +1,8 @@
 ---
-title: dnsmasq_exporter_config
 aliases:
 - ../../../configuration/integrations/dnsmasq-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/dnsmasq-exporter-config/
+title: dnsmasq_exporter_config
 ---
 
 # dnsmasq_exporter_config
@@ -77,4 +78,7 @@ Full reference of options:
   # Path to the dnsmasq leases file. If this file doesn't exist, scraping
   # dnsmasq # will fail with an warning log message.
   [leases_path: <string> | default = "/var/lib/misc/dnsmasq.leases"]
+
+  # Expose dnsmasq leases as metrics (high cardinality).
+  [expose_leases: <boolean> | default = false]
 ```

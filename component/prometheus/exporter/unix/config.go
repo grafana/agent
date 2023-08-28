@@ -12,9 +12,10 @@ import (
 //
 // Some defaults are populated from init functions in the github.com/grafana/agent/pkg/integrations/node_exporter package.
 var DefaultArguments = Arguments{
-	ProcFSPath: node_integration.DefaultConfig.ProcFSPath,
-	RootFSPath: node_integration.DefaultConfig.RootFSPath,
-	SysFSPath:  node_integration.DefaultConfig.SysFSPath,
+	ProcFSPath:   node_integration.DefaultConfig.ProcFSPath,
+	RootFSPath:   node_integration.DefaultConfig.RootFSPath,
+	SysFSPath:    node_integration.DefaultConfig.SysFSPath,
+	UdevDataPath: node_integration.DefaultConfig.UdevDataPath,
 	Disk: DiskStatsConfig{
 		DeviceExclude: node_integration.DefaultConfig.DiskStatsDeviceExclude,
 	},
@@ -66,6 +67,7 @@ type Arguments struct {
 	ProcFSPath             string `river:"procfs_path,attr,optional"`
 	SysFSPath              string `river:"sysfs_path,attr,optional"`
 	RootFSPath             string `river:"rootfs_path,attr,optional"`
+	UdevDataPath           string `river:"udev_data_path,attr,optional"`
 
 	// Collectors to mark as enabled
 	EnableCollectors flagext.StringSlice `river:"enable_collectors,attr,optional"`
@@ -106,6 +108,7 @@ func (a *Arguments) Convert() *node_integration.Config {
 		ProcFSPath:                       a.ProcFSPath,
 		SysFSPath:                        a.SysFSPath,
 		RootFSPath:                       a.RootFSPath,
+		UdevDataPath:                     a.UdevDataPath,
 		EnableCollectors:                 a.EnableCollectors,
 		DisableCollectors:                a.DisableCollectors,
 		SetCollectors:                    a.SetCollectors,
@@ -137,6 +140,12 @@ func (a *Arguments) Convert() *node_integration.Config {
 		NetstatFields:                    a.Netstat.Fields,
 		PerfCPUS:                         a.Perf.CPUS,
 		PerfTracepoint:                   a.Perf.Tracepoint,
+		PerfDisableHardwareProfilers:     a.Perf.DisableHardwareProfilers,
+		PerfHardwareProfilers:            a.Perf.HardwareProfilers,
+		PerfDisableSoftwareProfilers:     a.Perf.DisableSoftwareProfilers,
+		PerfSoftwareProfilers:            a.Perf.SoftwareProfilers,
+		PerfDisableCacheProfilers:        a.Perf.DisableCacheProfilers,
+		PerfCacheProfilers:               a.Perf.CacheProfilers,
 		PowersupplyIgnoredSupplies:       a.Powersupply.IgnoredSupplies,
 		RunitServiceDir:                  a.Runit.ServiceDir,
 		SupervisordURL:                   a.Supervisord.URL,
@@ -153,12 +162,9 @@ func (a *Arguments) Convert() *node_integration.Config {
 	}
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	return f((*args)(a))
 }
 
 // PowersupplyConfig contains config specific to the powersupply collector.
@@ -213,6 +219,14 @@ type NetstatConfig struct {
 type PerfConfig struct {
 	CPUS       string              `river:"cpus,attr,optional"`
 	Tracepoint flagext.StringSlice `river:"tracepoint,attr,optional"`
+
+	DisableHardwareProfilers bool `river:"disable_hardware_profilers,attr,optional"`
+	DisableSoftwareProfilers bool `river:"disable_software_profilers,attr,optional"`
+	DisableCacheProfilers    bool `river:"disable_cache_profilers,attr,optional"`
+
+	HardwareProfilers flagext.StringSlice `river:"hardware_profilers,attr,optional"`
+	SoftwareProfilers flagext.StringSlice `river:"software_profilers,attr,optional"`
+	CacheProfilers    flagext.StringSlice `river:"cache_profilers,attr,optional"`
 }
 
 // EthToolConfig contains config specific to the ethtool collector.

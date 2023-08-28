@@ -63,9 +63,21 @@ func (s *PushAPIServer) Run() error {
 	level.Info(s.logger).Log("msg", "starting push API server")
 
 	err := s.server.MountAndRun(func(router *mux.Router) {
-		router.Path("/api/v1/push").Methods("POST").Handler(http.HandlerFunc(s.handleLoki))
-		router.Path("/api/v1/raw").Methods("POST").Handler(http.HandlerFunc(s.handlePlaintext))
+		// This redirecting is so we can avoid breaking changes where we originally implemented it with
+		// the loki prefix.
+		router.Path("/api/v1/push").Methods("POST").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path = "/loki/api/v1/push"
+			r.RequestURI = "/loki/api/v1/push"
+			s.handleLoki(w, r)
+		}))
+		router.Path("/api/v1/raw").Methods("POST").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.URL.Path = "/loki/api/v1/raw"
+			r.RequestURI = "/loki/api/v1/raw"
+			s.handlePlaintext(w, r)
+		}))
 		router.Path("/ready").Methods("GET").Handler(http.HandlerFunc(s.ready))
+		router.Path("/loki/api/v1/push").Methods("POST").Handler(http.HandlerFunc(s.handleLoki))
+		router.Path("/loki/api/v1/raw").Methods("POST").Handler(http.HandlerFunc(s.handlePlaintext))
 	})
 	return err
 }
@@ -154,7 +166,7 @@ func (s *PushAPIServer) handleLoki(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Apply relabeling
-		processed, keep := relabel.Process(lb.Labels(nil), relabelRules...)
+		processed, keep := relabel.Process(lb.Labels(), relabelRules...)
 		if !keep || len(processed) == 0 {
 			w.WriteHeader(http.StatusNoContent)
 			return

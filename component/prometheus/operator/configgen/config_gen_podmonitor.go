@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	namespacelabeler "github.com/prometheus-operator/prometheus-operator/pkg/namespace-labeler"
+	"github.com/prometheus-operator/prometheus-operator/pkg/namespacelabeler"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -72,17 +72,35 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 		cfg.HTTPClientConfig.EnableHTTP2 = *ep.EnableHttp2
 	}
 	if ep.TLSConfig != nil {
-		if cfg.HTTPClientConfig.TLSConfig, err = cg.generateSafeTLS(ep.TLSConfig.SafeTLSConfig); err != nil {
+		if cfg.HTTPClientConfig.TLSConfig, err = cg.generateSafeTLS(ep.TLSConfig.SafeTLSConfig, m.Namespace); err != nil {
 			return nil, err
 		}
 	}
 	if ep.BearerTokenSecret.Name != "" {
-		return nil, fmt.Errorf("bearer tokens in podmonitors not supported yet: %w", err)
+		val, err := cg.Secrets.GetSecretValue(m.Namespace, ep.BearerTokenSecret)
+		if err != nil {
+			return nil, err
+		}
+		cfg.HTTPClientConfig.BearerToken = commonConfig.Secret(val)
 	}
 	if ep.BasicAuth != nil {
-		return nil, fmt.Errorf("basic auth in podmonitors not supported yet: %w", err)
+		cfg.HTTPClientConfig.BasicAuth, err = cg.generateBasicAuth(*ep.BasicAuth, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
 	}
-	// TODO: Add support for ep.OAuth2 and ep.Authorization
+	if ep.OAuth2 != nil {
+		cfg.HTTPClientConfig.OAuth2, err = cg.generateOauth2(*ep.OAuth2, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if ep.Authorization != nil {
+		cfg.HTTPClientConfig.Authorization, err = cg.generateAuthorization(*ep.Authorization, m.Namespace)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	relabels := cg.initRelabelings()
 	if ep.FilterRunning == nil || *ep.FilterRunning {
@@ -164,28 +182,29 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 			Regex:        regex,
 		})
 	} else if ep.TargetPort != nil { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		//nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		regex, err := relabel.NewRegexp(ep.TargetPort.String())
-		if err != nil {
-			return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
-		}
 		if ep.TargetPort.StrVal != "" { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			regex, err := relabel.NewRegexp(ep.TargetPort.String()) //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			if err != nil {
+				return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
+			}
+			if ep.TargetPort.StrVal != "" { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+				relabels.add(&relabel.Config{
+					SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
+					Action:       "keep",
+					Regex:        regex,
+				})
+			}
+		} else if ep.TargetPort.IntVal != 0 { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			regex, err := relabel.NewRegexp(fmt.Sprint(ep.TargetPort.IntValue())) //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
+			if err != nil {
+				return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
+			}
 			relabels.add(&relabel.Config{
-				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_name"},
+				SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
 				Action:       "keep",
 				Regex:        regex,
 			})
 		}
-	} else if ep.TargetPort.IntVal != 0 { //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		regex, err := relabel.NewRegexp(ep.TargetPort.String()) //nolint:staticcheck // Ignore SA1019 this field is marked as deprecated.
-		if err != nil {
-			return nil, fmt.Errorf("parsing TargetPort as regex: %w", err)
-		}
-		relabels.add(&relabel.Config{
-			SourceLabels: model.LabelNames{"__meta_kubernetes_pod_container_port_number"},
-			Action:       "keep",
-			Regex:        regex,
-		})
 	}
 
 	// Relabel namespace and pod and service labels into proper labels.

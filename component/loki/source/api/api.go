@@ -34,6 +34,13 @@ type Arguments struct {
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 }
 
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = Arguments{
+		Server: fnet.DefaultServerConfig(),
+	}
+}
+
 func (a *Arguments) labelSet() model.LabelSet {
 	labelSet := make(model.LabelSet, len(a.Labels))
 	for k, v := range a.Labels {
@@ -56,7 +63,7 @@ type Component struct {
 	receivers    []loki.LogsReceiver
 }
 
-func New(opts component.Options, args Arguments) (component.Component, error) {
+func New(opts component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:               opts,
 		entriesChan:        make(chan loki.Entry),
@@ -83,7 +90,7 @@ func (c *Component) Run(ctx context.Context) (err error) {
 
 			for _, receiver := range receivers {
 				select {
-				case receiver <- entry:
+				case receiver.Chan() <- entry:
 				case <-ctx.Done():
 					return
 				}

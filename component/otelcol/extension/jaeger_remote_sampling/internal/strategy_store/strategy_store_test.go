@@ -19,11 +19,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/jaegertracing/jaeger/thrift-gen/sampling"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-
-	"github.com/jaegertracing/jaeger/thrift-gen/sampling"
 )
 
 // strategiesJSON returns the strategy with

@@ -4,36 +4,36 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
-	"net/http"
 	"os"
 	"os/signal"
-	"path"
+	"strings"
 	"sync"
 	"syscall"
-
-	"github.com/grafana/agent/web/api"
-	"github.com/grafana/agent/web/ui"
-	"github.com/grafana/ckit/memconn"
-	"go.opentelemetry.io/otel"
-	"golang.org/x/exp/maps"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
+	"time"
 
 	"github.com/fatih/color"
+	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/converter"
+	convert_diag "github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
+	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/service/cluster"
+	httpservice "github.com/grafana/agent/service/http"
+	uiservice "github.com/grafana/agent/service/ui"
+	"github.com/grafana/ckit/advertise"
+	"github.com/grafana/ckit/peer"
+	"github.com/grafana/river/diag"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
+	"go.opentelemetry.io/otel"
+	"golang.org/x/exp/maps"
 
 	// Install Components
 	_ "github.com/grafana/agent/component/all"
@@ -41,12 +41,16 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		inMemoryAddr:     "agent.internal:12345",
-		httpListenAddr:   "127.0.0.1:12345",
-		storagePath:      "data-agent/",
-		uiPrefix:         "/",
-		disableReporting: false,
-		enablePprof:      true,
+		inMemoryAddr:         "agent.internal:12345",
+		httpListenAddr:       "127.0.0.1:12345",
+		storagePath:          "data-agent/",
+		uiPrefix:             "/",
+		disableReporting:     false,
+		enablePprof:          true,
+		configFormat:         "flow",
+		clusterAdvInterfaces: advertise.DefaultInterfaces,
+
+		clusterRejoinInterval: 60 * time.Second,
 	}
 
 	cmd := &cobra.Command{
@@ -93,24 +97,40 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		BoolVar(&r.clusterEnabled, "cluster.enabled", r.clusterEnabled, "Start in clustered mode")
 	cmd.Flags().
-		StringVar(&r.clusterJoinAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
+		StringVar(&r.clusterNodeName, "cluster.node-name", r.clusterNodeName, "The name to use for this node")
+	cmd.Flags().
+		StringVar(&r.clusterAdvAddr, "cluster.advertise-address", r.clusterAdvAddr, "Address to advertise to the cluster")
 	cmd.Flags().
 		StringVar(&r.clusterJoinAddr, "cluster.join-addresses", r.clusterJoinAddr, "Comma-separated list of addresses to join the cluster at")
 	cmd.Flags().
+		StringVar(&r.clusterDiscoverPeers, "cluster.discover-peers", r.clusterDiscoverPeers, "List of key-value tuples for discovering peers")
+	cmd.Flags().
+		StringSliceVar(&r.clusterAdvInterfaces, "cluster.advertise-interfaces", r.clusterAdvInterfaces, "List of interfaces used to infer an address to advertise")
+	cmd.Flags().
+		DurationVar(&r.clusterRejoinInterval, "cluster.rejoin-interval", r.clusterRejoinInterval, "How often to rejoin the list of peers")
+	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
+	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
+	cmd.Flags().BoolVar(&r.configBypassConversionErrors, "config.bypass-conversion-errors", r.configBypassConversionErrors, "Enable bypassing errors when converting")
 	return cmd
 }
 
 type flowRun struct {
-	inMemoryAddr     string
-	httpListenAddr   string
-	storagePath      string
-	uiPrefix         string
-	enablePprof      bool
-	disableReporting bool
-	clusterEnabled   bool
-	clusterAdvAddr   string
-	clusterJoinAddr  string
+	inMemoryAddr                 string
+	httpListenAddr               string
+	storagePath                  string
+	uiPrefix                     string
+	enablePprof                  bool
+	disableReporting             bool
+	clusterEnabled               bool
+	clusterNodeName              string
+	clusterAdvAddr               string
+	clusterJoinAddr              string
+	clusterDiscoverPeers         string
+	clusterAdvInterfaces         []string
+	clusterRejoinInterval        time.Duration
+	configFormat                 string
+	configBypassConversionErrors bool
 }
 
 func (fr *flowRun) Run(configFile string) error {
@@ -124,11 +144,10 @@ func (fr *flowRun) Run(configFile string) error {
 		return fmt.Errorf("file argument not provided")
 	}
 
-	logSink, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
+	l, err := logging.New(os.Stderr, logging.DefaultOptions)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
-	l := logging.New(logSink)
 
 	t, err := tracing.New(tracing.DefaultOptions)
 	if err != nil {
@@ -139,6 +158,8 @@ func (fr *flowRun) Run(configFile string) error {
 	// use the tracer provider given to them so the appropriate attributes get
 	// injected.
 	otel.SetTracerProvider(t)
+
+	level.Info(l).Log("boringcrypto enabled", boringcrypto.Enabled)
 
 	// Immediately start the tracer.
 	go func() {
@@ -158,36 +179,67 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
-	clusterer, err := cluster.New(l, reg, fr.clusterEnabled, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr)
+	// There's a cyclic dependency between the definition of the Flow controller,
+	// the reload/ready functions, and the HTTP service.
+	//
+	// To work around this, we lazily create variables for the functions the HTTP
+	// service needs and set them after the Flow controller exists.
+	var (
+		reload func() error
+		ready  func() bool
+	)
+
+	clusterService, err := buildClusterService(clusterOptions{
+		Log:     l,
+		Tracer:  t,
+		Metrics: reg,
+
+		EnableClustering:    fr.clusterEnabled,
+		NodeName:            fr.clusterNodeName,
+		AdvertiseAddress:    fr.clusterAdvAddr,
+		ListenAddress:       fr.httpListenAddr,
+		JoinPeers:           strings.Split(fr.clusterJoinAddr, ","),
+		DiscoverPeers:       fr.clusterDiscoverPeers,
+		RejoinInterval:      fr.clusterRejoinInterval,
+		AdvertiseInterfaces: fr.clusterAdvInterfaces,
+	})
 	if err != nil {
-		return fmt.Errorf("building clusterer: %w", err)
+		return err
 	}
 
-	// In-memory listener, used for inner HTTP traffic without the network.
-	memLis := memconn.NewListener(nil)
+	httpService := httpservice.New(httpservice.Options{
+		Logger:   log.With(l, "service", "http"),
+		Tracer:   t,
+		Gatherer: prometheus.DefaultGatherer,
+
+		ReadyFunc:  func() bool { return ready() },
+		ReloadFunc: func() error { return reload() },
+
+		HTTPListenAddr:   fr.httpListenAddr,
+		MemoryListenAddr: fr.inMemoryAddr,
+		EnablePProf:      fr.enablePprof,
+	})
+
+	uiService := uiservice.New(uiservice.Options{
+		UIPrefix: fr.uiPrefix,
+		Cluster:  clusterService.Data().(cluster.Cluster),
+	})
 
 	f := flow.New(flow.Options{
-		LogSink:        logSink,
-		Tracer:         t,
-		Clusterer:      clusterer,
-		DataPath:       fr.storagePath,
-		Reg:            reg,
-		HTTPPathPrefix: "/api/v0/component/",
-		HTTPListenAddr: fr.inMemoryAddr,
-
-		// Send requests to fr.inMemoryAddr directly to our in-memory listener.
-		DialFunc: func(ctx context.Context, network, address string) (net.Conn, error) {
-			switch address {
-			case fr.inMemoryAddr:
-				return memLis.DialContext(ctx)
-			default:
-				return (&net.Dialer{}).DialContext(ctx, network, address)
-			}
+		Logger:   l,
+		Tracer:   t,
+		DataPath: fr.storagePath,
+		Reg:      reg,
+		Services: []service.Service{
+			httpService,
+			uiService,
+			clusterService,
 		},
 	})
 
-	reload := func() error {
-		flowCfg, err := loadFlowFile(configFile)
+	ready = f.Ready
+	reload = func() error {
+		flowCfg, err := loadFlowFile(configFile, fr.configFormat, fr.configBypassConversionErrors)
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
@@ -207,80 +259,6 @@ func (fr *flowRun) Run(configFile string) error {
 			defer wg.Done()
 			f.Run(ctx)
 		}()
-	}
-
-	// HTTP server
-	{
-		// Network listener.
-		netLis, err := net.Listen("tcp", fr.httpListenAddr)
-		if err != nil {
-			return fmt.Errorf("failed to listen on %s: %w", fr.httpListenAddr, err)
-		}
-
-		r := mux.NewRouter()
-		r.Use(otelmux.Middleware(
-			"grafana-agent",
-			otelmux.WithTracerProvider(t),
-		))
-
-		r.Handle("/metrics", promhttp.Handler())
-		if fr.enablePprof {
-			r.PathPrefix("/debug/pprof").Handler(http.DefaultServeMux)
-		}
-		r.PathPrefix("/api/v0/component/{id}/").Handler(f.ComponentHandler())
-
-		// Register routes for the clusterer.
-		cr, ch := clusterer.Node.Handler()
-		r.PathPrefix(cr).Handler(ch)
-
-		r.HandleFunc("/-/ready", func(w http.ResponseWriter, _ *http.Request) {
-			if f.Ready() {
-				w.WriteHeader(http.StatusOK)
-				fmt.Fprintf(w, "Agent is Ready.\n")
-			} else {
-				w.WriteHeader(http.StatusServiceUnavailable)
-				fmt.Fprint(w, "Config failed to load.\n")
-			}
-		})
-
-		r.HandleFunc("/-/reload", func(w http.ResponseWriter, _ *http.Request) {
-			level.Info(l).Log("msg", "reload requested via /-/reload endpoint")
-			defer level.Info(l).Log("msg", "config reloaded")
-
-			err := reload()
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			fmt.Fprintln(w, "config reloaded")
-		}).Methods(http.MethodGet, http.MethodPost)
-
-		// Register Routes must be the last
-		fa := api.NewFlowAPI(f, r)
-		fa.RegisterRoutes(path.Join(fr.uiPrefix, "/api/v0/web"), r)
-
-		// NOTE(rfratto): keep this at the bottom of all other routes, otherwise it
-		// will take precedence over anything else mapped in uiPrefix.
-		ui.RegisterRoutes(fr.uiPrefix, r)
-
-		srv := &http.Server{Handler: h2c.NewHandler(r, &http2.Server{})}
-
-		level.Info(l).Log("msg", "now listening for http traffic", "addr", fr.httpListenAddr)
-
-		listeners := []net.Listener{netLis, memLis}
-		for _, lis := range listeners {
-			wg.Add(1)
-			go func(lis net.Listener) {
-				defer wg.Done()
-				defer cancel()
-
-				if err := srv.Serve(lis); err != nil {
-					level.Info(l).Log("msg", "http server closed", "addr", lis.Addr(), "err", err)
-				}
-			}(lis)
-		}
-
-		defer func() { _ = srv.Shutdown(ctx) }()
 	}
 
 	// Report usage of enabled components
@@ -322,6 +300,15 @@ func (fr *flowRun) Run(configFile string) error {
 		return err
 	}
 
+	// By now, have either joined or started a new cluster.
+	// Nodes initially join in the Viewer state. After the graph has been
+	// loaded successfully, we can move to the Participant state to signal that
+	// we wish to participate in reading or writing data.
+	err = clusterService.ChangeState(ctx, peer.StateParticipant)
+	if err != nil {
+		return fmt.Errorf("failed to set clusterer state to Participant after initial load")
+	}
+
 	reloadSignal := make(chan os.Signal, 1)
 	signal.Notify(reloadSignal, syscall.SIGHUP)
 	defer signal.Stop(reloadSignal)
@@ -343,19 +330,29 @@ func (fr *flowRun) Run(configFile string) error {
 // getEnabledComponentsFunc returns a function that gets the current enabled components
 func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	return func() map[string]interface{} {
-		infos := f.ComponentInfos()
-		components := map[string]struct{}{}
-		for _, info := range infos {
-			components[info.Name] = struct{}{}
+		components := component.GetAllComponents(f, component.InfoOptions{})
+		componentNames := map[string]struct{}{}
+		for _, c := range components {
+			componentNames[c.Registration.Name] = struct{}{}
 		}
-		return map[string]interface{}{"enabled-components": maps.Keys(components)}
+		return map[string]interface{}{"enabled-components": maps.Keys(componentNames)}
 	}
 }
 
-func loadFlowFile(filename string) (*flow.File, error) {
+func loadFlowFile(filename string, converterSourceFormat string, converterBypassErrors bool) (*flow.File, error) {
 	bb, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
+	}
+
+	if converterSourceFormat != "flow" {
+		var diags convert_diag.Diagnostics
+		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat))
+		hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
+		hasCritical := hasErrorLevel(diags, convert_diag.SeverityLevelCritical)
+		if hasCritical || (!converterBypassErrors && hasError) {
+			return nil, diags
+		}
 	}
 
 	instrumentation.InstrumentConfig(bb)
@@ -369,7 +366,7 @@ func interruptContext() (context.Context, context.CancelFunc) {
 	go func() {
 		defer cancel()
 		sig := make(chan os.Signal, 1)
-		signal.Notify(sig, os.Interrupt)
+		signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 		select {
 		case <-sig:
 		case <-ctx.Done():

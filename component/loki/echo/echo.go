@@ -33,12 +33,9 @@ type Exports struct {
 // DefaultArguments defines the default settings for log scraping.
 var DefaultArguments = Arguments{}
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*arg = DefaultArguments
-
-	type args Arguments
-	return f((*args)(arg))
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
+	*args = DefaultArguments
 }
 
 var (
@@ -56,10 +53,9 @@ type Component struct {
 
 // New creates a new loki.echo component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	ch := make(chan loki.Entry)
 	c := &Component{
 		opts:     o,
-		receiver: ch,
+		receiver: loki.NewLogsReceiver(),
 	}
 
 	// Call to Update() once at the start.
@@ -80,7 +76,7 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.receiver:
+		case entry := <-c.receiver.Chan():
 			level.Info(c.opts.Logger).Log("receiver", c.opts.ID, "entry", entry.Line, "labels", entry.Labels.String())
 		}
 	}

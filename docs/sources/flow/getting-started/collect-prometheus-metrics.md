@@ -1,9 +1,10 @@
 ---
-title: Collect Prometheus metrics
+canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-prometheus-metrics/
+title: Collect and forward Prometheus metrics
 weight: 200
 ---
 
-# Collect Prometheus metrics
+# Collect and forward Prometheus metrics
 
 Grafana Agent Flow can be configured to collect [Prometheus][] metrics and
 forward them to any Prometheus-compatible database.

@@ -36,15 +36,13 @@ var DefaultConfig = Arguments{
 	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies default settings.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultConfig
-	type arguments Arguments
-	err := f((*arguments)(args))
-	if err != nil {
-		return err
-	}
+}
 
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	return args.HTTPClientConfig.Validate()
 }
@@ -105,7 +103,7 @@ func (am *AttachMetadataConfig) convert() *promk8s.AttachMetadataConfig {
 }
 
 // New returns a new instance of a discovery.kubernetes component.
-func New(opts component.Options, args Arguments) (component.Component, error) {
+func New(opts component.Options, args Arguments) (*discovery.Component, error) {
 	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
 		newArgs := args.(Arguments)
 		return promk8s.New(opts.Logger, newArgs.Convert())

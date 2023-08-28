@@ -3,6 +3,8 @@ package wal
 import (
 	"context"
 	"math"
+	"os"
+	"path/filepath"
 	"sort"
 	"testing"
 	"time"
@@ -97,6 +99,35 @@ func TestStorage(t *testing.T) {
 	actualExemplars := collector.exemplars
 	sort.Sort(byRefExemplar(actualExemplars))
 	require.Equal(t, expectedExemplars, actualExemplars)
+}
+
+func TestStorage_Rollback(t *testing.T) {
+	walDir := t.TempDir()
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, s.Close())
+	})
+
+	app := s.Appender(context.Background())
+
+	payload := buildSeries([]string{"foo", "bar", "baz", "blerg"})
+	for _, metric := range payload {
+		metric.Write(t, app)
+	}
+
+	require.NoError(t, app.Rollback())
+
+	var collector walDataCollector
+
+	replayer := walReplayer{w: &collector}
+	require.NoError(t, replayer.Replay(s.wal.Dir()))
+
+	require.Len(t, collector.series, 4, "Series records should be written on Rollback")
+	require.Len(t, collector.samples, 0, "Samples should not be written on rollback")
+	require.Len(t, collector.exemplars, 0, "Exemplars should not be written on rollback")
+	require.Len(t, collector.histograms, 0, "Histograms should not be written on rollback")
+	require.Len(t, collector.floatHistograms, 0, "Native histograms should not be written on rollback")
 }
 
 func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
@@ -357,6 +388,23 @@ func TestStorage_TruncateAfterClose(t *testing.T) {
 
 	require.NoError(t, s.Close())
 	require.Error(t, ErrWALClosed, s.Truncate(0))
+}
+
+func TestStorage_Corruption(t *testing.T) {
+	walDir := t.TempDir()
+
+	// Write a corrupt segment
+	err := os.Mkdir(filepath.Join(walDir, "wal"), 0755)
+	require.NoError(t, err)
+	err = os.WriteFile(filepath.Join(walDir, "wal", "00000000"), []byte("hello world"), 0644)
+	require.NoError(t, err)
+
+	// The storage should be initialized correctly anyway.
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+
+	require.NoError(t, s.Close())
 }
 
 func TestGlobalReferenceID_Normal(t *testing.T) {

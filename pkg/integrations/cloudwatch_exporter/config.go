@@ -17,10 +17,11 @@ import (
 )
 
 const (
-	metricsPerQuery       = 500
-	cloudWatchConcurrency = 5
-	tagConcurrency        = 5
-	labelsSnakeCase       = false
+	metricsPerQuery                  = 500
+	cloudWatchConcurrency            = 5
+	tagConcurrency                   = 5
+	labelsSnakeCase                  = false
+	defaultDecoupledScrapingInterval = time.Minute * 5
 )
 
 // Since we are gathering metrics from CloudWatch and writing them in prometheus during each scrape, the timestamp
@@ -37,10 +38,19 @@ func init() {
 
 // Config is the configuration for the CloudWatch metrics integration
 type Config struct {
-	STSRegion    string          `yaml:"sts_region"`
-	FIPSDisabled bool            `yaml:"fips_disabled"`
-	Discovery    DiscoveryConfig `yaml:"discovery"`
-	Static       []StaticJob     `yaml:"static"`
+	STSRegion       string                `yaml:"sts_region"`
+	FIPSDisabled    bool                  `yaml:"fips_disabled"`
+	Discovery       DiscoveryConfig       `yaml:"discovery"`
+	Static          []StaticJob           `yaml:"static"`
+	Debug           bool                  `yaml:"debug"`
+	DecoupledScrape DecoupledScrapeConfig `yaml:"decoupled_scraping"`
+}
+
+// DecoupledScrapeConfig is the configuration for decoupled scraping feature.
+type DecoupledScrapeConfig struct {
+	Enabled bool `yaml:"enabled"`
+	// ScrapeInterval defines the decoupled scraping interval. If left empty, a default interval of 5m is used
+	ScrapeInterval *time.Duration `yaml:"scrape_interval,omitempty"`
 }
 
 // DiscoveryConfig configures scraping jobs that will auto-discover metrics dimensions for a given service.
@@ -54,11 +64,12 @@ type TagsPerNamespace map[string][]string
 
 // DiscoveryJob configures a discovery job for a given service.
 type DiscoveryJob struct {
-	InlineRegionAndRoles `yaml:",inline"`
-	InlineCustomTags     `yaml:",inline"`
-	SearchTags           []Tag    `yaml:"search_tags"`
-	Type                 string   `yaml:"type"`
-	Metrics              []Metric `yaml:"metrics"`
+	InlineRegionAndRoles      `yaml:",inline"`
+	InlineCustomTags          `yaml:",inline"`
+	SearchTags                []Tag    `yaml:"search_tags"`
+	Type                      string   `yaml:"type"`
+	DimensionNameRequirements []string `yaml:"dimension_name_requirements"`
+	Metrics                   []Metric `yaml:"metrics"`
 }
 
 // StaticJob will scrape metrics that match all defined dimensions.
@@ -101,6 +112,7 @@ type Metric struct {
 	Name       string        `yaml:"name"`
 	Statistics []string      `yaml:"statistics"`
 	Period     time.Duration `yaml:"period"`
+	Length     time.Duration `yaml:"length"`
 }
 
 // Name returns the name of the integration this config is for.
@@ -118,7 +130,15 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
-	return newCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled), nil
+	if c.DecoupledScrape.Enabled {
+		scrapeInterval := defaultDecoupledScrapingInterval
+		if v := c.DecoupledScrape.ScrapeInterval; v != nil {
+			scrapeInterval = *v
+		}
+		return NewDecoupledCloudwatchExporter(c.Name(), l, exporterConfig, scrapeInterval, fipsEnabled, c.Debug), nil
+	}
+
+	return NewCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled, c.Debug), nil
 }
 
 // getHash calculates the MD5 hash of the yaml representation of the config
@@ -147,7 +167,7 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, bool, error) {
 		APIVersion: "v1alpha1",
 		StsRegion:  c.STSRegion,
 		Discovery: yaceConf.Discovery{
-			ExportedTagsOnMetrics: yaceConf.ExportedTagsOnMetrics(c.Discovery.ExportedTags),
+			ExportedTagsOnMetrics: yaceModel.ExportedTagsOnMetrics(c.Discovery.ExportedTags),
 			Jobs:                  discoveryJobs,
 		},
 		Static: staticJobs,
@@ -161,18 +181,23 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, bool, error) {
 	if err := conf.Validate(); err != nil {
 		return conf, fipsEnabled, err
 	}
-	patchYACEDefaults(&conf)
+	PatchYACEDefaults(&conf)
 
 	return conf, fipsEnabled, nil
 }
 
-// patchYACEDefaults overrides some default values YACE applies after validation.
-func patchYACEDefaults(yc *yaceConf.ScrapeConf) {
+// PatchYACEDefaults overrides some default values YACE applies after validation.
+func PatchYACEDefaults(yc *yaceConf.ScrapeConf) {
 	// YACE doesn't allow during validation a zero-delay in each metrics scrape. Override this behaviour since it's taken
 	// into account by the rounding period.
 	// https://github.com/nerdswords/yet-another-cloudwatch-exporter/blob/7e5949124bb5f26353eeff298724a5897de2a2a4/pkg/config/config.go#L320
 	for _, job := range yc.Discovery.Jobs {
 		for _, metric := range job.Metrics {
+			metric.Delay = 0
+		}
+	}
+	for _, staticConf := range yc.Static {
+		for _, metric := range staticConf.Metrics {
 			metric.Delay = 0
 		}
 	}
@@ -204,12 +229,13 @@ func toYACEDimensions(dim []Dimension) []yaceConf.Dimension {
 func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 	roles := toYACERoles(job.Roles)
 	yaceJob := yaceConf.Job{
-		Regions:    job.Regions,
-		Roles:      roles,
-		CustomTags: toYACETags(job.CustomTags),
-		Type:       job.Type,
-		Metrics:    toYACEMetrics(job.Metrics),
-		SearchTags: toYACETags(job.SearchTags),
+		Regions:                   job.Regions,
+		Roles:                     roles,
+		CustomTags:                toYACETags(job.CustomTags),
+		Type:                      job.Type,
+		Metrics:                   toYACEMetrics(job.Metrics),
+		SearchTags:                toYACETags(job.SearchTags),
+		DimensionNameRequirements: job.DimensionNameRequirements,
 
 		// By setting RoundingPeriod to nil, the exporter will align the start and end times for retrieving CloudWatch
 		// metrics, with the smallest period in the retrieved batch.
@@ -233,6 +259,11 @@ func toYACEMetrics(metrics []Metric) []*yaceConf.Metric {
 	for _, metric := range metrics {
 		periodSeconds := int64(metric.Period.Seconds())
 		lengthSeconds := periodSeconds
+		// If `length` is configured, override default
+		if metric.Length != 0 {
+			lengthSeconds = int64(metric.Length.Seconds())
+		}
+
 		yaceMetrics = append(yaceMetrics, &yaceConf.Metric{
 			Name:       metric.Name,
 			Statistics: metric.Statistics,

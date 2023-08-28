@@ -49,22 +49,22 @@ local filename = 'agent-cluster-node.json';
         panel.withPosition({ x: 0, y: 1, w: 12, h: 8 }) +
         panel.withQueries([
           panel.newNamedInstantQuery(
-            expr='sum(cluster_node_lamport_time{instance="$instance"})',
+            expr='sum(cluster_node_lamport_time{instance="$instance", cluster="$cluster", namespace="$namespace"})',
             refId='Lamport clock time',
             format='table',
           ),
           panel.newNamedInstantQuery(
-            expr='sum(cluster_node_update_observers{instance="$instance"})',
+            expr='sum(cluster_node_update_observers{instance="$instance", cluster="$cluster", namespace="$namespace"})',
             refId='Internal cluster state observers',
             format='table',
           ),
           panel.newNamedInstantQuery(
-            expr='sum(cluster_node_gossip_health_score{instance="$instance"})',
+            expr='sum(cluster_node_gossip_health_score{instance="$instance", cluster="$cluster", namespace="$namespace"})',
             refId='Gossip health score',
             format='table',
           ),
           panel.newNamedInstantQuery(
-            expr='sum(cluster_node_gossip_proto_version{instance="$instance"})',
+            expr='sum(cluster_node_gossip_proto_version{instance="$instance", cluster="$cluster", namespace="$namespace"})',
             refId='Gossip protocol version',
             format='table',
           ),
@@ -100,7 +100,7 @@ local filename = 'agent-cluster-node.json';
         panel.withPosition({ x: 12, y: 1, w: 12, h: 8 }) +
         panel.withQueries([
           panel.newQuery(
-            expr='rate(cluster_node_gossip_received_events_total{instance="$instance"}[$__rate_interval])',
+            expr='rate(cluster_node_gossip_received_events_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval])',
             legendFormat='{{event}}'
           ),
         ])
@@ -114,7 +114,7 @@ local filename = 'agent-cluster-node.json';
         panel.withPosition({ x: 0, y: 9, w: 12, h: 8 }) +
         panel.withQueries([
           panel.newQuery(
-            expr='sum(cluster_node_peers{instance="$instance"})',
+            expr='sum(cluster_node_peers{instance="$instance", cluster="$cluster", namespace="$namespace"})',
           ),
         ]) +
         panel.withUnit('suffix:peers')
@@ -128,7 +128,7 @@ local filename = 'agent-cluster-node.json';
         panel.withPosition({ x: 12, y: 9, w: 12, h: 8 }) +
         panel.withQueries([
           panel.newQuery(
-            expr='cluster_node_peers{instance="$instance"}',
+            expr='cluster_node_peers{instance="$instance", cluster="$cluster", namespace="$namespace"}',
             legendFormat='{{state}}',
           ),
         ]) +
@@ -150,11 +150,11 @@ local filename = 'agent-cluster-node.json';
         }) +
         panel.withQueries([
           panel.newQuery(
-            expr='rate(cluster_transport_rx_bytes_total{instance="$instance"}[$__rate_interval])',
+            expr='rate(cluster_transport_rx_bytes_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval])',
             legendFormat='rx',
           ),
           panel.newQuery(
-            expr='-1 * rate(cluster_transport_tx_bytes_total{instance="$instance"}[$__rate_interval])',
+            expr='-1 * rate(cluster_transport_tx_bytes_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval])',
             legendFormat='tx',
           ),
         ]) +
@@ -174,8 +174,8 @@ local filename = 'agent-cluster-node.json';
           panel.newQuery(
             expr=|||
               1 - (
-              rate(cluster_transport_tx_packets_failed_total{instance="$instance"}[$__rate_interval]) /
-              rate(cluster_transport_tx_packets_total{instance="$instance"}[$__rate_interval])
+              rate(cluster_transport_tx_packets_failed_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval]) /
+              rate(cluster_transport_tx_packets_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval])
               )
             |||,
             legendFormat='Tx success %',
@@ -183,8 +183,8 @@ local filename = 'agent-cluster-node.json';
           panel.newQuery(
             expr=|||
               1 - (
-                rate(cluster_transport_rx_packets_failed_total{instance="$instance"}[$__rate_interval]) /
-                rate(cluster_transport_rx_packets_total{instance="$instance"}[$__rate_interval])
+                rate(cluster_transport_rx_packets_failed_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval]) /
+                rate(cluster_transport_rx_packets_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval])
                 )
             |||,
             legendFormat='Rx success %',
@@ -208,11 +208,11 @@ local filename = 'agent-cluster-node.json';
         }) +
         panel.withQueries([
           panel.newQuery(
-            expr='cluster_transport_tx_packet_queue_length{instance="$instance"}',
+            expr='cluster_transport_tx_packet_queue_length{instance="$instance", cluster="$cluster", namespace="$namespace"}',
             legendFormat='tx queue',
           ),
           panel.newQuery(
-            expr='cluster_transport_rx_packet_queue_length{instance="$instance"}',
+            expr='cluster_transport_rx_packet_queue_length{instance="$instance", cluster="$cluster", namespace="$namespace"}',
             legendFormat='rx queue',
           ),
         ]) +
@@ -229,11 +229,11 @@ local filename = 'agent-cluster-node.json';
         }) +
         panel.withQueries([
           panel.newQuery(
-            expr='rate(cluster_transport_stream_rx_bytes_total{instance="$instance"}[$__rate_interval])',
+            expr='rate(cluster_transport_stream_rx_bytes_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval])',
             legendFormat='rx',
           ),
           panel.newQuery(
-            expr='-1 * rate(cluster_transport_stream_tx_bytes_total{instance="$instance"}[$__rate_interval])',
+            expr='-1 * rate(cluster_transport_stream_tx_bytes_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval])',
             legendFormat='tx',
           ),
         ]) +
@@ -253,8 +253,8 @@ local filename = 'agent-cluster-node.json';
           panel.newQuery(
             expr=|||
               1 - (
-                rate(cluster_transport_stream_tx_packets_failed_total{instance="$instance"}[$__rate_interval]) /
-                rate(cluster_transport_stream_tx_packets_total{instance="$instance"}[$__rate_interval])
+                rate(cluster_transport_stream_tx_packets_failed_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval]) /
+                rate(cluster_transport_stream_tx_packets_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval])
                 )
             |||,
             legendFormat='Tx success %'
@@ -262,8 +262,8 @@ local filename = 'agent-cluster-node.json';
           panel.newQuery(
             expr=|||
               1 - (
-                rate(cluster_transport_stream_rx_packets_failed_total{instance="$instance"}[$__rate_interval]) /
-                rate(cluster_transport_stream_rx_packets_total{instance="$instance"}[$__rate_interval])
+                rate(cluster_transport_stream_rx_packets_failed_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval]) /
+                rate(cluster_transport_stream_rx_packets_total{instance="$instance", cluster="$cluster", namespace="$namespace"}[$__rate_interval])
                 )
             |||,
             legendFormat='Rx success %'
@@ -287,7 +287,7 @@ local filename = 'agent-cluster-node.json';
         }) +
         panel.withQueries([
           panel.newQuery(
-            expr='cluster_transport_streams{instance="$instance"}',
+            expr='cluster_transport_streams{instance="$instance", cluster="$cluster", namespace="$namespace"}',
             legendFormat='Open streams'
           ),
         ])

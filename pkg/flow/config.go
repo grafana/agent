@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/parser"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/diag"
+	"github.com/grafana/river/parser"
 )
 
 // An Argument is an input to a Flow module.

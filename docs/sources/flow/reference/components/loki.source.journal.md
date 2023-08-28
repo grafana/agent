@@ -1,4 +1,5 @@
 ---
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.journal/
 title: loki.source.journal
 ---
 
@@ -32,6 +33,7 @@ Name | Type | Description | Default | Required
 `matches` | `string` | Journal matches to filter. The `+` character is not supported, only logical AND matches will be added. | `""` | no
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
 `relabel_rules` | `RelabelRules` | Relabeling rules to apply on log entries. | `{}` | no
+`labels` | `map(string)` | The labels to apply to every log coming out of the journal. | `{}` | no
 
 > **NOTE**:  A `job` label is added with the full name of the component `loki.source.journal.LABEL`.
 
@@ -73,6 +75,8 @@ configuration.
 
 ```river
 loki.relabel "journal" {
+  forward_to = []
+
   rule {
     source_labels = ["__journal__systemd_unit"]
     target_label  = "unit"
@@ -82,6 +86,7 @@ loki.relabel "journal" {
 loki.source.journal "read"  {
   forward_to    = [loki.write.endpoint.receiver]
   relabel_rules = loki.relabel.journal.rules
+  labels        = {component = "loki.source.journal"}
 }
 
 loki.write "endpoint" {

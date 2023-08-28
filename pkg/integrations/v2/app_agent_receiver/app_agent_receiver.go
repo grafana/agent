@@ -47,7 +47,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 
 	receiverMetricsExporter := NewReceiverMetricsExporter(reg)
 
-	var exp = []appAgentReceiverExporter{
+	var exp = []AppAgentReceiverExporter{
 		receiverMetricsExporter,
 	}
 

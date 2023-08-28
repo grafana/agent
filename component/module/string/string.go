@@ -2,18 +2,20 @@ package string
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/http"
+	"github.com/grafana/river/rivertypes"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "module.string",
-		Args:    Arguments{},
-		Exports: module.Exports{},
+		Name:          "module.string",
+		Args:          Arguments{},
+		Exports:       module.Exports{},
+		NeedsServices: []string{http.ServiceName, cluster.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -39,13 +41,16 @@ type Component struct {
 var (
 	_ component.Component       = (*Component)(nil)
 	_ component.HealthComponent = (*Component)(nil)
-	_ component.HTTPComponent   = (*Component)(nil)
 )
 
 // New creates a new module.string component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	m, err := module.NewModuleComponent(o)
+	if err != nil {
+		return nil, err
+	}
 	c := &Component{
-		mod: module.NewModuleComponent(o),
+		mod: m,
 	}
 
 	if err := c.Update(args); err != nil {
@@ -65,11 +70,6 @@ func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
 	return c.mod.LoadFlowContent(newArgs.Arguments, newArgs.Content.Value)
-}
-
-// Handler implements component.HTTPComponent.
-func (c *Component) Handler() http.Handler {
-	return c.mod.Handler()
 }
 
 // CurrentHealth implements component.HealthComponent.

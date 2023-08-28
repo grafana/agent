@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/build"
@@ -16,7 +17,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/node_exporter/collector"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // Integration is the node_exporter integration. The integration scrapes metrics

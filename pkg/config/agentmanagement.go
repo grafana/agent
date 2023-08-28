@@ -20,8 +20,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const cacheFilename = "remote-config-cache.yaml"
-const apiPath = "/agent-management/api/agent/v2"
+const (
+	cacheFilename                = "remote-config-cache.yaml"
+	apiPath                      = "/agent-management/api/agent/v2"
+	labelManagementEnabledHeader = "X-LabelManagementEnabled"
+	agentIDHeader                = "X-AgentID"
+)
 
 type remoteConfigProvider interface {
 	GetCachedRemoteConfig() ([]byte, error)
@@ -116,12 +120,8 @@ func (r remoteConfigHTTPProvider) CacheRemoteConfig(remoteConfigBytes []byte) er
 
 // FetchRemoteConfig fetches the raw bytes of the config from a remote API using
 // the values in r.AgentManagement.
-//
-// Sleeps for a short period of time to apply jitter to API requests.
 func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
-	httpClientConfig := &config.HTTPClientConfig{
-		BasicAuth: &r.InitialConfig.BasicAuth,
-	}
+	httpClientConfig := &r.InitialConfig.HTTPClientConfig
 
 	dir, err := os.Getwd()
 	if err != nil {
@@ -131,6 +131,13 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 
 	remoteOpts := &remoteOpts{
 		HTTPClientConfig: httpClientConfig,
+	}
+
+	if r.InitialConfig.RemoteConfiguration.LabelManagementEnabled && r.InitialConfig.RemoteConfiguration.AgentID != "" {
+		remoteOpts.headers = map[string]string{
+			labelManagementEnabledHeader: "1",
+			agentIDHeader:                r.InitialConfig.RemoteConfiguration.AgentID,
+		}
 	}
 
 	url, err := r.InitialConfig.fullUrl()
@@ -152,17 +159,19 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 type labelMap map[string]string
 
 type RemoteConfiguration struct {
-	Labels        labelMap `yaml:"labels"`
-	Namespace     string   `yaml:"namespace"`
-	CacheLocation string   `yaml:"cache_location"`
+	Labels                 labelMap `yaml:"labels"`
+	LabelManagementEnabled bool     `yaml:"label_management_enabled"`
+	AgentID                string   `yaml:"agent_id"`
+	Namespace              string   `yaml:"namespace"`
+	CacheLocation          string   `yaml:"cache_location"`
 }
 
 type AgentManagementConfig struct {
-	Enabled         bool             `yaml:"-"` // Derived from enable-features=agent-management
-	Host            string           `yaml:"host"`
-	BasicAuth       config.BasicAuth `yaml:"basic_auth"`
-	Protocol        string           `yaml:"protocol"`
-	PollingInterval time.Duration    `yaml:"polling_interval"`
+	Enabled          bool                    `yaml:"-"` // Derived from enable-features=agent-management
+	Host             string                  `yaml:"host"`
+	Protocol         string                  `yaml:"protocol"`
+	PollingInterval  time.Duration           `yaml:"polling_interval"`
+	HTTPClientConfig config.HTTPClientConfig `yaml:",inline"`
 
 	RemoteConfiguration RemoteConfiguration `yaml:"remote_configuration"`
 }
@@ -279,7 +288,7 @@ func (am *AgentManagementConfig) JitterTime() time.Duration {
 
 // Validate checks that necessary portions of the config have been set.
 func (am *AgentManagementConfig) Validate() error {
-	if am.BasicAuth.Username == "" || am.BasicAuth.PasswordFile == "" {
+	if am.HTTPClientConfig.BasicAuth == nil || am.HTTPClientConfig.BasicAuth.Username == "" || am.HTTPClientConfig.BasicAuth.PasswordFile == "" {
 		return errors.New("both username and password_file fields must be specified")
 	}
 
@@ -293,6 +302,10 @@ func (am *AgentManagementConfig) Validate() error {
 
 	if am.RemoteConfiguration.CacheLocation == "" {
 		return errors.New("path to cache must be specified in 'agent_management.remote_configuration.cache_location'")
+	}
+
+	if am.RemoteConfiguration.LabelManagementEnabled && am.RemoteConfiguration.AgentID == "" {
+		return errors.New("agent_id must be specified in 'agent_management.remote_configuration' if label_management_enabled is true")
 	}
 
 	return nil

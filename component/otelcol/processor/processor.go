@@ -17,7 +17,8 @@ import (
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
+	otelprocessor "go.opentelemetry.io/collector/processor"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
 
@@ -31,15 +32,15 @@ type Arguments interface {
 
 	// Convert converts the Arguments into an OpenTelemetry Collector processor
 	// configuration.
-	Convert() (otelconfig.Processor, error)
+	Convert() (otelcomponent.Config, error)
 
 	// Extensions returns the set of extensions that the configured component is
 	// allowed to use.
-	Extensions() map[otelconfig.ComponentID]otelcomponent.Extension
+	Extensions() map[otelcomponent.ID]otelextension.Extension
 
 	// Exporters returns the set of exporters that are exposed to the configured
 	// component.
-	Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
+	Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component
 
 	// NextConsumers returns the set of consumers to send data to.
 	NextConsumers() *otelcol.ConsumerArguments
@@ -52,7 +53,7 @@ type Processor struct {
 	cancel context.CancelFunc
 
 	opts     component.Options
-	factory  otelcomponent.ProcessorFactory
+	factory  otelprocessor.Factory
 	consumer *lazyconsumer.Consumer
 
 	sched     *scheduler.Scheduler
@@ -70,7 +71,7 @@ var (
 //
 // The registered component must be registered to export the
 // otelcol.ConsumerExports type, otherwise New will panic.
-func New(opts component.Options, f otelcomponent.ProcessorFactory, args Arguments) (*Processor, error) {
+func New(opts component.Options, f otelprocessor.Factory, args Arguments) (*Processor, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	consumer := lazyconsumer.New(ctx)
@@ -130,7 +131,7 @@ func (p *Processor) Update(args component.Arguments) error {
 		return err
 	}
 
-	settings := otelcomponent.ProcessorCreateSettings{
+	settings := otelprocessor.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(p.opts.Logger),
 
@@ -161,25 +162,34 @@ func (p *Processor) Update(args component.Arguments) error {
 	// supported telemetry signals.
 	var components []otelcomponent.Component
 
-	tracesProcessor, err := p.factory.CreateTracesProcessor(p.ctx, settings, processorConfig, nextTraces)
-	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-		return err
-	} else if tracesProcessor != nil {
-		components = append(components, tracesProcessor)
+	var tracesProcessor otelprocessor.Traces
+	if len(next.Traces) > 0 {
+		tracesProcessor, err = p.factory.CreateTracesProcessor(p.ctx, settings, processorConfig, nextTraces)
+		if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+			return err
+		} else if tracesProcessor != nil {
+			components = append(components, tracesProcessor)
+		}
 	}
 
-	metricsProcessor, err := p.factory.CreateMetricsProcessor(p.ctx, settings, processorConfig, nextMetrics)
-	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-		return err
-	} else if metricsProcessor != nil {
-		components = append(components, metricsProcessor)
+	var metricsProcessor otelprocessor.Metrics
+	if len(next.Metrics) > 0 {
+		metricsProcessor, err = p.factory.CreateMetricsProcessor(p.ctx, settings, processorConfig, nextMetrics)
+		if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+			return err
+		} else if metricsProcessor != nil {
+			components = append(components, metricsProcessor)
+		}
 	}
 
-	logsProcessor, err := p.factory.CreateLogsProcessor(p.ctx, settings, processorConfig, nextLogs)
-	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-		return err
-	} else if logsProcessor != nil {
-		components = append(components, logsProcessor)
+	var logsProcessor otelprocessor.Logs
+	if len(next.Logs) > 0 {
+		logsProcessor, err = p.factory.CreateLogsProcessor(p.ctx, settings, processorConfig, nextLogs)
+		if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+			return err
+		} else if logsProcessor != nil {
+			components = append(components, logsProcessor)
+		}
 	}
 
 	// Schedule the components to run once our component is running.

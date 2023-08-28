@@ -33,6 +33,13 @@ type Arguments struct {
 	ForwardTo []storage.Appendable `river:"forward_to,attr"`
 }
 
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
+	*args = Arguments{
+		Server: fnet.DefaultServerConfig(),
+	}
+}
+
 type Component struct {
 	opts               component.Options
 	handler            http.Handler
@@ -44,7 +51,7 @@ type Component struct {
 	server    *fnet.TargetServer
 }
 
-func New(opts component.Options, args Arguments) (component.Component, error) {
+func New(opts component.Options, args Arguments) (*Component, error) {
 	fanout := agentprom.NewFanout(args.ForwardTo, opts.ID, opts.Registerer)
 
 	uncheckedCollector := util.NewUncheckedCollector(nil)

@@ -10,10 +10,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.process",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.New(createIntegration, "process"),
+		Name:          "prometheus.exporter.process",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.New(createIntegration, "process"),
 	})
 }
 
@@ -51,12 +52,9 @@ type MatcherGroup struct {
 	CmdlineRules []string `river:"cmdline,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultArguments
-
-	type args Arguments
-	return f((*args)(c))
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultArguments
 }
 
 func (a *Arguments) Convert() *process_exporter.Config {

@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/windows/svc/eventlog"
 )
@@ -23,7 +24,7 @@ func TestEventLogger(t *testing.T) {
 	wlog, err := eventlog.Open(loggerName)
 	require.NoError(t, err)
 	dataPath := t.TempDir()
-	rec := make(loki.LogsReceiver)
+	rec := loki.NewLogsReceiver()
 	c, err := New(component.Options{
 		ID:       "loki.source.windowsevent.test",
 		Logger:   util.TestFlowLogger(t),
@@ -31,10 +32,8 @@ func TestEventLogger(t *testing.T) {
 		OnStateChange: func(e component.Exports) {
 
 		},
-		Registerer:     prometheus.DefaultRegisterer,
-		Tracer:         nil,
-		HTTPListenAddr: "",
-		HTTPPath:       "",
+		Registerer: prometheus.DefaultRegisterer,
+		Tracer:     nil,
 	}, Arguments{
 		Locale:               0,
 		EventLogName:         "Application",
@@ -45,6 +44,7 @@ func TestEventLogger(t *testing.T) {
 		ExcludeUserdata:      false,
 		UseIncomingTimestamp: false,
 		ForwardTo:            []loki.LogsReceiver{rec},
+		Labels:               map[string]string{"job": "windows"},
 	})
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -58,7 +58,8 @@ func TestEventLogger(t *testing.T) {
 	case <-ctx.Done():
 		// Fail!
 		require.True(t, false)
-	case e := <-rec:
+	case e := <-rec.Chan():
+		require.Equal(t, model.LabelValue("windows"), e.Labels["job"])
 		if strings.Contains(e.Line, tm) {
 			found = true
 			break

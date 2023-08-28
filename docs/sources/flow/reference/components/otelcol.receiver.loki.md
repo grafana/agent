@@ -1,7 +1,8 @@
 ---
-title: otelcol.receiver.loki
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.loki/
 labels:
   stage: beta
+title: otelcol.receiver.loki
 ---
 
 # otelcol.receiver.loki

@@ -8,18 +8,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/loki"
-	fnet "github.com/grafana/agent/component/common/net"
-	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	gt "github.com/grafana/agent/component/loki/source/gcplog/internal/gcplogtarget"
-
-	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/regexp"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/loki"
+	fnet "github.com/grafana/agent/component/common/net"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/loki/source/gcplog/gcptypes"
+	"github.com/grafana/agent/pkg/util"
 )
 
 // TODO (@tpaschalis) We can't test this easily as there's no way to inject
@@ -33,12 +33,12 @@ func TestPush(t *testing.T) {
 		OnStateChange: func(e component.Exports) {},
 	}
 
-	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 	args := Arguments{}
 
 	port, err := freeport.GetFreePort()
 	require.NoError(t, err)
-	args.PushTarget = &gt.PushConfig{
+	args.PushTarget = &gcptypes.PushConfig{
 		Server: &fnet.ServerConfig{
 			HTTP: &fnet.HTTPConfig{
 				ListenAddress: "localhost",
@@ -75,11 +75,11 @@ func TestPush(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, wantLogLine, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, wantLogLine, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)

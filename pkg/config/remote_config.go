@@ -21,6 +21,7 @@ const (
 type remoteOpts struct {
 	url              *url.URL
 	HTTPClientConfig *config.HTTPClientConfig
+	headers          map[string]string
 }
 
 // remoteProvider interface should be implemented by config providers
@@ -60,6 +61,7 @@ func newRemoteProvider(rawURL string, opts *remoteOpts) (remoteProvider, error) 
 // httpProvider - http/https provider
 type httpProvider struct {
 	myURL      *url.URL
+	headers    map[string]string
 	httpClient *http.Client
 }
 
@@ -80,6 +82,7 @@ func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	return &httpProvider{
 		myURL:      opts.url,
 		httpClient: httpClient,
+		headers:    opts.headers,
 	}, nil
 }
 
@@ -93,7 +96,14 @@ func (r retryAfterError) Error() string {
 
 // retrieve implements remoteProvider and fetches the config
 func (p httpProvider) retrieve() ([]byte, error) {
-	response, err := p.httpClient.Get(p.myURL.String())
+	req, err := http.NewRequest(http.MethodGet, p.myURL.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+	for header, headerVal := range p.headers {
+		req.Header.Set(header, headerVal)
+	}
+	response, err := p.httpClient.Do(req)
 	if err != nil {
 		instrumentation.InstrumentRemoteConfigFetchError()
 		return nil, fmt.Errorf("request failed: %w", err)

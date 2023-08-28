@@ -24,7 +24,7 @@ import (
 func TestPush(t *testing.T) {
 	opts := defaultOptions(t)
 
-	ch1, ch2 := make(chan loki.Entry), make(chan loki.Entry)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 	args := testArgsWith(t, func(args *Arguments) {
 		args.ForwardTo = []loki.LogsReceiver{ch1, ch2}
 		args.RelabelRules = rulesExport
@@ -51,11 +51,11 @@ func TestPush(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, wantLogLine, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, wantLogLine, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -217,7 +217,7 @@ func testArgsWithPorts(httpPort int, grpcPort int) Arguments {
 				ListenPort:    grpcPort,
 			},
 		},
-		ForwardTo: []loki.LogsReceiver{make(chan loki.Entry), make(chan loki.Entry)},
+		ForwardTo: []loki.LogsReceiver{loki.NewLogsReceiver(), loki.NewLogsReceiver()},
 		Labels:    map[string]string{"foo": "bar", "fizz": "buzz"},
 		RelabelRules: flow_relabel.Rules{
 			{

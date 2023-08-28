@@ -9,11 +9,12 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:      "prometheus.exporter.windows",
-		Args:      Arguments{},
-		Exports:   exporter.Exports{},
-		Singleton: false,
-		Build:     exporter.New(createExporter, "windows"),
+		Name:          "prometheus.exporter.windows",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		Singleton:     false,
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.New(createExporter, "windows"),
 	})
 }
 

@@ -164,7 +164,7 @@ func TestProcessKeyVals(t *testing.T) {
 		require.NoError(t, err)
 
 		process := pcommon.NewResource()
-		process.Attributes().Sort().FromRaw(tc.processAttrs)
+		process.Attributes().FromRaw(tc.processAttrs)
 
 		actual := p.(*automaticLoggingProcessor).processKeyVals(process, tc.svc)
 		assert.Equal(t, tc.expected, actual)

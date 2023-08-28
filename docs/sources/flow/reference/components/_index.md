@@ -1,9 +1,10 @@
 ---
-title: Components
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/
+title: Components reference
 weight: 300
 ---
 
-# Components
+# Components reference
 
 This section contains reference documentation for all recognized
 [components][].

@@ -10,16 +10,17 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.redis",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "redis", customizeTarget),
+		Name:          "prometheus.exporter.redis",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.NewWithTargetBuilder(createExporter, "redis", customizeTarget),
 	})
 }
 
@@ -87,17 +88,12 @@ type Arguments struct {
 	SkipTLSVerification     bool              `river:"skip_tls_verification,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
-
-	type args Arguments
-	if err := f((*args)(a)); err != nil {
-		return err
-	}
-	return a.Validate()
 }
 
+// Validate implements river.Validator.
 func (a *Arguments) Validate() error {
 	if a.ScriptPath != "" && len(a.ScriptPaths) > 0 {
 		return fmt.Errorf("only one of script_path and script_paths should be specified")

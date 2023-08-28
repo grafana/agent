@@ -40,7 +40,7 @@ func init() {
 		Args:    Arguments{},
 		Exports: Exports{},
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
-			return NewComponent(o, c.(Arguments))
+			return New(o, c.(Arguments))
 		},
 	})
 }
@@ -61,8 +61,8 @@ type Component struct {
 	receiver *prometheus.Interceptor
 }
 
-// NewComponent creates a new prometheus.remote_write component.
-func NewComponent(o component.Options, c Arguments) (*Component, error) {
+// New creates a new prometheus.remote_write component.
+func New(o component.Options, c Arguments) (*Component, error) {
 	// Older versions of prometheus.remote_write used the subpath below, which
 	// added in too many extra unnecessary directories (since o.DataPath is
 	// already unique).
@@ -193,7 +193,7 @@ func (c *Component) Run(ctx context.Context) error {
 				ts = 0
 			}
 
-			// Network issues can prevent the result of getRemoteWriteTimestamp from
+			// Network issues can prevent the result of LowestSentTimestamp from
 			// changing. We don't want data in the WAL to grow forever, so we set a cap
 			// on the maximum age data can be. If our ts is older than this cutoff point,
 			// we'll shift it forward to start deleting very stale data.

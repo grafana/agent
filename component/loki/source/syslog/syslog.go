@@ -50,7 +50,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:    o,
 		metrics: st.NewMetrics(o.Registerer),
-		handler: make(loki.LogsReceiver),
+		handler: loki.NewLogsReceiver(),
 		fanout:  args.ForwardTo,
 
 		targets: []*st.SyslogTarget{},
@@ -80,10 +80,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.fanout {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -111,7 +111,7 @@ func (c *Component) Update(args component.Arguments) error {
 			}
 		}
 		c.targets = make([]*st.SyslogTarget, 0)
-		entryHandler := loki.NewEntryHandler(c.handler, func() {})
+		entryHandler := loki.NewEntryHandler(c.handler.Chan(), func() {})
 
 		for _, cfg := range newArgs.SyslogListeners {
 			t, err := st.NewSyslogTarget(c.metrics, c.opts.Logger, entryHandler, rcs, cfg.Convert())

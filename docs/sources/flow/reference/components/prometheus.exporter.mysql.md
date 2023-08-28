@@ -1,12 +1,6 @@
 ---
-# NOTE(rfratto): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
-title: prometheus.exporter.​mysql
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mysql/
+title: prometheus.exporter.mysql
 ---
 
 # prometheus.exporter.mysql
@@ -17,7 +11,7 @@ The `prometheus.exporter.mysql` component embeds
 
 ```river
 prometheus.exporter.mysql "LABEL" {
-    data_source_name = "DATA_SOURCE_NAME"
+    data_source_name = DATA_SOURCE_NAME
 }
 ```
 
@@ -144,21 +138,8 @@ The full list of supported collectors is:
 | slave_status                                     | Scrape information from `SHOW SLAVE STATUS`. | yes |
 
 ## Exported fields
-The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | Targets that expose `mysql_exporter` metrics.
-
-For example, the `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metric's label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 
@@ -183,15 +164,30 @@ from `prometheus.exporter.mysql`:
 
 ```river
 prometheus.exporter.mysql "example" {
-  data_source_name = "root@(server-a:3306)/"
+  data_source_name  = "root@(server-a:3306)/"
   enable_collectors = ["heartbeat", "mysql.user"]
 }
 
 // Configure a prometheus.scrape component to collect mysql metrics.
 prometheus.scrape "demo" {
   targets    = prometheus.exporter.mysql.example.targets
-  forward_to = [ /* ... */ ]
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
 }
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

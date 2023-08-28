@@ -25,15 +25,13 @@ var DefaultClientArguments = ClientArguments{
 	HTTPClientConfig: commoncfg.DefaultHTTPClientConfig,
 }
 
-// UnmarshalRiver unmarshals ClientArguments and performs validations.
-func (args *ClientArguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *ClientArguments) SetToDefault() {
 	*args = DefaultClientArguments
+}
 
-	type arguments ClientArguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *ClientArguments) Validate() error {
 	if args.APIServer.URL != nil && args.KubeConfig != "" {
 		return fmt.Errorf("only one of api_server and kubeconfig_file can be set")
 	}

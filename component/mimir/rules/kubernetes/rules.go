@@ -33,7 +33,7 @@ func init() {
 		Args:    Arguments{},
 		Exports: nil,
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
-			return NewComponent(o, c.(Arguments))
+			return New(o, c.(Arguments))
 		},
 	})
 }
@@ -128,7 +128,7 @@ var _ component.Component = (*Component)(nil)
 var _ component.DebugComponent = (*Component)(nil)
 var _ component.HealthComponent = (*Component)(nil)
 
-func NewComponent(o component.Options, args Arguments) (*Component, error) {
+func New(o component.Options, args Arguments) (*Component, error) {
 	metrics := newMetrics()
 	err := metrics.Register(o.Registerer)
 	if err != nil {

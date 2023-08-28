@@ -61,13 +61,13 @@ func getDefault() Arguments {
 	}
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = getDefault()
-	type arguments Arguments
-	if err := f((*arguments)(a)); err != nil {
-		return err
-	}
+}
+
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
 	return a.validateAssignor()
 }
 
@@ -76,7 +76,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		mut:     sync.RWMutex{},
 		opts:    o,
-		handler: make(loki.LogsReceiver),
+		handler: loki.NewLogsReceiver(),
 		fanout:  args.ForwardTo,
 	}
 
@@ -113,10 +113,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.fanout {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -141,8 +141,8 @@ func (c *Component) Update(args component.Arguments) error {
 		return err
 	}
 
-	entryHandler := loki.NewEntryHandler(c.handler, func() {})
-	t, err := kt.NewSyncer(c.opts.Registerer, c.opts.Logger, cfg, entryHandler, &parser.AzureEventHubsTargetMessageParser{
+	entryHandler := loki.NewEntryHandler(c.handler.Chan(), func() {})
+	t, err := kt.NewSyncer(c.opts.Logger, cfg, entryHandler, &parser.AzureEventHubsTargetMessageParser{
 		DisallowCustomMessages: newArgs.DisallowCustomMessages,
 	})
 	if err != nil {
@@ -192,7 +192,7 @@ func (a *Arguments) Convert() (kt.Config, error) {
 			if err != nil {
 				return kt.Config{}, fmt.Errorf("unable to extract host from fully qualified namespace: %w", err)
 			}
-			a.Authentication.Scopes = []string{fmt.Sprintf("https://%s", host)}
+			a.Authentication.Scopes = []string{fmt.Sprintf("https://%s/.default", host)}
 		}
 
 		cfg.KafkaConfig.Authentication = kt.Authentication{
