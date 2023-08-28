@@ -236,7 +236,7 @@ When configuring a JSON stage, the `source` field defines the source of data to
 parse as JSON. By default, this is the log line itself, but it can also be a
 previously extracted value.
 
-The `expressions` field is the set of key-value pairs of MESPath expressions to
+The `expressions` field is the set of key-value pairs of JMESPath expressions to
 run. The map key defines the name with which the data is extracted, while the
 map value is the expression used to populate the value.
 
