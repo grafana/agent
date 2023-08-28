@@ -9,7 +9,6 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/promtailconvert/internal/build"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/dskit/flagext"
 	promtailcfg "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
@@ -17,6 +16,7 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	lokicfgutil "github.com/grafana/loki/pkg/util/cfg"
+	"github.com/grafana/river/token/builder"
 	"gopkg.in/yaml.v2"
 )
 

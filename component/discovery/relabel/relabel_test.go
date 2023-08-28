@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/discovery/relabel"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 

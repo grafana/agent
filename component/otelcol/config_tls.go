@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	"go.opentelemetry.io/collector/config/configopaque"
 	otelconfigtls "go.opentelemetry.io/collector/config/configtls"
 )

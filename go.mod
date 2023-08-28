@@ -60,6 +60,7 @@ require (
 	github.com/grafana/pyroscope/api v0.2.0
 	github.com/grafana/pyroscope/ebpf v0.2.1
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
+	github.com/grafana/river v0.1.1
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/tail v0.0.0-20230510142333-77b18831edf0
 	github.com/grafana/vmware_exporter v0.0.4-beta
@@ -95,7 +96,7 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
 	github.com/ncabatoff/process-exporter v0.7.10
 	github.com/nerdswords/yet-another-cloudwatch-exporter v0.54.0
-	github.com/ohler55/ojg v1.18.7
+	github.com/ohler55/ojg v1.19.2 // indirect
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.51.0
@@ -149,7 +150,7 @@ require (
 	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.22.1-0.20230623130038-562ae9055ce3
 	github.com/prometheus/statsd_exporter v0.22.8
-	github.com/pyroscope-io/godeltaprof v0.1.1
+	github.com/pyroscope-io/godeltaprof v0.1.2
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
 	github.com/rs/cors v1.9.0
 	github.com/shirou/gopsutil/v3 v3.23.5
@@ -620,8 +621,6 @@ require (
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
-
-require github.com/foxcpp/go-mockdns v1.0.0
 
 require (
 	github.com/drone/envsubst v1.0.3 // indirect

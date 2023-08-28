@@ -16,9 +16,9 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
+	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
 )
 

@@ -9,9 +9,9 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	remote_http "github.com/grafana/agent/component/remote/http"
-	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
+	"github.com/grafana/river/rivertypes"
 )
 
 func init() {

@@ -7,7 +7,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 
