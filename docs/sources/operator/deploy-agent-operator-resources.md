@@ -30,7 +30,7 @@ The hierarchy of custom resources is as follows:
 To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
 
 {{% admonition type="note" %}}
-Agent Operator is currently in beta and its custom resources are subject to change.
+Agent Operator is currently in [beta]({{< relref "../stability.md#beta" >}}) and its custom resources are subject to change.
 {{% /admonition %}}
 
 ## Before you begin
