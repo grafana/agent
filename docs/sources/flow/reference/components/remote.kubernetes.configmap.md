@@ -7,7 +7,7 @@ title: remote.kubernetes.configmap
 
 `remote.kubernetes.configmap` reads a ConfigMap from the Kubernetes API server and exposes its data for other components to consume.
 
-This can be useful anytime the agent needs data from a ConfigMap that is not mounted to the Grafana Agent pod directly.
+This can be useful anytime the agent needs data from a ConfigMap that is not directly mounted to the Grafana Agent pod.
 
 ## Usage
 
