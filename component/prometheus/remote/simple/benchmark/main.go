@@ -28,41 +28,40 @@ func main() {
 	// Build the agent
 	buildAgent()
 
-	// Get it warmed up
-	startRun(100, true, 1*time.Minute)
+	metricCount := os.Args[1]
+	allowWal := os.Args[2]
+	duration := os.Args[3]
+	metrics, _ := strconv.Atoi(metricCount)
+	allowWalBool, _ := strconv.ParseBool(allowWal)
+	parsedDuration, _ := time.ParseDuration(duration)
+	fmt.Println(metrics, allowWalBool, parsedDuration)
+	startRun(metrics, allowWalBool, parsedDuration)
 
-	startRun(1_000, true, 60*time.Minute)
-	startRun(1_000, false, 60*time.Minute)
-
-	startRun(10_000, true, 60*time.Minute)
-	startRun(10_000, false, 60*time.Minute)
-	startRun(100_000, true, 60*time.Minute)
-	startRun(100_000, true, 60*time.Minute)
 }
 
 func startRun(metricCount int, allowWAL bool, run time.Duration) {
 	os.RemoveAll("./simple-data")
 	os.RemoveAll("./old-data")
 	allow = allowWAL
-	// Do 1_000 run with WAL for 60 minutes
-	avalanche := startAvalanche(metricCount)
-	defer func() {
-		err := avalanche.Process.Kill()
-		if err != nil {
-			println(err.Error())
-		}
-		defer syscall.Kill(-avalanche.Process.Pid, syscall.SIGKILL)
-
-	}()
 	_ = os.Setenv("METRIC_COUNT", strconv.Itoa(metricCount))
 	_ = os.Setenv("ALLOW_WAL", strconv.FormatBool(allowWAL))
 
-	simple := startSimpleAgent()
-	defer syscall.Kill(-simple.Process.Pid, syscall.SIGKILL)
-	defer os.RemoveAll("./simple-data")
 	old := startOldAgent()
+
+	fmt.Println("starting old agent")
+	defer old.Process.Kill()
+	defer old.Process.Release()
+	defer old.Wait()
 	defer syscall.Kill(-old.Process.Pid, syscall.SIGKILL)
 	defer os.RemoveAll("./old-data")
+
+	simple := startSimpleAgent()
+	fmt.Println("starting simple agent")
+	defer simple.Process.Kill()
+	defer simple.Process.Release()
+	defer simple.Wait()
+	defer syscall.Kill(-simple.Process.Pid, syscall.SIGKILL)
+	defer os.RemoveAll("./simple-data")
 
 	time.Sleep(run)
 }
@@ -78,8 +77,8 @@ func buildAgent() {
 	}
 }
 
-func startAvalanche(metricCount int) *exec.Cmd {
-	cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf("docker run -p 9001:9001 quay.io/freshtracks.io/avalanche --metric-count=%d", metricCount))
+func startSimpleAgent() *exec.Cmd {
+	cmd := exec.Command("./grafana-agent-flow", "run", "./simple.river", "--storage.path=./simple-data")
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -90,23 +89,12 @@ func startAvalanche(metricCount int) *exec.Cmd {
 	return cmd
 }
 
-func startSimpleAgent() *exec.Cmd {
-	cmd := exec.Command("./grafana-agent-flow", "run", "./simple.river", "--storage.path=./simple-data")
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	f, _ := os.OpenFile("./simple-log.txt", os.O_APPEND|os.O_CREATE, 0666)
-	cmd.Stdout = f
-	err := cmd.Start()
-	if err != nil {
-		panic(err.Error())
-	}
-	return cmd
-}
-
 func startOldAgent() *exec.Cmd {
 	cmd := exec.Command("./grafana-agent-flow", "run", "./rw.river", "--storage.path=./old-data", "--server.http.listen-addr=127.0.0.1:12346")
-	f, _ := os.OpenFile("./old-log.txt", os.O_APPEND|os.O_CREATE, 0666)
-	cmd.Stdout = f
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	err := cmd.Start()
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	if err != nil {
 		panic(err.Error())
 	}
