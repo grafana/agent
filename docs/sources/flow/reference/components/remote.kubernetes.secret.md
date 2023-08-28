@@ -5,7 +5,7 @@ title: remote.kubernetes.secret
 
 # remote.http
 
-`remote.kubernetes.secret` reads a Secret from the kubernetes API server, and exposes it's data for other components to consume.
+`remote.kubernetes.secret` reads a Secret from the Kubernetes API server and exposes its data for other components to consume.
 
 A common use case for this is loading credentials or other information from secrets that are not already mounted into the agent pod at deployment time.
 
