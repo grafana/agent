@@ -19,7 +19,7 @@ telemetry collection:
 * Custom [PodLogs][] resources for collecting logs.
 
 {{% admonition type="note" %}}
-Grafana Agent Operator does not collect traces
+Grafana Agent Operator does not collect traces.
 {{% /admonition %}}
 
 Grafana Agent Operator is currently in [Beta][], and is subject to change or
