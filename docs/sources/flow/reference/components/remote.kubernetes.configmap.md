@@ -37,7 +37,7 @@ A poll is triggered by the following:
 * At the frequency specified by the `poll_frequency` argument.
 
 Any error while polling will mark the component as unhealthy. After
-a successful poll, all data will be exported with the same field names as the source ConfigMap.
+a successful poll, all data is exported with the same field names as the source ConfigMap.
 
 ## Blocks
 
