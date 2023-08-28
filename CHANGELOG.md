@@ -21,6 +21,13 @@ Main (unreleased)
 
 - Use Go 1.21.0 for builds. (@rfratto)
 
+v0.36.0-rc.1 (2023-08-28)
+--------------------
+
+### Bugfixes
+
+- Fix GitHub authentication on Drone pipeline.
+
 v0.36.0-rc.0 (2023-08-25)
 --------------------
 
