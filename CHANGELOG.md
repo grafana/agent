@@ -8,15 +8,8 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 
-v0.36.0-rc.1 (2023-08-28)
+v0.36.0-rc.3 (2023-08-28)
 --------------------
-
-### Bugfixes
-
-- Fix GitHub authentication on Drone pipeline.
-
-v0.36.0-rc.0 (2023-08-25)
--------------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
