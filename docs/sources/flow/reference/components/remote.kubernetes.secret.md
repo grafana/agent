@@ -138,7 +138,7 @@ Instances of `remote.kubernetes.secret` report as healthy if the most recent att
 
 ## Example
 
-This example reads a Secret and a ConfigMap from kubernetes and uses them to supply remote-write credentials.
+This example reads a Secret and a ConfigMap from Kubernetes and uses them to supply remote-write credentials.
 
 ```river
 remote.kubernetes.secret "credentials" {
