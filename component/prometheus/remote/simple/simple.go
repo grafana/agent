@@ -41,20 +41,20 @@ func NewComponent(opts component.Options, args Arguments) (*Simple, error) {
 	return s, s.Update(args)
 }
 
+// Simple is a queue based WAL used to send data to a remote_write endpoint. Simple supports replaying
+// sending and TTLs.
 type Simple struct {
-	mut      sync.RWMutex
-	database *dbstore
-	args     Arguments
-	opts     component.Options
-	wr       *writer
+	mut        sync.RWMutex
+	database   *dbstore
+	args       Arguments
+	opts       component.Options
+	wr         *writer
+	testClient WriteClient
 }
 
 // Run starts the component, blocking until ctx is canceled or the component
 // suffers a fatal error. Run is guaranteed to be called exactly once per
 // Component.
-//
-// Implementations of Componen should perform any necessary cleanup before
-// returning from Run.
 func (s *Simple) Run(ctx context.Context) error {
 	qm, err := s.newQueueManager()
 	if err != nil {
@@ -71,19 +71,7 @@ func (s *Simple) Run(ctx context.Context) error {
 }
 
 func (s *Simple) newQueueManager() (*QueueManager, error) {
-	endUrl, err := url.Parse(s.args.Endpoint.URL)
-	if err != nil {
-		return nil, err
-	}
-	cfgURL := &config_util.URL{URL: endUrl}
-	wr, err := NewWriteClient(s.opts.ID, &ClientConfig{
-		URL:              cfgURL,
-		Timeout:          model.Duration(s.args.Endpoint.RemoteTimeout),
-		HTTPClientConfig: *s.args.Endpoint.HTTPClientConfig.Convert(),
-		SigV4Config:      nil,
-		Headers:          s.args.Endpoint.Headers,
-		RetryOnRateLimit: s.args.Endpoint.QueueOptions.RetryOnHTTP429,
-	})
+	wr, err := s.newWriteClient()
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +96,30 @@ func (s *Simple) newQueueManager() (*QueueManager, error) {
 		true,
 	)
 	return qm, nil
+}
+func (s *Simple) newWriteClient() (WriteClient, error) {
+	if s.testClient != nil {
+		return s.testClient, nil
+	}
+	endUrl, err := url.Parse(s.args.Endpoint.URL)
+	if err != nil {
+		return nil, err
+	}
+	cfgURL := &config_util.URL{URL: endUrl}
+	if err != nil {
+		return nil, err
+	}
+
+	wr, err := NewWriteClient(s.opts.ID, &ClientConfig{
+		URL:              cfgURL,
+		Timeout:          model.Duration(s.args.Endpoint.RemoteTimeout),
+		HTTPClientConfig: *s.args.Endpoint.HTTPClientConfig.Convert(),
+		SigV4Config:      nil,
+		Headers:          s.args.Endpoint.Headers,
+		RetryOnRateLimit: s.args.Endpoint.QueueOptions.RetryOnHTTP429,
+	})
+
+	return wr, err
 }
 
 // Update provides a new Config to the component. The type of newConfig will
@@ -148,11 +160,46 @@ func (c *Simple) commit(a *appender) {
 		}
 		timestampedMetrics = append(timestampedMetrics, x)
 	}
-	if len(timestampedMetrics) == 0 {
-		return
+	_, err := c.database.WriteSignal(timestampedMetrics)
+	if err != nil {
+		level.Error(c.opts.Logger).Log("msg", "error writing metrics", "err", err)
 	}
 
-	_, err := c.database.WriteSignal(timestampedMetrics)
+	timestampedExemplars := make([]promtype.Exemplar, 0)
+	for _, x := range a.exemplars {
+		// No need to write if already outside of range and a ttl is set.
+		if x.Timestamp < endTime && (c.args.TTL.Seconds() != 0) {
+			continue
+		}
+		timestampedExemplars = append(timestampedExemplars, x)
+	}
+	_, err = c.database.WriteSignal(timestampedExemplars)
+	if err != nil {
+		level.Error(c.opts.Logger).Log("msg", "error writing exemplars", "err", err)
+	}
+
+	timestampedHistogram := make([]promtype.Histogram, 0)
+	for _, x := range a.histogram {
+		// No need to write if already outside of range and a ttl is set.
+		if x.Timestamp < endTime && (c.args.TTL.Seconds() != 0) {
+			continue
+		}
+		timestampedHistogram = append(timestampedHistogram, x)
+	}
+	_, err = c.database.WriteSignal(timestampedHistogram)
+	if err != nil {
+		level.Error(c.opts.Logger).Log("msg", "error writing histogram", "err", err)
+	}
+
+	timestampedFloatHistograms := make([]promtype.FloatHistogram, 0)
+	for _, x := range a.floatHistograms {
+		// No need to write if already outside of range and a ttl is set.
+		if x.Timestamp < endTime && (c.args.TTL.Seconds() != 0) {
+			continue
+		}
+		timestampedFloatHistograms = append(timestampedFloatHistograms, x)
+	}
+	_, err = c.database.WriteSignal(timestampedFloatHistograms)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "error writing signals", "err", err)
 	}

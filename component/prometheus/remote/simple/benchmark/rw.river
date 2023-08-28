@@ -1,0 +1,58 @@
+
+logging {
+    level = "debug"
+}
+prometheus.scrape "scraper" {
+    targets = concat([{"__address__" = "localhost:12346"}])
+    forward_to = [prometheus.relabel.mutator.receiver]
+    scrape_interval = "15s"
+}
+
+
+prometheus.relabel "mutator" {
+    rule {
+        source_labels = ["__name__"]
+        regex = "(.+)"
+        replacement = "normal"
+        target_label = "runtype"
+    }
+    rule {
+        source_labels = ["__name__"]
+        regex = "(.+)"
+        replacement = env("METRIC_COUNT")
+        target_label = "metric_length"
+    }
+    rule {
+        source_labels = ["__name__"]
+        regex = "(.+)"
+        replacement = env("ALLOW_WAL")
+        target_label = "allow_wal"
+    }
+
+
+    forward_to = [prometheus.remote_write.agent_stats.receiver]
+}
+
+prometheus.remote_write "agent_stats" {
+    endpoint {
+        url = "https://prometheus-us-central1.grafana.net/api/prom/push"
+        basic_auth {
+            username = env("PROM_USERNAME")
+            password = env("PROM_PASSWORD")
+        }
+    }
+}
+
+// docker run -p 9001:9001 quay.io/freshtracks.io/avalanche --metric-count=10000
+
+prometheus.scrape "avalanche" {
+    targets = concat([{"__address__" = "localhost:9001"}])
+    forward_to = [prometheus.remote_write.empty.receiver]
+    scrape_interval = "15s"
+}
+
+prometheus.remote_write "empty" {
+    endpoint {
+        url = "http://localhost:8888/post"
+    }
+}

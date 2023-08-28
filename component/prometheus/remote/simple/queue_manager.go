@@ -30,6 +30,7 @@ import (
 	"github.com/prometheus/prometheus/storage/remote"
 )
 
+// WriteClient is where to send the bytes.
 type WriteClient interface {
 	// Store stores the given samples in the remote storage.
 	Store(context.Context, []byte) error
@@ -39,14 +40,12 @@ type WriteClient interface {
 	Endpoint() string
 }
 
-// QueueManager manages a queue of samples to be sent to the Storage
-// indicated by the provided WriteClient. Implements writeTo interface
-// used by WAL Watcher.
+// QueueManager  converts samples to []bytes and then distributes them among a set of queues.
 type QueueManager struct {
 	logger               log.Logger
 	flushDeadline        time.Duration
-	cfg                  *QueueOptions
-	mcfg                 *MetadataOptions
+	cfg                  QueueOptions
+	mcfg                 MetadataOptions
 	sendExemplars        bool
 	sendNativeHistograms bool
 
@@ -57,16 +56,12 @@ type QueueManager struct {
 	highestRecvTimestamp *maxTimestamp
 }
 
-// NewQueueManager builds a new QueueManager and starts a new
-// WAL watcher with queue manager as the WriteTo destination.
-// The WAL watcher takes the dir parameter as the base directory
-// for where the WAL shall be located. Note that the full path to
-// the WAL directory will be constructed as <dir>/wal.
+// NewQueueManager creates a QueueManager.
 func NewQueueManager(
 	metrics *queueManagerMetrics,
 	logger log.Logger,
-	cfg *QueueOptions,
-	mCfg *MetadataOptions,
+	cfg QueueOptions,
+	mCfg MetadataOptions,
 	client WriteClient,
 	flushDeadline time.Duration,
 	highestRecvTimestamp *maxTimestamp,
@@ -92,6 +87,7 @@ func NewQueueManager(
 	return t
 }
 
+// The Name of the queuemanager for identification.
 func (t *QueueManager) Name() string {
 	return t.client().Name()
 }
@@ -169,6 +165,10 @@ func (t *QueueManager) sendMetadataWithBackoff(ctx context.Context, metadata []p
 	return nil
 }
 
+// fillQueues breaks down the samples to send to up to 4 Queues with batches container up to maxSamplesPerSend.
+// For example, 2000 samples would use all 4 shards and one batch each.
+// 2500 would use all Shards with the first queue having two batches and the rest have one batch.
+// 100 would use one shard with one batch of 100
 func fillQueues(protoSamples []prompb.TimeSeries, maxSamplesPerSend int) map[int][][]prompb.TimeSeries {
 	maxShards := 4
 	currentShard := 0
@@ -182,7 +182,6 @@ func fillQueues(protoSamples []prompb.TimeSeries, maxSamplesPerSend int) map[int
 			break
 		}
 		subset := protoSamples[:maxSamplesPerSend]
-
 		queues[currentShard] = append(queues[currentShard], subset)
 		protoSamples = protoSamples[maxSamplesPerSend:]
 		currentShard = currentShard + 1
@@ -444,7 +443,7 @@ func (s *shard) sendSamplesWithBackoff(ctx context.Context, samples []prompb.Tim
 	return err == nil, err
 }
 
-func sendWriteRequestWithBackoff(ctx context.Context, cfg *QueueOptions, l log.Logger, attempt func(int) error, onRetry func()) error {
+func sendWriteRequestWithBackoff(ctx context.Context, cfg QueueOptions, l log.Logger, attempt func(int) error, onRetry func()) error {
 	backoff := cfg.MinBackoff
 	sleepDuration := time.Duration(0)
 	try := 0

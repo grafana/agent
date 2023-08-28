@@ -12,7 +12,7 @@ func TestSmallQueue(t *testing.T) {
 	protoSamples := make([]prompb.TimeSeries, 0)
 	for i := 0; i < 100; i++ {
 		protoSamples = append(protoSamples, prompb.TimeSeries{
-			Labels: []prompb.Label{prompb.Label{Name: strconv.Itoa(i)}},
+			Labels: []prompb.Label{{Name: strconv.Itoa(i)}},
 		})
 	}
 	queues := fillQueues(protoSamples, 500)
@@ -28,10 +28,32 @@ func TestJaggedQueue(t *testing.T) {
 	protoSamples := make([]prompb.TimeSeries, 0)
 	for i := 0; i < 11; i++ {
 		protoSamples = append(protoSamples, prompb.TimeSeries{
-			Labels: []prompb.Label{prompb.Label{Name: strconv.Itoa(i)}},
+			Labels: []prompb.Label{{Name: strconv.Itoa(i)}},
 		})
 	}
 	queues := fillQueues(protoSamples, 5)
+	require.Len(t, queues, 3)
+
+	require.Len(t, queues[0], 1)
+	require.Len(t, queues[0][0], 5)
+
+	require.Len(t, queues[1], 1)
+	require.Len(t, queues[1][0], 5)
+
+	require.Len(t, queues[2], 1)
+	require.Len(t, queues[2][0], 1)
+
+	checkQueues(t, queues, 11)
+}
+
+func TestBigQueue(t *testing.T) {
+	protoSamples := make([]prompb.TimeSeries, 0)
+	for i := 0; i < 10_000; i++ {
+		protoSamples = append(protoSamples, prompb.TimeSeries{
+			Labels: []prompb.Label{{Name: strconv.Itoa(i)}},
+		})
+	}
+	queues := fillQueues(protoSamples, 2000)
 	require.Len(t, queues, 3)
 
 	require.Len(t, queues[0], 1)

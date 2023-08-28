@@ -33,8 +33,9 @@ var (
 
 func defaultArgs() Arguments {
 	return Arguments{
-		TTL:   2 * time.Hour,
-		Evict: 15 * time.Minute,
+		TTL:      2 * time.Hour,
+		Evict:    15 * time.Minute,
+		Endpoint: GetDefaultEndpointOptions(),
 	}
 }
 
@@ -42,7 +43,7 @@ type Arguments struct {
 	TTL   time.Duration `river:"ttl,attr,optional"`
 	Evict time.Duration `river:"evict_interval,attr,optional"`
 
-	Endpoint *EndpointOptions `river:"endpoint,block,optional"`
+	Endpoint EndpointOptions `river:"endpoint,block,optional"`
 }
 
 type Exports struct {
@@ -67,8 +68,8 @@ type EndpointOptions struct {
 	SendExemplars        bool                    `river:"send_exemplars,attr,optional"`
 	SendNativeHistograms bool                    `river:"send_native_histograms,attr,optional"`
 	HTTPClientConfig     *types.HTTPClientConfig `river:",squash"`
-	QueueOptions         *QueueOptions           `river:"queue_config,block,optional"`
-	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
+	QueueOptions         QueueOptions            `river:"queue_config,block,optional"`
+	MetadataOptions      MetadataOptions         `river:"metadata_config,block,optional"`
 }
 
 func GetDefaultEndpointOptions() EndpointOptions {
@@ -76,6 +77,8 @@ func GetDefaultEndpointOptions() EndpointOptions {
 		RemoteTimeout:    30 * time.Second,
 		SendExemplars:    true,
 		HTTPClientConfig: types.CloneDefaultHTTPClientConfig(),
+		QueueOptions:     DefaultQueueOptions,
+		MetadataOptions:  DefaultMetadataOptions,
 	}
 
 	return defaultEndpointOptions

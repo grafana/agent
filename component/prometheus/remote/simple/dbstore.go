@@ -2,7 +2,9 @@ package simple
 
 import (
 	"context"
+	"os"
 	"path"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -16,6 +18,7 @@ import (
 // dbstore is a helper interface around the bookmark and sample stores.
 type dbstore struct {
 	mut           sync.RWMutex
+	directory     string
 	l             *logging.Logger
 	ttl           time.Duration
 	sampleDB      SignalDB
@@ -44,10 +47,11 @@ func newDBStore(ttl time.Duration, directory string, r prometheus.Registerer, l 
 		return nil, err
 	}
 	store := &dbstore{
-		bookmark: bookmark,
-		sampleDB: sample,
-		ttl:      ttl,
-		l:        l,
+		bookmark:  bookmark,
+		sampleDB:  sample,
+		ttl:       ttl,
+		l:         l,
+		directory: directory,
 	}
 
 	dbm := newDbMetrics(r, store)
@@ -117,7 +121,7 @@ func (dbs *dbstore) getKeyCount() uint64 {
 }
 
 func (dbs *dbstore) getFileSize() float64 {
-	return float64(dbs.sampleDB.Size() + dbs.bookmark.Size())
+	return DirSize(dbs.directory)
 }
 
 func (dbs *dbstore) sampleCount() float64 {
@@ -142,4 +146,18 @@ func (dbs *dbstore) evict() {
 	if err != nil {
 		level.Error(dbs.l).Log("msg", "failure evicting sample db", "err", err)
 	}
+}
+
+func DirSize(path string) float64 {
+	var size int64
+	_ = filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return nil
+	})
+	return float64(size)
 }

@@ -61,7 +61,7 @@ func (w *writer) Start(ctx context.Context) {
 	var err error
 	for {
 		recoverableError := true
-		timeOut := 10 * time.Second
+		timeOut := 1 * time.Second
 		// If we got a new key or the previous record did not enqueue then continue trying to send.
 		if newKey || !success {
 			level.Info(w.l).Log("msg", "looking for signal", "key", w.currentKey)
