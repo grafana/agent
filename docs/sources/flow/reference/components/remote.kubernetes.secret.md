@@ -25,9 +25,9 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `namespace` | `string` | Kubernetes namespace containing the desired Secret. | | yes
-`name` | `string` | Name of the kubernetes Secret | | yes
-`poll_frequency` | `duration` | Frequency to poll the kubernetes API. | `"1m"` | no
-`poll_timeout` | `duration` | Timeout when polling the kubernetes API.. | `"15s"` | no
+`name` | `string` | Name of the Kubernetes Secret | | yes
+`poll_frequency` | `duration` | Frequency to poll the Kubernetes API. | `"1m"` | no
+`poll_timeout` | `duration` | Timeout when polling the Kubernetes API. | `"15s"` | no
 
 When this component performs a poll operation, it requests the Secret data from the Kubernetes API. 
 A poll is triggered by the following:
