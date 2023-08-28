@@ -84,9 +84,9 @@ The following arguments are supported:
  `min_poll_frequency` | `duration` | Minimum frequency to poll for files.      |  250ms  | no      
  `max_poll_frequency` | `duration` | Maximum frequency to poll for files.      |  250ms  | no       
 
-Any time file changes are detected, the poll frequency gets reset to `min_poll_frequency`.
+If no file changes are detected, the poll frequency doubles until a file change is detected or the poll frequency reaches the `max_poll_frequency`.
 
-Any time no files changes are detected, the poll frequency doubles in value to the maximum duration specified by `max_poll_frequency`.
+If file changes are detected, the poll frequency is reset to `min_poll_frequency`.
 
 ## Exported fields
 
