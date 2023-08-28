@@ -2,11 +2,12 @@ package simple
 
 import (
 	"context"
-	"github.com/prometheus/client_golang/prometheus"
 	"net"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"

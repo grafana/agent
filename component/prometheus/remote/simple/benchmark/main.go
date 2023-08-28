@@ -14,7 +14,6 @@ import (
 
 // main handles creating the benchmark.
 func main() {
-
 	username := os.Getenv("PROM_USERNAME")
 	if username == "" {
 		panic("PROM_USERNAME env must be set")
