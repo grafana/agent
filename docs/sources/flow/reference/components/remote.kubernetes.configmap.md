@@ -52,8 +52,8 @@ client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the Kubern
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 
-The `>` symbol indicates deeper levels of nesting. For example, `client >
-basic_auth` refers to an `basic_auth` block defined inside a `client` block.
+The `>` symbol indicates deeper levels of nesting. For example, `client > basic_auth`
+refers to a `basic_auth` block defined inside a `client` block.
 
 [client]: #client-block
 [basic_auth]: #basic_auth-block
