@@ -7,7 +7,7 @@ title: remote.kubernetes.secret
 
 `remote.kubernetes.secret` reads a Secret from the kubernetes API server, and exposes it's data for other components to consume.
 
-A common use case for this is loading credentials or other info from secrets that are not already mounted into the agent pod at deployment time.
+A common use case for this is loading credentials or other information from secrets that are not already mounted into the agent pod at deployment time.
 
 ## Usage
 
