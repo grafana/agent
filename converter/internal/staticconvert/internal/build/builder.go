@@ -32,7 +32,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
 )

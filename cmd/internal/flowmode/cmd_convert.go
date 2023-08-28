@@ -12,7 +12,7 @@ import (
 
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
-	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/river/diag"
 )
 
 func convertCommand() *cobra.Command {

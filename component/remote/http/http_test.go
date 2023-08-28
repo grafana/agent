@@ -12,10 +12,10 @@ import (
 	"github.com/go-kit/log/level"
 	http_component "github.com/grafana/agent/component/remote/http"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/backoff"
+	"github.com/grafana/river"
+	"github.com/grafana/river/rivertypes"
 	"github.com/stretchr/testify/require"
 )
 

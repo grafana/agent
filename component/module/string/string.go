@@ -5,9 +5,9 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
-	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/http"
+	"github.com/grafana/river/rivertypes"
 )
 
 func init() {
