@@ -152,6 +152,7 @@ linux_containers_jobs + windows_containers_jobs + [
       ref: ['refs/tags/v*'],
     },
     depends_on: job_names(linux_containers_jobs + windows_containers_jobs),
+    image_pull_secrets: ['dockerconfigjson'],
     steps: [
       {
         name: 'Generate GitHub token',
