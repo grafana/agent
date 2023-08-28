@@ -6,12 +6,12 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"github.com/go-kit/log"
 	"io"
 	"testing"
 	"time"
 
 	pebbledb "github.com/cockroachdb/pebble"
-	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/stretchr/testify/require"
 )
 
@@ -88,7 +88,7 @@ func TestEvict(t *testing.T) {
 
 func makeDB(t *testing.T) (*DB, error) {
 	dir := t.TempDir()
-	l := logging.New(nil)
+	l := log.NewNopLogger()
 	return NewDB(dir, getValue, getType, l)
 }
 

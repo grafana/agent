@@ -5,22 +5,21 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"errors"
+	"github.com/go-kit/log"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log/level"
 	"go.uber.org/atomic"
 
-	"github.com/golang/snappy"
-	"github.com/grafana/agent/pkg/flow/logging"
-
 	pdb "github.com/cockroachdb/pebble"
+	"github.com/golang/snappy"
 )
 
 type DB struct {
 	mut sync.RWMutex
 	db  *pdb.DB
-	log *logging.Logger
+	log log.Logger
 	// Trying to avoid unbounded lists, this thankfully is one key for each commit so its unlikely to be in the millions
 	// of active commits. KeyCache really doesnt make sense for bookmarks.
 	keyCache              *metadata
@@ -32,7 +31,7 @@ type DB struct {
 	totalCompressionRatio *atomic.Float64
 }
 
-func NewDB(dir string, getValue func([]byte, int8) (any, error), getType func(data any) (int8, int, error), l *logging.Logger) (*DB, error) {
+func NewDB(dir string, getValue func([]byte, int8) (any, error), getType func(data any) (int8, int, error), l log.Logger) (*DB, error) {
 	pebbleDB, err := pdb.Open(dir, &pdb.Options{})
 	if err != nil {
 		return nil, err

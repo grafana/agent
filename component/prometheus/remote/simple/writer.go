@@ -9,8 +9,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/flow/logging"
-
 	"github.com/grafana/agent/component/prometheus"
 )
 
@@ -26,7 +24,7 @@ type writer struct {
 	l           log.Logger
 }
 
-func newWriter(parent string, to *QueueManager, store *dbstore, l *logging.Logger) *writer {
+func newWriter(parent string, to *QueueManager, store *dbstore, l log.Logger) *writer {
 	name := fmt.Sprintf("metrics_write_to_%s_parent_%s", to.Name(), parent)
 	w := &writer{
 		parentId:    parent,

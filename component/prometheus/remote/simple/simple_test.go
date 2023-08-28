@@ -2,7 +2,7 @@ package simple
 
 import (
 	"context"
-	"net"
+	"github.com/go-kit/log"
 	"sync"
 	"testing"
 	"time"
@@ -12,7 +12,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
@@ -21,21 +20,15 @@ import (
 )
 
 func TestSimpleMetricTypes(t *testing.T) {
-	l := logging.New(nil)
+	l := log.NewNopLogger()
 	opts := component.Options{
 		ID:       "test",
 		Logger:   l,
 		DataPath: t.TempDir(),
 		OnStateChange: func(e component.Exports) {
 		},
-		Registerer:     prometheus.DefaultRegisterer,
-		Tracer:         nil,
-		Clusterer:      nil,
-		HTTPListenAddr: "",
-		DialFunc: func(ctx context.Context, network string, address string) (net.Conn, error) {
-			return nil, nil
-		},
-		HTTPPath: "",
+		Registerer: prometheus.DefaultRegisterer,
+		Tracer:     nil,
 	}
 	args := defaultArgs()
 	args.TTL = 0

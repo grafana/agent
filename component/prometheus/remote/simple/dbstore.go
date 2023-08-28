@@ -2,6 +2,7 @@ package simple
 
 import (
 	"context"
+	"github.com/go-kit/log"
 	"os"
 	"path"
 	"path/filepath"
@@ -11,7 +12,6 @@ import (
 	"github.com/grafana/agent/component/prometheus/remote/simple/pebble"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -19,7 +19,7 @@ import (
 type dbstore struct {
 	mut           sync.RWMutex
 	directory     string
-	l             *logging.Logger
+	l             log.Logger
 	ttl           time.Duration
 	sampleDB      SignalDB
 	bookmark      SignalDB
@@ -37,7 +37,7 @@ const (
 	BookmarkType
 )
 
-func newDBStore(ttl time.Duration, directory string, r prometheus.Registerer, l *logging.Logger) (*dbstore, error) {
+func newDBStore(ttl time.Duration, directory string, r prometheus.Registerer, l log.Logger) (*dbstore, error) {
 	bookmark, err := pebble.NewDB(path.Join(directory, "bookmark"), GetValue, GetType, l)
 	if err != nil {
 		return nil, err

@@ -9,7 +9,6 @@ import (
 	"github.com/prometheus/prometheus/storage"
 
 	types "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/pkg/river"
 )
 
 // Defaults for config blocks.
@@ -27,8 +26,6 @@ var (
 		SendInterval:      1 * time.Minute,
 		MaxSamplesPerSend: 2000,
 	}
-
-	_ river.Unmarshaler = (*QueueOptions)(nil)
 )
 
 func defaultArgs() Arguments {
@@ -50,12 +47,9 @@ type Exports struct {
 	Receiver storage.Appendable `river:"receiver,attr"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault sets the default
+func (rc *Arguments) SetToDefault() {
 	*rc = defaultArgs()
-
-	type config Arguments
-	return f((*config)(rc))
 }
 
 // EndpointOptions describes an individual location for where metrics in the WAL
@@ -84,21 +78,16 @@ func GetDefaultEndpointOptions() EndpointOptions {
 	return defaultEndpointOptions
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefaults sets the defaults
+func (r *EndpointOptions) SetToDefaults() {
 	*r = GetDefaultEndpointOptions()
+}
 
-	type arguments EndpointOptions
-	err := f((*arguments)(r))
-	if err != nil {
-		return err
-	}
-
+func (r *EndpointOptions) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	if r.HTTPClientConfig != nil {
 		return r.HTTPClientConfig.Validate()
 	}
-
 	return nil
 }
 
@@ -114,12 +103,9 @@ type QueueOptions struct {
 	RetryOnHTTP429    bool          `river:"retry_on_http_429,attr,optional"`
 }
 
-// UnmarshalRiver allows injecting of default values
-func (r *QueueOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefaults allows injecting of default values
+func (r *QueueOptions) SetToDefaults() {
 	*r = DefaultQueueOptions
-
-	type arguments QueueOptions
-	return f((*arguments)(r))
 }
 
 // MetadataOptions configures how metadata gets sent over the remote_write
@@ -130,12 +116,9 @@ type MetadataOptions struct {
 	MaxSamplesPerSend int           `river:"max_samples_per_send,attr,optional"`
 }
 
-// UnmarshalRiver allows injecting of default values
-func (o *MetadataOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefaults set to defaults.
+func (o *MetadataOptions) SetToDefaults() {
 	*o = DefaultMetadataOptions
-
-	type options MetadataOptions
-	return f((*options)(o))
 }
 
 type maxTimestamp struct {

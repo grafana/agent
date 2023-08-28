@@ -531,7 +531,7 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
 	github.com/prometheus-community/go-runit v0.1.0 // indirect
 	github.com/prometheus/alertmanager v0.25.1 // indirect
-	github.com/prometheus/common/sigv4 v0.1.0 // indirect
+	github.com/prometheus/common/sigv4 v0.1.0
 	github.com/prometheus/exporter-toolkit v0.10.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/remeh/sizedwaitgroup v1.0.0 // indirect
@@ -595,7 +595,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/collector/config/internal v0.80.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.42.1-0.20230612162650-64be7e574a17 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.42.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.42.0
 	go.opentelemetry.io/contrib/propagators/b3 v1.17.0 // indirect
 	go.opentelemetry.io/otel/bridge/opencensus v0.39.0 // indirect
 	go4.org/netipx v0.0.0-20230125063823-8449b0a6169f // indirect
@@ -624,12 +624,21 @@ require (
 )
 
 require (
+	github.com/DataDog/zstd v1.4.5 // indirect
+	github.com/cockroachdb/errors v1.8.1 // indirect
+	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
+	github.com/cockroachdb/redact v1.0.8 // indirect
+	github.com/cockroachdb/sentry-go v0.6.1-cockroachdb.2 // indirect
+	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
 	github.com/prometheus-community/prom-label-proxy v0.6.0 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sercand/kuberesolver/v4 v4.0.0 // indirect
 	github.com/sony/gobreaker v0.5.0 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
@@ -714,8 +723,8 @@ exclude github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.194
 // Add exclude directives so Go doesn't pick old incompatible k8s.io/client-go
 // versions.
 exclude (
-	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/client-go v8.0.0+incompatible
+	k8s.io/client-go v12.0.0+incompatible
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
