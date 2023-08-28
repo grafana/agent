@@ -21,7 +21,8 @@ jobs:
 
             
             If the opened issue is a bug, check if newer versions of the Agent have
-            fixed the issue.
+            fixed the issue. If it is not, please let us know is this issue is still
+            relevant otherwise, feel free to close it.
 
             Thank you for your contributions!
           stale-pr-message: >
