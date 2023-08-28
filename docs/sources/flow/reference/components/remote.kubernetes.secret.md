@@ -29,7 +29,7 @@ Name | Type | Description | Default | Required
 `poll_frequency` | `duration` | Frequency to poll the kubernetes API. | `"1m"` | no
 `poll_timeout` | `duration` | Timeout when polling the kubernetes API.. | `"15s"` | no
 
-When this component performs a poll operation, it requests the Secret data from the kubernetes API. 
+When this component performs a poll operation, it requests the Secret data from the Kubernetes API. 
 A poll is triggered by the following:
 
 * When the component first loads.
