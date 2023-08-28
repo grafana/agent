@@ -49,8 +49,11 @@ tls | [tls][] | Define TLS settings for the HTTP server. | no
 The `tls` block configures TLS settings for the HTTP server.
 
 {{% admonition type="warning" %}}
-If the `tls` block is provided in a reload after Grafana Agent is already
-running, existing connections will continue to communicate over plaintext.
+If the `tls` block is added and the configuration is reloaded when Grafana
+Agent is running, existing connections will continue to communicate over
+plaintext. Similarly, if the `tls` block is removed and the configuration is
+reloaded when Grafana Agent is running, existing connections will continue to
+communicate over TLS.
 
 To ensure all connections use TLS, start Grafana Agent with the `tls` block
 already configured.

@@ -55,14 +55,17 @@ type Service struct {
 	gatherer prometheus.Gatherer
 	opts     Options
 
-	// lazyLis and lazyNetLis are used to lazily enable TLS.
+	// publicLis and tcpLis are used to lazily enable TLS, since TLS is
+	// optionally configurable at runtime.
 	//
-	// lazyNetLis eventually wraps around the real network listener once the
-	// Service is running.
+	// publicLis is the listener that is exposed to the public. It either sends
+	// traffic directly to tcpLis, or sends it to an intermediate TLS listener
+	// when TLS is enabled.
 	//
-	// lazyLis either wraps around a TLS listener or lazyNetLis, depending on
-	// whether TLS is currently enabled.
-	lazyLis, lazyNetLis *lazyListener
+	// tcpLis forwards traffic to a TCP listener once the Service is running; it
+	// is lazily initiated since we don't listen to traffic until the Service
+	// runs.
+	publicLis, tcpLis *lazyListener
 
 	memLis *memconn.Listener
 
@@ -90,12 +93,12 @@ func New(opts Options) *Service {
 	}
 
 	var (
-		lazyNetLis = &lazyListener{}
-		lazyLis    = &lazyListener{}
+		tcpLis    = &lazyListener{}
+		publicLis = &lazyListener{}
 	)
 
 	// lazyLis should default to wrapping around lazyNetLis.
-	_ = lazyLis.SetInner(lazyNetLis)
+	_ = publicLis.SetInner(tcpLis)
 
 	return &Service{
 		log:      l,
@@ -103,9 +106,9 @@ func New(opts Options) *Service {
 		gatherer: r,
 		opts:     opts,
 
-		lazyLis:                 lazyLis,
-		lazyNetLis:              lazyNetLis,
-		memLis:                  memconn.NewListener(l),
+		publicLis: publicLis,
+		tcpLis:    tcpLis,
+		memLis:    memconn.NewListener(l),
 
 		componentHttpPathPrefix: "/api/v0/component/",
 	}
@@ -133,7 +136,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 	if err != nil {
 		return fmt.Errorf("failed to listen on %s: %w", s.opts.HTTPListenAddr, err)
 	}
-	if err := s.lazyNetLis.SetInner(netLis); err != nil {
+	if err := s.tcpLis.SetInner(netLis); err != nil {
 		return fmt.Errorf("failed to use listener: %w", err)
 	}
 
@@ -192,7 +195,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 	level.Info(s.log).Log("msg", "now listening for http traffic", "addr", s.opts.HTTPListenAddr)
 
-	listeners := []net.Listener{s.lazyLis, s.memLis}
+	listeners := []net.Listener{s.publicLis, s.memLis}
 	for _, lis := range listeners {
 		wg.Add(1)
 		go func(lis net.Listener) {
@@ -286,16 +289,16 @@ func (s *Service) Update(newConfig any) error {
 			return err
 		}
 
-		newTLSListener := tls.NewListener(s.lazyNetLis, tlsConfig)
-		level.Info(s.log).Log("msg", "applying tls config to HTTP server")
-		if err := s.lazyLis.SetInner(newTLSListener); err != nil {
+		newTLSListener := tls.NewListener(s.tcpLis, tlsConfig)
+		level.Info(s.log).Log("msg", "applying TLS config to HTTP server")
+		if err := s.publicLis.SetInner(newTLSListener); err != nil {
 			return err
 		}
 	} else {
 		// Ensure that the outer lazy listener is sending requests directly to the
 		// network, instead of any previous instance of a TLS listener.
-		level.Info(s.log).Log("msg", "applying non-tls config to HTTP server")
-		if err := s.lazyLis.SetInner(s.lazyNetLis); err != nil {
+		level.Info(s.log).Log("msg", "applying non-TLS config to HTTP server")
+		if err := s.publicLis.SetInner(s.tcpLis); err != nil {
 			return err
 		}
 	}
