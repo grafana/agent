@@ -224,6 +224,9 @@
       "trace": {
         "trace_id": "abcd",
         "span_id": "def"
+      },
+      "context": {
+        "hello": "world"
       }
     }
   ],
