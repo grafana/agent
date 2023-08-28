@@ -7,6 +7,14 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+
+v0.36.0-rc.1 (2023-08-28)
+--------------------
+
+### Bugfixes
+
+- Fix GitHub authentication on Drone pipeline.
+
 v0.36.0-rc.0 (2023-08-25)
 -------------------------
 
