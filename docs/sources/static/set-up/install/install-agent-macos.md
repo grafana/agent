@@ -68,6 +68,7 @@ brew uninstall grafana-agent
 1. To create the Agent `config.yml` file, open a terminal and run the following command:
 
     ```shell
+    mkdir $(brew --prefix)/etc/grafana-agent
     touch $(brew --prefix)/etc/grafana-agent/config.yml
     ```
 
