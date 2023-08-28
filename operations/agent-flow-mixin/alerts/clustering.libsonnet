@@ -29,7 +29,7 @@ alert.newGroup(
     // Standard Deviation of Lamport clock time between nodes is too high.
     alert.newRule(
       'ClusterLamportClockDrift',
-      'stddev by (cluster, namespace) (cluster_node_lamport_time) > 4',
+      'stddev by (cluster, namespace) (cluster_node_lamport_time) > 4 * sqrt(count by (cluster, namespace) (cluster_node_info))',
       "Cluster nodes' lamport clocks are not converging.",
       '5m'
     ),
