@@ -4,7 +4,7 @@ import (
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 )
 

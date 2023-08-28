@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 )
 
 // Options is a set of options used to construct and configure a Logger.

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/grafana/agent/pkg/river/encoding/riverjson"
+	"github.com/grafana/river/encoding/riverjson"
 )
 
 var (
