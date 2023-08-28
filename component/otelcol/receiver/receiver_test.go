@@ -82,7 +82,6 @@ func newTestEnvironment(t *testing.T, onTracesConsumer func(t otelconsumer.Trace
 					_ otelcomponent.Config,
 					t otelconsumer.Traces,
 				) (otelreceiver.Traces, error) {
-
 					onTracesConsumer(t)
 					return nil, nil
 				}, otelcomponent.StabilityLevelUndefined),
@@ -126,4 +125,8 @@ func (fa fakeReceiverArgs) Exporters() map[otelcomponent.DataType]map[otelcompon
 
 func (fa fakeReceiverArgs) NextConsumers() *otelcol.ConsumerArguments {
 	return fa.Output
+}
+
+func (fa fakeReceiverArgs) DebugMetricsConfig() *otelcol.DebugMetricsArguments {
+	return nil
 }

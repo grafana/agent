@@ -121,8 +121,7 @@ func (te *testEnvironment) Start() {
 	}()
 }
 
-type fakeExporterArgs struct {
-}
+type fakeExporterArgs struct{}
 
 var _ exporter.Arguments = fakeExporterArgs{}
 
@@ -135,6 +134,10 @@ func (fa fakeExporterArgs) Extensions() map[otelcomponent.ID]otelextension.Exten
 }
 
 func (fa fakeExporterArgs) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
+	return nil
+}
+
+func (fe fakeExporterArgs) DebugMetricsConfig() *otelcol.DebugMetricsArguments {
 	return nil
 }
 
@@ -178,7 +181,7 @@ func (fe *fakeExporter) ConsumeTraces(ctx context.Context, td ptrace.Traces) err
 func createTestTraces() ptrace.Traces {
 	// Matches format from the protobuf definition:
 	// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
-	var bb = `{
+	bb := `{
 		"resource_spans": [{
 			"scope_spans": [{
 				"spans": [{
