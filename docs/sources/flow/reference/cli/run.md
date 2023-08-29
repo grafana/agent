@@ -135,7 +135,7 @@ The first node that is used to bootstrap a new cluster (also known as
 the "seed node") can either omit the flags that specify peers to join or can
 try to connect to itself.
 
-The `--cluster.name` can be use to prevent two clusters from accidentally merging.
+The `--cluster.name` can be used to prevent two clusters from accidentally merging.
 When `--cluster.name` is set, nodes will be prevented from joining that cluster if 
 they do not have the same value for `--cluster.name`.
 
