@@ -217,7 +217,6 @@ type Measurement struct {
 	Timestamp time.Time          `json:"timestamp,omitempty"`
 	Trace     TraceContext       `json:"trace,omitempty"`
 	Context   MeasurementContext `json:"context,omitempty"`
-	Type      string             `json:"type,omitempty"`
 }
 
 // KeyVal representation of the exception object

@@ -128,13 +128,12 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 				"ttfcp": 22.12,
 				"ttfb":  14,
 			},
-			Type:      "page load",
 			Timestamp: now,
 			Trace: TraceContext{
 				TraceID: "abcd",
 				SpanID:  "def",
 			},
-			Context: map[string]string{
+			Context: MeasurementContext{
 				"hello": "world",
 			},
 		},
