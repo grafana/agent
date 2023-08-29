@@ -17,7 +17,8 @@ jobs:
           days-before-close: -1
           stale-issue-message: >
             This issue has been automatically marked as stale because it has
-            not had any activity in the past 30 days.
+            not had any activity in the past 30 days. The issue will not be closed
+            automatically, but a label will be added to it for tracking purposes.
 
             
             If the opened issue is a bug, check if newer versions of the Agent have
@@ -27,11 +28,11 @@ jobs:
             Thank you for your contributions!
           stale-pr-message: >
             This PR has been automatically marked as stale because it has not
-            had any activity in the past 30 days.
+            had any activity in the past 30 days. The PR will not be closed
+            automatically, but a label will be added to it for tracking purposes.
 
-            If the PR could not move forward because it has not enough reviewers, please ping
-            the maintainers in order to get more reviews. If you do not have enough
-            time to follow up on this PR, consider closing it and let us know.
+            If you do not have enough time to follow up on this PR or you think its is 
+            no long relevant, consider closing it and let us know.
 
             Thank you for your contributions!
           stale-issue-label: stale
