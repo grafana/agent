@@ -21,9 +21,9 @@ jobs:
             automatically, but a label will be added to it for tracking purposes.
 
             
-            If the opened issue is a bug, check if newer versions of the Agent have
-            fixed the issue. If it is not, please let us know is this issue is still
-            relevant otherwise, feel free to close it.
+            If the opened issue is a bug, check if newer releases have fixed the 
+            issue. If the issue is no longer relevant, please feel free to close 
+            it.
 
             Thank you for your contributions!
           stale-pr-message: >
