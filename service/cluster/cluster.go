@@ -59,6 +59,7 @@ type Options struct {
 	NodeName         string        // Name to use for this node in the cluster.
 	AdvertiseAddress string        // Address to advertise to other nodes in the cluster.
 	RejoinInterval   time.Duration // How frequently to rejoin the cluster to address split brain issues.
+	ClusterName      string        // Name to prevent nodes without this identifier from joining the cluster.
 
 	// Function to discover peers to join. If this function is nil or returns an
 	// empty slice, no peers will be joined.
@@ -98,6 +99,7 @@ func New(opts Options) (*Service, error) {
 		AdvertiseAddr: opts.AdvertiseAddress,
 		Log:           l,
 		Sharder:       shard.Ring(tokensPerNode),
+		Label:         opts.ClusterName,
 	}
 
 	httpClient := &http.Client{

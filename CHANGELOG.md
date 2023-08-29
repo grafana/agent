@@ -17,6 +17,8 @@ Main (unreleased)
   - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
 
+- Clustering: Add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
+
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
