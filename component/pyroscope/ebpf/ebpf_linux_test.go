@@ -11,10 +11,10 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/pyroscope"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
 	ebpfspy "github.com/grafana/pyroscope/ebpf"
 	"github.com/grafana/pyroscope/ebpf/sd"
+	"github.com/grafana/river"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"

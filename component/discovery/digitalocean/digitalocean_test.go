@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	prom_common_config "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
