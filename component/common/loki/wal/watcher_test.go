@@ -301,6 +301,12 @@ var cases = map[string]watcherTest{
 	},
 }
 
+type noMarker struct{}
+
+func (n noMarker) LastMarkedSegment() int {
+	return -1
+}
+
 // TestWatcher is the main test function, that works as framework to test different scenarios of the Watcher. It bootstraps
 // necessary test components.
 func TestWatcher(t *testing.T) {
@@ -317,7 +323,7 @@ func TestWatcher(t *testing.T) {
 				ReadEntries: utils.NewSyncSlice[loki.Entry](),
 			}
 			// create new watcher, and defer stop
-			watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig)
+			watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, noMarker{})
 			defer watcher.Stop()
 			wl, err := New(Config{
 				Enabled: true,
