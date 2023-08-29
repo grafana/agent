@@ -207,7 +207,7 @@ func (l Log) KeyVal() *KeyVal {
 	return kv
 }
 
-// ExceptionContext is a string to string map structure that
+// MeasurementContext is a string to string map structure that
 // represents the context of a log message
 type MeasurementContext map[string]string
 
