@@ -93,7 +93,7 @@ The following values are accepted for `client_auth`:
 
 * `NoClientCert`: client certificates are neither requested nor validated.
 * `RequestClientCert`: requests clients to send an optional certificate. Certificates provided by clients are not validated.
-* `RequireAnyClientCert`: requires at least one certificate from clients. Certificates provided by clients are not valided.
+* `RequireAnyClientCert`: requires at least one certificate from clients. Certificates provided by clients are not validated.
 * `VerifyClientCertIfGiven`: requests clients to send an optional certificate. If a certificate is sent, it must be valid.
 * `RequireAndVerifyClientCert`: requires clients to send a valid certificate.
 
