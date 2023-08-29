@@ -123,7 +123,7 @@ func SanitizeRiverIdentifier(s string) (string, diag.Diagnostics) {
 
 	for i, c := range s {
 		if i == 0 {
-			if !unicode.IsLetter(c) {
+			if !(unicode.IsLetter(c) || c == '_') {
 				newValue = "id_"
 				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("identifiers must start with a letter. prepended \"id_\" before %q", c))
 			}
