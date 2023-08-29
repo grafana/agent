@@ -31,8 +31,8 @@ jobs:
             had any activity in the past 30 days. The PR will not be closed
             automatically, but a label will be added to it for tracking purposes.
 
-            If you do not have enough time to follow up on this PR or you think its is 
-            no long relevant, consider closing it and let us know.
+            If you do not have enough time to follow up on this PR or you think it's  
+            no longer relevant, consider closing it.
 
             Thank you for your contributions!
           stale-issue-label: stale
