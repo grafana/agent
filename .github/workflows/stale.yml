@@ -14,7 +14,7 @@ jobs:
         with:
           close-issue-reason: not_planned
           days-before-stale: 30
-          days-before-close: -1
+          days-before-close: -1 # never close automatically
           stale-issue-message: >
             This issue has been automatically marked as stale because it has
             not had any activity in the past 30 days. The issue will not be closed
