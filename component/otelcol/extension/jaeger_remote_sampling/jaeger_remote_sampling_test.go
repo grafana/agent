@@ -13,8 +13,8 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river"
 	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
 )

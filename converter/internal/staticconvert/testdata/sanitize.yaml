@@ -19,8 +19,6 @@ integrations:
       regex: (prometheus_target_.*|prometheus_sd_discovered_targets|agent_build.*|agent_wal_samples_appended_total|process_start_time_seconds)
       source_labels:
       - __name__
-  windows_exporter:
-    enabled: true
 logs:
   configs:
   - clients:

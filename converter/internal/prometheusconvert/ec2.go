@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/component/discovery/aws"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
 )
@@ -18,7 +18,7 @@ func appendDiscoveryEC2(pb *prometheusBlocks, label string, sdConfig *prom_aws.E
 	name := []string{"discovery", "ec2"}
 	block := common.NewBlockWithOverride(name, label, discoveryec2Args)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoverExports("discovery.ec2." + label + ".targets")
+	return NewDiscoveryExports("discovery.ec2." + label + ".targets")
 }
 
 func ValidateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {

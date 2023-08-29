@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -17,16 +18,18 @@ import (
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/boringcrypto"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
+	uiservice "github.com/grafana/agent/service/ui"
+	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
+	"github.com/grafana/river/diag"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
@@ -38,13 +41,14 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		inMemoryAddr:     "agent.internal:12345",
-		httpListenAddr:   "127.0.0.1:12345",
-		storagePath:      "data-agent/",
-		uiPrefix:         "/",
-		disableReporting: false,
-		enablePprof:      true,
-		configFormat:     "flow",
+		inMemoryAddr:         "agent.internal:12345",
+		httpListenAddr:       "127.0.0.1:12345",
+		storagePath:          "data-agent/",
+		uiPrefix:             "/",
+		disableReporting:     false,
+		enablePprof:          true,
+		configFormat:         "flow",
+		clusterAdvInterfaces: advertise.DefaultInterfaces,
 
 		clusterRejoinInterval: 60 * time.Second,
 	}
@@ -101,6 +105,8 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		StringVar(&r.clusterDiscoverPeers, "cluster.discover-peers", r.clusterDiscoverPeers, "List of key-value tuples for discovering peers")
 	cmd.Flags().
+		StringSliceVar(&r.clusterAdvInterfaces, "cluster.advertise-interfaces", r.clusterAdvInterfaces, "List of interfaces used to infer an address to advertise")
+	cmd.Flags().
 		DurationVar(&r.clusterRejoinInterval, "cluster.rejoin-interval", r.clusterRejoinInterval, "How often to rejoin the list of peers")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
@@ -121,6 +127,7 @@ type flowRun struct {
 	clusterAdvAddr               string
 	clusterJoinAddr              string
 	clusterDiscoverPeers         string
+	clusterAdvInterfaces         []string
 	clusterRejoinInterval        time.Duration
 	configFormat                 string
 	configBypassConversionErrors bool
@@ -172,17 +179,6 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
-	clusterer, err := cluster.New(l, reg, fr.clusterEnabled, fr.clusterNodeName, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr, fr.clusterDiscoverPeers, fr.clusterRejoinInterval)
-	if err != nil {
-		return fmt.Errorf("building clusterer: %w", err)
-	}
-	defer func() {
-		err := clusterer.Stop()
-		if err != nil {
-			level.Error(l).Log("msg", "failed to terminate clusterer", "err", err)
-		}
-	}()
-
 	// There's a cyclic dependency between the definition of the Flow controller,
 	// the reload/ready functions, and the HTTP service.
 	//
@@ -193,28 +189,52 @@ func (fr *flowRun) Run(configFile string) error {
 		ready  func() bool
 	)
 
+	clusterService, err := buildClusterService(clusterOptions{
+		Log:     l,
+		Tracer:  t,
+		Metrics: reg,
+
+		EnableClustering:    fr.clusterEnabled,
+		NodeName:            fr.clusterNodeName,
+		AdvertiseAddress:    fr.clusterAdvAddr,
+		ListenAddress:       fr.httpListenAddr,
+		JoinPeers:           strings.Split(fr.clusterJoinAddr, ","),
+		DiscoverPeers:       fr.clusterDiscoverPeers,
+		RejoinInterval:      fr.clusterRejoinInterval,
+		AdvertiseInterfaces: fr.clusterAdvInterfaces,
+	})
+	if err != nil {
+		return err
+	}
+
 	httpService := httpservice.New(httpservice.Options{
 		Logger:   log.With(l, "service", "http"),
 		Tracer:   t,
 		Gatherer: prometheus.DefaultGatherer,
 
-		Clusterer:  clusterer,
 		ReadyFunc:  func() bool { return ready() },
 		ReloadFunc: func() error { return reload() },
 
 		HTTPListenAddr:   fr.httpListenAddr,
 		MemoryListenAddr: fr.inMemoryAddr,
-		UIPrefix:         fr.uiPrefix,
 		EnablePProf:      fr.enablePprof,
 	})
 
+	uiService := uiservice.New(uiservice.Options{
+		UIPrefix: fr.uiPrefix,
+		Cluster:  clusterService.Data().(cluster.Cluster),
+	})
+
 	f := flow.New(flow.Options{
-		Logger:    l,
-		Tracer:    t,
-		Clusterer: clusterer,
-		DataPath:  fr.storagePath,
-		Reg:       reg,
-		Services:  []service.Service{httpService},
+		Logger:   l,
+		Tracer:   t,
+		DataPath: fr.storagePath,
+		Reg:      reg,
+		Services: []service.Service{
+			httpService,
+			uiService,
+			clusterService,
+		},
 	})
 
 	ready = f.Ready
@@ -255,12 +275,6 @@ func (fr *flowRun) Run(configFile string) error {
 		}()
 	}
 
-	// Start the Clusterer's Node implementation.
-	err = clusterer.Start(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to start the clusterer: %w", err)
-	}
-
 	// Perform the initial reload. This is done after starting the HTTP server so
 	// that /metric and pprof endpoints are available while the Flow controller
 	// is loading.
@@ -290,7 +304,7 @@ func (fr *flowRun) Run(configFile string) error {
 	// Nodes initially join in the Viewer state. After the graph has been
 	// loaded successfully, we can move to the Participant state to signal that
 	// we wish to participate in reading or writing data.
-	err = clusterer.ChangeState(peer.StateParticipant)
+	err = clusterService.ChangeState(ctx, peer.StateParticipant)
 	if err != nil {
 		return fmt.Errorf("failed to set clusterer state to Participant after initial load")
 	}

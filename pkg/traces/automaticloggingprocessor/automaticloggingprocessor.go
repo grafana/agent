@@ -208,7 +208,7 @@ func (p *automaticLoggingProcessor) processKeyVals(resource pcommon.Resource, sv
 	atts := make([]interface{}, 0, 2) // 2 for service name
 	rsAtts := resource.Attributes()
 
-	// name
+	// Add an attribute with the service name
 	atts = append(atts, p.cfg.Overrides.ServiceKey)
 	atts = append(atts, svc)
 

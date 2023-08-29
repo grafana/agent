@@ -77,7 +77,6 @@ integrations:
   oracledb:
     enabled: true
     connection_string: oracle://user:password@localhost:1521/orcl.localnet
-    metric_scrape_interval: 1m
     scrape_interval: 1m
     scrape_timeout: 1m
     scrape_integration: true

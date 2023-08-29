@@ -2,9 +2,9 @@ package common
 
 import (
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/token"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/river"
+	"github.com/grafana/river/token"
+	"github.com/grafana/river/token/builder"
 )
 
 // ConvertTargets implements [builder.Tokenizer]. This allows us to set

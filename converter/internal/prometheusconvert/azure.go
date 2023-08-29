@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/component/discovery/azure"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	prom_azure "github.com/prometheus/prometheus/discovery/azure"
 )
 
@@ -17,7 +17,7 @@ func appendDiscoveryAzure(pb *prometheusBlocks, label string, sdConfig *prom_azu
 	name := []string{"discovery", "azure"}
 	block := common.NewBlockWithOverride(name, label, discoveryAzureArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoverExports("discovery.azure." + label + ".targets")
+	return NewDiscoveryExports("discovery.azure." + label + ".targets")
 }
 
 func ToDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {

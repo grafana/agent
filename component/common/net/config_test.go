@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	weaveworks "github.com/weaveworks/common/server"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 )
 
 // testArguments mimics an arguments type used by a component, applying the defaults to ServerConfig

@@ -43,6 +43,7 @@ responsible for ownership of the following workflows:
 6. [Test Release](./7-test-release.md)
 7. [Update Helm Charts](./8-update-helm-charts.md)
 8. [Announce Release](./9-announce-release.md)
+9. [Update OTEL Contrib](./10-update-otel.md)
 
 ## Patch Release Publish (latest version)
 1. [Cherry Pick Commits](./2-cherry-pick-commits.md)

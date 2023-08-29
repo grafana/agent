@@ -1,8 +1,8 @@
 package common
 
 import (
-	"github.com/grafana/agent/pkg/river/token"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/river/token"
+	"github.com/grafana/river/token/builder"
 )
 
 type CustomTokenizer struct {

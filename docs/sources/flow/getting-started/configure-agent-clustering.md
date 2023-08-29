@@ -12,7 +12,7 @@ individual agents can work together for workload distribution and high
 availability.
 
 {{% admonition type="note" %}}
-Clustering is a [beta][] feature. Beta features are subject to breaking
+Clustering is a [beta]({{< relref "../../stability.md#beta" >}}) feature. Beta features are subject to breaking
 changes and may be replaced with equivalent functionality that covers the same
 use case.
 {{%/admonition %}}
@@ -20,7 +20,6 @@ use case.
 This topic describes how to add clustering to an existing installation.
 
 [clustering]: {{< relref "../concepts/clustering.md" >}}
-[beta]: {{< relref "../../stability.md#beta" >}}
 
 ## Configure Grafana Agent clustering with Helm Chart
 
