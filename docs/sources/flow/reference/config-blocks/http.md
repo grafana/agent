@@ -49,14 +49,14 @@ tls | [tls][] | Define TLS settings for the HTTP server. | no
 The `tls` block configures TLS settings for the HTTP server.
 
 {{% admonition type="warning" %}}
-If the `tls` block is added and the configuration is reloaded when Grafana
-Agent is running, existing connections will continue to communicate over
-plaintext. Similarly, if the `tls` block is removed and the configuration is
-reloaded when Grafana Agent is running, existing connections will continue to
-communicate over TLS.
+If you add the `tls` block and reload the configuration when Grafana
+Agent is running, existing connections will continue communicating over
+plaintext. Similarly, if you remove the `tls` block and reload the configuration
+when Grafana Agent is running, existing connections will continue
+communicating over TLS.
 
-To ensure all connections use TLS, start Grafana Agent with the `tls` block
-already configured.
+To ensure all connections use TLS, configure the `tls` block before you start
+Grafana Agent.
 {{% /admonition %}}
 
 Name | Type | Description | Default | Required
@@ -85,15 +85,15 @@ configured at a time:
 * `client_ca_pem` and `client_ca_file`
 
 The `client_auth` argument determines whether to validate client certificates.
-The default value, `NoClientCert`, indicates that no client certificate
-validation is performed. The `client_ca_pem` and `client_ca_file` may only be
-configured when `client_auth` is not `NoClientCert`.
+The default value, `NoClientCert`, indicates that the client certificate is not
+validated. The `client_ca_pem` and `client_ca_file` arguments may only
+be configured when `client_auth` is not `NoClientCert`.
 
 The following values are accepted for `client_auth`:
 
-* `NoClientCert`: client certificates are neither requested nor verified.
-* `RequestClientCert`: requests clients to send an optional certificate.
-* `RequireAnyClientCert`: requires at least one certificate from clients that is not checked for validity.
+* `NoClientCert`: client certificates are neither requested nor validated.
+* `RequestClientCert`: requests clients to send an optional certificate. Certificates provided by clients are not validated.
+* `RequireAnyClientCert`: requires at least one certificate from clients. Certificates provided by clients are not validated.
 * `VerifyClientCertIfGiven`: requests clients to send an optional certificate. If a certificate is sent, it must be valid.
 * `RequireAndVerifyClientCert`: requires clients to send a valid certificate.
 
