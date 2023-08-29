@@ -14,7 +14,7 @@ local g = import 'grafana-builder/grafana.libsonnet';
         .addPanel(
           g.panel('GCs [count/s]') +
           g.queryPanel(
-            'rate(go_gc_duration_seconds_count{cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}[5m])',
+            'rate({"go.gc_duration_seconds_count", cluster=~"$cluster", namespace=~"$namespace", container=~"$container", pod=~"$pod"}[5m])',
             '{{pod}}',
           )
         )

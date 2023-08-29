@@ -96,7 +96,7 @@ local stackedPanelMixin = {
             // doesn't also have a Grafana Agent-specific metric (i.e.,
             // agent_build_info).
             expr=|||
-              rate(go_gc_duration_seconds_count{cluster="$cluster",namespace="$namespace",instance=~"$instance"}[5m])
+              rate({"go.gc_duration_seconds_count", cluster="$cluster",namespace="$namespace",instance=~"$instance"}[5m])
               and on(instance)
               agent_build_info{cluster="$cluster",namespace="$namespace",instance=~"$instance"}
             |||,
