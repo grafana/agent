@@ -86,7 +86,8 @@ configured at a time:
 
 The `client_auth` argument determines whether to validate client certificates.
 The default value, `NoClientCert`, indicates that no client certificate
-validation is performed.
+validation is performed. The `client_ca_pem` and `client_ca_file` may only be
+configured when `client_auth` is not `NoClientCert`.
 
 The following values are accepted for `client_auth`:
 
@@ -104,32 +105,36 @@ The `cipher_suites` argument determines what cipher suites to use. If not
 provided, a default list is used. The set of cipher suites specified may be
 from the following:
 
-* `TLS_RSA_WITH_AES_128_CBC_SHA`
-* `TLS_RSA_WITH_AES_256_CBC_SHA`
-* `TLS_RSA_WITH_AES_128_GCM_SHA256`
-* `TLS_RSA_WITH_AES_256_GCM_SHA384`
-* `TLS_AES_128_GCM_SHA256`
-* `TLS_AES_256_GCM_SHA384`
-* `TLS_CHACHA20_POLY1305_SHA256`
-* `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA`
-* `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA`
-* `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`
-* `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA`
-* `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`
-* `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`
-* `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`
-* `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`
-* `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256`
-* `TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256`
+| Cipher                                          | Allowed in `boringcrypto` builds |
+| ----------------------------------------------- | -------------------------------- |
+| `TLS_RSA_WITH_AES_128_CBC_SHA`                  | no                               |
+| `TLS_RSA_WITH_AES_256_CBC_SHA`                  | no                               |
+| `TLS_RSA_WITH_AES_128_GCM_SHA256`               | yes                              |
+| `TLS_RSA_WITH_AES_256_GCM_SHA384`               | yes                              |
+| `TLS_AES_128_GCM_SHA256`                        | no                               |
+| `TLS_AES_256_GCM_SHA384`                        | no                               |
+| `TLS_CHACHA20_POLY1305_SHA256`                  | no                               |
+| `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA`          | no                               |
+| `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA`          | no                               |
+| `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`            | no                               |
+| `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA`            | no                               |
+| `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`       | yes                              |
+| `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`       | yes                              |
+| `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`         | yes                              |
+| `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`         | yes                              |
+| `TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256`   | no                               |
+| `TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256` | no                               |
 
 The `curve_preferences` argument determines the set of elliptic curves to
 prefer during a handshake in preference order. If not provided, a default list
 is used. The set of elliptic curves specified may be from the following:
 
-* `CurveP256`
-* `CurveP384`
-* `CurveP521`
-* `X25519`
+| Curve       | Allowed in `boringcrypto` builds |
+| ----------- | -------------------------------- |
+| `CurveP256` | yes                              |
+| `CurveP384` | yes                              |
+| `CurveP521` | yes                              |
+| `X25519`    | no                               |
 
 The `min_version` and `max_version` arguments determine the oldest and newest
 TLS version that is acceptable from clients. If not provided, a default value
