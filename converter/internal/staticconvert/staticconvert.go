@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"strings"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
@@ -89,8 +88,7 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 			}
 
 			name := fmt.Sprintf("metrics_%s_%s", instance.Name, jobName)
-			name = strings.ReplaceAll(name, "-", "_")
-			name = strings.ReplaceAll(name, "/", "_")
+			name, _ = common.SanitizeRiverIdentifier(name)
 			return name
 		}
 

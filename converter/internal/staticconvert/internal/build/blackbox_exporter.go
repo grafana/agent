@@ -45,8 +45,9 @@ func toBlackboxTargets(blackboxTargets []blackbox_exporter.BlackboxTarget) black
 }
 
 func toBlackboxTarget(target blackbox_exporter.BlackboxTarget) blackbox.BlackboxTarget {
+	sanitizedName, _ := common.SanitizeRiverIdentifier(target.Name)
 	return blackbox.BlackboxTarget{
-		Name:   target.Name,
+		Name:   sanitizedName,
 		Target: target.Target,
 		Module: target.Module,
 	}

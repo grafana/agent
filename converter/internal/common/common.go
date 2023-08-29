@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/grafana/river/parser"
 	"github.com/grafana/river/printer"
+	"github.com/grafana/river/scanner"
+	"github.com/grafana/river/token"
 
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
@@ -105,4 +108,42 @@ func PrettyPrint(in []byte) ([]byte, diag.Diagnostics) {
 	// Add a trailing newline at the end of the file, which is omitted by Fprint.
 	_, _ = buf.WriteString("\n")
 	return buf.Bytes(), nil
+}
+
+// SanitizeRiverIdentifier will sanitize a string to be a valid river identifier.
+// A leading 'id_' will be prepended if the first character is not a letter and any
+// character that is not a letter, number or underscore is replaced with an underscore.
+func SanitizeRiverIdentifier(s string) (string, diag.Diagnostics) {
+	if isValidRiverIdentifier(s) {
+		return s, nil
+	}
+
+	var diags diag.Diagnostics
+	newValue := ""
+
+	for i, c := range s {
+		if i == 0 {
+			if !unicode.IsLetter(c) {
+				newValue = "id_"
+				diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("identifiers must start with a letter. prepended \"id_\" before %q", c))
+			}
+		}
+
+		if !unicode.IsLetter(c) && !unicode.IsNumber(c) && c != '_' {
+			newValue += "_"
+			diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("invalid character %q. replaced with \"+\" since identifiers must only contain letters, numbers, and underscores.", c))
+			continue
+		}
+
+		newValue += string(c)
+	}
+
+	return newValue, diags
+}
+
+// isValidRiverIdentifier mirrors https://github.com/grafana/river/blob/93eb6c45de98ba6b39f5a33690ff82291533f642/parser/internal.go#L711
+func isValidRiverIdentifier(in string) bool {
+	s := scanner.New(nil, []byte(in), nil, 0)
+	_, tok, lit := s.Scan()
+	return tok == token.IDENT && lit == in
 }
