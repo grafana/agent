@@ -83,6 +83,7 @@ jobs:
         target_folder: 'content/docs/agent/${{ steps.target.outputs.target }}'
         allow_no_changes: true
     - shell: bash
+      if: "steps.has-matching-release-tag.outputs.bool == 'true'"
       run: |
         test -n "${{ steps.publish_release.outputs.commit_hash }}"
         test -n "${{ steps.publish_release.outputs.working_directory }}"
