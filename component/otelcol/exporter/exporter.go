@@ -43,7 +43,7 @@ type Arguments interface {
 	Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component
 
 	// DebugMetricsConfig returns the configuration for debug metrics
-	DebugMetricsConfig() *otelcol.DebugMetricsArguments
+	DebugMetricsConfig() otelcol.DebugMetricsArguments
 }
 
 // Exporter is a Flow component shim which manages an OpenTelemetry Collector

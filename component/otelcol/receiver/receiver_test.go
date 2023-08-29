@@ -127,6 +127,6 @@ func (fa fakeReceiverArgs) NextConsumers() *otelcol.ConsumerArguments {
 	return fa.Output
 }
 
-func (fa fakeReceiverArgs) DebugMetricsConfig() *otelcol.DebugMetricsArguments {
-	return &otelcol.DefaultDebugMetricsArguments
+func (fa fakeReceiverArgs) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return otelcol.DefaultDebugMetricsArguments
 }

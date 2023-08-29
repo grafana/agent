@@ -33,7 +33,7 @@ type Arguments struct {
 	Retry  otelcol.RetryArguments `river:"retry_on_failure,block,optional"`
 
 	// DebugMetrics configures component internal metrics. Optional.
-	DebugMetrics *otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
 
 	// The URLs to send metrics/logs/traces to. If omitted the exporter will
 	// use Client.Endpoint by appending "/v1/metrics", "/v1/logs" or
@@ -81,7 +81,7 @@ func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.I
 }
 
 // DebugMetricsConfig implements receiver.Arguments.
-func (args Arguments) DebugMetricsConfig() *otelcol.DebugMetricsArguments {
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
 	return args.DebugMetrics
 }
 

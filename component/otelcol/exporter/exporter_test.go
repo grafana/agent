@@ -137,8 +137,8 @@ func (fa fakeExporterArgs) Exporters() map[otelcomponent.DataType]map[otelcompon
 	return nil
 }
 
-func (fe fakeExporterArgs) DebugMetricsConfig() *otelcol.DebugMetricsArguments {
-	return &otelcol.DefaultDebugMetricsArguments
+func (fe fakeExporterArgs) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return otelcol.DefaultDebugMetricsArguments
 }
 
 type fakeExporter struct {

@@ -31,7 +31,7 @@ type Arguments struct {
 	SamplingThereafter int                   `river:"sampling_thereafter,attr,optional"`
 
 	// DebugMetrics configures component internal metrics. Optional.
-	DebugMetrics *otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
 }
 
 var _ exporter.Arguments = Arguments{}
@@ -68,6 +68,6 @@ func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.I
 }
 
 // DebugMetricsConfig implements receiver.Arguments.
-func (args Arguments) DebugMetricsConfig() *otelcol.DebugMetricsArguments {
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
 	return args.DebugMetrics
 }

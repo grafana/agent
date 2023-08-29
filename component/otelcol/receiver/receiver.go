@@ -46,7 +46,7 @@ type Arguments interface {
 	NextConsumers() *otelcol.ConsumerArguments
 
 	// DebugMetricsConfig returns the configuration for debug metrics
-	DebugMetricsConfig() *otelcol.DebugMetricsArguments
+	DebugMetricsConfig() otelcol.DebugMetricsArguments
 }
 
 // Receiver is a Flow component shim which manages an OpenTelemetry Collector

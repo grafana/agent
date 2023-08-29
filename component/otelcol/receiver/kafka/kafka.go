@@ -42,7 +42,7 @@ type Arguments struct {
 	MessageMarking MessageMarkingArguments `river:"message_marking,block,optional"`
 
 	// DebugMetrics configures component internal metrics. Optional.
-	DebugMetrics *otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
 
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
@@ -282,6 +282,6 @@ func (args MessageMarkingArguments) Convert() kafkareceiver.MessageMarking {
 }
 
 // DebugMetricsConfig implements receiver.Arguments.
-func (args Arguments) DebugMetricsConfig() *otelcol.DebugMetricsArguments {
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
 	return args.DebugMetrics
 }
