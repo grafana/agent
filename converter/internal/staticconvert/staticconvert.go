@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"strings"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
@@ -17,6 +16,7 @@ import (
 	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
+	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
 
@@ -84,13 +84,16 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		}
 
 		jobNameToCompLabelsFunc := func(jobName string) string {
-			if jobName == "" {
-				return fmt.Sprintf("metrics_%s", instance.Name)
+			name := fmt.Sprintf("metrics_%s", instance.Name)
+			if jobName != "" {
+				name += fmt.Sprintf("_%s", jobName)
 			}
 
-			name := fmt.Sprintf("metrics_%s_%s", instance.Name, jobName)
-			name = strings.ReplaceAll(name, "-", "_")
-			name = strings.ReplaceAll(name, "/", "_")
+			name, err := scanner.SanitizeIdentifier(name)
+			if err != nil {
+				diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
+			}
+
 			return name
 		}
 
