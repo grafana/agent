@@ -109,7 +109,7 @@
 #   - mimir
 #   - oncall
 #   - opentelemetry
-#   - pyroscope
+#   - phlare
 #   - plugins
 #   - slo
 #   - tempo
