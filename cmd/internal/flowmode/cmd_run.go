@@ -41,16 +41,16 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		inMemoryAddr:            "agent.internal:12345",
-		httpListenAddr:          "127.0.0.1:12345",
-		storagePath:             "data-agent/",
-		uiPrefix:                "/",
-		disableReporting:        false,
-		enablePprof:             true,
-		configFormat:            "flow",
-		clusterAdvInterfaces:    advertise.DefaultInterfaces,
-		clusterMaxInitJoinPeers: 5,
-		clusterRejoinInterval:   60 * time.Second,
+		inMemoryAddr:          "agent.internal:12345",
+		httpListenAddr:        "127.0.0.1:12345",
+		storagePath:           "data-agent/",
+		uiPrefix:              "/",
+		disableReporting:      false,
+		enablePprof:           true,
+		configFormat:          "flow",
+		clusterAdvInterfaces:  advertise.DefaultInterfaces,
+		ClusterMaxJoinPeers:   5,
+		clusterRejoinInterval: 60 * time.Second,
 	}
 
 	cmd := &cobra.Command{
@@ -109,7 +109,7 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		DurationVar(&r.clusterRejoinInterval, "cluster.rejoin-interval", r.clusterRejoinInterval, "How often to rejoin the list of peers")
 	cmd.Flags().
-		IntVar(&r.clusterMaxInitJoinPeers, "cluster.max-initial-join-peers", r.clusterMaxInitJoinPeers, "Number of initial peers to join from the discovered set")
+		IntVar(&r.ClusterMaxJoinPeers, "cluster.max-join-peers", r.ClusterMaxJoinPeers, "Number of peers to join from the discovered set")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
@@ -131,7 +131,7 @@ type flowRun struct {
 	clusterDiscoverPeers         string
 	clusterAdvInterfaces         []string
 	clusterRejoinInterval        time.Duration
-	clusterMaxInitJoinPeers      int
+	ClusterMaxJoinPeers          int
 	configFormat                 string
 	configBypassConversionErrors bool
 }
@@ -197,15 +197,15 @@ func (fr *flowRun) Run(configFile string) error {
 		Tracer:  t,
 		Metrics: reg,
 
-		EnableClustering:        fr.clusterEnabled,
-		NodeName:                fr.clusterNodeName,
-		AdvertiseAddress:        fr.clusterAdvAddr,
-		ListenAddress:           fr.httpListenAddr,
-		JoinPeers:               strings.Split(fr.clusterJoinAddr, ","),
-		DiscoverPeers:           fr.clusterDiscoverPeers,
-		RejoinInterval:          fr.clusterRejoinInterval,
-		AdvertiseInterfaces:     fr.clusterAdvInterfaces,
-		ClusterMaxInitJoinPeers: fr.clusterMaxInitJoinPeers,
+		EnableClustering:    fr.clusterEnabled,
+		NodeName:            fr.clusterNodeName,
+		AdvertiseAddress:    fr.clusterAdvAddr,
+		ListenAddress:       fr.httpListenAddr,
+		JoinPeers:           strings.Split(fr.clusterJoinAddr, ","),
+		DiscoverPeers:       fr.clusterDiscoverPeers,
+		RejoinInterval:      fr.clusterRejoinInterval,
+		AdvertiseInterfaces: fr.clusterAdvInterfaces,
+		ClusterMaxJoinPeers: fr.ClusterMaxJoinPeers,
 	})
 	if err != nil {
 		return err

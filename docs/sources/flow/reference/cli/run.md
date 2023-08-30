@@ -51,7 +51,7 @@ The following flags are supported:
 * `--cluster.rejoin-interval`: How often to rejoin the list of peers (default `"60s"`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
 * `--cluster.advertise-interfaces`: List of interfaces used to infer an address to advertise. The first one available in the list will be selected (default `"eth0,en0"`).
-* `--cluster.max-initial-join-peers`: Number of initial peers to join from the discovered set (default `5`).
+* `--cluster.max-join-peers`: Number of peers to join from the discovered set (default `5`).
 * `--config.format`: The format of the source file. Supported formats: `flow`, `prometheus`, `promtail` (default `"flow"`).
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 
@@ -135,8 +135,10 @@ The first node that is used to bootstrap a new cluster (also known as
 the "seed node") can either omit the flags that specify peers to join or can
 try to connect to itself.
 
-To accelerate startup time, you can use the `--cluster.max-initial-join-peers` flag
-to limit the number of peers the system joins upon initialization.
+To join or rejoin a cluster, the agent will try to connect to a certain number of peers limited by the `--cluster.max-join-peers` flag.
+This flag can be useful for clusters of significant sizes because connecting to a high number of peers can be an expensive operation.
+To disable this behavior, set the `--cluster.max-join-peers` flag to 0.
+If the value of `--cluster.max-join-peers` is higher than the number of peers discovered, the agent will connect to all of them.
 
 ### Clustering states
 

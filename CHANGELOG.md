@@ -20,7 +20,7 @@ Main (unreleased)
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
 
-- Clustering: add new flag `--cluster.max-initial-join-peers` to limit the number of peers the system joins upon initialization. (@wildum)
+- Clustering: add new flag `--cluster.max-join-peers` to limit the number of peers the system joins. (@wildum)
 
 ### Other changes
 

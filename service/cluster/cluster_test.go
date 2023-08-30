@@ -35,17 +35,17 @@ func TestGetPeers(t *testing.T) {
 		},
 		{
 			name:          "Test no max peers limit",
-			opts:          Options{EnableClustering: true, ClusterMaxInitJoinPeers: 0, DiscoverPeers: mockDiscoverPeers([]string{"A", "B"}, nil)},
+			opts:          Options{EnableClustering: true, ClusterMaxJoinPeers: 0, DiscoverPeers: mockDiscoverPeers([]string{"A", "B"}, nil)},
 			expectedPeers: []string{"A", "B"},
 		},
 		{
 			name:          "Test max higher than number of peers",
-			opts:          Options{EnableClustering: true, ClusterMaxInitJoinPeers: 5, DiscoverPeers: mockDiscoverPeers([]string{"A", "B", "C"}, nil)},
+			opts:          Options{EnableClustering: true, ClusterMaxJoinPeers: 5, DiscoverPeers: mockDiscoverPeers([]string{"A", "B", "C"}, nil)},
 			expectedPeers: []string{"A", "B", "C"},
 		},
 		{
 			name:          "Test max peers limit with shuffling",
-			opts:          Options{EnableClustering: true, ClusterMaxInitJoinPeers: 2, DiscoverPeers: mockDiscoverPeers([]string{"A", "B", "C"}, nil)},
+			opts:          Options{EnableClustering: true, ClusterMaxJoinPeers: 2, DiscoverPeers: mockDiscoverPeers([]string{"A", "B", "C"}, nil)},
 			expectedPeers: []string{"C", "B"},
 		},
 	}

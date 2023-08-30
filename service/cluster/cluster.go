@@ -57,10 +57,10 @@ type Options struct {
 	// possible for other nodes to join the cluster.
 	EnableClustering bool
 
-	NodeName                string        // Name to use for this node in the cluster.
-	AdvertiseAddress        string        // Address to advertise to other nodes in the cluster.
-	RejoinInterval          time.Duration // How frequently to rejoin the cluster to address split brain issues.
-	ClusterMaxInitJoinPeers int           // Number of initial peers to join from the discovered set
+	NodeName            string        // Name to use for this node in the cluster.
+	AdvertiseAddress    string        // Address to advertise to other nodes in the cluster.
+	RejoinInterval      time.Duration // How frequently to rejoin the cluster to address split brain issues.
+	ClusterMaxJoinPeers int           // Number of initial peers to join from the discovered set
 
 	// Function to discover peers to join. If this function is nil or returns an
 	// empty slice, no peers will be joined.
@@ -305,7 +305,7 @@ func (s *Service) getPeers() ([]string, error) {
 	}
 
 	// Here we return the entire list because we can't take a subset.
-	if s.opts.ClusterMaxInitJoinPeers == 0 || len(peers) < s.opts.ClusterMaxInitJoinPeers {
+	if s.opts.ClusterMaxJoinPeers == 0 || len(peers) < s.opts.ClusterMaxJoinPeers {
 		return peers, nil
 	}
 
@@ -313,7 +313,7 @@ func (s *Service) getPeers() ([]string, error) {
 	s.randGen.Shuffle(len(peers), func(i, j int) {
 		peers[i], peers[j] = peers[j], peers[i]
 	})
-	return peers[:s.opts.ClusterMaxInitJoinPeers], nil
+	return peers[:s.opts.ClusterMaxJoinPeers], nil
 }
 
 func (s *Service) stop() {
