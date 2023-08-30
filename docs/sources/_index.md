@@ -25,7 +25,7 @@ Grafana Agent can collect, transform, and send data to:
 
 * The [Prometheus][] ecosystem
 * The [OpenTelemetry][] ecosystem
-* The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Phlare][])
+* The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Pyroscope][])
 
 [Terraform]: https://terraform.io
 [Prometheus]: https://prometheus.io
@@ -99,5 +99,3 @@ if needed. The planned release dates for future minor releases do not change if
 one minor release is moved.
 
 Patch and security releases may be created at any time.
-
-[Milestones]: https://github.com/grafana/agent/milestones

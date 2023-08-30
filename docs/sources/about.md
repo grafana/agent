@@ -94,9 +94,8 @@ You should run Flow mode when:
   * **Ecosystem transformation**: You need to be able to convert Prometheus and
     Loki pipelines to and from OpenTelmetry Collector pipelines.
 
-  * **Grafana Phlare support**: Support for collecting profiles for Grafana
-    Phlare.
-
+  * **Grafana Pyroscope support**: Support for collecting profiles for Grafana
+    Pyroscope.
 
 ### BoringCrypto
 
@@ -105,4 +104,3 @@ binaries and images with BoringCrypto enabled. Builds and Docker images for Linu
 
 [integrations]: {{< relref "./static/configuration/integrations/" >}}
 [components]: {{< relref "./flow/reference/components/" >}}
-
