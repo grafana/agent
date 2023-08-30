@@ -109,7 +109,7 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		DurationVar(&r.clusterRejoinInterval, "cluster.rejoin-interval", r.clusterRejoinInterval, "How often to rejoin the list of peers")
 	cmd.Flags().
-		StringVar(&r.clusterName, "cluster.name", r.clusterName, "Name to prevent nodes without this identifier from joining the cluster")
+		StringVar(&r.clusterName, "cluster.name", r.clusterName, "The name of the cluster to join")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
