@@ -139,7 +139,7 @@ The `--cluster.name` flag can be used to prevent clusters from accidentally merg
 When `--cluster.name` is provided, nodes will only join peers who share the same cluster name value.
 By default, the cluster name is empty, and any node that doesn't set the flag can join.
 Attempting to join a cluster with a wrong `--cluster.name` will result in a "failed to join memberlist" error
-with a misleading `EOF` reason.
+with a `EOF` reason.
 
 ### Clustering states
 
