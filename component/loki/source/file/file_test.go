@@ -107,7 +107,8 @@ func TestFileWatch(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	ctrl.WaitRunning(time.Minute)
+	err = ctrl.WaitRunning(time.Minute)
+	require.NoError(t, err)
 
 	timeBeforeWriting := time.Now()
 
