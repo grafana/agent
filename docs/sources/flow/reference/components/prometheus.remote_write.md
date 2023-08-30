@@ -94,23 +94,23 @@ based on a hash of the endpoint settings.
 
 ### http_client_config block
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### queue_config block
 
