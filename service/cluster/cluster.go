@@ -123,7 +123,7 @@ func New(opts Options) (*Service, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cluster node: %w", err)
 	}
-	if opts.Metrics != nil {
+	if opts.EnableClustering && opts.Metrics != nil {
 		if err := opts.Metrics.Register(node.Metrics()); err != nil {
 			return nil, fmt.Errorf("failed to register metrics: %w", err)
 		}
@@ -239,7 +239,8 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		return fmt.Errorf("failed to get peers to join: %w", err)
 	}
 
-	level.Info(s.log).Log("msg", "starting cluster node", "peers", peers, "advertise_addr", s.opts.AdvertiseAddress)
+	level.Info(s.log).Log("msg", "starting cluster node", "peers", strings.Join(peers, ","),
+		"advertise_addr", s.opts.AdvertiseAddress)
 
 	if err := s.node.Start(peers); err != nil {
 		level.Warn(s.log).Log("msg", "failed to connect to peers; bootstrapping a new cluster", "err", err)
@@ -250,7 +251,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		}
 	}
 
-	if s.opts.RejoinInterval > 0 {
+	if s.opts.EnableClustering && s.opts.RejoinInterval > 0 {
 		wg.Add(1)
 
 		go func() {

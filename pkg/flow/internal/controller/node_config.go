@@ -3,8 +3,8 @@ package controller
 import (
 	"fmt"
 
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/diag"
 )
 
 const (

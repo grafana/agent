@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"

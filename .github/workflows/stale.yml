@@ -1,0 +1,41 @@
+name: Stale check
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 0 * * *'
+permissions:
+  issues: write
+  pull-requests: write
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v8
+        with:
+          close-issue-reason: not_planned
+          days-before-stale: 30
+          days-before-close: -1 # never close automatically
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has
+            not had any activity in the past 30 days. The issue will not be closed
+            automatically, but a label will be added to it for tracking purposes.
+
+            
+            If the opened issue is a bug, check if newer releases have fixed the 
+            issue. If the issue is no longer relevant, please feel free to close 
+            it.
+
+            Thank you for your contributions!
+          stale-pr-message: >
+            This PR has been automatically marked as stale because it has not
+            had any activity in the past 30 days. The PR will not be closed
+            automatically, but a label will be added to it for tracking purposes.
+
+            If you do not have enough time to follow up on this PR or you think it's  
+            no longer relevant, consider closing it.
+
+            Thank you for your contributions!
+          stale-issue-label: stale
+          stale-pr-label: stale
+          exempt-issue-labels: keepalive,proposal,outdated-dependency,dev-branch
+          exempt-pr-labels: keepalive,proposal,outdated-dependency,dev-branch
