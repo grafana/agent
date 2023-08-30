@@ -24,7 +24,7 @@ Main (unreleased)
 
 - Use Go 1.21.0 for builds. (@rfratto)
 
-v0.36.0-rc.3 (2023-08-28)
+v0.36.0 (2023-08-30)
 --------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
