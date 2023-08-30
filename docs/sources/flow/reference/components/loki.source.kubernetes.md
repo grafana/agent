@@ -95,7 +95,7 @@ Name | Type | Description | Default | Required
 The `http_client_config` block configures settings used to connect to the
 Kubernetes API server.
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
