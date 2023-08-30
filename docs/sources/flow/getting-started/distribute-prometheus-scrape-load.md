@@ -13,12 +13,11 @@ auto-distribution allows a fleet of agents to work together to dynamically
 distribute their scrape load, providing high-availability.
 
 {{% admonition type="note" %}}
-Clustering is a [beta][] feature. Beta features are subject to breaking
+Clustering is a [beta]({{< relref "../../stability.md#beta" >}}) feature. Beta features are subject to breaking
 changes and may be replaced with equivalent functionality that covers the same
 use case.
 {{%/admonition %}}
 
-[beta]: {{< relref "../../stability.md#beta" >}}
 [Clustering]: {{< relref "../concepts/clustering.md" >}}
 
 ## Before you begin
