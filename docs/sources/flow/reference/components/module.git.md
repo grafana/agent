@@ -6,7 +6,7 @@ labels:
 
 # module.git
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `module.git` is a *module loader* component. A module loader is a Grafana Agent Flow
 component which retrieves a [module][] and runs the components defined inside of it.
