@@ -100,6 +100,7 @@ require (
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.51.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.80.0
@@ -115,6 +116,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.80.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.80.0
