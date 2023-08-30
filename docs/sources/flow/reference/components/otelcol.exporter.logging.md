@@ -38,6 +38,24 @@ Name | Type | Description | Default | Required
 
 The `verbosity` argument must be one of `"basic"`, `"normal"`, or `"detailed"`. 
 
+## Blocks
+
+The following blocks are supported inside the definition of
+`otelcol.exporter.logging`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+debug_metrics | [debug_metrics][] | Configures the metrics which this component generates to monitor its state. | no
+
+The `>` symbol indicates deeper levels of nesting. For example, `client > tls`
+refers to a `tls` block defined inside a `client` block.
+
+[debug_metrics]: #debug_metrics-block
+
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" >}}
+
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
