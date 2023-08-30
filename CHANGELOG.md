@@ -17,6 +17,8 @@ Main (unreleased)
   - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
 
+- Clustering: add new flag `--cluster.max-initial-join-peers` to limit the number of peers the system joins upon initialization. (@wildum)
+
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
