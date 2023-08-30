@@ -36,7 +36,11 @@ func cardinalityFilter(kvs ...attribute.KeyValue) attribute.Filter {
 
 // DropHighCardinalityServerAttributes drops certain high cardinality attributes from grpc/http server metrics
 //
-// This is a hopefully temporary fix to this upstream issue https://github.com/open-telemetry/opentelemetry-go-contrib/issues/3765
+// This is a fix to an upstream issue:
+// https://github.com/open-telemetry/opentelemetry-go-contrib/issues/3765
+// The long-term solution for the Collector is to set view settings in the Collector config:
+// https://github.com/open-telemetry/opentelemetry-collector/issues/7517#issuecomment-1511168350
+// In the future, when Collector supports such config, we may want to support similar view settings in the Agent.
 func DropHighCardinalityServerAttributes() []metric.View {
 	var views []metric.View
 
