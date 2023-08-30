@@ -6,7 +6,7 @@ labels:
 
 # otelcol.receiver.prometheus
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `otelcol.receiver.prometheus` receives Prometheus metrics, converts them to the
 OpenTelemetry metrics format, and forwards them to other `otelcol.*`
@@ -43,7 +43,7 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

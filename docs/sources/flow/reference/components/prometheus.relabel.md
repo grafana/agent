@@ -62,7 +62,7 @@ rule | [rule][] | Relabeling rules to apply to received metrics. | no
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
