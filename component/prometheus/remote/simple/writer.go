@@ -3,13 +3,14 @@ package simple
 import (
 	"context"
 	"fmt"
+	"github.com/golang/protobuf/proto"
+	"github.com/prometheus/prometheus/prompb"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/prometheus"
 )
 
 type writer struct {
@@ -35,6 +36,7 @@ func newWriter(parent string, to *QueueManager, store *dbstore, l log.Logger) *w
 		bookmarkKey: name,
 		l:           log.With(l, "name", name),
 	}
+
 	v, found := w.store.GetBookmark(w.bookmarkKey)
 	// If we dont have a bookmark then grab the oldest key.
 	if !found {
@@ -64,37 +66,33 @@ func (w *writer) Start(ctx context.Context) {
 		if newKey || !success {
 			level.Info(w.l).Log("msg", "looking for signal", "key", w.currentKey)
 			// Eventually this will expire from the TTL.
-			val, signalFound := w.store.GetSignal(w.currentKey)
+			valByte, _, signalFound := w.store.GetSignal(w.currentKey)
 			if signalFound {
-				switch v := val.(type) {
-				case []prometheus.Sample:
-					success, err = w.to.Append(ctx, v)
-				case []prometheus.Metadata:
-					success = w.to.AppendMetadata(v)
-				case []prometheus.Exemplar:
-					success, err = w.to.AppendExemplars(ctx, v)
-				case []prometheus.FloatHistogram:
-					success, err = w.to.AppendFloatHistograms(ctx, v)
-				case []prometheus.Histogram:
-					success, err = w.to.AppendHistograms(ctx, v)
-				}
+				wr := &prompb.WriteRequest{}
+				err = wr.Unmarshal(valByte)
 				if err != nil {
-					// Let's check if it's an `out of order sample`. Yes this is some hand waving going on here.
-					// TODO add metric for unrecoverable error
-					if strings.Contains(err.Error(), "the sample has been rejected") {
-						recoverableError = false
-					}
-					level.Error(w.l).Log("msg", "error sending samples", "err", err)
-				}
-
-				// We need to succeed or hit an unrecoverable error.
-				if success || !recoverableError {
-					// Write our bookmark of the last written record.
-					err = w.store.WriteBookmark(w.bookmarkKey, &Bookmark{
-						Key: w.currentKey,
-					})
+					level.Error(w.l).Log("msg", "error decoding samples", "err", err)
+				} else {
+					success, err = w.to.Append(ctx, wr.Timeseries)
 					if err != nil {
-						level.Error(w.l).Log("msg", "error writing bookmark", "err", err)
+						// Let's check if it's an `out of order sample`. Yes this is some hand waving going on here.
+						// TODO add metric for unrecoverable error
+						if strings.Contains(err.Error(), "the sample has been rejected") {
+							recoverableError = false
+						}
+						level.Error(w.l).Log("msg", "error sending samples", "err", err)
+					}
+
+					// We need to succeed or hit an unrecoverable error.
+					if success || !recoverableError {
+						// Write our bookmark of the last written record.
+						err = w.store.WriteBookmark(w.bookmarkKey, &Bookmark{
+							Key: w.currentKey,
+						})
+						if err != nil {
+							level.Error(w.l).Log("msg", "error writing bookmark", "err", err)
+						}
+
 					}
 				}
 			}
@@ -118,6 +116,27 @@ func (w *writer) Start(ctx context.Context) {
 			continue
 		}
 	}
+}
+
+func (w *writer) toSamples(data []byte) []prompb.TimeSeries {
+	samples := make([]prompb.TimeSeries, 0)
+
+	//end := 0
+	start := 0
+
+	for {
+		single := &prompb.TimeSeries{}
+		err := proto.Unmarshal(data[start:], single)
+		if err != nil {
+			return nil
+		}
+		start = start + single.Size()
+		if start == len(data) {
+			break
+		}
+		samples = append(samples, *single)
+	}
+	return samples
 }
 
 func (w *writer) GetKey() uint64 {

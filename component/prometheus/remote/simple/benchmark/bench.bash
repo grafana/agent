@@ -13,8 +13,8 @@ docker run --name=ava -d -p 9001:9001 quay.io/freshtracks.io/avalanche --metric-
 docker stop ava
 docker rm ava
 
-docker run --name=ava -d -p 9001:9001 quay.io/freshtracks.io/avalanche --metric-count=100000
-./main 100000 true 1h
-./main 100000 false 1h
+docker run --name=ava -d -p 9001:9001 quay.io/freshtracks.io/avalanche --metric-count=25000
+./main 25000 true 1h
+./main 25000 false 1h
 docker stop ava
 docker rm ava

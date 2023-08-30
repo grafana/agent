@@ -2,6 +2,7 @@ package simple
 
 import (
 	"context"
+	"github.com/prometheus/prometheus/prompb"
 	"net/url"
 	"path"
 	"sync"
@@ -10,7 +11,6 @@ import (
 	"github.com/go-kit/log/level"
 
 	"github.com/grafana/agent/component"
-	promtype "github.com/grafana/agent/component/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -38,6 +38,10 @@ func NewComponent(opts component.Options, args Arguments) (*Simple, error) {
 		database: database,
 		opts:     opts,
 	}
+	s.pool.New = func() any {
+		return make([]byte, 0, 1024*1024*1)
+	}
+
 	return s, s.Update(args)
 }
 
@@ -50,6 +54,7 @@ type Simple struct {
 	opts       component.Options
 	wr         *writer
 	testClient WriteClient
+	pool       sync.Pool
 }
 
 // Run starts the component, blocking until ctx is canceled or the component
@@ -143,66 +148,28 @@ func (s *Simple) Update(args component.Arguments) error {
 // can choose whether or not to use the context, for deadlines or to check
 // for errors.
 func (c *Simple) Appender(ctx context.Context) storage.Appender {
-	return newAppender(c)
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	return newAppender(c, c.args.TTL)
 }
 
 func (c *Simple) commit(a *appender) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-
-	endTime := time.Now().UnixMilli() - int64(c.args.TTL.Seconds())
-
-	timestampedMetrics := make([]promtype.Sample, 0)
-	for _, x := range a.metrics {
-		// No need to write if already outside of range and a ttl is set.
-		if x.Timestamp < endTime && (c.args.TTL.Seconds() != 0) {
-			continue
-		}
-		timestampedMetrics = append(timestampedMetrics, x)
+	tempBuf := c.pool.Get().([]byte)
+	defer c.pool.Put(tempBuf)
+	wr := prompb.WriteRequest{Timeseries: a.samples}
+	if len(tempBuf) < wr.Size() {
+		tempBuf = make([]byte, wr.Size())
 	}
-	_, err := c.database.WriteSignal(timestampedMetrics)
+
+	_, err := wr.MarshalTo(tempBuf)
 	if err != nil {
-		level.Error(c.opts.Logger).Log("msg", "error writing metrics", "err", err)
+		level.Error(c.opts.Logger).Log("msg", "error encoding samples", "err", err)
+		return
 	}
-
-	timestampedExemplars := make([]promtype.Exemplar, 0)
-	for _, x := range a.exemplars {
-		// No need to write if already outside of range and a ttl is set.
-		if x.Timestamp < endTime && (c.args.TTL.Seconds() != 0) {
-			continue
-		}
-		timestampedExemplars = append(timestampedExemplars, x)
-	}
-	_, err = c.database.WriteSignal(timestampedExemplars)
-	if err != nil {
-		level.Error(c.opts.Logger).Log("msg", "error writing exemplars", "err", err)
-	}
-
-	timestampedHistogram := make([]promtype.Histogram, 0)
-	for _, x := range a.histogram {
-		// No need to write if already outside of range and a ttl is set.
-		if x.Timestamp < endTime && (c.args.TTL.Seconds() != 0) {
-			continue
-		}
-		timestampedHistogram = append(timestampedHistogram, x)
-	}
-	_, err = c.database.WriteSignal(timestampedHistogram)
-	if err != nil {
-		level.Error(c.opts.Logger).Log("msg", "error writing histogram", "err", err)
-	}
-
-	timestampedFloatHistograms := make([]promtype.FloatHistogram, 0)
-	for _, x := range a.floatHistograms {
-		// No need to write if already outside of range and a ttl is set.
-		if x.Timestamp < endTime && (c.args.TTL.Seconds() != 0) {
-			continue
-		}
-		timestampedFloatHistograms = append(timestampedFloatHistograms, x)
-	}
-	_, err = c.database.WriteSignal(timestampedFloatHistograms)
-	if err != nil {
-		level.Error(c.opts.Logger).Log("msg", "error writing signals", "err", err)
-	}
+	_, _ = c.database.WriteSignal(tempBuf, 1, len(a.samples))
 }
 
 func (c *Simple) cleanupDB(ctx context.Context) {

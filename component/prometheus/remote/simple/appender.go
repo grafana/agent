@@ -1,42 +1,54 @@
 package simple
 
 import (
-	"github.com/grafana/agent/component/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
+	"github.com/prometheus/prometheus/prompb"
 	"github.com/prometheus/prometheus/storage"
+	"github.com/prometheus/prometheus/storage/remote"
+	"time"
 )
 
 // appender is used to transfer from incoming samples to the PebbleDB.
 type appender struct {
-	parent          *Simple
-	metrics         []prometheus.Sample
+	parent *Simple
+	/*metrics         []prometheus.Sample
 	exemplars       []prometheus.Exemplar
 	histogram       []prometheus.Histogram
 	floatHistograms []prometheus.FloatHistogram
-	metadata        []prometheus.Metadata
+	metadata        []prometheus.Metadata*/
+	samples []prompb.TimeSeries
+	ttl     time.Duration
 }
 
-func newAppender(parent *Simple) *appender {
+func newAppender(parent *Simple, ttl time.Duration) *appender {
 	return &appender{
-		parent:          parent,
-		metrics:         make([]prometheus.Sample, 0),
+		parent: parent,
+		/*metrics:         make([]prometheus.Sample, 0),
 		exemplars:       make([]prometheus.Exemplar, 0),
 		histogram:       make([]prometheus.Histogram, 0),
 		floatHistograms: make([]prometheus.FloatHistogram, 0),
-		metadata:        make([]prometheus.Metadata, 0),
+		metadata:        make([]prometheus.Metadata, 0),*/
+		samples: make([]prompb.TimeSeries, 0),
+		ttl:     ttl,
 	}
 }
 
 // Append metric
 func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
-	a.metrics = append(a.metrics, prometheus.Sample{
-		L:         l,
-		Timestamp: t,
-		Value:     v,
-	})
+	endTime := time.Now().UnixMilli() - int64(a.ttl.Seconds())
+	if t < endTime {
+		return ref, nil
+	}
+	sample := prompb.TimeSeries{
+		Labels:     labelsToLabelsProto(l),
+		Samples:    []prompb.Sample{{Value: v, Timestamp: t}},
+		Exemplars:  nil,
+		Histograms: nil,
+	}
+	a.samples = append(a.samples, sample)
 	return ref, nil
 }
 
@@ -54,42 +66,49 @@ func (a *appender) Rollback() error {
 
 // AppendExemplar appends exemplar to cache.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (_ storage.SeriesRef, _ error) {
-	a.exemplars = append(a.exemplars, prometheus.Exemplar{
-		Sample: prometheus.Sample{
-			L:         l,
-			Timestamp: e.Ts,
-			Value:     e.Value,
-		},
-		L: l,
-	})
+	protoLabels := labelsToLabelsProto(l)
+	sample := prompb.TimeSeries{
+		Labels:     protoLabels,
+		Samples:    nil,
+		Exemplars:  []prompb.Exemplar{{Labels: labelsToLabelsProto(e.Labels), Value: e.Value, Timestamp: e.Ts}},
+		Histograms: nil,
+	}
+	a.samples = append(a.samples, sample)
 	return ref, nil
 }
 
 // AppendHistogram appends histogram
 func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (_ storage.SeriesRef, _ error) {
+	endTime := time.Now().UnixMilli() - int64(a.ttl.Seconds())
+	if t < endTime {
+		return ref, nil
+	}
+
 	if h != nil {
-		a.histogram = append(a.histogram, prometheus.Histogram{
-			L:         l,
-			Timestamp: t,
-			Value:     h,
-		})
+		sample := prompb.TimeSeries{
+			Labels:     labelsToLabelsProto(l),
+			Samples:    nil,
+			Exemplars:  nil,
+			Histograms: []prompb.Histogram{remote.HistogramToHistogramProto(t, h)},
+		}
+		a.samples = append(a.samples, sample)
+
 	} else {
-		a.floatHistograms = append(a.floatHistograms, prometheus.FloatHistogram{
-			L:         l,
-			Timestamp: t,
-			Value:     fh,
-		})
+		sample := prompb.TimeSeries{
+			Labels:     labelsToLabelsProto(l),
+			Samples:    nil,
+			Exemplars:  nil,
+			Histograms: []prompb.Histogram{remote.FloatHistogramToHistogramProto(t, fh)},
+		}
+		a.samples = append(a.samples, sample)
 	}
 	return ref, nil
 }
 
 // UpdateMetadata updates metadata.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (_ storage.SeriesRef, _ error) {
-	a.metadata = append(a.metadata, prometheus.Metadata{
-		L:    l,
-		Meta: m,
-	})
-	return ref, nil
+	// TODO allow metadata
+	return 0, nil
 }
 
 var _ storage.Appender = (*appender)(nil)

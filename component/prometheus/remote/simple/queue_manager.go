@@ -27,7 +27,6 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/textparse"
 	"github.com/prometheus/prometheus/prompb"
-	"github.com/prometheus/prometheus/storage/remote"
 )
 
 // WriteClient is where to send the bytes.
@@ -54,6 +53,7 @@ type QueueManager struct {
 
 	metrics              *queueManagerMetrics
 	highestRecvTimestamp *maxTimestamp
+	bufPool              sync.Pool
 }
 
 // NewQueueManager creates a QueueManager.
@@ -83,6 +83,9 @@ func NewQueueManager(
 		sendNativeHistograms: enableNativeHistogramRemoteWrite,
 		metrics:              metrics,
 		highestRecvTimestamp: highestRecvTimestamp,
+	}
+	t.bufPool.New = func() any {
+		return proto.NewBuffer(nil)
 	}
 	return t
 }
@@ -123,7 +126,10 @@ func (t *QueueManager) AppendMetadata(metadata []prometheus.Metadata) bool {
 
 func (t *QueueManager) sendMetadataWithBackoff(ctx context.Context, metadata []prompb.MetricMetadata) error {
 	// Build the WriteRequest with no samples.
-	req, _, err := buildWriteRequest(nil, metadata)
+	pBuf := t.bufPool.Get().(*proto.Buffer)
+	defer pBuf.Reset()
+	defer t.bufPool.Put(pBuf)
+	req, _, err := buildWriteRequest(nil, metadata, pBuf)
 	if err != nil {
 		return err
 	}
@@ -194,21 +200,18 @@ func fillQueues(protoSamples []prompb.TimeSeries, maxSamplesPerSend int) map[int
 
 // append shards the data and sends it. It has an issue/bug? that if a non recoverable error is returned then the
 // whole session is failed. A better way would be to return the data that WASNT sent and the requeue JUST that data.
-func (t *QueueManager) append(ctx context.Context, samples []timeSeries) (bool, error) {
-	/*
-		1. Determine number of shards
-		2. Queue up samples
-		3. Send
-	*/
-	protoSamples := make([]prompb.TimeSeries, len(samples))
-	t.populateTimeSeries(samples, protoSamples)
+func (t *QueueManager) append(ctx context.Context, samples []prompb.TimeSeries) (bool, error) {
+
+	pBuf := t.bufPool.Get().(*proto.Buffer)
+	defer pBuf.Reset()
+	defer t.bufPool.Put(pBuf)
 	// Simple approach that one shard can handle the load
-	if t.cfg.MaxSamplesPerSend > len(protoSamples) {
+	if t.cfg.MaxSamplesPerSend > len(samples) {
 		s := &shard{qm: t}
-		return s.sendSamplesWithBackoff(ctx, protoSamples)
+		return s.sendSamplesWithBackoff(ctx, samples, pBuf)
 	}
 	// Lets divide the work.
-	queues := fillQueues(protoSamples, t.cfg.MaxSamplesPerSend)
+	queues := fillQueues(samples, t.cfg.MaxSamplesPerSend)
 
 	// Now lets do the actual work.
 	wg := &sync.WaitGroup{}
@@ -238,10 +241,13 @@ func (t *QueueManager) append(ctx context.Context, samples []timeSeries) (bool, 
 
 func startSendingShard(t *QueueManager, q [][]prompb.TimeSeries, wg *sync.WaitGroup, ctx context.Context) (bool, error) {
 	defer wg.Done()
+	pBuf := t.bufPool.Get().(*proto.Buffer)
+	defer pBuf.Reset()
+	defer t.bufPool.Put(pBuf)
 	s := shard{qm: t}
 	// TODO reintroduce reusing the protobuf
 	for _, data := range q {
-		success, err := s.sendSamplesWithBackoff(ctx, data)
+		success, err := s.sendSamplesWithBackoff(ctx, data, pBuf)
 		if !success || err != nil {
 			return false, err
 		}
@@ -249,108 +255,10 @@ func startSendingShard(t *QueueManager, q [][]prompb.TimeSeries, wg *sync.WaitGr
 	return true, nil
 }
 
-func (t *QueueManager) populateTimeSeries(batch []timeSeries, pendingData []prompb.TimeSeries) (int, int, int) {
-	var nPendingSamples, nPendingExemplars, nPendingHistograms int
-	for nPending, d := range batch {
-		pendingData[nPending].Samples = pendingData[nPending].Samples[:0]
-		if t.sendExemplars {
-			pendingData[nPending].Exemplars = pendingData[nPending].Exemplars[:0]
-		}
-		if t.sendNativeHistograms {
-			pendingData[nPending].Histograms = pendingData[nPending].Histograms[:0]
-		}
-
-		// Number of pending samples is limited by the fact that sendSamples (via sendSamplesWithBackoff)
-		// retries endlessly, so once we reach max samples, if we can never send to the endpoint we'll
-		// stop reading from the queue. This makes it safe to reference pendingSamples by index.
-		pendingData[nPending].Labels = labelsToLabelsProto(d.seriesLabels, pendingData[nPending].Labels)
-		switch d.sType {
-		case tSample:
-			pendingData[nPending].Samples = append(pendingData[nPending].Samples, prompb.Sample{
-				Value:     d.value,
-				Timestamp: d.timestamp,
-			})
-			nPendingSamples++
-		case tExemplar:
-			pendingData[nPending].Exemplars = append(pendingData[nPending].Exemplars, prompb.Exemplar{
-				Labels:    labelsToLabelsProto(d.exemplarLabels, nil),
-				Value:     d.value,
-				Timestamp: d.timestamp,
-			})
-			nPendingExemplars++
-		case tHistogram:
-			pendingData[nPending].Histograms = append(pendingData[nPending].Histograms, remote.HistogramToHistogramProto(d.timestamp, d.histogram))
-			nPendingHistograms++
-		case tFloatHistogram:
-			pendingData[nPending].Histograms = append(pendingData[nPending].Histograms, remote.FloatHistogramToHistogramProto(d.timestamp, d.floatHistogram))
-			nPendingHistograms++
-		}
-	}
-	return nPendingSamples, nPendingExemplars, nPendingHistograms
-}
-
 // Append queues a sample to be sent to the remote storage. Blocks until all samples are
 // sent or fail.
-func (t *QueueManager) Append(ctx context.Context, samples []prometheus.Sample) (bool, error) {
-	pendingData := make([]timeSeries, len(samples))
-	for x, k := range samples {
-		pendingData[x] = timeSeries{
-			seriesLabels: k.L,
-			timestamp:    k.Timestamp,
-			value:        k.Value,
-			sType:        tSample,
-		}
-	}
-	return t.append(ctx, pendingData)
-}
-
-func (t *QueueManager) AppendExemplars(ctx context.Context, exemplars []prometheus.Exemplar) (bool, error) {
-	if !t.sendExemplars {
-		return true, nil
-	}
-	pendingData := make([]timeSeries, len(exemplars))
-	for x, k := range exemplars {
-		pendingData[x] = timeSeries{
-			seriesLabels:   k.L,
-			timestamp:      k.Timestamp,
-			value:          k.Value,
-			exemplarLabels: k.L,
-			sType:          tExemplar,
-		}
-	}
-	return t.append(ctx, pendingData)
-}
-
-func (t *QueueManager) AppendHistograms(ctx context.Context, histograms []prometheus.Histogram) (bool, error) {
-	if !t.sendNativeHistograms {
-		return true, nil
-	}
-	pendingData := make([]timeSeries, len(histograms))
-	for x, k := range histograms {
-		pendingData[x] = timeSeries{
-			seriesLabels: k.L,
-			timestamp:    k.Timestamp,
-			histogram:    k.Value,
-			sType:        tHistogram,
-		}
-	}
-	return t.append(ctx, pendingData)
-}
-
-func (t *QueueManager) AppendFloatHistograms(ctx context.Context, floatHistograms []prometheus.FloatHistogram) (bool, error) {
-	if !t.sendNativeHistograms {
-		return true, nil
-	}
-	pendingData := make([]timeSeries, len(floatHistograms))
-	for x, k := range floatHistograms {
-		pendingData[x] = timeSeries{
-			seriesLabels:   k.L,
-			timestamp:      k.Timestamp,
-			floatHistogram: k.Value,
-			sType:          tFloatHistogram,
-		}
-	}
-	return t.append(ctx, pendingData)
+func (t *QueueManager) Append(ctx context.Context, samples []prompb.TimeSeries) (bool, error) {
+	return t.append(ctx, samples)
 }
 
 // Start the queue manager sending samples to the remote storage.
@@ -393,9 +301,9 @@ const (
 )
 
 // sendSamples to the remote storage with backoff for recoverable errors.
-func (s *shard) sendSamplesWithBackoff(ctx context.Context, samples []prompb.TimeSeries) (bool, error) {
+func (s *shard) sendSamplesWithBackoff(ctx context.Context, samples []prompb.TimeSeries, pBuf *proto.Buffer) (bool, error) {
 	// Build the WriteRequest with no metadata.
-	req, highest, err := buildWriteRequest(samples, nil)
+	req, highest, err := buildWriteRequest(samples, nil, pBuf)
 	if err != nil {
 		// Failing to build the write request is non-recoverable, since it will
 		// only error if marshaling the proto to bytes fails.
@@ -495,7 +403,7 @@ func sendWriteRequestWithBackoff(ctx context.Context, cfg QueueOptions, l log.Lo
 	}
 }
 
-func buildWriteRequest(samples []prompb.TimeSeries, metadata []prompb.MetricMetadata) ([]byte, int64, error) {
+func buildWriteRequest(samples []prompb.TimeSeries, metadata []prompb.MetricMetadata, pBuf *proto.Buffer) ([]byte, int64, error) {
 	var highest int64
 	for _, ts := range samples {
 		// At the moment we only ever append a TimeSeries with a single sample or exemplar in it.
@@ -515,7 +423,10 @@ func buildWriteRequest(samples []prompb.TimeSeries, metadata []prompb.MetricMeta
 		Metadata:   metadata,
 	}
 
-	pBuf := proto.NewBuffer(nil) // For convenience in tests. Not efficient.
+	if pBuf == nil {
+		pBuf = proto.NewBuffer(nil) // For convenience in tests. Not efficient.
+	}
+
 	err := pBuf.Marshal(req)
 	if err != nil {
 		return nil, highest, err
@@ -543,13 +454,14 @@ type RecoverableError struct {
 
 // labelsToLabelsProto transforms labels into prompb labels. The buffer slice
 // will be used to avoid allocations if it is big enough to store the labels.
-func labelsToLabelsProto(lbls labels.Labels, buf []prompb.Label) []prompb.Label {
-	result := buf[:0]
-	lbls.Range(func(l labels.Label) {
-		result = append(result, prompb.Label{
+func labelsToLabelsProto(lbls labels.Labels) []prompb.Label {
+	result := make([]prompb.Label, len(lbls))
+	for x, l := range lbls {
+		result[x] = prompb.Label{
 			Name:  l.Name,
 			Value: l.Value,
-		})
-	})
+		}
+
+	}
 	return result
 }

@@ -26,24 +26,19 @@ type DB struct {
 	// of active commits. KeyCache really doesnt make sense for bookmarks.
 	keyCache              *metadata
 	currentIndex          uint64
-	getValue              func([]byte, int8) (any, error)
-	getType               func(data any) (int8, int, error)
 	bufPool               sync.Pool
 	numberOfCompressions  *atomic.Uint64
 	totalCompressionRatio *atomic.Float64
 }
 
-// NewDB creates a new DB, getValue and getType allow conversion of the []byte into real types. GetType returns the type
-// of an object and that is encoded into the stored value. Then getValue takes in that type to convert it into a real object.
-func NewDB(dir string, getValue func([]byte, int8) (any, error), getType func(data any) (int8, int, error), l log.Logger) (*DB, error) {
+// NewDB creates a new DB, getValue and getType allow conversion of the []byte into real types.
+func NewDB(dir string, l log.Logger) (*DB, error) {
 	pebbleDB, err := pdb.Open(dir, &pdb.Options{})
 	if err != nil {
 		return nil, err
 	}
 	d := &DB{
 		db:                    pebbleDB,
-		getType:               getType,
-		getValue:              getValue,
 		log:                   l,
 		keyCache:              newMetadata(),
 		numberOfCompressions:  atomic.NewUint64(0),
@@ -51,7 +46,7 @@ func NewDB(dir string, getValue func([]byte, int8) (any, error), getType func(da
 	}
 	d.bufPool.New = func() any {
 		// Return a 1 MB buffer, this may not be big enough and we should maybe have several tiers of buffers.
-		b := make([]byte, 0, 1024*1024)
+		b := make([]byte, 0, 5*1024*1024)
 		return b
 	}
 	keys, err := d.GetKeys()
@@ -137,7 +132,7 @@ func (d *DB) GetNextKey(k uint64) uint64 {
 	return k
 }
 
-// Delete any keys older than k.
+// DeleteKeysOlderThan Delete any keys older than k.
 func (d *DB) DeleteKeysOlderThan(k uint64) {
 	ks, _ := d.GetKeys()
 	batch := d.db.NewBatch()
@@ -166,20 +161,19 @@ func (d *DB) DeleteKeysOlderThan(k uint64) {
 
 // GetValueByByte returns the value specified by k, whether it was found and any error.
 // An expired TTL is considered not found.
-func (d *DB) GetValueByByte(k []byte) (any, bool, error) {
+func (d *DB) GetValueByByte(k []byte) ([]byte, int8, bool, error) {
 	it, found, err := d.getItem(k)
 	if err != nil {
-		return nil, false, err
+		return nil, -1, false, err
 	}
 	if !found {
-		return nil, found, err
+		return nil, -1, found, err
 	}
 	// TTL is implemented on pulling the record.
 	if it.TTL != 0 && it.TTL < time.Now().Unix() {
-		return nil, false, nil
+		return nil, -1, false, nil
 	}
-	finalVal, err := d.getValue(it.Value, it.Type)
-	return finalVal, true, err
+	return it.Value, it.Type, true, err
 }
 
 func (d *DB) getItem(k []byte) (*item, bool, error) {
@@ -199,7 +193,7 @@ func (d *DB) getItem(k []byte) (*item, bool, error) {
 
 func (d *DB) convertItem(val []byte) (*item, error) {
 	tempBuf := d.bufPool.Get().([]byte)
-	defer clear(tempBuf)
+	defer d.bufPool.Put(tempBuf)
 
 	unsnapped, err := snappy.Decode(tempBuf, val)
 	if err != nil {
@@ -216,61 +210,49 @@ func (d *DB) convertItem(val []byte) (*item, error) {
 }
 
 // GetValueByString follows GetValueByByte conventions.
-func (d *DB) GetValueByString(k string) (any, bool, error) {
+func (d *DB) GetValueByString(k string) ([]byte, int8, bool, error) {
 	return d.GetValueByByte([]byte(k))
 }
 
 // GetValueByKey follows GetValueByByte conventions but also updates the keycache if not found.
-func (d *DB) GetValueByKey(k uint64) (any, bool, error) {
-	val, found, err := d.GetValueByByte(keyToByte(k))
+func (d *DB) GetValueByKey(k uint64) ([]byte, int8, bool, error) {
+	val, valType, found, err := d.GetValueByByte(keyToByte(k))
 	// We are going to do a bit of sleight of hand to keep the keycache in check.
 	// Since GetValueByByte doesnt know if its working on a key it cannot handle this.
 	// So unilaterly delete this if we dont find it.
 	if !found {
 		d.keyCache.removeKeys([]uint64{k})
 	}
-	return val, found, err
+	return val, valType, found, err
 }
 
 // WriteValueWithAutokey is GetNewKey + WriteValue and returns the next key. If ttl > 0 it will honor it.
-func (d *DB) WriteValueWithAutokey(data any, ttl time.Duration) (uint64, error) {
+func (d *DB) WriteValueWithAutokey(data []byte, dataType int8, count int, ttl time.Duration) (uint64, error) {
 	nextKey := d.GetNewKey()
-	err := d.WriteValue(keyToByte(nextKey), data, ttl)
+	err := d.WriteValue(keyToByte(nextKey), data, dataType, count, ttl)
 	return nextKey, err
 }
 
 // WriteValue writes a given value into the database.
-func (d *DB) WriteValue(key []byte, data any, ttl time.Duration) error {
-	t, count, err := d.getType(data)
-	if err != nil {
-		return err
-	}
-
-	tempBuf := d.bufPool.Get().([]byte)
-	defer clear(tempBuf)
-	buf := bytes.NewBuffer(tempBuf)
-	enc := gob.NewEncoder(buf)
-	err = enc.Encode(data)
-	if err != nil {
-		return err
-	}
-	rawByteCount := buf.Len()
+func (d *DB) WriteValue(key []byte, data []byte, dataType int8, count int, ttl time.Duration) error {
 	it := &item{}
-	it.Value = buf.Bytes()
-	it.Type = t
+	it.Value = data
+	it.Type = dataType
+	rawByteCount := len(data)
 	if ttl > 0 {
 		it.TTL = time.Now().Add(ttl).Unix()
 	}
 	it.Count = count
-
-	gobBuf := bytes.NewBuffer(nil)
-	enc = gob.NewEncoder(gobBuf)
-	err = enc.Encode(it)
+	tempGobBuf := d.bufPool.Get().([]byte)
+	defer d.bufPool.Put(tempGobBuf)
+	gobBuf := bytes.NewBuffer(tempGobBuf)
+	enc := gob.NewEncoder(gobBuf)
+	err := enc.Encode(it)
 	if err != nil {
 		return err
 	}
 	snappyBuf := d.bufPool.Get().([]byte)
-	defer clear(snappyBuf)
+	defer d.bufPool.Put(snappyBuf)
 	snappied := snappy.Encode(snappyBuf, gobBuf.Bytes())
 	ratio := float64(rawByteCount) / float64(len(snappied))
 	d.totalCompressionRatio.Add(ratio)
@@ -348,8 +330,9 @@ func keyToByte(k uint64) []byte {
 
 // item represents a value stored in the database.
 type item struct {
+	// Value is Gob Encoded and Snappy compressed.
 	Value []byte
-	// Type is used to convert Value to a concrete value. Value is Gob Encoded and Snappy compressed.
+	// Type is used to convert Value to a concrete value.
 	Type int8
 	// Unix timestamp to expire.
 	TTL   int64

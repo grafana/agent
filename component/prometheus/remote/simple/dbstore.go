@@ -1,7 +1,9 @@
 package simple
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"os"
 	"path"
 	"path/filepath"
@@ -22,28 +24,20 @@ type dbstore struct {
 	directory      string
 	l              log.Logger
 	ttl            time.Duration
-	sampleDB       SignalDB
-	bookmark       SignalDB
+	sampleDB       *pebble.DB
+	bookmark       *pebble.DB
 	ctx            context.Context
 	metrics        *dbmetrics
 	oldestInUseKey uint64
+	bookmarkPool   sync.Pool
 }
 
-const (
-	MetricSignal int8 = iota
-	HistogramSignal
-	FloathistogramSignal
-	MetadataSignal
-	ExemplarSignal
-	BookmarkType
-)
-
 func newDBStore(ttl time.Duration, directory string, r prometheus.Registerer, l log.Logger) (*dbstore, error) {
-	bookmark, err := pebble.NewDB(path.Join(directory, "bookmark"), GetValue, GetType, l)
+	bookmark, err := pebble.NewDB(path.Join(directory, "bookmark"), l)
 	if err != nil {
 		return nil, err
 	}
-	sample, err := pebble.NewDB(path.Join(directory, "sample"), GetValue, GetType, l)
+	sample, err := pebble.NewDB(path.Join(directory, "sample"), l)
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +47,9 @@ func newDBStore(ttl time.Duration, directory string, r prometheus.Registerer, l 
 		ttl:       ttl,
 		l:         l,
 		directory: directory,
+	}
+	store.bookmarkPool.New = func() any {
+		return make([]byte, 0, 1024*1024)
 	}
 
 	dbm := newDbMetrics(r, store)
@@ -69,25 +66,42 @@ func (dbs *dbstore) Run(ctx context.Context) {
 }
 
 // WriteBookmark writes a bookmark for Writer.
-func (dbs *dbstore) WriteBookmark(key string, value any) error {
-	return dbs.bookmark.WriteValue([]byte(key), value, 0*time.Second)
+func (dbs *dbstore) WriteBookmark(key string, value *Bookmark) error {
+	tempBuf := dbs.bookmarkPool.Get().([]byte)
+	defer dbs.bookmarkPool.Put(tempBuf)
+	buf := bytes.NewBuffer(tempBuf)
+	enc := gob.NewEncoder(buf)
+	err := enc.Encode(value)
+	if err != nil {
+		return err
+	}
+
+	return dbs.bookmark.WriteValue([]byte(key), buf.Bytes(), 0, 1, 0*time.Second)
 }
 
 // GetBookmark returns the bookmark for a given write name.
 func (dbs *dbstore) GetBookmark(key string) (*Bookmark, bool) {
-	bk, found, _ := dbs.bookmark.GetValueByString(key)
+	bk, _, found, _ := dbs.bookmark.GetValueByString(key)
 	if bk == nil {
 		return &Bookmark{Key: 1}, false
 	}
-	return bk.(*Bookmark), found
+	buf := bytes.NewBuffer(bk)
+	dec := gob.NewDecoder(buf)
+	book := &Bookmark{}
+	err := dec.Decode(book)
+	if err != nil {
+		return nil, false
+	}
+
+	return book, found
 }
 
 // WriteSignal writes a signal and applies an autokey.
-func (dbs *dbstore) WriteSignal(value any) (uint64, error) {
+func (dbs *dbstore) WriteSignal(value []byte, valType int8, count int) (uint64, error) {
 	start := time.Now()
 	defer dbs.metrics.writeTime.Observe(time.Since(start).Seconds())
 
-	key, err := dbs.sampleDB.WriteValueWithAutokey(value, dbs.ttl)
+	key, err := dbs.sampleDB.WriteValueWithAutokey(value, valType, count, dbs.ttl)
 	dbs.metrics.currentKey.Set(float64(key))
 	level.Debug(dbs.l).Log("msg", "writing signals to WAL", "key", key)
 	return key, err
@@ -112,16 +126,16 @@ func (dbs *dbstore) UpdateOldestKey(k uint64) {
 }
 
 // GetSignal returns the value and whether it was found.
-func (dbs *dbstore) GetSignal(key uint64) (any, bool) {
+func (dbs *dbstore) GetSignal(key uint64) ([]byte, int8, bool) {
 	start := time.Now()
 	defer dbs.metrics.readTime.Observe(time.Since(start).Seconds())
 
-	val, found, err := dbs.sampleDB.GetValueByKey(key)
+	val, valType, found, err := dbs.sampleDB.GetValueByKey(key)
 	if err != nil {
 		level.Error(dbs.l).Log("error finding key", err, "key", key)
-		return nil, false
+		return nil, -1, false
 	}
-	return val, found
+	return val, valType, found
 }
 
 func (dbs *dbstore) getKeyCount() uint64 {
