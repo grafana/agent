@@ -25,7 +25,7 @@ Other release notes for the different Grafana Agent variants are contained on se
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{% /admonition %}}
 
-## v0.36
+## v0.37
 
 ## Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`
 
@@ -34,6 +34,8 @@ so that the agent can retry sending and avoid data being lost for metric pipelin
 
 * If you set the `retry_on_http_429` explicitly - no action is required.
 * If you do not set `retry_on_http_429` explicitly and you do *not* want to retry on HTTP 429, make sure you set it to `false` as you upgrade to this new version.
+
+## v0.36
 
 ## Breaking change: `loki.source.file` no longer automatically extracts logs from compressed files
 
