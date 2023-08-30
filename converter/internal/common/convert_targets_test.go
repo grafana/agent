@@ -5,7 +5,7 @@ import (
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/river/token/builder"
 	"github.com/stretchr/testify/require"
 )
 

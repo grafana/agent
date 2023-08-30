@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
@@ -66,12 +65,9 @@ func testOptions(t *testing.T) Options {
 	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 
-	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
-
 	return Options{
-		Logger:    s,
-		DataPath:  t.TempDir(),
-		Reg:       nil,
-		Clusterer: c,
+		Logger:   s,
+		DataPath: t.TempDir(),
+		Reg:      nil,
 	}
 }

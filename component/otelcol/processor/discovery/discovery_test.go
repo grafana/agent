@@ -8,9 +8,9 @@ import (
 	"github.com/grafana/agent/component/otelcol/processor/discovery"
 	"github.com/grafana/agent/component/otelcol/processor/processortest"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
 	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 	semconv "go.opentelemetry.io/collector/semconv/v1.5.0"
 )

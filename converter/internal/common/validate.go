@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/converter/diag"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/river/token/builder"
 )
 
 func UnsupportedNotDeepEquals(a any, b any, name string) diag.Diagnostics {

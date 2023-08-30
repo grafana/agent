@@ -8,6 +8,7 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
     paths:
       - 'docs/sources/**'
+  workflow_dispatch:
 
 jobs:
   test:
@@ -16,8 +17,12 @@ jobs:
       - name: "Check out code"
         uses: actions/checkout@v3
       - name: "Build technical documentation"
-        run: |
-          docker run -v ${PWD}/docs/sources:/hugo/content/docs/agent/latest -e HUGO_REFLINKSERRORLEVEL=ERROR --rm grafana/docs-base:latest /bin/bash -c 'make hugo'
+        run: >
+          docker run
+          --volume "${PWD}/docs/sources:/hugo/content/docs/agent/latest"
+          --env HUGO_REFLINKSERRORLEVEL=ERROR
+          --rm grafana/docs-base:latest
+          /bin/bash -c 'echo -e "---\\nredirectURL: /docs/agent/latest/\\ntype: redirect\\nversioned: true\\n---\\n" > /hugo/content/docs/agent/_index.md && make hugo' 
 
   sync:
     runs-on: ubuntu-latest
@@ -78,6 +83,7 @@ jobs:
         target_folder: 'content/docs/agent/${{ steps.target.outputs.target }}'
         allow_no_changes: true
     - shell: bash
+      if: "steps.has-matching-release-tag.outputs.bool == 'true'"
       run: |
         test -n "${{ steps.publish_release.outputs.commit_hash }}"
         test -n "${{ steps.publish_release.outputs.working_directory }}"

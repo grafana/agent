@@ -9,14 +9,11 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/service"
-	"github.com/grafana/ckit"
-	"github.com/grafana/ckit/peer"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/diag"
 	"github.com/hashicorp/go-multierror"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -89,23 +86,6 @@ func NewLoader(opts LoaderOptions) *Loader {
 		globals.Registerer.MustRegister(l.cc)
 		globals.Registerer.MustRegister(l.cm)
 	}
-
-	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
-		tracer := l.tracer.Tracer("")
-		spanCtx, span := tracer.Start(context.Background(), "ClusterStateChange", trace.WithSpanKind(trace.SpanKindInternal))
-		defer span.End()
-		for _, cmp := range l.Components() {
-			if cc, ok := cmp.managed.(component.ClusteredComponent); ok {
-				_, span := tracer.Start(spanCtx, "NotifyClusterChange", trace.WithSpanKind(trace.SpanKindInternal))
-				span.SetAttributes(attribute.String("node_id", cmp.NodeID()))
-
-				cc.NotifyClusterChange()
-
-				span.End()
-			}
-		}
-		return true
-	}))
 
 	return l
 }

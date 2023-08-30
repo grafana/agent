@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/component/discovery/digitalocean"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 )
@@ -19,7 +19,7 @@ func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *p
 	name := []string{"discovery", "digitalocean"}
 	block := common.NewBlockWithOverride(name, label, discoveryDigitalOceanArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoverExports("discovery.digitalocean." + label + ".targets")
+	return NewDiscoveryExports("discovery.digitalocean." + label + ".targets")
 }
 
 func ValidateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {

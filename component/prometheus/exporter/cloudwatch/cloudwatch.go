@@ -28,5 +28,9 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 	// yaceSess expects a default value of True
 	fipsEnabled := !a.FIPSDisabled
 
+	if a.DecoupledScrape.Enabled {
+		return cloudwatch_exporter.NewDecoupledCloudwatchExporter(opts.ID, opts.Logger, exporterConfig, a.DecoupledScrape.ScrapeInterval, fipsEnabled, a.Debug), nil
+	}
+
 	return cloudwatch_exporter.NewCloudwatchExporter(opts.ID, opts.Logger, exporterConfig, fipsEnabled, a.Debug), nil
 }
