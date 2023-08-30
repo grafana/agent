@@ -17,6 +17,9 @@ Main (unreleased)
   - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
 
+- Flow: allow the HTTP server to be configured with TLS in the config file
+  using the new `http` config block. (@rfratto)
+
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
@@ -77,7 +80,6 @@ v0.36.0-rc.3 (2023-08-28)
     keys and values are sourced from `discovery.*` components. (@ptodev)
   - `otelcol.connector.spanmetrics` - creates OpenTelemetry metrics from traces. (@ptodev)
 
-
 ### Enhancements
 
 - Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
@@ -101,7 +103,25 @@ v0.36.0-rc.3 (2023-08-28)
 - Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
   and the option to connect with TLS. (@spartan0x117)
 
+<<<<<<< HEAD
 - `loki.write` now supports configuring retries on HTTP status code 429. (@wildum)
+=======
+- Flow: Added exemplar support for the `otelcol.exporter.prometheus`. (@wildum)
+
+- New Grafana Agent Flow components:
+
+  - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
+  - `otelcol.processor.span` - accepts traces telemetry data from other `otelcol`
+  components and modifies the names and attributes of the spans. (@ptodev)
+  - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@sparta0x117)
+  - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
+  - `discovery.openstack` - service discovery for OpenStack. (@marctc)
+  - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
+  - `discovery.nomad` - service discovery from Nomad. (@captncraig)
+  - `discovery.puppetdb` - service discovery from PuppetDB. (@captncraig)
+  - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes
+  keys and values are sourced from `discovery.*` components. (@ptodev)
+>>>>>>> 6d9f147c2 (update CHANGELOG.md)
 
 - Update `YACE` to `v0.54.0`, which includes bugfixes for FIPS support. (@ashrayjain)
 

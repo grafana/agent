@@ -134,7 +134,7 @@ as how they change over time.
 
 I propose that we start with the following set of components that make use of
 this functionality: prometheus.scrape, loki.source.file,
-loki.source.kubernetes, and phlare.scrape.
+loki.source.kubernetes, and pyroscope.scrape.
 
 Here’s how the configuration for a component could look like: 
 ```river
