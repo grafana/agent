@@ -3,6 +3,7 @@ package http
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -43,11 +44,28 @@ type Options struct {
 	EnablePProf      bool   // Whether pprof endpoints should be exposed.
 }
 
+// Arguments holds runtime settings for the HTTP service.
+type Arguments struct {
+	TLS *TLSArguments `river:"tls,block,optional"`
+}
+
 type Service struct {
 	log      log.Logger
 	tracer   trace.TracerProvider
 	gatherer prometheus.Gatherer
 	opts     Options
+
+	// publicLis and tcpLis are used to lazily enable TLS, since TLS is
+	// optionally configurable at runtime.
+	//
+	// publicLis is the listener that is exposed to the public. It either sends
+	// traffic directly to tcpLis, or sends it to an intermediate TLS listener
+	// when TLS is enabled.
+	//
+	// tcpLis forwards traffic to a TCP listener once the Service is running; it
+	// is lazily initiated since we don't listen to traffic until the Service
+	// runs.
+	publicLis, tcpLis *lazyListener
 
 	memLis *memconn.Listener
 
@@ -74,13 +92,23 @@ func New(opts Options) *Service {
 		r = prometheus.NewRegistry()
 	}
 
+	var (
+		tcpLis    = &lazyListener{}
+		publicLis = &lazyListener{}
+	)
+
+	// lazyLis should default to wrapping around lazyNetLis.
+	_ = publicLis.SetInner(tcpLis)
+
 	return &Service{
 		log:      l,
 		tracer:   t,
 		gatherer: r,
 		opts:     opts,
 
-		memLis: memconn.NewListener(l),
+		publicLis: publicLis,
+		tcpLis:    tcpLis,
+		memLis:    memconn.NewListener(l),
 
 		componentHttpPathPrefix: "/api/v0/component/",
 	}
@@ -90,7 +118,7 @@ func New(opts Options) *Service {
 func (s *Service) Definition() service.Definition {
 	return service.Definition{
 		Name:       ServiceName,
-		ConfigType: nil, // http does not accept configuration
+		ConfigType: Arguments{},
 		DependsOn:  nil, // http has no dependencies.
 	}
 }
@@ -107,6 +135,9 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 	netLis, err := net.Listen("tcp", s.opts.HTTPListenAddr)
 	if err != nil {
 		return fmt.Errorf("failed to listen on %s: %w", s.opts.HTTPListenAddr, err)
+	}
+	if err := s.tcpLis.SetInner(netLis); err != nil {
+		return fmt.Errorf("failed to use listener: %w", err)
 	}
 
 	r := mux.NewRouter()
@@ -164,7 +195,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 	level.Info(s.log).Log("msg", "now listening for http traffic", "addr", s.opts.HTTPListenAddr)
 
-	listeners := []net.Listener{netLis, s.memLis}
+	listeners := []net.Listener{s.publicLis, s.memLis}
 	for _, lis := range listeners {
 		wg.Add(1)
 		go func(lis net.Listener) {
@@ -248,10 +279,31 @@ func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
 	}
 }
 
-// Update implements [service.Service]. It is a no-op since the HTTP service
-// does not support runtime configuration.
+// Update implements [service.Service] and applies settings.
 func (s *Service) Update(newConfig any) error {
-	return fmt.Errorf("HTTP service does not support configuration")
+	newArgs := newConfig.(Arguments)
+
+	if newArgs.TLS != nil {
+		tlsConfig, err := newArgs.TLS.tlsConfig()
+		if err != nil {
+			return err
+		}
+
+		newTLSListener := tls.NewListener(s.tcpLis, tlsConfig)
+		level.Info(s.log).Log("msg", "applying TLS config to HTTP server")
+		if err := s.publicLis.SetInner(newTLSListener); err != nil {
+			return err
+		}
+	} else {
+		// Ensure that the outer lazy listener is sending requests directly to the
+		// network, instead of any previous instance of a TLS listener.
+		level.Info(s.log).Log("msg", "applying non-TLS config to HTTP server")
+		if err := s.publicLis.SetInner(s.tcpLis); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Data returns an instance of [Data]. Calls to Data are cachable by the
@@ -328,4 +380,79 @@ type ServiceHandler interface {
 	// /foo and /foo/bar, an HTTP URL of /foo/bar/baz will be routed to the
 	// longer base route (/foo/bar).
 	ServiceHandler(host service.Host) (base string, handler http.Handler)
+}
+
+// lazyListener is a [net.Listener] which lazily initializes the underlying
+// listener.
+type lazyListener struct {
+	mut    sync.RWMutex
+	inner  net.Listener
+	closed bool
+}
+
+var _ net.Listener = (*lazyListener)(nil)
+
+// SetInner updates the inner listener. It is safe to call SetInner multiple
+// times. SetInner panics if given a nil argument.
+//
+// SetInner returns an error if called after the listener is closed.
+func (lis *lazyListener) SetInner(inner net.Listener) error {
+	if inner == nil {
+		panic("Unexpected nil listener passed to SetInner")
+	}
+
+	lis.mut.Lock()
+	defer lis.mut.Unlock()
+
+	if lis.closed {
+		return net.ErrClosed
+	}
+
+	lis.inner = inner
+	return nil
+}
+
+func (lis *lazyListener) Accept() (net.Conn, error) {
+	// The read lock is held as briefly as possible since Accept is a blocking
+	// call and may hold the read lock longer than we want it to.
+	lis.mut.RLock()
+	var (
+		inner  = lis.inner
+		closed = lis.closed
+	)
+	lis.mut.RUnlock()
+
+	if closed || inner == nil {
+		return nil, net.ErrClosed
+	}
+	return inner.Accept()
+}
+
+func (lis *lazyListener) Close() error {
+	lis.mut.Lock()
+	defer lis.mut.Unlock()
+
+	if lis.closed {
+		return net.ErrClosed
+	}
+
+	lis.closed = true
+	return lis.inner.Close()
+}
+
+func (lis *lazyListener) Addr() net.Addr {
+	lis.mut.RLock()
+	defer lis.mut.RUnlock()
+
+	if lis.inner == nil {
+		// TODO(rfratto): it's not sure if this will cause problems. If this is an
+		// issue, we can do one of two things to address this:
+		//
+		// 1. Return a fake address.
+		// 2. Block until lis.inner is set (using a sync.Cond) and then return the
+		//    inner address.
+		return nil
+	}
+
+	return lis.inner.Addr()
 }
