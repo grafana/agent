@@ -1,18 +1,10 @@
 package cluster
 
 import (
+	"math/rand"
 	"reflect"
 	"testing"
 )
-
-type MockedRand struct{}
-
-// Shuffle reverse the array for a predictable outcome.
-func (m *MockedRand) Shuffle(n int, swap func(i, j int)) {
-	for i := 0; i < n/2; i++ {
-		swap(i, n-i-1)
-	}
-}
 
 func mockDiscoverPeers(peers []string, err error) func() ([]string, error) {
 	return func() ([]string, error) {
@@ -46,7 +38,7 @@ func TestGetPeers(t *testing.T) {
 		{
 			name:          "Test max peers limit with shuffling",
 			opts:          Options{EnableClustering: true, ClusterMaxJoinPeers: 2, DiscoverPeers: mockDiscoverPeers([]string{"A", "B", "C"}, nil)},
-			expectedPeers: []string{"C", "B"},
+			expectedPeers: []string{"A", "C"},
 		},
 	}
 
@@ -54,7 +46,7 @@ func TestGetPeers(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			s := &Service{
 				opts:    test.opts,
-				randGen: &MockedRand{},
+				randGen: rand.New(rand.NewSource(1)), // Seeded random generator to have consistent results in tests.
 			}
 
 			peers, _ := s.getPeers()

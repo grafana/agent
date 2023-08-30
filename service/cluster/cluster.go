@@ -67,10 +67,6 @@ type Options struct {
 	DiscoverPeers func() ([]string, error)
 }
 
-type RandShuffler interface {
-	Shuffle(n int, swap func(i, j int))
-}
-
 // Service is the cluster service.
 type Service struct {
 	log    log.Logger
@@ -79,7 +75,7 @@ type Service struct {
 
 	sharder shard.Sharder
 	node    *ckit.Node
-	randGen RandShuffler
+	randGen *rand.Rand
 }
 
 var (
