@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 

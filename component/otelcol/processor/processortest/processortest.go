@@ -71,6 +71,44 @@ func TestRunProcessor(c ProcessorRunConfig) {
 }
 
 //
+// Trace to Logs
+//
+
+type traceToLogSignal struct {
+	logCh              chan plog.Logs
+	inputTrace         ptrace.Traces
+	expectedOuutputLog plog.Logs
+}
+
+func NewTraceToLogSignal(inputJson string, expectedOutputJson string) Signal {
+	return &traceToLogSignal{
+		logCh:              make(chan plog.Logs),
+		inputTrace:         CreateTestTraces(inputJson),
+		expectedOuutputLog: CreateTestLogs(expectedOutputJson),
+	}
+}
+
+func (s traceToLogSignal) MakeOutput() *otelcol.ConsumerArguments {
+	return makeLogsOutput(s.logCh)
+}
+
+func (s traceToLogSignal) ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error {
+	return consumer.ConsumeTraces(ctx, s.inputTrace)
+}
+
+func (s traceToLogSignal) CheckOutput(t *testing.T) {
+	// Wait for our processor to finish and forward data to logCh.
+	select {
+	case <-time.After(time.Second):
+		require.FailNow(t, "failed waiting for logs")
+	case tr := <-s.logCh:
+		trStr := marshalLogs(tr)
+		expStr := marshalLogs(s.expectedOuutputLog)
+		require.JSONEq(t, expStr, trStr)
+	}
+}
+
+//
 // Traces
 //
 
@@ -83,8 +121,8 @@ type traceSignal struct {
 func NewTraceSignal(inputJson string, expectedOutputJson string) Signal {
 	return &traceSignal{
 		traceCh:              make(chan ptrace.Traces),
-		inputTrace:           createTestTraces(inputJson),
-		expectedOuutputTrace: createTestTraces(expectedOutputJson),
+		inputTrace:           CreateTestTraces(inputJson),
+		expectedOuutputTrace: CreateTestTraces(expectedOutputJson),
 	}
 }
 
@@ -110,7 +148,7 @@ func (s traceSignal) CheckOutput(t *testing.T) {
 
 // traceJson should match format from the protobuf definition:
 // https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
-func createTestTraces(traceJson string) ptrace.Traces {
+func CreateTestTraces(traceJson string) ptrace.Traces {
 	decoder := &ptrace.JSONUnmarshaler{}
 	data, err := decoder.UnmarshalTraces([]byte(traceJson))
 	if err != nil {
@@ -160,8 +198,8 @@ type logSignal struct {
 func NewLogSignal(inputJson string, expectedOutputJson string) Signal {
 	return &logSignal{
 		logCh:              make(chan plog.Logs),
-		inputLog:           createTestLogs(inputJson),
-		expectedOuutputLog: createTestLogs(expectedOutputJson),
+		inputLog:           CreateTestLogs(inputJson),
+		expectedOuutputLog: CreateTestLogs(expectedOutputJson),
 	}
 }
 
@@ -206,7 +244,7 @@ func makeLogsOutput(ch chan plog.Logs) *otelcol.ConsumerArguments {
 
 // logJson should match format from the protobuf definition:
 // https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/logs/v1/logs.proto
-func createTestLogs(logJson string) plog.Logs {
+func CreateTestLogs(logJson string) plog.Logs {
 	decoder := &plog.JSONUnmarshaler{}
 	data, err := decoder.UnmarshalLogs([]byte(logJson))
 	if err != nil {
@@ -237,8 +275,8 @@ type metricSignal struct {
 func NewMetricSignal(inputJson string, expectedOutputJson string) Signal {
 	return &metricSignal{
 		metricCh:              make(chan pmetric.Metrics),
-		inputMetric:           createTestMetrics(inputJson),
-		expectedOuutputMetric: createTestMetrics(expectedOutputJson),
+		inputMetric:           CreateTestMetrics(inputJson),
+		expectedOuutputMetric: CreateTestMetrics(expectedOutputJson),
 	}
 }
 
@@ -283,7 +321,7 @@ func makeMetricsOutput(ch chan pmetric.Metrics) *otelcol.ConsumerArguments {
 
 // metricJson should match format from the protobuf definition:
 // https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/metrics/v1/metrics.proto
-func createTestMetrics(metricJson string) pmetric.Metrics {
+func CreateTestMetrics(metricJson string) pmetric.Metrics {
 	decoder := &pmetric.JSONUnmarshaler{}
 	data, err := decoder.UnmarshalMetrics([]byte(metricJson))
 	if err != nil {

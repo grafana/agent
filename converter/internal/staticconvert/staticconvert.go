@@ -14,10 +14,10 @@ import (
 	"github.com/grafana/agent/converter/internal/staticconvert/internal/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
+	"github.com/grafana/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
 
 	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations

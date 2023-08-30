@@ -76,6 +76,12 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 	logsConfigs.Initialize()
 	integrationConfigs := integrations.DefaultManagerConfig()
 
+	// Map used to identify if an integration is already configured and avoid overriding it
+	configuredIntegrations := map[string]bool{}
+	for _, itg := range c.Integrations.ConfigV1.Integrations {
+		configuredIntegrations[itg.Name()] = true
+	}
+
 	for _, snippet := range snippets {
 		var snippetContent SnippetContent
 		err := yaml.Unmarshal([]byte(snippet.Config), &snippetContent)
@@ -84,8 +90,15 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 		}
 		metricsConfigs.ScrapeConfigs = append(metricsConfigs.ScrapeConfigs, snippetContent.MetricsScrapeConfigs...)
 		logsConfigs.ScrapeConfig = append(logsConfigs.ScrapeConfig, snippetContent.LogsScrapeConfigs...)
-		integrationConfigs.Integrations = append(integrationConfigs.Integrations, snippetContent.IntegrationConfigs.Integrations...)
+
+		for _, snip := range snippetContent.IntegrationConfigs.Integrations {
+			if _, ok := configuredIntegrations[snip.Name()]; !ok {
+				integrationConfigs.Integrations = append(integrationConfigs.Integrations, snip)
+				configuredIntegrations[snip.Name()] = true
+			}
+		}
 	}
+
 	if len(metricsConfigs.ScrapeConfigs) > 0 {
 		c.Metrics.Configs = append(c.Metrics.Configs, metricsConfigs)
 	}

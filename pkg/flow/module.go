@@ -7,12 +7,11 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/scanner"
-	"github.com/grafana/agent/pkg/river/token"
+	"github.com/grafana/river/scanner"
+	"github.com/grafana/river/token"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/maps"
 )
@@ -114,7 +113,6 @@ func newModule(o *moduleOptions) *module {
 			Options: Options{
 				ControllerID: o.ID,
 				Tracer:       o.Tracer,
-				Clusterer:    o.Clusterer,
 				Reg:          o.Reg,
 				Logger:       o.Logger,
 				DataPath:     o.DataPath,
@@ -156,10 +154,6 @@ type moduleControllerOptions struct {
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
 	Tracer *tracing.Tracer
-
-	// Clusterer for implementing distributed behavior among components running
-	// on different nodes.
-	Clusterer *cluster.Clusterer
 
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer

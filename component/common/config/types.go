@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/config"
 )
 

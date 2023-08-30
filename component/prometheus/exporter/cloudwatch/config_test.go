@@ -3,7 +3,7 @@ package cloudwatch
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"github.com/stretchr/testify/require"
