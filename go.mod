@@ -622,11 +622,8 @@ require (
 )
 
 require (
-	github.com/DmitriyVTitov/size v1.5.0 // indirect
-	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
-	github.com/golang/glog v1.1.0 // indirect
-	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
+	github.com/hetznercloud/hcloud-go v1.45.1 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
@@ -721,6 +718,8 @@ exclude (
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
 
-replace github.com/prometheus/prometheus => /home/owilliams/src/grafana/mimir-prometheus
+replace github.com/prometheus/prometheus => /home/owilliams/src/grafana/prometheus
+
+replace github.com/prometheus/common => /home/owilliams/src/third_party/common
 
 replace github.com/prometheus/client_golang => /home/owilliams/src/grafana/client_golang
