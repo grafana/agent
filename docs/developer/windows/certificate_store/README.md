@@ -83,7 +83,7 @@ For this setup we are using a one-node Domain Controller set up as the Enterpris
 8. Open `Request Handling` tab and select `Allow private key to be exported`
 ![](./images/export_private_key.png)
 
-9. Open `Security` tab and give Adminstrator all the control
+9. Open `Security` tab and give Administrator all the control
 ![](./images/give_control.png)
 
 10. Open `Extensions` tab click `Application Policies` click `Edit`, ensure `Any Purpose` is selected
