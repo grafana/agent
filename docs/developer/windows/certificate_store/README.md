@@ -7,7 +7,7 @@ This guide is used to set up a Windows Server for Windows Store Certificate Test
 * The install should be fresh with no server roles defined or installed. 
 * You should be logged in via an administrator account.
 
-## Setup as domain controller
+## Set up as domain controller
 
 1. Add `Active Directory Domain Services`
 2. Add to a new forest, and when asked for a name, use `test.example.com`
