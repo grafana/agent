@@ -82,6 +82,7 @@ func newTestEnvironment(t *testing.T, onTracesConsumer func(t otelconsumer.Trace
 					_ otelcomponent.Config,
 					t otelconsumer.Traces,
 				) (otelreceiver.Traces, error) {
+
 					onTracesConsumer(t)
 					return nil, nil
 				}, otelcomponent.StabilityLevelUndefined),
