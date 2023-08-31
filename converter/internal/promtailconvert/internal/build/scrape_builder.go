@@ -16,8 +16,9 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/river/scanner"
+	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
 )
 
@@ -73,7 +74,11 @@ func (s *ScrapeConfigBuilder) Validate() {
 }
 
 func (s *ScrapeConfigBuilder) Sanitize() {
-	s.cfg.JobName = strings.ReplaceAll(s.cfg.JobName, "-", "_")
+	var err error
+	s.cfg.JobName, err = scanner.SanitizeIdentifier(s.cfg.JobName)
+	if err != nil {
+		s.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
+	}
 }
 
 func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {

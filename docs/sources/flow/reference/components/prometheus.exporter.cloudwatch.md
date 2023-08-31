@@ -132,14 +132,15 @@ Omitted fields take their default values.
 
 You can use the following blocks in`prometheus.exporter.cloudwatch` to configure collector-specific options:
 
-| Hierarchy          | Name          | Description                                                                                                                             | Required |
-|--------------------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------|----------|
-| discovery          | [discovery][] | Configures a discovery job. Multiple jobs can be configured.                                                                            | no*      |
-| discovery > role   | [role][]      | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
-| discovery > metric | [metric][]    | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
-| static             | [static][]    | Configures a static job. Multiple jobs can be configured.                                                                               | no*      |
-| static > role      | [role][]      | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
-| static > metric    | [metric][]    | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
+| Hierarchy          | Name                   | Description                                                                                                                             | Required |
+|--------------------|------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|----------|
+| discovery          | [discovery][]          | Configures a discovery job. Multiple jobs can be configured.                                                                            | no*      |
+| discovery > role   | [role][]               | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
+| discovery > metric | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
+| static             | [static][]             | Configures a static job. Multiple jobs can be configured.                                                                               | no*      |
+| static > role      | [role][]               | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
+| static > metric    | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
+| decoupled_scraping | [decoupled_scraping][] | Configures the decoupled scraping feature to retrieve metrics on a schedule and return the cached metrics.                                        | no       |
 
 {{% admonition type="note" %}}
 The `static` and `discovery` blocks are marked as not required, but you must configure at least one static or discovery
@@ -153,6 +154,8 @@ job.
 [metric]: #metric-block
 
 [role]: #role-block
+
+[decoupled_scraping]: #decoupled-scraping-block
 
 ## discovery block
 
@@ -323,23 +326,23 @@ is exported to CloudWatch.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
 
+## decoupled scraping block
+
+The decoupled scraping block configures an optional feature that scrapes CloudWatch metrics in the background on a
+scheduled interval. When this feature is enabled, CloudWatch metrics are gathered asynchronously at the scheduled interval instead
+of synchronously when the CloudWatch component is scraped.
+
+The decoupled scraping feature reduces the number of API requests sent to AWS.
+This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics
+
+| Name              | Type     | Description                                                             | Default | Required |
+|-------------------|----------|-------------------------------------------------------------------------|---------|----------|
+| `enabled`         | `bool`   | Controls whether the decoupled scraping featured is enabled             | false   | no       |
+| `scrape_interval` | `string` | Controls how frequently to asynchronously gather new CloudWatch metrics | 5m      | no       |
+
 ## Exported fields
 
-The following fields are exported and can be referenced by other components.
-
-| Name      | Type                | Description                                                               |
-|-----------|---------------------|---------------------------------------------------------------------------|
-| `targets` | `list(map(string))` | The targets that can be used to collect the scraped `cloudwatch` metrics. |
-
-For example, `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metrics' label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
 
 ## Component health
 
@@ -370,6 +373,7 @@ See the examples described under each [discovery][] and [static] sections.
 The following is a list of AWS services that are supported in `cloudwatch_exporter` discovery jobs. When configuring a
 discovery job, the `type` field of each `discovery_job` must match either the desired job namespace or alias.
 
+- Namespace: `CWAgent` or Alias: `cwagent`
 - Namespace: `AWS/Usage` or Alias: `usage`
 - Namespace: `AWS/CertificateManager` or Alias: `acm`
 - Namespace: `AWS/ACMPrivateCA` or Alias: `acm-pca`
@@ -395,6 +399,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/DynamoDB` or Alias: `dynamodb`
 - Namespace: `AWS/EBS` or Alias: `ebs`
 - Namespace: `AWS/ElastiCache` or Alias: `ec`
+- Namespace: `AWS/MemoryDB` or Alias: `memorydb`
 - Namespace: `AWS/EC2` or Alias: `ec2`
 - Namespace: `AWS/EC2Spot` or Alias: `ec2Spot`
 - Namespace: `AWS/ECS` or Alias: `ecs-svc`
@@ -416,6 +421,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/KinesisAnalytics` or Alias: `kinesis-analytics`
 - Namespace: `AWS/Lambda` or Alias: `lambda`
 - Namespace: `AWS/MediaConnect` or Alias: `mediaconnect`
+- Namespace: `AWS/MediaConvert` or Alias: `mediaconvert`
 - Namespace: `AWS/MediaLive` or Alias: `medialive`
 - Namespace: `AWS/MediaTailor` or Alias: `mediatailor`
 - Namespace: `AWS/Neptune` or Alias: `neptune`
@@ -436,7 +442,18 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/SQS` or Alias: `sqs`
 - Namespace: `AWS/StorageGateway` or Alias: `storagegateway`
 - Namespace: `AWS/TransitGateway` or Alias: `tgw`
+- Namespace: `AWS/TrustedAdvisor` or Alias: `trustedadvisor`
 - Namespace: `AWS/VPN` or Alias: `vpn`
 - Namespace: `AWS/WAFV2` or Alias: `wafv2`
 - Namespace: `AWS/WorkSpaces` or Alias: `workspaces`
 - Namespace: `AWS/AOSS` or Alias: `aoss`
+- Namespace: `AWS/SageMaker` or Alias: `sagemaker`
+- Namespace: `/aws/sagemaker/Endpoints` or Alias: `sagemaker-endpoints`
+- Namespace: `/aws/sagemaker/TrainingJobs` or Alias: `sagemaker-training`
+- Namespace: `/aws/sagemaker/ProcessingJobs` or Alias: `sagemaker-processing`
+- Namespace: `/aws/sagemaker/TransformJobs` or Alias: `sagemaker-transform`
+- Namespace: `/aws/sagemaker/InferenceRecommendationsJobs` or Alias: `sagemaker-inf-rec`
+- Namespace: `AWS/Sagemaker/ModelBuildingPipeline` or Alias: `sagemaker-model-building-pipeline`
+
+
+

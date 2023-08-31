@@ -8,8 +8,8 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/auth"
-	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river"
+	"github.com/grafana/river/rivertypes"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"

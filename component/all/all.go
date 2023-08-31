@@ -52,6 +52,8 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                     // Import otelcol.auth.headers
 	_ "github.com/grafana/agent/component/otelcol/auth/oauth2"                      // Import otelcol.auth.oauth2
 	_ "github.com/grafana/agent/component/otelcol/auth/sigv4"                       // Import otelcol.auth.sigv4
+	_ "github.com/grafana/agent/component/otelcol/connector/spanlogs"               // Import otelcol.connector.spanlogs
+	_ "github.com/grafana/agent/component/otelcol/connector/spanmetrics"            // Import otelcol.connector.spanmetrics
 	_ "github.com/grafana/agent/component/otelcol/exporter/jaeger"                  // Import otelcol.exporter.jaeger
 	_ "github.com/grafana/agent/component/otelcol/exporter/loadbalancing"           // Import otelcol.exporter.loadbalancing
 	_ "github.com/grafana/agent/component/otelcol/exporter/logging"                 // Import otelcol.exporter.logging
@@ -62,6 +64,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling" // Import otelcol.extension.jaeger_remote_sampling
 	_ "github.com/grafana/agent/component/otelcol/processor/attributes"             // Import otelcol.processor.attributes
 	_ "github.com/grafana/agent/component/otelcol/processor/batch"                  // Import otelcol.processor.batch
+	_ "github.com/grafana/agent/component/otelcol/processor/discovery"              // Import otelcol.processor.discovery
 	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"          // Import otelcol.processor.memory_limiter
 	_ "github.com/grafana/agent/component/otelcol/processor/span"                   // Import otelcol.processor.span
 	_ "github.com/grafana/agent/component/otelcol/processor/tail_sampling"          // Import otelcol.processor.tail_sampling

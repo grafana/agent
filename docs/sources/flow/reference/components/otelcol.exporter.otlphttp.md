@@ -69,7 +69,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`endpoint`           | `string`      | `host:port` to send telemetry data to. | | yes
+`endpoint`           | `string`      | The target URL to send telemetry data to. | | yes
 `read_buffer_size`   | `string`      | Size of the read buffer the HTTP client uses for reading server responses. | `0` | no
 `write_buffer_size`  | `string`      | Size of the write buffer the HTTP client uses for writing requests. | `"512KiB"` | no
 `timeout`            | `duration`    | Time to wait before marking a request as failed. | `"30s"` | no
@@ -136,7 +136,7 @@ Tempo without TLS:
 ```river
 otelcol.exporter.otlphttp "tempo" {
     client {
-        endpoint = "tempo:4317"
+        endpoint = "http://tempo:4317"
         tls {
             insecure             = true
             insecure_skip_verify = true

@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discover "github.com/prometheus/prometheus/discovery"
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
@@ -38,6 +38,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 	diags = AppendAll(f, promConfig)
+	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {

@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/auth"
 	"github.com/grafana/agent/component/otelcol/exporter"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfigauth "go.opentelemetry.io/collector/config/configauth"

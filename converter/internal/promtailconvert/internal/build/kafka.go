@@ -5,8 +5,8 @@ import (
 	"github.com/grafana/agent/component/loki/source/kafka"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
-	"github.com/grafana/agent/pkg/river/rivertypes"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/river/rivertypes"
 )
 
 func (s *ScrapeConfigBuilder) AppendKafka() {

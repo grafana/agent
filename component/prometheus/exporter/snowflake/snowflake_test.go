@@ -5,8 +5,8 @@ import (
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
-	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river"
+	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
 )

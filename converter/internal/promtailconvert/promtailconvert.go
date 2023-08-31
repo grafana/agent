@@ -9,13 +9,13 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/promtailconvert/internal/build"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/dskit/flagext"
 	promtailcfg "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	lokicfgutil "github.com/grafana/loki/pkg/util/cfg"
+	"github.com/grafana/river/token/builder"
 	"gopkg.in/yaml.v2"
 )
 
@@ -62,6 +62,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 	diags = AppendAll(f, &cfg.Config, "", diags)
+	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {

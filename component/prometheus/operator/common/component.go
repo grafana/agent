@@ -2,16 +2,18 @@ package common
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/operator"
+	"github.com/grafana/agent/service/cluster"
 )
 
 type Component struct {
-	mut     sync.Mutex
+	mut     sync.RWMutex
 	config  *operator.Arguments
 	manager *crdManager
 
@@ -20,14 +22,22 @@ type Component struct {
 	healthMut sync.RWMutex
 	health    component.Health
 
-	kind string
+	kind    string
+	cluster cluster.Cluster
 }
 
 func New(o component.Options, args component.Arguments, kind string) (*Component, error) {
+	data, err := o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about cluster service: %w", err)
+	}
+	clusterData := data.(cluster.Cluster)
+
 	c := &Component{
 		opts:     o,
 		onUpdate: make(chan struct{}, 1),
 		kind:     kind,
+		cluster:  clusterData,
 	}
 	return c, c.Update(args)
 }
@@ -51,7 +61,6 @@ func (c *Component) Run(ctx context.Context) error {
 		}
 	}()
 
-	var runningConfig *operator.Arguments
 	c.reportHealth(nil)
 	errChan := make(chan error, 1)
 	for {
@@ -64,28 +73,19 @@ func (c *Component) Run(ctx context.Context) error {
 		case err := <-errChan:
 			c.reportHealth(err)
 		case <-c.onUpdate:
-
 			c.mut.Lock()
-			nextConfig := c.config
-			// only restart crd manager if our config has changed.
-			// NOT on cluster changes.
-			if !nextConfig.Equals(runningConfig) {
-				runningConfig = nextConfig
-				manager := newCrdManager(c.opts, c.opts.Logger, nextConfig, c.kind)
-				c.manager = manager
-				if cancel != nil {
-					cancel()
-				}
-				innerCtx, cancel = context.WithCancel(ctx)
-				go func() {
-					if err := manager.Run(innerCtx); err != nil {
-						level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
-						errChan <- err
-					}
-				}()
-			} else {
-				c.manager.ClusteringUpdated()
+			manager := newCrdManager(c.opts, c.cluster, c.opts.Logger, c.config, c.kind)
+			c.manager = manager
+			if cancel != nil {
+				cancel()
 			}
+			innerCtx, cancel = context.WithCancel(ctx)
+			go func() {
+				if err := manager.Run(innerCtx); err != nil {
+					level.Error(c.opts.Logger).Log("msg", "error running crd manager", "err", err)
+					errChan <- err
+				}
+			}()
 			c.mut.Unlock()
 		}
 	}
@@ -106,16 +106,23 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
+// NotifyClusterChange implements component.ClusterComponent.
+func (c *Component) NotifyClusterChange() {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	if !c.config.Clustering.Enabled {
+		return // no-op
+	}
+
+	if c.manager != nil {
+		c.manager.ClusteringUpdated()
+	}
+}
+
 // DebugInfo returns debug information for this component.
 func (c *Component) DebugInfo() interface{} {
 	return c.manager.DebugInfo()
-}
-
-// ClusterUpdatesRegistration implements component.ClusterComponent.
-func (c *Component) ClusterUpdatesRegistration() bool {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-	return c.config.Clustering.Enabled
 }
 
 func (c *Component) reportHealth(err error) {
