@@ -23,16 +23,16 @@ discovery.triton "LABEL" {
 
 The following arguments are supported:
 
-Name               | Type           | Description                                                         | Default       | Required
------------------- | -------------- | ------------------------------------------------------------------- | ------------- | --------
-`account`          | `string`       | The account to use for discovering new targets.                     |               | yes
-`role`             | `string`       | The type of targets to discover.                                    | `"container"` | no
-`dns_suffix`       | `string`       | The DNS suffix that is applied to the target.                   |               | yes
-`endpoint`         | `string`       | The Triton discovery endpoint (e.g. 'cmon.us-east-3b.triton.zone'). |               | yes
-`groups`           | `list(string)` | A list of groups to retrieve targets from.                   |               | no
-`port`             | `int`          | The port to use for discovery and metrics scraping.                 | `9163`        | no
-`refresh_interval` | `duration`     | The refresh interval for the list of targets.                   | `60s`         | no
-`version`          | `int`          | The Triton discovery API version.                                   | `1`           | no
+Name               | Type           | Description                                         | Default       | Required
+------------------ | -------------- | --------------------------------------------------- | ------------- | --------
+`account`          | `string`       | The account to use for discovering new targets.     |               | yes
+`role`             | `string`       | The type of targets to discover.                    | `"container"` | no
+`dns_suffix`       | `string`       | The DNS suffix that is applied to the target.       |               | yes
+`endpoint`         | `string`       | The Triton discovery endpoint. 					  |               | yes
+`groups`           | `list(string)` | A list of groups to retrieve targets from.          |               | no
+`port`             | `int`          | The port to use for discovery and metrics scraping. | `9163`        | no
+`refresh_interval` | `duration`     | The refresh interval for the list of targets.       | `60s`         | no
+`version`          | `int`          | The Triton discovery API version.                   | `1`           | no
 
 `role` can be set to:
 * `"container"` to discover virtual machines (SmartOS zones, lx/KVM/bhyve branded zones) running on Triton
