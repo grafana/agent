@@ -182,7 +182,7 @@ When `text_file_directory` is set, only files with the extension `.prom` inside 
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/exporters-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 
