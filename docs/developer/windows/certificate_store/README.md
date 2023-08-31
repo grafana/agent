@@ -69,7 +69,7 @@ For this setup we are using a one-node Domain Controller set up as the Enterpris
 2. Ensure `Certificate Templates` is available, if not then you are not set up as an Enterprise CA and go back to `Setup as domain controller`.
 ![](./images/certificate_templates.png)
 
-3. Right click on `Certificate Templates` and select `Manage`.
+3. Right-click on `Certificate Templates` and select `Manage`.
 ![](./images/manage.png)
 
 4. This opens the `Certificate Templates Console`.
@@ -91,14 +91,14 @@ For this setup we are using a one-node Domain Controller set up as the Enterpris
 
 11. Close `Certificate Template Console`.
 12. Reopen `Certificate Authority` console.
-13. Right click on `Certificate Templates`, select `New`, then `Certificate Template to Issue`.
+13. Right-click on `Certificate Templates`, select `New`, then `Certificate Template to Issue`.
 14. Select `Certstore Template`.
 15. It will now show in the Templates folder of Certificate Authority.
 
 ## Creating a certificate from the template
 
 1. Open `certmgr` also called `Manage user certificates` from the Run button.
-2. Expand `Personal`, right click on personal, select `All Tasks` , select `Request New Certificate`.
+2. Expand `Personal`, right-click on personal, select `All Tasks` , select `Request New Certificate`.
 3. Click through until you get the `Request Certificate` screen and select `Certstore Template`.
 ![](./images/new_cert.png)
 
@@ -121,7 +121,7 @@ For this setup we are using a one-node Domain Controller set up as the Enterpris
 ## Setup Grafana Agent
 
 1. Open the Agent configuration file.
-2. Open `Certificate Templates Console`, right click `Certstore Template` and find the Object identifier.
+2. Open `Certificate Templates Console`, right-click `Certstore Template` and find the Object identifier.
 ![](./images/object_identifier.png)
 
 3. Copy the configuration file.
