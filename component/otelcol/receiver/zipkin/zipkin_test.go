@@ -51,11 +51,16 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 
 		parse_string_tags = true
 
+		debug_metrics {
+			disable_high_cardinality_metrics = true
+		}
+
 		output { /* no-op */ }
 		`, httpAddr)
 
 		var args zipkin.Arguments
 		require.NoError(t, river.Unmarshal([]byte(in), &args))
+		require.Equal(t, args.DebugMetricsConfig().DisableHighCardinalityMetrics, true)
 		ext, err := args.Convert()
 		require.NoError(t, err)
 		otelArgs, ok := (ext).(*zipkinreceiver.Config)
