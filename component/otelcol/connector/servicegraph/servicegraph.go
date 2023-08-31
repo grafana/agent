@@ -44,12 +44,12 @@ type Arguments struct {
 
 	// Store contains the config for the in-memory store used to find requests between services by pairing spans.
 	Store StoreConfig `river:"store,block,optional"`
-	// CacheLoop is the time to cleans the cache periodically.
+	// CacheLoop defines how often to clean the cache of stale series.
 	CacheLoop time.Duration `river:"cache_loop,attr,optional"`
-	// CacheLoop is the time to expire old entries from the store periodically.
+	// StoreExpirationLoop defines how often to expire old entries from the store.
 	StoreExpirationLoop time.Duration `river:"store_expiration_loop,attr,optional"`
 	// VirtualNodePeerAttributes the list of attributes need to match, the higher the front, the higher the priority.
-	//TODO: Ad VirtualNodePeerAttributes when it's no longer controlled by
+	//TODO: Add VirtualNodePeerAttributes when it's no longer controlled by
 	// the "processor.servicegraph.virtualNode" feature gate.
 	// VirtualNodePeerAttributes []string `river:"virtual_node_peer_attributes,attr,optional"`
 
@@ -96,7 +96,7 @@ var DefaultArguments = Arguments{
 	},
 	CacheLoop:           1 * time.Minute,
 	StoreExpirationLoop: 2 * time.Second,
-	//TODO: Ad VirtualNodePeerAttributes when it's no longer controlled by
+	//TODO: Add VirtualNodePeerAttributes when it's no longer controlled by
 	// the "processor.servicegraph.virtualNode" feature gate.
 	// VirtualNodePeerAttributes: []string{
 	// 	semconv.AttributeDBName,
@@ -151,7 +151,7 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 		},
 		CacheLoop:           args.CacheLoop,
 		StoreExpirationLoop: args.StoreExpirationLoop,
-		//TODO: Ad VirtualNodePeerAttributes when it's no longer controlled by
+		//TODO: Add VirtualNodePeerAttributes when it's no longer controlled by
 		// the "processor.servicegraph.virtualNode" feature gate.
 		// VirtualNodePeerAttributes: args.VirtualNodePeerAttributes,
 	}, nil

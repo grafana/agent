@@ -48,7 +48,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				},
 				CacheLoop:           1 * time.Minute,
 				StoreExpirationLoop: 2 * time.Second,
-				//TODO: Ad VirtualNodePeerAttributes when it's no longer controlled by
+				//TODO: Add VirtualNodePeerAttributes when it's no longer controlled by
 				// the "processor.servicegraph.virtualNode" feature gate.
 				// VirtualNodePeerAttributes: []string{
 				// 				"db.name",
