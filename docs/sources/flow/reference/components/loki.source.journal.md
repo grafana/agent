@@ -46,7 +46,7 @@ relabel_rules | [relabel_rules][] | Relabeling rules to apply to received log en
 
 ### relabel_rules block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 Incoming messages have labels from the journal following the patten `__journal_FIELDNAME`
 
