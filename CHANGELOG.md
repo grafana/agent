@@ -27,6 +27,7 @@ Main (unreleased)
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
+- Read contextual attributes from Faro measurements (@codecapitano)
 
 v0.36.0 (2023-08-30)
 --------------------
@@ -80,6 +81,7 @@ v0.36.0 (2023-08-30)
   - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes
     keys and values are sourced from `discovery.*` components. (@ptodev)
   - `otelcol.connector.spanmetrics` - creates OpenTelemetry metrics from traces. (@ptodev)
+
 
 ### Enhancements
 
