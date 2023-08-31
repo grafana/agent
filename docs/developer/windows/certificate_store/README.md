@@ -27,7 +27,7 @@ For this setup we are using a one-node Domain Controller set up as the Enterpris
 3. Select `Active Directory Certificate Services`
 ![](./images/certificateservices.png)
 
-4. Select `Certificate Authority`, and `Certficate Authority Web Enrollment` note we will need `Certificate Web Enrollment Service` but that has to be installed after `Certificate Authority`.
+4. Select `Certificate Authority`, and `Certificate Authority Web Enrollment`. Note that we will need the `Certificate Web Enrollment Service`, but it must be installed after the `Certificate Authority`.
 
 5. Install and then select configure `Certificate Authority`
 ![](./images/configure_certificate_authority.png)
