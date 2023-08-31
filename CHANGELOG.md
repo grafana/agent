@@ -28,6 +28,7 @@ Main (unreleased)
 
 - Use Go 1.21.0 for builds. (@rfratto)
 - Read contextual attributes from Faro measurements (@codecapitano)
+- Rename Grafana Agent service in windows app and features to not include the description
 
 v0.36.0 (2023-08-30)
 --------------------
