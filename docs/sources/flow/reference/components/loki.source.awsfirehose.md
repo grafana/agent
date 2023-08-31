@@ -95,11 +95,11 @@ The following blocks are supported inside the definition of `loki.source.awsfire
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### grpc
 
-{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
