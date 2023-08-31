@@ -57,6 +57,7 @@ require (
 	github.com/grafana/dskit v0.0.0-20230725162534-96da0816983e
 	github.com/grafana/go-gelf/v2 v2.0.1
 	github.com/grafana/loki v1.6.2-0.20230730074919-e455a11b49dd // k161 branch
+	github.com/grafana/pyroscope-go/godeltaprof v0.1.3
 	github.com/grafana/pyroscope/api v0.2.0
 	github.com/grafana/pyroscope/ebpf v0.2.1
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
@@ -150,7 +151,6 @@ require (
 	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.22.1-0.20230623130038-562ae9055ce3
 	github.com/prometheus/statsd_exporter v0.22.8
-	github.com/pyroscope-io/godeltaprof v0.1.2
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
 	github.com/rs/cors v1.9.0
 	github.com/shirou/gopsutil/v3 v3.23.5
