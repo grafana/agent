@@ -52,7 +52,7 @@ For this setup we are using a one-node Domain Controller set up as the Enterpris
 ![](./images/additional_services.png)
 
 13. Select `Certificate Enrollment Web Service`
-14. Use the defualt application pool identity
+14. Use the default application pool identity
 ![](./images/default_identity.png)
 
 15. Choose existing SSL certificate
