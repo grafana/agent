@@ -6,7 +6,7 @@ label:
 
 # otelcol.extension.jaeger_remote_sampling
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
 
 `otelcol.extension.jaeger_remote_sampling` serves a specified Jaeger remote sampling
 document.
@@ -204,7 +204,7 @@ Name | Type | Description | Default | Required
 `balancer_name` | `string` | Which gRPC client-side load balancer to use for requests. | | no
 `auth` | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 
-{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT VERSION>" >}}
 
 The `balancer_name` argument controls what client-side load balancing mechanism
 to use. See the gRPC documentation on [Load balancing][] for more information.
@@ -238,7 +238,7 @@ able to handle and proxy HTTP/2 traffic.
 The `tls` block configures TLS settings used for the connection to the gRPC
 server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### keepalive client block
 

@@ -6,7 +6,7 @@ labels:
 
 # module.file
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `module.file` is a *module loader* component. A module loader is a Grafana Agent Flow
 component which retrieves a [module][] and runs the components defined inside of it.
@@ -46,7 +46,7 @@ Name | Type | Description | Default | Required
 
 [secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
 
-{{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Blocks
 
