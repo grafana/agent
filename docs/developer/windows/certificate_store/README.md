@@ -18,7 +18,7 @@ This guide is used to set up a Windows Server for Windows Store Certificate Test
 
 ## Set up certificate management
 
-For this setup we are using a one node Domain Controller setup as the Enterprise CA.
+For this setup we are using a one-node Domain Controller set up as the Enterprise CA.
 
 1. Go to the Server Management window
 ![](./images/initial.png)
