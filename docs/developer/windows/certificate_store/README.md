@@ -124,7 +124,7 @@ For this setup we are using a one-node Domain Controller set up as the Enterpris
 2. Open `Certificate Templates Console`, right click `Certstore Template` and find the Object identifier
 ![](./images/object_identifier.png)
 
-3. Copy that the configuration file
+3. Copy the configuration file
 4. Find the common name, it is `test-WIN-TF2GPD2VTOT-CA` in the screenshot.
 ![](./images/common_name.png)
 
