@@ -66,7 +66,7 @@ For this setup we are using a one-node Domain Controller set up as the Enterpris
 1. From Server Management click Tools->Certificate Authority
 ![](./images/certificate_authority_click.png)
 
-2. Ensure `Certificate Templates` is available, if not then you are not setup as an Enterprise CA and go back to `Setup as domain controller`
+2. Ensure `Certificate Templates` is available, if not then you are not set up as an Enterprise CA and go back to `Setup as domain controller`
 ![](./images/certificate_templates.png)
 
 3. Right click on `Certificate Templates` and select `Manage`
