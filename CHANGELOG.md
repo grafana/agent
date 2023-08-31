@@ -73,6 +73,11 @@ Main (unreleased)
 - Add `openstack` config converter to convert OpenStack yaml config (static mode) to river config (flow mode). (@wildum)
 
 
+- Some `otelcol` components will now display their debug metrics via the 
+  Agent's `/metrics` endpoint. Those components include `otelcol.receiver.otlp`, 
+  `otelcol.exporter.otlp` and `otelcol.processor.batch`. There may also be metrics 
+  from other components which are not documented yet. (@ptodev)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
