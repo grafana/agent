@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	_ "net/http/pprof" // Register pprof handlers
 	"path"
 	"sort"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/ckit/memconn"
+	_ "github.com/grafana/pyroscope-go/godeltaprof/http/pprof" // Register godeltaprof handler
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
