@@ -27,11 +27,11 @@ Name               | Type           | Description                               
 ------------------ | -------------- | ------------------------------------------------------------------- | ------------- | --------
 `account`          | `string`       | The account to use for discovering new targets.                     |               | yes
 `role`             | `string`       | The type of targets to discover.                                    | `"container"` | no
-`dns_suffix`       | `string`       | The DNS suffix which should be applied to target.                   |               | yes
+`dns_suffix`       | `string`       | The DNS suffix that is applied to the target.                   |               | yes
 `endpoint`         | `string`       | The Triton discovery endpoint (e.g. 'cmon.us-east-3b.triton.zone'). |               | yes
-`groups`           | `list(string)` | A list of groups for which targets are retrieved.                   |               | no
+`groups`           | `list(string)` | A list of groups to retrieve targets from.                   |               | no
 `port`             | `int`          | The port to use for discovery and metrics scraping.                 | `9163`        | no
-`refresh_interval` | `duration`     | Interval at which to refresh the list of targets.                   | `60s`         | no
+`refresh_interval` | `duration`     | The refresh interval for the list of targets.                   | `60s`         | no
 `version`          | `int`          | The Triton discovery API version.                                   | `1`           | no
 
 `role` can be set to:
@@ -63,7 +63,7 @@ Name      | Type                | Description
 --------- | ------------------- | -----------
 `targets` | `list(map(string))` | The set of targets discovered from the Triton API.
 
-When `role` is set to `"container"` each target includes the following labels:
+When `role` is set to `"container"`, each target includes the following labels:
 
 * `__meta_triton_groups`: The list of groups belonging to the target joined by a comma separator.
 * `__meta_triton_machine_alias`: The alias of the target container.
