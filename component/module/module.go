@@ -48,7 +48,6 @@ func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue stri
 
 	err := c.mod.LoadConfig([]byte(contentValue), args)
 	if err != nil {
-		c.setLatestContent("")
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
 			Message:    fmt.Sprintf("failed to load module content: %s", err),
