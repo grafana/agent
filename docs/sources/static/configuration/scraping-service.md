@@ -3,20 +3,18 @@ aliases:
 - ../../scraping-service/
 - ../../configuration/scraping-service/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/scraping-service/
-title: Scraping Service Mode
+title: Scraping service
 weight: 600
 ---
 
-# Scraping Service Mode (Beta)
+# Scraping service (Beta)
 
-Scraping Service Mode is a third operational mode of the Grafana Agent
-that allows for clustering a set of Agent processes and distributing scrape load
-across them.
+The Grafana Agent scraping service allows you to cluster a set of Agent processes and distribute the scrape load.
 
 Determining what to scrape is done by writing instance configuration files to an
 [API][api], which then stores the configuration files in a KV store backend.
-All agents in the cluster **must** use the same KV store so they see the same set
-of config files.
+All agents in the cluster **must** use the same KV store to see the same set
+of configuration files.
 
 Each process of the Grafana Agent can be running multiple independent
 "instances" at once, where an "instance" refers to the combination of:
@@ -29,7 +27,7 @@ Each process of the Grafana Agent can be running multiple independent
 
 The "instance configuration file," then, is the configuration file that
 specifies the set of `scrape_configs` and `remote_write` endpoints. For example,
-a small instance configuration file looks like:
+a small instance configuration file looks like this:
 
 ```yaml
 scrape_configs:
@@ -46,18 +44,18 @@ The full set of supported options for an instance configuration file is
 available in the
 [`metrics-config.md` file][metrics].
 
-Having multiple instance configuration files is necessary for sharding; each
+Multiple instance configuration files are necessary for sharding. Each
 config file is distributed to a particular agent on the cluster based on the
 hash of its contents.
 
-When Scraping Service Mode is enabled, Agents **disallow** specifying
+When the scraping service is enabled, Agents **disallow** specifying
 instance configurations locally in the configuration file; using the KV store
 is required. [`agentctl`](#agentctl) can be used to manually sync
 instance configuration files to the Agent's API server.
 
 ## Distributed hash ring
 
-Scraping Service Mode uses a Distributed Hash Ring (commonly just called "the
+The scraping service uses a Distributed Hash Ring (commonly called "the
 ring") to cluster agents and to shard configurations within that ring. Each
 Agent joins the ring with a random distinct set of _tokens_ that are used for
 sharding. The default number of generated tokens is 128.
@@ -81,7 +79,7 @@ Ring to determine if they are responsible for that config.
 
 When an Agent receives a new config that it is responsible for, it launches a
 new instance from the instance config. If a config is deleted from the KV store,
-this will be detected by the owning Agent and it will stop the metric collection
+this will be detected by the owning Agent, and it will stop the metric collection
 process for that config file.
 
 When an Agent receives an event for an updated configuration file that they used to
@@ -89,7 +87,7 @@ be the owner of but are no longer the owner, the associated instance for that
 configuration file is stopped for that Agent. This can happen when the cluster
 size changes.
 
-Scraping Service Mode currently does not support replication; only one agent
+The scraping service currently does not support replication; only one agent
 at a time will be responsible for scraping a certain config.
 
 ### Resharding
@@ -103,7 +101,7 @@ Resharding is run:
 1. When an Agent joins the ring
 2. When an Agent leaves the ring
 3. When the KV store sends a notification indicating a config has changed.
-4. On a specified interval in case KV change events have not fired.
+4. On a specified interval if KV change events have not fired.
 
 The resharding process involves each Agent retrieving the full set of
 configurations stored in the KV store and determining if:
@@ -112,7 +110,7 @@ configurations stored in the KV store and determining if:
    be reloaded.
 2. The config is no longer owned by the current resharding Agent and the
    associated instance should be stopped.
-3. The config has been deleted and the associated instance should be stopped.
+3. The config has been deleted, and the associated instance should be stopped.
 
 ## Best practices
 
@@ -121,9 +119,6 @@ many targets exist per config file, the best amount of distribution is achieved
 when each config file has the lowest amount of targets possible. The best
 distribution will be achieved if each config file stored in the KV store is
 limited to one static config with only one target.
-
-A better distribution mechanism that distributes based on discovered targets is
-planned for the future.
 
 ## Example
 

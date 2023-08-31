@@ -74,7 +74,7 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block-traces.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block-traces.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

@@ -7,7 +7,7 @@ title: module.http
 
 # module.http
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `module.http` is a [module loader][] component.
 
