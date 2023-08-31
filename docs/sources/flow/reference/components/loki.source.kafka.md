@@ -100,7 +100,7 @@ you must set the `tls_config` block. If `"sasl"` is used, you must set the `sasl
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### sasl_config block
 
