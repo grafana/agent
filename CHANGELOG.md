@@ -20,6 +20,10 @@ Main (unreleased)
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
 
+### Enhancements
+
+- Clustering: Allow advertise interfaces to be configurable. (@wildum)
+
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
@@ -107,8 +111,6 @@ v0.36.0 (2023-08-30)
 - Support decoupled scraping in the cloudwatch_exporter integration (@dtrejod).
 
 - Agent Management: Enable proxying support (@spartan0x117)
-
-- Clustering: Allow advertise interfaces to be configurable. (@wildum)
 
 ### Bugfixes
 
