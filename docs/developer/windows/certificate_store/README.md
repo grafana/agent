@@ -16,7 +16,7 @@ This guide is used to set up a Windows Server for Windows Store Certificate Test
 6. Reboot, if succeeded your username will be prefixed with `TESTCERT/` on login screen.
 
 
-## Setup certificate management
+## Set up certificate management
 
 For this setup we are using a one node Domain Controller setup as the Enterprise CA.
 
