@@ -10,7 +10,7 @@ This guide is used to set up a Windows Server for Windows Store Certificate Test
 ## Setup as domain controller
 
 1. Add `Active Directory Domain Services`
-2. Add to a new forest, when asked for name use `test.example.com`
+2. Add to a new forest, and when asked for a name, use `test.example.com`
 3. Add a NETBIOS name `TESTCERT`
 4. Install
 6. Reboot, if succeeded your username will be prefixed with `TESTCERT/` on login screen.
