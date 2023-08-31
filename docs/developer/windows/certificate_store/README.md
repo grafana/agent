@@ -115,7 +115,7 @@ For this setup we are using a one-node Domain Controller set up as the Enterpris
 3. Ensure that `Yes, export the private key` is selected.
 ![](./images/export_private_key.png)
 
-4. Under `Export File Format` ensure that `Includ eall certificates in the certificate path if possible`
+4. Under `Export File Format` ensure that `Include all certificates in the certificate path if possible`
 5. Export it to a file.
 
 ## Setup Grafana Agent
