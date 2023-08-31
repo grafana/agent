@@ -65,7 +65,7 @@ refers to a `tls` block defined inside a `grpc` block.
 The `tls` block configures TLS settings used for a server. If the `tls` block
 isn't provided, TLS won't be used for connections to the server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### cors block
 
@@ -95,7 +95,7 @@ If `allowed_headers` includes `"*"`, all headers are permitted.
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
