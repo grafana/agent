@@ -1,6 +1,9 @@
 package simple
 
 import (
+	"sync"
+	"time"
+
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
@@ -8,29 +11,27 @@ import (
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
-	"time"
 )
+
+var labelPool sync.Pool
+
+func init() {
+	labelPool.New = func() any {
+		lbls := make([]prompb.Label, 0)
+		return &lbls
+	}
+}
 
 // appender is used to transfer from incoming samples to the PebbleDB.
 type appender struct {
-	parent *Simple
-	/*metrics         []prometheus.Sample
-	exemplars       []prometheus.Exemplar
-	histogram       []prometheus.Histogram
-	floatHistograms []prometheus.FloatHistogram
-	metadata        []prometheus.Metadata*/
+	parent  *Simple
 	samples []prompb.TimeSeries
 	ttl     time.Duration
 }
 
 func newAppender(parent *Simple, ttl time.Duration) *appender {
 	return &appender{
-		parent: parent,
-		/*metrics:         make([]prometheus.Sample, 0),
-		exemplars:       make([]prometheus.Exemplar, 0),
-		histogram:       make([]prometheus.Histogram, 0),
-		floatHistograms: make([]prometheus.FloatHistogram, 0),
-		metadata:        make([]prometheus.Metadata, 0),*/
+		parent:  parent,
 		samples: make([]prompb.TimeSeries, 0),
 		ttl:     ttl,
 	}
@@ -42,8 +43,9 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	if t < endTime {
 		return ref, nil
 	}
+	lbls := labelPool.Get().(*[]prompb.Label)
 	sample := prompb.TimeSeries{
-		Labels:     labelsToLabelsProto(l),
+		Labels:     labelsToLabelsProto(l, *lbls),
 		Samples:    []prompb.Sample{{Value: v, Timestamp: t}},
 		Exemplars:  nil,
 		Histograms: nil,
@@ -55,6 +57,11 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 // Commit metrics to the DB
 func (a *appender) Commit() (_ error) {
 	a.parent.commit(a)
+	// Return all our prom labels to the pools.
+	for _, sample := range a.samples {
+		clearedbuf := sample.Labels[:0]
+		labelPool.Put(&clearedbuf)
+	}
 	return nil
 }
 
@@ -66,11 +73,14 @@ func (a *appender) Rollback() error {
 
 // AppendExemplar appends exemplar to cache.
 func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (_ storage.SeriesRef, _ error) {
-	protoLabels := labelsToLabelsProto(l)
+	lbls := labelPool.Get().([]prompb.Label)
+	protoLabels := labelsToLabelsProto(l, lbls)
+
+	exemplarLbls := labelPool.Get().([]prompb.Label)
 	sample := prompb.TimeSeries{
 		Labels:     protoLabels,
 		Samples:    nil,
-		Exemplars:  []prompb.Exemplar{{Labels: labelsToLabelsProto(e.Labels), Value: e.Value, Timestamp: e.Ts}},
+		Exemplars:  []prompb.Exemplar{{Labels: labelsToLabelsProto(e.Labels, exemplarLbls), Value: e.Value, Timestamp: e.Ts}},
 		Histograms: nil,
 	}
 	a.samples = append(a.samples, sample)
@@ -84,18 +94,18 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 		return ref, nil
 	}
 
+	lbls := labelPool.Get().([]prompb.Label)
 	if h != nil {
 		sample := prompb.TimeSeries{
-			Labels:     labelsToLabelsProto(l),
+			Labels:     labelsToLabelsProto(l, lbls),
 			Samples:    nil,
 			Exemplars:  nil,
 			Histograms: []prompb.Histogram{remote.HistogramToHistogramProto(t, h)},
 		}
 		a.samples = append(a.samples, sample)
-
 	} else {
 		sample := prompb.TimeSeries{
-			Labels:     labelsToLabelsProto(l),
+			Labels:     labelsToLabelsProto(l, lbls),
 			Samples:    nil,
 			Exemplars:  nil,
 			Histograms: []prompb.Histogram{remote.FloatHistogramToHistogramProto(t, fh)},

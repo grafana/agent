@@ -2,11 +2,12 @@ package simple
 
 import (
 	"context"
-	"github.com/prometheus/prometheus/prompb"
 	"net/url"
 	"path"
 	"sync"
 	"time"
+
+	"github.com/prometheus/prometheus/prompb"
 
 	"github.com/go-kit/log/level"
 
@@ -39,7 +40,8 @@ func NewComponent(opts component.Options, args Arguments) (*Simple, error) {
 		opts:     opts,
 	}
 	s.pool.New = func() any {
-		return make([]byte, 0, 1024*1024*1)
+		val := make([]byte, 0, 1024*1024*1)
+		return &val
 	}
 
 	return s, s.Update(args)
@@ -157,19 +159,21 @@ func (c *Simple) Appender(ctx context.Context) storage.Appender {
 func (c *Simple) commit(a *appender) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	tempBuf := c.pool.Get().([]byte)
+	tempBuf := c.pool.Get().(*[]byte)
 	defer c.pool.Put(tempBuf)
 	wr := prompb.WriteRequest{Timeseries: a.samples}
-	if len(tempBuf) < wr.Size() {
-		tempBuf = make([]byte, wr.Size())
+	if cap(*tempBuf) < wr.Size() {
+		newBuf := make([]byte, wr.Size())
+		newBuf = newBuf[:wr.Size()]
+		tempBuf = &newBuf
 	}
-
-	_, err := wr.MarshalTo(tempBuf)
+	newSlice := (*tempBuf)[:wr.Size()]
+	_, err := wr.MarshalTo(newSlice)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "error encoding samples", "err", err)
 		return
 	}
-	_, _ = c.database.WriteSignal(tempBuf, 1, len(a.samples))
+	_, _ = c.database.WriteSignal(newSlice, 1, len(a.samples))
 }
 
 func (c *Simple) cleanupDB(ctx context.Context) {

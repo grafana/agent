@@ -3,14 +3,13 @@ package simple
 import (
 	"context"
 	"fmt"
-	"github.com/golang/protobuf/proto"
-	"github.com/prometheus/prometheus/prompb"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/prometheus/prometheus/prompb"
 )
 
 type writer struct {
@@ -57,23 +56,24 @@ func (w *writer) Start(ctx context.Context) {
 
 	newKey := w.incrementKey()
 	success := true
-
 	var err error
+	wr := &prompb.WriteRequest{}
+	bk := &Bookmark{}
 	for {
 		recoverableError := true
 		timeOut := 1 * time.Second
 		// If we got a new key or the previous record did not enqueue then continue trying to send.
+		// TODO this is getting ugly
 		if newKey || !success {
 			level.Info(w.l).Log("msg", "looking for signal", "key", w.currentKey)
-			// Eventually this will expire from the TTL.
 			valByte, _, signalFound := w.store.GetSignal(w.currentKey)
 			if signalFound {
-				wr := &prompb.WriteRequest{}
 				err = wr.Unmarshal(valByte)
 				if err != nil {
 					level.Error(w.l).Log("msg", "error decoding samples", "err", err)
 				} else {
 					success, err = w.to.Append(ctx, wr.Timeseries)
+					wr.Reset()
 					if err != nil {
 						// Let's check if it's an `out of order sample`. Yes this is some hand waving going on here.
 						// TODO add metric for unrecoverable error
@@ -83,16 +83,14 @@ func (w *writer) Start(ctx context.Context) {
 						level.Error(w.l).Log("msg", "error sending samples", "err", err)
 					}
 
-					// We need to succeed or hit an unrecoverable error.
+					// We need to succeed or hit an unrecoverable error to move on.
 					if success || !recoverableError {
 						// Write our bookmark of the last written record.
-						err = w.store.WriteBookmark(w.bookmarkKey, &Bookmark{
-							Key: w.currentKey,
-						})
+						bk.Key = w.currentKey
+						err = w.store.WriteBookmark(w.bookmarkKey, bk)
 						if err != nil {
 							level.Error(w.l).Log("msg", "error writing bookmark", "err", err)
 						}
-
 					}
 				}
 			}
@@ -116,27 +114,6 @@ func (w *writer) Start(ctx context.Context) {
 			continue
 		}
 	}
-}
-
-func (w *writer) toSamples(data []byte) []prompb.TimeSeries {
-	samples := make([]prompb.TimeSeries, 0)
-
-	//end := 0
-	start := 0
-
-	for {
-		single := &prompb.TimeSeries{}
-		err := proto.Unmarshal(data[start:], single)
-		if err != nil {
-			return nil
-		}
-		start = start + single.Size()
-		if start == len(data) {
-			break
-		}
-		samples = append(samples, *single)
-	}
-	return samples
 }
 
 func (w *writer) GetKey() uint64 {

@@ -24,9 +24,11 @@ type DB struct {
 	log log.Logger
 	// Trying to avoid unbounded lists, this thankfully is one key for each commit so its unlikely to be in the millions
 	// of active commits. KeyCache really doesnt make sense for bookmarks.
-	keyCache              *metadata
-	currentIndex          uint64
-	bufPool               sync.Pool
+	keyCache     *metadata
+	currentIndex uint64
+	bufPool      *ByteBufferPool
+	snappyPool   *ByteArrayPool
+
 	numberOfCompressions  *atomic.Uint64
 	totalCompressionRatio *atomic.Float64
 }
@@ -43,12 +45,10 @@ func NewDB(dir string, l log.Logger) (*DB, error) {
 		keyCache:              newMetadata(),
 		numberOfCompressions:  atomic.NewUint64(0),
 		totalCompressionRatio: atomic.NewFloat64(0),
+		bufPool:               NewByteBufferPool(),
+		snappyPool:            NewArrayBufferPool(),
 	}
-	d.bufPool.New = func() any {
-		// Return a 1 MB buffer, this may not be big enough and we should maybe have several tiers of buffers.
-		b := make([]byte, 0, 5*1024*1024)
-		return b
-	}
+
 	keys, err := d.GetKeys()
 	if err != nil {
 		return nil, err
@@ -192,8 +192,8 @@ func (d *DB) getItem(k []byte) (*item, bool, error) {
 }
 
 func (d *DB) convertItem(val []byte) (*item, error) {
-	tempBuf := d.bufPool.Get().([]byte)
-	defer d.bufPool.Put(tempBuf)
+	tempBuf := d.snappyPool.Get()
+	defer d.snappyPool.Put(tempBuf)
 
 	unsnapped, err := snappy.Decode(tempBuf, val)
 	if err != nil {
@@ -243,17 +243,16 @@ func (d *DB) WriteValue(key []byte, data []byte, dataType int8, count int, ttl t
 		it.TTL = time.Now().Add(ttl).Unix()
 	}
 	it.Count = count
-	tempGobBuf := d.bufPool.Get().([]byte)
+	tempGobBuf := d.bufPool.Get()
 	defer d.bufPool.Put(tempGobBuf)
-	gobBuf := bytes.NewBuffer(tempGobBuf)
-	enc := gob.NewEncoder(gobBuf)
+	enc := gob.NewEncoder(tempGobBuf)
 	err := enc.Encode(it)
 	if err != nil {
 		return err
 	}
-	snappyBuf := d.bufPool.Get().([]byte)
-	defer d.bufPool.Put(snappyBuf)
-	snappied := snappy.Encode(snappyBuf, gobBuf.Bytes())
+	snappyBuf := d.snappyPool.Get()
+	defer d.snappyPool.Put(snappyBuf)
+	snappied := snappy.Encode(snappyBuf, tempGobBuf.Bytes())
 	ratio := float64(rawByteCount) / float64(len(snappied))
 	d.totalCompressionRatio.Add(ratio)
 	d.numberOfCompressions.Add(1)

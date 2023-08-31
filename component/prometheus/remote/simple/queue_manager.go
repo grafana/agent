@@ -23,7 +23,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/textparse"
 	"github.com/prometheus/prometheus/prompb"
@@ -201,7 +200,6 @@ func fillQueues(protoSamples []prompb.TimeSeries, maxSamplesPerSend int) map[int
 // append shards the data and sends it. It has an issue/bug? that if a non recoverable error is returned then the
 // whole session is failed. A better way would be to return the data that WASNT sent and the requeue JUST that data.
 func (t *QueueManager) append(ctx context.Context, samples []prompb.TimeSeries) (bool, error) {
-
 	pBuf := t.bufPool.Get().(*proto.Buffer)
 	defer pBuf.Reset()
 	defer t.bufPool.Put(pBuf)
@@ -279,26 +277,6 @@ func (t *QueueManager) client() WriteClient {
 type shard struct {
 	qm *QueueManager
 }
-
-type timeSeries struct {
-	seriesLabels   labels.Labels
-	value          float64
-	histogram      *histogram.Histogram
-	floatHistogram *histogram.FloatHistogram
-	timestamp      int64
-	exemplarLabels labels.Labels
-	// The type of series: sample, exemplar, or histogram.
-	sType seriesType
-}
-
-type seriesType int
-
-const (
-	tSample seriesType = iota
-	tExemplar
-	tHistogram
-	tFloatHistogram
-)
 
 // sendSamples to the remote storage with backoff for recoverable errors.
 func (s *shard) sendSamplesWithBackoff(ctx context.Context, samples []prompb.TimeSeries, pBuf *proto.Buffer) (bool, error) {
@@ -454,14 +432,16 @@ type RecoverableError struct {
 
 // labelsToLabelsProto transforms labels into prompb labels. The buffer slice
 // will be used to avoid allocations if it is big enough to store the labels.
-func labelsToLabelsProto(lbls labels.Labels) []prompb.Label {
-	result := make([]prompb.Label, len(lbls))
+func labelsToLabelsProto(lbls labels.Labels, input []prompb.Label) []prompb.Label {
+	if input == nil || len(input) < len(lbls) {
+		input = make([]prompb.Label, len(lbls))
+	}
 	for x, l := range lbls {
-		result[x] = prompb.Label{
+		input[x] = prompb.Label{
 			Name:  l.Name,
 			Value: l.Value,
 		}
-
 	}
-	return result
+
+	return input[:len(lbls)]
 }

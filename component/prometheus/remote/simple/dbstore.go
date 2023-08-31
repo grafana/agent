@@ -49,7 +49,7 @@ func newDBStore(ttl time.Duration, directory string, r prometheus.Registerer, l 
 		directory: directory,
 	}
 	store.bookmarkPool.New = func() any {
-		return make([]byte, 0, 1024*1024)
+		return bytes.NewBuffer(nil)
 	}
 
 	dbm := newDbMetrics(r, store)
@@ -67,16 +67,16 @@ func (dbs *dbstore) Run(ctx context.Context) {
 
 // WriteBookmark writes a bookmark for Writer.
 func (dbs *dbstore) WriteBookmark(key string, value *Bookmark) error {
-	tempBuf := dbs.bookmarkPool.Get().([]byte)
+	tempBuf := dbs.bookmarkPool.Get().(*bytes.Buffer)
+	defer tempBuf.Reset()
 	defer dbs.bookmarkPool.Put(tempBuf)
-	buf := bytes.NewBuffer(tempBuf)
-	enc := gob.NewEncoder(buf)
+	enc := gob.NewEncoder(tempBuf)
 	err := enc.Encode(value)
 	if err != nil {
 		return err
 	}
 
-	return dbs.bookmark.WriteValue([]byte(key), buf.Bytes(), 0, 1, 0*time.Second)
+	return dbs.bookmark.WriteValue([]byte(key), tempBuf.Bytes(), 0, 1, 0*time.Second)
 }
 
 // GetBookmark returns the bookmark for a given write name.
