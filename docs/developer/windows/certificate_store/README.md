@@ -13,7 +13,7 @@ This guide is used to set up a Windows Server for Windows Store Certificate Test
 2. Add to a new forest, and when asked for a name, use `test.example.com`
 3. Add a NETBIOS name `TESTCERT`
 4. Install
-6. Reboot, if succeeded your username will be prefixed with `TESTCERT/` on login screen.
+6. Reboot. If the set up succeeded, your username will be prefixed with `TESTCERT/` on login screen.
 
 
 ## Set up certificate management
