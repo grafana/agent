@@ -3,15 +3,13 @@ aliases:
 - ../../scraping-service/
 - ../../configuration/scraping-service/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/scraping-service/
-title: Scraping Service Mode
+title: Scraping service
 weight: 600
 ---
 
-# Scraping Service Mode (Beta)
+# Scraping service (Beta)
 
-Scraping Service Mode is a third operational mode of the Grafana Agent
-that allows for clustering a set of Agent processes and distributing scrape load
-across them.
+The Grafana Agent scraping service allows you to cluster a set of Agent processes and distribute the scrape load.
 
 Determining what to scrape is done by writing instance configuration files to an
 [API][api], which then stores the configuration files in a KV store backend.
@@ -50,14 +48,14 @@ Having multiple instance configuration files is necessary for sharding; each
 config file is distributed to a particular agent on the cluster based on the
 hash of its contents.
 
-When Scraping Service Mode is enabled, Agents **disallow** specifying
+When the scraping service is enabled, Agents **disallow** specifying
 instance configurations locally in the configuration file; using the KV store
 is required. [`agentctl`](#agentctl) can be used to manually sync
 instance configuration files to the Agent's API server.
 
 ## Distributed hash ring
 
-Scraping Service Mode uses a Distributed Hash Ring (commonly just called "the
+The scraping service uses a Distributed Hash Ring (commonly just called "the
 ring") to cluster agents and to shard configurations within that ring. Each
 Agent joins the ring with a random distinct set of _tokens_ that are used for
 sharding. The default number of generated tokens is 128.
@@ -89,7 +87,7 @@ be the owner of but are no longer the owner, the associated instance for that
 configuration file is stopped for that Agent. This can happen when the cluster
 size changes.
 
-Scraping Service Mode currently does not support replication; only one agent
+The scraping service currently does not support replication; only one agent
 at a time will be responsible for scraping a certain config.
 
 ### Resharding
