@@ -1,6 +1,6 @@
 # Guide to setting up a Windows Server for Certificate Testing
 
-This guide is used to setup a Windows Server for Windows Store Certificate Testing. This guide assumes you have downloaded a Windows 2022 Server ISO and have installed the Windows Server onto a virtual machine. Certificate Templates can only be installed on Windows Server and it needs to be enabled as a Enterprise Certificate Authority. This guide is NOT meant to be a guide on how to setup a Windows Server for production use and is meant only for setting up an environment to test the Grafana Agent and certificate store.
+This guide is used to set up a Windows Server for Windows Store Certificate Testing. This guide assumes you have downloaded a Windows 2022 Server ISO and have installed the Windows Server onto a virtual machine. Certificate Templates can only be installed on Windows Server and it must enabled as an Enterprise Certificate Authority. This guide is NOT meant to be a guide on how to set up a Windows Server for production use, and is meant only for setting up an environment to test the Grafana Agent and certificate store.
 
 ## Prerequisites
 
