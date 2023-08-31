@@ -20,9 +20,14 @@ Main (unreleased)
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
 
+### Enhancements
+
+- Clustering: Allow advertise interfaces to be configurable. (@wildum)
+
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
+- Read contextual attributes from Faro measurements (@codecapitano)
 
 v0.36.0 (2023-08-30)
 --------------------
@@ -77,6 +82,7 @@ v0.36.0 (2023-08-30)
     keys and values are sourced from `discovery.*` components. (@ptodev)
   - `otelcol.connector.spanmetrics` - creates OpenTelemetry metrics from traces. (@ptodev)
 
+
 ### Enhancements
 
 - Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
@@ -107,8 +113,6 @@ v0.36.0 (2023-08-30)
 - Support decoupled scraping in the cloudwatch_exporter integration (@dtrejod).
 
 - Agent Management: Enable proxying support (@spartan0x117)
-
-- Clustering: Allow advertise interfaces to be configurable. (@wildum)
 
 ### Bugfixes
 

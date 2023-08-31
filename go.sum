@@ -1953,12 +1953,8 @@ github.com/grafana/pyroscope/ebpf v0.2.1/go.mod h1:KTvAJ+C8PFW2C0aI0KzSUhsqslQCc
 github.com/grafana/regexp v0.0.0-20221122212121-6b5c0a4cb7fd/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db h1:7aN5cccjIqCLTzedH7MZzRZt5/lsAHch6Z3L2ZGn5FA=
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
-github.com/grafana/river v0.0.0-20230825181326-a26c2d2f0e95 h1:FF6tydxeVmbzlqmk4ab+pfUiZrMpgYD+Ei3yLnHGtpo=
-github.com/grafana/river v0.0.0-20230825181326-a26c2d2f0e95/go.mod h1:F8rcwfPL98xF/m+OSCFH7gJyLPYMIadXCVfY+/OcqEI=
-github.com/grafana/river v0.0.0-20230825183552-da1ac6d738c3 h1:ZWV8aOLW/dGK0A/RKT0N8B5AOtGcxQHKHXRHFt2Kkaw=
-github.com/grafana/river v0.0.0-20230825183552-da1ac6d738c3/go.mod h1:F8rcwfPL98xF/m+OSCFH7gJyLPYMIadXCVfY+/OcqEI=
-github.com/grafana/river v0.1.1 h1:2Lt/j293FFJzwwW//VJSl+fzbyV8oPMzFbrTZFKAbRo=
-github.com/grafana/river v0.1.1/go.mod h1:F8rcwfPL98xF/m+OSCFH7gJyLPYMIadXCVfY+/OcqEI=
+github.com/grafana/river v0.1.2-0.20230830200459-0ff21cf610eb h1:hOblg36rOTgGIOp7A3+53OtlXqq0iNnI9qDcOn7fPfQ=
+github.com/grafana/river v0.1.2-0.20230830200459-0ff21cf610eb/go.mod h1:F8rcwfPL98xF/m+OSCFH7gJyLPYMIadXCVfY+/OcqEI=
 github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3 h1:UPkAxuhlAcRmJT3/qd34OMTl+ZU7BLLfOO2+NXBlJpY=
 github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3/go.mod h1:iZiiwNT4HbtGRVqCQu7uJPEZCuEE5sfSSttcnePkDl4=
 github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538 h1:tkT0yha3JzB5S5VNjfY4lT0cJAe20pU8XGt3Nuq73rM=
