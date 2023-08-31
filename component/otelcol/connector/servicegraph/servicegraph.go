@@ -30,7 +30,6 @@ func init() {
 // Arguments configures the otelcol.connector.servicegraph component.
 type Arguments struct {
 	// LatencyHistogramBuckets is the list of durations representing latency histogram buckets.
-	// See defaultLatencyHistogramBucketsMs in processor.go for the default value.
 	LatencyHistogramBuckets []time.Duration `river:"latency_histogram_buckets,attr,optional"`
 
 	// Dimensions defines the list of additional dimensions on top of the provided:

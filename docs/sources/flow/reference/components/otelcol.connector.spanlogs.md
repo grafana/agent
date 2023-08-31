@@ -9,10 +9,10 @@ title: otelcol.connector.spanlogs
 components and outputs logs telemetry data for each span, root, or process.
 This allows you to automatically build a mechanism for trace discovery.
 
-> **NOTE**: `otelcol.connector.spanlogs` is a custom component unrelated
-> to any components from the OpenTelemetry Collector. It is based on the
-> `automatic_logging` component in the
-> [traces](../../../static/configuration/traces-config.md)
+> **NOTE**: `otelcol.connector.spanlogs` is a custom component unrelated 
+> to any components from the OpenTelemetry Collector. It is based on the 
+> `automatic_logging` component in the 
+> [traces](../../../static/configuration/traces-config) 
 > subsystem of the Agent static mode.
 
 You can specify multiple `otelcol.connector.spanlogs` components by giving them

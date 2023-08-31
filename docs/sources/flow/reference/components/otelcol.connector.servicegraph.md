@@ -57,7 +57,7 @@ otelcol.connector.servicegraph "LABEL" {
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`latency_histogram_buckets` | `list(duration)` | Buckets for latency histogram metrics. | `["2ms","4ms","6ms","8ms","10ms","50ms","100ms","200ms","400ms","800ms","1s","1400ms","2s","5s","10s","15s"]` | no
+`latency_histogram_buckets` | `list(duration)` | Buckets for latency histogram metrics. | `["2ms", "4ms", "6ms", "8ms", "10ms", "50ms", "100ms", "200ms", "400ms", "800ms", "1s", "1400ms", "2s", "5s", "10s", "15s"]` | no
 `dimensions` | `list(string)` | A list of dimensions to add with the default dimensions. | `[]` | no
 `cache_loop` | `duration` | Configures how often to delete series which have not been updated. | `"1m"` | no
 `store_expiration_loop` | `duration` | The time to expire old entries from the store periodically. | `"2s"` | no
