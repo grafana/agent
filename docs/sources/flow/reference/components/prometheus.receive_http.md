@@ -48,7 +48,7 @@ The following blocks are supported inside the definition of `prometheus.receive_
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
