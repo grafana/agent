@@ -10,7 +10,22 @@ internal API changes are not present.
 Unreleased
 ----------
 
-0.20.1 (2023-08-15)
+### Enhancements
+
+- Enable clustering for deployments and daemonsets. (@tpaschalis)
+
+0.22.0 (2023-08-30)
+-------------------
+
+- Update Grafana Agent version to v0.36.0. (@thampiotr)
+
+0.21.1 (2023-08-30)
+-------------------
+
+- Condition parameter minReadySeconds on StatefulSet, Deployment, and DaemonSet to Kubernetes v1.22 clusters.
+
+
+0.21.0 (2023-08-15)
 -------------------
 
 - Update Grafana Agent version to v0.35.4. (@mattdurham)

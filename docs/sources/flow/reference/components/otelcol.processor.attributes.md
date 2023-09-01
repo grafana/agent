@@ -143,7 +143,7 @@ The supported values for `action` are:
 
 The `include` block provides an option to include data being fed into the [action] blocks based on the properties of a span, log, or metric records.
 
-{{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 One of the following is also required:
 * For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][], or [library][] must be specified 
@@ -160,7 +160,7 @@ For example, adding a `span_names` filter could cause the component to error if 
 
 The `exclude` block provides an option to exclude data from being fed into the [action] blocks based on the properties of a span, log, or metric records.
 
-{{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 One of the following is also required:
 * For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][], or [library][] must be specified 
@@ -175,27 +175,27 @@ For example, adding a `span_names` filter could cause the component to error if 
 
 ### regexp block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-regexp-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-regexp-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### attribute block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-attribute-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-attribute-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### resource block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-resource-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-resource-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### library block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-library-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-library-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### log_severity block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-log-severity-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-log-severity-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
