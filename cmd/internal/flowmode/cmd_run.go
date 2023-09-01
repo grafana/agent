@@ -161,13 +161,7 @@ func (fr *flowRun) Run(configFile string) error {
 		return fmt.Errorf("building tracer: %w", err)
 	}
 
-	// Enable the "telemetry.useOtelForInternalMetrics" Collector feature gate.
-	// Currently, Collector components uses OpenCensus metrics by default.
-	// Those metrics cannot be integrated with Agent Flow,
-	// so we need to always use OpenTelemetry metrics.
-	err = util.EnableOtelFeatureGates(
-		"telemetry.useOtelForInternalMetrics",
-	)
+	err = util.SetupFlowModeOtelFeatureGates()
 	if err != nil {
 		return err
 	}
