@@ -235,11 +235,11 @@ func TestInstance(t *testing.T) {
 	runInstance(t, inst)
 
 	// Wait until mockWalStorage has had a series added to it.
-	util.Eventually(t, func(t require.TestingT) {
+	util.EventuallyWithBackoff(t, func(t require.TestingT) {
 		mockStorage.mut.Lock()
 		defer mockStorage.mut.Unlock()
 		require.True(t, len(mockStorage.series) > 0)
-	})
+	}, slowBackoff)
 }
 
 // TestInstance_Recreate ensures that creating an instance with the same name twice

@@ -8,15 +8,23 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/backoff"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 )
+
+var slowBackoff = backoff.Config{
+	MinBackoff: 1 * time.Second,
+	MaxBackoff: 1 * time.Minute,
+	MaxRetries: 10,
+}
 
 // TestInstance_Update performs a full integration test by doing the following:
 //
@@ -84,25 +92,25 @@ remote_write:
 `, l.Addr()))
 
 	// Wait for the instance to be ready before updating.
-	util.Eventually(t, func(t require.TestingT) {
+	util.EventuallyWithBackoff(t, func(t require.TestingT) {
 		require.True(t, inst.Ready())
-	})
+	}, slowBackoff)
 
-	// Wait minute for the instance to update (it might not be ready yet and
-	// would return an error until everything is initialized), and then wait
-	// again for the configs to apply and set the scraped and pushed atomic
-	// variables, indicating that the Prometheus components successfully updated.
-	util.Eventually(t, func(t require.TestingT) {
+	// Wait for the instance to update (it might not be ready yet and would
+	// return an error until everything is initialized), and then wait again for
+	// the configs to apply and set the scraped and pushed atomic variables,
+	// indicating that the Prometheus components successfully updated.
+	util.EventuallyWithBackoff(t, func(t require.TestingT) {
 		err := inst.Update(newConfig)
 		if err != nil {
 			logger.Log("msg", "failed to update instance", "err", err)
 		}
 		require.NoError(t, err)
-	})
+	}, slowBackoff)
 
-	util.Eventually(t, func(t require.TestingT) {
+	util.EventuallyWithBackoff(t, func(t require.TestingT) {
 		require.True(t, scraped.Load() && pushed.Load())
-	})
+	}, slowBackoff)
 }
 
 func TestInstance_Update_Failed(t *testing.T) {
