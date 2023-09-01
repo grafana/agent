@@ -67,7 +67,7 @@ tls | [tls][] | Configures TLS for the gRPC server. | no
 keepalive | [keepalive][] | Configures keepalive settings for the configured server. | no
 keepalive > server_parameters | [server_parameters][] | Server parameters used to configure keepalive settings. | no
 keepalive > enforcement_policy | [enforcement_policy][] | Enforcement policy for keepalive settings. | no
-debug_metrics | [debug_metrics][] | Configures the metrics which this component generates to monitor its state. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
 The `>` symbol indicates deeper levels of nesting. For example, `grpc > tls`
