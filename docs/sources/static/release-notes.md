@@ -32,7 +32,7 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 
 ### Breaking change: The default value of `retry_on_http_429` is overriden to `true` for the `queue_config` in `remote_write` in `metrics` config.
 
-> **Note:** The default set by Grafana Agent Static Mode is different to the default set by Prometheus.
+> **Note:** The default set by Grafana Agent Static Mode is different than the default set by Prometheus.
 
 The prometheus default value of `retry_on_http_429` is overriden to `true` for the `queue_config` in `remote_write`
 so that the agent can retry sending and avoid data being lost for metric pipelines by default.
