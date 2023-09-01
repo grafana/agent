@@ -3,7 +3,6 @@ package process
 import (
 	"context"
 	"os"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
 	"go.uber.org/goleak"
 )
 
