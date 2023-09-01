@@ -32,13 +32,9 @@ Name | Type | Description | Default | Required
 `scheme`           | `string`       | The scheme to use when talking to the Consul Agent.                                                               | `http`           | no
 `username`         | `string`       | The username to use.                                                                                              |                  | no
 `password`         | `secret`       | The password to use.                                                                                              |                  | no
-`allow_stale`      | `bool`         | Allow stale Consul results (see [official documentation][consistency documentation]). Will reduce load on Consul. | `true`           | no
 `services`         | `list(string)` | A list of services for which targets are retrieved. If omitted, all services are scraped.                         |                  | no
 `tags`             | `list(string)` | An optional list of tags used to filter nodes for a given service. Services must contain all tags in the list.    |                  | no
-`node_meta`        | `map(string)`  | Node metadata key/value pairs to filter nodes for a given service.                                                |                  | no
 `refresh_interval` | `duration`     | Frequency to refresh list of containers.                                                                          | `"30s"`          | no
-
-[consistency documentation]: https://developer.hashicorp.com/consul/api-docs/features/consistency
 
 ## Blocks
 
@@ -61,7 +57,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the Consul catalog API.
+`targets` | `list(map(string))` | The set of targets discovered from the Consul Agent API.
 
 Each target includes the following labels:
 
@@ -94,7 +90,7 @@ values.
 
 ## Example
 
-This example discovers targets from Consul for the specified list of services:
+This example discovers targets from a Consul Agent for the specified list of services:
 
 ```river
 discovery.consulagent "example" {

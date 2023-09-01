@@ -21,14 +21,9 @@ func TestConvert(t *testing.T) {
 	scheme = "scheme"
 	username = "username"
 	password = "pass"
-	allow_stale = false
 	refresh_interval = "5m"
 	services = ["service1", "service2"]
 	tags = ["tag1", "tag2"]
-	node_meta = {
-		what  = "this",
-		where = "here",
-	}
 	tls_config {
 		ca_file = "/path/to/ca_file"
 	}
@@ -46,15 +41,10 @@ func TestConvert(t *testing.T) {
 	assert.Equal(t, "scheme", converted.Scheme)
 	assert.Equal(t, "username", converted.Username)
 	assert.Equal(t, promcfg.Secret("pass"), converted.Password)
-	assert.Equal(t, false, converted.AllowStale)
 	assert.Equal(t, model.Duration(5*time.Minute), converted.RefreshInterval)
 	expectedServices := []string{"service1", "service2"}
 	if !reflect.DeepEqual(expectedServices, converted.Services) {
 		t.Errorf("Services do not match, expected: %v, got: %v", expectedServices, converted.Services)
-	}
-	expectedNodeMeta := map[string]string{"what": "this", "where": "here"}
-	if !reflect.DeepEqual(expectedNodeMeta, converted.NodeMeta) {
-		t.Errorf("Services do not match, expected: %v, got: %v", expectedNodeMeta, converted.NodeMeta)
 	}
 	assert.Equal(t, "username", converted.Username)
 	assert.Equal(t, "/path/to/ca_file", converted.TLSConfig.CAFile)
@@ -69,14 +59,9 @@ func TestBadTLSRiverConfig(t *testing.T) {
 	scheme = "scheme"
 	username = "username"
 	password = "pass"
-	allow_stale = false
 	refresh_interval = "10s"
 	services = ["service1", "service2"]
 	tags = ["tag1", "tag2"]
-	node_meta = {
-		what  = "this",
-		where = "here",
-	}
 	tls_config {
 		ca_file = "/path/to/ca_file"
 		ca_pem = "not a real pem"
@@ -98,14 +83,9 @@ func TestBadRefreshIntervalRiverConfig(t *testing.T) {
 	scheme = "scheme"
 	username = "username"
 	password = "pass"
-	allow_stale = false
 	refresh_interval = "-1s"
 	services = ["service1", "service2"]
 	tags = ["tag1", "tag2"]
-	node_meta = {
-		what  = "this",
-		where = "here",
-	}
 	tls_config {
 		ca_file = "/path/to/ca_file"
 	}

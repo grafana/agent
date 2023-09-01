@@ -32,11 +32,9 @@ type Arguments struct {
 	Scheme          string            `river:"scheme,attr,optional"`
 	Username        string            `river:"username,attr,optional"`
 	Password        rivertypes.Secret `river:"password,attr,optional"`
-	AllowStale      bool              `river:"allow_stale,attr,optional"`
 	RefreshInterval time.Duration     `river:"refresh_interval,attr,optional"`
 	Services        []string          `river:"services,attr,optional"`
 	ServiceTags     []string          `river:"tags,attr,optional"`
-	NodeMeta        map[string]string `river:"node_meta,attr,optional"`
 	TLSConfig       config.TLSConfig  `river:"tls_config,block,optional"`
 }
 
@@ -44,7 +42,6 @@ var DefaultArguments = Arguments{
 	Server:          "localhost:8500",
 	TagSeparator:    ",",
 	Scheme:          "http",
-	AllowStale:      true,
 	RefreshInterval: 30 * time.Second,
 }
 
@@ -73,10 +70,8 @@ func (args *Arguments) Convert() *SDConfig {
 		Scheme:          args.Scheme,
 		Username:        args.Username,
 		Password:        promcfg.Secret(args.Password),
-		AllowStale:      args.AllowStale,
 		Services:        args.Services,
 		ServiceTags:     args.ServiceTags,
-		NodeMeta:        args.NodeMeta,
 		TLSConfig:       *args.TLSConfig.Convert(),
 	}
 }

@@ -410,30 +410,6 @@ func TestOneService(t *testing.T) {
 	cancel()
 }
 
-// Watch the test service with a specific tag and node-meta.
-func TestAllOptions(t *testing.T) {
-	stub, config := newServer(t)
-	defer stub.Close()
-
-	config.Services = []string{"test"}
-	config.NodeMeta = map[string]string{"rack_name": "2304"}
-	config.ServiceTags = []string{"tag1"}
-	config.AllowStale = true
-	config.Token = "fake-token"
-
-	d := newDiscovery(t, config)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	ch := make(chan []*targetgroup.Group)
-	go func() {
-		d.Run(ctx, ch)
-		close(ch)
-	}()
-	checkOneTarget(t, <-ch)
-	cancel()
-	<-ch
-}
-
 func TestGetDatacenterShouldReturnError(t *testing.T) {
 	for _, tc := range []struct {
 		handler    func(http.ResponseWriter, *http.Request)

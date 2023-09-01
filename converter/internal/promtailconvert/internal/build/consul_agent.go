@@ -40,10 +40,8 @@ func toDiscoveryAgentConsul(sdConfig *promtail_consulagent.SDConfig) *consulagen
 		Scheme:          sdConfig.Scheme,
 		Username:        sdConfig.Username,
 		Password:        rivertypes.Secret(sdConfig.Password),
-		AllowStale:      sdConfig.AllowStale,
 		Services:        sdConfig.Services,
 		ServiceTags:     sdConfig.ServiceTags,
-		NodeMeta:        sdConfig.NodeMeta,
 		TLSConfig:       *prometheusconvert.ToTLSConfig(&sdConfig.TLSConfig),
 	}
 }

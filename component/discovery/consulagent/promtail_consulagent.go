@@ -1,4 +1,8 @@
-// This code is copied from Promtail (https://github.com/grafana/loki/tree/main/clients/pkg/promtail/discovery/consulagent).
+// This code is copied from Promtail (https://https://github.com/grafana/loki/tree/cff8324f241cdc13318ff4b834be750a15ce05fc/clients/pkg/promtail/discovery/consulagent).
+// Some changes have been made to improve the component:
+// - the init function has been removed
+// - the unused config "AllowStale" and "NodeMeta" have been removed
+// - some comments have been adjusted
 
 // This code was adapted from the consul service discovery
 // package in prometheus: https://github.com/prometheus/prometheus/blob/main/discovery/consul/consul.go
@@ -90,7 +94,6 @@ var (
 		TagSeparator:    ",",
 		Scheme:          "http",
 		Server:          "localhost:8500",
-		AllowStale:      true,
 		RefreshInterval: model.Duration(30 * time.Second),
 	}
 )
@@ -105,9 +108,6 @@ type SDConfig struct {
 	Username     string        `yaml:"username,omitempty"`
 	Password     config.Secret `yaml:"password,omitempty"`
 
-	// See https://www.consul.io/docs/internals/consensus.html#consistency-modes,
-	// stale reads are a lot cheaper and are a necessity if you have >5k targets.
-	AllowStale bool `yaml:"allow_stale"`
 	// By default use blocking queries (https://www.consul.io/api/index.html#blocking-queries)
 	// but allow users to throttle updates if necessary. This can be useful because of "bugs" like
 	// https://github.com/hashicorp/consul/issues/3712 which cause an un-necessary
@@ -120,8 +120,6 @@ type SDConfig struct {
 	Services []string `yaml:"services,omitempty"`
 	// A list of tags used to filter instances inside a service. Services must contain all tags in the list.
 	ServiceTags []string `yaml:"tags,omitempty"`
-	// Desired node metadata.
-	NodeMeta map[string]string `yaml:"node_meta,omitempty"`
 
 	TLSConfig config.TLSConfig `yaml:"tls_config,omitempty"`
 }
@@ -153,7 +151,7 @@ func (c *SDConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
-// Discovery retrieves target information from a Consul server
+// Discovery retrieves target information from a Consul Agent
 // and updates them via watches.
 type Discovery struct {
 	client           *consul.Client
@@ -161,8 +159,6 @@ type Discovery struct {
 	tagSeparator     string
 	watchedServices  []string // Set of services which will be discovered.
 	watchedTags      []string // Tags used to filter instances of a service.
-	watchedNodeMeta  map[string]string
-	allowStale       bool
 	refreshInterval  time.Duration
 	finalizer        func()
 	logger           log.Logger
@@ -211,8 +207,6 @@ func NewDiscovery(conf *SDConfig, logger log.Logger) (*Discovery, error) {
 		tagSeparator:     conf.TagSeparator,
 		watchedServices:  conf.Services,
 		watchedTags:      conf.ServiceTags,
-		watchedNodeMeta:  conf.NodeMeta,
-		allowStale:       conf.AllowStale,
 		refreshInterval:  time.Duration(conf.RefreshInterval),
 		clientDatacenter: conf.Datacenter,
 		finalizer:        transport.CloseIdleConnections,
@@ -343,8 +337,8 @@ func (d *Discovery) Run(ctx context.Context, ch chan<- []*targetgroup.Group) {
 	}
 }
 
-// Watch the catalog for new services we would like to watch. This is called only
-// when we don't know yet the names of the services and need to ask Consul the
+// Watch the Consul Agent for new services we would like to watch. This is called only
+// when we don't know yet the names of the services and need to ask the agent the
 // entire list of services.
 func (d *Discovery) watchServices(ctx context.Context, ch chan<- []*targetgroup.Group, services map[string]func()) {
 	agent := d.client.Agent()
@@ -539,7 +533,7 @@ func (srv *consulService) watch(ctx context.Context, ch chan<- []*targetgroup.Gr
 			healthLabel:         model.LabelValue(aggregatedStatus),
 		}
 
-		// Add all key/value pairs from the node's metadata as their own labels.
+		// Add all key/value pairs from the agent's metadata as their own labels.
 		for k, v := range meta {
 			if str, ok := v.(string); ok {
 				name := strutil.SanitizeLabelName(k)
