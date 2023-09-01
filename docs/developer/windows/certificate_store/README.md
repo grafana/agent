@@ -112,7 +112,7 @@ For this setup we are using a one-node Domain Controller set up as the Enterpris
 
 1. From `certmgr` find the certificate you created and double click to open.
 2. Go to the `Details` tab and select `Copy to File...`.
-3. Ensure that `Yes, export the private key` is selected.
+3. Ensure that `Allow private key to be exported` is selected.
 ![](./images/export_private_key.png)
 
 4. Under `Export File Format` ensure that `Include all certificates in the certificate path if possible`.
