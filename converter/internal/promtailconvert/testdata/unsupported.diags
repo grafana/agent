@@ -1,4 +1,3 @@
-(Error) global/file_watch_config is not supported
 (Error) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
 (Warning) stream_lag_labels is deprecated and the associated metric has been removed
 (Error) Promtail's WAL is currently not supported in Flow Mode

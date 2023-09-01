@@ -70,6 +70,11 @@ local.file_match "logs_name_jobName" {
 loki.source.file "logs_name_jobName" {
 	targets    = local.file_match.logs_name_jobName.targets
 	forward_to = [loki.write.logs_name.receiver]
+
+	file_watch {
+		min_poll_frequency = "1s"
+		max_poll_frequency = "5s"
+	}
 }
 
 loki.write "logs_name" {
@@ -118,6 +123,11 @@ local.file_match "logs_name2_jobName" {
 loki.source.file "logs_name2_jobName" {
 	targets    = local.file_match.logs_name2_jobName.targets
 	forward_to = [loki.write.logs_name2.receiver]
+
+	file_watch {
+		min_poll_frequency = "1s"
+		max_poll_frequency = "5s"
+	}
 }
 
 loki.write "logs_name2" {

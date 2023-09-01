@@ -1,8 +1,8 @@
 package syslogtarget
 
-// This code is copied from Promtail. The syslogtarget package is used to
-// configure and run the targets that can read syslog entries and forward them
-// to other loki components.
+// This code is copied from Promtail v2.8.4 (4a564456861c0ab7441b815aa49a7c0f22a05f4c)
+// The syslogtarget package is used to configure and run the targets that can
+// read syslog entries and forward them to other loki components.
 
 import (
 	"errors"

@@ -28,10 +28,10 @@ Our Helm charts require some version updates as well.
 
 4. Create a branch from `main` for [grafana/agent](https://github.com/grafana/agent).
 
-5. Update the code:
+5. Update the helm chart code in `$agentRepo/operations/helm`:
 
    1. Update `Chart.yaml` with the new helm version and app version.
    2. Update `CHANGELOG.md` with a new section for the helm version.
-   3. Run `make docs rebuild-tests` from the repo root.
+   3. Run `make docs rebuild-tests` from the `operations/helm` directory.
 
 6. Open a PR, following the pattern in PR [#3126](https://github.com/grafana/agent/pull/3126).

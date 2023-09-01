@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	lokicfgutil "github.com/grafana/loki/pkg/util/cfg"
 	"github.com/grafana/river/token/builder"
 	"gopkg.in/yaml.v2"
@@ -99,7 +100,7 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, labelPrefix string, dia
 	}
 
 	for _, sc := range cfg.ScrapeConfig {
-		appendScrapeConfig(f, &sc, &diags, gc)
+		appendScrapeConfig(f, &sc, &diags, gc, &cfg.Global.FileWatch)
 	}
 
 	for _, write := range writeBlocks {
@@ -127,6 +128,7 @@ func appendScrapeConfig(
 	cfg *scrapeconfig.Config,
 	diags *diag.Diagnostics,
 	gctx *build.GlobalContext,
+	watchConfig *file.WatchConfig,
 ) {
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
@@ -149,7 +151,7 @@ func appendScrapeConfig(
 	// If any relabelling is required, it will be done via a discovery.relabel component.
 	// The files will be watched and the globs in file paths will be expanded using discovery.file component.
 	// The log entries are sent to loki.process if processing is needed, or directly to loki.write components.
-	b.AppendLokiSourceFile()
+	b.AppendLokiSourceFile(watchConfig)
 
 	// Append all the components that produce logs directly.
 	// If any relabelling is required, it will be done via a loki.relabel component.
