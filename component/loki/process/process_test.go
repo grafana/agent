@@ -3,6 +3,7 @@ package process
 import (
 	"context"
 	"os"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -434,16 +435,15 @@ func TestDeadlockWithFrequentUpdates(t *testing.T) {
 	defer cancel()
 	go c.Run(ctx)
 
-	var lastSend time.Time
+	var lastSend atomic.Value
 	// Drain received logs
 	go func() {
 		for {
 			select {
 			case <-ch1.Chan():
-				lastSend = time.Now()
+				lastSend.Store(time.Now())
 			case <-ch2.Chan():
-				lastSend = time.Now()
-			default:
+				lastSend.Store(time.Now())
 			}
 		}
 	}()
@@ -482,5 +482,5 @@ func TestDeadlockWithFrequentUpdates(t *testing.T) {
 
 	// Run everything for a while
 	time.Sleep(1 * time.Second)
-	require.WithinDuration(t, time.Now(), lastSend, 5*time.Millisecond)
+	require.WithinDuration(t, time.Now(), lastSend.Load().(time.Time), 5*time.Millisecond)
 }
