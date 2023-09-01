@@ -5,7 +5,6 @@ discovery.kubernetes "example" {
 
 discovery.relabel "example" {
 	targets = concat(
-		discovery.kubernetes.example.targets,
 		[{
 			__address__       = "this",
 			__path__          = "/var/log/captain_scott_last_expedition.log",
@@ -33,6 +32,7 @@ discovery.relabel "example" {
 			category          = "sf",
 			quality           = "high",
 		}],
+		discovery.kubernetes.example.targets,
 	)
 
 	rule {

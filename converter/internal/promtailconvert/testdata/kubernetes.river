@@ -62,11 +62,11 @@ discovery.kubernetes "fun_5" {
 
 local.file_match "fun" {
 	path_targets = concat(
-		discovery.kubernetes.fun.targets,
-		discovery.kubernetes.fun_2.targets,
-		discovery.kubernetes.fun_3.targets,
-		discovery.kubernetes.fun_4.targets,
 		discovery.kubernetes.fun_5.targets,
+		discovery.kubernetes.fun_4.targets,
+		discovery.kubernetes.fun_3.targets,
+		discovery.kubernetes.fun_2.targets,
+		discovery.kubernetes.fun.targets,
 	)
 }
 

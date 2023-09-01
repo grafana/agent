@@ -10,8 +10,8 @@ discovery.kubernetes "funny_one_2" {
 
 discovery.relabel "funny_one" {
 	targets = concat(
-		discovery.kubernetes.funny_one.targets,
 		discovery.kubernetes.funny_one_2.targets,
+		discovery.kubernetes.funny_one.targets,
 	)
 
 	rule {
