@@ -111,6 +111,8 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		IntVar(&r.ClusterMaxJoinPeers, "cluster.max-join-peers", r.ClusterMaxJoinPeers, "Number of peers to join from the discovered set")
 	cmd.Flags().
+		StringVar(&r.clusterName, "cluster.name", r.clusterName, "The name of the cluster to join")
+	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
 	cmd.Flags().BoolVar(&r.configBypassConversionErrors, "config.bypass-conversion-errors", r.configBypassConversionErrors, "Enable bypassing errors when converting")
@@ -132,6 +134,7 @@ type flowRun struct {
 	clusterAdvInterfaces         []string
 	clusterRejoinInterval        time.Duration
 	ClusterMaxJoinPeers          int
+	clusterName                  string
 	configFormat                 string
 	configBypassConversionErrors bool
 }
@@ -206,6 +209,7 @@ func (fr *flowRun) Run(configFile string) error {
 		RejoinInterval:      fr.clusterRejoinInterval,
 		AdvertiseInterfaces: fr.clusterAdvInterfaces,
 		ClusterMaxJoinPeers: fr.ClusterMaxJoinPeers,
+		ClusterName:         fr.clusterName,
 	})
 	if err != nil {
 		return err

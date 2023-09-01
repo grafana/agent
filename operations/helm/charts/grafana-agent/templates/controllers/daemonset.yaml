@@ -6,7 +6,9 @@ metadata:
   labels:
     {{- include "grafana-agent.labels" . | nindent 4 }}
 spec:
+  {{- if ge (int .Capabilities.KubeVersion.Minor) 22 }}
   minReadySeconds: 10
+  {{- end }}
   selector:
     matchLabels:
       {{- include "grafana-agent.selectorLabels" . | nindent 6 }}

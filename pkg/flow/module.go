@@ -11,7 +11,6 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/river/scanner"
-	"github.com/grafana/river/token"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/maps"
 )
@@ -36,7 +35,7 @@ func newModuleController(o *moduleControllerOptions) controller.ModuleController
 
 // NewModule creates a new, unstarted Module.
 func (m *moduleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
-	if id != "" && !isValidIdentifier(id) {
+	if id != "" && !scanner.IsValidIdentifier(id) {
 		return nil, fmt.Errorf("module ID %q is not a valid River identifier", id)
 	}
 
@@ -63,12 +62,6 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 
 	m.modules[fullPath] = struct{}{}
 	return mod, nil
-}
-
-func isValidIdentifier(in string) bool {
-	s := scanner.New(nil, []byte(in), nil, 0)
-	_, tok, lit := s.Scan()
-	return tok == token.IDENT && lit == in
 }
 
 func (m *moduleController) removeID(id string) {

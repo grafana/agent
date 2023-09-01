@@ -32,6 +32,7 @@ type clusterOptions struct {
 	RejoinInterval      time.Duration
 	AdvertiseInterfaces []string
 	ClusterMaxJoinPeers int
+	ClusterName         string
 }
 
 func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
@@ -47,6 +48,7 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 		AdvertiseAddress:    opts.AdvertiseAddress,
 		RejoinInterval:      opts.RejoinInterval,
 		ClusterMaxJoinPeers: opts.ClusterMaxJoinPeers,
+		ClusterName:         opts.ClusterName,
 	}
 
 	if config.NodeName == "" {

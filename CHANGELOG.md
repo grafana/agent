@@ -20,13 +20,23 @@ Main (unreleased)
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
 
+<<<<<<< HEAD
 - Clustering: add new flag `--cluster.max-join-peers` to limit the number of peers the system joins. (@wildum)
+=======
+- Clustering: Add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
+
+### Enhancements
+
+- Clustering: Allow advertise interfaces to be configurable. (@wildum)
+>>>>>>> main
 
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
+- Read contextual attributes from Faro measurements (@codecapitano)
+- Rename Grafana Agent service in windows app and features to not include the description
 
-v0.36.0-rc.3 (2023-08-28)
+v0.36.0 (2023-08-30)
 --------------------
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
@@ -79,6 +89,7 @@ v0.36.0-rc.3 (2023-08-28)
     keys and values are sourced from `discovery.*` components. (@ptodev)
   - `otelcol.connector.spanmetrics` - creates OpenTelemetry metrics from traces. (@ptodev)
 
+
 ### Enhancements
 
 - Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
@@ -109,8 +120,6 @@ v0.36.0-rc.3 (2023-08-28)
 - Support decoupled scraping in the cloudwatch_exporter integration (@dtrejod).
 
 - Agent Management: Enable proxying support (@spartan0x117)
-
-- Clustering: Allow advertise interfaces to be configurable. (@wildum)
 
 ### Bugfixes
 

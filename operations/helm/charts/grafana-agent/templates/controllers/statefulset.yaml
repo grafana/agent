@@ -1,7 +1,3 @@
-{{- if and (.Values.agent.clustering.enabled) (ne .Values.controller.type "statefulset") -}}
-{{ fail "Clustering may only be used with controller.type=statefulset." }}
-{{- end -}}
-
 {{- if eq .Values.controller.type "statefulset" }}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -13,7 +9,9 @@ spec:
   {{- if not .Values.controller.autoscaling.enabled }}
   replicas: {{ .Values.controller.replicas }}
   {{- end }}
+  {{- if ge (int .Capabilities.KubeVersion.Minor) 22 }}
   minReadySeconds: 10
+  {{- end }}
   serviceName: {{ include "grafana-agent.fullname" . }}
   selector:
     matchLabels:
