@@ -1,7 +1,6 @@
 package consulagent
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
@@ -43,9 +42,9 @@ func TestConvert(t *testing.T) {
 	assert.Equal(t, promcfg.Secret("pass"), converted.Password)
 	assert.Equal(t, model.Duration(5*time.Minute), converted.RefreshInterval)
 	expectedServices := []string{"service1", "service2"}
-	if !reflect.DeepEqual(expectedServices, converted.Services) {
-		t.Errorf("Services do not match, expected: %v, got: %v", expectedServices, converted.Services)
-	}
+	require.ElementsMatch(t, expectedServices, converted.Services)
+	expectedTags := []string{"tag1", "tag2"}
+	require.ElementsMatch(t, expectedTags, converted.ServiceTags)
 	assert.Equal(t, "username", converted.Username)
 	assert.Equal(t, "/path/to/ca_file", converted.TLSConfig.CAFile)
 }
