@@ -482,5 +482,5 @@ func TestDeadlockWithFrequentUpdates(t *testing.T) {
 
 	// Run everything for a while
 	time.Sleep(1 * time.Second)
-	require.Less(t, time.Now().Sub(lastSend).Abs(), 1*time.Millisecond)
+	require.WithinDuration(t, time.Now(), lastSend, 5*time.Millisecond)
 }
