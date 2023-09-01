@@ -107,8 +107,13 @@ file.
 The `stage.cri` inner block enables a predefined pipeline which reads log lines using
 the CRI logging format.
 
-The `stage.cri` block does not support any arguments or inner blocks, so it is always
-empty.
+The following arguments are supported:
+
+| Name                             | Type       | Description                                                                                    | Default        | Required |
+| -------------------------------- | ---------- | ---------------------------------------------------------------------------------------------- | -------------- | -------- |
+| `max_partial_lines`              | `number`   | Max buffer size to hold partial lines.                                                         | `100`          | no       |
+| `max_partial_line_size`          | `number`   | Max line size to hold a single partial line, if `max_partial_line_size_truncate` is `true`.    | `0`            | no       |
+| `max_partial_line_size_truncate` | `bool`     | Allows to pretruncate partial lines before storing in partial buffer.                          | `false`        | no       |
 
 ```river
 stage.cri {}
@@ -369,11 +374,11 @@ The following arguments are supported:
 
 | Name                  | Type     | Description                                                                      | Default | Required |
 | --------------------- | -------- | -------------------------------------------------------------------------------- | ------- | -------- |
-| `rate`                | `int`    | The maximum rate of lines per second that the stage forwards.                    |         | yes      |
-| `burst`               | `int`    | The cap in the quantity of burst lines that the stage forwards.                  |         | yes      |
+| `rate`                | `number` | The maximum rate of lines per second that the stage forwards.                    |         | yes      |
+| `burst`               | `number` | The cap in the quantity of burst lines that the stage forwards.                  |         | yes      |
 | `by_label_name`       | `string` | The label to use when rate-limiting on a label name.                             | `""`    | no       |
 | `drop`                | `bool`   | Whether to discard or backpressure lines that exceed the rate limit.             | `false` | no       |
-| `max_distinct_labels` | `int`    | The number of unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no       |
+| `max_distinct_labels` | `number` | The number of unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no       |
 
 The rate limiting is implemented as a "token bucket" of size `burst`, initially
 full and refilled at `rate` tokens per second. Each received log entry consumes one token from the bucket. When `drop` is set to true, incoming entries
@@ -740,7 +745,7 @@ The following arguments are supported:
 | --------------- | ---------- | -------------------------------------------------- | ------- | -------- |
 | `firstline`     | `string`   | Name from extracted data to use for the log entry. |         | yes      |
 | `max_wait_time` | `duration` | The maximum time to wait for a multiline block.    | `"3s"`  | no       |
-| `max_lines`     | `int`      | The maximum number of lines a block can have.      | `128`   | no       |
+| `max_lines`     | `number`   | The maximum number of lines a block can have.      | `128`   | no       |
 
 
 A new block is identified by the RE2 regular expression passed in `firstline`.

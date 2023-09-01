@@ -61,6 +61,8 @@ Main (unreleased)
 
 - Add optional `nil_to_zero` config flag for `YACE` which can be set in the `static`, `discovery`, or `metric` config blocks. (@berler)
 
+- The `cri` stage in `loki.process` can now be configured to limit line size.
+
 ### Enhancements
 
 - Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
