@@ -336,7 +336,7 @@ func newServer(t *testing.T) (*httptest.Server, *SDConfig) {
 	config := &SDConfig{
 		Server:          stuburl.Host,
 		Token:           "fake-token",
-		RefreshInterval: model.Duration(1 * time.Second),
+		RefreshInterval: model.Duration(10 * time.Millisecond),
 	}
 	return stub, config
 }
