@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/util"
 	"github.com/grafana/tail"
+	"github.com/grafana/tail/watch"
 	"github.com/prometheus/common/model"
 	"go.uber.org/atomic"
 	"golang.org/x/text/encoding"
@@ -44,7 +45,7 @@ type tailer struct {
 	decoder *encoding.Decoder
 }
 
-func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, labels string, encoding string) (*tailer, error) {
+func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, labels string, encoding string, pollOptions watch.PollingFileWatcherOptions) (*tailer, error) {
 	// Simple check to make sure the file we are tailing doesn't
 	// have a position already saved which is past the end of the file.
 	fi, err := os.Stat(path)
@@ -69,7 +70,8 @@ func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, p
 			Offset: pos,
 			Whence: 0,
 		},
-		Logger: util.NewLogAdapter(logger),
+		Logger:      util.NewLogAdapter(logger),
+		PollOptions: pollOptions,
 	})
 	if err != nil {
 		return nil, err
