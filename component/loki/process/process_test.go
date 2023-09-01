@@ -2,7 +2,6 @@ package process
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -435,15 +434,15 @@ func TestDeadlockWithFrequentUpdates(t *testing.T) {
 	defer cancel()
 	go c.Run(ctx)
 
+	var lastSend time.Time
 	// Drain received logs
 	go func() {
 		for {
-			// time.Sleep(10 * time.Millisecond)
 			select {
 			case <-ch1.Chan():
-				fmt.Println("Received from ch1")
+				lastSend = time.Now()
 			case <-ch2.Chan():
-				fmt.Println("Received from ch2")
+				lastSend = time.Now()
 			default:
 			}
 		}
@@ -481,6 +480,7 @@ func TestDeadlockWithFrequentUpdates(t *testing.T) {
 		}
 	}()
 
-	// Run everything for some time.
-	time.Sleep(10 * time.Second)
+	// Run everything for a while
+	time.Sleep(1 * time.Second)
+	require.Less(t, time.Now().Sub(lastSend).Abs(), 1*time.Millisecond)
 }
