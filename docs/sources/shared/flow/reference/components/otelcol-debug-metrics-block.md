@@ -5,7 +5,7 @@ canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/component
 headless: true
 ---
 
-The `debug_metrics` block configures the metrics which this component generates to monitor its state.
+The `debug_metrics` block configures the metrics that this component generates to monitor its state.
 
 The following arguments are supported:
 
