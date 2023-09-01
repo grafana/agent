@@ -50,7 +50,7 @@ grpc > keepalive > enforcement_policy | [enforcement_policy][] | Enforcement pol
 http | [http][] | Configures the HTTP server to receive telemetry data. | no
 http > tls | [tls][] | Configures TLS for the HTTP server. | no
 http > cors | [cors][] | Configures CORS for the HTTP server. | no
-debug_metrics | [debug_metrics][] | Configures the metrics which this component generates to monitor its state. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
 The `>` symbol indicates deeper levels of nesting. For example, `grpc > tls`
