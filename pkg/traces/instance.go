@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/collector/connector"
 	otelexporter "go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/extension"
-	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
@@ -147,7 +146,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	// https://opentelemetry.io/docs/specs/otel/metrics/semantic_conventions/rpc-metrics/
 	// https://github.com/open-telemetry/opentelemetry-go-contrib/pull/2700
 	// https://github.com/open-telemetry/opentelemetry-collector/pull/6788/files
-	err = enableOtelFeatureGates(
+	err = util.EnableOtelFeatureGates(
 		"telemetry.useOtelForInternalMetrics",
 		"telemetry.disableHighCardinalityMetrics")
 	if err != nil {
@@ -188,19 +187,6 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	return err
-}
-
-func enableOtelFeatureGates(fgNames ...string) error {
-	fgReg := featuregate.GlobalRegistry()
-
-	for _, fg := range fgNames {
-		err := fgReg.Set(fg, true)
-		if err != nil {
-			return fmt.Errorf("error setting Otel feature gate: %w", err)
-		}
-	}
-
-	return nil
 }
 
 // ReportFatalError implements component.Host

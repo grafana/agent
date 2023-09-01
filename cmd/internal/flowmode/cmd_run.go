@@ -23,6 +23,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/usagestats"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
@@ -32,7 +33,6 @@ import (
 	"github.com/grafana/river/diag"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/otel"
 	"golang.org/x/exp/maps"
 
@@ -140,19 +140,6 @@ type flowRun struct {
 	configBypassConversionErrors bool
 }
 
-func enableOtelFeatureGates(fgNames ...string) error {
-	fgReg := featuregate.GlobalRegistry()
-
-	for _, fg := range fgNames {
-		err := fgReg.Set(fg, true)
-		if err != nil {
-			return fmt.Errorf("error setting Otel feature gate: %w", err)
-		}
-	}
-
-	return nil
-}
-
 func (fr *flowRun) Run(configFile string) error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
@@ -178,7 +165,7 @@ func (fr *flowRun) Run(configFile string) error {
 	// Currently, Collector components uses OpenCensus metrics by default.
 	// Those metrics cannot be integrated with Agent Flow,
 	// so we need to always use OpenTelemetry metrics.
-	err = enableOtelFeatureGates(
+	err = util.EnableOtelFeatureGates(
 		"telemetry.useOtelForInternalMetrics",
 	)
 	if err != nil {
