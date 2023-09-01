@@ -83,21 +83,21 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 		case prom_discover.StaticConfig:
 			diags.AddAll(validateScrapeTargets(sdc))
 		case *prom_azure.SDConfig:
-			diags.AddAll(ValidateDiscoveryAzure(sdc))
+			diags.AddAll(validateDiscoveryAzure(sdc))
 		case *prom_consul.SDConfig:
 			diags.AddAll(validateDiscoveryConsul(sdc))
 		case *prom_digitalocean.SDConfig:
-			diags.AddAll(ValidateDiscoveryDigitalOcean(sdc))
+			diags.AddAll(validateDiscoveryDigitalOcean(sdc))
 		case *prom_dns.SDConfig:
 			diags.AddAll(validateDiscoveryDns(sdc))
 		case *prom_docker.DockerSDConfig:
 			diags.AddAll(validateDiscoveryDocker(sdc))
 		case *prom_aws.EC2SDConfig:
-			diags.AddAll(ValidateDiscoveryEC2(sdc))
+			diags.AddAll(validateDiscoveryEC2(sdc))
 		case *prom_file.SDConfig:
 			diags.AddAll(validateDiscoveryFile(sdc))
 		case *prom_gce.SDConfig:
-			diags.AddAll(ValidateDiscoveryGCE(sdc))
+			diags.AddAll(validateDiscoveryGCE(sdc))
 		case *prom_kubernetes.SDConfig:
 			diags.AddAll(validateDiscoveryKubernetes(sdc))
 		case *prom_aws.LightsailSDConfig:
