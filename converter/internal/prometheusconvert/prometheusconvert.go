@@ -26,6 +26,7 @@ import (
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	prom_xds "github.com/prometheus/prometheus/discovery/xds"
+	prom_nerve "github.com/prometheus/prometheus/discovery/zookeeper"
 	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 	"github.com/prometheus/prometheus/storage"
 
@@ -180,6 +181,9 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_zk.ServersetSDConfig:
 			labelCounts["serverset"]++
 			exports = appendDiscoveryServerset(pb, common.LabelWithIndex(labelCounts["serverset"]-1, label), sdc)
+		case *prom_nerve.NerveSDConfig:
+			labelCounts["nerve"]++
+			exports = appendDiscoveryNerve(pb, common.LabelWithIndex(labelCounts["nerve"]-1, label), sdc)
 		}
 
 		targets = append(targets, exports.Targets...)

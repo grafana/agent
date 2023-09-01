@@ -18,6 +18,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/kuma"                           // Import discovery.kuma
 	_ "github.com/grafana/agent/component/discovery/marathon"                       // Import discovery.marathon
+	_ "github.com/grafana/agent/component/discovery/nerve"                          // Import discovery.nerve
 	_ "github.com/grafana/agent/component/discovery/nomad"                          // Import discovery.nomad
 	_ "github.com/grafana/agent/component/discovery/openstack"                      // Import discovery.openstack
 	_ "github.com/grafana/agent/component/discovery/puppetdb"                       // Import discovery.puppetdb

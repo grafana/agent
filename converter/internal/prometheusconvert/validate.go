@@ -23,6 +23,7 @@ import (
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	prom_kuma "github.com/prometheus/prometheus/discovery/xds"
+	prom_nerve "github.com/prometheus/prometheus/discovery/zookeeper"
 	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 )
 
@@ -77,7 +78,6 @@ func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagn
 		diags.AddAll(validatePrometheusScrape(scrapeConfig))
 		diags.AddAll(ValidateServiceDiscoveryConfigs(scrapeConfig.ServiceDiscoveryConfigs))
 	}
-
 	return diags
 }
 
@@ -120,6 +120,8 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryIonos(sdc))
 		case *prom_zk.ServersetSDConfig:
 			diags.AddAll(validateDiscoveryServerset(sdc))
+		case *prom_nerve.NerveSDConfig:
+			diags.AddAll(validateDiscoveryNerve(sdc))
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 		}

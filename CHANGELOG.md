@@ -18,18 +18,14 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
-  - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
+  - `otelcol.connector.spanlogs` creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
-
-  - `discovery.marathon` - service discovery for Marathon servers. (@wildum)
-
-  - `discovery.ionos` - service discovery for IONOS Cloud API. (@wildum)
-
-  - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
-
+  - `discovery.marathon` discovers scrape targets from Marathon servers. (@wildum)
+  - `discovery.ionos` discovers scrape targets from the IONOS Cloud API. (@wildum)
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
-
+  - `discovery.nerve` discovers scrape targets from AirBnB's Nerve. (@tpaschalis)
+  - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
     instances and bare-metal machines. (@rfratto)
 
