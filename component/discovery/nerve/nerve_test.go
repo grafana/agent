@@ -20,8 +20,10 @@ func TestRiverConfig(t *testing.T) {
 }
 
 func TestBadRiverConfig(t *testing.T) {
-	var args Arguments
-	var riverConfig string
+	var (
+		args        Arguments
+		riverConfig string
+	)
 
 	riverConfig = `
 	servers = ["1.2.3.4"]

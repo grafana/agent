@@ -7,7 +7,6 @@ discovery.nerve "prometheus1" {
 discovery.nerve "prometheus2" {
 	servers = ["127.0.0.1"]
 	paths   = ["/nerve/services/your_http_service/services"]
-	timeout = "10s"
 }
 
 prometheus.scrape "prometheus1" {
