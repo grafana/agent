@@ -136,7 +136,6 @@ func appendScrapeConfig(
 
 	// Append all the SD components
 	b.AppendStaticSDs()
-	// b.AppendConsulAgentSDs()
 	b.AppendSDs()
 
 	// Append loki.source.file to process all SD components' targets.
