@@ -29,6 +29,9 @@ Main (unreleased)
 
 - Clustering: Allow advertise interfaces to be configurable. (@wildum)
 
+- Deleted series will now be removed from the WAL sooner, allowing Prometheus
+  remote_write to free memory associated with removed series sooner. (@rfratto)
+
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
