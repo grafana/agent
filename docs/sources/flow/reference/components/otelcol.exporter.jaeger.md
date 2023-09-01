@@ -47,7 +47,7 @@ client > tls | [tls][] | Configures TLS for the gRPC client. | no
 client > keepalive | [keepalive][] | Configures keepalive settings for the gRPC client. | no
 sending_queue | [sending_queue][] | Configures batching of data before sending. | no
 retry_on_failure | [retry_on_failure][] | Configures retry mechanism for failed requests. | no
-debug_metrics | [debug_metrics][] | Configures the metrics which this component generates to monitor its state. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client > tls`
 refers to a `tls` block defined inside a `client` block.
