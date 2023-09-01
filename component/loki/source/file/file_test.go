@@ -112,7 +112,7 @@ func TestFileWatch(t *testing.T) {
 
 	timeBeforeWriting := time.Now()
 
-	// Sleep for 600ms to miss the first poll, the next poll should be 2*MinPollFrequency later.
+	// Sleep for 600ms to miss the first poll, the next poll should be MaxPollFrequency later.
 	time.Sleep(time.Millisecond * 600)
 
 	_, err = f.Write([]byte("writing some text\n"))
@@ -131,7 +131,7 @@ func TestFileWatch(t *testing.T) {
 	cancel()
 
 	// Wait to make sure that all go routines stopped.
-	time.Sleep(time.Millisecond * 100)
+	time.Sleep(args.FileWatch.MaxPollFrequency)
 }
 
 // Test that updating the component does not leak goroutines.
