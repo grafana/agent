@@ -32,8 +32,8 @@ discovery.azure "prometheus1_2" {
 
 discovery.relabel "prometheus1" {
 	targets = concat(
-		discovery.azure.prometheus1_2.targets,
 		discovery.azure.prometheus1.targets,
+		discovery.azure.prometheus1_2.targets,
 		[{
 			__address__ = "localhost:9090",
 		}],

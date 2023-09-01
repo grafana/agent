@@ -154,7 +154,7 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 			exports = appendDiscoveryLightsail(pb, common.LabelWithIndex(labelCounts["lightsail"]-1, label), sdc)
 		}
 
-		targets = append(exports.Targets, targets...)
+		targets = append(targets, exports.Targets...)
 	}
 
 	return targets

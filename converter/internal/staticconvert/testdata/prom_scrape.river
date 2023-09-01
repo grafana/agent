@@ -34,8 +34,8 @@ discovery.azure "metrics_agent_promobee_2" {
 
 discovery.relabel "metrics_agent_promobee" {
 	targets = concat(
-		discovery.azure.metrics_agent_promobee_2.targets,
 		discovery.azure.metrics_agent_promobee.targets,
+		discovery.azure.metrics_agent_promobee_2.targets,
 		[{
 			__address__ = "localhost:9090",
 		}],
