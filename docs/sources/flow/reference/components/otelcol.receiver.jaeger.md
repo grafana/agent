@@ -57,7 +57,7 @@ protocols > thrift_http > tls | [tls][] | Configures TLS for the Thrift HTTP ser
 protocols > thrift_http > cors | [cors][] | Configures CORS for the Thrift HTTP server. | no
 protocols > thrift_binary | [thrift_binary][] | Configures a Thrift binary UDP server to receive traces. | no
 protocols > thrift_compact | [thrift_compact][] | Configures a Thrift compact UDP server to receive traces. | no
-debug_metrics | [debug_metrics][] | Configures the metrics which this component generates to monitor its state. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
 The `>` symbol indicates deeper levels of nesting. For example, `protocols >
