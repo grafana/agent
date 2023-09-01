@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
+	"github.com/grafana/agent/component/otelcol/internal/views"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
@@ -40,6 +41,9 @@ type Arguments interface {
 	// Exporters returns the set of exporters that are exposed to the configured
 	// component.
 	Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component
+
+	// DebugMetricsConfig returns the configuration for debug metrics
+	DebugMetricsConfig() otelcol.DebugMetricsArguments
 }
 
 // Exporter is a Flow component shim which manages an OpenTelemetry Collector
@@ -127,12 +131,17 @@ func (e *Exporter) Update(args component.Arguments) error {
 		return err
 	}
 
+	metricOpts := []metric.Option{metric.WithReader(promExporter)}
+	if eargs.DebugMetricsConfig().DisableHighCardinalityMetrics {
+		metricOpts = append(metricOpts, metric.WithView(views.DropHighCardinalityServerAttributes()...))
+	}
+
 	settings := otelexporter.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(e.opts.Logger),
 
 			TracerProvider: e.opts.Tracer,
-			MeterProvider:  metric.NewMeterProvider(metric.WithReader(promExporter)),
+			MeterProvider:  metric.NewMeterProvider(metricOpts...),
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{

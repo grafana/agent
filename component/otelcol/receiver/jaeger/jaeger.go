@@ -31,13 +31,14 @@ func init() {
 type Arguments struct {
 	Protocols ProtocolsArguments `river:"protocols,block"`
 
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
 
-var (
-	_ receiver.Arguments = Arguments{}
-)
+var _ receiver.Arguments = Arguments{}
 
 // Validate implements river.Validator.
 func (args *Arguments) Validate() error {
@@ -209,4 +210,9 @@ func (args *ThriftBinary) Convert() *jaegerreceiver.ProtocolUDP {
 	}
 
 	return args.ProtocolUDP.Convert()
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }

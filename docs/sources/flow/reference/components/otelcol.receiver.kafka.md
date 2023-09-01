@@ -80,6 +80,7 @@ metadata | [metadata][] | Configures how to retrieve metadata from Kafka brokers
 metadata > retry | [retry][] | Configures how to retry metadata retrieval. | no
 autocommit | [autocommit][] | Configures how to automatically commit updated topic offsets to back to the Kafka brokers. | no
 message_marking | [message_marking][] | Configures when Kafka messages are marked as read. | no
+debug_metrics | [debug_metrics][] | Configures the metrics which this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
 The `>` symbol indicates deeper levels of nesting. For example,
@@ -96,6 +97,7 @@ The `>` symbol indicates deeper levels of nesting. For example,
 [retry]: #retry-block
 [autocommit]: #autocommit-block
 [message_marking]: #message_marking-block
+[debug_metrics]: #debug_metrics-block
 [output]: #output-block
 
 ### authentication block
@@ -248,6 +250,10 @@ has no effect if `after_execution` is `false`.
 > **WARNING**: Setting `after_execution` to `true` and `include_unsuccessful`
 > to `false` can block the entire Kafka partition if message processing returns
 > a permanent error, such as failing to decode.
+
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### output block
 
