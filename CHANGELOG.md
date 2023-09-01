@@ -22,6 +22,9 @@ Main (unreleased)
 
 - Clustering: Add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
 
+- Add a `file_watch` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_poll_frequency` and `max_poll_frequency`.
+  In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`.  (@wildum)
+
 ### Enhancements
 
 - Clustering: Allow advertise interfaces to be configurable. (@wildum)
@@ -69,9 +72,6 @@ v0.36.0 (2023-08-30)
 - Flow: Added exemplar support for the `otelcol.exporter.prometheus`. (@wildum)
 
 - Add a `labels` argument in `loki.source.windowsevent` to associate additional labels with incoming logs. (@wildum)
-
-- Add a `file_watch` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_poll_frequency` and `max_poll_frequency`.
-  In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`.  (@wildum)
 
 - New Grafana Agent Flow components:
 
