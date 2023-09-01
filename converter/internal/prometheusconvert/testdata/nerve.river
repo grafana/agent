@@ -39,4 +39,3 @@ prometheus.remote_write "default" {
 		metadata_config { }
 	}
 }
-
