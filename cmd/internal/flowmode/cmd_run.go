@@ -23,7 +23,6 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/usagestats"
-	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
@@ -159,11 +158,6 @@ func (fr *flowRun) Run(configFile string) error {
 	t, err := tracing.New(tracing.DefaultOptions)
 	if err != nil {
 		return fmt.Errorf("building tracer: %w", err)
-	}
-
-	err = util.SetupFlowModeOtelFeatureGates()
-	if err != nil {
-		return err
 	}
 
 	// Set the global tracer provider to catch global traces, but ideally things
