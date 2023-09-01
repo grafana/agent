@@ -8,6 +8,12 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 
+### Bugfixes
+
+- Restart managed components of a module loader only on if module content
+  changes or the last load failed. This was specifically impacting `module.git`
+  each time it pulls. (@erikbaranowski)
+
 v0.36.0 (2023-08-30)
 --------------------
 
