@@ -2,8 +2,9 @@ package cluster
 
 import (
 	"math/rand"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func mockDiscoverPeers(peers []string, err error) func() ([]string, error) {
@@ -51,9 +52,7 @@ func TestGetPeers(t *testing.T) {
 
 			peers, _ := s.getPeers()
 
-			if !reflect.DeepEqual(peers, test.expectedPeers) {
-				t.Errorf("Expected peers %v, got %v", test.expectedPeers, peers)
-			}
+			require.ElementsMatch(t, peers, test.expectedPeers)
 		})
 	}
 }
