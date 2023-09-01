@@ -35,6 +35,12 @@ Main (unreleased)
 - Read contextual attributes from Faro measurements (@codecapitano)
 - Rename Grafana Agent service in windows app and features to not include the description
 
+### Bugfixes
+
+- Restart managed components of a module loader only on if module content
+  changes or the last load failed. This was specifically impacting `module.git`
+  each time it pulls. (@erikbaranowski)
+
 v0.36.0 (2023-08-30)
 --------------------
 
