@@ -24,6 +24,9 @@ Main (unreleased)
 
 - Clustering: Allow advertise interfaces to be configurable. (@wildum)
 
+- Added a `disable_high_cardinality_metrics` configuration flag to `otelcol` 
+  exporters and receivers to switch high cardinality debug metrics off.  (@glindstedt)
+
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
