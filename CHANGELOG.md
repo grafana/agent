@@ -20,15 +20,13 @@ Main (unreleased)
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
 
-<<<<<<< HEAD
 - Clustering: add new flag `--cluster.max-join-peers` to limit the number of peers the system joins. (@wildum)
-=======
+
 - Clustering: Add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
 
 ### Enhancements
 
 - Clustering: Allow advertise interfaces to be configurable. (@wildum)
->>>>>>> main
 
 ### Other changes
 
