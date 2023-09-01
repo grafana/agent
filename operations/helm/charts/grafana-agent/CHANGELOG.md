@@ -8,8 +8,11 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 Unreleased
-
 ----------
+
+### Enhancements
+
+- Enable clustering for deployments and daemonsets. (@tpaschalis)
 
 0.22.0 (2023-08-30)
 -------------------

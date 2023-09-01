@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
@@ -81,7 +82,7 @@ func (s *ScrapeConfigBuilder) Sanitize() {
 	}
 }
 
-func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
+func (s *ScrapeConfigBuilder) AppendLokiSourceFile(watchConfig *file.WatchConfig) {
 	// If there were no targets expressions collected, that means
 	// we didn't have any components that produced SD targets, so
 	// we can skip this component.
@@ -95,6 +96,7 @@ func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
 		ForwardTo:           forwardTo,
 		Encoding:            s.cfg.Encoding,
 		DecompressionConfig: convertDecompressionConfig(s.cfg.DecompressionCfg),
+		FileWatch:           convertFileWatchConfig(watchConfig),
 	}
 	overrideHook := func(val interface{}) interface{} {
 		if _, ok := val.([]discovery.Target); ok {
@@ -255,6 +257,16 @@ func convertDecompressionConfig(cfg *scrapeconfig.DecompressionConfig) lokisourc
 		Enabled:      cfg.Enabled,
 		InitialDelay: cfg.InitialDelay,
 		Format:       lokisourcefile.CompressionFormat(cfg.Format),
+	}
+}
+
+func convertFileWatchConfig(watchConfig *file.WatchConfig) lokisourcefile.FileWatch {
+	if watchConfig == nil {
+		return lokisourcefile.FileWatch{}
+	}
+	return lokisourcefile.FileWatch{
+		MinPollFrequency: watchConfig.MinPollFrequency,
+		MaxPollFrequency: watchConfig.MaxPollFrequency,
 	}
 }
 
