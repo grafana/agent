@@ -16,6 +16,7 @@ Main (unreleased)
 
   - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
+  - `discovery.consulagent` - service discovery for Consul Agent. (@wildum)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
