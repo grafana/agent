@@ -44,6 +44,7 @@ Main (unreleased)
   changes or the last load failed. This was specifically impacting `module.git`
   each time it pulls. (@erikbaranowski)
 - Allow overriding default `User-Agent` for `http.remote` component (@hainenber)
+- Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
 
 v0.36.0 (2023-08-30)
 --------------------
