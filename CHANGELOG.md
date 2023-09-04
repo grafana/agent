@@ -35,6 +35,7 @@ Main (unreleased)
 - Added a `disable_high_cardinality_metrics` configuration flag to `otelcol` 
   exporters and receivers to switch high cardinality debug metrics off.  (@glindstedt)
 
+
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)
@@ -47,7 +48,10 @@ Main (unreleased)
 - Restart managed components of a module loader only on if module content
   changes or the last load failed. This was specifically impacting `module.git`
   each time it pulls. (@erikbaranowski)
+
 - Allow overriding default `User-Agent` for `http.remote` component (@hainenber)
+
+- Fix a deadlock candidate in the `loki.process` component. (@tpaschalis)
 
 v0.36.0 (2023-08-30)
 --------------------
