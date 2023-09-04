@@ -1,17 +1,17 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.nomad/
-title: discovery.nomad
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.marathon/
+title: discovery.marathon
 ---
 
-# discovery.nomad
+# discovery.marathon
 
-`discovery.nomad` allows you to retrieve scrape targets from [Nomad's](https://www.nomadproject.io/) Service API.
+`discovery.marathon` allows you to retrieve scrape targets from [Marathon's](https://mesosphere.github.io/marathon/) Service API.
 
 ## Usage
 
 ```river
-discovery.nomad "LABEL" {
-  server = NOMAD_SERVER
+discovery.marathon "LABEL" {
+  servers = [MARATHON_SERVER1, MARATHON_SERVER2...]
 }
 ```
 
@@ -21,12 +21,10 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`server` | `string` | Address of nomad server. | `http://localhost:4646` | no
-`namespace` | `string` | Nomad namespace to use. | `default` | no
-`region` | `string` | Nomad region to use. | `global` | no
-`allow_stale` | `bool` | Allow reading from non-leader nomad instances. | `true` | no
-`tag_separator` | `string` | Seperator to join nomad tags into Prometheus labels. | `,` | no
-`refresh_interval` | `duration` | Frequency to refresh list of containers. | `"30s"` | no
+`servers` | `list(string)` | List of Marathon servers. | `http://localhost:4646` | no
+`refresh_interval` | `duration` | Interval at which to refresh the list of targets. | `"30s"` | no
+`auth_token` | `secret` | Auth token to authenticate with. | | no
+`auth_token_file` | `string` | File containing an auth token to authenticate with. | | no
 `bearer_token` | `secret` | Bearer token to authenticate with. | | no
 `bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
 `proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
@@ -34,6 +32,8 @@ Name | Type | Description | Default | Required
 `enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
  You can provide one of the following arguments for authentication:
+ - [`auth_token` argument](#arguments).
+ - [`auth_token_file` argument](#arguments). 
  - [`bearer_token` argument](#arguments).
  - [`bearer_token_file` argument](#arguments). 
  - [`basic_auth` block][basic_auth].
@@ -45,7 +45,7 @@ Name | Type | Description | Default | Required
 ## Blocks
 
 The following blocks are supported inside the definition of
-`discovery.nomad`:
+`discovery.marathon`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -85,45 +85,43 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the nomad server.
+`targets` | `list(map(string))` | The set of targets discovered from the Marathon servers.
 
 Each target includes the following labels:
 
-* `__meta_nomad_address`: the service address of the target.
-* `__meta_nomad_dc`: the datacenter name for the target.
-* `__meta_nomad_namespace`: the namespace of the target.
-* `__meta_nomad_node_id`: the node name defined for the target.
-* `__meta_nomad_service`: the name of the service the target belongs to.
-* `__meta_nomad_service_address`: the service address of the target.
-* `__meta_nomad_service_id`: the service ID of the target.
-* `__meta_nomad_service_port`: the service port of the target.
-* `__meta_nomad_tags`: the list of tags of the target joined by the tag separator.
+* `__meta_marathon_app`: the name of the app (with slashes replaced by dashes).
+* `__meta_marathon_image`: the name of the Docker image used (if available).
+* `__meta_marathon_task`: the ID of the Mesos task.
+* `__meta_marathon_app_label_<labelname>`: any Marathon labels attached to the app.
+* `__meta_marathon_port_definition_label_<labelname>`: the port definition labels.
+* `__meta_marathon_port_mapping_label_<labelname>`: the port mapping labels.
+* `__meta_marathon_port_index`: the port index number (e.g. 1 for PORT1).
 
 ## Component health
 
-`discovery.nomad` is only reported as unhealthy when given an invalid
+`discovery.marathon` is only reported as unhealthy when given an invalid
 configuration. In those cases, exported fields retain their last healthy
 values.
 
 ## Debug information
 
-`discovery.nomad` does not expose any component-specific debug information.
+`discovery.marathon` does not expose any component-specific debug information.
 
 ### Debug metrics
 
-`discovery.nomad` does not expose any component-specific debug metrics.
+`discovery.marathon` does not expose any component-specific debug metrics.
 
 ## Example
 
-This example discovers targets from a Nomad server:
+This example discovers targets from a Marathon server:
 
 ```river
-discovery.nomad "example" {
-  server = "localhost:8500"
+discovery.marathon "example" {
+  servers = ["localhost:8500"]
 }
 
 prometheus.scrape "demo" {
-  targets    = discovery.nomad.example.targets
+  targets    = discovery.marathon.example.targets
   forward_to = [prometheus.remote_write.demo.receiver]
 }
 
@@ -142,3 +140,6 @@ Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+
+

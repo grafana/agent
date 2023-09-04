@@ -20,6 +20,7 @@ import (
 	prom_file "github.com/prometheus/prometheus/discovery/file"
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	"github.com/prometheus/prometheus/storage"
 
@@ -152,6 +153,9 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_aws.LightsailSDConfig:
 			labelCounts["lightsail"]++
 			exports = appendDiscoveryLightsail(pb, common.LabelWithIndex(labelCounts["lightsail"]-1, label), sdc)
+		case *prom_marathon.SDConfig:
+			labelCounts["marathon"]++
+			exports = appendDiscoveryMarathon(pb, common.LabelWithIndex(labelCounts["marathon"]-1, label), sdc)
 		}
 
 		targets = append(exports.Targets, targets...)

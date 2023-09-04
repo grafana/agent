@@ -63,9 +63,6 @@ func (s *ScrapeConfigBuilder) Validate() {
 	if len(s.cfg.ServiceDiscoveryConfig.NerveSDConfigs) != 0 {
 		s.diags.Add(diag.SeverityLevelError, "nerve_sd_configs is not supported")
 	}
-	if len(s.cfg.ServiceDiscoveryConfig.MarathonSDConfigs) != 0 {
-		s.diags.Add(diag.SeverityLevelError, "marathon_sd_configs is not supported")
-	}
 	if len(s.cfg.ServiceDiscoveryConfig.OpenstackSDConfigs) != 0 {
 		s.diags.Add(diag.SeverityLevelError, "openstack_sd_configs is not supported")
 	}

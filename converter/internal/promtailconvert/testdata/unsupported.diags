@@ -13,6 +13,5 @@
 (Error) dockerswarm_sd_configs is not supported
 (Error) serverset_sd_configs is not supported
 (Error) nerve_sd_configs is not supported
-(Error) marathon_sd_configs is not supported
 (Error) openstack_sd_configs is not supported
 (Error) triton_sd_configs is not supported
