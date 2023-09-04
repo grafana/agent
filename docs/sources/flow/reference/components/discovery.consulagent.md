@@ -5,7 +5,7 @@ title: discovery.consulagent
 
 # discovery.consulagent
 
-`discovery.consulagent` allows retrieving scrape targets from [Consul's Agent API][].
+`discovery.consulagent` allows you to retrieve scrape targets from [Consul's Agent API][].
 Only the services registered with the local agent running on the same host will be watched.
 This is suitable for very large Consul clusters for which using the Catalog API would be too slow or resource intensive.
 
