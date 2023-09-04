@@ -85,7 +85,6 @@ func (c *Component) Run(ctx context.Context) error {
 		if c.entryHandler != nil {
 			c.entryHandler.Stop()
 		}
-		close(c.processOut)
 		close(c.processIn)
 		c.mut.RUnlock()
 	}()
