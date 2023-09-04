@@ -90,7 +90,8 @@ func TestConvert(t *testing.T) {
 
 func TestValidateNoServers(t *testing.T) {
 	riverArgs := Arguments{
-		Servers: []string{},
+		Servers:         []string{},
+		RefreshInterval: 10 * time.Second,
 	}
 	err := riverArgs.Validate()
 	assert.Error(t, err, "at least one Marathon server must be specified")
@@ -98,9 +99,10 @@ func TestValidateNoServers(t *testing.T) {
 
 func TestValidateAuthTokenAndAuthTokenFile(t *testing.T) {
 	riverArgs := Arguments{
-		Servers:       []string{"serv1", "serv2"},
-		AuthToken:     "auth_token",
-		AuthTokenFile: "auth_token_file",
+		Servers:         []string{"serv1", "serv2"},
+		RefreshInterval: 10 * time.Second,
+		AuthToken:       "auth_token",
+		AuthTokenFile:   "auth_token_file",
 	}
 	err := riverArgs.Validate()
 	assert.Error(t, err, "at most one of auth_token and auth_token_file must be configured")
@@ -108,8 +110,9 @@ func TestValidateAuthTokenAndAuthTokenFile(t *testing.T) {
 
 func TestValidateAuthTokenAndBasicAuth(t *testing.T) {
 	riverArgs := Arguments{
-		Servers:   []string{"serv1", "serv2"},
-		AuthToken: "auth_token",
+		Servers:         []string{"serv1", "serv2"},
+		RefreshInterval: 10 * time.Second,
+		AuthToken:       "auth_token",
 		HTTPClientConfig: config.HTTPClientConfig{
 			BasicAuth: &config.BasicAuth{
 				Username: "username",
@@ -123,8 +126,9 @@ func TestValidateAuthTokenAndBasicAuth(t *testing.T) {
 
 func TestValidateAuthTokenAndBearerToken(t *testing.T) {
 	riverArgs := Arguments{
-		Servers:   []string{"serv1", "serv2"},
-		AuthToken: "auth_token",
+		Servers:         []string{"serv1", "serv2"},
+		RefreshInterval: 10 * time.Second,
+		AuthToken:       "auth_token",
 		HTTPClientConfig: config.HTTPClientConfig{
 			BearerToken: "bearerToken",
 		},
@@ -135,8 +139,9 @@ func TestValidateAuthTokenAndBearerToken(t *testing.T) {
 
 func TestValidateAuthTokenAndBearerTokenFile(t *testing.T) {
 	riverArgs := Arguments{
-		Servers:   []string{"serv1", "serv2"},
-		AuthToken: "auth_token",
+		Servers:         []string{"serv1", "serv2"},
+		RefreshInterval: 10 * time.Second,
+		AuthToken:       "auth_token",
 		HTTPClientConfig: config.HTTPClientConfig{
 			BearerTokenFile: "bearerToken",
 		},
@@ -147,8 +152,9 @@ func TestValidateAuthTokenAndBearerTokenFile(t *testing.T) {
 
 func TestValidateAuthTokenAndAuthorization(t *testing.T) {
 	riverArgs := Arguments{
-		Servers:   []string{"serv1", "serv2"},
-		AuthToken: "auth_token",
+		Servers:         []string{"serv1", "serv2"},
+		RefreshInterval: 10 * time.Second,
+		AuthToken:       "auth_token",
 		HTTPClientConfig: config.HTTPClientConfig{
 			Authorization: &config.Authorization{
 				CredentialsFile: "creds",
@@ -157,4 +163,13 @@ func TestValidateAuthTokenAndAuthorization(t *testing.T) {
 	}
 	err := riverArgs.Validate()
 	assert.Error(t, err, "at most one of auth_token, auth_token_file & authorization must be configured")
+}
+
+func TestValidateRefreshInterval(t *testing.T) {
+	riverArgs := Arguments{
+		Servers:         []string{"serv1", "serv2"},
+		RefreshInterval: 0,
+	}
+	err := riverArgs.Validate()
+	assert.Error(t, err, "refresh_interval must be greater than 0")
 }

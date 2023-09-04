@@ -45,6 +45,9 @@ func (a *Arguments) SetToDefault() {
 
 // Validate implements river.Validator.
 func (a *Arguments) Validate() error {
+	if a.RefreshInterval <= 0 {
+		return fmt.Errorf("refresh_interval must be greater than 0")
+	}
 	if len(a.Servers) == 0 {
 		return fmt.Errorf("at least one Marathon server must be specified")
 	}
