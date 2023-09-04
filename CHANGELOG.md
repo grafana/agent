@@ -29,6 +29,9 @@ Main (unreleased)
 
 - Clustering: Allow advertise interfaces to be configurable. (@wildum)
 
+- Deleted series will now be removed from the WAL sooner, allowing Prometheus
+  remote_write to free memory associated with removed series sooner. (@rfratto)
+
 - Added a `disable_high_cardinality_metrics` configuration flag to `otelcol` 
   exporters and receivers to switch high cardinality debug metrics off.  (@glindstedt)
 

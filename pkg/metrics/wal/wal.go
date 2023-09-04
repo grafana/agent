@@ -534,7 +534,7 @@ func (w *Storage) Truncate(mint int64) error {
 	// The checkpoint is written and segments before it is truncated, so we no
 	// longer need to track deleted series that are before it.
 	for ref, segment := range w.deleted {
-		if segment < first {
+		if segment <= last {
 			delete(w.deleted, ref)
 			w.metrics.totalRemovedSeries.Inc()
 		}
