@@ -37,6 +37,7 @@ Main (unreleased)
 - Use Go 1.21.0 for builds. (@rfratto)
 - Read contextual attributes from Faro measurements (@codecapitano)
 - Rename Grafana Agent service in windows app and features to not include the description
+- Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
 
 ### Bugfixes
 
@@ -44,7 +45,6 @@ Main (unreleased)
   changes or the last load failed. This was specifically impacting `module.git`
   each time it pulls. (@erikbaranowski)
 - Allow overriding default `User-Agent` for `http.remote` component (@hainenber)
-- Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
 
 v0.36.0 (2023-08-30)
 --------------------
