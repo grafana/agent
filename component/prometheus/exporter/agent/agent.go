@@ -23,10 +23,10 @@ func createExporter(opts component.Options, args component.Arguments) (integrati
 	return a.Convert().NewIntegration(opts.Logger)
 }
 
-// Arguments holds values which are used to configured the local.agent component.
+// Arguments holds values which are used to configured the prometheus.exporter.agent component.
 type Arguments struct{}
 
-// Exports holds the values exported by the local.agent component.
+// Exports holds the values exported by the prometheus.exporter.agent component.
 type Exports struct{}
 
 // DefaultArguments defines the default settings

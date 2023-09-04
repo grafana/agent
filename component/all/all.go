@@ -87,7 +87,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/receiver/otlp"                    // Import otelcol.receiver.otlp
 	_ "github.com/grafana/agent/component/otelcol/receiver/prometheus"              // Import otelcol.receiver.prometheus
 	_ "github.com/grafana/agent/component/otelcol/receiver/zipkin"                  // Import otelcol.receiver.zipkin
-	_ "github.com/grafana/agent/component/prometheus/exporter/agent"                // Import local.agent
+	_ "github.com/grafana/agent/component/prometheus/exporter/agent"                // Import prometheus.exporter.agent
 	_ "github.com/grafana/agent/component/prometheus/exporter/apache"               // Import prometheus.exporter.apache
 	_ "github.com/grafana/agent/component/prometheus/exporter/azure"                // Import prometheus.exporter.azure
 	_ "github.com/grafana/agent/component/prometheus/exporter/blackbox"             // Import prometheus.exporter.blackbox
