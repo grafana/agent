@@ -15,9 +15,13 @@ v0.36.1 (2023-09-06)
 - Restart managed components of a module loader only on if module content
   changes or the last load failed. This was specifically impacting `module.git`
   each time it pulls. (@erikbaranowski)
+
 - Allow overriding default `User-Agent` for `http.remote` component (@hainenber)
+
 - Fix panic when running `grafana-agentctl config-check` against config files
   having `integrations` block (both V1 and V2). (@hainenber)
+
+- Fix a deadlock candidate in the `loki.process` component. (@tpaschalis)
 
 v0.36.0 (2023-08-30)
 --------------------
