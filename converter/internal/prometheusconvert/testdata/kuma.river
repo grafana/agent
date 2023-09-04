@@ -1,11 +1,12 @@
 discovery.kuma "prometheus1" {
 	server           = "http://kuma-control-plane.kuma-system.svc:5677"
-        refresh_interval = "1m" 
+	refresh_interval = "1m0s"
 }
 
 discovery.kuma "prometheus2" {
-	server        = "http://kuma-control-plane.kuma-system.svc:5676"
-	fetch_timeout = "10s"
+	server           = "http://kuma-control-plane.kuma-system.svc:5676"
+	refresh_interval = "15s"
+	fetch_timeout    = "10s"
 }
 
 prometheus.scrape "prometheus1" {
