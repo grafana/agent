@@ -25,7 +25,6 @@ import (
 	"github.com/go-kit/log/level"
 	consul "github.com/hashicorp/consul/api"
 	conntrack "github.com/mwitkow/go-conntrack"
-	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -146,7 +145,7 @@ func (c *SDConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 	if strings.TrimSpace(c.Server) == "" {
-		return errors.New("consulagent SD configuration requires a server address")
+		return fmt.Errorf("consulagent SD configuration requires a server address")
 	}
 	return nil
 }
@@ -272,7 +271,7 @@ func (d *Discovery) getDatacenter() error {
 
 	dc, ok := info["Config"]["Datacenter"].(string)
 	if !ok {
-		err := errors.Errorf("invalid value '%v' for Config.Datacenter", info["Config"]["Datacenter"])
+		err := fmt.Errorf("invalid value '%v' for Config.Datacenter", info["Config"]["Datacenter"])
 		level.Error(d.logger).Log("msg", "Error retrieving datacenter name", "err", err)
 		return err
 	}
