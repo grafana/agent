@@ -1,0 +1,40 @@
+discovery.kuma "prometheus1" {
+	server           = "http://kuma-control-plane.kuma-system.svc:5677"
+        refresh_interval = "1m" 
+}
+
+discovery.kuma "prometheus2" {
+	server        = "http://kuma-control-plane.kuma-system.svc:5676"
+	fetch_timeout = "10s"
+}
+
+prometheus.scrape "prometheus1" {
+	targets = concat(
+		discovery.kuma.prometheus1.targets,
+		[{
+			__address__ = "localhost:9090",
+		}],
+	)
+	forward_to = [prometheus.remote_write.default.receiver]
+	job_name   = "prometheus1"
+}
+
+prometheus.scrape "prometheus2" {
+	targets    = discovery.kuma.prometheus2.targets
+	forward_to = [prometheus.remote_write.default.receiver]
+	job_name   = "prometheus2"
+}
+
+prometheus.remote_write "default" {
+	endpoint {
+		name           = "remote1"
+		url            = "http://remote-write-url1"
+		send_exemplars = false
+
+		queue_config {
+			retry_on_http_429 = false
+		}
+
+		metadata_config { }
+	}
+}

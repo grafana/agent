@@ -20,6 +20,7 @@ Main (unreleased)
 
   - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
+  - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
 
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
 

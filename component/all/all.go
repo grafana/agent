@@ -15,6 +15,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/http"                           // Import discovery.http
 	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
+	_ "github.com/grafana/agent/component/discovery/kuma"                           // Import discovery.kuma
 	_ "github.com/grafana/agent/component/discovery/nomad"                          // Import discovery.nomad
 	_ "github.com/grafana/agent/component/discovery/openstack"                      // Import discovery.openstack
 	_ "github.com/grafana/agent/component/discovery/puppetdb"                       // Import discovery.puppetdb
