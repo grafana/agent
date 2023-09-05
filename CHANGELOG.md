@@ -40,7 +40,7 @@ Main (unreleased)
 - Deleted series will now be removed from the WAL sooner, allowing Prometheus
   remote_write to free memory associated with removed series sooner. (@rfratto)
 
-- Added a `disable_high_cardinality_metrics` configuration flag to `otelcol` 
+- Added a `disable_high_cardinality_metrics` configuration flag to `otelcol`
   exporters and receivers to switch high cardinality debug metrics off.  (@glindstedt)
 
 ### Other changes
@@ -61,6 +61,10 @@ Main (unreleased)
   having `integrations` block (both V1 and V2). (@hainenber)
 
 - Fix a deadlock candidate in the `loki.process` component. (@tpaschalis)
+
+- Fix an issue in the `eventhandler` integration where events would be
+  double-logged: once by sending the event to Loki, and once by including the
+  event in the Grafana Agent logs. Now, events are only ever sent to Loki. (@rfratto)
 
 v0.36.0 (2023-08-30)
 --------------------
