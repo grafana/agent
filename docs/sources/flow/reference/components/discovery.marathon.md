@@ -25,8 +25,6 @@ Name | Type | Description | Default | Required
 `refresh_interval` | `duration` | Interval at which to refresh the list of targets. | `"30s"` | no
 `auth_token` | `secret` | Auth token to authenticate with. | | no
 `auth_token_file` | `string` | File containing an auth token to authenticate with. | | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
 `proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
 `follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
 `enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
@@ -34,8 +32,6 @@ Name | Type | Description | Default | Required
  You can provide one of the following arguments for authentication:
  - [`auth_token` argument](#arguments).
  - [`auth_token_file` argument](#arguments). 
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].

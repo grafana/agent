@@ -146,6 +146,7 @@ func appendScrapeConfig(
 	b.AppendGCESDs()
 	b.AppendEC2SDs()
 	b.AppendAzureSDs()
+	b.AppendMarathonSD()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.
