@@ -22,6 +22,7 @@ import (
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
+	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
@@ -156,6 +157,9 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_triton.SDConfig:
 			labelCounts["triton"]++
 			exports = appendDiscoveryTriton(pb, common.LabelWithIndex(labelCounts["triton"]-1, label), sdc)
+		case *prom_zk.ServersetSDConfig:
+			labelCounts["serverset"]++
+			exports = appendDiscoveryServerset(pb, common.LabelWithIndex(labelCounts["serverset"]-1, label), sdc)
 		}
 
 		targets = append(targets, exports.Targets...)

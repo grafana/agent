@@ -19,6 +19,7 @@ import (
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
+	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 )
 
 func validate(promConfig *prom_config.Config) diag.Diagnostics {
@@ -105,6 +106,8 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryLightsail(sdc))
 		case *prom_triton.SDConfig:
 			diags.AddAll(validateDiscoveryTriton(sdc))
+		case *prom_zk.ServersetSDConfig:
+			diags.AddAll(validateDiscoveryServerset(sdc))
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 		}
