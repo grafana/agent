@@ -21,7 +21,7 @@ discovery.serverset "LABEL" {
 }
 ```
 
-Serverset data stored in Zookeeper must be in the JSON format, the Thrift format is not currently supported.
+Serverset data stored in Zookeeper must be in JSON format. The Thrift format is not supported.
 
 ## Arguments
 
@@ -29,9 +29,9 @@ The following arguments are supported:
 
 | Name      | Type           | Description                                      | Default | Required |
 |-----------|----------------|--------------------------------------------------|---------|----------|
-| `servers` | `list(string)` | Zookeeper servers to connect to.                 |         | yes      |
+| `servers` | `list(string)` | The Zookeeper servers to connect to.                 |         | yes      |
 | `paths`   | `list(string)` | The Zookeeper paths to discover Serversets from. |         | yes      |
-| `timeout` | `duration`     | Zookeeper session timeout                        | `10s`   | no       |
+| `timeout` | `duration`     | The Zookeeper session timeout                        | `10s`   | no       |
 
 ## Exported fields
 
