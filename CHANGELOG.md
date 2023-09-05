@@ -66,6 +66,12 @@ Main (unreleased)
   double-logged: once by sending the event to Loki, and once by including the
   event in the Grafana Agent logs. Now, events are only ever sent to Loki. (@rfratto)
 
+- Converters will now sanitize labels to valid River identifiers. (@erikbaranowski)
+
+- Fix an issue in converters where targets of `discovery.relabel` components
+  were repeating the first target for each source target instead of the
+  correct target. (@erikbaranowski)
+
 v0.36.0 (2023-08-30)
 --------------------
 
