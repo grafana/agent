@@ -57,10 +57,6 @@ func toDiscoveryConfig(cfg *scrapeconfig.Config) prom_discover.Configs {
 		sdConfigs = append(sdConfigs, sd)
 	}
 
-	for _, sd := range cfg.ServiceDiscoveryConfig.ConsulAgentSDConfigs {
-		sdConfigs = append(sdConfigs, sd)
-	}
-
 	for _, sd := range cfg.ServiceDiscoveryConfig.DigitalOceanSDConfigs {
 		sdConfigs = append(sdConfigs, sd)
 	}
