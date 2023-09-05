@@ -13,6 +13,8 @@ Main (unreleased)
 ### Breaking changes
 
 - Set `retry_on_http_429` to `true` by default in the `queue_config` block in static mode's `remote_write`. (@wildum)
+- windows_exporter adfs collector update.
+  - adfs collector metric names are now all prefixed with `windows_adfs`
 
 ### Features
 
@@ -49,6 +51,11 @@ Main (unreleased)
 - Read contextual attributes from Faro measurements (@codecapitano)
 - Rename Grafana Agent service in windows app and features to not include the description
 - Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
+- Update windows_exporter version:
+  - `windows_ad_ldap_client_sessions` added to ad collector.
+  - `windows_hyperv_host_cpu_wait_time_per_dispatch_total` and `windows_hyperv_vm_cpu_wait_time_per_dispatch_total` added to hyperv collector.
+  - nps collected created.
+
 
 ### Bugfixes
 
