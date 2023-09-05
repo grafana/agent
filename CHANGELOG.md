@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- Set `retry_on_http_429` to `true` by default in the `queue_config` block in static mode's `remote_write`. (@wildum)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -69,8 +73,7 @@ v0.36.0 (2023-08-30)
 - `otelcol.exporter.prometheus`: Set `include_scope_info` to `false` by default. You can set
   it to `true` to preserve previous behavior. (@gouthamve)
 
-- `prometheus.remote_write`: Set `retry_on_http_429` to `true` by default in the `queue_config` block.
-  You can set it to `false` to preserve previous behavior. (@wildum)
+- Set `retry_on_http_429` to `true` by default in the `queue_config` block in flow mode's `prometheus.remote_write`. (@wildum)
 
 ### Features
 
