@@ -60,7 +60,7 @@ discovery.relabel "metrics_agent_promobee" {
 prometheus.scrape "metrics_agent_prometheus" {
 	targets = concat(
 		[{
-			__address__ = "localhost:9101",
+			__address__ = "localhost:9099",
 		}],
 		[{
 			__address__ = "localhost:9101",
