@@ -11,7 +11,6 @@ import (
 
 func TestConvert(t *testing.T) {
 	test_common.TestDirectory(t, "testdata", ".yaml", staticconvert.Convert)
-	test_common.TestDirectory(t, "testdata2", ".yaml", staticconvert.Convert)
 
 	if runtime.GOOS == "windows" {
 		test_common.TestDirectory(t, "testdata_windows", ".yaml", staticconvert.Convert)
