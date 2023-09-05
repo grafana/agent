@@ -14,14 +14,14 @@ import (
 )
 
 func appendDiscoveryEC2(pb *prometheusBlocks, label string, sdConfig *prom_aws.EC2SDConfig) discovery.Exports {
-	discoveryec2Args := ToDiscoveryEC2(sdConfig)
+	discoveryec2Args := toDiscoveryEC2(sdConfig)
 	name := []string{"discovery", "ec2"}
 	block := common.NewBlockWithOverride(name, label, discoveryec2Args)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
 	return NewDiscoveryExports("discovery.ec2." + label + ".targets")
 }
 
-func ValidateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {
+func validateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if sdConfig.HTTPClientConfig.BasicAuth != nil {
@@ -64,7 +64,7 @@ func ValidateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {
 	return diags
 }
 
-func ToDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) *aws.EC2Arguments {
+func toDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) *aws.EC2Arguments {
 	if sdConfig == nil {
 		return nil
 	}

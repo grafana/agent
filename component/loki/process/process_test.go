@@ -18,6 +18,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
 	"go.uber.org/goleak"
 )
 
@@ -386,4 +387,100 @@ stage.static_labels {
 			require.FailNow(t, "failed waiting for log line")
 		}
 	}
+}
+
+func TestDeadlockWithFrequentUpdates(t *testing.T) {
+	stg := `stage.json { 
+			    expressions    = {"output" = "log", stream = "stream", timestamp = "time", "extra" = "" }
+				drop_malformed = true
+		    }
+			stage.json {
+			    expressions = { "user" = "" }
+				source      = "extra"
+			}
+			stage.labels {
+			    values = { 
+				  stream = "",
+				  user   = "",
+				  ts     = "timestamp",
+			    }
+			}`
+
+	// Unmarshal the River relabel rules into a custom struct, as we don't have
+	// an easy way to refer to a loki.LogsReceiver value for the forward_to
+	// argument.
+	type cfg struct {
+		Stages []stages.StageConfig `river:"stage,enum"`
+	}
+	var stagesCfg cfg
+	err := river.Unmarshal([]byte(stg), &stagesCfg)
+	require.NoError(t, err)
+
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
+
+	// Create and run the component, so that it can process and forwards logs.
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
+	args := Arguments{
+		ForwardTo: []loki.LogsReceiver{ch1, ch2},
+		Stages:    stagesCfg.Stages,
+	}
+
+	c, err := New(opts, args)
+	require.NoError(t, err)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
+
+	var lastSend atomic.Value
+	// Drain received logs
+	go func() {
+		for {
+			select {
+			case <-ch1.Chan():
+				lastSend.Store(time.Now())
+			case <-ch2.Chan():
+				lastSend.Store(time.Now())
+			}
+		}
+	}()
+
+	// Continuously send entries to both channels
+	go func() {
+		for {
+			ts := time.Now()
+			logline := `{"log":"log message\n","stream":"stderr","time":"2019-04-30T02:12:41.8443515Z","extra":"{\"user\":\"smith\"}"}`
+			logEntry := loki.Entry{
+				Labels: model.LabelSet{"filename": "/var/log/pods/agent/agent/1.log", "foo": "bar"},
+				Entry: logproto.Entry{
+					Timestamp: ts,
+					Line:      logline,
+				},
+			}
+			c.receiver.Chan() <- logEntry
+		}
+	}()
+
+	// Call Updates
+	args1 := Arguments{
+		ForwardTo: []loki.LogsReceiver{ch1},
+		Stages:    stagesCfg.Stages,
+	}
+	args2 := Arguments{
+		ForwardTo: []loki.LogsReceiver{ch2},
+		Stages:    stagesCfg.Stages,
+	}
+	go func() {
+		for {
+			c.Update(args1)
+			c.Update(args2)
+		}
+	}()
+
+	// Run everything for a while
+	time.Sleep(1 * time.Second)
+	require.WithinDuration(t, time.Now(), lastSend.Load().(time.Time), 5*time.Millisecond)
 }

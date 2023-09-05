@@ -132,21 +132,10 @@ func appendScrapeConfig(
 ) {
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
-	b.Validate()
 	b.Sanitize()
 
 	// Append all the SD components
-	b.AppendKubernetesSDs()
-	b.AppendDockerSDs()
-	b.AppendStaticSDs()
-	b.AppendFileSDs()
-	b.AppendConsulSDs()
-	b.AppendConsulAgentSDs()
-	b.AppendDigitalOceanSDs()
-	b.AppendGCESDs()
-	b.AppendEC2SDs()
-	b.AppendAzureSDs()
-	b.AppendMarathonSD()
+	b.AppendSDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.

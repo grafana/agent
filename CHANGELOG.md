@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- Set `retry_on_http_429` to `true` by default in the `queue_config` block in static mode's `remote_write`. (@wildum)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -18,9 +22,13 @@ Main (unreleased)
   to static mode's `automatic_logging` processor. (@ptodev)
 
   - `discovery.marathon` - service discovery for Marathon servers. (@wildum)
+  
+  - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
+
+- Clustering: add new flag `--cluster.max-join-peers` to limit the number of peers the system joins. (@wildum)
 
 - Clustering: Add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
 
@@ -49,7 +57,12 @@ Main (unreleased)
 - Restart managed components of a module loader only on if module content
   changes or the last load failed. This was specifically impacting `module.git`
   each time it pulls. (@erikbaranowski)
+
 - Allow overriding default `User-Agent` for `http.remote` component (@hainenber)
+- Fix panic when running `grafana-agentctl config-check` against config files
+  having `integrations` block (both V1 and V2). (@hainenber)
+
+- Fix a deadlock candidate in the `loki.process` component. (@tpaschalis)
 
 v0.36.0 (2023-08-30)
 --------------------
@@ -67,8 +80,7 @@ v0.36.0 (2023-08-30)
 - `otelcol.exporter.prometheus`: Set `include_scope_info` to `false` by default. You can set
   it to `true` to preserve previous behavior. (@gouthamve)
 
-- `prometheus.remote_write`: Set `retry_on_http_429` to `true` by default in the `queue_config` block.
-  You can set it to `false` to preserve previous behavior. (@wildum)
+- Set `retry_on_http_429` to `true` by default in the `queue_config` block in flow mode's `prometheus.remote_write`. (@wildum)
 
 ### Features
 

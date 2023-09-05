@@ -1,0 +1,14 @@
+discovery.triton "fun" {
+	account    = "TRITON_ACCOUNT"
+	dns_suffix = "triton.example"
+	endpoint   = "0.0.0.0:8080"
+}
+
+local.file_match "fun" {
+	path_targets = discovery.triton.fun.targets
+}
+
+loki.source.file "fun" {
+	targets    = local.file_match.fun.targets
+	forward_to = []
+}

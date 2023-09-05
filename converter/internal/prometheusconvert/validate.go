@@ -19,6 +19,7 @@ import (
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
+	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 )
 
 func validate(promConfig *prom_config.Config) diag.Diagnostics {
@@ -70,36 +71,45 @@ func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagn
 
 	for _, scrapeConfig := range scrapeConfigs {
 		diags.AddAll(validatePrometheusScrape(scrapeConfig))
+		diags.AddAll(ValidateServiceDiscoveryConfigs(scrapeConfig.ServiceDiscoveryConfigs))
+	}
 
-		for _, serviceDiscoveryConfig := range scrapeConfig.ServiceDiscoveryConfigs {
-			switch sdc := serviceDiscoveryConfig.(type) {
-			case prom_discover.StaticConfig:
-				diags.AddAll(validateScrapeTargets(sdc))
-			case *prom_azure.SDConfig:
-				diags.AddAll(ValidateDiscoveryAzure(sdc))
-			case *prom_consul.SDConfig:
-				diags.AddAll(validateDiscoveryConsul(sdc))
-			case *prom_digitalocean.SDConfig:
-				diags.AddAll(ValidateDiscoveryDigitalOcean(sdc))
-			case *prom_dns.SDConfig:
-				diags.AddAll(validateDiscoveryDns(sdc))
-			case *prom_docker.DockerSDConfig:
-				diags.AddAll(validateDiscoveryDocker(sdc))
-			case *prom_aws.EC2SDConfig:
-				diags.AddAll(ValidateDiscoveryEC2(sdc))
-			case *prom_file.SDConfig:
-				diags.AddAll(validateDiscoveryFile(sdc))
-			case *prom_gce.SDConfig:
-				diags.AddAll(ValidateDiscoveryGCE(sdc))
-			case *prom_kubernetes.SDConfig:
-				diags.AddAll(validateDiscoveryKubernetes(sdc))
-			case *prom_aws.LightsailSDConfig:
-				diags.AddAll(validateDiscoveryLightsail(sdc))
-			case *prom_marathon.SDConfig:
-				diags.AddAll(validateDiscoveryMarathon(sdc))
-			default:
-				diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
-			}
+	return diags
+}
+
+func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Configs) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	for _, serviceDiscoveryConfig := range serviceDiscoveryConfigs {
+		switch sdc := serviceDiscoveryConfig.(type) {
+		case prom_discover.StaticConfig:
+			diags.AddAll(validateScrapeTargets(sdc))
+		case *prom_azure.SDConfig:
+			diags.AddAll(validateDiscoveryAzure(sdc))
+		case *prom_consul.SDConfig:
+			diags.AddAll(validateDiscoveryConsul(sdc))
+		case *prom_digitalocean.SDConfig:
+			diags.AddAll(validateDiscoveryDigitalOcean(sdc))
+		case *prom_dns.SDConfig:
+			diags.AddAll(validateDiscoveryDns(sdc))
+		case *prom_docker.DockerSDConfig:
+			diags.AddAll(validateDiscoveryDocker(sdc))
+		case *prom_aws.EC2SDConfig:
+			diags.AddAll(validateDiscoveryEC2(sdc))
+		case *prom_file.SDConfig:
+			diags.AddAll(validateDiscoveryFile(sdc))
+		case *prom_gce.SDConfig:
+			diags.AddAll(validateDiscoveryGCE(sdc))
+		case *prom_kubernetes.SDConfig:
+			diags.AddAll(validateDiscoveryKubernetes(sdc))
+		case *prom_aws.LightsailSDConfig:
+			diags.AddAll(validateDiscoveryLightsail(sdc))
+		case *prom_triton.SDConfig:
+			diags.AddAll(validateDiscoveryTriton(sdc))
+		case *prom_marathon.SDConfig:
+			diags.AddAll(validateDiscoveryMarathon(sdc))
+		default:
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 		}
 	}
 

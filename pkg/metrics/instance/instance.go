@@ -40,6 +40,8 @@ func init() {
 
 	// default remote_write send_exemplars to true
 	config.DefaultRemoteWriteConfig.SendExemplars = true
+	// default remote_write retry_on_http_429 to true
+	config.DefaultRemoteWriteConfig.QueueConfig.RetryOnRateLimit = true
 }
 
 // Default configuration values
