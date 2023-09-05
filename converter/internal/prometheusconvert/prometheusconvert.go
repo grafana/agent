@@ -69,7 +69,7 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics
 // pipeline. Additional options can be provided overriding the job name, extra
 // scrape targets, and predefined remote write exports.
 func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToCompLabelsFunc func(string) string, extraScrapeTargets []discovery.Target, remoteWriteExports *remotewrite.Exports) diag.Diagnostics {
-	pb := newPrometheusBlocks()
+	pb := NewPrometheusBlocks()
 
 	if remoteWriteExports == nil {
 		labelPrefix := ""
@@ -92,7 +92,7 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
-		scrapeTargets := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
+		scrapeTargets := AppendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
 		scrapeTargets = append(scrapeTargets, extraScrapeTargets...)
 
 		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
@@ -106,15 +106,15 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 	diags := validate(promConfig)
 	diags.AddAll(pb.getScrapeInfo())
 
-	pb.appendToFile(f)
+	pb.AppendToFile(f)
 
 	return diags
 }
 
-// appendServiceDiscoveryConfigs will loop through the service discovery
+// AppendServiceDiscoveryConfigs will loop through the service discovery
 // configs and append them to the file. This returns the scrape targets
 // and discovery targets as a result.
-func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) []discovery.Target {
+func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) []discovery.Target {
 	var targets []discovery.Target
 	labelCounts := make(map[string]int)
 	for _, serviceDiscoveryConfig := range serviceDiscoveryConfig {
@@ -154,7 +154,7 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 			exports = appendDiscoveryLightsail(pb, common.LabelWithIndex(labelCounts["lightsail"]-1, label), sdc)
 		}
 
-		targets = append(exports.Targets, targets...)
+		targets = append(targets, exports.Targets...)
 	}
 
 	return targets

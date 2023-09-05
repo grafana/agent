@@ -8,7 +8,7 @@ prometheus.scrape "metrics_name_jobName" {
 	targets = concat(
 		discovery.consul.metrics_name_jobName.targets,
 		[{
-			__address__ = "localhost:9101",
+			__address__ = "localhost:9099",
 		}],
 		[{
 			__address__ = "localhost:9101",

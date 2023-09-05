@@ -13,14 +13,14 @@ import (
 )
 
 func appendDiscoveryAzure(pb *prometheusBlocks, label string, sdConfig *prom_azure.SDConfig) discovery.Exports {
-	discoveryAzureArgs := ToDiscoveryAzure(sdConfig)
+	discoveryAzureArgs := toDiscoveryAzure(sdConfig)
 	name := []string{"discovery", "azure"}
 	block := common.NewBlockWithOverride(name, label, discoveryAzureArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
 	return NewDiscoveryExports("discovery.azure." + label + ".targets")
 }
 
-func ToDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
+func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
@@ -40,7 +40,7 @@ func ToDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
 	}
 }
 
-func ValidateDiscoveryAzure(sdConfig *prom_azure.SDConfig) diag.Diagnostics {
+func validateDiscoveryAzure(sdConfig *prom_azure.SDConfig) diag.Diagnostics {
 	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
