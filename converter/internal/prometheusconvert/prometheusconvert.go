@@ -19,6 +19,7 @@ import (
 	prom_dns "github.com/prometheus/prometheus/discovery/dns"
 	prom_file "github.com/prometheus/prometheus/discovery/file"
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
+	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	"github.com/prometheus/prometheus/storage"
@@ -152,6 +153,9 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_aws.LightsailSDConfig:
 			labelCounts["lightsail"]++
 			exports = appendDiscoveryLightsail(pb, common.LabelWithIndex(labelCounts["lightsail"]-1, label), sdc)
+		case *prom_ionos.SDConfig:
+			labelCounts["ionos"]++
+			exports = appendDiscoveryIonos(pb, common.LabelWithIndex(labelCounts["ionos"]-1, label), sdc)
 		}
 
 		targets = append(exports.Targets, targets...)
