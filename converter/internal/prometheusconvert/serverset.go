@@ -30,6 +30,6 @@ func ToDiscoveryServerset(sdc *prom_zk.ServersetSDConfig) *serverset.Arguments {
 	}
 }
 
-func validateDiscoveryServerset(_ *prom_zk.ServersetSDConfig) diag.Diagnostics {
+func ValidateDiscoveryServerset(_ *prom_zk.ServersetSDConfig) diag.Diagnostics {
 	return nil
 }
