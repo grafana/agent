@@ -23,27 +23,27 @@ discovery.consulagent "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`server`           | `string`       | Host and port of the Consul Agent API.                                                                            | `localhost:8500` | no
-`token`            | `secret`       | Secret token used to access the Consul Agent API.                                                                 |                  | no
-`datacenter`       | `string`       | Datacenter in which the Consul Agent is configured to run. If not provided, the default is used.                  |                  | no
-`tag_separator`    | `string`       | The string by which Consul tags are joined into the tag label.                                                    | `,`              | no
-`scheme`           | `string`       | The scheme to use when talking to the Consul Agent.                                                               | `http`           | no
-`username`         | `string`       | The username to use.                                                                                              |                  | no
-`password`         | `secret`       | The password to use.                                                                                              |                  | no
-`services`         | `list(string)` | A list of services for which targets are retrieved. If omitted, all services are scraped.                         |                  | no
-`tags`             | `list(string)` | An optional list of tags used to filter nodes for a given service. Services must contain all tags in the list.    |                  | no
-`refresh_interval` | `duration`     | Frequency to refresh list of containers.                                                                          | `"30s"`          | no
+| Name               | Type           | Description                                                                                                    | Default          | Required |
+| ------------------ | -------------- | -------------------------------------------------------------------------------------------------------------- | ---------------- | -------- |
+| `server`           | `string`       | Host and port of the Consul Agent API.                                                                         | `localhost:8500` | no       |
+| `token`            | `secret`       | Secret token used to access the Consul Agent API.                                                              |                  | no       |
+| `datacenter`       | `string`       | Datacenter in which the Consul Agent is configured to run. If not provided, the default is used.               |                  | no       |
+| `tag_separator`    | `string`       | The string by which Consul tags are joined into the tag label.                                                 | `,`              | no       |
+| `scheme`           | `string`       | The scheme to use when talking to the Consul Agent.                                                            | `http`           | no       |
+| `username`         | `string`       | The username to use.                                                                                           |                  | no       |
+| `password`         | `secret`       | The password to use.                                                                                           |                  | no       |
+| `services`         | `list(string)` | A list of services for which targets are retrieved. If omitted, all services are scraped.                      |                  | no       |
+| `tags`             | `list(string)` | An optional list of tags used to filter nodes for a given service. Services must contain all tags in the list. |                  | no       |
+| `refresh_interval` | `duration`     | Frequency to refresh list of containers.                                                                       | `"30s"`          | no       |
 
 ## Blocks
 
 The following blocks are supported inside the definition of
 `discovery.consulagent`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+| Hierarchy  | Block          | Description                                            | Required |
+| ---------- | -------------- | ------------------------------------------------------ | -------- |
+| tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no       |
 
 [tls_config]: #tls_config-block
 
@@ -55,24 +55,24 @@ tls_config | [tls_config][] | Configure TLS settings for connecting to the endpo
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the Consul Agent API.
+| Name      | Type                | Description                                              |
+| --------- | ------------------- | -------------------------------------------------------- |
+| `targets` | `list(map(string))` | The set of targets discovered from the Consul Agent API. |
 
 Each target includes the following labels:
 
-* `__meta_consulagent_address`: the address of the target.
-* `__meta_consulagent_dc`: the datacenter name for the target.
-* `__meta_consulagent_health`: the health status of the service.
-* `__meta_consulagent_metadata_<key>`: each node metadata key value of the target.
-* `__meta_consulagent_node`: the node name defined for the target.
-* `__meta_consulagent_service`: the name of the service the target belongs to.
-* `__meta_consulagent_service_address`: the service address of the target.
-* `__meta_consulagent_service_id`: the service ID of the target.
-* `__meta_consulagent_service_metadata_<key>`: each service metadata key value of the target.
-* `__meta_consulagent_service_port`: the service port of the target.
-* `__meta_consulagent_tagged_address_<key>`: each node tagged address key value of the target.
-* `__meta_consulagent_tags`: the list of tags of the target joined by the tag separator.
+- `__meta_consulagent_address`: the address of the target.
+- `__meta_consulagent_dc`: the datacenter name for the target.
+- `__meta_consulagent_health`: the health status of the service.
+- `__meta_consulagent_metadata_<key>`: each node metadata key value of the target.
+- `__meta_consulagent_node`: the node name defined for the target.
+- `__meta_consulagent_service`: the name of the service the target belongs to.
+- `__meta_consulagent_service_address`: the service address of the target.
+- `__meta_consulagent_service_id`: the service ID of the target.
+- `__meta_consulagent_service_metadata_<key>`: each service metadata key value of the target.
+- `__meta_consulagent_service_port`: the service port of the target.
+- `__meta_consulagent_tagged_address_<key>`: each node tagged address key value of the target.
+- `__meta_consulagent_tags`: the list of tags of the target joined by the tag separator.
 
 ## Component health
 
@@ -117,7 +117,9 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
