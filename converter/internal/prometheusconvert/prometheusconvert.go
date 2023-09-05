@@ -21,6 +21,7 @@ import (
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
+	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	"github.com/prometheus/prometheus/storage"
 
@@ -156,6 +157,9 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_triton.SDConfig:
 			labelCounts["triton"]++
 			exports = appendDiscoveryTriton(pb, common.LabelWithIndex(labelCounts["triton"]-1, label), sdc)
+		case *prom_scaleway.SDConfig:
+			labelCounts["scaleway"]++
+			exports = appendDiscoveryScaleway(pb, common.LabelWithIndex(labelCounts["scaleway"]-1, label), sdc)
 		}
 
 		targets = append(targets, exports.Targets...)

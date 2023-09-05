@@ -23,6 +23,9 @@ Main (unreleased)
 
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
 
+  - `discovery.scaleway` discovers scrape targets from Scaleway virtual
+    instances and bare-metal machines. (@rfratto)
+
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
 
@@ -40,7 +43,7 @@ Main (unreleased)
 - Deleted series will now be removed from the WAL sooner, allowing Prometheus
   remote_write to free memory associated with removed series sooner. (@rfratto)
 
-- Added a `disable_high_cardinality_metrics` configuration flag to `otelcol` 
+- Added a `disable_high_cardinality_metrics` configuration flag to `otelcol`
   exporters and receivers to switch high cardinality debug metrics off.  (@glindstedt)
 
 ### Other changes
