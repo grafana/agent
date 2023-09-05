@@ -33,7 +33,7 @@ When provided, `api_token_file` takes precedence over `api_token`.
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporters-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 
