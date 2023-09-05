@@ -5,9 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 	"github.com/prometheus/client_golang/prometheus"
@@ -49,10 +47,11 @@ configs:
 		require.NoError(t, l.ApplyConfig(&cfg, false))
 
 		expect := `{"status":"success","data":["instance-a"]}`
-		test.Poll(t, time.Second, true, func() interface{} {
+
+		util.Eventually(t, func(t require.TestingT) {
 			rr := httptest.NewRecorder()
 			l.ListInstancesHandler(rr, r)
-			return expect == rr.Body.String()
+			require.Equal(t, expect, rr.Body.String())
 		})
 	})
 }

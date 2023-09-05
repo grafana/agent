@@ -29,11 +29,12 @@ type Arguments struct {
 	Verbosity          configtelemetry.Level `river:"verbosity,attr,optional"`
 	SamplingInitial    int                   `river:"sampling_initial,attr,optional"`
 	SamplingThereafter int                   `river:"sampling_thereafter,attr,optional"`
+
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
 }
 
-var (
-	_ exporter.Arguments = Arguments{}
-)
+var _ exporter.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
@@ -64,4 +65,9 @@ func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension 
 // Exporters implements exporter.Arguments.
 func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }
