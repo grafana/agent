@@ -23,6 +23,10 @@ v0.36.1 (2023-09-06)
 
 - Fix a deadlock candidate in the `loki.process` component. (@tpaschalis)
 
+- Fix an issue in the `eventhandler` integration where events would be
+  double-logged: once by sending the event to Loki, and once by including the
+  event in the Grafana Agent logs. Now, events are only ever sent to Loki. (@rfratto)
+
 v0.36.0 (2023-08-30)
 --------------------
 
