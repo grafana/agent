@@ -101,7 +101,7 @@ func convertNonIndexedLabels(cfg interface{}, diags *diag.Diagnostics) (stages.S
 		addInvalidStageError(diags, cfg, err)
 		return stages.StageConfig{}, false
 	}
-	return stages.StageConfig{NonIndexedLabelsConfig: &stages.LabelsConfig{
+	return stages.StageConfig{StructuredMetadata: &stages.LabelsConfig{
 		Values: *pLabels,
 	}}, true
 }

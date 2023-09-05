@@ -45,29 +45,30 @@ loki.process "LABEL" {
 
 The following blocks are supported inside the definition of `loki.process`:
 
-| Hierarchy           | Block                   | Description                                          | Required |
-| ------------------- | ----------------------- | ---------------------------------------------------- | -------- |
-| stage.cri           | [stage.cri][]           | Configures a pre-defined CRI-format pipeline.        | no       |
-| stage.docker        | [stage.docker][]        | Configures a pre-defined Docker log format pipeline. | no       |
-| stage.drop          | [stage.drop][]          | Configures a `drop` processing stage.                | no       |
-| stage.json          | [stage.json][]          | Configures a JSON processing stage.                  | no       |
-| stage.label_drop    | [stage.label_drop][]    | Configures a `label_drop` processing stage.          | no       |
-| stage.label_keep    | [stage.label_keep][]    | Configures a `label_keep` processing stage.          | no       |
-| stage.labels        | [stage.labels][]        | Configures a labels processing stage.                | no       |
-| stage.limit         | [stage.limit][]         | Configures a `limit` processing stage.               | no       |
-| stage.logfmt        | [stage.logfmt][]        | Configures a logfmt processing stage.                | no       |
-| stage.match         | [stage.match][]         | Configures a `match` processing stage.               | no       |
-| stage.metrics       | [stage.metrics][]       | Configures a `metrics` stage.                        | no       |
-| stage.multiline     | [stage.multiline][]     | Configures a `multiline` processing stage.           | no       |
-| stage.output        | [stage.output][]        | Configures an `output` processing stage.             | no       |
-| stage.pack          | [stage.pack][]          | Configures a `pack` processing stage.                | no       |
-| stage.regex         | [stage.regex][]         | Configures a `regex` processing stage.               | no       |
-| stage.replace       | [stage.replace][]       | Configures a `replace` processing stage.             | no       |
-| stage.static_labels | [stage.static_labels][] | Configures a `static_labels` processing stage.       | no       |
-| stage.template      | [stage.template][]      | Configures a `template` processing stage.            | no       |
-| stage.tenant        | [stage.tenant][]        | Configures a `tenant` processing stage.              | no       |
-| stage.timestamp     | [stage.timestamp][]     | Configures a `timestamp` processing stage.           | no       |
-| stage.geoip         | [stage.geoip][]         | Configures a `geoip` processing stage.               | no       |
+| Hierarchy                 | Block                         | Description                                          | Required |
+|---------------------------|-------------------------------|------------------------------------------------------| -------- |
+| stage.cri                 | [stage.cri][]                 | Configures a pre-defined CRI-format pipeline.        | no       |
+| stage.docker              | [stage.docker][]              | Configures a pre-defined Docker log format pipeline. | no       |
+| stage.drop                | [stage.drop][]                | Configures a `drop` processing stage.                | no       |
+| stage.json                | [stage.json][]                | Configures a JSON processing stage.                  | no       |
+| stage.label_drop          | [stage.label_drop][]          | Configures a `label_drop` processing stage.          | no       |
+| stage.label_keep          | [stage.label_keep][]          | Configures a `label_keep` processing stage.          | no       |
+| stage.labels              | [stage.labels][]              | Configures a labels processing stage.                | no       |
+| stage.structured_metadata | [stage.structured_metadata][] | Configures a structured metadata processing stage.   | no       |
+| stage.limit               | [stage.limit][]               | Configures a `limit` processing stage.               | no       |
+| stage.logfmt              | [stage.logfmt][]              | Configures a logfmt processing stage.                | no       |
+| stage.match               | [stage.match][]               | Configures a `match` processing stage.               | no       |
+| stage.metrics             | [stage.metrics][]             | Configures a `metrics` stage.                        | no       |
+| stage.multiline           | [stage.multiline][]           | Configures a `multiline` processing stage.           | no       |
+| stage.output              | [stage.output][]              | Configures an `output` processing stage.             | no       |
+| stage.pack                | [stage.pack][]                | Configures a `pack` processing stage.                | no       |
+| stage.regex               | [stage.regex][]               | Configures a `regex` processing stage.               | no       |
+| stage.replace             | [stage.replace][]             | Configures a `replace` processing stage.             | no       |
+| stage.static_labels       | [stage.static_labels][]       | Configures a `static_labels` processing stage.       | no       |
+| stage.template            | [stage.template][]            | Configures a `template` processing stage.            | no       |
+| stage.tenant              | [stage.tenant][]              | Configures a `tenant` processing stage.              | no       |
+| stage.timestamp           | [stage.timestamp][]           | Configures a `timestamp` processing stage.           | no       |
+| stage.geoip               | [stage.geoip][]               | Configures a `geoip` processing stage.               | no       |
 
 A user can provide any number of these stage blocks nested inside
 `loki.process`; these will run in order of appearance in the configuration
@@ -80,6 +81,7 @@ file.
 [stage.label_drop]: #stagelabel_drop-block
 [stage.label_keep]: #stagelabel_keep-block
 [stage.labels]: #stagelabels-block
+[stage.structured_metadata]: #stagestructuredmetadata-block
 [stage.limit]: #stagelimit-block
 [stage.logfmt]: #stagelogfmt-block
 [stage.match]: #stagematch-block
@@ -330,10 +332,10 @@ stage.labels {
 }
 ```
 
-### stage.non_indexed_labels block
+### stage.structured_metadata block
 
-The `stage.non_indexed_labels` inner block configures a labels processing stage that can read
-data from the extracted values map and add them to log entries as non-indexed labels.
+The `stage.structured_metadata` inner block configures a stage that can read
+data from the extracted values map and add them to log entries as structured metadata.
 
 The following arguments are supported:
 
@@ -346,10 +348,10 @@ how to look them up. If the value is empty, it is inferred to be the same as
 the key.
 
 ```river
-stage.non_indexed_labels {
+stage.structured_metadata {
     values = {
-      env  = "",         // Sets up an 'env' non-indexed label, based on the 'env' extracted value.
-      user = "username", // Sets up a 'user' non-indexed label, based on the 'username' extracted value.
+      env  = "",         // Sets up an 'env' property to structured metadata, based on the 'env' extracted value.
+      user = "username", // Sets up a 'user' property to structured metadata, based on the 'username' extracted value.
     }
 }
 ```
