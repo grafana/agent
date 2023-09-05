@@ -4,6 +4,7 @@ title: prometheus.exporter.blackbox
 ---
 
 # prometheus.exporter.blackbox
+
 The `prometheus.exporter.blackbox` component embeds
 [`blackbox_exporter`](https://github.com/prometheus/blackbox_exporter). `blackbox_exporter` lets you collect blackbox metrics (probes) and expose them as Prometheus metrics.
 
@@ -15,14 +16,15 @@ prometheus.exporter.blackbox "LABEL" {
 ```
 
 ## Arguments
+
 The following arguments can be used to configure the exporter's behavior.
 Omitted fields take their default values.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`config_file`                 | `string`       | blackbox_exporter configuration file path. | | no
-`config`                      | `string` or `secret`       | blackbox_exporter configuration as inline string.  | |no
-`probe_timeout_offset`        | `duration`     | Offset in seconds to subtract from timeout when probing targets.  | `"0.5s"` | no
+| Name                   | Type                 | Description                                                      | Default  | Required |
+| ---------------------- | -------------------- | ---------------------------------------------------------------- | -------- | -------- |
+| `config_file`          | `string`             | blackbox_exporter configuration file path.                       |          | no       |
+| `config`               | `string` or `secret` | blackbox_exporter configuration as inline string.                |          | no       |
+| `probe_timeout_offset` | `duration`           | Offset in seconds to subtract from timeout when probing targets. | `"0.5s"` | no       |
 
 The `config_file` argument points to a YAML file defining which blackbox_exporter modules to use.
 The `config` argument must be a YAML document as string defining which blackbox_exporter modules to use.
@@ -32,17 +34,16 @@ The `config` argument must be a YAML document as string defining which blackbox_
 - `remote.http.LABEL.content`
 - `remote.s3.LABEL.content`
 
-
-See [blackbox_exporter]( https://github.com/prometheus/blackbox_exporter/blob/master/example.yml) for details on how to generate a config file.
+See [blackbox_exporter](https://github.com/prometheus/blackbox_exporter/blob/master/example.yml) for details on how to generate a config file.
 
 ## Blocks
 
 The following blocks are supported inside the definition of
 `prometheus.exporter.blackbox` to configure collector-specific options:
 
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-target | [target][] | Configures a blackbox target. | yes
+| Hierarchy | Name       | Description                   | Required |
+| --------- | ---------- | ----------------------------- | -------- |
+| target    | [target][] | Configures a blackbox target. | yes      |
 
 [target]: #target-block
 
@@ -51,15 +52,15 @@ target | [target][] | Configures a blackbox target. | yes
 The `target` block defines an individual blackbox target.
 The `target` block may be specified multiple times to define multiple targets.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`name` | `string` | Name of the target. | | yes
-`address` | `string` | The address of the target to probe. | | yes
-`module`| `string` | Blackbox module to use to probe. | `""` | no
+| Name      | Type     | Description                         | Default | Required |
+| --------- | -------- | ----------------------------------- | ------- | -------- |
+| `name`    | `string` | Name of the target.                 |         | yes      |
+| `address` | `string` | The address of the target to probe. |         | yes      |
+| `module`  | `string` | Blackbox module to use to probe.    | `""`    | no       |
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporters-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 
@@ -116,10 +117,12 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Collect metrics using an embedded configuration
 
@@ -157,9 +160,11 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
