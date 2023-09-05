@@ -19,22 +19,23 @@ discovery.marathon "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`servers` | `list(string)` | List of Marathon servers. | `http://localhost:4646` | no
-`refresh_interval` | `duration` | Interval at which to refresh the list of targets. | `"30s"` | no
-`auth_token` | `secret` | Auth token to authenticate with. | | no
-`auth_token_file` | `string` | File containing an auth token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+| Name               | Type           | Description                                                  | Default                 | Required |
+| ------------------ | -------------- | ------------------------------------------------------------ | ----------------------- | -------- |
+| `servers`          | `list(string)` | List of Marathon servers.                                    | `http://localhost:4646` | no       |
+| `refresh_interval` | `duration`     | Interval at which to refresh the list of targets.            | `"30s"`                 | no       |
+| `auth_token`       | `secret`       | Auth token to authenticate with.                             |                         | no       |
+| `auth_token_file`  | `string`       | File containing an auth token to authenticate with.          |                         | no       |
+| `proxy_url`        | `string`       | HTTP proxy to proxy requests through.                        |                         | no       |
+| `follow_redirects` | `bool`         | Whether redirects returned by the server should be followed. | `true`                  | no       |
+| `enable_http2`     | `bool`         | Whether HTTP2 is supported for requests.                     | `true`                  | no       |
 
- You can provide one of the following arguments for authentication:
- - [`auth_token` argument](#arguments).
- - [`auth_token_file` argument](#arguments). 
- - [`basic_auth` block][basic_auth].
- - [`authorization` block][authorization].
- - [`oauth2` block][oauth2].
+You can provide one of the following arguments for authentication:
+
+- [`auth_token` argument](#arguments).
+- [`auth_token_file` argument](#arguments).
+- [`basic_auth` block][basic_auth].
+- [`authorization` block][authorization].
+- [`oauth2` block][oauth2].
 
 [arguments]: #arguments
 
@@ -43,12 +44,12 @@ Name | Type | Description | Default | Required
 The following blocks are supported inside the definition of
 `discovery.marathon`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+| Hierarchy           | Block             | Description                                              | Required |
+| ------------------- | ----------------- | -------------------------------------------------------- | -------- |
+| basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no       |
+| authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no       |
+| oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no       |
+| oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -79,19 +80,19 @@ an `oauth2` block.
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the Marathon servers.
+| Name      | Type                | Description                                              |
+| --------- | ------------------- | -------------------------------------------------------- |
+| `targets` | `list(map(string))` | The set of targets discovered from the Marathon servers. |
 
 Each target includes the following labels:
 
-* `__meta_marathon_app`: the name of the app (with slashes replaced by dashes).
-* `__meta_marathon_image`: the name of the Docker image used (if available).
-* `__meta_marathon_task`: the ID of the Mesos task.
-* `__meta_marathon_app_label_<labelname>`: any Marathon labels attached to the app.
-* `__meta_marathon_port_definition_label_<labelname>`: the port definition labels.
-* `__meta_marathon_port_mapping_label_<labelname>`: the port mapping labels.
-* `__meta_marathon_port_index`: the port index number (e.g. 1 for PORT1).
+- `__meta_marathon_app`: the name of the app (with slashes replaced by dashes).
+- `__meta_marathon_image`: the name of the Docker image used (if available).
+- `__meta_marathon_task`: the ID of the Mesos task.
+- `__meta_marathon_app_label_<labelname>`: any Marathon labels attached to the app.
+- `__meta_marathon_port_definition_label_<labelname>`: the port definition labels.
+- `__meta_marathon_port_mapping_label_<labelname>`: the port mapping labels.
+- `__meta_marathon_port_index`: the port index number (e.g. 1 for PORT1).
 
 ## Component health
 
@@ -132,10 +133,9 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
-
-
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
