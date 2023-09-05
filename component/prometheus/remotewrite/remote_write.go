@@ -63,6 +63,7 @@ type Component struct {
 
 // New creates a new prometheus.remote_write component.
 func New(o component.Options, c Arguments) (*Component, error) {
+	prometheus.GlobalRefMapping.Enable()
 	// Older versions of prometheus.remote_write used the subpath below, which
 	// added in too many extra unnecessary directories (since o.DataPath is
 	// already unique).

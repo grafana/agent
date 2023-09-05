@@ -25,6 +25,7 @@ type GlobalRefMap struct {
 	mappings           map[string]*remoteWriteMapping
 	labelsHashToGlobal map[uint64]uint64
 	staleGlobals       map[uint64]*staleMarker
+	enable             bool
 }
 
 type staleMarker struct {
@@ -43,10 +44,20 @@ func newGlobalRefMap() *GlobalRefMap {
 	}
 }
 
+func (g *GlobalRefMap) Enable() {
+	g.mut.Lock()
+	defer g.mut.Unlock()
+	g.enable = true
+}
+
 // GetOrAddLink is called by a remote_write endpoint component to add mapping and get back the global id.
 func (g *GlobalRefMap) GetOrAddLink(componentID string, localRefID uint64, lbls labels.Labels) uint64 {
 	g.mut.Lock()
 	defer g.mut.Unlock()
+
+	if !g.enable {
+		return 0
+	}
 
 	// If the mapping doesn't exist then we need to create it
 	m, found := g.mappings[componentID]
@@ -99,6 +110,10 @@ func (g *GlobalRefMap) GetGlobalRefID(componentID string, localRefID uint64) uin
 	g.mut.RLock()
 	defer g.mut.RUnlock()
 
+	if !g.enable {
+		return 0
+	}
+
 	m, found := g.mappings[componentID]
 	if !found {
 		return 0
@@ -111,6 +126,10 @@ func (g *GlobalRefMap) GetGlobalRefID(componentID string, localRefID uint64) uin
 func (g *GlobalRefMap) GetLocalRefID(componentID string, globalRefID uint64) uint64 {
 	g.mut.RLock()
 	defer g.mut.RUnlock()
+
+	if !g.enable {
+		return 0
+	}
 
 	m, found := g.mappings[componentID]
 	if !found {

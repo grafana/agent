@@ -624,6 +624,12 @@ require (
 )
 
 require (
+	github.com/iancmcc/bingo v0.1.1
+	github.com/kelindar/binary v1.0.17
+	github.com/zhuangsirui/binpacker v2.0.0+incompatible
+)
+
+require (
 	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/cockroachdb/errors v1.8.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
@@ -631,6 +637,7 @@ require (
 	github.com/cockroachdb/sentry-go v0.6.1-cockroachdb.2 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
+	github.com/goccy/go-reflect v1.1.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
