@@ -27,6 +27,10 @@ v0.36.1 (2023-09-06)
   double-logged: once by sending the event to Loki, and once by including the
   event in the Grafana Agent logs. Now, events are only ever sent to Loki. (@rfratto)
 
+### Other Changes
+
+- Operator: Update default config reloader version. (@captncraig)
+
 v0.36.0 (2023-08-30)
 --------------------
 
