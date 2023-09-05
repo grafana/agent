@@ -343,7 +343,7 @@ The following arguments are supported:
 | -------- | ------------- |-----------------------------------------------------------------------------| ------- | -------- |
 | `values` | `map(string)` | Specifies the list of labels to add from extracted values map to log entry. | `{}`    | no       |
 
-In a non_indexed_labels stage, the map's keys define the label to set and the values are
+In a structured_metadata stage, the map's keys define the label to set and the values are
 how to look them up. If the value is empty, it is inferred to be the same as
 the key.
 
