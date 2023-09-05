@@ -49,6 +49,7 @@ Main (unreleased)
 - Read contextual attributes from Faro measurements (@codecapitano)
 - Rename Grafana Agent service in windows app and features to not include the description
 - Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
+- Operator: Update default config reloader version. (@captncraig)
 
 ### Bugfixes
 
