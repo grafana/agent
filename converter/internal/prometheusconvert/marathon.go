@@ -12,7 +12,7 @@ import (
 )
 
 func appendDiscoveryMarathon(pb *prometheusBlocks, label string, sdConfig *prom_marathon.SDConfig) discovery.Exports {
-	discoveryMarathonArgs := ToDiscoveryMarathon(sdConfig)
+	discoveryMarathonArgs := toDiscoveryMarathon(sdConfig)
 	name := []string{"discovery", "marathon"}
 	block := common.NewBlockWithOverride(name, label, discoveryMarathonArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
@@ -23,7 +23,7 @@ func validateDiscoveryMarathon(sdConfig *prom_marathon.SDConfig) diag.Diagnostic
 	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
-func ToDiscoveryMarathon(sdConfig *prom_marathon.SDConfig) *marathon.Arguments {
+func toDiscoveryMarathon(sdConfig *prom_marathon.SDConfig) *marathon.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
