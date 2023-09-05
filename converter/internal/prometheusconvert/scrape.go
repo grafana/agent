@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/exp/maps"
+
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/grafana/agent/converter/diag"
@@ -68,7 +70,9 @@ func getScrapeTargets(staticConfig prom_discovery.StaticConfig) []discovery.Targ
 		for _, labelSet := range target.Targets {
 			for labelName, labelValue := range labelSet {
 				targetMap[string(labelName)] = string(labelValue)
-				targets = append(targets, targetMap)
+				newMap := map[string]string{}
+				maps.Copy(newMap, targetMap)
+				targets = append(targets, newMap)
 			}
 		}
 	}
