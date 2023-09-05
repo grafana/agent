@@ -54,6 +54,8 @@ Main (unreleased)
   each time it pulls. (@erikbaranowski)
 
 - Allow overriding default `User-Agent` for `http.remote` component (@hainenber)
+- Fix panic when running `grafana-agentctl config-check` against config files
+  having `integrations` block (both V1 and V2). (@hainenber)
 
 - Fix a deadlock candidate in the `loki.process` component. (@tpaschalis)
 

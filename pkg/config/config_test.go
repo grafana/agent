@@ -522,3 +522,26 @@ func TestConfig_EmptyServerConfigFails(t *testing.T) {
 	_, err := Load(fs, []string{"--config.file", "./testdata/server_empty.yml"}, logger)
 	require.Error(t, err)
 }
+
+func TestConfig_ValidateConfigWithIntegrationV1(t *testing.T) {
+	input := util.Untab(`
+integrations:
+	agent:
+		enabled: true
+`)
+	var cfg Config
+	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
+	require.NoError(t, cfg.Validate(nil))
+}
+
+func TestConfig_ValidateConfigWithIntegrationV2(t *testing.T) {
+	input := util.Untab(`
+integrations:
+	agent:
+		autoscrape:
+			enabled: true
+`)
+	var cfg Config
+	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
+	require.NoError(t, cfg.Validate(nil))
+}
