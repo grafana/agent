@@ -71,7 +71,7 @@ Each regex in `cmdline` must match the corresponding argv for the process to be 
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 
