@@ -49,7 +49,9 @@ Main (unreleased)
 - Read contextual attributes from Faro measurements (@codecapitano)
 - Rename Grafana Agent service in windows app and features to not include the description
 - Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
-- Operator: Update default config reloader version. (@captncraig)
+
+v0.36.1 (2023-09-06)
+--------------------
 
 ### Bugfixes
 
@@ -58,6 +60,7 @@ Main (unreleased)
   each time it pulls. (@erikbaranowski)
 
 - Allow overriding default `User-Agent` for `http.remote` component (@hainenber)
+
 - Fix panic when running `grafana-agentctl config-check` against config files
   having `integrations` block (both V1 and V2). (@hainenber)
 
@@ -66,6 +69,10 @@ Main (unreleased)
 - Fix an issue in the `eventhandler` integration where events would be
   double-logged: once by sending the event to Loki, and once by including the
   event in the Grafana Agent logs. Now, events are only ever sent to Loki. (@rfratto)
+
+### Other changes
+
+- Operator: Update default config reloader version. (@captncraig)
 
 v0.36.0 (2023-08-30)
 --------------------
