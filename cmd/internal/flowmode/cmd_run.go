@@ -41,15 +41,15 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		inMemoryAddr:         "agent.internal:12345",
-		httpListenAddr:       "127.0.0.1:12345",
-		storagePath:          "data-agent/",
-		uiPrefix:             "/",
-		disableReporting:     false,
-		enablePprof:          true,
-		configFormat:         "flow",
-		clusterAdvInterfaces: advertise.DefaultInterfaces,
-
+		inMemoryAddr:          "agent.internal:12345",
+		httpListenAddr:        "127.0.0.1:12345",
+		storagePath:           "data-agent/",
+		uiPrefix:              "/",
+		disableReporting:      false,
+		enablePprof:           true,
+		configFormat:          "flow",
+		clusterAdvInterfaces:  advertise.DefaultInterfaces,
+		ClusterMaxJoinPeers:   5,
 		clusterRejoinInterval: 60 * time.Second,
 	}
 
@@ -109,6 +109,8 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		DurationVar(&r.clusterRejoinInterval, "cluster.rejoin-interval", r.clusterRejoinInterval, "How often to rejoin the list of peers")
 	cmd.Flags().
+		IntVar(&r.ClusterMaxJoinPeers, "cluster.max-join-peers", r.ClusterMaxJoinPeers, "Number of peers to join from the discovered set")
+	cmd.Flags().
 		StringVar(&r.clusterName, "cluster.name", r.clusterName, "The name of the cluster to join")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
@@ -131,6 +133,7 @@ type flowRun struct {
 	clusterDiscoverPeers         string
 	clusterAdvInterfaces         []string
 	clusterRejoinInterval        time.Duration
+	ClusterMaxJoinPeers          int
 	clusterName                  string
 	configFormat                 string
 	configBypassConversionErrors bool
@@ -205,6 +208,7 @@ func (fr *flowRun) Run(configFile string) error {
 		DiscoverPeers:       fr.clusterDiscoverPeers,
 		RejoinInterval:      fr.clusterRejoinInterval,
 		AdvertiseInterfaces: fr.clusterAdvInterfaces,
+		ClusterMaxJoinPeers: fr.ClusterMaxJoinPeers,
 		ClusterName:         fr.clusterName,
 	})
 	if err != nil {
