@@ -1,8 +1,9 @@
+
 logging {
     level = "debug"
 }
 prometheus.scrape "scraper" {
-    targets = concat([{"__address__" = "localhost:12347"}])
+    targets = concat([{"__address__" = "localhost:12346"}])
     forward_to = [prometheus.relabel.mutator.receiver]
     scrape_interval = "15s"
 }
@@ -12,7 +13,7 @@ prometheus.relabel "mutator" {
     rule {
         source_labels = ["__name__"]
         regex = "(.+)"
-        replacement = "stream"
+        replacement = "normal"
         target_label = "runtype"
     }
     rule {
@@ -33,10 +34,11 @@ rule {
        regex = "(process_cpu_seconds_total|go_memstats_alloc_bytes|go_gc_duration_seconds_sum|go_gc_duration_seconds_count)"
     }
 
-    forward_to = [prometheus.remote.stream.agent_stats.receiver]
+
+    forward_to = [prometheus.remote_write.agent_stats.receiver]
 }
 
-prometheus.remote.stream "agent_stats" {
+prometheus.remote_write "agent_stats" {
     endpoint {
         url = "https://prometheus-us-central1.grafana.net/api/prom/push"
         basic_auth {
@@ -50,13 +52,14 @@ prometheus.remote.stream "agent_stats" {
 
 prometheus.scrape "avalanche" {
     targets = concat([{"__address__" = "localhost:9001"}])
-    forward_to = [prometheus.remote.stream.empty.receiver]
+    forward_to = [prometheus.remote_write.empty.receiver]
     scrape_interval = "15s"
 }
 
-prometheus.remote.stream "empty" {
+prometheus.remote_write "empty" {
     endpoint {
         url = "http://localhost:8888/post"
     }
 }
+
 
