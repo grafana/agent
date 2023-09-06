@@ -60,7 +60,7 @@ func TestValidateNoDatacenterId(t *testing.T) {
 		Port:            81,
 	}
 	err := riverArgs.Validate()
-	assert.Error(t, err, "datacenter id can't be empty")
+	assert.Error(t, err, "datacenter_id can't be empty")
 }
 
 func TestValidateRefreshIntervalZero(t *testing.T) {
