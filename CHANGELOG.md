@@ -28,14 +28,16 @@ Main (unreleased)
 
 - Clustering: add new flag `--cluster.max-join-peers` to limit the number of peers the system joins. (@wildum)
 
-- Clustering: Add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
+- Clustering: add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
+
+- Clustering: add IPv6 support when using advertise interfaces to assign IP addresses. (@wildum)
 
 - Add a `file_watch` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_poll_frequency` and `max_poll_frequency`.
   In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`.  (@wildum)
 
 ### Enhancements
 
-- Clustering: Allow advertise interfaces to be configurable. (@wildum)
+- Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
 
 - Deleted series will now be removed from the WAL sooner, allowing Prometheus
   remote_write to free memory associated with removed series sooner. (@rfratto)
