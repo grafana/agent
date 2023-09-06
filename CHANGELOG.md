@@ -21,6 +21,10 @@ Main (unreleased)
   - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
 
+  - `discovery.marathon` - service discovery for Marathon servers. (@wildum)
+  
+  - `discovery.ionos` - service discovery for IONOS Cloud API. (@wildum)
+  
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
 
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
@@ -52,6 +56,7 @@ Main (unreleased)
 - Read contextual attributes from Faro measurements (@codecapitano)
 - Rename Grafana Agent service in windows app and features to not include the description
 - Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
+- Operator: Update default config reloader version. (@captncraig)
 
 ### Bugfixes
 
@@ -64,6 +69,16 @@ Main (unreleased)
   having `integrations` block (both V1 and V2). (@hainenber)
 
 - Fix a deadlock candidate in the `loki.process` component. (@tpaschalis)
+
+- Fix an issue in the `eventhandler` integration where events would be
+  double-logged: once by sending the event to Loki, and once by including the
+  event in the Grafana Agent logs. Now, events are only ever sent to Loki. (@rfratto)
+
+- Converters will now sanitize labels to valid River identifiers. (@erikbaranowski)
+
+- Fix an issue in converters where targets of `discovery.relabel` components
+  were repeating the first target for each source target instead of the
+  correct target. (@erikbaranowski)
 
 v0.36.0 (2023-08-30)
 --------------------

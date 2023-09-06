@@ -16,7 +16,9 @@ import (
 	prom_file "github.com/prometheus/prometheus/discovery/file"
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
+	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_scaleawy "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
@@ -108,6 +110,10 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryTriton(sdc))
 		case *prom_scaleawy.SDConfig:
 			diags.AddAll(validateDiscoveryScaleway(sdc))
+		case *prom_marathon.SDConfig:
+			diags.AddAll(validateDiscoveryMarathon(sdc))
+		case *prom_ionos.SDConfig:
+			diags.AddAll(validateDiscoveryIonos(sdc))
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 		}
