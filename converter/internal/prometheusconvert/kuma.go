@@ -19,7 +19,7 @@ func appendDiscoveryKuma(pb *prometheusBlocks, label string, sdConfig *prom_kuma
 }
 
 func validateDiscoveryKuma(sdConfig *prom_kuma.SDConfig) diag.Diagnostics {
-	return nil
+	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func ToDiscoveryKuma(sdConfig *prom_kuma.SDConfig) *kuma.Arguments {
