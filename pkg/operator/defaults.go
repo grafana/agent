@@ -9,7 +9,7 @@ var (
 
 // Defaults for Prometheus Config Reloader.
 var (
-	DefaultConfigReloaderVersion   = "v0.62.0"
+	DefaultConfigReloaderVersion   = "v0.67.1"
 	DefaultConfigReloaderBaseImage = "quay.io/prometheus-operator/prometheus-config-reloader"
 	DefaultConfigReloaderImage     = DefaultConfigReloaderBaseImage + ":" + DefaultConfigReloaderVersion
 )

@@ -10,9 +10,8 @@
 (Error) server.http_path_prefix is not supported
 (Warning) server.health_check_target disabling is not supported in Flow mode
 (Warning) stream_lag_labels is deprecated and the associated metric has been removed
-(Error) dockerswarm_sd_configs is not supported
-(Error) serverset_sd_configs is not supported
-(Error) nerve_sd_configs is not supported
-(Error) marathon_sd_configs is not supported
-(Error) openstack_sd_configs is not supported
-(Error) triton_sd_configs is not supported
+(Error) unsupported service discovery dockerswarm was provided
+(Error) unsupported service discovery marathon was provided
+(Error) unsupported service discovery nerve was provided
+(Error) unsupported service discovery openstack was provided
+(Error) unsupported service discovery serverset was provided

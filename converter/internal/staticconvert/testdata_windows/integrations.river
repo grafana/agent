@@ -26,9 +26,7 @@ prometheus.remote_write "integrations" {
 	endpoint {
 		url = "http://localhost:9009/api/prom/push"
 
-		queue_config {
-			retry_on_http_429 = false
-		}
+		queue_config { }
 
 		metadata_config { }
 	}

@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Check out code"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: "Build technical documentation"
         run: >
           docker run
@@ -30,12 +30,12 @@ jobs:
     steps:
 
     - name: "Checkout Agent repo"
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: "Checkout Actions library"
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: "grafana/grafana-github-actions"
         path: ./actions
