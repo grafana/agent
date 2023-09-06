@@ -19,7 +19,7 @@ type prometheusBlocks struct {
 	prometheusRemoteWriteBlocks []prometheusBlock
 }
 
-func newPrometheusBlocks() *prometheusBlocks {
+func NewPrometheusBlocks() *prometheusBlocks {
 	return &prometheusBlocks{
 		discoveryBlocks:             []prometheusBlock{},
 		discoveryRelabelBlocks:      []prometheusBlock{},
@@ -29,7 +29,7 @@ func newPrometheusBlocks() *prometheusBlocks {
 	}
 }
 
-// appendToFile attaches prometheus blocks in a specific order.
+// AppendToFile attaches prometheus blocks in a specific order.
 //
 // Order of blocks:
 // 1. Discovery component(s)
@@ -37,7 +37,7 @@ func newPrometheusBlocks() *prometheusBlocks {
 // 3. Prometheus scrape component(s)
 // 4. Prometheus relabel component(s) (if any)
 // 5. Prometheus remote_write
-func (pb *prometheusBlocks) appendToFile(f *builder.File) {
+func (pb *prometheusBlocks) AppendToFile(f *builder.File) {
 	for _, promBlock := range pb.discoveryBlocks {
 		f.Body().AppendBlock(promBlock.block)
 	}
