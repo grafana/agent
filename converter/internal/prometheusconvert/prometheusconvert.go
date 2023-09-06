@@ -24,6 +24,7 @@ import (
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
+	prom_xds "github.com/prometheus/prometheus/discovery/xds"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
@@ -168,6 +169,9 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_triton.SDConfig:
 			labelCounts["triton"]++
 			exports = appendDiscoveryTriton(pb, common.LabelWithIndex(labelCounts["triton"]-1, label), sdc)
+		case *prom_xds.SDConfig:
+			labelCounts["kuma"]++
+			exports = appendDiscoveryKuma(pb, common.LabelWithIndex(labelCounts["kuma"]-1, label), sdc)
 		}
 
 		targets = append(targets, exports.Targets...)

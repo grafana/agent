@@ -21,6 +21,7 @@ import (
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
+	prom_kuma "github.com/prometheus/prometheus/discovery/xds"
 )
 
 func validate(promConfig *prom_config.Config) diag.Diagnostics {
@@ -105,6 +106,8 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryKubernetes(sdc))
 		case *prom_aws.LightsailSDConfig:
 			diags.AddAll(validateDiscoveryLightsail(sdc))
+		case *prom_kuma.SDConfig:
+			diags.AddAll(validateDiscoveryKuma(sdc))
 		case *prom_triton.SDConfig:
 			diags.AddAll(validateDiscoveryTriton(sdc))
 		case *prom_marathon.SDConfig:
