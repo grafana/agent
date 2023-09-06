@@ -202,13 +202,13 @@ extracted value of 'app' is equal to foo.
 
 ```river
 stage.drop {
-    older_than  = "24h"
-    drop_reason = "too old"
+    older_than          = "24h"
+    drop_counter_reason = "too old"
 }
 
 stage.drop {
-    longer_than = "8KB"
-    drop_reason = "too long"
+    longer_than         = "8KB"
+    drop_counter_reason = "too long"
 }
 
 stage.drop {
