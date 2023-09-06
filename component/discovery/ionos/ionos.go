@@ -44,7 +44,7 @@ func (a *Arguments) SetToDefault() {
 // Validate implements river.Validator.
 func (a *Arguments) Validate() error {
 	if a.DatacenterID == "" {
-		return fmt.Errorf("datacenter id can't be empty")
+		return fmt.Errorf("datacenter_id can't be empty")
 	}
 	if a.RefreshInterval <= 0 {
 		return fmt.Errorf("refresh_interval must be greater than 0")
