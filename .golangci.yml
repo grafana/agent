@@ -49,14 +49,17 @@ issues:
 # Linter settings options: https://golangci-lint.run/usage/linters/
 linters-settings:
   depguard:
-    # We want to report errors on stdlib packages, not just third party modules
-    include-go-root: true
-
-    packages-with-error-message:
-      - sync/atomic: "Use go.uber.org/atomic instead of sync/atomic"
-      - github.com/pkg/errors: "Use errors instead of github.com/pkg/errors"
-      - github.com/go-kit/kit/log: "Use github.com/go-kit/log instead of github.com/go-kit/kit/log"
-      - golang.org/x/sync/errgroup: "Use github.com/oklog/run instead of golang.org/x/sync/errgroup"
+    rules:
+      main:
+        deny:
+          - pkg: "sync/atomic"
+            desc: Use go.uber.org/atomic instead of sync/atomic
+          - pkg: "github.com/pkg/errors"
+            desc: Use errors instead of github.com/pkg/errors
+          - pkg: "github.com/go-kit/kit/log"
+            desc: Use github.com/go-kit/log instead of github.com/go-kit/kit/log
+          - pkg: "golang.org/x/sync/errgroup"
+            desc: Use github.com/oklog/run instead of golang.org/x/sync/errgroup
 
   whitespace:
     # While there normally shouldn't be extra redundant leading/trailing
