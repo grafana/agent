@@ -150,7 +150,7 @@ require (
 	github.com/prometheus/prometheus v1.99.0
 	github.com/prometheus/snmp_exporter v0.22.1-0.20230623130038-562ae9055ce3
 	github.com/prometheus/statsd_exporter v0.22.8
-	github.com/pyroscope-io/godeltaprof v0.1.1
+	github.com/pyroscope-io/godeltaprof v0.1.2
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
 	github.com/rs/cors v1.9.0
 	github.com/shirou/gopsutil/v3 v3.23.5
