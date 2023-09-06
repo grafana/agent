@@ -47,25 +47,6 @@ This changed default setting allows the agent to retry sending data when it rece
 It's necessary to renamed Loki processing stage definition `non_indexed_labels` to `structured_metadata` if this stage is used in Agent's config.
 
 
-#### Flow mode
-
-Old configuration example:
-
-```river
-stage.structured_metadata { 
-	values = {"app" = ""}
-}
-```
-
-New configuration example:
-```river
-stage.structured_metadata { 
-	values = {"app" = ""}
-}
-```
-
-#### Static mode
-
 Old configuration example:
 
 ```yaml

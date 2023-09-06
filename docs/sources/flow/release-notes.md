@@ -25,6 +25,28 @@ Other release notes for the different Grafana Agent variants are contained on se
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{% /admonition %}}
 
+
+## v0.37
+
+### Breaking change: Renamed `non-indexed-labels` Loki processing stage to `structured_metadata`.
+
+It's necessary to renamed Loki processing stage definition `non_indexed_labels` to `structured_metadata` if this stage is used in Agent's config.
+
+Old configuration example:
+
+```river
+stage.non_indexed_labels { 
+	values = {"app" = ""}
+}
+```
+
+New configuration example:
+```river
+stage.structured_metadata { 
+	values = {"app" = ""}
+}
+```
+
 ## v0.36
 
 ## Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`
