@@ -50,7 +50,7 @@ The following flags are supported:
 * `--cluster.discover-peers`: List of key-value tuples for discovering peers (default `""`). Mutually exclusive with `--cluster.join-addresses`.
 * `--cluster.rejoin-interval`: How often to rejoin the list of peers (default `"60s"`).
 * `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
-* `--cluster.advertise-interfaces`: List of interfaces used to infer an address to advertise. It can be set to `all` to use all available network interfaces on the system. (default `"eth0,en0"`).
+* `--cluster.advertise-interfaces`: List of interfaces used to infer an address to advertise. Set to `all` to use all available network interfaces on the system. (default `"eth0,en0"`).
 * `--cluster.max-join-peers`: Number of peers to join from the discovered set (default `5`).
 * `--cluster.name`: Name to prevent nodes without this identifier from joining the cluster (default `""`).
 * `--config.format`: The format of the source file. Supported formats: `flow`, `prometheus`, `promtail` (default `"flow"`).
