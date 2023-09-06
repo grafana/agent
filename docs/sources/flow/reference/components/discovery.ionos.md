@@ -21,24 +21,26 @@ discovery.ionos "LABEL" {
 
 The following arguments are supported:
 
-Name                | Type       | Description                                                            | Default              | Required
-------------------- | ---------- | ---------------------------------------------------------------------- | -------------------- | --------
-`datacenter_id`     | `string`   | The unique ID of the data center.                                      |                      | yes
-`refresh_interval`  | `duration` | The time after which the servers are refreshed.                        | `60s`                | no
-`port`              | `int`      | The port to scrap metrics from.                                        |  80                  | no
-`enable_http2`      | `bool`     | Whether HTTP2 is supported for requests.                               | `true`               | no
-`follow_redirects`  | `bool`     | Whether redirects returned by the server should be followed.           | `true`               | no
+| Name               | Type       | Description                                                  | Default | Required |
+| ------------------ | ---------- | ------------------------------------------------------------ | ------- | -------- |
+| `datacenter_id`    | `string`   | The unique ID of the data center.                            |         | yes      |
+| `refresh_interval` | `duration` | The time after which the servers are refreshed.              | `60s`   | no       |
+| `port`             | `int`      | The port to scrap metrics from.                              | 80      | no       |
+| `proxy_url`        | `string`   | HTTP proxy to proxy requests through.                        |         | no       |
+| `enable_http2`     | `bool`     | Whether HTTP2 is supported for requests.                     | `true`  | no       |
+| `follow_redirects` | `bool`     | Whether redirects returned by the server should be followed. | `true`  | no       |
 
 ## Blocks
+
 The following blocks are supported inside the definition of
 `discovery.ionos`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+| Hierarchy           | Block             | Description                                              | Required |
+| ------------------- | ----------------- | -------------------------------------------------------- | -------- |
+| basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no       |
+| authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no       |
+| oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no       |
+| oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -69,25 +71,25 @@ an `oauth2` block.
 
 The following fields are exported and can be referenced by other components:
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the IONOS Cloud API.
+| Name      | Type                | Description                                             |
+| --------- | ------------------- | ------------------------------------------------------- |
+| `targets` | `list(map(string))` | The set of targets discovered from the IONOS Cloud API. |
 
 Each target includes the following labels:
 
-* `__meta_ionos_server_availability_zone`: the availability zone of the server.
-* `__meta_ionos_server_boot_cdrom_id`: the ID of the CD-ROM the server is booted from.
-* `__meta_ionos_server_boot_image_id`: the ID of the boot image or snapshot the server is booted from.
-* `__meta_ionos_server_boot_volume_id`: the ID of the boot volume.
-* `__meta_ionos_server_cpu_family`: the CPU family of the server to.
-* `__meta_ionos_server_id`: the ID of the server.
-* `__meta_ionos_server_ip`: comma separated list of all IPs assigned to the server.
-* `__meta_ionos_server_lifecycle`: the lifecycle state of the server resource.
-* `__meta_ionos_server_name`: the name of the server.
-* `__meta_ionos_server_nic_ip_<nic_name>`: comma separated list of IPs, grouped by the name of each NIC attached to the server.
-* `__meta_ionos_server_servers_id`: the ID of the servers the server belongs to.
-* `__meta_ionos_server_state`: the execution state of the server.
-* `__meta_ionos_server_type`: the type of the server.
+- `__meta_ionos_server_availability_zone`: the availability zone of the server.
+- `__meta_ionos_server_boot_cdrom_id`: the ID of the CD-ROM the server is booted from.
+- `__meta_ionos_server_boot_image_id`: the ID of the boot image or snapshot the server is booted from.
+- `__meta_ionos_server_boot_volume_id`: the ID of the boot volume.
+- `__meta_ionos_server_cpu_family`: the CPU family of the server to.
+- `__meta_ionos_server_id`: the ID of the server.
+- `__meta_ionos_server_ip`: comma separated list of all IPs assigned to the server.
+- `__meta_ionos_server_lifecycle`: the lifecycle state of the server resource.
+- `__meta_ionos_server_name`: the name of the server.
+- `__meta_ionos_server_nic_ip_<nic_name>`: comma separated list of IPs, grouped by the name of each NIC attached to the server.
+- `__meta_ionos_server_servers_id`: the ID of the servers the server belongs to.
+- `__meta_ionos_server_state`: the execution state of the server.
+- `__meta_ionos_server_type`: the type of the server.
 
 ## Component health
 
@@ -126,7 +128,9 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
