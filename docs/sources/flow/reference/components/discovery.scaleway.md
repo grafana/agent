@@ -37,7 +37,7 @@ Name | Type | Description | Default | Required
 `secret_key_file` | `string` | Path to file containing secret key for the Scaleway API. | | conditional
 `name_filter` | `string` | Name filter to apply against the listing request. | | no
 `tags_filter` | `list(string)` | List of tags to search for. | | no
-`refresh_interval` | `duration` | Frequency to rediscover targets. | | no
+`refresh_interval` | `duration` | Frequency to rediscover targets. | `"60s"` | no
 `port` | `number` | Default port on servers to associate with generated targets. | `80` | no
 `proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
 `follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
