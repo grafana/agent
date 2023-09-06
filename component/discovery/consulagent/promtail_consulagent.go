@@ -62,22 +62,17 @@ const (
 	taggedAddressesLabel = model.MetaLabelPrefix + "consulagent_tagged_address_"
 	// serviceIDLabel is the name of the label containing the service ID.
 	serviceIDLabel = model.MetaLabelPrefix + "consulagent_service_id"
-
-	// Constants for instrumentation.
-	namespace = "prometheus"
 )
 
 var (
 	rpcFailuresCount = prometheus.NewCounter(
 		prometheus.CounterOpts{
-			Namespace: namespace,
-			Name:      "sd_consulagent_rpc_failures_total",
-			Help:      "The number of Consul Agent RPC call failures.",
+			Name: "discovery_consulagent_rpc_failures_total",
+			Help: "The number of Consul Agent RPC call failures.",
 		})
 	rpcDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
-			Namespace:  namespace,
-			Name:       "sd_consulagent_rpc_duration_seconds",
+			Name:       "discovery_consulagent_rpc_duration_seconds",
 			Help:       "The duration of a Consul Agent RPC call in seconds.",
 			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
 		},
