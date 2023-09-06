@@ -33,7 +33,7 @@ v0.36.1 (2023-09-06)
   were repeating the first target for each source target instead of the
   correct target. (@erikbaranowski)
 
-### Other Changes
+### Other changes
 
 - Operator: Update default config reloader version. (@captncraig)
 
