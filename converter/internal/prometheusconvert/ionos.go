@@ -11,7 +11,7 @@ import (
 )
 
 func appendDiscoveryIonos(pb *prometheusBlocks, label string, sdConfig *prom_ionos.SDConfig) discovery.Exports {
-	discoveryIonosArgs := ToDiscoveryIonos(sdConfig)
+	discoveryIonosArgs := toDiscoveryIonos(sdConfig)
 	name := []string{"discovery", "ionos"}
 	block := common.NewBlockWithOverride(name, label, discoveryIonosArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
@@ -22,7 +22,7 @@ func validateDiscoveryIonos(sdConfig *prom_ionos.SDConfig) diag.Diagnostics {
 	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
-func ToDiscoveryIonos(sdConfig *prom_ionos.SDConfig) *ionos.Arguments {
+func toDiscoveryIonos(sdConfig *prom_ionos.SDConfig) *ionos.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
