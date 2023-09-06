@@ -4,7 +4,7 @@ title: prometheus.exporter.agen
 ---
 
 # prometheus.exporter.agent
-The `prometheus.exporter.agent` component collects and expose metrics about the agent itself.
+The `prometheus.exporter.agent` component collects and exposes metrics about the agent itself.
 The `prometheus.exporter.agent` component can only appear once per
 configuration file, and a block label must not be passed to it.
 
