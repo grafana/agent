@@ -21,6 +21,8 @@ Main (unreleased)
   - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
 
+  - `discovery.marathon` - service discovery for Marathon servers. (@wildum)
+  
   - `discovery.ionos` - service discovery for IONOS Cloud API. (@wildum)
   
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
