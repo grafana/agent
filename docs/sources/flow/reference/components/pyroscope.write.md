@@ -136,7 +136,7 @@ pyroscope.write "staging" {
   endpoint {
     url = "http://pyroscope:4100"
     headers = {
-      "X-Scope-Org-ID" = "squad-1",
+      "X-Scope-OrgID" = "squad-1",
     }
   }
   external_labels = {
