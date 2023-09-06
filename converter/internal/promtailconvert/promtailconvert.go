@@ -9,13 +9,13 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/promtailconvert/internal/build"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/dskit/flagext"
 	promtailcfg "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	lokicfgutil "github.com/grafana/loki/pkg/util/cfg"
+	"github.com/grafana/river/token/builder"
 	"gopkg.in/yaml.v2"
 )
 
@@ -130,20 +130,10 @@ func appendScrapeConfig(
 ) {
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
-	b.Validate()
 	b.Sanitize()
 
 	// Append all the SD components
-	b.AppendKubernetesSDs()
-	b.AppendDockerSDs()
-	b.AppendStaticSDs()
-	b.AppendFileSDs()
-	b.AppendConsulSDs()
-	b.AppendConsulAgentSDs()
-	b.AppendDigitalOceanSDs()
-	b.AppendGCESDs()
-	b.AppendEC2SDs()
-	b.AppendAzureSDs()
+	b.AppendSDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.

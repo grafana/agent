@@ -12,8 +12,8 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
-	"github.com/grafana/agent/pkg/river"
 	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
+	"github.com/grafana/river"
 )
 
 func init() {

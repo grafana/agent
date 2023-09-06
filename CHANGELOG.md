@@ -29,6 +29,9 @@ v0.36.1 (2023-09-06)
 
 - Converters will now sanitize labels to valid River identifiers. (@erikbaranowski)
 
+- Converters will now return an Error diagnostic for unsupported
+  `scrape_classic_histograms` and `native_histogram_bucket_limit` configs. (@erikbaranowski)
+
 - Fix an issue in converters where targets of `discovery.relabel` components
   were repeating the first target for each source target instead of the
   correct target. (@erikbaranowski)

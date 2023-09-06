@@ -7,12 +7,12 @@ import (
 	"github.com/grafana/agent/component/discovery/consul"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	prom_consul "github.com/prometheus/prometheus/discovery/consul"
 )
 
 func appendDiscoveryConsul(pb *prometheusBlocks, label string, sdConfig *prom_consul.SDConfig) discovery.Exports {
-	discoveryConsulArgs := ToDiscoveryConsul(sdConfig)
+	discoveryConsulArgs := toDiscoveryConsul(sdConfig)
 	name := []string{"discovery", "consul"}
 	block := common.NewBlockWithOverride(name, label, discoveryConsulArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
@@ -23,7 +23,7 @@ func validateDiscoveryConsul(sdConfig *prom_consul.SDConfig) diag.Diagnostics {
 	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
-func ToDiscoveryConsul(sdConfig *prom_consul.SDConfig) *consul.Arguments {
+func toDiscoveryConsul(sdConfig *prom_consul.SDConfig) *consul.Arguments {
 	if sdConfig == nil {
 		return nil
 	}

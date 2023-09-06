@@ -1,9 +1,9 @@
 package common
 
 import (
-	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/token"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/river"
+	"github.com/grafana/river/token"
+	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/prometheus/storage"
 )
 

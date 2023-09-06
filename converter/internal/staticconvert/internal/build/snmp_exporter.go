@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 )
 
@@ -28,7 +28,7 @@ func toSnmpExporter(config *snmp_exporter.Config) *snmp.Arguments {
 	targets := make([]snmp.SNMPTarget, len(config.SnmpTargets))
 	for i, t := range config.SnmpTargets {
 		targets[i] = snmp.SNMPTarget{
-			Name:       t.Name,
+			Name:       common.SanitizeIdentifierPanics(t.Name),
 			Target:     t.Target,
 			Module:     t.Module,
 			Auth:       t.Auth,
@@ -39,10 +39,15 @@ func toSnmpExporter(config *snmp_exporter.Config) *snmp.Arguments {
 	walkParams := make([]snmp.WalkParam, len(config.WalkParams))
 	index := 0
 	for name, p := range config.WalkParams {
+		retries := 0
+		if p.Retries != nil {
+			retries = *p.Retries
+		}
+
 		walkParams[index] = snmp.WalkParam{
-			Name:                    name,
+			Name:                    common.SanitizeIdentifierPanics(name),
 			MaxRepetitions:          p.MaxRepetitions,
-			Retries:                 *p.Retries,
+			Retries:                 retries,
 			Timeout:                 p.Timeout,
 			UseUnconnectedUDPSocket: p.UseUnconnectedUDPSocket,
 		}

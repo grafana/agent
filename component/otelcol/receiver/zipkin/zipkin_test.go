@@ -7,8 +7,8 @@ import (
 
 	"github.com/grafana/agent/component/otelcol/receiver/zipkin"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
