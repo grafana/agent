@@ -2,8 +2,12 @@ package kuma
 
 import (
 	"testing"
+	"time"
 
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/river"
+	promConfig "github.com/prometheus/common/config"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,4 +37,42 @@ func TestBadRiverConfig(t *testing.T) {
 	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.ErrorContains(t, err, "at most one of ca_pem and ca_file must be configured")
+}
+
+func TestConvert(t *testing.T) {
+	riverArgs := Arguments{
+		Server:          "srv",
+		RefreshInterval: 30 * time.Second,
+		FetchTimeout:    10 * time.Second,
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username: "username",
+				Password: "pass",
+			},
+		},
+	}
+
+	promArgs := riverArgs.Convert()
+	require.Equal(t, "srv", promArgs.Server)
+	require.Equal(t, model.Duration(30*time.Second), promArgs.RefreshInterval)
+	require.Equal(t, model.Duration(10*time.Second), promArgs.FetchTimeout)
+	require.Equal(t, "username", promArgs.HTTPClientConfig.BasicAuth.Username)
+	require.Equal(t, promConfig.Secret("pass"), promArgs.HTTPClientConfig.BasicAuth.Password)
+}
+
+func TestValidateNoServers(t *testing.T) {
+	t.Run("validate fetch timeout", func(t *testing.T) {
+		riverArgs := Arguments{
+			RefreshInterval: 10 * time.Second,
+		}
+		err := riverArgs.Validate()
+		require.Error(t, err, "fetch_timeout must be greater than 0")
+	})
+	t.Run("validate refresh interval", func(t *testing.T) {
+		riverArgs := Arguments{
+			FetchTimeout: 10 * time.Second,
+		}
+		err := riverArgs.Validate()
+		require.Error(t, err, "refresh_interval must be greater than 0")
+	})
 }
