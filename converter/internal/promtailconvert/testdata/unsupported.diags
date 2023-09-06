@@ -11,15 +11,5 @@
 (Warning) server.health_check_target disabling is not supported in Flow mode
 (Warning) stream_lag_labels is deprecated and the associated metric has been removed
 (Error) unsupported service discovery dockerswarm was provided
-<<<<<<< HEAD
 (Error) unsupported service discovery nerve was provided
 (Error) unsupported service discovery openstack was provided
-||||||| parent of a7a0c49eb (Remove from unsupported diags)
-(Error) unsupported service discovery nerve was provided
-(Error) unsupported service discovery openstack was provided
-(Error) unsupported service discovery serverset was provided
-=======
-(Error) unsupported service discovery marathon was provided
-(Error) unsupported service discovery openstack was provided
-(Error) unsupported service discovery serverset was provided
->>>>>>> a7a0c49eb (Remove from unsupported diags)
