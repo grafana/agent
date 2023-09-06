@@ -78,6 +78,9 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 		labelPrefix := ""
 		if jobNameToCompLabelsFunc != nil {
 			labelPrefix = jobNameToCompLabelsFunc("")
+			if labelPrefix != "" {
+				labelPrefix = common.SanitizeIdentifierPanics(labelPrefix)
+			}
 		}
 		remoteWriteExports = appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
 	}
@@ -89,6 +92,7 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 		if jobNameToCompLabelsFunc != nil {
 			label = jobNameToCompLabelsFunc(scrapeConfig.JobName)
 		}
+		label = common.SanitizeIdentifierPanics(label)
 
 		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)
 		if promMetricsRelabelExports != nil {
