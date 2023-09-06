@@ -48,6 +48,9 @@ Main (unreleased)
 - Added a `disable_high_cardinality_metrics` configuration flag to `otelcol`
   exporters and receivers to switch high cardinality debug metrics off.  (@glindstedt)
 
+- `loki.source.kafka` component now exposes internal label `__meta_kafka_offset`
+  to indicate offset of consumed message. (@hainenber)
+
 ### Other changes
 
 - Use Go 1.21.0 for builds. (@rfratto)

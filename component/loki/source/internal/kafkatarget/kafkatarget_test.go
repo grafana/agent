@@ -117,26 +117,29 @@ func (t *testClaim) Stop() {
 
 func Test_TargetRun(t *testing.T) {
 	tc := []struct {
-		name           string
-		inMessageKey   string
-		inLS           model.LabelSet
-		inDiscoveredLS model.LabelSet
-		relabels       []*relabel.Config
-		expectedLS     model.LabelSet
+		name            string
+		inMessageKey    string
+		inMessageOffset int64
+		inLS            model.LabelSet
+		inDiscoveredLS  model.LabelSet
+		relabels        []*relabel.Config
+		expectedLS      model.LabelSet
 	}{
 		{
-			name:           "no relabel config",
-			inMessageKey:   "foo",
-			inDiscoveredLS: model.LabelSet{"__meta_kafka_foo": "bar"},
-			inLS:           model.LabelSet{"buzz": "bazz"},
-			relabels:       nil,
-			expectedLS:     model.LabelSet{"buzz": "bazz"},
+			name:            "no relabel config",
+			inMessageKey:    "foo",
+			inMessageOffset: int64(42),
+			inDiscoveredLS:  model.LabelSet{"__meta_kafka_foo": "bar"},
+			inLS:            model.LabelSet{"buzz": "bazz"},
+			relabels:        nil,
+			expectedLS:      model.LabelSet{"buzz": "bazz"},
 		},
 		{
-			name:           "message key with relabel config",
-			inMessageKey:   "foo",
-			inDiscoveredLS: model.LabelSet{"__meta_kafka_foo": "bar"},
-			inLS:           model.LabelSet{"buzz": "bazz"},
+			name:            "message key with relabel config",
+			inMessageKey:    "foo",
+			inMessageOffset: int64(42),
+			inDiscoveredLS:  model.LabelSet{"__meta_kafka_foo": "bar"},
+			inLS:            model.LabelSet{"buzz": "bazz"},
 			relabels: []*relabel.Config{
 				{
 					SourceLabels: model.LabelNames{"__meta_kafka_message_key"},
@@ -149,10 +152,11 @@ func Test_TargetRun(t *testing.T) {
 			expectedLS: model.LabelSet{"buzz": "bazz", "message_key": "foo"},
 		},
 		{
-			name:           "no message key with relabel config",
-			inMessageKey:   "",
-			inDiscoveredLS: model.LabelSet{"__meta_kafka_foo": "bar"},
-			inLS:           model.LabelSet{"buzz": "bazz"},
+			name:            "no message key with relabel config",
+			inMessageKey:    "",
+			inMessageOffset: 42,
+			inDiscoveredLS:  model.LabelSet{"__meta_kafka_foo": "bar"},
+			inLS:            model.LabelSet{"buzz": "bazz"},
 			relabels: []*relabel.Config{
 				{
 					SourceLabels: model.LabelNames{"__meta_kafka_message_key"},
@@ -163,6 +167,40 @@ func Test_TargetRun(t *testing.T) {
 				},
 			},
 			expectedLS: model.LabelSet{"buzz": "bazz", "message_key": "none"},
+		},
+		{
+			name:            "message offset with relabel config",
+			inMessageKey:    "foo",
+			inMessageOffset: 42,
+			inDiscoveredLS:  model.LabelSet{"__meta_kafka_foo": "bar"},
+			inLS:            model.LabelSet{"buzz": "bazz"},
+			relabels: []*relabel.Config{
+				{
+					SourceLabels: model.LabelNames{"__meta_kafka_message_offset"},
+					Regex:        relabel.MustNewRegexp("(.*)"),
+					TargetLabel:  "message_offset",
+					Replacement:  "$1",
+					Action:       "replace",
+				},
+			},
+			expectedLS: model.LabelSet{"buzz": "bazz", "message_offset": "42"},
+		},
+		{
+			name:            "no message offset with relabel config",
+			inMessageKey:    "",
+			inMessageOffset: int64(0),
+			inDiscoveredLS:  model.LabelSet{"__meta_kafka_foo": "bar"},
+			inLS:            model.LabelSet{"buzz": "bazz"},
+			relabels: []*relabel.Config{
+				{
+					SourceLabels: model.LabelNames{"__meta_kafka_message_offset"},
+					Regex:        relabel.MustNewRegexp("(.*)"),
+					TargetLabel:  "message_offset",
+					Replacement:  "$1",
+					Action:       "replace",
+				},
+			},
+			expectedLS: model.LabelSet{"buzz": "bazz", "message_offset": "0"},
 		},
 	}
 	for _, tt := range tc {
@@ -189,6 +227,7 @@ func Test_TargetRun(t *testing.T) {
 					Timestamp: time.Unix(0, int64(i)),
 					Value:     []byte(fmt.Sprintf("%d", i)),
 					Key:       []byte(tt.inMessageKey),
+					Offset:    int64(tt.inMessageOffset),
 				})
 			}
 			claim.Stop()
