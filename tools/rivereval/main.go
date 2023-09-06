@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/grafana/agent/pkg/river/parser"
-	"github.com/grafana/agent/pkg/river/token/builder"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/river/parser"
+	"github.com/grafana/river/token/builder"
+	"github.com/grafana/river/vm"
 )
 
 func main() {

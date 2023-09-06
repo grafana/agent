@@ -22,13 +22,14 @@ import (
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
 	uiservice "github.com/grafana/agent/service/ui"
+	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
+	"github.com/grafana/river/diag"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
@@ -40,14 +41,15 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		inMemoryAddr:     "agent.internal:12345",
-		httpListenAddr:   "127.0.0.1:12345",
-		storagePath:      "data-agent/",
-		uiPrefix:         "/",
-		disableReporting: false,
-		enablePprof:      true,
-		configFormat:     "flow",
-
+		inMemoryAddr:          "agent.internal:12345",
+		httpListenAddr:        "127.0.0.1:12345",
+		storagePath:           "data-agent/",
+		uiPrefix:              "/",
+		disableReporting:      false,
+		enablePprof:           true,
+		configFormat:          "flow",
+		clusterAdvInterfaces:  advertise.DefaultInterfaces,
+		ClusterMaxJoinPeers:   5,
 		clusterRejoinInterval: 60 * time.Second,
 	}
 
@@ -103,7 +105,13 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		StringVar(&r.clusterDiscoverPeers, "cluster.discover-peers", r.clusterDiscoverPeers, "List of key-value tuples for discovering peers")
 	cmd.Flags().
+		StringSliceVar(&r.clusterAdvInterfaces, "cluster.advertise-interfaces", r.clusterAdvInterfaces, "List of interfaces used to infer an address to advertise")
+	cmd.Flags().
 		DurationVar(&r.clusterRejoinInterval, "cluster.rejoin-interval", r.clusterRejoinInterval, "How often to rejoin the list of peers")
+	cmd.Flags().
+		IntVar(&r.ClusterMaxJoinPeers, "cluster.max-join-peers", r.ClusterMaxJoinPeers, "Number of peers to join from the discovered set")
+	cmd.Flags().
+		StringVar(&r.clusterName, "cluster.name", r.clusterName, "The name of the cluster to join")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
@@ -123,7 +131,10 @@ type flowRun struct {
 	clusterAdvAddr               string
 	clusterJoinAddr              string
 	clusterDiscoverPeers         string
+	clusterAdvInterfaces         []string
 	clusterRejoinInterval        time.Duration
+	ClusterMaxJoinPeers          int
+	clusterName                  string
 	configFormat                 string
 	configBypassConversionErrors bool
 }
@@ -189,13 +200,16 @@ func (fr *flowRun) Run(configFile string) error {
 		Tracer:  t,
 		Metrics: reg,
 
-		EnableClustering: fr.clusterEnabled,
-		NodeName:         fr.clusterNodeName,
-		AdvertiseAddress: fr.clusterAdvAddr,
-		ListenAddress:    fr.httpListenAddr,
-		JoinPeers:        strings.Split(fr.clusterJoinAddr, ","),
-		DiscoverPeers:    fr.clusterDiscoverPeers,
-		RejoinInterval:   fr.clusterRejoinInterval,
+		EnableClustering:    fr.clusterEnabled,
+		NodeName:            fr.clusterNodeName,
+		AdvertiseAddress:    fr.clusterAdvAddr,
+		ListenAddress:       fr.httpListenAddr,
+		JoinPeers:           strings.Split(fr.clusterJoinAddr, ","),
+		DiscoverPeers:       fr.clusterDiscoverPeers,
+		RejoinInterval:      fr.clusterRejoinInterval,
+		AdvertiseInterfaces: fr.clusterAdvInterfaces,
+		ClusterMaxJoinPeers: fr.ClusterMaxJoinPeers,
+		ClusterName:         fr.clusterName,
 	})
 	if err != nil {
 		return err

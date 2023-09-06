@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sync"
 	"time"
 
@@ -14,8 +15,10 @@ type ModuleComponent struct {
 	opts component.Options
 	mod  component.Module
 
-	mut    sync.RWMutex
-	health component.Health
+	mut           sync.RWMutex
+	health        component.Health
+	latestContent string
+	latestArgs    map[string]any
 }
 
 // Exports holds values which are exported from the run module.
@@ -38,8 +41,13 @@ func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 
 // LoadFlowContent loads the flow controller with the current component content. It
 // will set the component health in addition to return the error so that the consumer
-// can rely on either or both.
+// can rely on either or both. If the content is the same as the last time it was
+// successfully loaded, it will not be reloaded.
 func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue string) error {
+	if reflect.DeepEqual(args, c.getLatestArgs()) && contentValue == c.getLatestContent() {
+		return nil
+	}
+
 	err := c.mod.LoadConfig([]byte(contentValue), args)
 	if err != nil {
 		c.setHealth(component.Health{
@@ -51,11 +59,14 @@ func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue stri
 		return err
 	}
 
+	c.setLatestArgs(args)
+	c.setLatestContent(contentValue)
 	c.setHealth(component.Health{
 		Health:     component.HealthTypeHealthy,
 		Message:    "module content loaded",
 		UpdateTime: time.Now(),
 	})
+
 	return nil
 }
 
@@ -76,4 +87,32 @@ func (c *ModuleComponent) setHealth(h component.Health) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.health = h
+}
+
+func (c *ModuleComponent) setLatestContent(content string) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	c.latestContent = content
+}
+
+func (c *ModuleComponent) getLatestContent() string {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.latestContent
+}
+
+func (c *ModuleComponent) setLatestArgs(args map[string]any) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	c.latestArgs = make(map[string]any)
+	for key, value := range args {
+		c.latestArgs[key] = value
+	}
+}
+
+func (c *ModuleComponent) getLatestArgs() map[string]any {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.latestArgs
 }

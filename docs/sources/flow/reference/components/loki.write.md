@@ -27,7 +27,7 @@ loki.write "LABEL" {
 
 Name              | Type          | Description                                      | Default | Required
 ----------------- | ------------- | ------------------------------------------------ | ------- | --------
-`max_streams`     | `int`         | Time to wait before marking a request as failed. | `"5s"`  | no
+`max_streams`     | `int`         | Maximum number of active streams. | 0 (no limit)  | no
 `external_labels` | `map(string)` | Labels to add to logs sent over the network.     |         | no
 
 ## Blocks
@@ -109,19 +109,19 @@ enabled, the retry mechanism will be governed by the backoff configuration speci
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### wal block (experimental)
 

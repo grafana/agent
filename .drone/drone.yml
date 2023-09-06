@@ -1321,6 +1321,8 @@ depends_on:
 - Publish Linux crow container
 - Publish Windows agent container
 - Publish Windows agentctl container
+image_pull_secrets:
+- dockerconfigjson
 kind: pipeline
 name: Publish release
 platform:
@@ -1328,6 +1330,18 @@ platform:
   os: linux
 steps:
 - commands:
+  - /usr/bin/github-app-external-token > /drone/src/gh-token.txt
+  environment:
+    GITHUB_APP_ID:
+      from_secret: updater_app_id
+    GITHUB_APP_INSTALLATION_ID:
+      from_secret: updater_app_installation_id
+    GITHUB_APP_PRIVATE_KEY:
+      from_secret: updater_private_key
+  image: us.gcr.io/kubernetes-dev/github-app-secret-writer:latest
+  name: Generate GitHub token
+- commands:
+  - export GITHUB_TOKEN=$(cat /drone/src/gh-token.txt)
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist
   - |
@@ -1464,6 +1478,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 94dfb027f98cde4ce723862940c7d22765cbf23ed9ec4e69790d3ed124154618
+hmac: bbc1b5483052b9570167f52dcc1b17fe17c1a0ab2f0e81f27e540e1e7a6689e3
 
 ...

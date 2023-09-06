@@ -28,6 +28,20 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 [release-notes-flow]: "/docs/grafana-cloud/ -> ../flow/release-notes"
 {{% /docs/reference %}}
 
+## v0.37
+
+### Breaking change: The default value of `retry_on_http_429` is overriden to `true` for the `queue_config` in `remote_write` in `metrics` config.
+
+{{% admonition type="note" %}}
+The default set by Grafana Agent Static Mode is different than the default set by Prometheus.
+{{% /admonition %}}
+
+The Prometheus default value for `retry_on_http_429` is set to `true` for the `queue_config` in `remote_write`.
+This changed default setting allows the agent to retry sending data when it receives an HTTP 429 error and helps avoid losing data in metric pipelines.
+
+* If you explicitly set the `retry_on_http_429`, no action is required.
+* If you do not explicitly set `retry_on_http_429` and you do *not* want to retry on HTTP 429, make sure you set it to `false` when you upgrade to this new version.
+
 ## v0.35
 
 ### Breaking change: Jaeger remote sampling no longer configurable using the Jaeger receiver
@@ -140,7 +154,7 @@ use the new binaries that are prefixed with `/bin/grafana*`.
 
 ### Deprecation of Dynamic Configuration
 
-[Dynamic Configuration](https://grafana.com/docs/agent/latest/cookbook/dynamic-configuration/) will be removed in v0.34.
+[Dynamic Configuration](https://grafana.com/docs/agent/v0.33/cookbook/dynamic-configuration/) will be removed in v0.34.
 The use case of dynamic configuration will be replaced with Modules in Grafana Agent Flow.
 
 ## v0.32

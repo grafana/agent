@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 )
 
 func (b *IntegrationsV1ConfigBuilder) appendSnowflakeExporter(config *snowflake_exporter.Config) discovery.Exports {

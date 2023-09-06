@@ -4,6 +4,7 @@ title: prometheus.exporter.statsd
 ---
 
 # prometheus.exporter.statsd
+
 The `prometheus.exporter.statsd` component embeds
 [statsd_exporter](https://github.com/prometheus/statsd_exporter) for collecting StatsD-style metrics and exporting them as Prometheus metrics.
 
@@ -15,28 +16,29 @@ prometheus.exporter.statsd "LABEL" {
 ```
 
 ## Arguments
+
 The following arguments can be used to configure the exporter's behavior.
 All arguments are optional. Omitted fields take their default values.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`listen_udp`                                      | `string`       | The UDP address on which to receive statsd metric lines. Use "" to disable it. | `:9125` | no
-`listen_tcp`                                      | `string`       | The TCP address on which to receive statsd metric lines. Use "" to disable it. | `:9125` | no
-`listen_unixgram`                                 | `string`       | The Unixgram socket path to receive statsd metric lines in datagram. Use "" to disable it. | | no
-`unix_socket_mode`                                | `string`       | The permission mode of the unix socket. | `755` | no
-`mapping_config_path`                             | `string`       | The path to a YAML mapping file used to translate specific dot-separated StatsD metrics into labeled Prometheus metrics. | | no
-`read_buffer`                                     | `int`          | Size (in bytes) of the operating system's transmit read buffer associated with the UDP or Unixgram connection. | | no
-`cache_size`                                      | `int`          | Maximum size of your metric mapping cache. Relies on least recently used replacement policy if max size is reached. | `1000` | no
-`cache_type`                                      | `string`       | Metric mapping cache type. Valid options are "lru" and "random". | `lru` | no
-`event_queue_size`                                | `int`          | Size of internal queue for processing events. | `10000` | no
-`event_flush_threshold`                           | `int`          | Number of events to hold in queue before flushing. | `1000`| no
-`event_flush_interval`                            | `string`       | Maximum time between event queue flushes. | `200ms`| no
-`parse_dogstatsd_tags`                            | `string`       | Parse DogStatsd style tags. | `true`| no
-`parse_influxdb_tags`                             | `string`       | Parse InfluxDB style tags. | `true`| no
-`parse_librato_tags`                              | `string`       | Parse Librato style tags. | `true`| no
-`parse_signalfx_tags`                             | `string`       | Parse SignalFX style tags. | `true`| no
-`relay_addr`                                      | `string`       | Relay address configuration (UDP endpoint in the format 'host:port'). | | no
-`relay_packet_length`                             | `int`          | Maximum relay output packet length to avoid fragmentation. | `1400` | no
+| Name                    | Type     | Description                                                                                                              | Default | Required |
+| ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ | ------- | -------- |
+| `listen_udp`            | `string` | The UDP address on which to receive statsd metric lines. Use "" to disable it.                                           | `:9125` | no       |
+| `listen_tcp`            | `string` | The TCP address on which to receive statsd metric lines. Use "" to disable it.                                           | `:9125` | no       |
+| `listen_unixgram`       | `string` | The Unixgram socket path to receive statsd metric lines in datagram. Use "" to disable it.                               |         | no       |
+| `unix_socket_mode`      | `string` | The permission mode of the unix socket.                                                                                  | `755`   | no       |
+| `mapping_config_path`   | `string` | The path to a YAML mapping file used to translate specific dot-separated StatsD metrics into labeled Prometheus metrics. |         | no       |
+| `read_buffer`           | `int`    | Size (in bytes) of the operating system's transmit read buffer associated with the UDP or Unixgram connection.           |         | no       |
+| `cache_size`            | `int`    | Maximum size of your metric mapping cache. Relies on least recently used replacement policy if max size is reached.      | `1000`  | no       |
+| `cache_type`            | `string` | Metric mapping cache type. Valid options are "lru" and "random".                                                         | `lru`   | no       |
+| `event_queue_size`      | `int`    | Size of internal queue for processing events.                                                                            | `10000` | no       |
+| `event_flush_threshold` | `int`    | Number of events to hold in queue before flushing.                                                                       | `1000`  | no       |
+| `event_flush_interval`  | `string` | Maximum time between event queue flushes.                                                                                | `200ms` | no       |
+| `parse_dogstatsd_tags`  | `string` | Parse DogStatsd style tags.                                                                                              | `true`  | no       |
+| `parse_influxdb_tags`   | `string` | Parse InfluxDB style tags.                                                                                               | `true`  | no       |
+| `parse_librato_tags`    | `string` | Parse Librato style tags.                                                                                                | `true`  | no       |
+| `parse_signalfx_tags`   | `string` | Parse SignalFX style tags.                                                                                               | `true`  | no       |
+| `relay_addr`            | `string` | Relay address configuration (UDP endpoint in the format 'host:port').                                                    |         | no       |
+| `relay_packet_length`   | `int`    | Maximum relay output packet length to avoid fragmentation.                                                               | `1400`  | no       |
 
 At least one of `listen_udp`, `listen_tcp`, or `listen_unixgram` should be enabled.
 For details on how to use the mapping config file, please check the official
@@ -51,7 +53,7 @@ fully through arguments.
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 
@@ -110,9 +112,11 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

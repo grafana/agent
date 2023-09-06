@@ -7,9 +7,9 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/vm"
 	"github.com/grafana/agent/service"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/vm"
 )
 
 // ServiceNode is a Flow DAG node which represents a running service.

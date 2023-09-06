@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component/otelcol"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"k8s.io/utils/pointer"

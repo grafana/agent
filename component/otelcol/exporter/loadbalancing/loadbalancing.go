@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/auth"
 	"github.com/grafana/agent/component/otelcol/exporter"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfigauth "go.opentelemetry.io/collector/config/configauth"
@@ -38,6 +38,9 @@ type Arguments struct {
 	Protocol   Protocol         `river:"protocol,block"`
 	Resolver   ResolverSettings `river:"resolver,block"`
 	RoutingKey string           `river:"routing_key,attr,optional"`
+
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
 }
 
 var (
@@ -137,9 +140,7 @@ type DNSResolver struct {
 	Timeout  time.Duration `river:"timeout,attr,optional"`
 }
 
-var (
-	_ river.Defaulter = &DNSResolver{}
-)
+var _ river.Defaulter = &DNSResolver{}
 
 // DefaultDNSResolver holds default values for DNSResolver.
 var DefaultDNSResolver = DNSResolver{
@@ -172,6 +173,11 @@ func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.I
 	return nil
 }
 
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
+}
+
 // GRPCClientArguments is the same as otelcol.GRPCClientArguments, but without an "endpoint" attribute
 type GRPCClientArguments struct {
 	Compression otelcol.CompressionType `river:"compression,attr,optional"`
@@ -190,9 +196,7 @@ type GRPCClientArguments struct {
 	Auth *auth.Handler `river:"auth,attr,optional"`
 }
 
-var (
-	_ river.Defaulter = &GRPCClientArguments{}
-)
+var _ river.Defaulter = &GRPCClientArguments{}
 
 // Convert converts args into the upstream type.
 func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {

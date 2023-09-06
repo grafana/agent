@@ -7,10 +7,10 @@ import (
 	"log"
 	"os"
 
-	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
+	util_log "github.com/grafana/agent/pkg/util/log"
 
 	"golang.org/x/sys/windows/svc"
 )

@@ -85,10 +85,15 @@ func (c VersionedIntegrations) IsZero() bool {
 
 // ApplyDefaults applies defaults to the subsystem based on globals.
 func (c *VersionedIntegrations) ApplyDefaults(sflags *server.Flags, mcfg *metrics.Config) error {
-	if c.version != integrationsVersion2 {
+	switch {
+	case c.version != integrationsVersion2 && c.ConfigV1 != nil:
 		return c.ConfigV1.ApplyDefaults(sflags, mcfg)
+	case c.configV2 != nil:
+		return c.configV2.ApplyDefaults(mcfg)
+	default:
+		// No-op
+		return nil
 	}
-	return c.configV2.ApplyDefaults(mcfg)
 }
 
 // setVersion completes the deferred unmarshal and unmarshals the raw YAML into
