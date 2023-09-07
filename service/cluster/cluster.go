@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"math/rand"
 	"net"
 	"net/http"
 	"strings"
@@ -56,10 +57,11 @@ type Options struct {
 	// possible for other nodes to join the cluster.
 	EnableClustering bool
 
-	NodeName         string        // Name to use for this node in the cluster.
-	AdvertiseAddress string        // Address to advertise to other nodes in the cluster.
-	RejoinInterval   time.Duration // How frequently to rejoin the cluster to address split brain issues.
-	ClusterName      string        // Name to prevent nodes without this identifier from joining the cluster.
+	NodeName            string        // Name to use for this node in the cluster.
+	AdvertiseAddress    string        // Address to advertise to other nodes in the cluster.
+	RejoinInterval      time.Duration // How frequently to rejoin the cluster to address split brain issues.
+	ClusterMaxJoinPeers int           // Number of initial peers to join from the discovered set.
+	ClusterName         string        // Name to prevent nodes without this identifier from joining the cluster.
 
 	// Function to discover peers to join. If this function is nil or returns an
 	// empty slice, no peers will be joined.
@@ -74,6 +76,7 @@ type Service struct {
 
 	sharder shard.Sharder
 	node    *ckit.Node
+	randGen *rand.Rand
 }
 
 var (
@@ -138,6 +141,7 @@ func New(opts Options) (*Service, error) {
 
 		sharder: ckitConfig.Sharder,
 		node:    node,
+		randGen: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}, nil
 }
 
@@ -292,7 +296,22 @@ func (s *Service) getPeers() ([]string, error) {
 	if !s.opts.EnableClustering || s.opts.DiscoverPeers == nil {
 		return nil, nil
 	}
-	return s.opts.DiscoverPeers()
+
+	peers, err := s.opts.DiscoverPeers()
+	if err != nil {
+		return nil, err
+	}
+
+	// Here we return the entire list because we can't take a subset.
+	if s.opts.ClusterMaxJoinPeers == 0 || len(peers) < s.opts.ClusterMaxJoinPeers {
+		return peers, nil
+	}
+
+	// We shuffle the list and return only a subset of the peers.
+	s.randGen.Shuffle(len(peers), func(i, j int) {
+		peers[i], peers[j] = peers[j], peers[i]
+	})
+	return peers[:s.opts.ClusterMaxJoinPeers], nil
 }
 
 func (s *Service) stop() {
@@ -351,7 +370,7 @@ type Cluster interface {
 	Peers() []peer.Peer
 }
 
-// sharderCluster shims an implmentation of [shard.Sharder] to [Cluster] which
+// sharderCluster shims an implementation of [shard.Sharder] to [Cluster] which
 // removes the ability to change peers.
 type sharderCluster struct{ sharder shard.Sharder }
 

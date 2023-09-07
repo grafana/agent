@@ -13,12 +13,18 @@ import (
 	_ "github.com/grafana/agent/component/discovery/gce"                            // Import discovery.gce
 	_ "github.com/grafana/agent/component/discovery/hetzner"                        // Import discovery.hetzner
 	_ "github.com/grafana/agent/component/discovery/http"                           // Import discovery.http
+	_ "github.com/grafana/agent/component/discovery/ionos"                          // Import discovery.ionos
 	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
+	_ "github.com/grafana/agent/component/discovery/kuma"                           // Import discovery.kuma
+	_ "github.com/grafana/agent/component/discovery/marathon"                       // Import discovery.marathon
 	_ "github.com/grafana/agent/component/discovery/nomad"                          // Import discovery.nomad
 	_ "github.com/grafana/agent/component/discovery/openstack"                      // Import discovery.openstack
 	_ "github.com/grafana/agent/component/discovery/puppetdb"                       // Import discovery.puppetdb
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
+	_ "github.com/grafana/agent/component/discovery/scaleway"                       // Import discovery.scaleway
+	_ "github.com/grafana/agent/component/discovery/serverset"                      // Import discovery.serverset
+	_ "github.com/grafana/agent/component/discovery/triton"                         // Import discovery.triton
 	_ "github.com/grafana/agent/component/discovery/uyuni"                          // Import discovery.uyuni
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
 	_ "github.com/grafana/agent/component/local/file_match"                         // Import local.file_match

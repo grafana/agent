@@ -57,7 +57,7 @@ Please note that if you are supplying a list of strings for the `extra_filters` 
 {{% /admonition %}}
 
 | Name                      | Type           | Description                                                                                                                                                                                                                                                               | Default | Required |
-|---------------------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|----------|
+| ------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
 | `project_ids`             | `list(string)` | Configure the GCP Project(s) to scrape for metrics.                                                                                                                                                                                                                       |         | yes      |
 | `metrics_prefixes`        | `list(string)` | One or more values from the supported [GCP Metrics](https://cloud.google.com/monitoring/api/metrics_gcp). These can be as targeted or loose as needed.                                                                                                                    |         | yes      |
 | `extra_filters`           | `list(string)` | Used to further refine the resources you would like to collect metrics from. Please note that any string value within a particular filter string must be enclosed in escaped double-quotes. The structure for these filters is `<targeted_metric_prefix>:<filter_query>`. | `[]`    | no       |
@@ -75,7 +75,7 @@ For `ingest_delay`, you can see the values for this in documented metrics as `Af
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporters-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 

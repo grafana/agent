@@ -4,6 +4,7 @@ title: prometheus.exporter.mongodb
 ---
 
 # prometheus.exporter.mongodb
+
 The `prometheus.exporter.mongodb` component embeds percona's [`mongodb_exporter`](https://github.com/percona/mongodb_exporter).
 
 {{% admonition type="note" %}}
@@ -11,7 +12,7 @@ For this integration to work properly, you must have connect each node of your M
 That's because this exporter does not collect metrics from multiple nodes.
 {{% /admonition %}}
 
-We strongly recommend configuring a separate user for the Grafana Agent, giving it only the strictly mandatory security privileges necessary for monitoring your node. 
+We strongly recommend configuring a separate user for the Grafana Agent, giving it only the strictly mandatory security privileges necessary for monitoring your node.
 Refer to the [Percona documentation](https://github.com/percona/mongodb_exporter#permissions) for more information.
 
 ## Usage
@@ -23,15 +24,16 @@ prometheus.exporter.mongodb "LABEL" {
 ```
 
 ## Arguments
+
 You can use the following arguments to configure the exporter's behavior.
 Omitted fields take their default values.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`mongodb_uri` | `string` | MongoDB node connection URI. | | yes
-`direct_connect` | `boolean` | Whether or not a direct connect should be made. Direct connections are not valid if multiple hosts are specified or an SRV URI is used. | false | no
-`discovering_mode` | `boolean` | Wheter or not to enable autodiscover collections. | false | no
-`tls_basic_auth_config_path` | `string` | Path to the file having Prometheus TLS config for basic auth. Only enable if you want to use TLS based authentication. | | no
+| Name                         | Type      | Description                                                                                                                             | Default | Required |
+| ---------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
+| `mongodb_uri`                | `string`  | MongoDB node connection URI.                                                                                                            |         | yes      |
+| `direct_connect`             | `boolean` | Whether or not a direct connect should be made. Direct connections are not valid if multiple hosts are specified or an SRV URI is used. | false   | no       |
+| `discovering_mode`           | `boolean` | Wheter or not to enable autodiscover collections.                                                                                       | false   | no       |
+| `tls_basic_auth_config_path` | `string`  | Path to the file having Prometheus TLS config for basic auth. Only enable if you want to use TLS based authentication.                  |         | no       |
 
 MongoDB node connection URI must be in the [`Standard Connection String Format`](https://docs.mongodb.com/manual/reference/connection-string/#std-label-connections-standard-connection-string-format)
 
@@ -39,7 +41,7 @@ For `tls_basic_auth_config_path`, check [`tls_config`](https://prometheus.io/doc
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporters-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 

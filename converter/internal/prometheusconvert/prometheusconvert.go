@@ -19,8 +19,14 @@ import (
 	prom_dns "github.com/prometheus/prometheus/discovery/dns"
 	prom_file "github.com/prometheus/prometheus/discovery/file"
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
+	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
+	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
+	prom_triton "github.com/prometheus/prometheus/discovery/triton"
+	prom_xds "github.com/prometheus/prometheus/discovery/xds"
+	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
@@ -69,12 +75,15 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics
 // pipeline. Additional options can be provided overriding the job name, extra
 // scrape targets, and predefined remote write exports.
 func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToCompLabelsFunc func(string) string, extraScrapeTargets []discovery.Target, remoteWriteExports *remotewrite.Exports) diag.Diagnostics {
-	pb := newPrometheusBlocks()
+	pb := NewPrometheusBlocks()
 
 	if remoteWriteExports == nil {
 		labelPrefix := ""
 		if jobNameToCompLabelsFunc != nil {
 			labelPrefix = jobNameToCompLabelsFunc("")
+			if labelPrefix != "" {
+				labelPrefix = common.SanitizeIdentifierPanics(labelPrefix)
+			}
 		}
 		remoteWriteExports = appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
 	}
@@ -86,13 +95,14 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 		if jobNameToCompLabelsFunc != nil {
 			label = jobNameToCompLabelsFunc(scrapeConfig.JobName)
 		}
+		label = common.SanitizeIdentifierPanics(label)
 
 		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)
 		if promMetricsRelabelExports != nil {
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
-		scrapeTargets := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
+		scrapeTargets := AppendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
 		scrapeTargets = append(scrapeTargets, extraScrapeTargets...)
 
 		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
@@ -106,15 +116,15 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 	diags := validate(promConfig)
 	diags.AddAll(pb.getScrapeInfo())
 
-	pb.appendToFile(f)
+	pb.AppendToFile(f)
 
 	return diags
 }
 
-// appendServiceDiscoveryConfigs will loop through the service discovery
+// AppendServiceDiscoveryConfigs will loop through the service discovery
 // configs and append them to the file. This returns the scrape targets
 // and discovery targets as a result.
-func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) []discovery.Target {
+func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) []discovery.Target {
 	var targets []discovery.Target
 	labelCounts := make(map[string]int)
 	for _, serviceDiscoveryConfig := range serviceDiscoveryConfig {
@@ -152,9 +162,27 @@ func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_aws.LightsailSDConfig:
 			labelCounts["lightsail"]++
 			exports = appendDiscoveryLightsail(pb, common.LabelWithIndex(labelCounts["lightsail"]-1, label), sdc)
+		case *prom_marathon.SDConfig:
+			labelCounts["marathon"]++
+			exports = appendDiscoveryMarathon(pb, common.LabelWithIndex(labelCounts["marathon"]-1, label), sdc)
+		case *prom_ionos.SDConfig:
+			labelCounts["ionos"]++
+			exports = appendDiscoveryIonos(pb, common.LabelWithIndex(labelCounts["ionos"]-1, label), sdc)
+		case *prom_triton.SDConfig:
+			labelCounts["triton"]++
+			exports = appendDiscoveryTriton(pb, common.LabelWithIndex(labelCounts["triton"]-1, label), sdc)
+		case *prom_xds.SDConfig:
+			labelCounts["kuma"]++
+			exports = appendDiscoveryKuma(pb, common.LabelWithIndex(labelCounts["kuma"]-1, label), sdc)
+		case *prom_scaleway.SDConfig:
+			labelCounts["scaleway"]++
+			exports = appendDiscoveryScaleway(pb, common.LabelWithIndex(labelCounts["scaleway"]-1, label), sdc)
+		case *prom_zk.ServersetSDConfig:
+			labelCounts["serverset"]++
+			exports = appendDiscoveryServerset(pb, common.LabelWithIndex(labelCounts["serverset"]-1, label), sdc)
 		}
 
-		targets = append(exports.Targets, targets...)
+		targets = append(targets, exports.Targets...)
 	}
 
 	return targets
