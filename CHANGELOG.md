@@ -23,9 +23,9 @@ Main (unreleased)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
 
   - `discovery.marathon` - service discovery for Marathon servers. (@wildum)
-  
+
   - `discovery.ionos` - service discovery for IONOS Cloud API. (@wildum)
-  
+
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
@@ -54,6 +54,11 @@ Main (unreleased)
 - Read contextual attributes from Faro measurements (@codecapitano)
 - Rename Grafana Agent service in windows app and features to not include the description
 - Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
+- Operator: Update default config reloader version. (@captncraig)
+- Sorting of common fields in log messages emitted by the agent in Flow mode
+  have been standardized. The first fields will always be `ts`, `level`, and
+  `msg`, followed by non-common fields. Previously, the position of `msg` was
+  not consistent. (@rfratto)
 
 v0.36.1 (2023-09-06)
 --------------------
