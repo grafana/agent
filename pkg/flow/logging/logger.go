@@ -137,7 +137,7 @@ func (w *writerVar) Write(p []byte) (n int, err error) {
 	defer w.mut.RUnlock()
 
 	if w.w == nil {
-		return len(p), nil
+		return 0, fmt.Errorf("no writer available")
 	}
 
 	return w.w.Write(p)
