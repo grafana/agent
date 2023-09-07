@@ -56,6 +56,7 @@ before they're forwarded to the list of receivers in `forward_to`.
 In addition to custom labels, the following internal labels prefixed with `__` are available:
 
 - `__meta_kafka_message_key`
+- `__meta_kafka_message_offset`
 - `__meta_kafka_topic`
 - `__meta_kafka_partition`
 - `__meta_kafka_member_id`

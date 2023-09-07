@@ -10,6 +10,11 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.23.0 (2023-08-30)
+-------------------
+
+- Update Grafana Agent version to v0.36.1. (@erikbaranowski)
+
 ### Enhancements
 
 - Enable clustering for deployments and daemonsets. (@tpaschalis)
