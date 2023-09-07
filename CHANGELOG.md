@@ -38,6 +38,8 @@ Main (unreleased)
 
 - Added a `disable_high_cardinality_metrics` configuration flag to `otelcol` 
   exporters and receivers to switch high cardinality debug metrics off.  (@glindstedt)
+- Update windows_exporter version:
+  - `windows_ad_ldap_client_sessions` added to ad collector. (@MarkDordoy)
 
 
 ### Other changes
