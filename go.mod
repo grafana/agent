@@ -623,11 +623,7 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
 
-require (
-	github.com/iancmcc/bingo v0.1.1
-	github.com/kelindar/binary v1.0.17
-	github.com/zhuangsirui/binpacker v2.0.0+incompatible
-)
+require github.com/kelindar/binary v1.0.17
 
 require (
 	github.com/DataDog/zstd v1.4.5 // indirect
@@ -637,7 +633,6 @@ require (
 	github.com/cockroachdb/sentry-go v0.6.1-cockroachdb.2 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
-	github.com/goccy/go-reflect v1.1.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -647,6 +642,7 @@ require (
 	github.com/prometheus-community/prom-label-proxy v0.6.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sercand/kuberesolver/v4 v4.0.0 // indirect
+	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/sony/gobreaker v0.5.0 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 )

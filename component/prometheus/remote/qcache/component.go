@@ -1,4 +1,4 @@
-package queue
+package qcache
 
 import (
 	"arena"
@@ -19,7 +19,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:      "prometheus.remote.queue",
+		Name:      "prometheus.remote.qcache",
 		Singleton: false,
 		Args:      Arguments{},
 		Exports:   Exports{},
@@ -156,11 +156,19 @@ func (c *Queue) commit(a *appender) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
+	var err error
 	start := 0
 	buf := c.pool.Get()
 	defer c.pool.Put(buf)
 	mem := arena.NewArena()
 	defer mem.Free()
+	// Write cache information.
+	for _, s := range a.samples {
+		s.Hash, err = c.database.WriteHash(s.L)
+		if err != nil {
+			return
+		}
+	}
 	for {
 		end := 0
 		if start+c.args.BatchSize >= len(a.samples) {
@@ -176,7 +184,11 @@ func (c *Queue) commit(a *appender) {
 		if err != nil {
 			return
 		}
-		_, _ = c.database.WriteSignal(buf.Bytes(), 1, len(toEnc))
+		key, _ := c.database.WriteSignal(buf.Bytes(), 1, len(toEnc))
+		// Update our last seen.
+		for _, k := range toEnc {
+			c.database.WriteLastSeen(k.Hash, key)
+		}
 		buf.Reset()
 		start = end
 		if start == len(a.samples) {
@@ -204,4 +216,8 @@ func (c *Queue) cleanup() {
 	c.database.sampleDB.DeleteKeysOlderThan(oldestKey)
 	c.database.evict()
 	level.Info(c.opts.Logger).Log("msg", "finishing evict")
+}
+
+func (c *Queue) createHashs() {
+
 }

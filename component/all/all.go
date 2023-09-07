@@ -103,9 +103,11 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/operator/servicemonitors"      // Import prometheus.operator.servicemonitors
 	_ "github.com/grafana/agent/component/prometheus/receive_http"                  // Import prometheus.receive_http
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel
-	_ "github.com/grafana/agent/component/prometheus/remote/stream"                 // Import prometheus.remote.stream
+	_ "github.com/grafana/agent/component/prometheus/remote/qcache"                 // Import prometheus.remote.qcache
+	_ "github.com/grafana/agent/component/prometheus/remote/queue"                  // Import prometheus.remote.queue
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape
+	_ "github.com/grafana/agent/component/prometheus/test/metrics"                  // Import prometheus.test.metrics
 	_ "github.com/grafana/agent/component/pyroscope/ebpf"                           // Import pyroscope.ebpf
 	_ "github.com/grafana/agent/component/pyroscope/scrape"                         // Import pyroscope.scrape
 	_ "github.com/grafana/agent/component/pyroscope/write"                          // Import pyroscope.write

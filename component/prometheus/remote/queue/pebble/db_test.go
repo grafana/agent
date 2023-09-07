@@ -5,9 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"errors"
-	"fmt"
 	"github.com/go-kit/log"
-	"io"
 	"testing"
 	"time"
 
@@ -21,24 +19,24 @@ func TestReadWrite(t *testing.T) {
 	require.NotNil(t, db)
 
 	tc := &testCompany{CompanyID: 99}
-	id, err := db.WriteValueWithAutokey(tc, 0)
+	buffer := bytes.NewBuffer(nil)
+	enc := gob.NewEncoder(buffer)
+	err = enc.Encode(tc)
+	require.NoError(t, err)
+	id, err := db.WriteValueWithAutokey(buffer.Bytes(), 10, 1, 0)
 	require.NoError(t, err)
 
-	tc1, found, err := db.GetValueByKey(id)
-	require.NoError(t, err)
-	require.True(t, found)
-	require.True(t, tc1.(*testCompany).CompanyID == tc.CompanyID)
-
-	tp := &testPerson{Name: "Bob Dill"}
-	id, err = db.WriteValueWithAutokey(tp, 0)
-	require.NoError(t, err)
-
-	tp1, found, err := db.GetValueByKey(id)
+	valByte, tt, found, err := db.GetValueByKey(id)
+	require.True(t, tt == 10)
 	require.NoError(t, err)
 	require.True(t, found)
-	require.True(t, tp1.(*testPerson).Name == tp.Name)
-
-	require.True(t, len(db.keyCache.keys()) == 2)
+	buffer = bytes.NewBuffer(valByte)
+	dec := gob.NewDecoder(buffer)
+	tc1 := &testCompany{}
+	err = dec.Decode(tc1)
+	require.NoError(t, err)
+	require.True(t, tc1.CompanyID == tc.CompanyID)
+	require.True(t, len(db.keyCache.keys()) == 1)
 }
 
 func TestTTL(t *testing.T) {
@@ -47,11 +45,15 @@ func TestTTL(t *testing.T) {
 	require.NotNil(t, db)
 
 	tc := &testCompany{CompanyID: 99}
-	id, err := db.WriteValueWithAutokey(tc, 3*time.Second)
+	buffer := bytes.NewBuffer(nil)
+	enc := gob.NewEncoder(buffer)
+	err = enc.Encode(tc)
+	require.NoError(t, err)
+	id, err := db.WriteValueWithAutokey(buffer.Bytes(), 1, 1, 3*time.Second)
 	require.True(t, len(db.keyCache.keys()) == 1)
 	require.True(t, id > 0)
 	require.Eventually(t, func() bool {
-		val, found, _ := db.GetValueByKey(id)
+		val, _, found, _ := db.GetValueByKey(id)
 		return found == false && val == nil
 	}, 6*time.Second, 500*time.Millisecond)
 	require.NoError(t, err)
@@ -65,7 +67,11 @@ func TestEvict(t *testing.T) {
 	require.NotNil(t, db)
 
 	tc := &testCompany{CompanyID: 99}
-	id, err := db.WriteValueWithAutokey(tc, 3*time.Second)
+	buffer := bytes.NewBuffer(nil)
+	enc := gob.NewEncoder(buffer)
+	err = enc.Encode(tc)
+	require.NoError(t, err)
+	id, err := db.WriteValueWithAutokey(buffer.Bytes(), 1, 1, 3*time.Second)
 
 	require.True(t, len(db.keyCache.keys()) == 1)
 	require.NoError(t, err)
@@ -89,41 +95,7 @@ func TestEvict(t *testing.T) {
 func makeDB(t *testing.T) (*DB, error) {
 	dir := t.TempDir()
 	l := log.NewNopLogger()
-	return NewDB(dir, getValue, getType, l)
-}
-
-func getValue(data []byte, t int8) (any, error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-	switch t {
-	case 0:
-		tp := &testPerson{}
-		err := dec.Decode(tp)
-		if errors.Is(err, io.EOF) {
-			err = nil
-		}
-		return tp, err
-	case 1:
-		tc := &testCompany{}
-		err := dec.Decode(tc)
-		if errors.Is(err, io.EOF) {
-			err = nil
-		}
-		return tc, err
-	default:
-		return nil, fmt.Errorf("Unknown type found %d", t)
-	}
-}
-
-func getType(data any) (int8, int, error) {
-	switch t := data.(type) {
-	case *testPerson:
-		return 0, 0, nil
-	case *testCompany:
-		return 1, 1, nil
-	default:
-		return 0, 0, fmt.Errorf("unknown type %t", t)
-	}
+	return NewDB(dir, l)
 }
 
 type testPerson struct {

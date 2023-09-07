@@ -7,13 +7,11 @@ import (
 	"sync"
 	"time"
 
+	pdb "github.com/cockroachdb/pebble"
 	"github.com/go-kit/log"
-
 	"github.com/go-kit/log/level"
 	kbinary "github.com/kelindar/binary"
 	"go.uber.org/atomic"
-
-	pdb "github.com/cockroachdb/pebble"
 )
 
 // DB is a wrapper around the pebbleDB.
@@ -37,6 +35,7 @@ func NewDB(dir string, l log.Logger) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	d := &DB{
 		db:                    pebbleDB,
 		log:                   l,
@@ -205,7 +204,7 @@ func (d *DB) GetValueByString(k string) ([]byte, int8, bool, error) {
 // GetValueByKey follows GetValueByByte conventions but also updates the keycache if not found.
 func (d *DB) GetValueByKey(k uint64) ([]byte, int8, bool, error) {
 	val, valType, found, err := d.GetValueByByte(keyToByte(k))
-	// We are going to do a bit of sleight of hand to keep the keycache in check.
+	// We are going to do a bit ofhttps://grafana.com/orgs/mattdurham/stacks/162609 sleight of hand to keep the keycache in check.
 	// Since GetValueByByte doesnt know if its working on a key it cannot handle this.
 	// So unilaterly delete this if we dont find it.
 	if !found {

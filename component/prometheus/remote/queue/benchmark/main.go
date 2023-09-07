@@ -22,29 +22,41 @@ func main() {
 	if password == "" {
 		panic("PROM_PASSWORD env must be set")
 	}
+
 	// Start the HTTP server, that can swallow requests.
 	go httpServer()
 	// Build the agent
 	buildAgent()
 
-	metricCount := os.Args[1]
+	name := os.Args[1]
 	allowWal := os.Args[2]
 	duration := os.Args[3]
-	metrics, _ := strconv.Atoi(metricCount)
+	discovery := os.Args[4]
 	allowWalBool, _ := strconv.ParseBool(allowWal)
 	parsedDuration, _ := time.ParseDuration(duration)
-	fmt.Println(metrics, allowWalBool, parsedDuration)
-	startRun(metrics, allowWalBool, parsedDuration)
+	fmt.Println(name, allowWalBool, parsedDuration, discovery)
+	startRun(name, allowWalBool, parsedDuration, discovery)
 
 }
 
-func startRun(metricCount int, allowWAL bool, run time.Duration) {
-	os.RemoveAll("./queue-data")
-	os.RemoveAll("./old-data")
-	os.RemoveAll("./queue-data")
+func startRun(name string, allowWAL bool, run time.Duration, discovery string) {
+	os.RemoveAll("~/bench/queue-data")
+	os.RemoveAll("~/bench/old-data")
+	os.RemoveAll("~/bench/test-data")
+	os.RemoveAll("~/bench/qcache-data")
+
 	allow = allowWAL
-	_ = os.Setenv("METRIC_COUNT", strconv.Itoa(metricCount))
+	_ = os.Setenv("NAME", name)
 	_ = os.Setenv("ALLOW_WAL", strconv.FormatBool(allowWAL))
+	_ = os.Setenv("DISCOVERY", discovery)
+
+	metric := startMetricsAgent()
+	fmt.Println("starting metric agent")
+	defer metric.Process.Kill()
+	defer metric.Process.Release()
+	defer metric.Wait()
+	defer syscall.Kill(-metric.Process.Pid, syscall.SIGKILL)
+	defer os.RemoveAll("~/bench/metric-data")
 
 	old := startOldAgent()
 	fmt.Println("starting old agent")
@@ -52,16 +64,24 @@ func startRun(metricCount int, allowWAL bool, run time.Duration) {
 	defer old.Process.Release()
 	defer old.Wait()
 	defer syscall.Kill(-old.Process.Pid, syscall.SIGKILL)
-	defer os.RemoveAll("./old-data")
+	defer os.RemoveAll("~/bench/old-data")
 
 	queue := startQueueAgent()
-	fmt.Println("starting queue agent")
+	fmt.Println("start queue agent")
 	defer queue.Process.Kill()
 	defer queue.Process.Release()
 	defer queue.Wait()
 	defer syscall.Kill(-queue.Process.Pid, syscall.SIGKILL)
-	defer os.RemoveAll("./queue-data")
-
+	defer os.RemoveAll("~/bench/queue-data")
+	/*
+		cache := startQCacheAgent()
+		fmt.Println("start cache agent")
+		defer cache.Process.Kill()
+		defer cache.Process.Release()
+		defer cache.Wait()
+		defer syscall.Kill(-cache.Process.Pid, syscall.SIGKILL)
+		defer os.RemoveAll("~/bench/qcache-data")
+	*/
 	time.Sleep(run)
 }
 
@@ -89,6 +109,19 @@ func startQueueAgent() *exec.Cmd {
 	return cmd
 }
 
+func startQCacheAgent() *exec.Cmd {
+	cmd := exec.Command("./grafana-agent-flow", "run", "./qcache.river", "--storage.path=~/bench/qcache-data", "--server.http.listen-addr=127.0.0.1:12348")
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Start()
+
+	if err != nil {
+		panic(err.Error())
+	}
+	return cmd
+}
+
 func startOldAgent() *exec.Cmd {
 	cmd := exec.Command("./grafana-agent-flow", "run", "./rw.river", "--storage.path=~/bench/old-data", "--server.http.listen-addr=127.0.0.1:12346")
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
@@ -101,8 +134,19 @@ func startOldAgent() *exec.Cmd {
 	return cmd
 }
 
+func startMetricsAgent() *exec.Cmd {
+	cmd := exec.Command("./grafana-agent-flow", "run", "./test.river", "--storage.path=~/bench/test-data", "--server.http.listen-addr=127.0.0.1:9001")
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
+	err := cmd.Start()
+	if err != nil {
+		panic(err.Error())
+	}
+	return cmd
+}
+
 var allow = false
-var index = 0
 
 func httpServer() {
 	r := mux.NewRouter()
@@ -126,7 +170,6 @@ func httpServer() {
 }
 
 func handlePost(w http.ResponseWriter, r *http.Request) {
-	index++
 	//println(fmt.Sprintf("index %d", index))
 	if allow {
 		//println(fmt.Sprintf("Body context is %d", r.ContentLength))

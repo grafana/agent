@@ -1,4 +1,4 @@
-package queue
+package qcache
 
 import (
 	"arena"
@@ -61,13 +61,13 @@ func (w *writer) Start(ctx context.Context) {
 	success := false
 	bk := &Bookmark{}
 	for {
-		recoverableError := true
 		timeOut := 1 * time.Second
 		// If we got a new key or the previous record did not enqueue then continue trying to send.
 		if !w.isCurrentKey() || !success {
 			w.incrementKey()
 			valByte, _, signalFound := w.store.GetSignal(w.currentKey)
 			if signalFound {
+				var recoverableError bool
 				success, recoverableError = w.send(valByte, ctx)
 				// We need to succeed or hit an unrecoverable error to move on.
 				if success || !recoverableError {
@@ -110,7 +110,15 @@ func (w *writer) send(val []byte, ctx context.Context) (success bool, recoverabl
 	mem := arena.NewArena()
 	defer mem.Free()
 
+	var err error
 	samples, err := unmarshalSamples(bytes.NewBuffer(val), mem)
+	for _, s := range samples {
+		s.L, err = w.store.GetHashValue(s.Hash)
+		if err != nil {
+			level.Error(w.l).Log("msg", "unable to find hash", "err", err)
+			return false, false
+		}
+	}
 	if err != nil {
 		level.Error(w.l).Log("msg", "error decoding samples", "err", err)
 		return false, false
@@ -163,26 +171,23 @@ func makeWriteRequest(samples []*sample, wr *prompb.WriteRequest) {
 
 	wr.Timeseries = wr.Timeseries[:len(samples)]
 	for i, s := range samples {
-		wr.Timeseries[i].Labels = stringToLabelsProto(s.L, wr.Timeseries[i].Labels)
+		wr.Timeseries[i].Labels = bytesToLabels(s.L, wr.Timeseries[i].Labels)
 		wr.Timeseries[i].Samples[0].Value = s.Value
 		wr.Timeseries[i].Samples[0].Timestamp = s.TimeStamp
 	}
 }
 
-// labelsToLabelsProto transforms labels into prompb labels. The buffer slice
-// will be used to avoid allocations if it is big enough to store the labels.
-func stringToLabelsProto(lbls []string, input []prompb.Label) []prompb.Label {
-	if input == nil || len(input) < len(lbls)/2 {
-		input = make([]prompb.Label, len(lbls)/2)
+func bytesToLabels(buf []byte, input []prompb.Label) []prompb.Label {
+	// first byte is invalid.
+	splitItems := bytes.Split(buf[1:], []byte{255})
+	if input == nil || len(input) < len(splitItems)/2 {
+		input = make([]prompb.Label, len(splitItems)/2)
 	}
 	index := 0
-	for i := 0; i < len(lbls)/2; i++ {
-		input[index] = prompb.Label{
-			Name:  lbls[i+i],
-			Value: lbls[i+i+1],
-		}
+	for i := 0; i < len(splitItems); i = i + 2 {
+		input[index].Name = string(splitItems[i])
+		input[index].Value = string(splitItems[i+1])
 		index++
 	}
-
-	return input[:len(lbls)/2]
+	return input
 }

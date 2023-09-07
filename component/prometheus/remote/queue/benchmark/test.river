@@ -1,0 +1,31 @@
+prometheus.test.metrics "single" {
+    number_of_instances = 1
+    number_of_metrics = 1000
+    number_of_labels = 5
+    metrics_refresh = "10m"
+    churn_percent = 0.05
+}
+
+prometheus.test.metrics "many" {
+    number_of_instances = 20
+    number_of_metrics = 1000
+    number_of_labels = 5
+    metrics_refresh = "10m"
+    churn_percent = 0.10
+}
+
+prometheus.test.metrics "large" {
+    number_of_instances = 2
+    number_of_metrics = 10000
+    number_of_labels = 9
+    metrics_refresh = "10m"
+    churn_percent = 0.05
+}
+
+prometheus.test.metrics "churn" {
+    number_of_instances = 2
+    number_of_metrics = 20000
+    number_of_labels = 12
+    metrics_refresh = "10m"
+    churn_percent = 0.50
+}
