@@ -227,7 +227,7 @@ func Test_TargetRun(t *testing.T) {
 					Timestamp: time.Unix(0, int64(i)),
 					Value:     []byte(fmt.Sprintf("%d", i)),
 					Key:       []byte(tt.inMessageKey),
-					Offset:    int64(tt.inMessageOffset),
+					Offset:    tt.inMessageOffset,
 				})
 			}
 			claim.Stop()
