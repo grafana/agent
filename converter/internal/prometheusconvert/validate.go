@@ -20,9 +20,10 @@ import (
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
-	prom_scaleawy "github.com/prometheus/prometheus/discovery/scaleway"
+	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	prom_kuma "github.com/prometheus/prometheus/discovery/xds"
+	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 )
 
 func validate(promConfig *prom_config.Config) diag.Diagnostics {
@@ -111,12 +112,14 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryKuma(sdc))
 		case *prom_triton.SDConfig:
 			diags.AddAll(validateDiscoveryTriton(sdc))
-		case *prom_scaleawy.SDConfig:
+		case *prom_scaleway.SDConfig:
 			diags.AddAll(validateDiscoveryScaleway(sdc))
 		case *prom_marathon.SDConfig:
 			diags.AddAll(validateDiscoveryMarathon(sdc))
 		case *prom_ionos.SDConfig:
 			diags.AddAll(validateDiscoveryIonos(sdc))
+		case *prom_zk.ServersetSDConfig:
+			diags.AddAll(validateDiscoveryServerset(sdc))
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 		}

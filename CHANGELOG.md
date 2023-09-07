@@ -26,6 +26,8 @@ Main (unreleased)
 
   - `discovery.ionos` - service discovery for IONOS Cloud API. (@wildum)
 
+  - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
+
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
 
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual

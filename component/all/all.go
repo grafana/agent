@@ -23,6 +23,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/puppetdb"                       // Import discovery.puppetdb
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/discovery/scaleway"                       // Import discovery.scaleway
+	_ "github.com/grafana/agent/component/discovery/serverset"                      // Import discovery.serverset
 	_ "github.com/grafana/agent/component/discovery/triton"                         // Import discovery.triton
 	_ "github.com/grafana/agent/component/discovery/uyuni"                          // Import discovery.uyuni
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
