@@ -4,6 +4,8 @@
 (Error) unsupported rule_files config was provided
 (Error) unsupported HTTP Client config no_proxy was provided
 (Error) unsupported service discovery nomad was provided
+(Error) unsupported scrape_classic_histograms for scrape_configs
+(Error) unsupported native_histogram_bucket_limit for scrape_configs
 (Error) unsupported storage config was provided
 (Error) unsupported tracing config was provided
 (Error) unsupported remote_write sigv4 config was provided
