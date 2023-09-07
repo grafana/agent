@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/split/
+- /docs/grafana-cloud/agent/flow/reference/stdlib/split/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/split/
 title: split
 ---

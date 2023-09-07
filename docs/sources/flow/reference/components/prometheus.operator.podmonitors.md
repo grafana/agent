@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.operator.podmonitors/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.podmonitors/
 labels:
   stage: beta

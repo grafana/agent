@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/setup/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/
 description: Install and configure Grafana Agent in flow mode
 menuTitle: Set up flow mode

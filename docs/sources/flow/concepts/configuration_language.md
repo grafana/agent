@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../concepts/configuration-language/
+- /docs/grafana-cloud/agent/flow/concepts/configuration_language/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/configuration_language/
 title: Configuration language concepts
 weight: 400

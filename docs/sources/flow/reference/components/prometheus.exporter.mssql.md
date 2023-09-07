@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.mssql/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mssql/
 title: prometheus.exporter.mssql
 ---

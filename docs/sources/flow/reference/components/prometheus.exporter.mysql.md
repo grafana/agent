@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.mysql/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mysql/
 title: prometheus.exporter.mysql
 ---

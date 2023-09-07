@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/operator/operator-integrations/
 canonical: https://grafana.com/docs/agent/latest/operator/operator-integrations/
 title: Set up integrations
 weight: 350

@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/shared/flow/reference/components/otelcol-filter-library-block/
+- /docs/grafana-cloud/agent/shared/flow/reference/components/otelcol-filter-library-block/
 headless: true
 ---
 

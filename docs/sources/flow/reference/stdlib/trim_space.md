@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/trim_space/
+- /docs/grafana-cloud/agent/flow/reference/stdlib/trim_space/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/trim_space/
 title: trim_space
 ---

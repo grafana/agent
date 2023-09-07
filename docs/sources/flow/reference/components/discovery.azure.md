@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.azure/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.azure/
 title: discovery.azure
 ---

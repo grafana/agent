@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/getting-started/
 - getting_started/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/
 menuTitle: Get started

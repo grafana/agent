@@ -1,8 +1,10 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/cli/tools/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/tools/
 description: Command line tools that read the WAL and provide statistical information.
-title: tools command
 menuTitle: tools
+title: tools command
 weight: 400
 ---
 

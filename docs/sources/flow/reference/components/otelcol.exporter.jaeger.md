@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.jaeger/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.jaeger/
 title: otelcol.exporter.jaeger
 ---

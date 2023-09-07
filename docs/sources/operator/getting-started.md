@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/operator/getting-started/
 canonical: https://grafana.com/docs/agent/latest/operator/getting-started/
 title: Install the Operator
 weight: 110

@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.redis/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.redis/
 title: prometheus.exporter.redis
 ---

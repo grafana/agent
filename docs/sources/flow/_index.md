@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/
 canonical: https://grafana.com/docs/agent/latest/flow/
 title: Flow mode
 weight: 400

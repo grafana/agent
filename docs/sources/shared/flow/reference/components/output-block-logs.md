@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../otelcol/output-block-logs/
+- /docs/grafana-cloud/agent/shared/flow/reference/components/output-block-logs/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/output-block-logs/
 headless: true
 ---

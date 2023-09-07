@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/coalesce/
+- /docs/grafana-cloud/agent/flow/reference/stdlib/coalesce/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/coalesce/
 title: coalesce
 ---

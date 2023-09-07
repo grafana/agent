@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.echo/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.echo/
 labels:
   stage: beta

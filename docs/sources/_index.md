@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/
 canonical: https://grafana.com/docs/agent/latest/
 title: Grafana Agent
 weight: 350

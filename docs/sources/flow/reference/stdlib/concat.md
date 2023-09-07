@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/concat/
+- /docs/grafana-cloud/agent/flow/reference/stdlib/concat/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/concat/
 title: concat
 ---

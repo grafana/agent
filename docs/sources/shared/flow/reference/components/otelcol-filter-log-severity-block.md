@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/shared/flow/reference/components/otelcol-filter-log-severity-block/
+- /docs/grafana-cloud/agent/shared/flow/reference/components/otelcol-filter-log-severity-block/
 headless: true
 ---
 

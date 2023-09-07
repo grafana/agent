@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../install/binary/
+- /docs/grafana-cloud/agent/flow/setup/install/binary/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/binary/
 description: Learn how to install Grafana Agent in flow mode as a standalone binary
 menuTitle: Standalone

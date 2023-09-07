@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.blackbox/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.blackbox/
 title: prometheus.exporter.blackbox
 ---

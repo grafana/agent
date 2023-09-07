@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/getting-started/collect-prometheus-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-prometheus-metrics/
 title: Collect and forward Prometheus metrics
 weight: 200

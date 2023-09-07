@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/agent/shared/flow/reference/components/otelcol-debug-metrics-block/
+- /docs/grafana-cloud/agent/shared/flow/reference/components/otelcol-debug-metrics-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/otelcol-debug-metrics-block/
 headless: true
 ---

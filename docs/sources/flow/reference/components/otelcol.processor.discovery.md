@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.discovery/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.discovery/
 title: otelcol.processor.discovery
 ---

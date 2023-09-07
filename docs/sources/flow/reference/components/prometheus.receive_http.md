@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.receive_http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.receive_http/
 title: prometheus.receive_http
 ---

@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/constants/
+- /docs/grafana-cloud/agent/flow/reference/stdlib/constants/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/constants/
 title: constants
 ---

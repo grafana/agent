@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.kubelet/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubelet/
 labels:
   stage: beta

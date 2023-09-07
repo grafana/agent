@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.unix/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.unix/
 title: prometheus.exporter.unix
 ---

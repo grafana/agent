@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/
 title: Components reference
 weight: 300

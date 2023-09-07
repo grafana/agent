@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.gcp/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.gcp/
 title: prometheus.exporter.gcp
 ---

@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/monitoring/component_metrics/
 - component-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/component_metrics/
 title: Component metrics

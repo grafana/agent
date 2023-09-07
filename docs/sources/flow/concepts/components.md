@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../concepts/components/
+- /docs/grafana-cloud/agent/flow/concepts/components/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/components/
 title: Components
 weight: 100

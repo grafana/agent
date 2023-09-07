@@ -1,9 +1,10 @@
 ---
 aliases:
 - ./about-agent/
+- /docs/grafana-cloud/agent/about/
 canonical: https://grafana.com/docs/agent/latest/about/
-title: Introduction to Grafana Agent
 menuTitle: Introduction
+title: Introduction to Grafana Agent
 weight: 100
 ---
 

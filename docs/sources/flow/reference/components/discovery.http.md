@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.http/
 title: discovery.http
 ---

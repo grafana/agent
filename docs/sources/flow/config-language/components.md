@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../configuration-language/components/
+- /docs/grafana-cloud/agent/flow/config-language/components/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/components/
 title: Components config language
 weight: 300

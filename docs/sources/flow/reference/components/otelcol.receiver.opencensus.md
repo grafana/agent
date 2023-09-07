@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.opencensus/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.opencensus/
 title: otelcol.receiver.opencensus
 ---

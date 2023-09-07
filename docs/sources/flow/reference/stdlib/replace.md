@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/replace/
+- /docs/grafana-cloud/agent/flow/reference/stdlib/replace/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/replace/
 title: replace
 ---

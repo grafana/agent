@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.auth.basic/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.basic/
 title: otelcol.auth.basic
 ---

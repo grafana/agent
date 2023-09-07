@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/getting-started/configure-agent-clustering/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/configure-agent-clustering/
 menuTitle: Configure Grafana Agent clustering
 title: Configure Grafana Agent clustering in an existing installation

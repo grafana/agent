@@ -1,4 +1,6 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.auth.headers/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.headers/
 title: otelcol.auth.headers
 ---
