@@ -2,6 +2,7 @@
 aliases:
 - ../../configuration-language/expressions/operators/
 - /docs/grafana-cloud/agent/flow/config-language/expressions/operators/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/operators/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/operators/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/operators/
 title: Operators

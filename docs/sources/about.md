@@ -2,6 +2,7 @@
 aliases:
 - ./about-agent/
 - /docs/grafana-cloud/agent/about/
+- /docs/grafana-cloud/monitor-infrastructure/agent/about/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/about/
 canonical: https://grafana.com/docs/agent/latest/about/
 menuTitle: Introduction

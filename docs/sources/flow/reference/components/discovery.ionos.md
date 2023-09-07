@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.ionos/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.ionos/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.ionos/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ionos/
 title: discovery.ionos

@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/loki.echo/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.echo/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.echo/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.echo/
 labels:

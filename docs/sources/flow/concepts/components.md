@@ -2,6 +2,7 @@
 aliases:
 - ../../concepts/components/
 - /docs/grafana-cloud/agent/flow/concepts/components/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/components/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/components/
 title: Components

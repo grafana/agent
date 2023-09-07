@@ -2,6 +2,7 @@
 aliases:
 - ./filtering-metrics/
 - /docs/grafana-cloud/agent/flow/tutorials/filtering-metrics/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/filtering-metrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/filtering-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/filtering-metrics/
 description: Learn how to filter Prometheus metrics

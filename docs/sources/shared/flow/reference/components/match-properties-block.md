@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/reference/components/match-properties-block/
 - /docs/grafana-cloud/agent/shared/flow/reference/components/match-properties-block/
+- /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/match-properties-block/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/match-properties-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/match-properties-block/
 headless: true

@@ -2,6 +2,7 @@
 aliases:
 - ../../configuration-language/expressions/types-and-values/
 - /docs/grafana-cloud/agent/flow/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/types_and_values/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/types_and_values/
 title: Types and values

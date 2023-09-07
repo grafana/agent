@@ -2,6 +2,7 @@
 aliases:
 - ../../concepts/modules/
 - /docs/grafana-cloud/agent/flow/concepts/modules/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/modules/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/modules/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/modules/
 title: Modules

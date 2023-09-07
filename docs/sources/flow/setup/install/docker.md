@@ -2,6 +2,7 @@
 aliases:
 - ../../install/docker/
 - /docs/grafana-cloud/agent/flow/setup/install/docker/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/docker/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/docker/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/docker/
 description: Learn how to install Grafana Agent in flow mode on Docker

@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/
 canonical: https://grafana.com/docs/agent/latest/flow/
 title: Flow mode
