@@ -28,6 +28,9 @@ Main (unreleased)
 
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
 
+  - `discovery.scaleway` discovers scrape targets from Scaleway virtual
+    instances and bare-metal machines. (@rfratto)
+
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
 

@@ -20,6 +20,7 @@ import (
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
+	prom_scaleawy "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	prom_kuma "github.com/prometheus/prometheus/discovery/xds"
 )
@@ -110,6 +111,8 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryKuma(sdc))
 		case *prom_triton.SDConfig:
 			diags.AddAll(validateDiscoveryTriton(sdc))
+		case *prom_scaleawy.SDConfig:
+			diags.AddAll(validateDiscoveryScaleway(sdc))
 		case *prom_marathon.SDConfig:
 			diags.AddAll(validateDiscoveryMarathon(sdc))
 		case *prom_ionos.SDConfig:
