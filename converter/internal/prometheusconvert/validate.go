@@ -16,9 +16,12 @@ import (
 	prom_file "github.com/prometheus/prometheus/discovery/file"
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
+	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
+	prom_kuma "github.com/prometheus/prometheus/discovery/xds"
 )
 
 func validate(promConfig *prom_config.Config) diag.Diagnostics {
@@ -103,8 +106,14 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryKubernetes(sdc))
 		case *prom_aws.LightsailSDConfig:
 			diags.AddAll(validateDiscoveryLightsail(sdc))
+		case *prom_kuma.SDConfig:
+			diags.AddAll(validateDiscoveryKuma(sdc))
 		case *prom_triton.SDConfig:
 			diags.AddAll(validateDiscoveryTriton(sdc))
+		case *prom_marathon.SDConfig:
+			diags.AddAll(validateDiscoveryMarathon(sdc))
+		case *prom_ionos.SDConfig:
+			diags.AddAll(validateDiscoveryIonos(sdc))
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 		}
