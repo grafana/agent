@@ -163,13 +163,10 @@ prometheus.remote_write "demo" {
 
 Replace the following:
 
-* Replace `SCALEWAY_PROJECT_ID` with the project ID of your Scaleway machines.
-* Replace `SCALEWAY_PROJECT_ROLE` with `baremetal` to discover [baremetal][]
-  machines or `instance` to discover [virtual instances][instance].
-* Replace `SCALEWAY_ACCESS_KEY` with your Scaleway API access key.
-* Replace `SCALEWAY_SECRET_KEY` with your Scaleway API secret key.
-* Replace `PROMETHEUS_REMOTE_WRITE_URL` with the URL of the Prometheus
-  remote_write-compatible server to send metrics to.
-* Replace `USERNAME` with the basic authentication username for the
-  remote_write API.
-* Replace `PASSWORD` with the basic authentication password for the
+* `SCALEWAY_PROJECT_ID`: The project ID of your Scaleway machines.
+* `SCALEWAY_PROJECT_ROLE`: Set to `baremetal` to discover [baremetal][] machines or `instance` to discover [virtual instances][instance].
+* `SCALEWAY_ACCESS_KEY`: Your Scaleway API access key.
+* `SCALEWAY_SECRET_KEY`: Your Scaleway API secret key.
+* `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+* `USERNAME`: The username to use for authentication to the remote_write API.
+* `PASSWORD`: The password to use for authentication to the remote_write API.
