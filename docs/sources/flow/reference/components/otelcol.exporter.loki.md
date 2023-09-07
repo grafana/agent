@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.loki/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.loki/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.loki/
 title: otelcol.exporter.loki
 ---

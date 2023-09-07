@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.logging/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.logging/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.logging/
 title: otelcol.exporter.logging
 ---

@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/pyroscope.scrape/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.scrape/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.scrape/
 labels:
   stage: beta

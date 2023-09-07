@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.attributes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.attributes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.attributes/
 title: otelcol.processor.attributes
 ---

@@ -2,6 +2,7 @@
 aliases:
 - ./upgrade-guide/
 - /docs/grafana-cloud/agent/operator/release-notes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/release-notes/
 canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
 description: Release notes for Grafana Agent static mode Kubernetes operator
 menuTitle: Release notes

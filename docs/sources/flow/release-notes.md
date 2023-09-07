@@ -2,6 +2,7 @@
 aliases:
 - ./upgrade-guide/
 - /docs/grafana-cloud/agent/flow/release-notes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/release-notes/
 canonical: https://grafana.com/docs/agent/latest/flow/release-notes/
 description: Release notes for Grafana Agent flow mode
 menuTitle: Release notes

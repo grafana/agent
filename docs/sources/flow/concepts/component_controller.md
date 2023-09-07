@@ -2,6 +2,7 @@
 aliases:
 - ../../concepts/component-controller/
 - /docs/grafana-cloud/agent/flow/concepts/component_controller/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/component_controller/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/component_controller/
 title: Component controller
 weight: 200

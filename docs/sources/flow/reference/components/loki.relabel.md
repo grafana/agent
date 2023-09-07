@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/loki.relabel/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.relabel/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.relabel/
 title: loki.relabel
 ---

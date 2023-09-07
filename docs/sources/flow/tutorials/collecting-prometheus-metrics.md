@@ -2,6 +2,7 @@
 aliases:
 - ./collecting-prometheus-metrics/
 - /docs/grafana-cloud/agent/flow/tutorials/collecting-prometheus-metrics/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/collecting-prometheus-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/collecting-prometheus-metrics/
 description: Learn how to collect Prometheus metrics
 menuTitle: Collect Prometheus metrics

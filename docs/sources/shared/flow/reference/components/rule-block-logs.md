@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/reference/components/rule-block/
 - /docs/grafana-cloud/agent/shared/flow/reference/components/rule-block-logs/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/rule-block-logs/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/rule-block-logs/
 headless: true
 ---

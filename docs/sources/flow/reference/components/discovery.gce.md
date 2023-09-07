@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.gce/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.gce/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.gce/
 title: discovery.gce
 ---

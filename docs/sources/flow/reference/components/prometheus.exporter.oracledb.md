@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.oracledb/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.oracledb/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.oracledb/
 title: prometheus.exporter.oracledb
 ---

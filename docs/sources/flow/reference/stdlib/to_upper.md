@@ -2,6 +2,7 @@
 aliases:
 - ../../configuration-language/standard-library/to_upper/
 - /docs/grafana-cloud/agent/flow/reference/stdlib/to_upper/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/to_upper/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/to_upper/
 title: to_upper
 ---

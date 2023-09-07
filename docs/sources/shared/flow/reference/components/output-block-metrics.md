@@ -2,6 +2,7 @@
 aliases:
 - ../../otelcol/output-block-metrics/
 - /docs/grafana-cloud/agent/shared/flow/reference/components/output-block-metrics/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/output-block-metrics/
 headless: true
 ---
 

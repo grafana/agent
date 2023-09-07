@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/setup/configure/configure-windows/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-windows/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-windows/
 description: Learn how to configure Grafana Agent in flow mode on Windows
 menuTitle: Windows

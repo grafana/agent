@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/reference/components/authorization-block/
 - /docs/grafana-cloud/agent/shared/flow/reference/components/authorization-block/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/authorization-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/authorization-block/
 headless: true
 ---

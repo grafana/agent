@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/operator/deploy-agent-operator-resources/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/deploy-agent-operator-resources/
 - custom-resource-quickstart/
 canonical: https://grafana.com/docs/agent/latest/operator/deploy-agent-operator-resources/
 title: Deploy Operator resources

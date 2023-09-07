@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/stability/beta/
 - /docs/grafana-cloud/agent/shared/flow/stability/beta/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/stability/beta/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/stability/beta/
 headless: true
 ---

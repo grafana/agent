@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/reference/components/otelcol-filter-attribute-block/
 - /docs/grafana-cloud/agent/shared/flow/reference/components/otelcol-filter-attribute-block/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/otelcol-filter-attribute-block/
 headless: true
 ---
 

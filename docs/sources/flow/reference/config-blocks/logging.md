@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/config-blocks/logging/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/logging/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/logging/
 title: logging
 ---

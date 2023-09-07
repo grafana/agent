@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.cloudwatch/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.cloudwatch/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.cloudwatch/
 title: prometheus.exporter.cloudwatch
 ---

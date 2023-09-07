@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/operator/add-custom-scrape-jobs/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/add-custom-scrape-jobs/
 canonical: https://grafana.com/docs/agent/latest/operator/add-custom-scrape-jobs/
 title: Add custom scrape jobs
 weight: 400

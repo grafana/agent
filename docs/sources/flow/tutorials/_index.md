@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/tutorials/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/
 title: Tutorials
 weight: 300
