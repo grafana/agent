@@ -20,6 +20,7 @@ Main (unreleased)
 
   - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
+  - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
 
   - `discovery.marathon` - service discovery for Marathon servers. (@wildum)
 
@@ -59,6 +60,9 @@ Main (unreleased)
   `msg`, followed by non-common fields. Previously, the position of `msg` was
   not consistent. (@rfratto)
 
+v0.36.1 (2023-09-06)
+--------------------
+
 ### Bugfixes
 
 - Restart managed components of a module loader only on if module content
@@ -66,6 +70,7 @@ Main (unreleased)
   each time it pulls. (@erikbaranowski)
 
 - Allow overriding default `User-Agent` for `http.remote` component (@hainenber)
+
 - Fix panic when running `grafana-agentctl config-check` against config files
   having `integrations` block (both V1 and V2). (@hainenber)
 
@@ -80,6 +85,10 @@ Main (unreleased)
 - Fix an issue in converters where targets of `discovery.relabel` components
   were repeating the first target for each source target instead of the
   correct target. (@erikbaranowski)
+
+### Other changes
+
+- Operator: Update default config reloader version. (@captncraig)
 
 v0.36.0 (2023-08-30)
 --------------------
