@@ -9,6 +9,9 @@ spec:
   {{- if not .Values.controller.autoscaling.enabled }}
   replicas: {{ .Values.controller.replicas }}
   {{- end }}
+  {{- if .Values.controller.parallelRollout }}
+  podManagementPolicy: Parallel
+  {{- end }}
   {{- if ge (int .Capabilities.KubeVersion.Minor) 22 }}
   minReadySeconds: 10
   {{- end }}
