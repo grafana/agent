@@ -19,9 +19,13 @@ import (
 	prom_dns "github.com/prometheus/prometheus/discovery/dns"
 	prom_file "github.com/prometheus/prometheus/discovery/file"
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
+	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
+	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
+	prom_xds "github.com/prometheus/prometheus/discovery/xds"
 	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 	"github.com/prometheus/prometheus/storage"
 
@@ -77,6 +81,9 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 		labelPrefix := ""
 		if jobNameToCompLabelsFunc != nil {
 			labelPrefix = jobNameToCompLabelsFunc("")
+			if labelPrefix != "" {
+				labelPrefix = common.SanitizeIdentifierPanics(labelPrefix)
+			}
 		}
 		remoteWriteExports = appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
 	}
@@ -88,6 +95,7 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 		if jobNameToCompLabelsFunc != nil {
 			label = jobNameToCompLabelsFunc(scrapeConfig.JobName)
 		}
+		label = common.SanitizeIdentifierPanics(label)
 
 		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)
 		if promMetricsRelabelExports != nil {
@@ -154,9 +162,21 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_aws.LightsailSDConfig:
 			labelCounts["lightsail"]++
 			exports = appendDiscoveryLightsail(pb, common.LabelWithIndex(labelCounts["lightsail"]-1, label), sdc)
+		case *prom_marathon.SDConfig:
+			labelCounts["marathon"]++
+			exports = appendDiscoveryMarathon(pb, common.LabelWithIndex(labelCounts["marathon"]-1, label), sdc)
+		case *prom_ionos.SDConfig:
+			labelCounts["ionos"]++
+			exports = appendDiscoveryIonos(pb, common.LabelWithIndex(labelCounts["ionos"]-1, label), sdc)
 		case *prom_triton.SDConfig:
 			labelCounts["triton"]++
 			exports = appendDiscoveryTriton(pb, common.LabelWithIndex(labelCounts["triton"]-1, label), sdc)
+		case *prom_xds.SDConfig:
+			labelCounts["kuma"]++
+			exports = appendDiscoveryKuma(pb, common.LabelWithIndex(labelCounts["kuma"]-1, label), sdc)
+		case *prom_scaleway.SDConfig:
+			labelCounts["scaleway"]++
+			exports = appendDiscoveryScaleway(pb, common.LabelWithIndex(labelCounts["scaleway"]-1, label), sdc)
 		case *prom_zk.ServersetSDConfig:
 			labelCounts["serverset"]++
 			exports = appendDiscoveryServerset(pb, common.LabelWithIndex(labelCounts["serverset"]-1, label), sdc)

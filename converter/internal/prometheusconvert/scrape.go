@@ -26,7 +26,19 @@ func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.Scra
 }
 
 func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
-	return ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
+	var diags diag.Diagnostics
+
+	if scrapeConfig.ScrapeClassicHistograms {
+		diags.Add(diag.SeverityLevelError, "unsupported scrape_classic_histograms for scrape_configs")
+	}
+
+	if scrapeConfig.NativeHistogramBucketLimit != 0 {
+		diags.Add(diag.SeverityLevelError, "unsupported native_histogram_bucket_limit for scrape_configs")
+	}
+
+	diags.AddAll(ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig))
+
+	return diags
 }
 
 func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
