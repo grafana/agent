@@ -17,7 +17,7 @@ Serversets are commonly used by [Finagle][] and [Aurora][].
 ```river
 discovery.serverset "LABEL" {
 	servers = SERVERS_LIST
-	paths   = ZK_PATHS_LIST
+	paths   = ZOOKEEPER_PATHS_LIST
 }
 ```
 
