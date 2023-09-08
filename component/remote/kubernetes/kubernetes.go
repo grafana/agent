@@ -1,9 +1,10 @@
-// Package http implements the remote.http component.
-package http
+// Package kubernetes implements the logic for remote.kubernetes.secret and remote.kubernetes.configmap component.
+package kubernetes
 
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sync"
 	"time"
 
@@ -11,27 +12,25 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/kubernetes"
+	"github.com/grafana/agent/pkg/river/rivertypes"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	client_go "k8s.io/client-go/kubernetes"
 )
 
-func init() {
-	component.Register(component.Registration{
-		Name:    "remote.kubernetes.secret",
-		Args:    Arguments{},
-		Exports: Exports{},
-		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return New(opts, args.(Arguments))
-		},
-	})
-}
+type ResourceType string
 
-// Arguments control the remote.http component.
+const (
+	TypeSecret    ResourceType = "secret"
+	TypeConfigMap ResourceType = "configmap"
+)
+
+// Arguments control the component.
 type Arguments struct {
 	Namespace     string        `river:"namespace,attr"`
 	Name          string        `river:"name,attr"`
 	PollFrequency time.Duration `river:"poll_frequency,attr,optional"`
+	PollTimeout   time.Duration `river:"poll_timeout,attr,optional"`
 
 	// Client settings to connect to Kubernetes.
 	Client kubernetes.ClientArguments `river:"client,block,optional"`
@@ -40,6 +39,7 @@ type Arguments struct {
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
 	PollFrequency: 1 * time.Minute,
+	PollTimeout:   15 * time.Second,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -55,12 +55,12 @@ func (args *Arguments) Validate() error {
 	return nil
 }
 
-// Exports holds settings exported by remote.http.
+// Exports holds settings exported by this component.
 type Exports struct {
-	Data map[string]string `river:"data,attr"`
+	Data map[string]rivertypes.OptionalSecret `river:"data,attr"`
 }
 
-// Component implements the remote.http component.
+// Component implements the remote.kubernetes.* component.
 type Component struct {
 	log  log.Logger
 	opts component.Options
@@ -69,12 +69,10 @@ type Component struct {
 	args Arguments
 
 	client *client_go.Clientset
+	kind   ResourceType
 
 	lastPoll    time.Time
 	lastExports Exports // Used for determining whether exports should be updated
-
-	// Updated is written to whenever args updates.
-	updated chan struct{}
 
 	healthMut sync.RWMutex
 	health    component.Health
@@ -86,13 +84,12 @@ var (
 )
 
 // New returns a new, unstarted, remote.http component.
-func New(opts component.Options, args Arguments) (*Component, error) {
+func New(opts component.Options, args Arguments, rType ResourceType) (*Component, error) {
 	c := &Component{
 		log:  opts.Logger,
 		opts: opts,
 
-		updated: make(chan struct{}, 1),
-
+		kind: rType,
 		health: component.Health{
 			Health:     component.HealthTypeUnknown,
 			Message:    "component started",
@@ -114,8 +111,6 @@ func (c *Component) Run(ctx context.Context) error {
 			return nil
 		case <-time.After(c.nextPoll()):
 			c.poll()
-		case <-c.updated:
-			// no-op; force the next wait to be reread.
 		}
 	}
 }
@@ -151,7 +146,7 @@ func (c *Component) updatePollHealth(err error) {
 	if err == nil {
 		c.health = component.Health{
 			Health:     component.HealthTypeHealthy,
-			Message:    "got secret",
+			Message:    "got " + string(c.kind),
 			UpdateTime: time.Now(),
 		}
 	} else {
@@ -170,43 +165,59 @@ func (c *Component) pollError() error {
 
 	c.lastPoll = time.Now()
 
-	// TODO: add timeout
-	secret, err := c.client.CoreV1().Secrets(c.args.Namespace).Get(context.Background(), c.args.Name, v1.GetOptions{})
-	if err != nil {
-		return err
+	ctx, cancel := context.WithTimeout(context.Background(), c.args.PollTimeout)
+	defer cancel()
+
+	data := map[string]rivertypes.OptionalSecret{}
+	if c.kind == TypeSecret {
+		secret, err := c.client.CoreV1().Secrets(c.args.Namespace).Get(ctx, c.args.Name, v1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		for k, v := range secret.Data {
+			data[k] = rivertypes.OptionalSecret{
+				Value:    string(v),
+				IsSecret: true,
+			}
+		}
+	} else if c.kind == TypeConfigMap {
+		cmap, err := c.client.CoreV1().ConfigMaps(c.args.Namespace).Get(ctx, c.args.Name, v1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		for k, v := range cmap.Data {
+			data[k] = rivertypes.OptionalSecret{
+				Value:    v,
+				IsSecret: false,
+			}
+		}
 	}
-	data := map[string]string{}
-	for k, v := range secret.Data {
-		data[k] = string(v)
-	}
+
 	newExports := Exports{
 		Data: data,
 	}
 
-	// TODO: deep compare
 	// Only send a state change event if the exports have changed from the
 	// previous poll.
-	//if c.lastExports != newExports {
-	//	c.opts.OnStateChange(newExports)
-	//}
+	if !reflect.DeepEqual(newExports.Data, c.lastExports.Data) {
+		c.opts.OnStateChange(newExports)
+	}
 
 	c.lastExports = newExports
 	return nil
 }
 
-// Update updates the remote.http component. After the update completes, a
+// Update updates the remote.kubernetes.* component. After the update completes, a
 // poll is forced.
 func (c *Component) Update(args component.Arguments) (err error) {
-	// Poll after updating and propagate the error if the poll fails. If an error
-	// occurred during Update, we don't bother to do anything.
-	//
-	// It's important to propagate the error in update so the initial state of
-	// the component is calculated correctly, otherwise the exports will be empty
-	// and may cause unexpected errors in downstream components.
+	// defer initial poll so the lock is released first
 	defer func() {
 		if err != nil {
 			return
 		}
+		// Poll after updating and propagate the error if the poll fails. If an error
+		// occurred during Update, we don't bother to do anything.
+		// It is important to set err and the health so startup works correctly
 		err = c.pollError()
 		c.updatePollHealth(err)
 	}()
@@ -226,12 +237,7 @@ func (c *Component) Update(args component.Arguments) (err error) {
 		return fmt.Errorf("creating kubernetes client: %w", err)
 	}
 
-	// Send an updated event if one wasn't already read.
-	select {
-	case c.updated <- struct{}{}:
-	default:
-	}
-	return nil
+	return err
 }
 
 // CurrentHealth returns the current health of the component.
