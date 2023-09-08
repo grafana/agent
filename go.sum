@@ -2263,6 +2263,8 @@ github.com/onsi/gomega v1.9.0/go.mod h1:Ho0h+IUsWyvy1OpqCwxlQ/21gkhVunqlU8fDGcoT
 github.com/onsi/gomega v1.10.3/go.mod h1:V9xEwhxec5O8UDM77eCW8vLymOMltsqPVYWrpDsH8xc=
 github.com/onsi/gomega v1.27.7 h1:fVih9JD6ogIiHUN6ePK7HJidyEDpWGVB5mzM7cWNXoU=
 github.com/op/go-logging v0.0.0-20160315200505-970db520ece7/go.mod h1:HzydrMdWErDVzsI23lYNej1Htcns9BCg93Dk0bBINWk=
+github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector v0.80.0 h1:fJF/5xzmnrXVKIMan4Q54toP8brqiGmaNTLQGrYnfro=
+github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector v0.80.0/go.mod h1:YepdDwedXtA3g7Q3bnDVJ07Onjn8AusMdwsH+f3phco=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.80.0 h1:j6Zo+MvskAAc5LNMHqeqjti3hxQZPBkqoK956wHhDdY=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.80.0/go.mod h1:mv3/RQWBvNvB4IFnB9oqGe147e2KsLiFT5nkovkH/2o=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.80.0 h1:/cUNpmtNRN+AhONVb5gzkqZv6w3GtB1hhpc73ngi9Z8=
@@ -2313,6 +2315,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin 
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.80.0/go.mod h1:WvSStezNID55991drm0t9CJ+1beZPEozE29sgvlYtuo=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.80.0 h1:YHlUyWkXHu9Nf2Snic3x4Qv0S1dlgfvxBIRmk2N53Fk=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.80.0/go.mod h1:9uoUdWeHgN/c98VL9hPtDbdmqqHjQs8sF8W6P5MtUKA=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor v0.80.0 h1:G8Ci9J7alCklki1akVDBmT40qzxJyNS0nRm47KknWd0=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor v0.80.0/go.mod h1:qfUn0nunL4zbubziCbr6ectmvrGYfEinRGydmrvdkyE=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0 h1:+aUgA8hzbaBGyraAy7WGjyzq0zLvvTAaq0q0RO934HM=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0/go.mod h1:cjPA2Zcmy6ZSiKe1+gFGGjN4wgRRcPFwYuL/AnM6nIo=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.80.0 h1:E0eTh3rgRm38HQ3YX7y+IsSCsAsN1oy31aLAGzBW0jY=

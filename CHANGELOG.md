@@ -20,7 +20,9 @@ Main (unreleased)
 
   - `otelcol.connector.spanlogs` creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
-  - `discovery.consulagent` - discovers scrape targets from Consul Agent. (@wildum)
+  - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
+  flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
+  - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
   - `discovery.marathon` discovers scrape targets from Marathon servers. (@wildum)
   - `discovery.ionos` discovers scrape targets from the IONOS Cloud API. (@wildum)
