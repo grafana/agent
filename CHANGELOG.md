@@ -122,6 +122,8 @@ Main (unreleased)
 
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
 
+- `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
+
 v0.36.2 (2023-09-22)
 --------------------
 
