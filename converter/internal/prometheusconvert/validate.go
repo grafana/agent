@@ -16,8 +16,15 @@ import (
 	prom_file "github.com/prometheus/prometheus/discovery/file"
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
+	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
+	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
+	prom_triton "github.com/prometheus/prometheus/discovery/triton"
+	prom_kuma "github.com/prometheus/prometheus/discovery/xds"
+	prom_nerve "github.com/prometheus/prometheus/discovery/zookeeper"
+	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 )
 
 func validate(promConfig *prom_config.Config) diag.Diagnostics {
@@ -71,7 +78,6 @@ func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagn
 		diags.AddAll(validatePrometheusScrape(scrapeConfig))
 		diags.AddAll(ValidateServiceDiscoveryConfigs(scrapeConfig.ServiceDiscoveryConfigs))
 	}
-
 	return diags
 }
 
@@ -102,6 +108,20 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryKubernetes(sdc))
 		case *prom_aws.LightsailSDConfig:
 			diags.AddAll(validateDiscoveryLightsail(sdc))
+		case *prom_kuma.SDConfig:
+			diags.AddAll(validateDiscoveryKuma(sdc))
+		case *prom_triton.SDConfig:
+			diags.AddAll(validateDiscoveryTriton(sdc))
+		case *prom_scaleway.SDConfig:
+			diags.AddAll(validateDiscoveryScaleway(sdc))
+		case *prom_marathon.SDConfig:
+			diags.AddAll(validateDiscoveryMarathon(sdc))
+		case *prom_ionos.SDConfig:
+			diags.AddAll(validateDiscoveryIonos(sdc))
+		case *prom_zk.ServersetSDConfig:
+			diags.AddAll(validateDiscoveryServerset(sdc))
+		case *prom_nerve.NerveSDConfig:
+			diags.AddAll(validateDiscoveryNerve(sdc))
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 		}

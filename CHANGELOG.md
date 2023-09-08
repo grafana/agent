@@ -18,35 +18,57 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
-  - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
+  - `otelcol.connector.spanlogs` creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
-  - `discovery.consulagent` - service discovery for Consul Agent. (@wildum)
+  - `discovery.consulagent` - discovers scrape targets from Consul Agent. (@wildum)
+  - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
+  - `discovery.marathon` discovers scrape targets from Marathon servers. (@wildum)
+  - `discovery.ionos` discovers scrape targets from the IONOS Cloud API. (@wildum)
+  - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
+  - `discovery.nerve` discovers scrape targets from AirBnB's Nerve. (@tpaschalis)
+  - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
+  - `discovery.scaleway` discovers scrape targets from Scaleway virtual
+    instances and bare-metal machines. (@rfratto)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
 
-- Clustering: Add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
+- Clustering: add new flag `--cluster.max-join-peers` to limit the number of peers the system joins. (@wildum)
+
+- Clustering: add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
+
+- Clustering: add IPv6 support when using advertise interfaces to assign IP addresses. (@wildum)
 
 - Add a `file_watch` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_poll_frequency` and `max_poll_frequency`.
   In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`.  (@wildum)
 
 ### Enhancements
 
-- Clustering: Allow advertise interfaces to be configurable. (@wildum)
+- Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
 
 - Deleted series will now be removed from the WAL sooner, allowing Prometheus
   remote_write to free memory associated with removed series sooner. (@rfratto)
 
-- Added a `disable_high_cardinality_metrics` configuration flag to `otelcol` 
+- Added a `disable_high_cardinality_metrics` configuration flag to `otelcol`
   exporters and receivers to switch high cardinality debug metrics off.  (@glindstedt)
 
+- `loki.source.kafka` component now exposes internal label `__meta_kafka_offset`
+  to indicate offset of consumed message. (@hainenber)
 
 ### Other changes
 
-- Use Go 1.21.0 for builds. (@rfratto)
+- Use Go 1.21.1 for builds. (@rfratto)
 - Read contextual attributes from Faro measurements (@codecapitano)
 - Rename Grafana Agent service in windows app and features to not include the description
 - Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
+- Operator: Update default config reloader version. (@captncraig)
+- Sorting of common fields in log messages emitted by the agent in Flow mode
+  have been standardized. The first fields will always be `ts`, `level`, and
+  `msg`, followed by non-common fields. Previously, the position of `msg` was
+  not consistent. (@rfratto)
+
+v0.36.1 (2023-09-06)
+--------------------
 
 ### Bugfixes
 
@@ -55,10 +77,28 @@ Main (unreleased)
   each time it pulls. (@erikbaranowski)
 
 - Allow overriding default `User-Agent` for `http.remote` component (@hainenber)
+
 - Fix panic when running `grafana-agentctl config-check` against config files
   having `integrations` block (both V1 and V2). (@hainenber)
 
 - Fix a deadlock candidate in the `loki.process` component. (@tpaschalis)
+
+- Fix an issue in the `eventhandler` integration where events would be
+  double-logged: once by sending the event to Loki, and once by including the
+  event in the Grafana Agent logs. Now, events are only ever sent to Loki. (@rfratto)
+
+- Converters will now sanitize labels to valid River identifiers. (@erikbaranowski)
+
+- Converters will now return an Error diagnostic for unsupported
+  `scrape_classic_histograms` and `native_histogram_bucket_limit` configs. (@erikbaranowski)
+
+- Fix an issue in converters where targets of `discovery.relabel` components
+  were repeating the first target for each source target instead of the
+  correct target. (@erikbaranowski)
+
+### Other changes
+
+- Operator: Update default config reloader version. (@captncraig)
 
 v0.36.0 (2023-08-30)
 --------------------
