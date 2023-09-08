@@ -12,7 +12,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/kubernetes"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	client_go "k8s.io/client-go/kubernetes"
