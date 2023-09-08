@@ -98,6 +98,8 @@ Main (unreleased)
 
 - Agent Management: Honor 503 ServiceUnavailable `Retry-After` header. (@jcreixell)
 
+- Added `scrape` block to customize the default behavior of `prometheus.operator.podmonitors`, `prometheus.operator.probes`, and `prometheus.operator.servicemonitors`. (@sberz)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)

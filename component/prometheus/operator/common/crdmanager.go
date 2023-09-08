@@ -366,6 +366,7 @@ func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 		Secrets:                  configgen.NewSecretManager(c.client),
 		Client:                   &c.args.Client,
 		AdditionalRelabelConfigs: c.args.RelabelConfigs,
+		ScrapeOptions:            c.args.Scrape,
 	}
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
 		var scrapeConfig *config.ScrapeConfig
@@ -415,6 +416,7 @@ func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 		Secrets:                  configgen.NewSecretManager(c.client),
 		Client:                   &c.args.Client,
 		AdditionalRelabelConfigs: c.args.RelabelConfigs,
+		ScrapeOptions:            c.args.Scrape,
 	}
 	for i, ep := range sm.Spec.Endpoints {
 		var scrapeConfig *config.ScrapeConfig
@@ -461,8 +463,9 @@ func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
 func (c *crdManager) addProbe(p *promopv1.Probe) {
 	var err error
 	gen := configgen.ConfigGenerator{
-		Secrets: configgen.NewSecretManager(c.client),
-		Client:  &c.args.Client,
+		Secrets:       configgen.NewSecretManager(c.client),
+		Client:        &c.args.Client,
+		ScrapeOptions: c.args.Scrape,
 	}
 	var pmc *config.ScrapeConfig
 	pmc, err = gen.GenerateProbeConfig(p)
