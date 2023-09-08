@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"

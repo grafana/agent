@@ -7,7 +7,28 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
+	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
+	"github.com/grafana/agent/pkg/integrations/consul_exporter"
+	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
+	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
+	"github.com/grafana/agent/pkg/integrations/gcp_exporter"
+	"github.com/grafana/agent/pkg/integrations/github_exporter"
+	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
+	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
+	"github.com/grafana/agent/pkg/integrations/mongodb_exporter"
+	mssql_exporter "github.com/grafana/agent/pkg/integrations/mssql"
+	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
+	"github.com/grafana/agent/pkg/integrations/oracledb_exporter"
+	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
+	"github.com/grafana/agent/pkg/integrations/process_exporter"
+	"github.com/grafana/agent/pkg/integrations/redis_exporter"
+	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
+	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
+	"github.com/grafana/agent/pkg/integrations/squid_exporter"
+	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
+	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
@@ -77,14 +98,36 @@ func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diag
 func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if len(integrationsConfig.EnabledIntegrations()) == 0 {
-		return diags
-	}
-
 	for _, integration := range integrationsConfig.ConfigV1.Integrations {
+		if !integration.Common.Enabled {
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported disabled integration %s.", integration.Name()))
+			continue
+		}
+
 		switch itg := integration.Config.(type) {
 		case *apache_http.Config:
 		case *node_exporter.Config:
+		case *blackbox_exporter.Config:
+		case *cloudwatch_exporter.Config:
+		case *consul_exporter.Config:
+		case *dnsmasq_exporter.Config:
+		case *elasticsearch_exporter.Config:
+		case *gcp_exporter.Config:
+		case *github_exporter.Config:
+		case *kafka_exporter.Config:
+		case *memcached_exporter.Config:
+		case *mongodb_exporter.Config:
+		case *mssql_exporter.Config:
+		case *mysqld_exporter.Config:
+		case *oracledb_exporter.Config:
+		case *postgres_exporter.Config:
+		case *process_exporter.Config:
+		case *redis_exporter.Config:
+		case *snmp_exporter.Config:
+		case *snowflake_exporter.Config:
+		case *squid_exporter.Config:
+		case *statsd_exporter.Config:
+		case *windows_exporter.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}

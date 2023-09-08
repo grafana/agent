@@ -8,6 +8,10 @@ loki.source.windowsevent "fun" {
 	exclude_user_data      = true
 	use_incoming_timestamp = true
 	forward_to             = [loki.write.default.receiver]
+	labels                 = {
+		host = "localhost",
+		job  = "windows",
+	}
 }
 
 loki.write "default" {

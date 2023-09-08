@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../otelcol/output-block-traces/
+canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/output-block-traces/
 headless: true
 ---
 

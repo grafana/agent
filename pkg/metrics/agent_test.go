@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
@@ -129,26 +129,25 @@ func TestAgent(t *testing.T) {
 	a, err := newAgent(prometheus.NewRegistry(), cfg, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
 
-	test.Poll(t, time.Second*30, true, func() interface{} {
-		if fact.created == nil {
-			return false
-		}
-		return fact.created.Load() == 2 && len(a.mm.ListInstances()) == 2
+	util.Eventually(t, func(t require.TestingT) {
+		require.NotNil(t, fact.created)
+		require.Equal(t, 2, int(fact.created.Load()))
+		require.Equal(t, 2, len(a.mm.ListInstances()))
 	})
 
 	t.Run("instances should be running", func(t *testing.T) {
 		for _, mi := range fact.Mocks() {
 			// Each instance should have wait called on it
-			test.Poll(t, time.Millisecond*500, true, func() interface{} {
-				return mi.running.Load()
+			util.Eventually(t, func(t require.TestingT) {
+				require.True(t, mi.running.Load())
 			})
 		}
 	})
 
 	t.Run("instances should be restarted when stopped", func(t *testing.T) {
 		for _, mi := range fact.Mocks() {
-			test.Poll(t, time.Millisecond*500, int64(1), func() interface{} {
-				return mi.startedCount.Load()
+			util.Eventually(t, func(t require.TestingT) {
+				require.Equal(t, 1, int(mi.startedCount.Load()))
 			})
 		}
 
@@ -157,8 +156,8 @@ func TestAgent(t *testing.T) {
 		}
 
 		for _, mi := range fact.Mocks() {
-			test.Poll(t, time.Millisecond*500, int64(2), func() interface{} {
-				return mi.startedCount.Load()
+			util.Eventually(t, func(t require.TestingT) {
+				require.Equal(t, 2, int(mi.startedCount.Load()))
 			})
 		}
 	})
@@ -190,13 +189,11 @@ func TestAgent_NormalInstanceExits(t *testing.T) {
 			a, err := newAgent(prometheus.NewRegistry(), cfg, log.NewNopLogger(), fact.factory)
 			require.NoError(t, err)
 
-			test.Poll(t, time.Second*30, true, func() interface{} {
-				if fact.created == nil {
-					return false
-				}
-				return fact.created.Load() == 2 && len(a.mm.ListInstances()) == 2
+			util.Eventually(t, func(t require.TestingT) {
+				require.NotNil(t, fact.created)
+				require.Equal(t, 2, int(fact.created.Load()))
+				require.Equal(t, 2, len(a.mm.ListInstances()))
 			})
-
 			for _, mi := range fact.Mocks() {
 				mi.err <- tc.simulateError
 			}
@@ -234,11 +231,10 @@ func TestAgent_Stop(t *testing.T) {
 	a, err := newAgent(prometheus.NewRegistry(), cfg, log.NewNopLogger(), fact.factory)
 	require.NoError(t, err)
 
-	test.Poll(t, time.Second*30, true, func() interface{} {
-		if fact.created == nil {
-			return false
-		}
-		return fact.created.Load() == 2 && len(a.mm.ListInstances()) == 2
+	util.Eventually(t, func(t require.TestingT) {
+		require.NotNil(t, fact.created)
+		require.Equal(t, 2, int(fact.created.Load()))
+		require.Equal(t, 2, len(a.mm.ListInstances()))
 	})
 
 	a.Stop()

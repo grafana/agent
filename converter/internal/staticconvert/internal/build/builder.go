@@ -9,9 +9,30 @@ import (
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
+	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	int_config "github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/integrations/consul_exporter"
+	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
+	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
+	"github.com/grafana/agent/pkg/integrations/gcp_exporter"
+	"github.com/grafana/agent/pkg/integrations/github_exporter"
+	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
+	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
+	"github.com/grafana/agent/pkg/integrations/mongodb_exporter"
+	mssql_exporter "github.com/grafana/agent/pkg/integrations/mssql"
+	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/agent/pkg/integrations/oracledb_exporter"
+	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
+	"github.com/grafana/agent/pkg/integrations/process_exporter"
+	"github.com/grafana/agent/pkg/integrations/redis_exporter"
+	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
+	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
+	"github.com/grafana/agent/pkg/integrations/squid_exporter"
+	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
+	"github.com/grafana/agent/pkg/integrations/windows_exporter"
+	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
 )
@@ -44,6 +65,48 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 			exports = b.appendApacheExporter(itg)
 		case *node_exporter.Config:
 			exports = b.appendNodeExporter(itg)
+		case *blackbox_exporter.Config:
+			exports = b.appendBlackboxExporter(itg)
+		case *cloudwatch_exporter.Config:
+			exports = b.appendCloudwatchExporter(itg)
+		case *consul_exporter.Config:
+			exports = b.appendConsulExporter(itg)
+		case *dnsmasq_exporter.Config:
+			exports = b.appendDnsmasqExporter(itg)
+		case *elasticsearch_exporter.Config:
+			exports = b.appendElasticsearchExporter(itg)
+		case *gcp_exporter.Config:
+			exports = b.appendGcpExporter(itg)
+		case *github_exporter.Config:
+			exports = b.appendGithubExporter(itg)
+		case *kafka_exporter.Config:
+			exports = b.appendKafkaExporter(itg)
+		case *memcached_exporter.Config:
+			exports = b.appendMemcachedExporter(itg)
+		case *mongodb_exporter.Config:
+			exports = b.appendMongodbExporter(itg)
+		case *mssql_exporter.Config:
+			exports = b.appendMssqlExporter(itg)
+		case *mysqld_exporter.Config:
+			exports = b.appendMysqldExporter(itg)
+		case *oracledb_exporter.Config:
+			exports = b.appendOracledbExporter(itg)
+		case *postgres_exporter.Config:
+			exports = b.appendPostgresExporter(itg)
+		case *process_exporter.Config:
+			exports = b.appendProcessExporter(itg)
+		case *redis_exporter.Config:
+			exports = b.appendRedisExporter(itg)
+		case *snmp_exporter.Config:
+			exports = b.appendSnmpExporter(itg)
+		case *snowflake_exporter.Config:
+			exports = b.appendSnowflakeExporter(itg)
+		case *squid_exporter.Config:
+			exports = b.appendSquidExporter(itg)
+		case *statsd_exporter.Config:
+			exports = b.appendStatsdExporter(itg)
+		case *windows_exporter.Config:
+			exports = b.appendWindowsExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {
@@ -56,7 +119,6 @@ func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Co
 	scrapeConfigs := []*prom_config.ScrapeConfig{}
 	if b.cfg.Integrations.ConfigV1.ScrapeIntegrations {
 		scrapeConfig := prom_config.DefaultScrapeConfig
-		scrapeConfig.MetricsPath = fmt.Sprintf("integrations/%s/metrics", name)
 		scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
 		scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs
 		scrapeConfig.MetricRelabelConfigs = commonConfig.MetricRelabelConfigs
@@ -92,4 +154,12 @@ func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Co
 
 	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, b.globalCtx.RemoteWriteExports))
 	b.globalCtx.InitializeRemoteWriteExports()
+}
+
+func splitByCommaNullOnEmpty(s string) []string {
+	if s == "" {
+		return nil
+	}
+
+	return strings.Split(s, ",")
 }

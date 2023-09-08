@@ -4,6 +4,7 @@ title: prometheus.exporter.oracledb
 ---
 
 # prometheus.exporter.oracledb
+
 The `prometheus.exporter.oracledb` component embeds
 [oracledb_exporter](https://github.com/iamseth/oracledb_exporter) for collecting statistics from a OracleDB server.
 
@@ -21,13 +22,14 @@ The following arguments can be used to configure the exporter's behavior.
 Omitted fields take their default values.
 
 | Name                | Type     | Description                                                  | Default | Required |
-|---------------------|----------|--------------------------------------------------------------|---------|----------|
+| ------------------- | -------- | ------------------------------------------------------------ | ------- | -------- |
 | `connection_string` | `secret` | The connection string used to connect to an Oracle Database. |         | yes      |
 | `max_idle_conns`    | `int`    | Number of maximum idle connections in the connection pool.   | `0`     | no       |
 | `max_open_conns`    | `int`    | Number of maximum open connections in the connection pool.   | `10`    | no       |
 | `query_timeout`     | `int`    | The query timeout in seconds.                                | `5`     | no       |
 
 [The oracledb_exporter running documentation](https://github.com/iamseth/oracledb_exporter/tree/master#running) shows the format and provides examples of the `connection_string` argument:
+
 ```conn
 oracle://user:pass@server/service_name[?OPTION1=VALUE1[&OPTIONn=VALUEn]...]
 ```
@@ -39,21 +41,7 @@ fully through arguments.
 
 ## Exported fields
 
-The following fields are exported and can be referenced by other components.
-
-| Name      | Type                | Description                                                  |
-|-----------|---------------------|--------------------------------------------------------------|
-| `targets` | `list(map(string))` | The targets that can be used to collect `oracle` metrics.    |
-
-For example, the `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metric's label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 
@@ -98,9 +86,11 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/otelcol/exporter/loadbalancing"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/config/configgrpc"

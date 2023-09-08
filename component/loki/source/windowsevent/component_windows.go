@@ -8,6 +8,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/windows"
@@ -122,7 +123,6 @@ func (c *Component) Update(args component.Arguments) error {
 		_ = f.Close()
 	}
 
-	// TODO: Add support for labels - see https://github.com/grafana/agent/issues/4634 for more details
 	winTarget, err := windows.New(c.opts.Logger, c.handle, nil, convertConfig(newArgs))
 	if err != nil {
 		return err
@@ -152,5 +152,6 @@ func convertConfig(arg Arguments) *scrapeconfig.WindowsEventsTargetConfig {
 		ExcludeEventData:     arg.ExcludeEventData,
 		ExcludeEventMessage:  false,
 		ExcludeUserData:      arg.ExcludeUserdata,
+		Labels:               utils.ToLabelSet(arg.Labels),
 	}
 }

@@ -39,8 +39,6 @@ scrape_configs:
           - localhost
         paths:
           - /zk/sd/some/path
-    marathon_sd_configs:
-      - servers: [localhost]
     openstack_sd_configs:
       - role: instance
         domain_name: domain

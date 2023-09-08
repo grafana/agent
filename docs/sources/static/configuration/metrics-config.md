@@ -65,8 +65,7 @@ configs:
 
 ## scraping_service_config
 
-The `scraping_service` block configures the
-[scraping service]({{< relref "scraping-service/" >}}), an operational
+The `scraping_service` block configures the [scraping service][scrape], an operational
 mode where configurations are stored centrally in a KV store and a cluster of
 agents distributes discovery and scrape load between nodes.
 
@@ -260,7 +259,11 @@ remote_write:
   - [<remote_write>]
 ```
 
-> **Note:** For more information on remote_write, refer to the [Prometheus documentation](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write)
+> **Note:** For more information on remote_write, refer to the [Prometheus documentation](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write).
+>
+> The following default values set by Grafana Agent Static Mode are different than the default set by Prometheus:
+> - `remote_write`: `send_exemplars` default value is `true`
+> - `remote_write`: `queue_config`: `retry_on_http_429` default value is `true`
 
 ## metrics_instance_config
 
@@ -335,3 +338,8 @@ remote_write:
 > * [`relabel_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#relabel_config)
 > * [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
 > * [`remote_write`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write)
+
+{{% docs/reference %}}
+[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
+[scrape]: "/docs/grafana-cloud/ -> ./scraping-service"
+{{% /docs/reference %}}

@@ -12,7 +12,6 @@ import (
 	"github.com/grafana/agent/component/common/loki/positions"
 	dt "github.com/grafana/agent/component/loki/source/docker/internal/dockertarget"
 	"github.com/grafana/agent/pkg/runner"
-	"github.com/prometheus/common/model"
 )
 
 // A manager manages a set of running tailers.
@@ -73,7 +72,7 @@ func (tt *tailerTask) Equals(other runner.Task) bool {
 
 	// Slow path: check individual fields which are part of the task.
 	return tt.options == otherTask.options &&
-		tt.target.Labels().String() == otherTask.target.Labels().String()
+		tt.target.LabelsStr() == otherTask.target.LabelsStr()
 }
 
 // A tailer tails the logs of a docker container. It is created by a [Manager].
@@ -81,8 +80,6 @@ type tailer struct {
 	log    log.Logger
 	opts   *options
 	target *dt.Target
-
-	lset model.LabelSet
 }
 
 // newTailer returns a new tailer which tails logs from the target specified by
@@ -92,8 +89,6 @@ func newTailer(l log.Logger, task *tailerTask) *tailer {
 		log:    log.WithPrefix(l, "target", task.target.Name()),
 		opts:   task.options,
 		target: task.target,
-
-		lset: task.target.Labels(),
 	}
 }
 
@@ -177,7 +172,7 @@ func entryForTarget(t *dt.Target) positions.Entry {
 	// entry when it can't find it.
 	return positions.Entry{
 		Path:   positions.CursorKey(t.Name()),
-		Labels: t.Labels().String(),
+		Labels: t.LabelsStr(),
 	}
 }
 

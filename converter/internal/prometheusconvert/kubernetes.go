@@ -10,18 +10,18 @@ import (
 )
 
 func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *prom_kubernetes.SDConfig) discovery.Exports {
-	discoveryKubernetesArgs := ToDiscoveryKubernetes(sdConfig)
+	discoveryKubernetesArgs := toDiscoveryKubernetes(sdConfig)
 	name := []string{"discovery", "kubernetes"}
 	block := common.NewBlockWithOverride(name, label, discoveryKubernetesArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoverExports("discovery.kubernetes." + label + ".targets")
+	return NewDiscoveryExports("discovery.kubernetes." + label + ".targets")
 }
 
 func validateDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) diag.Diagnostics {
 	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
-func ToDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Arguments {
+func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Arguments {
 	if sdConfig == nil {
 		return nil
 	}

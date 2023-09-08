@@ -1,5 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.span/
+labels:
+  stage: alpha
 title: otelcol.processor.span
 ---
 
@@ -181,23 +183,23 @@ with a non-empty value for a valid configuration.
 
 ### regexp block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-regexp-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-regexp-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### attribute block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-attribute-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-attribute-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### resource block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-resource-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-resource-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### library block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-library-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-library-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block-traces.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block-traces.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

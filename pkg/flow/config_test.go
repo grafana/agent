@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/river/ast"
+	"github.com/grafana/river/ast"
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components

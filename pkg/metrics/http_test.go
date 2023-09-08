@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
@@ -39,10 +39,10 @@ func TestAgent_ListInstancesHandler(t *testing.T) {
 		require.NoError(t, a.mm.ApplyConfig(makeInstanceConfig("bar")))
 
 		expect := `{"status":"success","data":["bar","foo"]}`
-		test.Poll(t, time.Second, true, func() interface{} {
+		util.Eventually(t, func(t require.TestingT) {
 			rr := httptest.NewRecorder()
 			a.ListInstancesHandler(rr, r)
-			return expect == rr.Body.String()
+			require.Equal(t, expect, rr.Body.String())
 		})
 	})
 }

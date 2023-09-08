@@ -38,6 +38,21 @@ agent_management:
     [ username: <string> ]
     [ password_file: <string> ]
 
+  # Optional proxy URL.
+  [ proxy_url: <string> ]
+
+  # Comma-separated string that can contain IPs, CIDR notation, domain names
+  # that should be excluded from proxying. IP and domain names can
+  # contain port numbers.
+  [ no_proxy: <string> ]
+
+  # Use proxy URL indicated by environment variables (HTTP_PROXY, https_proxy, HTTPs_PROXY, https_proxy, and no_proxy)
+  [ proxy_from_environment: <boolean> | default: false ]
+
+  # Specifies headers to send to proxies during CONNECT requests.
+  [ proxy_connect_header:
+    [ <string>: [<secret>, ...] ] ]
+
   # Fields specific to remote configuration.
   remote_configuration:
     # A path to a directory where the remote configuration will be cached. The directory must be writeable.

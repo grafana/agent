@@ -7,13 +7,13 @@ import (
 	"strconv"
 	"time"
 
-	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/operator/config"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
+	util "github.com/grafana/agent/pkg/util/log"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
@@ -208,7 +208,7 @@ func (p *automaticLoggingProcessor) processKeyVals(resource pcommon.Resource, sv
 	atts := make([]interface{}, 0, 2) // 2 for service name
 	rsAtts := resource.Attributes()
 
-	// name
+	// Add an attribute with the service name
 	atts = append(atts, p.cfg.Overrides.ServiceKey)
 	atts = append(atts, svc)
 

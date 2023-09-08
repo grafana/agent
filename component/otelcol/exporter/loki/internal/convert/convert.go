@@ -16,7 +16,9 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	loki_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki"
+	prometheus_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/model"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/plog"
 )
@@ -74,9 +76,20 @@ func (conv *Converter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 					continue
 				}
 
+				// TODO: Remove this code once loki_translator.LogToLokiEntry() has been updated to normalise labels.
+				// We should firstly upgrade to a version of Collector which has this fix:
+				// https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26093
+				processed := model.LabelSet{}
+				for label := range entry.Labels {
+					// Loki doesn't support dots in label names
+					// labelName is normalized label name to follow Prometheus label names standard
+					labelName := prometheus_translator.NormalizeLabel(string(label))
+					processed[model.LabelName(labelName)] = entry.Labels[label]
+				}
+
 				conv.metrics.entriesProcessed.Inc()
 				entries = append(entries, loki.Entry{
-					Labels: entry.Labels,
+					Labels: processed,
 					Entry:  *entry.Entry,
 				})
 			}

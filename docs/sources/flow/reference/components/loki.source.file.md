@@ -11,6 +11,10 @@ title: loki.source.file
 Multiple `loki.source.file` components can be specified by giving them
 different labels.
 
+{{% admonition type="note" %}}
+`loki.source.file` does not handle file discovery. You can use `local.file_match` for file discovery. Refer to the [File Globbing](#file-globbing) example for more information.
+{{% /admonition %}}
+
 ## Usage
 
 ```river
@@ -26,11 +30,11 @@ log entries to the list of receivers passed in `forward_to`.
 
 `loki.source.file` supports the following arguments:
 
- Name         | Type                 | Description                                      | Default | Required 
---------------|----------------------|--------------------------------------------------|---------|----------
- `targets`    | `list(map(string))`  | List of files to read from.                      |         | yes      
- `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to.        |         | yes      
- `encoding`   | `string`             | The encoding to convert from when reading files. | `""`    | no       
+ Name         | Type                 | Description                                                | Default | Required 
+--------------|----------------------|------------------------------------------------------------|---------|----------
+ `targets`    | `list(map(string))`  | List of files to read from.                                |         | yes      
+ `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes      
+ `encoding`   | `string`             | The encoding to convert from when reading files.           | `""`    | no       
 
 The `encoding` argument must be a valid [IANA encoding][] name. If not set, it
 defaults to UTF-8.
@@ -39,11 +43,13 @@ defaults to UTF-8.
 
 The following blocks are supported inside the definition of `loki.source.file`:
 
- Hierarchy      | Name               | Description                                   | Required 
-----------------|--------------------|-----------------------------------------------|----------
- decompresssion | [decompresssion][] | Configure reading logs from compressed files. | no       
+ Hierarchy      | Name               | Description                                                       | Required 
+----------------|--------------------|-------------------------------------------------------------------|----------
+ decompresssion | [decompresssion][] | Configure reading logs from compressed files.                     | no   
+ file_watch     | [file_watch][]     | Configure how often files should be polled from disk for changes. | no     
 
 [decompresssion]: #decompresssion-block
+[file_watch]: #file_watch-block
 
 ### decompresssion block
 
@@ -67,6 +73,20 @@ Currently supported compression formats are:
 
 The component can only support one compression format at a time, in order to
 handle multiple formats, you will need to create multiple components.
+
+### file_watch block
+
+The `file_watch` block configures how often log files are polled from disk for changes.
+The following arguments are supported:
+
+ Name                 | Type       | Description                               | Default | Required 
+----------------------|------------|-------------------------------------------|---------|----------
+ `min_poll_frequency` | `duration` | Minimum frequency to poll for files.      |  250ms  | no      
+ `max_poll_frequency` | `duration` | Maximum frequency to poll for files.      |  250ms  | no       
+
+If no file changes are detected, the poll frequency doubles until a file change is detected or the poll frequency reaches the `max_poll_frequency`.
+
+If file changes are detected, the poll frequency is reset to `min_poll_frequency`.
 
 ## Exported fields
 

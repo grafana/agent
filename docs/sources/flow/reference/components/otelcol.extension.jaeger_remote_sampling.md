@@ -7,7 +7,7 @@ title: otelcol.extension.jaeger_remote_sampling
 
 # otelcol.extension.jaeger_remote_sampling
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
 
 `otelcol.extension.jaeger_remote_sampling` serves a specified Jaeger remote sampling
 document.
@@ -205,9 +205,9 @@ Name | Type | Description | Default | Required
 `balancer_name` | `string` | Which gRPC client-side load balancer to use for requests. | `pick_first` | no
 `auth` | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 
-{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT VERSION>" >}}
 
-{{< docs/shared lookup="flow/reference/components/otelcol-grpc-balancer-name.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-grpc-balancer-name.md" source="agent" version="<AGENT VERSION>" >}}
 
 An HTTP proxy can be configured through the following environment variables:
 
@@ -236,7 +236,7 @@ able to handle and proxy HTTP/2 traffic.
 The `tls` block configures TLS settings used for the connection to the gRPC
 server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### keepalive client block
 

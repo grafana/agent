@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/grafana/agent/pkg/river/parser"
-	"github.com/grafana/agent/pkg/river/printer"
+	"github.com/grafana/river/parser"
+	"github.com/grafana/river/printer"
+	"github.com/grafana/river/scanner"
 
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
-	"github.com/grafana/agent/pkg/river/rivertypes"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/river/rivertypes"
+	"github.com/grafana/river/token/builder"
 )
 
 // NewBlockWithOverride generates a new [*builder.Block] using a hook to
@@ -38,6 +39,12 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 		switch value := val.(type) {
 		case rivertypes.Secret:
 			return string(value)
+		case []rivertypes.Secret:
+			secrets := make([]string, 0, len(value))
+			for _, secret := range value {
+				secrets = append(secrets, string(secret))
+			}
+			return secrets
 		case flow_relabel.Regexp:
 			return value.String()
 		case []discovery.Target:
@@ -99,4 +106,12 @@ func PrettyPrint(in []byte) ([]byte, diag.Diagnostics) {
 	// Add a trailing newline at the end of the file, which is omitted by Fprint.
 	_, _ = buf.WriteString("\n")
 	return buf.Bytes(), nil
+}
+
+func SanitizeIdentifierPanics(in string) string {
+	out, err := scanner.SanitizeIdentifier(in)
+	if err != nil {
+		panic(err)
+	}
+	return out
 }

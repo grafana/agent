@@ -10,6 +10,101 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- Set `retry_on_http_429` to `true` by default in the `queue_config` block in static mode's `remote_write`. (@wildum)
+
+### Features
+
+- New Grafana Agent Flow components:
+
+  - `otelcol.connector.spanlogs` creates logs from spans. It is the flow mode equivalent
+  to static mode's `automatic_logging` processor. (@ptodev)
+  - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
+  flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
+  - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
+  - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
+  - `discovery.marathon` discovers scrape targets from Marathon servers. (@wildum)
+  - `discovery.ionos` discovers scrape targets from the IONOS Cloud API. (@wildum)
+  - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
+  - `discovery.nerve` discovers scrape targets from AirBnB's Nerve. (@tpaschalis)
+  - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
+  - `discovery.scaleway` discovers scrape targets from Scaleway virtual
+    instances and bare-metal machines. (@rfratto)
+
+- Flow: allow the HTTP server to be configured with TLS in the config file
+  using the new `http` config block. (@rfratto)
+
+- Clustering: add new flag `--cluster.max-join-peers` to limit the number of peers the system joins. (@wildum)
+
+- Clustering: add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
+
+- Clustering: add IPv6 support when using advertise interfaces to assign IP addresses. (@wildum)
+
+- Add a `file_watch` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_poll_frequency` and `max_poll_frequency`.
+  In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`.  (@wildum)
+
+### Enhancements
+
+- Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
+
+- Deleted series will now be removed from the WAL sooner, allowing Prometheus
+  remote_write to free memory associated with removed series sooner. (@rfratto)
+
+- Added a `disable_high_cardinality_metrics` configuration flag to `otelcol`
+  exporters and receivers to switch high cardinality debug metrics off.  (@glindstedt)
+
+- `loki.source.kafka` component now exposes internal label `__meta_kafka_offset`
+  to indicate offset of consumed message. (@hainenber)
+
+### Other changes
+
+- Use Go 1.21.1 for builds. (@rfratto)
+- Read contextual attributes from Faro measurements (@codecapitano)
+- Rename Grafana Agent service in windows app and features to not include the description
+- Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
+- Operator: Update default config reloader version. (@captncraig)
+- Sorting of common fields in log messages emitted by the agent in Flow mode
+  have been standardized. The first fields will always be `ts`, `level`, and
+  `msg`, followed by non-common fields. Previously, the position of `msg` was
+  not consistent. (@rfratto)
+
+v0.36.1 (2023-09-06)
+--------------------
+
+### Bugfixes
+
+- Restart managed components of a module loader only on if module content
+  changes or the last load failed. This was specifically impacting `module.git`
+  each time it pulls. (@erikbaranowski)
+
+- Allow overriding default `User-Agent` for `http.remote` component (@hainenber)
+
+- Fix panic when running `grafana-agentctl config-check` against config files
+  having `integrations` block (both V1 and V2). (@hainenber)
+
+- Fix a deadlock candidate in the `loki.process` component. (@tpaschalis)
+
+- Fix an issue in the `eventhandler` integration where events would be
+  double-logged: once by sending the event to Loki, and once by including the
+  event in the Grafana Agent logs. Now, events are only ever sent to Loki. (@rfratto)
+
+- Converters will now sanitize labels to valid River identifiers. (@erikbaranowski)
+
+- Converters will now return an Error diagnostic for unsupported
+  `scrape_classic_histograms` and `native_histogram_bucket_limit` configs. (@erikbaranowski)
+
+- Fix an issue in converters where targets of `discovery.relabel` components
+  were repeating the first target for each source target instead of the
+  correct target. (@erikbaranowski)
+
+### Other changes
+
+- Operator: Update default config reloader version. (@captncraig)
+
+v0.36.0 (2023-08-30)
+--------------------
+
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
 
@@ -20,47 +115,76 @@ Main (unreleased)
   to enable decompression explicitly. See the [upgrade guide][] for migration
   instructions. (@thampiotr)
 
-### Enhancements
+- `otelcol.exporter.prometheus`: Set `include_scope_info` to `false` by default. You can set
+  it to `true` to preserve previous behavior. (@gouthamve)
 
-- Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
+- Set `retry_on_http_429` to `true` by default in the `queue_config` block in flow mode's `prometheus.remote_write`. (@wildum)
+
+### Features
 
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
-
-- Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
-- Add `log_format` configuration to eventhandler integration and the `loki.source.kubernetes_events` Flow component. (@sadovnikov)
-
-- Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
 
 - Flow: Allow the `logging` configuration block to tee the Agent's logs to one
   or more loki.* components. (@tpaschalis)
 
-- Clustering: Nodes take part in distributing load only after loading their
-  component graph. (@tpaschalis)
-
-- Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
-
-- Enable graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
-  signals. (@tpaschalis)
-  
 - Added support for `promtail` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@thampiotr)
 
 - Flow: Add a new stage `non_indexed_labels` to attach non-indexed labels from extracted data to log line entry. (@vlad-diachenko)
 
 - `loki.write` now exposes basic WAL support. (@thepalbi)
 
-- `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
+- Flow: Users can now define `additional_fields` in `loki.source.cloudflare` (@wildum)
+
+- Flow: Added exemplar support for the `otelcol.exporter.prometheus`. (@wildum)
+
+- Add a `labels` argument in `loki.source.windowsevent` to associate additional labels with incoming logs. (@wildum)
 
 - New Grafana Agent Flow components:
 
   - `prometheus.exporter.gcp` - scrape GCP metrics. (@tburgessdev)
   - `otelcol.processor.span` - accepts traces telemetry data from other `otelcol`
-  components and modifies the names and attributes of the spans. (@ptodev)
+    components and modifies the names and attributes of the spans. (@ptodev)
   - `discovery.uyuni` discovers scrape targets from a Uyuni Server. (@sparta0x117)
   - `discovery.eureka` discovers targets from a Eureka Service Registry. (@spartan0x117)
   - `discovery.openstack` - service discovery for OpenStack. (@marctc)
   - `discovery.hetzner` - service discovery for Hetzner Cloud. (@marctc)
   - `discovery.nomad` - service discovery from Nomad. (@captncraig)
   - `discovery.puppetdb` - service discovery from PuppetDB. (@captncraig)
+  - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes
+    keys and values are sourced from `discovery.*` components. (@ptodev)
+  - `otelcol.connector.spanmetrics` - creates OpenTelemetry metrics from traces. (@ptodev)
+
+
+### Enhancements
+
+- Integrations: include `direct_connect`, `discovering_mode` and `tls_basic_auth_config_path` fields for MongoDB configuration. (@gaantunes)
+
+- Better validation of config file with `grafana-agentctl config-check` cmd (@fgouteroux)
+
+- Integrations: make `udev` data path configurable in the `node_exporter` integration. (@sduranc)
+
+- Clustering: Enable peer discovery with the go-discover package. (@tpaschalis)
+
+- Add `log_format` configuration to eventhandler integration and the `loki.source.kubernetes_events` Flow component. (@sadovnikov)
+
+- Allow `loki.source.file` to define the encoding of files. (@tpaschalis)
+
+- Allow specification of `dimension_name_requirements` for Cloudwatch discovery exports. (@cvdv-au)
+
+- Clustering: Enable nodes to periodically rediscover and rejoin peers. (@tpaschalis)
+
+- `loki.write` WAL now exposes a last segment reclaimed metric. (@thepalbi)
+
+- Update `memcached_exporter` to `v0.13.0`, which includes bugfixes, new metrics,
+  and the option to connect with TLS. (@spartan0x117)
+
+- `loki.write` now supports configuring retries on HTTP status code 429. (@wildum)
+
+- Update `YACE` to `v0.54.0`, which includes bugfixes for FIPS support. (@ashrayjain)
+
+- Support decoupled scraping in the cloudwatch_exporter integration (@dtrejod).
+
+- Agent Management: Enable proxying support (@spartan0x117)
 
 ### Bugfixes
 
@@ -70,14 +194,52 @@ Main (unreleased)
 
 - Fix potential goroutine leak in log file tailing in static mode. (@thampiotr)
 
-- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
-
 - Fix issue on Windows where DNS short names were unresolvable. (@rfratto)
+
+- Fix panic in `prometheus.operator.*` when no Port supplied in Monitor crds. (@captncraig)
+
+- Fix issue where Agent crashes when a blackbox modules config file is specified for blackbox integration. (@marctc)
+
+- Fix issue where the code from agent would not return to the Windows Service Manager (@jkroepke)
+
+- Fix issue where getting the support bundle failed due to using an HTTP Client that was not able to access the agent in-memory address. (@spartan0x117)
+
+- Fix an issue that lead the `loki.source.docker` container to use excessive
+  CPU and memory. (@tpaschalis)
+
+- Fix issue where `otelcol.exporter.loki` was not normalizing label names
+  to comply with Prometheus conventions. (@ptodev)
+
+- Agent Management: Fix issue where an integration defined multiple times could lead to undefined behaviour. (@jcreixell)
+
+v0.35.4 (2023-08-14)
+--------------------
+
+### Bugfixes
+
+- Sign RPMs with SHA256 for FIPs compatbility. (@mattdurham)
+
+- Fix issue where corrupt WAL segments lead to crash looping. (@tpaschalis)
+
+- Clarify usage documentation surrounding `loki.source.file` (@joshuapare)
+
+v0.35.3 (2023-08-09)
+--------------------
+
+### Bugfixes
+
+- Fix a bug which prevented the `app_agent_receiver` integration from processing traces. (@ptodev)
 
 - (Agent static mode) Jaeger remote sampling works again, through a new `jaeger_remote_sampling`
   entry in the traces config. It is no longer configurable through the jaeger receiver.
-  Support Jaeger remote sampling was removed accidentally in v0.35, and it is now restored, 
+  Support Jaeger remote sampling was removed accidentally in v0.35, and it is now restored,
   albeit via a different config entry.
+
+- Clustering: Nodes take part in distributing load only after loading their
+  component graph. (@tpaschalis)
+
+- Fix graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
+  signals. (@tpaschalis)
 
 v0.35.2 (2023-07-27)
 --------------------
@@ -165,8 +327,8 @@ v0.35.0 (2023-07-18)
 
 - The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`. (@ptodev)
 
-- (Agent static mode) Jaeger remote sampling used to be configured using the Jaeger receiver configuration. 
-  This receiver was updated to a new version, where support for remote sampling in the receiver was removed. 
+- (Agent static mode) Jaeger remote sampling used to be configured using the Jaeger receiver configuration.
+  This receiver was updated to a new version, where support for remote sampling in the receiver was removed.
   Jaeger remote sampling is available as a separate configuration field starting in v0.35.3. (@ptodev)
 
 ### Deprecations

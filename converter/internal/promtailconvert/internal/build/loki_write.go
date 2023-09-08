@@ -9,9 +9,9 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
+	"github.com/grafana/river/token/builder"
 )
 
 func NewLokiWrite(client *client.Config, diags *diag.Diagnostics, index int, labelPrefix string) (*builder.Block, loki.LogsReceiver) {
@@ -38,14 +38,6 @@ func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiw
 		)
 	}
 
-	// This is not supported yet - see https://github.com/grafana/agent/issues/4335.
-	if config.DropRateLimitedBatches {
-		diags.Add(
-			diag.SeverityLevelError,
-			"DropRateLimitedBatches is currently not supported in Grafana Agent Flow.",
-		)
-	}
-
 	// Also deprecated in promtail.
 	if len(config.StreamLagLabels) != 0 {
 		diags.Add(
@@ -68,6 +60,7 @@ func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiw
 				MaxBackoffRetries: config.BackoffConfig.MaxRetries,
 				RemoteTimeout:     config.Timeout,
 				TenantID:          config.TenantID,
+				RetryOnHTTP429:    !config.DropRateLimitedBatches,
 			},
 		},
 		ExternalLabels: convertFlagLabels(config.ExternalLabels),

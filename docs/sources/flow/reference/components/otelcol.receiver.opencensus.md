@@ -67,6 +67,7 @@ tls | [tls][] | Configures TLS for the gRPC server. | no
 keepalive | [keepalive][] | Configures keepalive settings for the configured server. | no
 keepalive > server_parameters | [server_parameters][] | Server parameters used to configure keepalive settings. | no
 keepalive > enforcement_policy | [enforcement_policy][] | Enforcement policy for keepalive settings. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
 The `>` symbol indicates deeper levels of nesting. For example, `grpc > tls`
@@ -76,6 +77,7 @@ refers to a `tls` block defined inside a `grpc` block.
 [keepalive]: #keepalive-block
 [server_parameters]: #server_parameters-block
 [enforcement_policy]: #enforcement_policy-block
+[debug_metrics]: #debug_metrics-block
 [output]: #output-block
 
 ### tls block
@@ -83,7 +85,7 @@ refers to a `tls` block defined inside a `grpc` block.
 The `tls` block configures TLS settings used for a server. If the `tls` block
 isn't provided, TLS won't be used for connections to the server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### keepalive block
 
@@ -121,9 +123,13 @@ Name | Type | Description | Default | Required
 `min_time` | `duration` | Minimum time clients should wait before sending a keepalive ping. | `"5m"` | no
 `permit_without_stream` | `boolean` | Allow clients to send keepalive pings when there are no active streams. | `false` | no
 
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
+
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

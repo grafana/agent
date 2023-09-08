@@ -61,7 +61,7 @@ rule | [rule][] | Relabeling rules to apply to received log entries. | no
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block-logs.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block-logs.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

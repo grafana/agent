@@ -5,13 +5,13 @@ import (
 	"log"
 	"os"
 
-	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/cmd/internal/flowmode"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
+	util_log "github.com/grafana/agent/pkg/util/log"
 
 	"github.com/prometheus/client_golang/prometheus"
 

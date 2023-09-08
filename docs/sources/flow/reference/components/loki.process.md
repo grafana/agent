@@ -202,13 +202,13 @@ extracted value of 'app' is equal to foo.
 
 ```river
 stage.drop {
-    older_than  = "24h"
-    drop_reason = "too old"
+    older_than          = "24h"
+    drop_counter_reason = "too old"
 }
 
 stage.drop {
-    longer_than = "8KB"
-    drop_reason = "too long"
+    longer_than         = "8KB"
+    drop_counter_reason = "too long"
 }
 
 stage.drop {
@@ -236,7 +236,7 @@ When configuring a JSON stage, the `source` field defines the source of data to
 parse as JSON. By default, this is the log line itself, but it can also be a
 previously extracted value.
 
-The `expressions` field is the set of key-value pairs of MESPath expressions to
+The `expressions` field is the set of key-value pairs of JMESPath expressions to
 run. The map key defines the name with which the data is extracted, while the
 map value is the expression used to populate the value.
 
