@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/discovery/consulagent"
+	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	promtail_consulagent "github.com/grafana/loki/clients/pkg/promtail/discovery/consulagent"
@@ -16,7 +17,7 @@ func (s *ScrapeConfigBuilder) AppendConsulAgentSDs() {
 	}
 
 	for i, sd := range s.cfg.ServiceDiscoveryConfig.ConsulAgentSDConfigs {
-		args := toDiscoveryAgentConsul(sd)
+		args := toDiscoveryAgentConsul(sd, s.diags)
 		compLabel := common.LabelWithIndex(i, s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride(
 			[]string{"discovery", "consulagent"},
@@ -27,10 +28,19 @@ func (s *ScrapeConfigBuilder) AppendConsulAgentSDs() {
 	}
 }
 
-func toDiscoveryAgentConsul(sdConfig *promtail_consulagent.SDConfig) *consulagent.Arguments {
+func toDiscoveryAgentConsul(sdConfig *promtail_consulagent.SDConfig, diags *diag.Diagnostics) *consulagent.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
+
+	// Also unused promtail.
+	if len(sdConfig.NodeMeta) != 0 {
+		diags.Add(
+			diag.SeverityLevelWarn,
+			"node_meta is not used by discovery.consulagent and will be ignored",
+		)
+	}
+
 	return &consulagent.Arguments{
 		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
 		Server:          sdConfig.Server,
