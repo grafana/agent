@@ -86,11 +86,11 @@ Calculate name of image ID to use for "grafana-agent".
 */}}
 {{- define "grafana-agent.imageId" -}}
 {{- if .Values.image.digest -}}
-{{- .Values.image.digest }}
+{{- print "@sha256:%s" .Values.image.digest }}
 {{- else if .Values.image.tag -}}
-{{- .Values.image.tag }}
+{{- print ":%s" .Values.image.tag }}
 {{- else -}}
-{{- .Chart.AppVersion }}
+{{- print ":%s" .Chart.AppVersion }}
 {{- end }}
 {{- end }}
 
@@ -99,11 +99,11 @@ Calculate name of image ID to use for "config-reloader".
 */}}
 {{- define "config-reloader.imageId" -}}
 {{- if .Values.configReloader.image.digest -}}
-{{- .Values.configReloader.image.digest }}
+{{- print "@sha256:%s" .Values.configReloader.image.digest }}
 {{- if .Values.configReloader.image.tag -}}
-{{- .Values.configReloader.image.tag }}
+{{- print ":%s" .Values.configReloader.image.tag }}
 {{- else -}}
-{{- v0.8.0 }}
+{{- print ":%s" "v0.8.0" }}
 {{- end }}
 {{- end }}
 
