@@ -82,13 +82,28 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Calculate name of image tag to use.
+Calculate name of image ID to use for "grafana-agent".
 */}}
-{{- define "grafana-agent.imageTag" -}}
-{{- if .Values.image.tag -}}
+{{- define "grafana-agent.imageId" -}}
+{{- if .Values.image.digest -}}
+{{- .Values.image.digest }}
+{{- else if .Values.image.tag -}}
 {{- .Values.image.tag }}
 {{- else -}}
 {{- .Chart.AppVersion }}
+{{- end }}
+{{- end }}
+
+{{/*
+Calculate name of image ID to use for "config-reloader".
+*/}}
+{{- define "config-reloader.imageId" -}}
+{{- if .Values.configReloader.image.digest -}}
+{{- .Values.configReloader.image.digest }}
+{{- if .Values.configReloader.image.tag -}}
+{{- .Values.configReloader.image.tag }}
+{{- else -}}
+{{- v0.8.0 }}
 {{- end }}
 {{- end }}
 

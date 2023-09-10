@@ -65,6 +65,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | configReloader.image.registry | string | `"docker.io"` | Config reloader image registry (defaults to docker.io) |
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
 | configReloader.image.tag | string | `"v0.8.0"` | Tag of image to use for config reloading. |
+| configReloader.image.digest | string | `""` | SHA256 digest of image to use for config reloading. If set, will override `configReloader.image.tag`. |
 | configReloader.resources | object | `{"requests":{"cpu":"1m","memory":"5Mi"}}` | Resource requests and limits to apply to the config reloader container. |
 | configReloader.securityContext | object | `{}` | Security context to apply to the Grafana configReloader container. |
 | controller.affinity | object | `{}` | Affinity configuration for pods. |
@@ -97,6 +98,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | image.registry | string | `"docker.io"` | Grafana Agent image registry (defaults to docker.io) |
 | image.repository | string | `"grafana/agent"` | Grafana Agent image repository. |
 | image.tag | string | `nil` | Grafana Agent image tag. When empty, the Chart's appVersion is used. |
+| image.digest | string | `nil` | Grafana Agent image's digest. When set, will override `image.tag`. |
 | ingress.annotations | object | `{}` |  |
 | ingress.enabled | bool | `false` | Enables ingress for the agent (faro port) |
 | ingress.extraPaths | list | `[]` |  |
