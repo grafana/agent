@@ -85,12 +85,12 @@ Create the name of the service account to use
 Calculate name of image ID to use for "grafana-agent".
 */}}
 {{- define "grafana-agent.imageId" -}}
-{{- if .Values.image.digest -}}
-{{- print "@sha256:%s" .Values.image.digest }}
-{{- else if .Values.image.tag -}}
-{{- print ":%s" .Values.image.tag }}
-{{- else -}}
-{{- print ":%s" .Chart.AppVersion }}
+{{- if .Values.image.digest }}
+{{- printf "@sha256:%s" .Values.image.digest }}
+{{- else if .Values.image.tag }}
+{{- printf ":%s" .Values.image.tag }}
+{{- else }}
+{{- printf ":%s" .Chart.AppVersion }}
 {{- end }}
 {{- end }}
 
@@ -98,12 +98,12 @@ Calculate name of image ID to use for "grafana-agent".
 Calculate name of image ID to use for "config-reloader".
 */}}
 {{- define "config-reloader.imageId" -}}
-{{- if .Values.configReloader.image.digest -}}
-{{- print "@sha256:%s" .Values.configReloader.image.digest }}
-{{- if .Values.configReloader.image.tag -}}
-{{- print ":%s" .Values.configReloader.image.tag }}
-{{- else -}}
-{{- print ":%s" "v0.8.0" }}
+{{- if .Values.configReloader.image.digest }}
+{{- printf "@sha256:%s" .Values.configReloader.image.digest }}
+{{- if .Values.configReloader.image.tag }}
+{{- printf ":%s" .Values.configReloader.image.tag }}
+{{- else }}
+{{- printf ":%s" "v0.8.0" }}
 {{- end }}
 {{- end }}
 
