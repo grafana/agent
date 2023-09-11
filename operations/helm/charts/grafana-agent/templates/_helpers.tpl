@@ -100,7 +100,7 @@ Calculate name of image ID to use for "config-reloader".
 {{- define "config-reloader.imageId" -}}
 {{- if .Values.configReloader.image.digest }}
 {{- printf "@sha256:%s" .Values.configReloader.image.digest }}
-{{- if .Values.configReloader.image.tag }}
+{{- else if .Values.configReloader.image.tag }}
 {{- printf ":%s" .Values.configReloader.image.tag }}
 {{- else }}
 {{- printf ":%s" "v0.8.0" }}
