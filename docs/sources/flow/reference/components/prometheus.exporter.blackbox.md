@@ -167,4 +167,50 @@ Replace the following:
 - `USERNAME`: The username to use for authentication to the remote_write API.
 - `PASSWORD`: The password to use for authentication to the remote_write API.
 
+### Collect metrics using a blackbox exporter config file with extra labels
+
+This example will add an extra label `env="dev"` to the metrics emitted by the `grafana` target. The `example` target will not have any extra labels.
+
+prometheus.exporter.blackbox "example" {
+  config_file = "blackbox_modules.yml"
+
+  target "example" {
+    address = "http://example.com"
+    module  = "http_2xx"
+  }
+
+  target "grafana" {
+    address = "http://grafana.com"
+    module  = "http_2xx"
+    extra_labels = {
+      "env": "dev",
+    }
+  }
+}
+
+// Configure a prometheus.scrape component to collect Blackbox metrics.
+prometheus.scrape "demo" {
+  targets    = prometheus.exporter.blackbox.example.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
+```
+
+Replace the following:
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
+
+
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
