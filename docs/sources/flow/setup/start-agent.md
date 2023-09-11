@@ -103,7 +103,7 @@ brew services stop grafana-agent-flow
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
 `$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
 
-If you followed [Configure the Grafana Agent service](../setup/configure/configure-macos/#configure-the-grafana-agent-service)
+If you followed [Configure the Grafana Agent service](../setup/configure/configure-macos#configure-the-grafana-agent-service)
 and changed the path where logs are written, refer to your current copy of the Grafana Agent formula to locate your log files.
 
 ## Windows
