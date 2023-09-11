@@ -202,4 +202,15 @@ func TestBuildBlackboxTargetsWithExtraLabels(t *testing.T) {
 
 	require.Equal(t, "test", targets[0]["env"])
 	require.Equal(t, "bar", targets[0]["foo"])
+
+	// Check that the extra labels do not override existing labels
+	baseArgs.Targets[0].ExtraLabels = map[string]string{
+		"job": "test",
+		"instance": "test-instance",
+	}
+	args = component.Arguments(baseArgs)
+	targets = buildBlackboxTargets(baseTarget, args)
+	require.Equal(t, 1, len(targets))
+	require.Equal(t, "integrations/blackbox/target_a", targets[0]["job"])
+	require.Equal(t, "prometheus.exporter.blackbox.default", targets[0]["instance"])
 }

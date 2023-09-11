@@ -38,10 +38,11 @@ func buildBlackboxTargets(baseTarget discovery.Target, args component.Arguments)
 	a := args.(Arguments)
 	for _, tgt := range a.Targets {
 		target := make(discovery.Target)
-		for k, v := range baseTarget {
+		// Set extra labels first, meaning that any other labels will override
+		for k, v := range tgt.ExtraLabels {
 			target[k] = v
 		}
-		for k, v := range tgt.ExtraLabels {
+		for k, v := range baseTarget {
 			target[k] = v
 		}
 
