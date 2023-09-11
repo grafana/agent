@@ -205,7 +205,7 @@ func TestBuildBlackboxTargetsWithExtraLabels(t *testing.T) {
 
 	// Check that the extra labels do not override existing labels
 	baseArgs.Targets[0].ExtraLabels = map[string]string{
-		"job": "test",
+		"job":      "test",
 		"instance": "test-instance",
 	}
 	args = component.Arguments(baseArgs)
