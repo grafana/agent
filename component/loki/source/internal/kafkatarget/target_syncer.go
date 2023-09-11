@@ -300,6 +300,7 @@ func (ts *TargetSyncer) NewTarget(session sarama.ConsumerGroupSession, claim sar
 		ts.cfg.RelabelConfigs,
 		ts.client,
 		ts.cfg.KafkaConfig.UseIncomingTimestamp,
+		ts.cfg.KafkaConfig.RemoveMagicByte,
 		ts.messageParser,
 	)
 

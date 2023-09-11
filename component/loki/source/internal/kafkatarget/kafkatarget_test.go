@@ -213,7 +213,7 @@ func Test_TargetRun(t *testing.T) {
 				},
 			)
 
-			tg := NewKafkaTarget(nil, session, claim, tt.inDiscoveredLS, tt.inLS, tt.relabels, fc, true, &KafkaTargetMessageParser{})
+			tg := NewKafkaTarget(nil, session, claim, tt.inDiscoveredLS, tt.inLS, tt.relabels, fc, true, false, &KafkaTargetMessageParser{})
 
 			var wg sync.WaitGroup
 			wg.Add(1)

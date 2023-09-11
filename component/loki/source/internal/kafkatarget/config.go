@@ -42,6 +42,9 @@ type TargetConfig struct {
 	// Authentication strategy with Kafka brokers
 	Authentication Authentication `yaml:"authentication"`
 
+	// RemoveMagicByte will remove the magic byte from Kafka's consumed message.
+	RemoveMagicByte bool `yaml:"remove_magic_byte"`
+
 	MessageParser MessageParser
 }
 

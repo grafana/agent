@@ -36,6 +36,7 @@ type Arguments struct {
 	Version              string              `river:"version,attr,optional"`
 	Authentication       KafkaAuthentication `river:"authentication,block,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
+	RemoveMagicByte      bool                `river:"remove_magic_byte,attr,optional"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
 
 	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
@@ -77,6 +78,7 @@ var DefaultArguments = Arguments{
 		},
 	},
 	UseIncomingTimestamp: false,
+	RemoveMagicByte:      false,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -180,6 +182,7 @@ func (args *Arguments) Convert() kt.Config {
 		KafkaConfig: kt.TargetConfig{
 			Labels:               lbls,
 			UseIncomingTimestamp: args.UseIncomingTimestamp,
+			RemoveMagicByte:      args.RemoveMagicByte,
 			Brokers:              args.Brokers,
 			GroupID:              args.GroupID,
 			Topics:               args.Topics,

@@ -37,6 +37,7 @@ type KafkaTarget struct {
 	client               loki.EntryHandler
 	relabelConfig        []*relabel.Config
 	useIncomingTimestamp bool
+	removeMagicByte      bool
 	messageParser        MessageParser
 }
 
@@ -48,6 +49,7 @@ func NewKafkaTarget(
 	relabelConfig []*relabel.Config,
 	client loki.EntryHandler,
 	useIncomingTimestamp bool,
+	removeMagicByte bool,
 	messageParser MessageParser,
 ) *KafkaTarget {
 
@@ -61,19 +63,33 @@ func NewKafkaTarget(
 		client:               client,
 		relabelConfig:        relabelConfig,
 		useIncomingTimestamp: useIncomingTimestamp,
+		removeMagicByte:      removeMagicByte,
 		messageParser:        messageParser,
 	}
 }
 
 const (
-	defaultKafkaMessageKey  = "none"
-	labelKeyKafkaMessageKey = "__meta_kafka_message_key"
-	labelKeyKafkaOffset     = "__meta_kafka_message_offset"
+	defaultKafkaMessageKey   = "none"
+	kafkaWireFormatMagicByte = 0x00
+	labelKeyKafkaMessageKey  = "__meta_kafka_message_key"
+	labelKeyKafkaOffset      = "__meta_kafka_message_offset"
 )
 
 func (t *KafkaTarget) run() {
 	defer t.client.Stop()
 	for message := range t.claim.Messages() {
+		// Remove starting magic byte. This usually stems from producer using schema registry
+		if t.removeMagicByte {
+			// Wire format affects both message's key and value
+			// Source: https://docs.confluent.io/cloud/current/sr/fundamentals/serdes-develop/index.html#wire-format
+			if message.Key[0] == kafkaWireFormatMagicByte {
+				message.Key = message.Key[1:]
+			}
+			if message.Value[0] == kafkaWireFormatMagicByte {
+				message.Value = message.Value[1:]
+			}
+		}
+
 		mk := string(message.Key)
 		if len(mk) == 0 {
 			mk = defaultKafkaMessageKey
