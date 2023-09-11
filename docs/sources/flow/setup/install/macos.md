@@ -9,7 +9,7 @@ aliases:
 
 # Install Grafana Agent in flow mode on macOS
 
-You can install Grafana Agent in flow mode on macOS with Homebrew .
+You can install Grafana Agent in flow mode on macOS with Homebrew.
 
 {{% admonition type="note" %}}
 The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. To verify the default prefix for Homebrew on your computer, open a terminal window and type `brew --prefix`.
