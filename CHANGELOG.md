@@ -68,6 +68,7 @@ Main (unreleased)
   have been standardized. The first fields will always be `ts`, `level`, and
   `msg`, followed by non-common fields. Previously, the position of `msg` was
   not consistent. (@rfratto)
+- Agent Management: Respects Retry-After header for both 429 and 5xx status codes. (@ying-jeanne)
 
 v0.36.1 (2023-09-06)
 --------------------
