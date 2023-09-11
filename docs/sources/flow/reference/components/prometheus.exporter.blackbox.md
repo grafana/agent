@@ -83,7 +83,7 @@ debug metrics.
 ### Collect metrics using a blackbox exporter config file
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.exporter.blackbox`:
+from `prometheus.exporter.blackbox`. It adds an extra label `env="dev"` to the metrics emitted by the `grafana` target. The `example` target will not have any extra labels.
 
 ```river
 prometheus.exporter.blackbox "example" {
@@ -97,6 +97,9 @@ prometheus.exporter.blackbox "example" {
   target "grafana" {
     address = "http://grafana.com"
     module  = "http_2xx"
+    extra_labels = {
+      "env": "dev",
+    }
   }
 }
 
@@ -131,48 +134,6 @@ This example is the same above with using an embedded configuration:
 ```river
 prometheus.exporter.blackbox "example" {
   config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
-
-  target "example" {
-    address = "http://example.com"
-    module  = "http_2xx"
-  }
-
-  target "grafana" {
-    address = "http://grafana.com"
-    module  = "http_2xx"
-  }
-}
-
-// Configure a prometheus.scrape component to collect Blackbox metrics.
-prometheus.scrape "demo" {
-  targets    = prometheus.exporter.blackbox.example.targets
-  forward_to = [prometheus.remote_write.demo.receiver]
-}
-
-prometheus.remote_write "demo" {
-  endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
-
-    basic_auth {
-      username = USERNAME
-      password = PASSWORD
-    }
-  }
-}
-```
-
-Replace the following:
-
-- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-- `USERNAME`: The username to use for authentication to the remote_write API.
-- `PASSWORD`: The password to use for authentication to the remote_write API.
-
-### Collect metrics using a blackbox exporter config file with extra labels
-
-This example will add an extra label `env="dev"` to the metrics emitted by the `grafana` target. The `example` target will not have any extra labels.
-
-prometheus.exporter.blackbox "example" {
-  config_file = "blackbox_modules.yml"
 
   target "example" {
     address = "http://example.com"
