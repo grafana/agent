@@ -304,7 +304,7 @@ information.
 * `prometheus_remote_storage_exemplars_in_total` (counter): Exemplars read into
   remote storage.
 
-# Examples
+## Examples
 
 The following examples show you how to create `prometheus.remote_write` components that send metrics to different destinations.
 
