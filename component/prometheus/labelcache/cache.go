@@ -11,6 +11,7 @@ import (
 
 	"github.com/cockroachdb/pebble"
 	"github.com/go-kit/log"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/prometheus/prometheus/model/labels"
 )
 
@@ -25,6 +26,8 @@ type Cache struct {
 	localIDtoID *bucket
 	// The key is componentID + globalID
 	idToLocalID *bucket
+	lblToIDLRU  *lru.Cache[string, uint64]
+	IDtoLblLRU  *lru.Cache[uint64, []labels.Label]
 
 	l log.Logger
 
@@ -34,6 +37,9 @@ type Cache struct {
 
 func NewCache(directory string, l log.Logger) *Cache {
 	db, _ := pebble.Open(path.Join(directory, "labels"), &pebble.Options{})
+	li, _ := lru.New[string, uint64](1_000)
+	il, _ := lru.New[uint64, []labels.Label](1_000)
+
 	c := &Cache{
 		db:                 db,
 		remoteWriteMapping: newBucket(db, 1, "remote write mapping", l),
@@ -44,6 +50,8 @@ func NewCache(directory string, l log.Logger) *Cache {
 		localIDtoID: newBucket(db, 5, "component + local id to global id", l),
 		idToLocalID: newBucket(db, 6, "component + global id to local id", l),
 		l:           l,
+		lblToIDLRU:  li,
+		IDtoLblLRU:  il,
 	}
 	c.currentID = c.getCurrentID()
 	return c
@@ -55,24 +63,52 @@ func (c *Cache) WriteLabels(lbls [][]labels.Label, ttl time.Duration, mem *arena
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
+	// Our cache should be 3 times the size of our largest write. This is a made up ratio and subject to change.
+	lblCnt := len(lbls)
+	if (lblCnt * 3) > c.lblToIDLRU.Len() {
+		c.lblToIDLRU.Resize(lblCnt * 3)
+		c.IDtoLblLRU.Resize(lblCnt * 3)
+	}
+
 	// TODO think about if merge solves race condition.
 	// Also we can do many concurrent operations has long has they dont share labels/keys.
-	ts := time.Now().Unix() + int64(ttl.Seconds())
-	lblBuf := makeLabelBytes(lbls, mem)
+	//ts := time.Now().Unix() + int64(ttl.Seconds())
+	unknownLabels := make([][]labels.Label, 0)
+
+	returnKeys := make([]uint64, len(lbls))
+	for i := 0; i < len(lbls); i++ {
+		v, found := c.lblToIDLRU.Get((labels.Labels)(lbls[i]).String())
+		if found {
+			returnKeys[i] = v
+			continue
+		}
+		unknownLabels = append(unknownLabels, lbls[i])
+		returnKeys[i] = 0
+	}
+
+	lblBuf := makeLabelBytes(unknownLabels, mem)
 	keys, err := c.labelToID.getValues(lblBuf, mem)
 	if err != nil {
 		return nil, err
 	}
-	keys, err = c.writeNotFoundKeys(keys, lblBuf, mem)
-	buf := bytes.NewBuffer(nil)
-	pushUint64ByteSlice(keys, buf, mem)
-	ttlBuf := make([]byte, 8)
-	binary.PutVarint(ttlBuf, ts)
-	err = c.ttlToID.writeValues([][]byte{ttlBuf}, [][]byte{buf.Bytes()}, mem)
+
+	index := 0
+	for i := 0; i < len(lbls); i++ {
+		if returnKeys[i] != 0 {
+			continue
+		} else if keys[index] == nil {
+			index++
+			continue
+		}
+		nv, _ := binary.Uvarint(keys[index])
+		returnKeys[i] = nv
+		index++
+	}
+	returnKeys, err = c.writeNotFoundKeys(returnKeys, lblBuf, mem)
 	if err != nil {
 		return nil, err
 	}
-	return makeKeys(keys, mem), nil
+	return returnKeys, nil
 }
 
 // GetIDs will retrieve labels and create any that dont exist.
@@ -85,27 +121,39 @@ func (c *Cache) GetIDs(lbls [][]labels.Label, mem *arena.Arena) ([]uint64, error
 	if err != nil {
 		return nil, err
 	}
-	keyBytes, err = c.writeNotFoundKeys(keyBytes, lblBuf, mem)
+	keys := makeKeys(keyBytes, mem)
+	keys, err = c.writeNotFoundKeys(keys, lblBuf, mem)
 	if err != nil {
 		return nil, err
 	}
 	buf := bytes.NewBuffer(nil)
 	pushUint64ByteSlice(keyBytes, buf, mem)
 	// Set a TTL for 1 hour.
-	ts := time.Now().Unix() + int64(time.Hour.Seconds())
-	ttlBuf := make([]byte, 8)
-	binary.PutVarint(ttlBuf, ts)
-	err = c.ttlToID.writeValues([][]byte{ttlBuf}, [][]byte{buf.Bytes()}, mem)
-	return makeKeys(keyBytes, mem), nil
-
+	//ts := time.Now().Unix() + int64(time.Hour.Seconds())
+	//ttlBuf := make([]byte, 8)
+	//binary.PutVarint(ttlBuf, ts)
+	//err = c.ttlToID.writeValues([][]byte{ttlBuf}, [][]byte{buf.Bytes()}, mem)
+	return keys, err
 }
 
 func (c *Cache) GetLabels(keys []uint64, mem *arena.Arena) ([]labels.Labels, error) {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	keyBytes := arena.MakeSlice[[]byte](mem, len(keys), len(keys))
-	for i := 0; i < len(keys); i++ {
+	unfoundKeys := make([]uint64, 0)
+	lbls := make([]labels.Labels, len(keys))
+	for i, k := range keys {
+		v, found := c.IDtoLblLRU.Get(k)
+		if found {
+			lbls[i] = v
+		} else {
+			unfoundKeys = append(unfoundKeys, k)
+			lbls[i] = nil
+		}
+	}
+
+	keyBytes := arena.MakeSlice[[]byte](mem, len(unfoundKeys), len(unfoundKeys))
+	for i := 0; i < len(unfoundKeys); i++ {
 		buf := arena.MakeSlice[byte](mem, 8, 8)
 		binary.PutUvarint(buf, keys[i])
 		keyBytes[i] = buf
@@ -115,11 +163,17 @@ func (c *Cache) GetLabels(keys []uint64, mem *arena.Arena) ([]labels.Labels, err
 		return nil, err
 	}
 
-	returnLbls := arena.MakeSlice[labels.Labels](mem, len(keys), len(keys))
-	for i := 0; i < len(valueBytes); i++ {
-		returnLbls[i] = fetchLabels(valueBytes[i], mem)
+	index := 0
+
+	for i := 0; i < len(lbls); i++ {
+		if lbls[i] != nil {
+			continue
+		}
+		lbls[i] = fetchLabels(valueBytes[index], mem)
+		index++
 	}
-	return returnLbls, nil
+
+	return lbls, nil
 }
 
 func (c *Cache) GetOrAddLink(componentID string, localRefID uint64, lbls labels.Labels) uint64 {
@@ -157,8 +211,13 @@ func (c *Cache) GetOrAddLink(componentID string, localRefID uint64, lbls labels.
 	return keys[0]
 }
 func (c *Cache) GetOrAddGlobalRefID(l labels.Labels) uint64 {
+	v, found := c.lblToIDLRU.Get(l.String())
+	if found {
+		return v
+	}
 	mem := arena.NewArena()
 	defer mem.Free()
+
 	keys, _ := c.GetIDs([][]labels.Label{l}, mem)
 	return keys[0]
 }
@@ -172,12 +231,11 @@ func (c *Cache) GetGlobalRefID(componentID string, localRefID uint64) uint64 {
 	bb := arena.New[bytes.Buffer](mem)
 	pushString(componentID, bb, mem)
 	pushUint64(localRefID, bb, mem)
-
 	keyByte, _ := c.localIDtoID.getValues([][]byte{bb.Bytes()}, mem)
 	keys := makeKeys(keyByte, mem)
 	return keys[0]
-
 }
+
 func (c *Cache) GetLocalRefID(componentID string, globalRefID uint64) uint64 {
 	mem := arena.NewArena()
 	defer mem.Free()
@@ -192,16 +250,18 @@ func (c *Cache) GetLocalRefID(componentID string, globalRefID uint64) uint64 {
 	keyByte, _ := c.idToLocalID.getValues([][]byte{bb.Bytes()}, mem)
 	keys := makeKeys(keyByte, mem)
 	return keys[0]
-
 }
 
 func makeLabelBytes(lbls [][]labels.Label, mem *arena.Arena) [][]byte {
 	// Find all the existing labels.
 	lblBuf := arena.MakeSlice[[]byte](mem, len(lbls), len(lbls))
+	buf := arena.New[bytes.Buffer](mem)
 	for x, l := range lbls {
-		buf := arena.New[bytes.Buffer](mem)
 		pushLabels(l, buf, mem)
-		lblBuf[x] = buf.Bytes()
+		tmpBuf := arena.MakeSlice[byte](mem, buf.Len(), buf.Len())
+		copy(tmpBuf, buf.Bytes())
+		lblBuf[x] = tmpBuf
+		buf.Reset()
 	}
 	return lblBuf
 }
@@ -215,19 +275,21 @@ func makeKeys(keyBytes [][]byte, mem *arena.Arena) []uint64 {
 	return returnIDs
 }
 
-func (c *Cache) writeNotFoundKeys(keys [][]byte, lblBuf [][]byte, mem *arena.Arena) ([][]byte, error) {
+func (c *Cache) writeNotFoundKeys(keys []uint64, lblBuf [][]byte, mem *arena.Arena) ([]uint64, error) {
 	// Since we dont know the labels we need to make declare a growable array.
 	lblsToWrite := make([][]byte, 0)
 	keysToWrite := make([][]byte, 0)
 
 	// For anything without a key get a new one.
 	for i := 0; i < len(keys); i++ {
-		if keys[i] != nil {
+		if keys[i] != 0 {
 			continue
 		}
-		keys[i] = c.getByteForNextKey(mem)
+		keys[i] = c.getNextKey()
 		lblsToWrite = append(lblsToWrite, lblBuf[i])
-		keysToWrite = append(keysToWrite, keys[i])
+		buf := make([]byte, 8, 8)
+		binary.PutUvarint(buf, keys[i])
+		keysToWrite = append(keysToWrite, buf)
 	}
 
 	err := c.labelToID.writeValues(lblsToWrite, keysToWrite, mem)
@@ -239,7 +301,18 @@ func (c *Cache) writeNotFoundKeys(keys [][]byte, lblBuf [][]byte, mem *arena.Are
 	if err != nil {
 		return nil, err
 	}
+	c.updateLRU(keysToWrite, lblsToWrite)
 	return keys, nil
+}
+
+func (c *Cache) updateLRU(keys [][]byte, lbls [][]byte) {
+
+	for i := 0; i < len(keys); i++ {
+		k, _ := binary.Uvarint(keys[i])
+		l := fetchLabelsNoArena(lbls[i])
+		c.IDtoLblLRU.Add(k, l)
+		c.lblToIDLRU.Add(((labels.Labels)(l)).String(), k)
+	}
 }
 
 func (c *Cache) getCurrentID() uint64 {
@@ -254,10 +327,19 @@ func (c *Cache) getCurrentID() uint64 {
 func (c *Cache) getByteForNextKey(mem *arena.Arena) []byte {
 	c.idMut.Lock()
 	defer c.idMut.Unlock()
+
 	c.currentID = c.currentID + 1
 	buf := arena.MakeSlice[byte](mem, 8, 8)
 	binary.PutUvarint(buf, c.currentID)
 	return buf
+}
+
+func (c *Cache) getNextKey() uint64 {
+	c.idMut.Lock()
+	defer c.idMut.Unlock()
+
+	c.currentID = c.currentID + 1
+	return c.currentID
 }
 
 func pushLabels(lbl labels.Labels, buf *bytes.Buffer, mem *arena.Arena) {
@@ -280,15 +362,21 @@ func fetchLabels(b []byte, mem *arena.Arena) []labels.Label {
 	return lbls
 }
 
+func fetchLabelsNoArena(b []byte) []labels.Label {
+	buf := bytes.NewBuffer(b)
+	count := fetchUInt16NoArena(buf)
+	lbls := make([]labels.Label, count)
+	for i := 0; i < int(count); i++ {
+		name := fetchStringNoArena(buf)
+		value := fetchStringNoArena(buf)
+		lbls[i] = labels.Label{Name: name, Value: value}
+	}
+	return lbls
+}
+
 func pushUInt16(v uint16, buf *bytes.Buffer, mem *arena.Arena) {
 	tmp := arena.MakeSlice[byte](mem, 2, 2)
 	binary.BigEndian.PutUint16(tmp, v)
-	buf.Write(tmp)
-}
-
-func pushInt64(v int64, buf *bytes.Buffer, mem *arena.Arena) {
-	tmp := arena.MakeSlice[byte](mem, 8, 8)
-	binary.PutVarint(tmp, v)
 	buf.Write(tmp)
 }
 
@@ -324,6 +412,13 @@ func fetchUInt16(buf *bytes.Buffer, mem *arena.Arena) uint16 {
 	return ret
 }
 
+func fetchUInt16NoArena(buf *bytes.Buffer) uint16 {
+	tmp := make([]byte, 2)
+	_, _ = buf.Read(tmp)
+	ret := binary.BigEndian.Uint16(tmp)
+	return ret
+}
+
 func fetchInt64(buf *bytes.Buffer, mem *arena.Arena) int64 {
 	tmp := arena.MakeSlice[byte](mem, 8, 8)
 	_, _ = buf.Read(tmp)
@@ -334,6 +429,13 @@ func fetchInt64(buf *bytes.Buffer, mem *arena.Arena) int64 {
 func fetchString(buf *bytes.Buffer, mem *arena.Arena) string {
 	length := fetchUInt16(buf, mem)
 	tmp := arena.MakeSlice[byte](mem, int(length), int(length))
+	_, _ = buf.Read(tmp)
+	return toString(&tmp)
+}
+
+func fetchStringNoArena(buf *bytes.Buffer) string {
+	length := fetchUInt16NoArena(buf)
+	tmp := make([]byte, length)
 	_, _ = buf.Read(tmp)
 	return toString(&tmp)
 }

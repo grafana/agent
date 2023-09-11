@@ -24,8 +24,8 @@ prometheus.test.metrics "large" {
 
 prometheus.test.metrics "churn" {
     number_of_instances = 2
-    number_of_metrics = 20000
+    number_of_metrics = 40000
     number_of_labels = 12
-    metrics_refresh = "1m"
-    churn_percent = 0.50
+    metrics_refresh = "30s"
+    churn_percent = 1.0
 }

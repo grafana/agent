@@ -26,6 +26,7 @@ type Service struct {
 
 func New(opts Options) *Service {
 	c := labelcache.NewCache(opts.Directory, opts.Logger)
+
 	return &Service{
 		cache: c,
 	}
