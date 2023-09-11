@@ -50,7 +50,7 @@ To upgrade Grafana Agent on macOS, run the following commands in a terminal wind
 1. Restart Grafana Agent:
 
    ```shell
-   brew services restart grafana-agent
+   brew services restart grafana-agent-flow
    ```
 
 ## Uninstall
