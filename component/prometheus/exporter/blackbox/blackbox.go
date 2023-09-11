@@ -41,6 +41,9 @@ func buildBlackboxTargets(baseTarget discovery.Target, args component.Arguments)
 		for k, v := range baseTarget {
 			target[k] = v
 		}
+		for k, v := range tgt.ExtraLabels {
+			target[k] = v
+		}
 
 		target["job"] = target["job"] + "/" + tgt.Name
 		target["__param_target"] = tgt.Target
@@ -62,9 +65,10 @@ var DefaultArguments = Arguments{
 
 // BlackboxTarget defines a target to be used by the exporter.
 type BlackboxTarget struct {
-	Name   string `river:",label"`
-	Target string `river:"address,attr"`
-	Module string `river:"module,attr,optional"`
+	Name        string            `river:",label"`
+	Target      string            `river:"address,attr"`
+	Module      string            `river:"module,attr,optional"`
+	ExtraLabels map[string]string `river:"extra_labels,attr,optional"`
 }
 
 type TargetBlock []BlackboxTarget
