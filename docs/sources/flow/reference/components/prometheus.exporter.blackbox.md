@@ -83,7 +83,7 @@ debug metrics.
 ### Collect metrics using a blackbox exporter config file
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.exporter.blackbox`. It adds an extra label `env="dev"` to the metrics emitted by the `grafana` target. The `example` target will not have any extra labels.
+from `prometheus.exporter.blackbox`. It adds an extra label, `env="dev"`, to the metrics emitted by the `grafana` target. The `example` target does not have any extra labels.
 
 ```river
 prometheus.exporter.blackbox "example" {
