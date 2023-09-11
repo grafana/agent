@@ -8,14 +8,15 @@ import (
 	"math"
 	"unsafe"
 
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 )
 
 //var bufPool = pebble.NewArrayBufferPool()
 
 type sample struct {
-	L         []byte
-	Hash      [16]byte
+	L         []labels.Label
+	ID        uint64
 	TimeStamp int64
 	Value     float64
 }
@@ -24,7 +25,7 @@ func (s *sample) Marshal(buf *bytes.Buffer, mem *arena.Arena) {
 	pushUInt16(1, buf, mem)
 	pushInt64(s.TimeStamp, buf, mem)
 	pushFloat64(s.Value, buf, mem)
-	pushHash(s.Hash, buf, mem)
+	pushUint64(s.ID, buf, mem)
 }
 
 func Unmarshal(s *sample, buf *bytes.Buffer, mem *arena.Arena) error {
@@ -34,7 +35,7 @@ func Unmarshal(s *sample, buf *bytes.Buffer, mem *arena.Arena) error {
 	}
 	s.TimeStamp = fetchInt64(buf, mem)
 	s.Value = fetchFloat64(buf, mem)
-	s.Hash = fetchHash(s.Hash, buf, mem)
+	s.ID = fetchUint64(buf, mem)
 	return nil
 }
 
@@ -67,6 +68,12 @@ func unmarshalSamples(buf *bytes.Buffer, mem *arena.Arena) ([]*sample, error) {
 func pushUInt16(v uint16, buf *bytes.Buffer, mem *arena.Arena) {
 	tmp := arena.MakeSlice[byte](mem, 2, 2)
 	binary.BigEndian.PutUint16(tmp, v)
+	buf.Write(tmp)
+}
+
+func pushUint64(v uint64, buf *bytes.Buffer, mem *arena.Arena) {
+	tmp := arena.MakeSlice[byte](mem, 8, 8)
+	binary.PutUvarint(tmp, v)
 	buf.Write(tmp)
 }
 
@@ -117,6 +124,13 @@ func fetchInt64(buf *bytes.Buffer, mem *arena.Arena) int64 {
 	tmp := arena.MakeSlice[byte](mem, 8, 8)
 	buf.Read(tmp)
 	ret, _ := binary.Varint(tmp)
+	return ret
+}
+
+func fetchUint64(buf *bytes.Buffer, mem *arena.Arena) uint64 {
+	tmp := arena.MakeSlice[byte](mem, 8, 8)
+	buf.Read(tmp)
+	ret, _ := binary.Uvarint(tmp)
 	return ret
 }
 

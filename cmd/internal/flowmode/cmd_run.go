@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path"
 	"strings"
 	"sync"
 	"syscall"
@@ -26,6 +27,7 @@ import (
 	"github.com/grafana/agent/service"
 	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/labelcache"
 	uiservice "github.com/grafana/agent/service/ui"
 	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
@@ -225,6 +227,11 @@ func (fr *flowRun) Run(configFile string) error {
 		Cluster:  clusterService.Data().(cluster.Cluster),
 	})
 
+	labelService := labelcache.New(labelcache.Options{
+		Logger:    log.With(l, "service", "label"),
+		Directory: path.Join(fr.storagePath, "labelcache"),
+	})
+
 	f := flow.New(flow.Options{
 		Logger:   l,
 		Tracer:   t,
@@ -234,6 +241,7 @@ func (fr *flowRun) Run(configFile string) error {
 			httpService,
 			uiService,
 			clusterService,
+			labelService,
 		},
 	})
 

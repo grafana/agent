@@ -3,6 +3,7 @@ package relabel
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/service/labelcache"
 	"sync"
 
 	"go.uber.org/atomic"
@@ -25,9 +26,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.relabel",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:          "prometheus.relabel",
+		Args:          Arguments{},
+		Exports:       Exports{},
+		NeedsServices: []string{"labelcache"},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -77,6 +79,7 @@ type Component struct {
 
 	cacheMut sync.RWMutex
 	cache    *lru.Cache[uint64, *labelAndID]
+	lblCache labelcache.Data
 }
 
 var (
@@ -85,13 +88,19 @@ var (
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	lc, err := o.GetServiceData("labelcache")
+	if err != nil {
+		return nil, err
+	}
+	data := lc.(labelcache.Data)
 	cache, err := lru.New[uint64, *labelAndID](100_000)
 	if err != nil {
 		return nil, err
 	}
 	c := &Component{
-		opts:  o,
-		cache: cache,
+		opts:     o,
+		cache:    cache,
+		lblCache: data,
 	}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
@@ -125,9 +134,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		}
 	}
 
-	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
+	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, data)
 	c.receiver = prometheus.NewInterceptor(
 		c.fanout,
+		data,
 		prometheus.WithAppendHook(func(_ storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
@@ -214,7 +224,7 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	globalRef := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
+	globalRef := c.lblCache.GetOrAddGlobalRefID(lbls)
 	var (
 		relabelled labels.Labels
 		keep       bool
@@ -276,7 +286,7 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool)
 		c.cache.Add(originalID, nil)
 		return
 	}
-	newGlobal := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
+	newGlobal := c.lblCache.GetOrAddGlobalRefID(lbls)
 	c.cache.Add(originalID, &labelAndID{
 		labels: lbls,
 		id:     newGlobal,

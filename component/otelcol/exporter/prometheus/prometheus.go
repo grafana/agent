@@ -4,6 +4,7 @@ package prometheus
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/service/labelcache"
 	"sync"
 	"time"
 
@@ -18,10 +19,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.exporter.prometheus",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
-
+		Name:          "otelcol.exporter.prometheus",
+		Args:          Arguments{},
+		Exports:       otelcol.ConsumerExports{},
+		NeedsServices: []string{"labelcache"},
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))
 		},
@@ -64,6 +65,7 @@ type Component struct {
 
 	fanout    *prometheus.Fanout
 	converter *convert.Converter
+	cache     labelcache.Data
 
 	mut sync.RWMutex
 	cfg Arguments
@@ -73,7 +75,12 @@ var _ component.Component = (*Component)(nil)
 
 // New creates a new otelcol.exporter.prometheus component.
 func New(o component.Options, c Arguments) (*Component, error) {
-	fanout := prometheus.NewFanout(nil, o.ID, o.Registerer)
+	lc, err := o.GetServiceData("labelcache")
+	if err != nil {
+		return nil, err
+	}
+	data := lc.(labelcache.Data)
+	fanout := prometheus.NewFanout(nil, o.ID, o.Registerer, data)
 
 	converter := convert.New(o.Logger, fanout, convert.Options{
 		IncludeTargetInfo: true,

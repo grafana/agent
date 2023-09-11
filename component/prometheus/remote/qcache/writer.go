@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/service/labelcache"
 	"github.com/prometheus/prometheus/prompb"
 )
 
@@ -24,9 +25,10 @@ type writer struct {
 	ctx         context.Context
 	bookmarkKey string
 	l           log.Logger
+	cache       labelcache.Data
 }
 
-func newWriter(parent string, to *QueueManager, store *dbstore, l log.Logger) *writer {
+func newWriter(parent string, to *QueueManager, store *dbstore, cache labelcache.Data, l log.Logger) *writer {
 	name := fmt.Sprintf("metrics_write_to_%s_parent_%s", to.Name(), parent)
 	w := &writer{
 		parentId:    parent,
@@ -36,6 +38,7 @@ func newWriter(parent string, to *QueueManager, store *dbstore, l log.Logger) *w
 		store:       store,
 		bookmarkKey: name,
 		l:           log.With(l, "name", name),
+		cache:       cache,
 	}
 
 	v, found := w.store.GetBookmark(w.bookmarkKey)
@@ -112,17 +115,19 @@ func (w *writer) send(val []byte, ctx context.Context) (success bool, recoverabl
 
 	var err error
 	samples, err := unmarshalSamples(bytes.NewBuffer(val), mem)
-	for _, s := range samples {
-		s.L, err = w.store.GetHashValue(s.Hash)
-		if err != nil {
-			level.Error(w.l).Log("msg", "unable to find hash", "err", err)
-			return false, false
-		}
+	ids := arena.MakeSlice[uint64](mem, len(samples), len(samples))
+	for x, s := range samples {
+		ids[x] = s.ID
 	}
+
+	lbls, err := w.cache.GetLabels(ids, mem)
 	if err != nil {
-		level.Error(w.l).Log("msg", "error decoding samples", "err", err)
 		return false, false
 	}
+	for x, s := range samples {
+		s.L = lbls[x]
+	}
+
 	wr := arena.New[prompb.WriteRequest](mem)
 	makeWriteRequest(samples, wr)
 	success, err = w.to.Append(ctx, wr.Timeseries)
@@ -171,7 +176,7 @@ func makeWriteRequest(samples []*sample, wr *prompb.WriteRequest) {
 
 	wr.Timeseries = wr.Timeseries[:len(samples)]
 	for i, s := range samples {
-		wr.Timeseries[i].Labels = bytesToLabels(s.L, wr.Timeseries[i].Labels)
+		wr.Timeseries[i].Labels = labelsToLabelsProto(s.L, wr.Timeseries[i].Labels)
 		wr.Timeseries[i].Samples[0].Value = s.Value
 		wr.Timeseries[i].Samples[0].Timestamp = s.TimeStamp
 	}

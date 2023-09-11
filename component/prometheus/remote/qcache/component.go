@@ -11,18 +11,21 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/remote/queue/pebble"
+	"github.com/grafana/agent/service/labelcache"
 	"github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:      "prometheus.remote.qcache",
-		Singleton: false,
-		Args:      Arguments{},
-		Exports:   Exports{},
+		Name:          "prometheus.remote.qcache",
+		Singleton:     false,
+		Args:          Arguments{},
+		Exports:       Exports{},
+		NeedsServices: []string{"labelcache"},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return NewComponent(opts, args.(Arguments))
 		},
@@ -34,10 +37,15 @@ func NewComponent(opts component.Options, args Arguments) (*Queue, error) {
 	if err != nil {
 		return nil, err
 	}
+	lc, err := opts.GetServiceData("labelcache")
+	if err != nil {
+		return nil, err
+	}
 	s := &Queue{
-		database: database,
-		opts:     opts,
-		pool:     pebble.NewByteBufferPool(),
+		database:   database,
+		opts:       opts,
+		pool:       pebble.NewByteBufferPool(),
+		labelCache: lc.(labelcache.Data),
 	}
 
 	return s, s.Update(args)
@@ -53,6 +61,7 @@ type Queue struct {
 	wr         *writer
 	testClient WriteClient
 	pool       *pebble.ByteBufferPool
+	labelCache labelcache.Data
 }
 
 // Run starts the component, blocking until ctx is canceled or the component
@@ -64,7 +73,7 @@ func (s *Queue) Run(ctx context.Context) error {
 		return err
 	}
 	go s.database.Run(ctx)
-	wr := newWriter(s.opts.ID, qm, s.database, s.opts.Logger)
+	wr := newWriter(s.opts.ID, qm, s.database, s.labelCache, s.opts.Logger)
 	s.wr = wr
 	go wr.Start(ctx)
 	go qm.Start()
@@ -163,12 +172,19 @@ func (c *Queue) commit(a *appender) {
 	mem := arena.NewArena()
 	defer mem.Free()
 	// Write cache information.
-	for _, s := range a.samples {
-		s.Hash, err = c.database.WriteHash(s.L)
-		if err != nil {
-			return
-		}
+	lbls := arena.MakeSlice[[]labels.Label](mem, len(a.samples), len(a.samples))
+	for i, s := range a.samples {
+		lbls[i] = s.L
 	}
+	ids, err := c.labelCache.WriteLabels(lbls, c.args.TTL, mem)
+	if err != nil {
+		level.Error(c.opts.Logger).Log("msg", "unable to write labels to cache", "err", err)
+		return
+	}
+	for i := 0; i < len(ids); i++ {
+		a.samples[i].ID = ids[i]
+	}
+
 	for {
 		end := 0
 		if start+c.args.BatchSize >= len(a.samples) {
@@ -184,11 +200,7 @@ func (c *Queue) commit(a *appender) {
 		if err != nil {
 			return
 		}
-		key, _ := c.database.WriteSignal(buf.Bytes(), 1, len(toEnc))
-		// Update our last seen.
-		for _, k := range toEnc {
-			c.database.WriteLastSeen(k.Hash, key)
-		}
+		_, _ = c.database.WriteSignal(buf.Bytes(), 1, len(toEnc))
 		buf.Reset()
 		start = end
 		if start == len(a.samples) {

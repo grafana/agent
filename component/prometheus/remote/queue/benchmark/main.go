@@ -73,15 +73,15 @@ func startRun(name string, allowWAL bool, run time.Duration, discovery string) {
 	defer queue.Wait()
 	defer syscall.Kill(-queue.Process.Pid, syscall.SIGKILL)
 	defer os.RemoveAll("~/bench/queue-data")
-	/*
-		cache := startQCacheAgent()
-		fmt.Println("start cache agent")
-		defer cache.Process.Kill()
-		defer cache.Process.Release()
-		defer cache.Wait()
-		defer syscall.Kill(-cache.Process.Pid, syscall.SIGKILL)
-		defer os.RemoveAll("~/bench/qcache-data")
-	*/
+
+	cache := startQCacheAgent()
+	fmt.Println("start cache agent")
+	defer cache.Process.Kill()
+	defer cache.Process.Release()
+	defer cache.Wait()
+	defer syscall.Kill(-cache.Process.Pid, syscall.SIGKILL)
+	defer os.RemoveAll("~/bench/qcache-data")
+
 	time.Sleep(run)
 }
 

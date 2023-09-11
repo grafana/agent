@@ -3,6 +3,7 @@ package scrape
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/service/labelcache"
 	"net/url"
 	"sync"
 	"time"
@@ -31,7 +32,7 @@ func init() {
 	component.Register(component.Registration{
 		Name:          "prometheus.scrape",
 		Args:          Arguments{},
-		NeedsServices: []string{http.ServiceName, cluster.ServiceName},
+		NeedsServices: []string{http.ServiceName, cluster.ServiceName, "labelcache"},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -133,6 +134,11 @@ var (
 
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	lc, err := o.GetServiceData("labelcache")
+	if err != nil {
+		return nil, err
+	}
+	ldata := lc.(labelcache.Data)
 	data, err := o.GetServiceData(http.ServiceName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get information about HTTP server: %w", err)
@@ -145,7 +151,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 	clusterData := data.(cluster.Cluster)
 
-	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
+	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, ldata)
 	scrapeOptions := &scrape.Options{
 		ExtraMetrics: args.ExtraMetrics,
 		HTTPClientOptions: []config_util.HTTPClientOption{

@@ -26,6 +26,6 @@ prometheus.test.metrics "churn" {
     number_of_instances = 2
     number_of_metrics = 20000
     number_of_labels = 12
-    metrics_refresh = "10m"
+    metrics_refresh = "1m"
     churn_percent = 0.50
 }

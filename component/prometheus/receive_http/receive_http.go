@@ -3,6 +3,7 @@ package receive_http
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/service/labelcache"
 	"net/http"
 	"reflect"
 	"sync"
@@ -20,8 +21,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "prometheus.receive_http",
-		Args: Arguments{},
+		Name:          "prometheus.receive_http",
+		Args:          Arguments{},
+		NeedsServices: []string{"labelcache"},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -49,10 +51,15 @@ type Component struct {
 	updateMut sync.RWMutex
 	args      Arguments
 	server    *fnet.TargetServer
+	cache     labelcache.Data
 }
 
 func New(opts component.Options, args Arguments) (*Component, error) {
-	fanout := agentprom.NewFanout(args.ForwardTo, opts.ID, opts.Registerer)
+	lc, err := opts.GetServiceData("labelcache")
+	if err != nil {
+		return nil, err
+	}
+	fanout := agentprom.NewFanout(args.ForwardTo, opts.ID, opts.Registerer, lc.(labelcache.Data))
 
 	uncheckedCollector := util.NewUncheckedCollector(nil)
 	opts.Registerer.MustRegister(uncheckedCollector)

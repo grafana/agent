@@ -3,6 +3,7 @@ package common
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/service/labelcache"
 	"sync"
 	"time"
 
@@ -21,6 +22,7 @@ type Component struct {
 	opts      component.Options
 	healthMut sync.RWMutex
 	health    component.Health
+	lblCache  labelcache.Data
 
 	kind    string
 	cluster cluster.Cluster
@@ -33,11 +35,18 @@ func New(o component.Options, args component.Arguments, kind string) (*Component
 	}
 	clusterData := data.(cluster.Cluster)
 
+	lc, err := o.GetServiceData("labelcache")
+	if err != nil {
+		return nil, err
+	}
+	ldata := lc.(labelcache.Data)
+
 	c := &Component{
 		opts:     o,
 		onUpdate: make(chan struct{}, 1),
 		kind:     kind,
 		cluster:  clusterData,
+		lblCache: ldata,
 	}
 	return c, c.Update(args)
 }
@@ -74,7 +83,7 @@ func (c *Component) Run(ctx context.Context) error {
 			c.reportHealth(err)
 		case <-c.onUpdate:
 			c.mut.Lock()
-			manager := newCrdManager(c.opts, c.cluster, c.opts.Logger, c.config, c.kind)
+			manager := newCrdManager(c.opts, c.cluster, c.opts.Logger, c.config, c.kind, c.lblCache)
 			c.manager = manager
 			if cancel != nil {
 				cancel()

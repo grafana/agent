@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/grafana/agent/service/labelcache"
 	"sort"
 	"strings"
 	"sync"
@@ -48,10 +49,11 @@ type crdManager struct {
 	scrapeManager     *scrape.Manager
 	clusteringUpdated chan struct{}
 
-	opts    component.Options
-	logger  log.Logger
-	args    *operator.Arguments
-	cluster cluster.Cluster
+	opts     component.Options
+	logger   log.Logger
+	args     *operator.Arguments
+	cluster  cluster.Cluster
+	lblCache labelcache.Data
 
 	client *kubernetes.Clientset
 
@@ -64,7 +66,7 @@ const (
 	KindProbe          string = "probe"
 )
 
-func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.Logger, args *operator.Arguments, kind string) *crdManager {
+func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.Logger, args *operator.Arguments, kind string, cache labelcache.Data) *crdManager {
 	switch kind {
 	case KindPodMonitor, KindServiceMonitor, KindProbe:
 	default:
@@ -80,6 +82,7 @@ func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.L
 		debugInfo:         map[string]*operator.DiscoveredResource{},
 		kind:              kind,
 		clusteringUpdated: make(chan struct{}, 1),
+		lblCache:          cache,
 	}
 }
 
@@ -103,7 +106,7 @@ func (c *crdManager) Run(ctx context.Context) error {
 	}()
 
 	// Start prometheus scrape manager.
-	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer)
+	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer, c.lblCache)
 	opts := &scrape.Options{}
 	c.scrapeManager = scrape.NewManager(opts, c.logger, flowAppendable)
 	defer c.scrapeManager.Stop()

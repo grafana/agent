@@ -44,10 +44,8 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	b := a.parent.pool.Get()
 	defer a.parent.pool.Put(b)
 
-	// TODO use arena
-	buf := make([]byte, 0)
 	a.samples = append(a.samples, &sample{
-		L:         l.Bytes(buf),
+		L:         l,
 		TimeStamp: t,
 		Value:     v,
 	})
