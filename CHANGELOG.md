@@ -57,7 +57,7 @@ Main (unreleased)
 - `loki.source.kafka` component now exposes internal label `__meta_kafka_offset`
   to indicate offset of consumed message. (@hainenber)
 
-- Add a`start_from_eof` attribute in `loki.source.file` to add the option to start tailing a file from the end if a cached position is not found.
+- Add a`start_from_eof` attribute in `loki.source.file` to have the option to start tailing a file from the end if a cached position is not found.
   This is valuable when you want to tail a large file without reading its entire content. (@wildum)
 
 ### Other changes
