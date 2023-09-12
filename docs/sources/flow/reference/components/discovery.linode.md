@@ -157,6 +157,15 @@ discovery.relabel "private_ips" {
 }
 prometheus.scrape "demo" {
 	targets    = discovery.relabel.private_ips.targets
-	forward_to = [...]
+	forward_to = [prometheus.remote_write.demo.receiver]
+}
+prometheus.remote_write "demo" {
+	endpoint {
+		url = PROMETHEUS_REMOTE_WRITE_URL
+		basic_auth {
+			username = USERNAME
+			password = PASSWORD
+		}
+	}
 }
 ```
