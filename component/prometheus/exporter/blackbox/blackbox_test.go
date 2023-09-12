@@ -178,7 +178,7 @@ func TestBuildBlackboxTargetsWithExtraLabels(t *testing.T) {
 			Name:   "target_a",
 			Target: "http://example.com",
 			Module: "http_2xx",
-			ExtraLabels: map[string]string{
+			Labels: map[string]string{
 				"env": "test",
 				"foo": "bar",
 			},
@@ -204,7 +204,7 @@ func TestBuildBlackboxTargetsWithExtraLabels(t *testing.T) {
 	require.Equal(t, "bar", targets[0]["foo"])
 
 	// Check that the extra labels do not override existing labels
-	baseArgs.Targets[0].ExtraLabels = map[string]string{
+	baseArgs.Targets[0].Labels = map[string]string{
 		"job":      "test",
 		"instance": "test-instance",
 	}

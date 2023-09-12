@@ -39,7 +39,7 @@ func buildBlackboxTargets(baseTarget discovery.Target, args component.Arguments)
 	for _, tgt := range a.Targets {
 		target := make(discovery.Target)
 		// Set extra labels first, meaning that any other labels will override
-		for k, v := range tgt.ExtraLabels {
+		for k, v := range tgt.Labels {
 			target[k] = v
 		}
 		for k, v := range baseTarget {
@@ -66,10 +66,10 @@ var DefaultArguments = Arguments{
 
 // BlackboxTarget defines a target to be used by the exporter.
 type BlackboxTarget struct {
-	Name        string            `river:",label"`
-	Target      string            `river:"address,attr"`
-	Module      string            `river:"module,attr,optional"`
-	ExtraLabels map[string]string `river:"extra_labels,attr,optional"`
+	Name   string            `river:",label"`
+	Target string            `river:"address,attr"`
+	Module string            `river:"module,attr,optional"`
+	Labels map[string]string `river:"labels,attr,optional"`
 }
 
 type TargetBlock []BlackboxTarget
