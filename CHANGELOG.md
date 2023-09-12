@@ -21,6 +21,11 @@ Main (unreleased)
 
 - Static mode Windows Certificate Filter no longer restricted to TLS 1.2 and specific cipher suites. (@mattdurham)
 
+- The `__meta_agent_integration*` and `__meta_agent_hostname` labels have been
+  removed from the targets exposed by `prometheus.exporter.*` components and
+  got replaced by the pair of `__meta_component_name` and `__meta_component_id`
+  labels. (@tpaschalis)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -105,7 +110,10 @@ Main (unreleased)
 - Agent Management: Honor 503 ServiceUnavailable `Retry-After` header. (@jcreixell)
 
 - Added `scrape` block to customize the default behavior of `prometheus.operator.podmonitors`, `prometheus.operator.probes`, and `prometheus.operator.servicemonitors`. (@sberz)
-=======
+
+- The `instance` label of targets exposed by `prometheus.exporter.*` components
+  is now more representative of what is being monitored. (@tpaschalis)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
