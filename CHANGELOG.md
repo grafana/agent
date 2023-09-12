@@ -59,6 +59,9 @@ Main (unreleased)
 
 - `grafana-agent`'s Helm chart can use image's digest in place of tag. (@hainenber)
 
+- Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
+
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)

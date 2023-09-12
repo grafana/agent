@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/
+- /docs/grafana-cloud/monitor-infrastructure/agent/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/
 canonical: https://grafana.com/docs/agent/latest/
 title: Grafana Agent
 weight: 350
