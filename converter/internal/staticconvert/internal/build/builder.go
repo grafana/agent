@@ -53,7 +53,12 @@ func NewIntegrationsV1ConfigBuilder(f *builder.File, diags *diag.Diagnostics, cf
 	}
 }
 
-func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
+func (b *IntegrationsV1ConfigBuilder) Build() {
+	b.appendIntegrations()
+	b.appendLogging(b.cfg.Server)
+}
+
+func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
 	for _, integration := range b.cfg.Integrations.ConfigV1.Integrations {
 		if !integration.Common.Enabled {
 			continue

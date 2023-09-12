@@ -158,7 +158,7 @@ func appendStaticIntegrationsV1(f *builder.File, staticConfig *config.Config) di
 	var diags diag.Diagnostics
 
 	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
-	b.AppendIntegrations()
+	b.Build()
 
 	return diags
 }

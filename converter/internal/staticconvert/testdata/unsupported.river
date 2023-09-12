@@ -35,3 +35,8 @@ prometheus.remote_write "integrations" {
 		metadata_config { }
 	}
 }
+
+logging {
+	level  = "debug"
+	format = "json"
+}
