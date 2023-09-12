@@ -87,7 +87,7 @@ debug metrics.
 ### Collect metrics using a blackbox exporter config file
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.exporter.blackbox`:
+from `prometheus.exporter.blackbox`. It adds an extra label, `env="dev"`, to the metrics emitted by the `grafana` target. The `example` target does not have any added labels.
 
 ```river
 prometheus.exporter.blackbox "example" {
@@ -101,6 +101,9 @@ prometheus.exporter.blackbox "example" {
   target "grafana" {
     address = "http://grafana.com"
     module  = "http_2xx"
+    labels = {
+      "env": "dev",
+    }
   }
 }
 
@@ -144,6 +147,9 @@ prometheus.exporter.blackbox "example" {
   target "grafana" {
     address = "http://grafana.com"
     module  = "http_2xx"
+    labels = {
+      "env": "dev",
+    }
   }
 }
 
@@ -170,5 +176,6 @@ Replace the following:
 - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
 - `USERNAME`: The username to use for authentication to the remote_write API.
 - `PASSWORD`: The password to use for authentication to the remote_write API.
+
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
