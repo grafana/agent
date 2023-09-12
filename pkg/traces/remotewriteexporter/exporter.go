@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
+	util "github.com/grafana/agent/pkg/util/log"
 	"github.com/prometheus/prometheus/model/labels"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"

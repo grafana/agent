@@ -45,9 +45,14 @@ func Test(t *testing.T) {
 				insecure_skip_verify = true
 			}
 		}
+
+		debug_metrics {
+			disable_high_cardinality_metrics = true
+		}
 	`, tracesServer)
 	var args otlp.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+	require.Equal(t, args.DebugMetricsConfig().DisableHighCardinalityMetrics, true)
 
 	go func() {
 		err := ctrl.Run(ctx, args)
@@ -121,7 +126,7 @@ func (ms *mockTracesReceiver) Export(_ context.Context, req ptraceotlp.ExportReq
 func createTestTraces() ptrace.Traces {
 	// Matches format from the protobuf definition:
 	// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
-	var bb = `{
+	bb := `{
 		"resource_spans": [{
 			"scope_spans": [{
 				"spans": [{

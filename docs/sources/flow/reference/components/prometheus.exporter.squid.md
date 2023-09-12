@@ -1,9 +1,14 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.squid/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.squid/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.squid/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.squid/
 title: prometheus.exporter.squid
 ---
 
 # prometheus.exporter.squid
+
 The `prometheus.exporter.squid` component embeds
 [squid_exporter](https://github.com/boynux/squid-exporter) for collecting metrics from a squid instance.
 
@@ -20,12 +25,11 @@ prometheus.exporter.squid "LABEL" {
 You can use the following arguments to configure the exporter's behavior.
 Omitted fields take their default values.
 
-| Name           | Type     | Description                                           | Default          | Required |
-|----------------|----------|-------------------------------------------------------|------------------|----------|
-| `address`      | `string` | The squid address to collect metrics from.            |                  | yes      |
-| `username`     | `string` | The username for the user used when querying metrics. |                  | no       |
-| `password`     | `secret` | The password for the user used when querying metrics. |                  | no       |
-
+| Name       | Type     | Description                                           | Default | Required |
+| ---------- | -------- | ----------------------------------------------------- | ------- | -------- |
+| `address`  | `string` | The squid address to collect metrics from.            |         | yes      |
+| `username` | `string` | The username for the user used when querying metrics. |         | no       |
+| `password` | `secret` | The password for the user used when querying metrics. |         | no       |
 
 ## Blocks
 
@@ -34,7 +38,7 @@ fully through arguments.
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporters-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 
@@ -79,9 +83,11 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

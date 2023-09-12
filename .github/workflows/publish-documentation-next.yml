@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Check out code"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: "Build technical documentation"
         run: >
           docker run
@@ -28,7 +28,7 @@ jobs:
     steps:
 
     - name: "Checkout Agent repo"
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: "Clone website-sync Action"
       # WEBSITE_SYNC_TOKEN is a fine-grained GitHub Personal Access Token that expires.

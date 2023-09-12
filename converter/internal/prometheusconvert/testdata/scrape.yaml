@@ -4,7 +4,7 @@ global:
     cluster: prod
 
 scrape_configs:
-  - job_name: "prometheus1"
+  - job_name: "prometheus-1"
     honor_timestamps: false
     scrape_interval: 10s
     scrape_timeout: 5s
@@ -22,7 +22,7 @@ scrape_configs:
       - targets: ["localhost:9093"]
 
 remote_write:
-  - name: "remote1"
+  - name: "remote-1"
     url: "http://remote-write-url1"
     write_relabel_configs:
       - source_labels: [__address1__]

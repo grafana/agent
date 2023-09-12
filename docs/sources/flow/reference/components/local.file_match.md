@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/local.file_match/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/local.file_match/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/local.file_match/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/local.file_match/
 title: local.file_match
 ---

@@ -4,9 +4,8 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
+	util_log "github.com/grafana/agent/pkg/util/log"
 	"github.com/weaveworks/common/logging"
-
-	cortex_log "github.com/cortexproject/cortex/pkg/util/log"
 )
 
 // Logger implements Go Kit's log.Logger interface. It supports being
@@ -78,7 +77,7 @@ func defaultLogger(cfg *Config) (log.Logger, error) {
 func makeDefaultLogger(lvl logging.Level, fmt logging.Format) (log.Logger, error) {
 	var l log.Logger
 
-	l, err := cortex_log.NewPrometheusLogger(lvl, fmt)
+	l, err := util_log.NewPrometheusLogger(lvl, fmt)
 	if err != nil {
 		return nil, err
 	}

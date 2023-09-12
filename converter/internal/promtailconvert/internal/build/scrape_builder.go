@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
@@ -52,27 +53,6 @@ func NewScrapeConfigBuilder(
 	}
 }
 
-func (s *ScrapeConfigBuilder) Validate() {
-	if len(s.cfg.ServiceDiscoveryConfig.DockerSwarmSDConfigs) != 0 {
-		s.diags.Add(diag.SeverityLevelError, "dockerswarm_sd_configs is not supported")
-	}
-	if len(s.cfg.ServiceDiscoveryConfig.ServersetSDConfigs) != 0 {
-		s.diags.Add(diag.SeverityLevelError, "serverset_sd_configs is not supported")
-	}
-	if len(s.cfg.ServiceDiscoveryConfig.NerveSDConfigs) != 0 {
-		s.diags.Add(diag.SeverityLevelError, "nerve_sd_configs is not supported")
-	}
-	if len(s.cfg.ServiceDiscoveryConfig.MarathonSDConfigs) != 0 {
-		s.diags.Add(diag.SeverityLevelError, "marathon_sd_configs is not supported")
-	}
-	if len(s.cfg.ServiceDiscoveryConfig.OpenstackSDConfigs) != 0 {
-		s.diags.Add(diag.SeverityLevelError, "openstack_sd_configs is not supported")
-	}
-	if len(s.cfg.ServiceDiscoveryConfig.TritonSDConfigs) != 0 {
-		s.diags.Add(diag.SeverityLevelError, "triton_sd_configs is not supported")
-	}
-}
-
 func (s *ScrapeConfigBuilder) Sanitize() {
 	var err error
 	s.cfg.JobName, err = scanner.SanitizeIdentifier(s.cfg.JobName)
@@ -81,7 +61,7 @@ func (s *ScrapeConfigBuilder) Sanitize() {
 	}
 }
 
-func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
+func (s *ScrapeConfigBuilder) AppendLokiSourceFile(watchConfig *file.WatchConfig) {
 	// If there were no targets expressions collected, that means
 	// we didn't have any components that produced SD targets, so
 	// we can skip this component.
@@ -95,6 +75,7 @@ func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
 		ForwardTo:           forwardTo,
 		Encoding:            s.cfg.Encoding,
 		DecompressionConfig: convertDecompressionConfig(s.cfg.DecompressionCfg),
+		FileWatch:           convertFileWatchConfig(watchConfig),
 	}
 	overrideHook := func(val interface{}) interface{} {
 		if _, ok := val.([]discovery.Target); ok {
@@ -255,6 +236,16 @@ func convertDecompressionConfig(cfg *scrapeconfig.DecompressionConfig) lokisourc
 		Enabled:      cfg.Enabled,
 		InitialDelay: cfg.InitialDelay,
 		Format:       lokisourcefile.CompressionFormat(cfg.Format),
+	}
+}
+
+func convertFileWatchConfig(watchConfig *file.WatchConfig) lokisourcefile.FileWatch {
+	if watchConfig == nil {
+		return lokisourcefile.FileWatch{}
+	}
+	return lokisourcefile.FileWatch{
+		MinPollFrequency: watchConfig.MinPollFrequency,
+		MaxPollFrequency: watchConfig.MaxPollFrequency,
 	}
 }
 

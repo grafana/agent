@@ -31,6 +31,8 @@ type clusterOptions struct {
 	DiscoverPeers       string
 	RejoinInterval      time.Duration
 	AdvertiseInterfaces []string
+	ClusterMaxJoinPeers int
+	ClusterName         string
 }
 
 func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
@@ -41,10 +43,12 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 		Metrics: opts.Metrics,
 		Tracer:  opts.Tracer,
 
-		EnableClustering: opts.EnableClustering,
-		NodeName:         opts.NodeName,
-		AdvertiseAddress: opts.AdvertiseAddress,
-		RejoinInterval:   opts.RejoinInterval,
+		EnableClustering:    opts.EnableClustering,
+		NodeName:            opts.NodeName,
+		AdvertiseAddress:    opts.AdvertiseAddress,
+		RejoinInterval:      opts.RejoinInterval,
+		ClusterMaxJoinPeers: opts.ClusterMaxJoinPeers,
+		ClusterName:         opts.ClusterName,
 	}
 
 	if config.NodeName == "" {
@@ -58,12 +62,20 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	if config.AdvertiseAddress == "" {
 		advertiseAddress := fmt.Sprintf("%s:%d", net.ParseIP("127.0.0.1"), listenPort)
 		if opts.EnableClustering {
-			addr, err := advertise.FirstAddress(opts.AdvertiseInterfaces)
+			advertiseInterfaces := opts.AdvertiseInterfaces
+			if useAllInterfaces(advertiseInterfaces) {
+				advertiseInterfaces = nil
+			}
+			addr, err := advertise.FirstAddress(advertiseInterfaces)
 			if err != nil {
-				level.Warn(opts.Log).Log("msg", "could not find advertise address using default interface names, "+
+				level.Warn(opts.Log).Log("msg", "could not find advertise address using network interfaces", opts.AdvertiseInterfaces,
 					"falling back to localhost", "err", err)
-			} else {
+			} else if addr.Is4() {
 				advertiseAddress = fmt.Sprintf("%s:%d", addr.String(), listenPort)
+			} else if addr.Is6() {
+				advertiseAddress = fmt.Sprintf("[%s]:%d", addr.String(), listenPort)
+			} else {
+				return nil, fmt.Errorf("type unknown for address: %s", addr.String())
 			}
 		}
 		config.AdvertiseAddress = advertiseAddress
@@ -92,6 +104,10 @@ func buildClusterService(opts clusterOptions) (*cluster.Service, error) {
 	}
 
 	return cluster.New(config)
+}
+
+func useAllInterfaces(interfaces []string) bool {
+	return len(interfaces) == 1 && interfaces[0] == "all"
 }
 
 func findPort(addr string, defaultPort int) int {

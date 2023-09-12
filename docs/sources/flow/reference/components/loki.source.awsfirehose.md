@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.awsfirehose/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.awsfirehose/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.awsfirehose/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.awsfirehose/
 title: loki.source.awsfirehose
 ---

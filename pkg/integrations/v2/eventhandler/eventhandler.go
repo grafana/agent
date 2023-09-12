@@ -188,7 +188,6 @@ func (eh *EventHandler) handleEvent(event *v1.Event) error {
 		err = fmt.Errorf("msg=%s entry=%s", "error handing entry off to promtail", entry)
 		return err
 	}
-	level.Info(eh.Log).Log("msg", "Shipped entry", "eventRV", event.ResourceVersion, "eventMsg", event.Message)
 
 	// update cache with new "last" event
 	err = eh.updateLastEvent(event, eventTs)

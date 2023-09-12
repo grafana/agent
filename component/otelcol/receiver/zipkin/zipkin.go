@@ -28,13 +28,14 @@ type Arguments struct {
 
 	HTTPServer otelcol.HTTPServerArguments `river:",squash"`
 
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
 
-var (
-	_ receiver.Arguments = Arguments{}
-)
+var _ receiver.Arguments = Arguments{}
 
 // DefaultArguments holds default settings for otelcol.receiver.zipkin.
 var DefaultArguments = Arguments{
@@ -69,4 +70,9 @@ func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.I
 // NextConsumers implements receiver.Arguments.
 func (args Arguments) NextConsumers() *otelcol.ConsumerArguments {
 	return args.Output
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }

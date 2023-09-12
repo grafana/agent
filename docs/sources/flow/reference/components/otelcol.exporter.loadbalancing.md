@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.loadbalancing/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.loadbalancing/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.loadbalancing/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.loadbalancing/
 labels:
   stage: beta
@@ -82,6 +86,7 @@ protocol > otlp > client > tls | [tls][] | Configures TLS for the gRPC client. |
 protocol > otlp > client > keepalive | [keepalive][] | Configures keepalive settings for the gRPC client. | no
 protocol > otlp > queue | [queue][] | Configures batching of data before sending. | no
 protocol > otlp > retry | [retry][] | Configures retry mechanism for failed requests. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `resolver > static`
 refers to a `static` block defined inside a `resolver` block.
@@ -96,6 +101,7 @@ refers to a `static` block defined inside a `resolver` block.
 [keepalive]: #keepalive-block
 [queue]: #queue-block
 [retry]: #retry-block
+[debug_metrics]: #debug_metrics-block
 
 ### resolver block
 
@@ -214,6 +220,10 @@ The `retry` block configures how failed requests to the gRPC server are
 retried.
 
 {{< docs/shared lookup="flow/reference/components/otelcol-retry-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

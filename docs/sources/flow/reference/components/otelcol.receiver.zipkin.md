@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.zipkin/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.zipkin/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.zipkin/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.zipkin/
 title: otelcol.receiver.zipkin
 ---
@@ -49,6 +53,7 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 tls | [tls][] | Configures TLS for the HTTP server. | no
 cors | [cors][] | Configures CORS for the HTTP server. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received traces. | yes
 
 The `>` symbol indicates deeper levels of nesting. For example, `grpc > tls`
@@ -56,6 +61,7 @@ refers to a `tls` block defined inside a `grpc` block.
 
 [tls]: #tls-block
 [cors]: #cors-block
+[debug_metrics]: #debug_metrics-block
 [output]: #output-block
 
 ### tls block
@@ -86,6 +92,10 @@ CORS request. The following headers are always implicitly allowed:
 * `Content-Language`
 
 If `allowed_headers` includes `"*"`, all headers are permitted.
+
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### output block
 

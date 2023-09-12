@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.span/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.span/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.span/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.span/
 labels:
   stage: alpha

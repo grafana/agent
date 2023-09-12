@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	util "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	util "github.com/grafana/agent/pkg/util/log"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/ptrace"

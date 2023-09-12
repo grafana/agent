@@ -41,13 +41,14 @@ type Arguments struct {
 	AutoCommit     AutoCommitArguments     `river:"autocommit,block,optional"`
 	MessageMarking MessageMarkingArguments `river:"message_marking,block,optional"`
 
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
 
-var (
-	_ receiver.Arguments = Arguments{}
-)
+var _ receiver.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
@@ -278,4 +279,9 @@ func (args MessageMarkingArguments) Convert() kafkareceiver.MessageMarking {
 		After:   args.AfterExecution,
 		OnError: args.IncludeUnsuccessful,
 	}
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }

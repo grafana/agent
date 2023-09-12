@@ -1,7 +1,7 @@
-prometheus.scrape "prometheus1" {
+prometheus.scrape "prometheus_1" {
 	targets = concat(
 		[{
-			__address__ = "localhost:9091",
+			__address__ = "localhost:9090",
 			app         = "foo",
 		}],
 		[{
@@ -10,7 +10,7 @@ prometheus.scrape "prometheus1" {
 		}],
 	)
 	forward_to       = [prometheus.remote_write.default.receiver]
-	job_name         = "prometheus1"
+	job_name         = "prometheus-1"
 	honor_timestamps = false
 	scrape_interval  = "10s"
 	scrape_timeout   = "5s"
@@ -43,13 +43,10 @@ prometheus.remote_write "default" {
 	}
 
 	endpoint {
-		name           = "remote1"
-		url            = "http://remote-write-url1"
-		send_exemplars = false
+		name = "remote-1"
+		url  = "http://remote-write-url1"
 
-		queue_config {
-			retry_on_http_429 = false
-		}
+		queue_config { }
 
 		metadata_config { }
 
@@ -65,13 +62,10 @@ prometheus.remote_write "default" {
 	}
 
 	endpoint {
-		name           = "remote2"
-		url            = "http://remote-write-url2"
-		send_exemplars = false
+		name = "remote2"
+		url  = "http://remote-write-url2"
 
-		queue_config {
-			retry_on_http_429 = false
-		}
+		queue_config { }
 
 		metadata_config { }
 	}

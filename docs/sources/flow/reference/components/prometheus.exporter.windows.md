@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.windows/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.windows/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.windows/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.windows/
 title: prometheus.exporter.windows
 ---
@@ -182,7 +186,7 @@ When `text_file_directory` is set, only files with the extension `.prom` inside 
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporters-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 

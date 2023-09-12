@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
+	"github.com/grafana/agent/component/otelcol/internal/views"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
@@ -43,6 +44,9 @@ type Arguments interface {
 
 	// NextConsumers returns the set of consumers to send data to.
 	NextConsumers() *otelcol.ConsumerArguments
+
+	// DebugMetricsConfig returns the configuration for debug metrics
+	DebugMetricsConfig() otelcol.DebugMetricsArguments
 }
 
 // Receiver is a Flow component shim which manages an OpenTelemetry Collector
@@ -120,12 +124,17 @@ func (r *Receiver) Update(args component.Arguments) error {
 		return err
 	}
 
+	metricOpts := []metric.Option{metric.WithReader(promExporter)}
+	if rargs.DebugMetricsConfig().DisableHighCardinalityMetrics {
+		metricOpts = append(metricOpts, metric.WithView(views.DropHighCardinalityServerAttributes()...))
+	}
+
 	settings := otelreceiver.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(r.opts.Logger),
 
 			TracerProvider: r.opts.Tracer,
-			MeterProvider:  metric.NewMeterProvider(metric.WithReader(promExporter)),
+			MeterProvider:  metric.NewMeterProvider(metricOpts...),
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{
