@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
@@ -154,8 +153,7 @@ type tlsListener struct {
 
 	innerListener net.Listener
 
-	windowsCertHandler *winCertStoreHandler
-	cancelWindowsCert  context.CancelFunc //nolint
+	windowsCertHandler *WinCertStoreHandler
 }
 
 // newTLSListener creates and configures a new tlsListener.
@@ -182,8 +180,8 @@ func (l *tlsListener) Accept() (net.Conn, error) {
 // Close implements net.Listener and closes the tlsListener, preventing any new
 // connections from being formed. Existing connections will be kept alive.
 func (l *tlsListener) Close() error {
-	if l.cancelWindowsCert != nil {
-		l.cancelWindowsCert()
+	if l.windowsCertHandler != nil {
+		l.windowsCertHandler.Stop()
 	}
 	return l.innerListener.Close()
 }

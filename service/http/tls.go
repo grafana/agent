@@ -5,7 +5,10 @@ import (
 	"crypto/x509"
 	"encoding"
 	"fmt"
+	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/regexp"
 	"os"
+	"time"
 
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
@@ -25,14 +28,94 @@ type TLSArguments struct {
 	MinVersion       TLSVersion        `river:"min_version,attr,optional"`
 	MaxVersion       TLSVersion        `river:"max_version,attr,optional"`
 
-	// TODO(rfratto): windows certificate filter.
+	// Windows Certificate Filter
+	WindowsFilter *WindowsCertificateFilter `river:"windows_certificate_filter,block,optional"`
+}
+
+// WindowsCertificateFilter represents the configuration for accessing the Windows store
+type WindowsCertificateFilter struct {
+	Server *WindowsServerFilter `river:"server,block"`
+	Client *WindowsClientFilter `river:"client,block"`
+}
+
+// WindowsClientFilter is used to select a client root CA certificate
+type WindowsClientFilter struct {
+	IssuerCommonNames []string `river:"issuer_common_names,attr,optional"`
+	SubjectRegEx      string   `river:"subject_regex,attr,optional"`
+	TemplateID        string   `river:"template_id,attr,optional"`
+}
+
+// WindowsServerFilter is used to select a server certificate
+type WindowsServerFilter struct {
+	Store             string        `river:"store,attr,optional"`
+	SystemStore       string        `river:"system_store,attr,optional"`
+	IssuerCommonNames []string      `river:"issuer_common_names,attr,optional"`
+	TemplateID        string        `river:"template_id,attr,optional"`
+	RefreshInterval   time.Duration `river:"refresh_interval,attr,optional"`
+}
+
+func (wcf *WindowsCertificateFilter) toYaml() server.WindowsCertificateFilter {
+	return server.WindowsCertificateFilter{
+		Server: &server.WindowsServerFilter{
+			Store:             wcf.Server.Store,
+			SystemStore:       wcf.Server.SystemStore,
+			IssuerCommonNames: wcf.Server.IssuerCommonNames,
+			TemplateID:        wcf.Server.TemplateID,
+			RefreshInterval:   wcf.Server.RefreshInterval,
+		},
+		Client: &server.WindowsClientFilter{
+			IssuerCommonNames: wcf.Client.IssuerCommonNames,
+			SubjectRegEx:      wcf.Client.SubjectRegEx,
+			TemplateID:        wcf.Client.TemplateID,
+		},
+	}
+}
+
+var _ river.Defaulter = (*WindowsServerFilter)(nil)
+
+// SetToDefault sets the default for WindowsServerFilter
+func (wcf *WindowsServerFilter) SetToDefault() {
+	wcf.RefreshInterval = 5 * time.Minute
 }
 
 var _ river.Validator = (*TLSArguments)(nil)
 
-// Validate returns whether args is valid. It checks that mutually exclusive
-// fields are not both set, and that required fields are set.
+// Validate returns whether args is valid.
 func (args *TLSArguments) Validate() error {
+	if args.WindowsFilter == nil {
+		return args.validateTLS()
+	}
+	return args.validateWindowsCertificateFilterTLS()
+}
+
+// validateWindowsCertificateFilterTLS validates the Windows Certificate filter details.
+func (args *TLSArguments) validateWindowsCertificateFilterTLS() error {
+	switch {
+	case len(args.Cert) > 0:
+	case len(args.Key) > 0:
+	case len(args.CertFile) > 0:
+	case len(args.ClientCA) > 0:
+	case len(args.ClientCAFile) > 0:
+	case len(args.KeyFile) > 0:
+		return fmt.Errorf("cannot specify any key, certificate or CA when using windows certificate filter")
+
+	}
+	if args.WindowsFilter.Server == nil {
+		return fmt.Errorf("windows_certificate_filter requires a server block defined")
+	}
+	var err error
+	if args.WindowsFilter.Client != nil && args.WindowsFilter.Client.SubjectRegEx != "" {
+		_, err = regexp.Compile(args.WindowsFilter.Client.SubjectRegEx)
+		if err != nil {
+			return fmt.Errorf("error compiling subject common name regular expression: %w", err)
+		}
+	}
+	return nil
+}
+
+// validateTLS returns whether args is valid. It checks that mutually exclusive
+// fields are not both set, and that required fields are set.
+func (args *TLSArguments) validateTLS() error {
 	if len(args.ClientCA) > 0 && len(args.ClientCAFile) > 0 {
 		return fmt.Errorf("cannot specify both client_ca_pem and client_ca_file")
 	}

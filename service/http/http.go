@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/grafana/agent/pkg/server"
 	"net"
 	"net/http"
 	"path"
@@ -54,6 +55,9 @@ type Service struct {
 	tracer   trace.TracerProvider
 	gatherer prometheus.Gatherer
 	opts     Options
+
+	winMut sync.Mutex
+	win    *server.WinCertStoreHandler
 
 	// publicLis and tcpLis are used to lazily enable TLS, since TLS is
 	// optionally configurable at runtime.
@@ -131,6 +135,13 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	defer func() {
+		s.winMut.Lock()
+		defer s.winMut.Unlock()
+		if s.win != nil {
+			s.win.Stop()
+		}
+	}()
 
 	netLis, err := net.Listen("tcp", s.opts.HTTPListenAddr)
 	if err != nil {
@@ -283,8 +294,21 @@ func (s *Service) componentHandler(host service.Host) http.HandlerFunc {
 func (s *Service) Update(newConfig any) error {
 	newArgs := newConfig.(Arguments)
 
+	if newArgs.TLS.WindowsFilter != nil {
+		err := s.updateWindowsCertificateFilter(newArgs.TLS)
+		if err != nil {
+			return err
+		}
+	}
+
 	if newArgs.TLS != nil {
-		tlsConfig, err := newArgs.TLS.tlsConfig()
+		var tlsConfig *tls.Config
+		var err error
+		if newArgs.TLS.WindowsFilter != nil {
+			tlsConfig, err = newArgs.TLS.winTlsConfig(s.win)
+		} else {
+			tlsConfig, err = newArgs.TLS.tlsConfig()
+		}
 		if err != nil {
 			return err
 		}
@@ -325,6 +349,22 @@ func (s *Service) Data() any {
 			}
 		},
 	}
+}
+
+func (s *Service) updateWindowsCertificateFilter(tlsArgs *TLSArguments) error {
+	s.winMut.Lock()
+	defer s.winMut.Unlock()
+	// Stop if Window Handler is currently running.
+	if s.win != nil {
+		s.win.Stop()
+	}
+	handler, err := server.NewWinCertStoreHandler(tlsArgs.WindowsFilter.toYaml(), tls.ClientAuthType(tlsArgs.ClientAuth), s.log)
+	if err != nil {
+		return err
+	}
+	s.win = handler
+	s.win.Run()
+	return nil
 }
 
 // Data includes information associated with the HTTP service.

@@ -10,6 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+
+> **BREAKING CHANGES**: This release has breaking changes. Please read entries
+> carefully and consult the [upgrade guide][] for specific instructions.
+
+### Breaking changes
+
+- Static mode Windows Certificate Filter no longer restricted to TLS 1.2 and specific cipher suites. (@mattdurham)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -23,6 +31,8 @@ Main (unreleased)
 ### Enhancements
 
 - Clustering: Allow advertise interfaces to be configurable. (@wildum)
+
+- Add support for `windows_certificate_filter` under http tls config block. (@mattdurham)
 
 ### Other changes
 
