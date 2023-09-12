@@ -6,6 +6,7 @@ title: discovery.linode
 # discovery.linode
 
 `discovery.linode` allows retrieving scrape targets from [Linode's](https://www.linode.com/) Linode APIv4.
+This service discovery uses the public IPv4 address by default, by that can be changed with relabeling.
 
 ## Usage
 
@@ -14,6 +15,8 @@ discovery.linode "LABEL" {
 	bearer_token = LINODE_API_TOKEN
 }
 ```
+
+Note: Linode APIv4 Token must be created with scopes: `linodes:read_only`, `ips:read_only`, and `events:read_only`.
 
 ## Arguments
 
@@ -73,15 +76,29 @@ The following fields are exported and can be referenced by other components:
 
 Name      | Type                | Description
 --------- | ------------------- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the Kuma API.
+`targets` | `list(map(string))` | The set of targets discovered from the Linode API.
 
 The following meta labels are available on targets and can be used by the
 discovery.relabel component:
 
-* `__meta_kuma_mesh`: the name of the proxy's Mesh
-* `__meta_kuma_dataplane`: the name of the proxy
-* `__meta_kuma_service`: the name of the proxy's associated Service
-* `__meta_kuma_label_<tagname>`: each tag of the proxy
+* `__meta_linode_instance_id`: the id of the linode instance
+* `__meta_linode_instance_label`: the label of the linode instance
+* `__meta_linode_image`: the slug of the linode instance's image
+* `__meta_linode_private_ipv4`: the private IPv4 of the linode instance
+* `__meta_linode_public_ipv4`: the public IPv4 of the linode instance
+* `__meta_linode_public_ipv6`: the public IPv6 of the linode instance
+* `__meta_linode_region`: the region of the linode instance
+* `__meta_linode_type`: the type of the linode instance
+* `__meta_linode_status`: the status of the linode instance
+* `__meta_linode_tags`: a list of tags of the linode instance joined by the tag separator
+* `__meta_linode_group`: the display group a linode instance is a member of
+* `__meta_linode_hypervisor`: the virtualization software powering the linode instance
+* `__meta_linode_backups`: the backup service status of the linode instance
+* `__meta_linode_specs_disk_bytes`: the amount of storage space the linode instance has access to
+* `__meta_linode_specs_memory_bytes`: the amount of RAM the linode instance has access to
+* `__meta_linode_specs_vcpus`: the number of VCPUS this linode has access to
+* `__meta_linode_specs_transfer_bytes`: the amount of network transfer the linode instance is allotted each month
+* `__meta_linode_extra_ips`: a list of all extra IPv4 addresses assigned to the linode instance joined by the tag separator
 
 ## Component health
 
@@ -123,3 +140,23 @@ Replace the following:
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
 
+### Using private IP address:
+
+```
+discovery.linode "example" {
+    bearer_token = env("LINODE_TOKEN")
+    port = 8876
+}
+discovery.relabel "private_ips" {
+	targets = discovery.linode.example.targets
+	rule {
+    	source_labels = ["__meta_linode_private_ipv4"]
+    	replacement     = "[$1]:8876"
+    	target_label  = "__address__"
+  	}
+}
+prometheus.scrape "demo" {
+	targets    = discovery.relabel.private_ips.targets
+	forward_to = [...]
+}
+```
