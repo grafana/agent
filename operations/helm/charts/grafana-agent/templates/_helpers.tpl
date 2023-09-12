@@ -86,7 +86,11 @@ Calculate name of image ID to use for "grafana-agent".
 */}}
 {{- define "grafana-agent.imageId" -}}
 {{- if .Values.image.digest }}
-{{- printf "@sha256:%s" .Values.image.digest }}
+{{- $digest := .Values.image.digest }}
+{{- if not (hasPrefix "sha256:" $digest) }}
+{{- $digest = printf "sha256:%s" $digest }}
+{{- end }}
+{{- printf "@%s" $digest }}
 {{- else if .Values.image.tag }}
 {{- printf ":%s" .Values.image.tag }}
 {{- else }}
@@ -99,7 +103,11 @@ Calculate name of image ID to use for "config-reloader".
 */}}
 {{- define "config-reloader.imageId" -}}
 {{- if .Values.configReloader.image.digest }}
-{{- printf "@sha256:%s" .Values.configReloader.image.digest }}
+{{- $digest := .Values.configReloader.digest }}
+{{- if not (hasPrefix "sha256:" $digest) }}
+{{- $digest = printf "sha256:%s" $digest }}
+{{- end }}
+{{- printf "@%s" $digest }}
 {{- else if .Values.configReloader.image.tag }}
 {{- printf ":%s" .Values.configReloader.image.tag }}
 {{- else }}
