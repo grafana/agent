@@ -18,7 +18,7 @@ import (
 )
 
 // Creator is a function provided by an implementation to create a concrete exporter instance.
-type Creator func(component.Options, component.Arguments) (integrations.Integration, error)
+type Creator func(component.Options, component.Arguments, string) (integrations.Integration, string, error)
 
 // Exports are simply a list of targets for a scraper to consume.
 type Exports struct {
@@ -85,12 +85,15 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	exporter, err := c.creator(c.opts, args)
+	exporter, instanceKey, err := c.creator(c.opts, args, defaultInstance())
 	if err != nil {
 		return err
 	}
 	c.mut.Lock()
 	c.exporter = exporter
+	if instanceKey != "" {
+		c.baseTarget["instance"] = instanceKey
+	}
 
 	var targets []discovery.Target
 	if c.targetBuilderFunc == nil {
