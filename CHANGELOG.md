@@ -71,6 +71,11 @@ Main (unreleased)
   `msg`, followed by non-common fields. Previously, the position of `msg` was
   not consistent. (@rfratto)
 
+### Bugfixes
+
+- Fixing a bug in `otelcol.processor.discovery` whose `targets` attribute would be modified in a way 
+  which impacted the component passing the `targets` to `otelcol.processor.discovery`. (@ptodev)
+
 v0.36.1 (2023-09-06)
 --------------------
 
