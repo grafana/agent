@@ -10,3 +10,7 @@ func (l *tlsListener) applyWindowsCertificateStore(_ TLSConfig) error {
 
 type WinCertStoreHandler struct {
 }
+
+func (w WinCertStoreHandler) Run() {}
+
+func (w WinCertStoreHandler) Stop() {}
