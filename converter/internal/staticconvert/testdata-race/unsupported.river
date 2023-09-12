@@ -37,12 +37,6 @@ prometheus.scrape "integrations_statsd_exporter" {
 	targets    = prometheus.exporter.statsd.integrations_statsd_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/statsd_exporter"
-
-	tls_config {
-		ca_file   = "/something7.cert"
-		cert_file = "/something8.cert"
-		key_file  = "/something9.cert"
-	}
 }
 
 prometheus.remote_write "integrations" {

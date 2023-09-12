@@ -28,10 +28,6 @@ metrics:
             - targets: ['localhost:9099']
 
 integrations:
-  http_tls_config:
-    ca_file: "/something7.cert"
-    cert_file: "/something8.cert"
-    key_file: "/something9.cert"
   agent:
     enabled: true
   azure_exporter:

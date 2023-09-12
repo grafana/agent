@@ -101,7 +101,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 
 	for _, integration := range integrationsConfig.ConfigV1.Integrations {
 		if !integration.Common.Enabled {
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported disabled integration %s.", integration.Name()))
+			diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("disabled integrations do nothing and are not included in the output: %s.", integration.Name()))
 			continue
 		}
 

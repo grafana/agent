@@ -10,6 +10,6 @@
 (Error) unsupported integration agent was provided.
 (Error) unsupported integration azure_exporter was provided.
 (Error) unsupported integration cadvisor was provided.
-(Error) unsupported disabled integration node_exporter.
+(Warning) disabled integrations do nothing and are not included in the output: node_exporter.
 (Error) unsupported traces config was provided.
 (Error) unsupported agent_management config was provided.
