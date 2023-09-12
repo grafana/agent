@@ -45,6 +45,9 @@ integrations:
       - nodepool
   cadvisor:
     enabled: true
+  mssql:
+    enabled: true
+    scrape_integration: false
   node_exporter:
     enabled: false
   statsd_exporter:

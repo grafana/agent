@@ -65,14 +65,21 @@ func validateServer(serverConfig *server.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	defaultServerConfig := server.DefaultConfig()
+
+	// TODO logging block
 	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.LogLevel.Level.Logrus, defaultServerConfig.LogLevel.Level.Logrus, "log_level server"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.LogFormat, defaultServerConfig.LogFormat, "log_format server"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server"))
+
+	diags.AddAll(common.UnsupportedNotDeepEqualsMessage(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server", "flow mode does not have a gRPC server to config."))
+
+	// TODO this is in the new HTTP service in flow
 	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.HTTP, defaultServerConfig.HTTP, "http_tls_config server"))
 
 	return diags
 }
 
+// validateMetrics validates the metrics config for anything not already
+// covered by appendStaticPrometheus.
 func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -144,6 +151,8 @@ func validateTraces(tracesConfig traces.Config) diag.Diagnostics {
 	return diags
 }
 
+// validateLogs validates the logs config for anything not already covered
+// by appendStaticPromtail.
 func validateLogs(logsConfig *logs.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
