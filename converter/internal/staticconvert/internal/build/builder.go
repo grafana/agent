@@ -54,8 +54,9 @@ func NewIntegrationsV1ConfigBuilder(f *builder.File, diags *diag.Diagnostics, cf
 }
 
 func (b *IntegrationsV1ConfigBuilder) Build() {
-	b.appendIntegrations()
 	b.appendLogging(b.cfg.Server)
+	b.appendServer(b.cfg.Server)
+	b.appendIntegrations()
 }
 
 func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {

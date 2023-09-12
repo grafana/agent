@@ -17,6 +17,20 @@ prometheus.remote_write "metrics_agent" {
 	}
 }
 
+logging {
+	level  = "debug"
+	format = "json"
+}
+
+http {
+	tls {
+		cert_file        = "./testdata/example-cert.pem"
+		key_file         = "./testdata/example-key.pem"
+		client_ca_file   = "./testdata/example-cert.pem"
+		client_auth_type = "VerifyClientCertIfGiven"
+	}
+}
+
 prometheus.exporter.statsd "integrations_statsd_exporter" { }
 
 prometheus.scrape "integrations_statsd_exporter" {
@@ -25,9 +39,9 @@ prometheus.scrape "integrations_statsd_exporter" {
 	job_name   = "integrations/statsd_exporter"
 
 	tls_config {
-		ca_file   = "/something.cert"
-		cert_file = "/something.cert"
-		key_file  = "/something.cert"
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
 	}
 }
 
@@ -40,9 +54,4 @@ prometheus.remote_write "integrations" {
 
 		metadata_config { }
 	}
-}
-
-logging {
-	level  = "debug"
-	format = "json"
 }
