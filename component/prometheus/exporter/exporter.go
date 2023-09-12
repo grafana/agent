@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"sync"
 
 	"github.com/go-kit/log/level"
@@ -133,16 +134,19 @@ func newExporter(creator Creator, name string, targetBuilderFunc func(discovery.
 		}
 		httpData := data.(http_service.Data)
 
+		componentName := opts.ID[:strings.LastIndex(opts.ID, ".")]
+		if opts.ID == "prometheus.exporter.unix" {
+			componentName = opts.ID
+		}
+
 		c.baseTarget = discovery.Target{
-			model.AddressLabel:                  httpData.MemoryListenAddr,
-			model.SchemeLabel:                   "http",
-			model.MetricsPathLabel:              path.Join(httpData.HTTPPathForComponent(opts.ID), "metrics"),
-			"instance":                          instance,
-			"job":                               jobName,
-			"__meta_agent_integration_name":     jobName,
-			"__meta_agent_integration_instance": instance,
-			"__meta_agent_integration_id":       opts.ID,
-			"__meta_agent_hostname":             instance,
+			model.AddressLabel:      httpData.MemoryListenAddr,
+			model.SchemeLabel:       "http",
+			model.MetricsPathLabel:  path.Join(httpData.HTTPPathForComponent(opts.ID), "metrics"),
+			"instance":              instance,
+			"job":                   jobName,
+			"__meta_component_name": componentName,
+			"__meta_component_id":   opts.ID,
 		}
 
 		// Call to Update() to set the output once at the start.
