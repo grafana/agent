@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.remote_write/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.remote_write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
 title: prometheus.remote_write
 ---

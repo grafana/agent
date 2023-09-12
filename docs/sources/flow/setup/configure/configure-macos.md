@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/setup/configure/configure-macos/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-macos/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-macos/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-macos/
 description: Learn how to configure Grafana Agent in flow mode on macOS
 menuTitle: macOS

@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.digitalocean/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.digitalocean/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.digitalocean/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.digitalocean/
 title: discovery.digitalocean
 ---
