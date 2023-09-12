@@ -1,5 +1,8 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/config-language/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/
 - configuration-language/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/
 title: Configuration language

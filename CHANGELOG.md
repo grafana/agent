@@ -59,6 +59,8 @@ Main (unreleased)
 - `loki.source.kafka` component now exposes internal label `__meta_kafka_offset`
   to indicate offset of consumed message. (@hainenber)
 
+- Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
