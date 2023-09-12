@@ -1,5 +1,8 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/setup/install/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/
 - /docs/sources/flow/install/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/
 menuTitle: Install flow mode

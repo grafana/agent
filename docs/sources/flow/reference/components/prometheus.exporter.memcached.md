@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.memcached/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.memcached/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.memcached/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.memcached/
 title: prometheus.exporter.memcached
 ---

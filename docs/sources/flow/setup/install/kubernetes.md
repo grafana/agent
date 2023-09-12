@@ -1,6 +1,9 @@
 ---
 aliases:
 - ../../install/kubernetes/
+- /docs/grafana-cloud/agent/flow/setup/install/kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/kubernetes/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/kubernetes/
 description: Learn how to deploy Grafana Agent in flow mode on Kubernetes
 menuTitle: Kubernetes

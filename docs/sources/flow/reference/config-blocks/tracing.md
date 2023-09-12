@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/config-blocks/tracing/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/tracing/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/tracing/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/tracing/
 title: tracing
 ---

@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.squid/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.squid/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.squid/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.squid/
 title: prometheus.exporter.squid
 ---
