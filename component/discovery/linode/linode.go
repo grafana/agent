@@ -1,4 +1,4 @@
-package kuma
+package linode
 
 import (
 	"fmt"

@@ -66,13 +66,13 @@ func TestValidateNoServers(t *testing.T) {
 			RefreshInterval: 10 * time.Second,
 		}
 		err := riverArgs.Validate()
-		require.Error(t, err, "fetch_timeout must be greater than 0")
+		require.ErrorContains(t, err, "fetch_timeout must be greater than 0")
 	})
 	t.Run("validate refresh interval", func(t *testing.T) {
 		riverArgs := Arguments{
 			FetchTimeout: 10 * time.Second,
 		}
 		err := riverArgs.Validate()
-		require.Error(t, err, "refresh_interval must be greater than 0")
+		require.ErrorContains(t, err, "refresh_interval must be greater than 0")
 	})
 }
