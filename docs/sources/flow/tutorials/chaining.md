@@ -1,10 +1,13 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/flow/tutorials/chaining/
-description: Learn how to chain Prometheus components
-title: Chain Prometheus components
-menuTitle: Chain Prometheus components
 aliases:
 - ./chaining/
+- /docs/grafana-cloud/agent/flow/tutorials/chaining/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/chaining/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/chaining/
+canonical: https://grafana.com/docs/agent/latest/flow/tutorials/chaining/
+description: Learn how to chain Prometheus components
+menuTitle: Chain Prometheus components
+title: Chain Prometheus components
 weight: 400
 ---
 
