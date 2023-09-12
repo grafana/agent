@@ -135,6 +135,7 @@ func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Co
 	scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
 	scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs
 	scrapeConfig.MetricRelabelConfigs = commonConfig.MetricRelabelConfigs
+	scrapeConfig.HTTPClientConfig.TLSConfig = b.cfg.Integrations.ConfigV1.TLSConfig
 
 	scrapeConfig.ScrapeInterval = model.Duration(commonConfig.ScrapeInterval)
 	if commonConfig.ScrapeInterval == 0 {
