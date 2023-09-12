@@ -1,19 +1,17 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kuma/
-title: discovery.kuma
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.linode/
+title: discovery.linode
 ---
 
-# discovery.kuma
+# discovery.linode
 
-`discovery.kuma` discovers scrape target from the [Kuma][] control plane.
-
-[Kuma]: https://kuma.io/
+`discovery.linode` allows retrieving scrape targets from [Linode's](https://www.linode.com/) Linode APIv4.
 
 ## Usage
 
 ```river
-discovery.kuma "LABEL" {
-    server = SERVER
+discovery.linode "LABEL" {
+	bearer_token = LINODE_API_TOKEN
 }
 ```
 
@@ -23,9 +21,10 @@ The following arguments are supported:
 
 Name               | Type           | Description                                                    | Default       | Required
 ------------------ | -------------- | -------------------------------------------------------------- | ------------- | --------
-`server`           | `string`       | Address of the Kuma Control Plane's MADS xDS server.           |               | yes
-`refresh_interval` | `duration`     | The time to wait between polling update requests.              | `"30s"`       | no
-`fetch_timeout`    | `duration`     | The time after which the monitoring assignments are refreshed. | `"2m"`        | no
+`refresh_interval` | `duration`     | The time to wait between polling update requests.              | `"60s"`       | no
+`port`    | `int`     | Port that metrics should be scraped from. | `80`    | no
+`tag_separator` | `string`  | The string by which Linode Instance tags are joined into the tag label. | `,` | no
+
 `bearer_token` | `secret` | Bearer token to authenticate with. | | no
 `bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
 `proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
@@ -34,17 +33,15 @@ Name               | Type           | Description                               
 
  You can provide one of the following arguments for authentication:
  - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
- - [`basic_auth` block][basic_auth].
+ - [`bearer_token_file` argument](#arguments).
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
 
 The following blocks are supported inside the definition of
-`discovery.kuma`:
+`discovery.linode`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
 authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
@@ -53,14 +50,9 @@ The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
 an `oauth2` block.
 
-[basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
-
-### basic_auth block
-
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
@@ -85,6 +77,7 @@ Name      | Type                | Description
 
 The following meta labels are available on targets and can be used by the
 discovery.relabel component:
+
 * `__meta_kuma_mesh`: the name of the proxy's Mesh
 * `__meta_kuma_dataplane`: the name of the proxy
 * `__meta_kuma_service`: the name of the proxy's associated Service
@@ -92,26 +85,27 @@ discovery.relabel component:
 
 ## Component health
 
-`discovery.kuma` is only reported as unhealthy when given an invalid
+`discovery.linode` is only reported as unhealthy when given an invalid
 configuration. In those cases, exported fields retain their last healthy
 values.
 
 ## Debug information
 
-`discovery.kuma` does not expose any component-specific debug information.
+`discovery.linode` does not expose any component-specific debug information.
 
 ### Debug metrics
 
-`discovery.kuma` does not expose any component-specific debug metrics.
+`discovery.linode` does not expose any component-specific debug metrics.
 
 ## Example
 
 ```river
-discovery.kuma "example" {
-    server     = "http://kuma-control-plane.kuma-system.svc:5676"
+discovery.linode "example" {
+    bearer_token = env("LINODE_TOKEN")
+    port = 8876
 }
 prometheus.scrape "demo" {
-	targets    = discovery.kuma.example.targets
+	targets    = discovery.linode.example.targets
 	forward_to = [prometheus.remote_write.demo.receiver]
 }
 prometheus.remote_write "demo" {
