@@ -18,18 +18,17 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
-  - `otelcol.connector.spanlogs` - creates logs from spans. It is the flow mode equivalent
+  - `otelcol.connector.spanlogs` creates logs from spans. It is the flow mode equivalent
   to static mode's `automatic_logging` processor. (@ptodev)
+  - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
+  flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
+  - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
-
-  - `discovery.marathon` - service discovery for Marathon servers. (@wildum)
-
-  - `discovery.ionos` - service discovery for IONOS Cloud API. (@wildum)
-
-  - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
-
+  - `discovery.marathon` discovers scrape targets from Marathon servers. (@wildum)
+  - `discovery.ionos` discovers scrape targets from the IONOS Cloud API. (@wildum)
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
-
+  - `discovery.nerve` discovers scrape targets from AirBnB's Nerve. (@tpaschalis)
+  - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
     instances and bare-metal machines. (@rfratto)
 
@@ -38,14 +37,16 @@ Main (unreleased)
 
 - Clustering: add new flag `--cluster.max-join-peers` to limit the number of peers the system joins. (@wildum)
 
-- Clustering: Add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
+- Clustering: add a new flag `--cluster.name` to prevent nodes without this identifier from joining the cluster. (@wildum)
+
+- Clustering: add IPv6 support when using advertise interfaces to assign IP addresses. (@wildum)
 
 - Add a `file_watch` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_poll_frequency` and `max_poll_frequency`.
   In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`.  (@wildum)
 
 ### Enhancements
 
-- Clustering: Allow advertise interfaces to be configurable. (@wildum)
+- Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
 
 - Deleted series will now be removed from the WAL sooner, allowing Prometheus
   remote_write to free memory associated with removed series sooner. (@rfratto)
@@ -58,9 +59,11 @@ Main (unreleased)
 - `loki.source.kafka` component now exposes internal label `__meta_kafka_offset`
   to indicate offset of consumed message. (@hainenber)
 
+- Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
+
 ### Other changes
 
-- Use Go 1.21.0 for builds. (@rfratto)
+- Use Go 1.21.1 for builds. (@rfratto)
 - Read contextual attributes from Faro measurements (@codecapitano)
 - Rename Grafana Agent service in windows app and features to not include the description
 - Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)

@@ -45,6 +45,8 @@ integrations:
       - nodepool
   cadvisor:
     enabled: true
+  node_exporter:
+    enabled: false
   statsd_exporter:
     enabled: true
     mapping_config:
