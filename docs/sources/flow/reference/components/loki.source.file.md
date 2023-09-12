@@ -35,9 +35,13 @@ log entries to the list of receivers passed in `forward_to`.
  `targets`    | `list(map(string))`  | List of files to read from.                                |         | yes      
  `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes      
  `encoding`   | `string`             | The encoding to convert from when reading files.           | `""`    | no       
+ `start_from_eof` | `bool` | Whether the file should be tailed from the end if a cached position is not found. | `false` | no
 
 The `encoding` argument must be a valid [IANA encoding][] name. If not set, it
 defaults to UTF-8.
+
+The `start_from_eof` argument is valuable when you want to tail a large file without reading its entire content.
+When set to true, only new logs will be read, ignoring the existing ones.
 
 ## Blocks
 
