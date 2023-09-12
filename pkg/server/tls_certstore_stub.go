@@ -8,5 +8,5 @@ func (l *tlsListener) applyWindowsCertificateStore(_ TLSConfig) error {
 	return fmt.Errorf("cannot use Windows certificate store on non-Windows platforms")
 }
 
-type winCertStoreHandler struct {
+type WinCertStoreHandler struct {
 }
