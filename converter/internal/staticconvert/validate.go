@@ -98,11 +98,12 @@ func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diag
 func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if len(integrationsConfig.EnabledIntegrations()) == 0 {
-		return diags
-	}
-
 	for _, integration := range integrationsConfig.ConfigV1.Integrations {
+		if !integration.Common.Enabled {
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported disabled integration %s.", integration.Name()))
+			continue
+		}
+
 		switch itg := integration.Config.(type) {
 		case *apache_http.Config:
 		case *node_exporter.Config:

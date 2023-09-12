@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.process/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.process/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.process/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.process/
 title: loki.process
 ---
@@ -202,13 +206,13 @@ extracted value of 'app' is equal to foo.
 
 ```river
 stage.drop {
-    older_than  = "24h"
-    drop_reason = "too old"
+    older_than          = "24h"
+    drop_counter_reason = "too old"
 }
 
 stage.drop {
-    longer_than = "8KB"
-    drop_reason = "too long"
+    longer_than         = "8KB"
+    drop_counter_reason = "too long"
 }
 
 stage.drop {

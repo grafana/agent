@@ -109,6 +109,10 @@ func (arg *Arguments) SetToDefault() {
 
 // Validate implements river.Validator.
 func (arg *Arguments) Validate() error {
+	if arg.ScrapeTimeout > arg.ScrapeInterval {
+		return fmt.Errorf("scrape_timeout (%s) greater than scrape_interval (%s) for scrape config with job name %q", arg.ScrapeTimeout, arg.ScrapeInterval, arg.JobName)
+	}
+
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	return arg.HTTPClientConfig.Validate()
 }

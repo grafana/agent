@@ -1,9 +1,13 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.nomad/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.nomad/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.nomad/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.nomad/
 title: discovery.nomad
 ---
 
-# discovery.consul
+# discovery.nomad
 
 `discovery.nomad` allows you to retrieve scrape targets from [Nomad's](https://www.nomadproject.io/) Service API.
 
@@ -115,7 +119,7 @@ values.
 
 ## Example
 
-This example discovers targets from Consul for the specified list of services:
+This example discovers targets from a Nomad server:
 
 ```river
 discovery.nomad "example" {

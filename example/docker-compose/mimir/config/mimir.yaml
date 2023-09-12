@@ -1,3 +1,7 @@
+# Do not use this configuration in production.
+# It is for demonstration purposes only.
+multitenancy_enabled: false
+
 activity_tracker: {}
 
 alertmanager: {}
@@ -57,4 +61,3 @@ ruler_storage:
 limits:
   ingestion_burst_size: 500000
   ingestion_rate: 250000
-  multitenancy_enabled: false

@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/pyroscope.write/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.write/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.write/
 labels:
   stage: beta
@@ -137,7 +141,7 @@ pyroscope.write "staging" {
   endpoint {
     url = "http://pyroscope:4100"
     headers = {
-      "X-Scope-Org-ID" = "squad-1",
+      "X-Scope-OrgID" = "squad-1",
     }
   }
   external_labels = {

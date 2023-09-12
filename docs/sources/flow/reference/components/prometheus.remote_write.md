@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.remote_write/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.remote_write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
 title: prometheus.remote_write
 ---
@@ -304,7 +308,7 @@ information.
 * `prometheus_remote_storage_exemplars_in_total` (counter): Exemplars read into
   remote storage.
 
-# Examples
+## Examples
 
 The following examples show you how to create `prometheus.remote_write` components that send metrics to different destinations.
 

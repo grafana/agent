@@ -1,5 +1,8 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/operator/deploy-agent-operator-resources/
+- /docs/grafana-cloud/monitor-infrastructure/agent/operator/deploy-agent-operator-resources/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/deploy-agent-operator-resources/
 - custom-resource-quickstart/
 canonical: https://grafana.com/docs/agent/latest/operator/deploy-agent-operator-resources/
 title: Deploy Operator resources
@@ -58,7 +61,7 @@ To deploy the `GrafanaAgent` resource:
       labels:
         app: grafana-agent
     spec:
-      image: grafana/agent:v0.36.0
+      image: grafana/agent:v0.36.1
       integrations:
         selector:
           matchLabels:

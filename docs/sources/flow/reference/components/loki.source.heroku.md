@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.heroku/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.heroku/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.heroku/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.heroku/
 title: loki.source.heroku
 ---

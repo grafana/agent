@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.jaeger/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.jaeger/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.jaeger/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.jaeger/
 title: otelcol.exporter.jaeger
 ---
@@ -47,6 +51,7 @@ client > tls | [tls][] | Configures TLS for the gRPC client. | no
 client > keepalive | [keepalive][] | Configures keepalive settings for the gRPC client. | no
 sending_queue | [sending_queue][] | Configures batching of data before sending. | no
 retry_on_failure | [retry_on_failure][] | Configures retry mechanism for failed requests. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client > tls`
 refers to a `tls` block defined inside a `client` block.
@@ -56,6 +61,7 @@ refers to a `tls` block defined inside a `client` block.
 [keepalive]: #keepalive-block
 [sending_queue]: #sending_queue-block
 [retry_on_failure]: #retry_on_failure-block
+[debug_metrics]: #debug_metrics-block
 
 ### client block
 
@@ -133,6 +139,10 @@ The `retry_on_failure` block configures how failed requests to the gRPC server a
 retried.
 
 {{< docs/shared lookup="flow/reference/components/otelcol-retry-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
