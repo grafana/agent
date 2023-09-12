@@ -44,6 +44,8 @@ Main (unreleased)
 - Add a `file_watch` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_poll_frequency` and `max_poll_frequency`.
   In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`.  (@wildum)
 
+- Flow: In `prometheus.exporter.blackbox`, allow setting labels for individual targets. (@spartan0x117)
+
 ### Enhancements
 
 - Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
