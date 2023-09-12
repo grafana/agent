@@ -13,7 +13,6 @@ import (
 
 	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
 	"github.com/mitchellh/mapstructure"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
@@ -899,7 +898,6 @@ func tracingFactories() (otelcol.Factories, error) {
 	exporters, err := otelexporter.MakeFactoryMap(
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
-		jaegerexporter.NewFactory(),
 		loadbalancingexporter.NewFactory(),
 		prometheusexporter.NewFactory(),
 		remotewriteexporter.NewFactory(),
