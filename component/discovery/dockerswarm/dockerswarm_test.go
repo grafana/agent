@@ -19,12 +19,12 @@ func TestRiverUnmarshal(t *testing.T) {
 		role = "nodes"
 		port = 81
 		filter {
-				name = "n1"
-				values = ["v11", "v12"]
+			name = "n1"
+			values = ["v11", "v12"]
 		}
 		filter {
-				name = "n2"
-				values = ["v21"]
+			name = "n2"
+			values = ["v21"]
 		}
 		refresh_interval = "12s"
 		basic_auth {

@@ -86,12 +86,12 @@ func convertFilters(filters []Filter) []prom_discovery.Filter {
 }
 
 func (f *Filter) convert() prom_discovery.Filter {
-	valuesCopy := make([]string, len(f.Values))
-	copy(valuesCopy, f.Values)
+	values := make([]string, len(f.Values))
+	copy(values, f.Values)
 
 	return prom_discovery.Filter{
 		Name:   f.Name,
-		Values: valuesCopy,
+		Values: values,
 	}
 }
 

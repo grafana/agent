@@ -9,7 +9,7 @@ title: discovery.dockerswarm
 
 # discovery.dockerswarm
 
-`discovery.dockerswarm` allows you to retrieve scrape targets from [Swarm](https://docs.docker.com/engine/swarm/key-concepts/).
+`discovery.dockerswarm` allows you to retrieve scrape targets from [Docker Swarm](https://docs.docker.com/engine/swarm/key-concepts/).
 
 ## Usage
 
@@ -196,7 +196,7 @@ values.
 
 ## Example
 
-This example discovers targets from Swarm services:
+This example discovers targets from Docker Swarm tasks:
 
 ```river
 discovery.dockerswarm "example" {

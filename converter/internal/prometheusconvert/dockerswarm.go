@@ -46,11 +46,11 @@ func convertFilters(mobyFilters []prom_moby.Filter) []dockerswarm.Filter {
 }
 
 func convertFilter(mobyFilter *prom_moby.Filter) dockerswarm.Filter {
-	valuesCopy := make([]string, len(mobyFilter.Values))
-	copy(valuesCopy, mobyFilter.Values)
+	values := make([]string, len(mobyFilter.Values))
+	copy(values, mobyFilter.Values)
 
 	return dockerswarm.Filter{
 		Name:   mobyFilter.Name,
-		Values: valuesCopy,
+		Values: values,
 	}
 }
