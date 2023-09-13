@@ -52,6 +52,7 @@ func toDiscoveryJob(job *cloudwatch_exporter.DiscoveryJob) cloudwatch.DiscoveryJ
 		Type:                      job.Type,
 		DimensionNameRequirements: job.DimensionNameRequirements,
 		Metrics:                   toMetrics(job.Metrics),
+		NilToZero:                 job.NilToZero,
 	}
 }
 
@@ -92,5 +93,6 @@ func toMetric(metric cloudwatch_exporter.Metric) cloudwatch.Metric {
 		Statistics: metric.Statistics,
 		Period:     metric.Period,
 		Length:     metric.Length,
+		NilToZero:  metric.NilToZero,
 	}
 }

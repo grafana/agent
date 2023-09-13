@@ -53,6 +53,8 @@ Main (unreleased)
 
 - Flow: In `prometheus.exporter.blackbox`, allow setting labels for individual targets. (@spartan0x117)
 
+- Add optional `nil_to_zero` config flag for `YACE` which can be set in the `static`, `discovery`, or `metric` config blocks. (@berler)
+
 ### Enhancements
 
 - Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)

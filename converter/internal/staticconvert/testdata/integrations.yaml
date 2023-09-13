@@ -37,11 +37,13 @@ integrations:
         - type: AWS/EC2
           regions:
             - us-east-2
+          nil_to_zero: true
           metrics:
             - name: CPUUtilization
               period: 5m
               statistics:
                 - Average
+              nil_to_zero: false
             - name: NetworkPacketsIn
               period: 5m
               statistics:

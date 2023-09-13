@@ -102,9 +102,10 @@ prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
 		type        = "AWS/EC2"
 
 		metric {
-			name       = "CPUUtilization"
-			statistics = ["Average"]
-			period     = "5m0s"
+			name        = "CPUUtilization"
+			statistics  = ["Average"]
+			period      = "5m0s"
+			nil_to_zero = false
 		}
 
 		metric {
@@ -112,6 +113,7 @@ prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
 			statistics = ["Average"]
 			period     = "5m0s"
 		}
+		nil_to_zero = true
 	}
 
 	decoupled_scraping { }
