@@ -100,7 +100,7 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 		MaxVersion: tls.VersionTLS12,
 	}
 
-	ca, err := getClientAuthFromString(c.ClientAuth)
+	ca, err := GetClientAuthFromString(c.ClientAuth)
 	if err != nil {
 		return err
 	}
