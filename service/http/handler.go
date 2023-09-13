@@ -5,6 +5,7 @@ package http
 import (
 	"crypto/tls"
 	"fmt"
+
 	"github.com/grafana/agent/pkg/server"
 )
 

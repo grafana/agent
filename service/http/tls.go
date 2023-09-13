@@ -5,11 +5,10 @@ import (
 	"crypto/x509"
 	"encoding"
 	"fmt"
-	"github.com/grafana/agent/pkg/server"
-	"github.com/grafana/regexp"
 	"os"
 	"time"
 
+	"github.com/grafana/regexp"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
 )
@@ -54,23 +53,6 @@ type WindowsServerFilter struct {
 	RefreshInterval   time.Duration `river:"refresh_interval,attr,optional"`
 }
 
-func (wcf *WindowsCertificateFilter) toYaml() server.WindowsCertificateFilter {
-	return server.WindowsCertificateFilter{
-		Server: &server.WindowsServerFilter{
-			Store:             wcf.Server.Store,
-			SystemStore:       wcf.Server.SystemStore,
-			IssuerCommonNames: wcf.Server.IssuerCommonNames,
-			TemplateID:        wcf.Server.TemplateID,
-			RefreshInterval:   wcf.Server.RefreshInterval,
-		},
-		Client: &server.WindowsClientFilter{
-			IssuerCommonNames: wcf.Client.IssuerCommonNames,
-			SubjectRegEx:      wcf.Client.SubjectRegEx,
-			TemplateID:        wcf.Client.TemplateID,
-		},
-	}
-}
-
 var _ river.Defaulter = (*WindowsServerFilter)(nil)
 
 // SetToDefault sets the default for WindowsServerFilter
@@ -98,14 +80,12 @@ func (args *TLSArguments) validateWindowsCertificateFilterTLS() error {
 	case len(args.ClientCAFile) > 0:
 	case len(args.KeyFile) > 0:
 		return fmt.Errorf("cannot specify any key, certificate or CA when using windows certificate filter")
-
 	}
 	if args.WindowsFilter.Server == nil {
 		return fmt.Errorf("windows_certificate_filter requires a server block defined")
 	}
-	var err error
 	if args.WindowsFilter.Client != nil && args.WindowsFilter.Client.SubjectRegEx != "" {
-		_, err = regexp.Compile(args.WindowsFilter.Client.SubjectRegEx)
+		_, err := regexp.Compile(args.WindowsFilter.Client.SubjectRegEx)
 		if err != nil {
 			return fmt.Errorf("error compiling subject common name regular expression: %w", err)
 		}
