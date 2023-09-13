@@ -65,11 +65,11 @@ func NewSyncer(
 
 	switch cfg.KafkaConfig.Assignor {
 	case sarama.StickyBalanceStrategyName:
-		config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategySticky
+		config.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategyRange()
 	case sarama.RoundRobinBalanceStrategyName:
-		config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
+		config.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategyRoundRobin()
 	case sarama.RangeBalanceStrategyName, "":
-		config.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRange
+		config.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategyRange()
 	default:
 		return nil, fmt.Errorf("unrecognized consumer group partition assignor: %s", cfg.KafkaConfig.Assignor)
 	}
