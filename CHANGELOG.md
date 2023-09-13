@@ -73,8 +73,7 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fixing a bug in `otelcol.processor.discovery` whose `targets` attribute would be modified in a way 
-  which impacted the component passing the `targets` to `otelcol.processor.discovery`. (@ptodev)
+- Fixed a bug where `otelcol.processor.discovery` could modify the `targets` passed by an upstream component. (@ptodev)
 
 v0.36.1 (2023-09-06)
 --------------------
