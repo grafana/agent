@@ -1,5 +1,3 @@
-//go:build !race
-
 package probabilistic_sampler_test
 
 import (
