@@ -3,7 +3,7 @@
 (Error) unsupported integration which is not being scraped was provided: mssql.
 (Error) mapping_config is not supported in statsd_exporter integrations config
 (Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
-(Error) unsupported grpc_tls_config server config was provided: flow mode does not have a gRPC server to config.
+(Error) unsupported grpc_tls_config server config was provided: flow mode does not have a gRPC server to configure.
 (Error) unsupported prefer_server_cipher_suites server config was provided.
 (Error) unsupported windows_certificate_filter server config was provided.
 (Error) unsupported wal_directory metrics config was provided. use the run command flag --storage.path for Flow mode instead.
