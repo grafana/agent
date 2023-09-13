@@ -71,7 +71,6 @@ To install Grafana Agent in static mode on RHEL or Fedora, run the following com
 1. Create `/etc/yum.repos.d/grafana.repo` with the following content:
 
    ```shell
-   sudo nano /etc/yum.repos.d/grafana.repo
    [grafana]
    name=grafana
    baseurl=https://rpm.grafana.com
