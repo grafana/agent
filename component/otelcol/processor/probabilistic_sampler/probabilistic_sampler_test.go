@@ -1,240 +1,145 @@
 //go:build !race
 
-package probabilistic_sampler
+package probabilistic_sampler_test
 
 import (
 	"context"
 	"testing"
-	"time"
 
-	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/otelcol/internal/fakeconsumer"
-	"github.com/grafana/agent/pkg/util"
-
-	"github.com/grafana/agent/component/otelcol"
+	probabilisticsampler "github.com/grafana/agent/component/otelcol/processor/probabilistic_sampler"
+	"github.com/grafana/agent/component/otelcol/processor/processortest"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/dskit/backoff"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/pdata/plog"
-	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
-func TestBadRiverConfigNegativeSamplingRate(t *testing.T) {
-	exampleBadRiverConfig := `
-    sampling_percentage = -1
-    output { 
-	    // no-op: will be overridden by test code.
-    }
-`
-	var args Arguments
-	require.EqualError(t, river.Unmarshal([]byte(exampleBadRiverConfig), &args), "negative sampling rate: -1.00")
+func TestArguments_UnmarshalRiver(t *testing.T) {
+	tests := []struct {
+		testName string
+		cfg      string
+		expected probabilisticsamplerprocessor.Config
+		errorMsg string
+	}{
+		{
+			testName: "Defaults",
+			cfg: `
+					output {}		
+				`,
+			expected: probabilisticsamplerprocessor.Config{
+				SamplingPercentage: 0,
+				HashSeed:           0,
+				AttributeSource:    "traceID",
+				FromAttribute:      "",
+				SamplingPriority:   "",
+			},
+		},
+		{
+			testName: "ExplicitValues",
+			cfg: `
+					
+					sampling_percentage = 10
+					hash_seed = 123
+    				attribute_source = "record"
+					from_attribute = "logID"
+					sampling_priority = "priority"
+    				output {}					
+				`,
+			expected: probabilisticsamplerprocessor.Config{
+				SamplingPercentage: 10,
+				HashSeed:           123,
+				AttributeSource:    "record",
+				FromAttribute:      "logID",
+				SamplingPriority:   "priority",
+			},
+		},
+		{
+			testName: "Negative SamplingPercentage",
+			cfg: `
+    				sampling_percentage = -1
+					output {}
+				`,
+			errorMsg: "negative sampling rate: -1.00",
+		},
+		{
+			testName: "Invalid AttributeSource",
+			cfg: `
+					sampling_percentage = 0.1
+    				attribute_source = "example"
+    				output {}					
+				`,
+			errorMsg: "invalid attribute source: example. Expected: traceID or record",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.testName, func(t *testing.T) {
+			var args probabilisticsampler.Arguments
+			err := river.Unmarshal([]byte(tc.cfg), &args)
+			if tc.errorMsg != "" {
+				require.EqualError(t, err, tc.errorMsg)
+				return
+			}
+			require.NoError(t, err)
+
+			actualPtr, err := args.Convert()
+			require.NoError(t, err)
+
+			actual := actualPtr.(*probabilisticsamplerprocessor.Config)
+			require.Equal(t, tc.expected, *actual)
+		})
+	}
 }
 
-func TestBadRiverConfigInvalidAttributeSource(t *testing.T) {
-	exampleBadRiverConfig := `
-    sampling_percentage = 0.1
-    attribute_source = "example"
-    output { 
-	    // no-op: will be overridden by test code.
-    }
-`
-	var args Arguments
-	require.EqualError(t, river.Unmarshal([]byte(exampleBadRiverConfig), &args), "invalid attribute source: example. Expected: traceID or record")
+func testRunProcessor(t *testing.T, processorConfig string, testSignal processortest.Signal) {
+	ctx := componenttest.TestContext(t)
+	testRunProcessorWithContext(ctx, t, processorConfig, testSignal)
+}
+
+func testRunProcessorWithContext(ctx context.Context, t *testing.T, processorConfig string, testSignal processortest.Signal) {
+	l := util.TestLogger(t)
+
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.probabilistic_sampler")
+	require.NoError(t, err)
+
+	var args probabilisticsampler.Arguments
+	require.NoError(t, river.Unmarshal([]byte(processorConfig), &args))
+
+	// Override the arguments so signals get forwarded to the test channel.
+	args.Output = testSignal.MakeOutput()
+
+	prc := processortest.ProcessorRunConfig{
+		Ctx:        ctx,
+		T:          t,
+		Args:       args,
+		TestSignal: testSignal,
+		Ctrl:       ctrl,
+		L:          l,
+	}
+	processortest.TestRunProcessor(prc)
 }
 
 func TestLogProcessing(t *testing.T) {
-	exampleSmallConfig := `
-	sampling_percentage        = 100
-    hash_seed                  = 123
+	cfg := `
+		sampling_percentage        = 100
+    	hash_seed                  = 123
     
-    output { 
-	    // no-op: will be overridden by test code.
-    }
-  `
-	ctx := componenttest.TestContext(t)
-	l := util.TestLogger(t)
+    	output { 
+	    	// no-op: will be overridden by test code.
+    	}
+	`
+	var args probabilisticsampler.Arguments
+	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.probabilistic_sampler")
-	require.NoError(t, err)
-
-	var args Arguments
-	require.NoError(t, river.Unmarshal([]byte(exampleSmallConfig), &args))
-
-	// Override our arguments so logs get forwarded to logsCh.
-	logsCh := make(chan plog.Logs)
-	args.Output = makeLogsOutput(logsCh)
-
-	go func() {
-		err := ctrl.Run(ctx, args)
-		require.NoError(t, err)
-	}()
-
-	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
-	require.NoError(t, ctrl.WaitExports(time.Second), "component never exported anything")
-
-	// Send traces in the background to our processor.
-	go func() {
-		exports := ctrl.Exports().(otelcol.ConsumerExports)
-
-		exports.Input.Capabilities()
-
-		bo := backoff.New(ctx, backoff.Config{
-			MinBackoff: 10 * time.Millisecond,
-			MaxBackoff: 100 * time.Millisecond,
-		})
-		for bo.Ongoing() {
-			err := exports.Input.ConsumeLogs(ctx, createTestLogs())
-			if err != nil {
-				level.Error(l).Log("msg", "failed to send logs", "err", err)
-				bo.Wait()
-				continue
-			}
-
-			return
-		}
-	}()
-
-	// Wait for our processor to finish and forward data to logCh.
-	select {
-	case <-time.After(time.Second * 10):
-		require.FailNow(t, "failed waiting for logs")
-	case tr := <-logsCh:
-		require.Equal(t, 1, tr.LogRecordCount())
-	}
-}
-
-func TestTraceProcessing(t *testing.T) {
-	exampleSmallConfig := `
-    sampling_percentage        = 100
-    hash_seed                  = 123
-    
-    output { 
-	    // no-op: will be overridden by test code.
-    }
-  `
-	ctx := componenttest.TestContext(t)
-	l := util.TestLogger(t)
-
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.processor.probabilistic_sampler")
-	require.NoError(t, err)
-
-	var args Arguments
-	require.NoError(t, river.Unmarshal([]byte(exampleSmallConfig), &args))
-
-	// Override our arguments so traces get forwarded to traceCh.
-	traceCh := make(chan ptrace.Traces)
-	args.Output = makeTracesOutput(traceCh)
-
-	go func() {
-		err := ctrl.Run(ctx, args)
-		require.NoError(t, err)
-	}()
-
-	require.NoError(t, ctrl.WaitRunning(time.Second), "component never started")
-	require.NoError(t, ctrl.WaitExports(time.Second), "component never exported anything")
-
-	// Send traces in the background to our processor.
-	go func() {
-		exports := ctrl.Exports().(otelcol.ConsumerExports)
-
-		exports.Input.Capabilities()
-
-		bo := backoff.New(ctx, backoff.Config{
-			MinBackoff: 10 * time.Millisecond,
-			MaxBackoff: 100 * time.Millisecond,
-		})
-		for bo.Ongoing() {
-			err := exports.Input.ConsumeTraces(ctx, createTestTraces())
-			if err != nil {
-				level.Error(l).Log("msg", "failed to send traces", "err", err)
-				bo.Wait()
-				continue
-			}
-
-			return
-		}
-	}()
-
-	// Wait for our processor to finish and forward data to traceCh.
-	select {
-	case <-time.After(time.Second * 10):
-		require.FailNow(t, "failed waiting for traces")
-	case tr := <-traceCh:
-		require.Equal(t, 1, tr.SpanCount())
-	}
-}
-
-// makeTracesOutput returns ConsumerArguments which will forward traces to the
-// provided channel.
-func makeTracesOutput(ch chan ptrace.Traces) *otelcol.ConsumerArguments {
-	traceConsumer := fakeconsumer.Consumer{
-		ConsumeTracesFunc: func(ctx context.Context, t ptrace.Traces) error {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case ch <- t:
-				return nil
-			}
-		},
-	}
-
-	return &otelcol.ConsumerArguments{
-		Traces: []otelcol.Consumer{&traceConsumer},
-	}
-}
-
-func createTestTraces() ptrace.Traces {
-	// Matches format from the protobuf definition:
-	// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
-	var bb = `{
-		"resource_spans": [{
-			"scope_spans": [{
-				"spans": [{
-					"name": "TestSpan"
-				}]
-			}]
-		}]
-	}`
-
-	decoder := &ptrace.JSONUnmarshaler{}
-	data, err := decoder.UnmarshalTraces([]byte(bb))
-	if err != nil {
-		panic(err)
-	}
-	return data
-}
-
-// makeLogsOutput returns ConsumerArguments which will forward logs to the
-// provided channel.
-func makeLogsOutput(ch chan plog.Logs) *otelcol.ConsumerArguments {
-	logConsumer := fakeconsumer.Consumer{
-		ConsumeLogsFunc: func(ctx context.Context, t plog.Logs) error {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case ch <- t:
-				return nil
-			}
-		},
-	}
-
-	return &otelcol.ConsumerArguments{
-		Logs: []otelcol.Consumer{&logConsumer},
-	}
-}
-
-func createTestLogs() plog.Logs {
-	// Matches format from the protobuf definition:
-	// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/logs/v1/logs.proto
-	var bb = `{
-		"resource_logs": [{
-			"scope_logs": [{
-				"log_records": [{
+	var inputLogs = `{
+		"resourceLogs": [{
+			"scopeLogs": [{
+				"logRecords": [{
                     "attributes": [{
                     	"key": "foo",
 						"value": {
-							"string_value": "bar"
+							"stringValue": "bar"
                         }
                     }]
 				}]
@@ -242,10 +147,56 @@ func createTestLogs() plog.Logs {
 		}]
 	}`
 
-	decoder := &plog.JSONUnmarshaler{}
-	data, err := decoder.UnmarshalLogs([]byte(bb))
-	if err != nil {
-		panic(err)
-	}
-	return data
+	expectedOutputLogs := `{
+		"resourceLogs": [{
+			"scopeLogs": [{
+				"logRecords": [{
+                    "attributes": [{
+                    	"key": "foo",
+						"value": {
+							"stringValue": "bar"
+                        }
+                    }]
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, processortest.NewLogSignal(inputLogs, expectedOutputLogs))
+}
+
+func TestTraceProcessing(t *testing.T) {
+	cfg := `
+		sampling_percentage        = 100
+    	hash_seed                  = 123
+    
+    	output { 
+	    	// no-op: will be overridden by test code.
+    	}
+	`
+
+	var args probabilisticsampler.Arguments
+	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+
+	var inputTraces = `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan"
+				}]
+			}]
+		}]
+	}`
+
+	expectedOutputTraces := `{
+		"resourceSpans": [{
+			"scopeSpans": [{
+				"spans": [{
+					"name": "TestSpan"
+				}]
+			}]
+		}]
+	}`
+
+	testRunProcessor(t, cfg, processortest.NewTraceSignal(inputTraces, expectedOutputTraces))
 }
