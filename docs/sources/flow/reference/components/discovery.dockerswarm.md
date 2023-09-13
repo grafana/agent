@@ -15,8 +15,8 @@ title: discovery.dockerswarm
 
 ```river
 discovery.dockerswarm "LABEL" {
-  host = "unix:///var/run/docker.sock"
-  role = "services"
+  host = "DOCKER_DAEMON_HOST"
+  role = "SWARM_ROLE"
 }
 ```
 
