@@ -65,7 +65,7 @@ func validateServer(serverConfig *server.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	defaultServerConfig := server.DefaultConfig()
-	diags.AddAll(common.UnsupportedNotDeepEqualsMessage(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server", "flow mode does not have a gRPC server to config."))
+	diags.AddAll(common.UnsupportedNotDeepEqualsMessage(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server", "flow mode does not have a gRPC server to configure."))
 	diags.AddAll(common.UnsupportedNotEquals(serverConfig.HTTP.TLSConfig.PreferServerCipherSuites, defaultServerConfig.HTTP.TLSConfig.PreferServerCipherSuites, "prefer_server_cipher_suites server"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.HTTP.TLSConfig.WindowsCertificateFilter, defaultServerConfig.HTTP.TLSConfig.WindowsCertificateFilter, "windows_certificate_filter server"))
 
