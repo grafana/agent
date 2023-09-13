@@ -160,9 +160,9 @@ The following versions are recognized:
 
 ### windows certificate filter block
 
-The `windows_certificate_filter` block is used to configure retrieving and client certificated from the built-in Windows
-certificate store. This feature is not available on any platforms other than Windows. When using the `windows_certificate_filter` block
-the following TLS settings are overridden and will cause an error when used.
+The `windows_certificate_filter` block is used to configure retrieving certificates from the built-in Windows
+certificate store. When using the `windows_certificate_filter` block
+the following TLS settings are overridden and will cause an error if defined.
 
 * `cert_pem`
 * `cert_file`
@@ -172,23 +172,25 @@ the following TLS settings are overridden and will cause an error when used.
 * `client_ca_file`
 
 {{% admonition type="warning" %}}
-Also note TLS min and max may not be compatible with the certificate stored in the Windows certificate store. The `windows_certificate_filter`
+This feature is not available on any platforms other than Windows.
+
+TLS min and max may not be compatible with the certificate stored in the Windows certificate store. The `windows_certificate_filter`
 will serve the found certificate even if it is not compatible with the specified TLS version.
 {{% /admonition %}}
 
 
 ### server block
 
-The `server` block is used to find the certificate to check the signer. If multiple are found the `windows_certificate_filter` 
-will choose the newest one that is current.
+The `server` block is used to find the certificate to check the signer. If multiple certificates are found the 
+`windows_certificate_filter` will choose the certificate with the expiration farthest in the future.
 
-Name | Type           | Description                                                                              | Default | Required
----- |----------------|------------------------------------------------------------------------------------------|---------| --------
-`store` | `string`       | Name of the system store to look for the Server Certificate ex LocalMachine, CurrentUser. | `""`    | conditionally
-`system_store` | `string`       | Name of the store to look for the Server Certificate ex My, CA.                          | `""`    | conditionally
-`issuer_common_names` | `list(string)` | Issuer common names to check against.                                                    |         | no
-`template_id` | `string`       | Server Template ID to match in ASN1 format ex "1.2.3".                                   | `""`    | no
-`refresh_interval` | `string`       | How often to check for a new server certificate.                                         | `"5m"`  | no
+Name | Type           | Description                                                                               | Default | Required
+---- |----------------|-------------------------------------------------------------------------------------------|---------| --------
+`store` | `string`       | Name of the system store to look for the server Certificate ex LocalMachine, CurrentUser. | `""`    | yes
+`system_store` | `string`       | Name of the store to look for the server Certificate ex My, CA.                           | `""`    | yes
+`issuer_common_names` | `list(string)` | Issuer common names to check against.                                                     |         | no
+`template_id` | `string`       | Server Template ID to match in ASN1 format ex "1.2.3".                                    | `""`    | no
+`refresh_interval` | `string`       | How often to check for a new server certificate.                                          | `"5m"`  | no
 
 
 
@@ -200,5 +202,5 @@ Name | Type           | Description                                            |
 ---- |----------------|--------------------------------------------------------|-----| --------
 `issuer_common_names` | `list(string)` | Issuer common names to check against.                  |     | no
 `subject_regex` | `string`       | Regular expression to match Subject name.              | `""` | no
-`template_id` | `string`       | Client Template ID to match in ASN1 format ex "1.2.3".                 |     | no
+`template_id` | `string`       | Client Template ID to match in ASN1 format ex "1.2.3".                 |   `""`   | no
 
