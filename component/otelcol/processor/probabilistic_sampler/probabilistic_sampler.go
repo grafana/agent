@@ -5,7 +5,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
-	psp "github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
 )
@@ -17,7 +17,7 @@ func init() {
 		Exports: otelcol.ConsumerExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			fact := psp.NewFactory()
+			fact := probabilisticsamplerprocessor.NewFactory()
 			return processor.New(opts, fact, args.(Arguments))
 		},
 	})
@@ -57,15 +57,15 @@ func (args *Arguments) Validate() error {
 		return err
 	}
 
-	return cfg.(*psp.Config).Validate()
+	return cfg.(*probabilisticsamplerprocessor.Config).Validate()
 }
 
 // Convert implements processor.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
-	return &psp.Config{
+	return &probabilisticsamplerprocessor.Config{
 		SamplingPercentage: args.SamplingPercentage,
 		HashSeed:           args.HashSeed,
-		AttributeSource:    psp.AttributeSource(args.AttributeSource),
+		AttributeSource:    probabilisticsamplerprocessor.AttributeSource(args.AttributeSource),
 		FromAttribute:      args.FromAttribute,
 		SamplingPriority:   args.SamplingPriority,
 	}, nil

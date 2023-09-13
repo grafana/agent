@@ -23,7 +23,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		{
 			testName: "Defaults",
 			cfg: `
-					output {}		
+					output {}
 				`,
 			expected: probabilisticsamplerprocessor.Config{
 				SamplingPercentage: 0,
@@ -36,13 +36,12 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		{
 			testName: "ExplicitValues",
 			cfg: `
-					
 					sampling_percentage = 10
 					hash_seed = 123
-    				attribute_source = "record"
+					attribute_source = "record"
 					from_attribute = "logID"
 					sampling_priority = "priority"
-    				output {}					
+					output {}
 				`,
 			expected: probabilisticsamplerprocessor.Config{
 				SamplingPercentage: 10,
@@ -55,7 +54,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		{
 			testName: "Negative SamplingPercentage",
 			cfg: `
-    				sampling_percentage = -1
+					sampling_percentage = -1
 					output {}
 				`,
 			errorMsg: "negative sampling rate: -1.00",
@@ -64,8 +63,8 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			testName: "Invalid AttributeSource",
 			cfg: `
 					sampling_percentage = 0.1
-    				attribute_source = "example"
-    				output {}					
+					attribute_source = "example"
+					output {}
 				`,
 			errorMsg: "invalid attribute source: example. Expected: traceID or record",
 		},
@@ -120,13 +119,12 @@ func testRunProcessorWithContext(ctx context.Context, t *testing.T, processorCon
 
 func TestLogProcessing(t *testing.T) {
 	cfg := `
-		sampling_percentage        = 100
-    	hash_seed                  = 123
-    
-    	output { 
-	    	// no-op: will be overridden by test code.
-    	}
-	`
+			sampling_percentage = 100
+			hash_seed = 123
+			output {
+				// no-op: will be overridden by test code.
+			}
+		`
 	var args probabilisticsampler.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
@@ -134,27 +132,27 @@ func TestLogProcessing(t *testing.T) {
 		"resourceLogs": [{
 			"scopeLogs": [{
 				"logRecords": [{
-                    "attributes": [{
-                    	"key": "foo",
+					"attributes": [{
+						"key": "foo",
 						"value": {
 							"stringValue": "bar"
-                        }
-                    }]
+						}
+					}]
 				}]
 			}]
 		}]
 	}`
 
-	expectedOutputLogs := `{
+	var expectedOutputLogs = `{
 		"resourceLogs": [{
 			"scopeLogs": [{
 				"logRecords": [{
-                    "attributes": [{
-                    	"key": "foo",
+					"attributes": [{
+						"key": "foo",
 						"value": {
 							"stringValue": "bar"
-                        }
-                    }]
+						}
+					}]
 				}]
 			}]
 		}]
@@ -165,12 +163,11 @@ func TestLogProcessing(t *testing.T) {
 
 func TestTraceProcessing(t *testing.T) {
 	cfg := `
-		sampling_percentage        = 100
-    	hash_seed                  = 123
-    
-    	output { 
-	    	// no-op: will be overridden by test code.
-    	}
+		sampling_percentage = 100
+		hash_seed = 123
+		output {
+			// no-op: will be overridden by test code.
+		}
 	`
 
 	var args probabilisticsampler.Arguments
