@@ -17,7 +17,7 @@ func UnsupportedNotDeepEqualsMessage(a any, b any, name string, message string) 
 	var diags diag.Diagnostics
 	if !reflect.DeepEqual(a, b) {
 		if message != "" {
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported %s config was provided. %s", name, message))
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported %s config was provided: %s", name, message))
 		} else {
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported %s config was provided.", name))
 		}
