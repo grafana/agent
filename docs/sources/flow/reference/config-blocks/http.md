@@ -72,7 +72,7 @@ Grafana Agent.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `cert_pem` | `string` | PEM data of the server TLS certificate. | `""` | conditionally
-`cert_file` | `string` | Path to the server TLS certificate on disk. | `""` | conditionallyy
+`cert_file` | `string` | Path to the server TLS certificate on disk. | `""` | conditionally
 `key_pem` | `string` | PEM data of the server TLS key. | `""` | conditionally
 `key_file` | `string` | Path to the server TLS key on disk. | `""` | conditionally
 `client_ca_pem` | `string` | PEM data of the client CA to validate requests against. | `""` | no
