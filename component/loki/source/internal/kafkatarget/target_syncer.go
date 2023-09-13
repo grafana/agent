@@ -65,7 +65,7 @@ func NewSyncer(
 
 	switch cfg.KafkaConfig.Assignor {
 	case sarama.StickyBalanceStrategyName:
-		config.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategyRange()
+		config.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategySticky()
 	case sarama.RoundRobinBalanceStrategyName:
 		config.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategyRoundRobin()
 	case sarama.RangeBalanceStrategyName, "":
