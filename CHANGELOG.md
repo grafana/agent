@@ -76,6 +76,7 @@ Main (unreleased)
   have been standardized. The first fields will always be `ts`, `level`, and
   `msg`, followed by non-common fields. Previously, the position of `msg` was
   not consistent. (@rfratto)
+- Switch to `IBM/sarama` module. (@hainenber)
 
 ### Bugfixes
 
