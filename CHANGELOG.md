@@ -80,6 +80,8 @@ Main (unreleased)
 
 - Fixed a bug where `otelcol` components with a retry mechanism would not wait after the first retry. (@rfratto)
 
+- Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
+
 v0.36.1 (2023-09-06)
 --------------------
 
