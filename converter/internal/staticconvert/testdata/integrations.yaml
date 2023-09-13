@@ -4,6 +4,10 @@ metrics:
       - url: http://localhost:9009/api/prom/push
 
 integrations:
+  http_tls_config:
+      ca_file: "/something7.cert"
+      cert_file: "/something8.cert"
+      key_file: "/something9.cert"
   scrape_integrations: true
   apache_http:
     enabled: true

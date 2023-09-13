@@ -105,7 +105,7 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 		MinVersion:            uint16(c.MinVersion),
 	}
 
-	ca, err := getClientAuthFromString(c.ClientAuth)
+	ca, err := GetClientAuthFromString(c.ClientAuth)
 	if err != nil {
 		return err
 	}

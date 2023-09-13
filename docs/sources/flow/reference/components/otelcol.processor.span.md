@@ -234,7 +234,7 @@ This example creates a new span name from the values of attributes `db.svc`,
 `operation`, and `id`, in that order, separated by the value `::`. 
 All attribute keys need to be specified in the span for the processor to rename it.
 
-```
+```river
 otelcol.processor.span "default" {
   name {
     separator        = "::"
@@ -247,9 +247,9 @@ otelcol.processor.span "default" {
 }
 ```
 
-For a span with the following attributes key/value pairs, the example
+For a span with the following attributes key/value pairs, the above
 Flow configuration will change the span name to `"location::get::1234"`:
-```
+```json
 { 
   "db.svc": "location", 
   "operation": "get", 
@@ -257,10 +257,10 @@ Flow configuration will change the span name to `"location::get::1234"`:
 }
 ```
 
-For a span with the following attributes key/value pairs, the example 
+For a span with the following attributes key/value pairs, the above 
 Flow configuration will not change the span name. 
 This is because the attribute key `operation` isn't set:
-```
+```json
 { 
   "db.svc": "location", 
   "id": "1234"
@@ -269,7 +269,7 @@ This is because the attribute key `operation` isn't set:
 
 ### Creating a new span name from attribute values (no separator)
 
-```
+```river
 otelcol.processor.span "default" {
   name {
     from_attributes = ["db.svc", "operation", "id"]
@@ -281,9 +281,9 @@ otelcol.processor.span "default" {
 }
 ```
 
-For a span with the following attributes key/value pairs, the example
+For a span with the following attributes key/value pairs, the above
 Flow configuration will change the span name to `"locationget1234"`:
-```
+```json
 { 
   "db.svc": "location", 
   "operation": "get", 
@@ -298,7 +298,7 @@ Example input and output using the Flow configuration below:
 2. The span name will be changed to `/api/v1/document/{documentId}/update`
 3. A new attribute `"documentId"="12345678"` will be added to the span.
 
-```
+```river
 otelcol.processor.span "default" {
   name {
     to_attributes {
@@ -321,7 +321,7 @@ if the span has the following properties:
 - The span name contains `/` anywhere in the string.
 - The span name is not `donot/change`.
 
-```
+```river
 otelcol.processor.span "default" {
   include {
     match_type = "regexp"
@@ -348,7 +348,7 @@ otelcol.processor.span "default" {
 
 This example changes the status of a span to "Error" and sets an error description.
 
-```
+```river
 otelcol.processor.span "default" {
   status {
     code        = "Error"
@@ -366,7 +366,7 @@ otelcol.processor.span "default" {
 This example sets the status to success only when attribute `http.status_code` 
 is equal to `400`.
 
-```
+```river
 otelcol.processor.span "default" {
   include {
     match_type = "strict"

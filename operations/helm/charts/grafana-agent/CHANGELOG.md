@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- An image's digest can now be used in place of a tag. (@hainenber)
+
 0.24.0 (2023-09-08)
 -------------------
 
