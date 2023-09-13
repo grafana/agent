@@ -10,10 +10,6 @@ import (
 	otelextension "go.opentelemetry.io/collector/extension"
 )
 
-const (
-	defaultAttributeSource = "traceID"
-)
-
 func init() {
 	component.Register(component.Registration{
 		Name:    "otelcol.processor.probabilistic_sampler",
@@ -46,7 +42,7 @@ var (
 
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
-	AttributeSource: defaultAttributeSource,
+	AttributeSource: "traceID",
 }
 
 // SetToDefault implements river.Defaulter.
