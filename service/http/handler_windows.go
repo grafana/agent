@@ -23,3 +23,19 @@ func (args *TLSArguments) winTlsConfig(win *server.WinCertStoreHandler) (*tls.Co
 	}
 	return config, nil
 }
+
+func (s *Service) updateWindowsCertificateFilter(tlsArgs *TLSArguments) error {
+	s.winMut.Lock()
+	defer s.winMut.Unlock()
+	// Stop if Window Handler is currently running.
+	if s.win != nil {
+		s.win.Stop()
+	}
+	handler, err := server.NewWinCertStoreHandler(tlsArgs.WindowsFilter.toYaml(), tls.ClientAuthType(tlsArgs.ClientAuth), s.log)
+	if err != nil {
+		return err
+	}
+	s.win = handler
+	s.win.Run()
+	return nil
+}
