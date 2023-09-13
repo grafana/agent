@@ -78,6 +78,8 @@ Main (unreleased)
 
 - Fixed a bug where `otelcol.processor.discovery` could modify the `targets` passed by an upstream component. (@ptodev)
 
+- Fixed a bug where `otelcol` components with a retry mechanism would not wait after the first retry. (@rfratto)
+
 v0.36.1 (2023-09-06)
 --------------------
 
