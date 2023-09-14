@@ -61,7 +61,7 @@ Main (unreleased)
 
 - Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
 
-- Add `openstack` config converter to convert `openstack` yaml config (static mode) to river config (flow mode). (@wildum)
+- Add `openstack` config converter to convert OpenStack yaml config (static mode) to river config (flow mode). (@wildum)
 
 
 ### Other changes
