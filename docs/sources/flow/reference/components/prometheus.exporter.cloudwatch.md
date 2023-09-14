@@ -322,6 +322,20 @@ is exported to CloudWatch.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
 
+## decoupled scraping block
+
+The decoupled scraping block configures an optional feature that scrapes CloudWatch metrics in the background on a
+scheduled interval. When this feature is enabled, CloudWatch metrics are gathered asynchronously at the scheduled interval instead
+of synchronously when the CloudWatch component is scraped.
+
+The decoupled scraping feature reduces the number of API requests sent to AWS.
+This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics.
+
+| Name              | Type     | Description                                                             | Default | Required |
+| ----------------- | -------- | ----------------------------------------------------------------------- | ------- | -------- |
+| `enabled`         | `bool`   | Controls whether the decoupled scraping featured is enabled             | false   | no       |
+| `scrape_interval` | `string` | Controls how frequently to asynchronously gather new CloudWatch metrics | 5m      | no       |
+
 ## Exported fields
 
 {{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
