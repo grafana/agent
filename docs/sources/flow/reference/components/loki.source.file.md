@@ -41,7 +41,7 @@ log entries to the list of receivers passed in `forward_to`.
 The `encoding` argument must be a valid [IANA encoding][] name. If not set, it
 defaults to UTF-8.
 
-The `start_from_eof` argument is valuable when you want to tail a large file without reading its entire content.
+You can use the `start_from_eof` argument when you want to tail a large file without reading its entire content.
 When set to true, only new logs will be read, ignoring the existing ones.
 
 ## Blocks
