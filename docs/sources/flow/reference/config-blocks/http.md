@@ -186,8 +186,8 @@ The `server` block is used to find the certificate to check the signer. If multi
 
 Name | Type           | Description                                                                               | Default | Required
 ---- |----------------|-------------------------------------------------------------------------------------------|---------| --------
-`store` | `string`       | Name of the system store to look for the server Certificate ex LocalMachine, CurrentUser. | `""`    | yes
-`system_store` | `string`       | Name of the store to look for the server Certificate ex My, CA.                           | `""`    | yes
+`store` | `string`       | Name of the system store to look for the server Certificate, for example, LocalMachine, CurrentUser. | `""`    | yes
+`system_store` | `string`       | Name of the store to look for the server Certificate, for example, My, CA.                           | `""`    | yes
 `issuer_common_names` | `list(string)` | Issuer common names to check against.                                                     |         | no
 `template_id` | `string`       | Server Template ID to match in ASN1 format ex "1.2.3".                                    | `""`    | no
 `refresh_interval` | `string`       | How often to check for a new server certificate.                                          | `"5m"`  | no
