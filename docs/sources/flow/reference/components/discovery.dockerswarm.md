@@ -104,11 +104,11 @@ The `role` attribute decides the role of the targets to retrieve.
 
 ### services
 
-The `services` `role` discovers all [Swarm services](https://docs.docker.com/engine/swarm/key-concepts/#services-and-tasks) and exposes their ports as targets. For each published port of a service, a single target is generated. If a service has no published ports, a target per service is created using the `port` attribute defined in the arguments.
+The `services` role discovers all [Swarm services](https://docs.docker.com/engine/swarm/key-concepts/#services-and-tasks) and exposes their ports as targets. For each published port of a service, a single target is generated. If a service has no published ports, a target per service is created using the `port` attribute defined in the arguments.
 
 Available meta labels:
 
-- `__meta_dockerswarm_service_id`: the id of the service.
+- `__meta_dockerswarm_service_id`: the ID of the service.
 - `__meta_dockerswarm_service_name`: the name of the service.
 - `__meta_dockerswarm_service_mode`: the mode of the service.
 - `__meta_dockerswarm_service_endpoint_port_name`: the name of the endpoint port, if available.
@@ -126,18 +126,18 @@ Available meta labels:
 
 ### tasks
 
-The `tasks` `role` discovers all [Swarm tasks](https://docs.docker.com/engine/swarm/key-concepts/#services-and-tasks) and exposes their ports as targets. For each published port of a task, a single target is generated. If a task has no published ports, a target per task is created using the `port` attribute defined in the arguments.
+The `tasks` role discovers all [Swarm tasks](https://docs.docker.com/engine/swarm/key-concepts/#services-and-tasks) and exposes their ports as targets. For each published port of a task, a single target is generated. If a task has no published ports, a target per task is created using the `port` attribute defined in the arguments.
 
 Available meta labels:
 
 - `__meta_dockerswarm_container_label_<labelname>`: each label of the container.
-- `__meta_dockerswarm_task_id`: the id of the task.
-- `__meta_dockerswarm_task_container_id`: the container id of the task.
+- `__meta_dockerswarm_task_id`: the ID of the task.
+- `__meta_dockerswarm_task_container_id`: the container ID of the task.
 - `__meta_dockerswarm_task_desired_state`: the desired state of the task.
 - `__meta_dockerswarm_task_slot`: the slot of the task.
 - `__meta_dockerswarm_task_state`: the state of the task.
 - `__meta_dockerswarm_task_port_publish_mode`: the publish mode of the task port.
-- `__meta_dockerswarm_service_id`: the id of the service.
+- `__meta_dockerswarm_service_id`: the ID of the service.
 - `__meta_dockerswarm_service_name`: the name of the service.
 - `__meta_dockerswarm_service_mode`: the mode of the service.
 - `__meta_dockerswarm_service_label_<labelname>`: each label of the service.
@@ -162,7 +162,7 @@ The `__meta_dockerswarm_network_*` meta labels are not populated for ports which
 
 ### nodes
 
-The `nodes` `role` is used to discover [Swarm nodes](https://docs.docker.com/engine/swarm/key-concepts/#nodes).
+The `nodes` role is used to discover [Swarm nodes](https://docs.docker.com/engine/swarm/key-concepts/#nodes).
 
 Available meta labels:
 
