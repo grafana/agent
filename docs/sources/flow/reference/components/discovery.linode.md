@@ -27,7 +27,7 @@ The following arguments are supported:
 Name               | Type           | Description                                                    | Default       | Required
 ------------------ | -------------- | -------------------------------------------------------------- | ------------- | --------
 `refresh_interval` | `duration`     | The time to wait between polling update requests.              | `"60s"`       | no
-`port`    | `int`     | Port that metrics should be scraped from. | `80`    | no
+`port`    | `int`     | Port that metrics are scraped from. | `80`    | no
 `tag_separator` | `string`  | The string by which Linode Instance tags are joined into the tag label. | `,` | no
 
 `bearer_token` | `secret` | Bearer token to authenticate with. | | no
