@@ -9,7 +9,6 @@ title: otelcol.processor.probabilistic_sampler
 
 `otelcol.processor.probabilistic_sampler` accepts logs and traces data from other otelcol components and applies probabilistic sampling based on configuration options.
 
-
 {{% admonition type="note" %}}
 `otelcol.processor.probabilistic_sampler` is a wrapper over the upstream
 OpenTelemetry Collector Contrib `probabilistic_sampler` processor. If necessary, 
@@ -37,7 +36,7 @@ otelcol.processor.probabilistic_sampler "LABEL" {
 Name | Type      | Description                                                                                                          | Default     | Required
 ---- |-----------|----------------------------------------------------------------------------------------------------------------------|-------------| --------
 `hash_seed`               | `uint32`  | An integer used to compute the hash algorithm.                                                                       | `0`         | no
-`sampling_percentage`     | `float32` | Percentage of traces or logs sampled.                                                                      | `0`         | no
+`sampling_percentage`     | `float32` | Percentage of traces or logs sampled.                                                                                | `0`         | no
 `attribute_source`        | `string`  | Defines where to look for the attribute in `from_attribute`.                                                         | `"traceID"` | no
 `from_attribute`          | `string`  | The name of a log record attribute used for sampling purposes.                                                       | `""`        | no
 `sampling_priority`       | `string`  | The name of a log record attribute used to set a different sampling priority from the `sampling_percentage` setting. | `""`        | no

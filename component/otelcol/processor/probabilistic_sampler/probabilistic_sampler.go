@@ -5,6 +5,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
+	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
@@ -24,7 +25,6 @@ func init() {
 }
 
 // Arguments configures the otelcol.processor.probabilistic_sampler component.
-
 type Arguments struct {
 	SamplingPercentage float32 `river:"sampling_percentage,attr,optional"`
 	HashSeed           uint32  `river:"hash_seed,attr,optional"`
@@ -38,6 +38,8 @@ type Arguments struct {
 
 var (
 	_ processor.Arguments = Arguments{}
+	_ river.Validator     = (*Arguments)(nil)
+	_ river.Defaulter     = (*Arguments)(nil)
 )
 
 // DefaultArguments holds default settings for Arguments.
