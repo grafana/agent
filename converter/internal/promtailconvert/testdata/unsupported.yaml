@@ -39,11 +39,6 @@ scrape_configs:
           - localhost
         paths:
           - /zk/sd/some/path
-    openstack_sd_configs:
-      - role: instance
-        domain_name: domain
-        region: region
-        port: 1234
     triton_sd_configs:
       - account: account
         dns_suffix: .example.com
