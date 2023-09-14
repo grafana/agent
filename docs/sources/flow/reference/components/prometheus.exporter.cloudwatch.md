@@ -156,7 +156,7 @@ job.
 [role]: #role-block
 [decoupled_scraping]: #decoupled-scraping-block
 
-### discovery block
+## discovery block
 
 The `discovery` block allows the component to scrape CloudWatch metrics with only the AWS service and a list of metrics
 under that service/namespace.
@@ -201,7 +201,7 @@ different `search_tags`.
 
 [supported-services]: #supported-services-in-discovery-jobs
 
-### static block
+## static block
 
 The `static` block configures the component to scrape a specific set of CloudWatch metrics. The metrics need to be fully
 qualified with the following specifications:
@@ -258,7 +258,7 @@ require `Resource`, `Service`, `Class`, and `Type` dimensions to be specified. T
 metrics,
 all dimensions attached to a metric when saved in CloudWatch are required.
 
-### metric block
+## metric block
 
 Represents an AWS Metrics to scrape. To see available metrics, AWS does not keep a documentation page with all available
 metrics.
@@ -274,7 +274,7 @@ on how to explore metrics, to easily pick the ones you need.
 
 [period]: #period-and-length
 
-### role block
+## role block
 
 Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). If omitted, the AWS role
 that corresponds to the credentials configured in the environment will be used.
@@ -293,21 +293,7 @@ in the AWS IAM documentation for more information about how to configure this.
 
 [details]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
 
-### decoupled scraping block
-
-The decoupled scraping block configures an optional feature that scrapes CloudWatch metrics in the background on a
-scheduled interval. When this feature is enabled, CloudWatch metrics are gathered asynchronously at the scheduled interval instead
-of synchronously when the CloudWatch component is scraped.
-
-The decoupled scraping feature reduces the number of API requests sent to AWS.
-This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics.
-
-| Name              | Type     | Description                                                             | Default | Required |
-| ----------------- | -------- | ----------------------------------------------------------------------- | ------- | -------- |
-| `enabled`         | `bool`   | Controls whether the decoupled scraping featured is enabled             | false   | no       |
-| `scrape_interval` | `string` | Controls how frequently to asynchronously gather new CloudWatch metrics | 5m      | no       |
-
-## `period` and `length`
+## period and length
 
 `period` controls primarily the width of the time bucket used for aggregating metrics collected from
 CloudWatch. `length`
@@ -338,6 +324,20 @@ the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs
 is exported to CloudWatch.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
+
+## decoupled scraping block
+
+The decoupled scraping block configures an optional feature that scrapes CloudWatch metrics in the background on a
+scheduled interval. When this feature is enabled, CloudWatch metrics are gathered asynchronously at the scheduled interval instead
+of synchronously when the CloudWatch component is scraped.
+
+The decoupled scraping feature reduces the number of API requests sent to AWS.
+This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics.
+
+| Name              | Type     | Description                                                             | Default | Required |
+| ----------------- | -------- | ----------------------------------------------------------------------- | ------- | -------- |
+| `enabled`         | `bool`   | Controls whether the decoupled scraping featured is enabled             | false   | no       |
+| `scrape_interval` | `string` | Controls how frequently to asynchronously gather new CloudWatch metrics | 5m      | no       |
 
 ## Exported fields
 
