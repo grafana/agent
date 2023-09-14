@@ -274,6 +274,38 @@ on how to explore metrics, to easily pick the ones you need.
 
 [period]: #period-and-length
 
+#### period and length
+
+`period` controls primarily the width of the time bucket used for aggregating metrics collected from
+CloudWatch. `length`
+controls how far back in time CloudWatch metrics are considered during each agent scrape. If both settings are
+configured,
+the time parameters when calling CloudWatch APIs works as follows:
+
+![](https://grafana.com/media/docs/agent/cloudwatch-period-and-length-time-model-2.png)
+
+As noted above, if across multiple metrics under the same static or discovery job, there's different `period`
+and/or `length`
+the minimum of all periods, and maximum of all lengths is configured.
+
+On the other hand, if `length` is not configured, both period and length settings will be calculated based on the
+required
+`period` configuration attribute.
+
+If all metrics within a job (discovery or static) have the same `period` value configured, CloudWatch APIs will be
+requested
+for metrics from the scrape time, to `period`s seconds in the past. The values of these are exported to Prometheus.
+
+![](https://grafana.com/media/docs/agent/cloudwatch-single-period-time-model.png)
+
+On the other hand, if metrics with different `period`s are configured under an individual job, this works differently.
+First, two variables are calculated aggregating all periods: `length`, taking the maximum value of all periods, and
+the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs will be requested for metrics from
+`now - length` to `now`, aggregating each in samples for `period` seconds. For each metric, the most recent sample
+is exported to CloudWatch.
+
+![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
+
 ### role block
 
 Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). If omitted, the AWS role
@@ -306,38 +338,6 @@ This feature also prevents component scrape timeouts when you gather high volume
 | ----------------- | -------- | ----------------------------------------------------------------------- | ------- | -------- |
 | `enabled`         | `bool`   | Controls whether the decoupled scraping featured is enabled             | false   | no       |
 | `scrape_interval` | `string` | Controls how frequently to asynchronously gather new CloudWatch metrics | 5m      | no       |
-
-## `period` and `length`
-
-`period` controls primarily the width of the time bucket used for aggregating metrics collected from
-CloudWatch. `length`
-controls how far back in time CloudWatch metrics are considered during each agent scrape. If both settings are
-configured,
-the time parameters when calling CloudWatch APIs works as follows:
-
-![](https://grafana.com/media/docs/agent/cloudwatch-period-and-length-time-model-2.png)
-
-As noted above, if across multiple metrics under the same static or discovery job, there's different `period`
-and/or `length`
-the minimum of all periods, and maximum of all lengths is configured.
-
-On the other hand, if `length` is not configured, both period and length settings will be calculated based on the
-required
-`period` configuration attribute.
-
-If all metrics within a job (discovery or static) have the same `period` value configured, CloudWatch APIs will be
-requested
-for metrics from the scrape time, to `period`s seconds in the past. The values of these are exported to Prometheus.
-
-![](https://grafana.com/media/docs/agent/cloudwatch-single-period-time-model.png)
-
-On the other hand, if metrics with different `period`s are configured under an individual job, this works differently.
-First, two variables are calculated aggregating all periods: `length`, taking the maximum value of all periods, and
-the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs will be requested for metrics from
-`now - length` to `now`, aggregating each in samples for `period` seconds. For each metric, the most recent sample
-is exported to CloudWatch.
-
-![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
 
 ## Exported fields
 
