@@ -10,7 +10,7 @@ embeds [`yet-another-cloudwatch-exporter`](https://github.com/nerdswords/yet-ano
 collect [CloudWatch metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html),
 translate them to a prometheus-compatible format and remote write them.
 
-This component lets you scrape CloudWatch metrics in a set of configurations we call *jobs*. There are
+This component lets you scrape CloudWatch metrics in a set of configurations called *jobs*. There are
 two kinds of jobs: [discovery][] and [static][].
 
 [discovery]: #discovery-block
