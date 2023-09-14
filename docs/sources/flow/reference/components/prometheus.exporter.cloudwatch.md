@@ -323,9 +323,9 @@ in the AWS IAM documentation for more information about how to configure this.
 
 [details]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
 
-### decoupled_scraping block
+## decoupled scraping block
 
-The `decoupled_scraping` block configures an optional feature that scrapes CloudWatch metrics in the background on a
+The decoupled scraping block configures an optional feature that scrapes CloudWatch metrics in the background on a
 scheduled interval. When this feature is enabled, CloudWatch metrics are gathered asynchronously at the scheduled interval instead
 of synchronously when the CloudWatch component is scraped.
 
