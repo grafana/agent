@@ -103,7 +103,7 @@ func New(opts component.Options, args Arguments, rType ResourceType) (*Component
 	return c, nil
 }
 
-// Run starts the remote.http component.
+// Run starts the remote.kubernetes.* component.
 func (c *Component) Run(ctx context.Context) error {
 	for {
 		select {
