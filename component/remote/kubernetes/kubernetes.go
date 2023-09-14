@@ -52,6 +52,9 @@ func (args *Arguments) Validate() error {
 	if args.PollFrequency <= 0 {
 		return fmt.Errorf("poll_frequency must be greater than 0")
 	}
+	if args.PollTimeout < 0 {
+		return fmt.Errorf("poll_timeout must not be negative")
+	}
 	return nil
 }
 
@@ -165,8 +168,13 @@ func (c *Component) pollError() error {
 
 	c.lastPoll = time.Now()
 
-	ctx, cancel := context.WithTimeout(context.Background(), c.args.PollTimeout)
-	defer cancel()
+	ctx := context.Background()
+
+	if c.args.PollTimeout > 0 {
+		var cancel func()
+		ctx, cancel = context.WithTimeout(ctx, c.args.PollTimeout)
+		defer cancel()
+	}
 
 	data := map[string]rivertypes.OptionalSecret{}
 	if c.kind == TypeSecret {
