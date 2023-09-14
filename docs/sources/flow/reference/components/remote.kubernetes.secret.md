@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.http/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.secret/
 title: remote.kubernetes.secret
 ---
 
