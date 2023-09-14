@@ -18,6 +18,7 @@ import (
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_linode "github.com/prometheus/prometheus/discovery/linode"
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
@@ -110,6 +111,8 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryLightsail(sdc))
 		case *prom_kuma.SDConfig:
 			diags.AddAll(validateDiscoveryKuma(sdc))
+		case *prom_linode.SDConfig:
+			diags.AddAll(validateDiscoveryLinode(sdc))
 		case *prom_triton.SDConfig:
 			diags.AddAll(validateDiscoveryTriton(sdc))
 		case *prom_scaleway.SDConfig:
