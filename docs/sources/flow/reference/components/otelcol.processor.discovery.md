@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.discovery/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.discovery/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.discovery/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.discovery/
 title: otelcol.processor.discovery
 ---
@@ -100,7 +104,7 @@ information.
 ## Examples
 
 ### Basic usage
-```
+```river
 discovery.http "dynamic_targets" {
     url              = "https://example.com/scrape_targets"
     refresh_interval = "15s"
@@ -119,7 +123,7 @@ otelcol.processor.discovery "default" {
 
 Outputs from more than one discovery process can be combined via the `concat` function.
 
-```
+```river
 discovery.http "dynamic_targets" {
     url              = "https://example.com/scrape_targets"
     refresh_interval = "15s"
@@ -145,7 +149,7 @@ It is not necessary to use a discovery component. In the example below, a `test_
 attribute will be added to a span if its IP address is "1.2.2.2". The `__internal_label__` will
 be not be added to the span, because it begins with a double underscore (`__`).
 
-```
+```river
 otelcol.processor.discovery "default" {
     targets = [{
         "__address__"        = "1.2.2.2", 

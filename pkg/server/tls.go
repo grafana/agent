@@ -265,7 +265,7 @@ func (l *tlsListener) applyNormalTLS(c TLSConfig) error {
 		newConfig.ClientCAs = clientCAPool
 	}
 
-	clientAuth, err := getClientAuthFromString(c.ClientAuth)
+	clientAuth, err := GetClientAuthFromString(c.ClientAuth)
 	if err != nil {
 		return err
 	}
@@ -290,7 +290,7 @@ func (l *tlsListener) getCertificate(*tls.ClientHelloInfo) (*tls.Certificate, er
 	return &cert, nil
 }
 
-func getClientAuthFromString(clientAuth string) (tls.ClientAuthType, error) {
+func GetClientAuthFromString(clientAuth string) (tls.ClientAuthType, error) {
 	switch clientAuth {
 	case "RequestClientCert":
 		return tls.RequestClientCert, nil

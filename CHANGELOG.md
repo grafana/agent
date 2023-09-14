@@ -46,6 +46,8 @@ Main (unreleased)
 - Add a `file_watch` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_poll_frequency` and `max_poll_frequency`.
   In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`.  (@wildum)
 
+- Flow: In `prometheus.exporter.blackbox`, allow setting labels for individual targets. (@spartan0x117)
+
 ### Enhancements
 
 - Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
@@ -59,6 +61,9 @@ Main (unreleased)
 - `loki.source.kafka` component now exposes internal label `__meta_kafka_offset`
   to indicate offset of consumed message. (@hainenber)
 
+- Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
+
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
@@ -70,6 +75,14 @@ Main (unreleased)
   have been standardized. The first fields will always be `ts`, `level`, and
   `msg`, followed by non-common fields. Previously, the position of `msg` was
   not consistent. (@rfratto)
+
+### Bugfixes
+
+- Fixed a bug where `otelcol.processor.discovery` could modify the `targets` passed by an upstream component. (@ptodev)
+
+- Fixed a bug where `otelcol` components with a retry mechanism would not wait after the first retry. (@rfratto)
+
+- Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
 
 v0.36.1 (2023-09-06)
 --------------------

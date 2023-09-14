@@ -15,17 +15,35 @@ import (
 )
 
 func TestConfigConversion(t *testing.T) {
-	defaultProtocol := loadbalancingexporter.Protocol{
-		OTLP: otlpexporter.Config{
-			GRPCClientSettings: configgrpc.GRPCClientSettings{
-				Endpoint:        "",
-				Compression:     "gzip",
-				WriteBufferSize: 512 * 1024,
-				Headers:         map[string]configopaque.String{},
-				BalancerName:    "pick_first",
+	var (
+		defaultRetrySettings   = exporterhelper.NewDefaultRetrySettings()
+		defaultTimeoutSettings = exporterhelper.NewDefaultTimeoutSettings()
+
+		// TODO(rfratto): resync defaults with upstream.
+		//
+		// We have drifted from the upstream defaults, which have decreased the
+		// default queue_size to 1000 since we introduced the defaults.
+		defaultQueueSettings = exporterhelper.QueueSettings{
+			Enabled:      true,
+			NumConsumers: 10,
+			QueueSize:    5000,
+		}
+
+		defaultProtocol = loadbalancingexporter.Protocol{
+			OTLP: otlpexporter.Config{
+				GRPCClientSettings: configgrpc.GRPCClientSettings{
+					Endpoint:        "",
+					Compression:     "gzip",
+					WriteBufferSize: 512 * 1024,
+					Headers:         map[string]configopaque.String{},
+					BalancerName:    "pick_first",
+				},
+				RetrySettings:   defaultRetrySettings,
+				TimeoutSettings: defaultTimeoutSettings,
+				QueueSettings:   defaultQueueSettings,
 			},
-		},
-	}
+		}
+	)
 
 	tests := []struct {
 		testName string
@@ -96,14 +114,15 @@ func TestConfigConversion(t *testing.T) {
 				static {
 					hostnames = ["endpoint-1", "endpoint-2:55678"]
 				}
-			}
-			`,
+			}`,
 			expected: loadbalancingexporter.Config{
 				Protocol: loadbalancingexporter.Protocol{
 					OTLP: otlpexporter.Config{
 						TimeoutSettings: exporterhelper.TimeoutSettings{
 							Timeout: 1 * time.Second,
 						},
+						RetrySettings: defaultRetrySettings,
+						QueueSettings: defaultQueueSettings,
 						GRPCClientSettings: configgrpc.GRPCClientSettings{
 							Endpoint:        "",
 							Compression:     "gzip",

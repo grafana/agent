@@ -204,3 +204,16 @@ func TestCustomDialer(t *testing.T) {
 	err = scrapeTrigger.Wait(1 * time.Minute)
 	require.NoError(t, err, "custom dialer was not used")
 }
+
+func TestValidateScrapeConfig(t *testing.T) {
+	var exampleRiverConfig = `
+	targets         = [{ "target1" = "target1" }]
+	forward_to      = []
+	scrape_interval = "10s"
+	scrape_timeout  = "20s"
+	job_name        = "local"
+`
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.ErrorContains(t, err, "scrape_timeout (20s) greater than scrape_interval (10s) for scrape config with job name \"local\"")
+}

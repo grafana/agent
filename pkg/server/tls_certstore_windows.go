@@ -7,14 +7,17 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"fmt"
-	"github.com/github/smimesign/certstore"
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"regexp"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/github/smimesign/certstore"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 )
+
+// Documentation on how to setup a certificate store can be found at docs/developer/windows
 
 // winCertStoreHandler handles the finding of certificates, validating them and injecting into the default TLS pipeline
 type winCertStoreHandler struct {
@@ -97,7 +100,7 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 		MaxVersion: tls.VersionTLS12,
 	}
 
-	ca, err := getClientAuthFromString(c.ClientAuth)
+	ca, err := GetClientAuthFromString(c.ClientAuth)
 	if err != nil {
 		return err
 	}
