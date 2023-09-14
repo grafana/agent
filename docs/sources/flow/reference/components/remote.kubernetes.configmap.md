@@ -3,7 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remot
 title: remote.kubernetes.configmap
 ---
 
-# remote.http
+# remote.kubernetes.configmap
 
 `remote.kubernetes.configmap` reads a ConfigMap from the Kubernetes API server and exposes its data for other components to consume.
 
