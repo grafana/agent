@@ -161,7 +161,7 @@ The following versions are recognized:
 ### windows certificate filter block
 
 The `windows_certificate_filter` block is used to configure retrieving certificates from the built-in Windows
-certificate store. When using the `windows_certificate_filter` block
+certificate store. When you use the `windows_certificate_filter` block
 the following TLS settings are overridden and will cause an error if defined.
 
 * `cert_pem`
