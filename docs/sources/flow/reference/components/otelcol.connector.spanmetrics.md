@@ -5,7 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.connector.spanmetrics/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanmetrics/
 labels:
-  stage: alpha
+  stage: experimental
 title: otelcol.connector.spanmetrics
 ---
 

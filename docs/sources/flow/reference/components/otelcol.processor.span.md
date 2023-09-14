@@ -5,7 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.span/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.span/
 labels:
-  stage: alpha
+  stage: experimental
 title: otelcol.processor.span
 ---
 
