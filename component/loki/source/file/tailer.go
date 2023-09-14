@@ -48,7 +48,7 @@ type tailer struct {
 }
 
 func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string,
-	labels string, encoding string, pollOptions watch.PollingFileWatcherOptions, startFromEOF bool) (*tailer, error) {
+	labels string, encoding string, pollOptions watch.PollingFileWatcherOptions, TailFromEnd bool) (*tailer, error) {
 	// Simple check to make sure the file we are tailing doesn't
 	// have a position already saved which is past the end of the file.
 	fi, err := os.Stat(path)
@@ -64,11 +64,13 @@ func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, p
 		positions.Remove(path, labels)
 	}
 
-	// If no cached position is found and the startFromEOF option is enabled.
-	if pos == 0 && startFromEOF {
+	// If no cached position is found and the TailFromEnd option is enabled.
+	if pos == 0 && TailFromEnd {
 		pos, err = getLastLinePosition(path)
 		if err != nil {
 			level.Error(logger).Log("msg", "failed to get a position from the end of the file, default to start of file", err)
+		} else {
+			positions.Put(path, labels, pos)
 		}
 	}
 
