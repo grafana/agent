@@ -11,6 +11,8 @@ title: otelcol.processor.span
 
 # otelcol.processor.span
 
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+
 `otelcol.processor.span` accepts traces telemetry data from other `otelcol`
 components and modifies the names and attributes of the spans.
 It also supports the ability to filter input data to determine if 
