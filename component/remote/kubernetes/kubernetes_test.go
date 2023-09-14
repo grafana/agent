@@ -37,8 +37,8 @@ func TestValidate(t *testing.T) {
 	t.Run("negative Poll timeout", func(t *testing.T) {
 		args := Arguments{}
 		args.SetToDefault()
-		args.PollTimeout = -1
+		args.PollTimeout = 0
 		err := args.Validate()
-		require.ErrorContains(t, err, "poll_timeout must not be negative")
+		require.ErrorContains(t, err, "poll_timeout must not be greater than 0")
 	})
 }
