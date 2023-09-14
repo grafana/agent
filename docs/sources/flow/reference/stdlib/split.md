@@ -16,12 +16,12 @@ split(list, separator)
 ## Examples
 
 ```river
-> split(",", "foo,bar,baz")
+> split("foo,bar,baz", "," )
 ["foo", "bar", "baz"]
 
-> split(",", "foo")
+> split("foo", ",")
 ["foo"]
 
-> split(",", "")
+> split("", ",")
 [""]
 ```
