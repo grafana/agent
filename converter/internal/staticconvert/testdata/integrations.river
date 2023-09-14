@@ -54,6 +54,19 @@ prometheus.scrape "integrations_snmp" {
 	job_name   = "integrations/snmp"
 }
 
+prometheus.exporter.azure "integrations_azure_exporter" {
+	subscriptions          = ["subId"]
+	resource_type          = "Microsoft.Dashboard/grafana"
+	metrics                = ["HttpRequestCount"]
+	included_resource_tags = ["owner"]
+}
+
+prometheus.scrape "integrations_azure_exporter" {
+	targets    = prometheus.exporter.azure.integrations_azure_exporter.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/azure_exporter"
+}
+
 prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
 	sts_region    = "us-east-2"
 	fips_disabled = false

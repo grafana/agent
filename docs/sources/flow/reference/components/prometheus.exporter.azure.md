@@ -12,7 +12,7 @@ title: prometheus.exporter.azure
 The `prometheus.exporter.azure` component embeds [`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter) to collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor). The exporter uses [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview) queries to identify resources for gathering metrics.
 
 The exporter supports all metrics defined by Azure Monitor. The complete list of available metrics can be found in the [Azure Monitor documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
-Metrics for this integration are exposed with the template `azure_{type}_{metric}_{aggregation}_{unit}`. As an example,
+Metrics for this integration are exposed with the template `azure_{type}_{metric}_{aggregation}_{unit}` by default. As an example,
 the Egress metric for BlobService would be exported as `azure_microsoft_storage_storageaccounts_blobservices_egress_total_bytes`.
 
 ## Authentication
@@ -49,18 +49,20 @@ prometheus.exporter.azure LABEL {
 You can use the following arguments to configure the exporter's behavior.
 Omitted fields take their default values.
 
-| Name                          | Type           | Description                                                          | Default        | Required |
-| ----------------------------- | -------------- | -------------------------------------------------------------------- | -------------- | -------- |
-| `subscriptions`               | `list(string)` | List of subscriptions to scrap metrics from.                         |                | yes      |
-| `resource_type`               | `string`       | The Azure Resource Type to scrape metrics for.                       |                | yes      |
-| `metrics`                     | `list(string)` | The metrics to scrape from resources.                                |                | yes      |
-| `resource_graph_query_filter` | `string`       | The [Kusto query][] filter to apply when searching for resources.    |                | no       |
-| `metric_aggregations`         | `list(string)` | Aggregations to apply for the metrics produced.                      |                | no       |
-| `timespan`                    | `string`       | [ISO8601 Duration][] over which the metrics are being queried.       | `"PT1M"`       | no       |
-| `included_dimensions`         | `list(string)` | List of dimensions to include on the final metrics.                  |                | no       |
-| `included_resource_tags`      | `list(string)` | List of resource tags to include on the final metrics.               |                | no       |
-| `metric_namespace`            | `string`       | Namespace for `resource_type` which have multiple levels of metrics. |                | no       |
-| `azure_cloud_environment`     | `string`       | Name of the cloud environment to connect to.                         | `"azurecloud"` | no       |
+| Name                          | Type           | Description                                                          | Default                                                                       | Required |
+| ----------------------------- | -------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
+| `subscriptions`               | `list(string)` | List of subscriptions to scrap metrics from.                         |                                                                               | yes      |
+| `resource_type`               | `string`       | The Azure Resource Type to scrape metrics for.                       |                                                                               | yes      |
+| `metrics`                     | `list(string)` | The metrics to scrape from resources.                                |                                                                               | yes      |
+| `resource_graph_query_filter` | `string`       | The [Kusto query][] filter to apply when searching for resources.    |                                                                               | no       |
+| `metric_aggregations`         | `list(string)` | Aggregations to apply for the metrics produced.                      |                                                                               | no       |
+| `timespan`                    | `string`       | [ISO8601 Duration][] over which the metrics are being queried.       | `"PT1M"`                                                                      | no       |
+| `included_dimensions`         | `list(string)` | List of dimensions to include on the final metrics.                  |                                                                               | no       |
+| `included_resource_tags`      | `list(string)` | List of resource tags to include on the final metrics.               | `["owner"]`                                                                   | no       |
+| `metric_namespace`            | `string`       | Namespace for `resource_type` which have multiple levels of metrics. |                                                                               | no       |
+| `azure_cloud_environment`     | `string`       | Name of the cloud environment to connect to.                         | `"azurecloud"`                                                                | no       |
+| `metric_name_template`        | `string`       | Metric template used to expose the metrics.                          | `"azure_{type}_{metric}_{aggregation}_{unit}"`                                | no       |
+| `metric_help_template`        | `string`       | Description of the metric.                                           | `"Azure metric {metric} for {type} with aggregation {aggregation} as {unit}"` | no       |
 
 The list of available `resource_type` values and their corresponding `metrics` can be found in [Azure Monitor essentials][].
 

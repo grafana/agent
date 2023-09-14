@@ -8,7 +8,6 @@
 (Error) unsupported http_tls_config server config was provided.
 (Error) unsupported wal_directory metrics config was provided. use the run command flag --storage.path for Flow mode instead.
 (Error) unsupported integration agent was provided.
-(Error) unsupported integration azure_exporter was provided.
 (Error) unsupported integration cadvisor was provided.
 (Error) unsupported disabled integration node_exporter.
 (Error) unsupported traces config was provided.
