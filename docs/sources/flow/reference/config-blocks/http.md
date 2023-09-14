@@ -202,5 +202,5 @@ Name | Type           | Description                                            |
 ---- |----------------|--------------------------------------------------------|-----| --------
 `issuer_common_names` | `list(string)` | Issuer common names to check against.                  |     | no
 `subject_regex` | `string`       | Regular expression to match Subject name.              | `""` | no
-`template_id` | `string`       | Client Template ID to match in ASN1 format ex "1.2.3".                 |   `""`   | no
+`template_id` | `string`       | Client Template ID to match in ASN1 format, for example, "1.2.3".                 |   `""`   | no
 
