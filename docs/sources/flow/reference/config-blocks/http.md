@@ -172,7 +172,7 @@ the following TLS settings are overridden and will cause an error if defined.
 * `client_ca_file`
 
 {{% admonition type="warning" %}}
-This feature is not available on any platforms other than Windows.
+This feature is only available on Windows.
 
 TLS min and max may not be compatible with the certificate stored in the Windows certificate store. The `windows_certificate_filter`
 will serve the found certificate even if it is not compatible with the specified TLS version.
