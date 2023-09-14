@@ -5,7 +5,7 @@ title: discovery.linode
 
 # discovery.linode
 
-`discovery.linode` allows retrieving scrape targets from [Linode's](https://www.linode.com/) Linode APIv4.
+`discovery.linode` allows you to retrieve scrape targets from [Linode's](https://www.linode.com/) Linode APIv4.
 This service discovery uses the public IPv4 address by default, by that can be changed with relabeling.
 
 ## Usage
