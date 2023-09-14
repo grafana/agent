@@ -116,6 +116,29 @@ prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
 		nil_to_zero = true
 	}
 
+	static "single_ec2_instance" {
+		regions     = ["us-east-2"]
+		custom_tags = {}
+		namespace   = "AWS/EC2"
+		dimensions  = {
+			InstanceId = "i-0e43cee369aa44b52",
+		}
+
+		metric {
+			name        = "CPUUtilization"
+			statistics  = ["Average"]
+			period      = "5m0s"
+			nil_to_zero = false
+		}
+
+		metric {
+			name       = "NetworkPacketsIn"
+			statistics = ["Average"]
+			period     = "5m0s"
+		}
+		nil_to_zero = true
+	}
+
 	decoupled_scraping { }
 }
 

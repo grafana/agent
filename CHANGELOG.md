@@ -93,6 +93,8 @@ Main (unreleased)
 
 - Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
 
+- Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
+
 v0.36.1 (2023-09-06)
 --------------------
 
