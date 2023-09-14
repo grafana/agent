@@ -3,7 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remot
 title: remote.kubernetes.secret
 ---
 
-# remote.http
+# remote.kubernetes.secret
 
 `remote.kubernetes.secret` reads a Secret from the Kubernetes API server and exposes its data for other components to consume.
 
