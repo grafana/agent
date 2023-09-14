@@ -62,6 +62,8 @@ Main (unreleased)
 
 - Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
 
+- Flow: add `randomization_factor` and `multiplier` to retry settings in
+  `otelcol` components. (@rfratto)
 
 ### Other changes
 

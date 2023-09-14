@@ -14,14 +14,21 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `boolean` | Enables retrying failed requests. | `true` | no
 `initial_interval` | `duration` | Initial time to wait before retrying a failed request. | `"5s"` | no
+`randomization_factor` | `number` | Factor to randomize wait time before retrying. | `0.5` | no
+`multiplier` | `number` | Factor to grow wait time before retrying. | `1.5` | no
 `max_interval` | `duration` | Maximum time to wait between retries. | `"30s"` | no
 `max_elapsed_time` | `duration` | Maximum amount of time to wait before discarding a failed batch. | `"5m"` | no
 
 When `enabled` is `true`, failed batches are retried after a given interval.
 The `initial_interval` argument specifies how long to wait before the first
 retry attempt. If requests continue to fail, the time to wait before retrying
-increases exponentially. The `max_interval` argument specifies the upper bound
-of how long to wait between retries.
+increases by the factor specified by the `multiplier` argument, which must be
+greater than `1.0`. The `max_interval` argument specifies the upper bound of
+how long to wait between retries.
+
+If `randomization_factor` is greater than `0`, the wait time before retries is
+multiplied by a random factor up to `1 ± randomization_factor`, allowing for
+jitter between retrying agents.
 
 If a batch has not sent successfully, it is discarded after the time specified
 by `max_elapsed_time` elapses. If `max_elapsed_time` is set to `"0s"`, failed
