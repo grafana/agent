@@ -336,7 +336,7 @@ scheduled interval. When this feature is enabled, CloudWatch metrics are gathere
 of synchronously when the CloudWatch component is scraped.
 
 The decoupled scraping feature reduces the number of API requests sent to AWS.
-This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics
+This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics.
 
 | Name              | Type     | Description                                                             | Default | Required |
 |-------------------|----------|-------------------------------------------------------------------------|---------|----------|
