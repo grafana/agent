@@ -56,7 +56,7 @@ Omitted fields take their default values.
 | `metrics`                     | `list(string)` | The metrics to scrape from resources.                                |                                                                               | yes      |
 | `resource_graph_query_filter` | `string`       | The [Kusto query][] filter to apply when searching for resources.    |                                                                               | no       |
 | `metric_aggregations`         | `list(string)` | Aggregations to apply for the metrics produced.                      |                                                                               | no       |
-| `timespan`                    | `string`       | [ISO8601 Duration][] over which the metrics are being queried.       | `"PT1M"`                                                                      | no       |
+| `timespan`                    | `string`       | [ISO8601 Duration][] over which the metrics are being queried.       | `"PT1M"` (1 minute)                                                           | no       |
 | `included_dimensions`         | `list(string)` | List of dimensions to include on the final metrics.                  |                                                                               | no       |
 | `included_resource_tags`      | `list(string)` | List of resource tags to include on the final metrics.               | `["owner"]`                                                                   | no       |
 | `metric_namespace`            | `string`       | Namespace for `resource_type` which have multiple levels of metrics. |                                                                               | no       |
@@ -103,7 +103,7 @@ debug metrics.
 
 ```river
 prometheus.exporter.azure "example" {
-	subscriptions    = ["179c4f30-ebd8-489e-92bc-fb64588dadb3"]
+	subscriptions    = SUBSCRIPTIONS
 	resource_type    = "Microsoft.Storage/storageAccounts"
 	metric_namespace = "Microsoft.Storage/storageAccounts/blobServices"
 	metrics          = [
@@ -142,6 +142,7 @@ prometheus.remote_write "demo" {
 
 Replace the following:
 
+- `SUBSCRIPTIONS`: The Azure subscription IDs holding the resources you are interested in.
 - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
 - `USERNAME`: The username to use for authentication to the remote_write API.
 - `PASSWORD`: The password to use for authentication to the remote_write API.
