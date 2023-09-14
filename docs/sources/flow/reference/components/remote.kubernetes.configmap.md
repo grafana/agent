@@ -41,7 +41,7 @@ a successful poll, all data is exported with the same field names as the source 
 
 ## Blocks
 
-The following blocks are supported inside the definition of `remote.http`:
+The following blocks are supported inside the definition of `remote.kubernetes.configmap`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
