@@ -83,7 +83,7 @@ var (
 	_ component.HealthComponent = (*Component)(nil)
 )
 
-// New returns a new, unstarted, remote.http component.
+// New returns a new, unstarted remote.kubernetes.* component.
 func New(opts component.Options, args Arguments, rType ResourceType) (*Component, error) {
 	c := &Component{
 		log:  opts.Logger,
