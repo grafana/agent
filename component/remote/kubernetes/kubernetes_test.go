@@ -26,7 +26,6 @@ func TestRiverUnmarshal(t *testing.T) {
 	assert.Equal(t, "bar", args.Namespace)
 }
 func TestValidate(t *testing.T) {
-
 	t.Run("0 Poll Freq", func(t *testing.T) {
 		args := Arguments{}
 		args.SetToDefault()
