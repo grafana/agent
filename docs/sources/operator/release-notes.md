@@ -1,10 +1,13 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
-description: Release notes for Grafana Agent static mode Kubernetes operator
-title: Release notes for Grafana Agent
-menuTitle: Release notes
 aliases:
 - ./upgrade-guide/
+- /docs/grafana-cloud/agent/operator/release-notes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/operator/release-notes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/release-notes/
+canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
+description: Release notes for Grafana Agent static mode Kubernetes operator
+menuTitle: Release notes
+title: Release notes for Grafana Agent
 weight: 999
 ---
 

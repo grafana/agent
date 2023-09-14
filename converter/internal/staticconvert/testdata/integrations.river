@@ -6,6 +6,12 @@ prometheus.scrape "integrations_apache_http" {
 	targets    = prometheus.exporter.apache.integrations_apache_http.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/apache_http"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.remote_write "integrations" {
@@ -30,6 +36,12 @@ prometheus.scrape "integrations_blackbox" {
 	targets    = prometheus.exporter.blackbox.integrations_blackbox.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/blackbox"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.snmp "integrations_snmp" {
@@ -52,6 +64,12 @@ prometheus.scrape "integrations_snmp" {
 	targets    = prometheus.exporter.snmp.integrations_snmp.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/snmp"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
@@ -84,6 +102,12 @@ prometheus.scrape "integrations_cloudwatch_exporter" {
 	targets    = prometheus.exporter.cloudwatch.integrations_cloudwatch_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/cloudwatch_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.consul "integrations_consul_exporter" { }
@@ -92,6 +116,12 @@ prometheus.scrape "integrations_consul_exporter" {
 	targets    = prometheus.exporter.consul.integrations_consul_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/consul_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.dnsmasq "integrations_dnsmasq_exporter" {
@@ -112,6 +142,12 @@ prometheus.scrape "integrations_dnsmasq_exporter" {
 	targets    = discovery.relabel.integrations_dnsmasq_exporter.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/dnsmasq_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.elasticsearch "integrations_elasticsearch_exporter" { }
@@ -120,6 +156,12 @@ prometheus.scrape "integrations_elasticsearch_exporter" {
 	targets    = prometheus.exporter.elasticsearch.integrations_elasticsearch_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/elasticsearch_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.gcp "integrations_gcp_exporter" {
@@ -132,6 +174,12 @@ prometheus.scrape "integrations_gcp_exporter" {
 	targets    = prometheus.exporter.gcp.integrations_gcp_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/gcp_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.github "integrations_github_exporter" {
@@ -143,6 +191,12 @@ prometheus.scrape "integrations_github_exporter" {
 	targets    = prometheus.exporter.github.integrations_github_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/github_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.kafka "integrations_kafka_exporter" { }
@@ -151,6 +205,12 @@ prometheus.scrape "integrations_kafka_exporter" {
 	targets    = prometheus.exporter.kafka.integrations_kafka_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/kafka_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.memcached "integrations_memcached_exporter" {
@@ -171,6 +231,12 @@ prometheus.scrape "integrations_memcached_exporter" {
 	targets    = discovery.relabel.integrations_memcached_exporter.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/memcached_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.mongodb "integrations_mongodb_exporter" {
@@ -198,6 +264,12 @@ prometheus.scrape "integrations_mongodb_exporter" {
 	targets    = discovery.relabel.integrations_mongodb_exporter.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/mongodb_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.mssql "integrations_mssql" {
@@ -208,6 +280,12 @@ prometheus.scrape "integrations_mssql" {
 	targets    = prometheus.exporter.mssql.integrations_mssql.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/mssql"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.mysql "integrations_mysqld_exporter" {
@@ -228,6 +306,12 @@ prometheus.scrape "integrations_mysqld_exporter" {
 	targets    = discovery.relabel.integrations_mysqld_exporter.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/mysqld_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.unix { }
@@ -255,6 +339,12 @@ prometheus.scrape "integrations_node_exporter" {
 	targets    = discovery.relabel.integrations_node_exporter.output
 	forward_to = [prometheus.relabel.integrations_node_exporter.receiver]
 	job_name   = "integrations/node_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.relabel "integrations_node_exporter" {
@@ -280,6 +370,12 @@ prometheus.scrape "integrations_oracledb" {
 	forward_to     = [prometheus.remote_write.integrations.receiver]
 	job_name       = "integrations/oracledb"
 	scrape_timeout = "1m0s"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.postgres "integrations_postgres_exporter" {
@@ -300,6 +396,12 @@ prometheus.scrape "integrations_postgres_exporter" {
 	targets    = discovery.relabel.integrations_postgres_exporter.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/postgres_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.process "integrations_process_exporter" {
@@ -313,6 +415,12 @@ prometheus.scrape "integrations_process_exporter" {
 	targets    = prometheus.exporter.process.integrations_process_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/process_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.redis "integrations_redis_exporter" {
@@ -333,6 +441,12 @@ prometheus.scrape "integrations_redis_exporter" {
 	targets    = discovery.relabel.integrations_redis_exporter.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/redis_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.snowflake "integrations_snowflake" {
@@ -346,6 +460,12 @@ prometheus.scrape "integrations_snowflake" {
 	targets    = prometheus.exporter.snowflake.integrations_snowflake.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/snowflake"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.squid "integrations_squid" {
@@ -357,6 +477,12 @@ prometheus.scrape "integrations_squid" {
 	forward_to     = [prometheus.remote_write.integrations.receiver]
 	job_name       = "integrations/squid"
 	scrape_timeout = "1m0s"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.statsd "integrations_statsd_exporter" { }
@@ -365,4 +491,10 @@ prometheus.scrape "integrations_statsd_exporter" {
 	targets    = prometheus.exporter.statsd.integrations_statsd_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/statsd_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }

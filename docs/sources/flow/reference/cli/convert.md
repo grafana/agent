@@ -1,10 +1,15 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/cli/convert/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/convert/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/convert/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/convert/
+description: The `convert` command converts supported configuration formats to River
+  format.
 labels:
   stage: beta
-description: The `convert` command converts supported configuration formats to River format.
-title: convert command
 menuTitle: convert
+title: convert command
 weight: 100
 ---
 
