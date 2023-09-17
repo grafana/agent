@@ -1,7 +1,6 @@
 package k8sattributes_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/grafana/agent/component/otelcol/processor/k8sattributes"
@@ -99,7 +98,7 @@ func Test_FilterNodeEnvironmentVariable(t *testing.T) {
 	`
 	var args k8sattributes.Arguments
 	testHostname := "test-hostname"
-	os.Setenv("K8S_ATTRIBUTES_TEST_HOSTNAME", testHostname)
+	t.Setenv("K8S_ATTRIBUTES_TEST_HOSTNAME", testHostname)
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
 	convertedArgs, err := args.Convert()
