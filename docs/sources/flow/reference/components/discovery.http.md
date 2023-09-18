@@ -27,6 +27,26 @@ Example response body:
 ]
 ```
 
+Example response setting the metrics path and port for [prometheus.scrape](../prometheus.scrape#technical-details) additional config:
+
+```json
+[
+   {
+      "labels" : {
+         "__metrics_path__" : "/api/prometheus",
+         "__scheme__" : "https",
+         "__scrape_interval__" : "60s",
+         "__scrape_timeout__" : "10s",
+         "service" : "custom-api-service"
+      },
+      "targets" : [
+         "custom-api:443"
+      ]
+   },
+]
+
+```
+
 ## Usage
 
 ```river

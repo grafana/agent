@@ -103,6 +103,7 @@ Main (unreleased)
   have been standardized. The first fields will always be `ts`, `level`, and
   `msg`, followed by non-common fields. Previously, the position of `msg` was
   not consistent. (@rfratto)
+- Documentation updated to link discovery.http and prometheus.scrape advanced configs (@proffalken)
 
 ### Bugfixes
 
