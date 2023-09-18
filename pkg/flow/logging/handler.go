@@ -58,7 +58,7 @@ func (h *handler) buildHandler() slog.Handler {
 	// Fast path: if our cached handler is still valid, immediately return it.
 	h.mut.RLock()
 	if h.currentFormat == expectFormat && h.inner != nil {
-		h.mut.RUnlock()
+		defer h.mut.RUnlock()
 		return h.inner
 	}
 	h.mut.RUnlock()

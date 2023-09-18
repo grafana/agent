@@ -154,9 +154,9 @@ job.
 [static]: #static-block
 [metric]: #metric-block
 [role]: #role-block
-[decoupled_scraping]: #decoupled-scraping-block
+[decoupled_scraping]: #decoupled_scraping-block
 
-## discovery block
+### discovery block
 
 The `discovery` block allows the component to scrape CloudWatch metrics with only the AWS service and a list of metrics
 under that service/namespace.
@@ -201,7 +201,7 @@ different `search_tags`.
 
 [supported-services]: #supported-services-in-discovery-jobs
 
-## static block
+### static block
 
 The `static` block configures the component to scrape a specific set of CloudWatch metrics. The metrics need to be fully
 qualified with the following specifications:
@@ -258,7 +258,7 @@ require `Resource`, `Service`, `Class`, and `Type` dimensions to be specified. T
 metrics,
 all dimensions attached to a metric when saved in CloudWatch are required.
 
-## metric block
+### metric block
 
 Represents an AWS Metrics to scrape. To see available metrics, AWS does not keep a documentation page with all available
 metrics.
@@ -274,26 +274,7 @@ on how to explore metrics, to easily pick the ones you need.
 
 [period]: #period-and-length
 
-## role block
-
-Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). If omitted, the AWS role
-that corresponds to the credentials configured in the environment will be used.
-
-Multiple roles can be useful when scraping metrics from different AWS accounts with a single pair of credentials. In
-this case, a different role
-is configured for the agent to assume before calling AWS APIs. Therefore, the credentials configured in the system need
-permission to assume the target role.
-See [Granting a user permissions to switch roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html)
-in the AWS IAM documentation for more information about how to configure this.
-
-| Name          | Type     | Description                                                           | Default | Required |
-| ------------- | -------- | --------------------------------------------------------------------- | ------- | -------- |
-| `role_arn`    | `string` | AWS IAM Role ARN the exporter should assume to perform AWS API calls. |         | yes      |
-| `external_id` | `string` | External ID used when calling STS AssumeRole API. See [details][].    | `""`    | no       |
-
-[details]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
-
-## period and length
+#### period and length
 
 `period` controls primarily the width of the time bucket used for aggregating metrics collected from
 CloudWatch. `length`
@@ -325,14 +306,33 @@ is exported to CloudWatch.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
 
-## decoupled scraping block
+### role block
 
-The decoupled scraping block configures an optional feature that scrapes CloudWatch metrics in the background on a
+Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). If omitted, the AWS role
+that corresponds to the credentials configured in the environment will be used.
+
+Multiple roles can be useful when scraping metrics from different AWS accounts with a single pair of credentials. In
+this case, a different role
+is configured for the agent to assume before calling AWS APIs. Therefore, the credentials configured in the system need
+permission to assume the target role.
+See [Granting a user permissions to switch roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html)
+in the AWS IAM documentation for more information about how to configure this.
+
+| Name          | Type     | Description                                                           | Default | Required |
+| ------------- | -------- | --------------------------------------------------------------------- | ------- | -------- |
+| `role_arn`    | `string` | AWS IAM Role ARN the exporter should assume to perform AWS API calls. |         | yes      |
+| `external_id` | `string` | External ID used when calling STS AssumeRole API. See [details][].    | `""`    | no       |
+
+[details]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
+
+### decoupled_scraping block
+
+The `decoupled_scraping` block configures an optional feature that scrapes CloudWatch metrics in the background on a
 scheduled interval. When this feature is enabled, CloudWatch metrics are gathered asynchronously at the scheduled interval instead
 of synchronously when the CloudWatch component is scraped.
 
 The decoupled scraping feature reduces the number of API requests sent to AWS.
-This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics
+This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics.
 
 | Name              | Type     | Description                                                             | Default | Required |
 | ----------------- | -------- | ----------------------------------------------------------------------- | ------- | -------- |

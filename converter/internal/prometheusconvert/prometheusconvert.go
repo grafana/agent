@@ -21,6 +21,7 @@ import (
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_linode "github.com/prometheus/prometheus/discovery/linode"
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_moby "github.com/prometheus/prometheus/discovery/moby"
@@ -182,6 +183,9 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_zk.ServersetSDConfig:
 			labelCounts["serverset"]++
 			exports = appendDiscoveryServerset(pb, common.LabelWithIndex(labelCounts["serverset"]-1, label), sdc)
+		case *prom_linode.SDConfig:
+			labelCounts["linode"]++
+			exports = appendDiscoveryLinode(pb, common.LabelWithIndex(labelCounts["linode"]-1, label), sdc)
 		case *prom_nerve.NerveSDConfig:
 			labelCounts["nerve"]++
 			exports = appendDiscoveryNerve(pb, common.LabelWithIndex(labelCounts["nerve"]-1, label), sdc)

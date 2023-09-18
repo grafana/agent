@@ -3,6 +3,7 @@ package otelcol
 import (
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	otelexporterhelper "go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
@@ -35,9 +36,11 @@ func (args *RetryArguments) Convert() *otelexporterhelper.RetrySettings {
 	}
 
 	return &otelexporterhelper.RetrySettings{
-		Enabled:         args.Enabled,
-		InitialInterval: args.InitialInterval,
-		MaxInterval:     args.MaxInterval,
-		MaxElapsedTime:  args.MaxElapsedTime,
+		Enabled:             args.Enabled,
+		InitialInterval:     args.InitialInterval,
+		RandomizationFactor: backoff.DefaultRandomizationFactor,
+		Multiplier:          backoff.DefaultMultiplier,
+		MaxInterval:         args.MaxInterval,
+		MaxElapsedTime:      args.MaxElapsedTime,
 	}
 }
