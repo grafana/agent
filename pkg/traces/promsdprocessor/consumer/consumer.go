@@ -247,10 +247,12 @@ func GetHostFromLabels(labels discovery.Target) (string, error) {
 	return host, nil
 }
 
-func CleanupLabels(labels discovery.Target) {
-	for k := range labels {
-		if strings.HasPrefix(k, "__") {
-			delete(labels, k)
+func NewTargetsWithNonInternalLabels(labels discovery.Target) discovery.Target {
+	res := make(discovery.Target)
+	for k, v := range labels {
+		if !strings.HasPrefix(k, "__") {
+			res[k] = v
 		}
 	}
+	return res
 }

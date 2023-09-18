@@ -16,7 +16,7 @@ loki.process "example" {
 		}
 	}
 
-	stage.non_indexed_labels {
+	stage.structured_metadata {
 		values = {
 			app = "app",
 		}

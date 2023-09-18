@@ -44,7 +44,7 @@ Name               | Type           | Description                               
  - [`oauth2` block][oauth2].
 
 The following blocks are supported inside the definition of
-`discovery.nomad`:
+`discovery.kuma`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------

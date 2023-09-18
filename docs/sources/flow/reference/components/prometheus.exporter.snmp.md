@@ -59,11 +59,10 @@ The following blocks are supported inside the definition of
 ### target block
 
 The `target` block defines an individual SNMP target.
-The `target` block may be specified multiple times to define multiple targets.
+The `target` block may be specified multiple times to define multiple targets. The label of the block is required and will be used in the target's `job` label.
 
 | Name          | Type     | Description                         | Default | Required |
 | ------------- | -------- | ----------------------------------- | ------- | -------- |
-| `name`        | `string` | Name of a snmp_target.              |         | yes      |
 | `address`     | `string` | The address of SNMP device.         |         | yes      |
 | `module`      | `string` | SNMP module to use for polling.     | `""`    | no       |
 | `auth`        | `string` | SNMP authentication profile to use. | `""`    | no       |

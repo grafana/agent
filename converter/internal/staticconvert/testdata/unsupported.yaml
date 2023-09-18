@@ -2,9 +2,11 @@ server:
   log_level: debug
   log_format: json
   http_tls_config:
-    cert_file: "/something.cert"
+    prefer_server_cipher_suites: true
   grpc_tls_config:
-    cert_file: "/something2.cert"
+    client_ca_file: "/something4.cert"
+    cert_file: "/something5.cert"
+    key_file: "/something6.cert"
 
 metrics:
   wal_directory: /tmp/agent
@@ -21,30 +23,11 @@ metrics:
 integrations:
   agent:
     enabled: true
-  azure_exporter:
-    enabled: true
-    scrape_interval: 60s
-    subscriptions:
-      - ABCDEFGH-1234-ABCD-1234-ABCDEFGHIJKL
-    resource_type: microsoft.containerservice/managedclusters
-    metrics:
-      - node_cpu_usage_millicores
-      - node_cpu_usage_percentage
-      - node_disk_usage_bytes
-      - node_disk_usage_percentage
-      - node_memory_rss_bytes
-      - node_memory_rss_percentage
-      - node_memory_working_set_bytes
-      - node_memory_working_set_percentage
-      - node_network_in_bytes
-      - node_network_out_bytes
-    included_resource_tags:
-      - environment
-    included_dimensions:
-      - node
-      - nodepool
   cadvisor:
     enabled: true
+  mssql:
+    enabled: true
+    scrape_integration: false
   node_exporter:
     enabled: false
   statsd_exporter:

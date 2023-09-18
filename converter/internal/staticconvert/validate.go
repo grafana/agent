@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
+	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
@@ -65,14 +66,14 @@ func validateServer(serverConfig *server.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	defaultServerConfig := server.DefaultConfig()
-	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.LogLevel.Level.Logrus, defaultServerConfig.LogLevel.Level.Logrus, "log_level server"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.LogFormat, defaultServerConfig.LogFormat, "log_format server"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.HTTP, defaultServerConfig.HTTP, "http_tls_config server"))
+	diags.AddAll(common.UnsupportedNotDeepEqualsMessage(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server", "flow mode does not have a gRPC server to configure."))
+	diags.AddAll(common.UnsupportedNotEquals(serverConfig.HTTP.TLSConfig.PreferServerCipherSuites, defaultServerConfig.HTTP.TLSConfig.PreferServerCipherSuites, "prefer_server_cipher_suites server"))
 
 	return diags
 }
 
+// validateMetrics validates the metrics config for anything not already
+// covered by appendStaticPrometheus.
 func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -100,7 +101,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 
 	for _, integration := range integrationsConfig.ConfigV1.Integrations {
 		if !integration.Common.Enabled {
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported disabled integration %s.", integration.Name()))
+			diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("disabled integrations do nothing and are not included in the output: %s.", integration.Name()))
 			continue
 		}
 
@@ -128,6 +129,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *squid_exporter.Config:
 		case *statsd_exporter.Config:
 		case *windows_exporter.Config:
+		case *azure_exporter.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}
@@ -144,6 +146,8 @@ func validateTraces(tracesConfig traces.Config) diag.Diagnostics {
 	return diags
 }
 
+// validateLogs validates the logs config for anything not already covered
+// by appendStaticPromtail.
 func validateLogs(logsConfig *logs.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 

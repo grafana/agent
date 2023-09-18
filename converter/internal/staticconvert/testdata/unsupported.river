@@ -17,6 +17,11 @@ prometheus.remote_write "metrics_agent" {
 	}
 }
 
+logging {
+	level  = "debug"
+	format = "json"
+}
+
 prometheus.exporter.statsd "integrations_statsd_exporter" { }
 
 prometheus.scrape "integrations_statsd_exporter" {

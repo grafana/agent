@@ -39,3 +39,20 @@ func (s *Service) updateWindowsCertificateFilter(tlsArgs *TLSArguments) error {
 	s.win.Run()
 	return nil
 }
+
+func (wcf *WindowsCertificateFilter) toYaml() server.WindowsCertificateFilter {
+	return server.WindowsCertificateFilter{
+		Server: &server.WindowsServerFilter{
+			Store:             wcf.Server.Store,
+			SystemStore:       wcf.Server.SystemStore,
+			IssuerCommonNames: wcf.Server.IssuerCommonNames,
+			TemplateID:        wcf.Server.TemplateID,
+			RefreshInterval:   wcf.Server.RefreshInterval,
+		},
+		Client: &server.WindowsClientFilter{
+			IssuerCommonNames: wcf.Client.IssuerCommonNames,
+			SubjectRegEx:      wcf.Client.SubjectRegEx,
+			TemplateID:        wcf.Client.TemplateID,
+		},
+	}
+}
