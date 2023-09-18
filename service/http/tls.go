@@ -91,12 +91,12 @@ func (args *TLSArguments) Validate() error {
 // validateWindowsCertificateFilterTLS validates the Windows Certificate filter details.
 func (args *TLSArguments) validateWindowsCertificateFilterTLS() error {
 	switch {
-	case len(args.Cert) > 0:
-	case len(args.Key) > 0:
-	case len(args.CertFile) > 0:
-	case len(args.ClientCA) > 0:
-	case len(args.ClientCAFile) > 0:
-	case len(args.KeyFile) > 0:
+	case len(args.Cert) > 0,
+		len(args.Key) > 0,
+		len(args.CertFile) > 0,
+		len(args.ClientCA) > 0,
+		len(args.ClientCAFile) > 0,
+		len(args.KeyFile) > 0:
 		return fmt.Errorf("cannot specify any key, certificate or CA when using windows certificate filter")
 
 	}
