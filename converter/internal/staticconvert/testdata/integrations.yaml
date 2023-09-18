@@ -170,3 +170,10 @@ integrations:
     scrape_integration: true
   statsd_exporter:
     enabled: true
+  azure_exporter:
+    enabled: true
+    subscriptions:
+      - "subId"
+    resource_type: "Microsoft.Dashboard/grafana"
+    metrics:
+      - "HttpRequestCount"
