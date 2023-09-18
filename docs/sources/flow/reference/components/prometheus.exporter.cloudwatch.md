@@ -10,7 +10,7 @@ embeds [`yet-another-cloudwatch-exporter`](https://github.com/nerdswords/yet-ano
 collect [CloudWatch metrics](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html),
 translate them to a prometheus-compatible format and remote write them.
 
-This component lets you scrape CloudWatch metrics in a set of configurations we call *jobs*. There are
+This component lets you scrape CloudWatch metrics in a set of configurations called *jobs*. There are
 two kinds of jobs: [discovery][] and [static][].
 
 [discovery]: #discovery-block
@@ -153,8 +153,9 @@ job.
 [metric]: #metric-block
 
 [role]: #role-block
+[decoupled_scraping]: #decoupled_scraping-block
 
-## discovery block
+### discovery block
 
 The `discovery` block allows the component to scrape CloudWatch metrics with only the AWS service and a list of metrics
 under that service/namespace.
@@ -198,7 +199,7 @@ different `search_tags`.
 
 [supported-services]: #supported-services-in-discovery-jobs
 
-## static block
+### static block
 
 The `static` block configures the component to scrape a specific set of CloudWatch metrics. The metrics need to be fully
 qualified with the following specifications:
@@ -255,7 +256,7 @@ require `Resource`, `Service`, `Class`, and `Type` dimensions to be specified. T
 metrics,
 all dimensions attached to a metric when saved in CloudWatch are required.
 
-## metric block
+### metric block
 
 Represents an AWS Metrics to scrape. To see available metrics, AWS does not keep a documentation page with all available
 metrics.
@@ -271,26 +272,7 @@ on how to explore metrics, to easily pick the ones you need.
 
 [period]: #period-and-length
 
-## role block
-
-Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). If omitted, the AWS role
-that corresponds to the credentials configured in the environment will be used.
-
-Multiple roles can be useful when scraping metrics from different AWS accounts with a single pair of credentials. In
-this case, a different role
-is configured for the agent to assume before calling AWS APIs. Therefore, the credentials configured in the system need
-permission to assume the target role.
-See [Granting a user permissions to switch roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html)
-in the AWS IAM documentation for more information about how to configure this.
-
-| Name          | Type     | Description                                                           | Default | Required |
-|---------------|----------|-----------------------------------------------------------------------|---------|----------|
-| `role_arn`    | `string` | AWS IAM Role ARN the exporter should assume to perform AWS API calls. |         | yes      |
-| `external_id` | `string` | External ID used when calling STS AssumeRole API. See [details][].    | `""`    | no       |
-
-[details]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
-
-## period and length
+#### period and length
 
 `period` controls primarily the width of the time bucket used for aggregating metrics collected from
 CloudWatch. `length`
@@ -321,6 +303,25 @@ the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs
 is exported to CloudWatch.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
+
+### role block
+
+Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). If omitted, the AWS role
+that corresponds to the credentials configured in the environment will be used.
+
+Multiple roles can be useful when scraping metrics from different AWS accounts with a single pair of credentials. In
+this case, a different role
+is configured for the agent to assume before calling AWS APIs. Therefore, the credentials configured in the system need
+permission to assume the target role.
+See [Granting a user permissions to switch roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html)
+in the AWS IAM documentation for more information about how to configure this.
+
+| Name          | Type     | Description                                                           | Default | Required |
+| ------------- | -------- | --------------------------------------------------------------------- | ------- | -------- |
+| `role_arn`    | `string` | AWS IAM Role ARN the exporter should assume to perform AWS API calls. |         | yes      |
+| `external_id` | `string` | External ID used when calling STS AssumeRole API. See [details][].    | `""`    | no       |
+
+[details]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
 
 ## decoupled scraping block
 
