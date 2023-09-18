@@ -10,7 +10,7 @@ title: otelcol.processor.k8sattributes
 # otelcol.processor.k8sattributes
 
 `otelcol.processor.k8sattributes` accepts telemetry data from other `otelcol`
-components and modifies attributes of a span, log, or metric based on Kubernetes info.
+components and adds Kubernetes metadata to the resource attributes of spans, logs, or metrics.
 
 > **NOTE**: `otelcol.processor.k8sattributes` is a wrapper over the upstream
 > OpenTelemetry Collector `k8sattributes` processor. Bug reports or feature requests
@@ -37,15 +37,42 @@ The following arguments are supported:
 
 Name | Type | Description                                | Default         | Required
 ---- | ---- |--------------------------------------------|-----------------| --------
-`auth_type` | `string` | K8S API Authentication Type                | `serviceAccount` | no
-`passthrough` | `bool` | Passthrough data without any modifications | `false` | no
+`auth_type` | `string` | Authentication method when connecting to the Kubernetes API. | `serviceAccount` | no
+`passthrough` | `bool` | Passthrough signals as-is, only adding a `k8s.pod.ip` resource attribute. | `false` | no
 
-### auth_type
-Auth Type can be one of the following:
+The supported values for `auth_type` are:
+* `none`: No authentication is required.
+* `serviceAccount`: Use the built-in service account which Kubernetes automatically provisions for each pod.
+* `kubeConfig`: Use local credentials like those used by kubectl.
+* `tls`: Use client TLS authentication.
 
-* `none` - No authentication
-* `serviceAccount` - Use the service account token mounted inside the pod.
-* `kubeConfig` - Use the kube config file mounted inside the pod.
+Setting `passthrough` to `true` enables the "passthrough mode" of `otelcol.processor.k8sattributes`:
+* Only a `k8s.pod.ip` resource attribute will be added.
+* No other metadata will be added.
+* The Kubernetes API will not be accessed.
+* The Agent must receive spans directly from services to be able to correctly detect the pod IPs.
+
+The `passthrough` setting is useful when configuring the Agent as a Kubernetes Deployment.
+An Agent running as a Deployment cannot detect the IP addresses of pods generating telemetry 
+data without any of the well-known IP attributes. If the Deployment Agent receives telemetry from 
+Agents deployed as DaemonSet, then some of those attributes might be missing. As a workaround 
+to this issue, the DaemonSet Agents can be configured with `passthrough` set to `true`.
+The supported values for `auth_type` are:
+* `none`: No authentication.
+* `serviceAccount`: Use the service account token mounted inside the pod.
+* `kubeConfig`: Use the Kubernetes config file mounted inside the pod.
+* `tls`: Use client TLS authentication.
+
+Setting `passthrough` to `true` enables the "passthrough mode" of `otelcol.processor.k8sattributes`:
+* Only a `k8s.pod.ip` resource attribute will be added.
+* No other metadata will be added.
+* The Kubernetes API will not be accessed.
+* The Agent must receive spans directly from services to be able to correctly detect the pod IPs.
+The `passthrough` setting is useful when configuring the Agent as a Kubernetes Deployment.
+An Agent running as a Deployment cannot detect the IP addresses of pods generating telemetry 
+data without any of the well-known IP attributes. If the Deployment Agent receives telemetry from 
+Agents deployed as DaemonSet, then some of those attributes might be missing. As a workaround 
+to this issue, the DaemonSet Agents can be configured with `passthrough` set to `true`.
 
 ## Blocks
 
@@ -54,16 +81,16 @@ The following blocks are supported inside the definition of
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 output | [output][] | Configures where to send received telemetry data. | yes
-extract | [extract][] | Configures resource attributes to add | no
-extract > annotation | [extract_field][] | Create span attributes from k8s annotations | no
-extract > label | [extract_field][] | Create span attributes from k8s labels | no
-filter | [filter][] | Filter data that the agent will load from K8s | no
-filter > field | [filter_field][] | Filter fields | no
-filter > label | [filter_field][] | Filter labels | no
-pod_association | [pod_association][] | Add additional pod association configs | no
-pod_association > source | [pod_association_source][] | Association block | no
-exclude | [exclude][] | Exclude pods from being processed | no
-exclude > pod | [pod][] | Pod information | no
+extract | [extract][] | Rules for extracting data from Kubernetes. | no
+extract > annotation | [extract_field][] | Creating resource attributes from Kubernetes annotations. | no
+extract > label | [extract_field][] | Creating resource attributes from Kubernetes labels. | no
+filter | [filter][] | Filters the data loaded from Kubernetes. | no
+filter > field | [filter_field][] | Filter pods by generic Kubernetes fields. | no
+filter > label | [filter_field][] | Filter pods by generic Kubernetes labels. | no
+pod_association | [pod_association][] | Rules to associate pod metadata with telemetry signals. | no
+pod_association > source | [pod_association_source][] | Source information to identify a pod. | no
+exclude | [exclude][] | Exclude pods from being processed. | no
+exclude > pod | [pod][] | Pod information. | no
 
 
 The `>` symbol indicates deeper levels of nesting. For example, `extract > annotation`
@@ -105,7 +132,7 @@ Name | Type           | Description                                             
 `from` | `list(string)` | From represents the source of the labels/annotations. Allowed values are "pod" and "namespace".                                                | `pod`    | no
 
 
-### Filter block
+### filter block
 
 The `filter` block configures which nodes to get data from, and which fields and labels to fetch.
 
@@ -113,8 +140,10 @@ The following attributes are supported:
 
 Name | Type     | Description                                                             | Default | Required
 ---- |----------|-------------------------------------------------------------------------| ------- | --------
-`node` | `string` | Node represents a k8s node or host. If specified, any pods not running on the specified node will be ignored by the tagger. |  | no
-`namespace` | `string` | Namespace filters all pods by the provided namespace. All other pods are ignored.  |  | no
+`node` | `string` | Configures a Kubernetes node name or host name. | `""` | no
+`namespace` | `string` | Filters all pods by the provided namespace. All other pods are ignored. | `""` | no
+
+If `node` is specified, then any pods not running on the specified node will be ignored by `otelcol.processor.k8sattributes`.
 
 ### Filter field block
 
@@ -134,11 +163,12 @@ For `op` the following values are allowed:
 * `exists`: The field value must exist. (Only for `annotation` fields).
 * `does-not-exist`: The field value must not exist. (Only for `annotation` fields).
 
-### Pod association block
+### pod_association block
 
 The `pod_association` block configures rules on how to associate logs/traces/metrics to pods.
 
-This block contains a list of `source` blocks.
+The `pod_association` block does not support any arguments, and is configured
+fully through child blocks.
 
 ### Pod association source block
 
