@@ -23,9 +23,10 @@ func Test_FeatureGates(t *testing.T) {
 		if _, ok := fgSet[g.ID()]; !ok {
 			return
 		}
+		// Make sure that the feature gate is disabled before touching it.
 		// There is no point in the Agent enabling a feature gate
 		// if it's already enabled in the Collector.
-		// This unit test will fail if the Collector is upgraded and
+		// This "require" check will fail if the Collector was upgraded and
 		// a feature gate was promoted from alpha to beta.
 		require.Falsef(t, g.IsEnabled(), "feature gate %s is enabled - should it be removed from the Agent?", g.ID())
 	})

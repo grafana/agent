@@ -7,6 +7,7 @@ import (
 	_ "go.opentelemetry.io/collector/obsreport"
 )
 
+// Enables a set of feature gates in Otel's Global Feature Gate Registry.
 func EnableOtelFeatureGates(fgNames ...string) error {
 	fgReg := featuregate.GlobalRegistry()
 
@@ -55,10 +56,12 @@ var (
 	}
 )
 
+// Enables a set of feature gates which should always be enabled for Static mode.
 func SetupStaticModeOtelFeatureGates() error {
 	return EnableOtelFeatureGates(staticModeOtelFeatureGates...)
 }
 
+// Enables a set of feature gates which should always be enabled for Flow mode.
 func SetupFlowModeOtelFeatureGates() error {
 	return EnableOtelFeatureGates(flowModeOtelFeatureGates...)
 }
