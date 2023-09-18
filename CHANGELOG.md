@@ -13,6 +13,7 @@ Main (unreleased)
 ### Breaking changes
 
 - Set `retry_on_http_429` to `true` by default in the `queue_config` block in static mode's `remote_write`. (@wildum)
+- Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`. (@vlad-diachenko)
 
 ### Features
 
@@ -33,6 +34,7 @@ Main (unreleased)
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
     instances and bare-metal machines. (@rfratto)
   - `prometheus.exporter.azure` collects metrics from Azure. (@wildum)
+  - `discovery.dockerswarm` discovers scrape targets from Docker Swarm. (@wildum)
   - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
   - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
   - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)

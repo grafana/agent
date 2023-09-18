@@ -7,30 +7,30 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 )
 
-func newNonIndexedLabelsStage(logger log.Logger, configs LabelsConfig) (Stage, error) {
+func newStructuredMetadataStage(logger log.Logger, configs LabelsConfig) (Stage, error) {
 	err := validateLabelsConfig(configs)
 	if err != nil {
 		return nil, err
 	}
-	return &nonIndexedLabelsStage{
+	return &structuredMetadataStage{
 		cfgs:   configs,
 		logger: logger,
 	}, nil
 }
 
-type nonIndexedLabelsStage struct {
+type structuredMetadataStage struct {
 	cfgs   LabelsConfig
 	logger log.Logger
 }
 
-func (s *nonIndexedLabelsStage) Name() string {
-	return StageTypeNonIndexedLabels
+func (s *structuredMetadataStage) Name() string {
+	return StageTypeStructuredMetadata
 }
 
-func (s *nonIndexedLabelsStage) Run(in chan Entry) chan Entry {
+func (s *structuredMetadataStage) Run(in chan Entry) chan Entry {
 	return RunWith(in, func(e Entry) Entry {
 		processLabelsConfigs(s.logger, e.Extracted, s.cfgs, func(labelName model.LabelName, labelValue model.LabelValue) {
-			e.NonIndexedLabels = append(e.NonIndexedLabels, logproto.LabelAdapter{Name: string(labelName), Value: string(labelValue)})
+			e.StructuredMetadata = append(e.StructuredMetadata, logproto.LabelAdapter{Name: string(labelName), Value: string(labelValue)})
 		})
 		return e
 	})
