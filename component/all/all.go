@@ -18,6 +18,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
 	_ "github.com/grafana/agent/component/discovery/kuma"                           // Import discovery.kuma
+	_ "github.com/grafana/agent/component/discovery/linode"                         // Import discovery.linode
 	_ "github.com/grafana/agent/component/discovery/marathon"                       // Import discovery.marathon
 	_ "github.com/grafana/agent/component/discovery/nerve"                          // Import discovery.nerve
 	_ "github.com/grafana/agent/component/discovery/nomad"                          // Import discovery.nomad
@@ -119,6 +120,8 @@ import (
 	_ "github.com/grafana/agent/component/pyroscope/scrape"                         // Import pyroscope.scrape
 	_ "github.com/grafana/agent/component/pyroscope/write"                          // Import pyroscope.write
 	_ "github.com/grafana/agent/component/remote/http"                              // Import remote.http
+	_ "github.com/grafana/agent/component/remote/kubernetes/configmap"              // Import remote.kubernetes.configmap
+	_ "github.com/grafana/agent/component/remote/kubernetes/secret"                 // Import remote.kubernetes.secret
 	_ "github.com/grafana/agent/component/remote/s3"                                // Import remote.s3
 	_ "github.com/grafana/agent/component/remote/vault"                             // Import remote.vault
 )
