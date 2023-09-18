@@ -53,10 +53,10 @@ The following blocks are supported inside the definition of `loki.process`:
 | stage.json                | [stage.json][]                | Configures a JSON processing stage.                  | no       |
 | stage.label_drop          | [stage.label_drop][]          | Configures a `label_drop` processing stage.          | no       |
 | stage.label_keep          | [stage.label_keep][]          | Configures a `label_keep` processing stage.          | no       |
-| stage.labels              | [stage.labels][]              | Configures a labels processing stage.                | no       |
+| stage.labels              | [stage.labels][]              | Configures a `labels` processing stage.                | no       |
 | stage.structured_metadata | [stage.structured_metadata][] | Configures a structured metadata processing stage.   | no       |
 | stage.limit               | [stage.limit][]               | Configures a `limit` processing stage.               | no       |
-| stage.logfmt              | [stage.logfmt][]              | Configures a logfmt processing stage.                | no       |
+| stage.logfmt              | [stage.logfmt][]              | Configures a `logfmt` processing stage.                | no       |
 | stage.match               | [stage.match][]               | Configures a `match` processing stage.               | no       |
 | stage.metrics             | [stage.metrics][]             | Configures a `metrics` stage.                        | no       |
 | stage.multiline           | [stage.multiline][]           | Configures a `multiline` processing stage.           | no       |
