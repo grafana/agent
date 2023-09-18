@@ -83,6 +83,12 @@ prometheus.scrape "integrations_azure_exporter" {
 	targets    = prometheus.exporter.azure.integrations_azure_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/azure_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
 }
 
 prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
