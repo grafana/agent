@@ -68,7 +68,7 @@ The list of available `resource_type` values and their corresponding `metrics` c
 
 The `resource_graph_query_filter` can be embedded into a template query of the form `Resources | where type =~ "<resource_type>" <resource_graph_query_filter> | project id, tags`.
 
-Valid values for `metric_aggregations` are `minimum`, `maximum`, `average`, `total`, and `count`. If no aggregation is specified, the value is retrieved from the metric. For example the aggregation value of the metric `Availability` in [Microsoft.ClassicStorage/storageAccounts](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-metrics/microsoft-classicstorage-storageaccounts-metrics) is `average`.
+Valid values for `metric_aggregations` are `minimum`, `maximum`, `average`, `total`, and `count`. If no aggregation is specified, the value is retrieved from the metric. For example, the aggregation value of the metric `Availability` in [Microsoft.ClassicStorage/storageAccounts](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-metrics/microsoft-classicstorage-storageaccounts-metrics) is `average`.
 
 Every metric has its own set of dimensions. For example the dimensions for the metric `Availability` in [Microsoft.ClassicStorage/storageAccounts](https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-metrics/microsoft-classicstorage-storageaccounts-metrics) are `GeoType`, `ApiName`, and `Authentication`. If a single dimension is requested it will have the name `dimension`. If multiple dimensions are requested they will have the name `dimension<dimension_name>`.
 
