@@ -11,7 +11,7 @@ title: prometheus.exporter.azure
 
 The `prometheus.exporter.azure` component embeds [`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter) to collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor). The exporter uses [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview) queries to identify resources for gathering metrics.
 
-The exporter supports all metrics defined by Azure Monitor. The complete list of available metrics can be found in the [Azure Monitor documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
+The exporter supports all metrics defined by Azure Monitor. You can find the complete list of available metrics in the [Azure Monitor documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
 Metrics for this integration are exposed with the template `azure_{type}_{metric}_{aggregation}_{unit}` by default. As an example,
 the Egress metric for BlobService would be exported as `azure_microsoft_storage_storageaccounts_blobservices_egress_total_bytes`.
 
