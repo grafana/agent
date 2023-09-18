@@ -45,6 +45,10 @@ func (args *RetryArguments) Validate() error {
 		return fmt.Errorf("multiplier must be greater than 1.0")
 	}
 
+	if args.RandomizationFactor < 0 {
+		return fmt.Errorf("randomization_factor must be greater or equal to 0")
+	}
+
 	return nil
 }
 
