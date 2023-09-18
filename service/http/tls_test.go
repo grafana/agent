@@ -1,8 +1,9 @@
 package http
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTLSWindowsCertificate(t *testing.T) {
