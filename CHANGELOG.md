@@ -32,6 +32,7 @@ Main (unreleased)
   - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
     instances and bare-metal machines. (@rfratto)
+  - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
   - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
   - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
 
