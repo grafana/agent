@@ -136,6 +136,8 @@ func appendScrapeConfig(
 
 	// Append all the SD components
 	b.AppendSDs()
+	// ConsulAgent does not come from Prometheus but only from Promtail.
+	b.AppendConsulAgentSDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.

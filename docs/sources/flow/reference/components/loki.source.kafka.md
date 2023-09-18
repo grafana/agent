@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.kafka/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.kafka/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.kafka/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kafka/
 title: loki.source.kafka
 ---
@@ -56,6 +60,7 @@ before they're forwarded to the list of receivers in `forward_to`.
 In addition to custom labels, the following internal labels prefixed with `__` are available:
 
 - `__meta_kafka_message_key`
+- `__meta_kafka_message_offset`
 - `__meta_kafka_topic`
 - `__meta_kafka_partition`
 - `__meta_kafka_member_id`
@@ -142,21 +147,22 @@ This example consumes Kafka events from the specified brokers and topics
 then forwards them to a `loki.write` component using the Kafka timestamp.
 
 ```river
-loki.relabel "kafka" {
-  rule {
-    source_labels = ["__meta_kafka_topic"]
-    target_label  = "topic"
-  }
-}
-
-
 loki.source.kafka "local" {
   brokers                = ["localhost:9092"]
   topics                 = ["quickstart-events"]
   labels                 = {component = "loki.source.kafka"}
-  forward_to             = [loki.write.local.receiver]
+  forward_to             = [loki.relabel.kafka.receiver]
   use_incoming_timestamp = true
   relabel_rules          = loki.relabel.kafka.rules
+}
+
+loki.relabel "kafka" {
+  forward_to      = [loki.write.local.receiver]
+
+  rule {
+    source_labels = ["__meta_kafka_topic"]
+    target_label  = "topic"
+  }
 }
 
 loki.write "local" {
@@ -165,4 +171,3 @@ loki.write "local" {
   }
 }
 ```
-

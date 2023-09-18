@@ -65,14 +65,15 @@ func validateServer(serverConfig *server.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	defaultServerConfig := server.DefaultConfig()
-	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.LogLevel.Level.Logrus, defaultServerConfig.LogLevel.Level.Logrus, "log_level server"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.LogFormat, defaultServerConfig.LogFormat, "log_format server"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.HTTP, defaultServerConfig.HTTP, "http_tls_config server"))
+	diags.AddAll(common.UnsupportedNotDeepEqualsMessage(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server", "flow mode does not have a gRPC server to configure."))
+	diags.AddAll(common.UnsupportedNotEquals(serverConfig.HTTP.TLSConfig.PreferServerCipherSuites, defaultServerConfig.HTTP.TLSConfig.PreferServerCipherSuites, "prefer_server_cipher_suites server"))
+	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.HTTP.TLSConfig.WindowsCertificateFilter, defaultServerConfig.HTTP.TLSConfig.WindowsCertificateFilter, "windows_certificate_filter server"))
 
 	return diags
 }
 
+// validateMetrics validates the metrics config for anything not already
+// covered by appendStaticPrometheus.
 func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -98,11 +99,12 @@ func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diag
 func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if len(integrationsConfig.EnabledIntegrations()) == 0 {
-		return diags
-	}
-
 	for _, integration := range integrationsConfig.ConfigV1.Integrations {
+		if !integration.Common.Enabled {
+			diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("disabled integrations do nothing and are not included in the output: %s.", integration.Name()))
+			continue
+		}
+
 		switch itg := integration.Config.(type) {
 		case *apache_http.Config:
 		case *node_exporter.Config:
@@ -143,6 +145,8 @@ func validateTraces(tracesConfig traces.Config) diag.Diagnostics {
 	return diags
 }
 
+// validateLogs validates the logs config for anything not already covered
+// by appendStaticPromtail.
 func validateLogs(logsConfig *logs.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 

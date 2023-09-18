@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/setup/start-agent/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/start-agent/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/start-agent/
 description: Learn how to start, restart, and stop Grafana Agent after it is installed
 menuTitle: Start flow mode
@@ -103,7 +107,7 @@ brew services stop grafana-agent-flow
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
 `$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
 
-If you followed [Configure the Grafana Agent service](../setup/configure/configure-macos/#configure-the-grafana-agent-service)
+If you followed [Configure the Grafana Agent service](../setup/configure/configure-macos#configure-the-grafana-agent-service)
 and changed the path where logs are written, refer to your current copy of the Grafana Agent formula to locate your log files.
 
 ## Windows

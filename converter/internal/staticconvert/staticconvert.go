@@ -66,8 +66,8 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	diags.AddAll(appendStaticPrometheus(f, staticConfig))
 	diags.AddAll(appendStaticPromtail(f, staticConfig))
 	diags.AddAll(appendStaticIntegrationsV1(f, staticConfig))
+	// TODO integrations v2
 	// TODO otel
-	// TODO other
 
 	diags.AddAll(validate(staticConfig))
 
@@ -157,12 +157,8 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 func appendStaticIntegrationsV1(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if len(staticConfig.Integrations.EnabledIntegrations()) == 0 {
-		return diags
-	}
-
 	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
-	b.AppendIntegrations()
+	b.Build()
 
 	return diags
 }

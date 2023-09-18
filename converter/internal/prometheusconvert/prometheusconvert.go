@@ -21,10 +21,15 @@ import (
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_linode "github.com/prometheus/prometheus/discovery/linode"
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
+	prom_moby "github.com/prometheus/prometheus/discovery/moby"
+	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	prom_xds "github.com/prometheus/prometheus/discovery/xds"
+	prom_nerve "github.com/prometheus/prometheus/discovery/zookeeper"
+	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 	"github.com/prometheus/prometheus/storage"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
@@ -172,6 +177,21 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_xds.SDConfig:
 			labelCounts["kuma"]++
 			exports = appendDiscoveryKuma(pb, common.LabelWithIndex(labelCounts["kuma"]-1, label), sdc)
+		case *prom_scaleway.SDConfig:
+			labelCounts["scaleway"]++
+			exports = appendDiscoveryScaleway(pb, common.LabelWithIndex(labelCounts["scaleway"]-1, label), sdc)
+		case *prom_zk.ServersetSDConfig:
+			labelCounts["serverset"]++
+			exports = appendDiscoveryServerset(pb, common.LabelWithIndex(labelCounts["serverset"]-1, label), sdc)
+		case *prom_linode.SDConfig:
+			labelCounts["linode"]++
+			exports = appendDiscoveryLinode(pb, common.LabelWithIndex(labelCounts["linode"]-1, label), sdc)
+		case *prom_nerve.NerveSDConfig:
+			labelCounts["nerve"]++
+			exports = appendDiscoveryNerve(pb, common.LabelWithIndex(labelCounts["nerve"]-1, label), sdc)
+		case *prom_moby.DockerSwarmSDConfig:
+			labelCounts["dockerswarm"]++
+			exports = appendDiscoveryDockerswarm(pb, common.LabelWithIndex(labelCounts["dockerswarm"]-1, label), sdc)
 		}
 
 		targets = append(targets, exports.Targets...)

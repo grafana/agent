@@ -12,6 +12,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
+  podManagementPolicy: Parallel
   minReadySeconds: 10
   serviceName: grafana-agent
   selector:

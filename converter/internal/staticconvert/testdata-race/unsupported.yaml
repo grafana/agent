@@ -2,9 +2,18 @@ server:
   log_level: debug
   log_format: json
   http_tls_config:
-    cert_file: "/something.cert"
+    client_ca_file: "./testdata/example-cert.pem"
+    cert_file: "./testdata/example-cert.pem"
+    key_file: "./testdata/example-key.pem"
+    client_auth_type: "VerifyClientCertIfGiven"
+    prefer_server_cipher_suites: true
+    windows_certificate_filter:
+      server:
+        store: "something"
   grpc_tls_config:
-    cert_file: "/something2.cert"
+    client_ca_file: "/something4.cert"
+    cert_file: "/something5.cert"
+    key_file: "/something6.cert"
 
 metrics:
   wal_directory: /tmp/agent
@@ -45,6 +54,11 @@ integrations:
       - nodepool
   cadvisor:
     enabled: true
+  mssql:
+    enabled: true
+    scrape_integration: false
+  node_exporter:
+    enabled: false
   statsd_exporter:
     enabled: true
     mapping_config:

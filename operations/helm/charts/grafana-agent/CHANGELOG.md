@@ -10,12 +10,25 @@ internal API changes are not present.
 Unreleased
 ----------
 
-0.23.0 (2023-08-30)
+### Enhancements
+
+- An image's digest can now be used in place of a tag. (@hainenber)
+
+0.24.0 (2023-09-08)
 -------------------
 
-- Update Grafana Agent version to v0.36.1. (@erikbaranowski)
+### Enhancements
+
+- StatefulSets will now use `podManagementPolicy: Parallel` by default. To
+  disable this behavior, set `controller.parallelRollout` to `false`.
+  (@rfratto)
+
+0.23.0 (2023-09-06)
+-------------------
 
 ### Enhancements
+
+- Update Grafana Agent version to v0.36.1. (@erikbaranowski)
 
 - Enable clustering for deployments and daemonsets. (@tpaschalis)
 
@@ -28,7 +41,6 @@ Unreleased
 -------------------
 
 - Condition parameter minReadySeconds on StatefulSet, Deployment, and DaemonSet to Kubernetes v1.22 clusters.
-
 
 0.21.0 (2023-08-15)
 -------------------

@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/operator/
+- /docs/grafana-cloud/monitor-infrastructure/agent/operator/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/
 canonical: https://grafana.com/docs/agent/latest/operator/
 title: Static mode Kubernetes operator
 weight: 300
