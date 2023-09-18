@@ -161,16 +161,3 @@ func (args ExcludeConfig) convert() map[string]interface{} {
 
 	return result
 }
-
-// Arguments configures the otelcol.processor.k8sattributes component.
-type Arguments struct {
-	AuthType        string              `river:"auth_type,attr,optional"`
-	Passthrough     bool                `river:"passthrough,attr,optional"`
-	ExtractConfig   ExtractConfig       `river:"extract,block,optional"`
-	Filter          FilterConfig        `river:"filter,block,optional"`
-	PodAssociations PodAssociationSlice `river:"pod_association,block,optional"`
-	Exclude         ExcludeConfig       `river:"exclude,block,optional"`
-
-	// Output configures where to send processed data. Required.
-	Output *otelcol.ConsumerArguments `river:"output,block"`
-}

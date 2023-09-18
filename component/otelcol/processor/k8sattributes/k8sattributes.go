@@ -28,6 +28,29 @@ var (
 	_ processor.Arguments = Arguments{}
 )
 
+// Arguments configures the otelcol.processor.k8sattributes component.
+type Arguments struct {
+	AuthType        string              `river:"auth_type,attr,optional"`
+	Passthrough     bool                `river:"passthrough,attr,optional"`
+	ExtractConfig   ExtractConfig       `river:"extract,block,optional"`
+	Filter          FilterConfig        `river:"filter,block,optional"`
+	PodAssociations PodAssociationSlice `river:"pod_association,block,optional"`
+	Exclude         ExcludeConfig       `river:"exclude,block,optional"`
+
+	// Output configures where to send processed data. Required.
+	Output *otelcol.ConsumerArguments `river:"output,block"`
+}
+
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
+	cfg, err := args.Convert()
+	if err != nil {
+		return err
+	}
+
+	return cfg.(*k8sattributesprocessor.Config).Validate()
+}
+
 // Convert implements processor.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
 	input := make(map[string]interface{})
