@@ -54,9 +54,25 @@ func NewIntegrationsV1ConfigBuilder(f *builder.File, diags *diag.Diagnostics, cf
 	}
 }
 
-func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
+func (b *IntegrationsV1ConfigBuilder) Build() {
+	b.appendLogging(b.cfg.Server)
+	b.appendServer(b.cfg.Server)
+	b.appendIntegrations()
+}
+
+func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
 	for _, integration := range b.cfg.Integrations.ConfigV1.Integrations {
 		if !integration.Common.Enabled {
+			continue
+		}
+
+		scrapeIntegration := b.cfg.Integrations.ConfigV1.ScrapeIntegrations
+		if integration.Common.ScrapeIntegration != nil {
+			scrapeIntegration = *integration.Common.ScrapeIntegration
+		}
+
+		if !scrapeIntegration {
+			b.diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration which is not being scraped was provided: %s.", integration.Name()))
 			continue
 		}
 
@@ -119,26 +135,23 @@ func (b *IntegrationsV1ConfigBuilder) AppendIntegrations() {
 }
 
 func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
-	scrapeConfigs := []*prom_config.ScrapeConfig{}
-	if b.cfg.Integrations.ConfigV1.ScrapeIntegrations {
-		scrapeConfig := prom_config.DefaultScrapeConfig
-		scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
-		scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs
-		scrapeConfig.MetricRelabelConfigs = commonConfig.MetricRelabelConfigs
-		// TODO: Add support for scrapeConfig.HTTPClientConfig
+	scrapeConfig := prom_config.DefaultScrapeConfig
+	scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
+	scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs
+	scrapeConfig.MetricRelabelConfigs = commonConfig.MetricRelabelConfigs
+	scrapeConfig.HTTPClientConfig.TLSConfig = b.cfg.Integrations.ConfigV1.TLSConfig
 
-		scrapeConfig.ScrapeInterval = model.Duration(commonConfig.ScrapeInterval)
-		if commonConfig.ScrapeInterval == 0 {
-			scrapeConfig.ScrapeInterval = b.cfg.Integrations.ConfigV1.PrometheusGlobalConfig.ScrapeInterval
-		}
-
-		scrapeConfig.ScrapeTimeout = model.Duration(commonConfig.ScrapeTimeout)
-		if commonConfig.ScrapeTimeout == 0 {
-			scrapeConfig.ScrapeTimeout = b.cfg.Integrations.ConfigV1.PrometheusGlobalConfig.ScrapeTimeout
-		}
-
-		scrapeConfigs = []*prom_config.ScrapeConfig{&scrapeConfig}
+	scrapeConfig.ScrapeInterval = model.Duration(commonConfig.ScrapeInterval)
+	if commonConfig.ScrapeInterval == 0 {
+		scrapeConfig.ScrapeInterval = b.cfg.Integrations.ConfigV1.PrometheusGlobalConfig.ScrapeInterval
 	}
+
+	scrapeConfig.ScrapeTimeout = model.Duration(commonConfig.ScrapeTimeout)
+	if commonConfig.ScrapeTimeout == 0 {
+		scrapeConfig.ScrapeTimeout = b.cfg.Integrations.ConfigV1.PrometheusGlobalConfig.ScrapeTimeout
+	}
+
+	scrapeConfigs := []*prom_config.ScrapeConfig{&scrapeConfig}
 
 	promConfig := &prom_config.Config{
 		GlobalConfig:       b.cfg.Integrations.ConfigV1.PrometheusGlobalConfig,

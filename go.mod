@@ -116,6 +116,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.80.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.80.0
@@ -542,7 +543,7 @@ require (
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da // indirect
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b // indirect
-	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.17 // indirect
+	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.17
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/seccomp/libseccomp-golang v0.9.2-0.20220502022130-f33da4d89646 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
@@ -714,8 +715,8 @@ exclude github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.194
 // Add exclude directives so Go doesn't pick old incompatible k8s.io/client-go
 // versions.
 exclude (
-	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/client-go v8.0.0+incompatible
+	k8s.io/client-go v12.0.0+incompatible
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
