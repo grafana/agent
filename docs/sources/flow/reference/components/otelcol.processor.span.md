@@ -5,11 +5,13 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.span/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.span/
 labels:
-  stage: alpha
+  stage: experimental
 title: otelcol.processor.span
 ---
 
 # otelcol.processor.span
+
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
 
 `otelcol.processor.span` accepts traces telemetry data from other `otelcol`
 components and modifies the names and attributes of the spans.

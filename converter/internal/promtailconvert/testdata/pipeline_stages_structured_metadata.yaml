@@ -6,7 +6,7 @@ scrape_configs:
       - logfmt:
           mapping:
             app:
-      - non_indexed_labels:
+      - structured_metadata:
           app: app
 
     kubernetes_sd_configs:

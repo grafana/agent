@@ -13,6 +13,7 @@ Main (unreleased)
 ### Breaking changes
 
 - Set `retry_on_http_429` to `true` by default in the `queue_config` block in static mode's `remote_write`. (@wildum)
+- Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`. (@vlad-diachenko)
 
 - Static mode Windows Certificate Filter no longer restricted to TLS 1.2 and specific cipher suites. (@mattdurham)
 
@@ -26,6 +27,7 @@ Main (unreleased)
   flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
   - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
+  - `discovery.linode` discovers scrape targets from the Linode API. (@captncraig)
   - `discovery.marathon` discovers scrape targets from Marathon servers. (@wildum)
   - `discovery.ionos` discovers scrape targets from the IONOS Cloud API. (@wildum)
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
@@ -33,6 +35,11 @@ Main (unreleased)
   - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
     instances and bare-metal machines. (@rfratto)
+  - `prometheus.exporter.azure` collects metrics from Azure. (@wildum)
+  - `discovery.dockerswarm` discovers scrape targets from Docker Swarm. (@wildum)
+  - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
+  - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
+  - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
@@ -80,6 +87,10 @@ Main (unreleased)
 ### Bugfixes
 
 - Fixed a bug where `otelcol.processor.discovery` could modify the `targets` passed by an upstream component. (@ptodev)
+
+- Fixed a bug where `otelcol` components with a retry mechanism would not wait after the first retry. (@rfratto)
+
+- Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
 
 v0.36.1 (2023-09-06)
 --------------------

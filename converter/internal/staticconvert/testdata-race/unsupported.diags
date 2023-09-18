@@ -8,7 +8,6 @@
 (Error) unsupported windows_certificate_filter server config was provided.
 (Error) unsupported wal_directory metrics config was provided. use the run command flag --storage.path for Flow mode instead.
 (Error) unsupported integration agent was provided.
-(Error) unsupported integration azure_exporter was provided.
 (Error) unsupported integration cadvisor was provided.
 (Warning) disabled integrations do nothing and are not included in the output: node_exporter.
 (Error) unsupported traces config was provided.

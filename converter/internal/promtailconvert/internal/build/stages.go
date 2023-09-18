@@ -86,8 +86,8 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 			return convertEventLogMessage(diags)
 		case promtailstages.StageTypeGeoIP:
 			return convertGeoIP(iCfg, diags)
-		case promtailstages.StageTypeNonIndexedLabels:
-			return convertNonIndexedLabels(iCfg, diags)
+		case promtailstages.StageTypeStructuredMetadata:
+			return convertStructuredMetadata(iCfg, diags)
 		}
 	}
 
@@ -95,13 +95,13 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 	return stages.StageConfig{}, false
 }
 
-func convertNonIndexedLabels(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+func convertStructuredMetadata(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
 	pLabels := &promtailstages.LabelsConfig{}
 	if err := mapstructure.Decode(cfg, pLabels); err != nil {
 		addInvalidStageError(diags, cfg, err)
 		return stages.StageConfig{}, false
 	}
-	return stages.StageConfig{NonIndexedLabelsConfig: &stages.LabelsConfig{
+	return stages.StageConfig{StructuredMetadata: &stages.LabelsConfig{
 		Values: *pLabels,
 	}}, true
 }
