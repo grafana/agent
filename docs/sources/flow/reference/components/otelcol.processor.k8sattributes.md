@@ -52,23 +52,7 @@ Setting `passthrough` to `true` enables the "passthrough mode" of `otelcol.proce
 * The Kubernetes API will not be accessed.
 * The Agent must receive spans directly from services to be able to correctly detect the pod IPs.
 
-The `passthrough` setting is useful when configuring the Agent as a Kubernetes Deployment.
-An Agent running as a Deployment cannot detect the IP addresses of pods generating telemetry 
-data without any of the well-known IP attributes. If the Deployment Agent receives telemetry from 
-Agents deployed as DaemonSet, then some of those attributes might be missing. As a workaround 
-to this issue, the DaemonSet Agents can be configured with `passthrough` set to `true`.
-The supported values for `auth_type` are:
-* `none`: No authentication.
-* `serviceAccount`: Use the service account token mounted inside the pod.
-* `kubeConfig`: Use the Kubernetes config file mounted inside the pod.
-* `tls`: Use client TLS authentication.
-
-Setting `passthrough` to `true` enables the "passthrough mode" of `otelcol.processor.k8sattributes`:
-* Only a `k8s.pod.ip` resource attribute will be added.
-* No other metadata will be added.
-* The Kubernetes API will not be accessed.
-* The Agent must receive spans directly from services to be able to correctly detect the pod IPs.
-The `passthrough` setting is useful when configuring the Agent as a Kubernetes Deployment.
+* The `passthrough` setting is useful when configuring the Agent as a Kubernetes Deployment.
 An Agent running as a Deployment cannot detect the IP addresses of pods generating telemetry 
 data without any of the well-known IP attributes. If the Deployment Agent receives telemetry from 
 Agents deployed as DaemonSet, then some of those attributes might be missing. As a workaround 
@@ -82,11 +66,11 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 output | [output][] | Configures where to send received telemetry data. | yes
 extract | [extract][] | Rules for extracting data from Kubernetes. | no
-extract > annotation | [extract_field][] | Creating resource attributes from Kubernetes annotations. | no
-extract > label | [extract_field][] | Creating resource attributes from Kubernetes labels. | no
+extract > annotation | [extract_annotation][] | Creating resource attributes from Kubernetes annotations. | no
+extract > label | [extract_label][] | Creating resource attributes from Kubernetes labels. | no
 filter | [filter][] | Filters the data loaded from Kubernetes. | no
 filter > field | [filter_field][] | Filter pods by generic Kubernetes fields. | no
-filter > label | [filter_field][] | Filter pods by generic Kubernetes labels. | no
+filter > label | [filter_label][] | Filter pods by generic Kubernetes labels. | no
 pod_association | [pod_association][] | Rules to associate pod metadata with telemetry signals. | no
 pod_association > source | [pod_association_source][] | Source information to identify a pod. | no
 exclude | [exclude][] | Exclude pods from being processed. | no
@@ -98,10 +82,12 @@ refers to an `annotation` block defined inside an `extract` block.
 
 [output]: #output-block
 [extract]: #extract-block
-[extract_field]: #extract-field-block
+[extract_annotation]: #extract-annotation-block
+[extract_label]: #extract-label-block
 [filter]: #filter-block
 [filter_field]: #filter-field-block
-[pod_association]: #pod-association-block
+[filter_label]: #filter-label-block
+[pod_association]: #pod_association-block
 [pod_association_source]: #pod-association-source-block
 [exclude]: #exclude-block
 [pod]: #pod-block
@@ -112,25 +98,53 @@ The `extract` block configures which metadata, annotations and labels to extract
 
 The following attributes are supported:
 
-Name | Type           | Description                                                                                                                                                                                                                                                 | Default | Required
----- |----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ------- | --------
-`metadata` | `list(string)` | Pre-configured metadata keys to add. See [k8sattributeprocessor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/processor/k8sattributesprocessor/v0.85.0/processor/k8sattributesprocessor/config.go#L119) for the list of keywords. |  | no
+Name | Type           | Description                          | Default     | Required
+---- |----------------|--------------------------------------|-------------| --------
+`metadata` | `list(string)` | Pre-configured metadata keys to add. | _See below_ | no
 
+The current supported `metadata` keys are:
+* `k8s.pod.name`
+* `k8s.pod.uid`
+* `k8s.deployment.name`
+* `k8s.node.name`
+* `k8s.namespace.name`
+* `k8s.pod.start_time`
+* `k8s.replicaset.name`
+* `k8s.replicaset.uid`
+* `k8s.daemonset.name`
+* `k8s.daemonset.uid`
+* `k8s.job.name`
+* `k8s.job.uid`
+* `k8s.cronjob.name`
+* `k8s.statefulset.name`
+* `k8s.statefulset.uid`
+* `k8s.container.name`
+* `container.image.name`
+* `container.image.tag`
+* `container.id`
 
-### Extract field block
+By default if `metadata` is not specified, the following fields are extracted and added to spans, metrics and logs as attributes:
+* `k8s.pod.name`
+* `k8s.pod.uid`
+* `k8s.pod.start_time`
+* `k8s.namespace.name`
+* `k8s.node.name`
+* `k8s.deployment.name` (if the pod is controlled by a deployment)
+* `k8s.container.name` (requires an additional attribute to be set: `container.id`)
+* `container.image.name` (requires one of the following additional attributes to be set: `container.id` or `k8s.container.name`)
+* `container.image.tag` (requires one of the following additional attributes to be set: `container.id` or `k8s.container.name`)
 
-The `label` or `annotation` block configures which metadata or labels to extract from the pod and add to the spans.
+### extract annotation block
 
-The following attributes are supported:
+The `annotation` block configures which metadata or labels to extract from the pod and add to the spans.
 
-Name | Type           | Description                                                                                           | Default | Required
----- |----------------|-------------------------------------------------------------------------------------------------------|---------| --------
-`tag_name` | `list(string)` | TagName represents the name of the resource attribute that will be added to logs, metrics or spans.   |         | no
-`key` | `list(string)` | Key represents the annotation (or label) name. This must exactly match an annotation (or label) name. |         | no
-`key_regex` | `list(string)` | KeyRegex is a regular expression used to extract a Key that matches the regex.                   |         | no
-`regex` | `list(string)` | Regex is an optional field used to extract a sub-string from a complex field value.                                                                                                  |         | no
-`from` | `list(string)` | From represents the source of the labels/annotations. Allowed values are "pod" and "namespace".                                                | `pod`    | no
+{{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT VERSION>" >}}
 
+### extract label block
+
+The `label` block configures which metadata or labels to extract from the pod and add to the spans.
+
+{{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### filter block
 
@@ -145,23 +159,17 @@ Name | Type     | Description                                                   
 
 If `node` is specified, then any pods not running on the specified node will be ignored by `otelcol.processor.k8sattributes`.
 
-### Filter field block
+### filter field block
 
 The `field` block allows to filter pods by generic k8s fields.
 
-The following attributes are supported:
+{{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-Name | Type     | Description                                                                       | Default | Required
----- |----------|-----------------------------------------------------------------------------------|---------| --------
-`key` | `string` | Key represents the key or name of the field or labels that a filter can apply on. |         | yes
-`value` | `string` | Value represents the value associated with the key that a filter can apply on.    |         | yes
-`op` | `string` | Op represents the filter operation to apply on the given Key: Value pair.         | `equals` | no
+### filter label block
 
-For `op` the following values are allowed:
-* `equals`: The field value must be equal to the provided value.
-* `not-equals`: The field value must not be equal to the provided value.
-* `exists`: The field value must exist. (Only for `annotation` fields).
-* `does-not-exist`: The field value must not exist. (Only for `annotation` fields).
+The `label` block allows to filter pods by generic k8s fields.
+
+{{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### pod_association block
 
@@ -170,7 +178,7 @@ The `pod_association` block configures rules on how to associate logs/traces/met
 The `pod_association` block does not support any arguments, and is configured
 fully through child blocks.
 
-### Pod association source block
+### pod association source block
 
 The `source` block configures 
 
@@ -182,11 +190,11 @@ Name | Type     | Description                                                   
 `name` | `string` | Name represents extracted key name. e.g. `ip`, `pod_uid`, `k8s.pod.ip`           |  | no
 
 
-### Exclude block
+### exclude block
 
 The `exclude` block configures which pods to exclude from the processor.
 
-### Pod block
+### pod block
 
 The `pod` block configures a pod to be excluded from the processor.
 
@@ -196,7 +204,7 @@ Name | Type     | Description         | Default | Required
 ---- |----------|---------------------| ------- | --------
 `name` | `string` | The name of the pod |  | yes
 
-### Output block
+### output block
 
 {{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
