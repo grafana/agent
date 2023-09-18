@@ -267,13 +267,13 @@ metrics.
 Follow [this guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/viewing_metrics_with_cloudwatch.html)
 on how to explore metrics, to easily pick the ones you need.
 
-| Name          | Type           | Description                                                        | Default                                                                                                             | Required |
-| ------------- | -------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | -------- |
-| `name`        | `string`       | Metric name.                                                       |                                                                                                                     | yes      |
-| `statistics`  | `list(string)` | List of statistics to scrape. Ex: `"Minimum"`, `"Maximum"`, etc.   |                                                                                                                     | yes      |
-| `period`      | `duration`     | See [period][] section below.                                      |                                                                                                                     | yes      |
-| `length`      | `duration`     | See [period][] section below.                                      | Calculated based on `period`. See [period][] for details.                                                           | no       |
-| `nil_to_zero` | `bool`         | When `true`, `NaN` metric values are converted to 0.               | The value of `nil_to_zero` in the parent [static][] or [discovery][] block (`true` if not set in the parent block). | no       |
+| Name          | Type           | Description                                                               | Default                                                                                                             | Required |
+| ------------- | -------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------- |
+| `name`        | `string`       | Metric name.                                                              |                                                                                                                     | yes      |
+| `statistics`  | `list(string)` | List of statistics to scrape. For example, `"Minimum"`, `"Maximum"`, etc. |                                                                                                                     | yes      |
+| `period`      | `duration`     | See [period][] section below.                                             |                                                                                                                     | yes      |
+| `length`      | `duration`     | See [period][] section below.                                             | Calculated based on `period`. See [period][] for details.                                                           | no       |
+| `nil_to_zero` | `bool`         | When `true`, `NaN` metric values are converted to 0.                      | The value of `nil_to_zero` in the parent [static][] or [discovery][] block (`true` if not set in the parent block). | no       |
 
 [period]: #period-and-length
 
