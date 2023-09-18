@@ -1,8 +1,8 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/loki.source.file/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.file/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.file/
+  - /docs/grafana-cloud/agent/flow/reference/components/loki.source.file/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.file/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.file/
 title: loki.source.file
 ---
@@ -124,6 +124,9 @@ configuration.
 - `loki_source_file_files_active_total` (gauge): Number of active files.
 
 ## Component behavior
+
+If the decompression feature is deactivated, the component will continuously monitor and 'tail' the files.
+In this mode, upon reaching the end of a file, the component remains active, awaiting and reading new entries in real-time as they are appended.
 
 Each element in the list of `targets` as a set of key-value pairs called
 _labels_.
