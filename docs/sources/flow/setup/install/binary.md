@@ -1,6 +1,9 @@
 ---
 aliases:
 - ../../install/binary/
+- /docs/grafana-cloud/agent/flow/setup/install/binary/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/binary/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/binary/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/binary/
 description: Learn how to install Grafana Agent in flow mode as a standalone binary
 menuTitle: Standalone
@@ -12,7 +15,7 @@ weight: 600
 
 Grafana Agent is distributed as a standalone binary for the following operating systems and architectures:
 
-* Linux: AMD64, ARM64, ARMv6, ARMv7
+* Linux: AMD64, ARM64
 * Windows: AMD64
 * macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 * FreeBSD: AMD64

@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.file/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.file/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.file/
 title: loki.source.file
 ---

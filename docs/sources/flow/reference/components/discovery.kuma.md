@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.kuma/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.kuma/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.kuma/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kuma/
 title: discovery.kuma
 ---
@@ -40,7 +44,7 @@ Name               | Type           | Description                               
  - [`oauth2` block][oauth2].
 
 The following blocks are supported inside the definition of
-`discovery.nomad`:
+`discovery.kuma`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
