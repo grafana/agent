@@ -54,11 +54,10 @@ The following blocks are supported inside the definition of
 ### target block
 
 The `target` block defines an individual blackbox target.
-The `target` block may be specified multiple times to define multiple targets.
+The `target` block may be specified multiple times to define multiple targets. The label of the block is required and will be used in the target's `job` label.
 
 | Name      | Type     | Description                         | Default | Required |
 | --------- | -------- | ----------------------------------- | ------- | -------- |
-| `name`    | `string` | Name of the target.                 |         | yes      |
 | `address` | `string` | The address of the target to probe. |         | yes      |
 | `module`  | `string` | Blackbox module to use to probe.    | `""`    | no       |
 

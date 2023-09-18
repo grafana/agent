@@ -24,6 +24,7 @@ Main (unreleased)
   flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
   - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
+  - `discovery.linode` discovers scrape targets from the Linode API. (@captncraig)
   - `discovery.marathon` discovers scrape targets from Marathon servers. (@wildum)
   - `discovery.ionos` discovers scrape targets from the IONOS Cloud API. (@wildum)
   - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
@@ -31,6 +32,10 @@ Main (unreleased)
   - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
     instances and bare-metal machines. (@rfratto)
+  - `discovery.dockerswarm` discovers scrape targets from Docker Swarm. (@wildum)
+  - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
+  - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
+  - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)

@@ -15,7 +15,7 @@ weight: 600
 
 Grafana Agent is distributed as a standalone binary for the following operating systems and architectures:
 
-* Linux: AMD64, ARM64, ARMv6, ARMv7
+* Linux: AMD64, ARM64
 * Windows: AMD64
 * macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 * FreeBSD: AMD64

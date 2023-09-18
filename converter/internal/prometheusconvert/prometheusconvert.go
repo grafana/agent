@@ -21,8 +21,10 @@ import (
 	prom_gce "github.com/prometheus/prometheus/discovery/gce"
 	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
+	prom_linode "github.com/prometheus/prometheus/discovery/linode"
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
+	prom_moby "github.com/prometheus/prometheus/discovery/moby"
 	prom_openstack "github.com/prometheus/prometheus/discovery/openstack"
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
@@ -182,12 +184,18 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_zk.ServersetSDConfig:
 			labelCounts["serverset"]++
 			exports = appendDiscoveryServerset(pb, common.LabelWithIndex(labelCounts["serverset"]-1, label), sdc)
+		case *prom_linode.SDConfig:
+			labelCounts["linode"]++
+			exports = appendDiscoveryLinode(pb, common.LabelWithIndex(labelCounts["linode"]-1, label), sdc)
 		case *prom_nerve.NerveSDConfig:
 			labelCounts["nerve"]++
 			exports = appendDiscoveryNerve(pb, common.LabelWithIndex(labelCounts["nerve"]-1, label), sdc)
 		case *prom_openstack.SDConfig:
 			labelCounts["openstack"]++
 			exports = appendDiscoveryOpenstack(pb, common.LabelWithIndex(labelCounts["openstack"]-1, label), sdc)
+		case *prom_moby.DockerSwarmSDConfig:
+			labelCounts["dockerswarm"]++
+			exports = appendDiscoveryDockerswarm(pb, common.LabelWithIndex(labelCounts["dockerswarm"]-1, label), sdc)
 		}
 
 		targets = append(targets, exports.Targets...)
