@@ -20,6 +20,12 @@ scrape_configs:
         all_tenants: true
         availability: "internal"
         refresh_interval: 20s
+        tls_config:
+          key: "key"
+          cert: "cert"
+          ca: "ca"
+          server_name: example.local
+          insecure_skip_verify: true
       - role: "hypervisor"
         region: "region2"
 tracing: {enabled: false}

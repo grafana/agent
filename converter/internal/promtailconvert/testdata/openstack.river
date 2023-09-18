@@ -15,7 +15,15 @@ discovery.openstack "prometheus1" {
 	refresh_interval              = "20s"
 	port                          = 81
 	all_tenants                   = true
-	availability                  = "internal"
+
+	tls_config {
+		ca_pem               = "ca"
+		cert_pem             = "cert"
+		key_pem              = "key"
+		server_name          = "example.local"
+		insecure_skip_verify = true
+	}
+	availability = "internal"
 }
 
 discovery.openstack "prometheus1_2" {

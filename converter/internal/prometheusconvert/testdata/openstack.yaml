@@ -20,6 +20,13 @@ scrape_configs:
         all_tenants: true
         availability: "internal"
         refresh_interval: 20s
+        tls_config:
+          key: "key"
+          cert: "cert"
+          ca: "ca"
+          server_name: example.local
+          insecure_skip_verify: true
+          
   - job_name: "prometheus2"
     openstack_sd_configs:
       - role: "hypervisor"
