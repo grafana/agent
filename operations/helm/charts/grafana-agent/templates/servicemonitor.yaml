@@ -5,6 +5,9 @@ metadata:
   name: {{ include "grafana-agent.fullname" . }}
   labels:
     {{- include "grafana-agent.labels" . | nindent 4 }}
+    {{- with .Values.serviceMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   endpoints:
   - port: http-metrics

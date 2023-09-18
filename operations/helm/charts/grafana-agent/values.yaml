@@ -218,6 +218,8 @@ service:
 
 serviceMonitor:
   enabled: false
+  # -- Additional labels for the service monitor.
+  additionalLabels: {}
   # -- Scrape interval. If not set, the Prometheus default scrape interval is used.
   interval: ""
   # -- MetricRelabelConfigs to apply to samples after scraping, but before ingestion.
