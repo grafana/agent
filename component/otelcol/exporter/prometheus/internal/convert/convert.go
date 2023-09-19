@@ -61,6 +61,9 @@ type Options struct {
 	// IncludeScopeInfo includes the otel_scope_info metric and adds
 	// otel_scope_name and otel_scope_version labels to data points.
 	IncludeScopeInfo bool
+	// IncludeScopeLabels includes the otel_scope_name and otel_scope_version
+	// labels from the scope in the metrics.
+	IncludeScopeLabels bool
 }
 
 var _ consumer.Metrics = (*Converter)(nil)
@@ -344,13 +347,16 @@ func (conv *Converter) getOrCreateSeries(res *memorySeries, scope *memorySeries,
 		model.MetricNameLabel, name,
 		model.JobLabel, res.metadata[model.JobLabel],
 		model.InstanceLabel, res.metadata[model.InstanceLabel],
-		scopeNameLabel, scope.metadata[scopeNameLabel],
-		scopeVersionLabel, scope.metadata[scopeVersionLabel],
 	)
 
 	lb := labels.NewBuilder(seriesBaseLabels)
 	for _, extraLabel := range extraLabels {
 		lb.Set(extraLabel.Name, extraLabel.Value)
+	}
+
+	if conv.getOpts().IncludeScopeLabels {
+		lb.Set(scopeNameLabel, scope.metadata[scopeNameLabel])
+		lb.Set(scopeVersionLabel, scope.metadata[scopeVersionLabel])
 	}
 
 	// There is no need to sort the attributes here.

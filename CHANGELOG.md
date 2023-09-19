@@ -70,10 +70,8 @@ Main (unreleased)
 
 - Add `openstack` config converter to convert OpenStack yaml config (static mode) to river config (flow mode). (@wildum)
 
-- Updated `otelcol.exporter.prometheus` `otel_scope_info` metric labels from
-  `name` to `otel_scope_name` and `version` to `otel_version_name`. Include
-  `otel_scope_name` and `otel_scope_version` in all metrics for
-  `otelcol.exporter.prometheus` regardless of the `include_scope_info` argument.
+- Include `otel_scope_name` and `otel_scope_version` in all metrics for `otelcol.exporter.prometheus`
+  by default using a new argument `include_scope_labels`. (@erikbaranowski)
 
 ### Other changes
 
@@ -94,6 +92,10 @@ Main (unreleased)
 - Fixed a bug where `otelcol` components with a retry mechanism would not wait after the first retry. (@rfratto)
 
 - Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
+
+- Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
+  metric to match the OTLP Instrumentation Scope spec. `name` is now `otel_scope_name`
+  and `version` is now `otel_version_name`. (@erikbaranowski)
 
 v0.36.1 (2023-09-06)
 --------------------
