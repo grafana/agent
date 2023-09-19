@@ -13,8 +13,6 @@ import (
 	"github.com/grafana/river"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
-
-	"github.com/grafana/loki/pkg/util/flagext"
 )
 
 const (
@@ -28,9 +26,9 @@ type DockerConfig struct{}
 // CRIConfig is an empty struct that is used to enable a pre-defined pipeline
 // for decoding entries that are using the CRI logging format.
 type CRIConfig struct {
-	MaxPartialLines            int              `river:"max_partial_lines,attr,optional"`
-	MaxPartialLineSize         flagext.ByteSize `river:"max_partial_line_size,attr,optional"`
-	MaxPartialLineSizeTruncate bool             `river:"max_partial_line_size_truncate,attr,optional"`
+	MaxPartialLines            int    `river:"max_partial_lines,attr,optional"`
+	MaxPartialLineSize         uint64 `river:"max_partial_line_size,attr,optional"`
+	MaxPartialLineSizeTruncate bool   `river:"max_partial_line_size_truncate,attr,optional"`
 }
 
 var (
@@ -163,8 +161,8 @@ func (c *cri) Run(entry chan Entry) chan Entry {
 }
 
 func (c *cri) ensureTruncateIfRequired(e *Entry) {
-	if c.cfg.MaxPartialLineSizeTruncate && len(e.Line) > c.cfg.MaxPartialLineSize.Val() {
-		e.Line = e.Line[:c.cfg.MaxPartialLineSize.Val()]
+	if c.cfg.MaxPartialLineSizeTruncate && len(e.Line) > int(c.cfg.MaxPartialLineSize) {
+		e.Line = e.Line[:c.cfg.MaxPartialLineSize]
 	}
 }
 

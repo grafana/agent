@@ -13,8 +13,8 @@ loki.process "example" {
 	stage.docker { }
 
 	stage.cri {
-		max_partial_lines = 223
-		max_partial_line_size = 26214
+		max_partial_lines              = 223
+		max_partial_line_size          = 26214
 		max_partial_line_size_truncate = true
 	}
 

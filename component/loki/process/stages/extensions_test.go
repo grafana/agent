@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/loki/pkg/util/flagext"
 	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
@@ -105,7 +104,7 @@ func TestCRI_tags(t *testing.T) {
 		lines                      []string
 		expected                   []string
 		maxPartialLines            int
-		maxPartialLineSize         flagext.ByteSize
+		maxPartialLineSize         uint64
 		maxPartialLineSizeTruncate bool
 		entries                    []testEntry
 		err                        error
