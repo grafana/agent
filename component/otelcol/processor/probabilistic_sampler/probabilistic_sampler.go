@@ -5,6 +5,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -13,9 +14,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.processor.probabilistic_sampler",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:          "otelcol.processor.probabilistic_sampler",
+		Args:          Arguments{},
+		Exports:       otelcol.ConsumerExports{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := probabilisticsamplerprocessor.NewFactory()
