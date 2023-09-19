@@ -1,7 +1,7 @@
 package file
 
-// This code is copied from Promtail. tailer implements the reader interface by
-// using the github.com/grafana/tail package to tail files.
+// This code is copied from loki/promtail@a8d5815510bd959a6dd8c176a5d9fd9bbfc8f8b5.
+// tailer implements the reader interface by using the github.com/grafana/tail package to tail files.
 
 import (
 	"fmt"
@@ -119,6 +119,8 @@ func (t *tailer) updatePosition() {
 	defer func() {
 		positionWait.Stop()
 		level.Info(t.logger).Log("msg", "position timer: exited", "path", t.path)
+		// NOTE: metrics must be cleaned up after the position timer exits, as MarkPositionAndSize() updates metrics.
+		t.cleanupMetrics()
 		close(t.posdone)
 	}()
 
@@ -154,10 +156,11 @@ func (t *tailer) readLines() {
 	// This function runs in a goroutine, if it exits this tailer will never do any more tailing.
 	// Clean everything up.
 	defer func() {
-		t.cleanupMetrics()
 		t.running.Store(false)
 		level.Info(t.logger).Log("msg", "tail routine: exited", "path", t.path)
 		close(t.done)
+		// Shut down the position marker thread
+		close(t.posquit)
 	}()
 	entries := t.handler.Chan()
 	for {
@@ -211,12 +214,14 @@ func (t *tailer) MarkPositionAndSize() error {
 		}
 		return err
 	}
-	t.metrics.totalBytes.WithLabelValues(t.path).Set(float64(size))
 
 	pos, err := t.tail.Tell()
 	if err != nil {
 		return err
 	}
+
+	// Update metrics and positions file all together to avoid race conditions when `t.tail` is stopped.
+	t.metrics.totalBytes.WithLabelValues(t.path).Set(float64(size))
 	t.metrics.readBytes.WithLabelValues(t.path).Set(float64(pos))
 	t.positions.Put(t.path, t.labels, pos)
 
@@ -227,10 +232,6 @@ func (t *tailer) Stop() {
 	// stop can be called by two separate threads in filetarget, to avoid a panic closing channels more than once
 	// we wrap the stop in a sync.Once.
 	t.stopOnce.Do(func() {
-		// Shut down the position marker thread
-		close(t.posquit)
-		<-t.posdone
-
 		// Save the current position before shutting down tailer
 		err := t.MarkPositionAndSize()
 		if err != nil {
@@ -244,6 +245,8 @@ func (t *tailer) Stop() {
 		}
 		// Wait for readLines() to consume all the remaining messages and exit when the channel is closed
 		<-t.done
+		// Wait for the position marker thread to exit
+		<-t.posdone
 		level.Info(t.logger).Log("msg", "stopped tailing file", "path", t.path)
 		t.handler.Stop()
 	})

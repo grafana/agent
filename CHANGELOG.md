@@ -15,6 +15,8 @@ Main (unreleased)
 - Set `retry_on_http_429` to `true` by default in the `queue_config` block in static mode's `remote_write`. (@wildum)
 - Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`. (@vlad-diachenko)
 
+- Static mode Windows Certificate Filter no longer restricted to TLS 1.2 and specific cipher suites. (@mattdurham)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -70,6 +72,8 @@ Main (unreleased)
 
 - Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
 
+- Add support for `windows_certificate_filter` under http tls config block. (@mattdurham)
+  
 - Add `openstack` config converter to convert OpenStack yaml config (static mode) to river config (flow mode). (@wildum)
 
 
@@ -94,6 +98,8 @@ Main (unreleased)
 - Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
 
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
+
+- Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
 
 v0.36.1 (2023-09-06)
 --------------------
