@@ -48,9 +48,8 @@ OpenTelemetry instrumentation scopes are converted into `otel_scope_info`
 metrics. Set the `include_scope_info` and `include_target_info` arguments to
 `false`, respectively, to disable the custom metrics.
 
-When `include_scope_info` is `true`, the instrumentation scope name and version
-are added as `otel_scope_name` and `otel_scope_version` labels to every
-converted metric sample.
+The instrumentation scope name and version are added as `otel_scope_name` and
+`otel_scope_version` labels to every converted metric sample.
 
 When `include_target_info` is true, OpenTelemetry Collector resources are converted into `target_info` metrics.
 

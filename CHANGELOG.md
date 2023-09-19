@@ -70,6 +70,10 @@ Main (unreleased)
 
 - Add `openstack` config converter to convert OpenStack yaml config (static mode) to river config (flow mode). (@wildum)
 
+- Updated `otelcol.exporter.prometheus` `otel_scope_info` metric labels from
+  `name` to `otel_scope_name` and `version` to `otel_version_name. Include
+  `otel_scope_name` and `otel_scope_version` in all metrics for
+  `otelcol.exporter.prometheus` regardless of the `include_scope_info` argument.
 
 ### Other changes
 
