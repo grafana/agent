@@ -13,7 +13,11 @@ Main (unreleased)
 ### Breaking changes
 
 - Set `retry_on_http_429` to `true` by default in the `queue_config` block in static mode's `remote_write`. (@wildum)
+
 - Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`. (@vlad-diachenko)
+
+- Include `otel_scope_name` and `otel_scope_version` in all metrics for `otelcol.exporter.prometheus`
+  by default using a new argument `include_scope_labels`. (@erikbaranowski)
 
 ### Features
 
@@ -69,9 +73,6 @@ Main (unreleased)
 - Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
 
 - Add `openstack` config converter to convert OpenStack yaml config (static mode) to river config (flow mode). (@wildum)
-
-- Include `otel_scope_name` and `otel_scope_version` in all metrics for `otelcol.exporter.prometheus`
-  by default using a new argument `include_scope_labels`. (@erikbaranowski)
 
 ### Other changes
 
