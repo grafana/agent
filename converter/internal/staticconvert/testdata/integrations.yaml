@@ -37,15 +37,36 @@ integrations:
         - type: AWS/EC2
           regions:
             - us-east-2
+          nil_to_zero: true
           metrics:
             - name: CPUUtilization
               period: 5m
               statistics:
                 - Average
+              nil_to_zero: false
             - name: NetworkPacketsIn
               period: 5m
               statistics:
                 - Average
+    static:
+      - name: single_ec2_instance
+        regions:
+          - us-east-2
+        namespace: AWS/EC2
+        dimensions:
+          - name: InstanceId
+            value: i-0e43cee369aa44b52
+        nil_to_zero: true
+        metrics:
+          - name: CPUUtilization
+            period: 5m
+            statistics:
+              - Average
+            nil_to_zero: false
+          - name: NetworkPacketsIn
+            period: 5m
+            statistics:
+              - Average
   consul_exporter:
     enabled: true
   dnsmasq_exporter:
