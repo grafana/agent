@@ -55,6 +55,8 @@ Main (unreleased)
 
 - Flow: In `prometheus.exporter.blackbox`, allow setting labels for individual targets. (@spartan0x117)
 
+- Add optional `nil_to_zero` config flag for `YACE` which can be set in the `static`, `discovery`, or `metric` config blocks. (@berler)
+
 ### Enhancements
 
 - Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
@@ -94,6 +96,8 @@ Main (unreleased)
 - Fixed a bug where `otelcol` components with a retry mechanism would not wait after the first retry. (@rfratto)
 
 - Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
+
+- Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
 
 v0.36.1 (2023-09-06)
 --------------------
