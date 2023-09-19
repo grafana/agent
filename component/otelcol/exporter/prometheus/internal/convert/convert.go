@@ -243,8 +243,8 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 		model.MetricNameLabel, "otel_scope_info",
 		model.JobLabel, res.metadata[model.JobLabel],
 		model.InstanceLabel, res.metadata[model.InstanceLabel],
-		"name", scope.Name(),
-		"version", scope.Version(),
+		scopeNameLabel, scope.Name(),
+		scopeVersionLabel, scope.Version(),
 	)
 
 	lb := labels.NewBuilder(scopeInfoLabels)
@@ -344,16 +344,13 @@ func (conv *Converter) getOrCreateSeries(res *memorySeries, scope *memorySeries,
 		model.MetricNameLabel, name,
 		model.JobLabel, res.metadata[model.JobLabel],
 		model.InstanceLabel, res.metadata[model.InstanceLabel],
+		scopeNameLabel, scope.metadata[scopeNameLabel],
+		scopeVersionLabel, scope.metadata[scopeVersionLabel],
 	)
 
 	lb := labels.NewBuilder(seriesBaseLabels)
 	for _, extraLabel := range extraLabels {
 		lb.Set(extraLabel.Name, extraLabel.Value)
-	}
-
-	if conv.getOpts().IncludeScopeInfo {
-		lb.Set("otel_scope_name", scope.metadata[scopeNameLabel])
-		lb.Set("otel_scope_version", scope.metadata[scopeVersionLabel])
 	}
 
 	// There is no need to sort the attributes here.

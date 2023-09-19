@@ -310,7 +310,7 @@ func TestConverter(t *testing.T) {
 			includeScopeInfo: true,
 			expect: `
 				# TYPE otel_scope_info gauge
-				otel_scope_info{name="a-name",version="a-version",something_extra="zzz-extra-value"} 1.0
+				otel_scope_info{otel_scope_name="a-name",otel_scope_version="a-version",something_extra="zzz-extra-value"} 1.0
 				# TYPE test_metric_seconds gauge
 				test_metric_seconds{otel_scope_name="a-name",otel_scope_version="a-version"} 1234.56
 			`,
@@ -320,6 +320,14 @@ func TestConverter(t *testing.T) {
 			input: `{
 				"resource_metrics": [{
 					"scope_metrics": [{
+						"scope": {
+							"name": "a-name",
+							"version": "a-version",
+							"attributes": [{
+								"key": "something.extra",
+								"value": { "stringValue": "zzz-extra-value" }
+							}]
+						},
 						"metrics": [{
 							"name": "test_metric_seconds",
 							"gauge": {
@@ -337,7 +345,7 @@ func TestConverter(t *testing.T) {
 			}`,
 			expect: `
 				# TYPE test_metric_seconds gauge
-				test_metric_seconds{foo="bar"} 1234.56
+				test_metric_seconds{otel_scope_name="a-name",otel_scope_version="a-version",foo="bar"} 1234.56
 			`,
 		},
 		{
