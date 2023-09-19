@@ -109,11 +109,14 @@ the CRI logging format.
 
 The following arguments are supported:
 
-| Name                             | Type       | Description                                                                                    | Default        | Required |
-| -------------------------------- | ---------- | ---------------------------------------------------------------------------------------------- | -------------- | -------- |
-| `max_partial_lines`              | `number`   | Max buffer size to hold partial lines.                                                         | `100`          | no       |
-| `max_partial_line_size`          | `number`   | Max line size to hold a single partial line, if `max_partial_line_size_truncate` is `true`.    | `0`            | no       |
-| `max_partial_line_size_truncate` | `bool`     | Allows to pretruncate partial lines before storing in partial buffer.                          | `false`        | no       |
+| Name                             | Type       | Description                                                          | Default        | Required |
+| -------------------------------- | ---------- | -------------------------------------------------------------------- | -------------- | -------- |
+| `max_partial_lines`              | `number`   | Maximum number of partial lines to hold in memory.                   | `100`          | no       |
+| `max_partial_line_size`          | `number`   | Maximum number of characters which a partial line can have.          | `0`            | no       |
+| `max_partial_line_size_truncate` | `bool`     | Truncate partial lines that are longer than `max_partial_line_size`. | `false`        | no       |
+
+`max_partial_line_size` is only taken into account if 
+`max_partial_line_size_truncate` is set to `true`.
 
 ```river
 stage.cri {}
@@ -375,7 +378,7 @@ The following arguments are supported:
 | Name                  | Type     | Description                                                                      | Default | Required |
 | --------------------- | -------- | -------------------------------------------------------------------------------- | ------- | -------- |
 | `rate`                | `number` | The maximum rate of lines per second that the stage forwards.                    |         | yes      |
-| `burst`               | `number` | The cap in the quantity of burst lines that the stage forwards.                  |         | yes      |
+| `burst`               | `number` | The maximum number of burst lines that the stage forwards.                       |         | yes      |
 | `by_label_name`       | `string` | The label to use when rate-limiting on a label name.                             | `""`    | no       |
 | `drop`                | `bool`   | Whether to discard or backpressure lines that exceed the rate limit.             | `false` | no       |
 | `max_distinct_labels` | `number` | The number of unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no       |
