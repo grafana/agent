@@ -33,10 +33,12 @@ type Arguments struct {
 }
 
 type Exports struct {
-	Self internal.Globals `river:"self,attr"`
+	Self *internal.Globals `river:"self,attr"`
 }
 
-type Component struct{}
+type Component struct {
+	Self *internal.Globals
+}
 
 func (c *Component) Run(ctx context.Context) error {
 	return nil
@@ -47,7 +49,15 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 func New(o component.Options, args Arguments) (*Component, error) {
-	c := &Component{}
+	return &Component{}, nil
+}
 
-	return c, nil
+func (args *Arguments) toInternalGlobals() internal.Globals {
+	return internal.Globals{
+		AgentIdentifier: args.agentIdentifier,
+		Metrics:         args.metrics,
+		Logs:            args.logs,
+		Tracing:         args.tracing,
+		SubsystemOpts:   args.subsystemOpts.toInternal(),
+	}
 }

@@ -6,11 +6,15 @@ import (
 )
 
 type subsystemOptions struct {
-	metrics metricsSubsystemOptions `river:"metrics,block,optional`
+	metrics metricsSubsystemOptions `river:"metrics,block,optional"`
 
 	configs internal.Configs `river:""`
 }
 
 type metricsSubsystemOptions struct {
 	autoscrape autoscrape.Global `river:"autoscrape,attr,optional"`
+}
+
+func (args *subsystemOptions) toInternal() internal.SubsystemOptions {
+	return internal.SubsystemOptions{}
 }

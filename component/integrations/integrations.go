@@ -27,7 +27,10 @@ type Arguments struct {
 
 type Exports struct{}
 
-type Component struct{}
+type Component struct {
+	// SubSystem instance
+	subsystem *internal.Subsystem
+}
 
 func (c *Component) Run(ctx context.Context) error {
 	return nil
@@ -38,22 +41,13 @@ func (c *Component) Update(args component.Arguments) error {
 }
 
 func New(o component.Options, args Arguments) (*Component, error) {
-	c := &Component{}
 
-	var integrations []internal.Integration
-
-	for _, config := range args.Integrations {
-		i, err := config.NewIntegration(o.Logger, args.Globals)
-		if err != nil {
-			return nil, err
-		}
-		integrations = append(integrations, i)
-	}
-
-	_, err := internal.NewSubsystem(o.Logger, args.Globals)
+	subsystem, err := internal.NewSubsystem(o.Logger, args.Globals)
 	if err != nil {
 		return nil, err
 	}
 
-	return c, nil
+	return &Component{
+		subsystem: subsystem,
+	}, nil
 }

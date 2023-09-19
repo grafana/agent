@@ -2,6 +2,7 @@
 package all
 
 import (
+	_ "github.com/grafana/agent/app_agent_receiver"                                 // Import integrations.v2.app_agent_receiver
 	_ "github.com/grafana/agent/component/discovery/aws"                            // Import discovery.aws.ec2 and discovery.aws.lightsail
 	_ "github.com/grafana/agent/component/discovery/azure"                          // Import discovery.azure
 	_ "github.com/grafana/agent/component/discovery/consul"                         // Import discovery.consul
@@ -30,6 +31,8 @@ import (
 	_ "github.com/grafana/agent/component/discovery/serverset"                      // Import discovery.serverset
 	_ "github.com/grafana/agent/component/discovery/triton"                         // Import discovery.triton
 	_ "github.com/grafana/agent/component/discovery/uyuni"                          // Import discovery.uyuni
+	_ "github.com/grafana/agent/component/integrations"                             // Import integrations.v2
+	_ "github.com/grafana/agent/component/integrations/globals"                     // Import integrations.globals
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
 	_ "github.com/grafana/agent/component/local/file_match"                         // Import local.file_match
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo

@@ -5,11 +5,9 @@ import (
 
 	common "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/config/sigv4config"
-	"github.com/grafana/agent/component/common/prometheus/config"
 	"github.com/grafana/agent/component/common/prometheus/storage/remote/azuread"
 	"github.com/grafana/agent/component/common/relabel"
 	"github.com/prometheus/common/model"
-	"github.com/prometheus/common/sigv4"
 	internal "github.com/prometheus/prometheus/config"
 )
 

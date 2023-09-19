@@ -177,6 +177,26 @@ func (u URL) Convert() config.URL {
 	return config.URL{URL: u.URL}
 }
 
+type URLValues url.Values
+
+// MarshalText implements encoding.TextMarshaler
+func (u URLValues) MarshalText() (text []byte, err error) {
+	u2 := url.Values(u)
+	return []byte(u2.Encode()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler
+func (u *URLValues) UnmarshalText(text []byte) error {
+	s := string(text)
+
+	urlp, err := url.ParseQuery(s)
+	if err != nil {
+		return err
+	}
+	*u = URLValues(urlp)
+	return nil
+}
+
 // Authorization sets up HTTP authorization credentials.
 type Authorization struct {
 	Type            string            `river:"type,attr,optional"`
