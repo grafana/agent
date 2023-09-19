@@ -26,6 +26,7 @@ import (
 	"github.com/grafana/agent/service"
 	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
+	otel_service "github.com/grafana/agent/service/otel"
 	uiservice "github.com/grafana/agent/service/ui"
 	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
@@ -233,6 +234,8 @@ func (fr *flowRun) Run(configFile string) error {
 		Cluster:  clusterService.Data().(cluster.Cluster),
 	})
 
+	otelService := otel_service.New()
+
 	f := flow.New(flow.Options{
 		Logger:   l,
 		Tracer:   t,
@@ -242,6 +245,7 @@ func (fr *flowRun) Run(configFile string) error {
 			httpService,
 			uiService,
 			clusterService,
+			otelService,
 		},
 	})
 
