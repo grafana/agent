@@ -82,6 +82,8 @@ Main (unreleased)
   `otelcol.exporter.otlp` and `otelcol.processor.batch`. There may also be metrics 
   from other components which are not documented yet. (@ptodev)
 
+- Agent Management: Honor 503 ServiceUnavailable `Retry-After` header. (@jcreixell)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
