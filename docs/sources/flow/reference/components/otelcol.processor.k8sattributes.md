@@ -72,7 +72,7 @@ extract > annotation | [extract_annotation][] | Creating resource attributes fro
 extract > label | [extract_label][] | Creating resource attributes from Kubernetes labels. | no
 filter | [filter][] | Filters the data loaded from Kubernetes. | no
 filter > field | [filter_field][] | Filter pods by generic Kubernetes fields. | no
-filter > label | [filter_label][] | Filter pods by generic Kubernetes labels. | no
+filter > label | [filter_label][] | Filter pods by Kubernetes labels. | no
 pod_association | [pod_association][] | Rules to associate pod metadata with telemetry signals. | no
 pod_association > source | [pod_association_source][] | Source information to identify a pod. | no
 exclude | [exclude][] | Exclude pods from being processed. | no
@@ -182,9 +182,35 @@ The `pod_association` block configures rules on how to associate logs/traces/met
 The `pod_association` block does not support any arguments and is configured
 fully through child blocks.
 
+The `pod_association` block can be repeated multiple times, to configure additional rules.
+
+Example:
+```river
+pod_association {
+    source {
+        from = "resource_attribute"
+        name = "k8s.pod.ip"
+    }
+}
+
+pod_association {
+    source {
+        from = "resource_attribute"
+        name = "k8s.pod.uid"
+    }
+    source {
+        from = "connection"
+    }
+}
+```
+
 ### pod association source block
 
-The `source` block configures 
+The `source` block configures a pod association rule. This is used by the `k8sattributes` processor to determine the
+pod associated with a telemetry signal.
+
+When multiple `source` blocks are specified inside a `pod_association` block, both `source` blocks has to match for the
+pod to be associated with the telemetry signal.
 
 The following attributes are supported:
 
