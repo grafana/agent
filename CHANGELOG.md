@@ -99,6 +99,8 @@ Main (unreleased)
 
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
 
+- Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
+
 v0.36.1 (2023-09-06)
 --------------------
 
