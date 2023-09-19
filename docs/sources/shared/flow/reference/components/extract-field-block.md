@@ -12,13 +12,13 @@ The following attributes are supported:
 
 Name | Type           | Description                                                                                              | Default | Required
 ---- |----------------|----------------------------------------------------------------------------------------------------------|---------| --------
-`tag_name` | `list(string)` | TagName represents the name of the resource attribute that will be added to logs, metrics or spans.      |         | no
-`key` | `list(string)` | Key represents the annotation (or label) name. This must exactly match an annotation (or label) name.    |         | no
-`key_regex` | `list(string)` | KeyRegex is a regular expression used to extract a Key that matches the regex.                           |         | no
-`regex` | `list(string)` | Regex is an optional field used to extract a sub-string from a complex field value.                      |         | no
-`from` | `list(string)` | From represents the source of the labels/annotations. Allowed values are "pod" and "namespace".          | `pod`    | no
+`tag_name` | `list(string)` | The name of the resource attribute that will be added to logs, metrics, or spans.      |         | no
+`key` | `list(string)` | The annotation (or label) name. This must exactly match an annotation (or label) name.    |         | no
+`key_regex` | `list(string)` | A regular expression used to extract a key that matches the regex.                           |         | no
+`regex` | `list(string)` | An optional field used to extract a sub-string from a complex field value.                      |         | no
+`from` | `list(string)` | The source of the labels or annotations. Allowed values are `pod` and `namespace`.          | `pod`    | no
 
-When `tag_name` is not specified, a default tag name will be used of the format:
+When `tag_name` is not specified, a default tag name will be used with the format:
 * `k8s.pod.annotations.<annotation key>`
 * `k8s.pod.labels.<label key>`
 
@@ -29,11 +29,11 @@ Either the `key` attribute or the `key_regex` attribute should be set, not both.
 When `key_regex` is present, `tag_name` supports back reference to both
 named capturing and positioned capturing.
 
-For example, if your pod spec contains the following labels:
+For example, assume your pod spec contains the following labels:
 * `app.kubernetes.io/component: mysql`
 * `app.kubernetes.io/version: 5.7.21`
 
-...and you'd like to add tags for all labels with prefix `app.kubernetes.io/` and also trim the prefix, 
+If you'd like to add tags for all labels with prefix `app.kubernetes.io/` and trim the prefix, 
 then you can specify the following extraction rules:
 
 ```river
@@ -46,6 +46,6 @@ extract {
 }
 ```
 
-this will add the `component` and `version` tags to the spans or metrics.
+These rules will add the `component` and `version` tags to the spans or metrics.
 
 The `from` attribute can be set to either `"pod"` or `"namespace"`.

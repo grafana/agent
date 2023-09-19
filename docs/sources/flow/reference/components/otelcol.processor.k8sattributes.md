@@ -12,9 +12,11 @@ title: otelcol.processor.k8sattributes
 `otelcol.processor.k8sattributes` accepts telemetry data from other `otelcol`
 components and adds Kubernetes metadata to the resource attributes of spans, logs, or metrics.
 
-> **NOTE**: `otelcol.processor.k8sattributes` is a wrapper over the upstream
-> OpenTelemetry Collector `k8sattributes` processor. Bug reports or feature requests
-> will be redirected to the upstream repository, if necessary.
+{{% admonition type="note" %}}
+`otelcol.processor.k8sattributes` is a wrapper over the upstream OpenTelemetry
+Collector `k8sattributes` processor.  If necessary, bug reports or feature requests
+will be redirected to the upstream repository.
+{{% /admonition %}}
 
 You can specify multiple `otelcol.processor.k8sattributes` components by giving them
 different labels.
@@ -42,7 +44,7 @@ Name | Type | Description                                | Default         | Req
 
 The supported values for `auth_type` are:
 * `none`: No authentication is required.
-* `serviceAccount`: Use the built-in service account which Kubernetes automatically provisions for each pod.
+* `serviceAccount`: Use the built-in service account that Kubernetes automatically provisions for each pod.
 * `kubeConfig`: Use local credentials like those used by kubectl.
 * `tls`: Use client TLS authentication.
 
@@ -50,13 +52,13 @@ Setting `passthrough` to `true` enables the "passthrough mode" of `otelcol.proce
 * Only a `k8s.pod.ip` resource attribute will be added.
 * No other metadata will be added.
 * The Kubernetes API will not be accessed.
-* The Agent must receive spans directly from services to be able to correctly detect the pod IPs.
+* The Agent must receive spans directly from services to correctly detect the pod IPs.
 
 * The `passthrough` setting is useful when configuring the Agent as a Kubernetes Deployment.
 An Agent running as a Deployment cannot detect the IP addresses of pods generating telemetry 
 data without any of the well-known IP attributes. If the Deployment Agent receives telemetry from 
-Agents deployed as DaemonSet, then some of those attributes might be missing. As a workaround 
-to this issue, the DaemonSet Agents can be configured with `passthrough` set to `true`.
+Agents deployed as DaemonSet, then some of those attributes might be missing. As a workaround, 
+you can configure the DaemonSet Agents with `passthrough` set to `true`.
 
 ## Blocks
 
@@ -94,7 +96,7 @@ refers to an `annotation` block defined inside an `extract` block.
 
 ### Extract block
 
-The `extract` block configures which metadata, annotations and labels to extract from the pod, and to add to the spans.
+The `extract` block configures which metadata, annotations, and labels to extract from the pod and to add to the spans.
 
 The following attributes are supported:
 
@@ -102,7 +104,8 @@ Name | Type           | Description                          | Default     | Req
 ---- |----------------|--------------------------------------|-------------| --------
 `metadata` | `list(string)` | Pre-configured metadata keys to add. | _See below_ | no
 
-The current supported `metadata` keys are:
+The currently supported `metadata` keys are:
+
 * `k8s.pod.name`
 * `k8s.pod.uid`
 * `k8s.deployment.name`
@@ -123,7 +126,8 @@ The current supported `metadata` keys are:
 * `container.image.tag`
 * `container.id`
 
-By default if `metadata` is not specified, the following fields are extracted and added to spans, metrics and logs as attributes:
+By default, if `metadata` is not specified, the following fields are extracted and added to spans, metrics, and logs as attributes:
+
 * `k8s.pod.name`
 * `k8s.pod.uid`
 * `k8s.pod.start_time`
@@ -148,7 +152,7 @@ The `label` block configures which metadata or labels to extract from the pod an
 
 ### filter block
 
-The `filter` block configures which nodes to get data from, and which fields and labels to fetch.
+The `filter` block configures which nodes to get data from and which fields and labels to fetch.
 
 The following attributes are supported:
 
@@ -161,13 +165,13 @@ If `node` is specified, then any pods not running on the specified node will be 
 
 ### filter field block
 
-The `field` block allows to filter pods by generic k8s fields.
+The `field` block allows you to filter pods by generic Kubernetes fields.
 
 {{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### filter label block
 
-The `label` block allows to filter pods by generic k8s fields.
+The `label` block allows you to filter pods by generic Kubernetes labels.
 
 {{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT VERSION>" >}}
 
@@ -175,7 +179,7 @@ The `label` block allows to filter pods by generic k8s fields.
 
 The `pod_association` block configures rules on how to associate logs/traces/metrics to pods.
 
-The `pod_association` block does not support any arguments, and is configured
+The `pod_association` block does not support any arguments and is configured
 fully through child blocks.
 
 ### pod association source block
@@ -187,7 +191,7 @@ The following attributes are supported:
 Name | Type     | Description                                                                      | Default | Required
 ---- |----------|----------------------------------------------------------------------------------| ------- | --------
 `from` | `string` | The association method. Currently supports `resource_attribute` and `connection` |  | yes
-`name` | `string` | Name represents extracted key name. e.g. `ip`, `pod_uid`, `k8s.pod.ip`           |  | no
+`name` | `string` | Name represents extracted key name. For example, `ip`, `pod_uid`, `k8s.pod.ip`           |  | no
 
 
 ### exclude block
@@ -231,7 +235,8 @@ information.
 ## Examples
 
 ### Basic usage
-In most cases this is enough to get started. It'll add these attributes to all telemetry data:
+In most cases, this is enough to get started. It'll add these attributes to all telemetry data:
+
 * `k8s.namespace.name`
 * `k8s.pod.name`
 * `k8s.pod.uid`
@@ -240,6 +245,7 @@ In most cases this is enough to get started. It'll add these attributes to all t
 * `k8s.node.name`
 
 Example:
+
 ```river
 otelcol.receiver.otlp "default" {
   http {}

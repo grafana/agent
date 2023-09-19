@@ -12,9 +12,9 @@ The following attributes are supported:
 
 Name | Type     | Description                                                                       | Default | Required
 ---- |----------|-----------------------------------------------------------------------------------|---------| --------
-`key` | `string` | Key represents the key or name of the field or labels that a filter can apply on. |         | yes
-`value` | `string` | Value represents the value associated with the key that a filter can apply on.    |         | yes
-`op` | `string` | Op represents the filter operation to apply on the given Key: Value pair.         | `equals` | no
+`key` | `string` | The key or name of the field or labels that a filter can use. |         | yes
+`value` | `string` | The value associated with the key that a filter can use.    |         | yes
+`op` | `string` | The filter operation to apply on the given key: value pair.         | `equals` | no
 
 For `op` the following values are allowed:
 * `equals`: The field value must be equal to the provided value.
