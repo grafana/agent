@@ -140,7 +140,7 @@ Refer to [windows_events](https://grafana.com/docs/loki/latest/clients/promtail/
 ## Next steps
 
 - [Start Grafana Agent][start]
-- [Configure Grafana Agent][[configure]]
+- [Configure Grafana Agent][configure]
 
 {{% docs/reference %}}
 [start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
