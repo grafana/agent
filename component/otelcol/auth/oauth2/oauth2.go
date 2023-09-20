@@ -1,12 +1,14 @@
 package oauth2
 
 import (
+	"fmt"
 	"net/url"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/auth"
+	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configopaque"
@@ -28,13 +30,15 @@ func init() {
 
 // Arguments configures the otelcol.auth.oauth2 component.
 type Arguments struct {
-	ClientID       string                     `river:"client_id,attr"`
-	ClientSecret   string                     `river:"client_secret,attr"`
-	TokenURL       string                     `river:"token_url,attr"`
-	EndpointParams url.Values                 `river:"endpoint_params,attr,optional"`
-	Scopes         []string                   `river:"scopes,attr,optional"`
-	TLSSetting     otelcol.TLSClientArguments `river:"tls,block,optional"`
-	Timeout        time.Duration              `river:"timeout,attr,optional"`
+	ClientID         string                     `river:"client_id,attr,optional"`
+	ClientIDFile     string                     `river:"client_id_file,attr,optional"`
+	ClientSecret     string                     `river:"client_secret,attr,optional"`
+	ClientSecretFile string                     `river:"client_secret_file,attr,optional"`
+	TokenURL         string                     `river:"token_url,attr"`
+	EndpointParams   url.Values                 `river:"endpoint_params,attr,optional"`
+	Scopes           []string                   `river:"scopes,attr,optional"`
+	TLSSetting       otelcol.TLSClientArguments `river:"tls,block,optional"`
+	Timeout          time.Duration              `river:"timeout,attr,optional"`
 }
 
 var _ auth.Arguments = Arguments{}
@@ -42,14 +46,38 @@ var _ auth.Arguments = Arguments{}
 // Convert implements auth.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &oauth2clientauthextension.Config{
-		ClientID:       args.ClientID,
-		ClientSecret:   configopaque.String(args.ClientSecret),
-		TokenURL:       args.TokenURL,
-		EndpointParams: args.EndpointParams,
-		Scopes:         args.Scopes,
-		TLSSetting:     *args.TLSSetting.Convert(),
-		Timeout:        args.Timeout,
+		ClientID:         args.ClientID,
+		ClientIDFile:     args.ClientIDFile,
+		ClientSecret:     configopaque.String(args.ClientSecret),
+		ClientSecretFile: args.ClientSecretFile,
+		TokenURL:         args.TokenURL,
+		EndpointParams:   args.EndpointParams,
+		Scopes:           args.Scopes,
+		TLSSetting:       *args.TLSSetting.Convert(),
+		Timeout:          args.Timeout,
 	}, nil
+}
+
+var (
+	_ river.Validator = (*Arguments)(nil)
+)
+
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
+	if a.ClientID == "" && a.ClientIDFile == "" {
+		return fmt.Errorf("client_id or client_id_file should be set")
+	}
+	if a.ClientSecret == "" && a.ClientSecretFile == "" {
+		return fmt.Errorf("client_secret or client_secret_file should be set")
+	}
+	// TODO: these two validation steps are not in OTEL but I think that it makes sense
+	if a.ClientID != "" && a.ClientIDFile != "" {
+		return fmt.Errorf("either client_id or client_id_file should be set")
+	}
+	if a.ClientSecret != "" && a.ClientSecretFile != "" {
+		return fmt.Errorf("either client_secret or client_secret_file should be set")
+	}
+	return nil
 }
 
 // Extensions implements auth.Arguments.

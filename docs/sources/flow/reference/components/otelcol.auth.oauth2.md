@@ -37,8 +37,10 @@ otelcol.auth.oauth2 "LABEL" {
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`client_id` | `string` | The client identifier issued to the client. | | yes
-`client_secret` | `string` | The secret string associated with the client identifier. | | yes
+`client_id` | `string` | The client identifier issued to the client. | | no
+`client_id_file` | `string` | The file path to retrieve the client ID. | | no
+`client_secret` | `string` | The secret string associated with the client identifier. | | no
+`client_secret_file` | `string` | The file path to retrieve the client secret. | | no
 `token_url` | `string` | The server endpoint URL from which to get tokens. | | yes
 `endpoint_params` | `map(list(string))` | Additional parameters that are sent to the token endpoint. | `{}` | no
 `scopes` | `list(string)` | Requested permissions associated for the client. | `[]` | no

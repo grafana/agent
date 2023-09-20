@@ -29,7 +29,7 @@ func Test(t *testing.T) {
 		configBuilder func(string) string
 	}{
 		{
-			"runWithRequiredParams",
+			"runWithClientIdAndClientSecret",
 			"TestAccessToken",
 			"TestTokenType",
 			"TestRefreshToken",
@@ -37,6 +37,19 @@ func Test(t *testing.T) {
 				return fmt.Sprintf(`
 					client_id     = "someclientid"
 					client_secret = "someclientsecret"
+					token_url     = "%s/oauth2/default/v1/token"
+				`, srvProvidingTokensURL)
+			},
+		},
+		{
+			"runWithClientIdAndClientSecretInFiles",
+			"TestAccessToken",
+			"TestTokenType",
+			"TestRefreshToken",
+			func(srvProvidingTokensURL string) string {
+				return fmt.Sprintf(`
+					client_id_file     = "/path/to/client_id_file"
+					client_secret_file = "/path/to/client_secret_file"
 					token_url     = "%s/oauth2/default/v1/token"
 				`, srvProvidingTokensURL)
 			},
@@ -129,6 +142,58 @@ func Test(t *testing.T) {
 			resp, err := cli.Do(req)
 			require.NoError(t, err, "HTTP request failed")
 			require.Equal(t, http.StatusOK, resp.StatusCode)
+		})
+	}
+}
+
+func TestBadRiverConfig(t *testing.T) {
+	tests := []struct {
+		name           string
+		riverConfig    string
+		expectedErrMsg string
+	}{
+		{
+			name: "NoClientId",
+			riverConfig: `
+token_url = "token"
+`,
+			expectedErrMsg: "client_id or client_id_file should be set",
+		},
+		{
+			name: "NoSecret",
+			riverConfig: `
+token_url = "token"
+client_id = "clientId"
+`,
+			expectedErrMsg: "client_secret or client_id_secret should be set",
+		},
+		{
+			name: "TwoClientIdConfigs",
+			riverConfig: `
+token_url = "token"
+client_id = "clientId"
+client_id_file = "/path/to/client_id_file"
+client_secret_file = "/path/to/client_secret_file"
+`,
+			expectedErrMsg: "either client_secret or client_id_secret should be set",
+		},
+		{
+			name: "TwoClientSecretConfigs",
+			riverConfig: `
+token_url = "token"
+client_id_file = "/path/to/client_id_file"
+client_secret = "clientSecret"
+client_secret_file = "/path/to/client_secret_file"
+`,
+			expectedErrMsg: "either client_secret or client_id_secret should be set",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var args oauth2.Arguments
+			err := river.Unmarshal([]byte(tt.riverConfig), &args)
+			require.ErrorContains(t, err, tt.expectedErrMsg)
 		})
 	}
 }
