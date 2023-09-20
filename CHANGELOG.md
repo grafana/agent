@@ -13,7 +13,11 @@ Main (unreleased)
 ### Breaking changes
 
 - Set `retry_on_http_429` to `true` by default in the `queue_config` block in static mode's `remote_write`. (@wildum)
+
 - Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`. (@vlad-diachenko)
+
+- Include `otel_scope_name` and `otel_scope_version` in all metrics for `otelcol.exporter.prometheus`
+  by default using a new argument `include_scope_labels`. (@erikbaranowski)
 
 - Static mode Windows Certificate Filter no longer restricted to TLS 1.2 and specific cipher suites. (@mattdurham)
 
@@ -76,6 +80,10 @@ Main (unreleased)
   
 - Add `openstack` config converter to convert OpenStack yaml config (static mode) to river config (flow mode). (@wildum)
 
+- Some `otelcol` components will now display their debug metrics via the 
+  Agent's `/metrics` endpoint. Those components include `otelcol.receiver.otlp`, 
+  `otelcol.exporter.otlp` and `otelcol.processor.batch`. There may also be metrics 
+  from other components which are not documented yet. (@ptodev)
 
 ### Other changes
 
@@ -96,6 +104,10 @@ Main (unreleased)
 - Fixed a bug where `otelcol` components with a retry mechanism would not wait after the first retry. (@rfratto)
 
 - Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
+
+- Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
+  metric to match the OTLP Instrumentation Scope spec. `name` is now `otel_scope_name`
+  and `version` is now `otel_version_name`. (@erikbaranowski)
 
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
 

@@ -18,9 +18,10 @@ func TestConverter(t *testing.T) {
 		input  string
 		expect string
 
-		showTimestamps    bool
-		includeTargetInfo bool
-		includeScopeInfo  bool
+		showTimestamps     bool
+		includeTargetInfo  bool
+		includeScopeInfo   bool
+		includeScopeLabels bool
 	}{
 		{
 			name: "Gauge",
@@ -310,9 +311,9 @@ func TestConverter(t *testing.T) {
 			includeScopeInfo: true,
 			expect: `
 				# TYPE otel_scope_info gauge
-				otel_scope_info{name="a-name",version="a-version",something_extra="zzz-extra-value"} 1.0
+				otel_scope_info{otel_scope_name="a-name",otel_scope_version="a-version",something_extra="zzz-extra-value"} 1.0
 				# TYPE test_metric_seconds gauge
-				test_metric_seconds{otel_scope_name="a-name",otel_scope_version="a-version"} 1234.56
+				test_metric_seconds 1234.56
 			`,
 		},
 		{
@@ -320,6 +321,14 @@ func TestConverter(t *testing.T) {
 			input: `{
 				"resource_metrics": [{
 					"scope_metrics": [{
+						"scope": {
+							"name": "a-name",
+							"version": "a-version",
+							"attributes": [{
+								"key": "something.extra",
+								"value": { "stringValue": "zzz-extra-value" }
+							}]
+						},
 						"metrics": [{
 							"name": "test_metric_seconds",
 							"gauge": {
@@ -335,9 +344,10 @@ func TestConverter(t *testing.T) {
 					}]
 				}]
 			}`,
+			includeScopeLabels: true,
 			expect: `
 				# TYPE test_metric_seconds gauge
-				test_metric_seconds{foo="bar"} 1234.56
+				test_metric_seconds{otel_scope_name="a-name",otel_scope_version="a-version",foo="bar"} 1234.56
 			`,
 		},
 		{
@@ -390,8 +400,9 @@ func TestConverter(t *testing.T) {
 
 			l := util.TestLogger(t)
 			conv := convert.New(l, appenderAppendable{Inner: &app}, convert.Options{
-				IncludeTargetInfo: tc.includeTargetInfo,
-				IncludeScopeInfo:  tc.includeScopeInfo,
+				IncludeTargetInfo:  tc.includeTargetInfo,
+				IncludeScopeInfo:   tc.includeScopeInfo,
+				IncludeScopeLabels: tc.includeScopeLabels,
 			})
 			require.NoError(t, conv.ConsumeMetrics(context.Background(), payload))
 
