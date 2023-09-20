@@ -655,12 +655,6 @@ replace (
 	k8s.io/klog/v2 => github.com/simonpasquier/klog-gokit/v3 v3.3.0
 )
 
-// Replace directives from Cortex
-replace (
-	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
-	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.0
-)
-
 // TODO(rfratto): remove replace directive once:
 //
 // * We remove our dependency on Cortex, which forces Prometheus to an older
