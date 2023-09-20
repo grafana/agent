@@ -33,7 +33,7 @@ stage.match {
 
 stage.match {
 		pipeline_name = "app2"
-		selector = "{app=\"poki\"}"
+		selector = "{log_type=\"\", logs_agent_grafana_com_log_format=~\"(?i).*((generic-?)?json).*\"} |~ \"^\\\\s*\\\\{.+\\\\}\\\\s*$\""
 		stage.json {
 				expressions = { "msg" = "msg" }
 		}
@@ -89,7 +89,7 @@ func TestMatchStage(t *testing.T) {
 	e.Extracted = map[string]interface{}{}
 	in <- e
 	e = <-out
-	assert.Equal(t, "app2 log line", e.Line)
+	assert.Equal(t, testMatchLogLineApp2, e.Line)
 	close(in)
 }
 
