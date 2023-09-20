@@ -104,6 +104,7 @@ Main (unreleased)
   `msg`, followed by non-common fields. Previously, the position of `msg` was
   not consistent. (@rfratto)
 - Documentation updated to link discovery.http and prometheus.scrape advanced configs (@proffalken)
+- Bump SNMP exporter version to v0.23 (@marctc)
 
 ### Bugfixes
 
