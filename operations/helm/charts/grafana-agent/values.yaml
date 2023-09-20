@@ -40,7 +40,7 @@ agent:
 
   clustering:
     # -- Deploy agents in a cluster to allow for load distribution. Only
-    # applies when agent.mode=flow and controller.type=statefulset.
+    # applies when agent.mode=flow.
     enabled: false
 
   # -- Path to where Grafana Agent stores data (for example, the Write-Ahead Log).
@@ -99,6 +99,8 @@ image:
   # -- (string) Grafana Agent image tag. When empty, the Chart's appVersion is
   # used.
   tag: null
+  # -- Grafana Agent image's SHA256 digest (either in format "sha256:XYZ" or "XYZ"). When set, will override `image.tag`.
+  digest: null
   # -- Grafana Agent image pull policy.
   pullPolicy: IfNotPresent
   # -- Optional set of image pull secrets.
@@ -128,6 +130,8 @@ configReloader:
     repository: jimmidyson/configmap-reload
     # -- Tag of image to use for config reloading.
     tag: v0.8.0
+    # -- SHA256 digest of image to use for config reloading (either in format "sha256:XYZ" or "XYZ"). When set, will override `configReloader.image.tag`
+    digest: ""
   # -- Override the args passed to the container.
   customArgs: []
   # -- Resource requests and limits to apply to the config reloader container.
@@ -145,6 +149,10 @@ controller:
 
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
   replicas: 1
+
+  # -- Whether to deploy pods in parallel. Only used when controller.type is
+  # 'statefulset'.
+  parallelRollout: true
 
   # -- Configures Pods to use the host network. When set to true, the ports that will be used must be specified.
   hostNetwork: false

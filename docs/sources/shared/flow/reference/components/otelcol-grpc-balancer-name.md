@@ -1,6 +1,9 @@
 ---
 aliases:
 - /docs/agent/shared/flow/reference/components/otelcol-grpc-balancer-name
+- /docs/grafana-cloud/agent/shared/flow/reference/components/otelcol-grpc-balancer-name/
+- /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/otelcol-grpc-balancer-name/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/otelcol-grpc-balancer-name/
 headless: true
 ---
 

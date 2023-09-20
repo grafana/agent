@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.windowsevent/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.windowsevent/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.windowsevent/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.windowsevent/
 title: loki.source.windowsevent
 ---
@@ -37,6 +41,7 @@ Name         | Type                 | Description                               
 `exclude_user_data`    | `bool`               | Exclude user data.                                                             | `false`                      | no
 `use_incoming_timestamp`    | `bool`               | When false, assigns the current timestamp to the log when it was processed. | `false`                      | no
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to.                                      |                            | yes
+`labels`     | `map(string)` | The labels to associate with incoming logs.                                           |                            | no 
 
 
 > **NOTE**: `eventlog_name` is required if `xpath_query` does not specify the event log.

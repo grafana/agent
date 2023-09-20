@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.relabel/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.relabel/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.relabel/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.relabel/
 title: prometheus.relabel
 ---
@@ -63,7 +67,7 @@ rule | [rule][] | Relabeling rules to apply to received metrics. | no
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

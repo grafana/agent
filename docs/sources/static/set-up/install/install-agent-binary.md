@@ -22,9 +22,9 @@ ppc64le builds are considered secondary release targets and do not have the same
 
 The binary executable will run Grafana Agent in standalone mode. If you want to run Grafana Agent as a service, refer to the installation instructions for:
 
-* [Linux]({{< relref "./install-agent-linux.md" >}})
-* [macOS]({{< relref "./install-agent-macos.md" >}})
-* [Windows]({{< relref "./install-agent-on-windows.md" >}})
+* [Linux][linux]
+* [macOS][macos]
+* [Windows][windows]
 
 ## Download Grafana Agent
 
@@ -46,5 +46,18 @@ To download the Grafana Agent as a standalone binary, perform the following step
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent/" >}})
-- [Configure Grafana Agent]({{< relref "../../configuration/create-config-file/" >}})
+* [Start Grafana Agent][start]
+* [Configure Grafana Agent][configure]
+
+{{% docs/reference %}}
+[linux]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-linux"
+[linux]: "/docs/grafana-cloud/ -> ./install-agent-linux"
+[macos]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-macos"
+[macos]: "/docs/grafana-cloud/ -> ./install-agent-mac-os"
+[windows]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-on-windows"
+[windows]: "/docs/grafana-cloud/ -> ./install-agent-on-windows"
+[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent#standalone-binary"
+[start]: "/docs/grafana-cloud/ -> ../start-agent#standalone-binary"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
+[configure]: "/docs/grafana-cloud/ -> ../../configuration"
+{{% /docs/reference %}}

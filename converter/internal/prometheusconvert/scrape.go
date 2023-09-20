@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/exp/maps"
+
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/grafana/agent/converter/diag"
@@ -24,7 +26,19 @@ func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.Scra
 }
 
 func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
-	return ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig)
+	var diags diag.Diagnostics
+
+	if scrapeConfig.ScrapeClassicHistograms {
+		diags.Add(diag.SeverityLevelError, "unsupported scrape_classic_histograms for scrape_configs")
+	}
+
+	if scrapeConfig.NativeHistogramBucketLimit != 0 {
+		diags.Add(diag.SeverityLevelError, "unsupported native_histogram_bucket_limit for scrape_configs")
+	}
+
+	diags.AddAll(ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig))
+
+	return diags
 }
 
 func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
@@ -68,7 +82,9 @@ func getScrapeTargets(staticConfig prom_discovery.StaticConfig) []discovery.Targ
 		for _, labelSet := range target.Targets {
 			for labelName, labelValue := range labelSet {
 				targetMap[string(labelName)] = string(labelValue)
-				targets = append(targets, targetMap)
+				newMap := map[string]string{}
+				maps.Copy(newMap, targetMap)
+				targets = append(targets, newMap)
 			}
 		}
 	}

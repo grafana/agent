@@ -12,7 +12,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 )
 
 // waitReadPeriod holds the time to wait before reading a file while the

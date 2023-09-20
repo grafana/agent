@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/diag"
+	"github.com/grafana/river/vm"
 )
 
 // Traversal describes accessing a sequence of fields relative to a component.

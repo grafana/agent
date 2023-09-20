@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconfiggrpc "go.opentelemetry.io/collector/config/configgrpc"
@@ -17,8 +18,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.receiver.jaeger",
-		Args: Arguments{},
+		Name:          "otelcol.receiver.jaeger",
+		Args:          Arguments{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := jaegerreceiver.NewFactory()
@@ -31,13 +33,14 @@ func init() {
 type Arguments struct {
 	Protocols ProtocolsArguments `river:"protocols,block"`
 
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
 
-var (
-	_ receiver.Arguments = Arguments{}
-)
+var _ receiver.Arguments = Arguments{}
 
 // Validate implements river.Validator.
 func (args *Arguments) Validate() error {
@@ -209,4 +212,9 @@ func (args *ThriftBinary) Convert() *jaegerreceiver.ProtocolUDP {
 	}
 
 	return args.ProtocolUDP.Convert()
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }

@@ -14,21 +14,6 @@ import (
 // TypeStr is the unique identifier for the Prometheus SD processor.
 const TypeStr = "prom_sd_processor"
 
-const (
-	// OperationTypeInsert inserts a new k/v if it isn't already present
-	OperationTypeInsert = "insert"
-	// OperationTypeUpdate only modifies an existing k/v
-	OperationTypeUpdate = "update"
-	// OperationTypeUpsert does both of above
-	OperationTypeUpsert = "upsert"
-
-	podAssociationIPLabel       = "ip"
-	podAssociationOTelIPLabel   = "net.host.ip"
-	podAssociationk8sIPLabel    = "k8s.pod.ip"
-	podAssociationHostnameLabel = "hostname"
-	podAssociationConnectionIP  = "connection"
-)
-
 // Config holds the configuration for the Prometheus SD processor.
 type Config struct {
 	ScrapeConfigs   []interface{} `mapstructure:"scrape_configs"`

@@ -118,6 +118,30 @@ integrations:
 		require.Equal(t, 2, len(c.Integrations.ConfigV1.Integrations))
 	})
 
+	t.Run("do not override integrations defined in base config with the ones defined in snippets", func(t *testing.T) {
+		baseConfig := `
+integrations:
+  node_exporter:
+    enabled: false
+`
+
+		snippets := []Snippet{{
+			Config: `
+integration_configs:
+  node_exporter:
+    enabled: true`,
+		}}
+
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   snippets,
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Integrations.ConfigV1.Integrations))
+		require.False(t, c.Integrations.ConfigV1.Integrations[0].Common.Enabled)
+	})
+
 	t.Run("all snippets provided", func(t *testing.T) {
 		rc := RemoteConfig{
 			BaseConfig: BaseConfigContent(baseConfig),

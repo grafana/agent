@@ -1,7 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/
+- /docs/grafana-cloud/monitor-infrastructure/agent/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/
 canonical: https://grafana.com/docs/agent/latest/
 title: Grafana Agent
-weight: 550
+weight: 350
 ---
 
 # Grafana Agent
@@ -25,7 +29,7 @@ Grafana Agent can collect, transform, and send data to:
 
 * The [Prometheus][] ecosystem
 * The [OpenTelemetry][] ecosystem
-* The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Phlare][])
+* The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Pyroscope][])
 
 [Terraform]: https://terraform.io
 [Prometheus]: https://prometheus.io

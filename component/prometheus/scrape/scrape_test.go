@@ -10,11 +10,11 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/pkg/cluster"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
 	"github.com/grafana/ckit/memconn"
+	"github.com/grafana/river"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/prometheus/model/labels"
@@ -74,16 +74,21 @@ func TestForwardingToAppendable(t *testing.T) {
 		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus_client.NewRegistry(),
 		GetServiceData: func(name string) (interface{}, error) {
-			if name == http_service.ServiceName {
+			switch name {
+			case http_service.ServiceName:
 				return http_service.Data{
 					HTTPListenAddr:   "localhost:12345",
 					MemoryListenAddr: "agent.internal:1245",
 					BaseHTTPPath:     "/",
 					DialFunc:         (&net.Dialer{}).DialContext,
 				}, nil
-			}
 
-			return nil, fmt.Errorf("service %q does not exist", name)
+			case cluster.ServiceName:
+				return cluster.Mock(), nil
+
+			default:
+				return nil, fmt.Errorf("service %q does not exist", name)
+			}
 		},
 	}
 
@@ -168,13 +173,11 @@ func TestCustomDialer(t *testing.T) {
 	require.NoError(t, err)
 
 	opts := component.Options{
-		Logger: util.TestFlowLogger(t),
-		Clusterer: &cluster.Clusterer{
-			Node: cluster.NewLocalNode("inmemory:80"),
-		},
+		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus_client.NewRegistry(),
 		GetServiceData: func(name string) (interface{}, error) {
-			if name == http_service.ServiceName {
+			switch name {
+			case http_service.ServiceName:
 				return http_service.Data{
 					HTTPListenAddr:   "inmemory:80",
 					MemoryListenAddr: "inmemory:80",
@@ -183,9 +186,13 @@ func TestCustomDialer(t *testing.T) {
 						return memLis.DialContext(ctx)
 					},
 				}, nil
-			}
 
-			return nil, fmt.Errorf("service %q does not exist", name)
+			case cluster.ServiceName:
+				return cluster.Mock(), nil
+
+			default:
+				return nil, fmt.Errorf("service %q does not exist", name)
+			}
 		},
 	}
 
@@ -196,4 +203,17 @@ func TestCustomDialer(t *testing.T) {
 	// Wait for our scrape to be invoked.
 	err = scrapeTrigger.Wait(1 * time.Minute)
 	require.NoError(t, err, "custom dialer was not used")
+}
+
+func TestValidateScrapeConfig(t *testing.T) {
+	var exampleRiverConfig = `
+	targets         = [{ "target1" = "target1" }]
+	forward_to      = []
+	scrape_interval = "10s"
+	scrape_timeout  = "20s"
+	job_name        = "local"
+`
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.ErrorContains(t, err, "scrape_timeout (20s) greater than scrape_interval (10s) for scrape config with job name \"local\"")
 }

@@ -13,10 +13,11 @@ import (
 	"github.com/grafana/agent/converter/internal/staticconvert/internal/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
+	"github.com/grafana/river/scanner"
+	"github.com/grafana/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
 
 	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations
@@ -38,6 +39,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 	diags = AppendAll(f, staticConfig)
+	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -64,8 +66,8 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	diags.AddAll(appendStaticPrometheus(f, staticConfig))
 	diags.AddAll(appendStaticPromtail(f, staticConfig))
 	diags.AddAll(appendStaticIntegrationsV1(f, staticConfig))
+	// TODO integrations v2
 	// TODO otel
-	// TODO other
 
 	diags.AddAll(validate(staticConfig))
 
@@ -82,13 +84,21 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		}
 
 		jobNameToCompLabelsFunc := func(jobName string) string {
-			if jobName == "" {
-				return fmt.Sprintf("metrics_%s", instance.Name)
+			name := fmt.Sprintf("metrics_%s", instance.Name)
+			if jobName != "" {
+				name += fmt.Sprintf("_%s", jobName)
 			}
-			return fmt.Sprintf("metrics_%s_%s", instance.Name, jobName)
+
+			name, err := scanner.SanitizeIdentifier(name)
+			if err != nil {
+				diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
+			}
+
+			return name
 		}
 
-		// There is an edge case unhandled here with label collisions.
+		// There is an edge case here with label collisions that will be caught
+		// by a validation [common.ValidateNodes].
 		// For example,
 		//   metrics config name = "agent_test"
 		//   scrape config job_name = "prometheus"
@@ -128,7 +138,8 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 			promtailConfig.LimitsConfig = promtailconvert.DefaultLimitsConfig()
 		}
 
-		// There is an edge case unhandled here with label collisions.
+		// There is an edge case here with label collisions that will be caught
+		// by a validation [common.ValidateNodes].
 		// For example,
 		//   logs config name = "agent_test"
 		//   scrape config job_name = "promtail"
@@ -146,12 +157,8 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 func appendStaticIntegrationsV1(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if len(staticConfig.Integrations.EnabledIntegrations()) == 0 {
-		return diags
-	}
-
 	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
-	b.AppendIntegrations()
+	b.Build()
 
 	return diags
 }

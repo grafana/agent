@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.api/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.api/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.api/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.api/
 title: loki.source.api
 ---
@@ -63,7 +67,7 @@ The following blocks are supported inside the definition of `loki.source.api`:
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

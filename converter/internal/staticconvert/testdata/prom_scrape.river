@@ -34,8 +34,8 @@ discovery.azure "metrics_agent_promobee_2" {
 
 discovery.relabel "metrics_agent_promobee" {
 	targets = concat(
-		discovery.azure.metrics_agent_promobee_2.targets,
 		discovery.azure.metrics_agent_promobee.targets,
+		discovery.azure.metrics_agent_promobee_2.targets,
 		[{
 			__address__ = "localhost:9090",
 		}],
@@ -60,7 +60,7 @@ discovery.relabel "metrics_agent_promobee" {
 prometheus.scrape "metrics_agent_prometheus" {
 	targets = concat(
 		[{
-			__address__ = "localhost:9101",
+			__address__ = "localhost:9099",
 		}],
 		[{
 			__address__ = "localhost:9101",
@@ -95,7 +95,7 @@ prometheus.relabel "metrics_agent_promobee" {
 
 prometheus.remote_write "metrics_agent" {
 	endpoint {
-		name = "agent-e71e8f"
+		name = "agent-6ea089"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
 		basic_auth {
@@ -110,5 +110,19 @@ prometheus.remote_write "metrics_agent" {
 		}
 
 		metadata_config { }
+	}
+}
+
+logging {
+	level  = "debug"
+	format = "json"
+}
+
+http {
+	tls {
+		cert_file        = "./testdata/example-cert.pem"
+		key_file         = "./testdata/example-key.pem"
+		client_ca_file   = "./testdata/example-cert.pem"
+		client_auth_type = "VerifyClientCertIfGiven"
 	}
 }

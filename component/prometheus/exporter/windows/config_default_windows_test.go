@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	windows_integration "github.com/grafana/agent/pkg/integrations/windows_exporter"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 

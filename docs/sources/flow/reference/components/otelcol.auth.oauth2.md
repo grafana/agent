@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.auth.oauth2/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.auth.oauth2/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.auth.oauth2/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.oauth2/
 title: otelcol.auth.oauth2
 ---
@@ -58,7 +62,7 @@ tls | [tls][] | TLS settings for the token client. | no
 The `tls` block configures TLS settings used for connecting to the token client. If the `tls` block isn't provided, 
 TLS won't be used for communication.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

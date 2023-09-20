@@ -1,10 +1,14 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/getting-started/collect-prometheus-metrics/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/collect-prometheus-metrics/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/collect-prometheus-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-prometheus-metrics/
-title: Collect Prometheus metrics
+title: Collect and forward Prometheus metrics
 weight: 200
 ---
 
-# Collect Prometheus metrics
+# Collect and forward Prometheus metrics
 
 Grafana Agent Flow can be configured to collect [Prometheus][] metrics and
 forward them to any Prometheus-compatible database.

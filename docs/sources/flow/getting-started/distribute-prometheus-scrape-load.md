@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/getting-started/distribute-prometheus-scrape-load/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/distribute-prometheus-scrape-load/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/distribute-prometheus-scrape-load/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/distribute-prometheus-scrape-load/
 menuTitle: Distribute Prometheus metrics scrape load
 title: Distribute your Prometheus metrics scrape load
@@ -13,12 +17,11 @@ auto-distribution allows a fleet of agents to work together to dynamically
 distribute their scrape load, providing high-availability.
 
 {{% admonition type="note" %}}
-Clustering is a [beta][] feature. Beta features are subject to breaking
+Clustering is a [beta]({{< relref "../../stability.md#beta" >}}) feature. Beta features are subject to breaking
 changes and may be replaced with equivalent functionality that covers the same
 use case.
 {{%/admonition %}}
 
-[beta]: {{< relref "../../stability.md#beta" >}}
 [Clustering]: {{< relref "../concepts/clustering.md" >}}
 
 ## Before you begin

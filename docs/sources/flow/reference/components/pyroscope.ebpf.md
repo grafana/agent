@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/pyroscope.ebpf/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.ebpf/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.ebpf/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.ebpf/
 labels:
   stage: beta
@@ -7,7 +11,7 @@ title: pyroscope.ebpf
 
 # pyroscope.ebpf
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `pyroscope.ebpf` configures an ebpf profiling job for the current host. The collected performance profiles are forwarded
 to the list of receivers passed in `forward_to`.
@@ -192,17 +196,46 @@ discovery.kubernetes "all_pods" {
     field = "spec.nodeName=" + env("HOSTNAME")
     role = "pod"
   }
-
 }
 
 discovery.relabel "local_pods" {
   targets = discovery.kubernetes.all_pods.targets
   rule {
+    action = "drop"
+    regex = "Succeeded|Failed"
+    source_labels = ["__meta_kubernetes_pod_phase"]
+  }
+  rule {
     action = "replace"
-    replacement = "${1}/${2}"
-    separator = "/"
+    regex = "(.*)@(.*)"
+    replacement = "ebpf/${1}/${2}"
+    separator = "@"
     source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_container_name"]
     target_label = "service_name"
+  }
+  rule {
+    action = "labelmap"
+    regex = "__meta_kubernetes_pod_label_(.+)"
+  }
+  rule {
+    action = "replace"
+    source_labels = ["__meta_kubernetes_namespace"]
+    target_label = "namespace"
+  }
+  rule {
+    action = "replace"
+    source_labels = ["__meta_kubernetes_pod_name"]
+    target_label = "pod"
+  }
+  rule {
+    action = "replace"
+    source_labels = ["__meta_kubernetes_node_name"]
+    target_label = "node"
+  }
+  rule {
+    action = "replace"
+    source_labels = ["__meta_kubernetes_pod_container_name"]
+    target_label = "container"
   }
 }
 pyroscope.ebpf "local_pods" {

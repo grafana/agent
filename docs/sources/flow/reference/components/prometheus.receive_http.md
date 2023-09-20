@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.receive_http/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.receive_http/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.receive_http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.receive_http/
 title: prometheus.receive_http
 ---
@@ -48,7 +52,7 @@ The following blocks are supported inside the definition of `prometheus.receive_
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

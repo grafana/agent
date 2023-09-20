@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/component/discovery/aws"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
 )
@@ -18,7 +18,7 @@ func appendDiscoveryLightsail(pb *prometheusBlocks, label string, sdConfig *prom
 	name := []string{"discovery", "lightsail"}
 	block := common.NewBlockWithOverride(name, label, discoverylightsailArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoverExports("discovery.lightsail." + label + ".targets")
+	return NewDiscoveryExports("discovery.lightsail." + label + ".targets")
 }
 
 func validateDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) diag.Diagnostics {

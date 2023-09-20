@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	cft "github.com/grafana/agent/component/loki/source/cloudflare/internal/cloudflaretarget"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/model"
 )
 

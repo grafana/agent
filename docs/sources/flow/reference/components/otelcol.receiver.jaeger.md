@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.jaeger/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.jaeger/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.jaeger/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.jaeger/
 title: otelcol.receiver.jaeger
 ---
@@ -57,6 +61,7 @@ protocols > thrift_http > tls | [tls][] | Configures TLS for the Thrift HTTP ser
 protocols > thrift_http > cors | [cors][] | Configures CORS for the Thrift HTTP server. | no
 protocols > thrift_binary | [thrift_binary][] | Configures a Thrift binary UDP server to receive traces. | no
 protocols > thrift_compact | [thrift_compact][] | Configures a Thrift compact UDP server to receive traces. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
 The `>` symbol indicates deeper levels of nesting. For example, `protocols >
@@ -72,6 +77,7 @@ grpc` refers to a `grpc` block defined inside a `protocols` block.
 [cors]: #cors-block
 [thrift_binary]: #thrift_binary-block
 [thrift_compact]: #thrift_compact-block
+[debug_metrics]: #debug_metrics-block
 [output]: #output-block
 
 ### protocols block
@@ -107,7 +113,7 @@ Name | Type | Description | Default | Required
 The `tls` block configures TLS settings used for a server. If the `tls` block
 isn't provided, TLS won't be used for connections to the server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### keepalive block
 
@@ -213,9 +219,13 @@ Name | Type | Description | Default | Required
 `workers` | `number` | Number of workers to concurrently read from the message queue. | `10` | no
 `socket_buffer_size` | `string` | Buffer to allocate for the UDP socket. | | no
 
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
+
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

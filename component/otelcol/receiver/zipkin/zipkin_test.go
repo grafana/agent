@@ -7,8 +7,8 @@ import (
 
 	"github.com/grafana/agent/component/otelcol/receiver/zipkin"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
@@ -51,11 +51,16 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 
 		parse_string_tags = true
 
+		debug_metrics {
+			disable_high_cardinality_metrics = true
+		}
+
 		output { /* no-op */ }
 		`, httpAddr)
 
 		var args zipkin.Arguments
 		require.NoError(t, river.Unmarshal([]byte(in), &args))
+		require.Equal(t, args.DebugMetricsConfig().DisableHighCardinalityMetrics, true)
 		ext, err := args.Convert()
 		require.NoError(t, err)
 		otelArgs, ok := (ext).(*zipkinreceiver.Config)

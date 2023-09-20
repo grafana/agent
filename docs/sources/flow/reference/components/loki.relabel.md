@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.relabel/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.relabel/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.relabel/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.relabel/
 title: loki.relabel
 ---
@@ -61,7 +65,7 @@ rule | [rule][] | Relabeling rules to apply to received log entries. | no
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block-logs.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block-logs.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

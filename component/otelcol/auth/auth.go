@@ -13,15 +13,13 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/river"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
-
-	_ "github.com/grafana/agent/component/otelcol/internal/featuregate" // Enable needed feature gates
 )
 
 // Arguments is an extension of component.Arguments which contains necessary

@@ -1,4 +1,8 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.echo/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.echo/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.echo/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.echo/
 labels:
   stage: beta
@@ -7,7 +11,7 @@ title: loki.echo
 
 # loki.echo
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `loki.echo` receives log entries from other `loki` components and prints them
 to the process' standard output (stdout).

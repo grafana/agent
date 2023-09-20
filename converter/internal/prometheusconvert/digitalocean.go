@@ -9,20 +9,20 @@ import (
 	"github.com/grafana/agent/component/discovery/digitalocean"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 )
 
 func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *prom_digitalocean.SDConfig) discovery.Exports {
-	discoveryDigitalOceanArgs := ToDiscoveryDigitalOcean(sdConfig)
+	discoveryDigitalOceanArgs := toDiscoveryDigitalOcean(sdConfig)
 	name := []string{"discovery", "digitalocean"}
 	block := common.NewBlockWithOverride(name, label, discoveryDigitalOceanArgs)
 	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoverExports("discovery.digitalocean." + label + ".targets")
+	return NewDiscoveryExports("discovery.digitalocean." + label + ".targets")
 }
 
-func ValidateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
+func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if sdConfig.HTTPClientConfig.BasicAuth != nil {
@@ -46,7 +46,7 @@ func ValidateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Di
 	return diags
 }
 
-func ToDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) *digitalocean.Arguments {
+func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) *digitalocean.Arguments {
 	if sdConfig == nil {
 		return nil
 	}

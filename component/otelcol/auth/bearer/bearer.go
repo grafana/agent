@@ -4,7 +4,8 @@ package bearer
 import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/auth"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	otel_service "github.com/grafana/agent/service/otel"
+	"github.com/grafana/river/rivertypes"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configopaque"
@@ -13,9 +14,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.auth.bearer",
-		Args:    Arguments{},
-		Exports: auth.Exports{},
+		Name:          "otelcol.auth.bearer",
+		Args:          Arguments{},
+		Exports:       auth.Exports{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := bearertokenauthextension.NewFactory()

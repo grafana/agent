@@ -6,6 +6,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
+	otel_service "github.com/grafana/agent/service/otel"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -13,8 +14,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.receiver.otlp",
-		Args: Arguments{},
+		Name:          "otelcol.receiver.otlp",
+		Args:          Arguments{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := otlpreceiver.NewFactory()
@@ -27,6 +29,9 @@ func init() {
 type Arguments struct {
 	GRPC *GRPCServerArguments `river:"grpc,block,optional"`
 	HTTP *HTTPServerArguments `river:"http,block,optional"`
+
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
 
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
@@ -92,4 +97,9 @@ func (args *GRPCServerArguments) SetToDefault() {
 // SetToDefault implements river.Defaulter.
 func (args *HTTPServerArguments) SetToDefault() {
 	*args = DefaultHTTPServerArguments
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }
