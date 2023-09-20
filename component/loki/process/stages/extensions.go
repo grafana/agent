@@ -36,7 +36,7 @@ var (
 	_ river.Validator = (*CRIConfig)(nil)
 )
 
-// DefaultCRIConfig applies the default values on
+// DefaultCRIConfig contains the default CRIConfig values.
 var DefaultCRIConfig = CRIConfig{
 	MaxPartialLines:            100,
 	MaxPartialLineSize:         0,
