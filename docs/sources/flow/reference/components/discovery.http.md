@@ -27,7 +27,9 @@ Example response body:
 ]
 ```
 
-Example response setting the metrics path and port for [prometheus.scrape](../prometheus.scrape#technical-details) additional config:
+It is possible to use additional fields in the JSON to pass parameters to [prometheus.scrape](../prometheus.scrape#technical-details) such as the `metricsPath` and `scrape_interval`.
+
+As an example, the following will provide a target with a custom `metricsPath`, scrape interval, and timeout value:
 
 ```json
 [
@@ -46,6 +48,31 @@ Example response setting the metrics path and port for [prometheus.scrape](../pr
 ]
 
 ```
+
+It is also possible to append query parameters to the metrics path with the `__param_<name>` syntax.
+
+For example, the following will call a metrics path of `/health?target_data=prometheus`:
+
+```json
+[
+   {
+      "labels" : {
+         "__metrics_path__" : "/health",
+         "__scheme__" : "https",
+         "__scrape_interval__" : "60s",
+         "__scrape_timeout__" : "10s",
+         "__param_target_data": "prometheus",
+         "service" : "custom-api-service"
+      },
+      "targets" : [
+         "custom-api:443"
+      ]
+   },
+]
+
+```
+
+For more information on the potential labels you can use, see the [prometheus.scrape technical details](../prometheus.scrape#technical-details) section, or the [Prometheus Configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) documentation.
 
 ## Usage
 
