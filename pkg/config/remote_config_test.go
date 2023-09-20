@@ -36,6 +36,14 @@ metrics:
 		}
 	}))
 
+	svrWithHeaders := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/agent.yml" {
+			w.Header().Add("X-Test-Header", "test")
+			w.Header().Add("X-Other-Header", "test2")
+			_, _ = w.Write([]byte(testCfg))
+		}
+	}))
+
 	tempDir := t.TempDir()
 	err := os.WriteFile(fmt.Sprintf("%s/password-file.txt", tempDir), []byte("bar"), 0644)
 	require.NoError(t, err)
@@ -55,10 +63,11 @@ metrics:
 		opts   *remoteOpts
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    []byte
-		wantErr bool
+		name        string
+		args        args
+		want        []byte
+		wantErr     bool
+		wantHeaders map[string][]string
 	}{
 		{
 			name: "httpScheme config",
@@ -111,6 +120,18 @@ metrics:
 			want:    nil,
 			wantErr: true,
 		},
+		{
+			name: "response headers are returned",
+			args: args{
+				rawURL: fmt.Sprintf("%s/agent.yml", svrWithHeaders.URL),
+			},
+			want:    []byte(testCfg),
+			wantErr: false,
+			wantHeaders: map[string][]string{
+				"X-Test-Header":  {"test"},
+				"X-Other-Header": {"test2"},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -121,9 +142,12 @@ metrics:
 				return
 			}
 			assert.NoError(t, err)
-			bb, err := rc.retrieve()
+			bb, header, err := rc.retrieve()
 			assert.NoError(t, err)
 			assert.Equal(t, string(tt.want), string(bb))
+			for k, v := range tt.wantHeaders {
+				assert.Equal(t, v, header[k])
+			}
 		})
 	}
 }
