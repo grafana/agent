@@ -112,7 +112,7 @@ func (p httpProvider) retrieve() ([]byte, error) {
 
 	instrumentation.InstrumentRemoteConfigFetch(response.StatusCode)
 
-	if response.StatusCode == http.StatusTooManyRequests {
+	if response.StatusCode == http.StatusTooManyRequests || response.StatusCode == http.StatusServiceUnavailable {
 		retryAfter := response.Header.Get("Retry-After")
 		if retryAfter == "" {
 			return nil, fmt.Errorf("server indicated to retry, but no Retry-After header was provided")
