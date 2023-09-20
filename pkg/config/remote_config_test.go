@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const configPath = "/agent.yml"
+
 func TestRemoteConfigHTTP(t *testing.T) {
 	testCfg := `
 metrics:
@@ -20,7 +22,7 @@ metrics:
 `
 
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/agent.yml" {
+		if r.URL.Path == configPath {
 			_, _ = w.Write([]byte(testCfg))
 		}
 	}))
@@ -31,13 +33,13 @@ metrics:
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		if r.URL.Path == "/agent.yml" {
+		if r.URL.Path == configPath {
 			_, _ = w.Write([]byte(testCfg))
 		}
 	}))
 
 	svrWithHeaders := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/agent.yml" {
+		if r.URL.Path == configPath {
 			w.Header().Add("X-Test-Header", "test")
 			w.Header().Add("X-Other-Header", "test2")
 			_, _ = w.Write([]byte(testCfg))
