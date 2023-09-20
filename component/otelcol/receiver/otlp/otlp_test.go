@@ -25,13 +25,6 @@ import (
 // component and ensures that it can receive and forward data.
 func Test(t *testing.T) {
 	httpAddr := getFreeAddr(t)
-
-	ctx := componenttest.TestContext(t)
-	l := util.TestLogger(t)
-
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.receiver.otlp")
-	require.NoError(t, err)
-
 	cfg := fmt.Sprintf(`
 		http {
 			endpoint = "%s"
@@ -41,6 +34,32 @@ func Test(t *testing.T) {
 			// no-op: will be overridden by test code.
 		}
 	`, httpAddr)
+	testTraces(t, cfg, fmt.Sprintf("http://%s%s", httpAddr, "/v1/traces"))
+}
+
+func TestCustomTracesUrl(t *testing.T) {
+	httpAddr := getFreeAddr(t)
+	tracesURLPath := "/custom/traces"
+	cfg := fmt.Sprintf(`
+		http {
+			endpoint = "%s"
+			traces_url_path = "%s"
+		}
+
+		output {
+			// no-op: will be overridden by test code.
+		}
+	`, httpAddr, tracesURLPath)
+	testTraces(t, cfg, fmt.Sprintf("http://%s%s", httpAddr, tracesURLPath))
+}
+
+func testTraces(t *testing.T, cfg string, tracesURL string) {
+	ctx := componenttest.TestContext(t)
+	l := util.TestLogger(t)
+
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.receiver.otlp")
+	require.NoError(t, err)
+
 	var args otlp.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
@@ -62,7 +81,6 @@ func Test(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			tracesURL := fmt.Sprintf("http://%s/v1/traces", httpAddr)
 			_, err = http.DefaultClient.Post(tracesURL, "application/json", f)
 			return err
 		}

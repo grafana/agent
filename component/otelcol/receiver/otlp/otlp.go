@@ -2,6 +2,9 @@
 package otlp
 
 import (
+	"fmt"
+	"net/url"
+
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
@@ -26,13 +29,40 @@ func init() {
 // Arguments configures the otelcol.receiver.otlp component.
 type Arguments struct {
 	GRPC *GRPCServerArguments `river:"grpc,block,optional"`
-	HTTP *HTTPServerArguments `river:"http,block,optional"`
+	HTTP *HTTPConfigArguments `river:"http,block,optional"`
 
 	// DebugMetrics configures component internal metrics. Optional.
 	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
 
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
+}
+
+type HTTPConfigArguments struct {
+	*otelcol.HTTPServerArguments `river:",squash"`
+
+	// The URL path to receive traces on. If omitted "/v1/traces" will be used.
+	TracesURLPath string `river:"traces_url_path,attr,optional"`
+
+	// The URL path to receive metrics on. If omitted "/v1/metrics" will be used.
+	MetricsURLPath string `river:"metrics_url_path,attr,optional"`
+
+	// The URL path to receive logs on. If omitted "/v1/logs" will be used.
+	LogsURLPath string `river:"logs_url_path,attr,optional"`
+}
+
+// Convert converts args into the upstream type.
+func (args *HTTPConfigArguments) Convert() *otlpreceiver.HTTPConfig {
+	if args == nil {
+		return nil
+	}
+
+	return &otlpreceiver.HTTPConfig{
+		HTTPServerSettings: args.HTTPServerArguments.Convert(),
+		TracesURLPath:      args.TracesURLPath,
+		MetricsURLPath:     args.MetricsURLPath,
+		LogsURLPath:        args.LogsURLPath,
+	}
 }
 
 var _ receiver.Arguments = Arguments{}
@@ -42,7 +72,7 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &otlpreceiver.Config{
 		Protocols: otlpreceiver.Protocols{
 			GRPC: (*otelcol.GRPCServerArguments)(args.GRPC).Convert(),
-			HTTP: (*otelcol.HTTPServerArguments)(args.HTTP).Convert(),
+			HTTP: (*HTTPConfigArguments)(args.HTTP).Convert(),
 		},
 	}, nil
 }
@@ -66,10 +96,6 @@ type (
 	// GRPCServerArguments is used to configure otelcol.receiver.otlp with
 	// component-specific defaults.
 	GRPCServerArguments otelcol.GRPCServerArguments
-
-	// HTTPServerArguments is used to configure otelcol.receiver.otlp with
-	// component-specific defaults.
-	HTTPServerArguments otelcol.HTTPServerArguments
 )
 
 // Default server settings.
@@ -82,10 +108,32 @@ var (
 		// We almost write 0 bytes, so no need to tune WriteBufferSize.
 	}
 
-	DefaultHTTPServerArguments = HTTPServerArguments{
-		Endpoint: "0.0.0.0:4318",
+	DefaultHTTPServerSettings = HTTPConfigArguments{
+		HTTPServerArguments: &otelcol.HTTPServerArguments{
+			Endpoint: "0.0.0.0:4318",
+		},
+		MetricsURLPath: "/v1/metrics",
+		LogsURLPath:    "/v1/logs",
+		TracesURLPath:  "/v1/traces",
 	}
 )
+
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
+	_, err := url.Parse(args.HTTP.TracesURLPath)
+	if err != nil {
+		return fmt.Errorf("invalid traces_url_path: %w", err)
+	}
+	_, err = url.Parse(args.HTTP.MetricsURLPath)
+	if err != nil {
+		return fmt.Errorf("invalid metrics_url_path: %w", err)
+	}
+	_, err = url.Parse(args.HTTP.LogsURLPath)
+	if err != nil {
+		return fmt.Errorf("invalid logs_url_path: %w", err)
+	}
+	return nil
+}
 
 // SetToDefault implements river.Defaulter.
 func (args *GRPCServerArguments) SetToDefault() {
@@ -93,8 +141,8 @@ func (args *GRPCServerArguments) SetToDefault() {
 }
 
 // SetToDefault implements river.Defaulter.
-func (args *HTTPServerArguments) SetToDefault() {
-	*args = DefaultHTTPServerArguments
+func (args *HTTPConfigArguments) SetToDefault() {
+	*args = DefaultHTTPServerSettings
 }
 
 // DebugMetricsConfig implements receiver.Arguments.
