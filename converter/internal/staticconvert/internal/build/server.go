@@ -38,6 +38,7 @@ func toServer(config *server.Config) *http.Arguments {
 			CurvePreferences: toHTTPTLSCurve(config.HTTP.TLSConfig.CurvePreferences),
 			MinVersion:       http.TLSVersion(config.HTTP.TLSConfig.MinVersion),
 			MaxVersion:       http.TLSVersion(config.HTTP.TLSConfig.MaxVersion),
+			WindowsFilter:    toWindowsFilter(config.HTTP.TLSConfig.WindowsCertificateFilter),
 		},
 	}
 }
@@ -58,4 +59,41 @@ func toHTTPTLSCurve(curvePreferences []server.TLSCurve) []http.TLSCurve {
 	}
 
 	return result
+}
+
+func toWindowsFilter(windowsFilter *server.WindowsCertificateFilter) *http.WindowsCertificateFilter {
+	if windowsFilter == nil {
+		return nil
+	}
+
+	return &http.WindowsCertificateFilter{
+		Server: toWindowsServerFilter(windowsFilter.Server),
+		Client: toWindowsClientFilter(windowsFilter.Client),
+	}
+}
+
+func toWindowsServerFilter(server *server.WindowsServerFilter) *http.WindowsServerFilter {
+	if server == nil {
+		return nil
+	}
+
+	return &http.WindowsServerFilter{
+		Store:             server.Store,
+		SystemStore:       server.SystemStore,
+		IssuerCommonNames: server.IssuerCommonNames,
+		TemplateID:        server.TemplateID,
+		RefreshInterval:   server.RefreshInterval,
+	}
+}
+
+func toWindowsClientFilter(client *server.WindowsClientFilter) *http.WindowsClientFilter {
+	if client == nil {
+		return nil
+	}
+
+	return &http.WindowsClientFilter{
+		IssuerCommonNames: client.IssuerCommonNames,
+		SubjectRegEx:      client.SubjectRegEx,
+		TemplateID:        client.TemplateID,
+	}
 }

@@ -18,29 +18,29 @@ import (
 
 // TODO(@tpaschalis) Let's use this as the list of stages we need to port over.
 const (
-	StageTypeJSON             = "json"
-	StageTypeLogfmt           = "logfmt"
-	StageTypeRegex            = "regex"
-	StageTypeReplace          = "replace"
-	StageTypeMetric           = "metrics"
-	StageTypeLabel            = "labels"
-	StageTypeNonIndexedLabels = "non_indexed_labels"
-	StageTypeLabelDrop        = "labeldrop"
-	StageTypeTimestamp        = "timestamp"
-	StageTypeOutput           = "output"
-	StageTypeDocker           = "docker"
-	StageTypeCRI              = "cri"
-	StageTypeMatch            = "match"
-	StageTypeTemplate         = "template"
-	StageTypePipeline         = "pipeline"
-	StageTypeTenant           = "tenant"
-	StageTypeDrop             = "drop"
-	StageTypeLimit            = "limit"
-	StageTypeMultiline        = "multiline"
-	StageTypePack             = "pack"
-	StageTypeLabelAllow       = "labelallow"
-	StageTypeStaticLabels     = "static_labels"
-	StageTypeGeoIP            = "geoip"
+	StageTypeJSON               = "json"
+	StageTypeLogfmt             = "logfmt"
+	StageTypeRegex              = "regex"
+	StageTypeReplace            = "replace"
+	StageTypeMetric             = "metrics"
+	StageTypeLabel              = "labels"
+	StageTypeStructuredMetadata = "structured_metadata"
+	StageTypeLabelDrop          = "labeldrop"
+	StageTypeTimestamp          = "timestamp"
+	StageTypeOutput             = "output"
+	StageTypeDocker             = "docker"
+	StageTypeCRI                = "cri"
+	StageTypeMatch              = "match"
+	StageTypeTemplate           = "template"
+	StageTypePipeline           = "pipeline"
+	StageTypeTenant             = "tenant"
+	StageTypeDrop               = "drop"
+	StageTypeLimit              = "limit"
+	StageTypeMultiline          = "multiline"
+	StageTypePack               = "pack"
+	StageTypeLabelAllow         = "labelallow"
+	StageTypeStaticLabels       = "static_labels"
+	StageTypeGeoIP              = "geoip"
 )
 
 // Processor takes an existing set of labels, timestamp and log entry and returns either a possibly mutated
@@ -121,7 +121,7 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 			return nil, err
 		}
 	case cfg.CRIConfig != nil:
-		s, err = NewCRI(logger, registerer)
+		s, err = NewCRI(logger, *cfg.CRIConfig, registerer)
 		if err != nil {
 			return nil, err
 		}
@@ -145,8 +145,8 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-	case cfg.NonIndexedLabelsConfig != nil:
-		s, err = newNonIndexedLabelsStage(logger, *cfg.NonIndexedLabelsConfig)
+	case cfg.StructuredMetadata != nil:
+		s, err = newStructuredMetadataStage(logger, *cfg.StructuredMetadata)
 		if err != nil {
 			return nil, err
 		}

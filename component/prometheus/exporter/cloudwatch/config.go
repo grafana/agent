@@ -13,7 +13,7 @@ import (
 var addCloudwatchTimestamp = false
 
 // Avoid producing absence of values in metrics
-var nilToZero = true
+var defaultNilToZero = true
 
 var defaults = Arguments{
 	Debug:                 false,
@@ -53,6 +53,7 @@ type DiscoveryJob struct {
 	Type                      string         `river:"type,attr"`
 	DimensionNameRequirements []string       `river:"dimension_name_requirements,attr,optional"`
 	Metrics                   []Metric       `river:"metric,block"`
+	NilToZero                 *bool          `river:"nil_to_zero,attr,optional"`
 }
 
 // Tags represents a series of tags configured on an AWS resource. Each tag is a
@@ -67,6 +68,7 @@ type StaticJob struct {
 	Namespace  string         `river:"namespace,attr"`
 	Dimensions Dimensions     `river:"dimensions,attr"`
 	Metrics    []Metric       `river:"metric,block"`
+	NilToZero  *bool          `river:"nil_to_zero,attr,optional"`
 }
 
 // RegionAndRoles exposes for each supported job, the AWS regions and IAM roles in which the agent should perform the
@@ -90,6 +92,7 @@ type Metric struct {
 	Statistics []string      `river:"statistics,attr"`
 	Period     time.Duration `river:"period,attr"`
 	Length     time.Duration `river:"length,attr,optional"`
+	NilToZero  *bool         `river:"nil_to_zero,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -150,7 +153,7 @@ func toYACERoles(rs []Role) []yaceConf.Role {
 	return yaceRoles
 }
 
-func toYACEMetrics(ms []Metric) []*yaceConf.Metric {
+func toYACEMetrics(ms []Metric, jobNilToZero *bool) []*yaceConf.Metric {
 	yaceMetrics := []*yaceConf.Metric{}
 	for _, m := range ms {
 		periodSeconds := int64(m.Period.Seconds())
@@ -158,6 +161,10 @@ func toYACEMetrics(ms []Metric) []*yaceConf.Metric {
 		// If length is other than zero, that is, is configured, override the default period vaue
 		if m.Length != 0 {
 			lengthSeconds = int64(m.Length.Seconds())
+		}
+		nilToZero := m.NilToZero
+		if nilToZero == nil {
+			nilToZero = jobNilToZero
 		}
 		yaceMetrics = append(yaceMetrics, &yaceConf.Metric{
 			Name:       m.Name,
@@ -175,7 +182,7 @@ func toYACEMetrics(ms []Metric) []*yaceConf.Metric {
 			// this with RoundingPeriod (see toYACEDiscoveryJob), we should omit this setting.
 			Delay: 0,
 
-			NilToZero:              &nilToZero,
+			NilToZero:              nilToZero,
 			AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 		})
 	}
@@ -190,6 +197,10 @@ func toYACEStaticJob(sj StaticJob) *yaceConf.Static {
 			Value: value,
 		})
 	}
+	nilToZero := sj.NilToZero
+	if nilToZero == nil {
+		nilToZero = &defaultNilToZero
+	}
 	return &yaceConf.Static{
 		Name:       sj.Name,
 		Regions:    sj.Auth.Regions,
@@ -197,11 +208,15 @@ func toYACEStaticJob(sj StaticJob) *yaceConf.Static {
 		Namespace:  sj.Namespace,
 		CustomTags: sj.CustomTags.toYACE(),
 		Dimensions: dims,
-		Metrics:    toYACEMetrics(sj.Metrics),
+		Metrics:    toYACEMetrics(sj.Metrics, nilToZero),
 	}
 }
 
 func toYACEDiscoveryJob(rj DiscoveryJob) *yaceConf.Job {
+	nilToZero := rj.NilToZero
+	if nilToZero == nil {
+		nilToZero = &defaultNilToZero
+	}
 	job := &yaceConf.Job{
 		Regions:                   rj.Auth.Regions,
 		Roles:                     toYACERoles(rj.Auth.Roles),
@@ -218,10 +233,10 @@ func toYACEDiscoveryJob(rj DiscoveryJob) *yaceConf.Job {
 			Period:                 0,
 			Length:                 0,
 			Delay:                  0,
-			NilToZero:              &nilToZero,
+			NilToZero:              nilToZero,
 			AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 		},
-		Metrics: toYACEMetrics(rj.Metrics),
+		Metrics: toYACEMetrics(rj.Metrics, nilToZero),
 	}
 	return job
 }

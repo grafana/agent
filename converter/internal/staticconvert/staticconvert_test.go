@@ -12,9 +12,6 @@ import (
 func TestConvert(t *testing.T) {
 	test_common.TestDirectory(t, "testdata", ".yaml", true, staticconvert.Convert)
 
-	// This test has a race condition due to downstream code so skip loading the config
-	test_common.TestDirectory(t, "testdata-race", ".yaml", false, staticconvert.Convert)
-
 	if runtime.GOOS == "windows" {
 		test_common.TestDirectory(t, "testdata_windows", ".yaml", true, staticconvert.Convert)
 	}

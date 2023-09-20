@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/river"
-	"github.com/prometheus/common/config"
+	promcfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/openstack"
 	"github.com/stretchr/testify/require"
@@ -28,6 +29,14 @@ func TestUnmarshal(t *testing.T) {
 	refresh_interval = "1m"
 	port = 80
 	all_tenants = true
+	tls_config {
+		ca_file = "/path/to/file.ca"
+		cert_file = "/path/to/file.cert"
+		key_file = "/path/to/file.key"
+		server_name = "server_name"
+		insecure_skip_verify = false
+		min_version = "TLS13"
+	}
 	`
 	var args Arguments
 	err := river.Unmarshal([]byte(cfg), &args)
@@ -72,13 +81,17 @@ func TestConvert(t *testing.T) {
 		Port:                      80,
 		AllTenants:                true,
 		Availability:              "public",
+		TLSConfig: config.TLSConfig{
+			Key:  "key",
+			Cert: "cert",
+		},
 	}
 	converted := args.Convert()
 
 	require.Equal(t, "http://openstack", converted.IdentityEndpoint)
 	require.Equal(t, "exampleuser", converted.Username)
 	require.Equal(t, "exampleuserid", converted.UserID)
-	require.Equal(t, config.Secret("examplepassword"), converted.Password)
+	require.Equal(t, promcfg.Secret("examplepassword"), converted.Password)
 	require.Equal(t, "exampleproject", converted.ProjectName)
 	require.Equal(t, "exampleprojectid", converted.ProjectID)
 	require.Equal(t, "exampledomain", converted.DomainName)
@@ -91,4 +104,6 @@ func TestConvert(t *testing.T) {
 	require.Equal(t, 80, converted.Port)
 	require.Equal(t, true, converted.AllTenants)
 	require.Equal(t, "public", converted.Availability)
+	require.Equal(t, promcfg.Secret("key"), converted.TLSConfig.Key)
+	require.Equal(t, "cert", converted.TLSConfig.Cert)
 }

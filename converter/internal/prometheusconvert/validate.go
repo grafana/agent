@@ -21,6 +21,8 @@ import (
 	prom_linode "github.com/prometheus/prometheus/discovery/linode"
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
+	prom_moby "github.com/prometheus/prometheus/discovery/moby"
+	prom_openstack "github.com/prometheus/prometheus/discovery/openstack"
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	prom_kuma "github.com/prometheus/prometheus/discovery/xds"
@@ -125,6 +127,10 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryServerset(sdc))
 		case *prom_nerve.NerveSDConfig:
 			diags.AddAll(validateDiscoveryNerve(sdc))
+		case *prom_openstack.SDConfig:
+			diags.AddAll(validateDiscoveryOpenstack(sdc))
+		case *prom_moby.DockerSwarmSDConfig:
+			diags.AddAll(validateDiscoveryDockerswarm(sdc))
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
 		}

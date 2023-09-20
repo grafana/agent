@@ -154,9 +154,9 @@ job.
 [static]: #static-block
 [metric]: #metric-block
 [role]: #role-block
-[decoupled_scraping]: #decoupled-scraping-block
+[decoupled_scraping]: #decoupled_scraping-block
 
-## discovery block
+### discovery block
 
 The `discovery` block allows the component to scrape CloudWatch metrics with only the AWS service and a list of metrics
 under that service/namespace.
@@ -198,10 +198,11 @@ different `search_tags`.
 | `custom_tags`                 | `map(string)`  | Custom tags to be added as a list of key / value pairs. When exported to Prometheus format, the label name follows the following format: `custom_tag_{key}`.                                                                                               | `{}`    | no       |
 | `search_tags`                 | `map(string)`  | List of key / value pairs to use for tag filtering (all must match). Value can be a regex.                                                                                                                                                                 | `{}`    | no       |
 | `dimension_name_requirements` | `list(string)` | List of metric dimensions to query. Before querying metric values, the total list of metrics will be filtered to only those that contain exactly this list of dimensions. An empty or undefined list results in all dimension combinations being included. | `{}`    | no       |
+| `nil_to_zero`                 | `bool`         | When `true`, `NaN` metric values are converted to 0. Individual metrics can override this value in the [metric][] block.                                                                                                                                   | `true`  | no       |
 
 [supported-services]: #supported-services-in-discovery-jobs
 
-## static block
+### static block
 
 The `static` block configures the component to scrape a specific set of CloudWatch metrics. The metrics need to be fully
 qualified with the following specifications:
@@ -252,48 +253,31 @@ You can configure the `static` block one or multiple times to scrape metrics wit
 | `namespace`   | `string`       | CloudWatch metric namespace.                                                                                                                                 |         | yes      |
 | `dimensions`  | `map(string)`  | CloudWatch metric dimensions as a list of name / value pairs. Must uniquely define all metrics in this job.                                                  |         | yes      |
 | `custom_tags` | `map(string)`  | Custom tags to be added as a list of key / value pairs. When exported to Prometheus format, the label name follows the following format: `custom_tag_{key}`. | `{}`    | no       |
+| `nil_to_zero` | `bool`         | When `true`, `NaN` metric values are converted to 0. Individual metrics can override this value in the [metric][] block.                                     | `true`  | no       |
 
 All dimensions must be specified when scraping single metrics like the example above. For example, `AWS/Logs` metrics
 require `Resource`, `Service`, `Class`, and `Type` dimensions to be specified. The same applies to CloudWatch custom
 metrics,
 all dimensions attached to a metric when saved in CloudWatch are required.
 
-## metric block
+### metric block
 
 Represents an AWS Metrics to scrape. To see available metrics, AWS does not keep a documentation page with all available
 metrics.
 Follow [this guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/viewing_metrics_with_cloudwatch.html)
 on how to explore metrics, to easily pick the ones you need.
 
-| Name         | Type           | Description                                                      | Default                                                   | Required |
-| ------------ | -------------- | ---------------------------------------------------------------- | --------------------------------------------------------- | -------- |
-| `name`       | `string`       | Metric name.                                                     |                                                           | yes      |
-| `statistics` | `list(string)` | List of statistics to scrape. Ex: `"Minimum"`, `"Maximum"`, etc. |                                                           | yes      |
-| `period`     | `duration`     | See [period][] section below.                                    |                                                           | yes      |
-| `length`     | `duration`     | See [period][] section below.                                    | Calculated based on `period`. See [period][] for details. | no       |
+| Name          | Type           | Description                                                               | Default                                                                                                             | Required |
+| ------------- | -------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------- |
+| `name`        | `string`       | Metric name.                                                              |                                                                                                                     | yes      |
+| `statistics`  | `list(string)` | List of statistics to scrape. For example, `"Minimum"`, `"Maximum"`, etc. |                                                                                                                     | yes      |
+| `period`      | `duration`     | See [period][] section below.                                             |                                                                                                                     | yes      |
+| `length`      | `duration`     | See [period][] section below.                                             | Calculated based on `period`. See [period][] for details.                                                           | no       |
+| `nil_to_zero` | `bool`         | When `true`, `NaN` metric values are converted to 0.                      | The value of `nil_to_zero` in the parent [static][] or [discovery][] block (`true` if not set in the parent block). | no       |
 
 [period]: #period-and-length
 
-## role block
-
-Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). If omitted, the AWS role
-that corresponds to the credentials configured in the environment will be used.
-
-Multiple roles can be useful when scraping metrics from different AWS accounts with a single pair of credentials. In
-this case, a different role
-is configured for the agent to assume before calling AWS APIs. Therefore, the credentials configured in the system need
-permission to assume the target role.
-See [Granting a user permissions to switch roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html)
-in the AWS IAM documentation for more information about how to configure this.
-
-| Name          | Type     | Description                                                           | Default | Required |
-| ------------- | -------- | --------------------------------------------------------------------- | ------- | -------- |
-| `role_arn`    | `string` | AWS IAM Role ARN the exporter should assume to perform AWS API calls. |         | yes      |
-| `external_id` | `string` | External ID used when calling STS AssumeRole API. See [details][].    | `""`    | no       |
-
-[details]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
-
-## period and length
+#### period and length
 
 `period` controls primarily the width of the time bucket used for aggregating metrics collected from
 CloudWatch. `length`
@@ -325,14 +309,33 @@ is exported to CloudWatch.
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
 
-## decoupled scraping block
+### role block
 
-The decoupled scraping block configures an optional feature that scrapes CloudWatch metrics in the background on a
+Represents an [AWS IAM Role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html). If omitted, the AWS role
+that corresponds to the credentials configured in the environment will be used.
+
+Multiple roles can be useful when scraping metrics from different AWS accounts with a single pair of credentials. In
+this case, a different role
+is configured for the agent to assume before calling AWS APIs. Therefore, the credentials configured in the system need
+permission to assume the target role.
+See [Granting a user permissions to switch roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html)
+in the AWS IAM documentation for more information about how to configure this.
+
+| Name          | Type     | Description                                                           | Default | Required |
+| ------------- | -------- | --------------------------------------------------------------------- | ------- | -------- |
+| `role_arn`    | `string` | AWS IAM Role ARN the exporter should assume to perform AWS API calls. |         | yes      |
+| `external_id` | `string` | External ID used when calling STS AssumeRole API. See [details][].    | `""`    | no       |
+
+[details]: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html
+
+### decoupled_scraping block
+
+The `decoupled_scraping` block configures an optional feature that scrapes CloudWatch metrics in the background on a
 scheduled interval. When this feature is enabled, CloudWatch metrics are gathered asynchronously at the scheduled interval instead
 of synchronously when the CloudWatch component is scraped.
 
 The decoupled scraping feature reduces the number of API requests sent to AWS.
-This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics
+This feature also prevents component scrape timeouts when you gather high volumes of CloudWatch metrics.
 
 | Name              | Type     | Description                                                             | Default | Required |
 | ----------------- | -------- | ----------------------------------------------------------------------- | ------- | -------- |

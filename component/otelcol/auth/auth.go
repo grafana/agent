@@ -20,8 +20,6 @@ import (
 	otelextension "go.opentelemetry.io/collector/extension"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
-
-	_ "github.com/grafana/agent/component/otelcol/internal/featuregate" // Enable needed feature gates
 )
 
 // Arguments is an extension of component.Arguments which contains necessary
