@@ -12,7 +12,6 @@ func init() {
 		Name:          "prometheus.exporter.agent",
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
-		Singleton:     true,
 		NeedsServices: exporter.RequiredServices(),
 		Build:         exporter.New(createExporter, "agent"),
 	})

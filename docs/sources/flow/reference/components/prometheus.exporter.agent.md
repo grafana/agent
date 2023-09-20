@@ -5,13 +5,11 @@ title: prometheus.exporter.agen
 
 # prometheus.exporter.agent
 The `prometheus.exporter.agent` component collects and exposes metrics about the agent itself.
-The `prometheus.exporter.agent` component can only appear once per
-configuration file, and a block label must not be passed to it.
 
 ## Usage
 
 ```river
-prometheus.exporter.agent {
+prometheus.exporter.agent "agent" {
 }
 ```
 
@@ -43,7 +41,7 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.agent`:
 
 ```river
-prometheus.exporter.agent {}
+prometheus.exporter.agent "agent" {}
 
 // Configure a prometheus.scrape component to collect agent metrics.
 prometheus.scrape "demo" {
