@@ -1,5 +1,13 @@
 
-## Migrating from Grafana Agent Operator
+---
+canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-operator/
+description: Migrating from Grafana Agent Operator to Grafana Agent Flow
+menuTitle: Migrate from Operator
+title: Migrating from Grafana Agent Operator to Grafana Agent Flow
+weight: 320
+---
+
+# Migrating from Grafana Agent Operator to Grafana Agent Flow
 
 With the release of flow, Grafana Agent Operator is no longer the recommended way to deploy Grafana Agent. Some of the Operator functionality has been moved into Grafana Agent
 itself, and the remaining functionality has been replaced by our Helm Chart.
@@ -27,11 +35,11 @@ This guide will provide some steps to get started with Grafana Agent for users c
     replicas: 2
     ```
 
-  This config will use Grafana Agent's built in [clustering]() to allow distributing scrapes across all Agent Pods.
+    This config will use Grafana Agent's built in [clustering]() to allow distributing scrapes across all Agent Pods.
 
 2. Create a flow config file, `agent.river`.
 
-You can add any config you need directly to this file.
+    You can add any config you need directly to this file.
 
 3. Install the grafana helm repository:
 
@@ -46,7 +54,7 @@ You can add any config you need directly to this file.
     helm upgrade grafana-agent grafana/grafana-agent -i -n monitoring -f values.yaml --set-file agent.configMap.content=agent.river
     ```
 
-This command uses the `--set-file` flag to pass the config file as a helm value, so that we can continue to edit it as a regular river file.
+    This command uses the `--set-file` flag to pass the config file as a helm value, so that we can continue to edit it as a regular river file.
 
 ## Convert `MetricsIntances` to flow components.
 
