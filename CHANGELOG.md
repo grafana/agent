@@ -74,6 +74,9 @@ Main (unreleased)
 - `loki.source.kafka` component now exposes internal label `__meta_kafka_offset`
   to indicate offset of consumed message. (@hainenber)
 
+- Add a`tail_from_end` attribute in `loki.source.file` to have the option to start tailing a file from the end if a cached position is not found.
+  This is valuable when you want to tail a large file without reading its entire content. (@wildum)
+
 - Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
 
 - Add support for `windows_certificate_filter` under http tls config block. (@mattdurham)
