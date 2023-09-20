@@ -56,6 +56,7 @@ func ConvertMetricUnit(unit string) (map[string]interface{}, error) {
 }
 
 type HistogramConfig struct {
+	Disable     bool                        `river:"disable,attr,optional"`
 	Unit        string                      `river:"unit,attr,optional"`
 	Exponential *ExponentialHistogramConfig `river:"exponential,block,optional"`
 	Explicit    *ExplicitHistogramConfig    `river:"explicit,block,optional"`
@@ -117,7 +118,18 @@ func (hc HistogramConfig) Convert() (*spanmetricsconnector.HistogramConfig, erro
 		result.Explicit = hc.Explicit.Convert()
 	}
 
+	result.Disable = hc.Disable
 	return &result, nil
+}
+
+type ExemplarsConfig struct {
+	Enabled bool `river:"enabled,attr,optional"`
+}
+
+func (ec ExemplarsConfig) Convert() *spanmetricsconnector.ExemplarsConfig {
+	return &spanmetricsconnector.ExemplarsConfig{
+		Enabled: ec.Enabled,
+	}
 }
 
 type ExponentialHistogramConfig struct {
