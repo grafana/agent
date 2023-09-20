@@ -75,9 +75,11 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	c.managedLocalFile, err = c.newManagedLocalComponent(o)
 	if err != nil {
+		m.Remove()
 		return nil, err
 	}
 	if err := c.Update(args); err != nil {
+		m.Remove()
 		return nil, err
 	}
 	return c, nil

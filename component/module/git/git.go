@@ -90,6 +90,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 
 	if err := c.Update(args); err != nil {
+		m.Remove()
 		return nil, err
 	}
 	return c, nil

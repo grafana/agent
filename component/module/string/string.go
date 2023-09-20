@@ -45,6 +45,7 @@ var (
 
 // New creates a new module.string component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	var err error
 	m, err := module.NewModuleComponent(o)
 	if err != nil {
 		return nil, err
@@ -54,6 +55,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 
 	if err := c.Update(args); err != nil {
+		m.Remove()
 		return nil, err
 	}
 	return c, nil

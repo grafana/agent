@@ -70,6 +70,13 @@ func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue stri
 	return nil
 }
 
+// Remove removes the module from the registry if there is an error.
+func (c *ModuleComponent) Remove() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	c.mod.Remove()
+}
+
 // RunFlowController runs the flow controller that all module components start.
 func (c *ModuleComponent) RunFlowController(ctx context.Context) {
 	c.mod.Run(ctx)

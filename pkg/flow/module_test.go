@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	mod "github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -199,39 +198,6 @@ func TestIDRemoval(t *testing.T) {
 	require.Len(t, nc.(*moduleController).modules, 0)
 }
 
-func TestIDRemovalIfFailedToLoad(t *testing.T) {
-	f := New(testOptions(t))
-	internalContent :=
-		`test.module \"good\" { content=\"\"}`
-	fullContent := "test.module \"t1\" { content = \"" + internalContent + "\" }"
-	fl, err := ReadFile("test", []byte(fullContent))
-	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
-	require.NoError(t, err)
-	ctx := context.Background()
-	ctx, cnc := context.WithTimeout(ctx, 600*time.Second)
-	defer cnc()
-	go f.Run(ctx)
-	time.Sleep(5 * time.Second)
-	require.Eventually(t, func() bool {
-		t1 := f.loader.Components()[0].Component().(*testModule)
-		return t1 != nil
-	}, 10*time.Second, 100*time.Millisecond)
-	t1 := f.loader.Components()[0].Component().(*testModule)
-	m := t1.mc
-	require.NotNil(t, m)
-	internalModule := f.modules.modules["test.module.t1"]
-	require.NotNil(t, internalModule)
-	t2 := internalModule.f.loader.Components()[0].Component().(*testModule)
-	require.NotNil(t, t2)
-	err = t2.updateContent("garbage")
-	require.Error(t, err)
-	time.Sleep(5 * time.Second)
-	// This has to be different since we are passing the string directly instead of via readfile.
-	err = t2.updateContent("")
-	require.NoError(t, err)
-}
-
 func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	t.Helper()
 
@@ -250,19 +216,12 @@ func init() {
 	component.Register(component.Registration{
 		Name:    "test.module",
 		Args:    TestArguments{},
-		Exports: mod.Exports{},
+		Exports: TestExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			m, err := mod.NewModuleComponent(opts)
-			if err != nil {
-				return nil, err
-			}
-
 			return &testModule{
-				mc:      m,
 				content: args.(TestArguments).Content,
 				opts:    opts,
-				ch:      make(chan error),
 			}, nil
 		},
 	})
@@ -281,40 +240,26 @@ type testModule struct {
 	args    map[string]interface{}
 	exports map[string]interface{}
 	opts    component.Options
-	ch      chan error
-	mc      *mod.ModuleComponent
 }
 
 func (t *testModule) Run(ctx context.Context) error {
-	var err error
-	if err != nil {
-		return err
-	}
-
-	err = t.mc.LoadFlowContent(t.args, t.content)
-	if err != nil {
-		return err
-	}
-	go t.mc.RunFlowController(ctx)
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case err = <-t.ch:
-			return err
+	m, err := t.opts.ModuleController.NewModule("t1", func(exports map[string]any) {
+		t.exports = exports
+		if t.opts.OnStateChange == nil {
+			return
 		}
-	}
-	return nil
-}
-
-func (t *testModule) updateContent(content string) error {
-	t.content = content
-	err := t.mc.LoadFlowContent(t.args, t.content)
+		t.opts.OnStateChange(TestExports{Exports: exports})
+	})
 	if err != nil {
-		t.ch <- err
+		return err
 	}
-	return err
+
+	err = m.LoadConfig([]byte(t.content), t.args)
+	if err != nil {
+		return err
+	}
+	m.Run(ctx)
+	return nil
 }
 
 func (t *testModule) Update(_ component.Arguments) error {

@@ -35,6 +35,10 @@ type ModuleController interface {
 	// If id is non-empty, it must be a valid River identifier, matching the
 	// regex /[A-Za-z_][A-Za-z0-9_]/.
 	NewModule(id string, export ExportFunc) (Module, error)
+
+	// RemoveID is used to remove the id from the cache, this is normally called from Run but if
+	// the Module is created and then fails during loading then it will leak the id.
+	RemoveID(id string)
 }
 
 // Module is a controller for running components within a Module.
@@ -50,6 +54,8 @@ type Module interface {
 	// Run blocks until the provided context is canceled. The ID of a module as defined in
 	// ModuleController.NewModule will not be released until Run returns.
 	Run(context.Context)
+
+	Remove()
 }
 
 // ExportFunc is used for onExport of the Module
