@@ -151,7 +151,7 @@ require (
 	github.com/prometheus/node_exporter v1.6.0
 	github.com/prometheus/procfs v0.11.0
 	github.com/prometheus/prometheus v1.99.0
-	github.com/prometheus/snmp_exporter v0.22.1-0.20230623130038-562ae9055ce3
+	github.com/prometheus/snmp_exporter v0.23.0
 	github.com/prometheus/statsd_exporter v0.22.8
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
 	github.com/rs/cors v1.9.0
@@ -397,7 +397,7 @@ require (
 	github.com/gophercloud/gophercloud v1.5.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/gosnmp/gosnmp v1.35.0 // indirect
+	github.com/gosnmp/gosnmp v1.36.0 // indirect
 	github.com/grafana/gomemcache v0.0.0-20230316202710-a081dae0aba9 // indirect
 	github.com/grafana/loki/pkg/push v0.0.0-20230904153656-e4cc2a4f5ec8 // k166 branch
 	github.com/grobie/gomemcache v0.0.0-20230213081705-239240bbc445 // indirect
