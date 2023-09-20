@@ -4,7 +4,9 @@ package file
 // tailer implements the reader interface by using the github.com/grafana/tail package to tail files.
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"sync"
 	"time"
@@ -45,7 +47,8 @@ type tailer struct {
 	decoder *encoding.Decoder
 }
 
-func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, labels string, encoding string, pollOptions watch.PollingFileWatcherOptions) (*tailer, error) {
+func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string,
+	labels string, encoding string, pollOptions watch.PollingFileWatcherOptions, tailFromEnd bool) (*tailer, error) {
 	// Simple check to make sure the file we are tailing doesn't
 	// have a position already saved which is past the end of the file.
 	fi, err := os.Stat(path)
@@ -59,6 +62,17 @@ func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, p
 
 	if fi.Size() < pos {
 		positions.Remove(path, labels)
+	}
+
+	// If no cached position is found and the tailFromEnd option is enabled.
+	if pos == 0 && tailFromEnd {
+		pos, err = getLastLinePosition(path)
+		if err != nil {
+			level.Error(logger).Log("msg", "failed to get a position from the end of the file, default to start of file", err)
+		} else {
+			positions.Put(path, labels, pos)
+			level.Info(logger).Log("msg", "retrieved and stored the position of the last line")
+		}
 	}
 
 	tail, err := tail.TailFile(path, tail.Config{
@@ -106,6 +120,62 @@ func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, p
 	go tailer.updatePosition()
 	metrics.filesActive.Add(1.)
 	return tailer, nil
+}
+
+// getLastLinePosition returns the offset of the start of the last line in the file at the given path.
+// It will read chunks of bytes starting from the end of the file to return the position of the last '\n' + 1.
+// If it cannot find any '\n' it will return 0.
+func getLastLinePosition(path string) (int64, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+
+	const chunkSize = 1024
+
+	buf := make([]byte, chunkSize)
+	fi, err := file.Stat()
+	if err != nil {
+		return 0, err
+	}
+
+	if fi.Size() == 0 {
+		return 0, nil
+	}
+
+	var pos int64 = fi.Size() - chunkSize
+	if pos < 0 {
+		pos = 0
+	}
+
+	for {
+		_, err = file.Seek(pos, io.SeekStart)
+		if err != nil {
+			return 0, err
+		}
+
+		bytesRead, err := file.Read(buf)
+		if err != nil {
+			return 0, err
+		}
+
+		idx := bytes.LastIndexByte(buf[:bytesRead], '\n')
+		// newline found
+		if idx != -1 {
+			return pos + int64(idx) + 1, nil
+		}
+
+		// no newline found in the entire file
+		if pos == 0 {
+			return 0, nil
+		}
+
+		pos -= chunkSize
+		if pos < 0 {
+			pos = 0
+		}
+	}
 }
 
 // updatePosition is run in a goroutine and checks the current size of the file

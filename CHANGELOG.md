@@ -61,6 +61,8 @@ Main (unreleased)
 
 - Add optional `nil_to_zero` config flag for `YACE` which can be set in the `static`, `discovery`, or `metric` config blocks. (@berler)
 
+- The `cri` stage in `loki.process` can now be configured to limit line size.
+
 ### Enhancements
 
 - Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
@@ -74,6 +76,9 @@ Main (unreleased)
 - `loki.source.kafka` component now exposes internal label `__meta_kafka_offset`
   to indicate offset of consumed message. (@hainenber)
 
+- Add a`tail_from_end` attribute in `loki.source.file` to have the option to start tailing a file from the end if a cached position is not found.
+  This is valuable when you want to tail a large file without reading its entire content. (@wildum)
+
 - Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
 
 - Add support for `windows_certificate_filter` under http tls config block. (@mattdurham)
@@ -84,6 +89,8 @@ Main (unreleased)
   Agent's `/metrics` endpoint. Those components include `otelcol.receiver.otlp`, 
   `otelcol.exporter.otlp` and `otelcol.processor.batch`. There may also be metrics 
   from other components which are not documented yet. (@ptodev)
+
+- Agent Management: Honor 503 ServiceUnavailable `Retry-After` header. (@jcreixell)
 
 ### Other changes
 
@@ -96,6 +103,7 @@ Main (unreleased)
   have been standardized. The first fields will always be `ts`, `level`, and
   `msg`, followed by non-common fields. Previously, the position of `msg` was
   not consistent. (@rfratto)
+- Documentation updated to link discovery.http and prometheus.scrape advanced configs (@proffalken)
 
 ### Bugfixes
 
