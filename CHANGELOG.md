@@ -44,6 +44,7 @@ Main (unreleased)
   - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
   - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
   - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
+  - `prometheus.exporter.agent` - scrape agent's metrics. (@hainenber)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
@@ -121,6 +122,9 @@ Main (unreleased)
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
 
 - Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
+
+- Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets 
+  instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
 
 v0.36.1 (2023-09-06)
 --------------------
