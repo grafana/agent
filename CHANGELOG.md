@@ -120,7 +120,7 @@ Main (unreleased)
 
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
 
-v0.36.2 (2023-09-21)
+v0.36.2 (2023-09-22)
 --------------------
 
 ### Bugfixes
