@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"crypto"
 	"crypto/tls"
 	"crypto/x509"
@@ -19,8 +18,8 @@ import (
 
 // Documentation on how to setup a certificate store can be found at docs/developer/windows
 
-// winCertStoreHandler handles the finding of certificates, validating them and injecting into the default TLS pipeline
-type winCertStoreHandler struct {
+// WinCertStoreHandler handles the finding of certificates, validating them and injecting into the default TLS pipeline
+type WinCertStoreHandler struct {
 	cfg          WindowsCertificateFilter
 	subjectRegEx *regexp.Regexp
 	log          log.Logger
@@ -33,8 +32,31 @@ type winCertStoreHandler struct {
 	// the client does NOT need the signer
 	serverIdentity certstore.Identity
 	clientAuth     tls.ClientAuthType
+	shutdown       chan struct{}
+}
 
-	cancelContext context.Context
+// NewWinCertStoreHandler creates a new WindowsCertificateFilter. Run should be called afterward.
+func NewWinCertStoreHandler(cfg WindowsCertificateFilter, clientAuth tls.ClientAuthType, l log.Logger) (*WinCertStoreHandler, error) {
+	var subjectRegEx *regexp.Regexp
+	var err error
+	if cfg.Client != nil && cfg.Client.SubjectRegEx != "" {
+		subjectRegEx, err = regexp.Compile(cfg.Client.SubjectRegEx)
+		if err != nil {
+			return nil, fmt.Errorf("error compiling subject common name regular expression: %w", err)
+		}
+	}
+	cn := &WinCertStoreHandler{
+		cfg:          cfg,
+		subjectRegEx: subjectRegEx,
+		log:          l,
+		shutdown:     make(chan struct{}),
+	}
+	err = cn.refreshCerts()
+	if err != nil {
+		return nil, err
+	}
+	cn.clientAuth = clientAuth
+	return cn, nil
 }
 
 func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
@@ -59,20 +81,18 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 		}
 	}
 
-	// If there is an existing windows certhandler notify it to stop refreshing
-	if l.cancelWindowsCert != nil {
-		l.cancelWindowsCert()
-		l.cancelWindowsCert = nil
+	// If there is an existing windows certhandler stop it.
+	if l.windowsCertHandler != nil {
+		l.windowsCertHandler.Stop()
 	}
-	cancelCtx := context.Background()
-	cancelCtx, cancelHandler := context.WithCancel(cancelCtx)
-	l.cancelWindowsCert = cancelHandler
-	cn := &winCertStoreHandler{
-		cfg:           *c.WindowsCertificateFilter,
-		subjectRegEx:  subjectRegEx,
-		cancelContext: cancelCtx,
-		log:           l.log,
+
+	cn := &WinCertStoreHandler{
+		cfg:          *c.WindowsCertificateFilter,
+		subjectRegEx: subjectRegEx,
+		log:          l.log,
+		shutdown:     make(chan struct{}),
 	}
+
 	err = cn.refreshCerts()
 	if err != nil {
 		return err
@@ -80,24 +100,9 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 
 	config := &tls.Config{
 		VerifyPeerCertificate: cn.VerifyPeer,
-		GetCertificate: func(info *tls.ClientHelloInfo) (*tls.Certificate, error) {
-			cn.winMut.Lock()
-			defer cn.winMut.Unlock()
-			cert := &tls.Certificate{
-				Certificate: [][]byte{cn.serverCert.Raw},
-				PrivateKey:  cn.serverSigner,
-				Leaf:        cn.serverCert,
-				// These seem to be the safest to use, tested on Win10, Server 2016, 2019, 2022
-				SupportedSignatureAlgorithms: []tls.SignatureScheme{
-					tls.PKCS1WithSHA512,
-					tls.PKCS1WithSHA384,
-					tls.PKCS1WithSHA256,
-				},
-			}
-			return cert, nil
-		},
-		// Windows has broad support for 1.2, only 2022 has support for 1.3
-		MaxVersion: tls.VersionTLS12,
+		GetCertificate:        cn.CertificateHandler,
+		MaxVersion:            uint16(c.MaxVersion),
+		MinVersion:            uint16(c.MinVersion),
 	}
 
 	ca, err := GetClientAuthFromString(c.ClientAuth)
@@ -114,8 +119,31 @@ func (l *tlsListener) applyWindowsCertificateStore(c TLSConfig) error {
 	return nil
 }
 
+// Run runs the filter refresh. Stop should be called when done.
+func (c *WinCertStoreHandler) Run() {
+	go c.startUpdateTimer()
+}
+
+// Stop shuts down the refresh loop and frees the win32 handles.
+func (c *WinCertStoreHandler) Stop() {
+	c.shutdown <- struct{}{}
+}
+
+// CertificateHandler returns the certificate to handle peer check.
+func (c *WinCertStoreHandler) CertificateHandler(_ *tls.ClientHelloInfo) (*tls.Certificate, error) {
+	c.winMut.Lock()
+	defer c.winMut.Unlock()
+
+	cert := &tls.Certificate{
+		Certificate: [][]byte{c.serverCert.Raw},
+		PrivateKey:  c.serverSigner,
+		Leaf:        c.serverCert,
+	}
+	return cert, nil
+}
+
 // VerifyPeer is called by the TLS pipeline, and specified in tls.config, this is where any custom verification happens
-func (c *winCertStoreHandler) VerifyPeer(_ [][]byte, verifiedChains [][]*x509.Certificate) error {
+func (c *WinCertStoreHandler) VerifyPeer(_ [][]byte, verifiedChains [][]*x509.Certificate) error {
 	opts := x509.VerifyOptions{}
 	clientCert := verifiedChains[0][0]
 
@@ -153,7 +181,6 @@ func (c *winCertStoreHandler) VerifyPeer(_ [][]byte, verifiedChains [][]*x509.Ce
 	// call the normal pipeline
 	_, err := clientCert.Verify(opts)
 	return err
-
 }
 
 // this is the ASN1 Object Identifier for TemplateID
@@ -165,7 +192,7 @@ type templateInformation struct {
 	MinorVersion int
 }
 
-func (c *winCertStoreHandler) startUpdateTimer() {
+func (c *WinCertStoreHandler) startUpdateTimer() {
 	refreshInterval := 5 * time.Minute
 	c.winMut.Lock()
 	if c.cfg.Server.RefreshInterval != 0 {
@@ -174,7 +201,7 @@ func (c *winCertStoreHandler) startUpdateTimer() {
 	c.winMut.Unlock()
 	for {
 		select {
-		case <-c.cancelContext.Done():
+		case <-c.shutdown:
 			if c.serverIdentity != nil {
 				c.serverIdentity.Close()
 			}
@@ -192,9 +219,10 @@ func (c *winCertStoreHandler) startUpdateTimer() {
 }
 
 // refreshCerts is the main work item in certificate store, responsible for finding the right certificate
-func (c *winCertStoreHandler) refreshCerts() (err error) {
+func (c *WinCertStoreHandler) refreshCerts() (err error) {
 	c.winMut.Lock()
 	defer c.winMut.Unlock()
+
 	level.Debug(c.log).Log("msg", "refreshing Windows certificates")
 	// Close the server identity if already set
 	if c.serverIdentity != nil {
@@ -229,12 +257,12 @@ func (c *winCertStoreHandler) refreshCerts() (err error) {
 	return
 }
 
-func (c *winCertStoreHandler) findServerIdentity() (certstore.Identity, error) {
+func (c *WinCertStoreHandler) findServerIdentity() (certstore.Identity, error) {
 	return c.findCertificate(c.cfg.Server.SystemStore, c.cfg.Server.Store, c.cfg.Server.IssuerCommonNames, c.cfg.Server.TemplateID, nil, c.getStore)
 }
 
 // getStore converts the string representation to the enum representation
-func (c *winCertStoreHandler) getStore(systemStore string, storeName string) (certstore.Store, error) {
+func (c *WinCertStoreHandler) getStore(systemStore string, storeName string) (certstore.Store, error) {
 	st, err := certstore.StringToStoreType(systemStore)
 	if err != nil {
 		return nil, err
@@ -249,7 +277,7 @@ func (c *winCertStoreHandler) getStore(systemStore string, storeName string) (ce
 type getStoreFunc func(systemStore, storeName string) (certstore.Store, error)
 
 // findCertificate applies the filters to get the server certificate
-func (c *winCertStoreHandler) findCertificate(systemStore string, storeName string, commonNames []string, templateID string, subjectRegEx *regexp.Regexp, getStore getStoreFunc) (certstore.Identity, error) {
+func (c *WinCertStoreHandler) findCertificate(systemStore string, storeName string, commonNames []string, templateID string, subjectRegEx *regexp.Regexp, getStore getStoreFunc) (certstore.Identity, error) {
 	var store certstore.Store
 	var validIdentity certstore.Identity
 	var identities []certstore.Identity
@@ -310,7 +338,7 @@ func (c *winCertStoreHandler) findCertificate(systemStore string, storeName stri
 	return validIdentity, nil
 }
 
-func (c *winCertStoreHandler) filterByIssuerCommonNames(input []certstore.Identity, commonNames []string) ([]certstore.Identity, error) {
+func (c *WinCertStoreHandler) filterByIssuerCommonNames(input []certstore.Identity, commonNames []string) ([]certstore.Identity, error) {
 	if len(commonNames) == 0 {
 		return input, nil
 	}
@@ -330,7 +358,7 @@ func (c *winCertStoreHandler) filterByIssuerCommonNames(input []certstore.Identi
 	return returnIdentities, nil
 }
 
-func (c *winCertStoreHandler) filterByTemplateID(input []certstore.Identity, id string) ([]certstore.Identity, error) {
+func (c *WinCertStoreHandler) filterByTemplateID(input []certstore.Identity, id string) ([]certstore.Identity, error) {
 	if id == "" {
 		return input, nil
 	}
@@ -363,7 +391,7 @@ func getTemplateID(cert *x509.Certificate) string {
 	return ""
 }
 
-func (c *winCertStoreHandler) filterBySubjectRegularExpression(input []certstore.Identity, regEx *regexp.Regexp) ([]certstore.Identity, error) {
+func (c *WinCertStoreHandler) filterBySubjectRegularExpression(input []certstore.Identity, regEx *regexp.Regexp) ([]certstore.Identity, error) {
 	if regEx == nil {
 		return input, nil
 	}

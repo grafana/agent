@@ -17,6 +17,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/ckit/memconn"
 	_ "github.com/grafana/pyroscope-go/godeltaprof/http/pprof" // Register godeltaprof handler
@@ -56,6 +57,9 @@ type Service struct {
 	tracer   trace.TracerProvider
 	gatherer prometheus.Gatherer
 	opts     Options
+
+	winMut sync.Mutex
+	win    *server.WinCertStoreHandler
 
 	// publicLis and tcpLis are used to lazily enable TLS, since TLS is
 	// optionally configurable at runtime.
@@ -133,6 +137,13 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+	defer func() {
+		s.winMut.Lock()
+		defer s.winMut.Unlock()
+		if s.win != nil {
+			s.win.Stop()
+		}
+	}()
 
 	netLis, err := net.Listen("tcp", s.opts.HTTPListenAddr)
 	if err != nil {
@@ -286,7 +297,17 @@ func (s *Service) Update(newConfig any) error {
 	newArgs := newConfig.(Arguments)
 
 	if newArgs.TLS != nil {
-		tlsConfig, err := newArgs.TLS.tlsConfig()
+		var tlsConfig *tls.Config
+		var err error
+		if newArgs.TLS.WindowsFilter != nil {
+			err = s.updateWindowsCertificateFilter(newArgs.TLS)
+			if err != nil {
+				return err
+			}
+			tlsConfig, err = newArgs.TLS.winTlsConfig(s.win)
+		} else {
+			tlsConfig, err = newArgs.TLS.tlsConfig()
+		}
 		if err != nil {
 			return err
 		}

@@ -200,6 +200,12 @@ configuration.
 `otelcol.receiver.otlp` does not expose any component-specific debug
 information.
 
+## Debug metrics
+
+* `receiver_accepted_spans_ratio_total` (counter): Number of spans successfully pushed into the pipeline.
+* `receiver_refused_spans_ratio_total` (counter): Number of spans that could not be pushed into the pipeline.
+* `rpc_server_duration_milliseconds` (histogram): Duration of RPC requests from a gRPC server.
+
 ## Example
 
 This example forwards received telemetry data through a batch processor before
