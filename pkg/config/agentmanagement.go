@@ -31,8 +31,8 @@ const (
 )
 
 var (
-	agentInfoVersion      string
-	agentNamespaceVersion string
+	agentInfoVersion           string
+	agentNamespaceVersion      string
 	defaultRemoteConfiguration = RemoteConfiguration{
 		AcceptHTTPNotModified: true,
 	}
