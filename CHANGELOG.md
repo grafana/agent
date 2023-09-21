@@ -78,6 +78,9 @@ Main (unreleased)
 
 - Fixed a bug where `otelcol.processor.discovery` could modify the `targets` passed by an upstream component. (@ptodev)
 
+- Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
+  permanently fail to load with `id already exists` error. (@mattdurham)
+
 v0.36.1 (2023-09-06)
 --------------------
 
