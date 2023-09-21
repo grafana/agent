@@ -12,7 +12,7 @@ scrape_configs:
             - docker: {}
             - match:
                 pipeline_name: two
-                selector: foobar_two
+                selector: '{log_type="", logs_agent_grafana_com_log_format=~"(?i).*((generic-?)?json).*"} |~ "^\\s*\\{.+\\}\\s*$"'
                 action: drop
                 drop_counter_reason: "nope_two"
                 stages:

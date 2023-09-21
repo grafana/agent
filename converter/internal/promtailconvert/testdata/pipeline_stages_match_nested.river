@@ -16,7 +16,7 @@ loki.process "example" {
 		stage.docker { }
 
 		stage.match {
-			selector = "foobar_two"
+			selector = "{log_type=\"\", logs_agent_grafana_com_log_format=~\"(?i).*((generic-?)?json).*\"} |~ \"^\\\\s*\\\\{.+\\\\}\\\\s*$\""
 
 			stage.cri { }
 			action              = "drop"
