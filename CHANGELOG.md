@@ -123,6 +123,9 @@ Main (unreleased)
 
 - Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
 
+- Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets 
+  instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
+
 v0.36.1 (2023-09-06)
 --------------------
 
