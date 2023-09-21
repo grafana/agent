@@ -7,6 +7,22 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.36.2 (2023-09-21)
+--------------------
+
+### Bugfixes
+
+- Fixed a bug where `otelcol.processor.discovery` could modify the `targets` passed by an upstream component. (@ptodev)
+
+- Fixed a bug where `otelcol` components with a retry mechanism would not wait after the first retry. (@rfratto)
+
+- Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
+
+- Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
+
+- Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets 
+  instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
+
 v0.36.1 (2023-09-06)
 --------------------
 
