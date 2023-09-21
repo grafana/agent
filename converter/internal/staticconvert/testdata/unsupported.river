@@ -22,15 +22,6 @@ logging {
 	format = "json"
 }
 
-http {
-	tls {
-		cert_file        = "./testdata/example-cert.pem"
-		key_file         = "./testdata/example-key.pem"
-		client_ca_file   = "./testdata/example-cert.pem"
-		client_auth_type = "VerifyClientCertIfGiven"
-	}
-}
-
 prometheus.exporter.statsd "integrations_statsd_exporter" { }
 
 prometheus.scrape "integrations_statsd_exporter" {

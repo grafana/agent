@@ -42,6 +42,33 @@ This changed default setting allows the agent to retry sending data when it rece
 * If you explicitly set the `retry_on_http_429`, no action is required.
 * If you do not explicitly set `retry_on_http_429` and you do *not* want to retry on HTTP 429, make sure you set it to `false` when you upgrade to this new version.
 
+### Breaking change: Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`.
+
+If you use the Loki processing stage in your Agent configuration, you must rename the `non_indexed_labels` pipeline stage definition to `structured_metadata`.
+
+
+Old configuration example:
+
+```yaml
+  pipeline_stages:
+    - logfmt:
+        mapping:
+          app:
+    - non_indexed_labels:
+        app:
+```
+
+New configuration example:
+
+```yaml
+  pipeline_stages:
+    - logfmt:
+        mapping:
+          app:
+    - structured_metadata:
+        app:
+```
+
 ## v0.35
 
 ### Breaking change: Jaeger remote sampling no longer configurable using the Jaeger receiver

@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/auth"
 	"github.com/grafana/agent/component/otelcol/exporter"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -22,9 +23,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.exporter.loadbalancing",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:          "otelcol.exporter.loadbalancing",
+		Args:          Arguments{},
+		Exports:       otelcol.ConsumerExports{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := loadbalancingexporter.NewFactory()
@@ -48,10 +50,22 @@ var (
 	_ river.Defaulter    = &Arguments{}
 )
 
-// DefaultArguments holds default values for Arguments.
-var DefaultArguments = Arguments{
-	RoutingKey: "traceID",
-}
+var (
+	// DefaultArguments holds default values for Arguments.
+	DefaultArguments = Arguments{
+		Protocol: Protocol{
+			OTLP: DefaultOTLPConfig,
+		},
+		RoutingKey: "traceID",
+	}
+
+	DefaultOTLPConfig = OtlpConfig{
+		Timeout: otelcol.DefaultTimeout,
+		Queue:   otelcol.DefaultQueueArguments,
+		Retry:   otelcol.DefaultRetryArguments,
+		Client:  DefaultGRPCClientArguments,
+	}
+)
 
 // SetToDefault implements river.Defaulter.
 func (args *Arguments) SetToDefault() {
@@ -86,6 +100,10 @@ type OtlpConfig struct {
 	// Most of the time, the user will not have to set anything in the client block.
 	// However, the block should not be "optional" so that the defaults are populated.
 	Client GRPCClientArguments `river:"client,block"`
+}
+
+func (OtlpConfig *OtlpConfig) SetToDefault() {
+	*OtlpConfig = DefaultOTLPConfig
 }
 
 func (otlpConfig OtlpConfig) Convert() otlpexporter.Config {

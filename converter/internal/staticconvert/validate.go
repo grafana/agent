@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
+	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
@@ -67,7 +68,6 @@ func validateServer(serverConfig *server.Config) diag.Diagnostics {
 	defaultServerConfig := server.DefaultConfig()
 	diags.AddAll(common.UnsupportedNotDeepEqualsMessage(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server", "flow mode does not have a gRPC server to configure."))
 	diags.AddAll(common.UnsupportedNotEquals(serverConfig.HTTP.TLSConfig.PreferServerCipherSuites, defaultServerConfig.HTTP.TLSConfig.PreferServerCipherSuites, "prefer_server_cipher_suites server"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(serverConfig.HTTP.TLSConfig.WindowsCertificateFilter, defaultServerConfig.HTTP.TLSConfig.WindowsCertificateFilter, "windows_certificate_filter server"))
 
 	return diags
 }
@@ -129,6 +129,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *squid_exporter.Config:
 		case *statsd_exporter.Config:
 		case *windows_exporter.Config:
+		case *azure_exporter.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}
