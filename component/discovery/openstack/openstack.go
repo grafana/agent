@@ -42,7 +42,7 @@ type Arguments struct {
 	RefreshInterval             time.Duration     `river:"refresh_interval,attr,optional"`
 	Port                        int               `river:"port,attr,optional"`
 	AllTenants                  bool              `river:"all_tenants,attr,optional"`
-	TLSConfig                   config.TLSConfig  `river:"tls_config,attr,optional"`
+	TLSConfig                   config.TLSConfig  `river:"tls_config,block,optional"`
 	Availability                string            `river:"availability,attr,optional"`
 }
 

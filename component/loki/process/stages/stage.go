@@ -121,7 +121,7 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 			return nil, err
 		}
 	case cfg.CRIConfig != nil:
-		s, err = NewCRI(logger, registerer)
+		s, err = NewCRI(logger, *cfg.CRIConfig, registerer)
 		if err != nil {
 			return nil, err
 		}

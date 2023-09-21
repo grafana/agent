@@ -168,6 +168,11 @@ configuration.
 `otelcol.exporter.otlp` does not expose any component-specific debug
 information.
 
+## Debug metrics
+
+* `exporter_sent_spans_ratio_total` (counter): Number of spans successfully sent to destination.
+* `exporter_send_failed_spans_ratio_total` (counter): Number of spans in failed attempts to send to destination.
+
 ## Examples
 
 The following examples show you how to create an exporter to send data to different destinations.
