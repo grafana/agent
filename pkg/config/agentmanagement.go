@@ -33,6 +33,9 @@ const (
 var (
 	agentInfoVersion      string
 	agentNamespaceVersion string
+	defaultRemoteConfiguration = RemoteConfiguration{
+		AcceptHTTPNotModified: true,
+	}
 )
 
 type remoteConfigProvider interface {
@@ -198,6 +201,14 @@ type RemoteConfiguration struct {
 	AgentID                string   `yaml:"agent_id"`
 	Namespace              string   `yaml:"namespace"`
 	CacheLocation          string   `yaml:"cache_location"`
+}
+
+// UnmarshalYAML implement YAML Unmarshaler
+func (rc *RemoteConfiguration) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// Apply defaults
+	*rc = defaultRemoteConfiguration
+	type plain RemoteConfiguration
+	return unmarshal((*plain)(rc))
 }
 
 type AgentManagementConfig struct {

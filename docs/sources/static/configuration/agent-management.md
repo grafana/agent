@@ -69,7 +69,7 @@ agent_management:
     label_management_enabled: <bool> | default = false
 
     # Whether to accept HTTP Not Modified (304) responses from the API server. If enabled, the agent will use the cached configuration if the API server responds with a 304. This can be disabled for debugging or testing, but will save network bandwidth and CPU time if enabled.
-    accept_http_not_modified: <bool> | default = false
+    accept_http_not_modified: <bool> | default = true
 
     # A unique ID for the agent, which is used to identify the agent.
     agent_id: <string>
