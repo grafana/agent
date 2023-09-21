@@ -55,6 +55,7 @@ type Module interface {
 	// ModuleController.NewModule will not be released until Run returns.
 	Run(context.Context)
 
+	// Remove is used to manually remove the module from the registry.
 	Remove()
 }
 

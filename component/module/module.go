@@ -70,10 +70,12 @@ func (c *ModuleComponent) LoadFlowContent(args map[string]any, contentValue stri
 	return nil
 }
 
-// Remove removes the module from the registry if there is an error.
+// Remove removes the module from the registry. This is normally called after Run but in the case
+// where the parent component fails to load and successfully run it must be called manually.
 func (c *ModuleComponent) Remove() {
 	c.mut.Lock()
 	defer c.mut.Unlock()
+
 	c.mod.Remove()
 }
 
