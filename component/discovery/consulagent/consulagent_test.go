@@ -7,8 +7,8 @@ import (
 	"github.com/grafana/river"
 	promcfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gotest.tools/assert"
 )
 
 func TestConvert(t *testing.T) {

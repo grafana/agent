@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service"
@@ -171,7 +172,7 @@ func newTestEnvironment(t *testing.T) (*testEnvironment, error) {
 		Gatherer: prometheus.NewRegistry(),
 
 		ReadyFunc:  func() bool { return true },
-		ReloadFunc: func() error { return nil },
+		ReloadFunc: func() (*flow.Source, error) { return nil, nil },
 
 		HTTPListenAddr:   fmt.Sprintf("127.0.0.1:%d", port),
 		MemoryListenAddr: "agent.internal:12345",

@@ -20,16 +20,20 @@ interrupt is received.
 
 Usage:
 
-* `AGENT_MODE=flow grafana-agent run [FLAG ...] FILE_NAME`
-* `grafana-agent-flow run [FLAG ...] FILE_NAME`
+* `AGENT_MODE=flow grafana-agent run [FLAG ...] PATH_NAME`
+* `grafana-agent-flow run [FLAG ...] PATH_NAME`
 
    Replace the following:
 
    * `FLAG`: One or more flags that define the input and output of the command.
-   * `FILE_NAME`: Required. The Grafana Agent configuration file.
+   * `PATH_NAME`: Required. The Grafana Agent configuration file/directory path.
 
-If the `FILE_NAME` argument is not provided, or if the configuration file can't be loaded or 
+If the `PATH_NAME` argument is not provided, or if the configuration path can't be loaded or 
 contains errors during the initial load, the `run` command will immediately exit and show an error message.
+
+If you give the `PATH_NAME` argument a directory path, the agent will find `*.river` files
+(ignoring nested directories) and load them as a single configuration source. However, component names must
+be **unique** across all River files, and configuration blocks must not be repeated.
 
 Grafana Agent Flow will continue to run if subsequent reloads of the configuration
 file fail, potentially marking components as unhealthy depending on the nature
