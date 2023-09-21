@@ -34,6 +34,7 @@ content=""
 fail=true
 }`
 	err = t1.updateContent(badContent)
+	require.Error(t, err)
 	goodContent :=
 		`test.fail.module "int" { 
 content=""
@@ -54,10 +55,14 @@ func init() {
 			if err != nil {
 				return nil, err
 			}
-			err = m.LoadFlowContent(nil, args.(TestFailArguments).Content)
 			if args.(TestFailArguments).Fail {
 				m.Remove()
 				return nil, fmt.Errorf("module told to fail")
+			}
+			err = m.LoadFlowContent(nil, args.(TestFailArguments).Content)
+			if err != nil {
+				m.Remove()
+				return nil, err
 			}
 			return &testFailModule{
 				mc:      m,
@@ -77,8 +82,6 @@ type TestFailArguments struct {
 
 type testFailModule struct {
 	content string
-	args    map[string]interface{}
-	exports map[string]interface{}
 	opts    component.Options
 	ch      chan error
 	mc      *mod.ModuleComponent
@@ -92,7 +95,7 @@ func (t *testFailModule) Run(ctx context.Context) error {
 
 func (t *testFailModule) updateContent(content string) error {
 	t.content = content
-	err := t.mc.LoadFlowContent(t.args, t.content)
+	err := t.mc.LoadFlowContent(nil, t.content)
 	return err
 }
 
