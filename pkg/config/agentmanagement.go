@@ -169,13 +169,6 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 
 	bb, headers, err := rc.retrieve()
 
-	nsVersion := headers.Get(agentNamespaceVersionHeader)
-	infoVersion := headers.Get(agentInfoVersionHeader)
-	if nsVersion != "" && infoVersion != "" {
-		agentNamespaceVersion = nsVersion
-		agentInfoVersion = infoVersion
-	}
-
 	// If the server returns a 304, return it and the caller will handle it.
 	var nme notModifiedError
 	if errors.Is(err, nme) {
@@ -185,6 +178,14 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving remote config: %w", err)
 	}
+
+	nsVersion := headers.Get(agentNamespaceVersionHeader)
+	infoVersion := headers.Get(agentInfoVersionHeader)
+	if nsVersion != "" && infoVersion != "" {
+		agentNamespaceVersion = nsVersion
+		agentInfoVersion = infoVersion
+	}
+
 	return bb, nil
 }
 
