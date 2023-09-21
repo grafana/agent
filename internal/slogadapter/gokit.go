@@ -68,5 +68,8 @@ func (sa slogAdapter) Log(kvps ...interface{}) error {
 		})
 	}
 
+	if !sa.h.Enabled(context.Background(), rec.Level) {
+		return nil
+	}
 	return sa.h.Handle(context.Background(), rec)
 }
