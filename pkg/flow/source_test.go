@@ -47,7 +47,7 @@ func TestParseSourceWithConfigBlock(t *testing.T) {
 	require.NotNil(t, f)
 
 	require.Len(t, f.components, 1)
-	require.Equal(t, "testcomponents.tick.ticker_a", getBlockID(f.components[0]))
+	require.Equal(t, "testcomponents.tick.ticker_with_config_block", getBlockID(f.components[0]))
 	require.Len(t, f.configBlocks, 1)
 	require.Equal(t, "logging", getBlockID(f.configBlocks[0]))
 }
