@@ -227,15 +227,18 @@ func (f *Flow) Run(ctx context.Context) {
 			// We need to pop _everything_ from the queue and evaluate each of them.
 			// If we only pop a single element, other components may sit waiting for
 			// evaluation forever.
+
+			// NOTE: sending all the updated nodes at once to EvaluateDependencies
+			//TODO(thampiotr): fix tests and other callers
+			var allUpdated []*controller.ComponentNode
 			for {
 				updated := f.updateQueue.TryDequeue()
 				if updated == nil {
 					break
 				}
-
-				level.Debug(f.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				f.loader.EvaluateDependencies(updated)
+				allUpdated = append(allUpdated, updated)
 			}
+			f.loader.EvaluateDependencies(allUpdated)
 
 		case <-f.loadFinished:
 			level.Info(f.log).Log("msg", "scheduling loaded components and services")

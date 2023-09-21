@@ -570,7 +570,15 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) EvaluateDependencies(c *ComponentNode) {
+func (l *Loader) EvaluateDependencies(nodes []*ComponentNode) {
+
+	//TODO(thampiotr): parallelize the nodes evaluation as follows:
+	// 1. Use disjoint sets / union-find to partition the graph into disjoint subgraphs
+	//    - this can be cached and takes O(V+E) to build
+	// 2. Partition all the nodes that need evaluation by the disjoint graph they're part of - (N * O(1) lookup = O(N))
+	// 2. Evaluate the partitions of nodes in parallel using a limited number of goroutines
+	// 3. Block waiting for all goroutines to finish - the slow subgraphs will no longer block the faster subgraphs
+
 	tracer := l.tracer.Tracer("")
 
 	l.mut.RLock()
