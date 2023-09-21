@@ -52,8 +52,12 @@ func newConfigMetrics() *configMetrics {
 // Create a sha256 hash of the config before expansion and expose it via
 // the agent_config_hash metric.
 func InstrumentConfig(buf []byte) {
+	InstrumentSHA256(sha256.Sum256(buf))
+}
+
+// InstrumentSHA256 stores the provided hash to the agent_config_hash metric.
+func InstrumentSHA256(hash [sha256.Size]byte) {
 	configMetricsInitializer.Do(initializeConfigMetrics)
-	hash := sha256.Sum256(buf)
 	confMetrics.configHash.Reset()
 	confMetrics.configHash.WithLabelValues(fmt.Sprintf("%x", hash)).Set(1)
 }
