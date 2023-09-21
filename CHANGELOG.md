@@ -114,17 +114,22 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fixed a bug where `otelcol.processor.discovery` could modify the `targets` passed by an upstream component. (@ptodev)
-
-- Fixed a bug where `otelcol` components with a retry mechanism would not wait after the first retry. (@rfratto)
-
-- Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
-
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
   metric to match the OTLP Instrumentation Scope spec. `name` is now `otel_scope_name`
   and `version` is now `otel_version_name`. (@erikbaranowski)
 
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
+
+v0.36.2 (2023-09-21)
+--------------------
+
+### Bugfixes
+
+- Fixed a bug where `otelcol.processor.discovery` could modify the `targets` passed by an upstream component. (@ptodev)
+
+- Fixed a bug where `otelcol` components with a retry mechanism would not wait after the first retry. (@rfratto)
+
+- Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
 
 - Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
 
