@@ -35,8 +35,6 @@ type Config struct {
 	EnableExporterMetrics   bool               `yaml:"enable_exporter_metrics,omitempty"`
 }
 
-//var _ integrations.Config = (*Config)(nil)
-
 // UnmarshalYAML implements the Unmarshaler interface.
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
