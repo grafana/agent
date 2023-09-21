@@ -31,6 +31,10 @@ Usage:
 If the `PATH_NAME` argument is not provided, or if the configuration path can't be loaded or 
 contains errors during the initial load, the `run` command will immediately exit and show an error message.
 
+If the `PATH_NAME` argument is provided with a directory path, the agent will find `*.river` files
+(ignoring nested directories) and load them as a single configuration source. However, component names must
+be **unique** across all River files and configuration blocks must not be repeated.
+
 Grafana Agent Flow will continue to run if subsequent reloads of the configuration
 file fail, potentially marking components as unhealthy depending on the nature
 of the failure. When this happens, Grafana Agent Flow will continue functioning
