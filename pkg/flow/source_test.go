@@ -37,7 +37,7 @@ func TestParseSourceWithConfigBlock(t *testing.T) {
 		    format = "json"
 		}
 
-		testcomponents.tick "ticker_a" {
+		testcomponents.tick "ticker_with_config_block" {
 			frequency = "1s"
 		}
 	`
@@ -66,7 +66,7 @@ func TestParseSources_DuplicateComponent(t *testing.T) {
 		    format = "json"
 		}
 
-		testcomponents.tick "ticker_a" {
+		testcomponents.tick "ticker_duplicate_component_1" {
 			frequency = "1s"
 		}
 	`
@@ -76,7 +76,7 @@ func TestParseSources_DuplicateComponent(t *testing.T) {
 		    format = "json"
 		}
 
-		testcomponents.tick "ticker_a" {
+		testcomponents.tick "ticker_duplicate_component_1" {
 			frequency = "1s"
 		}
 	`
@@ -93,19 +93,19 @@ func TestParseSources_DuplicateComponent(t *testing.T) {
 	require.Len(t, diagErrs, 2)
 }
 
-func TestParseSources_UniqueComponents(t *testing.T) {
+func TestParseSources_UniqueComponent(t *testing.T) {
 	content := `
         logging {
 		    format = "json"
 		}
 
-		testcomponents.tick "ticker_a" {
+		testcomponents.tick "ticker_unique_component_1" {
 			frequency = "1s"
 		}
 	`
 
 	content2 := `
-		testcomponents.tick "ticker_b" {
+		testcomponents.tick "ticker_unique_component_2" {
 			frequency = "1s"
 		}
 	`
