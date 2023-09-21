@@ -39,7 +39,7 @@ type Arguments struct {
 }
 
 type HTTPConfigArguments struct {
-	*otelcol.HTTPServerArguments `river:",squash"`
+	HTTPServerArguments *otelcol.HTTPServerArguments `river:",squash"`
 
 	// The URL path to receive traces on. If omitted "/v1/traces" will be used.
 	TracesURLPath string `river:"traces_url_path,attr,optional"`
