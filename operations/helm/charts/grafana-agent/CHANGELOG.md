@@ -14,6 +14,8 @@ Unreleased
 
 - An image's digest can now be used in place of a tag. (@hainenber)
 
+- Add ServiceMonitor support. (@QuentinBisson)
+
 0.24.0 (2023-09-08)
 -------------------
 

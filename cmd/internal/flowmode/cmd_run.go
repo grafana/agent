@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -55,14 +57,17 @@ func runCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "run [flags] file",
+		Use:   "run [flags] path",
 		Short: "Run Grafana Agent Flow",
 		Long: `The run subcommand runs Grafana Agent Flow in the foreground until an interrupt
 is received.
 
-run must be provided an argument pointing at the River file to use. If the
-River file wasn't specified, can't be loaded, or contains errors, run will exit
+run must be provided an argument pointing at the River dir/file-path to use. If the
+River dir/file-path wasn't specified, can't be loaded, or contains errors, run will exit
 immediately.
+
+If path is a directory, all *.river files in that directory will be combined
+into a single unit. Subdirectories are not recursively searched for further merging.
 
 run starts an HTTP server which can be used to debug Grafana Agent Flow or
 force it to reload (by sending a GET or POST request to /-/reload). The listen
@@ -76,7 +81,7 @@ Additionally, the HTTP server exposes the following debug endpoints:
 
   /debug/pprof   Go performance profiling tools
 
-If reloading the config file fails, Grafana Agent Flow will continue running in
+If reloading the config dir/file-path fails, Grafana Agent Flow will continue running in
 its last valid state. Components which failed may be be listed as unhealthy,
 depending on the nature of the reload error.
 `,
@@ -140,15 +145,15 @@ type flowRun struct {
 	configBypassConversionErrors bool
 }
 
-func (fr *flowRun) Run(configFile string) error {
+func (fr *flowRun) Run(configPath string) error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
 	ctx, cancel := interruptContext()
 	defer cancel()
 
-	if configFile == "" {
-		return fmt.Errorf("file argument not provided")
+	if configPath == "" {
+		return fmt.Errorf("path argument not provided")
 	}
 
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
@@ -192,7 +197,7 @@ func (fr *flowRun) Run(configFile string) error {
 	// To work around this, we lazily create variables for the functions the HTTP
 	// service needs and set them after the Flow controller exists.
 	var (
-		reload func() error
+		reload func() (*flow.Source, error)
 		ready  func() bool
 	)
 
@@ -222,7 +227,7 @@ func (fr *flowRun) Run(configFile string) error {
 		Gatherer: prometheus.DefaultGatherer,
 
 		ReadyFunc:  func() bool { return ready() },
-		ReloadFunc: func() error { return reload() },
+		ReloadFunc: func() (*flow.Source, error) { return reload() },
 
 		HTTPListenAddr:   fr.httpListenAddr,
 		MemoryListenAddr: fr.inMemoryAddr,
@@ -250,18 +255,19 @@ func (fr *flowRun) Run(configFile string) error {
 	})
 
 	ready = f.Ready
-	reload = func() error {
-		flowCfg, err := loadFlowFile(configFile, fr.configFormat, fr.configBypassConversionErrors)
+	reload = func() (*flow.Source, error) {
+		flowSource, err := loadFlowSource(configPath, fr.configFormat, fr.configBypassConversionErrors)
+		defer instrumentation.InstrumentSHA256(flowSource.SHA256())
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
-			return fmt.Errorf("reading config file %q: %w", configFile, err)
+			return nil, fmt.Errorf("reading config path %q: %w", configPath, err)
 		}
-		if err := f.LoadFile(flowCfg, nil); err != nil {
-			return fmt.Errorf("error during the initial gragent load: %w", err)
+		if err := f.LoadSource(flowSource, nil); err != nil {
+			return flowSource, fmt.Errorf("error during the initial grafana/agent load: %w", err)
 		}
 
-		return nil
+		return flowSource, nil
 	}
 
 	// Flow controller
@@ -290,17 +296,15 @@ func (fr *flowRun) Run(configFile string) error {
 	// Perform the initial reload. This is done after starting the HTTP server so
 	// that /metric and pprof endpoints are available while the Flow controller
 	// is loading.
-	if err := reload(); err != nil {
+	if source, err := reload(); err != nil {
 		var diags diag.Diagnostics
 		if errors.As(err, &diags) {
-			bb, _ := os.ReadFile(configFile)
-
 			p := diag.NewPrinter(diag.PrinterConfig{
 				Color:              !color.NoColor,
 				ContextLinesBefore: 1,
 				ContextLinesAfter:  1,
 			})
-			_ = p.Fprint(os.Stderr, map[string][]byte{configFile: bb}, diags)
+			_ = p.Fprint(os.Stderr, source.RawConfigs(), diags)
 
 			// Print newline after the diagnostics.
 			fmt.Println()
@@ -308,7 +312,7 @@ func (fr *flowRun) Run(configFile string) error {
 			return fmt.Errorf("could not perform the initial load successfully")
 		}
 
-		// Exit if the initial load files
+		// Exit if the initial load fails.
 		return err
 	}
 
@@ -330,7 +334,7 @@ func (fr *flowRun) Run(configFile string) error {
 		case <-ctx.Done():
 			return nil
 		case <-reloadSignal:
-			if err := reload(); err != nil {
+			if _, err := reload(); err != nil {
 				level.Error(l).Log("msg", "failed to reload config", "err", err)
 			} else {
 				level.Info(l).Log("msg", "config reloaded")
@@ -351,12 +355,45 @@ func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	}
 }
 
-func loadFlowFile(filename string, converterSourceFormat string, converterBypassErrors bool) (*flow.File, error) {
-	bb, err := os.ReadFile(filename)
+func loadFlowSource(path string, converterSourceFormat string, converterBypassErrors bool) (*flow.Source, error) {
+	fi, err := os.Stat(path)
 	if err != nil {
 		return nil, err
 	}
 
+	if fi.IsDir() {
+		sources := map[string][]byte{}
+		err := filepath.WalkDir(path, func(curPath string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			// Skip all directories and don't recurse into child dirs that aren't at top-level
+			if d.IsDir() {
+				if curPath != path {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			// Ignore files not ending in .river extension
+			if !strings.HasSuffix(curPath, ".river") {
+				return nil
+			}
+
+			bb, err := os.ReadFile(curPath)
+			sources[curPath] = bb
+			return err
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return flow.ParseSources(sources)
+	}
+
+	bb, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
 	if converterSourceFormat != "flow" {
 		var diags convert_diag.Diagnostics
 		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat))
@@ -369,7 +406,7 @@ func loadFlowFile(filename string, converterSourceFormat string, converterBypass
 
 	instrumentation.InstrumentConfig(bb)
 
-	return flow.ReadFile(filename, bb)
+	return flow.ParseSource(path, bb)
 }
 
 func interruptContext() (context.Context, context.CancelFunc) {

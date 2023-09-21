@@ -64,6 +64,11 @@ Main (unreleased)
 
 - The `cri` stage in `loki.process` can now be configured to limit line size.
 
+- Flow: Allow `grafana-agent run` to accept a path to a directory of `*.river` files.
+  This will load all River files in the directory as a single configuration;
+  component names must be unique across all loaded files. (@rfratto, @hainenber)
+  
+
 ### Enhancements
 
 - Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
@@ -122,6 +127,9 @@ Main (unreleased)
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
 
 - Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
+
+- Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets 
+  instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
 
 v0.36.1 (2023-09-06)
 --------------------
