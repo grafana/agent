@@ -10,7 +10,7 @@ func TestEnqueueDequeue(t *testing.T) {
 	tn := &ComponentNode{}
 	q := NewQueue()
 	q.Enqueue(tn)
-	require.Lenf(t, q.queued, 1, "queue should be 1")
+	require.Lenf(t, q.queuedSet, 1, "queue should be 1")
 	fn := q.TryDequeue()
 	require.True(t, fn == tn)
 }

@@ -224,9 +224,9 @@ func (f *Flow) Run(ctx context.Context) {
 			return
 
 		case <-f.updateQueue.Chan():
-			// We need to pop _everything_ from the queue and evaluate each of them.
-			// If we only pop a single element, other components may sit waiting for
-			// evaluation forever.
+			// Since adding multiple elements to the queue results with only one write to updateQueue.Chan(),
+			// we need to pop _everything_ from the queue and evaluate each of them. If we only pop a single element,
+			// other components may sit waiting for evaluation forever.
 			for {
 				updated := f.updateQueue.TryDequeue()
 				if updated == nil {

@@ -1,23 +1,28 @@
 package controller
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
-// Queue is an unordered queue of components.
+// Queue is an insertion-ordered set of components.
 //
 // Queue is intended for tracking components that have updated their Exports
 // for later reevaluation.
 type Queue struct {
-	mut    sync.Mutex
-	queued map[*ComponentNode]struct{}
+	mut         sync.Mutex
+	queuedSet   map[*ComponentNode]struct{}
+	queuedOrder []*ComponentNode
 
 	updateCh chan struct{}
 }
 
-// NewQueue returns a new unordered component queue.
+// NewQueue returns a new queue.
 func NewQueue() *Queue {
 	return &Queue{
-		updateCh: make(chan struct{}, 1),
-		queued:   make(map[*ComponentNode]struct{}),
+		updateCh:    make(chan struct{}, 1),
+		queuedSet:   make(map[*ComponentNode]struct{}),
+		queuedOrder: make([]*ComponentNode, 0),
 	}
 }
 
@@ -26,7 +31,15 @@ func NewQueue() *Queue {
 func (q *Queue) Enqueue(c *ComponentNode) {
 	q.mut.Lock()
 	defer q.mut.Unlock()
-	q.queued[c] = struct{}{}
+	fmt.Printf("\n=== Enque for update: %q\n", c.NodeID())
+
+	// Skip if already queued.
+	if _, ok := q.queuedSet[c]; ok {
+		return
+	}
+
+	q.queuedOrder = append(q.queuedOrder, c)
+	q.queuedSet[c] = struct{}{}
 	select {
 	case q.updateCh <- struct{}{}:
 	default:
@@ -36,16 +49,19 @@ func (q *Queue) Enqueue(c *ComponentNode) {
 // Chan returns a channel which is written to when the queue is non-empty.
 func (q *Queue) Chan() <-chan struct{} { return q.updateCh }
 
-// TryDequeue dequeues a randomly queued component. TryDequeue will return nil
+// TryDequeue dequeues the first component in insertion order. TryDequeue will return nil
 // if the queue is empty.
 func (q *Queue) TryDequeue() *ComponentNode {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
-	for c := range q.queued {
-		delete(q.queued, c)
-		return c
+	if len(q.queuedSet) == 0 {
+		return nil
 	}
 
-	return nil
+	ret := q.queuedOrder[0]
+	fmt.Printf("\n=== Deque update: %q\n", ret.NodeID())
+	q.queuedOrder = q.queuedOrder[1:]
+	delete(q.queuedSet, ret)
+	return ret
 }

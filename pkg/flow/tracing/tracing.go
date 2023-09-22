@@ -87,7 +87,7 @@ type Tracer struct {
 
 var _ trace.TracerProvider = (*Tracer)(nil)
 
-// New creates a new tracing subsystem. Call Run to start the tracing
+// New creates a new tracing subsystem. Call Start to start the tracing
 // subsystem.
 func New(cfg Options) (*Tracer, error) {
 	res, err := resource.New(

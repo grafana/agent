@@ -367,6 +367,9 @@ func (cn *ComponentNode) Exports() component.Exports {
 // setExports is called whenever the managed component updates. e must be the
 // same type as the registered exports type of the managed component.
 func (cn *ComponentNode) setExports(e component.Exports) {
+
+	fmt.Printf("\n=== Setting exports: %q to %v\n", cn.NodeID(), e)
+
 	if cn.exportsType == nil {
 		panic(fmt.Sprintf("Component %s called OnStateChange but never registered an Exports type", cn.nodeID))
 	}
@@ -385,20 +388,23 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 
 	cn.exportsMut.Lock()
 	if !reflect.DeepEqual(cn.exports, e) {
+		fmt.Printf("\n=== Exports have changed: %q\n", cn.NodeID())
 		changed = true
 		cn.exports = e
 	}
 	cn.exportsMut.Unlock()
 
-	if cn.doingEval.Load() {
-		// Optimization edge case: some components supply exports when they're
-		// being evaluated.
-		//
-		// Since components that are being evaluated will always cause their
-		// dependencies to also be evaluated, there's no reason to call
-		// onExportsChange here.
-		return
-	}
+	//TODO(thampiotr): This is necessary to support the new approach. It will lead to more re-evaluations than necessary
+	// during a full graph evaluation, but can implement a similar skip in the future for full graph evaluation only.
+	//if cn.doingEval.Load() {
+	//	// Optimization edge case: some components supply exports when they're
+	//	// being evaluated.
+	//	//
+	//	// Since components that are being evaluated will always cause their
+	//	// dependencies to also be evaluated, there's no reason to call
+	//	// onExportsChange here.
+	//	return
+	//}
 
 	if changed {
 		// Inform the controller that we have new exports.
