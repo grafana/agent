@@ -75,12 +75,14 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
 
       - name: Add dependency chart repos
+        if: steps.list-changed.outputs.changed == 'true'
         run: |
           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
       - name: Install Prometheus Operator CRDs
+        if: steps.list-changed.outputs.changed == 'true'
         run: |
-          helm install my-prometheus-operator-crds prometheus-community/prometheus-operator-crds --version 6.0.0 
+          helm install my-prometheus-operator-crds prometheus-community/prometheus-operator-crds --version 6.0.0
 
       - name: Test charts
         run: ct install --config ./operations/helm/ct.yaml
