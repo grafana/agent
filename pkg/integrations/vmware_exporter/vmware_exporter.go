@@ -44,7 +44,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // Name returns the name of this integration.
 func (c *Config) Name() string {
-	return "vsphere_exporter"
+	return "vsphere"
 }
 
 // InstanceKey returns a string that identifies the instance of the integration.
