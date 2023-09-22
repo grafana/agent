@@ -52,8 +52,7 @@ Setting `passthrough` to `true` enables the "passthrough mode" of `otelcol.proce
 * Only a `k8s.pod.ip` resource attribute will be added.
 * No other metadata will be added.
 * The Kubernetes API will not be accessed.
-* The Agent must receive spans directly from services to correctly detect the pod IPs.
-
+* To correctly detect the pod IPs, the Agent must receive spans directly from services.
 * The `passthrough` setting is useful when configuring the Agent as a Kubernetes Deployment.
 An Agent running as a Deployment cannot detect the IP addresses of pods generating telemetry 
 data without any of the well-known IP attributes. If the Deployment Agent receives telemetry from 
@@ -94,9 +93,9 @@ refers to an `annotation` block defined inside an `extract` block.
 [exclude]: #exclude-block
 [pod]: #pod-block
 
-### Extract block
+### extract block
 
-The `extract` block configures which metadata, annotations, and labels to extract from the pod and to add to the spans.
+The `extract` block configures which metadata, annotations, and labels to extract from the pod.
 
 The following attributes are supported:
 
@@ -126,7 +125,7 @@ The currently supported `metadata` keys are:
 * `container.image.tag`
 * `container.id`
 
-By default, if `metadata` is not specified, the following fields are extracted and added to spans, metrics, and logs as attributes:
+By default, if `metadata` is not specified, the following fields are extracted and added to spans, metrics, and logs as resource attributes:
 
 * `k8s.pod.name`
 * `k8s.pod.uid`
@@ -138,15 +137,15 @@ By default, if `metadata` is not specified, the following fields are extracted a
 * `container.image.name` (requires one of the following additional attributes to be set: `container.id` or `k8s.container.name`)
 * `container.image.tag` (requires one of the following additional attributes to be set: `container.id` or `k8s.container.name`)
 
-### extract annotation block
+### annotation block
 
-The `annotation` block configures which metadata or labels to extract from the pod and add to the spans.
+The `annotation` block configures how to extract Kubernetes annotations.
 
 {{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### extract label block
+### label block
 
-The `label` block configures which metadata or labels to extract from the pod and add to the spans.
+The `label` block configures how to extract Kubernetes labels.
 
 {{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT VERSION>" >}}
 
@@ -163,13 +162,13 @@ Name | Type     | Description                                                   
 
 If `node` is specified, then any pods not running on the specified node will be ignored by `otelcol.processor.k8sattributes`.
 
-### filter field block
+### field block
 
 The `field` block allows you to filter pods by generic Kubernetes fields.
 
 {{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### filter label block
+### label block
 
 The `label` block allows you to filter pods by generic Kubernetes labels.
 
@@ -204,7 +203,7 @@ pod_association {
 }
 ```
 
-### pod association source block
+### source block
 
 The `source` block configures a pod association rule. This is used by the `k8sattributes` processor to determine the
 pod associated with a telemetry signal.
@@ -261,7 +260,7 @@ information.
 ## Examples
 
 ### Basic usage
-In most cases, this is enough to get started. It'll add these attributes to all telemetry data:
+In most cases, this is enough to get started. It'll add these resource attributes to all logs, metrics, and traces:
 
 * `k8s.namespace.name`
 * `k8s.pod.name`
@@ -291,9 +290,15 @@ otelcol.processor.k8sattributes "default" {
         traces  = [otelcol.exporter.otlp.default.input]
     }
 }
+
+otelcol.exporter.otlp "default" {
+  client {
+    endpoint = env("OTLP_ENDPOINT")
+  }
+}
 ```
 
-### Add additional metadata and labels to spans
+### Add additional metadata and labels
 
 ```river
 otelcol.receiver.otlp "default" {

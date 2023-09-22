@@ -12,11 +12,11 @@ The following attributes are supported:
 
 Name | Type           | Description                                                                                              | Default | Required
 ---- |----------------|----------------------------------------------------------------------------------------------------------|---------| --------
-`tag_name` | `list(string)` | The name of the resource attribute that will be added to logs, metrics, or spans.      |         | no
-`key` | `list(string)` | The annotation (or label) name. This must exactly match an annotation (or label) name.    |         | no
-`key_regex` | `list(string)` | A regular expression used to extract a key that matches the regex.                           |         | no
-`regex` | `list(string)` | An optional field used to extract a sub-string from a complex field value.                      |         | no
-`from` | `list(string)` | The source of the labels or annotations. Allowed values are `pod` and `namespace`.          | `pod`    | no
+`tag_name` | `string` | The name of the resource attribute that will be added to logs, metrics, or spans.      | `""` | no
+`key` | `string` | The annotation (or label) name. This must exactly match an annotation (or label) name.    |  `""` | no
+`key_regex` | `string` | A regular expression used to extract a key that matches the regex.                           | `""` | no
+`regex` | `string` | An optional field used to extract a sub-string from a complex field value.                      | `""` | no
+`from` | `string` | The source of the labels or annotations. Allowed values are `pod` and `namespace`.          | `pod`    | no
 
 When `tag_name` is not specified, a default tag name will be used with the format:
 * `k8s.pod.annotations.<annotation key>`
