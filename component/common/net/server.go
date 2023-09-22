@@ -6,20 +6,19 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	dskit "github.com/grafana/dskit/server"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
-	"github.com/weaveworks/common/logging"
-	weaveworks "github.com/weaveworks/common/server"
 )
 
-// TargetServer is wrapper around weaveworks.Server that handles some common configuration used in all flow components
+// TargetServer is wrapper around dskit.Server that handles some common configuration used in all flow components
 // that expose a network server. It just handles configuration and initialization, the handlers implementation are left
 // to the consumer.
 type TargetServer struct {
 	logger           log.Logger
-	config           *weaveworks.Config
+	config           *dskit.Config
 	metricsNamespace string
-	server           *weaveworks.Server
+	server           *dskit.Server
 }
 
 // NewTargetServer creates a new TargetServer, applying some defaults to the server configuration.
@@ -38,7 +37,7 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 		config = DefaultServerConfig()
 	}
 
-	// convert from River into the weaveworks config
+	// convert from River into the dskit config
 	serverCfg := config.convert()
 	// Set the config to the new combined config.
 	// Avoid logging entire received request on failures
@@ -50,11 +49,11 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 	// To prevent metric collisions because all metrics are going to be registered in the global Prometheus registry.
 	ts.config.MetricsNamespace = ts.metricsNamespace
 	// We don't want the /debug and /metrics endpoints running, since this is not the main Flow HTTP server.
-	// We want this target to expose the least surface area possible, hence disabling WeaveWorks HTTP server metrics
+	// We want this target to expose the least surface area possible, hence disabling dskit HTTP server metrics
 	// and debugging functionality.
 	ts.config.RegisterInstrumentation = false
-	// Add logger to weaveworks
-	ts.config.Log = logging.GoKit(ts.logger)
+	// Add logger to dskit
+	ts.config.Log = ts.logger
 
 	return ts, nil
 }
@@ -62,7 +61,7 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 // MountAndRun mounts the handlers and starting the server.
 func (ts *TargetServer) MountAndRun(mountRoute func(router *mux.Router)) error {
 	level.Info(ts.logger).Log("msg", "starting server")
-	srv, err := weaveworks.New(*ts.config)
+	srv, err := dskit.New(*ts.config)
 	if err != nil {
 		return err
 	}
