@@ -132,6 +132,8 @@ Main (unreleased)
 
 - Switch to `IBM/sarama` module. (@hainenber)
 
+- Bump `redis_exporter` to v1.54.0 (@spartan0x117)
+
 v0.36.2 (2023-09-22)
 --------------------
 
