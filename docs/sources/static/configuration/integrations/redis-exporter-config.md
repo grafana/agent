@@ -116,6 +116,9 @@ Full reference of options:
   # Comma separated list of single streams to export info about streams, groups and consumers.
   [check_single_streams: <string>]
 
+  # Whether to disable values of keys stored in redis as labels when using check-keys/check-single-key.
+  [disable_exporting_key_values: <bool>]
+
   # Comma separated list of individual keys to export counts for.
   [count_keys: <string>]
 
