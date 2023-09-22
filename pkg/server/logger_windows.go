@@ -54,7 +54,7 @@ func makeWindowsEventLogger(cfg *Config) (log.Logger, error) {
 		infoLogger:    infoLogger,
 		warningLogger: warningLogger,
 	}
-	return level.NewFilter(wl, cfg.LogLevel.Gokit), nil
+	return level.NewFilter(wl, cfg.LogLevel.Level.Option), nil
 }
 
 // Looks through the key value pairs in the log for level and extract the value
@@ -70,7 +70,7 @@ func getLevel(keyvals ...interface{}) level.Value {
 func newWinLogWrapper(format string, write func(p []byte) error) log.Logger {
 	infoWriter := &winLogWriter{writer: write}
 	infoLogger := log.NewLogfmtLogger(infoWriter)
-	if format.String() == "json" {
+	if format == "json" {
 		infoLogger = log.NewJSONLogger(infoWriter)
 	}
 	return infoLogger
