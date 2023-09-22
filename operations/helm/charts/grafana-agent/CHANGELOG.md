@@ -10,11 +10,17 @@ internal API changes are not present.
 Unreleased
 ----------
 
+
+0.25.0 (2023-09-22)
+-------------------
+
 ### Enhancements
 
 - An image's digest can now be used in place of a tag. (@hainenber)
 
 - Add ServiceMonitor support. (@QuentinBisson)
+
+- Update Grafana Agent version to v0.36.2. (@ptodev)
 
 0.24.0 (2023-09-08)
 -------------------
