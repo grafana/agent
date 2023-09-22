@@ -9,6 +9,7 @@ type controllerMetrics struct {
 	controllerEvaluation    prometheus.Gauge
 	componentEvaluationTime prometheus.Histogram
 	dependenciesWaitTime    prometheus.Histogram
+	evaluationQueueSize     prometheus.Gauge
 }
 
 // newControllerMetrics inits the metrics for the components controller
@@ -35,6 +36,13 @@ func newControllerMetrics(id string) *controllerMetrics {
 			ConstLabels: map[string]string{"controller_id": id},
 		},
 	)
+
+	cm.evaluationQueueSize = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name:        "agent_component_evaluation_queue_size",
+		Help:        "Tracks the number of components waiting to be evaluated in the worker pool",
+		ConstLabels: map[string]string{"controller_id": id},
+	})
+
 	return cm
 }
 
@@ -42,12 +50,14 @@ func (cm *controllerMetrics) Collect(ch chan<- prometheus.Metric) {
 	cm.componentEvaluationTime.Collect(ch)
 	cm.controllerEvaluation.Collect(ch)
 	cm.dependenciesWaitTime.Collect(ch)
+	cm.evaluationQueueSize.Collect(ch)
 }
 
 func (cm *controllerMetrics) Describe(ch chan<- *prometheus.Desc) {
 	cm.componentEvaluationTime.Describe(ch)
 	cm.controllerEvaluation.Describe(ch)
 	cm.dependenciesWaitTime.Describe(ch)
+	cm.evaluationQueueSize.Describe(ch)
 }
 
 type controllerCollector struct {

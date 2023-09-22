@@ -130,6 +130,12 @@ Main (unreleased)
 - Add new `agent_component_dependencies_wait_seconds` histogram metric and a dashboard panel 
   that measures how long components wait to be evaluated after their dependency is updated (@thampiotr)
 
+- Components evaluation is now performed in parallel, reducing the impact of 
+  slow components potentially blocking the entire telemetry pipeline. 
+  The `agent_component_evaluation_seconds` metric now measures evaluation time 
+  of each node separately, instead of all the directly and indirectly 
+  dependant nodes. (@thampiotr)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`

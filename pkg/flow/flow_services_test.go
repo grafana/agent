@@ -7,9 +7,9 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
-	"github.com/grafana/agent/pkg/flow/internal/testcomponents" // Import test components
 	"github.com/grafana/agent/pkg/flow/internal/testservices"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/pkg/util/testcomponents"
 	"github.com/grafana/agent/service"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"

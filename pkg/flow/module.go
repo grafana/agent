@@ -8,6 +8,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
+	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/river/scanner"
@@ -103,6 +104,7 @@ func newModule(o *moduleOptions) *module {
 			IsModule:          true,
 			ModuleRegistry:    o.ModuleRegistry,
 			ComponentRegistry: o.ComponentRegistry,
+			WorkerPool:        o.WorkerPool,
 			Options: Options{
 				ControllerID: o.ID,
 				Tracer:       o.Tracer,
@@ -171,4 +173,8 @@ type moduleControllerOptions struct {
 	// ServiceMap is a map of services which can be used in the module
 	// controller.
 	ServiceMap controller.ServiceMap
+
+	// WorkerPool is a worker pool that can be used to run tasks asynchronously. A default pool will be created if this
+	// is nil.
+	WorkerPool worker.Pool
 }
