@@ -50,9 +50,21 @@ stage.structured_metadata {
 }
 ```
 
+### Breaking change: `otelcol.exporter.prometheus` scope labels updated.
+
+There are 2 changes to the way scope labels work for this component.
+
+* Previously, the `include_scope_info` argument would trigger including
+`otel_scope_name` and `otel_scope_version` in metrics. This is now defaulted
+to `true` and controlled via the `include_scope_labels` argument.
+
+* A bugfix was made to rename `otel_scope_info` metric labels from
+`name` to `otel_scope_name` and `version` to `otel_scope_version`. This is
+now correct with the OTLP Instrumentation Scope specification.
+
 ## v0.36
 
-## Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`
+### Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`
 
 The default value of `retry_on_http_429` is changed from `false` to `true` for the `queue_config` block in `prometheus.remote_write`
 so that the agent can retry sending and avoid data being lost for metric pipelines by default.
@@ -60,7 +72,7 @@ so that the agent can retry sending and avoid data being lost for metric pipelin
 * If you set the `retry_on_http_429` explicitly - no action is required.
 * If you do not set `retry_on_http_429` explicitly and you do *not* want to retry on HTTP 429, make sure you set it to `false` as you upgrade to this new version.
 
-## Breaking change: `loki.source.file` no longer automatically extracts logs from compressed files
+### Breaking change: `loki.source.file` no longer automatically extracts logs from compressed files
 
 `loki.source.file` component will no longer automatically detect and decompress
 logs from compressed files (this was an undocumented behaviour).

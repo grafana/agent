@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
+	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	int_config "github.com/grafana/agent/pkg/integrations/config"
@@ -123,6 +124,8 @@ func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
 			exports = b.appendStatsdExporter(itg)
 		case *windows_exporter.Config:
 			exports = b.appendWindowsExporter(itg)
+		case *azure_exporter.Config:
+			exports = b.appendAzureExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {

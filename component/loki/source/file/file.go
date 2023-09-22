@@ -42,6 +42,7 @@ type Arguments struct {
 	Encoding            string              `river:"encoding,attr,optional"`
 	DecompressionConfig DecompressionConfig `river:"decompression,block,optional"`
 	FileWatch           FileWatch           `river:"file_watch,block,optional"`
+	TailFromEnd         bool                `river:"tail_from_end,attr,optional"`
 }
 
 type FileWatch struct {
@@ -348,6 +349,7 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 			labels.String(),
 			c.args.Encoding,
 			pollOptions,
+			c.args.TailFromEnd,
 		)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to start tailer", "error", err, "filename", path)
