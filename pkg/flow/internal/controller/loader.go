@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"runtime"
 	"sync"
 	"time"
 
@@ -42,7 +41,6 @@ type Loader struct {
 	cm                *controllerMetrics
 	cc                *controllerCollector
 	moduleExportIndex int
-	workerPool        *stripedWorkerPool
 }
 
 // LoaderOptions holds options for creating a Loader.
@@ -81,8 +79,6 @@ func NewLoader(opts LoaderOptions) *Loader {
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
 		cm:            newControllerMetrics(globals.ControllerID),
-		//TODO(thampiotr): make this worker pool truly global, so modules can use it too instead of creating new ones
-		workerPool: newStripedWorkerPool(runtime.NumCPU(), 100),
 	}
 	l.cc = newControllerCollector(l, globals.ControllerID)
 
@@ -163,7 +159,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 			components = append(components, n)
 			componentIDs = append(componentIDs, n.ID())
 
-			if err = l.evaluateWhileApplying(logger, n); err != nil {
+			if err = l.evaluate(logger, n); err != nil {
 				var evalDiags diag.Diagnostics
 				if errors.As(err, &evalDiags) {
 					diags = append(diags, evalDiags...)
@@ -180,7 +176,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		case *ServiceNode:
 			services = append(services, n)
 
-			if err = l.evaluateWhileApplying(logger, n); err != nil {
+			if err = l.evaluate(logger, n); err != nil {
 				var evalDiags diag.Diagnostics
 				if errors.As(err, &evalDiags) {
 					diags = append(diags, evalDiags...)
@@ -195,7 +191,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 			}
 
 		case BlockNode:
-			if err = l.evaluateWhileApplying(logger, n); err != nil {
+			if err = l.evaluate(logger, n); err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Failed to evaluate node for config block: %s", err),
@@ -231,14 +227,13 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	return diags
 }
 
-// Cleanup unregisters any existing metrics and stops the worker pool.
+// Cleanup unregisters any existing metrics.
 func (l *Loader) Cleanup() {
 	if l.globals.Registerer == nil {
 		return
 	}
 	l.globals.Registerer.Unregister(l.cm)
 	l.globals.Registerer.Unregister(l.cc)
-	l.workerPool.Stop()
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
@@ -605,68 +600,55 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 	// Make sure we're in-sync with the current exports of c.
 	l.cache.CacheExports(c.ID(), c.Exports())
 
-	_ = dag.WalkIncomingNodes(l.graph, c, func(n dag.Node) error {
-		// Schedule async evaluation of the nodes with incoming edges to c.
-		err := l.workerPool.AddWork(n.NodeID(), func() {
-			l.evaluateWhileRunning(n, tracer, spanCtx, logger)
-		})
-		//TODO(thampiotr): this error means there are too many updates for the worker pool to keep up with. We should
-		// expose this as a metric as it can be useful to diagnose issues.
+	_ = dag.WalkReverse(l.graph, []dag.Node{c}, func(n dag.Node) error {
+		if n == c {
+			// Skip over the starting component; the starting component passed to
+			// EvaluateDependencies had its exports changed and none of its input
+			// arguments will need re-evaluation.
+			return nil
+		}
+
+		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
+		span.SetAttributes(attribute.String("node_id", n.NodeID()))
+		defer span.End()
+
+		start := time.Now()
+		defer func() {
+			level.Info(logger).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", time.Since(start))
+		}()
+
+		var err error
+
+		switch n := n.(type) {
+		case BlockNode:
+			err = l.evaluate(logger, n)
+			if exp, ok := n.(*ExportConfigNode); ok {
+				l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
+			}
+		}
+
+		// We only use the error for updating the span status; we don't return the
+		// error because we want to evaluate as many nodes as we can.
 		if err != nil {
-			level.Error(logger).Log("msg", "failed to schedule node evaluation", "node_id", n.NodeID(), "err", err)
+			span.SetStatus(codes.Error, err.Error())
+		} else {
+			span.SetStatus(codes.Ok, "")
 		}
 		return nil
 	})
-}
 
-// evaluateWhileRunning constructs the final context for the BlockNode and
-// evaluates it. Uses provided tracer and logger. Unlike evaluateWhileApplying, mut must not be held when calling this.
-func (l *Loader) evaluateWhileRunning(n dag.Node, tracer trace.Tracer, spanCtx context.Context, logger log.Logger) {
-	fmt.Printf("\n=== Visiting %q\n", n.NodeID())
-
-	_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
-	span.SetAttributes(attribute.String("node_id", n.NodeID()))
-	defer span.End()
-
-	start := time.Now()
-	defer func() {
-		level.Info(logger).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", time.Since(start))
-	}()
-
-	var err error
-
-	switch n := n.(type) {
-	case BlockNode:
-		l.mut.RLock()
-		ectx := l.cache.BuildContext()
-		l.mut.RUnlock()
-		// evaluate can be expensive, do not hold the lock while evaluating.
-		err = n.Evaluate(ectx)
-
-		l.mut.RLock()
-		defer l.mut.RUnlock()
-		err = l.postEvaluate(logger, n, err)
-
-	}
-
-	// We only use the error for updating the span status
-	if err != nil {
-		span.SetStatus(codes.Error, err.Error())
-	} else {
-		span.SetStatus(codes.Ok, "")
+	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
+		l.globals.OnExportsChange(l.cache.CreateModuleExports())
+		l.moduleExportIndex = l.cache.ExportChangeIndex()
 	}
 }
 
-// evaluateWhileApplying constructs the final context for the BlockNode and
+// evaluate constructs the final context for the BlockNode and
 // evaluates it. mut must be held when calling evaluate.
-func (l *Loader) evaluateWhileApplying(logger log.Logger, bn BlockNode) error {
+func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 	ectx := l.cache.BuildContext()
 	err := bn.Evaluate(ectx)
-	return l.postEvaluate(logger, bn, err)
-}
 
-// postEvaluate is called after a node has been evaluated with bn.Evaluate() to update the cache.
-func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error {
 	switch c := bn.(type) {
 	case *ComponentNode:
 		// Always update the cache both the arguments and exports, since both might
@@ -681,15 +663,6 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 				err = fmt.Errorf("missing required argument %q to module", c.Label())
 			}
 		}
-	}
-
-	if exp, ok := bn.(*ExportConfigNode); ok {
-		l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
-	}
-
-	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
-		l.globals.OnExportsChange(l.cache.CreateModuleExports())
-		l.moduleExportIndex = l.cache.ExportChangeIndex()
 	}
 
 	if err != nil {

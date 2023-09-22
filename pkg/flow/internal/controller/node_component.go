@@ -394,17 +394,15 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 	}
 	cn.exportsMut.Unlock()
 
-	//TODO(thampiotr): This is necessary to support the new approach. It will lead to more re-evaluations than necessary
-	// during a full graph evaluation, but can implement a similar skip in the future for full graph evaluation only.
-	//if cn.doingEval.Load() {
-	//	// Optimization edge case: some components supply exports when they're
-	//	// being evaluated.
-	//	//
-	//	// Since components that are being evaluated will always cause their
-	//	// dependencies to also be evaluated, there's no reason to call
-	//	// onExportsChange here.
-	//	return
-	//}
+	if cn.doingEval.Load() {
+		// Optimization edge case: some components supply exports when they're
+		// being evaluated.
+		//
+		// Since components that are being evaluated will always cause their
+		// dependencies to also be evaluated, there's no reason to call
+		// onExportsChange here.
+		return
+	}
 
 	if changed {
 		// Inform the controller that we have new exports.
