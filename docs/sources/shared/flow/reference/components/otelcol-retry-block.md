@@ -26,9 +26,11 @@ increases by the factor specified by the `multiplier` argument, which must be
 greater than `1.0`. The `max_interval` argument specifies the upper bound of
 how long to wait between retries.
 
+The `randomization_factor` argument is useful for adding jitter between retrying agents.
 If `randomization_factor` is greater than `0`, the wait time before retries is
-multiplied by a random factor up to `1 ± randomization_factor`, allowing for
-jitter between retrying agents.
+multiplied by a random factor in the range 
+`[ I - randomization_factor * I, I + randomization_factor * I]`, 
+where `I` is the current interval.
 
 If a batch has not sent successfully, it is discarded after the time specified
 by `max_elapsed_time` elapses. If `max_elapsed_time` is set to `"0s"`, failed
