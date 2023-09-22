@@ -67,13 +67,13 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 output | [output][] | Configures where to send received telemetry data. | yes
 extract | [extract][] | Rules for extracting data from Kubernetes. | no
-extract > annotation | [extract_annotation][] | Creating resource attributes from Kubernetes annotations. | no
+extract > annotation | [annotation][] | Creating resource attributes from Kubernetes annotations. | no
 extract > label | [extract_label][] | Creating resource attributes from Kubernetes labels. | no
 filter | [filter][] | Filters the data loaded from Kubernetes. | no
-filter > field | [filter_field][] | Filter pods by generic Kubernetes fields. | no
+filter > field | [field][] | Filter pods by generic Kubernetes fields. | no
 filter > label | [filter_label][] | Filter pods by Kubernetes labels. | no
 pod_association | [pod_association][] | Rules to associate pod metadata with telemetry signals. | no
-pod_association > source | [pod_association_source][] | Source information to identify a pod. | no
+pod_association > source | [source][] | Source information to identify a pod. | no
 exclude | [exclude][] | Exclude pods from being processed. | no
 exclude > pod | [pod][] | Pod information. | no
 
@@ -83,13 +83,13 @@ refers to an `annotation` block defined inside an `extract` block.
 
 [output]: #output-block
 [extract]: #extract-block
-[extract_annotation]: #extract-annotation-block
+[annotation]: #annotation-block
 [extract_label]: #extract-label-block
 [filter]: #filter-block
-[filter_field]: #filter-field-block
+[field]: #field-block
 [filter_label]: #filter-label-block
 [pod_association]: #pod_association-block
-[pod_association_source]: #pod-association-source-block
+[source]: #source-block
 [exclude]: #exclude-block
 [pod]: #pod-block
 
@@ -143,7 +143,7 @@ The `annotation` block configures how to extract Kubernetes annotations.
 
 {{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### label block
+### label block {#extract-label-block}
 
 The `label` block configures how to extract Kubernetes labels.
 
@@ -168,7 +168,7 @@ The `field` block allows you to filter pods by generic Kubernetes fields.
 
 {{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### label block
+### label block {#filter-label-block}
 
 The `label` block allows you to filter pods by generic Kubernetes labels.
 
