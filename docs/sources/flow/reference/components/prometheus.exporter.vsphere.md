@@ -30,7 +30,7 @@ Omitted fields take their default values.
 | `vsphere_password`           | `secret` | vCenter password.   |    | no       |
 | `request_chunk_size`         | `int`     | Number of managed objects to include in each request to vsphere when fetching performance counters.                                     | `256`   | no       |
 | `collect_concurrency`        | `int`     | Number of concurrent requests to vSphere when fetching performance counters.                                                           | `8`     | no       |
-| `discovery_interval` | `duration` | Interval on which to run vsphere managed object discovery. | `0` | no |
+| `discovery_interval` | `duration` | Interval on which to run vSphere managed object discovery. | `0` | no |
 | `enable_exporter_metrics` | `boolean` | Enable the exporter metrics. | `true` | no |
 
 -  Setting `discovery_interval` to a non-zero value will result in object discovery running in the background. Each scrape will use object data gathered during the last discovery. When this value is 0, object discovery occurs per scrape.
