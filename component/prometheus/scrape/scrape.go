@@ -213,6 +213,7 @@ func (c *Component) Run(ctx context.Context) error {
 			// 'clustered' targets implementation every time.
 			ct := discovery.NewDistributedTargets(cl, c.cluster, tgs)
 			promTargets := c.componentTargetsToProm(jobName, ct.Get())
+			c.targetsGauge.Set(float64(len(promTargets)))
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -247,7 +248,6 @@ func (c *Component) Update(args component.Arguments) error {
 	default:
 	}
 
-	c.targetsGauge.Set(float64(len(c.args.Targets)))
 	return nil
 }
 

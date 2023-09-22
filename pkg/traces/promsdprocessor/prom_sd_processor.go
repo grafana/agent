@@ -172,9 +172,7 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 			continue
 		}
 
-		promsdconsumer.CleanupLabels(labels)
-
 		level.Debug(p.logger).Log("msg", "adding host to hostLabels", "host", host)
-		hostLabels[host] = labels
+		hostLabels[host] = promsdconsumer.NewTargetsWithNonInternalLabels(labels)
 	}
 }

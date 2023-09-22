@@ -5,13 +5,15 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.connector.spanmetrics/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanmetrics/
 labels:
-  stage: alpha
+  stage: experimental
 title: otelcol.connector.spanmetrics
 ---
 
 # otelcol.connector.spanmetrics
 
-`otelcol.connector.spanmetrics` accepts span data from other `otelcol` components and 
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+
+`otelcol.connector.spanmetrics` accepts span data from other `otelcol` components and
 aggregates Request, Error and Duration (R.E.D) OpenTelemetry metrics from the spans:
 
 * **Request** counts are computed as the number of spans seen per unique set of dimensions, 
