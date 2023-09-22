@@ -9,11 +9,11 @@ import (
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces/traceutils"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/dskit/log"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
-	"github.com/weaveworks/common/logging"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"gopkg.in/yaml.v2"
 )
@@ -45,7 +45,7 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	var loggingLevel logging.Level
+	var loggingLevel log.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
 	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, &server.HookLogger{})
@@ -90,7 +90,7 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	var loggingLevel logging.Level
+	var loggingLevel log.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
 	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, &server.HookLogger{})

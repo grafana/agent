@@ -25,9 +25,9 @@ import (
 	"github.com/grafana/agent/pkg/supportbundle"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/usagestats"
+	"github.com/grafana/dskit/signals"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/weaveworks/common/signals"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 )
@@ -395,7 +395,7 @@ func (ep *Entrypoint) Start() error {
 
 	// Create a signal handler that will stop the Entrypoint once a termination
 	// signal is received.
-	signalHandler := signals.NewHandler(server.GoKitLogger(ep.log))
+	signalHandler := signals.NewHandler(ep.log)
 
 	notifier := make(chan os.Signal, 1)
 	signal.Notify(notifier, syscall.SIGHUP)
