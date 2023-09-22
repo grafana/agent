@@ -10,6 +10,9 @@ The `snmp` block configures the `snmp` integration,
 which is an embedded version of
 [`snmp_exporter`](https://github.com/prometheus/snmp_exporter). This allows collection of SNMP metrics from the network devices with ease.
 
+{{% admonition type="note" %}}
+`snmp config` uses the latest configuration introduced in version 0.23 of the Prometheus `snmp_exporter`.
+{{% /admonition %}}
 
 ## Quick configuration example
 
@@ -43,7 +46,7 @@ integrations:
 
 ## Prometheus service discovery use case
 
-If you need to scrape SNMP devices in more dynamic environment, and cannot define devices in `snmp_targets` because targets would change over time, you can use service discovery approach. For instance, with [DNS discovery](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#dns_sd_config):
+If you need to scrape SNMP devices in more dynamic environment, and can't define devices in `snmp_targets` because targets would change over time, you can use service discovery approach. For instance, with [DNS discovery](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#dns_sd_config):
 
 ```yaml
 
