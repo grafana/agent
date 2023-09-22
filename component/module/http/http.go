@@ -90,7 +90,7 @@ func (c *Component) newManagedLocalComponent(o component.Options) (*remote_http.
 
 		if !c.inUpdate.Load() && c.isCreated.Load() {
 			// Any errors found here are reported via component health
-			_ = c.mod.LoadFlowContent(c.getArgs().Arguments, c.getContent().Value)
+			_ = c.mod.LoadFlowSource(c.getArgs().Arguments, c.getContent().Value)
 		}
 	}
 
@@ -137,7 +137,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	// Force a content load here and bubble up any error. This will catch problems
 	// on initial load.
-	return c.mod.LoadFlowContent(newArgs.Arguments, c.getContent().Value)
+	return c.mod.LoadFlowSource(newArgs.Arguments, c.getContent().Value)
 }
 
 // CurrentHealth implements component.HealthComponent.

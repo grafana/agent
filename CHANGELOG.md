@@ -64,6 +64,11 @@ Main (unreleased)
 
 - The `cri` stage in `loki.process` can now be configured to limit line size.
 
+- Flow: Allow `grafana-agent run` to accept a path to a directory of `*.river` files.
+  This will load all River files in the directory as a single configuration;
+  component names must be unique across all loaded files. (@rfratto, @hainenber)
+  
+
 ### Enhancements
 
 - Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)

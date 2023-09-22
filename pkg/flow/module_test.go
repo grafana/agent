@@ -126,17 +126,17 @@ func TestModule(t *testing.T) {
 
 func TestArgsNotInModules(t *testing.T) {
 	f := New(testOptions(t))
-	fl, err := ReadFile("test", []byte("argument \"arg\"{}"))
+	fl, err := ParseSource("test", []byte("argument \"arg\"{}"))
 	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
+	err = f.LoadSource(fl, nil)
 	require.ErrorContains(t, err, "argument blocks only allowed inside a module")
 }
 
 func TestExportsNotInModules(t *testing.T) {
 	f := New(testOptions(t))
-	fl, err := ReadFile("test", []byte("export \"arg\"{ value = 1}"))
+	fl, err := ParseSource("test", []byte("export \"arg\"{ value = 1}"))
 	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
+	err = f.LoadSource(fl, nil)
 	require.ErrorContains(t, err, "export blocks only allowed inside a module")
 }
 
@@ -144,9 +144,9 @@ func TestExportsWhenNotUsed(t *testing.T) {
 	f := New(testOptions(t))
 	content := " export \\\"username\\\"  { value  = 1 } \\n export \\\"dummy\\\" { value = 2 } "
 	fullContent := "test.module \"t1\" { content = \"" + content + "\" }"
-	fl, err := ReadFile("test", []byte(fullContent))
+	fl, err := ParseSource("test", []byte(fullContent))
 	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
+	err = f.LoadSource(fl, nil)
 	require.NoError(t, err)
 	ctx := context.Background()
 	ctx, cnc := context.WithTimeout(ctx, 1*time.Second)
