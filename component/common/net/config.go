@@ -1,4 +1,4 @@
-// Package http contains a River serializable definition of the dskit dskit config in
+// Package http contains a River serializable definition of the dskit config in
 // https://github.com/grafana/dskit/blob/main/server/server.go#L72.
 package net
 
