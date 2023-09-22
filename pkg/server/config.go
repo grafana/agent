@@ -3,6 +3,7 @@ package server
 import (
 	"flag"
 
+	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/dskit/log"
 )
 
@@ -62,8 +63,9 @@ func DefaultConfig() Config {
 	}
 
 	return Config{
-		GRPC:     DefaultGRPCConfig,
-		HTTP:     DefaultHTTPConfig,
-		LogLevel: DefaultLogLevel,
+		GRPC:      DefaultGRPCConfig,
+		HTTP:      DefaultHTTPConfig,
+		LogLevel:  DefaultLogLevel,
+		LogFormat: string(logging.FormatDefault),
 	}
 }
