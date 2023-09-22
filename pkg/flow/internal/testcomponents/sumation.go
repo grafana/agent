@@ -26,7 +26,8 @@ type SummationConfig struct {
 }
 
 type SummationExports struct {
-	Output int `river:"output,attr"`
+	Sum       int `river:"sum,attr"`
+	LastAdded int `river:"last_added,attr"`
 }
 
 type Summation struct {
@@ -60,6 +61,6 @@ func (t *Summation) Update(args component.Arguments) error {
 	newSum := int(t.sum.Add(int32(c.Input)))
 
 	level.Info(t.log).Log("msg", "updated sum", "value", newSum, "input", c.Input)
-	t.opts.OnStateChange(SummationExports{Output: newSum})
+	t.opts.OnStateChange(SummationExports{Sum: newSum, LastAdded: c.Input})
 	return nil
 }
