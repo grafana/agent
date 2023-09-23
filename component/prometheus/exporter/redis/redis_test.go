@@ -58,10 +58,10 @@ func TestRiverUnmarshal(t *testing.T) {
 		CheckKeyGroupsBatchSize: int64(5000),
 		MaxDistinctKeyGroups:    int64(50),
 
-		CheckStreams:              []string{"stream1*"},
-		CheckSingleStreams:        []string{"particular_stream"},
-		DisableExportingKeyValues: true,
-		CountKeys:                 []string{"count_key1", "count_key2"},
+		CheckStreams:       []string{"stream1*"},
+		CheckSingleStreams: []string{"particular_stream"},
+		ExportKeyValues:    false,
+		CountKeys:          []string{"count_key1", "count_key2"},
 
 		ScriptPath:        "/tmp/metrics-script.lua,/tmp/cooler-metrics-script.lua",
 		ConnectionTimeout: 7 * time.Second,
@@ -110,13 +110,13 @@ func TestRiverConvert(t *testing.T) {
 		Namespace:         "namespace",
 		ConfigCommand:     "TEST_CONFIG",
 
-		CheckKeys:                 []string{"key1*", "cache_*"},
-		CheckKeyGroups:            []string{"other_key%d+"},
-		CheckSingleKeys:           []string{"particular_key"},
-		DisableExportingKeyValues: true,
-		CountKeys:                 []string{"count_key1", "count_key2"},
-		CheckKeyGroupsBatchSize:   5000,
-		MaxDistinctKeyGroups:      50,
+		CheckKeys:               []string{"key1*", "cache_*"},
+		CheckKeyGroups:          []string{"other_key%d+"},
+		CheckSingleKeys:         []string{"particular_key"},
+		ExportKeyValues:         false,
+		CountKeys:               []string{"count_key1", "count_key2"},
+		CheckKeyGroupsBatchSize: 5000,
+		MaxDistinctKeyGroups:    50,
 
 		CheckStreams:       []string{"stream1*", "stream2*"},
 		CheckSingleStreams: []string{"particular_stream"},
@@ -145,13 +145,13 @@ func TestRiverConvert(t *testing.T) {
 		Namespace:         "namespace",
 		ConfigCommand:     "TEST_CONFIG",
 
-		CheckKeys:                 "key1*,cache_*",
-		CheckKeyGroups:            "other_key%d+",
-		CheckSingleKeys:           "particular_key",
-		DisableExportingKeyValues: true,
-		CountKeys:                 "count_key1,count_key2",
-		CheckKeyGroupsBatchSize:   5000,
-		MaxDistinctKeyGroups:      50,
+		CheckKeys:               "key1*,cache_*",
+		CheckKeyGroups:          "other_key%d+",
+		CheckSingleKeys:         "particular_key",
+		ExportKeyValues:         false,
+		CountKeys:               "count_key1,count_key2",
+		CheckKeyGroupsBatchSize: 5000,
+		MaxDistinctKeyGroups:    50,
 
 		CheckStreams:       "stream1*,stream2*",
 		CheckSingleStreams: "particular_stream",
@@ -174,6 +174,22 @@ func TestRiverConvert(t *testing.T) {
 	}
 
 	require.Equal(t, expected, *converted)
+}
+
+func TestDisableExportingKeyValues(t *testing.T) {
+	args := Arguments{
+		ExportKeyValues: false,
+	}
+	converted := args.Convert()
+	exporterOpts := converted.GetExporterOptions()
+	require.True(t, exporterOpts.DisableExportingKeyValues)
+
+	args = Arguments{
+		ExportKeyValues: true,
+	}
+	converted = args.Convert()
+	exporterOpts = converted.GetExporterOptions()
+	require.False(t, exporterOpts.DisableExportingKeyValues)
 }
 
 func TestCustomizeTarget(t *testing.T) {

@@ -27,6 +27,7 @@ var DefaultConfig = Config{
 	SetClientName:           true,
 	CheckKeyGroupsBatchSize: 10000,
 	MaxDistinctKeyGroups:    100,
+	ExportKeyValues:         true,
 }
 
 // Config controls the redis_exporter integration.
@@ -37,36 +38,36 @@ type Config struct {
 	//
 	// The exporter binary config differs to this, but these
 	// are the only fields that are relevant to the exporter struct.
-	RedisAddr                 string             `yaml:"redis_addr,omitempty"`
-	RedisUser                 string             `yaml:"redis_user,omitempty"`
-	RedisPassword             config_util.Secret `yaml:"redis_password,omitempty"`
-	RedisPasswordFile         string             `yaml:"redis_password_file,omitempty"`
-	RedisPasswordMapFile      string             `yaml:"redis_password_map_file,omitempty"`
-	Namespace                 string             `yaml:"namespace,omitempty"`
-	ConfigCommand             string             `yaml:"config_command,omitempty"`
-	CheckKeys                 string             `yaml:"check_keys,omitempty"`
-	CheckKeyGroups            string             `yaml:"check_key_groups,omitempty"`
-	CheckKeyGroupsBatchSize   int64              `yaml:"check_key_groups_batch_size,omitempty"`
-	MaxDistinctKeyGroups      int64              `yaml:"max_distinct_key_groups,omitempty"`
-	CheckSingleKeys           string             `yaml:"check_single_keys,omitempty"`
-	CheckStreams              string             `yaml:"check_streams,omitempty"`
-	CheckSingleStreams        string             `yaml:"check_single_streams,omitempty"`
-	DisableExportingKeyValues bool               `yaml:"disable_exporting_key_values,omitempty"`
-	CountKeys                 string             `yaml:"count_keys,omitempty"`
-	ScriptPath                string             `yaml:"script_path,omitempty"`
-	ConnectionTimeout         time.Duration      `yaml:"connection_timeout,omitempty"`
-	TLSClientKeyFile          string             `yaml:"tls_client_key_file,omitempty"`
-	TLSClientCertFile         string             `yaml:"tls_client_cert_file,omitempty"`
-	TLSCaCertFile             string             `yaml:"tls_ca_cert_file,omitempty"`
-	SetClientName             bool               `yaml:"set_client_name,omitempty"`
-	IsTile38                  bool               `yaml:"is_tile38,omitempty"`
-	IsCluster                 bool               `yaml:"is_cluster,omitempty"`
-	ExportClientList          bool               `yaml:"export_client_list,omitempty"`
-	ExportClientPort          bool               `yaml:"export_client_port,omitempty"`
-	RedisMetricsOnly          bool               `yaml:"redis_metrics_only,omitempty"`
-	PingOnConnect             bool               `yaml:"ping_on_connect,omitempty"`
-	InclSystemMetrics         bool               `yaml:"incl_system_metrics,omitempty"`
-	SkipTLSVerification       bool               `yaml:"skip_tls_verification,omitempty"`
+	RedisAddr               string             `yaml:"redis_addr,omitempty"`
+	RedisUser               string             `yaml:"redis_user,omitempty"`
+	RedisPassword           config_util.Secret `yaml:"redis_password,omitempty"`
+	RedisPasswordFile       string             `yaml:"redis_password_file,omitempty"`
+	RedisPasswordMapFile    string             `yaml:"redis_password_map_file,omitempty"`
+	Namespace               string             `yaml:"namespace,omitempty"`
+	ConfigCommand           string             `yaml:"config_command,omitempty"`
+	CheckKeys               string             `yaml:"check_keys,omitempty"`
+	CheckKeyGroups          string             `yaml:"check_key_groups,omitempty"`
+	CheckKeyGroupsBatchSize int64              `yaml:"check_key_groups_batch_size,omitempty"`
+	MaxDistinctKeyGroups    int64              `yaml:"max_distinct_key_groups,omitempty"`
+	CheckSingleKeys         string             `yaml:"check_single_keys,omitempty"`
+	CheckStreams            string             `yaml:"check_streams,omitempty"`
+	CheckSingleStreams      string             `yaml:"check_single_streams,omitempty"`
+	ExportKeyValues         bool               `yaml:"export_key_values,omitempty"`
+	CountKeys               string             `yaml:"count_keys,omitempty"`
+	ScriptPath              string             `yaml:"script_path,omitempty"`
+	ConnectionTimeout       time.Duration      `yaml:"connection_timeout,omitempty"`
+	TLSClientKeyFile        string             `yaml:"tls_client_key_file,omitempty"`
+	TLSClientCertFile       string             `yaml:"tls_client_cert_file,omitempty"`
+	TLSCaCertFile           string             `yaml:"tls_ca_cert_file,omitempty"`
+	SetClientName           bool               `yaml:"set_client_name,omitempty"`
+	IsTile38                bool               `yaml:"is_tile38,omitempty"`
+	IsCluster               bool               `yaml:"is_cluster,omitempty"`
+	ExportClientList        bool               `yaml:"export_client_list,omitempty"`
+	ExportClientPort        bool               `yaml:"export_client_port,omitempty"`
+	RedisMetricsOnly        bool               `yaml:"redis_metrics_only,omitempty"`
+	PingOnConnect           bool               `yaml:"ping_on_connect,omitempty"`
+	InclSystemMetrics       bool               `yaml:"incl_system_metrics,omitempty"`
+	SkipTLSVerification     bool               `yaml:"skip_tls_verification,omitempty"`
 }
 
 // GetExporterOptions returns relevant Config properties as a redis_exporter
@@ -84,7 +85,7 @@ func (c Config) GetExporterOptions() re.Options {
 		CheckSingleKeys:           c.CheckSingleKeys,
 		CheckStreams:              c.CheckStreams,
 		CheckSingleStreams:        c.CheckSingleStreams,
-		DisableExportingKeyValues: c.DisableExportingKeyValues,
+		DisableExportingKeyValues: !c.ExportKeyValues,
 		CountKeys:                 c.CountKeys,
 		InclSystemMetrics:         c.InclSystemMetrics,
 		InclConfigMetrics:         false,
