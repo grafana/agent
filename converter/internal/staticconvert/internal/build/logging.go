@@ -22,6 +22,6 @@ func (b *IntegrationsV1ConfigBuilder) appendLogging(config *server.Config) {
 func toLogging(config *server.Config) *logging.Options {
 	return &logging.Options{
 		Level:  logging.Level(config.LogLevel.String()),
-		Format: logging.Format(config.LogFormat.String()),
+		Format: logging.Format(config.LogFormat),
 	}
 }

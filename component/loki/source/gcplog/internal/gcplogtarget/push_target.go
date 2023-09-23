@@ -110,7 +110,7 @@ func (p *PushTarget) push(w http.ResponseWriter, r *http.Request) {
 
 	if err := p.doSendEntry(ctx, entry); err != nil {
 		// NOTE: timeout errors can be tracked with from the metrics exposed by
-		// the spun weaveworks server.
+		// the spun dskit server.
 		// loki.source.gcplog.componentid_push_target_request_duration_seconds_count{status_code="503"}
 		level.Warn(p.logger).Log("msg", "error sending log entry", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)

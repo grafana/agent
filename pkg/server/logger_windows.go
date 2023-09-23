@@ -4,8 +4,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/weaveworks/common/logging"
-
 	"github.com/go-kit/log/level"
 
 	"github.com/go-kit/log"
@@ -56,7 +54,7 @@ func makeWindowsEventLogger(cfg *Config) (log.Logger, error) {
 		infoLogger:    infoLogger,
 		warningLogger: warningLogger,
 	}
-	return level.NewFilter(wl, cfg.LogLevel.Gokit), nil
+	return level.NewFilter(wl, cfg.LogLevel.Level.Option), nil
 }
 
 // Looks through the key value pairs in the log for level and extract the value
@@ -69,10 +67,10 @@ func getLevel(keyvals ...interface{}) level.Value {
 	return nil
 }
 
-func newWinLogWrapper(format logging.Format, write func(p []byte) error) log.Logger {
+func newWinLogWrapper(format string, write func(p []byte) error) log.Logger {
 	infoWriter := &winLogWriter{writer: write}
 	infoLogger := log.NewLogfmtLogger(infoWriter)
-	if format.String() == "json" {
+	if format == "json" {
 		infoLogger = log.NewJSONLogger(infoWriter)
 	}
 	return infoLogger
