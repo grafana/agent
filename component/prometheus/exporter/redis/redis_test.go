@@ -24,7 +24,7 @@ func TestRiverUnmarshal(t *testing.T) {
 		check_single_keys            = ["particular_key"]
 		check_streams                = ["stream1*"]
 		check_single_streams         = ["particular_stream"]
-		disable_exporting_key_values = true
+		export_key_values            = false
 		count_keys                   = ["count_key1", "count_key2"]
 		script_path                  = "/tmp/metrics-script.lua,/tmp/cooler-metrics-script.lua"
 		connection_timeout           = "7s"
