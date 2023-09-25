@@ -28,8 +28,8 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	fs := flag.NewFlagSet("convert", flag.ExitOnError)
-	staticConfig, err := config.LoadFromFunc(fs, []string{"-config.file", "convert", "-config.expand-env"}, func(_, _ string, configExpandEnv bool, c *config.Config) error {
-		return config.LoadBytes(in, configExpandEnv, c)
+	staticConfig, err := config.LoadFromFunc(fs, []string{"-config.file", "convert", "-config.expand-env"}, func(_, _ string, expandEnvVars bool, c *config.Config) error {
+		return config.LoadBytes(in, expandEnvVars, c)
 	})
 
 	if err != nil {
