@@ -11,11 +11,11 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/pkg/util"
+	dskit "github.com/grafana/dskit/server"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	ww "github.com/weaveworks/common/server"
 )
 
 // Not all these are tested but are here to make sure the different types marshal without error
@@ -47,7 +47,7 @@ stage.drop {
 
 func TestDropStage(t *testing.T) {
 	// Enable debug logging
-	cfg := &ww.Config{}
+	cfg := &dskit.Config{}
 	require.Nil(t, cfg.LogLevel.Set("debug"))
 
 	tenBytes, _ := units.ParseBase2Bytes("10B")

@@ -17,6 +17,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/ckit/memconn"
+	"github.com/grafana/dskit/middleware"
 	_ "github.com/grafana/pyroscope-go/godeltaprof/http/pprof" // anonymous import to get the godeltaprof handler registered
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/hashicorp/go-multierror"
@@ -25,8 +26,6 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/weaveworks/common/logging"
-	"github.com/weaveworks/common/middleware"
 	"golang.org/x/net/netutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -131,7 +130,6 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 	if l == nil {
 		l = log.NewNopLogger()
 	}
-	wrappedLogger := GoKitLogger(l)
 
 	switch {
 	case flags.HTTP.InMemoryAddr == "":
@@ -196,8 +194,8 @@ func New(l log.Logger, r prometheus.Registerer, g prometheus.Gatherer, cfg Confi
 	)
 
 	// Build servers
-	grpcServer := newGRPCServer(wrappedLogger, &flags.GRPC, m)
-	httpServer, router, err := newHTTPServer(wrappedLogger, g, &flags, m)
+	grpcServer := newGRPCServer(l, &flags.GRPC, m)
+	httpServer, router, err := newHTTPServer(l, g, &flags, m)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +269,7 @@ func newGRPCListener(opts *GRPCFlags, m *metrics) (net.Listener, error) {
 	return grpcListener, nil
 }
 
-func newGRPCServer(l logging.Interface, opts *GRPCFlags, m *metrics) *grpc.Server {
+func newGRPCServer(l log.Logger, opts *GRPCFlags, m *metrics) *grpc.Server {
 	serverLog := middleware.GRPCServerLog{
 		WithRequest: true,
 		Log:         l,
@@ -307,7 +305,7 @@ func newGRPCServer(l logging.Interface, opts *GRPCFlags, m *metrics) *grpc.Serve
 	return grpc.NewServer(grpcOptions...)
 }
 
-func newHTTPServer(l logging.Interface, g prometheus.Gatherer, opts *Flags, m *metrics) (*http.Server, *mux.Router, error) {
+func newHTTPServer(l log.Logger, g prometheus.Gatherer, opts *Flags, m *metrics) (*http.Server, *mux.Router, error) {
 	router := mux.NewRouter()
 	if opts.RegisterInstrumentation && g != nil {
 		router.Handle("/metrics", promhttp.HandlerFor(g, promhttp.HandlerOpts{
