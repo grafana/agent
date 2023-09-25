@@ -112,9 +112,6 @@ Main (unreleased)
 
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
 
-- Fixed a bug due to which debug metrics originating from OpenTelemetry components
-  were not visible on the Agent't `metrics` endpoint. (@ptodev)
-
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
