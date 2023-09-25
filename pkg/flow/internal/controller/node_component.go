@@ -367,9 +367,6 @@ func (cn *ComponentNode) Exports() component.Exports {
 // setExports is called whenever the managed component updates. e must be the
 // same type as the registered exports type of the managed component.
 func (cn *ComponentNode) setExports(e component.Exports) {
-
-	fmt.Printf("\n=== Setting exports: %q to %v\n", cn.NodeID(), e)
-
 	if cn.exportsType == nil {
 		panic(fmt.Sprintf("Component %s called OnStateChange but never registered an Exports type", cn.nodeID))
 	}
@@ -388,7 +385,6 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 
 	cn.exportsMut.Lock()
 	if !reflect.DeepEqual(cn.exports, e) {
-		fmt.Printf("\n=== Exports have changed: %q\n", cn.NodeID())
 		changed = true
 		cn.exports = e
 	}

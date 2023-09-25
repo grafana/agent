@@ -572,8 +572,6 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
 func (l *Loader) EvaluateDependencies(c *ComponentNode) {
-	fmt.Printf("\n========== Evaluating dependencies for %q\n", c.NodeID())
-
 	tracer := l.tracer.Tracer("")
 
 	l.mut.RLock()
@@ -588,12 +586,12 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 	defer span.End()
 
 	logger := log.With(l.log, "trace_id", span.SpanContext().TraceID())
-	level.Info(logger).Log("msg", "starting partial graph evaluation", "originator", c.NodeID())
+	level.Info(logger).Log("msg", "starting partial graph evaluation")
 	defer func() {
 		span.SetStatus(codes.Ok, "")
 
 		duration := time.Since(start)
-		level.Info(logger).Log("msg", "finished partial graph evaluation", "duration", duration, "originator", c.NodeID())
+		level.Info(logger).Log("msg", "finished partial graph evaluation", "duration", duration)
 		l.cm.componentEvaluationTime.Observe(duration.Seconds())
 	}()
 

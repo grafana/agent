@@ -118,7 +118,7 @@ func TestController_Updates_WithLag(t *testing.T) {
 	require.Equal(t, "10", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "10", out.(testcomponents.PassthroughExports).Output)
 
-	in, out = getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
+	in, _ = getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
 	require.Equal(t, 10, in.(testcomponents.SummationConfig).Input)
 
 	cancel()

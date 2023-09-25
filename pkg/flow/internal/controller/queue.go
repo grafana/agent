@@ -1,9 +1,6 @@
 package controller
 
-import (
-	"fmt"
-	"sync"
-)
+import "sync"
 
 // Queue is an unordered queue of components.
 //
@@ -29,7 +26,6 @@ func NewQueue() *Queue {
 func (q *Queue) Enqueue(c *ComponentNode) {
 	q.mut.Lock()
 	defer q.mut.Unlock()
-	fmt.Printf("\n=== Enque for update: %q\n", c.NodeID())
 	q.queued[c] = struct{}{}
 	select {
 	case q.updateCh <- struct{}{}:
@@ -47,7 +43,6 @@ func (q *Queue) TryDequeue() *ComponentNode {
 	defer q.mut.Unlock()
 
 	for c := range q.queued {
-		fmt.Printf("\n=== Deque update: %q\n", c.NodeID())
 		delete(q.queued, c)
 		return c
 	}
