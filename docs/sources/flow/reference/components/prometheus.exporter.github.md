@@ -10,7 +10,7 @@ title: prometheus.exporter.github
 # prometheus.exporter.github
 
 The `prometheus.exporter.github` component embeds
-[github_exporter](https://github.com/infinityworks/github-exporter) for collecting statistics from GitHub.
+[github_exporter](https://github.com/githubexporter/github-exporter) for collecting statistics from GitHub.
 
 ## Usage
 

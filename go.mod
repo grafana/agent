@@ -81,7 +81,6 @@ require (
 	github.com/hashicorp/vault/api/auth/userpass v0.2.0
 	github.com/heroku/x v0.0.61
 	github.com/iamseth/oracledb_exporter v0.0.0-20230504204552-f801dc432dcf
-	github.com/infinityworks/github-exporter v0.0.0-20210802160115-284088c21e7d
 	github.com/influxdata/go-syslog/v3 v3.0.1-0.20210608084020-ac565dc76ba6
 	github.com/jaegertracing/jaeger v1.41.0
 	github.com/jmespath/go-jmespath v0.4.0
@@ -624,6 +623,8 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 )
 
+require github.com/githubexporter/github-exporter v0.0.0-20230925090839-9e31cd0e7721
+
 require (
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
@@ -679,9 +680,6 @@ replace (
 
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
-	// Upstream seems to be inactive, see https://github.com/grafana/agent/issues/1845
-	github.com/infinityworks/github-exporter => github.com/grafana/github-exporter v0.0.0-20230418063919-fa34e926116a
-
 	// TODO(mattdurham): this is so you can debug on windows, when PR is merged into perflib, can you use that
 	// and eventually remove if windows_exporter shifts to it. https://github.com/leoluk/perflib_exporter/pull/43
 	github.com/leoluk/perflib_exporter => github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090
