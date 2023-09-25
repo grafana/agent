@@ -1082,6 +1082,8 @@ github.com/grafana/loki/pkg/push v0.0.0-20230904153656-e4cc2a4f5ec8 h1:yQK/dX7WB
 github.com/grafana/loki/pkg/push v0.0.0-20230904153656-e4cc2a4f5ec8/go.mod h1:5ll3An1wAxYejo6aM04+3/lc6N4joYVYLY5U+Z4O6vI=
 github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a h1:D5NSR64/6xMXnSFD9y1m1DPYIcBcHvtfeuI9/M/0qtI=
 github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a/go.mod h1:rjb/swXiCWLlC3gWlyugy/xEOZioF5PclbB8sf/9p/Q=
+github.com/grafana/opentelemetry-collector v0.4.1-0.20230925123210-ef4435f79a8a h1:co7JnXySBilXDBu0hhw3furJZLJg9SFojos1PMO+lW4=
+github.com/grafana/opentelemetry-collector v0.4.1-0.20230925123210-ef4435f79a8a/go.mod h1:jcETa0UJmwkDSyhkOTwQi8rgie1M3TjsIO98KeGM2vk=
 github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090 h1:Ko80Xcl7xo1eYqkqLUb9AVVCLGVmuQp2jOV69hEEeZw=
 github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090/go.mod h1:MinSWm88jguXFFrGsP56PtleUb4Qtm4tNRH/wXNXRTI=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnFWqxhoSF3WC7sKAdMZ+SRXvHLVZlZ3sbQjuUlTqkw=

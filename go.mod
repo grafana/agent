@@ -709,7 +709,7 @@ exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 // https://github.com/open-telemetry/opentelemetry-collector/pull/7644
 // https://github.com/open-telemetry/opentelemetry-collector/pull/7696
 // https://github.com/open-telemetry/opentelemetry-collector/issues/4970
-replace go.opentelemetry.io/collector => /Users/williamdumont/opentelemetry-collector
+replace go.opentelemetry.io/collector => github.com/grafana/opentelemetry-collector v0.4.1-0.20230925123210-ef4435f79a8a
 
 // Required to avoid an ambiguous import with github.com/tencentcloud/tencentcloud-sdk-go
 exclude github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.194
