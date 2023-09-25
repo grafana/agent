@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/weaveworks/common/logging"
+	dskit "github.com/grafana/dskit/log"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime"
@@ -36,8 +36,8 @@ import (
 
 // Config controls the configuration of the Operator.
 type Config struct {
-	LogLevel            logging.Level
-	LogFormat           logging.Format
+	LogLevel            dskit.Level
+	LogFormat           string
 	Labels              promop.Labels
 	Controller          controller.Options
 	AgentSelector       string
@@ -73,7 +73,6 @@ func NewConfig(f *flag.FlagSet) (*Config, error) {
 
 func (c *Config) registerFlags(f *flag.FlagSet) error {
 	c.LogLevel.RegisterFlags(f)
-	c.LogFormat.RegisterFlags(f)
 	f.Var(&c.Labels, "labels", "Labels to add to all created operator resources")
 	f.StringVar(&c.AgentSelector, "agent-selector", "", "Label selector to discover GrafanaAgent CRs. Defaults to all GrafanaAgent CRs.")
 	var namespace string

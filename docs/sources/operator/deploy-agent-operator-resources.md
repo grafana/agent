@@ -61,7 +61,7 @@ To deploy the `GrafanaAgent` resource:
       labels:
         app: grafana-agent
     spec:
-      image: grafana/agent:v0.36.1
+      image: grafana/agent:v0.36.2
       integrations:
         selector:
           matchLabels:
