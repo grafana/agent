@@ -74,7 +74,7 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &otlpreceiver.Config{
 		Protocols: otlpreceiver.Protocols{
 			GRPC: (*otelcol.GRPCServerArguments)(args.GRPC).Convert(),
-			HTTP: (*HTTPConfigArguments)(args.HTTP).Convert(),
+			HTTP: args.HTTP.Convert(),
 		},
 	}, nil
 }
