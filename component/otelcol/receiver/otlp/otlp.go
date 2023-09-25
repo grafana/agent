@@ -122,17 +122,19 @@ var (
 
 // Validate implements river.Validator.
 func (args *Arguments) Validate() error {
-	_, err := url.Parse(args.HTTP.TracesURLPath)
-	if err != nil {
-		return fmt.Errorf("invalid traces_url_path: %w", err)
-	}
-	_, err = url.Parse(args.HTTP.MetricsURLPath)
-	if err != nil {
-		return fmt.Errorf("invalid metrics_url_path: %w", err)
-	}
-	_, err = url.Parse(args.HTTP.LogsURLPath)
-	if err != nil {
-		return fmt.Errorf("invalid logs_url_path: %w", err)
+	if args.HTTP != nil {
+		_, err := url.Parse(args.HTTP.TracesURLPath)
+		if err != nil {
+			return fmt.Errorf("invalid traces_url_path: %w", err)
+		}
+		_, err = url.Parse(args.HTTP.MetricsURLPath)
+		if err != nil {
+			return fmt.Errorf("invalid metrics_url_path: %w", err)
+		}
+		_, err = url.Parse(args.HTTP.LogsURLPath)
+		if err != nil {
+			return fmt.Errorf("invalid logs_url_path: %w", err)
+		}
 	}
 	return nil
 }

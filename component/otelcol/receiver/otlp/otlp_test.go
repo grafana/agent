@@ -136,3 +136,17 @@ func getFreeAddr(t *testing.T) string {
 
 	return fmt.Sprintf("localhost:%d", portNumber)
 }
+
+func TestUnmarshalGrpc(t *testing.T) {
+	riverCfg := `
+		grpc {
+			endpoint = "/v1/traces"
+		}
+
+		output {
+		}
+	`
+	var args otlp.Arguments
+	err := river.Unmarshal([]byte(riverCfg), &args)
+	require.NoError(t, err)
+}
