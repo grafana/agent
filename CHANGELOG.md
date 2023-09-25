@@ -29,6 +29,8 @@ Main (unreleased)
   to static mode's `automatic_logging` processor. (@ptodev)
   - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
   flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
+  - `otelcol.processor.k8sattributes` adds Kubernetes metadata as resource attributes
+     to spans, logs, and metrics. (@acr92)
   - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
   - `discovery.linode` discovers scrape targets from the Linode API. (@captncraig)
