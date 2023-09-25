@@ -29,6 +29,8 @@ Main (unreleased)
   to static mode's `automatic_logging` processor. (@ptodev)
   - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
   flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
+  - `otelcol.processor.k8sattributes` adds Kubernetes metadata as resource attributes
+     to spans, logs, and metrics. (@acr92)
   - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
   - `discovery.linode` discovers scrape targets from the Linode API. (@captncraig)
@@ -45,6 +47,7 @@ Main (unreleased)
   - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
   - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
   - `prometheus.exporter.agent` - scrape agent's metrics. (@hainenber)
+  - `prometheus.exporter.vsphere` - scrape vmware vsphere metrics. (@marctc)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
