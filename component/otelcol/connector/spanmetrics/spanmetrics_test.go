@@ -102,7 +102,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				name = "http.method"
 				default = "GET"
 			}
-			exclude_dimension = ["test_exclude_dim1", "test_exclude_dim2"]
+			exclude_dimensions = ["test_exclude_dim1", "test_exclude_dim2"]
 			dimensions_cache_size = 333
 			aggregation_temporality = "DELTA"
 			histogram {

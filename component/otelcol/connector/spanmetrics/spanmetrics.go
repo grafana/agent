@@ -135,10 +135,7 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 		return nil, err
 	}
 
-	excludeDimensions := make([]string, len(args.ExcludeDimensions))
-	for _, values := range args.ExcludeDimensions {
-		excludeDimensions = append(excludeDimensions, values)
-	}
+	excludeDimensions := append([]string(nil), args.ExcludeDimensions...)
 
 	return &spanmetricsconnector.Config{
 		Dimensions:             dimensions,
