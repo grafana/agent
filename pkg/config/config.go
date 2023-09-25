@@ -387,16 +387,16 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) {
-	cfg, error := LoadFromFunc(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
+	cfg, error := LoadFromFunc(fs, args, func(path, fileType string, expandEnvVars bool, c *Config) error {
 		switch fileType {
 		case fileTypeYAML:
 			if features.Enabled(fs, featRemoteConfigs) {
-				return LoadRemote(path, expandArgs, c)
+				return LoadRemote(path, expandEnvVars, c)
 			}
 			if features.Enabled(fs, featAgentManagement) {
-				return loadFromAgentManagementAPI(path, expandArgs, c, log, fs)
+				return loadFromAgentManagementAPI(path, expandEnvVars, c, log, fs)
 			}
-			return LoadFile(path, expandArgs, c)
+			return LoadFile(path, expandEnvVars, c)
 		default:
 			return fmt.Errorf("unknown file type %q. accepted values: %s", fileType, strings.Join(fileTypes, ", "))
 		}
@@ -406,7 +406,7 @@ func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) 
 	return cfg, error
 }
 
-type loaderFunc func(path string, fileType string, expandArgs bool, target *Config) error
+type loaderFunc func(path string, fileType string, expandEnvVars bool, target *Config) error
 
 func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path string, cfg *Config) error {
 	// Parse the flags again to override any YAML values with command line flag

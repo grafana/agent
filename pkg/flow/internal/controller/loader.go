@@ -363,10 +363,11 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 		diags = append(diags, newConfigNodeDiags...)
 
 		if g.GetByID(node.NodeID()) != nil {
+			configBlockStartPos := ast.StartPos(block).Position()
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("%q block already declared", node.NodeID()),
-				StartPos: ast.StartPos(block).Position(),
+				Message:  fmt.Sprintf("%q block already declared at %s", node.NodeID(), configBlockStartPos),
+				StartPos: configBlockStartPos,
 				EndPos:   ast.EndPos(block).Position(),
 			})
 

@@ -29,6 +29,8 @@ Main (unreleased)
   to static mode's `automatic_logging` processor. (@ptodev)
   - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
   flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
+  - `otelcol.processor.k8sattributes` adds Kubernetes metadata as resource attributes
+     to spans, logs, and metrics. (@acr92)
   - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
   - `discovery.linode` discovers scrape targets from the Linode API. (@captncraig)
@@ -44,6 +46,8 @@ Main (unreleased)
   - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
   - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
   - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
+  - `prometheus.exporter.agent` - scrape agent's metrics. (@hainenber)
+  - `prometheus.exporter.vsphere` - scrape vmware vsphere metrics. (@marctc)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
@@ -63,6 +67,11 @@ Main (unreleased)
 
 - The `cri` stage in `loki.process` can now be configured to limit line size.
 
+- Flow: Allow `grafana-agent run` to accept a path to a directory of `*.river` files.
+  This will load all River files in the directory as a single configuration;
+  component names must be unique across all loaded files. (@rfratto, @hainenber)
+
+
 ### Enhancements
 
 - Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
@@ -81,30 +90,53 @@ Main (unreleased)
 
 - Flow: improve river config validation step in `prometheus.scrape` by comparing `scrape_timeout` with `scrape_interval`. (@wildum)
 
-- Add support for `windows_certificate_filter` under http tls config block. (@mattdurham)
+- Flow: add `randomization_factor` and `multiplier` to retry settings in
+  `otelcol` components. (@rfratto)
   
+- Add support for `windows_certificate_filter` under http tls config block. (@mattdurham)
+
 - Add `openstack` config converter to convert OpenStack yaml config (static mode) to river config (flow mode). (@wildum)
 
-- Some `otelcol` components will now display their debug metrics via the 
-  Agent's `/metrics` endpoint. Those components include `otelcol.receiver.otlp`, 
-  `otelcol.exporter.otlp` and `otelcol.processor.batch`. There may also be metrics 
+- Some `otelcol` components will now display their debug metrics via the
+  Agent's `/metrics` endpoint. Those components include `otelcol.receiver.otlp`,
+  `otelcol.exporter.otlp` and `otelcol.processor.batch`. There may also be metrics
   from other components which are not documented yet. (@ptodev)
 
 - Agent Management: Honor 503 ServiceUnavailable `Retry-After` header. (@jcreixell)
 
+### Bugfixes
+
+- Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
+  metric to match the OTLP Instrumentation Scope spec. `name` is now `otel_scope_name`
+  and `version` is now `otel_version_name`. (@erikbaranowski)
+
+- Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
+
 - Read contextual attributes from Faro measurements (@codecapitano)
+
 - Rename Grafana Agent service in windows app and features to not include the description
+
 - Correct YAML level for `multitenancy_enabled` option in Mimir's config in examples. (@hainenber)
+
 - Operator: Update default config reloader version. (@captncraig)
+
 - Sorting of common fields in log messages emitted by the agent in Flow mode
   have been standardized. The first fields will always be `ts`, `level`, and
   `msg`, followed by non-common fields. Previously, the position of `msg` was
   not consistent. (@rfratto)
+
 - Documentation updated to link discovery.http and prometheus.scrape advanced configs (@proffalken)
+
 - Bump SNMP exporter version to v0.23 (@marctc)
+
+- Switch to `IBM/sarama` module. (@hainenber)
+
+v0.36.2 (2023-09-22)
+--------------------
 
 ### Bugfixes
 
@@ -114,13 +146,10 @@ Main (unreleased)
 
 - Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
 
-- Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
-  metric to match the OTLP Instrumentation Scope spec. `name` is now `otel_scope_name`
-  and `version` is now `otel_version_name`. (@erikbaranowski)
-
-- Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
-
 - Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
+
+- Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets
+  instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
 
 v0.36.1 (2023-09-06)
 --------------------

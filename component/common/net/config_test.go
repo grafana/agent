@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	dskit "github.com/grafana/dskit/server"
 	"github.com/stretchr/testify/require"
-	weaveworks "github.com/weaveworks/common/server"
 
 	"github.com/grafana/river"
 )
@@ -34,16 +34,16 @@ func TestConfig(t *testing.T) {
 	type testcase struct {
 		raw         string
 		errExpected bool
-		assert      func(t *testing.T, config weaveworks.Config)
+		assert      func(t *testing.T, config dskit.Config)
 	}
 	var cases = map[string]testcase{
 		"empty config applies defaults": {
 			raw: ``,
-			assert: func(t *testing.T, config weaveworks.Config) {
+			assert: func(t *testing.T, config dskit.Config) {
 				// custom defaults
 				require.Equal(t, DefaultHTTPPort, config.HTTPListenPort)
 				require.Equal(t, DefaultGRPCPort, config.GRPCListenPort)
-				// defaults inherited from weaveworks
+				// defaults inherited from dskit
 				require.Equal(t, "", config.HTTPListenAddress)
 				require.Equal(t, "", config.GRPCListenAddress)
 				require.False(t, config.RegisterInstrumentation)
@@ -62,7 +62,7 @@ func TestConfig(t *testing.T) {
 				conn_limit = 10
 				server_write_timeout = "10s"
 			}`,
-			assert: func(t *testing.T, config weaveworks.Config) {
+			assert: func(t *testing.T, config dskit.Config) {
 				require.Equal(t, 8080, config.HTTPListenPort)
 				require.Equal(t, "0.0.0.0", config.HTTPListenAddress)
 				require.Equal(t, 10, config.HTTPConnLimit)
@@ -84,7 +84,7 @@ func TestConfig(t *testing.T) {
 				listen_address = "0.0.0.0"
 				server_max_send_msg_size = 10
 			}`,
-			assert: func(t *testing.T, config weaveworks.Config) {
+			assert: func(t *testing.T, config dskit.Config) {
 				// these should be overridden
 				require.Equal(t, 8080, config.HTTPListenPort)
 				require.Equal(t, "0.0.0.0", config.HTTPListenAddress)
@@ -125,7 +125,7 @@ func TestConfig(t *testing.T) {
 				server_max_send_msg_size = 6
 				server_max_concurrent_streams = 7
 			}`,
-			assert: func(t *testing.T, config weaveworks.Config) {
+			assert: func(t *testing.T, config dskit.Config) {
 				// general
 				require.Equal(t, time.Minute, config.ServerGracefulShutdownTimeout)
 				// http

@@ -529,7 +529,7 @@ func TestGetRemoteConfig_ExpandsEnvVars(t *testing.T) {
 	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.Equal(t, "15s", cfg.Metrics.Configs[0].ScrapeConfigs[0].ScrapeInterval.String())
-	assert.Equal(t, "json", cfg.Server.LogFormat.String())
+	assert.Equal(t, "json", cfg.Server.LogFormat)
 }
 
 func TestGetCachedConfig_DefaultConfigFallback(t *testing.T) {

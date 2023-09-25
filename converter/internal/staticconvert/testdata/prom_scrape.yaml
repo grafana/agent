@@ -1,5 +1,5 @@
 server:
-  log_level: debug
+  log_level: ${SOME_ENVIRONMENT_VARIABLE:='debug'}
   log_format: json
   http_tls_config:
     client_ca_file: "./testdata/example-cert.pem"
