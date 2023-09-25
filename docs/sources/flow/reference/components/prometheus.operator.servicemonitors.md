@@ -54,6 +54,7 @@ client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the Kubern
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 rule | [rule][] | Relabeling rules to apply to discovered targets. | no
+scrape | [scrape][] | Default scrape configuration to apply to discovered targets. | no
 selector | [selector][] | Label selector for which ServiceMonitors to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which ServiceMonitors to discover. | no
 clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
@@ -70,6 +71,7 @@ inside a `client` block.
 [selector]: #selector-block
 [match_expression]: #match_expression-block
 [rule]: #rule-block
+[scrape]: #scrape-block
 [clustering]: #clustering-beta
 
 ### client block
@@ -116,6 +118,10 @@ Name | Type | Description | Default | Required
 
 {{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
 
+### scrape block
+
+{{< docs/shared lookup="flow/reference/components/prom-operator-scrape.md" source="agent" version="<AGENT VERSION>" >}}
+
 ### selector block
 
 The `selector` block describes a Kubernetes label selector for ServiceMonitors.
@@ -148,7 +154,7 @@ The `operator` argument must be one of the following strings:
 * `"Exists"`
 * `"DoesNotExist"`
 
-If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses. 
+If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses.
 
 ### clustering (beta)
 
