@@ -104,6 +104,8 @@ Main (unreleased)
 
 - Agent Management: Honor 503 ServiceUnavailable `Retry-After` header. (@jcreixell)
 
+- Added `scrape` block to customize the default behavior of `prometheus.operator.podmonitors`, `prometheus.operator.probes`, and `prometheus.operator.servicemonitors`. (@sberz)
+=======
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
@@ -134,6 +136,8 @@ Main (unreleased)
 - Bump SNMP exporter version to v0.23 (@marctc)
 
 - Switch to `IBM/sarama` module. (@hainenber)
+
+- `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
 
 v0.36.2 (2023-09-22)
 --------------------
