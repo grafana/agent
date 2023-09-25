@@ -17,6 +17,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/ckit/memconn"
@@ -40,7 +41,7 @@ type Options struct {
 	Gatherer prometheus.Gatherer  // Where to collect metrics from.
 
 	ReadyFunc  func() bool
-	ReloadFunc func() error
+	ReloadFunc func() (*flow.Source, error)
 
 	HTTPListenAddr   string // Address to listen for HTTP traffic on.
 	MemoryListenAddr string // Address to accept in-memory traffic on.
@@ -186,7 +187,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 			level.Info(s.log).Log("msg", "reload requested via /-/reload endpoint")
 			defer level.Info(s.log).Log("msg", "config reloaded")
 
-			err := s.opts.ReloadFunc()
+			_, err := s.opts.ReloadFunc()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return

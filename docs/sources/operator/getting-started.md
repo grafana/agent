@@ -78,7 +78,7 @@ To install Agent Operator:
           serviceAccountName: grafana-agent-operator
           containers:
           - name: operator
-            image: grafana/agent-operator:v0.36.1
+            image: grafana/agent-operator:v0.36.2
             args:
             - --kubelet-service=default/kubelet
     ---
