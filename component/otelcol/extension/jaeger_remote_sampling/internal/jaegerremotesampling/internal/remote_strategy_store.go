@@ -44,6 +44,7 @@ func NewRemoteStrategyStore(
 	grpcClientSettings *configgrpc.GRPCClientSettings,
 	reloadInterval time.Duration,
 ) (strategystore.StrategyStore, io.Closer) {
+
 	cache := newNoopStrategyCache()
 	if reloadInterval > 0 {
 		cache = newServiceStrategyCache(reloadInterval)
@@ -60,6 +61,7 @@ func (g *grpcRemoteStrategyStore) GetSamplingStrategy(
 	ctx context.Context,
 	serviceName string,
 ) (*api_v2.SamplingStrategyResponse, error) {
+
 	if cachedResponse, ok := g.cache.get(ctx, serviceName); ok {
 		return cachedResponse, nil
 	}
