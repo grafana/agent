@@ -37,7 +37,6 @@ func TestConfigConversion(t *testing.T) {
 					WriteBufferSize: 512 * 1024,
 					Headers:         map[string]configopaque.String{},
 					BalancerName:    "pick_first",
-					Authority:       "authority",
 				},
 				RetrySettings:   defaultRetrySettings,
 				TimeoutSettings: defaultTimeoutSettings,
@@ -108,7 +107,9 @@ func TestConfigConversion(t *testing.T) {
 			protocol {
 				otlp {
 					timeout = "1s"
-					client {}
+					client {
+						authority = "authority"
+					}
 				}
 			}
 			resolver {
