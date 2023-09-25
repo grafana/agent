@@ -4,7 +4,6 @@ import (
 	"net"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
@@ -18,21 +17,13 @@ func init() {
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
 		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.NewWithTargetBuilder(createExporter, "squid", customizeTarget),
+		Build:         exporter.New(createExporter, "squid"),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
 	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
-}
-
-func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
-	a := args.(Arguments)
-	target := baseTarget
-
-	target["instance"] = a.SquidAddr
-	return []discovery.Target{target}
 }
 
 // Arguments controls the squid exporter.

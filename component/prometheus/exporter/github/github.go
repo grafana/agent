@@ -1,10 +1,7 @@
 package github
 
 import (
-	"net/url"
-
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/github_exporter"
@@ -18,26 +15,13 @@ func init() {
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
 		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.NewWithTargetBuilder(createExporter, "github", customizeTarget),
+		Build:         exporter.New(createExporter, "github"),
 	})
 }
 
 func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
 	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
-}
-
-func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
-	a := args.(Arguments)
-	target := baseTarget
-
-	url, err := url.Parse(a.APIURL)
-	if err != nil {
-		return []discovery.Target{target}
-	}
-
-	target["instance"] = url.Host
-	return []discovery.Target{target}
 }
 
 // DefaultArguments holds non-zero default options for Arguments when it is
