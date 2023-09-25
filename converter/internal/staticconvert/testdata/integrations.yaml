@@ -159,6 +159,7 @@ integrations:
   redis_exporter:
     enabled: true
     redis_addr: "redis-2:6379"
+    export_key_values: true
     relabel_configs:
     - source_labels: [__address__]
       target_label: instance
