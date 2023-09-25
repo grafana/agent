@@ -60,8 +60,9 @@ type DebugInfo struct {
 }
 
 type DiscoveredResource struct {
-	Namespace      string    `river:"namespace,attr"`
-	Name           string    `river:"name,attr"`
-	LastReconcile  time.Time `river:"last_reconcile,attr,optional"`
-	ReconcileError string    `river:"reconcile_error,attr,optional"`
+	Namespace        string    `river:"namespace,attr"`
+	Name             string    `river:"name,attr"`
+	LastReconcile    time.Time `river:"last_reconcile,attr,optional"`
+	ReconcileError   string    `river:"reconcile_error,attr,optional"`
+	ScrapeConfigsURL string    `river:"scrape_configs_url,attr,optional"`
 }

@@ -3,6 +3,8 @@ package common
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -10,6 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/operator"
 	"github.com/grafana/agent/service/cluster"
+	"gopkg.in/yaml.v3"
 )
 
 type Component struct {
@@ -142,4 +145,34 @@ func (c *Component) reportHealth(err error) {
 			UpdateTime: time.Now(),
 		}
 	}
+}
+
+func (c *Component) Handler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// very simple path handling
+		// only responds to `/scrapeConfig/$NS/$NAME`
+		c.mut.RLock()
+		man := c.manager
+		c.mut.RUnlock()
+		path := strings.Trim(r.URL.Path, "/")
+		parts := strings.Split(path, "/")
+		if man == nil || len(parts) != 3 || parts[0] != "scrapeConfig" {
+			w.WriteHeader(404)
+			return
+		}
+		ns := parts[1]
+		name := parts[2]
+		scs := man.getScrapeConfig(ns, name)
+		if len(scs) == 0 {
+			w.WriteHeader(404)
+			return
+		}
+		dat, err := yaml.Marshal(scs)
+		if err != nil {
+			w.Write([]byte(err.Error()))
+			w.WriteHeader(500)
+			return
+		}
+		w.Write(dat)
+	})
 }
