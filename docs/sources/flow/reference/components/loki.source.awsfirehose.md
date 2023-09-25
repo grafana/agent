@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.awsfirehose/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.awsfirehose/
 title: loki.source.awsfirehose
+description: Learn about loki.source.awsfirehose
 ---
 
 # loki.source.awsfirehose

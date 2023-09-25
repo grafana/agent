@@ -3,6 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/static/set-up/start-agent/
 description: Learn how to start, restart, and stop Grafana Agent after it is installed
 menuTitle: Start static mode
 title: Start, restart, and stop Grafana Agent in static mode
+description: Learn how to start, restart, and stop Grafana Agent in static mode
 weight: 200
 ---
 

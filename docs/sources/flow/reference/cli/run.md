@@ -8,6 +8,7 @@ description: The `run` command runs Grafana Agent in the foreground until an int
   is received.
 menuTitle: run
 title: run command
+description: Learn about the run command
 weight: 300
 ---
 

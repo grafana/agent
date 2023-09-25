@@ -5,6 +5,7 @@ canonical: https://grafana.com/docs/agent/latest/static/set-up/
 description: Install and configure Grafana Agent in static mode
 menuTitle: Set up static mode
 title: Set up Grafana Agent in static mode
+description: Learn how to set up Grafana Agent in static mode
 weight: 100
 ---
 

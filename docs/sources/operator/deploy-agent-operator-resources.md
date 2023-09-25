@@ -6,6 +6,7 @@ aliases:
 - custom-resource-quickstart/
 canonical: https://grafana.com/docs/agent/latest/operator/deploy-agent-operator-resources/
 title: Deploy Operator resources
+description: Learn how to deploy Operator resources
 weight: 120
 ---
 # Deploy Operator resources
