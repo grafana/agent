@@ -619,7 +619,10 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 )
 
-require github.com/fortytw2/leaktest v1.3.0
+require (
+	github.com/fortytw2/leaktest v1.3.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor v0.85.0
+)
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
@@ -632,6 +635,9 @@ require (
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.85.0 // indirect
+	github.com/openshift/api v3.9.0+incompatible // indirect
+	github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // indirect
 	github.com/prometheus-community/prom-label-proxy v0.6.0 // indirect
 	github.com/sercand/kuberesolver/v4 v4.0.0 // indirect
 	github.com/sony/gobreaker v0.5.0 // indirect
