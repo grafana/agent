@@ -9,18 +9,18 @@ description: The `convert` command converts supported configuration formats to R
 labels:
   stage: beta
 menuTitle: convert
-title: convert command
+title: The convert command
 description: Learn about the convert command
 weight: 100
 ---
 
-# `convert` command
+# The convert command
 
 The `convert` command converts a supported configuration format to Grafana Agent Flow River format.
 
 ## Usage
 
-Usage: 
+Usage:
 
 * `AGENT_MODE=flow grafana-agent convert [FLAG ...] FILE_NAME`
 * `grafana-agent-flow convert [FLAG ...] FILE_NAME`
