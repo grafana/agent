@@ -29,7 +29,7 @@ func Test(t *testing.T) {
 		configBuilder func(string) string
 	}{
 		{
-			"runWithClientIdAndClientSecret",
+			"runWithRequiredParams",
 			"TestAccessToken",
 			"TestTokenType",
 			"TestRefreshToken",
@@ -37,19 +37,6 @@ func Test(t *testing.T) {
 				return fmt.Sprintf(`
 					client_id     = "someclientid"
 					client_secret = "someclientsecret"
-					token_url     = "%s/oauth2/default/v1/token"
-				`, srvProvidingTokensURL)
-			},
-		},
-		{
-			"runWithClientIdAndClientSecretInFiles",
-			"TestAccessToken",
-			"TestTokenType",
-			"TestRefreshToken",
-			func(srvProvidingTokensURL string) string {
-				return fmt.Sprintf(`
-					client_id_file     = "/path/to/client_id_file"
-					client_secret_file = "/path/to/client_secret_file"
 					token_url     = "%s/oauth2/default/v1/token"
 				`, srvProvidingTokensURL)
 			},
@@ -165,7 +152,7 @@ token_url = "token"
 token_url = "token"
 client_id = "clientId"
 `,
-			expectedErrMsg: "client_secret or client_id_secret should be set",
+			expectedErrMsg: "client_secret or client_secret_file should be set",
 		},
 		{
 			name: "TwoClientIdConfigs",
@@ -175,7 +162,7 @@ client_id = "clientId"
 client_id_file = "/path/to/client_id_file"
 client_secret_file = "/path/to/client_secret_file"
 `,
-			expectedErrMsg: "either client_secret or client_id_secret should be set",
+			expectedErrMsg: "either client_id or client_id_file should be set",
 		},
 		{
 			name: "TwoClientSecretConfigs",
@@ -185,7 +172,7 @@ client_id_file = "/path/to/client_id_file"
 client_secret = "clientSecret"
 client_secret_file = "/path/to/client_secret_file"
 `,
-			expectedErrMsg: "either client_secret or client_id_secret should be set",
+			expectedErrMsg: "either client_secret or client_secret_file should be set",
 		},
 	}
 
