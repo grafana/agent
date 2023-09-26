@@ -25,7 +25,7 @@ All arguments are optional. Omitted fields take their default values.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`store_container_labels` | `bool` | Whether to convert container labels and environment variables into labels on prometheus metrics for each container. | `true` | no
+`store_container_labels` | `bool` | Whether to convert container labels and environment variables into labels on Prometheus metrics for each container. | `true` | no
 `allowlisted_container_labels` | `list(string)` | Allowlist of container labels to convert to Prometheus labels. | | no
 `env_metadata_allowlist` | `list(string)` | Allowlist of environment variable keys matched with specified prefix that needs to be collected for containers. | | no
 `raw_cgroup_prefix_allowlist` | `list(string)` | List of cgroup path prefix that needs to be collected, even when docker_only is specified. | | no
@@ -45,7 +45,7 @@ Name | Type | Description | Default | Required
 
 For `allowlisted_container_labels` to take effect, `store_container_labels` must be set to `false`.
 
-`env_metadata_allowlist` is only supported for containerd and docker runtimes.
+`env_metadata_allowlist` is only supported for containerd and Docker runtimes.
 
 If `perf_events_config` is not set, measurement of perf events is disabled.
 
