@@ -2,6 +2,8 @@
 canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
 description: Release notes for Grafana Agent static mode Kubernetes operator
 menuTitle: Release notes
+aliases:
+- ./upgrade-guide/
 title: Release notes for Grafana Agent Operator
 description: Release notes for Grafana Agent Operator
 
