@@ -17,11 +17,8 @@ import (
 )
 
 func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonitor, ep promopv1.Endpoint, i int) (cfg *config.ScrapeConfig, err error) {
-	c := config.DefaultScrapeConfig
-	cfg = &c
+	cfg = cg.generateDefaultScrapeConfig()
 
-	cfg.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval
-	cfg.ScrapeTimeout = config.DefaultGlobalConfig.ScrapeTimeout
 	cfg.JobName = fmt.Sprintf("serviceMonitor/%s/%s/%d", m.Namespace, m.Name, i)
 	cfg.HonorLabels = ep.HonorLabels
 	if ep.HonorTimestamps != nil {
