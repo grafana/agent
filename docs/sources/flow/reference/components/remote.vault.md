@@ -8,7 +8,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remot
 title: remote.vault
 ---
 
-# `remote.vault`
+# remote.vault
 
 `remote.vault` connect to Vault to retrieve secrets. It can retrieve a secret
 using the [KV v2][] secrets engine.
