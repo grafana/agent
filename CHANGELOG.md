@@ -114,6 +114,8 @@ Main (unreleased)
 
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
 
+- Fixed a bug where UDP syslog messages were never processed (@joshuapare)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
