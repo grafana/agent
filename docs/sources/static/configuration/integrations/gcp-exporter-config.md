@@ -3,6 +3,7 @@ aliases:
 - ../../../configuration/integrations/gcp-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/gcp-exporter-config/
 title: gcp_exporter_config
+description: Learn about gcp_exporter_config
 ---
 
 # gcp_exporter_config

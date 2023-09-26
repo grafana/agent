@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.gce/
 title: discovery.gce
+description: Learn about discovery.gce
 ---
 
 # discovery.gce

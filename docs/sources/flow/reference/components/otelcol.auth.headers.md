@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.headers/
 title: otelcol.auth.headers
+description: Learn about otelcol.auth.headers
 ---
 
 # otelcol.auth.headers

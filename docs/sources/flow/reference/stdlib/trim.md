@@ -3,6 +3,7 @@ aliases:
 - ../../configuration-language/standard-library/trim/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/trim/
 title: trim
+description: Learn about trim
 ---
 
 # trim

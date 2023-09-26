@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.snmp/
 title: prometheus.exporter.snmp
+description: Learn about prometheus.exporter.snmp
 ---
 
 # prometheus.exporter.snmp

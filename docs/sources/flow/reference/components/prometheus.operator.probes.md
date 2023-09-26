@@ -3,6 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prome
 labels:
   stage: beta
 title: prometheus.operator.probes
+description: Learn about prometheus.operator.probes
 ---
 
 # prometheus.operator.probes

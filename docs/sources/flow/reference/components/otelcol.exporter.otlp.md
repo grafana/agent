@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.otlp/
 title: otelcol.exporter.otlp
+description: Learn about otelcol.exporter.otlp
 ---
 
 # otelcol.exporter.otlp

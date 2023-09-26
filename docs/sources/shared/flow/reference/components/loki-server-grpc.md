@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/reference/components/loki-server-grpc/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/loki-server-grpc/
+description: Shared content, loki server grpc
 headless: true
 ---
 

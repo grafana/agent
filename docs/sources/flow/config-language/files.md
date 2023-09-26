@@ -3,6 +3,7 @@ aliases:
 - ../configuration-language/files/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/files/
 title: Files
+description: Learn about River files
 weight: 100
 ---
 

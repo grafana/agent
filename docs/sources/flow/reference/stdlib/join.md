@@ -3,6 +3,7 @@ aliases:
 - ../../configuration-language/standard-library/join/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/join/
 title: join
+description: Learn about join
 ---
 
 # join

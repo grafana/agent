@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/operator/architecture/
 title: Architecture
+description: Learn about Grafana Agent architecture
 weight: 300
 ---
 

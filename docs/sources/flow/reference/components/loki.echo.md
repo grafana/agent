@@ -3,6 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.
 labels:
   stage: beta
 title: loki.echo
+description: Learn about loki.echo
 ---
 
 # loki.echo

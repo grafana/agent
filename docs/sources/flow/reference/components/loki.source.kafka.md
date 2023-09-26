@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kafka/
 title: loki.source.kafka
+description: Learn about loki.source.kafka
 ---
 
 # loki.source.kafka

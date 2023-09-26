@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.redis/
 title: prometheus.exporter.redis
+description: Learn about prometheus.exporter.redis
 ---
 
 # prometheus.exporter.redis

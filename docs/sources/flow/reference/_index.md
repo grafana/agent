@@ -1,6 +1,8 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/
-title: Reference
+title: Grafana Agent Flow Reference
+menuTitle: Reference
+description: The reference-level documentaiton for Grafana Agent
 weight: 600
 ---
 

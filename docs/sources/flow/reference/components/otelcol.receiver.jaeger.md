@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.jaeger/
 title: otelcol.receiver.jaeger
+description: Learn about otelcol.receiver.jaeger
 ---
 
 # otelcol.receiver.jaeger

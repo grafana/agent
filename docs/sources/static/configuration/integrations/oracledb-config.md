@@ -3,6 +3,7 @@ aliases:
 - ../../../configuration/integrations/oracledb-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/oracledb-config/
 title: oracledb_config
+description: Learn about oracledb_config
 ---
 
 # oracledb_config

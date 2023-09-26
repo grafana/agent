@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.awsfirehose/
 title: loki.source.awsfirehose
+description: Learn about loki.source.awsfirehose
 ---
 
 # loki.source.awsfirehose

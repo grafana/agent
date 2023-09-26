@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.consul/
 title: discovery.consul
+description: Learn about discovery.consul
 ---
 
 # discovery.consul

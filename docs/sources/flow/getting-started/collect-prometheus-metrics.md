@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-prometheus-metrics/
 title: Collect and forward Prometheus metrics
+description: Learn how to collect and forward Prometheus metrics
 weight: 200
 ---
 

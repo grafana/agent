@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mongodb/
 title: prometheus.exporter.mongodb
+description: Learn about prometheus.exporter.mongodb
 ---
 
 # prometheus.exporter.mongodb

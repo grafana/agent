@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/reference/components/tls-config-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/tls-config-block/
+description: Shared content, tls config block
 headless: true
 ---
 

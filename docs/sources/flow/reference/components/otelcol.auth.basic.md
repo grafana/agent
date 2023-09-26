@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.basic/
 title: otelcol.auth.basic
+description: Learn about otelcol.auth.basic
 ---
 
 # otelcol.auth.basic

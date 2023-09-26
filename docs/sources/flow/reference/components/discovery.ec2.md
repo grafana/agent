@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ec2/
 title: discovery.ec2
+description: Learn about discovery.ec2
 ---
 
 # discovery.ec2

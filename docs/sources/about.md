@@ -4,6 +4,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/about/
 title: Introduction to Grafana Agent
 menuTitle: Introduction
+description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 100
 ---
 

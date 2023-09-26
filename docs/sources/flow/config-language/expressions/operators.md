@@ -3,6 +3,7 @@ aliases:
 - ../../configuration-language/expressions/operators/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/operators/
 title: Operators
+description: Learn about operators
 weight: 300
 ---
 

@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/reference/components/exporter-component-exports/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/exporter-component-exports/
+description: Shared content, exporter component exports
 headless: true
 ---
 

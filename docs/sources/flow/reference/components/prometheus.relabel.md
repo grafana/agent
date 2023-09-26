@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.relabel/
 title: prometheus.relabel
+description: Learn about prometheus.relabel
 ---
 
 # prometheus.relabel

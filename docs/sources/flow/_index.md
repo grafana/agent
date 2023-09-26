@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/
 title: Flow mode
+description: Grafana Agent Flow is a component-based revision of Grafana Agent with a focus on ease-of-use, debuggability, and adaptability
 weight: 400
 ---
 

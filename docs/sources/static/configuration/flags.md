@@ -3,6 +3,7 @@ aliases:
 - ../../configuration/flags/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/flags/
 title: Command-line flags
+description: Learn about command-line flags
 weight: 100
 ---
 

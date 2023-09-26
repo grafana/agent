@@ -3,6 +3,7 @@ aliases:
 - ../../configuration-language/standard-library/constants/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/constants/
 title: constants
+description: Learn about constants
 ---
 
 # constants

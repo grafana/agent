@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.blackbox/
 title: prometheus.exporter.blackbox
+description: Learn about prometheus.exporter.blackbox
 ---
 
 # prometheus.exporter.blackbox

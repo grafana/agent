@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.windowsevent/
 title: loki.source.windowsevent
+description: Learn about loki.windowsevent
 ---
 
 # loki.source.windowsevent

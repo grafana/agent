@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.loki/
 title: otelcol.exporter.loki
+description: Learn about otelcol.exporter.loki
 ---
 
 # otelcol.exporter.loki

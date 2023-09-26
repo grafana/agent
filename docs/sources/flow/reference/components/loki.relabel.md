@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.relabel/
 title: loki.relabel
+description: Learn about loki.relabel
 ---
 
 # loki.relabel

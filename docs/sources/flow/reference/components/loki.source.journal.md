@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.journal/
 title: loki.source.journal
+description: Learn about loki.source.journal
 ---
 
 # loki.source.journal

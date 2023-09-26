@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.cloudwatch/
 title: prometheus.exporter.cloudwatch
+description: Learn about prometheus.exporter.cloudwatch
 ---
 
 # prometheus.exporter.cloudwatch

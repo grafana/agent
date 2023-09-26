@@ -3,6 +3,7 @@ aliases:
 - ../../configuration-language/expressions/types-and-values/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/types_and_values/
 title: Types and values
+description: Learn about the River types and values
 weight: 100
 ---
 

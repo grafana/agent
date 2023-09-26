@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.azure/
 title: discovery.azure
+description: Learn about discovery.azure
 ---
 
 # discovery.azure

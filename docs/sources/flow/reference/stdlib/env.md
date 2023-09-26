@@ -3,6 +3,7 @@ aliases:
 - ../../configuration-language/standard-library/env/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/env/
 title: env
+description: Learn about env
 ---
 
 # env

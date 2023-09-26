@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/
 title: Components reference
+description: Learn about the compenets in Grafana Agent
 weight: 300
 ---
 

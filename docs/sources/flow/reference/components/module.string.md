@@ -3,6 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/modul
 labels:
   stage: beta
 title: module.string
+description: Learn about module.string
 ---
 
 # module.string

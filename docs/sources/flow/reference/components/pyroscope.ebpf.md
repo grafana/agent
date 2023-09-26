@@ -3,6 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyros
 labels:
   stage: beta
 title: pyroscope.ebpf
+description: Learn about pyroscope.ebpf
 ---
 
 # pyroscope.ebpf

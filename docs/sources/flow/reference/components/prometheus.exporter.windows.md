@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.windows/
 title: prometheus.exporter.windows
+description: Learn about prometheus.exporter.windows
 ---
 
 # prometheus.exporter.windows
@@ -13,7 +14,7 @@ enabled and disabled at will. For more information on collectors, refer to the
 [`collectors-list`](#collectors-list) section.
 
 **Note** The black and white list config options are available for backwards compatibility but are deprecated. The include
-and exclude config options are preferred going forward. 
+and exclude config options are preferred going forward.
 
 ## Usage
 

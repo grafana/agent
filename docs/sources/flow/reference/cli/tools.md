@@ -1,12 +1,13 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/tools/
 description: Command line tools that read the WAL and provide statistical information.
-title: tools command
 menuTitle: tools
+title: The tools command
+description: Learn about the tools command
 weight: 400
 ---
 
-# `tools` command
+# The tools command
 
 The `tools` command contains command line tooling grouped by Flow component.
 

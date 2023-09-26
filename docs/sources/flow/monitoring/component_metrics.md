@@ -3,6 +3,7 @@ aliases:
 - component-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/component_metrics/
 title: Component metrics
+description: Learn about component metrics
 weight: 200
 ---
 

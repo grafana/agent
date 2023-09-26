@@ -4,6 +4,7 @@ labels:
   stage: beta
 menuTitle: Clustering
 title: Grafana Agent clustering concepts
+description: Learn about Grafana Agent clustering concepts
 weight: 500
 ---
 

@@ -3,6 +3,7 @@ aliases:
 - ../configuration-language/expressions/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/
 title: Expressions
+description: Learn about expressions
 weight: 400
 ---
 
