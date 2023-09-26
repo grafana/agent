@@ -116,12 +116,12 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
 	var collectorHTTPClient http.Client
 
-	cludedMetrics, err := c.GetIncludedMetrics()
+	includedMetrics, err := c.GetIncludedMetrics()
 	if err != nil {
-		return nil, fmt.Errorf("unable to determine cluded metrics: %w", err)
+		return nil, fmt.Errorf("unable to determine included metrics: %w", err)
 	}
 
-	rm, err := manager.New(memoryStorage, sysFs, manager.HousekeepingConfigFlags, cludedMetrics, &collectorHTTPClient, c.RawCgroupPrefixAllowlist, c.EnvMetadataAllowlist, c.PerfEventsConfig, time.Duration(c.ResctrlInterval))
+	rm, err := manager.New(memoryStorage, sysFs, manager.HousekeepingConfigFlags, includedMetrics, &collectorHTTPClient, c.RawCgroupPrefixAllowlist, c.EnvMetadataAllowlist, c.PerfEventsConfig, time.Duration(c.ResctrlInterval))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a manager: %w", err)
 	}
@@ -135,7 +135,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		containerLabelFunc = metrics.BaseContainerLabels(c.AllowlistedContainerLabels)
 	}
 
-	machCol := metrics.NewPrometheusMachineCollector(rm, cludedMetrics)
+	machCol := metrics.NewPrometheusMachineCollector(rm, includedMetrics)
 	// This is really just a concatenation of the defaults found at;
 	// https://github.com/google/cadvisor/tree/f89291a53b80b2c3659fff8954c11f1fc3de8a3b/cmd/internal/api/versions.go#L536-L540
 	// https://github.com/google/cadvisor/tree/f89291a53b80b2c3659fff8954c11f1fc3de8a3b/cmd/internal/http/handlers.go#L109-L110
@@ -145,7 +145,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		Count:     1,
 		Recursive: true,
 	}
-	contCol := metrics.NewPrometheusCollector(rm, containerLabelFunc, cludedMetrics, clock.RealClock{}, reqOpts)
+	contCol := metrics.NewPrometheusCollector(rm, containerLabelFunc, includedMetrics, clock.RealClock{}, reqOpts)
 
 	start := func(ctx context.Context) error {
 		<-ctx.Done()
