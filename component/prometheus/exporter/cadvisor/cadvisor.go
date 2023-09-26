@@ -19,21 +19,10 @@ func init() {
 	})
 }
 
-func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return a.Convert().NewIntegration(opts.Logger)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
-
-// func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
-// 	a := args.(Arguments)
-// 	target := baseTarget
-// 	url, err := url.Parse(a.APIURL)
-// 	if err != nil {
-// 		return []discovery.Target{target}
-// 	}
-// 	target["instance"] = url.Host
-// 	return []discovery.Target{target}
-// }
 
 // DefaultArguments holds non-zero default options for Arguments when it is
 // unmarshaled from river.
@@ -83,7 +72,17 @@ func (a *Arguments) SetToDefault() {
 
 // Convert returns the upstream-compatible configuration struct.
 func (a *Arguments) Convert() *cadvisor.Config {
-	return &cadvisor.Config{
+	if len(a.AllowlistedContainerLabels) == 0 {
+		a.AllowlistedContainerLabels = []string{""}
+	}
+	if len(a.RawCgroupPrefixAllowlist) == 0 {
+		a.RawCgroupPrefixAllowlist = []string{""}
+	}
+	if len(a.EnvMetadataAllowlist) == 0 {
+		a.EnvMetadataAllowlist = []string{""}
+	}
+
+	cfg := &cadvisor.Config{
 		StoreContainerLabels:       a.StoreContainerLabels,
 		AllowlistedContainerLabels: a.AllowlistedContainerLabels,
 		EnvMetadataAllowlist:       a.EnvMetadataAllowlist,
@@ -102,4 +101,6 @@ func (a *Arguments) Convert() *cadvisor.Config {
 		DockerTLSCA:                a.DockerTLSCA,
 		DockerOnly:                 a.DockerOnly,
 	}
+
+	return cfg
 }
