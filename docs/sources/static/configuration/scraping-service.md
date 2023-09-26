@@ -3,7 +3,8 @@ aliases:
 - ../../scraping-service/
 - ../../configuration/scraping-service/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/scraping-service/
-title: Scraping service
+title: Scraping service (Beta)
+menuTitle: Scraping service
 description: Learn about the scraping service
 weight: 600
 ---

@@ -7,7 +7,7 @@ description: Learn how to start, restart, and stop Grafana Agent in static mode
 weight: 200
 ---
 
-# Start Grafana Agent in static mode
+# Start, restart, and stop Grafana Agent in static mode
 
 You can start, restart, and stop Grafana Agent after it is installed.
 
