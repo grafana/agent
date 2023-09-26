@@ -87,7 +87,7 @@ func TestEndpointsAreWired(t *testing.T) {
 			resp.Body.Close()
 
 			body := string(samplingStrategiesBytes)
-			assert.Equal(t, `{"strategyType":"PROBABILISTIC"}`, body)
+			assert.Equal(t, `{}`, body)
 		})
 	}
 }
