@@ -25,8 +25,10 @@ import (
 	// Register container providers
 
 	"github.com/google/cadvisor/container/containerd"
+	"github.com/google/cadvisor/container/crio"
 	"github.com/google/cadvisor/container/docker"
 	"github.com/google/cadvisor/container/raw"
+	"github.com/google/cadvisor/container/systemd"
 )
 
 // Matching the default disabled set from cadvisor - https://github.com/google/cadvisor/blob/3c6e3093c5ca65c57368845ddaea2b4ca6bc0da8/cmd/cadvisor.go#L78-L93
@@ -91,6 +93,7 @@ func (i *Integration) Run(ctx context.Context) error {
 			ContainerdEndpoint:  i.c.Containerd,
 			ContainerdNamespace: i.c.ContainerdNamespace,
 		}),
+		"crio": crio.NewPlugin(),
 		"docker": docker.NewPluginWithOptions(docker.Options{
 			DockerEndpoint: i.c.Docker,
 			DockerTLS:      i.c.DockerTLS,
@@ -98,6 +101,7 @@ func (i *Integration) Run(ctx context.Context) error {
 			DockerKey:      i.c.DockerTLSKey,
 			DockerCA:       i.c.DockerTLSCA,
 		}),
+		"systemd": systemd.NewPlugin(),
 	}
 
 	// Only using in-memory storage, with no backup storage for cadvisor stats
