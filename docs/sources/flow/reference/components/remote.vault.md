@@ -9,7 +9,7 @@ title: remote.vault
 description: Learn about remote.vault
 ---
 
-# `remote.vault`
+# remote.vault
 
 `remote.vault` connect to Vault to retrieve secrets. It can retrieve a secret
 using the [KV v2][] secrets engine.
