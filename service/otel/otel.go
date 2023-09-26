@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service"
 )
@@ -18,7 +19,22 @@ type Service struct{}
 
 var _ service.Service = (*Service)(nil)
 
-func New() *Service {
+func New(logger log.Logger) *Service {
+	if logger == nil {
+		logger = log.NewNopLogger()
+	}
+
+	// The feature gates should be set in New() instead of Run().
+	// Otel checks the feature gate very early, during the creation of
+	// an Otel component. If we set the feature gates in Run(), it will
+	// be too late - Otel would have already checked the feature gate by then.
+	// This is because the services are not started prior to the graph evaluation.
+	err := util.SetupFlowModeOtelFeatureGates()
+	if err != nil {
+		logger.Log("msg", "failed to set up Otel feature gates", "err", err)
+		return nil
+	}
+
 	return &Service{}
 }
 
@@ -38,12 +54,7 @@ func (*Service) Definition() service.Definition {
 }
 
 // Run implements service.Service.
-func (*Service) Run(ctx context.Context, host service.Host) error {
-	err := util.SetupFlowModeOtelFeatureGates()
-	if err != nil {
-		return err
-	}
-
+func (s *Service) Run(ctx context.Context, host service.Host) error {
 	<-ctx.Done()
 	return nil
 }
