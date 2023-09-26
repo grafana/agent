@@ -515,7 +515,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.85.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc4 // indirect
-	github.com/opencontainers/runc v1.1.5 // indirect
+	github.com/opencontainers/runc v1.1.7 // indirect
 	github.com/opencontainers/runtime-spec v1.1.0-rc.1 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
@@ -690,6 +690,10 @@ replace (
 
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
+	// TODO(tpaschalis) this is to remove global instantiation of plugins
+	// and allow non-singleton components.
+	github.com/google/cadvisor => github.com/grafana/cadvisor v0.0.0-20230926143639-c7bae59d8d89
+
 	// Upstream seems to be inactive, see https://github.com/grafana/agent/issues/1845
 	github.com/infinityworks/github-exporter => github.com/grafana/github-exporter v0.0.0-20230418063919-fa34e926116a
 
