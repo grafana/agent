@@ -131,6 +131,9 @@ Main (unreleased)
 
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
 
+- Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets
+  instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
@@ -170,9 +173,6 @@ v0.36.2 (2023-09-22)
 - Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
 
 - Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
-
-- Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets
-  instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
 
 v0.36.1 (2023-09-06)
 --------------------
