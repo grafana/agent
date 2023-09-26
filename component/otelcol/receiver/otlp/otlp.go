@@ -110,7 +110,7 @@ var (
 		// We almost write 0 bytes, so no need to tune WriteBufferSize.
 	}
 
-	DefaultHTTPServerSettings = HTTPConfigArguments{
+	DefaultHTTPConfigArguments = HTTPConfigArguments{
 		HTTPServerArguments: &otelcol.HTTPServerArguments{
 			Endpoint: "0.0.0.0:4318",
 		},
@@ -146,7 +146,7 @@ func (args *GRPCServerArguments) SetToDefault() {
 
 // SetToDefault implements river.Defaulter.
 func (args *HTTPConfigArguments) SetToDefault() {
-	*args = DefaultHTTPServerSettings
+	*args = DefaultHTTPConfigArguments
 }
 
 // DebugMetricsConfig implements receiver.Arguments.
