@@ -80,12 +80,6 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 	return New(logger, c)
 }
 
-// Integration implements the cadvisor integration
-type Integration struct {
-	c *Config
-	i *integrations.CollectorIntegration
-}
-
 // New creates a new cadvisor integration
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	c.logger = logger
