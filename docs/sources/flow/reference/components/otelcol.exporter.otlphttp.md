@@ -87,7 +87,7 @@ Name | Type | Description | Default | Required
 `auth`               | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 
 Setting `disable_keep_alives` to `true` will result in significant overhead establishing a new HTTP(s) connection for every request.
-Before enabling this option please consider whether changes to idle connection settings can achieve your goal.
+Before enabling this option, consider whether changes to idle connection settings can achieve your goal.
 
 {{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT VERSION>" >}}
 
