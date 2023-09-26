@@ -3,7 +3,7 @@ package otlp
 
 import (
 	"fmt"
-	"net/url"
+	net_url "net/url"
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component"
@@ -123,18 +123,25 @@ var (
 // Validate implements river.Validator.
 func (args *Arguments) Validate() error {
 	if args.HTTP != nil {
-		_, err := url.Parse(args.HTTP.TracesURLPath)
-		if err != nil {
-			return fmt.Errorf("invalid traces_url_path: %w", err)
+		if err := validateURL(args.HTTP.TracesURLPath, "traces_url_path"); err != nil {
+			return err
 		}
-		_, err = url.Parse(args.HTTP.MetricsURLPath)
-		if err != nil {
-			return fmt.Errorf("invalid metrics_url_path: %w", err)
+		if err := validateURL(args.HTTP.LogsURLPath, "logs_url_path"); err != nil {
+			return err
 		}
-		_, err = url.Parse(args.HTTP.LogsURLPath)
-		if err != nil {
-			return fmt.Errorf("invalid logs_url_path: %w", err)
+		if err := validateURL(args.HTTP.MetricsURLPath, "metrics_url_path"); err != nil {
+			return err
 		}
+	}
+	return nil
+}
+
+func validateURL(url string, urlName string) error {
+	if url == "" {
+		return fmt.Errorf("%s cannot be empty", urlName)
+	}
+	if _, err := net_url.Parse(url); err != nil {
+		return fmt.Errorf("invalid %s: %w", urlName, err)
 	}
 	return nil
 }
