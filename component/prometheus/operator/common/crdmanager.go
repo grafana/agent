@@ -231,7 +231,6 @@ func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) 
 		return fmt.Errorf("building label selector: %w", err)
 	}
 	for _, ns := range c.args.Namespaces {
-		// TODO: how should we handle this?
 		defaultNamespaces := map[string]cache.Config{}
 		defaultNamespaces[ns] = cache.Config{}
 		opts := cache.Options{
