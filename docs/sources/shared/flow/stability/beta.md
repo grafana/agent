@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/stability/beta/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/stability/beta/
+description: Shared content, beta
 headless: true
 ---
 

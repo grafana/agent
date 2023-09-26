@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/opentelemetry-to-lgtm-stack/
 title: OpenTelemetry to Grafana stack
+description: Learn how to collect OpenTelemetry data and forward it to the Grafana stack
 weight: 350
 ---
 

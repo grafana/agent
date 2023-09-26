@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.docker/
 title: discovery.docker
+description: Learn about discovery.docker
 ---
 
 # discovery.docker

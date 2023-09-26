@@ -4,6 +4,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/
 menuTitle: Install flow mode
 title: Install Grafana Agent in flow mode
+description: Learn how to install Grafana Agent in flow mode
 weight: 50
 ---
 

@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.prometheus/
 title: otelcol.exporter.prometheus
+description: Learn about otelcol.exporter.prometheus
 ---
 
 # otelcol.exporter.prometheus

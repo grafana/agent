@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.process/
 title: loki.process
+description: Learn about loki.process
 ---
 
 # loki.process

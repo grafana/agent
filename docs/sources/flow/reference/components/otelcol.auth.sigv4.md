@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.sigv4/
 title: otelcol.auth.sigv4
+description: Learn about otelcol.auth.sigv4
 ---
 
 # otelcol.auth.sigv4

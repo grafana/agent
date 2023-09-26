@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/reference/components/oauth2-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/oauth2-block/
+description: Shared content, oauth2 block
 headless: true
 ---
 

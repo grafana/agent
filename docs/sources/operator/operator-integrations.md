@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/operator/operator-integrations/
 title: Set up integrations
+description: Learn how to set up integrations
 weight: 350
 ---
 # Set up integrations

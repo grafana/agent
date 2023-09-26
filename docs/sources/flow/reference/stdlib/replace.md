@@ -3,6 +3,7 @@ aliases:
 - ../../configuration-language/standard-library/replace/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/replace/
 title: replace
+description: Learn about replace
 ---
 
 # replace

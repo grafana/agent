@@ -3,6 +3,7 @@ aliases:
 - ../../concepts/component-controller/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/component_controller/
 title: Component controller
+description: Learn about the component controller
 weight: 200
 ---
 
@@ -13,7 +14,7 @@ components at runtime.
 
 It is responsible for:
 
-* Reading and validating the config file.
+* Reading and validating the configuration file.
 * Managing the lifecycle of defined components.
 * Evaluating the arguments used to configure components.
 * Reporting the health of defined components.
@@ -28,7 +29,7 @@ The set of all components and the relationships between them define a [directed
 acyclic graph][DAG] (DAG), which informs the component controller which
 references are valid and in what order components must be evaluated.
 
-For a config file to be valid, components must not reference themselves or
+For a configuration file to be valid, components must not reference themselves or
 contain a cyclic reference:
 
 ```river
@@ -128,10 +129,10 @@ documentation for components to learn if in-memory traffic is supported.
 ## Updating the config file
 
 Both the `/-/reload` HTTP endpoint and the `SIGHUP` signal can be used to
-inform the component controller to reload the config file. When this happens,
+inform the component controller to reload the configuration file. When this happens,
 the component controller will synchronize the set of running components with
-the ones in the config file, removing components which are no longer defined in
-the config file and creating new components which were added to the config
+the ones in the configuration file, removing components which are no longer defined in
+the configuration file and creating new components which were added to the configuration
 file. All components managed by the controller will be reevaluated after
 reloading.
 

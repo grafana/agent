@@ -3,6 +3,7 @@ aliases:
 - configuration-language/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/
 title: Configuration language
+description: Learn about the configuration language
 weight: 400
 ---
 

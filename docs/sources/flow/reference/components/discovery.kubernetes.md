@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
 title: discovery.kubernetes
+description: Learn about discovery.kubernetes
 ---
 
 # discovery.kubernetes

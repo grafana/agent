@@ -3,6 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.
 labels:
   stage: experimental
 title: loki.source.podlogs
+description: Learn about loki.source.podlogs
 ---
 
 # loki.source.podlogs

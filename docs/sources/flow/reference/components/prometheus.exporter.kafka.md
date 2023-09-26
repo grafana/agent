@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.kafka/
 title: prometheus.exporter.kafka
+description: Learn about prometheus.exporter.kafka
 ---
 
 # prometheus.exporter.kafka

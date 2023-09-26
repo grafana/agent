@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.http/
 title: discovery.http
+description: Learn about discovery.http
 ---
 
 # discovery.http

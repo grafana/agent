@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.jaeger/
 title: otelcol.exporter.jaeger
+description: Learn about otelcol.exporter.jaeger
 ---
 
 # otelcol.exporter.jaeger
@@ -8,10 +9,10 @@ title: otelcol.exporter.jaeger
 `otelcol.exporter.jaeger` accepts telemetry data from other `otelcol` components
 and writes them over the network using the Jaeger protocol.
 
-> **NOTE**: `otelcol.exporter.jaeger` is a wrapper over the 
-> [upstream](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/jaegerexporter) 
+> **NOTE**: `otelcol.exporter.jaeger` is a wrapper over the
+> [upstream](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/jaegerexporter)
 > OpenTelemetry Collector `jaeger` exporter. The upstream
-> exporter has been deprecated and will be removed from future versions of 
+> exporter has been deprecated and will be removed from future versions of
 > both OpenTelemetry Collector and Grafana Agent because Jaeger supports OTLP directly.
 
 Multiple `otelcol.exporter.jaeger` components can be specified by giving them

@@ -3,6 +3,7 @@ aliases:
 - ../../configuration-language/standard-library/split/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/split/
 title: split
+description: Learn about split
 ---
 
 # split

@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.snowflake/
 title: prometheus.exporter.snowflake
+description: Learn about prometheus.exporter.snowflake
 ---
 
 # prometheus.exporter.snowflake

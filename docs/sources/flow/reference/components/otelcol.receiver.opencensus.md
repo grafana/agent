@@ -1,11 +1,12 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.opencensus/
 title: otelcol.receiver.opencensus
+description: Learn about otelcol.receiver.opencensus
 ---
 
 # otelcol.receiver.opencensus
 
-`otelcol.receiver.opencensus` accepts telemetry data via gRPC or HTTP 
+`otelcol.receiver.opencensus` accepts telemetry data via gRPC or HTTP
 using the [OpenCensus](https://opencensus.io/) format and
 forwards it to other `otelcol.*` components.
 

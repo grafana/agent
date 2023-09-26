@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/
 title: Monitoring Grafana Agent Flow
+description: Learn about monitoring Grafana Agent Flow
 weight: 500
 ---
 

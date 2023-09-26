@@ -3,6 +3,7 @@ aliases:
 - standard-library/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/
 title: Standard library
+description: The standard library is a list of functions used in expressions when assigning values to attributes
 weight: 400
 ---
 

@@ -3,6 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 labels:
   stage: beta
 title: otelcol.receiver.prometheus
+description: Learn about otelcol.receiver.prometheus
 ---
 
 # otelcol.receiver.prometheus

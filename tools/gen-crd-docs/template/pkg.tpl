@@ -5,6 +5,7 @@
 aliases:
 - /docs/agent/latest/operator/crd/
 title: Custom Resource Definition Reference
+description: Learn about the Grafana Agent API
 weight: 500
 ---
 # Custom Resource Definition Reference

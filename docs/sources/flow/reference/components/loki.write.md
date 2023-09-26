@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.write/
 title: loki.write
+description: Learn about loki.write
 ---
 
 # loki.write

@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/local.file_match/
 title: local.file_match
+description: Learn about local.file_match
 ---
 
 # local.file_match

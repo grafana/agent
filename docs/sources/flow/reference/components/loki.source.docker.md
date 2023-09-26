@@ -3,6 +3,7 @@ aliases:
 - /docs/agent/latest/flow/reference/components/loki.source.docker
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.docker/
 title: loki.source.docker
+description: Learn about loki.source.docker
 ---
 
 # loki.source.docker

@@ -3,6 +3,7 @@ aliases:
 - ../../configuration-language/standard-library/to_lower/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/to_lower/
 title: to_lower
+description: Learn about to_lower
 ---
 
 # lower

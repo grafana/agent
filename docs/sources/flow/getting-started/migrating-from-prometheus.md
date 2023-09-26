@@ -4,6 +4,7 @@ description: Learn how to migrate your configuration from Prometheus to Grafana 
   flow mode
 menuTitle: Migrate from Prometheus
 title: Migrate from Prometheus to Grafana Agent flow mode
+description: Learn how to migrate from Prometheus to Grafana Agent flow mode
 weight: 320
 ---
 

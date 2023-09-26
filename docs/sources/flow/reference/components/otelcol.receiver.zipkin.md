@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.zipkin/
 title: otelcol.receiver.zipkin
+description: Learn about otelcol.receiver.zipkin
 ---
 
 # otelcol.receiver.zipkin

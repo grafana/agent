@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.relabel/
 title: discovery.relabel
+description: Learn about discovery.relabel
 ---
 
 # discovery.relabel

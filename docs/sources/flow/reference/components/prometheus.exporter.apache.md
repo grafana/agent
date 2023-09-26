@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.apache/
 title: prometheus.exporter.apache
+description: Learn about prometheus.exporter.apache
 ---
 
 # prometheus.exporter.apache

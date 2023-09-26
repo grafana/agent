@@ -3,6 +3,7 @@ aliases:
 - /docs/agent/latest/flow/reference/components/remote.vault
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.vault/
 title: remote.vault
+description: Learn about remote.vault
 ---
 
 # remote.vault

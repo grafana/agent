@@ -3,6 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 labels:
   stage: beta
 title: otelcol.exporter.loadbalancing
+description: Learn about otelcol.exporter.loadbalancing
 ---
 
 # otelcol.exporter.loadbalancing

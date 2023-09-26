@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.oracledb/
 title: prometheus.exporter.oracledb
+description: Learn about prometheus.exporter.oracledb
 ---
 
 # prometheus.exporter.oracledb

@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/local.file/
 title: local.file
+description: Learn about local.file
 ---
 
 # local.file

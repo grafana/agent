@@ -3,6 +3,7 @@ aliases:
 - ../../configuration/integrations/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/
 title: integrations_config
+description: Learn about integrations_config
 weight: 500
 ---
 

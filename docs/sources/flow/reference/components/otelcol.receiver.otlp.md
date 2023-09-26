@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.otlp/
 title: otelcol.receiver.otlp
+description: Learn about otelcol.receiver.otlp
 ---
 
 # otelcol.receiver.otlp
