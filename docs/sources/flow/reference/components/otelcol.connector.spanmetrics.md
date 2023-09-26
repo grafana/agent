@@ -78,7 +78,7 @@ The following blocks are supported inside the definition of
 | histogram               | [histogram][]   | Configures the histogram derived from spans durations.  | yes      |
 | histogram > exponential | [exponential][] | Configuration for a histogram with exponential buckets. | no       |
 | histogram > explicit    | [explicit][]    | Configuration for a histogram with explicit buckets.    | no       |
-| exemplars               | [exemplars][]   | Configures the exemplars.                               | no       |
+| exemplars               | [exemplars][]   | Configures how to attach exemplars to histograms.       | no       |
 | output                  | [output][]      | Configures where to send telemetry data.                | yes      |
 
 It is necessary to specify either a "[exponential][]" or an "[explicit][]" block:
@@ -160,13 +160,13 @@ The following attributes are supported:
 
 ### exemplars block
 
-The `exemplars` block configures the exemplars.
+The `exemplars` block configures how to attach exemplars to histograms.
 
 The following attributes are supported:
 
 | Name       | Type     | Description                                                      | Default | Required |
 | ---------- | -------- | ---------------------------------------------------------------- | ------- | -------- |
-| `enabled`  | `bool`   | Enables the exemplars.                                           | `false` | no       |
+| `enabled`  | `bool`   | Configures whether to add exemplars to histograms.               | `false` | no       |
 
 ### output block
 
