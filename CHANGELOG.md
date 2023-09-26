@@ -104,6 +104,8 @@ Main (unreleased)
 
 - Agent Management: Honor 503 ServiceUnavailable `Retry-After` header. (@jcreixell)
 
+- Add additional endpoint to debug scrape configs generated inside `prometheus.operator.*` components (@captncraig)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
