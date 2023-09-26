@@ -145,6 +145,8 @@ Main (unreleased)
 
 - Switch to `IBM/sarama` module. (@hainenber)
 
+- Bump `webdevops/go-commons` to version containing `LICENSE`. (@hainenber)
+
 - `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
 
 v0.36.2 (2023-09-22)
