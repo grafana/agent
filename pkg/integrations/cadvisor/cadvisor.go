@@ -25,12 +25,10 @@ import (
 	// Register container providers
 
 	"github.com/google/cadvisor/container/containerd"
-	_ "github.com/google/cadvisor/container/containerd/install" // register containerd container plugin
-	_ "github.com/google/cadvisor/container/crio/install"       // register crio container plugin
+	"github.com/google/cadvisor/container/crio"
 	"github.com/google/cadvisor/container/docker"
-	_ "github.com/google/cadvisor/container/docker/install" // register docker container plugin
 	"github.com/google/cadvisor/container/raw"
-	_ "github.com/google/cadvisor/container/systemd/install" // register systemd container plugin
+	"github.com/google/cadvisor/container/systemd"
 )
 
 // Matching the default disabled set from cadvisor - https://github.com/google/cadvisor/blob/3c6e3093c5ca65c57368845ddaea2b4ca6bc0da8/cmd/cadvisor.go#L78-L93
@@ -86,22 +84,22 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	// Do gross global configs. This works, so long as there is only one instance of the cAdvisor integration
 	// per host.
 
-	// klog
-	klog.SetLogger(c.logger)
-
-	// Containerd
-	containerd.ArgContainerdEndpoint = &c.Containerd
-	containerd.ArgContainerdNamespace = &c.ContainerdNamespace
-
-	// Docker
-	docker.ArgDockerEndpoint = &c.Docker
-	docker.ArgDockerTLS = &c.DockerTLS
-	docker.ArgDockerCert = &c.DockerTLSCert
-	docker.ArgDockerKey = &c.DockerTLSKey
-	docker.ArgDockerCA = &c.DockerTLSCA
-
-	// Raw
-	raw.DockerOnly = &c.DockerOnly
+	klog.SetLogger(i.c.logger)
+	plugins := map[string]container.Plugin{
+		"containerd": containerd.NewPluginWithOptions(containerd.Options{
+			ContainerdEndpoint:  i.c.Containerd,
+			ContainerdNamespace: i.c.ContainerdNamespace,
+		}),
+		"crio": crio.NewPlugin(),
+		"docker": docker.NewPluginWithOptions(docker.Options{
+			DockerEndpoint: i.c.Docker,
+			DockerTLS:      i.c.DockerTLS,
+			DockerCert:     i.c.DockerTLSCert,
+			DockerKey:      i.c.DockerTLSKey,
+			DockerCA:       i.c.DockerTLSCA,
+		}),
+		"systemd": systemd.NewPlugin(),
+	}
 
 	// Only using in-memory storage, with no backup storage for cadvisor stats
 	memoryStorage := memory.New(c.StorageDuration, []storage.StorageDriver{})
@@ -115,7 +113,10 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		return nil, fmt.Errorf("unable to determine included metrics: %w", err)
 	}
 
-	rm, err := manager.New(memoryStorage, sysFs, manager.HousekeepingConfigFlags, includedMetrics, &collectorHTTPClient, c.RawCgroupPrefixAllowlist, c.EnvMetadataAllowlist, c.PerfEventsConfig, time.Duration(c.ResctrlInterval))
+	rawOpts := raw.Options{
+		DockerOnly: i.c.DockerOnly,
+	}
+	rm, err := manager.New(plugins, memoryStorage, sysFs, manager.HousekeepingConfigFlags, includedMetrics, &collectorHTTPClient, i.c.RawCgroupPrefixAllowlist, i.c.EnvMetadataAllowlist, i.c.PerfEventsConfig, time.Duration(i.c.ResctrlInterval), rawOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a manager: %w", err)
 	}
