@@ -86,12 +86,12 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 
 	klog.SetLogger(c.logger)
 	plugins := map[string]container.Plugin{
-		"containerd": containerd.NewPluginWithOptions(containerd.Options{
+		"containerd": containerd.NewPluginWithOptions(&containerd.Options{
 			ContainerdEndpoint:  c.Containerd,
 			ContainerdNamespace: c.ContainerdNamespace,
 		}),
 		"crio": crio.NewPlugin(),
-		"docker": docker.NewPluginWithOptions(docker.Options{
+		"docker": docker.NewPluginWithOptions(&docker.Options{
 			DockerEndpoint: c.Docker,
 			DockerTLS:      c.DockerTLS,
 			DockerCert:     c.DockerTLSCert,
