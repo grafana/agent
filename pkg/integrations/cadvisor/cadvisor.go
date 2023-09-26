@@ -84,19 +84,19 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	// Do gross global configs. This works, so long as there is only one instance of the cAdvisor integration
 	// per host.
 
-	klog.SetLogger(i.c.logger)
+	klog.SetLogger(c.logger)
 	plugins := map[string]container.Plugin{
 		"containerd": containerd.NewPluginWithOptions(containerd.Options{
-			ContainerdEndpoint:  i.c.Containerd,
-			ContainerdNamespace: i.c.ContainerdNamespace,
+			ContainerdEndpoint:  c.Containerd,
+			ContainerdNamespace: c.ContainerdNamespace,
 		}),
 		"crio": crio.NewPlugin(),
 		"docker": docker.NewPluginWithOptions(docker.Options{
-			DockerEndpoint: i.c.Docker,
-			DockerTLS:      i.c.DockerTLS,
-			DockerCert:     i.c.DockerTLSCert,
-			DockerKey:      i.c.DockerTLSKey,
-			DockerCA:       i.c.DockerTLSCA,
+			DockerEndpoint: c.Docker,
+			DockerTLS:      c.DockerTLS,
+			DockerCert:     c.DockerTLSCert,
+			DockerKey:      c.DockerTLSKey,
+			DockerCA:       c.DockerTLSCA,
 		}),
 		"systemd": systemd.NewPlugin(),
 	}
@@ -114,9 +114,9 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	rawOpts := raw.Options{
-		DockerOnly: i.c.DockerOnly,
+		DockerOnly: c.DockerOnly,
 	}
-	rm, err := manager.New(plugins, memoryStorage, sysFs, manager.HousekeepingConfigFlags, includedMetrics, &collectorHTTPClient, i.c.RawCgroupPrefixAllowlist, i.c.EnvMetadataAllowlist, i.c.PerfEventsConfig, time.Duration(i.c.ResctrlInterval), rawOpts)
+	rm, err := manager.New(plugins, memoryStorage, sysFs, manager.HousekeepingConfigFlags, includedMetrics, &collectorHTTPClient, c.RawCgroupPrefixAllowlist, c.EnvMetadataAllowlist, c.PerfEventsConfig, time.Duration(c.ResctrlInterval), rawOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create a manager: %w", err)
 	}
