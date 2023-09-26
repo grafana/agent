@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/function_calls/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/function_calls/
 title: Function calls
+description: Learn about function calls
 weight: 400
 ---
 

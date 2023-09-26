@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.discovery/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.discovery/
 title: otelcol.processor.discovery
+description: Learn about otelcol.processor.discovery
 ---
 
 # otelcol.processor.discovery

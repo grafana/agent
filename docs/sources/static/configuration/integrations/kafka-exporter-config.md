@@ -3,6 +3,7 @@ aliases:
 - ../../../configuration/integrations/kafka-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/kafka-exporter-config/
 title: kafka_exporter_config
+description: Learn about kafka_exporter_config
 ---
 
 # kafka_exporter_config

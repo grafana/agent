@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.configmap/
 title: remote.kubernetes.configmap
+description: Learn about remote.kubernetes.configmap
 ---
 
 # remote.kubernetes.configmap

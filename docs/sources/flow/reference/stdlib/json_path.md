@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/json_path/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/json_path/
 title: json_path
+description: Learn about json_path
 ---
 
 # json_path

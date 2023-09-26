@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/architecture/
 canonical: https://grafana.com/docs/agent/latest/operator/architecture/
 title: Architecture
+description: Learn about Grafana Agent architecture
 weight: 300
 ---
 

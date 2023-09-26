@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/debugging/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/
 title: Debugging
+description: Learn about debugging
 weight: 300
 ---
 
