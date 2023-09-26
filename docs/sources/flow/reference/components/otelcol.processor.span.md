@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 labels:
   stage: experimental
 title: otelcol.processor.span
+description: Learn about otelcol.processor.span
 ---
 
 # otelcol.processor.span

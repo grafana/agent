@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/getting-started/
 canonical: https://grafana.com/docs/agent/latest/operator/getting-started/
 title: Install the Operator
+description: Learn how to install the Operator
 weight: 110
 ---
 

@@ -5,6 +5,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-binary/
 menuTitle: Standalone
 title: Install Grafana Agent in static mode as a standalone binary
+description: Learn how to install Grafana Agent in static mode as a standalone binary
 weight: 700
 ---
 

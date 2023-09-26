@@ -5,10 +5,11 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-linux/
 menuTitle: Linux
 title: Install Grafana Agent in static mode on Linux
+description: Learn how to install Grafana Agent in static mode on Linux
 weight: 400
 ---
 
-# Install static mode on Linux
+# Install Grafana Agent in static mode on Linux
 
 You can install Grafana Agent in static mode on Linux.
 

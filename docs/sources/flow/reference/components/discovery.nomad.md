@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.nomad/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.nomad/
 title: discovery.nomad
+description: Learn about discovery.nomad
 ---
 
 # discovery.consul

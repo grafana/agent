@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/stability/
 title: Stability
+description: Grafana Agent features fall into one of three stability categories, experimental, beta, or stable
 weight: 600
 ---
 

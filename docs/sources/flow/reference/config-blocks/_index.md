@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/
 title: Configuration blocks
+description: Learn about configuration blocks
 weight: 200
 ---
 

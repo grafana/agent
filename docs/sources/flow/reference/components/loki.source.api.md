@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.api/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.api/
 title: loki.source.api
+description: Learn about loki.source.api
 ---
 
 # loki.source.api

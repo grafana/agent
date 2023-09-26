@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.relabel/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.relabel/
 title: discovery.relabel
+description: Learn about discovery.relabel
 ---
 
 # discovery.relabel
