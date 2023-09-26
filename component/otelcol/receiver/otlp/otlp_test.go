@@ -19,12 +19,20 @@ import (
 	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"gotest.tools/assert"
 )
 
 // Test performs a basic integration test which runs the otelcol.receiver.otlp
 // component and ensures that it can receive and forward data.
 func Test(t *testing.T) {
 	httpAddr := getFreeAddr(t)
+
+	ctx := componenttest.TestContext(t)
+	l := util.TestLogger(t)
+
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.receiver.otlp")
+	require.NoError(t, err)
+
 	cfg := fmt.Sprintf(`
 		http {
 			endpoint = "%s"
@@ -34,30 +42,7 @@ func Test(t *testing.T) {
 			// no-op: will be overridden by test code.
 		}
 	`, httpAddr)
-	testTraces(t, cfg, fmt.Sprintf("http://%s%s", httpAddr, "/v1/traces"))
-}
 
-func TestCustomTracesUrl(t *testing.T) {
-	httpAddr := getFreeAddr(t)
-	tracesURLPath := "/custom/traces"
-	cfg := fmt.Sprintf(`
-		http {
-			endpoint = "%s"
-			traces_url_path = "%s"
-		}
-
-		output {
-			// no-op: will be overridden by test code.
-		}
-	`, httpAddr, tracesURLPath)
-	testTraces(t, cfg, fmt.Sprintf("http://%s%s", httpAddr, tracesURLPath))
-}
-
-func testTraces(t *testing.T, cfg string, tracesURL string) {
-	ctx := componenttest.TestContext(t)
-	l := util.TestLogger(t)
-
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.receiver.otlp")
 	require.NoError(t, err)
 
 	var args otlp.Arguments
@@ -81,6 +66,7 @@ func testTraces(t *testing.T, cfg string, tracesURL string) {
 			require.NoError(t, err)
 			defer f.Close()
 
+			tracesURL := fmt.Sprintf("http://%s/v1/traces", httpAddr)
 			_, err = http.DefaultClient.Post(tracesURL, "application/json", f)
 			return err
 		}
@@ -149,4 +135,41 @@ func TestUnmarshalGrpc(t *testing.T) {
 	var args otlp.Arguments
 	err := river.Unmarshal([]byte(riverCfg), &args)
 	require.NoError(t, err)
+}
+
+func TestUnmarshalHttp(t *testing.T) {
+	riverCfg := `
+		http {
+			endpoint = "/v1/traces"
+		}
+
+		output {
+		}
+	`
+	var args otlp.Arguments
+	err := river.Unmarshal([]byte(riverCfg), &args)
+	require.NoError(t, err)
+	assert.Equal(t, "/v1/logs", args.HTTP.LogsURLPath)
+	assert.Equal(t, "/v1/metrics", args.HTTP.MetricsURLPath)
+	assert.Equal(t, "/v1/traces", args.HTTP.TracesURLPath)
+}
+
+func TestUnmarshalHttpUrls(t *testing.T) {
+	riverCfg := `
+		http {
+			endpoint = "/v1/traces"
+			traces_url_path = "custom/traces"
+			metrics_url_path = "custom/metrics"
+			logs_url_path = "custom/logs"
+		}
+
+		output {
+		}
+	`
+	var args otlp.Arguments
+	err := river.Unmarshal([]byte(riverCfg), &args)
+	require.NoError(t, err)
+	assert.Equal(t, "custom/logs", args.HTTP.LogsURLPath)
+	assert.Equal(t, "custom/metrics", args.HTTP.MetricsURLPath)
+	assert.Equal(t, "custom/traces", args.HTTP.TracesURLPath)
 }
