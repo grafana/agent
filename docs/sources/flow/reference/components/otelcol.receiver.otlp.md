@@ -157,6 +157,11 @@ Name | Type | Description | Default | Required
 `metrics_url_path` | `string` | The URL path to receive metrics on. | `"/v1/metrics"` | no
 `logs_url_path` | `string` | The URL path to receive logs on. | `"/v1/logs"` | no
 
+To send telemetry signals to `otelcol.receiver.otlp` with HTTP/JSON, POST to:
+* `[endpoint][traces_url_path]` for traces.
+* `[endpoint][metrics_url_path]` for metrics.
+* `[endpoint][logs_url_path]` for logs.
+
 ### cors block
 
 The `cors` block configures CORS settings for an HTTP server.
