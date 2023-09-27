@@ -51,9 +51,9 @@ Main (unreleased)
   - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
   - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
   - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
-  - `prometheus.exporter.agent` scrapes the agent's internal metrics. (@hainenber)
-  - `prometheus.exporter.vsphere` scrapes vmware vsphere metrics. (@marctc)
-  - `prometheus.exporter.cadvisor` scrapes cAdvisor metrics. (@tpaschalis)
+  - `prometheus.exporter.agent` exposes the agent's internal metrics. (@hainenber)
+  - `prometheus.exporter.vsphere` exposes vmware vsphere metrics. (@marctc)
+  - `prometheus.exporter.cadvisor` exposes cAdvisor metrics. (@tpaschalis)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
