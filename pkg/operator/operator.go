@@ -86,7 +86,7 @@ func (c *Config) registerFlags(f *flag.FlagSet) error {
 	f.StringVar(&c.KubelsetServiceName, "kubelet-service", "", "Service and Endpoints objects to write kubelets into. Allows for monitoring Kubelet and cAdvisor metrics using a ServiceMonitor. Must be in format \"namespace/name\". If empty, nothing will be created.")
 
 	c.Controller.WebhookServer = webhook.NewServer(webhookServerOptions)
-	// TODO: again not sure how to handle the namespaces
+
 	c.Controller.Cache.DefaultNamespaces[namespace] = cache.Config{}
 
 	// Custom initial values for the endpoint names.
