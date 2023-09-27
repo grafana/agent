@@ -7,7 +7,6 @@ aliases:
 headless: true
 ---
 
-// any registered gRPC load balancer can now be used https://github.com/open-telemetry/opentelemetry-collector/pull/8262/files
 The supported values for `balancer_name` are listed in the gRPC documentation on [Load balancing][]:
 * `pick_first`: Tries to connect to the first address, uses it for all RPCs if it connects, 
   or tries the next address if it fails (and keeps doing that until one connection is successful). 
