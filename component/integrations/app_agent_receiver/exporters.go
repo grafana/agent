@@ -140,6 +140,58 @@ func (exp *logsExporter) Export(ctx context.Context, p payload.Payload) error {
 	return errors.Join(errs...)
 }
 
+func transformException(log log.Logger, store sourceMapsStore, ex *payload.Exception, release string) *payload.Exception {
+	if ex.Stacktrace == nil {
+		return ex
+	}
+
+	var frames []payload.Frame
+	for _, frame := range ex.Stacktrace.Frames {
+		mappedFrame, err := resolveSourceLocation(store, &frame, release)
+		if err != nil {
+			level.Error(log).Log("msg", "Error resolving stack trace frame source location", "err", err)
+			frames = append(frames, frame)
+		} else if mappedFrame != nil {
+			frames = append(frames, *mappedFrame)
+		} else {
+			frames = append(frames, frame)
+		}
+	}
+
+	return &payload.Exception{
+		Type:       ex.Type,
+		Value:      ex.Value,
+		Stacktrace: &payload.Stacktrace{Frames: frames},
+		Timestamp:  ex.Timestamp,
+	}
+}
+
+func resolveSourceLocation(store sourceMapsStore, frame *payload.Frame, release string) (*payload.Frame, error) {
+	smap, err := store.GetSourceMap(frame.Filename, release)
+	if err != nil {
+		return nil, err
+	}
+	if smap == nil {
+		return nil, nil
+	}
+
+	file, function, line, col, ok := smap.Source(frame.Lineno, frame.Colno)
+	if !ok {
+		return nil, nil
+	}
+	// unfortunately in many cases go-sourcemap fails to determine the original function name.
+	// not a big issue as long as file, line and column are correct
+	if len(function) == 0 {
+		function = "?"
+	}
+	return &payload.Frame{
+		Filename: file,
+		Lineno:   line,
+		Colno:    col,
+		Function: function,
+	}, nil
+}
+
 func (exp *logsExporter) sendKeyValsToLogsPipeline(ctx context.Context, kv *payload.KeyVal) error {
 	// Grab the current value of exp.receivers so sendKeyValsToLogsPipeline
 	// doesn't block updating receivers.
