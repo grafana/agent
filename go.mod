@@ -692,6 +692,7 @@ replace (
 replace (
 	// TODO(tpaschalis) this is to remove global instantiation of plugins
 	// and allow non-singleton components.
+	// https://github.com/grafana/cadvisor/tree/grafana-v0.47-noglobals
 	github.com/google/cadvisor => github.com/grafana/cadvisor v0.0.0-20230927082732-0d72868a513e
 
 	// Upstream seems to be inactive, see https://github.com/grafana/agent/issues/1845
