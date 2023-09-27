@@ -17,6 +17,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-sourcemap/sourcemap"
+	"github.com/grafana/agent/component/integrations/app_agent_receiver/internal/payload"
 	"github.com/minio/pkg/wildcard"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vincent-petithory/dataurl"
@@ -57,14 +58,15 @@ type sourcemapFileLocation struct {
 }
 
 type sourceMapsStoreImpl struct {
-	mut     sync.Mutex // TODO(rfratto): Why is this here?
 	log     log.Logger
 	cli     httpClient
 	fs      fileService
 	args    SourceMapsArguments
-	cache   map[string]*sourcemap.Consumer
 	metrics *sourceMapMetrics
 	locs    []*sourcemapFileLocation
+
+	cacheMut sync.Mutex
+	cache    map[string]*sourcemap.Consumer
 }
 
 // newSourceMapStore creates an implementation of sourceMapsStore.
@@ -123,8 +125,8 @@ func (store *sourceMapsStoreImpl) GetSourceMap(sourceURL string, release string)
 	// caches the result, even when there's an error. This means that transient
 	// errors will be cached forever, preventing source maps from being retrieved.
 
-	store.mut.Lock()
-	defer store.mut.Unlock()
+	store.cacheMut.Lock()
+	defer store.cacheMut.Unlock()
 
 	cacheKey := fmt.Sprintf("%s__%s", sourceURL, release)
 	if sm, ok := store.cache[cacheKey]; ok {
@@ -308,4 +310,56 @@ func urlMatchesOrigins(URL string, origins []string) bool {
 
 func cleanFilePathPart(x string) string {
 	return strings.TrimLeft(strings.ReplaceAll(strings.ReplaceAll(x, "\\", ""), "/", ""), ".")
+}
+
+func transformException(log log.Logger, store sourceMapsStore, ex *payload.Exception, release string) *payload.Exception {
+	if ex.Stacktrace == nil {
+		return ex
+	}
+
+	var frames []payload.Frame
+	for _, frame := range ex.Stacktrace.Frames {
+		mappedFrame, err := resolveSourceLocation(store, &frame, release)
+		if err != nil {
+			level.Error(log).Log("msg", "Error resolving stack trace frame source location", "err", err)
+			frames = append(frames, frame)
+		} else if mappedFrame != nil {
+			frames = append(frames, *mappedFrame)
+		} else {
+			frames = append(frames, frame)
+		}
+	}
+
+	return &payload.Exception{
+		Type:       ex.Type,
+		Value:      ex.Value,
+		Stacktrace: &payload.Stacktrace{Frames: frames},
+		Timestamp:  ex.Timestamp,
+	}
+}
+
+func resolveSourceLocation(store sourceMapsStore, frame *payload.Frame, release string) (*payload.Frame, error) {
+	smap, err := store.GetSourceMap(frame.Filename, release)
+	if err != nil {
+		return nil, err
+	}
+	if smap == nil {
+		return nil, nil
+	}
+
+	file, function, line, col, ok := smap.Source(frame.Lineno, frame.Colno)
+	if !ok {
+		return nil, nil
+	}
+	// unfortunately in many cases go-sourcemap fails to determine the original function name.
+	// not a big issue as long as file, line and column are correct
+	if len(function) == 0 {
+		function = "?"
+	}
+	return &payload.Frame{
+		Filename: file,
+		Lineno:   line,
+		Colno:    col,
+		Function: function,
+	}, nil
 }
