@@ -152,7 +152,7 @@ metrics:
 ```
 
 Note that there are no instance configurations present in this example; instance
-configurationss must be passed to the API for the Agent to start scraping metrics.
+configurations must be passed to the API for the Agent to start scraping metrics.
 
 ## agentctl
 
