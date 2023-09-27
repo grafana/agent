@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/http/
 title: http
+description: Learn about the http configuration block
 ---
 
 # http block

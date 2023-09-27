@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/output-block/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/output-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/output-block/
+description: Shared content, output block
 headless: true
 ---
 

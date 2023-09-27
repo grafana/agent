@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.gcplog/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.gcplog/
 title: loki.source.gcplog
+description: Learn about loki.source.gcplog
 ---
 
 # loki.source.gcplog

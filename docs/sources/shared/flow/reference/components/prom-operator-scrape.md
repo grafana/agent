@@ -2,6 +2,7 @@
 aliases:
 - /docs/agent/shared/flow/reference/components/prom-operator-scrape/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/prom-operator-scrape/
+description: Shared content, prom operator scrape
 headless: true
 ---
 

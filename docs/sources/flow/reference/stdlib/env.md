@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/env/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/env/
 title: env
+description: Learn about env
 ---
 
 # env

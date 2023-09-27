@@ -6,6 +6,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/distribute-prometheus-scrape-load/
 menuTitle: Distribute Prometheus metrics scrape load
 title: Distribute your Prometheus metrics scrape load
+description: Learn how to distribute your Prometheus metrics scrape load
 weight: 500
 ---
 

@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 label:
   stage: experimental
 title: otelcol.extension.jaeger_remote_sampling
+description: Learn about otelcol.extension.jaeger_remote_sampling
 ---
 
 # otelcol.extension.jaeger_remote_sampling

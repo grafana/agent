@@ -3,6 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 labels:
   stage: experimental
 title: otelcol.connector.servicegraph
+description: Learn about otelcol.connector.servicegraph
 ---
 
 # otelcol.connector.servicegraph

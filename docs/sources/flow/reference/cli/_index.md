@@ -8,6 +8,7 @@ description: The Grafana Agent command line interface provides subcommands to pe
   various operations.
 menuTitle: Command-line interface
 title: The Grafana Agent command line interface
+description: Learn about the Grafana Agent command line interface
 weight: 100
 ---
 
