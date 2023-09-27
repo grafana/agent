@@ -30,8 +30,8 @@ func init() {
 
 // Arguments configures the otelcol.auth.oauth2 component.
 type Arguments struct {
-	ClientID       string                     `river:"client_id,attr,optional"`
-	ClientSecret   string                     `river:"client_secret,attr,optional"`
+	ClientID       string                     `river:"client_id,attr"`
+	ClientSecret   string                     `river:"client_secret,attr"`
 	TokenURL       string                     `river:"token_url,attr"`
 	EndpointParams url.Values                 `river:"endpoint_params,attr,optional"`
 	Scopes         []string                   `river:"scopes,attr,optional"`
