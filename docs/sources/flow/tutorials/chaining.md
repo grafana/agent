@@ -13,7 +13,7 @@ weight: 400
 
 # Chain Prometheus components
 
-This tutorial shows how to use [multiple-inputs.river](../assets/flow_configs/multiple-inputs.river) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "filtering-metrics.md">}}). 
+This tutorial shows how to use [multiple-inputs.river](/docs/agent/latest/flow/tutorials/assets/flow_configs/multiple-inputs.river) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "./filtering-metrics">}}).
 
 A new concept introduced in Flow is chaining components together in a composable pipeline. This promotes the reusability of components while offering flexibility. 
 
@@ -23,7 +23,11 @@ A new concept introduced in Flow is chaining components together in a composable
 
 ## Run the example
 
-Run the following `curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh multiple-inputs.river`.
+Run the following 
+
+```bash
+curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh multiple-inputs.river
+```
 
 The `runt.sh` script does:
 
