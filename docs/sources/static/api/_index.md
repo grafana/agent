@@ -2,7 +2,7 @@
 aliases:
 - ../api/
 canonical: https://grafana.com/docs/agent/latest/static/api/
-title: Static mode API (Stable)
+title: Static mode APIs (Stable)
 menuTitle: Static mode API
 description: Learn about the Grafana Agent static mode API
 weight: 400

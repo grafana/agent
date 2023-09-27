@@ -16,7 +16,7 @@ configured, except deprecated fields have been removed and the server_config is
 not supported.
 
 Refer to the
-[Promtail documentation](docs/loki/latest/clients/promtail/configuration/#clients)
+[Promtail documentation](/docs/loki/latest/clients/promtail/configuration/#clients)
 for the supported values for these fields.
 
 ```yaml

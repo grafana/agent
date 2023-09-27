@@ -140,7 +140,7 @@ See [Module and Auth Split Migration](https://github.com/prometheus/snmp_exporte
 ### Removal of Dynamic Configuration
 
 The experimental feature Dynamic Configuration has been removed. The use case of dynamic configuration will be replaced
-with [Modules]({{< relref "../flow/concepts/modules/" >}}) in Grafana Agent Flow.
+with [Modules]({{< relref "../flow/concepts/modules" >}}) in Grafana Agent Flow.
 
 ### Breaking change: Removed and renamed tracing metrics
 
