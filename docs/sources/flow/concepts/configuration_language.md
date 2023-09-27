@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/configuration_language/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/configuration_language/
 title: Configuration language concepts
+description: Learn about configuration language concepts
 weight: 400
 ---
 

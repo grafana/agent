@@ -3,6 +3,7 @@ aliases:
 - ../../../configuration/integrations/integrations-next/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/
 title: Integrations next
+description: Learn about integrations next
 weight: 100
 ---
 

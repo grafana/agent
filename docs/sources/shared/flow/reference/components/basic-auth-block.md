@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/basic-auth-block/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/basic-auth-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/basic-auth-block/
+description: Shared content, basic auth block
 headless: true
 ---
 

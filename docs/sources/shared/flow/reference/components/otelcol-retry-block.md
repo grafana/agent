@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/otelcol-retry-block/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/otelcol-retry-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/otelcol-retry-block/
+description: Shared content, otelcol retry block
 headless: true
 ---
 

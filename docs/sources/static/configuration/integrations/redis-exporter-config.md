@@ -3,6 +3,7 @@ aliases:
 - ../../../configuration/integrations/redis-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/redis-exporter-config/
 title: redis_exporter_config
+description: Learn about redis_exporter_config
 ---
 
 # redis_exporter_config

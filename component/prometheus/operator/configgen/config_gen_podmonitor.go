@@ -27,10 +27,8 @@ var (
 )
 
 func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep promopv1.PodMetricsEndpoint, i int) (cfg *config.ScrapeConfig, err error) {
-	c := config.DefaultScrapeConfig
-	cfg = &c
-	cfg.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval
-	cfg.ScrapeTimeout = config.DefaultGlobalConfig.ScrapeTimeout
+	cfg = cg.generateDefaultScrapeConfig()
+
 	cfg.JobName = fmt.Sprintf("podMonitor/%s/%s/%d", m.Namespace, m.Name, i)
 	cfg.HonorLabels = ep.HonorLabels
 	if ep.HonorTimestamps != nil {

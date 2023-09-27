@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
@@ -174,31 +173,4 @@ func TestRiverConvert(t *testing.T) {
 	}
 
 	require.Equal(t, expected, *converted)
-}
-
-func TestDisableExportingKeyValues(t *testing.T) {
-	args := Arguments{
-		ExportKeyValues: false,
-	}
-	converted := args.Convert()
-	exporterOpts := converted.GetExporterOptions()
-	require.True(t, exporterOpts.DisableExportingKeyValues)
-
-	args = Arguments{
-		ExportKeyValues: true,
-	}
-	converted = args.Convert()
-	exporterOpts = converted.GetExporterOptions()
-	require.False(t, exporterOpts.DisableExportingKeyValues)
-}
-
-func TestCustomizeTarget(t *testing.T) {
-	args := Arguments{
-		RedisAddr: "localhost:6379",
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "localhost:6379", newTargets[0]["instance"])
 }

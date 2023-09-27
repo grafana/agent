@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/static/release-notes/
 description: Release notes for Grafana Agent static mode
-title: Release notes for Grafana Agent static mode
+title: Release notes
 menuTitle: Release notes
 aliases:
 - ../upgrade-guide/

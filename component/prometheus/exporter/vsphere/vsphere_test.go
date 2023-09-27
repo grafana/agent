@@ -3,7 +3,6 @@ package vsphere
 import (
 	"testing"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/vmware_exporter"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
@@ -57,15 +56,4 @@ func TestRiverConvert(t *testing.T) {
 	}
 
 	require.Equal(t, expected, *converted)
-}
-
-func TestCustomizeTarget(t *testing.T) {
-	args := Arguments{
-		VSphereURL: "https://localhost:443/sdk",
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "localhost:443", newTargets[0]["instance"])
 }
