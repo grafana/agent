@@ -14,7 +14,7 @@ description: Learn about otelcol.connector.servicegraph
 outputs metrics representing the relationship between various services in a system.
 A metric represents an edge in the service graph.
 Those metrics can then be used by a data visualization application (e.g. 
-[Grafana](https://grafana.com/docs/grafana/latest/explore/trace-integration/#service-graph))
+[Grafana](/docs/grafana/latest/explore/trace-integration/#service-graph))
 to draw the service graph.
 
 > **NOTE**: `otelcol.connector.servicegraph` is a wrapper over the upstream
@@ -39,7 +39,7 @@ Service graphs are useful for a number of use-cases:
 Since `otelcol.connector.servicegraph` has to process both sides of an edge,
 it needs to process all spans of a trace to function properly.
 If spans of a trace are spread out over multiple Agent instances, spans cannot be paired reliably.
-A solution to this problem is using [otelcol.exporter.loadbalancing](../otelcol.exporter.loadbalancing/)
+A solution to this problem is using [otelcol.exporter.loadbalancing]({{< relref "otelcol.exporter.loadbalancing.md" >}})
 in front of Agent instances running `otelcol.connector.servicegraph`.
 
 ## Usage
