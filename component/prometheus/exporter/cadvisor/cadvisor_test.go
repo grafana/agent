@@ -1,51 +1,95 @@
 package cadvisor
 
-/*
+import (
+	"testing"
+	"time"
+
+	"github.com/grafana/agent/pkg/integrations/cadvisor"
+	"github.com/grafana/river"
+	"github.com/stretchr/testify/require"
+)
+
 func TestUnmarshalRiver(t *testing.T) {
 	riverCfg := `
-		api_token_file = "/etc/github-api-token"
-		repositories = ["grafana/agent"]
-		organizations = ["grafana", "prometheus"]
-		users = ["jcreixell"]
-		api_url = "https://some-other-api.github.com"
+store_container_labels = true
+allowlisted_container_labels = ["label1", "label2"]
+env_metadata_allowlist = ["env1", "env2"]
+raw_cgroup_prefix_allowlist = ["prefix1", "prefix2"]
+perf_events_config = "perf_events_config"
+resctrl_interval = "1s"
+disabled_metrics = ["metric1", "metric2"]
+enabled_metrics = ["metric3", "metric4"]
+storage_duration = "2s"
+containerd_host = "containerd_host"
+containerd_namespace = "containerd_namespace"
+docker_host = "docker_host"
+use_docker_tls = true
+docker_tls_cert = "docker_tls_cert"
+docker_tls_key = "docker_tls_key"
+docker_tls_ca = "docker_tls_ca"
 `
 	var args Arguments
 	err := river.Unmarshal([]byte(riverCfg), &args)
 	require.NoError(t, err)
-	require.Equal(t, "/etc/github-api-token", args.APITokenFile)
-	require.Equal(t, []string{"grafana/agent"}, args.Repositories)
-	require.Contains(t, args.Organizations, "grafana")
-	require.Contains(t, args.Organizations, "prometheus")
-	require.Equal(t, []string{"jcreixell"}, args.Users)
-	require.Equal(t, "https://some-other-api.github.com", args.APIURL)
+	expected := Arguments{
+		StoreContainerLabels:       true,
+		AllowlistedContainerLabels: []string{"label1", "label2"},
+		EnvMetadataAllowlist:       []string{"env1", "env2"},
+		RawCgroupPrefixAllowlist:   []string{"prefix1", "prefix2"},
+		PerfEventsConfig:           "perf_events_config",
+		ResctrlInterval:            1 * time.Second,
+		DisabledMetrics:            []string{"metric1", "metric2"},
+		EnabledMetrics:             []string{"metric3", "metric4"},
+		StorageDuration:            2 * time.Second,
+		ContainerdHost:             "containerd_host",
+		ContainerdNamespace:        "containerd_namespace",
+		DockerHost:                 "docker_host",
+		UseDockerTLS:               true,
+		DockerTLSCert:              "docker_tls_cert",
+		DockerTLSKey:               "docker_tls_key",
+		DockerTLSCA:                "docker_tls_ca",
+	}
+	require.Equal(t, expected, args)
 }
 
 func TestConvert(t *testing.T) {
 	args := Arguments{
-		APITokenFile:  "/etc/github-api-token",
-		Repositories:  []string{"grafana/agent"},
-		Organizations: []string{"grafana", "prometheus"},
-		Users:         []string{"jcreixell"},
-		APIURL:        "https://some-other-api.github.com",
+		StoreContainerLabels:       true,
+		AllowlistedContainerLabels: []string{"label1", "label2"},
+		EnvMetadataAllowlist:       []string{"env1", "env2"},
+		RawCgroupPrefixAllowlist:   []string{"prefix1", "prefix2"},
+		PerfEventsConfig:           "perf_events_config",
+		ResctrlInterval:            1 * time.Second,
+		DisabledMetrics:            []string{"metric1", "metric2"},
+		EnabledMetrics:             []string{"metric3", "metric4"},
+		StorageDuration:            2 * time.Second,
+		ContainerdHost:             "containerd_host",
+		ContainerdNamespace:        "containerd_namespace",
+		DockerHost:                 "docker_host",
+		UseDockerTLS:               true,
+		DockerTLSCert:              "docker_tls_cert",
+		DockerTLSKey:               "docker_tls_key",
+		DockerTLSCA:                "docker_tls_ca",
 	}
 
 	res := args.Convert()
-	require.Equal(t, "/etc/github-api-token", res.APITokenFile)
-	require.Equal(t, []string{"grafana/agent"}, res.Repositories)
-	require.Contains(t, res.Organizations, "grafana")
-	require.Contains(t, res.Organizations, "prometheus")
-	require.Equal(t, []string{"jcreixell"}, res.Users)
-	require.Equal(t, "https://some-other-api.github.com", res.APIURL)
-}
-
-func TestCustomizeTarget_Valid(t *testing.T) {
-	args := Arguments{
-		APIURL: "https://some-other-api.github.com",
+	expected := &cadvisor.Config{
+		StoreContainerLabels:       true,
+		AllowlistedContainerLabels: []string{"label1", "label2"},
+		EnvMetadataAllowlist:       []string{"env1", "env2"},
+		RawCgroupPrefixAllowlist:   []string{"prefix1", "prefix2"},
+		PerfEventsConfig:           "perf_events_config",
+		ResctrlInterval:            int64(1 * time.Second),
+		DisabledMetrics:            []string{"metric1", "metric2"},
+		EnabledMetrics:             []string{"metric3", "metric4"},
+		StorageDuration:            2 * time.Second,
+		Containerd:                 "containerd_host",
+		ContainerdNamespace:        "containerd_namespace",
+		Docker:                     "docker_host",
+		DockerTLS:                  true,
+		DockerTLSCert:              "docker_tls_cert",
+		DockerTLSKey:               "docker_tls_key",
+		DockerTLSCA:                "docker_tls_ca",
 	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "some-other-api.github.com", newTargets[0]["instance"])
+	require.Equal(t, expected, res)
 }
-*/
