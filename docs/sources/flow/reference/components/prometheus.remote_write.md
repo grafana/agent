@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.remote_write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
 title: prometheus.remote_write
+description: Learn about prometheus.remote_write
 ---
 
 # prometheus.remote_write

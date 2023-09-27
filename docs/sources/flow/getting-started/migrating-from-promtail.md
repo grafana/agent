@@ -7,7 +7,8 @@ canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-
 description: Learn how to migrate your configuration from Promtail to Grafana Agent
   Flow Mode
 menuTitle: Migrate from Promtail
-title: Migrate from Promtail to Grafana Agent Flow Mode
+title: Migrate from Promtail to Grafana Agent Flow mode
+description: Learn how to migrate from Promtail to Grafana Agent Flow mode
 weight: 330
 ---
 

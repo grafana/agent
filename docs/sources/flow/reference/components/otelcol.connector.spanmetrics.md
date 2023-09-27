@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 labels:
   stage: experimental
 title: otelcol.connector.spanmetrics
+description: Learn about otelcol.connector.spanmetrics
 ---
 
 # otelcol.connector.spanmetrics

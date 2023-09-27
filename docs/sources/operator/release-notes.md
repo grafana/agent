@@ -7,11 +7,13 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
 description: Release notes for Grafana Agent static mode Kubernetes operator
 menuTitle: Release notes
-title: Release notes for Grafana Agent
+title: Release notes for Grafana Agent Operator
+description: Release notes for Grafana Agent Operator
+
 weight: 999
 ---
 
-# Release notes
+# Release notes for Grafana Agent Operator
 
 The release notes provide information about deprecations and breaking changes in Grafana Agent static mode Kubernetes operator.
 

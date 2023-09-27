@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.mysql/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mysql/
 title: prometheus.exporter.mysql
+description: Learn about prometheus.exporter.mysql
 ---
 
 # prometheus.exporter.mysql

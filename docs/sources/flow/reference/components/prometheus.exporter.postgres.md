@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prome
 labels:
   stage: beta
 title: prometheus.exporter.postgres
+description: Learn about prometheus.exporter.postgres
 ---
 
 # prometheus.exporter.postgres

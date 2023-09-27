@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/argument/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/argument/
 title: argument
+description: Learn about the argument configuration block
 ---
 
 # argument block

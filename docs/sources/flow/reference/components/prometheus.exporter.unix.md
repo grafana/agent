@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.unix/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.unix/
 title: prometheus.exporter.unix
+description: Learn about prometheus.exporter.unix
 ---
 
 # prometheus.exporter.unix

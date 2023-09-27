@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/local.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/local.file/
 title: local.file
+description: Learn about local.file
 ---
 
 # local.file

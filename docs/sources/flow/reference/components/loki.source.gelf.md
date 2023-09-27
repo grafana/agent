@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.gelf/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.gelf/
 title: loki.source.gelf
+description: Learn about loki.source.gelf
 ---
 
 # loki.source.gelf

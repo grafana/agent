@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyros
 labels:
   stage: beta
 title: pyroscope.scrape
+description: Learn about pyroscope.scrape
 ---
 
 # pyroscope.scrape
