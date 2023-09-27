@@ -215,6 +215,8 @@ Name | Type | Description | Default | Required
 
 {{< docs/shared lookup="flow/reference/components/otelcol-grpc-balancer-name.md" source="agent" version="<AGENT VERSION>" >}}
 
+{{< docs/shared lookup="flow/reference/components/otelcol-grpc-authority.md" source="agent" version="<AGENT VERSION>" >}}
+
 An HTTP proxy can be configured through the following environment variables:
 
 * `HTTPS_PROXY`
