@@ -20,9 +20,9 @@ import (
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/dskit/backoff"
-	pushv1 "github.com/grafana/phlare/api/gen/proto/go/push/v1"
-	pushv1connect "github.com/grafana/phlare/api/gen/proto/go/push/v1/pushv1connect"
-	typesv1 "github.com/grafana/phlare/api/gen/proto/go/types/v1"
+	pushv1 "github.com/grafana/pyroscope/api/gen/proto/go/push/v1"
+	"github.com/grafana/pyroscope/api/gen/proto/go/push/v1/pushv1connect"
+	typesv1 "github.com/grafana/pyroscope/api/gen/proto/go/types/v1"
 )
 
 var (

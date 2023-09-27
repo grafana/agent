@@ -29,7 +29,7 @@ func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.
 		}
 		summary := fmt.Sprintf("Converted %d remote_write[s] %q into...", len(remoteWriteConfigs), strings.Join(names, ","))
 		detail := fmt.Sprintf("	A prometheus.remote_write.%s component", remoteWriteLabel)
-		pb.prometheusRemoteWriteBlocks = append(pb.prometheusRemoteWriteBlocks, newPrometheusBlock(block, name, label, summary, detail))
+		pb.prometheusRemoteWriteBlocks = append(pb.prometheusRemoteWriteBlocks, newPrometheusBlock(block, name, remoteWriteLabel, summary, detail))
 	}
 
 	return &remotewrite.Exports{
@@ -44,9 +44,7 @@ func validateRemoteWriteConfig(remoteWriteConfig *prom_config.RemoteWriteConfig)
 		diags.Add(diag.SeverityLevelError, "unsupported remote_write sigv4 config was provided")
 	}
 
-	newDiags := ValidateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig)
-	diags = append(diags, newDiags...)
-
+	diags.AddAll(ValidateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig))
 	return diags
 }
 

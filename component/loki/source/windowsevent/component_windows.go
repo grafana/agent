@@ -8,6 +8,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/windows"
@@ -151,5 +152,6 @@ func convertConfig(arg Arguments) *scrapeconfig.WindowsEventsTargetConfig {
 		ExcludeEventData:     arg.ExcludeEventData,
 		ExcludeEventMessage:  false,
 		ExcludeUserData:      arg.ExcludeUserdata,
+		Labels:               utils.ToLabelSet(arg.Labels),
 	}
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -48,9 +48,10 @@ type crdManager struct {
 	scrapeManager     *scrape.Manager
 	clusteringUpdated chan struct{}
 
-	opts   component.Options
-	logger log.Logger
-	args   *operator.Arguments
+	opts    component.Options
+	logger  log.Logger
+	args    *operator.Arguments
+	cluster cluster.Cluster
 
 	client *kubernetes.Clientset
 
@@ -63,7 +64,7 @@ const (
 	KindProbe          string = "probe"
 )
 
-func newCrdManager(opts component.Options, logger log.Logger, args *operator.Arguments, kind string) *crdManager {
+func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.Logger, args *operator.Arguments, kind string) *crdManager {
 	switch kind {
 	case KindPodMonitor, KindServiceMonitor, KindProbe:
 	default:
@@ -73,6 +74,7 @@ func newCrdManager(opts component.Options, logger log.Logger, args *operator.Arg
 		opts:              opts,
 		logger:            logger,
 		args:              args,
+		cluster:           cluster,
 		discoveryConfigs:  map[string]discovery.Configs{},
 		scrapeConfigs:     map[string]*config.ScrapeConfig{},
 		debugInfo:         map[string]*operator.DiscoveredResource{},
@@ -129,13 +131,13 @@ func (c *crdManager) Run(ctx context.Context) error {
 		case m := <-c.discoveryManager.SyncCh():
 			cachedTargets = m
 			if c.args.Clustering.Enabled {
-				m = filterTargets(m, c.opts.Clusterer.Node)
+				m = filterTargets(m, c.cluster)
 			}
 			targetSetsChan <- m
 		case <-c.clusteringUpdated:
 			// if clustering updates while running, just re-filter the targets and pass them
 			// into scrape manager again, instead of reloading everything
-			targetSetsChan <- filterTargets(cachedTargets, c.opts.Clusterer.Node)
+			targetSetsChan <- filterTargets(cachedTargets, c.cluster)
 		}
 	}
 }
@@ -149,7 +151,7 @@ func (c *crdManager) ClusteringUpdated() {
 
 // TODO: merge this code with the code in prometheus.scrape. This is a copy of that code, mostly because
 // we operate on slightly different data structures.
-func filterTargets(m map[string][]*targetgroup.Group, node cluster.Node) map[string][]*targetgroup.Group {
+func filterTargets(m map[string][]*targetgroup.Group, c cluster.Cluster) map[string][]*targetgroup.Group {
 	// the key in the map is the job name.
 	// the targetGroups have zero or more targets inside them.
 	// we should keep the same structure even when there are no targets in a group for this node to scrape,
@@ -167,7 +169,7 @@ func filterTargets(m map[string][]*targetgroup.Group, node cluster.Node) map[str
 			// We should not need to include the group's common labels, as long
 			// as each node does this consistently.
 			for _, t := range group.Targets {
-				peers, err := node.Lookup(shard.StringKey(nonMetaLabelString(t)), 1, shard.OpReadWrite)
+				peers, err := c.Lookup(shard.StringKey(nonMetaLabelString(t)), 1, shard.OpReadWrite)
 				if err != nil {
 					// This can only fail in case we ask for more owners than the
 					// available peers. This should never happen, but in any case we fall
@@ -364,6 +366,7 @@ func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 		Secrets:                  configgen.NewSecretManager(c.client),
 		Client:                   &c.args.Client,
 		AdditionalRelabelConfigs: c.args.RelabelConfigs,
+		ScrapeOptions:            c.args.Scrape,
 	}
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
 		var scrapeConfig *config.ScrapeConfig
@@ -413,6 +416,7 @@ func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 		Secrets:                  configgen.NewSecretManager(c.client),
 		Client:                   &c.args.Client,
 		AdditionalRelabelConfigs: c.args.RelabelConfigs,
+		ScrapeOptions:            c.args.Scrape,
 	}
 	for i, ep := range sm.Spec.Endpoints {
 		var scrapeConfig *config.ScrapeConfig
@@ -459,8 +463,10 @@ func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
 func (c *crdManager) addProbe(p *promopv1.Probe) {
 	var err error
 	gen := configgen.ConfigGenerator{
-		Secrets: configgen.NewSecretManager(c.client),
-		Client:  &c.args.Client,
+		Secrets:                  configgen.NewSecretManager(c.client),
+		Client:                   &c.args.Client,
+		AdditionalRelabelConfigs: c.args.RelabelConfigs,
+		ScrapeOptions:            c.args.Scrape,
 	}
 	var pmc *config.ScrapeConfig
 	pmc, err = gen.GenerateProbeConfig(p)

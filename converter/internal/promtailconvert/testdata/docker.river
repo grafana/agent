@@ -1,4 +1,4 @@
-discovery.docker "fun_0" {
+discovery.docker "fun" {
 	host             = "unix:///var/run/docker.sock"
 	port             = 12345
 	refresh_interval = "10s"
@@ -28,7 +28,7 @@ discovery.docker "fun_0" {
 	}
 }
 
-discovery.docker "fun_1" {
+discovery.docker "fun_2" {
 	host             = "unix:///var/run/docker.sock"
 	port             = 54321
 	refresh_interval = "10s"
@@ -54,8 +54,8 @@ discovery.docker "fun_1" {
 
 local.file_match "fun" {
 	path_targets = concat(
-		discovery.docker.fun_0.targets,
-		discovery.docker.fun_1.targets,
+		discovery.docker.fun.targets,
+		discovery.docker.fun_2.targets,
 	)
 }
 

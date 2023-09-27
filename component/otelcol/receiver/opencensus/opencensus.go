@@ -6,6 +6,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -13,8 +14,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.receiver.opencensus",
-		Args: Arguments{},
+		Name:          "otelcol.receiver.opencensus",
+		Args:          Arguments{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := opencensusreceiver.NewFactory()
@@ -29,13 +31,14 @@ type Arguments struct {
 
 	GRPC otelcol.GRPCServerArguments `river:",squash"`
 
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
 
-var (
-	_ receiver.Arguments = Arguments{}
-)
+var _ receiver.Arguments = Arguments{}
 
 // Default server settings.
 var DefaultArguments = Arguments{
@@ -74,4 +77,9 @@ func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.I
 // NextConsumers implements receiver.Arguments.
 func (args Arguments) NextConsumers() *otelcol.ConsumerArguments {
 	return args.Output
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }

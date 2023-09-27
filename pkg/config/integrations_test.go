@@ -25,7 +25,7 @@ integrations:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.NotNil(t, c.Integrations.configV1)
+	require.NotNil(t, c.Integrations.ConfigV1)
 }
 
 func TestIntegrations_v2(t *testing.T) {
@@ -125,9 +125,9 @@ integrations:
 		return LoadBytes([]byte(cfg), false, c)
 	})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(c.Integrations.configV1.Integrations))
+	require.Equal(t, 1, len(c.Integrations.ConfigV1.Integrations))
 
 	c.Integrations.raw = util.RawYAML{}
 	c.Integrations.setVersion(integrationsVersion1)
-	require.Equal(t, 1, len(c.Integrations.configV1.Integrations))
+	require.Equal(t, 1, len(c.Integrations.ConfigV1.Integrations))
 }

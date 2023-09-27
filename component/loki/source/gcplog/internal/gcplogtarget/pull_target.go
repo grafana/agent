@@ -20,6 +20,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/loki/source/gcplog/gcptypes"
 )
 
 // PullTarget represents a target that scrapes logs from a GCP project id and
@@ -28,7 +29,7 @@ type PullTarget struct {
 	metrics       *Metrics
 	logger        log.Logger
 	handler       loki.EntryHandler
-	config        *PullConfig
+	config        *gcptypes.PullConfig
 	relabelConfig []*relabel.Config
 	jobName       string
 
@@ -57,7 +58,7 @@ type pubsubSubscription interface {
 }
 
 // NewPullTarget returns the new instance of PullTarget.
-func NewPullTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PullConfig, relabel []*relabel.Config, clientOptions ...option.ClientOption) (*PullTarget, error) {
+func NewPullTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *gcptypes.PullConfig, relabel []*relabel.Config, clientOptions ...option.ClientOption) (*PullTarget, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	ps, err := pubsub.NewClient(ctx, config.ProjectID, clientOptions...)
 	if err != nil {

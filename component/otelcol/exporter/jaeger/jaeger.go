@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelpexporterhelper "go.opentelemetry.io/collector/exporter/exporterhelper"
@@ -15,9 +16,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.exporter.jaeger",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:          "otelcol.exporter.jaeger",
+		Args:          Arguments{},
+		Exports:       otelcol.ConsumerExports{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := jaegerexporter.NewFactory()
@@ -33,12 +35,13 @@ type Arguments struct {
 	Queue otelcol.QueueArguments `river:"sending_queue,block,optional"`
 	Retry otelcol.RetryArguments `river:"retry_on_failure,block,optional"`
 
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+
 	Client GRPCClientArguments `river:"client,block"`
 }
 
-var (
-	_ exporter.Arguments = Arguments{}
-)
+var _ exporter.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
@@ -73,6 +76,11 @@ func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension 
 // Exporters implements exporter.Arguments.
 func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }
 
 // GRPCClientArguments is used to configure otelcol.exporter.jaeger with

@@ -13,10 +13,10 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/pyroscope"
-	ebpfspy "github.com/grafana/phlare/ebpf"
-	"github.com/grafana/phlare/ebpf/pprof"
-	"github.com/grafana/phlare/ebpf/sd"
-	"github.com/grafana/phlare/ebpf/symtab"
+	ebpfspy "github.com/grafana/pyroscope/ebpf"
+	"github.com/grafana/pyroscope/ebpf/pprof"
+	"github.com/grafana/pyroscope/ebpf/sd"
+	"github.com/grafana/pyroscope/ebpf/symtab"
 	"github.com/oklog/run"
 )
 

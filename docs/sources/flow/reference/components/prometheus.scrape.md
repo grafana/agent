@@ -1,6 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.scrape/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.scrape/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/
 title: prometheus.scrape
+description: Learn about prometheus.scrape
 ---
 
 # prometheus.scrape
@@ -94,19 +99,19 @@ an `oauth2` block.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### clustering (beta)
 
@@ -257,6 +262,19 @@ http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
 http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 ```
 
-## Compression
+### Technical details
 
 `prometheus.scrape` supports [gzip](https://en.wikipedia.org/wiki/Gzip) compression.
+
+The following special labels can change the behavior of prometheus.scrape:
+* `__address__` is the name of the label that holds the `<host>:<port>` address of a scrape target.
+* `__metrics_path__`   is the name of the label that holds the path on which to scrape a target.
+* `__scheme__` is the name of the label that holds the scheme (http,https) on which to  scrape a target.
+* `__scrape_interval__` is the name of the label that holds the scrape interval used to scrape a target.
+* `__scrape_timeout__` is the name of the label that holds the scrape timeout used to scrape a target.
+* `__param__` is a prefix for labels that provide URL parameters used to scrape a target.
+
+Special labels added after a scrape
+* `__name__` is the label name indicating the metric name of a timeseries.
+* `job` is the label name indicating the job from which a timeseries was scraped.
+* `instance` is the label name used for the instance label.

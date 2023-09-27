@@ -6,7 +6,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 )
@@ -169,4 +169,48 @@ func TestBuildBlackboxTargets(t *testing.T) {
 	require.Equal(t, "integrations/blackbox/target_a", targets[0]["job"])
 	require.Equal(t, "http://example.com", targets[0]["__param_target"])
 	require.Equal(t, "http_2xx", targets[0]["__param_module"])
+}
+
+func TestBuildBlackboxTargetsWithExtraLabels(t *testing.T) {
+	baseArgs := Arguments{
+		ConfigFile: "modules.yml",
+		Targets: TargetBlock{{
+			Name:   "target_a",
+			Target: "http://example.com",
+			Module: "http_2xx",
+			Labels: map[string]string{
+				"env": "test",
+				"foo": "bar",
+			},
+		}},
+		ProbeTimeoutOffset: 1.0,
+	}
+	baseTarget := discovery.Target{
+		model.SchemeLabel:                   "http",
+		model.MetricsPathLabel:              "component/prometheus.exporter.blackbox.default/metrics",
+		"instance":                          "prometheus.exporter.blackbox.default",
+		"job":                               "integrations/blackbox",
+		"__meta_agent_integration_name":     "blackbox",
+		"__meta_agent_integration_instance": "prometheus.exporter.blackbox.default",
+	}
+	args := component.Arguments(baseArgs)
+	targets := buildBlackboxTargets(baseTarget, args)
+	require.Equal(t, 1, len(targets))
+	require.Equal(t, "integrations/blackbox/target_a", targets[0]["job"])
+	require.Equal(t, "http://example.com", targets[0]["__param_target"])
+	require.Equal(t, "http_2xx", targets[0]["__param_module"])
+
+	require.Equal(t, "test", targets[0]["env"])
+	require.Equal(t, "bar", targets[0]["foo"])
+
+	// Check that the extra labels do not override existing labels
+	baseArgs.Targets[0].Labels = map[string]string{
+		"job":      "test",
+		"instance": "test-instance",
+	}
+	args = component.Arguments(baseArgs)
+	targets = buildBlackboxTargets(baseTarget, args)
+	require.Equal(t, 1, len(targets))
+	require.Equal(t, "integrations/blackbox/target_a", targets[0]["job"])
+	require.Equal(t, "prometheus.exporter.blackbox.default", targets[0]["instance"])
 }

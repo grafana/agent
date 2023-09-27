@@ -1,6 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.file/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.file/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.file/
 title: discovery.file
+description: Learn about discovery.file
 ---
 
 # discovery.file

@@ -3,10 +3,9 @@ package mysql
 import (
 	"testing"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
-	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river"
+	"github.com/grafana/river/rivertypes"
 	"github.com/stretchr/testify/require"
 )
 
@@ -161,28 +160,4 @@ func TestValidate_InvalidDataSource(t *testing.T) {
 		DataSourceName: rivertypes.Secret("root:secret_password@invalid/mydb"),
 	}
 	require.Error(t, args.Validate())
-}
-
-func TestCustomizeTarget_Valid(t *testing.T) {
-	args := Arguments{
-		DataSourceName: rivertypes.Secret("root:secret_password@tcp(localhost:3306)/mydb"),
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "tcp(localhost:3306)/mydb", newTargets[0]["instance"])
-}
-
-func TestCustomizeTarget_Invalid(t *testing.T) {
-	args := Arguments{
-		DataSourceName: rivertypes.Secret("root:secret_password@invalid/mydb"),
-	}
-
-	baseTarget := discovery.Target{
-		"instance": "default value",
-	}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "default value", newTargets[0]["instance"])
 }

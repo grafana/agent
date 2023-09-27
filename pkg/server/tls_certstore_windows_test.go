@@ -14,7 +14,7 @@ import (
 )
 
 func TestEasyFilter(t *testing.T) {
-	c := &winCertStoreHandler{
+	c := &WinCertStoreHandler{
 		cfg: WindowsCertificateFilter{
 			Server: &WindowsServerFilter{
 				Store:       "My",
@@ -37,7 +37,7 @@ func TestEasyFilter(t *testing.T) {
 }
 
 func TestTemplateIDFilter(t *testing.T) {
-	c := &winCertStoreHandler{
+	c := &WinCertStoreHandler{
 		cfg: WindowsCertificateFilter{
 			Server: &WindowsServerFilter{
 				Store:       "My",
@@ -61,7 +61,7 @@ func TestTemplateIDFilter(t *testing.T) {
 }
 
 func TestCommonName(t *testing.T) {
-	c := &winCertStoreHandler{
+	c := &WinCertStoreHandler{
 		cfg: WindowsCertificateFilter{
 			Server: &WindowsServerFilter{
 				Store:             "My",
@@ -86,7 +86,7 @@ func TestCommonName(t *testing.T) {
 }
 
 func TestCommonName_Fail(t *testing.T) {
-	c := &winCertStoreHandler{
+	c := &WinCertStoreHandler{
 		cfg: WindowsCertificateFilter{
 			Server: &WindowsServerFilter{
 				Store:             "My",
@@ -107,7 +107,7 @@ func TestCommonName_Fail(t *testing.T) {
 }
 
 func TestTemplateIDFilter_Fail(t *testing.T) {
-	c := &winCertStoreHandler{
+	c := &WinCertStoreHandler{
 		cfg: WindowsCertificateFilter{
 			Server: &WindowsServerFilter{
 				Store:       "My",
@@ -127,7 +127,7 @@ func TestTemplateIDFilter_Fail(t *testing.T) {
 }
 
 func TestMatching2CertsGetMostRecent(t *testing.T) {
-	c := &winCertStoreHandler{
+	c := &WinCertStoreHandler{
 		cfg: WindowsCertificateFilter{
 			Server: &WindowsServerFilter{
 				Store:       "My",
@@ -173,7 +173,7 @@ func (f fakeStore) Identities() ([]certstore.Identity, error) {
 	return ids, nil
 }
 
-func (f fakeStore) Import(data []byte, password string) error {
+func (f fakeStore) Import(_ []byte, _ string) error {
 	panic("should not be called")
 }
 

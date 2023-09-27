@@ -21,6 +21,7 @@ import (
 
 	"github.com/grafana/agent/component/common/loki"
 	fnet "github.com/grafana/agent/component/common/net"
+	"github.com/grafana/agent/component/loki/source/gcplog/gcptypes"
 )
 
 // PushTarget defines a server for receiving messages from a GCP PubSub push
@@ -29,7 +30,7 @@ type PushTarget struct {
 	logger         log.Logger
 	jobName        string
 	metrics        *Metrics
-	config         *PushConfig
+	config         *gcptypes.PushConfig
 	entries        chan<- loki.Entry
 	handler        loki.EntryHandler
 	relabelConfigs []*relabel.Config
@@ -37,7 +38,7 @@ type PushTarget struct {
 }
 
 // NewPushTarget constructs a PushTarget.
-func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *PushConfig, relabel []*relabel.Config, reg prometheus.Registerer) (*PushTarget, error) {
+func NewPushTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, jobName string, config *gcptypes.PushConfig, relabel []*relabel.Config, reg prometheus.Registerer) (*PushTarget, error) {
 	wrappedLogger := log.With(logger, "component", "gcp_push")
 	srv, err := fnet.NewTargetServer(wrappedLogger, jobName+"_push_target", reg, config.Server)
 	if err != nil {
@@ -109,7 +110,7 @@ func (p *PushTarget) push(w http.ResponseWriter, r *http.Request) {
 
 	if err := p.doSendEntry(ctx, entry); err != nil {
 		// NOTE: timeout errors can be tracked with from the metrics exposed by
-		// the spun weaveworks server.
+		// the spun dskit server.
 		// loki.source.gcplog.componentid_push_target_request_duration_seconds_count{status_code="503"}
 		level.Warn(p.logger).Log("msg", "error sending log entry", "err", err.Error())
 		http.Error(w, err.Error(), http.StatusServiceUnavailable)

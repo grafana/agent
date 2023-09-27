@@ -1,11 +1,21 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.snmp/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.snmp/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.snmp/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.snmp/
 title: prometheus.exporter.snmp
+description: Learn about prometheus.exporter.snmp
 ---
 
 # prometheus.exporter.snmp
+
 The `prometheus.exporter.snmp` component embeds
 [`snmp_exporter`](https://github.com/prometheus/snmp_exporter). `snmp_exporter` lets you collect SNMP data and expose them as Prometheus metrics.
+
+{{% admonition type="note" %}}
+`prometheus.exporter.snmp` uses the latest configuration introduced in version 0.23 of the Prometheus `snmp_exporter`.
+{{% /admonition %}}
 
 ## Usage
 
@@ -20,13 +30,14 @@ prometheus.exporter.snmp "LABEL" {
 ```
 
 ## Arguments
+
 The following arguments can be used to configure the exporter's behavior.
 Omitted fields take their default values.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`config_file` | `string`       | SNMP configuration file defining custom modules. | | no
-`config` | `string` or `secret`       | SNMP configuration as inline string.  | |no
+| Name          | Type                 | Description                                      | Default | Required |
+| ------------- | -------------------- | ------------------------------------------------ | ------- | -------- |
+| `config_file` | `string`             | SNMP configuration file defining custom modules. |         | no       |
+| `config`      | `string` or `secret` | SNMP configuration as inline string.             |         | no       |
 
 The `config_file` argument points to a YAML file defining which snmp_exporter modules to use. See [snmp_exporter](https://github.com/prometheus/snmp_exporter#generating-configuration) for details on how to generate a config file.
 
@@ -42,10 +53,10 @@ The `config` argument must be a YAML document as string defining which SNMP modu
 The following blocks are supported inside the definition of
 `prometheus.exporter.snmp` to configure collector-specific options:
 
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-target | [target][] | Configures an SNMP target. | yes
-walk_param | [walk_param][] | SNMP connection profiles to override default SNMP settings. | no
+| Hierarchy  | Name           | Description                                                 | Required |
+| ---------- | -------------- | ----------------------------------------------------------- | -------- |
+| target     | [target][]     | Configures an SNMP target.                                  | yes      |
+| walk_param | [walk_param][] | SNMP connection profiles to override default SNMP settings. | no       |
 
 [target]: #target-block
 [walk_param]: #walk_param-block
@@ -53,44 +64,30 @@ walk_param | [walk_param][] | SNMP connection profiles to override default SNMP 
 ### target block
 
 The `target` block defines an individual SNMP target.
-The `target` block may be specified multiple times to define multiple targets.
+The `target` block may be specified multiple times to define multiple targets. The label of the block is required and will be used in the target's `job` label.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`name` | `string` | Name of a snmp_target. | | yes
-`address` | `string` | The address of SNMP device. | | yes
-`module`| `string` | SNMP module to use for polling. | `""` | no
-`auth` | `string` | SNMP authentication profile to use. | `""` | no
-`walk_params`| `string` | Config to use for this target. | `""` | no
+| Name          | Type     | Description                         | Default | Required |
+| ------------- | -------- | ----------------------------------- | ------- | -------- |
+| `address`     | `string` | The address of SNMP device.         |         | yes      |
+| `module`      | `string` | SNMP module to use for polling.     | `""`    | no       |
+| `auth`        | `string` | SNMP authentication profile to use. | `""`    | no       |
+| `walk_params` | `string` | Config to use for this target.      | `""`    | no       |
 
 ### walk_param block
 
 The `walk_param` block defines an individual SNMP connection profile that can be used to override default SNMP settings.
 The `walk_param` block may be specified multiple times to define multiple SNMP connection profiles.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`name` | `string` | Name of the module to override. | | no
-`max_repetitions`| `int` | How many objects to request with GET/GETBULK. | `25` | no
-`retries`| `int` | How many times to retry a failed request. | `3` | no
-`timeout`| `duration` | Timeout for each individual SNMP request. |  | no
+| Name              | Type       | Description                                   | Default | Required |
+| ----------------- | ---------- | --------------------------------------------- | ------- | -------- |
+| `name`            | `string`   | Name of the module to override.               |         | no       |
+| `max_repetitions` | `int`      | How many objects to request with GET/GETBULK. | `25`    | no       |
+| `retries`         | `int`      | How many times to retry a failed request.     | `3`     | no       |
+| `timeout`         | `duration` | Timeout for each individual SNMP request.     |         | no       |
 
 ## Exported fields
-The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `snmp` metrics.
-
-For example, `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metrics' label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 
@@ -146,7 +143,6 @@ prometheus.scrape "demo" {
 
 This example is the same above with using an embedded configuration (with secrets):
 
-
 ```river
 local.file "snmp_config" {
     path      = "snmp_modules.yml"
@@ -193,9 +189,11 @@ prometheus.remote_write "demo" {
     }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

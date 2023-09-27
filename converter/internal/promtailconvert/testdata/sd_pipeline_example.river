@@ -1,17 +1,17 @@
-discovery.kubernetes "fun_0" {
+discovery.kubernetes "funny_one" {
 	role            = "pod"
 	kubeconfig_file = "/home/toby/.kube/config"
 }
 
-discovery.kubernetes "fun_1" {
+discovery.kubernetes "funny_one_2" {
 	role            = "node"
 	kubeconfig_file = "/home/toby/.kube/config"
 }
 
-discovery.relabel "fun" {
+discovery.relabel "funny_one" {
 	targets = concat(
-		discovery.kubernetes.fun_0.targets,
-		discovery.kubernetes.fun_1.targets,
+		discovery.kubernetes.funny_one.targets,
+		discovery.kubernetes.funny_one_2.targets,
 	)
 
 	rule {
@@ -20,12 +20,12 @@ discovery.relabel "fun" {
 	}
 }
 
-local.file_match "fun" {
-	path_targets = discovery.relabel.fun.output
+local.file_match "funny_one" {
+	path_targets = discovery.relabel.funny_one.output
 }
 
-loki.process "fun" {
-	forward_to = [loki.write.default_0.receiver]
+loki.process "funny_one" {
+	forward_to = [loki.write.default.receiver]
 
 	stage.json {
 		expressions = {
@@ -37,16 +37,14 @@ loki.process "fun" {
 	}
 }
 
-loki.source.file "fun" {
-	targets    = local.file_match.fun.targets
-	forward_to = [loki.process.fun.receiver]
+loki.source.file "funny_one" {
+	targets    = local.file_match.funny_one.targets
+	forward_to = [loki.process.funny_one.receiver]
 }
 
-loki.write "default_0" {
+loki.write "default" {
 	endpoint {
-		url              = "http://localhost/loki/api/v1/push"
-		follow_redirects = false
-		enable_http2     = false
+		url = "http://localhost/loki/api/v1/push"
 	}
 	external_labels = {}
 }

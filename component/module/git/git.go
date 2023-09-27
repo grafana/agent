@@ -13,13 +13,16 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/component/module/git/internal/vcs"
+	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/http"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "module.git",
-		Args:    Arguments{},
-		Exports: module.Exports{},
+		Name:          "module.git",
+		Args:          Arguments{},
+		Exports:       module.Exports{},
+		NeedsServices: []string{http.ServiceName, cluster.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -225,7 +228,7 @@ func (c *Component) pollFile(ctx context.Context, args Arguments) error {
 		return err
 	}
 
-	return c.mod.LoadFlowContent(args.Arguments, string(bb))
+	return c.mod.LoadFlowSource(args.Arguments, string(bb))
 }
 
 // CurrentHealth implements component.HealthComponent.

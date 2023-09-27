@@ -130,11 +130,16 @@ the exit code will be 1.`,
 			cfg := config.Config{}
 			err := config.LoadFile(file, expandEnv, &cfg)
 			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to load config: %s\n", err)
+				os.Exit(1)
+			}
+
+			if err := cfg.Validate(nil); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to validate config: %s\n", err)
 				os.Exit(1)
-			} else {
-				fmt.Fprintln(os.Stdout, "config valid")
 			}
+
+			fmt.Fprintln(os.Stdout, "config valid")
 		},
 	}
 

@@ -1,16 +1,16 @@
-discovery.file "file_sd_0" {
+discovery.file "fun" {
 	files = ["/etc/prometheus/targets/*.json", "/etc/prometheus/targets/*.yaml", "/etc/prometheus/targets/*.json"]
 }
 
-discovery.file "file_sd_1" {
+discovery.file "fun_2" {
 	files            = ["/etc/agent/targets/*.json", "/etc/agent/targets/*.yaml", "/etc/agent/targets/*.yml"]
 	refresh_interval = "30m0s"
 }
 
 local.file_match "fun" {
 	path_targets = concat(
-		discovery.file.file_sd_0.targets,
-		discovery.file.file_sd_1.targets,
+		discovery.file.fun.targets,
+		discovery.file.fun_2.targets,
 	)
 }
 

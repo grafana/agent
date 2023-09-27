@@ -228,10 +228,8 @@ func createComponentWithLabels(t *testing.T, dir string, paths []string, exclude
 		OnStateChange: func(e component.Exports) {
 
 		},
-		Registerer:     prometheus.DefaultRegisterer,
-		Tracer:         nil,
-		HTTPListenAddr: "",
-		HTTPPath:       "",
+		Registerer: prometheus.DefaultRegisterer,
+		Tracer:     nil,
 	}, Arguments{
 		PathTargets: tPaths,
 		SyncPeriod:  1 * time.Second,

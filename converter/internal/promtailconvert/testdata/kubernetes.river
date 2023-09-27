@@ -1,4 +1,4 @@
-discovery.kubernetes "fun_0" {
+discovery.kubernetes "fun" {
 	api_server = "http://toby.pets.com/"
 	role       = "pod"
 
@@ -17,12 +17,12 @@ discovery.kubernetes "fun_0" {
 	}
 }
 
-discovery.kubernetes "fun_1" {
+discovery.kubernetes "fun_2" {
 	role            = "pod"
 	kubeconfig_file = "/home/toby/.kube/config"
 }
 
-discovery.kubernetes "fun_2" {
+discovery.kubernetes "fun_3" {
 	api_server = "http://toby.pets.com/"
 	role       = "pod"
 
@@ -32,7 +32,7 @@ discovery.kubernetes "fun_2" {
 	}
 }
 
-discovery.kubernetes "fun_3" {
+discovery.kubernetes "fun_4" {
 	api_server = "http://toby.pets.com/"
 	role       = "pod"
 
@@ -42,7 +42,7 @@ discovery.kubernetes "fun_3" {
 	}
 }
 
-discovery.kubernetes "fun_4" {
+discovery.kubernetes "fun_5" {
 	api_server = "http://toby.pets.com/"
 	role       = "node"
 
@@ -62,11 +62,11 @@ discovery.kubernetes "fun_4" {
 
 local.file_match "fun" {
 	path_targets = concat(
-		discovery.kubernetes.fun_0.targets,
-		discovery.kubernetes.fun_1.targets,
+		discovery.kubernetes.fun.targets,
 		discovery.kubernetes.fun_2.targets,
 		discovery.kubernetes.fun_3.targets,
 		discovery.kubernetes.fun_4.targets,
+		discovery.kubernetes.fun_5.targets,
 	)
 }
 

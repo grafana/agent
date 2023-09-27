@@ -1,9 +1,13 @@
 ---
 aliases:
 - ./about-agent/
+- /docs/grafana-cloud/agent/about/
+- /docs/grafana-cloud/monitor-infrastructure/agent/about/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/about/
 canonical: https://grafana.com/docs/agent/latest/about/
-title: Introduction to Grafana Agent
 menuTitle: Introduction
+title: Introduction to Grafana Agent
+description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 100
 ---
 
@@ -94,8 +98,8 @@ You should run Flow mode when:
   * **Ecosystem transformation**: You need to be able to convert Prometheus and
     Loki pipelines to and from OpenTelmetry Collector pipelines.
 
-  * **Grafana Phlare support**: Support for collecting profiles for Grafana
-    Phlare.
+  * **Grafana Pyroscope support**: Support for collecting profiles for Grafana
+    Pyroscope.
 
 
 ### BoringCrypto

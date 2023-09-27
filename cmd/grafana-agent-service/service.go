@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"io"
+	"os"
 	"os/exec"
 
 	"github.com/go-kit/log"
@@ -75,6 +76,7 @@ func (svc *serviceManager) Run(ctx context.Context) {
 	} else {
 		level.Info(svc.log).Log("msg", "service exited", "exit_code", exitCode)
 	}
+	os.Exit(exitCode)
 }
 
 func (svc *serviceManager) buildCommand(ctx context.Context) *exec.Cmd {

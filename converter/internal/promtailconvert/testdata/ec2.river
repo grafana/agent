@@ -1,4 +1,4 @@
-discovery.ec2 "fun_0" {
+discovery.ec2 "fun" {
 	region     = "us-east-1"
 	access_key = "YOUR_ACCESS_KEY"
 	secret_key = "YOUR_SECRET_KEY"
@@ -6,7 +6,7 @@ discovery.ec2 "fun_0" {
 }
 
 local.file_match "fun" {
-	path_targets = discovery.ec2.fun_0.targets
+	path_targets = discovery.ec2.fun.targets
 }
 
 loki.source.file "fun" {

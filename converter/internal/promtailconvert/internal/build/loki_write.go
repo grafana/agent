@@ -9,17 +9,23 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
+	"github.com/grafana/river/token/builder"
 )
 
-func NewLokiWrite(client *client.Config, diags *diag.Diagnostics, index int) (*builder.Block, loki.LogsReceiver) {
-	label := fmt.Sprintf("default_%d", index)
+func NewLokiWrite(client *client.Config, diags *diag.Diagnostics, index int, labelPrefix string) (*builder.Block, loki.LogsReceiver) {
+	label := "default"
+	if labelPrefix != "" {
+		label = labelPrefix
+	}
+
+	lokiWriteLabel := common.LabelWithIndex(index, label)
+
 	lokiWriteArgs := toLokiWriteArguments(client, diags)
-	block := common.NewBlockWithOverride([]string{"loki", "write"}, label, lokiWriteArgs)
+	block := common.NewBlockWithOverride([]string{"loki", "write"}, lokiWriteLabel, lokiWriteArgs)
 	return block, common.ConvertLogsReceiver{
-		Expr: fmt.Sprintf("loki.write.%s.receiver", label),
+		Expr: fmt.Sprintf("loki.write.%s.receiver", lokiWriteLabel),
 	}
 }
 
@@ -29,14 +35,6 @@ func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiw
 		diags.Add(
 			diag.SeverityLevelError,
 			fmt.Sprintf("failed to parse BatchSize for client config %s: %s", config.Name, err.Error()),
-		)
-	}
-
-	// This is not supported yet - see https://github.com/grafana/agent/issues/4335.
-	if config.DropRateLimitedBatches {
-		diags.Add(
-			diag.SeverityLevelError,
-			"DropRateLimitedBatches is currently not supported in Grafana Agent Flow.",
 		)
 	}
 
@@ -62,6 +60,7 @@ func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiw
 				MaxBackoffRetries: config.BackoffConfig.MaxRetries,
 				RemoteTimeout:     config.Timeout,
 				TenantID:          config.TenantID,
+				RetryOnHTTP429:    !config.DropRateLimitedBatches,
 			},
 		},
 		ExternalLabels: convertFlagLabels(config.ExternalLabels),

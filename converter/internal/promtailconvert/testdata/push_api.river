@@ -29,7 +29,7 @@ loki.source.api "fun" {
 		server_max_concurrent_streams = 100
 	}
 	graceful_shutdown_timeout = "0s"
-	forward_to                = [loki.write.default_0.receiver]
+	forward_to                = [loki.write.default.receiver]
 	labels                    = {
 		identity    = "unidentified",
 		object_type = "flying",
@@ -38,11 +38,9 @@ loki.source.api "fun" {
 	use_incoming_timestamp = true
 }
 
-loki.write "default_0" {
+loki.write "default" {
 	endpoint {
-		url              = "http://localhost/loki/api/v1/push"
-		follow_redirects = false
-		enable_http2     = false
+		url = "http://localhost/loki/api/v1/push"
 	}
 	external_labels = {}
 }

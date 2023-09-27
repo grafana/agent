@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -127,17 +126,17 @@ func TestModule(t *testing.T) {
 
 func TestArgsNotInModules(t *testing.T) {
 	f := New(testOptions(t))
-	fl, err := ReadFile("test", []byte("argument \"arg\"{}"))
+	fl, err := ParseSource("test", []byte("argument \"arg\"{}"))
 	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
+	err = f.LoadSource(fl, nil)
 	require.ErrorContains(t, err, "argument blocks only allowed inside a module")
 }
 
 func TestExportsNotInModules(t *testing.T) {
 	f := New(testOptions(t))
-	fl, err := ReadFile("test", []byte("export \"arg\"{ value = 1}"))
+	fl, err := ParseSource("test", []byte("export \"arg\"{ value = 1}"))
 	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
+	err = f.LoadSource(fl, nil)
 	require.ErrorContains(t, err, "export blocks only allowed inside a module")
 }
 
@@ -145,9 +144,9 @@ func TestExportsWhenNotUsed(t *testing.T) {
 	f := New(testOptions(t))
 	content := " export \\\"username\\\"  { value  = 1 } \\n export \\\"dummy\\\" { value = 2 } "
 	fullContent := "test.module \"t1\" { content = \"" + content + "\" }"
-	fl, err := ReadFile("test", []byte(fullContent))
+	fl, err := ParseSource("test", []byte(fullContent))
 	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
+	err = f.LoadSource(fl, nil)
 	require.NoError(t, err)
 	ctx := context.Background()
 	ctx, cnc := context.WithTimeout(ctx, 1*time.Second)
@@ -205,13 +204,10 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 
-	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
-
 	return &moduleControllerOptions{
 		Logger:         s,
 		DataPath:       t.TempDir(),
 		Reg:            prometheus.NewRegistry(),
-		Clusterer:      c,
 		ModuleRegistry: newModuleRegistry(),
 	}
 }

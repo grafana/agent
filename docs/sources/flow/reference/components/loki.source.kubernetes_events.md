@@ -1,6 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.kubernetes_events/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.kubernetes_events/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.kubernetes_events/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes_events/
 title: loki.source.kubernetes_events
+description: Learn about loki.source.kubernetes_events
 ---
 
 # loki.source.kubernetes_events
@@ -29,12 +34,17 @@ log entries to the list of receivers passed in `forward_to`.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `job_name` | `string` | Value to use for `job` label for generated logs. | `"loki.source.kubernetes_events"` | no
+`log_format` | `string` | Format of the log. | `"logfmt"` | no
 `namespaces` | `list(string)` | Namespaces to watch for Events in. | `[]` | no
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
 
 By default, `loki.source.kubernetes_events` will watch for events in all
 namespaces. A list of explicit namespaces to watch can be provided in the
 `namespaces` argument.
+
+By default, the generated log lines will be in the `logfmt` format. Use the 
+`log_format` argument to change it to `json`. These formats are also names of
+LogQL parsers, which can be used for processing the logs.
 
 > **NOTE**: When watching all namespaces, Grafana Agent must have permissions
 > to watch events at the cluster scope (such as using a ClusterRoleBinding). If
@@ -109,19 +119,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

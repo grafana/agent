@@ -1,6 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.zipkin/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.zipkin/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.zipkin/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.zipkin/
 title: otelcol.receiver.zipkin
+description: Learn about otelcol.receiver.zipkin
 ---
 
 # otelcol.receiver.zipkin
@@ -49,6 +54,7 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 tls | [tls][] | Configures TLS for the HTTP server. | no
 cors | [cors][] | Configures CORS for the HTTP server. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received traces. | yes
 
 The `>` symbol indicates deeper levels of nesting. For example, `grpc > tls`
@@ -56,6 +62,7 @@ refers to a `tls` block defined inside a `grpc` block.
 
 [tls]: #tls-block
 [cors]: #cors-block
+[debug_metrics]: #debug_metrics-block
 [output]: #output-block
 
 ### tls block
@@ -63,7 +70,7 @@ refers to a `tls` block defined inside a `grpc` block.
 The `tls` block configures TLS settings used for a server. If the `tls` block
 isn't provided, TLS won't be used for connections to the server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### cors block
 
@@ -87,9 +94,13 @@ CORS request. The following headers are always implicitly allowed:
 
 If `allowed_headers` includes `"*"`, all headers are permitted.
 
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
+
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

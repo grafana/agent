@@ -22,6 +22,7 @@ type StageConfig struct {
 	JSONConfig         *JSONConfig         `river:"json,block,optional"`
 	LogfmtConfig       *LogfmtConfig       `river:"logfmt,block,optional"`
 	LabelsConfig       *LabelsConfig       `river:"labels,block,optional"`
+	StructuredMetadata *LabelsConfig       `river:"structured_metadata,block,optional"`
 	LabelAllowConfig   *LabelAllowConfig   `river:"label_keep,block,optional"`
 	LabelDropConfig    *LabelDropConfig    `river:"label_drop,block,optional"`
 	StaticLabelsConfig *StaticLabelsConfig `river:"static_labels,block,optional"`

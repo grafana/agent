@@ -7,12 +7,10 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/scanner"
-	"github.com/grafana/agent/pkg/river/token"
+	"github.com/grafana/river/scanner"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/maps"
 )
@@ -37,7 +35,7 @@ func newModuleController(o *moduleControllerOptions) controller.ModuleController
 
 // NewModule creates a new, unstarted Module.
 func (m *moduleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
-	if id != "" && !isValidIdentifier(id) {
+	if id != "" && !scanner.IsValidIdentifier(id) {
 		return nil, fmt.Errorf("module ID %q is not a valid River identifier", id)
 	}
 
@@ -64,12 +62,6 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 
 	m.modules[fullPath] = struct{}{}
 	return mod, nil
-}
-
-func isValidIdentifier(in string) bool {
-	s := scanner.New(nil, []byte(in), nil, 0)
-	_, tok, lit := s.Scan()
-	return tok == token.IDENT && lit == in
 }
 
 func (m *moduleController) removeID(id string) {
@@ -107,30 +99,34 @@ var (
 func newModule(o *moduleOptions) *module {
 	return &module{
 		o: o,
-		f: newController(o.ModuleRegistry, Options{
-			ControllerID:   o.ID,
-			Tracer:         o.Tracer,
-			Clusterer:      o.Clusterer,
-			Reg:            o.Reg,
-			Logger:         o.Logger,
-			DataPath:       o.DataPath,
-			HTTPPathPrefix: o.HTTPPath,
-			HTTPListenAddr: o.HTTPListenAddr,
-			OnExportsChange: func(exports map[string]any) {
-				o.export(exports)
+		f: newController(controllerOptions{
+			IsModule:          true,
+			ModuleRegistry:    o.ModuleRegistry,
+			ComponentRegistry: o.ComponentRegistry,
+			Options: Options{
+				ControllerID: o.ID,
+				Tracer:       o.Tracer,
+				Reg:          o.Reg,
+				Logger:       o.Logger,
+				DataPath:     o.DataPath,
+				OnExportsChange: func(exports map[string]any) {
+					if o.export != nil {
+						o.export(exports)
+					}
+				},
+				Services: o.ServiceMap.List(),
 			},
-			DialFunc: o.DialFunc,
 		}),
 	}
 }
 
 // LoadConfig parses River config and loads it.
 func (c *module) LoadConfig(config []byte, args map[string]any) error {
-	ff, err := ReadFile(c.o.ID, config)
+	ff, err := ParseSource(c.o.ID, config)
 	if err != nil {
 		return err
 	}
-	return c.f.LoadFile(ff, args)
+	return c.f.LoadSource(ff, args)
 }
 
 // Run starts the Module. No components within the Module
@@ -152,10 +148,6 @@ type moduleControllerOptions struct {
 	// nil.
 	Tracer *tracing.Tracer
 
-	// Clusterer for implementing distributed behavior among components running
-	// on different nodes.
-	Clusterer *cluster.Clusterer
-
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
 
@@ -166,23 +158,17 @@ type moduleControllerOptions struct {
 	// should create the directory if needed.
 	DataPath string
 
-	// HTTPListenAddr is the address the server is configured to listen on.
-	HTTPListenAddr string
-
-	// HTTPPath is the base path that requests need in order to route to this
-	// component. Requests received by a component handler will have this already
-	// trimmed off.
-	HTTPPath string
-
-	// DialFunc is a function for components to use to properly communicate to
-	// HTTPListenAddr. If set, components which send HTTP requests to
-	// HTTPListenAddr must use this function to establish connections.
-	controller.DialFunc
-
 	// ID is the attached components full ID.
 	ID string
+
+	// ComponentRegistry is where controllers can look up components.
+	ComponentRegistry controller.ComponentRegistry
 
 	// ModuleRegistry is a shared registry of running modules from the same root
 	// controller.
 	ModuleRegistry *moduleRegistry
+
+	// ServiceMap is a map of services which can be used in the module
+	// controller.
+	ServiceMap controller.ServiceMap
 }

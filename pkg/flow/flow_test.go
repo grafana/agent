@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
@@ -31,15 +30,15 @@ var testFile = `
 	}
 `
 
-func TestController_LoadFile_Evaluation(t *testing.T) {
+func TestController_LoadSource_Evaluation(t *testing.T) {
 	ctrl := New(testOptions(t))
 
 	// Use testFile from graph_builder_test.go.
-	f, err := ReadFile(t.Name(), []byte(testFile))
+	f, err := ParseSource(t.Name(), []byte(testFile))
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	err = ctrl.LoadFile(f, nil)
+	err = ctrl.LoadSource(f, nil)
 	require.NoError(t, err)
 	require.Len(t, ctrl.loader.Components(), 4)
 
@@ -66,12 +65,9 @@ func testOptions(t *testing.T) Options {
 	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 
-	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
-
 	return Options{
-		Logger:    s,
-		DataPath:  t.TempDir(),
-		Reg:       nil,
-		Clusterer: c,
+		Logger:   s,
+		DataPath: t.TempDir(),
+		Reg:      nil,
 	}
 }

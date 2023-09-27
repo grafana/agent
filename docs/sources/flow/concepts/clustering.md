@@ -1,9 +1,14 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/concepts/clustering/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/clustering/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/clustering/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/clustering/
 labels:
   stage: beta
 menuTitle: Clustering
 title: Grafana Agent clustering concepts
+description: Learn about Grafana Agent clustering concepts
 weight: 500
 ---
 

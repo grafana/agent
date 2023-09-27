@@ -1,10 +1,17 @@
 ---
+aliases:
+- ./chaining/
+- /docs/grafana-cloud/agent/flow/tutorials/chaining/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/chaining/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/chaining/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/chaining/
-title: Chaining Prometheus components
+description: Learn how to chain Prometheus components
+menuTitle: Chain Prometheus components
+title: Chain Prometheus components
 weight: 400
 ---
 
-# Chaining Prometheus components
+# Chain Prometheus components
 
 This tutorial shows how to use [multiple-inputs.river](../assets/flow_configs/multiple-inputs.river) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "filtering-metrics.md">}}). 
 
@@ -68,4 +75,4 @@ In the above Flow block, `prometheus.relabel.service` is being forwarded metrics
 
 In `multiple-input.river` add a new `prometheus.relabel` component that adds a `version` label with the value of `v2` to all metrics after the `prometheus.relabel.service`.
 
-![](../assets/scrape_v2.png)
+![Add a new label with the value v2](/media/docs/agent/screenshot-grafana-agent-chaining-scrape-v2.png)

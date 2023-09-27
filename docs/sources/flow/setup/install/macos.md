@@ -1,6 +1,9 @@
 ---
 aliases:
 - ../../install/macos/
+- /docs/grafana-cloud/agent/flow/setup/install/macos/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/macos/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/macos/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/macos/
 description: Learn how to install Grafana Agent in flow mode on macOS
 menuTitle: macOS
@@ -51,7 +54,7 @@ To upgrade Grafana Agent on macOS, run the following commands in a terminal wind
 1. Restart Grafana Agent:
 
    ```shell
-   brew services restart grafana-agent
+   brew services restart grafana-agent-flow
    ```
 
 ## Uninstall

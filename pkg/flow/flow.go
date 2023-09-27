@@ -1,5 +1,5 @@
 // Package flow implements the Flow component graph system. Flow configuration
-// files are parsed from River, which contain a listing of components to run.
+// sources are parsed from River, which contain a listing of components to run.
 //
 // # Components
 //
@@ -47,14 +47,14 @@ package flow
 
 import (
 	"context"
-	"net"
+	"fmt"
 	"sync"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/agent/service"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -78,10 +78,6 @@ type Options struct {
 	// nil.
 	Tracer *tracing.Tracer
 
-	// Clusterer for implementing distributed behavior among components running
-	// on different nodes.
-	Clusterer *cluster.Clusterer
-
 	// Directory where components can write data. Constructed components will be
 	// given a subdirectory of DataPath using the local ID of the component.
 	//
@@ -92,37 +88,24 @@ type Options struct {
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
 
-	// HTTPPathPrefix is the path prefix given to managed components. May be
-	// empty. When provided, it should be an absolute path.
-	//
-	// Components will be given a path relative to HTTPPathPrefix using their
-	// local ID.
-	//
-	// If running multiple Flow controllers, each controller must have a
-	// different value for HTTPPathPrefix to prevent components from colliding.
-	HTTPPathPrefix string
-
-	// HTTPListenAddr is the base address (host:port) where component APIs are
-	// exposed to other components.
-	HTTPListenAddr string
-
 	// OnExportsChange is called when the exports of the controller change.
 	// Exports are controlled by "export" configuration blocks. If
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
-	// loaded config file.
+	// loaded config source.
 	OnExportsChange func(exports map[string]any)
 
-	// DialFunc is a function to use for components to properly connect to
-	// HTTPListenAddr. If nil, DialFunc defaults to (&net.Dialer{}).DialContext.
-	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+	// List of Services to run with the Flow controller.
+	//
+	// Services are configured when LoadFile is invoked. Services are started
+	// when the Flow controller runs after LoadFile is invoked at least once.
+	Services []service.Service
 }
 
 // Flow is the Flow system.
 type Flow struct {
-	log       *logging.Logger
-	tracer    *tracing.Tracer
-	clusterer *cluster.Clusterer
-	opts      Options
+	log    *logging.Logger
+	tracer *tracing.Tracer
+	opts   controllerOptions
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -137,17 +120,30 @@ type Flow struct {
 
 // New creates a new, unstarted Flow controller. Call Run to run the controller.
 func New(o Options) *Flow {
-	return newController(newModuleRegistry(), o)
+	return newController(controllerOptions{
+		Options:        o,
+		ModuleRegistry: newModuleRegistry(),
+		IsModule:       false, // We are creating a new root controller.
+	})
+}
+
+// controllerOptions are internal options used to create both root Flow
+// controller and controllers for modules.
+type controllerOptions struct {
+	Options
+
+	ComponentRegistry controller.ComponentRegistry // Custom component registry used in tests.
+	ModuleRegistry    *moduleRegistry              // Where to register created modules.
+	IsModule          bool                         // Whether this controller is for a module.
 }
 
 // newController creates a new, unstarted Flow controller with a specific
 // moduleRegistry. Modules created by the controller will be passed to the
 // given modReg.
-func newController(modReg *moduleRegistry, o Options) *Flow {
+func newController(o controllerOptions) *Flow {
 	var (
-		log       = o.Logger
-		tracer    = o.Tracer
-		clusterer = o.Clusterer
+		log    = o.Logger
+		tracer = o.Tracer
 	)
 
 	if tracer == nil {
@@ -159,58 +155,60 @@ func newController(modReg *moduleRegistry, o Options) *Flow {
 		}
 	}
 
-	dialFunc := o.DialFunc
-	if dialFunc == nil {
-		dialFunc = (&net.Dialer{}).DialContext
-	}
-
-	var (
-		queue  = controller.NewQueue()
-		sched  = controller.NewScheduler()
-		loader = controller.NewLoader(controller.ComponentGlobals{
-			Logger:        log,
-			TraceProvider: tracer,
-			Clusterer:     clusterer,
-			DataPath:      o.DataPath,
-			OnComponentUpdate: func(cn *controller.ComponentNode) {
-				// Changed components should be queued for reevaluation.
-				queue.Enqueue(cn)
-			},
-			OnExportsChange: o.OnExportsChange,
-			Registerer:      o.Reg,
-			HTTPPathPrefix:  o.HTTPPathPrefix,
-			HTTPListenAddr:  o.HTTPListenAddr,
-			DialFunc:        dialFunc,
-			ControllerID:    o.ControllerID,
-			NewModuleController: func(id string) controller.ModuleController {
-				return newModuleController(&moduleControllerOptions{
-					ModuleRegistry: modReg,
-					Logger:         log,
-					Tracer:         tracer,
-					Clusterer:      clusterer,
-					Reg:            o.Reg,
-					DataPath:       o.DataPath,
-					HTTPListenAddr: o.HTTPListenAddr,
-					HTTPPath:       o.HTTPPathPrefix,
-					DialFunc:       o.DialFunc,
-					ID:             id,
-				})
-			},
-		})
-	)
-	return &Flow{
+	f := &Flow{
 		log:    log,
 		tracer: tracer,
 		opts:   o,
 
-		clusterer:   clusterer,
-		updateQueue: queue,
-		sched:       sched,
-		loader:      loader,
-		modules:     modReg,
+		updateQueue: controller.NewQueue(),
+		sched:       controller.NewScheduler(),
+
+		modules: o.ModuleRegistry,
 
 		loadFinished: make(chan struct{}, 1),
 	}
+
+	serviceMap := controller.NewServiceMap(o.Services)
+
+	f.loader = controller.NewLoader(controller.LoaderOptions{
+		ComponentGlobals: controller.ComponentGlobals{
+			Logger:        log,
+			TraceProvider: tracer,
+			DataPath:      o.DataPath,
+			OnComponentUpdate: func(cn *controller.ComponentNode) {
+				// Changed components should be queued for reevaluation.
+				f.updateQueue.Enqueue(cn)
+			},
+			OnExportsChange: o.OnExportsChange,
+			Registerer:      o.Reg,
+			ControllerID:    o.ControllerID,
+			NewModuleController: func(id string, availableServices []string) controller.ModuleController {
+				return newModuleController(&moduleControllerOptions{
+					ComponentRegistry: o.ComponentRegistry,
+					ModuleRegistry:    o.ModuleRegistry,
+					Logger:            log,
+					Tracer:            tracer,
+					Reg:               o.Reg,
+					DataPath:          o.DataPath,
+					ID:                id,
+					ServiceMap:        serviceMap.FilterByName(availableServices),
+				})
+			},
+			GetServiceData: func(name string) (interface{}, error) {
+				svc, found := serviceMap.Get(name)
+				if !found {
+					return nil, fmt.Errorf("service %q does not exist", name)
+				}
+				return svc.Data(), nil
+			},
+		},
+
+		Services:          o.Services,
+		Host:              f,
+		ComponentRegistry: o.ComponentRegistry,
+	})
+
+	return f
 }
 
 // Run starts the Flow controller, blocking until the provided context is
@@ -240,32 +238,45 @@ func (f *Flow) Run(ctx context.Context) {
 			}
 
 		case <-f.loadFinished:
-			level.Info(f.log).Log("msg", "scheduling loaded components")
+			level.Info(f.log).Log("msg", "scheduling loaded components and services")
 
-			components := f.loader.Components()
-			runnables := make([]controller.RunnableNode, 0, len(components))
-			for _, uc := range components {
-				runnables = append(runnables, uc)
+			var (
+				components = f.loader.Components()
+				services   = f.loader.Services()
+
+				runnables = make([]controller.RunnableNode, 0, len(components)+len(services))
+			)
+			for _, c := range components {
+				runnables = append(runnables, c)
 			}
+
+			// Only the root controller should run services, since modules share the
+			// same service instance as the root.
+			if !f.opts.IsModule {
+				for _, svc := range services {
+					runnables = append(runnables, svc)
+				}
+			}
+
 			err := f.sched.Synchronize(runnables)
 			if err != nil {
-				level.Error(f.log).Log("msg", "failed to load components", "err", err)
+				level.Error(f.log).Log("msg", "failed to load components and services", "err", err)
 			}
 		}
 	}
 }
 
-// LoadFile synchronizes the state of the controller with the current config
-// file. Components in the graph will be marked as unhealthy if there was an
+// LoadSource synchronizes the state of the controller with the current config
+// source. Components in the graph will be marked as unhealthy if there was an
 // error encountered during Load.
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (f *Flow) LoadFile(file *File, args map[string]any) error {
+func (f *Flow) LoadSource(source *Source, args map[string]any) error {
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 
-	diags := f.loader.Apply(args, file.Components, file.ConfigBlocks)
+	diags := f.loader.Apply(args, source.components, source.configBlocks)
 	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

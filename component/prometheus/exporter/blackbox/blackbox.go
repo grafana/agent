@@ -13,21 +13,22 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.blackbox",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
+		Name:          "prometheus.exporter.blackbox",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
 	})
 }
 
-func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return a.Convert().NewIntegration(opts.Logger)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 // buildBlackboxTargets creates the exporter's discovery targets based on the defined blackbox targets.
@@ -37,6 +38,10 @@ func buildBlackboxTargets(baseTarget discovery.Target, args component.Arguments)
 	a := args.(Arguments)
 	for _, tgt := range a.Targets {
 		target := make(discovery.Target)
+		// Set extra labels first, meaning that any other labels will override
+		for k, v := range tgt.Labels {
+			target[k] = v
+		}
 		for k, v := range baseTarget {
 			target[k] = v
 		}
@@ -61,9 +66,10 @@ var DefaultArguments = Arguments{
 
 // BlackboxTarget defines a target to be used by the exporter.
 type BlackboxTarget struct {
-	Name   string `river:",label"`
-	Target string `river:"address,attr"`
-	Module string `river:"module,attr,optional"`
+	Name   string            `river:",label"`
+	Target string            `river:"address,attr"`
+	Module string            `river:"module,attr,optional"`
+	Labels map[string]string `river:"labels,attr,optional"`
 }
 
 type TargetBlock []BlackboxTarget

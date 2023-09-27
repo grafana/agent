@@ -1,4 +1,4 @@
-discovery.digitalocean "fun_0" {
+discovery.digitalocean "fun" {
 	refresh_interval = "10m0s"
 	port             = 1234
 	follow_redirects = true
@@ -6,7 +6,7 @@ discovery.digitalocean "fun_0" {
 }
 
 local.file_match "fun" {
-	path_targets = discovery.digitalocean.fun_0.targets
+	path_targets = discovery.digitalocean.fun.targets
 }
 
 loki.source.file "fun" {

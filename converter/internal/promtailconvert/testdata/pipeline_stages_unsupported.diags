@@ -1,0 +1,3 @@
+(Error) pipeline_stages.sampling is currently not supported: map[rate:100]
+(Error) pipeline_stages.decolorize is not supported
+(Error) pipeline_stages.eventlogmessage is not supported

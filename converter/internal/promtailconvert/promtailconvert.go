@@ -9,13 +9,14 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/promtailconvert/internal/build"
-	"github.com/grafana/agent/pkg/river/token/builder"
 	"github.com/grafana/dskit/flagext"
 	promtailcfg "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	lokicfgutil "github.com/grafana/loki/pkg/util/cfg"
+	"github.com/grafana/river/token/builder"
 	"gopkg.in/yaml.v2"
 )
 
@@ -61,7 +62,8 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	f := builder.NewFile()
-	diags = AppendAll(f, &cfg.Config, diags)
+	diags = AppendAll(f, &cfg.Config, "", diags)
+	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -74,13 +76,13 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
-	diags = append(diags, newDiags...)
+	diags.AddAll(newDiags)
 	return prettyByte, diags
 }
 
 // AppendAll analyzes the entire promtail config in memory and transforms it
 // into Flow components. It then appends each argument to the file builder.
-func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics) diag.Diagnostics {
+func AppendAll(f *builder.File, cfg *promtailcfg.Config, labelPrefix string, diags diag.Diagnostics) diag.Diagnostics {
 	validateTopLevelConfig(cfg, &diags)
 
 	var writeReceivers = make([]loki.LogsReceiver, len(cfg.ClientConfigs))
@@ -88,16 +90,17 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics)
 	// Each client config needs to be a separate remote_write,
 	// because they may have different ExternalLabels fields.
 	for i, cc := range cfg.ClientConfigs {
-		writeBlocks[i], writeReceivers[i] = build.NewLokiWrite(&cc, &diags, i)
+		writeBlocks[i], writeReceivers[i] = build.NewLokiWrite(&cc, &diags, i, labelPrefix)
 	}
 
 	gc := &build.GlobalContext{
 		WriteReceivers:   writeReceivers,
 		TargetSyncPeriod: cfg.TargetConfig.SyncPeriod,
+		LabelPrefix:      labelPrefix,
 	}
 
 	for _, sc := range cfg.ScrapeConfig {
-		appendScrapeConfig(f, &sc, &diags, gc)
+		appendScrapeConfig(f, &sc, &diags, gc, &cfg.Global.FileWatch)
 	}
 
 	for _, write := range writeBlocks {
@@ -107,14 +110,14 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, diags diag.Diagnostics)
 	return diags
 }
 
-func defaultPositionsConfig() positions.Config {
+func DefaultPositionsConfig() positions.Config {
 	// We obtain the default by registering the flags
 	cfg := positions.Config{}
 	cfg.RegisterFlags(flag.NewFlagSet("", flag.PanicOnError))
 	return cfg
 }
 
-func defaultLimitsConfig() limit.Config {
+func DefaultLimitsConfig() limit.Config {
 	cfg := limit.Config{}
 	cfg.RegisterFlagsWithPrefix("", flag.NewFlagSet("", flag.PanicOnError))
 	return cfg
@@ -125,40 +128,22 @@ func appendScrapeConfig(
 	cfg *scrapeconfig.Config,
 	diags *diag.Diagnostics,
 	gctx *build.GlobalContext,
+	watchConfig *file.WatchConfig,
 ) {
-	//TODO(thampiotr): need to support/warn about the following fields:
-	//Encoding               string                 `mapstructure:"encoding,omitempty" yaml:"encoding,omitempty"`
-	//DecompressionCfg       *DecompressionConfig   `yaml:"decompression,omitempty"`
-
-	//TODO(thampiotr): support/warn about the following log producing promtail configs:
-	//SyslogConfig         *SyslogTargetConfig         `mapstructure:"syslog,omitempty" yaml:"syslog,omitempty"`
-	//GcplogConfig         *GcplogTargetConfig         `mapstructure:"gcplog,omitempty" yaml:"gcplog,omitempty"`
-	//WindowsConfig        *WindowsEventsTargetConfig  `mapstructure:"windows_events,omitempty" yaml:"windows_events,omitempty"`
-	//KafkaConfig          *KafkaTargetConfig          `mapstructure:"kafka,omitempty" yaml:"kafka,omitempty"`
-	//AzureEventHubsConfig *AzureEventHubsTargetConfig `mapstructure:"azure_event_hubs,omitempty" yaml:"azure_event_hubs,omitempty"`
-	//GelfConfig           *GelfTargetConfig           `mapstructure:"gelf,omitempty" yaml:"gelf,omitempty"`
-	//HerokuDrainConfig    *HerokuDrainTargetConfig    `mapstructure:"heroku_drain,omitempty" yaml:"heroku_drain,omitempty"`
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
-	b.Validate()
+	b.Sanitize()
 
 	// Append all the SD components
-	b.AppendKubernetesSDs()
-	b.AppendDockerSDs()
-	b.AppendStaticSDs()
-	b.AppendFileSDs()
-	b.AppendConsulSDs()
+	b.AppendSDs()
+	// ConsulAgent does not come from Prometheus but only from Promtail.
 	b.AppendConsulAgentSDs()
-	b.AppendDigitalOceanSDs()
-	b.AppendGCESDs()
-	b.AppendEC2SDs()
-	b.AppendAzureSDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.
 	// The files will be watched and the globs in file paths will be expanded using discovery.file component.
 	// The log entries are sent to loki.process if processing is needed, or directly to loki.write components.
-	b.AppendLokiSourceFile()
+	b.AppendLokiSourceFile(watchConfig)
 
 	// Append all the components that produce logs directly.
 	// If any relabelling is required, it will be done via a loki.relabel component.
@@ -166,4 +151,11 @@ func appendScrapeConfig(
 	b.AppendCloudFlareConfig()
 	b.AppendJournalConfig()
 	b.AppendPushAPI()
+	b.AppendSyslogConfig()
+	b.AppendGCPLog()
+	b.AppendWindowsEventsConfig()
+	b.AppendKafka()
+	b.AppendAzureEventHubs()
+	b.AppendGelfConfig()
+	b.AppendHerokuDrainConfig()
 }

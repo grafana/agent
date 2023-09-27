@@ -21,7 +21,6 @@ import (
 var (
 	ErrMappingRequired        = errors.New("logfmt mapping is required")
 	ErrEmptyLogfmtStageConfig = errors.New("empty logfmt stage configuration")
-	ErrEmptyLogfmtStageSource = errors.New("empty source")
 )
 
 // LogfmtConfig represents a logfmt Stage configuration

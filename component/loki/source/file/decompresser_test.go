@@ -93,6 +93,7 @@ func TestGigantiqueGunzipFile(t *testing.T) {
 		path:    file,
 		done:    make(chan struct{}),
 		metrics: newMetrics(prometheus.NewRegistry()),
+		cfg:     DecompressionConfig{Format: "gz"},
 	}
 
 	d.readLines()
@@ -122,6 +123,7 @@ func TestOnelineFiles(t *testing.T) {
 			path:    file,
 			done:    make(chan struct{}),
 			metrics: newMetrics(prometheus.NewRegistry()),
+			cfg:     DecompressionConfig{Format: "gz"},
 		}
 
 		d.readLines()
@@ -146,6 +148,7 @@ func TestOnelineFiles(t *testing.T) {
 			path:    file,
 			done:    make(chan struct{}),
 			metrics: newMetrics(prometheus.NewRegistry()),
+			cfg:     DecompressionConfig{Format: "bz2"},
 		}
 
 		d.readLines()
@@ -170,6 +173,7 @@ func TestOnelineFiles(t *testing.T) {
 			path:    file,
 			done:    make(chan struct{}),
 			metrics: newMetrics(prometheus.NewRegistry()),
+			cfg:     DecompressionConfig{Format: "gz"},
 		}
 
 		d.readLines()

@@ -1,13 +1,18 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.prometheus/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.prometheus/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.prometheus/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.prometheus/
 labels:
   stage: beta
 title: otelcol.receiver.prometheus
+description: Learn about otelcol.receiver.prometheus
 ---
 
 # otelcol.receiver.prometheus
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `otelcol.receiver.prometheus` receives Prometheus metrics, converts them to the
 OpenTelemetry metrics format, and forwards them to other `otelcol.*`
@@ -44,7 +49,7 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
