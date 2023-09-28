@@ -871,7 +871,7 @@ embedded labels are removed from the original log entry:
 }
 ```
 
-At query time, Loki's [`unpack` parser](https://grafana.com/docs/loki/latest/logql/log_queries/#unpack)
+At query time, Loki's [`unpack` parser](/docs/loki/latest/logql/log_queries/#unpack)
 can be used to access these embedded labels and replace the log line with the
 original one stored in the `_entry` field automatically.
 
