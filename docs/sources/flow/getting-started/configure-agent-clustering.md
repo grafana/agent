@@ -6,7 +6,7 @@ description: Learn how to configure Grafana Agent clustering in an existing inst
 weight: 400
 ---
 
-# Configure Grafana Agent clustering
+# Configure Grafana Agent clustering in an existing installation
 
 You can configure Grafana Agent to run with [clustering][] so that
 individual agents can work together for workload distribution and high

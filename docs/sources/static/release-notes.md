@@ -99,7 +99,7 @@ See [Module and Auth Split Migration](https://github.com/prometheus/snmp_exporte
 ### Removal of Dynamic Configuration
 
 The experimental feature Dynamic Configuration has been removed. The use case of dynamic configuration will be replaced
-with [Modules](../../concepts/modules/) in Grafana Agent Flow.
+with [Modules]({{< relref "../flow/concepts/modules" >}}) in Grafana Agent Flow.
 
 ### Breaking change: Removed and renamed tracing metrics
 
@@ -140,7 +140,7 @@ use the new binaries that are prefixed with `/bin/grafana*`.
 
 ### Deprecation of Dynamic Configuration
 
-[Dynamic Configuration](https://grafana.com/docs/agent/v0.33/cookbook/dynamic-configuration/) will be removed in v0.34.
+[Dynamic Configuration](/docs/agent/v0.33/cookbook/dynamic-configuration/) will be removed in v0.34.
 The use case of dynamic configuration will be replaced with Modules in Grafana Agent Flow.
 
 ## v0.32

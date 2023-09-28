@@ -11,12 +11,12 @@ description: Learn about pyroscope.write
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `pyroscope.write` receives performance profiles from other components and forwards them
-to a series of user-supplied endpoints using [Pyroscope' Push API](https://grafana.com/oss/pyroscope/).
+to a series of user-supplied endpoints using [Pyroscope' Push API](/oss/pyroscope/).
 
 Multiple `pyroscope.write` components can be specified by giving them
 different labels.
 
-## Usage
+## Usage for Grafana Agent flow mode
 
 ```river
 pyroscope.write "LABEL" {

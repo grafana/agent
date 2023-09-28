@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/logging/
-title: logging
+title: logging block
+menuTitle: logging
 description: Learn about the logging configuration block
 ---
 

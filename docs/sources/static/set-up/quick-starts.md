@@ -14,11 +14,11 @@ The following quick starts help you get up and running with Grafana Agent. Youâ€
 
 ## Grafana Stack quick starts
 
-- [Send metrics to Mimir](https://grafana.com/docs/mimir/latest/get-started/) using Grafana Agent.
+- [Send metrics to Mimir](/docs/mimir/latest/get-started/) using Grafana Agent.
 
-- [Send traces to Tempo](https://grafana.com/docs/tempo/latest/getting-started/#2-pipeline-grafana-agent) using Grafana Agent.
+- [Send traces to Tempo](/docs/tempo/latest/getting-started/#2-pipeline-grafana-agent) using Grafana Agent.
 
-- [Send logs to Loki](https://grafana.com/docs/grafana-cloud/logs/collect-logs-with-agent/) using Grafana Agent.
+- [Send logs to Loki](/docs/grafana-cloud/logs/collect-logs-with-agent/) using Grafana Agent.
 
 ## Grafana Cloud quick starts
 

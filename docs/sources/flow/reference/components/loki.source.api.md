@@ -34,7 +34,7 @@ The component will start HTTP server on the configured port and address with the
 - `/api/v1/raw` - internally reroutes to `/loki/api/v1/raw`
 
 
-[promtail-push-api]: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#loki_push_api
+[promtail-push-api]: /docs/loki/latest/clients/promtail/configuration/#loki_push_api
 
 ## Arguments
 

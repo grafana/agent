@@ -136,7 +136,7 @@ loki.write "grafana_cloud_loki" {
 }
 ```
 
-[Grafana Loki]: https://grafana.com/oss/loki/
+[Grafana Loki]: /oss/loki/
 
 ## Grafana Tempo
 

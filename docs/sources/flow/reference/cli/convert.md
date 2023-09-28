@@ -72,4 +72,3 @@ This includes Prometheus features such as
 [remote_write](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#remote_write),
 and many supported *_sd_configs. Unsupported features in a source config result
 in [errors].
-
