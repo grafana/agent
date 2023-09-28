@@ -24,6 +24,12 @@ The project must be updated to reference the upcoming release tag whenever a new
 
     3. Update appropriate places in the codebase that have the previous version with the new version determined above.
 
+        You can run the following command to update the version in the codebase:
+
+        ```
+        AGENT_VERSION=VERSION ./tools/generate-version-files.sh
+        ```
+
         * Do **not** update the `operations/helm` directory. It is updated independently from Agent releases.
 
 3. Create a PR to merge to main (must be merged before continuing).
