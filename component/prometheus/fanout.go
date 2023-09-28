@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/service/labelcache"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/hashicorp/go-multierror"
@@ -29,10 +30,11 @@ type Fanout struct {
 	componentID    string
 	writeLatency   prometheus.Histogram
 	samplesCounter prometheus.Counter
+	lc             labelcache.LabelCache
 }
 
 // NewFanout creates a fanout appendable.
-func NewFanout(children []storage.Appendable, componentID string, register prometheus.Registerer) *Fanout {
+func NewFanout(children []storage.Appendable, componentID string, register prometheus.Registerer, lc labelcache.LabelCache) *Fanout {
 	wl := prometheus.NewHistogram(prometheus.HistogramOpts{
 		Name: "agent_prometheus_fanout_latency",
 		Help: "Write latency for sending to direct and indirect components",
@@ -50,6 +52,7 @@ func NewFanout(children []storage.Appendable, componentID string, register prome
 		componentID:    componentID,
 		writeLatency:   wl,
 		samplesCounter: s,
+		lc:             lc,
 	}
 }
 
@@ -78,6 +81,7 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 		componentID:    f.componentID,
 		writeLatency:   f.writeLatency,
 		samplesCounter: f.samplesCounter,
+		lc:             f.lc,
 	}
 
 	for _, x := range f.children {
@@ -95,6 +99,7 @@ type appender struct {
 	writeLatency   prometheus.Histogram
 	samplesCounter prometheus.Counter
 	start          time.Time
+	lc             labelcache.LabelCache
 }
 
 var _ storage.Appender = (*appender)(nil)
@@ -105,7 +110,7 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 		a.start = time.Now()
 	}
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(a.lc.GetOrAddGlobalRefID(l))
 	}
 	var multiErr error
 	updated := false
@@ -163,7 +168,7 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exem
 		a.start = time.Now()
 	}
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(a.lc.GetOrAddGlobalRefID(l))
 	}
 	var multiErr error
 	for _, x := range a.children {
@@ -181,7 +186,7 @@ func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m meta
 		a.start = time.Now()
 	}
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(a.lc.GetOrAddGlobalRefID(l))
 	}
 	var multiErr error
 	for _, x := range a.children {
@@ -198,7 +203,7 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 		a.start = time.Now()
 	}
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(a.lc.GetOrAddGlobalRefID(l))
 	}
 	var multiErr error
 	for _, x := range a.children {

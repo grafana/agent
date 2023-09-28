@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/service/labelcache"
 	lru "github.com/hashicorp/golang-lru/v2"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
@@ -74,6 +75,7 @@ type Component struct {
 	cacheDeletes     prometheus_client.Counter
 	fanout           *prometheus.Fanout
 	exited           atomic.Bool
+	labelcache       labelcache.LabelCache
 
 	cacheMut sync.RWMutex
 	cache    *lru.Cache[uint64, *labelAndID]
@@ -89,9 +91,14 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	if err != nil {
 		return nil, err
 	}
+	data, err := o.GetServiceData(labelcache.ServiceName)
+	if err != nil {
+		return nil, err
+	}
 	c := &Component{
-		opts:  o,
-		cache: cache,
+		opts:       o,
+		cache:      cache,
+		labelcache: data.(labelcache.LabelCache),
 	}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
@@ -214,7 +221,7 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	globalRef := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
+	globalRef := c.labelcache.GetOrAddGlobalRefID(lbls)
 	var (
 		relabelled labels.Labels
 		keep       bool
@@ -276,7 +283,7 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool)
 		c.cache.Add(originalID, nil)
 		return
 	}
-	newGlobal := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
+	newGlobal := c.labelcache.GetOrAddGlobalRefID(lbls)
 	c.cache.Add(originalID, &labelAndID{
 		labels: lbls,
 		id:     newGlobal,

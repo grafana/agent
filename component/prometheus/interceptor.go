@@ -3,6 +3,7 @@ package prometheus
 import (
 	"context"
 
+	"github.com/grafana/agent/service/labelcache"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
@@ -21,14 +22,19 @@ type Interceptor struct {
 
 	// next is the next appendable to pass in the chain.
 	next storage.Appendable
+
+	lc labelcache.LabelCache
 }
 
 var _ storage.Appendable = (*Interceptor)(nil)
 
 // NewInterceptor creates a new Interceptor storage.Appendable. Options can be
 // provided to NewInterceptor to install custom hooks for different methods.
-func NewInterceptor(next storage.Appendable, opts ...InterceptorOption) *Interceptor {
-	i := &Interceptor{next: next}
+func NewInterceptor(next storage.Appendable, lc labelcache.LabelCache, opts ...InterceptorOption) *Interceptor {
+	i := &Interceptor{
+		next: next,
+		lc:   lc,
+	}
 	for _, opt := range opts {
 		opt(i)
 	}
@@ -74,6 +80,7 @@ func WithHistogramHook(f func(ref storage.SeriesRef, l labels.Labels, t int64, h
 func (f *Interceptor) Appender(ctx context.Context) storage.Appender {
 	app := &interceptappender{
 		interceptor: f,
+		lc:          f.lc,
 	}
 	if f.next != nil {
 		app.child = f.next.Appender(ctx)
@@ -84,6 +91,7 @@ func (f *Interceptor) Appender(ctx context.Context) storage.Appender {
 type interceptappender struct {
 	interceptor *Interceptor
 	child       storage.Appender
+	lc          labelcache.LabelCache
 }
 
 var _ storage.Appender = (*interceptappender)(nil)
@@ -91,7 +99,7 @@ var _ storage.Appender = (*interceptappender)(nil)
 // Append satisfies the Appender interface.
 func (a *interceptappender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(a.lc.GetOrAddGlobalRefID(l))
 	}
 
 	if a.interceptor.onAppend != nil {
@@ -124,7 +132,7 @@ func (a *interceptappender) AppendExemplar(
 ) (storage.SeriesRef, error) {
 
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(a.lc.GetOrAddGlobalRefID(l))
 	}
 
 	if a.interceptor.onAppendExemplar != nil {
@@ -141,7 +149,7 @@ func (a *interceptappender) UpdateMetadata(
 ) (storage.SeriesRef, error) {
 
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(a.lc.GetOrAddGlobalRefID(l))
 	}
 
 	if a.interceptor.onUpdateMetadata != nil {
@@ -159,7 +167,7 @@ func (a *interceptappender) AppendHistogram(
 ) (storage.SeriesRef, error) {
 
 	if ref == 0 {
-		ref = storage.SeriesRef(GlobalRefMapping.GetOrAddGlobalRefID(l))
+		ref = storage.SeriesRef(a.lc.GetOrAddGlobalRefID(l))
 	}
 
 	if a.interceptor.onAppendHistogram != nil {
