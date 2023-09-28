@@ -115,7 +115,7 @@ The sharding mechanism is borrowed from the Prometheus Operator.
 
 The number of replicas can be defined, similarly to the number of shards. This
 creates deduplicate shards. This must be paired with a `remote_write` system that
-can perform HA deduplication. [Grafana Cloud](https://grafana.com/docs/grafana-cloud/) and [Mimir](https://grafana.com/docs/mimir/latest/) provide this out of the
+can perform HA deduplication. [Grafana Cloud](/docs/grafana-cloud/) and [Mimir](/docs/mimir/latest/) provide this out of the
 box, and the Grafana Agent Operator defaults support these two systems.
 
 The total number of created metrics pods will be the product of `numShards *

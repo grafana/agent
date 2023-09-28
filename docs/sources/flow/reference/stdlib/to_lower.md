@@ -6,7 +6,7 @@ title: to_lower
 description: Learn about to_lower
 ---
 
-# lower
+# to_lower
 
 `to_lower` converts all uppercase letters in a string to lowercase.
 
