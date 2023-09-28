@@ -3,6 +3,11 @@ title: Integrations Revamp
 weight: 100
 aliases:
 - ../../../configuration/integrations/integrations-next/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/
+title: Integrations next (Experimental)
+menuTitle: Integrations next
+description: Learn about integrations next
+weight: 100
 ---
 
 # Integrations Revamp (Experimental)

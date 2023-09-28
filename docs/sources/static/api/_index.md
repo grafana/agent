@@ -3,13 +3,18 @@ title: Static mode API
 weight: 400
 aliases:
 - ../api/
+canonical: https://grafana.com/docs/agent/latest/static/api/
+title: Static mode APIs (Stable)
+menuTitle: Static mode API
+description: Learn about the Grafana Agent static mode API
+weight: 400
 ---
 
 # Static mode APIs (Stable)
 
 The API for static mode is divided into several parts:
 
-- [Config Management API](#config-management-api)
+- [Config Management API](#config-management-api-beta)
 - [Agent API](#agent-api)
 - [Integrations API](#integrations-api-experimental)
 - [Ready/Healthy API](#ready--health-api)
@@ -457,7 +462,7 @@ GET /agent/api/v1/metrics/integrations/targets
 ```
 
 This endpoint returns all integrations for which autoscrape is enabled. The
-response is identical to [`/agent/api/v1/metrics/targets`](#list-current-scrape-targets).
+response is identical to [`/agent/api/v1/metrics/targets`](#list-current-scrape-targets-of-logs-subsystem).
 
 Status code: 200 on success.
 Response on success:

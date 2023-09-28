@@ -14,7 +14,7 @@ configured, except deprecated fields have been removed and the server_config is
 not supported.
 
 Refer to the
-[Promtail documentation](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#clients)
+[Promtail documentation](/docs/loki/latest/clients/promtail/configuration/#clients)
 for the supported values for these fields.
 
 ```yaml
@@ -52,7 +52,7 @@ clients:
 > **Note:** More information on the following types can be found on the
 > documentation for Promtail:
 >
-> * [`promtail.client_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#clients)
+> * [`promtail.client_config`](/docs/loki/latest/clients/promtail/configuration/#clients)
 
 
 ## file_watch_config
@@ -106,10 +106,10 @@ scrape_configs:
 > **Note:** More information on the following types can be found on the
 > documentation for Promtail:
 >
-> * [`promtail.client_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#clients)
-> * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
-> * [`promtail.target_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#target_config)
-> * [`promtail.limits_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#limits_config)
+> * [`promtail.client_config`](/docs/loki/latest/clients/promtail/configuration/#clients)
+> * [`promtail.scrape_config`](/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
+> * [`promtail.target_config`](/docs/loki/latest/clients/promtail/configuration/#target_config)
+> * [`promtail.limits_config`](/docs/loki/latest/clients/promtail/configuration/#limits_config)
 
 > **Note:** Backticks in values are not supported.
 

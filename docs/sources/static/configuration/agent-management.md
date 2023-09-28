@@ -65,7 +65,7 @@ snippets:
 
 ### grafana_agent_config
 
-This is a standard Grafana Agent [static mode configuration](https://grafana.com/docs/agent/latest/static/configuration/). Typically used to configure the server, remote_writes, and other global configuration.
+This is a standard Grafana Agent [static mode configuration](/docs/agent/latest/static/configuration/). Typically used to configure the server, remote_writes, and other global configuration.
 
 ### snippet_content
 
@@ -87,9 +87,9 @@ selector:
 
 > **Note:** More information on the following types can be found in their respective documentation pages:
 >
-> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#scrape_config)
-> * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
-> * [`integrations_config`](https://grafana.com/docs/agent/latest/static/configuration/integrations)
+> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
+> * [`promtail.scrape_config`](/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
+> * [`integrations_config`](/docs/agent/latest/static/configuration/integrations)
 
 > **Note:** Snippet selection is currently done in the API server. This behaviour is subject to change in the future.
 

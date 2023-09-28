@@ -99,4 +99,4 @@ This file has two blocks:
 River is documented in detail in [Configuration language][config-docs] section
 of the Grafana Agent Flow docs.
 
-[config-docs]: {{< relref "../config-language/" >}}
+[config-docs]: {{< relref "../config-language" >}}

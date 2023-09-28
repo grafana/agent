@@ -40,7 +40,7 @@ the following conventions for referring to types:
   descending units can be combined to add their values together; `"1h30m"` is
   the same as `"90m"`.
 
-[component reference]: {{< relref "../../reference/components/" >}}
+[component reference]: {{< relref "../../reference/components" >}}
 
 ## Numbers
 

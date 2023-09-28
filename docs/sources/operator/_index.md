@@ -1,5 +1,12 @@
 ---
-title: Static mode Kubernetes operator
+aliases:
+- /docs/grafana-cloud/agent/operator/
+- /docs/grafana-cloud/monitor-infrastructure/agent/operator/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/
+canonical: https://grafana.com/docs/agent/latest/operator/
+title: Static mode Kubernetes operator (Beta)
+menuTitle: Static mode Kubernetes operator
+description: Learn about the static mode Kubernetes operator
 weight: 300
 ---
 
@@ -29,7 +36,7 @@ If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](/doc
 Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
 {{% /admonition %}}
 
-Grafana Agent Operator uses additonal custom resources to manage the deployment
+Grafana Agent Operator uses additional custom resources to manage the deployment
 and configuration of Grafana Agents running in static mode. In addition to the
 supported custom resources, you can also provide your own Service Discovery
 (SD) configurations to collect metrics from other types of sources.
@@ -44,11 +51,11 @@ The following sections describe how to use Grafana Agent Operator:
 | Topic | Describes |
 |---|---|
 | [Configure Kubernetes Monitoring using Agent Operator](/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/configuration/configure-infrastructure-manually/k8s-agent-operator/) | Use the Kubernetes Monitoring solution to set up monitoring of your Kubernetes cluster and to install preconfigured dashboards and alerts. |
-| [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started/" >}}) | How to deploy the Grafana Agent Operator into your Kubernetes cluster using the grafana-agent-operator Helm chart. |
-| [Install Grafana Agent Operator]({{< relref "./getting-started/" >}}) | How to deploy the Grafana Agent Operator into your Kubernetes cluster without using Helm. |
-| [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources/" >}}) | How to roll out the Grafana Agent Operator custom resources, needed to begin monitoring your cluster. Complete this procedure *after* installing Grafana Agent Operator&mdash;either with or without Helm. |
-| [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}) | Learn about the resources used by Agent Operator to collect telemetry data and how it discovers the hierarchy of custom resources, continually reconciling the hierarchy.  |
-| [Set up Agent Operator integrations]({{< relref "./operator-integrations/" >}}) | Learn how to set up node-exporter and mysqld-exporter integrations. |
+| [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started" >}}) | How to deploy the Grafana Agent Operator into your Kubernetes cluster using the grafana-agent-operator Helm chart. |
+| [Install Grafana Agent Operator]({{< relref "./getting-started" >}}) | How to deploy the Grafana Agent Operator into your Kubernetes cluster without using Helm. |
+| [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources" >}}) | How to roll out the Grafana Agent Operator custom resources, needed to begin monitoring your cluster. Complete this procedure *after* installing Grafana Agent Operator&mdash;either with or without Helm. |
+| [Grafana Agent Operator architecture]({{< relref "./architecture" >}}) | Learn about the resources used by Agent Operator to collect telemetry data and how it discovers the hierarchy of custom resources, continually reconciling the hierarchy.  |
+| [Set up Agent Operator integrations]({{< relref "./operator-integrations" >}}) | Learn how to set up node-exporter and mysqld-exporter integrations. |
 
 [Kubernetes operator]: https://www.cncf.io/blog/2022/06/15/kubernetes-operators-what-are-they-some-examples/
 [static mode]: {{< relref "../static/" >}}
