@@ -1,14 +1,14 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/release-notes/
-description: Release notes for Grafana Agent flow mode
-title: Release notes for Grafana Agentflow mode
-menuTitle: Release notes
 aliases:
 - ./upgrade-guide/
+description: Release notes for Grafana Agent flow mode
+menuTitle: Release notes
+title: Release notes for Grafana Agent flow mode
 weight: 999
 ---
 
-# Release notes
+# Release notes for Grafana Agent flow mode
 
 The release notes provide information about deprecations and breaking changes in Grafana Agent flow mode.
 

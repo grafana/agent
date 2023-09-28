@@ -18,7 +18,7 @@ Grafana Agent is distributed as a standalone binary for the following operating 
 
 ## Download Grafana Agent
 
-To download the Grafana Agent as a standalone binary, perform the following steps.
+To download Grafana Agent as a standalone binary, perform the following steps.
 
 1. Navigate to the current Grafana Agent [release](https://github.com/grafana/agent/releases) page.
 
@@ -39,4 +39,4 @@ To download the Grafana Agent as a standalone binary, perform the following step
 ## Next steps
 
 * [Start Grafana Agent]({{< relref "../start-agent#standalone-binary" >}})
-* [Configure Grafana Agent]({{< relref "../configure/" >}})
+* [Configure Grafana Agent]({{< relref "../configure" >}})

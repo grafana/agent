@@ -1,7 +1,7 @@
 ---
 description: Learn how to install Grafana Agent in flow mode on Linux
-title: Install Grafana Agent in flow mode on Linux
 menuTitle: Linux
+title: Install or uninstall Grafana Agent in flow mode on Linux
 weight: 300
 aliases:
  - ../../install/linux/

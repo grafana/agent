@@ -1,5 +1,8 @@
 ---
-title: export
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/export/
+title: export block
+menuTitle: export
+description: Learn about the export configuration block
 ---
 
 # export block

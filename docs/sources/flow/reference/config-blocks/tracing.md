@@ -1,5 +1,8 @@
 ---
-title: tracing
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/tracing/
+title: tracing block
+menuTitle: tracing
+description: Learn about the tracing configuration block
 ---
 
 # tracing block
