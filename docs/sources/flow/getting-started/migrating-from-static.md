@@ -27,9 +27,17 @@ This topic describes how to:
 
 * [prometheus.scrape][]
 * [prometheus.remote_write][]
+* [local.file_match][]
+* [loki.process][]
+* [loki.source.file][]
+* [loki.write][]
 
 [prometheus.scrape]: {{< relref "../reference/components/prometheus.scrape.md" >}}
 [prometheus.remote_write]: {{< relref "../reference/components/prometheus.remote_write.md" >}}
+[local.file_match]: {{< relref "../reference/components/local.file_match.md" >}}
+[loki.process]: {{< relref "../reference/components/loki.process.md" >}}
+[loki.source.file]: {{< relref "../reference/components/loki.source.file.md" >}}
+[loki.write]: {{< relref "../reference/components/loki.write.md" >}}
 
 ## Before you begin
 
