@@ -1,6 +1,6 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.agent/
-title: prometheus.exporter.agen
+title: prometheus.exporter.agent
 description: Learn about prometheus.exporter.agen
 ---
 
