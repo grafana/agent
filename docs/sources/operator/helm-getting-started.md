@@ -12,7 +12,7 @@ weight: 100
 
 In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator). To learn how to deploy Agent Operator without using Helm, see [Install Grafana Agent Operator]({{< relref "./getting-started.md" >}}).
 
-> **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](https://grafana.com/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator. Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
+> **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator. Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
 
 ## Before you begin
 
@@ -54,7 +54,7 @@ To install the Agent Operator Helm chart:
     ```bash
     helm install my-release grafana/grafana-agent-operator -f values.yaml -n my-namespace
     ```
-    You can find a list of configurable template parameters in the [Helm chart repository](https://github.com/grafana/helm-charts/blob/main/charts/agent-operator/values.yaml).
+    You can find a list of configurable template parameters in the [Helm chart repository](/grafana/helm-charts/blob/main/charts/agent-operator/values.yaml).
 
 1. Once you've successfully deployed the Helm release, confirm that Agent Operator is up and running:
 
@@ -67,4 +67,4 @@ To install the Agent Operator Helm chart:
 
 ## Deploy the Grafana Agent Operator resources
 
- Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources.md" >}}) topic. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
+ Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources.md" >}}) topic. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture" >}}).

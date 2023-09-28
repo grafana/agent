@@ -80,7 +80,7 @@ fields take their default values.
 | `use_full_line`          | `bool`        | Send the full line from Cloud Logging even if `textPayload` is available. | `false` | no       |
 
 To make use of the `pull` strategy, the GCP project must have been
-[configured](https://grafana.com/docs/loki/next/clients/promtail/gcplog-cloud/)
+[configured](/docs/loki/next/clients/promtail/gcplog-cloud/)
 to forward its cloud resource logs onto a Pub/Sub topic for
 `loki.source.gcplog` to consume.
 
