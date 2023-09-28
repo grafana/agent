@@ -45,12 +45,13 @@ The following flags are supported:
 
 * `--report`, `-r`: The filepath and filename where the report is written.
 
-* `--source-format`, `-f`: Required. The format of the source file. Supported formats: [prometheus], [promtail].
+* `--source-format`, `-f`: Required. The format of the source file. Supported formats: [prometheus], [promtail], [static].
 
 * `--bypass-errors`, `-b`: Enable bypassing errors when converting.
 
 [prometheus]: #prometheus
 [promtail]: #promtail
+[static]: #static
 [errors]: #errors
 
 ### Defaults
@@ -80,6 +81,8 @@ This includes Prometheus features such as
 and many supported *_sd_configs. Unsupported features in a source config result
 in [errors].
 
+You can find a detailed migration guide for this [here](../../../getting-started/migrating-from-prometheus/)
+
 ### Promtail
 
 Using the `--source-format=promtail` will convert the source configuration from
@@ -91,3 +94,15 @@ are supported and can be converted to Grafana Agent Flow config.
 
 If you have unsupported features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
 also raise warnings for configuration options that may require your attention.
+
+You can find a detailed migration guide for this [here](../../../getting-started/migrating-from-promtail/)
+
+### Static
+
+Using the `--source-format=static` will convert the source configuration from
+[Static](../../../../static) to Grafana Agent Flow configuration.
+
+If you have unsupported features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
+also raise warnings for configuration options that may require your attention.
+
+You can find a detailed migration guide for this [here](../../../getting-started/migrating-from-static/)
