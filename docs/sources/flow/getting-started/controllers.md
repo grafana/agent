@@ -3,11 +3,15 @@ title: Kuberenetes Deployment Modes
 ---
 ## StatefulSet
 
-A `StatefulSet` is the most common way Grafana Agent is deployed in Kubernetes. 
+A `StatefulSet` is the most common way Grafana Agent is deployed in Kubernetes. Advantages include:
+
+- A relatively small number of Agents can handle metrics for an entire cluster.
+- Persistent volumes can be attatched to each pod to persist agent data like the write-ahead log or other component state.
+- Number of pods can be scaled up or down as needed, either manually or with horizontal pod autoscaling.
 
 ### Distributing work with StatefulSets
 
-
+Grafana Agent's [built-in clustering](https://grafana.com/docs/agent/latest/flow/getting-started/distribute-prometheus-scrape-load/) is the easiest way to distribute scrape load across a `StatefulSet` of Agents. 
 
 ## Deployment
 
@@ -24,36 +28,34 @@ There are several downsides to a `DaemonSet` which need to be considered:
 
 - You cannot attach Persistent Volumes to `DaemonSet` pods. This means things like the Write-Ahead Log will use the Node's local disk, which may not be desired in shared environments.
 
-- `DaemonSets` can take advantage of Grafana Agent's [clustering mode](TODO), but larger clusters may be less reliable. We recommend only using clustering to distribute scrapes that are not clearly tied to a Node. 
-
 - Each Agent Pod with remote write components will have its' own Write-Ahead Log. This could increase the total memory used across all agents, especially if there is a temporary disruption writing to the backend storage.
 
 ### Distributing work in a DaemonSet
 
-TODO: make a full canonical daemonset config with everything and reference it here.
+// TODO: should this go in the page on "distributing prometheus scrape"?
 
 In order to avoid scraping targets multiple times, it is best to have each Grafana Agent in a DaemonSet scrape targets only on its' local Node. The most performant way to do this is to apply a field selector to your `discovery.kubernetes` components that discover pods or endpoints:
 
 ```river
 discovery.kubernetes "pods" {
     role = "pod"
-    selector {
+    selectors {
         role = "pod"
-        field = "spec.nodeName=" + env("HOSTNAME")
+        field = "spec.nodeName=" + constants.hostname
     }
 }
 discovery.kubernetes "endpoints" {
     role = "endpoint"
-    selector {
+    selectors {
         role = "pod"
-        field = "spec.nodeName=" + env("HOSTNAME")
+        field = "spec.nodeName=" + constants.hostname
     }
 }
 ```
 
-TODO: info box that discovery.kubelet is an experimental alternative.
-
 Targets discovered like this can be filtered with `discovery.relabel` components and scraped with `prometheus.scrape` components without clustering enabled. 
+
+// todo: maybe logging here should also be another page.
 
 Pod logs can be scraped with an additional `discovery.relabel` and `loki.source.file` component:
 
@@ -83,7 +85,7 @@ Some targets are not inherently "node-based", and cannot be distributed by simpl
 - "Black-box" style monitoring of services, or ingresses. 
 - Certain `prometheus.exporter.*` components that collect data about centralized databases or resources.
 
-To distribute these scrape targets between agents, the built-in [clustering]() can be utilized:
+To distribute these scrape targets between agents, the [built-in clustering](https://grafana.com/docs/agent/latest/flow/getting-started/distribute-prometheus-scrape-load/) can be utilized:
 
 ```river
 discovery.kubernetes "services" {
