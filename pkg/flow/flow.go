@@ -1,5 +1,5 @@
 // Package flow implements the Flow component graph system. Flow configuration
-// files are parsed from River, which contain a listing of components to run.
+// sources are parsed from River, which contain a listing of components to run.
 //
 // # Components
 //
@@ -51,7 +51,6 @@ import (
 	"sync"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
@@ -79,10 +78,6 @@ type Options struct {
 	// nil.
 	Tracer *tracing.Tracer
 
-	// Clusterer for implementing distributed behavior among components running
-	// on different nodes.
-	Clusterer *cluster.Clusterer
-
 	// Directory where components can write data. Constructed components will be
 	// given a subdirectory of DataPath using the local ID of the component.
 	//
@@ -96,7 +91,7 @@ type Options struct {
 	// OnExportsChange is called when the exports of the controller change.
 	// Exports are controlled by "export" configuration blocks. If
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
-	// loaded config file.
+	// loaded config source.
 	OnExportsChange func(exports map[string]any)
 
 	// List of Services to run with the Flow controller.
@@ -108,10 +103,9 @@ type Options struct {
 
 // Flow is the Flow system.
 type Flow struct {
-	log       *logging.Logger
-	tracer    *tracing.Tracer
-	clusterer *cluster.Clusterer
-	opts      controllerOptions
+	log    *logging.Logger
+	tracer *tracing.Tracer
+	opts   controllerOptions
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
@@ -148,9 +142,8 @@ type controllerOptions struct {
 // given modReg.
 func newController(o controllerOptions) *Flow {
 	var (
-		log       = o.Logger
-		tracer    = o.Tracer
-		clusterer = o.Clusterer
+		log    = o.Logger
+		tracer = o.Tracer
 	)
 
 	if tracer == nil {
@@ -167,7 +160,6 @@ func newController(o controllerOptions) *Flow {
 		tracer: tracer,
 		opts:   o,
 
-		clusterer:   clusterer,
 		updateQueue: controller.NewQueue(),
 		sched:       controller.NewScheduler(),
 
@@ -182,7 +174,6 @@ func newController(o controllerOptions) *Flow {
 		ComponentGlobals: controller.ComponentGlobals{
 			Logger:        log,
 			TraceProvider: tracer,
-			Clusterer:     clusterer,
 			DataPath:      o.DataPath,
 			OnComponentUpdate: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
@@ -197,7 +188,6 @@ func newController(o controllerOptions) *Flow {
 					ModuleRegistry:    o.ModuleRegistry,
 					Logger:            log,
 					Tracer:            tracer,
-					Clusterer:         clusterer,
 					Reg:               o.Reg,
 					DataPath:          o.DataPath,
 					ID:                id,
@@ -276,17 +266,17 @@ func (f *Flow) Run(ctx context.Context) {
 	}
 }
 
-// LoadFile synchronizes the state of the controller with the current config
-// file. Components in the graph will be marked as unhealthy if there was an
+// LoadSource synchronizes the state of the controller with the current config
+// source. Components in the graph will be marked as unhealthy if there was an
 // error encountered during Load.
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (f *Flow) LoadFile(file *File, args map[string]any) error {
+func (f *Flow) LoadSource(source *Source, args map[string]any) error {
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 
-	diags := f.loader.Apply(args, file.Components, file.ConfigBlocks)
+	diags := f.loader.Apply(args, source.components, source.configBlocks)
 	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

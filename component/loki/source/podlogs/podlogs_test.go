@@ -3,7 +3,7 @@ package podlogs
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 

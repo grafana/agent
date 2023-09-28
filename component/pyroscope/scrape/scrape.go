@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/service/cluster"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 
@@ -32,8 +33,9 @@ const (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "pyroscope.scrape",
-		Args: Arguments{},
+		Name:          "pyroscope.scrape",
+		Args:          Arguments{},
+		NeedsServices: []string{cluster.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -223,7 +225,8 @@ func (arg *Arguments) Validate() error {
 
 // Component implements the pprof.scrape component.
 type Component struct {
-	opts component.Options
+	opts    component.Options
+	cluster cluster.Cluster
 
 	reloadTargets chan struct{}
 
@@ -237,10 +240,17 @@ var _ component.Component = (*Component)(nil)
 
 // New creates a new pprof.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	data, err := o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get info about cluster service: %w", err)
+	}
+	clusterData := data.(cluster.Cluster)
+
 	flowAppendable := pyroscope.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	scraper := NewManager(flowAppendable, o.Logger)
 	c := &Component{
 		opts:          o,
+		cluster:       clusterData,
 		reloadTargets: make(chan struct{}, 1),
 		scraper:       scraper,
 		appendable:    flowAppendable,
@@ -283,7 +293,7 @@ func (c *Component) Run(ctx context.Context) error {
 
 			// NOTE(@tpaschalis) First approach, manually building the
 			// 'clustered' targets implementation every time.
-			ct := discovery.NewDistributedTargets(clustering, c.opts.Clusterer.Node, tgs)
+			ct := discovery.NewDistributedTargets(clustering, c.cluster, tgs)
 			promTargets := c.componentTargetsToProm(jobName, ct.Get())
 
 			select {
@@ -320,6 +330,22 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
+// NotifyClusterChange implements component.ClusterComponent.
+func (c *Component) NotifyClusterChange() {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	if !c.args.Clustering.Enabled {
+		return // no-op
+	}
+
+	// Schedule a reload so targets get redistributed.
+	select {
+	case c.reloadTargets <- struct{}{}:
+	default:
+	}
+}
+
 func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {
 	promGroup := &targetgroup.Group{Source: jobName}
 	for _, tg := range tgs {
@@ -335,13 +361,6 @@ func convertLabelSet(tg discovery.Target) model.LabelSet {
 		lset[model.LabelName(k)] = model.LabelValue(v)
 	}
 	return lset
-}
-
-// ClusterUpdatesRegistration implements component.ClusterComponent.
-func (c *Component) ClusterUpdatesRegistration() bool {
-	c.mut.RLock()
-	defer c.mut.RUnlock()
-	return c.args.Clustering.Enabled
 }
 
 // DebugInfo implements component.DebugComponent.

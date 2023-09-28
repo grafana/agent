@@ -1,11 +1,9 @@
 package consul
 
 import (
-	"net/url"
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
@@ -17,26 +15,13 @@ func init() {
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
 		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.NewWithTargetBuilder(createExporter, "consul", customizeTarget),
+		Build:         exporter.New(createExporter, "consul"),
 	})
 }
 
-func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return a.Convert().NewIntegration(opts.Logger)
-}
-
-func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
-	a := args.(Arguments)
-	target := baseTarget
-
-	url, err := url.Parse(a.Server)
-	if err != nil {
-		return []discovery.Target{target}
-	}
-
-	target["instance"] = url.Host
-	return []discovery.Target{target}
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 // DefaultArguments holds the default settings for the consul_exporter exporter.

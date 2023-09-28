@@ -1,13 +1,18 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/pyroscope.scrape/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.scrape/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.scrape/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.scrape/
 labels:
   stage: beta
 title: pyroscope.scrape
+description: Learn about pyroscope.scrape
 ---
 
 # pyroscope.scrape
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `pyroscope.scrape` configures a [pprof] scraping job for a given set of
 `targets`. The scraped performance profiles are forwarded to the list of receivers passed in
@@ -117,19 +122,19 @@ an `oauth2` block.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### profiling_config block
 

@@ -4,10 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
@@ -16,16 +20,19 @@ import (
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/boringcrypto"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
+	otel_service "github.com/grafana/agent/service/otel"
+	uiservice "github.com/grafana/agent/service/ui"
+	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
+	"github.com/grafana/river/diag"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
@@ -37,24 +44,30 @@ import (
 
 func runCommand() *cobra.Command {
 	r := &flowRun{
-		inMemoryAddr:     "agent.internal:12345",
-		httpListenAddr:   "127.0.0.1:12345",
-		storagePath:      "data-agent/",
-		uiPrefix:         "/",
-		disableReporting: false,
-		enablePprof:      true,
-		configFormat:     "flow",
+		inMemoryAddr:          "agent.internal:12345",
+		httpListenAddr:        "127.0.0.1:12345",
+		storagePath:           "data-agent/",
+		uiPrefix:              "/",
+		disableReporting:      false,
+		enablePprof:           true,
+		configFormat:          "flow",
+		clusterAdvInterfaces:  advertise.DefaultInterfaces,
+		ClusterMaxJoinPeers:   5,
+		clusterRejoinInterval: 60 * time.Second,
 	}
 
 	cmd := &cobra.Command{
-		Use:   "run [flags] file",
+		Use:   "run [flags] path",
 		Short: "Run Grafana Agent Flow",
 		Long: `The run subcommand runs Grafana Agent Flow in the foreground until an interrupt
 is received.
 
-run must be provided an argument pointing at the River file to use. If the
-River file wasn't specified, can't be loaded, or contains errors, run will exit
+run must be provided an argument pointing at the River dir/file-path to use. If the
+River dir/file-path wasn't specified, can't be loaded, or contains errors, run will exit
 immediately.
+
+If path is a directory, all *.river files in that directory will be combined
+into a single unit. Subdirectories are not recursively searched for further merging.
 
 run starts an HTTP server which can be used to debug Grafana Agent Flow or
 force it to reload (by sending a GET or POST request to /-/reload). The listen
@@ -68,7 +81,7 @@ Additionally, the HTTP server exposes the following debug endpoints:
 
   /debug/pprof   Go performance profiling tools
 
-If reloading the config file fails, Grafana Agent Flow will continue running in
+If reloading the config dir/file-path fails, Grafana Agent Flow will continue running in
 its last valid state. Components which failed may be be listed as unhealthy,
 depending on the nature of the reload error.
 `,
@@ -98,6 +111,14 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		StringVar(&r.clusterDiscoverPeers, "cluster.discover-peers", r.clusterDiscoverPeers, "List of key-value tuples for discovering peers")
 	cmd.Flags().
+		StringSliceVar(&r.clusterAdvInterfaces, "cluster.advertise-interfaces", r.clusterAdvInterfaces, "List of interfaces used to infer an address to advertise")
+	cmd.Flags().
+		DurationVar(&r.clusterRejoinInterval, "cluster.rejoin-interval", r.clusterRejoinInterval, "How often to rejoin the list of peers")
+	cmd.Flags().
+		IntVar(&r.ClusterMaxJoinPeers, "cluster.max-join-peers", r.ClusterMaxJoinPeers, "Number of peers to join from the discovered set")
+	cmd.Flags().
+		StringVar(&r.clusterName, "cluster.name", r.clusterName, "The name of the cluster to join")
+	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
 	cmd.Flags().BoolVar(&r.configBypassConversionErrors, "config.bypass-conversion-errors", r.configBypassConversionErrors, "Enable bypassing errors when converting")
@@ -116,19 +137,23 @@ type flowRun struct {
 	clusterAdvAddr               string
 	clusterJoinAddr              string
 	clusterDiscoverPeers         string
+	clusterAdvInterfaces         []string
+	clusterRejoinInterval        time.Duration
+	ClusterMaxJoinPeers          int
+	clusterName                  string
 	configFormat                 string
 	configBypassConversionErrors bool
 }
 
-func (fr *flowRun) Run(configFile string) error {
+func (fr *flowRun) Run(configPath string) error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
 	ctx, cancel := interruptContext()
 	defer cancel()
 
-	if configFile == "" {
-		return fmt.Errorf("file argument not provided")
+	if configPath == "" {
+		return fmt.Errorf("path argument not provided")
 	}
 
 	l, err := logging.New(os.Stderr, logging.DefaultOptions)
@@ -166,64 +191,86 @@ func (fr *flowRun) Run(configFile string) error {
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
 
-	clusterer, err := cluster.New(l, reg, fr.clusterEnabled, fr.clusterNodeName, fr.httpListenAddr, fr.clusterAdvAddr, fr.clusterJoinAddr, fr.clusterDiscoverPeers)
-	if err != nil {
-		return fmt.Errorf("building clusterer: %w", err)
-	}
-	defer func() {
-		err := clusterer.Stop()
-		if err != nil {
-			level.Error(l).Log("msg", "failed to terminate clusterer", "err", err)
-		}
-	}()
-
 	// There's a cyclic dependency between the definition of the Flow controller,
 	// the reload/ready functions, and the HTTP service.
 	//
 	// To work around this, we lazily create variables for the functions the HTTP
 	// service needs and set them after the Flow controller exists.
 	var (
-		reload func() error
+		reload func() (*flow.Source, error)
 		ready  func() bool
 	)
+
+	clusterService, err := buildClusterService(clusterOptions{
+		Log:     l,
+		Tracer:  t,
+		Metrics: reg,
+
+		EnableClustering:    fr.clusterEnabled,
+		NodeName:            fr.clusterNodeName,
+		AdvertiseAddress:    fr.clusterAdvAddr,
+		ListenAddress:       fr.httpListenAddr,
+		JoinPeers:           strings.Split(fr.clusterJoinAddr, ","),
+		DiscoverPeers:       fr.clusterDiscoverPeers,
+		RejoinInterval:      fr.clusterRejoinInterval,
+		AdvertiseInterfaces: fr.clusterAdvInterfaces,
+		ClusterMaxJoinPeers: fr.ClusterMaxJoinPeers,
+		ClusterName:         fr.clusterName,
+	})
+	if err != nil {
+		return err
+	}
 
 	httpService := httpservice.New(httpservice.Options{
 		Logger:   log.With(l, "service", "http"),
 		Tracer:   t,
 		Gatherer: prometheus.DefaultGatherer,
 
-		Clusterer:  clusterer,
 		ReadyFunc:  func() bool { return ready() },
-		ReloadFunc: func() error { return reload() },
+		ReloadFunc: func() (*flow.Source, error) { return reload() },
 
 		HTTPListenAddr:   fr.httpListenAddr,
 		MemoryListenAddr: fr.inMemoryAddr,
-		UIPrefix:         fr.uiPrefix,
 		EnablePProf:      fr.enablePprof,
 	})
 
+	uiService := uiservice.New(uiservice.Options{
+		UIPrefix: fr.uiPrefix,
+		Cluster:  clusterService.Data().(cluster.Cluster),
+	})
+
+	otelService := otel_service.New(l)
+	if otelService == nil {
+		return fmt.Errorf("failed to create otel service")
+	}
+
 	f := flow.New(flow.Options{
-		Logger:    l,
-		Tracer:    t,
-		Clusterer: clusterer,
-		DataPath:  fr.storagePath,
-		Reg:       reg,
-		Services:  []service.Service{httpService},
+		Logger:   l,
+		Tracer:   t,
+		DataPath: fr.storagePath,
+		Reg:      reg,
+		Services: []service.Service{
+			httpService,
+			uiService,
+			clusterService,
+			otelService,
+		},
 	})
 
 	ready = f.Ready
-	reload = func() error {
-		flowCfg, err := loadFlowFile(configFile, fr.configFormat, fr.configBypassConversionErrors)
+	reload = func() (*flow.Source, error) {
+		flowSource, err := loadFlowSource(configPath, fr.configFormat, fr.configBypassConversionErrors)
+		defer instrumentation.InstrumentSHA256(flowSource.SHA256())
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
-			return fmt.Errorf("reading config file %q: %w", configFile, err)
+			return nil, fmt.Errorf("reading config path %q: %w", configPath, err)
 		}
-		if err := f.LoadFile(flowCfg, nil); err != nil {
-			return fmt.Errorf("error during the initial gragent load: %w", err)
+		if err := f.LoadSource(flowSource, nil); err != nil {
+			return flowSource, fmt.Errorf("error during the initial grafana/agent load: %w", err)
 		}
 
-		return nil
+		return flowSource, nil
 	}
 
 	// Flow controller
@@ -249,26 +296,18 @@ func (fr *flowRun) Run(configFile string) error {
 		}()
 	}
 
-	// Start the Clusterer's Node implementation.
-	err = clusterer.Start()
-	if err != nil {
-		return fmt.Errorf("failed to start the clusterer: %w", err)
-	}
-
 	// Perform the initial reload. This is done after starting the HTTP server so
 	// that /metric and pprof endpoints are available while the Flow controller
 	// is loading.
-	if err := reload(); err != nil {
+	if source, err := reload(); err != nil {
 		var diags diag.Diagnostics
 		if errors.As(err, &diags) {
-			bb, _ := os.ReadFile(configFile)
-
 			p := diag.NewPrinter(diag.PrinterConfig{
 				Color:              !color.NoColor,
 				ContextLinesBefore: 1,
 				ContextLinesAfter:  1,
 			})
-			_ = p.Fprint(os.Stderr, map[string][]byte{configFile: bb}, diags)
+			_ = p.Fprint(os.Stderr, source.RawConfigs(), diags)
 
 			// Print newline after the diagnostics.
 			fmt.Println()
@@ -276,7 +315,7 @@ func (fr *flowRun) Run(configFile string) error {
 			return fmt.Errorf("could not perform the initial load successfully")
 		}
 
-		// Exit if the initial load files
+		// Exit if the initial load fails.
 		return err
 	}
 
@@ -284,7 +323,7 @@ func (fr *flowRun) Run(configFile string) error {
 	// Nodes initially join in the Viewer state. After the graph has been
 	// loaded successfully, we can move to the Participant state to signal that
 	// we wish to participate in reading or writing data.
-	err = clusterer.ChangeState(peer.StateParticipant)
+	err = clusterService.ChangeState(ctx, peer.StateParticipant)
 	if err != nil {
 		return fmt.Errorf("failed to set clusterer state to Participant after initial load")
 	}
@@ -298,7 +337,7 @@ func (fr *flowRun) Run(configFile string) error {
 		case <-ctx.Done():
 			return nil
 		case <-reloadSignal:
-			if err := reload(); err != nil {
+			if _, err := reload(); err != nil {
 				level.Error(l).Log("msg", "failed to reload config", "err", err)
 			} else {
 				level.Info(l).Log("msg", "config reloaded")
@@ -319,12 +358,45 @@ func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	}
 }
 
-func loadFlowFile(filename string, converterSourceFormat string, converterBypassErrors bool) (*flow.File, error) {
-	bb, err := os.ReadFile(filename)
+func loadFlowSource(path string, converterSourceFormat string, converterBypassErrors bool) (*flow.Source, error) {
+	fi, err := os.Stat(path)
 	if err != nil {
 		return nil, err
 	}
 
+	if fi.IsDir() {
+		sources := map[string][]byte{}
+		err := filepath.WalkDir(path, func(curPath string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			// Skip all directories and don't recurse into child dirs that aren't at top-level
+			if d.IsDir() {
+				if curPath != path {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			// Ignore files not ending in .river extension
+			if !strings.HasSuffix(curPath, ".river") {
+				return nil
+			}
+
+			bb, err := os.ReadFile(curPath)
+			sources[curPath] = bb
+			return err
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return flow.ParseSources(sources)
+	}
+
+	bb, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
 	if converterSourceFormat != "flow" {
 		var diags convert_diag.Diagnostics
 		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat))
@@ -337,7 +409,7 @@ func loadFlowFile(filename string, converterSourceFormat string, converterBypass
 
 	instrumentation.InstrumentConfig(bb)
 
-	return flow.ReadFile(filename, bb)
+	return flow.ParseSource(path, bb)
 }
 
 func interruptContext() (context.Context, context.CancelFunc) {

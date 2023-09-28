@@ -2,9 +2,11 @@ server:
   log_level: debug
   log_format: json
   http_tls_config:
-    cert_file: "/something.cert"
+    prefer_server_cipher_suites: true
   grpc_tls_config:
-    cert_file: "/something2.cert"
+    client_ca_file: "/something4.cert"
+    cert_file: "/something5.cert"
+    key_file: "/something6.cert"
 
 metrics:
   wal_directory: /tmp/agent
@@ -21,6 +23,30 @@ metrics:
 integrations:
   agent:
     enabled: true
+  cadvisor:
+    enabled: true
+  mssql:
+    enabled: true
+    scrape_integration: false
+  node_exporter:
+    enabled: false
+  statsd_exporter:
+    enabled: true
+    mapping_config:
+      mappings:
+      - match: "test.dispatcher.*.*.*"
+        name: "dispatcher_events_total"
+        labels:
+          processor: "$1"
+          action: "$2"
+          outcome: "$3"
+          job: "test_dispatcher"
+      - match: "*.signup.*.*"
+        name: "signup_events_total"
+        labels:
+          provider: "$2"
+          outcome: "$3"
+          job: "${1}_server"
 
 traces:
   configs:

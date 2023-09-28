@@ -9,14 +9,11 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
 	"github.com/grafana/agent/service"
-	"github.com/grafana/ckit"
-	"github.com/grafana/ckit/peer"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/diag"
 	"github.com/hashicorp/go-multierror"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -89,27 +86,6 @@ func NewLoader(opts LoaderOptions) *Loader {
 		globals.Registerer.MustRegister(l.cc)
 		globals.Registerer.MustRegister(l.cm)
 	}
-
-	globals.Clusterer.Node.Observe(ckit.FuncObserver(func(peers []peer.Peer) (reregister bool) {
-		tracer := l.tracer.Tracer("")
-		spanCtx, span := tracer.Start(context.Background(), "ClusterStateChange", trace.WithSpanKind(trace.SpanKindInternal))
-		defer span.End()
-		for _, cmp := range l.Components() {
-			if cc, ok := cmp.managed.(component.ClusteredComponent); ok {
-				if cc.ClusterUpdatesRegistration() {
-					_, span := tracer.Start(spanCtx, "ClusteredComponentReevaluation", trace.WithSpanKind(trace.SpanKindInternal))
-					span.SetAttributes(attribute.String("node_id", cmp.NodeID()))
-					defer span.End()
-
-					err := cmp.Reevaluate()
-					if err != nil {
-						level.Error(l.log).Log("msg", "failed to reevaluate component", "componentID", cmp.NodeID(), "err", err)
-					}
-				}
-			}
-		}
-		return true
-	}))
 
 	return l
 }
@@ -387,10 +363,11 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 		diags = append(diags, newConfigNodeDiags...)
 
 		if g.GetByID(node.NodeID()) != nil {
+			configBlockStartPos := ast.StartPos(block).Position()
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("%q block already declared", node.NodeID()),
-				StartPos: ast.StartPos(block).Position(),
+				Message:  fmt.Sprintf("%q block already declared at %s", node.NodeID(), configBlockStartPos),
+				StartPos: configBlockStartPos,
 				EndPos:   ast.EndPos(block).Position(),
 			})
 

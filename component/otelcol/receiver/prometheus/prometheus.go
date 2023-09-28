@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/receiver/prometheus/internal"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -25,9 +26,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.receiver.prometheus",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:          "otelcol.receiver.prometheus",
+		Args:          Arguments{},
+		Exports:       Exports{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))

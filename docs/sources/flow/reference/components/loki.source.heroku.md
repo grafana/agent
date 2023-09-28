@@ -1,6 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.heroku/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.heroku/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.heroku/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.heroku/
 title: loki.source.heroku
+description: Learn about loki.source.heroku
 ---
 
 # loki.source.heroku
@@ -62,11 +67,11 @@ The following blocks are supported inside the definition of `loki.source.heroku`
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### grpc
 
-{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Labels
 

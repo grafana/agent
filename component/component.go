@@ -113,11 +113,3 @@ type DebugComponent interface {
 	// DebugInfo must be safe for calling concurrently.
 	DebugInfo() interface{}
 }
-
-// ClusteredComponent is an extension interface for components which implement
-// clustering-specific behavior.
-type ClusteredComponent interface {
-	Component
-
-	ClusterUpdatesRegistration() bool
-}

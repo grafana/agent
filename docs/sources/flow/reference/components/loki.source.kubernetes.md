@@ -1,13 +1,18 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.kubernetes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/
 labels:
   stage: experimental
 title: loki.source.kubernetes
+description: Learn about loki.source.kubernetes
 ---
 
 # loki.source.kubernetes
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
 
 `loki.source.kubernetes` tails logs from Kubernetes containers using the
 Kubernetes API. It has the following benefits over `loki.source.file`:
@@ -116,19 +121,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

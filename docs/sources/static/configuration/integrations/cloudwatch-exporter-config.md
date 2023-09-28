@@ -3,6 +3,7 @@ aliases:
 - ../../../configuration/integrations/cloudwatch-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cloudwatch-exporter-config/
 title: cloudwatch_exporter_config
+description: Learn about cloudwatch_exporter_config
 ---
 
 # cloudwatch_exporter_config
@@ -132,6 +133,16 @@ Configuration reference:
   # Optional: Disable use of FIPS endpoints. Set 'true' when running outside of USA regions.
   [fips_disabled: <boolean> | default = false]
 
+
+  # Instead of retrieving metrics on request, decouple scraping retrieves the
+  # metrics on a schedule and returns the cached metrics.
+  decoupled_scraping:
+    # Enable decoupled scraping.
+    [enabled: <boolean> | default = false ]
+
+    # How often to scrape for CloudWatch metrics.
+    [scrape_interval: <duration> | default = "5m"]
+
   discovery:
 
     # Optional: List of tags (value) per service (key) to export in all metrics. For example defining the ["name", "type"] under
@@ -167,15 +178,18 @@ discovery:
     - type: AWS/EC2
       regions:
         - us-east-2
+      nil_to_zero: true
       metrics:
         - name: CPUUtilization
           period: 5m
           statistics:
             - Average
+          nil_to_zero: true
         - name: NetworkPacketsIn
           period: 5m
           statistics:
             - Average
+          nil_to_zero: true
 ```
 
 Configuration reference:
@@ -201,6 +215,9 @@ Configuration reference:
   # Optional: List of metric dimensions to query. Before querying metric values, the total list of metrics will be filtered to only those that contain exactly this list of dimensions. An empty or undefined list results in all dimension combinations being included.
   dimension_name_requirements: [ <string> ]
 
+  # Optional: Flag that controls if `NaN` metric values are converted to 0. Default `true`. This can be overridden in the config of each metric.
+  nil_to_zero: <bool>
+
   # Required: List of metric definitions to scrape.
   metrics: [ <metric> ]
 ```
@@ -224,15 +241,18 @@ static:
     dimensions:
       - name: InstanceId
         value: i-0e43cee369aa44b52
+    nil_to_zero: true
     metrics:
       - name: CPUUtilization
         period: 5m
         statistics:
           - Average
+        nil_to_zero: true
       - name: NetworkPacketsIn
         period: 5m
         statistics:
           - Average
+        nil_to_zero: true
 ```
 
 All dimensions need to be specified when scraping single metrics like the example above. For example `AWS/Logs` metrics
@@ -260,6 +280,9 @@ Configuration reference:
   # Optional: Custom tags to be added as a list of Key/Value pairs. When exported, the label name follows the following format:
   # `custom_tag_{Key}`.
   custom_tags: [ <aws_tag> ]
+
+  # Optional: Flag that controls if `NaN` metric values are converted to 0. Default `true`. This can be overridden in the config of each metric.
+  nil_to_zero: <bool>
 
   # Required: List of metric definitions to scrape.
   metrics: [ <metric> ]
@@ -318,6 +341,10 @@ pick the ones you need.
 
   # Optional: See the `period and length` section below.
   length: [ <duration> | default = calculated based on `period` ]
+
+  # Optional: Flag that controls if `NaN` metric values are converted to 0.
+  # When not set, the value defaults to the setting in the parent static or discovery block (`true` if not set in the parent block).
+  nil_to_zero: <bool>
 ```
 
 ### Period and length
@@ -353,6 +380,7 @@ is exported to CloudWatch.
 The following is a list of AWS services that are supported in `cloudwatch_exporter` discovery jobs. When configuring a
 discovery job, the `type` field of each `discovery_job` must match either the desired job namespace or alias.
 
+- Namespace: `CWAgent` or Alias: `cwagent`
 - Namespace: `AWS/Usage` or Alias: `usage`
 - Namespace: `AWS/CertificateManager` or Alias: `acm`
 - Namespace: `AWS/ACMPrivateCA` or Alias: `acm-pca`
@@ -378,6 +406,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/DynamoDB` or Alias: `dynamodb`
 - Namespace: `AWS/EBS` or Alias: `ebs`
 - Namespace: `AWS/ElastiCache` or Alias: `ec`
+- Namespace: `AWS/MemoryDB` or Alias: `memorydb`
 - Namespace: `AWS/EC2` or Alias: `ec2`
 - Namespace: `AWS/EC2Spot` or Alias: `ec2Spot`
 - Namespace: `AWS/ECS` or Alias: `ecs-svc`
@@ -399,6 +428,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/KinesisAnalytics` or Alias: `kinesis-analytics`
 - Namespace: `AWS/Lambda` or Alias: `lambda`
 - Namespace: `AWS/MediaConnect` or Alias: `mediaconnect`
+- Namespace: `AWS/MediaConvert` or Alias: `mediaconvert`
 - Namespace: `AWS/MediaLive` or Alias: `medialive`
 - Namespace: `AWS/MediaTailor` or Alias: `mediatailor`
 - Namespace: `AWS/Neptune` or Alias: `neptune`
@@ -419,7 +449,16 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/SQS` or Alias: `sqs`
 - Namespace: `AWS/StorageGateway` or Alias: `storagegateway`
 - Namespace: `AWS/TransitGateway` or Alias: `tgw`
+- Namespace: `AWS/TrustedAdvisor` or Alias: `trustedadvisor`
 - Namespace: `AWS/VPN` or Alias: `vpn`
 - Namespace: `AWS/WAFV2` or Alias: `wafv2`
 - Namespace: `AWS/WorkSpaces` or Alias: `workspaces`
 - Namespace: `AWS/AOSS` or Alias: `aoss`
+- Namespace: `AWS/SageMaker` or Alias: `sagemaker`
+- Namespace: `/aws/sagemaker/Endpoints` or Alias: `sagemaker-endpoints`
+- Namespace: `/aws/sagemaker/TrainingJobs` or Alias: `sagemaker-training`
+- Namespace: `/aws/sagemaker/ProcessingJobs` or Alias: `sagemaker-processing`
+- Namespace: `/aws/sagemaker/TransformJobs` or Alias: `sagemaker-transform`
+- Namespace: `/aws/sagemaker/InferenceRecommendationsJobs` or Alias: `sagemaker-inf-rec`
+- Namespace: `AWS/Sagemaker/ModelBuildingPipeline` or Alias: `sagemaker-model-building-pipeline`
+

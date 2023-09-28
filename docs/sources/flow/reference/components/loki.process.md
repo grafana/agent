@@ -1,6 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.process/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.process/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.process/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.process/
 title: loki.process
+description: Learn about loki.process
 ---
 
 # loki.process
@@ -45,29 +50,30 @@ loki.process "LABEL" {
 
 The following blocks are supported inside the definition of `loki.process`:
 
-| Hierarchy           | Block                   | Description                                          | Required |
-| ------------------- | ----------------------- | ---------------------------------------------------- | -------- |
-| stage.cri           | [stage.cri][]           | Configures a pre-defined CRI-format pipeline.        | no       |
-| stage.docker        | [stage.docker][]        | Configures a pre-defined Docker log format pipeline. | no       |
-| stage.drop          | [stage.drop][]          | Configures a `drop` processing stage.                | no       |
-| stage.json          | [stage.json][]          | Configures a JSON processing stage.                  | no       |
-| stage.label_drop    | [stage.label_drop][]    | Configures a `label_drop` processing stage.          | no       |
-| stage.label_keep    | [stage.label_keep][]    | Configures a `label_keep` processing stage.          | no       |
-| stage.labels        | [stage.labels][]        | Configures a labels processing stage.                | no       |
-| stage.limit         | [stage.limit][]         | Configures a `limit` processing stage.               | no       |
-| stage.logfmt        | [stage.logfmt][]        | Configures a logfmt processing stage.                | no       |
-| stage.match         | [stage.match][]         | Configures a `match` processing stage.               | no       |
-| stage.metrics       | [stage.metrics][]       | Configures a `metrics` stage.                        | no       |
-| stage.multiline     | [stage.multiline][]     | Configures a `multiline` processing stage.           | no       |
-| stage.output        | [stage.output][]        | Configures an `output` processing stage.             | no       |
-| stage.pack          | [stage.pack][]          | Configures a `pack` processing stage.                | no       |
-| stage.regex         | [stage.regex][]         | Configures a `regex` processing stage.               | no       |
-| stage.replace       | [stage.replace][]       | Configures a `replace` processing stage.             | no       |
-| stage.static_labels | [stage.static_labels][] | Configures a `static_labels` processing stage.       | no       |
-| stage.template      | [stage.template][]      | Configures a `template` processing stage.            | no       |
-| stage.tenant        | [stage.tenant][]        | Configures a `tenant` processing stage.              | no       |
-| stage.timestamp     | [stage.timestamp][]     | Configures a `timestamp` processing stage.           | no       |
-| stage.geoip         | [stage.geoip][]         | Configures a `geoip` processing stage.               | no       |
+| Hierarchy                 | Block                         | Description                                          | Required |
+|---------------------------|-------------------------------|------------------------------------------------------| -------- |
+| stage.cri                 | [stage.cri][]                 | Configures a pre-defined CRI-format pipeline.        | no       |
+| stage.docker              | [stage.docker][]              | Configures a pre-defined Docker log format pipeline. | no       |
+| stage.drop                | [stage.drop][]                | Configures a `drop` processing stage.                | no       |
+| stage.json                | [stage.json][]                | Configures a JSON processing stage.                  | no       |
+| stage.label_drop          | [stage.label_drop][]          | Configures a `label_drop` processing stage.          | no       |
+| stage.label_keep          | [stage.label_keep][]          | Configures a `label_keep` processing stage.          | no       |
+| stage.labels              | [stage.labels][]              | Configures a `labels` processing stage.                | no       |
+| stage.structured_metadata | [stage.structured_metadata][] | Configures a structured metadata processing stage.   | no       |
+| stage.limit               | [stage.limit][]               | Configures a `limit` processing stage.               | no       |
+| stage.logfmt              | [stage.logfmt][]              | Configures a `logfmt` processing stage.                | no       |
+| stage.match               | [stage.match][]               | Configures a `match` processing stage.               | no       |
+| stage.metrics             | [stage.metrics][]             | Configures a `metrics` stage.                        | no       |
+| stage.multiline           | [stage.multiline][]           | Configures a `multiline` processing stage.           | no       |
+| stage.output              | [stage.output][]              | Configures an `output` processing stage.             | no       |
+| stage.pack                | [stage.pack][]                | Configures a `pack` processing stage.                | no       |
+| stage.regex               | [stage.regex][]               | Configures a `regex` processing stage.               | no       |
+| stage.replace             | [stage.replace][]             | Configures a `replace` processing stage.             | no       |
+| stage.static_labels       | [stage.static_labels][]       | Configures a `static_labels` processing stage.       | no       |
+| stage.template            | [stage.template][]            | Configures a `template` processing stage.            | no       |
+| stage.tenant              | [stage.tenant][]              | Configures a `tenant` processing stage.              | no       |
+| stage.timestamp           | [stage.timestamp][]           | Configures a `timestamp` processing stage.           | no       |
+| stage.geoip               | [stage.geoip][]               | Configures a `geoip` processing stage.               | no       |
 
 A user can provide any number of these stage blocks nested inside
 `loki.process`; these will run in order of appearance in the configuration
@@ -80,6 +86,7 @@ file.
 [stage.label_drop]: #stagelabel_drop-block
 [stage.label_keep]: #stagelabel_keep-block
 [stage.labels]: #stagelabels-block
+[stage.structured_metadata]: #stagestructuredmetadata-block
 [stage.limit]: #stagelimit-block
 [stage.logfmt]: #stagelogfmt-block
 [stage.match]: #stagematch-block
@@ -101,8 +108,16 @@ file.
 The `stage.cri` inner block enables a predefined pipeline which reads log lines using
 the CRI logging format.
 
-The `stage.cri` block does not support any arguments or inner blocks, so it is always
-empty.
+The following arguments are supported:
+
+| Name                             | Type       | Description                                                          | Default        | Required |
+| -------------------------------- | ---------- | -------------------------------------------------------------------- | -------------- | -------- |
+| `max_partial_lines`              | `number`   | Maximum number of partial lines to hold in memory.                   | `100`          | no       |
+| `max_partial_line_size`          | `number`   | Maximum number of characters which a partial line can have.          | `0`            | no       |
+| `max_partial_line_size_truncate` | `bool`     | Truncate partial lines that are longer than `max_partial_line_size`. | `false`        | no       |
+
+`max_partial_line_size` is only taken into account if 
+`max_partial_line_size_truncate` is set to `true`.
 
 ```river
 stage.cri {}
@@ -202,13 +217,13 @@ extracted value of 'app' is equal to foo.
 
 ```river
 stage.drop {
-    older_than  = "24h"
-    drop_reason = "too old"
+    older_than          = "24h"
+    drop_counter_reason = "too old"
 }
 
 stage.drop {
-    longer_than = "8KB"
-    drop_reason = "too long"
+    longer_than         = "8KB"
+    drop_counter_reason = "too long"
 }
 
 stage.drop {
@@ -236,7 +251,7 @@ When configuring a JSON stage, the `source` field defines the source of data to
 parse as JSON. By default, this is the log line itself, but it can also be a
 previously extracted value.
 
-The `expressions` field is the set of key-value pairs of MESPath expressions to
+The `expressions` field is the set of key-value pairs of JMESPath expressions to
 run. The map key defines the name with which the data is extracted, while the
 map value is the expression used to populate the value.
 
@@ -330,10 +345,10 @@ stage.labels {
 }
 ```
 
-### stage.non_indexed_labels block
+### stage.structured_metadata block
 
-The `stage.non_indexed_labels` inner block configures a labels processing stage that can read
-data from the extracted values map and add them to log entries as non-indexed labels.
+The `stage.structured_metadata` inner block configures a stage that can read
+data from the extracted values map and add them to log entries as structured metadata.
 
 The following arguments are supported:
 
@@ -341,15 +356,15 @@ The following arguments are supported:
 | -------- | ------------- |-----------------------------------------------------------------------------| ------- | -------- |
 | `values` | `map(string)` | Specifies the list of labels to add from extracted values map to log entry. | `{}`    | no       |
 
-In a non_indexed_labels stage, the map's keys define the label to set and the values are
+In a structured_metadata stage, the map's keys define the label to set and the values are
 how to look them up. If the value is empty, it is inferred to be the same as
 the key.
 
 ```river
-stage.non_indexed_labels {
+stage.structured_metadata {
     values = {
-      env  = "",         // Sets up an 'env' non-indexed label, based on the 'env' extracted value.
-      user = "username", // Sets up a 'user' non-indexed label, based on the 'username' extracted value.
+      env  = "",         // Sets up an 'env' property to structured metadata, based on the 'env' extracted value.
+      user = "username", // Sets up a 'user' property to structured metadata, based on the 'username' extracted value.
     }
 }
 ```
@@ -363,11 +378,11 @@ The following arguments are supported:
 
 | Name                  | Type     | Description                                                                      | Default | Required |
 | --------------------- | -------- | -------------------------------------------------------------------------------- | ------- | -------- |
-| `rate`                | `int`    | The maximum rate of lines per second that the stage forwards.                    |         | yes      |
-| `burst`               | `int`    | The cap in the quantity of burst lines that the stage forwards.                  |         | yes      |
+| `rate`                | `number` | The maximum rate of lines per second that the stage forwards.                    |         | yes      |
+| `burst`               | `number` | The maximum number of burst lines that the stage forwards.                       |         | yes      |
 | `by_label_name`       | `string` | The label to use when rate-limiting on a label name.                             | `""`    | no       |
 | `drop`                | `bool`   | Whether to discard or backpressure lines that exceed the rate limit.             | `false` | no       |
-| `max_distinct_labels` | `int`    | The number of unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no       |
+| `max_distinct_labels` | `number` | The number of unique values to keep track of when rate-limiting `by_label_name`. | `10000` | no       |
 
 The rate limiting is implemented as a "token bucket" of size `burst`, initially
 full and refilled at `rate` tokens per second. Each received log entry consumes one token from the bucket. When `drop` is set to true, incoming entries
@@ -734,7 +749,7 @@ The following arguments are supported:
 | --------------- | ---------- | -------------------------------------------------- | ------- | -------- |
 | `firstline`     | `string`   | Name from extracted data to use for the log entry. |         | yes      |
 | `max_wait_time` | `duration` | The maximum time to wait for a multiline block.    | `"3s"`  | no       |
-| `max_lines`     | `int`      | The maximum number of lines a block can have.      | `128`   | no       |
+| `max_lines`     | `number`   | The maximum number of lines a block can have.      | `128`   | no       |
 
 
 A new block is identified by the RE2 regular expression passed in `firstline`.

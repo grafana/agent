@@ -2,10 +2,11 @@
 aliases:
 - ../../../../configuration/integrations/integrations-next/snmp-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/snmp-config/
-title: snmp_exporter_config
+title: snmp_exporter_config next
+description: Learn about snmp_exporter_config next
 ---
 
-# snmp config
+# snmp config next
 
 The `snmp` block configures the `snmp` integration,
 which is an embedded version of

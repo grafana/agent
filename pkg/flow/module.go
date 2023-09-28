@@ -7,12 +7,10 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/scanner"
-	"github.com/grafana/agent/pkg/river/token"
+	"github.com/grafana/river/scanner"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/maps"
 )
@@ -37,7 +35,7 @@ func newModuleController(o *moduleControllerOptions) controller.ModuleController
 
 // NewModule creates a new, unstarted Module.
 func (m *moduleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
-	if id != "" && !isValidIdentifier(id) {
+	if id != "" && !scanner.IsValidIdentifier(id) {
 		return nil, fmt.Errorf("module ID %q is not a valid River identifier", id)
 	}
 
@@ -64,12 +62,6 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 
 	m.modules[fullPath] = struct{}{}
 	return mod, nil
-}
-
-func isValidIdentifier(in string) bool {
-	s := scanner.New(nil, []byte(in), nil, 0)
-	_, tok, lit := s.Scan()
-	return tok == token.IDENT && lit == in
 }
 
 func (m *moduleController) removeID(id string) {
@@ -114,7 +106,6 @@ func newModule(o *moduleOptions) *module {
 			Options: Options{
 				ControllerID: o.ID,
 				Tracer:       o.Tracer,
-				Clusterer:    o.Clusterer,
 				Reg:          o.Reg,
 				Logger:       o.Logger,
 				DataPath:     o.DataPath,
@@ -131,11 +122,11 @@ func newModule(o *moduleOptions) *module {
 
 // LoadConfig parses River config and loads it.
 func (c *module) LoadConfig(config []byte, args map[string]any) error {
-	ff, err := ReadFile(c.o.ID, config)
+	ff, err := ParseSource(c.o.ID, config)
 	if err != nil {
 		return err
 	}
-	return c.f.LoadFile(ff, args)
+	return c.f.LoadSource(ff, args)
 }
 
 // Run starts the Module. No components within the Module
@@ -156,10 +147,6 @@ type moduleControllerOptions struct {
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
 	Tracer *tracing.Tracer
-
-	// Clusterer for implementing distributed behavior among components running
-	// on different nodes.
-	Clusterer *cluster.Clusterer
 
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer

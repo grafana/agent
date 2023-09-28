@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/http"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
@@ -30,7 +31,7 @@ func init() {
 	component.Register(component.Registration{
 		Name:          "prometheus.scrape",
 		Args:          Arguments{},
-		NeedsServices: []string{http.ServiceName},
+		NeedsServices: []string{http.ServiceName, cluster.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -108,13 +109,18 @@ func (arg *Arguments) SetToDefault() {
 
 // Validate implements river.Validator.
 func (arg *Arguments) Validate() error {
+	if arg.ScrapeTimeout > arg.ScrapeInterval {
+		return fmt.Errorf("scrape_timeout (%s) greater than scrape_interval (%s) for scrape config with job name %q", arg.ScrapeTimeout, arg.ScrapeInterval, arg.JobName)
+	}
+
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	return arg.HTTPClientConfig.Validate()
 }
 
 // Component implements the prometheus.scrape component.
 type Component struct {
-	opts component.Options
+	opts    component.Options
+	cluster cluster.Cluster
 
 	reloadTargets chan struct{}
 
@@ -137,6 +143,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 	httpData := data.(http.Data)
 
+	data, err = o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about cluster: %w", err)
+	}
+	clusterData := data.(cluster.Cluster)
+
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	scrapeOptions := &scrape.Options{
 		ExtraMetrics: args.ExtraMetrics,
@@ -156,6 +168,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	c := &Component{
 		opts:          o,
+		cluster:       clusterData,
 		reloadTargets: make(chan struct{}, 1),
 		scraper:       scraper,
 		appendable:    flowAppendable,
@@ -191,19 +204,16 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-c.reloadTargets:
 			c.mut.RLock()
 			var (
-				tgs     = c.args.Targets
-				jobName = c.opts.ID
-				cl      = c.args.Clustering.Enabled
+				targets           = c.args.Targets
+				jobName           = c.opts.ID
+				clusteringEnabled = c.args.Clustering.Enabled
 			)
 			if c.args.JobName != "" {
 				jobName = c.args.JobName
 			}
 			c.mut.RUnlock()
 
-			// NOTE(@tpaschalis) First approach, manually building the
-			// 'clustered' targets implementation every time.
-			ct := discovery.NewDistributedTargets(cl, c.opts.Clusterer.Node, tgs)
-			promTargets := c.componentTargetsToProm(jobName, ct.Get())
+			promTargets := c.distTargets(targets, jobName, clusteringEnabled)
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -238,8 +248,23 @@ func (c *Component) Update(args component.Arguments) error {
 	default:
 	}
 
-	c.targetsGauge.Set(float64(len(c.args.Targets)))
 	return nil
+}
+
+// NotifyClusterChange implements component.ClusterComponent.
+func (c *Component) NotifyClusterChange() {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	if !c.args.Clustering.Enabled {
+		return // no-op
+	}
+
+	// Schedule a reload so targets get redistributed.
+	select {
+	case c.reloadTargets <- struct{}{}:
+	default:
+	}
 }
 
 // Helper function to bridge the in-house configuration with the Prometheus
@@ -273,6 +298,20 @@ func getPromScrapeConfigs(jobName string, c Arguments) *config.ScrapeConfig {
 	// HTTP scrape client settings
 	dec.HTTPClientConfig = *c.HTTPClientConfig.Convert()
 	return &dec
+}
+
+func (c *Component) distTargets(
+	targets []discovery.Target,
+	jobName string,
+	clustering bool,
+) map[string][]*targetgroup.Group {
+	// NOTE(@tpaschalis) First approach, manually building the
+	// 'clustered' targets implementation every time.
+	dt := discovery.NewDistributedTargets(clustering, c.cluster, targets)
+	flowTargets := dt.Get()
+	c.targetsGauge.Set(float64(len(flowTargets)))
+	promTargets := c.componentTargetsToProm(jobName, flowTargets)
+	return promTargets
 }
 
 // ScraperStatus reports the status of the scraper's jobs.
@@ -322,13 +361,6 @@ func (c *Component) DebugInfo() interface{} {
 	return ScraperStatus{
 		TargetStatus: BuildTargetStatuses(c.scraper.TargetsActive()),
 	}
-}
-
-// ClusterUpdatesRegistration implements component.ClusterComponent.
-func (c *Component) ClusterUpdatesRegistration() bool {
-	c.mut.RLock()
-	defer c.mut.RUnlock()
-	return c.args.Clustering.Enabled
 }
 
 func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {

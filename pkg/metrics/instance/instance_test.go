@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
@@ -203,9 +203,9 @@ func TestInstance_Path(t *testing.T) {
 	runInstance(t, inst)
 
 	// <walDir>/<inst.name> path should exist for WAL
-	test.Poll(t, time.Second*5, true, func() interface{} {
+	util.Eventually(t, func(t require.TestingT) {
 		_, err := os.Stat(path.Join(walDir, "test"))
-		return err == nil
+		require.NoError(t, err)
 	})
 }
 
@@ -235,11 +235,11 @@ func TestInstance(t *testing.T) {
 	runInstance(t, inst)
 
 	// Wait until mockWalStorage has had a series added to it.
-	test.Poll(t, 30*time.Second, true, func() interface{} {
+	util.EventuallyWithBackoff(t, func(t require.TestingT) {
 		mockStorage.mut.Lock()
 		defer mockStorage.mut.Unlock()
-		return len(mockStorage.series) > 0
-	})
+		require.True(t, len(mockStorage.series) > 0)
+	}, slowBackoff)
 }
 
 // TestInstance_Recreate ensures that creating an instance with the same name twice

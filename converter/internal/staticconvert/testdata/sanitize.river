@@ -1,0 +1,103 @@
+prometheus.remote_write "metrics_integrations" {
+	endpoint {
+		name = "integrations-717d0f"
+		url  = "https://region.grafana.net/api/prom/push"
+
+		basic_auth {
+			username = "id"
+			password = "token"
+		}
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}
+
+loki.process "logs_integrations_integrations_windows_exporter_application" {
+	forward_to = [loki.write.logs_integrations.receiver]
+
+	stage.json {
+		expressions = {
+			source = "source",
+		}
+	}
+
+	stage.labels {
+		values = {
+			source = null,
+		}
+	}
+}
+
+loki.relabel "logs_integrations_integrations_windows_exporter_application" {
+	forward_to = [loki.process.logs_integrations_integrations_windows_exporter_application.receiver]
+
+	rule {
+		source_labels = ["computer"]
+		target_label  = "agent_hostname"
+	}
+	max_cache_size = 0
+}
+
+loki.source.windowsevent "logs_integrations_integrations_windows_exporter_application" {
+	eventlog_name          = "Application"
+	xpath_query            = ""
+	bookmark_path          = "C:\\grafana_test\\Grafana Agent\\bookmarks.xml"
+	poll_interval          = "0s"
+	use_incoming_timestamp = true
+	forward_to             = [loki.relabel.logs_integrations_integrations_windows_exporter_application.receiver]
+	labels                 = {
+		job = "integrations/windows_exporter",
+	}
+}
+
+loki.process "logs_integrations_integrations_windows_exporter_system" {
+	forward_to = [loki.write.logs_integrations.receiver]
+
+	stage.json {
+		expressions = {
+			source = "source",
+		}
+	}
+
+	stage.labels {
+		values = {
+			source = null,
+		}
+	}
+}
+
+loki.relabel "logs_integrations_integrations_windows_exporter_system" {
+	forward_to = [loki.process.logs_integrations_integrations_windows_exporter_system.receiver]
+
+	rule {
+		source_labels = ["computer"]
+		target_label  = "agent_hostname"
+	}
+	max_cache_size = 0
+}
+
+loki.source.windowsevent "logs_integrations_integrations_windows_exporter_system" {
+	eventlog_name          = "System"
+	xpath_query            = ""
+	bookmark_path          = "C:\\grafana_test\\Grafana Agent\\bookmarks.xml"
+	poll_interval          = "0s"
+	use_incoming_timestamp = true
+	forward_to             = [loki.relabel.logs_integrations_integrations_windows_exporter_system.receiver]
+	labels                 = {
+		job = "integrations/windows_exporter",
+	}
+}
+
+loki.write "logs_integrations" {
+	endpoint {
+		url = "https://region.grafana.net/loki/api/v1/push"
+
+		basic_auth {
+			username = "id"
+			password = "token"
+		}
+	}
+	external_labels = {}
+}

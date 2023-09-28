@@ -5,6 +5,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-on-windows/
 menuTitle: Windows
 title: Install Grafana Agent in static mode on Windows
+description: Learn how to install Grafana Agent in static mode on Windows
 weight: 600
 ---
 
@@ -139,5 +140,12 @@ Refer to [windows_events](https://grafana.com/docs/loki/latest/clients/promtail/
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent/" >}})
-- [Configure Grafana Agent]({{< relref "../../configuration/" >}})
+- [Start Grafana Agent][start]
+- [Configure Grafana Agent][configure]
+
+{{% docs/reference %}}
+[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/grafana-cloud/ -> ../start-agent"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
+{{% /docs/reference %}}

@@ -7,7 +7,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	prom_discovery "github.com/prometheus/prometheus/discovery/openstack"
@@ -42,7 +42,7 @@ type Arguments struct {
 	RefreshInterval             time.Duration     `river:"refresh_interval,attr,optional"`
 	Port                        int               `river:"port,attr,optional"`
 	AllTenants                  bool              `river:"all_tenants,attr,optional"`
-	TLSConfig                   config.TLSConfig  `river:"tls_config,attr,optional"`
+	TLSConfig                   config.TLSConfig  `river:"tls_config,block,optional"`
 	Availability                string            `river:"availability,attr,optional"`
 }
 

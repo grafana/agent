@@ -15,7 +15,7 @@ import (
 	"github.com/grafana/agent/component"
 	common_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 )
 
@@ -261,10 +261,16 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	newArgs := args.(Arguments)
 	c.args = newArgs
 
+	// Override default UserAgent if another is provided in "headers" section
+	customUserAgent, exist := c.args.Headers["User-Agent"]
+	if !exist {
+		customUserAgent = userAgent
+	}
+
 	cli, err := prom_config.NewClientFromConfig(
 		*newArgs.Client.Convert(),
 		c.opts.ID,
-		prom_config.WithUserAgent(userAgent),
+		prom_config.WithUserAgent(customUserAgent),
 	)
 	if err != nil {
 		return err

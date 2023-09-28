@@ -1,9 +1,14 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/getting-started/migrating-from-promtail/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-promtail/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-promtail/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-promtail/
 description: Learn how to migrate your configuration from Promtail to Grafana Agent
   Flow Mode
 menuTitle: Migrate from Promtail
-title: Migrate from Promtail to Grafana Agent Flow Mode
+title: Migrate from Promtail to Grafana Agent Flow mode
+description: Learn how to migrate from Promtail to Grafana Agent Flow mode
 weight: 330
 ---
 
@@ -124,10 +129,7 @@ configuration file rather than a Flow Mode configuration file.
    `--config.bypass-conversion-errors` flag in addition to
    `--config.format=promtail`.
 
-   {{% admonition type="caution" %}}If you bypass the errors, the behavior of
-   the converted configuration may not match the original Promtail
-   configuration. Do not use this flag in a production environment.{{%
-   /admonition %}}
+   {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Promtail configuration. Do not use this flag in a production environment.{{%/admonition %}}
 
 ## Example
 

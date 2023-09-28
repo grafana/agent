@@ -1,8 +1,12 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/operator/deploy-agent-operator-resources/
+- /docs/grafana-cloud/monitor-infrastructure/agent/operator/deploy-agent-operator-resources/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/deploy-agent-operator-resources/
 - custom-resource-quickstart/
 canonical: https://grafana.com/docs/agent/latest/operator/deploy-agent-operator-resources/
 title: Deploy Operator resources
+description: Learn how to deploy Operator resources
 weight: 120
 ---
 # Deploy Operator resources
@@ -30,7 +34,7 @@ The hierarchy of custom resources is as follows:
 To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
 
 {{% admonition type="note" %}}
-Agent Operator is currently in beta and its custom resources are subject to change.
+Agent Operator is currently in [beta]({{< relref "../stability.md#beta" >}}) and its custom resources are subject to change.
 {{% /admonition %}}
 
 ## Before you begin
@@ -58,7 +62,7 @@ To deploy the `GrafanaAgent` resource:
       labels:
         app: grafana-agent
     spec:
-      image: grafana/agent:v0.35.3
+      image: grafana/agent:v0.36.2
       integrations:
         selector:
           matchLabels:

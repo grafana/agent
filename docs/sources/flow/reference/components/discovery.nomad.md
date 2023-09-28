@@ -1,9 +1,14 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.nomad/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.nomad/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.nomad/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.nomad/
 title: discovery.nomad
+description: Learn about discovery.nomad
 ---
 
-# discovery.consul
+# discovery.nomad
 
 `discovery.nomad` allows you to retrieve scrape targets from [Nomad's](https://www.nomadproject.io/) Service API.
 
@@ -65,19 +70,19 @@ an `oauth2` block.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
@@ -115,7 +120,7 @@ values.
 
 ## Example
 
-This example discovers targets from Consul for the specified list of services:
+This example discovers targets from a Nomad server:
 
 ```river
 discovery.nomad "example" {

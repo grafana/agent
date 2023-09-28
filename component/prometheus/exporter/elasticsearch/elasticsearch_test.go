@@ -4,9 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 
@@ -100,15 +99,4 @@ func TestConvert(t *testing.T) {
 		ExportSLM:                 true,
 	}
 	require.Equal(t, expected, *res)
-}
-
-func TestCustomizeTarget(t *testing.T) {
-	args := Arguments{
-		Address: "http://localhost:9300",
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "http://localhost:9300", newTargets[0]["instance"])
 }

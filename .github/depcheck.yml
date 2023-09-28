@@ -10,7 +10,6 @@ go_modules:
   - github.com/prometheus/memcached_exporter
   - github.com/prometheus/node_exporter
   - github.com/prometheus/statsd_exporter
-  - github.com/weaveworks/common
   - go.opentelemetry.io/collector
   - sigs.k8s.io/controller-runtime
 

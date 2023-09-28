@@ -15,11 +15,10 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/atomic"
@@ -66,7 +65,6 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 type ComponentGlobals struct {
 	Logger              *logging.Logger                                              // Logger shared between all managed components.
 	TraceProvider       trace.TracerProvider                                         // Tracer shared between all managed components.
-	Clusterer           *cluster.Clusterer                                           // Clusterer shared between all managed components.
 	DataPath            string                                                       // Shared directory where component data may be stored
 	OnComponentUpdate   func(cn *ComponentNode)                                      // Informs controller that we need to reevaluate
 	OnExportsChange     func(exports map[string]any)                                 // Invoked when the managed component updated its exports
@@ -179,8 +177,7 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"component_id": cn.globalID,
 		}, cn.registry),
-		Tracer:    tracing.WrapTracer(globals.TraceProvider, cn.globalID),
-		Clusterer: globals.Clusterer,
+		Tracer: tracing.WrapTracer(globals.TraceProvider, cn.globalID),
 
 		DataPath: filepath.Join(globals.DataPath, cn.globalID),
 
@@ -263,37 +260,6 @@ func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
 	}
 
 	return err
-}
-
-// Reevaluate calls Update on the managed component with its last used
-// arguments.Reevaluate does not build the component if it is not already built
-// and does not re-evaluate the River block itself.
-// Its only use case is for components opting-in to clustering where calling
-// Update with the same Arguments may result in different functionality.
-func (cn *ComponentNode) Reevaluate() error {
-	cn.mut.Lock()
-	defer cn.mut.Unlock()
-
-	cn.doingEval.Store(true)
-	defer cn.doingEval.Store(false)
-
-	if cn.managed == nil {
-		// We haven't built the managed component successfully yet.
-		return nil
-	}
-
-	// Update the existing managed component with the same arguments.
-	err := cn.managed.Update(cn.args)
-
-	switch err {
-	case nil:
-		cn.setEvalHealth(component.HealthTypeHealthy, "component evaluated")
-		return nil
-	default:
-		msg := fmt.Sprintf("component evaluation failed: %s", err)
-		cn.setEvalHealth(component.HealthTypeUnhealthy, msg)
-		return err
-	}
 }
 
 func (cn *ComponentNode) evaluate(scope *vm.Scope) error {

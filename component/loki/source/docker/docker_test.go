@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 

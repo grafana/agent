@@ -1,6 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.logging/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.logging/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.logging/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.logging/
 title: otelcol.exporter.logging
+description: Learn about otelcol.exporter.logging
 ---
 
 # otelcol.exporter.logging
@@ -37,6 +42,24 @@ Name | Type | Description | Default | Required
 `sampling_thereafter` | `int`    | Sampling rate after the initial messages are logged. | `500` | no
 
 The `verbosity` argument must be one of `"basic"`, `"normal"`, or `"detailed"`. 
+
+## Blocks
+
+The following blocks are supported inside the definition of
+`otelcol.exporter.logging`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
+
+The `>` symbol indicates deeper levels of nesting. For example, `client > tls`
+refers to a `tls` block defined inside a `client` block.
+
+[debug_metrics]: #debug_metrics-block
+
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

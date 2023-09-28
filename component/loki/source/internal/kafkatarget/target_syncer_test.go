@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/dskit/flagext"
 	"github.com/prometheus/common/config"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/go-kit/log"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"

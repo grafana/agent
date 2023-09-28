@@ -5,8 +5,9 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/http"
+	"github.com/grafana/river/rivertypes"
 )
 
 func init() {
@@ -14,7 +15,7 @@ func init() {
 		Name:          "module.string",
 		Args:          Arguments{},
 		Exports:       module.Exports{},
-		NeedsServices: []string{http.ServiceName},
+		NeedsServices: []string{http.ServiceName, cluster.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -68,7 +69,7 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
-	return c.mod.LoadFlowContent(newArgs.Arguments, newArgs.Content.Value)
+	return c.mod.LoadFlowSource(newArgs.Arguments, newArgs.Content.Value)
 }
 
 // CurrentHealth implements component.HealthComponent.

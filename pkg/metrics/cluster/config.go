@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	flagutil "github.com/grafana/agent/pkg/util"
+	util_log "github.com/grafana/agent/pkg/util/log"
 	"github.com/grafana/dskit/kv"
 	"github.com/grafana/dskit/ring"
 )

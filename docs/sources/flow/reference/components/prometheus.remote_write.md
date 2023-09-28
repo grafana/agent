@@ -1,6 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.remote_write/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.remote_write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
 title: prometheus.remote_write
+description: Learn about prometheus.remote_write
 ---
 
 # prometheus.remote_write
@@ -113,19 +118,19 @@ metrics fails.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### queue_config block
 
@@ -138,7 +143,7 @@ Name | Type | Description | Default | Required
 `batch_send_deadline` | `duration` | Maximum time samples will wait in the buffer before sending. | `"5s"` | no
 `min_backoff` | `duration` | Initial retry delay. The backoff time gets doubled for each retry. | `"30ms"` | no
 `max_backoff` | `duration` | Maximum retry delay. | `"5s"` | no
-`retry_on_http_429` | `bool` | Retry when an HTTP 429 status code is received. | `false` | no
+`retry_on_http_429` | `bool` | Retry when an HTTP 429 status code is received. | `true` | no
 
 Each queue then manages a number of concurrent _shards_ which is responsible
 for sending a fraction of data to their respective endpoints. The number of
@@ -175,7 +180,7 @@ Name | Type | Description | Default | Required
 
 ### write_relabel_config block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### wal block
 
@@ -304,7 +309,13 @@ information.
 * `prometheus_remote_storage_exemplars_in_total` (counter): Exemplars read into
   remote storage.
 
-## Example
+## Examples
+
+The following examples show you how to create `prometheus.remote_write` components that send metrics to different destinations.
+
+### Send metrics to a local Mimir instance
+
+You can create a `prometheus.remote_write` component that sends your metrics to a local Mimir instance:
 
 ```river
 prometheus.remote_write "staging" {
@@ -330,8 +341,23 @@ prometheus.scrape "demo" {
 }
 ```
 
+### Send metrics to a managed service
+
+You can create a `prometheus.remote_write` component that sends your metrics to a managed service, for example, Grafana Cloud. The Prometheus username and the Grafana Cloud API Key are injected in this example through environment variables.
+
+```river
+prometheus.remote_write "default" {
+  endpoint {
+    url = "https://prometheus-xxx.grafana.net/api/prom/push"
+      basic_auth {
+        username = env("PROMETHEUS_USERNAME")
+        password = env("GRAFANA_CLOUD_API_KEY")
+      }
+  }
+}
+```
 ## Technical details
 
 `prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
 
-Any labels that start with `__` will be removed before sending to the endpoint. 
+Any labels that start with `__` will be removed before sending to the endpoint.

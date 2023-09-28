@@ -5,6 +5,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-docker/
 menuTitle: Docker
 title: Run Grafana Agent in static mode in a Docker container
+description: Learn how to run Grafana Agent in static mode in a Docker container
 weight: 200
 ---
 
@@ -21,7 +22,7 @@ Grafana Agent is available as a Docker container image on the following platform
 ## Before you begin
 
 * Install [Docker][] on your computer.
-* Create and save a Grafana Agent YAML [configuration file]({{< relref "../../configuration/create-config-file/" >}}) on your computer.
+* Create and save a Grafana Agent YAML [configuration file][configure] on your computer.
 
 [Docker]: https://docker.io
 
@@ -33,7 +34,7 @@ To run a Grafana Agent Docker container on Linux, run the following command in a
 docker run \
   -v WAL_DATA_DIRECTORY:/etc/agent/data \
   -v CONFIG_FILE_PATH:/etc/agent/agent.yaml \
-  grafana/agent:v0.35.3
+  grafana/agent:v0.36.2
 ```
 
 Replace `CONFIG_FILE_PATH` with the configuration file path on your Linux host system.
@@ -50,7 +51,7 @@ To run a Grafana Agent Docker container on Windows, run the following command in
 docker run ^
   -v WAL_DATA_DIRECTORY:C:\etc\grafana-agent\data ^
   -v CONFIG_FILE_PATH:C:\etc\grafana-agent ^
-  grafana/agent:v0.35.3-windows
+  grafana/agent:v0.36.2-windows
 ```
 
 Replace the following:
@@ -64,5 +65,12 @@ For the flags to work correctly, you must expose the paths on your Windows host 
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent/" >}})
-- [Configure Grafana Agent]({{< relref "../../configuration/" >}})
+- [Start Grafana Agent][start]
+- [Configure Grafana Agent][configure]
+
+{{% docs/reference %}}
+[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/grafana-cloud/ -> ../start-agent"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
+{{% /docs/reference %}}

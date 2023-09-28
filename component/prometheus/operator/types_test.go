@@ -3,7 +3,7 @@ package operator
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,21 +26,4 @@ func TestRiverUnmarshal(t *testing.T) {
 	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
-}
-
-func TestEqual(t *testing.T) {
-	a := Arguments{
-		Namespaces: []string{"my-app"},
-		Clustering: Clustering{Enabled: true},
-	}
-	b := Arguments{
-		Namespaces: []string{"my-app"},
-		Clustering: Clustering{Enabled: true},
-	}
-	c := Arguments{
-		Namespaces: []string{"my-app", "other-app"},
-		Clustering: Clustering{Enabled: false},
-	}
-	require.True(t, a.Equals(&b))
-	require.False(t, a.Equals(&c))
 }
