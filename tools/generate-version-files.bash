@@ -12,8 +12,8 @@ if [[ ! $AGENT_VERSION =~ $versionMatcher ]]; then
     exit 1
 fi
 
-templates=$(find . -type f -name "*.templ" -not -path "./.git/*")
+templates=$(find . -type f -name "*.t" -not -path "./.git/*")
 for template in $templates; do
-    echo "Generating ${template%.templ}"
-    sed -e "s/\$AGENT_VERSION/$AGENT_VERSION/g" < $template > ${template%.templ}
+    echo "Generating ${template%.t}"
+    sed -e "s/\$AGENT_VERSION/$AGENT_VERSION/g" < $template > ${template%.t}
 done
