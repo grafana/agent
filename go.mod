@@ -55,7 +55,7 @@ require (
 	github.com/grafana/cloudflare-go v0.0.0-20230110200409-c627cf6792f2
 	github.com/grafana/dskit v0.0.0-20230829141140-06955c011ffd
 	github.com/grafana/go-gelf/v2 v2.0.1
-	github.com/grafana/loki v1.6.2-0.20230904153656-e4cc2a4f5ec8 // k166 branch
+	github.com/grafana/loki v1.6.2-0.20230927083715-42fba5b19183 // k169 branch
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.3
 	github.com/grafana/pyroscope/api v0.2.0
 	github.com/grafana/pyroscope/ebpf v0.2.1

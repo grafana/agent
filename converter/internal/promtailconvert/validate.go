@@ -17,14 +17,6 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 		)
 	}
 
-	// The global and per-client stream lag labels is deprecated and has no effect.
-	if len(cfg.Options.StreamLagLabels) > 0 {
-		diags.Add(
-			diag.SeverityLevelWarn,
-			"stream_lag_labels is deprecated and the associated metric has been removed",
-		)
-	}
-
 	// WAL support is still work in progress and not documented. Enabling it won't work, so it's an error.
 	if cfg.WAL.Enabled {
 		diags.Add(
