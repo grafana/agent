@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/stability/beta/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/stability/beta/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/stability/beta/
+description: Shared content, beta
 headless: true
 ---
 

@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/concat/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/concat/
 title: concat
+description: Learn about concat
 ---
 
 # concat

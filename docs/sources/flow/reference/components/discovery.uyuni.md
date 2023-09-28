@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.uyuni/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.uyuni/
 title: discovery.uyuni
+description: Learn about discovery.uyuni
 ---
 
 # discovery.uyuni

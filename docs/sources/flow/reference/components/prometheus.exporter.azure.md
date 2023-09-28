@@ -5,6 +5,7 @@ aliases:
   - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.azure/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.azure/
 title: prometheus.exporter.azure
+description: Learn about prometheus.exporter.azure
 ---
 
 # prometheus.exporter.azure

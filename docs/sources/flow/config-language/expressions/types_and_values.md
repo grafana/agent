@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/types_and_values/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/types_and_values/
 title: Types and values
+description: Learn about the River types and values
 weight: 100
 ---
 
@@ -44,7 +45,7 @@ the following conventions for referring to types:
   descending units can be combined to add their values together; `"1h30m"` is
   the same as `"90m"`.
 
-[component reference]: {{< relref "../../reference/components/" >}}
+[component reference]: {{< relref "../../reference/components" >}}
 
 ## Numbers
 
