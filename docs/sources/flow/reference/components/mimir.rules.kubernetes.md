@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/mimir
 labels:
   stage: beta
 title: mimir.rules.kubernetes
+description: Learn about mimir.rules.kubernetes
 ---
 
 # mimir.rules.kubernetes

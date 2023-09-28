@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.receive_http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.receive_http/
 title: prometheus.receive_http
+description: Learn about prometheus.receive_http
 ---
 
 # prometheus.receive_http

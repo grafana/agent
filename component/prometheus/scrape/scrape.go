@@ -204,20 +204,16 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-c.reloadTargets:
 			c.mut.RLock()
 			var (
-				tgs     = c.args.Targets
-				jobName = c.opts.ID
-				cl      = c.args.Clustering.Enabled
+				targets           = c.args.Targets
+				jobName           = c.opts.ID
+				clusteringEnabled = c.args.Clustering.Enabled
 			)
 			if c.args.JobName != "" {
 				jobName = c.args.JobName
 			}
 			c.mut.RUnlock()
 
-			// NOTE(@tpaschalis) First approach, manually building the
-			// 'clustered' targets implementation every time.
-			ct := discovery.NewDistributedTargets(cl, c.cluster, tgs)
-			promTargets := c.componentTargetsToProm(jobName, ct.Get())
-			c.targetsGauge.Set(float64(len(promTargets)))
+			promTargets := c.distTargets(targets, jobName, clusteringEnabled)
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -302,6 +298,20 @@ func getPromScrapeConfigs(jobName string, c Arguments) *config.ScrapeConfig {
 	// HTTP scrape client settings
 	dec.HTTPClientConfig = *c.HTTPClientConfig.Convert()
 	return &dec
+}
+
+func (c *Component) distTargets(
+	targets []discovery.Target,
+	jobName string,
+	clustering bool,
+) map[string][]*targetgroup.Group {
+	// NOTE(@tpaschalis) First approach, manually building the
+	// 'clustered' targets implementation every time.
+	dt := discovery.NewDistributedTargets(clustering, c.cluster, targets)
+	flowTargets := dt.Get()
+	c.targetsGauge.Set(float64(len(flowTargets)))
+	promTargets := c.componentTargetsToProm(jobName, flowTargets)
+	return promTargets
 }
 
 // ScraperStatus reports the status of the scraper's jobs.

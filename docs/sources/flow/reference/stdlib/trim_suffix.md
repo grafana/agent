@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/trim_suffix/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/trim_suffix/
 title: trim_suffix
+description: Learn about trim_suffix
 ---
 
 # trim_suffix

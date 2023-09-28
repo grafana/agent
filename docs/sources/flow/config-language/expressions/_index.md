@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/
 title: Expressions
+description: Learn about expressions
 weight: 400
 ---
 

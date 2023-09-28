@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.auth.bearer/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.bearer/
 title: otelcol.auth.bearer
+description: Learn about otelcol.auth.bearer
 ---
 
 # otelcol.auth.bearer

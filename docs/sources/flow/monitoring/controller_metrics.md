@@ -6,6 +6,7 @@ aliases:
 - controller-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/controller_metrics/
 title: Controller metrics
+description: Learn about controller metrics
 weight: 100
 ---
 

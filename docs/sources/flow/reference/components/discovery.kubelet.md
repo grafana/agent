@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/disco
 labels:
   stage: beta
 title: discovery.kubelet
+description: Learn about discovery.kubelet
 ---
 
 # discovery.kubelet

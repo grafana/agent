@@ -3,7 +3,6 @@ package postgres
 import (
 	"testing"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
@@ -88,28 +87,4 @@ func TestParsePostgresURL(t *testing.T) {
 	actual, err := parsePostgresURL(dsn)
 	require.NoError(t, err)
 	require.Equal(t, actual, expected)
-}
-
-func TestCustomizeTarget_Valid(t *testing.T) {
-	args := Arguments{
-		DataSourceNames: []rivertypes.Secret{rivertypes.Secret("postgresql://username:password@localhost:5432/database?sslmode=disable")},
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "postgresql://localhost:5432/database", newTargets[0]["instance"])
-}
-
-func TestCustomizeTarget_Invalid(t *testing.T) {
-	args := Arguments{
-		DataSourceNames: []rivertypes.Secret{rivertypes.Secret("invalid_ds@localhost:5432/database?sslmode=disable")},
-	}
-
-	baseTarget := discovery.Target{
-		"instance": "default value",
-	}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "default value", newTargets[0]["instance"])
 }

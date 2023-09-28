@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/format/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/format/
 title: format
+description: Learn about format
 ---
 
 # format
