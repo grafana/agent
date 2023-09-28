@@ -190,7 +190,7 @@ before starting to use it in a production environment.
 Furthermore, we recommend that you review the following checklist:
 
 * Check if you are using any extra command line arguments with Promtail which
-  are not present in your config file, for example, `-max-line-size`
+  are not present in your config file. For example, `-max-line-size`.
 * Check if you are setting any environment variables,
   whether [expanded in the config file][] itself or consumed directly by
   Promtail, such as `JAEGER_AGENT_HOST`.
@@ -208,4 +208,4 @@ Furthermore, we recommend that you review the following checklist:
 
 [expanded in the config file]: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#use-environment-variables-in-the-configuration
 
-[Grafana Agent Flow UI]: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/#grafana-agent-flow-ui
+[Grafana Agent Flow UI]: {{< relref "../monitoring/debugging/#grafana-agent-flow-ui" >}}
