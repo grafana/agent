@@ -127,6 +127,8 @@ Main (unreleased)
 
 - Fixed race condition in cleaning up metrics when stopping to tail files in static mode. (@thampiotr)
 
+- Fixed a bug where the BackOffLimit for the kubernetes tailer was always set to zero. (@anderssonw)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
