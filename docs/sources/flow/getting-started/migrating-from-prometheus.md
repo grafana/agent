@@ -194,21 +194,21 @@ Configuration conversion is done on a best-effort basis. The Agent will issue
 warnings or errors where the conversion cannot be performed.
 
 Once the configuration is converted, we recommend that you review
-the Flow Mode configuration file created, and verify that it is correct
+the Flow Mode configuration file created and verify that it is correct
 before starting to use it in a production environment.
 
 Furthermore, we recommend that you review the following checklist:
 
 * The following configurations are not available for conversion to flow mode:
-  `rule_files`, `alerting`, `remote_read`, `storage` and `tracing`. Any
-  additional unsupported features are returned as Error[s] during conversion.
-* Check if you are using any extra command line arguments with Prometheus which
-  are not present in your config file. For example, `--web.listen-address`.
+  `rule_files`, `alerting`, `remote_read`, `storage`, and `tracing`. Any
+  additional unsupported features are returned as errors during conversion.
+* Check if you are using any extra command line arguments with Prometheus that
+  are not present in your configuration file. For example, `--web.listen-address`.
 * Metrics exposed by the Flow Mode usually match Prometheus metrics but
   will use a different name. Make sure that you use the new metric names, for example,
   in your alerts and dashboards queries.
-* Note that the logs produced by the Agent will differ from those
+* The logs produced by Grafana Agent will differ from those
   produced by Prometheus.
-* Note that the Agent exposes the [Grafana Agent Flow UI][].
+* Grafana Agent exposes the [Grafana Agent Flow UI][].
 
 [Grafana Agent Flow UI]: {{< relref "../monitoring/debugging/#grafana-agent-flow-ui" >}}

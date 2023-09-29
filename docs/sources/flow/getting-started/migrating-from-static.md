@@ -4,22 +4,21 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-static/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-static/
-description: Learn how to migrate your configuration from Grafana Agent Static Mode to Grafana Agent Flow Mode
-  Flow Mode
-menuTitle: Migrate from Grafana Agent Static Mode
-title: Migrate from Grafana Agent Static to Grafana Agent Flow Mode
+description: Learn how to migrate your configuration from Grafana Agent Static mode to Flow mode
+menuTitle: Migrate from Static to Flow mode
+title: Migrate Grafana Agent from Static mode to Flow mode
 weight: 340
 ---
 
 # Migrate from Grafana Agent Static to Grafana Agent Flow Mode
 
-The built-in Grafana Agent convert command can migrate your [Static][]
-configuration to a Grafana Agent flow configuration.
+The built-in Grafana Agent convert command can migrate your [Static][] mode
+configuration to a Flow mode configuration.
 
 This topic describes how to:
 
-* Convert a Grafana Agent Static configuration to a Flow Mode configuration.
-* Run a Grafana Agent Static configuration natively using Grafana Agent Flow Mode.
+* Convert a Grafana Agent Static mode configuration to a Flow mode configuration.
+* Run a Grafana Agent Static mode configuration natively using Grafana Agent Flow mode.
 
 [Static]: {{< relref "../../static/_index.md" >}}
 
@@ -41,9 +40,8 @@ This topic describes how to:
 
 ## Before you begin
 
-* You must have an existing Grafana Agent Static Mode configuration.
-* You must be familiar with the concept of [Components][] in Grafana Agent Flow
-  Mode.
+* You must have an existing Grafana Agent Static mode configuration.
+* You must be familiar with the concept of [Components][] in Grafana Agent Flow mode.
 
 [Components]: {{< relref "../concepts/components.md" >}}
 [convert]: {{< relref "../reference/cli/convert.md" >}}
@@ -52,15 +50,15 @@ This topic describes how to:
 [Flow Debugging]: {{< relref "../monitoring/debugging.md" >}}
 [debugging]: #debugging
 
-## Convert a Static configuration
+## Convert a Static mode configuration
 
-To fully migrate from [Static] to Grafana Agent Flow Mode, you must convert
-your Grafana Agent Static Mode configuration into a Grafana Agent Flow Mode configuration.
+To fully migrate Grafana Agent from [Static][] mode to Flow mode, you must convert
+your Static mode configuration into a Flow mode configuration.
 This conversion will enable you to take full advantage of the many additional
-features available in Grafana Agent Flow Mode.
+features available in Grafana Agent Flow mode.
 
-> In this task, we will use the [convert][] CLI command to output a flow
-> configuration from a Grafana Agent Static Mode configuration.
+> In this task, we will use the [convert][] CLI command to output a Flow mode
+> configuration from a Static mode configuration.
 
 1. Open a terminal window and run the following command:
 
@@ -69,26 +67,26 @@ features available in Grafana Agent Flow Mode.
     ```
 
    Replace the following:
-    * `INPUT_CONFIG_PATH`: The full path to the [Static] configuration.
+    * `INPUT_CONFIG_PATH`: The full path to the [Static][] configuration.
     * `OUTPUT_CONFIG_PATH`: The full path to output the flow configuration.
 
-1. [Start the Agent][] in Flow Mode using the new flow configuration
+1. [Start the Agent][] in Flow mode using the new Flow mode configuration
    from `OUTPUT_CONFIG_PATH`:
 
 ### Debugging
 
-1. If the convert command cannot convert a [Static] configuration, diagnostic
-   information is sent to `stderr`. You can bypass any non-critical issues and
-   output the flow configuration using a best-effort conversion by including
-   the `--bypass-errors` flag.
+1. If the convert command cannot convert a [Static] mode configuration, diagnostic
+   information is sent to `stderr`. You can use the `--bypass-errors` flag to 
+   bypass any non-critical issues and output the Flow mode configuration 
+   using a best-effort conversion.
 
-   {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original [Static] configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
+   {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original [Static] mode configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
 
     ```bash
     AGENT_MODE=flow; grafana-agent convert --source-format=static --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
     ```
 
-1. You can also output a diagnostic report by including the `--report` flag.
+1. You can use the `--report` flag to output a diagnostic report.
 
     ```bash
     AGENT_MODE=flow; grafana-agent convert --source-format=static --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
@@ -107,19 +105,19 @@ features available in Grafana Agent Flow Mode.
 
 ## Run a Promtail configuration
 
-If you’re not ready to completely switch to a flow configuration, you can run
-Grafana Agent using your existing Grafana Agent Static Mode configuration.
-The `--config.format=static` flag tells Grafana Agent to convert your [Static]
-configuration to Flow Mode and load it directly without saving the new
-configuration. This allows you to try Flow Mode without modifying your existing
-Grafana Agent Static Mode configuration infrastructure.
+If you’re not ready to completely switch to a Flow mode configuration, you can run
+Grafana Agent using your existing Grafana Agent Static mode configuration.
+The `--config.format=static` flag tells Grafana Agent to convert your [Static] mode
+configuration to Flow mode and load it directly without saving the new
+configuration. This allows you to try Flow mode without modifying your existing
+Grafana Agent Static mode configuration infrastructure.
 
 > In this task, we will use the [run][] CLI command to run Grafana Agent in Flow
-> Mode using a Grafana Agent Static Mode configuration.
+> mode using a Static mode configuration.
 
-[Start the Agent][] in flow mode and include the command line flag
+[Start the Agent][] in Flow mode and include the command line flag
 `--config.format=static`. Your configuration file must be a valid [Static]
-configuration file rather than a Flow Mode configuration file.
+mode configuration file.
 
 ### Debugging
 
@@ -127,22 +125,20 @@ configuration file rather than a Flow Mode configuration file.
    a diagnostic report.
 
 1. Refer to the Grafana Agent [Flow Debugging][] for more information about
-   running Grafana Agent in Flow Mode.
+   running Grafana Agent in Flow mode.
 
-1. If your [Static] configuration cannot be converted and loaded directly into
-   Grafana Agent, diagnostic information is sent to `stderr`. You can bypass any
-   non-critical issues and start the Agent by including the
-   `--config.bypass-conversion-errors` flag in addition to
-   `--config.format=static`.
+1. If your [Static] mode configuration cannot be converted and loaded directly into
+    Grafana Agent, diagnostic information is sent to `stderr`. You can use the `
+    --config.bypass-conversion-errors` flag with `--config.format=static` to bypass any
+    non-critical issues and start the Agent.
 
-   {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Grafana Agent Static Mode configuration. Do not use this flag in a production environment.{{%/admonition %}}
+   {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Grafana Agent Static mode configuration. Do not use this flag in a production environment.{{%/admonition %}}
 
 ## Example
 
-This example demonstrates converting a [Static] configuration file to a Grafana
-Agent Flow Mode configuration file.
+This example demonstrates converting a [Static] mode configuration file to a Flow mode configuration file.
 
-The following [Static] configuration file provides the input for the conversion:
+The following [Static] mode configuration file provides the input for the conversion:
 
 ```yaml
 server:
@@ -204,7 +200,7 @@ The convert command takes the YAML file as input and outputs a River file.
 AGENT_MODE=flow; grafana-agent convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
 ```
 
-The new Flow Mode configuration file looks like this:
+The new Flow mode configuration file looks like this:
 
 ```river
 prometheus.scrape "metrics_test_local_agent" {
@@ -288,28 +284,28 @@ Configuration conversion is done on a best-effort basis. The Agent will issue
 warnings or errors where the conversion cannot be performed.
 
 Once the configuration is converted, we recommend that you review
-the Flow Mode configuration file created, and verify that it is correct
+the Flow mode configuration file created, and verify that it is correct
 before starting to use it in a production environment.
 
 Furthermore, we recommend that you review the following checklist:
 
-* The following configuration options are not available for conversion to flow
-  mode: [Integrations next], [Traces], and [Agent Management]. Any
-  additional unsupported features are returned as Error[s] during conversion.
-* There is no gRPC server to configure for flow mode, so any non-default config
+* The following configuration options are not available for conversion to Flow
+  mode: [Integrations next][], [Traces][], and [Agent Management][]. Any
+  additional unsupported features are returned as errors during conversion.
+* There is no gRPC server to configure for Flow mode, so any non-default config
   will show as unsupported during the conversion.
-* Check if you are using any extra command line arguments with Static Mode which
-  are not present in your config file. For example, `-server.http.address`.
-* Check if you are using any environment variables in your [Static] config.
+* Check if you are using any extra command line arguments with Static mode that
+  are not present in your configuration file. For example, `-server.http.address`.
+* Check if you are using any environment variables in your [Static] mode configuration.
   These will be evaluated during conversion and you may want to replace them
   with the Flow Standard library [env] function after conversion.
 * Review additional [Prometheus Limitations] for limitations specific to your
   [Metrics] config.
 * Review additional [Promtail Limitations] for limitations specific to your
   [Logs] config.
-* Note that the logs produced by the Agent will differ from those
-  produced by Grafana Agent Static Mode.
-* Note that the Agent exposes the [Grafana Agent Flow UI][].
+* The logs produced by Grafana Agent Flow mode will differ from those
+  produced by Static mode.
+* Grafana Agent exposes the [Grafana Agent Flow UI][].
 
 [Integrations next]: {{< relref "../../static/configuration/integrations/integrations-next/_index.md" >}}
 [Traces]: {{< relref "../../static/configuration/traces-config.md" >}}
