@@ -125,6 +125,8 @@ Main (unreleased)
 - The `instance` label of targets exposed by `prometheus.exporter.*` components
   is now more representative of what is being monitored. (@tpaschalis)
 
+- Promtail converter will now treat `global positions configuration is not supported` as a Warning instead of Error. (@erikbaranowski)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`

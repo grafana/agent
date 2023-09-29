@@ -1,4 +1,4 @@
-(Error) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
+(Warning) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
 (Error) Promtail's WAL is currently not supported in Flow Mode
 (Error) limits_config is not yet supported in Flow Mode
 (Warning) If you have a tracing set up for Promtail, it cannot be migrated to Flow Mode automatically. Refer to the documentation on how to configure tracing in Flow Mode.
