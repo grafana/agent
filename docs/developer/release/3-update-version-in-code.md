@@ -24,11 +24,13 @@ The project must be updated to reference the upcoming release tag whenever a new
 
     3. Update appropriate places in the codebase that have the previous version with the new version determined above.
 
-        You can run the following command to update the version in the codebase:
+        First update `tools/gen-versioned-files/agent-version.txt` with the new `VERSION` and run:
 
         ```
-        AGENT_VERSION=VERSION ./tools/generate-version-files.sh
+        make generate-versioned-files
         ```
+
+        Next, commit the changes (including those to `tools/gen-versioned-files/agent-version.txt`, as a workflow will use this version to ensure that the templates and generated files are in sync).
 
         * Do **not** update the `operations/helm` directory. It is updated independently from Agent releases.
 
