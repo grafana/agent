@@ -76,6 +76,8 @@ Main (unreleased)
   This will load all River files in the directory as a single configuration;
   component names must be unique across all loaded files. (@rfratto, @hainenber)
 
+- Flow: the `prometheus.scrape` component can now configure the scraping of
+  Prometheus native histograms. (@tpaschalis)
 
 ### Enhancements
 
