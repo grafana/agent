@@ -1090,8 +1090,8 @@ github.com/grafana/go-gelf/v2 v2.0.1/go.mod h1:lexHie0xzYGwCgiRGcvZ723bSNyNI8ZRD
 github.com/grafana/gocql v0.0.0-20200605141915-ba5dc39ece85/go.mod h1:crI9WX6p0IhrqB+DqIUHulRW853PaNFf7o4UprV//3I=
 github.com/grafana/gomemcache v0.0.0-20230316202710-a081dae0aba9 h1:WB3bGH2f1UN6jkd6uAEWfHB8OD7dKJ0v2Oo6SNfhpfQ=
 github.com/grafana/gomemcache v0.0.0-20230316202710-a081dae0aba9/go.mod h1:PGk3RjYHpxMM8HFPhKKo+vve3DdlPUELZLSDEFehPuU=
-github.com/grafana/loki v1.6.2-0.20230904153656-e4cc2a4f5ec8 h1:ER13f09dUfAbAN+zQdKgUdRSrvUC97G3OX2y6/qrtII=
-github.com/grafana/loki v1.6.2-0.20230904153656-e4cc2a4f5ec8/go.mod h1:qqOYLjJ9m92TqjWO5IOsEm6B7AodORoc9IZUC5Q4Caw=
+github.com/grafana/loki v1.6.2-0.20230927083715-42fba5b19183 h1:klVM7g0Tl31QSd9dvypCe5XAQ49AM+acGAH2DwXdllA=
+github.com/grafana/loki v1.6.2-0.20230927083715-42fba5b19183/go.mod h1:hiGUcnMCZ86m122rzu8xySnRiGDQ8TzPowVmCvWZAJ4=
 github.com/grafana/loki/pkg/push v0.0.0-20230904153656-e4cc2a4f5ec8 h1:yQK/dX7WBva5QvITvmIcbv4boLwSo65a8zjuZcucnko=
 github.com/grafana/loki/pkg/push v0.0.0-20230904153656-e4cc2a4f5ec8/go.mod h1:5ll3An1wAxYejo6aM04+3/lc6N4joYVYLY5U+Z4O6vI=
 github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a h1:D5NSR64/6xMXnSFD9y1m1DPYIcBcHvtfeuI9/M/0qtI=

@@ -134,6 +134,8 @@ Main (unreleased)
 - Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets
   instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
 
+- Fixed race condition in cleaning up metrics when stopping to tail files in static mode. (@thampiotr)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
