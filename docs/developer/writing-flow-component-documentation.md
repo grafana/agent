@@ -560,4 +560,15 @@ The [loki.source.podlogs][] component documentation needed to add an extra
 section to document the PodLogs CRD, since we do not yet have a way of
 documenting auxiliary artifacts which are related to a component.
 
+### otelcol.processor.transform
+
+The [otelcol.processor.transform][] component documentation needed to add
+an extra section about OTTL Contexts because there is no appropriate OTEL docs page 
+that we could link to. Currently this information is housed on the [transformprocessor][] 
+doc page, but because it contains yaml config for the Collector, users might get confused 
+how this maps to River and it is better not to link to it. In the future we could try to
+move this information from [transformprocessor][] to the [OTTL Context][ottl context] doc.
+
 [loki.source.podlogs]: ../sources/flow/reference/components/loki.source.podlogs.md
+[otelcol.processor.transform]: ../sources/flow/reference/components/otelcol.processor.transform.md
+[ottl context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/pkg/ottl/contexts/README.md
