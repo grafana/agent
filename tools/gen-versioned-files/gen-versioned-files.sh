@@ -1,7 +1,8 @@
 #!/bin/sh
+AGENT_VERSION=$(cat ./tools/gen-versioned-files/agent-version.txt | tr -d '\n')
 
 if [ -z "$AGENT_VERSION" ]; then
-    echo "AGENT_VERSION env var is not set"
+    echo "AGENT_VERSION can't be found. Are you running this from the repo root?"
     exit 1
 fi
 
