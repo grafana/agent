@@ -5,12 +5,12 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-static/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-static/
 description: Learn how to migrate your configuration from Grafana Agent Static mode to Flow mode
-menuTitle: Migrate from Static to Flow mode
+menuTitle: Migrate from Static mode to Flow mode
 title: Migrate Grafana Agent from Static mode to Flow mode
 weight: 340
 ---
 
-# Migrate from Grafana Agent Static to Grafana Agent Flow Mode
+# Migrate Grafana Agent from Static mode to Flow mode
 
 The built-in Grafana Agent convert command can migrate your [Static][] mode
 configuration to a Flow mode configuration.
@@ -41,7 +41,7 @@ This topic describes how to:
 ## Before you begin
 
 * You must have an existing Grafana Agent Static mode configuration.
-* You must be familiar with the concept of [Components][] in Grafana Agent Flow mode.
+* You must be familiar with the [Components][] concept in Grafana Agent Flow mode.
 
 [Components]: {{< relref "../concepts/components.md" >}}
 [convert]: {{< relref "../reference/cli/convert.md" >}}
@@ -286,7 +286,7 @@ Configuration conversion is done on a best-effort basis. The Agent will issue
 warnings or errors where the conversion cannot be performed.
 
 Once the configuration is converted, we recommend that you review
-the Flow mode configuration file created, and verify that it is correct
+the Flow mode configuration file, and verify that it is correct
 before starting to use it in a production environment.
 
 Furthermore, we recommend that you review the following checklist:
