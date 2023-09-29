@@ -28,10 +28,6 @@ func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.Scra
 func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if scrapeConfig.ScrapeClassicHistograms {
-		diags.Add(diag.SeverityLevelError, "unsupported scrape_classic_histograms for scrape_configs")
-	}
-
 	if scrapeConfig.NativeHistogramBucketLimit != 0 {
 		diags.Add(diag.SeverityLevelError, "unsupported native_histogram_bucket_limit for scrape_configs")
 	}
@@ -47,25 +43,25 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 	}
 
 	return &scrape.Arguments{
-		Targets:               targets,
-		ForwardTo:             forwardTo,
-		JobName:               scrapeConfig.JobName,
-		HonorLabels:           scrapeConfig.HonorLabels,
-		HonorTimestamps:       scrapeConfig.HonorTimestamps,
-		Params:                scrapeConfig.Params,
-		ScrapeInterval:        time.Duration(scrapeConfig.ScrapeInterval),
-		ScrapeTimeout:         time.Duration(scrapeConfig.ScrapeTimeout),
-		MetricsPath:           scrapeConfig.MetricsPath,
-		Scheme:                scrapeConfig.Scheme,
-		BodySizeLimit:         scrapeConfig.BodySizeLimit,
-		SampleLimit:           scrapeConfig.SampleLimit,
-		TargetLimit:           scrapeConfig.TargetLimit,
-		LabelLimit:            scrapeConfig.LabelLimit,
-		LabelNameLengthLimit:  scrapeConfig.LabelNameLengthLimit,
-		LabelValueLengthLimit: scrapeConfig.LabelValueLengthLimit,
-		HTTPClientConfig:      *ToHttpClientConfig(&scrapeConfig.HTTPClientConfig),
-		ExtraMetrics:          false,
-		Clustering:            scrape.Clustering{Enabled: false},
+		Targets:                 targets,
+		ForwardTo:               forwardTo,
+		JobName:                 scrapeConfig.JobName,
+		HonorLabels:             scrapeConfig.HonorLabels,
+		HonorTimestamps:         scrapeConfig.HonorTimestamps,
+		Params:                  scrapeConfig.Params,
+		ScrapeClassicHistograms: scrapeConfig.ScrapeClassicHistograms,
+		ScrapeInterval:          time.Duration(scrapeConfig.ScrapeInterval),
+		ScrapeTimeout:           time.Duration(scrapeConfig.ScrapeTimeout),
+		MetricsPath:             scrapeConfig.MetricsPath,
+		Scheme:                  scrapeConfig.Scheme,
+		BodySizeLimit:           scrapeConfig.BodySizeLimit,
+		SampleLimit:             scrapeConfig.SampleLimit,
+		TargetLimit:             scrapeConfig.TargetLimit,
+		LabelLimit:              scrapeConfig.LabelLimit,
+		LabelNameLengthLimit:    scrapeConfig.LabelNameLengthLimit,
+		LabelValueLengthLimit:   scrapeConfig.LabelValueLengthLimit,
+		HTTPClientConfig:        *ToHttpClientConfig(&scrapeConfig.HTTPClientConfig),
+		Clustering:              scrape.Clustering{Enabled: false},
 	}
 }
 
