@@ -8,6 +8,11 @@ description: Shared content, otelcol grpc authority
 headless: true
 ---
 
-The `authority` in gRPC represents the "Host" header for requests. By default, the `authority` is derived from the service URL used for the gRPC call. It's primarily used for virtual hosting, routing decisions, and security validations. Overriding this default value is be done using the [WithAuthority][] dial option. This allows users to simulate production behaviors in development environments, guide traffic in service mesh scenarios, and test server responses for different authority values.
+The `:authority` header in gRPC specifies the host to which the request is being sent.
+It is similar to the `Host` [header][HTTP host header] in HTTP requests. By default, 
+the value for `:authority` is derived from the endpoint URL used for the gRPC call. 
+Overriding `:authority` could be useful when routing traffic using a proxy like Envoy, which 
+[makes routing decisions][Envoy route matching] based on the value of the `:authority` header.
 
-[WithAuthority]: https://pkg.go.dev/google.golang.org/grpc#WithAuthority
+[HTTP host header]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
+[Envoy route matching]: https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/route_matching
