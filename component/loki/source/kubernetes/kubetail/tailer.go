@@ -81,9 +81,9 @@ func newLabelSet(l labels.Labels) model.LabelSet {
 var retailBackoff = backoff.Config{
 	// Since our tailers have a maximum lifetime and are expected to regularly
 	// terminate to refresh their connection to the Kubernetes API, the minimum
-	// backoff starts at zero so there's minimum delay between expected
+	// backoff starts at one so there's minimum delay between expected
 	// terminations.
-	MinBackoff: 0,
+	MinBackoff: 1,
 	MaxBackoff: time.Minute,
 }
 
