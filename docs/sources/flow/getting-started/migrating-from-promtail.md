@@ -148,7 +148,9 @@ scrape_configs:
           __path__: /var/log/*.log
 ```
 
-The convert command takes the YAML file as input and outputs a River file.
+The convert command takes the YAML file as input and outputs a [River][] file.
+
+[River]: {{< relref "../config-language/_index.md" >}}
 
 ```bash
 AGENT_MODE=flow; grafana-agent convert --source-format=promtail --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH

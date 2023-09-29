@@ -194,7 +194,9 @@ logs:
         - url: https://USER_ID:API_KEY@logs-prod3.grafana.net/loki/api/v1/push
 ```
 
-The convert command takes the YAML file as input and outputs a River file.
+The convert command takes the YAML file as input and outputs a [River][] file.
+
+[River]: {{< relref "../config-language/_index.md" >}}
 
 ```bash
 AGENT_MODE=flow; grafana-agent convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
