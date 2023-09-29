@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/yaml"
 )
 
@@ -175,8 +176,10 @@ func NewTestConfig(t *testing.T, cluster *k8s.Cluster) *Config {
 	cfg.Controller.Logger = logutil.Wrap(util.TestLogger(t))
 
 	// Listen on any port for testing purposes
-	cfg.Controller.Port = 0 // nolint:staticcheck
-	cfg.Controller.MetricsBindAddress = "127.0.0.1:0"
+	cfg.Controller.WebhookServer = webhook.NewServer(webhook.Options{
+		Port: 0,
+	})
+	cfg.Controller.Metrics.BindAddress = "127.0.0.1:0"
 	cfg.Controller.HealthProbeBindAddress = "127.0.0.1:0"
 
 	return cfg

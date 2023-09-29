@@ -1,5 +1,4 @@
 (Error) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
-(Warning) stream_lag_labels is deprecated and the associated metric has been removed
 (Error) Promtail's WAL is currently not supported in Flow Mode
 (Error) limits_config is not yet supported in Flow Mode
 (Warning) If you have a tracing set up for Promtail, it cannot be migrated to Flow Mode automatically. Refer to the documentation on how to configure tracing in Flow Mode.
@@ -9,4 +8,3 @@
 (Warning) server.log_level is not supported - Flow mode components may produce different logs
 (Error) server.http_path_prefix is not supported
 (Warning) server.health_check_target disabling is not supported in Flow mode
-(Warning) stream_lag_labels is deprecated and the associated metric has been removed
