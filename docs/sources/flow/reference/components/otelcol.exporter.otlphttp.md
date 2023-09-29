@@ -84,7 +84,11 @@ Name | Type | Description | Default | Required
 `max_idle_conns_per_host` | `int`    | Limits the number of idle HTTP connections the host can keep open. | `0` | no
 `max_conns_per_host` | `int`         | Limits the total (dialing,active, and idle) number of connections per host. | `0` | no
 `idle_conn_timeout`  | `duration`    | Time to wait before an idle connection closes itself. | `"90s"` | no
+`disable_keep_alives`| `bool`        | Disable HTTP keep-alive. | `false` | no
 `auth`               | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
+
+Setting `disable_keep_alives` to `true` will result in significant overhead establishing a new HTTP(s) connection for every request.
+Before enabling this option, consider whether changes to idle connection settings can achieve your goal.
 
 {{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT VERSION>" >}}
 

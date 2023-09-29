@@ -615,6 +615,9 @@ exporters:
 processors:
   spanmetrics:
     metrics_exporter: prometheus
+    latency_histogram_buckets: {}
+    dimensions: {}
+
 extensions: {}
 service:
   pipelines:
@@ -981,6 +984,7 @@ processors:
     scrape_configs:
       - im_a_scrape_config
     operation_type: update
+    pod_associations: {}
 extensions: {}
 service:
   pipelines:
