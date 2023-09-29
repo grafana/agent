@@ -13,8 +13,8 @@ weight: 120
 
 To start collecting telemetry data, you need to roll out Grafana Agent Operator custom resources into your Kubernetes cluster. Before you can create the custom resources, you must first apply the Agent Custom Resource Definitions (CRDs) and install Agent Operator, with or without Helm. If you haven't yet taken these steps, follow the instructions in one of the following topics:
 
-- [Install Agent Operator]({{< relref "./getting-started/" >}})
-- [Install Agent Operator with Helm]({{< relref "./helm-getting-started/" >}})
+- [Install Agent Operator]({{< relref "./getting-started" >}})
+- [Install Agent Operator with Helm]({{< relref "./helm-getting-started" >}})
 
 Follow the steps in this guide to roll out the Grafana Agent Operator custom resources to:
 
@@ -31,7 +31,7 @@ The hierarchy of custom resources is as follows:
   - `LogsInstance`
     - `PodLogs`
 
-To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
+To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture" >}}).
 
 {{% admonition type="note" %}}
 Agent Operator is currently in [beta]({{< relref "../stability.md#beta" >}}) and its custom resources are subject to change.
@@ -39,11 +39,11 @@ Agent Operator is currently in [beta]({{< relref "../stability.md#beta" >}}) and
 
 ## Before you begin
 
-Before you begin, make sure that you have deployed the Grafana Agent Operator CRDs and installed Agent Operator into your cluster. See [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}) or [Install Grafana Agent Operator]({{< relref "./getting-started.md" >}}) for instructions.
+Before you begin, make sure that you have deployed the Grafana Agent Operator CRDs and installed Agent Operator into your cluster. See [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started" >}}) or [Install Grafana Agent Operator]({{< relref "./getting-started" >}}) for instructions.
 
 ## Deploy the GrafanaAgent resource
 
-In this section, you'll roll out a `GrafanaAgent` resource. See [Grafana Agent Operator architecture]({{< relref "./architecture.md" >}}) for a discussion of the resources in the `GrafanaAgent` resource hierarchy.
+In this section, you'll roll out a `GrafanaAgent` resource. See [Grafana Agent Operator architecture]({{< relref "./architecture" >}}) for a discussion of the resources in the `GrafanaAgent` resource hierarchy.
 
 {{% admonition type="note" %}}
 Due to the variety of possible deployment architectures, the official Agent Operator Helm chart does not provide built-in templates for the custom resources described in this guide. You must configure and deploy these manually as described in this section. We recommend templating and adding the following manifests to your own in-house Helm charts and GitOps flows.
@@ -230,7 +230,7 @@ To deploy a `MetricsInstance` resource:
       password: 'your_cloud_prometheus_API_key'
     ```
 
-If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password by clicking **Details** on the Loki tile on the [Grafana Cloud Portal](https://grafana.com/profile/org). If you want to base64-encode these values yourself, use `data` instead of `stringData`.
+If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password by clicking **Details** on the Loki tile on the [Grafana Cloud Portal](/profile/org). If you want to base64-encode these values yourself, use `data` instead of `stringData`.
 
 Once you've rolled out the `MetricsInstance` and its Secret, you can confirm that the `MetricsInstance` Agent is up and running using `kubectl get pod`. Since you haven't defined any monitors yet, this Agent doesn't have any scrape targets defined. In the next section, you'll create scrape targets for the cAdvisor and kubelet endpoints exposed by the `kubelet` service in the cluster.
 
@@ -359,7 +359,7 @@ To deploy the `LogsInstance` resource into your cluster:
           instance: primary
     ```
 
-    This `LogsInstance` picks up `PodLogs` resources with the `instance: primary` label. Be sure to set the Loki URL to the correct push endpoint. For Grafana Cloud, this will look similar to `logs-prod-us-central1.grafana.net/loki/api/v1/push`, however check the [Grafana Cloud Portal](https://grafana.com/profile/org) to confirm by clicking **Details** on the Loki tile.
+    This `LogsInstance` picks up `PodLogs` resources with the `instance: primary` label. Be sure to set the Loki URL to the correct push endpoint. For Grafana Cloud, this will look similar to `logs-prod-us-central1.grafana.net/loki/api/v1/push`, however check the [Grafana Cloud Portal](/profile/org) to confirm by clicking **Details** on the Loki tile.
 
     Also note that this example uses the `agent: grafana-agent-logs` label, which associates this `LogsInstance` with the `GrafanaAgent` resource defined earlier. This means that it will inherit requests, limits, affinities and other properties defined in the `GrafanaAgent` custom resource.
 
@@ -376,7 +376,7 @@ To deploy the `LogsInstance` resource into your cluster:
       password: 'your_password_here'
     ```
 
-    If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password by clicking **Details** on the Loki tile on the [Grafana Cloud Portal](https://grafana.com/profile/org). If you want to base64-encode these values yourself, use `data` instead of `stringData`.
+    If you're using Grafana Cloud, you can find your hosted Loki endpoint username and password by clicking **Details** on the Loki tile on the [Grafana Cloud Portal](/profile/org). If you want to base64-encode these values yourself, use `data` instead of `stringData`.
 
 1. Copy the following `PodLogs` manifest to a file, then roll it to your cluster using `kubectl apply -f` followed by the filename. The manifest defines your logging targets. Agent Operator  turns this into Agent configuration for the logs subsystem, and rolls it out to the DaemonSet of logging Agents.
 
@@ -413,7 +413,7 @@ To deploy the `LogsInstance` resource into your cluster:
     - `job` (set to `PodLogs_namespace/PodLogs_name`)
     - `__path__` (the path to log files, set to `/var/log/pods/*$1/*.log` where `$1` is `__meta_kubernetes_pod_uid/__meta_kubernetes_pod_container_name`)
 
-    To learn more about this configuration format and other available labels, see the [Promtail Scraping](https://grafana.com/docs/loki/latest/clients/promtail/scraping/#promtail-scraping-service-discovery) documentation. Agent Operator loads this configuration into the `LogsInstance` agents automatically.
+    To learn more about this configuration format and other available labels, see the [Promtail Scraping](/docs/loki/latest/clients/promtail/scraping/#promtail-scraping-service-discovery) documentation. Agent Operator loads this configuration into the `LogsInstance` agents automatically.
 
 The DaemonSet of logging agents should be tailing your container logs, applying  default labels to the log lines, and shipping them to your remote Loki endpoint.
 

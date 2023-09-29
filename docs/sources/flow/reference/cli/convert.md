@@ -83,10 +83,10 @@ in [errors].
 ### Promtail
 
 Using the `--source-format=promtail` will convert the source configuration from
-[Promtail v2.8.x](https://grafana.com/docs/loki/v2.8.x/clients/promtail/)
+[Promtail v2.8.x](/docs/loki/v2.8.x/clients/promtail/)
 to Grafana Agent Flow configuration.
 
-Nearly all [Promtail features](https://grafana.com/docs/loki/v2.8.x/clients/promtail/configuration/)
+Nearly all [Promtail features](/docs/loki/v2.8.x/clients/promtail/configuration/)
 are supported and can be converted to Grafana Agent Flow config.
 
 If you have unsupported features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will

@@ -89,6 +89,7 @@ type HTTPClientArguments struct {
 	MaxIdleConnsPerHost *int           `river:"max_idle_conns_per_host,attr,optional"`
 	MaxConnsPerHost     *int           `river:"max_conns_per_host,attr,optional"`
 	IdleConnTimeout     *time.Duration `river:"idle_conn_timeout,attr,optional"`
+	DisableKeepAlives   bool           `river:"disable_keep_alives,attr,optional"`
 
 	// Auth is a binding to an otelcol.auth.* component extension which handles
 	// authentication.
