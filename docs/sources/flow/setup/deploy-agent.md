@@ -87,7 +87,6 @@ collecting pod logs.
 * Scenarios where the Agent grows so large it can become a noisy neighbor
 * Collecting an unpredictable amount of telemetry
 
-
 ## As a container sidecar
 Deploying the Grafana Agent as a container sidecar is only recommended for
 short-lived applications or specialized agent deployments.
