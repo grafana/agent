@@ -56,7 +56,7 @@ FROM rfratto/viceroy:v0.4.0
 # platform.
 RUN <<EOF
   apt-get update && apt-get install -qy ca-certificates curl gnupg && mkdir -p /etc/apt/keyrings
-  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 
   apt-get update && apt-get install -qy nodejs
   rm -rf /var/lib/apt/lists/*
