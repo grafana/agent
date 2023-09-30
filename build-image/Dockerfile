@@ -54,6 +54,7 @@ FROM rfratto/viceroy:v0.4.0
 # This must be done before installing other dependencies, otherwise nodesource
 # will fail on installing NodeJS for all platforms instead of just our host
 # platform.
+# Source: https://github.com/nodesource/distributions#installation-instructions
 RUN <<EOF
   apt-get update && apt-get install -qy ca-certificates curl gnupg && mkdir -p /etc/apt/keyrings
   echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
