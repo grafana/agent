@@ -13,8 +13,17 @@ if ! echo "$AGENT_VERSION" | grep -Eq "$versionMatcher"; then
     exit 1
 fi
 
-templates=$(find . -type f -name "*.t" -not -path "./.git/*")
+templates=$(find . -type f -name "*.t.*" -not -path "./.git/*")
 for template in $templates; do
-    echo "Generating ${template%.t}"
-    sed -e "s/\$AGENT_VERSION/$AGENT_VERSION/g" < "$template" > "${template%.t}"
+    # Extract the original file extension
+    file_extension="${template##*.}"
+
+    # Extract the file name without the extension
+    file_name_without_ext="${template%.*}"
+    file_name_without_t="${file_name_without_ext%.*}"
+
+    # Construct the new file path by the extension to the stripped file name
+    new_file="${file_name_without_t}.${file_extension}"
+    echo "Generating $new_file"
+    sed -e "s/\$AGENT_VERSION/$AGENT_VERSION/g" < "$template" > "$new_file"
 done
