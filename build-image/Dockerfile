@@ -55,8 +55,8 @@ FROM rfratto/viceroy:v0.4.0
 # will fail on installing NodeJS for all platforms instead of just our host
 # platform.
 RUN <<EOF
-  apt-get update && apt-get install -qy curl
-  curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+  apt-get update && apt-get install -qy ca-certificates curl gnupg && mkdir -p /etc/apt/keyrings
+  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 
   apt-get update && apt-get install -qy nodejs
   rm -rf /var/lib/apt/lists/*
