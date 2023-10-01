@@ -54,6 +54,7 @@ FROM rfratto/viceroy:v0.4.0
 # This must be done before installing other dependencies, otherwise nodesource
 # will fail on installing NodeJS for all platforms instead of just our host
 # platform.
+# Test change
 RUN <<EOF
   apt-get update && apt-get install -qy curl
   curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
