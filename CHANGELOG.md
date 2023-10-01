@@ -169,6 +169,8 @@ Main (unreleased)
 
 - `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
 
+- Migrate `Check Linux/Windows build image` to GitHub Actions. (@hainenber)
+
 v0.36.2 (2023-09-22)
 --------------------
 
