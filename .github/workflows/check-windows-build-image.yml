@@ -1,7 +1,7 @@
 name: Check Windows build image
 
 on:
-  push:
+  pull_request:
     paths:
       - 'build-image/windows/**'
 
