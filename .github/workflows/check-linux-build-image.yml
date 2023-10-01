@@ -9,6 +9,9 @@ jobs:
   check-linux-build-image:
     runs-on: ubuntu-22.04
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
 
