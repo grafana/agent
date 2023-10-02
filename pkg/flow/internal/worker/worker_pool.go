@@ -15,8 +15,9 @@ type Pool interface {
 	// is unable to accept extra work.
 	Submit(func()) error
 	// SubmitWithKey submits a function to be executed by the worker pool, ensuring that only one
-	// job with given key can be queued at the time. Adding a job with a key that is already queued is a no-op.
-	// Error is returned if the pool is unable to accept extra work.
+	// job with given key can be queued at the time. Adding a job with a key that is already queued is a no-op (even if
+	// the submitted function is different). Error is returned if the pool is unable to accept extra work - the caller
+	// can decide how to handle this situation.
 	SubmitWithKey(string, func()) error
 	// QueueSize returns the number of tasks currently queued.
 	QueueSize() int
@@ -36,7 +37,7 @@ type shardedWorkerPool struct {
 var _ Pool = (*shardedWorkerPool)(nil)
 
 func NewDefaultWorkerPool() Pool {
-	return NewShardedWorkerPool(runtime.NumCPU(), 100)
+	return NewShardedWorkerPool(runtime.NumCPU(), 1024)
 }
 
 // NewShardedWorkerPool creates a new worker pool with the given number of workers and queue size for each worker.

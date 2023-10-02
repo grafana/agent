@@ -610,7 +610,12 @@ func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) {
 		// Submit the node for asynchronous evaluation.
 		err := l.workerPool.SubmitWithKey(n.NodeID(), l.concurrentEvalFn(n, dependantCtx, tracer, parent))
 		if err != nil {
-			level.Error(l.log).Log("msg", "failed to submit node for evaluation", "node_id", n.NodeID(), "err", err)
+			// The error typically means that the workerPool queue is full. This could mean we have too many components
+			// and the agent cannot keep up with the evaluation. To degrade gracefully, we log the error and continue.
+			// Some evaluations may be missed.
+			level.Error(l.log).Log("msg", "failed to submit node for evaluation - the agent is likely "+
+				"overloaded and cannot keep up with evaluating components - some updates may be dropped",
+				"node_id", n.NodeID(), "err", err)
 			span.SetStatus(codes.Error, err.Error())
 		}
 		span.End()
