@@ -54,7 +54,7 @@ type Arguments struct {
 	// A set of query parameters with which the target is scraped.
 	Params url.Values `river:"params,attr,optional"`
 	// Whether to scrape a classic histogram that is also exposed as a native histogram.
-	ScrapeClassicHistograms bool `river:"scrape_classic_histogram,attr,optional"`
+	ScrapeClassicHistograms bool `river:"scrape_classic_histograms,attr,optional"`
 	// How frequently to scrape the targets of this scrape config.
 	ScrapeInterval time.Duration `river:"scrape_interval,attr,optional"`
 	// The timeout for scraping targets of this config.
