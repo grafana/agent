@@ -16,8 +16,8 @@ description: Learn about otelcol.processor.transform
 
 `otelcol.processor.transform` accepts telemetry data from other `otelcol`
 components and modifies it using the [OpenTelemetry Transformation Language (OTTL)][OTTL].
-OTTL statements consists of [OTTL functions][] which act on "paths".
-A "path" is a reference to a telemetry data such as:
+OTTL statements consist of [OTTL functions][], which act on paths.
+A path is a reference to a telemetry data such as:
 * Resource attributes.
 * Instrumentation scope name.
 * Span attributes.
@@ -38,11 +38,11 @@ there is also a set of metrics-only functions:
   * `set(attributes["whose_fault"], "theirs") where attributes["http.status"] == 400 or attributes["http.status"] == 404`
 * [Math expressions][OTTL math expressions] such as:
   * `1 + 1`
-  * `end_time_unix_nano - end_time_unix_nano`
+  * `end_time_unix_nano - start_time_unix_nano`
   * `sum([1, 2, 3, 4]) + (10 / 1) - 1`
 
 {{% admonition type="note" %}}
-Some characters inside River strings [need to be escaped][river-strings] via `\`.
+Some characters inside River strings [need to be escaped][river-strings] with a `\` character.
 For example, the OTTL statement `set(description, "Sum") where type == "Sum"` 
 is written in River as `"set(description, \"Sum\") where type == \"Sum\""`.
 
@@ -51,23 +51,24 @@ is written in River as `"set(description, \"Sum\") where type == \"Sum\""`.
 
 {{% admonition type="note" %}}
 `otelcol.processor.transform` is a wrapper over the upstream
-OpenTelemetry Collector `transform` processor. Bug reports or feature requests
-will be redirected to the upstream repository, if necessary.
+OpenTelemetry Collector `transform` processor. If necessary, bug reports or feature requests
+will be redirected to the upstream repository.
 {{% /admonition %}}
 
-Multiple `otelcol.processor.transform` components can be specified by giving them
-different labels.
+You can specify multiple `otelcol.processor.transform` components by giving them different labels.
 
 {{% admonition type="warning" %}}
-`otelcol.processor.transform` allows users to modify all aspects of their telemetry. Some specific risks are listed below, but this is not an exhaustive list. It is important to understand your data before using this processor.  
+`otelcol.processor.transform` allows you to modify all aspects of your telemetry. Some specific risks are given below, 
+but this is not an exhaustive list. It is important to understand your data before using this processor.  
 
 - [Unsound Transformations][]: Transformations between metric data types are not defined in the [metrics data model][]. 
-These functions have the expectation that you understand the incoming data and know that it can be meaningfully converted 
-to a new metric data type or can meaningfully be used to create new metrics.
-  - Although OTTL allows the `set` function to be used with `metric.data_type`, its implementation in the transform processor is a [no-op][].
-    To modify a data type you must use a function specific to that purpose.
-- [Identity Conflict][]: Transformation of metrics have the potential to affect the identity of a metric,
-  leading to an Identity Crisis. Be especially cautious when transforming metric name and when reducing/changing 
+To use these functions, you must understand the incoming data and know that it can be meaningfully converted 
+to a new metric data type or can be used to create new metrics.
+  - Although OTTL allows you to use the `set` function with `metric.data_type`, 
+    its implementation in the transform processor is a [no-op][].
+    To modify a data type, you must use a specific function such as `convert_gauge_to_sum`.
+- [Identity Conflict][]: Transformation of metrics can potentially affect a metric's identity,
+  leading to an Identity Crisis. Be especially cautious when transforming a metric name and when reducing or changing 
   existing attributes. Adding new attributes is safe.
 - [Orphaned Telemetry][]: The processor allows you to modify `span_id`, `trace_id`, and `parent_span_id` for traces 
   and `span_id`, and `trace_id` logs.  Modifying these fields could lead to orphaned spans or logs.
@@ -133,8 +134,8 @@ Name | Type | Description | Default | Required
 `statements` | `list(string)` | A list of OTTL statements. | | yes
 
 The supported values for `context` are:
-* `resource`: Use when interacting only with OTLP resources (e.g. resource attributes).
-* `scope`: Use when interacting only with OTLP instrumentation scope (e.g. name of the instrumentation scope).
+* `resource`: Use when interacting only with OTLP resources (for example, resource attributes).
+* `scope`: Use when interacting only with OTLP instrumentation scope (for example, the name of the instrumentation scope).
 * `span`: Use when interacting only with OTLP spans.
 * `spanevent`: Use when interacting only with OTLP span events.
 
@@ -151,12 +152,12 @@ Name | Type | Description | Default | Required
 `statements` | `list(string)` | A list of OTTL statements. | | yes
 
 The supported values for `context` are:
-* `resource`: Use when interacting only with OTLP resources (e.g. resource attributes).
-* `scope`: Use when interacting only with OTLP instrumentation scope (e.g. name of the instrumentation scope).
+* `resource`: Use when interacting only with OTLP resources (for example, resource attributes).
+* `scope`: Use when interacting only with OTLP instrumentation scope (for example, the name of the instrumentation scope).
 * `metric`: Use when interacting only with individual OTLP metrics.
-* `datapoint`: Use when interacting only with individual OTLP data points.
+* `datapoint`: Use when interacting only with individual OTLP metric data points.
 
-See [OTTL Context][] for more information about how ot use contexts.
+Refer to [OTTL Context][] for more information about how to use contexts.
 
 ### log_statements block
 
@@ -169,15 +170,15 @@ Name | Type | Description | Default | Required
 `statements` | `list(string)` | A list of OTTL statements. | | yes
 
 The supported values for `context` are:
-* `resource`: Use when interacting only with OTLP resources (e.g. resource attributes).
-* `scope`: Use when interacting only with OTLP instrumentation scope (e.g. name of the instrumentation scope).
+* `resource`: Use when interacting only with OTLP resources (for example, resource attributes).
+* `scope`: Use when interacting only with OTLP instrumentation scope (for example, the name of the instrumentation scope).
 * `log`: Use when interacting only with OTLP logs.
 
 See [OTTL Context][] for more information about how ot use contexts.
 
 ### OTTL Context
 
-Each context allows transformation of its type of telemetry.
+Each context allows the transformation of its type of telemetry.
 For example, statements associated with a `resource` context will be able to transform the resource's 
 `attributes` and `dropped_attributes_count`.
 
@@ -233,10 +234,10 @@ The protobuf definitions for OTLP signals are maintained on GitHub:
 * [metrics][metrics protobuf]
 * [logs][logs protobuf]
 
-Whenever possible, associate your statements to the context that the statement intend to transform.
-Although you can modify resource attributes associated to a span using the `span` context, 
-it is more efficient to use the `resource` context. This is because contexts are nested: 
-the efficiency comes because higher-level contexts can avoid iterating through any of the contexts at a lower level. 
+Whenever possible, associate your statements to the context which the statement intens to transform.
+The contexts are nested, and the higher-level contexts don't have to iterate through any of the
+contexts at a lower level. For example, although you can modify resource attributes associated to a 
+span using the `span` context, it is more efficient to use the `resource` context.
 
 ### output block
 
@@ -271,7 +272,7 @@ information.
 
 ### Perform a transformation if an attribute does not exist
 
-This example will set attribute "test" to "pass" if the attribute "test" does not exist.
+This example sets the attribute `test` to `pass` if the attribute `test` does not exist.
 
 ```river
 otelcol.processor.transform "default" {
@@ -293,7 +294,7 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Note that each `"` was [escaped][river-strings] with `\"` inside the River string.
+Each `"` is [escaped][river-strings] with `\"` inside the River string.
 
 ### Rename a resource attribute
 
@@ -341,13 +342,13 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Note that some values in the River string were [escaped][river-strings]:
-* `\` was escaped with `\\`
-* `"` was escaped with `\"`
+Some values in the River string are [escaped][river-strings]:
+* `\` is escaped with `\\`
+* `"` is escaped with `\"`
 
 ### Create an attribute from the contents of a log body
 
-This example will set the attribute "body" to the value of the log body:
+This example sets the attribute `body` to the value of the log body:
 
 ```river
 otelcol.processor.transform "default" {
@@ -368,11 +369,11 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Note that each `"` was [escaped][river-strings] with `\"` inside the River string.
+Each `"` is [escaped][river-strings] with `\"` inside the River string.
 
 ### Combine two attributes
 
-This example will set attribute "test" to the value of attributes "foo" and "bar" combined.
+This example sets the attribute `test` to the value of attributes `service.name` and `service.version` combined.
 
 ```river
 otelcol.processor.transform "default" {
@@ -382,7 +383,7 @@ otelcol.processor.transform "default" {
     context = "resource"
     statements = [
       // The Concat function combines any number of strings, separated by a delimiter.
-      "set(attributes[\"test\"], Concat([attributes[\"foo\"], attributes[\"bar\"]], \" \"))",
+      "set(attributes[\"test\"], Concat([attributes[\"service.name\"], attributes[\"service.version\"]], \" \"))",
     ]
   }
 
@@ -394,24 +395,24 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Note that each `"` was [escaped][river-strings] with `\"` inside the River string.
+Each `"` is [escaped][river-strings] with `\"` inside the River string.
 
 ### Parsing JSON logs
 
-Given the following json body...
+Given the following JSON body:
 
 ```json
 {
   "name": "log",
-  "attr1": "foo",
-  "attr2": "bar",
+  "attr1": "example value 1",
+  "attr2": "example value 2",
   "nested": {
-    "attr3": "example"
+    "attr3": "example value 3"
   }
 }
 ```
 
-... add specific fields as attributes on the log:
+You can add specific fields as attributes on the log:
 
 ```river
 otelcol.processor.transform "default" {
@@ -444,9 +445,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Note that some values in the River strings were [escaped][river-strings]:
-* `\` was escaped with `\\`
-* `"` was escaped with `\"`
+Some values in the River strings are [escaped][river-strings]:
+* `\` is escaped with `\\`
+* `"` is escaped with `\"`
 
 ### Various transformations of attributes and status codes
 
@@ -545,9 +546,9 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-Note that some values in the River strings were [escaped][river-strings]:
-* `\` was escaped with `\\`
-* `"` was escaped with `\"`
+Some values in the River strings are [escaped][river-strings]:
+* `\` is escaped with `\\`
+* `"` is escaped with `\"`
 
 [river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
 
