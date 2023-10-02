@@ -41,7 +41,7 @@ with pods so that you can use them for the WAL directory.
 You can also use a Kubernetes deployment in cases where persistent storage is not required, such as a traces-only pipeline.
 
 ### Pros
-* Straightforward scaling using clustering or hashmod sharding
+* Straightforward scaling using [clustering][] or [hashmod sharding][]
 * Minimizes the “noisy neighbor” effect
 * Easy to meta-monitor
 
@@ -115,3 +115,5 @@ application and the sidecar agent.
 * Long-lived applications 
 * Scenarios where the agent size grows so large it can become a noisy neighbor
 
+[hashmod sharding]: {{< relref "../../static/operation-guide/_index.md" >}}
+[clustering]: {{< relref "../concepts/clustering.md" >}}
