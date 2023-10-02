@@ -1,0 +1,27 @@
+name: Integration Test
+
+on:
+  push:
+    branches:
+      - experiment-integration-tests
+
+  schedule:
+    - cron: '0 3 * * *'
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: main
+
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.21.0"
+
+    - name: Run tests
+      run: ./integration-tests/tests/run-integration-tests.sh

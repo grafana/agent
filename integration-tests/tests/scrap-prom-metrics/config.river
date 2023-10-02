@@ -1,0 +1,20 @@
+prometheus.scrape "test" {
+  targets = [
+    {"__address__" = "localhost:9001"},
+  ]
+  forward_to = [prometheus.remote_write.test.receiver]
+  scrape_interval = "10s"
+  scrape_timeout = "5s"
+}
+
+prometheus.remote_write "test" {
+  endpoint {
+    url = "http://localhost:9009/api/v1/push"
+    metadata_config {
+        send_interval = "1s"
+    }
+    queue_config {
+        max_samples_per_send = 100
+    }
+  }
+}

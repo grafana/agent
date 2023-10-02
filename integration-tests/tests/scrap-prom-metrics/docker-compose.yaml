@@ -1,0 +1,21 @@
+version: "3"
+services:
+
+  mimir:
+    image: grafana/mimir:2.9.0
+    volumes:
+      - ../../configs/mimir:/etc/mimir-config
+    entrypoint:
+      - /bin/mimir
+      - -config.file=/etc/mimir-config/mimir.yaml
+    ports:
+      - "9009:9009"
+
+  avalanche:
+    image: quay.io/freshtracks.io/avalanche:latest
+    command:
+      - --metric-count=3000
+      - --series-interval=3600
+      - --metric-interval=7200
+    ports:
+      - "9001:9001"
