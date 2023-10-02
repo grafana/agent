@@ -598,7 +598,7 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 	// Make sure we're in-sync with the current exports of c.
 	l.cache.CacheExports(c.ID(), c.Exports())
 
-	_ = dag.WalkReverse(l.graph, []dag.Node{c}, func(n dag.Node) error {
+	_ = dag.WalkReverse(l.graph, c, func(n dag.Node, parent dag.Node) error {
 		if n == c {
 			// Skip over the starting component; the starting component passed to
 			// EvaluateDependencies had its exports changed and none of its input
@@ -615,10 +615,12 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 			level.Info(logger).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", time.Since(start))
 		}()
 
-		var err error
-		// Record the time the dependencies had to wait to be evaluated.
-		l.cm.dependenciesWaitTime.Observe(time.Since(c.lastUpdateTime.Load()).Seconds())
+		// Record the time that dependencies had to wait to be evaluated.
+		if parentCmp, ok := parent.(*ComponentNode); ok {
+			l.cm.dependenciesWaitTime.Observe(time.Since(parentCmp.lastUpdateTime.Load()).Seconds())
+		}
 
+		var err error
 		switch n := n.(type) {
 		case BlockNode:
 			err = l.evaluate(logger, n)
