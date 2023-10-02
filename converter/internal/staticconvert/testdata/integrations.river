@@ -91,6 +91,24 @@ prometheus.scrape "integrations_azure_exporter" {
 	}
 }
 
+prometheus.exporter.cadvisor "integrations_cadvisor" {
+	allowlisted_container_labels = [""]
+	env_metadata_allowlist       = [""]
+	raw_cgroup_prefix_allowlist  = [""]
+}
+
+prometheus.scrape "integrations_cadvisor" {
+	targets    = prometheus.exporter.cadvisor.integrations_cadvisor.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/cadvisor"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
+}
+
 prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
 	sts_region    = "us-east-2"
 	fips_disabled = false
