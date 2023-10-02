@@ -615,7 +615,7 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 			level.Info(logger).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", time.Since(start))
 		}()
 
-		// Record the time that dependencies had to wait to be evaluated.
+		// Record how long components wait to be evaluated after their dependency is updated
 		if parentCmp, ok := parent.(*ComponentNode); ok {
 			l.cm.dependenciesWaitTime.Observe(time.Since(parentCmp.lastUpdateTime.Load()).Seconds())
 		}

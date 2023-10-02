@@ -128,7 +128,7 @@ Main (unreleased)
 - Promtail converter will now treat `global positions configuration is not supported` as a Warning instead of Error. (@erikbaranowski)
 
 - Add new `agent_component_dependencies_wait_seconds` histogram metric and a dashboard panel 
-  that measures the time the components wait to be evaluated after their dependencies are updated (@thampiotr)
+  that measures how long components wait to be evaluated after their dependency is updated (@thampiotr)
 
 ### Bugfixes
 
