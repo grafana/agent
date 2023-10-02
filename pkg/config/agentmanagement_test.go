@@ -48,6 +48,10 @@ func (t *testRemoteConfigProvider) CacheRemoteConfig(r []byte) error {
 	return nil
 }
 
+func (t *testRemoteConfigProvider) GetPollingInterval() time.Duration {
+	return t.InitialConfig.PollingInterval
+}
+
 var validAgentManagementConfig = AgentManagementConfig{
 	Enabled: true,
 	Host:    "localhost:1234",
