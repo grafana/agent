@@ -1,0 +1,25 @@
+otelcol.receiver.otlp "test" {
+  http {
+    endpoint="localhost:8081"
+  }
+
+  output {
+    metrics = [otelcol.exporter.prometheus.test.input]
+  }
+}
+
+otelcol.exporter.prometheus "test" {
+  forward_to = [prometheus.remote_write.test.receiver]
+}
+
+prometheus.remote_write "test" {
+  endpoint {
+    url = "http://localhost:3100/loki/api/v1/push"
+    metadata_config {
+        send_interval = "1s"
+    }
+    queue_config {
+        max_samples_per_send = 100
+    }
+  }
+}
