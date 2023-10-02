@@ -26,5 +26,6 @@ jobs:
     - name: Run tests
       run: |
         pwd
+        ls
         cd integration-tests/tests
         ./run-integration-tests.sh
