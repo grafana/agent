@@ -76,6 +76,8 @@ Main (unreleased)
   This will load all River files in the directory as a single configuration;
   component names must be unique across all loaded files. (@rfratto, @hainenber)
 
+- Added support for `static` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@erikbaranowski)
+
 - Flow: the `prometheus.scrape` component can now configure the scraping of
   Prometheus native histograms. (@tpaschalis)
 
