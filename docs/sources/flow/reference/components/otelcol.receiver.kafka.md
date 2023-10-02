@@ -61,7 +61,9 @@ The `encoding` argument determines how to decode messages read from Kafka.
 * `"zipkin_thrift"`: Decode messages as a list of Zipkin Thrift spans.
 * `"raw"`: Copy the log message bytes into the body of a log record.
 * `"text"`: Decode the log message as text and insert it into the body of a log record.
-By default, UTF-8 is used to decode. A different encoding can be chosen by using `text_<ENCODING>`. For example, `text_utf-8` or `text_shift_jis`.
+  By default, UTF-8 is used to decode. A different encoding can be chosen by using `text_<ENCODING>`. For example, `text_utf-8` or `text_shift_jis`.
+* `"json"`: Decode the JSON payload and insert it into the body of a log record.
+
 
 `"otlp_proto"` must be used to read all telemetry types from Kafka; other
 encodings are signal-specific.

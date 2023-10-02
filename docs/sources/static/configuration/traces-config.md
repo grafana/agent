@@ -80,7 +80,7 @@ remote_write:
 
     # Configures opentelemetry exporters to use the OpenTelemetry auth extension `oauth2clientauthextension`.
     # Can not be used in combination with `basic_auth`.
-    # See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.80.0/extension/oauth2clientauthextension/README.md
+    # See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/extension/oauth2clientauthextension/README.md
     oauth2:
       # Configures the TLS settings specific to the oauth2 client
       # The client identifier issued to the oauth client
@@ -96,7 +96,7 @@ remote_write:
       # Optional, specifies the timeout fetching tokens from the token_url. Default: no timeout
       [ timeout: <duration> ]
       # TLS client configuration for the underneath client to authorization server.
-      # https://github.com/open-telemetry/opentelemetry-collector/blob/v0.80.0/config/configtls/README.md
+      # https://github.com/open-telemetry/opentelemetry-collector/blob/v0.85.0/config/configtls/README.md
       tls:
         # Disable validation of the server certificate.
         [ insecure: <bool> | default = false ]
@@ -191,7 +191,7 @@ automatic_logging:
 
 # Receiver configurations are mapped directly into the OpenTelemetry receivers
 # block. At least one receiver is required.
-# The Agent uses OpenTelemetry v0.80.0. Refer to the corresponding receiver's config.
+# The Agent uses OpenTelemetry v0.85.0. Refer to the corresponding receiver's config.
 #
 # Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
 receivers: <receivers>
@@ -414,7 +414,7 @@ service_graphs:
 
 # jaeger_remote_sampling configures one or more jaeger remote sampling extensions.
 # For more details about the configuration please consult the OpenTelemetry documentation:
-# https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/extension/jaegerremotesampling
+# https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/extension/jaegerremotesampling
 # 
 # Example config:
 # 
@@ -434,17 +434,17 @@ jaeger_remote_sampling:
 
 More information on the following types can be found on the documentation for their respective projects:
 
-* [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/processor/attributesprocessor)
-* [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.80.0/processor/batchprocessor)
-* [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.80.0/exporter/otlpexporter)
-* [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.80.0/exporter/otlpexporter)
+* [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/processor/attributesprocessor)
+* [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.85.0/processor/batchprocessor)
+* [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.85.0/exporter/otlpexporter)
+* [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.85.0/exporter/otlpexporter)
 * `receivers`:
-  * [`jaegerreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/receiver/jaegerreceiver)
-  * [`kafkareceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/receiver/kafkareceiver)
-  * [`otlpreceiver`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.80.0/receiver/otlpreceiver)
-  * [`opencensusreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/receiver/opencensusreceiver)
-  * [`zipkinreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/receiver/zipkinreceiver)
+  * [`jaegerreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/receiver/jaegerreceiver)
+  * [`kafkareceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/receiver/kafkareceiver)
+  * [`otlpreceiver`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.85.0/receiver/otlpreceiver)
+  * [`opencensusreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/receiver/opencensusreceiver)
+  * [`zipkinreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/receiver/zipkinreceiver)
 * [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
-* [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.80.0/processor/spanmetricsprocessor/config.go#L37-L39)
-* [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.80.0/processor/spanmetricsprocessor/config.go#L41-L48)
-* [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/processor/tailsamplingprocessor)
+* [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/processor/spanmetricsprocessor/config.go#L37-L39)
+* [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/processor/spanmetricsprocessor/config.go#L41-L48)
+* [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/processor/tailsamplingprocessor)

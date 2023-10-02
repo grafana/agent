@@ -28,7 +28,9 @@ Example response body:
 ]
 ```
 
-It is possible to use additional fields in the JSON to pass parameters to [prometheus.scrape](../prometheus.scrape#technical-details) such as the `metricsPath` and `scrape_interval`.
+It is possible to use additional fields in the JSON to pass parameters to [prometheus.scrape][] such as the `metricsPath` and `scrape_interval`.
+
+[prometheus.scrape]: {{< relref "./prometheus.scrape.md#technical-details" >}}
 
 As an example, the following will provide a target with a custom `metricsPath`, scrape interval, and timeout value:
 
@@ -73,7 +75,7 @@ For example, the following will call a metrics path of `/health?target_data=prom
 
 ```
 
-For more information on the potential labels you can use, see the [prometheus.scrape technical details](../prometheus.scrape#technical-details) section, or the [Prometheus Configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) documentation.
+For more information on the potential labels you can use, see the [prometheus.scrape technical details][prometheus.scrape] section, or the [Prometheus Configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) documentation.
 
 ## Usage
 
