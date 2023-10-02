@@ -16,7 +16,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
-        ref: main
+        ref: experiment-integration-tests
 
     - name: Setup Go
       uses: actions/setup-go@v2
@@ -25,7 +25,5 @@ jobs:
 
     - name: Run tests
       run: |
-        pwd
-        ls
         cd integration-tests/tests
         ./run-integration-tests.sh
