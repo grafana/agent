@@ -30,13 +30,13 @@ there is also a set of metrics-only functions:
 * [convert_summary_sum_val_to_sum][]
 
 [OTTL][] statements can also contain constructs such as:
-* [Booleans][OTTL booleans] such as:
+* [Booleans][OTTL booleans]:
   * `not true`
   * `not IsMatch(name, "http_.*")`
 * [Boolean Expressions][OTTL boolean expressions] consisting of a `where` followed by one or more booleans:
   * `set(attributes["whose_fault"], "ours") where attributes["http.status"] == 500`
   * `set(attributes["whose_fault"], "theirs") where attributes["http.status"] == 400 or attributes["http.status"] == 404`
-* [Math expressions][OTTL math expressions] such as:
+* [Math expressions][OTTL math expressions]:
   * `1 + 1`
   * `end_time_unix_nano - start_time_unix_nano`
   * `sum([1, 2, 3, 4]) + (10 / 1) - 1`
@@ -111,10 +111,10 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-output | [output][] | Configures where to send received telemetry data. | yes
 trace_statements | [trace_statements][] | Statements which transform traces. | no
 metric_statements | [metric_statements][] | Statements which transform metrics. | no
 log_statements | [log_statements][] | Statements which transform logs. | no
+output | [output][] | Configures where to send received telemetry data. | yes
 
 [trace_statements]: #trace_statements-block
 [metric_statements]: #metric_statements-block
