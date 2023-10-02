@@ -617,7 +617,7 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 
 		var err error
 		// Record the time the dependencies had to wait to be evaluated.
-		l.cm.dependenciesWaitTime.Observe(time.Since(c.lastUpdateTime).Seconds())
+		l.cm.dependenciesWaitTime.Observe(time.Since(c.lastUpdateTime.Load()).Seconds())
 
 		switch n := n.(type) {
 		case BlockNode:

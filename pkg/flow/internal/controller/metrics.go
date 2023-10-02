@@ -31,7 +31,7 @@ func newControllerMetrics(id string) *controllerMetrics {
 	cm.dependenciesWaitTime = prometheus.NewHistogram(
 		prometheus.HistogramOpts{
 			Name:        "agent_component_dependencies_wait_seconds",
-			Help:        "Time spent waiting for dependencies to be evaluated",
+			Help:        "Time from the moment a component's evaluation is done until its dependency evaluation is started.",
 			ConstLabels: map[string]string{"controller_id": id},
 		},
 	)
