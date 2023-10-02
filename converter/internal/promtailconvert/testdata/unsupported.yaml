@@ -5,11 +5,8 @@ global:
 clients:
   - url: http://localhost/loki/api/v1/push
     drop_rate_limited_batches: true
-    stream_lag_labels: hare,tortoise
 positions:
   filename: /dev/urandom
-options:
-  stream_lag_labels: hare,tortoise
 wal:
   enabled: true
 limits_config:

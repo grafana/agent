@@ -239,7 +239,10 @@ func (fr *flowRun) Run(configPath string) error {
 		Cluster:  clusterService.Data().(cluster.Cluster),
 	})
 
-	otelService := otel_service.New()
+	otelService := otel_service.New(l)
+	if otelService == nil {
+		return fmt.Errorf("failed to create otel service")
+	}
 
 	f := flow.New(flow.Options{
 		Logger:   l,

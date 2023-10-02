@@ -7,13 +7,14 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prome
 labels:
   stage: beta
 title: prometheus.operator.probes
+description: Learn about prometheus.operator.probes
 ---
 
 # prometheus.operator.probes
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
-`prometheus.operator.probes` discovers [Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe) resources in your kubernetes cluster and scrapes the targets they reference. This component performs three main functions:
+`prometheus.operator.probes` discovers [Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe) resources in your Kubernetes cluster and scrapes the targets they reference. This component performs three main functions:
 
 1. Discover Probe resources from your Kubernetes cluster.
 2. Discover targets or ingresses that match those Probes.
@@ -53,6 +54,7 @@ client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the Kubern
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 rule | [rule][] | Relabeling rules to apply to discovered targets. | no
+scrape | [scrape][] | Default scrape configuration to apply to discovered targets. | no
 selector | [selector][] | Label selector for which Probes to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which Probes to discover. | no
 clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
@@ -69,6 +71,7 @@ inside a `client` block.
 [selector]: #selector-block
 [match_expression]: #match_expression-block
 [rule]: #rule-block
+[scrape]: #scrape-block
 [clustering]: #clustering-experimental
 
 ### client block
@@ -115,6 +118,10 @@ Name | Type | Description | Default | Required
 
 {{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
 
+### scrape block
+
+{{< docs/shared lookup="flow/reference/components/prom-operator-scrape.md" source="agent" version="<AGENT VERSION>" >}}
+
 ### selector block
 
 The `selector` block describes a Kubernetes label selector for Probes.
@@ -147,7 +154,7 @@ The `operator` argument must be one of the following strings:
 * `"Exists"`
 * `"DoesNotExist"`
 
-If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses. 
+If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses.
 
 ### clustering (experimental)
 
@@ -177,7 +184,7 @@ fully consistent like hashmod sharding is).
 If the agent is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.probes` scrapes every target it receives in its arguments.
 
-[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
+[clustered mode]: {{< relref "../cli/run.md#clustering-beta" >}}
 
 ## Exported fields
 

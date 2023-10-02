@@ -3,6 +3,7 @@ aliases:
 - ../../../configuration/integrations/elasticsearch-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/elasticsearch-exporter-config/
 title: elasticsearch_exporter_config
+description: Learn about elasticsearch_exporter_config
 ---
 
 # elasticsearch_exporter_config

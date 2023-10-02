@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.scrape/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/
 title: prometheus.scrape
+description: Learn about prometheus.scrape
 ---
 
 # prometheus.scrape
@@ -46,9 +47,11 @@ Name | Type | Description | Default | Required
 `forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
 `job_name`                 | `string`   | The job name to override the job label with. | component name | no
 `extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
+`enable_protobuf_negotiation` | `bool`     | Whether to enable protobuf negotiation with the client. | `false` | no
 `honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
 `honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
 `params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
+`scrape_classic_histogram` | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
 `scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"60s"` | no
 `scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"10s"` | no
 `metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
@@ -228,6 +231,12 @@ scrape target, either because it is not reachable, because the connection
 times out while scraping, or because the samples from the target could not be
 processed. When the target is behaving normally, the `up` metric is set to
 `1`.
+
+To enable scraping of Prometheus' native histograms over gRPC, the
+`enable_protobuf_negotiation` must be set to true. The
+`scrape_classic_histogram` argument controls whether the component should also
+scrape the 'classic' histogram equivalent of a native histogram, if it is
+present.
 
 [in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [run command]: {{< relref "../cli/run.md" >}}

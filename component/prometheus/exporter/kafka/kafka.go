@@ -54,7 +54,7 @@ func init() {
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
 		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.NewWithTargetBuilder(createIntegration, "kafka", customizeTarget),
+		Build:         exporter.NewWithTargetBuilder(createExporter, "kafka", customizeTarget),
 	})
 }
 
@@ -82,9 +82,9 @@ func customizeTarget(baseTarget discovery.Target, args component.Arguments) []di
 	return []discovery.Target{target}
 }
 
-func createIntegration(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return a.Convert().NewIntegration(opts.Logger)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 func (a *Arguments) Convert() *kafka_exporter.Config {

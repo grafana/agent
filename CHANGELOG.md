@@ -21,6 +21,11 @@ Main (unreleased)
 
 - Static mode Windows Certificate Filter no longer restricted to TLS 1.2 and specific cipher suites. (@mattdurham)
 
+- The `__meta_agent_integration*` and `__meta_agent_hostname` labels have been
+  removed from the targets exposed by `prometheus.exporter.*` components and
+  got replaced by the pair of `__meta_component_name` and `__meta_component_id`
+  labels. (@tpaschalis)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -71,6 +76,8 @@ Main (unreleased)
   This will load all River files in the directory as a single configuration;
   component names must be unique across all loaded files. (@rfratto, @hainenber)
 
+- Flow: the `prometheus.scrape` component can now configure the scraping of
+  Prometheus native histograms. (@tpaschalis)
 
 ### Enhancements
 
@@ -104,6 +111,22 @@ Main (unreleased)
 
 - Agent Management: Honor 503 ServiceUnavailable `Retry-After` header. (@jcreixell)
 
+- Bump opentelemetry-collector and opentelemetry-collector-contrib versions from v0.80 to v0.85 (@wildum):
+  - add `authoriy` attribute to `otelcol.exporter.loadbalancing` to override the default value in gRPC requests.
+  - add `exemplars` support to `otelcol.connector.spanmetrics`.
+  - add `exclude_dimensions` attribute to `otelcol.connector.spanmetrics` to exclude dimensions from the default set.
+  - add `authority` attribute to `otelcol.receiver.otlp` to override the default value in gRPC requests.
+  - add `disable_keep_alives` attribute to `otelcol.receiver.otlp` to disable the HTTP keep alive feature.
+  - add `traces_url_path`, `metrics_url_path` and `logs_url_path` attributes to `otelcol.receiver.otlp` to specify the URl path to respectively receive traces, metrics and logs on.
+  - add the value `json` to the `encoding` attribute of `otelcol.receiver.kafka`. The component is now able to decode `json` payload and to insert it into the body of a log record.
+
+- Added `scrape` block to customize the default behavior of `prometheus.operator.podmonitors`, `prometheus.operator.probes`, and `prometheus.operator.servicemonitors`. (@sberz)
+
+- The `instance` label of targets exposed by `prometheus.exporter.*` components
+  is now more representative of what is being monitored. (@tpaschalis)
+
+- Promtail converter will now treat `global positions configuration is not supported` as a Warning instead of Error. (@erikbaranowski)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
@@ -111,6 +134,13 @@ Main (unreleased)
   and `version` is now `otel_version_name`. (@erikbaranowski)
 
 - Fixed a bug where converting `YACE` cloudwatch config to river skipped converting static jobs. (@berler)
+
+- Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets
+  instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
+
+- Fixed race condition in cleaning up metrics when stopping to tail files in static mode. (@thampiotr)
+
+- Fixed a bug where the BackOffLimit for the kubernetes tailer was always set to zero. (@anderssonw)
 
 ### Other changes
 
@@ -135,6 +165,10 @@ Main (unreleased)
 
 - Switch to `IBM/sarama` module. (@hainenber)
 
+- Bump `webdevops/go-commons` to version containing `LICENSE`. (@hainenber)
+
+- `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
+
 v0.36.2 (2023-09-22)
 --------------------
 
@@ -147,9 +181,6 @@ v0.36.2 (2023-09-22)
 - Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
 
 - Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
-
-- Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets
-  instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
 
 v0.36.1 (2023-09-06)
 --------------------

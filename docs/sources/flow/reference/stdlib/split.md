@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/split/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/split/
 title: split
+description: Learn about split
 ---
 
 # split

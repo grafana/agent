@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.agent/
-title: prometheus.exporter.agen
+title: prometheus.exporter.agent
+description: Learn about prometheus.exporter.agen
 ---
 
 # prometheus.exporter.agent
@@ -18,7 +19,7 @@ prometheus.exporter.agent "agent" {
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporters-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 

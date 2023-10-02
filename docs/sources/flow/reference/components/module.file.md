@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/modul
 labels:
   stage: beta
 title: module.file
+description: Learn about module.file
 ---
 
 # module.file

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"sync"
 
 	"github.com/go-kit/log/level"
@@ -17,7 +18,7 @@ import (
 )
 
 // Creator is a function provided by an implementation to create a concrete exporter instance.
-type Creator func(component.Options, component.Arguments) (integrations.Integration, error)
+type Creator func(component.Options, component.Arguments, string) (integrations.Integration, string, error)
 
 // Exports are simply a list of targets for a scraper to consume.
 type Exports struct {
@@ -84,12 +85,15 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	exporter, err := c.creator(c.opts, args)
+	exporter, instanceKey, err := c.creator(c.opts, args, defaultInstance())
 	if err != nil {
 		return err
 	}
 	c.mut.Lock()
 	c.exporter = exporter
+	if instanceKey != "" {
+		c.baseTarget["instance"] = instanceKey
+	}
 
 	var targets []discovery.Target
 	if c.targetBuilderFunc == nil {
@@ -133,16 +137,19 @@ func newExporter(creator Creator, name string, targetBuilderFunc func(discovery.
 		}
 		httpData := data.(http_service.Data)
 
+		componentName := opts.ID[:strings.LastIndex(opts.ID, ".")]
+		if opts.ID == "prometheus.exporter.unix" {
+			componentName = opts.ID
+		}
+
 		c.baseTarget = discovery.Target{
-			model.AddressLabel:                  httpData.MemoryListenAddr,
-			model.SchemeLabel:                   "http",
-			model.MetricsPathLabel:              path.Join(httpData.HTTPPathForComponent(opts.ID), "metrics"),
-			"instance":                          instance,
-			"job":                               jobName,
-			"__meta_agent_integration_name":     jobName,
-			"__meta_agent_integration_instance": instance,
-			"__meta_agent_integration_id":       opts.ID,
-			"__meta_agent_hostname":             instance,
+			model.AddressLabel:      httpData.MemoryListenAddr,
+			model.SchemeLabel:       "http",
+			model.MetricsPathLabel:  path.Join(httpData.HTTPPathForComponent(opts.ID), "metrics"),
+			"instance":              instance,
+			"job":                   jobName,
+			"__meta_component_name": componentName,
+			"__meta_component_id":   opts.ID,
 		}
 
 		// Call to Update() to set the output once at the start.

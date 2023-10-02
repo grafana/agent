@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 labels:
   stage: experimental
 title: otelcol.connector.spanmetrics
+description: Learn about otelcol.connector.spanmetrics
 ---
 
 # otelcol.connector.spanmetrics
@@ -56,6 +57,7 @@ otelcol.connector.spanmetrics "LABEL" {
 | `aggregation_temporality` | `string`   | Configures whether to reset the metrics after flushing. | `"CUMULATIVE"` | no       |
 | `metrics_flush_interval`  | `duration` | How often to flush generated metrics.                   | `"15s"`        | no       |
 | `namespace`               | `string`   | Metric namespace.                                       | `""`           | no       |
+| `exclude_dimensions`      | `list(string)` | List of dimensions to be excluded from the default set of dimensions. | `false` | no |
 
 Adjusting `dimensions_cache_size` can improve the Agent process' memory usage.
 
@@ -77,6 +79,7 @@ The following blocks are supported inside the definition of
 | histogram               | [histogram][]   | Configures the histogram derived from spans durations.  | yes      |
 | histogram > exponential | [exponential][] | Configuration for a histogram with exponential buckets. | no       |
 | histogram > explicit    | [explicit][]    | Configuration for a histogram with explicit buckets.    | no       |
+| exemplars               | [exemplars][]   | Configures how to attach exemplars to histograms.       | no       |
 | output                  | [output][]      | Configures where to send telemetry data.                | yes      |
 
 It is necessary to specify either a "[exponential][]" or an "[explicit][]" block:
@@ -88,6 +91,7 @@ It is necessary to specify either a "[exponential][]" or an "[explicit][]" block
 [histogram]: #histogram-block
 [exponential]: #exponential-block
 [explicit]: #explicit-block
+[exemplars]: #exemplars-block
 [output]: #output-block
 
 ### dimension block
@@ -128,6 +132,7 @@ The following attributes are supported:
 | Name   | Type     | Description                     | Default | Required |
 | ------ | -------- | ------------------------------- | ------- | -------- |
 | `unit` | `string` | Configures the histogram units. | `"ms"`  | no       |
+| `disable`| `bool` | Disable all histogram metrics. | `false` | no |
 
 The supported values for `aggregation_temporality` are:
 
@@ -153,6 +158,16 @@ The following attributes are supported:
 | Name      | Type             | Description                | Default                                                                                                                      | Required |
 | --------- | ---------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- |
 | `buckets` | `list(duration)` | List of histogram buckets. | `["2ms", "4ms", "6ms", "8ms", "10ms", "50ms", "100ms", "200ms", "400ms", "800ms", "1s", "1400ms", "2s", "5s", "10s", "15s"]` | no       |
+
+### exemplars block
+
+The `exemplars` block configures how to attach exemplars to histograms.
+
+The following attributes are supported:
+
+| Name       | Type     | Description                                                      | Default | Required |
+| ---------- | -------- | ---------------------------------------------------------------- | ------- | -------- |
+| `enabled`  | `bool`   | Configures whether to add exemplars to histograms.               | `false` | no       |
 
 ### output block
 

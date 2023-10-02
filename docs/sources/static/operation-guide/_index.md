@@ -3,21 +3,22 @@ aliases:
 - ../operation-guide/
 canonical: https://grafana.com/docs/agent/latest/static/operation-guide/
 title: Operation guide
+description: Learn how to operate Grafana Agent
 weight: 700
 ---
 
 # Operation guide
 
-This guide helps you operate the Grafana Agent.
+This guide helps you operate Grafana Agent.
 
 ## Horizontal Scaling
 
 There are three options to horizontally scale your deployment of Grafana Agents:
 
-- [Host filtering](#host-filtering) requires you to run one Agent on every
+- [Host filtering](#host-filtering-beta) requires you to run one Agent on every
   machine you wish to collect metrics from. Agents will only collect metrics
   from the machines they run on.
-- [Hashmod sharding](#hashmod-sharding) allows you to roughly shard the
+- [Hashmod sharding](#hashmod-sharding-stable) allows you to roughly shard the
   discovered set of targets by using hashmod/keep relabel rules.
 - The [scraping service][scrape] allows you to cluster Grafana
   Agents and have them distribute per-tenant configs throughout the cluster.

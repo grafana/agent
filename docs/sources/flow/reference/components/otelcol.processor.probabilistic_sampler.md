@@ -3,6 +3,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 labels:
   stage: experimental
 title: otelcol.processor.probabilistic_sampler
+description: Learn about telcol.processor.probabilistic_sampler
 ---
 
 # otelcol.processor.probabilistic_sampler
