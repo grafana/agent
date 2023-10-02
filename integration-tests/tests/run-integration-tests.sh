@@ -29,7 +29,7 @@ make -C ../.. agent-flow
 
 trap cleanup EXIT ERR
 
-for i in {1..2}; do
+for i in {1..10}; do
     while read -r test_dir; do
         pushd "$test_dir"
         docker-compose up -d
