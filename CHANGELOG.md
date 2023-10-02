@@ -176,6 +176,8 @@ Main (unreleased)
 
 - `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
 
+- Documentation updated to correct default path from `prometheus.exporter.windows` `text_file` block (@timo1707)
+
 v0.36.2 (2023-09-22)
 --------------------
 
