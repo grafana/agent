@@ -251,5 +251,24 @@ local filename = 'agent-flow-controller.json';
           ),
         ])
       ),
+
+      // Component dependency wait time histogram
+      (
+        panel.newHeatmap('Component dependency wait histogram') +
+        panel.withDescription(|||
+          Detailed histogram of how long components wait to be evaluated after their dependency is updated.
+
+          The goal is to design your config so that most of the time components do not
+          queue for long; under 10ms is a good goal.
+        |||) +
+        panel.withPosition({ x: 0, y: 22, w: 8, h: 10 }) +
+        panel.withQueries([
+          panel.newQuery(
+            expr='sum by (le) (increase(agent_component_dependencies_wait_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))',
+            format='heatmap',
+            legendFormat='{{le}}',
+          ),
+        ])
+      ),
     ]),
 }
