@@ -25,6 +25,13 @@ const argumentConfig = `
 		default = "default_value"
 	}`
 
+const argumentWithFullOptsConfig = `
+	argument "foo" {
+		comment = "description of foo"
+		optional = true	
+		default = "default_value"
+	}`
+
 const exportStringConfig = `
 	export "username" {
 		value = "bob"
@@ -95,6 +102,10 @@ func TestModule(t *testing.T) {
 			name:                "Multiple exports but none are used but still exported",
 			exportModuleContent: exportStringConfig + exportDummy,
 			expectedExports:     []string{"username", "dummy"},
+		},
+		{
+			name:                "Argument block with comment is parseable",
+			exportModuleContent: argumentWithFullOptsConfig,
 		},
 	}
 

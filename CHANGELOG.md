@@ -142,6 +142,8 @@ Main (unreleased)
 
 - Fixed a bug where the BackOffLimit for the kubernetes tailer was always set to zero. (@anderssonw)
 
+- Fixed a bug where Flow agent fails to load `comment` statement in `argument` block. (@hainenber)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
