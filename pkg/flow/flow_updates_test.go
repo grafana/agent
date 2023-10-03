@@ -47,10 +47,14 @@ func TestController_Updates(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	go ctrl.Run(ctx)
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(ctx)
+		close(done)
+	}()
 	defer func() {
 		cancel()
-		ctrl.WaitDone()
+		<-done
 	}()
 
 	// Wait for the updates to propagate
@@ -121,10 +125,15 @@ func TestController_Updates_WithQueueFull(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	go ctrl.Run(ctx)
+
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(ctx)
+		close(done)
+	}()
 	defer func() {
 		cancel()
-		ctrl.WaitDone()
+		<-done
 	}()
 
 	// Wait for the updates to propagate
@@ -189,10 +198,14 @@ func TestController_Updates_WithLag(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	go ctrl.Run(ctx)
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(ctx)
+		close(done)
+	}()
 	defer func() {
 		cancel()
-		ctrl.WaitDone()
+		<-done
 	}()
 
 	// Wait for the updates to propagate
@@ -259,10 +272,14 @@ func TestController_Updates_WithOtherLaggingPipeline(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	go ctrl.Run(ctx)
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(ctx)
+		close(done)
+	}()
 	defer func() {
 		cancel()
-		ctrl.WaitDone()
+		<-done
 	}()
 
 	// Wait for the updates to propagate
@@ -327,10 +344,14 @@ func TestController_Updates_WithLaggingComponent(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	go ctrl.Run(ctx)
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(ctx)
+		close(done)
+	}()
 	defer func() {
 		cancel()
-		ctrl.WaitDone()
+		<-done
 	}()
 
 	// Wait for the updates to propagate

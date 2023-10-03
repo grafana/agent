@@ -61,12 +61,15 @@ func TestUpdates_EmptyModule(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(ctx)
+		close(done)
+	}()
 	defer func() {
 		cancel()
-		ctrl.WaitDone()
+		<-done
 	}()
-
-	go ctrl.Run(ctx)
 
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
@@ -119,12 +122,15 @@ func TestUpdates_ThroughModule(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(ctx)
+		close(done)
+	}()
 	defer func() {
 		cancel()
-		ctrl.WaitDone()
+		<-done
 	}()
-
-	go ctrl.Run(ctx)
 
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
