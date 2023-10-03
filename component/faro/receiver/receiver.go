@@ -24,12 +24,11 @@ func init() {
 }
 
 type Component struct {
-	log                log.Logger
-	prefixedRegisterer *prefixedRegistry
-	handler            *handler
-	lazySourceMaps     *varSourceMapsStore
-	sourceMapsMetrics  *sourceMapMetrics
-	serverMetrics      *serverMetrics
+	log               log.Logger
+	handler           *handler
+	lazySourceMaps    *varSourceMapsStore
+	sourceMapsMetrics *sourceMapMetrics
+	serverMetrics     *serverMetrics
 
 	argsMut sync.RWMutex
 	args    Arguments
@@ -47,33 +46,26 @@ type Component struct {
 var _ component.HealthComponent = (*Component)(nil)
 
 func New(o component.Options, args Arguments) (*Component, error) {
-	// NOTE(rfratto): by default, all metrics are prefixed with faro_receiver.
-	// For backwards compatibility with users of the static mode integration, the
-	// prefix can be changed to app_agent_receiver.
-	prefixedRegistry := newPrefixedRegistry("faro_receiver")
-	o.Registerer.MustRegister(prefixedRegistry)
-
 	var (
 		// The source maps store changes at runtime based on settings, so we create
 		// a lazy store to pass to the logs exporter.
 		varStore = &varSourceMapsStore{}
 
-		metrics = newMetricsExporter(prefixedRegistry)
+		metrics = newMetricsExporter(o.Registerer)
 		logs    = newLogsExporter(log.With(o.Logger, "exporter", "logs"), varStore)
 		traces  = newTracesExporter(log.With(o.Logger, "exporter", "traces"))
 	)
 
 	c := &Component{
-		log:                o.Logger,
-		prefixedRegisterer: prefixedRegistry,
+		log: o.Logger,
 		handler: newHandler(
 			log.With(o.Logger, "subcomponent", "handler"),
-			prefixedRegistry,
+			o.Registerer,
 			[]exporter{metrics, logs, traces},
 		),
 		lazySourceMaps:    varStore,
-		sourceMapsMetrics: newSourceMapMetrics(prefixedRegistry),
-		serverMetrics:     newServerMetrics(prefixedRegistry),
+		sourceMapsMetrics: newSourceMapMetrics(o.Registerer),
+		serverMetrics:     newServerMetrics(o.Registerer),
 
 		metrics: metrics,
 		logs:    logs,
@@ -134,12 +126,6 @@ func (c *Component) Update(args component.Arguments) error {
 	c.argsMut.Unlock()
 
 	c.logs.SetLabels(newArgs.LogLabels)
-
-	if c.args.CompatMode {
-		_ = c.prefixedRegisterer.UpdatePrefix("app_agent_receiver")
-	} else {
-		_ = c.prefixedRegisterer.UpdatePrefix("faro_receiver")
-	}
 
 	c.handler.Update(newArgs.Server)
 

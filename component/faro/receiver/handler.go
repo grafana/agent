@@ -31,11 +31,8 @@ type handler struct {
 var _ http.Handler = (*handler)(nil)
 
 func newHandler(l log.Logger, reg prometheus.Registerer, exporters []exporter) *handler {
-	// NOTE(rfratto): There's no metric prefix here matching the component name
-	// so that a prefix can be added dynamically; see prefixed_registry.go for
-	// more information.
 	errorsTotal := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name: "exporter_errors_total",
+		Name: "faro_receiver_exporter_errors_total",
 		Help: "Total number of errors produced by a receiver exporter",
 	}, []string{"exporter"})
 	reg.MustRegister(errorsTotal)

@@ -53,20 +53,17 @@ type sourceMapMetrics struct {
 }
 
 func newSourceMapMetrics(reg prometheus.Registerer) *sourceMapMetrics {
-	// NOTE(rfratto): There's no metric prefix here matching the component name
-	// so that a prefix can be added dynamically; see prefixed_registry.go for
-	// more information.
 	m := &sourceMapMetrics{
 		cacheSize: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "sourcemap_cache_size",
+			Name: "faro_receiver_sourcemap_cache_size",
 			Help: "number of items in source map cache, per origin",
 		}, []string{"origin"}),
 		downloads: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "sourcemap_downloads_total",
+			Name: "faro_receiver_sourcemap_downloads_total",
 			Help: "downloads by the source map service",
 		}, []string{"origin", "http_status"}),
 		fileReads: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "sourcemap_file_reads_total",
+			Name: "faro_receiver_sourcemap_file_reads_total",
 			Help: "source map file reads from file system, by origin and status",
 		}, []string{"origin", "status"}),
 	}

@@ -22,30 +22,27 @@ type serverMetrics struct {
 }
 
 func newServerMetrics(reg prometheus.Registerer) *serverMetrics {
-	// NOTE(rfratto): There's no metric prefix here matching the component name
-	// so that a prefix can be added dynamically; see prefixed_registry.go for
-	// more information.
 	m := &serverMetrics{
 		requestDuration: prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Name:    "request_duration_seconds",
+			Name:    "faro_receiver_request_duration_seconds",
 			Help:    "Time (in seconds) spent serving HTTP requests.",
 			Buckets: instrument.DefBuckets,
 		}, []string{"method", "route", "status_code", "ws"}),
 
 		rxMessageSize: prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Name:    "request_message_bytes",
+			Name:    "faro_receiver_request_message_bytes",
 			Help:    "Size (in bytes) of messages received in the request.",
 			Buckets: middleware.BodySizeBuckets,
 		}, []string{"method", "route"}),
 
 		txMessageSize: prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Name:    "response_message_bytes",
+			Name:    "faro_receiver_response_message_bytes",
 			Help:    "Size (in bytes) of messages sent in response.",
 			Buckets: middleware.BodySizeBuckets,
 		}, []string{"method", "route"}),
 
 		inflightRequests: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Name: "inflight_requests",
+			Name: "faro_receiver_inflight_requests",
 			Help: "Current number of inflight requests.",
 		}, []string{"method", "route"}),
 	}

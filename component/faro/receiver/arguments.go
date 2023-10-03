@@ -38,8 +38,7 @@ var (
 
 // Arguments configures the app_agent_receiver component.
 type Arguments struct {
-	LogLabels  map[string]string `river:"extra_log_labels,attr,optional"`
-	CompatMode bool              `river:"compat_mode,attr,optional"`
+	LogLabels map[string]string `river:"extra_log_labels,attr,optional"`
 
 	Server     ServerArguments     `river:"server,block,optional"`
 	SourceMaps SourceMapsArguments `river:"sourcemaps,block,optional"`

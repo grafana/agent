@@ -25,21 +25,21 @@ func Test_metricsExporter_Export(t *testing.T) {
 	)
 
 	expect := `
-		# HELP logs_total Total number of ingested logs
-		# TYPE logs_total counter
-		logs_total 2
+		# HELP faro_receiver_logs_total Total number of ingested logs
+		# TYPE faro_receiver_logs_total counter
+		faro_receiver_logs_total 2
 
-		# HELP measurements_total Total number of ingested measurements
-		# TYPE measurements_total counter
-		measurements_total 3
+		# HELP faro_receiver_measurements_total Total number of ingested measurements
+		# TYPE faro_receiver_measurements_total counter
+		faro_receiver_measurements_total 3
 
-		# HELP exceptions_total Total number of ingested exceptions
-		# TYPE exceptions_total counter
-		exceptions_total 4
+		# HELP faro_receiver_exceptions_total Total number of ingested exceptions
+		# TYPE faro_receiver_exceptions_total counter
+		faro_receiver_exceptions_total 4
 
-		# HELP events_total Total number of ingested events
-		# TYPE events_total counter
-		events_total 5
+		# HELP faro_receiver_events_total Total number of ingested events
+		# TYPE faro_receiver_events_total counter
+		faro_receiver_events_total 5
 	`
 
 	p := payload.Payload{

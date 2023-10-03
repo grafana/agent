@@ -38,7 +38,6 @@ func Test(t *testing.T) {
 			LogLabels: map[string]string{
 				"foo": "bar",
 			},
-			CompatMode: true,
 
 			Server: ServerArguments{
 				Host: "127.0.0.1",
