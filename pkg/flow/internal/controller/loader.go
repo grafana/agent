@@ -579,6 +579,7 @@ func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) {
 	tracer := l.tracer.Tracer("")
 	spanCtx, span := tracer.Start(context.Background(), "SubmitDependantsForEvaluation", trace.WithSpanKind(trace.SpanKindInternal))
 	span.SetAttributes(attribute.Int("originators_count", len(updatedNodes)))
+	span.SetStatus(codes.Ok, "dependencies submitted for evaluation")
 	defer span.End()
 
 	l.cm.controllerEvaluation.Set(1)
@@ -617,6 +618,8 @@ func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) {
 				"overloaded and cannot keep up with evaluating components - some updates may be dropped",
 				"node_id", n.NodeID(), "err", err)
 			span.SetStatus(codes.Error, err.Error())
+		} else {
+			span.SetStatus(codes.Ok, "node submitted for evaluation")
 		}
 		span.End()
 	}
@@ -666,7 +669,7 @@ func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer tr
 		if err != nil {
 			span.SetStatus(codes.Error, err.Error())
 		} else {
-			span.SetStatus(codes.Ok, "")
+			span.SetStatus(codes.Ok, "node successfully evaluated")
 		}
 	}
 }
