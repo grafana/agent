@@ -80,8 +80,8 @@ type SourceMapsArguments struct {
 
 // LocationArguments specifies an individual location where source maps will be loaded.
 type LocationArguments struct {
-	Path               string `river:"path,attr,optional"`
-	MinifiedPathPrefix string `river:"minified_path_prefix,attr,optional"`
+	Path               string `river:"path,attr"`
+	MinifiedPathPrefix string `river:"minified_path_prefix,attr"`
 }
 
 // OutputArguments configures where to send emitted logs and traces. Metrics
