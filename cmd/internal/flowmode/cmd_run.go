@@ -120,7 +120,7 @@ depending on the nature of the reload error.
 		StringVar(&r.clusterName, "cluster.name", r.clusterName, "The name of the cluster to join")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
-	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, "The format of the source file. Supported formats: 'flow', 'prometheus'.")
+	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, fmt.Sprintf("The format of the source file. Supported formats: %s.", supportedFormatsList()))
 	cmd.Flags().BoolVar(&r.configBypassConversionErrors, "config.bypass-conversion-errors", r.configBypassConversionErrors, "Enable bypassing errors when converting")
 	return cmd
 }
@@ -239,7 +239,10 @@ func (fr *flowRun) Run(configPath string) error {
 		Cluster:  clusterService.Data().(cluster.Cluster),
 	})
 
-	otelService := otel_service.New()
+	otelService := otel_service.New(l)
+	if otelService == nil {
+		return fmt.Errorf("failed to create otel service")
+	}
 
 	f := flow.New(flow.Options{
 		Logger:   l,

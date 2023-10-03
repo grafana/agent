@@ -96,9 +96,11 @@ func (ctrl *eventController) runError(ctx context.Context) error {
 		return fmt.Errorf("adding core to scheme: %w", err)
 	}
 
+	defaultNamespaces := map[string]cache.Config{}
+	defaultNamespaces[ctrl.task.Namespace] = cache.Config{}
 	opts := cache.Options{
-		Scheme:     scheme,
-		Namespaces: []string{ctrl.task.Namespace},
+		Scheme:            scheme,
+		DefaultNamespaces: defaultNamespaces,
 	}
 	informers, err := cache.New(ctrl.task.Config, opts)
 	if err != nil {

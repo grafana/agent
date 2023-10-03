@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 labels:
   stage: beta
 title: otelcol.receiver.loki
+description: Learn about otelcol.receiver.loki
 ---
 
 # otelcol.receiver.loki

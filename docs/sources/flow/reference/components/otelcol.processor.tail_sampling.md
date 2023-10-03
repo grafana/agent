@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 labels:
   stage: beta
 title: otelcol.processor.tail_sampling
+description: Learn about otelcol.processor.tail_sampling
 ---
 
 # otelcol.processor.tail_sampling

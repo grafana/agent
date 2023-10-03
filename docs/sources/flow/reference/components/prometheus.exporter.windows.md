@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.windows/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.windows/
 title: prometheus.exporter.windows
+description: Learn about prometheus.exporter.windows
 ---
 
 # prometheus.exporter.windows
@@ -17,7 +18,7 @@ enabled and disabled at will. For more information on collectors, refer to the
 [`collectors-list`](#collectors-list) section.
 
 **Note** The black and white list config options are available for backwards compatibility but are deprecated. The include
-and exclude config options are preferred going forward. 
+and exclude config options are preferred going forward.
 
 ## Usage
 
@@ -179,7 +180,7 @@ For a server name to be included, it must match the regular expression specified
 ### text_file block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`text_file_directory` | `string` | The directory containing the files to be ingested. | `C:\Program Files\windows_exporter\textfile_inputs` | no
+`text_file_directory` | `string` | The directory containing the files to be ingested. | `C:\Program Files\Grafana Agent Flow\textfile_inputs` | no
 
 When `text_file_directory` is set, only files with the extension `.prom` inside the specified directory are read. Each `.prom` file found must end with an empty line feed to work properly.
 

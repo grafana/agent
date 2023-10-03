@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/otelcol-queue-block/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/otelcol-queue-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/otelcol-queue-block/
+description: Shared content, otelcol queue block
 headless: true
 ---
 

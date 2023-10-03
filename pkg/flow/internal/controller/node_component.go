@@ -91,6 +91,7 @@ type ComponentNode struct {
 	exportsType       reflect.Type
 	moduleController  ModuleController
 	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
+	lastUpdateTime    atomic.Time
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -402,6 +403,7 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 
 	if changed {
 		// Inform the controller that we have new exports.
+		cn.lastUpdateTime.Store(time.Now())
 		cn.OnComponentUpdate(cn)
 	}
 }

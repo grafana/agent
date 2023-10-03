@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/mssql"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
@@ -124,28 +123,4 @@ func TestConvert(t *testing.T) {
 		Timeout:            DefaultArguments.Timeout,
 	}
 	require.Equal(t, expected, *res)
-}
-
-func TestCustomizeTarget_Valid(t *testing.T) {
-	args := Arguments{
-		ConnectionString: rivertypes.Secret("sqlserver://user:pass@localhost:1433"),
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "localhost:1433", newTargets[0]["instance"])
-}
-
-func TestCustomizeTarget_Invalid(t *testing.T) {
-	args := Arguments{
-		ConnectionString: rivertypes.Secret("bad_cs:pass@localhost:1433"),
-	}
-
-	baseTarget := discovery.Target{
-		"instance": "default instance",
-	}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "default instance", newTargets[0]["instance"])
 }

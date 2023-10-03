@@ -31,9 +31,9 @@ func TestFileSource(t *testing.T) {
 		}
 	}
 	`
+	// The strategy type is not returned by proto-gen/api_v2 if set to probabilistic.
 	expectedRemoteSamplingConfig := `
 	{
-		"strategyType": "PROBABILISTIC",
 		"probabilisticSampling": {
 			"samplingRate": 0.5
 		}
@@ -64,9 +64,9 @@ func TestFileSource(t *testing.T) {
 func TestContentSource(t *testing.T) {
 	// write remote sampling config to a temp file
 	remoteSamplingConfig := `{ \"default_strategy\": {\"type\": \"probabilistic\", \"param\": 0.5 } }`
+	// The strategy type is not returned by proto-gen/api_v2 if set to probabilistic.
 	expectedRemoteSamplingConfig := `
 	{
-		"strategyType": "PROBABILISTIC",
 		"probabilisticSampling": {
 			"samplingRate": 0.5
 		}

@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/
 title: Concepts
+description: Learn about the Grafana Agent flow mode concepts
 weight: 100
 ---
 

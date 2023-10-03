@@ -38,14 +38,6 @@ func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiw
 		)
 	}
 
-	// Also deprecated in promtail.
-	if len(config.StreamLagLabels) != 0 {
-		diags.Add(
-			diag.SeverityLevelWarn,
-			"stream_lag_labels is deprecated and the associated metric has been removed",
-		)
-	}
-
 	return &lokiwrite.Arguments{
 		Endpoints: []lokiwrite.EndpointOptions{
 			{

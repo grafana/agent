@@ -4,14 +4,13 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-promtail/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-promtail/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-promtail/
-description: Learn how to migrate your configuration from Promtail to Grafana Agent
-  Flow Mode
 menuTitle: Migrate from Promtail
-title: Migrate from Promtail to Grafana Agent Flow Mode
+title: Migrate from Promtail to Grafana Agent Flow
+description: Learn how to migrate from Promtail to Grafana Agent Flow
 weight: 330
 ---
 
-# Migrate from Promtail to Grafana Agent
+# Migrate from Promtail to Grafana Agent Flow
 
 The built-in Grafana Agent convert command can migrate your [Promtail][]
 configuration to a Grafana Agent flow configuration.
@@ -21,7 +20,7 @@ This topic describes how to:
 * Convert a Promtail configuration to a Flow Mode configuration.
 * Run a Promtail configuration natively using Grafana Agent Flow Mode.
 
-[Promtail]: https://grafana.com/docs/loki/latest/clients/promtail/
+[Promtail]: /docs/loki/latest/clients/promtail/
 
 ## Components used in this topic
 
@@ -149,7 +148,9 @@ scrape_configs:
           __path__: /var/log/*.log
 ```
 
-The convert command takes the YAML file as input and outputs a River file.
+The convert command takes the YAML file as input and outputs a [River][] file.
+
+[River]: {{< relref "../config-language/_index.md" >}}
 
 ```bash
 AGENT_MODE=flow; grafana-agent convert --source-format=promtail --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
@@ -190,7 +191,7 @@ before starting to use it in a production environment.
 Furthermore, we recommend that you review the following checklist:
 
 * Check if you are using any extra command line arguments with Promtail which
-  are not present in your config file, for example, `-max-line-size`
+  are not present in your config file. For example, `-max-line-size`.
 * Check if you are setting any environment variables,
   whether [expanded in the config file][] itself or consumed directly by
   Promtail, such as `JAEGER_AGENT_HOST`.
@@ -206,6 +207,6 @@ Furthermore, we recommend that you review the following checklist:
 * Note that the Agent exposes the [Grafana Agent Flow UI][], which differs
   from Promtail's Web UI.
 
-[expanded in the config file]: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#use-environment-variables-in-the-configuration
+[expanded in the config file]: /docs/loki/latest/clients/promtail/configuration/#use-environment-variables-in-the-configuration
 
-[Grafana Agent Flow UI]: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/#grafana-agent-flow-ui
+[Grafana Agent Flow UI]: {{< relref "../monitoring/debugging/#grafana-agent-flow-ui" >}}

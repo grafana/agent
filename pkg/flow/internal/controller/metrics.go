@@ -8,6 +8,7 @@ import (
 type controllerMetrics struct {
 	controllerEvaluation    prometheus.Gauge
 	componentEvaluationTime prometheus.Histogram
+	dependenciesWaitTime    prometheus.Histogram
 }
 
 // newControllerMetrics inits the metrics for the components controller
@@ -27,17 +28,26 @@ func newControllerMetrics(id string) *controllerMetrics {
 			ConstLabels: map[string]string{"controller_id": id},
 		},
 	)
+	cm.dependenciesWaitTime = prometheus.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:        "agent_component_dependencies_wait_seconds",
+			Help:        "Time spent by components waiting to be evaluated after their dependency is updated.",
+			ConstLabels: map[string]string{"controller_id": id},
+		},
+	)
 	return cm
 }
 
 func (cm *controllerMetrics) Collect(ch chan<- prometheus.Metric) {
 	cm.componentEvaluationTime.Collect(ch)
 	cm.controllerEvaluation.Collect(ch)
+	cm.dependenciesWaitTime.Collect(ch)
 }
 
 func (cm *controllerMetrics) Describe(ch chan<- *prometheus.Desc) {
 	cm.componentEvaluationTime.Describe(ch)
-	cm.componentEvaluationTime.Describe(ch)
+	cm.controllerEvaluation.Describe(ch)
+	cm.dependenciesWaitTime.Describe(ch)
 }
 
 type controllerCollector struct {

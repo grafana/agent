@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.mssql/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mssql/
 title: prometheus.exporter.mssql
+description: Learn about prometheus.exporter.mssql
 ---
 
 # prometheus.exporter.mssql

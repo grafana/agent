@@ -5,11 +5,9 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestRiverUnmarshal(t *testing.T) {
@@ -95,15 +93,4 @@ func TestRiverConvert(t *testing.T) {
 	}
 
 	assert.Equal(t, expected, riverArguments.Convert())
-}
-
-func TestCustomizeTarget(t *testing.T) {
-	args := Arguments{
-		Address: "localhost:99",
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "localhost:99", newTargets[0]["instance"])
 }

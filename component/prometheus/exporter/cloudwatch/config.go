@@ -1,9 +1,12 @@
 package cloudwatch
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"time"
 
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
+	"github.com/grafana/river"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 )
@@ -239,4 +242,14 @@ func toYACEDiscoveryJob(rj DiscoveryJob) *yaceConf.Job {
 		Metrics: toYACEMetrics(rj.Metrics, nilToZero),
 	}
 	return job
+}
+
+// getHash calculates the MD5 hash of the river representation of the config.
+func getHash(a Arguments) string {
+	bytes, err := river.Marshal(a)
+	if err != nil {
+		return "<unknown>"
+	}
+	hash := md5.Sum(bytes)
+	return hex.EncodeToString(hash[:])
 }

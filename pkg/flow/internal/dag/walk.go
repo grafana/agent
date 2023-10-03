@@ -4,6 +4,9 @@ package dag
 // stop if WalkFunc returns a non-nil error.
 type WalkFunc func(n Node) error
 
+// WalkFuncWithParent is like WalkFunc, but also provides the parent node of each node visited (which can be nil).
+type WalkFuncWithParent func(n Node, parent Node) error
+
 // Walk performs a depth-first walk of outgoing edges for all nodes in start,
 // invoking the provided fn for each node. Walk returns the error returned by
 // fn.
@@ -41,19 +44,26 @@ func Walk(g *Graph, start []Node, fn WalkFunc) error {
 	return nil
 }
 
-// WalkReverse performs a depth-first walk of incoming edges for all nodes in
-// start, invoking the provided fn for each node. Walk returns the error
-// returned by fn.
+// WalkReverse performs a depth-first walk of incoming edges for start node, invoking the provided fn for each node.
+// Walk returns the error returned by fn.
 //
 // Nodes unreachable from start will not be passed to fn.
-func WalkReverse(g *Graph, start []Node, fn WalkFunc) error {
+func WalkReverse(g *Graph, start Node, fn WalkFuncWithParent) error {
+	type nodeWithParent struct {
+		node   Node
+		parent Node
+	}
+
 	var (
 		visited   = make(nodeSet)
-		unchecked = make([]Node, 0, len(start))
+		unchecked = make([]nodeWithParent, 0, 1)
 	)
 
 	// Prefill the set of unchecked nodes with our start set.
-	unchecked = append(unchecked, start...)
+	unchecked = append(unchecked, nodeWithParent{
+		node:   start,
+		parent: nil,
+	})
 
 	// Iterate through unchecked nodes, visiting each in turn and adding incoming
 	// edges to the unchecked list until all reachable nodes have been processed.
@@ -61,17 +71,20 @@ func WalkReverse(g *Graph, start []Node, fn WalkFunc) error {
 		check := unchecked[len(unchecked)-1]
 		unchecked = unchecked[:len(unchecked)-1]
 
-		if visited.Has(check) {
+		if visited.Has(check.node) {
 			continue
 		}
-		visited.Add(check)
+		visited.Add(check.node)
 
-		if err := fn(check); err != nil {
+		if err := fn(check.node, check.parent); err != nil {
 			return err
 		}
 
-		for n := range g.inEdges[check] {
-			unchecked = append(unchecked, n)
+		for n := range g.inEdges[check.node] {
+			unchecked = append(unchecked, nodeWithParent{
+				node:   n,
+				parent: check.node,
+			})
 		}
 	}
 
