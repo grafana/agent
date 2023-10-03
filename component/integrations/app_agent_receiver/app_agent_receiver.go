@@ -10,23 +10,17 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/grafana/agent/component"
-	internal "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "integrations.v2.app_agent_receiver",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name: "integrations.v2.app_agent_receiver",
+		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
 	})
-}
-
-type Exports struct {
-	Config internal.Config `river:"self,attr"` // TODO(rfratto): export targets
 }
 
 type Component struct {
