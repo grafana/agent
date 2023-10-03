@@ -188,7 +188,7 @@ local filename = 'agent-flow-controller.json';
         } +
         panel.withUnit('ops') +
         panel.withDescription(|||
-          The frequency in which the components gets updated.
+          The frequency at which components get updated.
         |||) +
         panel.withPosition({ x: 0, y: 12, w: 8, h: 10 }) +
         panel.withMultiTooltip() +
