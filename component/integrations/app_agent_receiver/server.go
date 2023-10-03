@@ -77,6 +77,11 @@ func (s *server) Run(ctx context.Context) error {
 	r := mux.NewRouter()
 	r.Handle("/collect", s.handler).Methods(http.MethodPost, http.MethodOptions)
 
+	r.HandleFunc("/-/ready", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ready"))
+	})
+
 	mw := middleware.Instrument{
 		RouteMatcher:     r,
 		Duration:         s.metrics.requestDuration,
