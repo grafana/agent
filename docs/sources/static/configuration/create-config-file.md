@@ -186,5 +186,5 @@ integrations:
 
 {{% docs/reference %}}
 [configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
-[configure]: "/docs/grafana-cloud/ -> ./configuration"
+[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration"
 {{% /docs/reference %}}
