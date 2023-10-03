@@ -19,8 +19,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-
-	_ "github.com/grafana/agent/pkg/util/testcomponents" // Include test components
 )
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
