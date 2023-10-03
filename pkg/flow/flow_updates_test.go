@@ -142,10 +142,10 @@ func TestController_Updates_WithQueueFull(t *testing.T) {
 		return out.(testcomponents.SummationExports).LastAdded == 10
 	}, 3*time.Second, 10*time.Millisecond)
 
-	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
+	in, _ := getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
 	require.Equal(t, 10, in.(testcomponents.SummationConfig).Input)
 
-	in, out = getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.inc_dep_3")
+	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.inc_dep_3")
 	require.Equal(t, "10", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "10", out.(testcomponents.PassthroughExports).Output)
 
