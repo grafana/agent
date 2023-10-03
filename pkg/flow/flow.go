@@ -162,7 +162,7 @@ func newController(o controllerOptions) *Flow {
 	}
 
 	if workerPool == nil {
-		level.Info(log).Log("msg", "no worker pool provided, creating a default pool")
+		level.Info(log).Log("msg", "no worker pool provided, creating a default pool", "controller", o.ControllerID)
 		workerPool = worker.NewDefaultWorkerPool()
 	}
 
@@ -243,7 +243,11 @@ func (f *Flow) Run(ctx context.Context) {
 			// throughput - it prevents the situation where two components have the same dependency, and the first time
 			// it's picked up by the worker pool and the second time it's enqueued again, resulting in more evaluations.
 			all := f.updateQueue.DequeueAll()
-			f.loader.EvaluateDependencies(all)
+			toRetry := f.loader.EvaluateDependencies(all)
+			// Put back on the queue any components that need to be retried.
+			for _, c := range toRetry {
+				f.updateQueue.Enqueue(c)
+			}
 		case <-f.loadFinished:
 			level.Info(f.log).Log("msg", "scheduling loaded components and services")
 

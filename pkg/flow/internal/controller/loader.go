@@ -570,12 +570,15 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 }
 
 // EvaluateDependencies sends components which depend directly on components in updatedNodes for evaluation to the
-// workerPool. It should be called whenever components update their exports. It is beneficial to call
-// EvaluateDependencies with a batch of components, as it will enqueue the entire batch before the worker pool starts
-// to evaluate them, resulting in smaller number of total evaluations when node updates are frequent.
-func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) {
+// workerPool. It should be called whenever components update their exports. It returns a list of components for which
+// the dependencies failed to be enqueued for async evaluation and should be retried in the future.
+//
+// It is beneficial to call EvaluateDependencies with a batch of components, as it will enqueue the entire batch before
+// the worker pool starts to evaluate them, resulting in smaller number of total evaluations when
+// node updates are frequent.
+func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) []*ComponentNode {
 	if len(updatedNodes) == 0 {
-		return
+		return nil
 	}
 	tracer := l.tracer.Tracer("")
 	spanCtx, span := tracer.Start(context.Background(), "SubmitDependantsForEvaluation", trace.WithSpanKind(trace.SpanKindInternal))
@@ -604,6 +607,7 @@ func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) {
 	// During evaluation, if a node's exports change, Flow will add it to updated nodes queue (controller.Queue) and
 	// the Flow controller will call EvaluateDependencies on it again. This results in a concurrent breadth-first
 	// traversal of the nodes that need to be evaluated.
+	toRetry := make([]*ComponentNode, 0)
 	for n, parent := range dependenciesToParentsMap {
 		dependantCtx, span := tracer.Start(spanCtx, "SubmitForEvaluation", trace.WithSpanKind(trace.SpanKindInternal))
 		span.SetAttributes(attribute.String("node_id", n.NodeID()))
@@ -616,11 +620,15 @@ func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) {
 		})
 		if err != nil {
 			// The error typically means that the workerPool queue is full. This could mean we have too many components
-			// and the agent cannot keep up with the evaluation. To degrade gracefully, we log the error and continue.
-			// Some evaluations may be missed.
-			level.Error(l.log).Log("msg", "failed to submit node for evaluation - the agent is likely "+
-				"overloaded and cannot keep up with evaluating components - some updates may be dropped",
-				"node_id", n.NodeID(), "err", err)
+			// and the agent cannot keep up with the evaluation. To degrade gracefully, we log the error and make sure
+			// that the component triggering this update (parent) is returned to retry again in the future.
+			level.Error(l.log).Log(
+				"msg", "failed to submit node for evaluation - the agent is likely overloaded and cannot keep up with evaluating components",
+				"err", err,
+				"node_id", n.NodeID(),
+				"originator_id", parent.NodeID(),
+			)
+			toRetry = append(toRetry, parent)
 			span.SetStatus(codes.Error, err.Error())
 		} else {
 			span.SetStatus(codes.Ok, "node submitted for evaluation")
@@ -630,6 +638,7 @@ func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) {
 
 	// Report queue size metric.
 	l.cm.evaluationQueueSize.Set(float64(l.workerPool.QueueSize()))
+	return toRetry
 }
 
 // concurrentEvalFn returns a function that evaluates a node and updates the cache. This function can be submitted to

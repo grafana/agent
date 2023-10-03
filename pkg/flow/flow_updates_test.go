@@ -74,6 +74,85 @@ func TestController_Updates(t *testing.T) {
 	require.Equal(t, 55, out.(testcomponents.SummationExports).Sum)
 }
 
+func TestController_Updates_WithQueueFull(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
+
+	// Simple pipeline with a minimal lag
+	config := `
+	testcomponents.count "inc" {
+		frequency = "10ms"
+		max = 10
+	}
+
+	testcomponents.passthrough "inc_dep_1" {
+		input = testcomponents.count.inc.count
+		lag = "1ms"
+	}
+
+	testcomponents.passthrough "inc_dep_2" {
+		input = testcomponents.count.inc.count
+		lag = "1ms"
+	}
+
+	testcomponents.passthrough "inc_dep_3" {
+		input = testcomponents.count.inc.count
+		lag = "1ms"
+	}
+
+	testcomponents.summation "sum" {
+		input = testcomponents.passthrough.inc_dep_3.output
+	}
+`
+
+	ctrl := newController(controllerOptions{
+		Options:        testOptions(t),
+		ModuleRegistry: newModuleRegistry(),
+		IsModule:       false,
+		// The small number of workers and small queue means that a lot of updates will need to be retried.
+		WorkerPool: worker.NewShardedWorkerPool(1, 1),
+	})
+
+	// Use testUpdatesFile from graph_builder_test.go.
+	f, err := ParseSource(t.Name(), []byte(config))
+	require.NoError(t, err)
+	require.NotNil(t, f)
+
+	err = ctrl.LoadSource(f, nil)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go ctrl.Run(ctx)
+	defer func() {
+		cancel()
+		ctrl.WaitDone()
+	}()
+
+	// Wait for the updates to propagate
+	require.Eventually(t, func() bool {
+		_, out := getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
+		return out.(testcomponents.SummationExports).LastAdded == 10
+	}, 3*time.Second, 10*time.Millisecond)
+
+	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
+	require.Equal(t, 10, in.(testcomponents.SummationConfig).Input)
+
+	in, out = getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.inc_dep_3")
+	require.Equal(t, "10", in.(testcomponents.PassthroughConfig).Input)
+	require.Equal(t, "10", out.(testcomponents.PassthroughExports).Output)
+
+	// The dep_2 is independent of sum and dep_3, so we check for it with eventually.
+	require.Eventually(t, func() bool {
+		_, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.inc_dep_2")
+		return out.(testcomponents.PassthroughExports).Output == "10"
+	}, 3*time.Second, 10*time.Millisecond)
+
+	// Similar for dep_1
+	require.Eventually(t, func() bool {
+		_, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.inc_dep_1")
+		return out.(testcomponents.PassthroughExports).Output == "10"
+	}, 3*time.Second, 10*time.Millisecond)
+}
+
 func TestController_Updates_WithLag(t *testing.T) {
 	defer verifyNoGoroutineLeaks(t)
 
