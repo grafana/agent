@@ -24,9 +24,9 @@ var (
 	}
 
 	DefaultRateLimitingArguments = RateLimitingArguments{
-		Enabled:    true,
-		RPS:        100,
-		Burstiness: 50,
+		Enabled:   true,
+		Rate:      50,
+		BurstSize: 100,
 	}
 
 	DefaultSourceMapsArguments = SourceMapsArguments{
@@ -64,9 +64,9 @@ type ServerArguments struct {
 
 // RateLimitingArguments configures rate limiting for the HTTP server.
 type RateLimitingArguments struct {
-	Enabled    bool    `river:"enabled,attr,optional"`
-	RPS        float64 `river:"rps,attr,optional"`
-	Burstiness float64 `river:"burstiness,attr,optional"`
+	Enabled   bool    `river:"enabled,attr,optional"`
+	Rate      float64 `river:"rate,attr,optional"`
+	BurstSize float64 `river:"burst_size,attr,optional"`
 }
 
 // SourceMapsArguments configures how app_agent_receiver will retrieve source

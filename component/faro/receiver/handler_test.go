@@ -240,9 +240,9 @@ func TestRateLimiter(t *testing.T) {
 
 	h.Update(ServerArguments{
 		RateLimiting: RateLimitingArguments{
-			Enabled:    true,
-			RPS:        1,
-			Burstiness: 2,
+			Enabled:   true,
+			Rate:      1,
+			BurstSize: 2,
 		},
 	})
 

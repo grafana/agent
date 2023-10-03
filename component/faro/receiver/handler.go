@@ -56,10 +56,10 @@ func (h *handler) Update(args ServerArguments) {
 		// buckets. To allow requsts to immediately pass through, we adjust the
 		// time to set the limit/burst to to allow for both the normal rate and
 		// burst to be filled.
-		t := time.Now().Add(-time.Duration(float64(time.Second) * args.RateLimiting.RPS * args.RateLimiting.Burstiness))
+		t := time.Now().Add(-time.Duration(float64(time.Second) * args.RateLimiting.Rate * args.RateLimiting.BurstSize))
 
-		h.rateLimiter.SetLimitAt(t, rate.Limit(args.RateLimiting.RPS))
-		h.rateLimiter.SetBurstAt(t, int(args.RateLimiting.Burstiness))
+		h.rateLimiter.SetLimitAt(t, rate.Limit(args.RateLimiting.Rate))
+		h.rateLimiter.SetBurstAt(t, int(args.RateLimiting.BurstSize))
 	} else {
 		// Set to infinite rate limit.
 		h.rateLimiter.SetLimit(rate.Inf)
