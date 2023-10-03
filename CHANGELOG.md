@@ -77,6 +77,8 @@ Main (unreleased)
   This will load all River files in the directory as a single configuration;
   component names must be unique across all loaded files. (@rfratto, @hainenber)
 
+- Added support for `static` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@erikbaranowski)
+
 - Flow: the `prometheus.scrape` component can now configure the scraping of
   Prometheus native histograms. (@tpaschalis)
 
@@ -128,6 +130,9 @@ Main (unreleased)
 
 - Promtail converter will now treat `global positions configuration is not supported` as a Warning instead of Error. (@erikbaranowski)
 
+- Add new `agent_component_dependencies_wait_seconds` histogram metric and a dashboard panel 
+  that measures how long components wait to be evaluated after their dependency is updated (@thampiotr)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
@@ -142,6 +147,8 @@ Main (unreleased)
 - Fixed race condition in cleaning up metrics when stopping to tail files in static mode. (@thampiotr)
 
 - Fixed a bug where the BackOffLimit for the kubernetes tailer was always set to zero. (@anderssonw)
+
+- Fixed a bug where Flow agent fails to load `comment` statement in `argument` block. (@hainenber)
 
 ### Other changes
 
@@ -169,6 +176,8 @@ Main (unreleased)
 - Bump `webdevops/go-commons` to version containing `LICENSE`. (@hainenber)
 
 - `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
+
+- Documentation updated to correct default path from `prometheus.exporter.windows` `text_file` block (@timo1707)
 
 v0.36.2 (2023-09-22)
 --------------------

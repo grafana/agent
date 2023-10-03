@@ -330,7 +330,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	if rc == nil {
 		return LoadFile(url, expandEnvVars, c)
 	}
-	bb, err := rc.retrieve()
+	bb, _, err := rc.retrieve()
 	if err != nil {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}

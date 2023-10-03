@@ -59,7 +59,7 @@ require (
 	github.com/grafana/loki v1.6.2-0.20230927083715-42fba5b19183 // k169 branch
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.3
 	github.com/grafana/pyroscope/api v0.2.0
-	github.com/grafana/pyroscope/ebpf v0.2.2
+	github.com/grafana/pyroscope/ebpf v0.2.3
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/river v0.1.2-0.20230830200459-0ff21cf610eb
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
@@ -627,6 +627,7 @@ require (
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
+	github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
@@ -666,11 +667,13 @@ replace (
 	k8s.io/klog/v2 => github.com/simonpasquier/klog-gokit/v3 v3.3.0
 )
 
-// TODO(rfratto): remove replace directive once:
+// TODO(tpaschalis): remove replace directive once:
 //
-// * We remove our dependency on Cortex, which forces Prometheus to an older
-//   version since Go thinks v1 is newer than v0.
-replace github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.45.0
+// * There is a release of Prometheus which contains
+// prometheus/prometheus#12677 and prometheus/prometheus#12729.
+// We use the last v1-related tag as the replace statement does not work for v2
+// tags without the v2 suffix to the module root
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231002111159-38991b77eb53 // grafana:prometheus:v0.45.0-retry-improvements
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
