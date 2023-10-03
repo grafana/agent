@@ -133,5 +133,5 @@ func (h *handler) handleRequest(rw http.ResponseWriter, req *http.Request) {
 	wg.Wait()
 
 	rw.WriteHeader(http.StatusAccepted)
-	rw.Write([]byte("ok"))
+	_, _ = rw.Write([]byte("ok"))
 }

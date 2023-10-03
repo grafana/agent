@@ -235,14 +235,8 @@ func (exp *tracesExporter) Export(ctx context.Context, p payload.Payload) error 
 		return nil
 	}
 
-	exp.mut.RLock()
-	var (
-		consumers = exp.consumers
-	)
-	exp.mut.RUnlock()
-
 	var errs []error
-	for _, consumer := range consumers {
+	for _, consumer := range exp.getTracesConsumers() {
 		errs = append(errs, consumer.ConsumeTraces(ctx, p.Traces.Traces))
 	}
 	return errors.Join(errs...)
