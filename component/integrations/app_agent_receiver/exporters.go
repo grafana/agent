@@ -81,8 +81,11 @@ type logsExporter struct {
 	log        log.Logger
 	sourceMaps sourceMapsStore
 
-	mut       sync.RWMutex
-	receivers []loki.LogsReceiver
+	receiversMut sync.RWMutex
+	receivers    []loki.LogsReceiver
+
+	labelsMut sync.RWMutex
+	labels    model.LabelSet
 }
 
 var _ exporter = (*logsExporter)(nil)
@@ -97,8 +100,8 @@ func newLogsExporter(log log.Logger, sourceMaps sourceMapsStore) *logsExporter {
 // SetReceivers updates the set of logs receivers which will receive logs
 // emitted by the exporter.
 func (exp *logsExporter) SetReceivers(receivers []loki.LogsReceiver) {
-	exp.mut.Lock()
-	defer exp.mut.Unlock()
+	exp.receiversMut.Lock()
+	defer exp.receiversMut.Unlock()
 
 	exp.receivers = receivers
 }
@@ -145,11 +148,11 @@ func (exp *logsExporter) Export(ctx context.Context, p payload.Payload) error {
 func (exp *logsExporter) sendKeyValsToLogsPipeline(ctx context.Context, kv *payload.KeyVal) error {
 	// Grab the current value of exp.receivers so sendKeyValsToLogsPipeline
 	// doesn't block updating receivers.
-	exp.mut.RLock()
+	exp.receiversMut.RLock()
 	var (
 		receivers = exp.receivers
 	)
-	exp.mut.RUnlock()
+	exp.receiversMut.RUnlock()
 
 	line, err := logfmt.MarshalKeyvals(payload.KeyValToInterfaceSlice(kv)...)
 	if err != nil {
@@ -180,8 +183,16 @@ func (exp *logsExporter) sendKeyValsToLogsPipeline(ctx context.Context, kv *payl
 	return nil
 }
 
-func (exp *logsExporter) labelSet() model.LabelSet { // TODO(rfratto): implement by configuring labels on logsExporter
-	panic("NYI")
+func (exp *logsExporter) labelSet() model.LabelSet {
+	exp.labelsMut.RLock()
+	defer exp.labelsMut.RUnlock()
+	return exp.labels
+}
+
+func (exp *logsExporter) setLabels(newLabels model.LabelSet) {
+	exp.labelsMut.Lock()
+	defer exp.labelsMut.Unlock()
+	exp.labels = newLabels
 }
 
 //

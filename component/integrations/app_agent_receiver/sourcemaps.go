@@ -52,6 +52,29 @@ type sourceMapMetrics struct {
 	fileReads *prometheus.CounterVec
 }
 
+func newSourceMapMetrics(reg prometheus.Registerer) *sourceMapMetrics {
+	// NOTE(rfratto): There's no metric prefix here matching the component name
+	// so that a prefix can be added dynamically; see prefixed_registry.go for
+	// more information.
+	m := &sourceMapMetrics{
+		cacheSize: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "sourcemap_cache_size",
+			Help: "number of items in source map cache, per origin",
+		}, []string{"origin"}),
+		downloads: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "sourcemap_downloads_total",
+			Help: "downloads by the source map service",
+		}, []string{"origin", "http_status"}),
+		fileReads: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "sourcemap_file_reads_total",
+			Help: "source map file reads from file system, by origin and status",
+		}, []string{"origin", "status"}),
+	}
+
+	reg.MustRegister(m.cacheSize, m.downloads, m.fileReads)
+	return m
+}
+
 type sourcemapFileLocation struct {
 	LocationArguments
 	pathTemplate *template.Template
@@ -69,33 +92,21 @@ type sourceMapsStoreImpl struct {
 	cache    map[string]*sourcemap.Consumer
 }
 
-// newSourceMapStore creates an implementation of sourceMapsStore.
-func newSourceMapsStore(log log.Logger, args SourceMapsArguments, reg prometheus.Registerer, cli httpClient, fs fileService) *sourceMapsStoreImpl {
+// newSourceMapStore creates an implementation of sourceMapsStore. The returned
+// implementation is not dynamically updatable; create a new sourceMapsStore
+// implementation if arguments change.
+func newSourceMapsStore(log log.Logger, args SourceMapsArguments, metrics *sourceMapMetrics, cli httpClient, fs fileService) *sourceMapsStoreImpl {
+	// TODO(rfratto): it would be nice for this to be dynamically updatable, but
+	// that will require swapping out the http client (when the timeout changes)
+	// or to find a way to inject a download timeout without modifying the http
+	// client.
+
 	if cli == nil {
 		cli = &http.Client{Timeout: args.DownloadTimeout}
 	}
 	if fs == nil {
 		fs = osFileService{}
 	}
-
-	// NOTE(rfratto): There's no metric prefix here matching the component name
-	// so that a prefix can be added dynamically; see prefixed_registry.go for
-	// more information.
-	metrics := &sourceMapMetrics{
-		cacheSize: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "sourcemap_cache_size",
-			Help: "number of items in source map cache, per origin",
-		}, []string{"origin"}),
-		downloads: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "sourcemap_downloads_total",
-			Help: "downloads by the source map service",
-		}, []string{"origin", "http_status"}),
-		fileReads: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "sourcemap_file_reads_total",
-			Help: "source map file reads from file system, by origin and status",
-		}, []string{"origin", "status"}),
-	}
-	reg.MustRegister(metrics.cacheSize, metrics.downloads, metrics.fileReads)
 
 	locs := []*sourcemapFileLocation{}
 	for _, loc := range args.Locations {
@@ -104,7 +115,6 @@ func newSourceMapsStore(log log.Logger, args SourceMapsArguments, reg prometheus
 			panic(err) // TODO(rfratto): why is this set to panic?
 		}
 
-		// TODO(rfratto): this needs to be dynamically updatable
 		locs = append(locs, &sourcemapFileLocation{
 			LocationArguments: loc,
 			pathTemplate:      tpl,

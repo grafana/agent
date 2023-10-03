@@ -84,6 +84,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	// TODO(rfratto):
 	//
+	// * Ensure that everything is updated properly based on args.
 	// * Ensure server gets restarted with new settings.
 	// * Allow updating prefix of prefixCollector.
 
