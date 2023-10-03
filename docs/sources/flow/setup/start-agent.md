@@ -10,7 +10,7 @@ title: Start, restart, and stop Grafana Agent in flow mode
 weight: 800
 ---
 
-# Start Grafana Agent in flow mode
+# Start, restart, and stop Grafana Agent in flow mode
 
 You can start, restart, and stop Grafana Agent after it is installed.
 
@@ -80,7 +80,7 @@ brew services start grafana-agent-flow
 
 Grafana Agent automatically runs when the system starts.
 
-Optional: Verify that the service is running:
+(Optional) Verify that the service is running:
 
 ```shell
 brew services info grafana-agent-flow
@@ -107,7 +107,7 @@ brew services stop grafana-agent-flow
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
 `$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
 
-If you followed [Configure the Grafana Agent service](../setup/configure/configure-macos#configure-the-grafana-agent-service)
+If you followed [Configure the Grafana Agent service]({{< relref "./configure/configure-macos#configure-the-grafana-agent-service" >}})
 and changed the path where logs are written, refer to your current copy of the Grafana Agent formula to locate your log files.
 
 ## Windows

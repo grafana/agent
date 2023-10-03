@@ -30,17 +30,19 @@ func init() {
 
 // Arguments configures the otelcol.exporter.prometheus component.
 type Arguments struct {
-	IncludeTargetInfo bool                 `river:"include_target_info,attr,optional"`
-	IncludeScopeInfo  bool                 `river:"include_scope_info,attr,optional"`
-	GCFrequency       time.Duration        `river:"gc_frequency,attr,optional"`
-	ForwardTo         []storage.Appendable `river:"forward_to,attr"`
+	IncludeTargetInfo  bool                 `river:"include_target_info,attr,optional"`
+	IncludeScopeInfo   bool                 `river:"include_scope_info,attr,optional"`
+	IncludeScopeLabels bool                 `river:"include_scope_labels,attr,optional"`
+	GCFrequency        time.Duration        `river:"gc_frequency,attr,optional"`
+	ForwardTo          []storage.Appendable `river:"forward_to,attr"`
 }
 
 // DefaultArguments holds defaults values.
 var DefaultArguments = Arguments{
-	IncludeTargetInfo: true,
-	IncludeScopeInfo:  false,
-	GCFrequency:       5 * time.Minute,
+	IncludeTargetInfo:  true,
+	IncludeScopeInfo:   false,
+	IncludeScopeLabels: true,
+	GCFrequency:        5 * time.Minute,
 }
 
 // SetToDefault implements river.Defaulter.

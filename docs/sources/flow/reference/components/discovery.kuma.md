@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.kuma/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kuma/
 title: discovery.kuma
+description: Learn about discovery.kuma
 ---
 
 # discovery.kuma

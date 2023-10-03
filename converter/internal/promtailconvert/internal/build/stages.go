@@ -59,7 +59,7 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 		case promtailstages.StageTypeDocker:
 			return convertDocker()
 		case promtailstages.StageTypeCRI:
-			return convertCRI()
+			return convertCRI(iCfg, diags)
 		case promtailstages.StageTypeMatch:
 			return convertMatch(iCfg, diags)
 		case promtailstages.StageTypeTemplate:
@@ -352,8 +352,24 @@ func convertMatch(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig,
 	}}, true
 }
 
-func convertCRI() (stages.StageConfig, bool) {
-	return stages.StageConfig{CRIConfig: &stages.CRIConfig{}}, true
+func convertCRI(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pCRI := &promtailstages.CriConfig{}
+	if err := mapstructure.Decode(cfg, pCRI); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+
+	// Copied logic from Promtail: if MaxPartialLines is 0, default it to
+	// MaxPartialLinesSize.
+	if pCRI.MaxPartialLines == 0 {
+		pCRI.MaxPartialLines = promtailstages.MaxPartialLinesSize
+	}
+
+	return stages.StageConfig{CRIConfig: &stages.CRIConfig{
+		MaxPartialLines:            pCRI.MaxPartialLines,
+		MaxPartialLineSize:         uint64(pCRI.MaxPartialLineSize),
+		MaxPartialLineSizeTruncate: pCRI.MaxPartialLineSizeTruncate,
+	}}, true
 }
 
 func convertDocker() (stages.StageConfig, bool) {

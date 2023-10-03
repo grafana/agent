@@ -19,6 +19,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
@@ -31,8 +32,6 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus"
 )
 
 var (
@@ -61,6 +60,9 @@ type Options struct {
 	// IncludeScopeInfo includes the otel_scope_info metric and adds
 	// otel_scope_name and otel_scope_version labels to data points.
 	IncludeScopeInfo bool
+	// IncludeScopeLabels includes the otel_scope_name and otel_scope_version
+	// labels from the scope in the metrics.
+	IncludeScopeLabels bool
 }
 
 var _ consumer.Metrics = (*Converter)(nil)
@@ -243,8 +245,8 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 		model.MetricNameLabel, "otel_scope_info",
 		model.JobLabel, res.metadata[model.JobLabel],
 		model.InstanceLabel, res.metadata[model.InstanceLabel],
-		"name", scope.Name(),
-		"version", scope.Version(),
+		scopeNameLabel, scope.Name(),
+		scopeVersionLabel, scope.Version(),
 	)
 
 	lb := labels.NewBuilder(scopeInfoLabels)
@@ -284,7 +286,8 @@ func (conv *Converter) consumeMetric(app storage.Appender, memResource *memorySe
 }
 
 func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildPromCompliantName(m, "")
+	// TODO: should we make the param addMetricSuffixes configurable? For now we set the default value (true) to keep the same behavior as before
+	metricName := prometheus.BuildCompliantName(m, "", true)
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
 		Type: textparse.MetricTypeGauge,
@@ -351,9 +354,9 @@ func (conv *Converter) getOrCreateSeries(res *memorySeries, scope *memorySeries,
 		lb.Set(extraLabel.Name, extraLabel.Value)
 	}
 
-	if conv.getOpts().IncludeScopeInfo {
-		lb.Set("otel_scope_name", scope.metadata[scopeNameLabel])
-		lb.Set("otel_scope_version", scope.metadata[scopeVersionLabel])
+	if conv.getOpts().IncludeScopeLabels {
+		lb.Set(scopeNameLabel, scope.metadata[scopeNameLabel])
+		lb.Set(scopeVersionLabel, scope.metadata[scopeVersionLabel])
 	}
 
 	// There is no need to sort the attributes here.
@@ -386,7 +389,7 @@ func getNumberDataPointValue(dp pmetric.NumberDataPoint) float64 {
 }
 
 func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildPromCompliantName(m, "")
+	metricName := prometheus.BuildCompliantName(m, "", true)
 
 	// Excerpt from the spec:
 	//
@@ -444,7 +447,7 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 }
 
 func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildPromCompliantName(m, "")
+	metricName := prometheus.BuildCompliantName(m, "", true)
 
 	if m.Histogram().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
 		// Drop non-cumulative histograms for now, which is permitted by the spec.
@@ -603,7 +606,7 @@ func (conv *Converter) convertExemplar(otelExemplar pmetric.Exemplar, ts time.Ti
 }
 
 func (conv *Converter) consumeSummary(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildPromCompliantName(m, "")
+	metricName := prometheus.BuildCompliantName(m, "", true)
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
 		Type: textparse.MetricTypeSummary,

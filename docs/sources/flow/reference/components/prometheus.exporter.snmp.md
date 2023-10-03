@@ -5,12 +5,17 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.snmp/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.snmp/
 title: prometheus.exporter.snmp
+description: Learn about prometheus.exporter.snmp
 ---
 
 # prometheus.exporter.snmp
 
 The `prometheus.exporter.snmp` component embeds
 [`snmp_exporter`](https://github.com/prometheus/snmp_exporter). `snmp_exporter` lets you collect SNMP data and expose them as Prometheus metrics.
+
+{{% admonition type="note" %}}
+`prometheus.exporter.snmp` uses the latest configuration introduced in version 0.23 of the Prometheus `snmp_exporter`.
+{{% /admonition %}}
 
 ## Usage
 

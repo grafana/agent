@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.windowsevent/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.windowsevent/
 title: loki.source.windowsevent
+description: Learn about loki.windowsevent
 ---
 
 # loki.source.windowsevent

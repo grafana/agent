@@ -1,8 +1,8 @@
 package file
 
-// This code is copied from Promtail. decompressor implements the reader
-// interface and is used to read compressed log files. It uses the Go stdlib's
-// compress/* packages for decoding.
+// This code is copied from loki/promtail@a8d5815510bd959a6dd8c176a5d9fd9bbfc8f8b5.
+// Decompressor implements the reader interface and is used to read compressed log files.
+// It uses the Go stdlib's compress/* packages for decoding.
 
 import (
 	"bufio"

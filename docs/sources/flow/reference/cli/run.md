@@ -7,11 +7,12 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
 description: The `run` command runs Grafana Agent in the foreground until an interrupt
   is received.
 menuTitle: run
-title: run command
+title: The run command
+description: Learn about the run command
 weight: 300
 ---
 
-# `run` command
+# The run command
 
 The `run` command runs Grafana Agent Flow in the foreground until an
 interrupt is received.
@@ -20,16 +21,20 @@ interrupt is received.
 
 Usage:
 
-* `AGENT_MODE=flow grafana-agent run [FLAG ...] FILE_NAME`
-* `grafana-agent-flow run [FLAG ...] FILE_NAME`
+* `AGENT_MODE=flow grafana-agent run [FLAG ...] PATH_NAME`
+* `grafana-agent-flow run [FLAG ...] PATH_NAME`
 
    Replace the following:
 
    * `FLAG`: One or more flags that define the input and output of the command.
-   * `FILE_NAME`: Required. The Grafana Agent configuration file.
+   * `PATH_NAME`: Required. The Grafana Agent configuration file/directory path.
 
-If the `FILE_NAME` argument is not provided, or if the configuration file can't be loaded or 
+If the `PATH_NAME` argument is not provided, or if the configuration path can't be loaded or 
 contains errors during the initial load, the `run` command will immediately exit and show an error message.
+
+If you give the `PATH_NAME` argument a directory path, the agent will find `*.river` files
+(ignoring nested directories) and load them as a single configuration source. However, component names must
+be **unique** across all River files, and configuration blocks must not be repeated.
 
 Grafana Agent Flow will continue to run if subsequent reloads of the configuration
 file fail, potentially marking components as unhealthy depending on the nature
@@ -58,7 +63,7 @@ The following flags are supported:
 * `--cluster.advertise-interfaces`: List of interfaces used to infer an address to advertise. Set to `all` to use all available network interfaces on the system. (default `"eth0,en0"`).
 * `--cluster.max-join-peers`: Number of peers to join from the discovered set (default `5`).
 * `--cluster.name`: Name to prevent nodes without this identifier from joining the cluster (default `""`).
-* `--config.format`: The format of the source file. Supported formats: `flow`, `prometheus`, `promtail` (default `"flow"`).
+* `--config.format`: The format of the source file. Supported formats: `flow`, `prometheus`, `promtail`, `static` (default `"flow"`).
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}

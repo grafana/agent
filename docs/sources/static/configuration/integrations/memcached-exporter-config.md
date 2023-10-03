@@ -3,6 +3,7 @@ aliases:
 - ../../../configuration/integrations/memcached-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/memcached-exporter-config/
 title: memcached_exporter_config
+description: Learn about memcached_exporter_config
 ---
 
 # memcached_exporter_config

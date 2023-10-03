@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.jaeger/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.jaeger/
 title: otelcol.receiver.jaeger
+description: Learn about otelcol.receiver.jaeger
 ---
 
 # otelcol.receiver.jaeger

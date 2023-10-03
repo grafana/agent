@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.nerve/
 title: discovery.nerve
+description: Learn about discovery.nerve
 ---
 
 # discovery.nerve
