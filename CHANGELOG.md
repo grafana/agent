@@ -53,6 +53,9 @@ Main (unreleased)
   - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
   - `prometheus.exporter.agent` - scrape agent's metrics. (@hainenber)
   - `prometheus.exporter.vsphere` - scrape vmware vsphere metrics. (@marctc)
+  - `otelcol.processor.transform` transforms OTLP telemetry data using the 
+    OpenTelemetry Transformation Language (OTTL). It is most commonly used 
+    for transformations on attributes.
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
