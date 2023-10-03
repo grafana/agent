@@ -229,8 +229,11 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	return diags
 }
 
-// Cleanup unregisters any existing metrics.
-func (l *Loader) Cleanup() {
+// Cleanup unregisters any existing metrics and optionally stops the worker pool.
+func (l *Loader) Cleanup(stopWorkerPool bool) {
+	if stopWorkerPool {
+		l.workerPool.Stop()
+	}
 	if l.globals.Registerer == nil {
 		return
 	}

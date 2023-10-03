@@ -8,9 +8,12 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestController_Updates(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
+
 	// Simple pipeline with a minimal lag
 	config := `
 	testcomponents.count "inc" {
@@ -45,6 +48,10 @@ func TestController_Updates(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go ctrl.Run(ctx)
+	defer func() {
+		cancel()
+		ctrl.WaitDone()
+	}()
 
 	// Wait for the updates to propagate
 	require.Eventually(t, func() bool {
@@ -65,11 +72,11 @@ func TestController_Updates(t *testing.T) {
 
 	// Since the lag is minimal, all updates will arrive to the final node.
 	require.Equal(t, 55, out.(testcomponents.SummationExports).Sum)
-
-	cancel()
 }
 
 func TestController_Updates_WithLag(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
+
 	// Simple pipeline with some lag
 	config := `
 	testcomponents.count "inc" {
@@ -104,6 +111,10 @@ func TestController_Updates_WithLag(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go ctrl.Run(ctx)
+	defer func() {
+		cancel()
+		ctrl.WaitDone()
+	}()
 
 	// Wait for the updates to propagate
 	require.Eventually(t, func() bool {
@@ -121,11 +132,11 @@ func TestController_Updates_WithLag(t *testing.T) {
 
 	in, _ = getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
 	require.Equal(t, 10, in.(testcomponents.SummationConfig).Input)
-
-	cancel()
 }
 
 func TestController_Updates_WithOtherLaggingPipeline(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
+
 	// Another pipeline exists with a significant lag.
 	config := `
 	testcomponents.count "inc" {
@@ -154,7 +165,7 @@ func TestController_Updates_WithOtherLaggingPipeline(t *testing.T) {
 
 	testcomponents.passthrough "inc_dep_slow" {
 		input = testcomponents.count.inc_2.count
-		lag = "1s"
+		lag = "500ms"
 	}
 `
 
@@ -170,12 +181,16 @@ func TestController_Updates_WithOtherLaggingPipeline(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go ctrl.Run(ctx)
+	defer func() {
+		cancel()
+		ctrl.WaitDone()
+	}()
 
 	// Wait for the updates to propagate
 	require.Eventually(t, func() bool {
 		_, out := getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
 		return out.(testcomponents.SummationExports).LastAdded == 10
-	}, 3*time.Second, 10*time.Millisecond)
+	}, 2*time.Second, 10*time.Millisecond)
 
 	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.inc_dep_1")
 	require.Equal(t, "10", in.(testcomponents.PassthroughConfig).Input)
@@ -190,11 +205,11 @@ func TestController_Updates_WithOtherLaggingPipeline(t *testing.T) {
 
 	// Since the actual lag should be minimal, all updates should arrive to the final node.
 	require.Equal(t, 55, out.(testcomponents.SummationExports).Sum)
-
-	cancel()
 }
 
 func TestController_Updates_WithLaggingComponent(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
+
 	// Part of the pipeline has a significant lag.
 	config := `
 	testcomponents.count "inc" {
@@ -218,7 +233,7 @@ func TestController_Updates_WithLaggingComponent(t *testing.T) {
 
 	testcomponents.passthrough "inc_dep_slow" {
 		input = testcomponents.count.inc.count
-		lag = "1s"
+		lag = "500ms"
 	}
 `
 
@@ -234,12 +249,16 @@ func TestController_Updates_WithLaggingComponent(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go ctrl.Run(ctx)
+	defer func() {
+		cancel()
+		ctrl.WaitDone()
+	}()
 
 	// Wait for the updates to propagate
 	require.Eventually(t, func() bool {
 		_, out := getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
 		return out.(testcomponents.SummationExports).LastAdded == 10
-	}, 3*time.Second, 10*time.Millisecond)
+	}, 2*time.Second, 10*time.Millisecond)
 
 	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.inc_dep_1")
 	require.Equal(t, "10", in.(testcomponents.PassthroughConfig).Input)
@@ -254,8 +273,14 @@ func TestController_Updates_WithLaggingComponent(t *testing.T) {
 
 	// Since the actual lag should be minimal, all updates should arrive to the final node.
 	require.Equal(t, 55, out.(testcomponents.SummationExports).Sum)
+}
 
-	cancel()
+func verifyNoGoroutineLeaks(t *testing.T) {
+	goleak.VerifyNone(
+		t,
+		goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"),
+		goleak.IgnoreTopFunction("go.opentelemetry.io/otel/sdk/trace.(*batchSpanProcessor).processQueue"),
+	)
 }
 
 func newTestController(t *testing.T) *Flow {

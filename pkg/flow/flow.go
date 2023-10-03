@@ -114,6 +114,7 @@ type Flow struct {
 	modules     *moduleRegistry
 
 	loadFinished chan struct{}
+	runFinished  chan struct{}
 
 	loadMut    sync.RWMutex
 	loadedOnce atomic.Bool
@@ -176,6 +177,7 @@ func newController(o controllerOptions) *Flow {
 		modules: o.ModuleRegistry,
 
 		loadFinished: make(chan struct{}, 1),
+		runFinished:  make(chan struct{}, 1),
 	}
 
 	serviceMap := controller.NewServiceMap(o.Services)
@@ -226,8 +228,9 @@ func newController(o controllerOptions) *Flow {
 // Run starts the Flow controller, blocking until the provided context is
 // canceled. Run must only be called once.
 func (f *Flow) Run(ctx context.Context) {
+	defer func() { f.runFinished <- struct{}{} }()
 	defer f.sched.Close()
-	defer f.loader.Cleanup()
+	defer f.loader.Cleanup(!f.opts.IsModule)
 	defer level.Debug(f.log).Log("msg", "flow controller exiting")
 
 	for {
@@ -299,4 +302,9 @@ func (f *Flow) LoadSource(source *Source, args map[string]any) error {
 // Ready returns whether the Flow controller has finished its initial load.
 func (f *Flow) Ready() bool {
 	return f.loadedOnce.Load()
+}
+
+// WaitDone blocks until flow controller's Run method finishes.
+func (f *Flow) WaitDone() {
+	<-f.runFinished
 }

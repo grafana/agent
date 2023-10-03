@@ -18,11 +18,14 @@ import (
 	cluster_service "github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 
 	_ "github.com/grafana/agent/component/module/string"
 )
 
 func TestUpdates_EmptyModule(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
+
 	// There's an empty module in the config below, but the pipeline we test for propagation is not affected by it.
 	config := `
 	module.string "test" {
@@ -58,7 +61,10 @@ func TestUpdates_EmptyModule(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	defer func() {
+		cancel()
+		ctrl.WaitDone()
+	}()
 
 	go ctrl.Run(ctx)
 
@@ -113,7 +119,10 @@ func TestUpdates_ThroughModule(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	defer func() {
+		cancel()
+		ctrl.WaitDone()
+	}()
 
 	go ctrl.Run(ctx)
 
@@ -160,4 +169,12 @@ func getExport[T any](t *testing.T, ctrl *flow.Flow, moduleId string, nodeId str
 	})
 	require.NoError(t, err)
 	return info.Exports.(T)
+}
+
+func verifyNoGoroutineLeaks(t *testing.T) {
+	goleak.VerifyNone(
+		t,
+		goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"),
+		goleak.IgnoreTopFunction("go.opentelemetry.io/otel/sdk/trace.(*batchSpanProcessor).processQueue"),
+	)
 }

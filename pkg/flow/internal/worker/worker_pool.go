@@ -9,7 +9,8 @@ import (
 )
 
 type Pool interface {
-	// Stop stops the worker pool. It does not wait to drain any internal queues. It must only be called once.
+	// Stop stops the worker pool. It does not wait to drain any internal queues, but it does wait for the currently
+	// running tasks to complete. It must only be called once.
 	Stop()
 	// Submit submits a function to be executed by the worker pool on a random worker. Error is returned if the pool
 	// is unable to accept extra work.
@@ -29,6 +30,7 @@ type shardedWorkerPool struct {
 	workersCount int
 	workQueues   []chan func()
 	quit         chan struct{}
+	allStopped   sync.WaitGroup
 
 	lock sync.Mutex
 	set  map[string]struct{}
@@ -100,12 +102,15 @@ func (w *shardedWorkerPool) QueueSize() int {
 
 func (w *shardedWorkerPool) Stop() {
 	close(w.quit)
+	w.allStopped.Wait()
 }
 
 func (w *shardedWorkerPool) start() {
 	for i := 0; i < w.workersCount; i++ {
 		queue := w.workQueues[i]
+		w.allStopped.Add(1)
 		go func() {
+			defer w.allStopped.Done()
 			for {
 				select {
 				case <-w.quit:
