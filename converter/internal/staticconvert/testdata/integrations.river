@@ -468,7 +468,7 @@ prometheus.scrape "integrations_process_exporter" {
 }
 
 prometheus.exporter.redis "integrations_redis_exporter" {
-	redis_addr = "redis-2:6379"
+	redis_addr        = "redis-2:6379"
 	export_key_values = false
 }
 
