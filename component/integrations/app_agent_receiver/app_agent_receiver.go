@@ -135,6 +135,12 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.logs.SetLabels(newArgs.LogLabels)
 
+	if c.args.CompatMode {
+		_ = c.prefixedRegisterer.UpdatePrefix("app_agent_receiver")
+	} else {
+		_ = c.prefixedRegisterer.UpdatePrefix("faro_receiver")
+	}
+
 	c.handler.Update(newArgs.Server)
 
 	c.lazySourceMaps.SetInner(newSourceMapsStore(
@@ -183,10 +189,6 @@ func (c *Component) Update(args component.Arguments) error {
 	default:
 		// An actor is already scheduled to run. Don't do anything.
 	}
-
-	// TODO(rfratto):
-	//
-	// * Allow updating prefix of prefixCollector.
 
 	return nil
 }
