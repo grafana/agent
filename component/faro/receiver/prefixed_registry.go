@@ -1,4 +1,4 @@
-package app_agent_receiver
+package receiver
 
 import (
 	"errors"

@@ -1,4 +1,4 @@
-package app_agent_receiver
+package receiver
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "integrations.v2.app_agent_receiver",
+		Name: "faro.receiver",
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {

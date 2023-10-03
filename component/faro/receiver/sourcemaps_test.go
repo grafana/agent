@@ -1,4 +1,4 @@
-package app_agent_receiver
+package receiver
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/grafana/agent/component/integrations/app_agent_receiver/internal/payload"
+	"github.com/grafana/agent/component/faro/receiver/internal/payload"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"

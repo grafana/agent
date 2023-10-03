@@ -1,4 +1,4 @@
-package app_agent_receiver
+package receiver
 
 import (
 	"crypto/subtle"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/component/integrations/app_agent_receiver/internal/payload"
+	"github.com/grafana/agent/component/faro/receiver/internal/payload"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/cors"
 	"golang.org/x/time/rate"

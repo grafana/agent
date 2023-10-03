@@ -1,4 +1,4 @@
-package app_agent_receiver
+package receiver
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/integrations/app_agent_receiver/internal/payload"
+	"github.com/grafana/agent/component/faro/receiver/internal/payload"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/client_golang/prometheus"

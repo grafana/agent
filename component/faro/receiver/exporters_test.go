@@ -1,11 +1,11 @@
-package app_agent_receiver
+package receiver
 
 import (
 	"context"
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/component/integrations/app_agent_receiver/internal/payload"
+	"github.com/grafana/agent/component/faro/receiver/internal/payload"
 	"github.com/prometheus/client_golang/prometheus"
 	promtestutil "github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/require"

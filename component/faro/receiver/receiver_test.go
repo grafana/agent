@@ -1,4 +1,4 @@
-package app_agent_receiver
+package receiver
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ func Test(t *testing.T) {
 
 	ctrl, err := componenttest.NewControllerFromID(
 		util.TestLogger(t),
-		"integrations.v2.app_agent_receiver",
+		"faro.receiver",
 	)
 	require.NoError(t, err)
 
