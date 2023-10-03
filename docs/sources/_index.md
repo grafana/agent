@@ -21,7 +21,7 @@ form programmable observability **pipelines** for telemetry collection,
 processing, and delivery.
 
 {{% admonition type="note" %}}
-This page focuses mainly on [Flow mode]({{< relref "./flow" >}}), the Terraform-inspired variant of Grafana Agent.
+This page focuses mainly on [Flow mode][], the Terraform-inspired variant of Grafana Agent.
 
 For information on other variants of Grafana Agent, refer to [Introduction to Grafana Agent]({{< relref "./about.md" >}}).
 {{% /admonition %}}
@@ -56,8 +56,6 @@ Grafana Agent can collect, transform, and send data to:
 * **Batteries included**: Integrate with systems like MySQL, Kubernetes, and
   Apache to get telemetry that's immediately useful.
 
-[UI]: {{< relref "./flow/monitoring/debugging.md#grafana-agent-flow-ui" >}}
-
 ## Getting started
 
 * Choose a [variant][variants] of Grafana Agent to run.
@@ -65,11 +63,6 @@ Grafana Agent can collect, transform, and send data to:
   * [Static mode][]
   * [Static mode Kubernetes operator][]
   * [Flow mode][]
-
-[variants]: {{< relref "./about.md" >}}
-[Static mode]: {{< relref "./static" >}}
-[Static mode Kubernetes operator]: {{< relref "./operator" >}}
-[Flow mode]: {{< relref "./flow" >}}
 
 ## Supported platforms
 
@@ -106,3 +99,20 @@ one minor release is moved.
 Patch and security releases may be created at any time.
 
 [Milestones]: https://github.com/grafana/agent/milestones
+
+{{% docs/reference %}}
+[variants]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/about"
+[variants]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/about"
+
+[Static mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static"
+[Static mode]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static"
+
+[Static mode Kubernetes operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator"
+[Static mode Kubernetes operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/operator"
+
+[Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow"
+[Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow"
+
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+{{% /docs/reference %}}
