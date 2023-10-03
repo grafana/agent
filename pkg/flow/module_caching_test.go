@@ -1,4 +1,7 @@
-package tests
+package flow_test
+
+// This file contains tests which verify that the Flow controller correctly updates and caches modules' arguments
+// and exports in presence of multiple components.
 
 import (
 	"context"
