@@ -7,8 +7,8 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/logging"
-	"github.com/grafana/agent/pkg/util/testcomponents"
 	"github.com/stretchr/testify/require"
 )
 

@@ -12,8 +12,8 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow"
+	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/logging"
-	"github.com/grafana/agent/pkg/util/testcomponents"
 	"github.com/grafana/agent/service"
 	cluster_service "github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
