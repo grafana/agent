@@ -48,7 +48,7 @@ To install the Agent Operator Helm chart:
     ```bash
     helm install my-release grafana/grafana-agent-operator -f values.yaml -n my-namespace
     ```
-    You can find a list of configurable template parameters in the [Helm chart repository](/grafana/helm-charts/blob/main/charts/agent-operator/values.yaml).
+    You can find a list of configurable template parameters in the [Helm chart repository](https://github.com/grafana/helm-charts/blob/main/charts/agent-operator/values.yaml).
 
 1. Once you've successfully deployed the Helm release, confirm that Agent Operator is up and running:
 
