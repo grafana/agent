@@ -169,10 +169,15 @@ func (c *Component) Handler() http.Handler {
 		}
 		dat, err := yaml.Marshal(scs)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			if _, err = w.Write([]byte(err.Error())); err != nil {
+				return
+			}
 			w.WriteHeader(500)
 			return
 		}
-		w.Write(dat)
+		_, err = w.Write(dat)
+		if err != nil {
+			w.WriteHeader(500)
+		}
 	})
 }
