@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -54,8 +55,14 @@ func (h *handler) Update(args ServerArguments) {
 	h.args = args
 
 	if args.RateLimiting.Enabled {
-		h.rateLimiter.SetLimit(rate.Limit(args.RateLimiting.RPS))
-		h.rateLimiter.SetBurst(int(args.RateLimiting.Burstiness))
+		// Updating the rate limit to time.Now() would immediately fill the
+		// buckets. To allow requsts to immediately pass through, we adjust the
+		// time to set the limit/burst to to allow for both the normal rate and
+		// burst to be filled.
+		t := time.Now().Add(-time.Duration(float64(time.Second) * args.RateLimiting.RPS * args.RateLimiting.Burstiness))
+
+		h.rateLimiter.SetLimitAt(t, rate.Limit(args.RateLimiting.RPS))
+		h.rateLimiter.SetBurstAt(t, int(args.RateLimiting.Burstiness))
 	} else {
 		// Set to infinite rate limit.
 		h.rateLimiter.SetLimit(rate.Inf)
@@ -97,6 +104,12 @@ func (h *handler) handleRequest(rw http.ResponseWriter, req *http.Request) {
 			http.Error(rw, "API key not provided or incorrect", http.StatusUnauthorized)
 			return
 		}
+	}
+
+	// Validate content length.
+	if h.args.MaxAllowedPayloadSize > 0 && req.ContentLength > h.args.MaxAllowedPayloadSize {
+		http.Error(rw, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
+		return
 	}
 
 	var p payload.Payload
