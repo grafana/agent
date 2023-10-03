@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 var testFile = `
@@ -31,7 +33,9 @@ var testFile = `
 `
 
 func TestController_LoadSource_Evaluation(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctrl := New(testOptions(t))
+	defer cleanUpController(ctrl)
 
 	// Use testFile from graph_builder_test.go.
 	f, err := ParseSource(t.Name(), []byte(testFile))
@@ -70,4 +74,25 @@ func testOptions(t *testing.T) Options {
 		DataPath: t.TempDir(),
 		Reg:      nil,
 	}
+}
+
+func cleanUpController(ctrl *Flow) {
+	// To avoid leaking goroutines and clean-up, we need to run and shut down the controller.
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(ctx)
+		close(done)
+	}()
+	cancel()
+	<-done
+}
+
+func verifyNoGoroutineLeaks(t *testing.T) {
+	t.Helper()
+	goleak.VerifyNone(
+		t,
+		goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"),
+		goleak.IgnoreTopFunction("go.opentelemetry.io/otel/sdk/trace.(*batchSpanProcessor).processQueue"),
+	)
 }

@@ -178,6 +178,7 @@ func getExport[T any](t *testing.T, ctrl *flow.Flow, moduleId string, nodeId str
 }
 
 func verifyNoGoroutineLeaks(t *testing.T) {
+	t.Helper()
 	goleak.VerifyNone(
 		t,
 		goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"),

@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/goleak"
 )
 
 func TestController_Updates(t *testing.T) {
@@ -373,14 +372,6 @@ func TestController_Updates_WithLaggingComponent(t *testing.T) {
 
 	// Since the actual lag should be minimal, all updates should arrive to the final node.
 	require.Equal(t, 55, out.(testcomponents.SummationExports).Sum)
-}
-
-func verifyNoGoroutineLeaks(t *testing.T) {
-	goleak.VerifyNone(
-		t,
-		goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"),
-		goleak.IgnoreTopFunction("go.opentelemetry.io/otel/sdk/trace.(*batchSpanProcessor).processQueue"),
-	)
 }
 
 func newTestController(t *testing.T) *Flow {
