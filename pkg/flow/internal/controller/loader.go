@@ -650,7 +650,6 @@ func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer tr
 
 			// Only obtain loader lock after we have evaluated the node, allowing for concurrent evaluation.
 			l.mut.RLock()
-			defer l.mut.RUnlock()
 			err = l.postEvaluate(l.log, n, evalErr)
 
 			// Additional post-evaluation steps necessary for module exports.
@@ -658,8 +657,18 @@ func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer tr
 				l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
 			}
 			if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
-				l.globals.OnExportsChange(l.cache.CreateModuleExports())
-				l.moduleExportIndex = l.cache.ExportChangeIndex()
+				// Upgrade to write lock to update the module exports.
+				l.mut.RUnlock()
+				l.mut.Lock()
+				defer l.mut.Unlock()
+				// Check if the update still needed after obtaining the write lock and perform it.
+				if l.cache.ExportChangeIndex() != l.moduleExportIndex {
+					l.globals.OnExportsChange(l.cache.CreateModuleExports())
+					l.moduleExportIndex = l.cache.ExportChangeIndex()
+				}
+			} else {
+				// No need to upgrade to write lock, just release the read lock.
+				l.mut.RUnlock()
 			}
 		}
 
