@@ -1108,8 +1108,8 @@ github.com/grafana/pyroscope-go/godeltaprof v0.1.3 h1:eunWpv1B3Z7ZK9o4499EmQGlY+
 github.com/grafana/pyroscope-go/godeltaprof v0.1.3/go.mod h1:1HSPtjU8vLG0jE9JrTdzjgFqdJ/VgN7fvxBNq3luJko=
 github.com/grafana/pyroscope/api v0.2.0 h1:TzOxL0s6SiaLEy944ZAKgHcx/JDRJXu4O8ObwkqR6p4=
 github.com/grafana/pyroscope/api v0.2.0/go.mod h1:nhH+xai9cYFgs6lMy/+L0pKj0d5yCMwji/QAiQFCP+U=
-github.com/grafana/pyroscope/ebpf v0.2.2 h1:AYvBhZTK17CSg3w4jwlRbWlOw8GBjPT27PzeRB7nnyU=
-github.com/grafana/pyroscope/ebpf v0.2.2/go.mod h1:sC4X4dizWAP++y9A9xBvd0fpAXNpeXp+ElapWDhSz4c=
+github.com/grafana/pyroscope/ebpf v0.2.3 h1:OH7Un2x0UN998U85by4vyvImHs6mkFTo45SnO+PjHdk=
+github.com/grafana/pyroscope/ebpf v0.2.3/go.mod h1:NO9mIMKewDuohQlYaj2Q0v3miUmREjGpadz8RuA76Jw=
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db h1:7aN5cccjIqCLTzedH7MZzRZt5/lsAHch6Z3L2ZGn5FA=
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/grafana/river v0.1.2-0.20230830200459-0ff21cf610eb h1:hOblg36rOTgGIOp7A3+53OtlXqq0iNnI9qDcOn7fPfQ=
@@ -1320,6 +1320,8 @@ github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/ianlancetaylor/demangle v0.0.0-20200824232613-28f6c0f3b639/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
 github.com/ianlancetaylor/demangle v0.0.0-20210905161508-09a460cdf81d/go.mod h1:aYm2/VgdVmcIU8iMfdMvDMsRAQjcfZSKFby6HOFvi/w=
+github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab h1:BA4a7pe6ZTd9F8kXETBoijjFJ/ntaa//1wiH9BZu4zU=
+github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab/go.mod h1:gx7rwoVhcfuVKG5uya9Hs3Sxj7EIvldVofAWIUtGouw=
 github.com/illumos/go-kstat v0.0.0-20210513183136-173c9b0a9973 h1:hk4LPqXIY/c9XzRbe7dA6qQxaT6Axcbny0L/G5a4owQ=
 github.com/illumos/go-kstat v0.0.0-20210513183136-173c9b0a9973/go.mod h1:PoK3ejP3LJkGTzKqRlpvCIFas3ncU02v8zzWDW+g0FY=
 github.com/imdario/mergo v0.3.5/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJh5FfA=
