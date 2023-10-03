@@ -15,6 +15,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/trace"
+
+	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
 
 func TestLoader(t *testing.T) {

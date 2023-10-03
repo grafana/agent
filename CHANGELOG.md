@@ -76,6 +76,11 @@ Main (unreleased)
   This will load all River files in the directory as a single configuration;
   component names must be unique across all loaded files. (@rfratto, @hainenber)
 
+- Added support for `static` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@erikbaranowski)
+
+- Flow: the `prometheus.scrape` component can now configure the scraping of
+  Prometheus native histograms. (@tpaschalis)
+
 - Flow: Allow `prometheus.exporter.unix` to be specified multiple times and used in modules. (@mattdurham)
 
 ### Enhancements
@@ -110,10 +115,32 @@ Main (unreleased)
 
 - Agent Management: Honor 503 ServiceUnavailable `Retry-After` header. (@jcreixell)
 
+- Bump opentelemetry-collector and opentelemetry-collector-contrib versions from v0.80 to v0.85 (@wildum):
+  - add `authoriy` attribute to `otelcol.exporter.loadbalancing` to override the default value in gRPC requests.
+  - add `exemplars` support to `otelcol.connector.spanmetrics`.
+  - add `exclude_dimensions` attribute to `otelcol.connector.spanmetrics` to exclude dimensions from the default set.
+  - add `authority` attribute to `otelcol.receiver.otlp` to override the default value in gRPC requests.
+  - add `disable_keep_alives` attribute to `otelcol.receiver.otlp` to disable the HTTP keep alive feature.
+  - add `traces_url_path`, `metrics_url_path` and `logs_url_path` attributes to `otelcol.receiver.otlp` to specify the URl path to respectively receive traces, metrics and logs on.
+  - add the value `json` to the `encoding` attribute of `otelcol.receiver.kafka`. The component is now able to decode `json` payload and to insert it into the body of a log record.
+
 - Added `scrape` block to customize the default behavior of `prometheus.operator.podmonitors`, `prometheus.operator.probes`, and `prometheus.operator.servicemonitors`. (@sberz)
 
 - The `instance` label of targets exposed by `prometheus.exporter.*` components
   is now more representative of what is being monitored. (@tpaschalis)
+
+- Promtail converter will now treat `global positions configuration is not supported` as a Warning instead of Error. (@erikbaranowski)
+
+- Add new `agent_component_dependencies_wait_seconds` histogram metric and a dashboard panel 
+  that measures how long components wait to be evaluated after their dependency is updated (@thampiotr)
+
+- Add additional endpoint to debug scrape configs generated inside `prometheus.operator.*` components (@captncraig)
+
+- Components evaluation is now performed in parallel, reducing the impact of 
+  slow components potentially blocking the entire telemetry pipeline. 
+  The `agent_component_evaluation_seconds` metric now measures evaluation time 
+  of each node separately, instead of all the directly and indirectly 
+  dependant nodes. (@thampiotr)
 
 ### Bugfixes
 
@@ -125,6 +152,12 @@ Main (unreleased)
 
 - Fixed the `agent_prometheus_scrape_targets_gauge` incorrectly reporting all discovered targets
   instead of targets that belong to current instance when clustering is enabled. (@thampiotr)
+
+- Fixed race condition in cleaning up metrics when stopping to tail files in static mode. (@thampiotr)
+
+- Fixed a bug where the BackOffLimit for the kubernetes tailer was always set to zero. (@anderssonw)
+
+- Fixed a bug where Flow agent fails to load `comment` statement in `argument` block. (@hainenber)
 
 ### Other changes
 
@@ -152,6 +185,8 @@ Main (unreleased)
 - Bump `webdevops/go-commons` to version containing `LICENSE`. (@hainenber)
 
 - `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
+
+- Documentation updated to correct default path from `prometheus.exporter.windows` `text_file` block (@timo1707)
 
 v0.36.2 (2023-09-22)
 --------------------

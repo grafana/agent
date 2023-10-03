@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -22,6 +23,13 @@ const argumentConfig = `
 	argument "username" {} 
 	argument "defaulted" {
 		optional = true
+		default = "default_value"
+	}`
+
+const argumentWithFullOptsConfig = `
+	argument "foo" {
+		comment = "description of foo"
+		optional = true	
 		default = "default_value"
 	}`
 
@@ -96,19 +104,25 @@ func TestModule(t *testing.T) {
 			exportModuleContent: exportStringConfig + exportDummy,
 			expectedExports:     []string{"username", "dummy"},
 		},
+		{
+			name:                "Argument block with comment is parseable",
+			exportModuleContent: argumentWithFullOptsConfig,
+		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			defer verifyNoGoroutineLeaks(t)
 			mc := newModuleController(testModuleControllerOptions(t)).(*moduleController)
+			// modules do not clean up their own worker pool as we normally use a shared one from the root controller
+			defer mc.o.WorkerPool.Stop()
 
 			tm := &testModule{
 				content: tc.argumentModuleContent + tc.exportModuleContent,
 				args:    tc.args,
 				opts:    component.Options{ModuleController: mc},
 			}
-			ctx := context.Background()
-			ctx, cnc := context.WithTimeout(ctx, 1*time.Second)
+			ctx, cnc := context.WithTimeout(context.Background(), 1*time.Second)
 			defer cnc()
 			err := tm.Run(ctx)
 			if tc.expectedErrorContains == "" {
@@ -125,7 +139,9 @@ func TestModule(t *testing.T) {
 }
 
 func TestArgsNotInModules(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	f := New(testOptions(t))
+	defer cleanUpController(f)
 	fl, err := ParseSource("test", []byte("argument \"arg\"{}"))
 	require.NoError(t, err)
 	err = f.LoadSource(fl, nil)
@@ -133,7 +149,9 @@ func TestArgsNotInModules(t *testing.T) {
 }
 
 func TestExportsNotInModules(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	f := New(testOptions(t))
+	defer cleanUpController(f)
 	fl, err := ParseSource("test", []byte("export \"arg\"{ value = 1}"))
 	require.NoError(t, err)
 	err = f.LoadSource(fl, nil)
@@ -141,6 +159,7 @@ func TestExportsNotInModules(t *testing.T) {
 }
 
 func TestExportsWhenNotUsed(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	f := New(testOptions(t))
 	content := " export \\\"username\\\"  { value  = 1 } \\n export \\\"dummy\\\" { value = 2 } "
 	fullContent := "test.module \"t1\" { content = \"" + content + "\" }"
@@ -160,7 +179,10 @@ func TestExportsWhenNotUsed(t *testing.T) {
 }
 
 func TestIDList(t *testing.T) {
-	nc := newModuleController(testModuleControllerOptions(t))
+	defer verifyNoGoroutineLeaks(t)
+	o := testModuleControllerOptions(t)
+	defer o.WorkerPool.Stop()
+	nc := newModuleController(o)
 	require.Len(t, nc.ModuleIDs(), 0)
 
 	_, err := nc.NewModule("t1", nil)
@@ -173,7 +195,10 @@ func TestIDList(t *testing.T) {
 }
 
 func TestIDCollision(t *testing.T) {
-	nc := newModuleController(testModuleControllerOptions(t))
+	defer verifyNoGoroutineLeaks(t)
+	o := testModuleControllerOptions(t)
+	defer o.WorkerPool.Stop()
+	nc := newModuleController(o)
 	m, err := nc.NewModule("t1", nil)
 	require.NoError(t, err)
 	require.NotNil(t, m)
@@ -183,7 +208,9 @@ func TestIDCollision(t *testing.T) {
 }
 
 func TestIDRemoval(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	opts := testModuleControllerOptions(t)
+	defer opts.WorkerPool.Stop()
 	opts.ID = "test"
 	nc := newModuleController(opts)
 	m, err := nc.NewModule("t1", func(exports map[string]any) {})
@@ -209,6 +236,7 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 		DataPath:       t.TempDir(),
 		Reg:            prometheus.NewRegistry(),
 		ModuleRegistry: newModuleRegistry(),
+		WorkerPool:     worker.NewShardedWorkerPool(1, 100),
 	}
 }
 
