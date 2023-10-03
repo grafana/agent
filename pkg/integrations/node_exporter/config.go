@@ -481,22 +481,21 @@ func (c *Config) mapConfigToNodeConfig() (*collector.NodeCollectorConfig, map[st
 		Fields: &c.VMStatFields,
 	}
 
-	// These collectors are not supported.
-	// delete(validCollectors, CollectorSoftirqs)
-
-	// These need some defaults so if enabled they will work. Note setting the config doesn't inherently start them.
 	cfg.Arp = collector.ArpConfig{
 		DeviceInclude: &blankString,
 		DeviceExclude: &blankString,
 		Netlink:       &blankBool,
 	}
+
 	cfg.Stat = collector.StatConfig{
 		Softirq: &blankBool,
 	}
+
 	cfg.HwMon = collector.HwMonConfig{
 		ChipInclude: &blankString,
 		ChipExclude: &blankString,
 	}
+
 	cfg.Qdisc = collector.QdiscConfig{
 		Fixtures:         &blankString,
 		DeviceInclude:    &blankString,
