@@ -36,22 +36,24 @@ type metricsExporter struct {
 var _ exporter = (*metricsExporter)(nil)
 
 func newMetricsExporter(reg prometheus.Registerer) *metricsExporter {
-	// TODO(rfratto): allow metrics prefix to be customizable.
+	// NOTE(rfratto): There's no metric prefix here matching the component name
+	// so that a prefix can be added dynamically; see prefixed_registry.go for
+	// more information.
 	exp := &metricsExporter{
 		totalLogs: prometheus.NewCounter(prometheus.CounterOpts{
-			Name: "app_agent_receiver_logs_total",
+			Name: "logs_total",
 			Help: "Total number of ingested logs",
 		}),
 		totalMeasurements: prometheus.NewCounter(prometheus.CounterOpts{
-			Name: "app_agent_receiver_measurements_total",
+			Name: "measurements_total",
 			Help: "Total number of ingested measurements",
 		}),
 		totalExceptions: prometheus.NewCounter(prometheus.CounterOpts{
-			Name: "app_agent_receiver_exceptions_total",
+			Name: "exceptions_total",
 			Help: "Total number of ingested exceptions",
 		}),
 		totalEvents: prometheus.NewCounter(prometheus.CounterOpts{
-			Name: "app_agent_receiver_events_total",
+			Name: "events_total",
 			Help: "Total number of ingested events",
 		}),
 	}

@@ -25,6 +25,8 @@ type Exports struct {
 }
 
 type Component struct {
+	prefixedRegisterer *prefixedRegistry
+
 	metrics *metricsExporter
 	logs    *logsExporter
 	traces  *tracesExporter
@@ -33,13 +35,21 @@ type Component struct {
 }
 
 func New(o component.Options, args Arguments) (*Component, error) {
+	// NOTE(rfratto): by default, all metrics are prefixed with faro_receiver.
+	// For backwards compatibility with users of the static mode integration, the
+	// prefix can be changed to app_agent_receiver.
+	prefixedRegistry := newPrefixedRegistry("faro_receiver")
+	o.Registerer.MustRegister(prefixedRegistry)
+
 	var (
-		metrics = newMetricsExporter(o.Registerer)
+		metrics = newMetricsExporter(prefixedRegistry)
 		logs    = newLogsExporter(log.With(o.Logger, "exporter", "logs"), nil) // TODO(rfratto): lazy sourcemaps
 		traces  = newTracesExporter(log.With(o.Logger, "exporter", "traces"))
 	)
 
 	c := &Component{
+		prefixedRegisterer: prefixedRegistry,
+
 		metrics: metrics,
 		logs:    logs,
 		traces:  traces,
@@ -57,6 +67,11 @@ func (c *Component) Run(ctx context.Context) error {
 	// TODO(rfratto):
 	//
 	// * Start HTTP server for collecting telemetry from Faro clients.
+	// * Metrics for HTTP server:
+	//   * app_agent_receiver_request_duration_seconds
+	//   * app_agent_receiver_request_message_bytes
+	//   * app_agent_receiver_response_message_bytes
+	//   * app_agent_receiver_inflight_requests
 
 	return nil
 }
@@ -70,6 +85,7 @@ func (c *Component) Update(args component.Arguments) error {
 	// TODO(rfratto):
 	//
 	// * Ensure server gets restarted with new settings.
+	// * Allow updating prefix of prefixCollector.
 
 	return nil
 }

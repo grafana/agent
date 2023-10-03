@@ -12,10 +12,10 @@ import (
 )
 
 var metricNames = []string{
-	"app_agent_receiver_logs_total",
-	"app_agent_receiver_measurements_total",
-	"app_agent_receiver_exceptions_total",
-	"app_agent_receiver_events_total",
+	"logs_total",
+	"measurements_total",
+	"exceptions_total",
+	"events_total",
 }
 
 func Test_metricsExporter_Export(t *testing.T) {
@@ -25,21 +25,21 @@ func Test_metricsExporter_Export(t *testing.T) {
 	)
 
 	expect := `
-		# HELP app_agent_receiver_logs_total Total number of ingested logs
-		# TYPE app_agent_receiver_logs_total counter
-		app_agent_receiver_logs_total 2
+		# HELP logs_total Total number of ingested logs
+		# TYPE logs_total counter
+		logs_total 2
 
-		# HELP app_agent_receiver_measurements_total Total number of ingested measurements
-		# TYPE app_agent_receiver_measurements_total counter
-		app_agent_receiver_measurements_total 3
+		# HELP measurements_total Total number of ingested measurements
+		# TYPE measurements_total counter
+		measurements_total 3
 
-		# HELP app_agent_receiver_exceptions_total Total number of ingested exceptions
-		# TYPE app_agent_receiver_exceptions_total counter
-		app_agent_receiver_exceptions_total 4
+		# HELP exceptions_total Total number of ingested exceptions
+		# TYPE exceptions_total counter
+		exceptions_total 4
 
-		# HELP app_agent_receiver_events_total Total number of ingested events
-		# TYPE app_agent_receiver_events_total counter
-		app_agent_receiver_events_total 5
+		# HELP events_total Total number of ingested events
+		# TYPE events_total counter
+		events_total 5
 	`
 
 	p := payload.Payload{

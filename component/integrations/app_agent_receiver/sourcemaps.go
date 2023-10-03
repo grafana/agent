@@ -78,18 +78,20 @@ func newSourceMapsStore(log log.Logger, args SourceMapsArguments, reg prometheus
 		fs = osFileService{}
 	}
 
-	// TODO(rfratto): allow prefix to be configurable here
+	// NOTE(rfratto): There's no metric prefix here matching the component name
+	// so that a prefix can be added dynamically; see prefixed_registry.go for
+	// more information.
 	metrics := &sourceMapMetrics{
 		cacheSize: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "app_agent_receiver_sourcemap_cache_size",
+			Name: "sourcemap_cache_size",
 			Help: "number of items in source map cache, per origin",
 		}, []string{"origin"}),
 		downloads: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "app_agent_receiver_sourcemap_downloads_total",
+			Name: "sourcemap_downloads_total",
 			Help: "downloads by the source map service",
 		}, []string{"origin", "http_status"}),
 		fileReads: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "app_agent_receiver_sourcemap_file_reads_total",
+			Name: "sourcemap_file_reads_total",
 			Help: "source map file reads from file system, by origin and status",
 		}, []string{"origin", "status"}),
 	}
