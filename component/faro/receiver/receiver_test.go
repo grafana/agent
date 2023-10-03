@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -88,7 +89,7 @@ func Test(t *testing.T) {
 	defer resp.Body.Close()
 
 	require.Equal(t, http.StatusAccepted, resp.StatusCode)
-	require.Len(t, lr.entries, 1)
+	require.Len(t, lr.GetEntries(), 1)
 
 	expect := loki.Entry{
 		Labels: model.LabelSet{
@@ -102,9 +103,13 @@ func Test(t *testing.T) {
 }
 
 type fakeLogsReceiver struct {
-	ch      chan loki.Entry
-	entries []loki.Entry
+	ch chan loki.Entry
+
+	entriesMut sync.RWMutex
+	entries    []loki.Entry
 }
+
+var _ loki.LogsReceiver = (*fakeLogsReceiver)(nil)
 
 func newFakeLogsReceiver(t *testing.T) *fakeLogsReceiver {
 	ctx := componenttest.TestContext(t)
@@ -120,6 +125,8 @@ func newFakeLogsReceiver(t *testing.T) *fakeLogsReceiver {
 		case <-ctx.Done():
 			return
 		case ent := <-lr.Chan():
+
+			lr.entriesMut.Lock()
 			lr.entries = append(lr.entries, loki.Entry{
 				Labels: ent.Labels,
 				Entry: logproto.Entry{
@@ -128,14 +135,19 @@ func newFakeLogsReceiver(t *testing.T) *fakeLogsReceiver {
 					StructuredMetadata: ent.StructuredMetadata,
 				},
 			})
+			lr.entriesMut.Unlock()
 		}
 	}()
 
 	return lr
 }
 
-var _ loki.LogsReceiver = (*fakeLogsReceiver)(nil)
-
 func (lr *fakeLogsReceiver) Chan() chan loki.Entry {
 	return lr.ch
+}
+
+func (lr *fakeLogsReceiver) GetEntries() []loki.Entry {
+	lr.entriesMut.RLock()
+	defer lr.entriesMut.RUnlock()
+	return lr.entries
 }
