@@ -606,8 +606,11 @@ func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) {
 		span.SetAttributes(attribute.String("node_id", n.NodeID()))
 		span.SetAttributes(attribute.String("originator_id", parent.NodeID()))
 
-		// Submit the node for asynchronous evaluation.
-		err := l.workerPool.SubmitWithKey(n.NodeID(), l.concurrentEvalFn(n, dependantCtx, tracer, parent))
+		// Submit the node for asynchronous evaluation. Don't use range variables in the closure.
+		nodeRef, parentRef := n, parent
+		err := l.workerPool.SubmitWithKey(nodeRef.NodeID(), func() {
+			l.concurrentEvalFn(nodeRef, dependantCtx, tracer, parentRef)
+		})
 		if err != nil {
 			// The error typically means that the workerPool queue is full. This could mean we have too many components
 			// and the agent cannot keep up with the evaluation. To degrade gracefully, we log the error and continue.
@@ -628,56 +631,54 @@ func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) {
 
 // concurrentEvalFn returns a function that evaluates a node and updates the cache. This function can be submitted to
 // a worker pool for asynchronous evaluation.
-func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer trace.Tracer, parent *ComponentNode) func() {
-	return func() {
-		start := time.Now()
-		l.cm.dependenciesWaitTime.Observe(time.Since(parent.lastUpdateTime.Load()).Seconds())
-		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
-		span.SetAttributes(attribute.String("node_id", n.NodeID()))
-		defer span.End()
+func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer trace.Tracer, parent *ComponentNode) {
+	start := time.Now()
+	l.cm.dependenciesWaitTime.Observe(time.Since(parent.lastUpdateTime.Load()).Seconds())
+	_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
+	span.SetAttributes(attribute.String("node_id", n.NodeID()))
+	defer span.End()
 
-		defer func() {
-			duration := time.Since(start)
-			level.Info(l.log).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", duration)
-			l.cm.componentEvaluationTime.Observe(duration.Seconds())
-		}()
+	defer func() {
+		duration := time.Since(start)
+		level.Info(l.log).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", duration)
+		l.cm.componentEvaluationTime.Observe(duration.Seconds())
+	}()
 
-		var err error
-		switch n := n.(type) {
-		case BlockNode:
-			ectx := l.cache.BuildContext()
-			evalErr := n.Evaluate(ectx)
+	var err error
+	switch n := n.(type) {
+	case BlockNode:
+		ectx := l.cache.BuildContext()
+		evalErr := n.Evaluate(ectx)
 
-			// Only obtain loader lock after we have evaluated the node, allowing for concurrent evaluation.
-			l.mut.RLock()
-			err = l.postEvaluate(l.log, n, evalErr)
+		// Only obtain loader lock after we have evaluated the node, allowing for concurrent evaluation.
+		l.mut.RLock()
+		err = l.postEvaluate(l.log, n, evalErr)
 
-			// Additional post-evaluation steps necessary for module exports.
-			if exp, ok := n.(*ExportConfigNode); ok {
-				l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
-			}
-			if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
-				// Upgrade to write lock to update the module exports.
-				l.mut.RUnlock()
-				l.mut.Lock()
-				defer l.mut.Unlock()
-				// Check if the update still needed after obtaining the write lock and perform it.
-				if l.cache.ExportChangeIndex() != l.moduleExportIndex {
-					l.globals.OnExportsChange(l.cache.CreateModuleExports())
-					l.moduleExportIndex = l.cache.ExportChangeIndex()
-				}
-			} else {
-				// No need to upgrade to write lock, just release the read lock.
-				l.mut.RUnlock()
-			}
+		// Additional post-evaluation steps necessary for module exports.
+		if exp, ok := n.(*ExportConfigNode); ok {
+			l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
 		}
-
-		// We only use the error for updating the span status
-		if err != nil {
-			span.SetStatus(codes.Error, err.Error())
+		if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
+			// Upgrade to write lock to update the module exports.
+			l.mut.RUnlock()
+			l.mut.Lock()
+			defer l.mut.Unlock()
+			// Check if the update still needed after obtaining the write lock and perform it.
+			if l.cache.ExportChangeIndex() != l.moduleExportIndex {
+				l.globals.OnExportsChange(l.cache.CreateModuleExports())
+				l.moduleExportIndex = l.cache.ExportChangeIndex()
+			}
 		} else {
-			span.SetStatus(codes.Ok, "node successfully evaluated")
+			// No need to upgrade to write lock, just release the read lock.
+			l.mut.RUnlock()
 		}
+	}
+
+	// We only use the error for updating the span status
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+	} else {
+		span.SetStatus(codes.Ok, "node successfully evaluated")
 	}
 }
 
