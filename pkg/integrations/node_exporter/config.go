@@ -13,6 +13,7 @@ import (
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/dskit/flagext"
+	"github.com/prometheus/node_exporter/collector"
 	"github.com/prometheus/procfs"
 )
 
@@ -265,6 +266,265 @@ func init() {
 	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.Shim)
 }
 
+func (c *Config) mapConfigToNodeConfig() (*collector.NodeCollectorConfig, map[string]bool) {
+	validCollectors := make(map[string]bool)
+	collectors := make(map[string]CollectorState, len(Collectors))
+	for k, v := range Collectors {
+		collectors[k] = v
+	}
+
+	// Override the set of defaults with the provided set of collectors if
+	// set_collectors has at least one element in it.
+	if len(c.SetCollectors) != 0 {
+		customDefaults := map[string]struct{}{}
+		for _, c := range c.SetCollectors {
+			customDefaults[c] = struct{}{}
+		}
+
+		for k := range collectors {
+			_, shouldEnable := customDefaults[k]
+			if shouldEnable {
+				collectors[k] = CollectorStateEnabled
+			} else {
+				collectors[k] = CollectorStateDisabled
+			}
+		}
+	} else {
+		// This gets the default enabled passed in via register.
+		for k, v := range collector.GetDefaults() {
+			collectors[k] = CollectorState(v)
+		}
+	}
+
+	for k, v := range collectors {
+		validCollectors[k] = bool(v)
+	}
+
+	// This removes any collectors not available on the platform.
+	availableCollectors := collector.GetAvailableCollectors()
+	for name := range validCollectors {
+		var found bool
+		for _, availableName := range availableCollectors {
+			if name != availableName {
+				continue
+			}
+			found = true
+			break
+		}
+		if !found {
+			delete(validCollectors, name)
+		}
+	}
+
+	// blankString is a hack to emulate the behavior of kingpin, where node_exporter checks for blank string against a pointer
+	// without first checking the validity of the pointer.
+	// TODO change node_exporter to check for nil first.
+	blankString := ""
+	blankBool := false
+	blankInt := 0
+
+	cfg := &collector.NodeCollectorConfig{}
+
+	// It is safe to set all these configs these since only collectors that are enabled are used.
+
+	cfg.Path = collector.PathConfig{
+		ProcPath:     &c.ProcFSPath,
+		SysPath:      &c.SysFSPath,
+		RootfsPath:   &c.RootFSPath,
+		UdevDataPath: &c.UdevDataPath,
+	}
+
+	cfg.Bcache = collector.BcacheConfig{
+		PriorityStats: &c.BcachePriorityStats,
+	}
+	cfg.CPU = collector.CPUConfig{
+		EnableCPUGuest: &c.CPUEnableCPUGuest,
+		EnableCPUInfo:  &c.CPUEnableCPUInfo,
+		BugsInclude:    &c.CPUBugsInclude,
+		FlagsInclude:   &c.CPUFlagsInclude,
+	}
+	if c.DiskStatsDeviceInclude != "" {
+		cfg.DiskstatsDeviceFilter = collector.DiskstatsDeviceFilterConfig{
+			DeviceInclude:    &c.DiskStatsDeviceInclude,
+			OldDeviceExclude: &blankString,
+			DeviceExclude:    &blankString,
+			DeviceExcludeSet: false,
+		}
+	} else {
+		cfg.DiskstatsDeviceFilter = collector.DiskstatsDeviceFilterConfig{
+			DeviceExclude:    &c.DiskStatsDeviceExclude,
+			DeviceExcludeSet: true,
+			OldDeviceExclude: &blankString,
+			DeviceInclude:    &blankString,
+		}
+	}
+
+	cfg.Ethtool = collector.EthtoolConfig{
+		DeviceInclude:   &c.EthtoolDeviceInclude,
+		DeviceExclude:   &c.EthtoolDeviceExclude,
+		IncludedMetrics: &c.EthtoolMetricsInclude,
+	}
+
+	cfg.Filesystem = collector.FilesystemConfig{
+		MountPointsExclude:     &c.FilesystemMountPointsExclude,
+		MountPointsExcludeSet:  true,
+		MountTimeout:           &c.FilesystemMountTimeout,
+		FSTypesExclude:         &c.FilesystemFSTypesExclude,
+		FSTypesExcludeSet:      true,
+		OldFSTypesExcluded:     &blankString,
+		OldMountPointsExcluded: &blankString,
+		StatWorkerCount:        &blankInt,
+	}
+
+	var joinedLabels string
+	if len(c.IPVSBackendLabels) > 0 {
+		joinedLabels = strings.Join(c.IPVSBackendLabels, ",")
+		cfg.IPVS = collector.IPVSConfig{
+			Labels:    &joinedLabels,
+			LabelsSet: true,
+		}
+	} else {
+		cfg.IPVS = collector.IPVSConfig{
+			Labels:    &joinedLabels,
+			LabelsSet: false,
+		}
+	}
+
+	cfg.NetClass = collector.NetClassConfig{
+		IgnoredDevices: &c.NetclassIgnoredDevices,
+		InvalidSpeed:   &c.NetclassIgnoreInvalidSpeedDevice,
+		Netlink:        &blankBool,
+		RTNLWithStats:  &blankBool,
+	}
+
+	cfg.NetDev = collector.NetDevConfig{
+		DeviceInclude:    &c.NetdevDeviceInclude,
+		DeviceExclude:    &c.NetdevDeviceExclude,
+		AddressInfo:      &c.NetdevAddressInfo,
+		OldDeviceInclude: &blankString,
+		OldDeviceExclude: &blankString,
+		Netlink:          &blankBool,
+		DetailedMetrics:  &blankBool,
+	}
+
+	cfg.NetStat = collector.NetStatConfig{
+		Fields: &c.NetstatFields,
+	}
+
+	defaultPort := 123
+	cfg.NTP = collector.NTPConfig{
+		Server:          &c.NTPServer,
+		ServerPort:      &defaultPort,
+		ProtocolVersion: &c.NTPProtocolVersion,
+		IPTTL:           &c.NTPIPTTL,
+		MaxDistance:     &c.NTPMaxDistance,
+		OffsetTolerance: &c.NTPLocalOffsetTolerance,
+		ServerIsLocal:   &c.NTPServerIsLocal,
+	}
+
+	cfg.Perf = collector.PerfConfig{
+		CPUs:           &c.PerfCPUS,
+		Tracepoint:     flagSliceToStringSlice(c.PerfTracepoint),
+		NoHwProfiler:   &c.PerfDisableHardwareProfilers,
+		HwProfiler:     flagSliceToStringSlice(c.PerfHardwareProfilers),
+		NoSwProfiler:   &c.PerfDisableSoftwareProfilers,
+		SwProfiler:     flagSliceToStringSlice(c.PerfSoftwareProfilers),
+		NoCaProfiler:   &c.PerfDisableCacheProfilers,
+		CaProfilerFlag: flagSliceToStringSlice(c.PerfCacheProfilers),
+	}
+
+	cfg.PowerSupplyClass = collector.PowerSupplyClassConfig{
+		IgnoredPowerSupplies: &c.PowersupplyIgnoredSupplies,
+	}
+
+	cfg.Runit = collector.RunitConfig{
+		ServiceDir: &c.RunitServiceDir,
+	}
+
+	cfg.Supervisord = collector.SupervisordConfig{
+		URL: &c.SupervisordURL,
+	}
+
+	cfg.Sysctl = collector.SysctlConfig{
+		Include:     flagSliceToStringSlice(c.SysctlInclude),
+		IncludeInfo: flagSliceToStringSlice(c.SysctlIncludeInfo),
+	}
+
+	cfg.Systemd = collector.SystemdConfig{
+		UnitInclude:            &c.SystemdUnitInclude,
+		UnitIncludeSet:         true,
+		UnitExclude:            &c.SystemdUnitExclude,
+		UnitExcludeSet:         true,
+		EnableTaskMetrics:      &c.SystemdEnableTaskMetrics,
+		EnableRestartsMetrics:  &c.SystemdEnableRestartsMetrics,
+		EnableStartTimeMetrics: &c.SystemdEnableStartTimeMetrics,
+		OldUnitExclude:         &blankString,
+		OldUnitInclude:         &blankString,
+		Private:                &blankBool,
+	}
+
+	cfg.Tapestats = collector.TapestatsConfig{
+		IgnoredDevices: &c.TapestatsIgnoredDevices,
+	}
+
+	cfg.TextFile = collector.TextFileConfig{
+		Directory: &c.TextfileDirectory,
+	}
+
+	cfg.VmStat = collector.VmStatConfig{
+		Fields: &c.VMStatFields,
+	}
+
+	// These collectors are not supported.
+	// delete(validCollectors, CollectorSoftirqs)
+
+	// These need some defaults so if enabled they will work. Note setting the config doesn't inherently start them.
+	cfg.Arp = collector.ArpConfig{
+		DeviceInclude: &blankString,
+		DeviceExclude: &blankString,
+		Netlink:       &blankBool,
+	}
+	cfg.Stat = collector.StatConfig{
+		Softirq: &blankBool,
+	}
+	cfg.HwMon = collector.HwMonConfig{
+		ChipInclude: &blankString,
+		ChipExclude: &blankString,
+	}
+	cfg.Qdisc = collector.QdiscConfig{
+		Fixtures:         &blankString,
+		DeviceInclude:    &blankString,
+		OldDeviceInclude: &blankString,
+		DeviceExclude:    &blankString,
+		OldDeviceExclude: &blankString,
+	}
+
+	cfg.Systemd = collector.SystemdConfig{
+		UnitInclude:            &c.SystemdUnitInclude,
+		UnitIncludeSet:         true,
+		UnitExclude:            &c.SystemdUnitExclude,
+		UnitExcludeSet:         true,
+		OldUnitInclude:         &blankString,
+		OldUnitExclude:         &blankString,
+		Private:                &blankBool,
+		EnableTaskMetrics:      &c.SystemdEnableTaskMetrics,
+		EnableRestartsMetrics:  &c.SystemdEnableRestartsMetrics,
+		EnableStartTimeMetrics: &c.SystemdEnableStartTimeMetrics,
+	}
+
+	cfg.Wifi = collector.WifiConfig{
+		Fixtures: &blankString,
+	}
+
+	return cfg, validCollectors
+}
+
+func flagSliceToStringSlice(fl flagext.StringSlice) *[]string {
+	sl := make([]string, len(fl))
+	copy(sl, fl)
+	return &sl
+}
+
 // MapConfigToNodeExporterFlags takes in a node_exporter Config and converts
 // it to the set of flags that node_exporter usually expects when running as a
 // separate binary.
@@ -293,6 +553,7 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 	}
 
 	// Explicitly disable/enable specific collectors
+
 	for _, c := range c.DisableCollectors {
 		collectors[c] = CollectorStateDisabled
 	}

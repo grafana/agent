@@ -440,36 +440,6 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				continue
 			}
 
-			if registration.Singleton && block.Label != "" {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Component %q does not support labels", componentName),
-					StartPos: block.LabelPos.Position(),
-					EndPos:   block.LabelPos.Add(len(block.Label) + 1).Position(),
-				})
-				continue
-			}
-
-			if !registration.Singleton && block.Label == "" {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Component %q must have a label", componentName),
-					StartPos: block.NamePos.Position(),
-					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
-				})
-				continue
-			}
-
-			if registration.Singleton && l.isModule() {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Component %q is a singleton and unsupported inside a module", componentName),
-					StartPos: block.NamePos.Position(),
-					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
-				})
-				continue
-			}
-
 			// Create a new component
 			c = NewComponentNode(l.globals, registration, block)
 		}
