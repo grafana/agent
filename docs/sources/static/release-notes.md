@@ -24,8 +24,12 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 {{% docs/reference %}}
 [release-notes-operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator/release-notes"
 [release-notes-operator]: "/docs/grafana-cloud/ -> ../operator/release-notes"
+
 [release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-[release-notes-flow]: "/docs/grafana-cloud/ -> ../flow/release-notes"
+[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
+
+[Modules]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/concepts/modules"
+[Modules]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/concepts/modules"
 {{% /docs/reference %}}
 
 ## v0.35
@@ -99,7 +103,7 @@ See [Module and Auth Split Migration](https://github.com/prometheus/snmp_exporte
 ### Removal of Dynamic Configuration
 
 The experimental feature Dynamic Configuration has been removed. The use case of dynamic configuration will be replaced
-with [Modules]({{< relref "../flow/concepts/modules" >}}) in Grafana Agent Flow.
+with [Modules][] in Grafana Agent Flow.
 
 ### Breaking change: Removed and renamed tracing metrics
 
