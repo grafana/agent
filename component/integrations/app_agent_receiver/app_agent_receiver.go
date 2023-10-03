@@ -2,8 +2,13 @@ package app_agent_receiver
 
 import (
 	"context"
+	"fmt"
+	"sync"
+	"time"
 
 	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
+	"github.com/go-sourcemap/sourcemap"
 	"github.com/grafana/agent/component"
 	internal "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver"
 )
@@ -21,18 +26,31 @@ func init() {
 }
 
 type Exports struct {
-	Config internal.Config `river:"self,attr"`
+	Config internal.Config `river:"self,attr"` // TODO(rfratto): export targets
 }
 
 type Component struct {
+	log                log.Logger
 	prefixedRegisterer *prefixedRegistry
+	handler            *handler
+	lazySourceMaps     *varSourceMapsStore
+	sourceMapsMetrics  *sourceMapMetrics
+	serverMetrics      *serverMetrics
+
+	argsMut sync.RWMutex
+	args    Arguments
 
 	metrics *metricsExporter
 	logs    *logsExporter
 	traces  *tracesExporter
 
-	exporters []exporter
+	actorCh chan func(context.Context)
+
+	healthMut sync.RWMutex
+	health    component.Health
 }
+
+var _ component.HealthComponent = (*Component)(nil)
 
 func New(o component.Options, args Arguments) (*Component, error) {
 	// NOTE(rfratto): by default, all metrics are prefixed with faro_receiver.
@@ -42,19 +60,32 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	o.Registerer.MustRegister(prefixedRegistry)
 
 	var (
+		// The source maps store changes at runtime based on settings, so we create
+		// a lazy store to pass to the logs exporter.
+		varStore = &varSourceMapsStore{}
+
 		metrics = newMetricsExporter(prefixedRegistry)
-		logs    = newLogsExporter(log.With(o.Logger, "exporter", "logs"), nil) // TODO(rfratto): lazy sourcemaps
+		logs    = newLogsExporter(log.With(o.Logger, "exporter", "logs"), varStore)
 		traces  = newTracesExporter(log.With(o.Logger, "exporter", "traces"))
 	)
 
 	c := &Component{
+		log:                o.Logger,
 		prefixedRegisterer: prefixedRegistry,
+		handler: newHandler(
+			log.With(o.Logger, "subcomponent", "handler"),
+			prefixedRegistry,
+			[]exporter{metrics, logs, traces},
+		),
+		lazySourceMaps:    varStore,
+		sourceMapsMetrics: newSourceMapMetrics(prefixedRegistry),
+		serverMetrics:     newServerMetrics(prefixedRegistry),
 
 		metrics: metrics,
 		logs:    logs,
 		traces:  traces,
 
-		exporters: []exporter{metrics, logs, traces},
+		actorCh: make(chan func(context.Context), 1),
 	}
 
 	if err := c.Update(args); err != nil {
@@ -64,29 +95,156 @@ func New(o component.Options, args Arguments) (*Component, error) {
 }
 
 func (c *Component) Run(ctx context.Context) error {
-	// TODO(rfratto):
-	//
-	// * Start HTTP server for collecting telemetry from Faro clients.
-	// * Metrics for HTTP server:
-	//   * app_agent_receiver_request_duration_seconds
-	//   * app_agent_receiver_request_message_bytes
-	//   * app_agent_receiver_response_message_bytes
-	//   * app_agent_receiver_inflight_requests
+	var wg sync.WaitGroup
+	defer wg.Wait()
 
-	return nil
+	var (
+		cancelCurrentActor context.CancelFunc
+	)
+	defer func() {
+		if cancelCurrentActor != nil {
+			cancelCurrentActor()
+		}
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+
+		case newActor := <-c.actorCh:
+			// Terminate old actor (if any), and wait for it to return.
+			if cancelCurrentActor != nil {
+				cancelCurrentActor()
+				wg.Wait()
+			}
+
+			// Run the new actor.
+			actorCtx, actorCancel := context.WithCancel(ctx)
+			cancelCurrentActor = actorCancel
+
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				newActor(actorCtx)
+			}()
+		}
+	}
 }
 
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
+	c.argsMut.Lock()
+	c.args = newArgs
+	c.argsMut.Unlock()
+
+	c.logs.SetLabels(newArgs.LogLabels)
+
+	c.handler.Update(newArgs.Server)
+
+	c.lazySourceMaps.SetInner(newSourceMapsStore(
+		log.With(c.log, "subcomponent", "handler"),
+		newArgs.SourceMaps,
+		c.sourceMapsMetrics,
+		nil, // Use default HTTP client.
+		nil, // Use default FS implementation.
+	))
+
 	c.logs.SetReceivers(newArgs.Output.Logs)
 	c.traces.SetConsumers(newArgs.Output.Traces)
 
+	// Create a new server actor to run.
+	makeNewServer := func(ctx context.Context) {
+		// NOTE(rfratto): we don't use newArgs here, since it's not guaranteed that
+		// our actor runs (we may be skipped for an existing scheduled function).
+		// Instead, we load the most recent args.
+
+		c.argsMut.RLock()
+		var (
+			args = c.args
+		)
+		c.argsMut.RUnlock()
+
+		srv := newServer(
+			log.With(c.log, "subcomponent", "server"),
+			args.Server,
+			c.serverMetrics,
+			c.handler,
+		)
+
+		// Reset health status.
+		c.setServerHealth(nil)
+
+		err := srv.Run(ctx)
+		if err != nil {
+			level.Error(c.log).Log("msg", "server exited with error", "err", err)
+			c.setServerHealth(err)
+		}
+	}
+
+	select {
+	case c.actorCh <- makeNewServer:
+		// Actor has been scheduled to run.
+	default:
+		// An actor is already scheduled to run. Don't do anything.
+	}
+
 	// TODO(rfratto):
 	//
-	// * Ensure that everything is updated properly based on args.
-	// * Ensure server gets restarted with new settings.
 	// * Allow updating prefix of prefixCollector.
 
 	return nil
+}
+
+func (c *Component) setServerHealth(err error) {
+	c.healthMut.Lock()
+	defer c.healthMut.Unlock()
+
+	if err == nil {
+		c.health = component.Health{
+			Health:     component.HealthTypeHealthy,
+			Message:    "component is ready to receive telemetry over the network",
+			UpdateTime: time.Now(),
+		}
+	} else {
+		c.health = component.Health{
+			Health:     component.HealthTypeUnhealthy,
+			Message:    fmt.Sprintf("server has terminated: %s", err),
+			UpdateTime: time.Now(),
+		}
+	}
+}
+
+// CurrentHealth implements component.HealthComponent. It returns an unhealthy
+// status if the server has terminated.
+func (c *Component) CurrentHealth() component.Health {
+	c.healthMut.RLock()
+	defer c.healthMut.RUnlock()
+	return c.health
+}
+
+type varSourceMapsStore struct {
+	mut   sync.RWMutex
+	inner sourceMapsStore
+}
+
+var _ sourceMapsStore = (*varSourceMapsStore)(nil)
+
+func (vs *varSourceMapsStore) GetSourceMap(sourceURL string, release string) (*sourcemap.Consumer, error) {
+	vs.mut.RLock()
+	defer vs.mut.RUnlock()
+
+	if vs.inner != nil {
+		return vs.inner.GetSourceMap(sourceURL, release)
+	}
+
+	return nil, fmt.Errorf("no sourcemap available")
+}
+
+func (vs *varSourceMapsStore) SetInner(inner sourceMapsStore) {
+	vs.mut.Lock()
+	defer vs.mut.Unlock()
+
+	vs.inner = inner
 }

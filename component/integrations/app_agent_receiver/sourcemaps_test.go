@@ -36,7 +36,7 @@ func Test_sourceMapsStoreImpl_DownloadSuccess(t *testing.T) {
 				Download:            true,
 				DownloadFromOrigins: []string{"*"},
 			},
-			prometheus.NewRegistry(),
+			newSourceMapMetrics(prometheus.NewRegistry()),
 			httpClient,
 			&mockFileService{},
 		)
@@ -88,7 +88,7 @@ func Test_sourceMapsStoreImpl_DownloadError(t *testing.T) {
 				Download:            true,
 				DownloadFromOrigins: []string{"*"},
 			},
-			prometheus.NewRegistry(),
+			newSourceMapMetrics(prometheus.NewRegistry()),
 			httpClient,
 			&mockFileService{},
 		)
@@ -120,7 +120,7 @@ func Test_sourceMapsStoreImpl_DownloadHTTPOriginFiltering(t *testing.T) {
 				Download:            true,
 				DownloadFromOrigins: []string{"http://bar.com/"},
 			},
-			prometheus.NewRegistry(),
+			newSourceMapMetrics(prometheus.NewRegistry()),
 			httpClient,
 			&mockFileService{},
 		)
@@ -196,7 +196,7 @@ func Test_sourceMapsStoreImpl_ReadFromFileSystem(t *testing.T) {
 					},
 				},
 			},
-			prometheus.NewRegistry(),
+			newSourceMapMetrics(prometheus.NewRegistry()),
 			httpClient,
 			fileService,
 		)
@@ -299,7 +299,7 @@ func Test_sourceMapsStoreImpl_ReadFromFileSystemAndDownload(t *testing.T) {
 					},
 				},
 			},
-			prometheus.NewRegistry(),
+			newSourceMapMetrics(prometheus.NewRegistry()),
 			httpClient,
 			fileService,
 		)
@@ -367,7 +367,7 @@ func Test_sourceMapsStoreImpl_FilepathSanitized(t *testing.T) {
 					},
 				},
 			},
-			prometheus.NewRegistry(),
+			newSourceMapMetrics(prometheus.NewRegistry()),
 			httpClient,
 			fileService,
 		)

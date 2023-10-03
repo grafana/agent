@@ -189,10 +189,15 @@ func (exp *logsExporter) labelSet() model.LabelSet {
 	return exp.labels
 }
 
-func (exp *logsExporter) setLabels(newLabels model.LabelSet) {
+func (exp *logsExporter) SetLabels(newLabels map[string]string) {
 	exp.labelsMut.Lock()
 	defer exp.labelsMut.Unlock()
-	exp.labels = newLabels
+
+	ls := make(model.LabelSet, len(newLabels))
+	for k, v := range newLabels {
+		ls[model.LabelName(k)] = model.LabelValue(v)
+	}
+	exp.labels = ls
 }
 
 //
