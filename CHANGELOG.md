@@ -134,6 +134,12 @@ Main (unreleased)
 
 - Add additional endpoint to debug scrape configs generated inside `prometheus.operator.*` components (@captncraig)
 
+- Components evaluation is now performed in parallel, reducing the impact of 
+  slow components potentially blocking the entire telemetry pipeline. 
+  The `agent_component_evaluation_seconds` metric now measures evaluation time 
+  of each node separately, instead of all the directly and indirectly 
+  dependant nodes. (@thampiotr)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`

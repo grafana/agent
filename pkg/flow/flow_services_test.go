@@ -7,7 +7,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
-	"github.com/grafana/agent/pkg/flow/internal/testcomponents" // Import test components
+	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/internal/testservices"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service"
@@ -16,6 +16,7 @@ import (
 )
 
 func TestServices(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -45,6 +46,7 @@ func TestServices(t *testing.T) {
 }
 
 func TestServices_Configurable(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	type ServiceOptions struct {
 		Name string `river:"name,attr"`
 	}
@@ -98,6 +100,7 @@ func TestServices_Configurable(t *testing.T) {
 // arguments is configured properly even when it is not defined in the config
 // file.
 func TestServices_Configurable_Optional(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	type ServiceOptions struct {
 		Name string `river:"name,attr,optional"`
 	}
@@ -140,6 +143,7 @@ func TestServices_Configurable_Optional(t *testing.T) {
 }
 
 func TestFlow_GetServiceConsumers(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	var (
 		svcA = &testservices.Fake{
 			DefinitionFunc: func() service.Definition {
@@ -163,6 +167,7 @@ func TestFlow_GetServiceConsumers(t *testing.T) {
 	opts.Services = append(opts.Services, svcA, svcB)
 
 	ctrl := New(opts)
+	defer cleanUpController(ctrl)
 	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil))
 
 	expectConsumers := []service.Consumer{{
@@ -174,6 +179,7 @@ func TestFlow_GetServiceConsumers(t *testing.T) {
 }
 
 func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -244,6 +250,7 @@ func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
 }
 
 func TestComponents_Using_Services(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -327,6 +334,7 @@ func TestComponents_Using_Services(t *testing.T) {
 }
 
 func TestComponents_Using_Services_In_Modules(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
