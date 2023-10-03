@@ -103,7 +103,7 @@ features available in Grafana Agent Flow mode.
     (Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
     ```
 
-## Run a Promtail configuration
+## Run a Static mode configuration
 
 If you’re not ready to completely switch to a Flow mode configuration, you can run
 Grafana Agent using your existing Grafana Agent Static mode configuration.
