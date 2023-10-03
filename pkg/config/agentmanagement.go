@@ -238,7 +238,6 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 	if err != nil {
 		var retryAfterErr retryAfterError
 		if errors.As(err, &retryAfterErr) && retry {
-
 			// In the case that the server is telling us to retry after a time greater than our polling interval,
 			// the agent should sleep for the duration of the retry-after header.
 			//

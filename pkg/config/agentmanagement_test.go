@@ -570,9 +570,8 @@ func TestGetCachedConfig_RetryAfter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
-	// check that FetchRemoteConfig was called twice on the TestProvider:
-	// 1 call for the initial attempt, a second for the retry
-	assert.Equal(t, 2, testProvider.fetchRemoteConfigCallCount)
+	// check that FetchRemoteConfig was called only once on the TestProvider
+	assert.Equal(t, 1, testProvider.fetchRemoteConfigCallCount)
 
 	// the cached config should have been retrieved once, on the second
 	// attempt to fetch the remote config
