@@ -73,10 +73,9 @@ prometheus.scrape "integrations_snmp" {
 }
 
 prometheus.exporter.azure "integrations_azure_exporter" {
-	subscriptions          = ["subId"]
-	resource_type          = "Microsoft.Dashboard/grafana"
-	metrics                = ["HttpRequestCount"]
-	included_resource_tags = ["owner"]
+	subscriptions = ["subId"]
+	resource_type = "Microsoft.Dashboard/grafana"
+	metrics       = ["HttpRequestCount"]
 }
 
 prometheus.scrape "integrations_azure_exporter" {
@@ -91,11 +90,7 @@ prometheus.scrape "integrations_azure_exporter" {
 	}
 }
 
-prometheus.exporter.cadvisor "integrations_cadvisor" {
-	allowlisted_container_labels = [""]
-	env_metadata_allowlist       = [""]
-	raw_cgroup_prefix_allowlist  = [""]
-}
+prometheus.exporter.cadvisor "integrations_cadvisor" { }
 
 prometheus.scrape "integrations_cadvisor" {
 	targets    = prometheus.exporter.cadvisor.integrations_cadvisor.targets

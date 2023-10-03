@@ -27,9 +27,12 @@ func createExporter(opts component.Options, args component.Arguments, defaultIns
 // DefaultArguments holds non-zero default options for Arguments when it is
 // unmarshaled from river.
 var DefaultArguments = Arguments{
-	StoreContainerLabels: true,
-	ResctrlInterval:      0,
-	StorageDuration:      2 * time.Minute,
+	StoreContainerLabels:       true,
+	AllowlistedContainerLabels: []string{""},
+	EnvMetadataAllowlist:       []string{""},
+	RawCgroupPrefixAllowlist:   []string{""},
+	ResctrlInterval:            0,
+	StorageDuration:            2 * time.Minute,
 
 	ContainerdHost:      "/run/containerd/containerd.sock",
 	ContainerdNamespace: "k8s.io",

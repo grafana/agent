@@ -1081,6 +1081,8 @@ github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db h1:7aN5cccjIqCLTzed
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/grafana/river v0.1.2-0.20230830200459-0ff21cf610eb h1:hOblg36rOTgGIOp7A3+53OtlXqq0iNnI9qDcOn7fPfQ=
 github.com/grafana/river v0.1.2-0.20230830200459-0ff21cf610eb/go.mod h1:F8rcwfPL98xF/m+OSCFH7gJyLPYMIadXCVfY+/OcqEI=
+github.com/grafana/river v0.1.2-0.20231003183959-75f893ffa7df h1:jgguNFI2lCCOD49W1WS+TYHhN5KL5aTXTbn2N14tQVs=
+github.com/grafana/river v0.1.2-0.20231003183959-75f893ffa7df/go.mod h1:icSidCSHYXJUYy6TjGAi/D+X7FsP7Gc7cxvBUIwYMmY=
 github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3 h1:UPkAxuhlAcRmJT3/qd34OMTl+ZU7BLLfOO2+NXBlJpY=
 github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3/go.mod h1:iZiiwNT4HbtGRVqCQu7uJPEZCuEE5sfSSttcnePkDl4=
 github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538 h1:tkT0yha3JzB5S5VNjfY4lT0cJAe20pU8XGt3Nuq73rM=
@@ -1700,6 +1702,8 @@ github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
 github.com/ohler55/ojg v1.19.2 h1:XvMP9oF6jo3T4eUyCsDwi3YFv0bGyQ4PvYBSMF9LiBM=
 github.com/ohler55/ojg v1.19.2/go.mod h1:uHcD1ErbErC27Zhb5Df2jUjbseLLcmOCo6oxSr3jZxo=
+github.com/ohler55/ojg v1.19.3 h1:rFmEc33aZOvlwb7tibAmwVGEiPfMZkgvurK0YDDr1HI=
+github.com/ohler55/ojg v1.19.3/go.mod h1:uHcD1ErbErC27Zhb5Df2jUjbseLLcmOCo6oxSr3jZxo=
 github.com/oklog/oklog v0.3.2/go.mod h1:FCV+B7mhrz4o+ueLpx+KqkyXRGMWOYEvfiXtdGtbWGs=
 github.com/oklog/run v0.0.0-20180308005104-6934b124db28/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
 github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
