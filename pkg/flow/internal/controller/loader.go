@@ -615,15 +615,17 @@ func (l *Loader) EvaluateDependencies(updatedNodes []*ComponentNode) []*Componen
 
 		// Submit the node for asynchronous evaluation. Don't use range variables in the closure.
 		nodeRef, parentRef := n, parent
-		err := l.workerPool.SubmitWithKey(nodeRef.NodeID(), func() {
+		err := l.workerPool.TrySubmitWithKey(nodeRef.NodeID(), func() {
 			l.concurrentEvalFn(nodeRef, dependantCtx, tracer, parentRef)
-		})
+		}, l.workerPool.DefaultTimeout())
 		if err != nil {
-			// The error typically means that the workerPool queue is full. This could mean we have too many components
-			// and the agent cannot keep up with the evaluation. To degrade gracefully, we log the error and make sure
-			// that the component triggering this update (parent) is returned to retry again in the future.
+			// The error means that the workerPool queue is full, and we were unable to add the task within the timeout.
+			// This could mean we have components that take a very long time to evaluate and the agent cannot
+			// keep up with the work. We log the error and make sure that the component triggering this update (parent)
+			// is returned to retry again in the future which will ensure no updates are missed.
 			level.Error(l.log).Log(
-				"msg", "failed to submit node for evaluation - the agent is likely overloaded and cannot keep up with evaluating components",
+				"msg", "failed to submit node for evaluation - the agent is likely overloaded and cannot "+
+					"keep up with evaluating components - will retry",
 				"err", err,
 				"node_id", n.NodeID(),
 				"originator_id", parent.NodeID(),

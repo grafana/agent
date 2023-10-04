@@ -77,10 +77,26 @@ func TestController_Updates(t *testing.T) {
 	require.Equal(t, 55, out.(testcomponents.SummationExports).Sum)
 }
 
-func TestController_Updates_WithQueueFull(t *testing.T) {
+func TestController_Updates_WithQueueBlocking(t *testing.T) {
+	// The small number of workers and a small queue means that a lot of updates will block on adding to the queue.
+	// The worker pool timeout is 1 minute, so it will not be reached, instead the queue will drain and eventually
+	// all updates will be processed.
+	workerPool := worker.NewShardedWorkerPool(1, 1, time.Minute)
+	verifySimpleGraphWithWorkerPool(t, workerPool)
+}
+
+func TestController_Updates_WithQueueRetries(t *testing.T) {
+	// The small number of workers and a small queue means that a lot of updates will block on adding to the queue.
+	// The worker pool timeout is 1ms, so it will often be reached. However, Flow should retry the updates and
+	// eventually all the updates will be processed.
+	workerPool := worker.NewShardedWorkerPool(1, 1, time.Millisecond)
+	verifySimpleGraphWithWorkerPool(t, workerPool)
+}
+
+func verifySimpleGraphWithWorkerPool(t *testing.T, workerPool worker.Pool) {
 	defer verifyNoGoroutineLeaks(t)
 
-	// Simple pipeline with a minimal lag
+	// Simple pipeline with a minimal lag with one node having 3 direct dependencies.
 	config := `
 	testcomponents.count "inc" {
 		frequency = "10ms"
@@ -111,8 +127,7 @@ func TestController_Updates_WithQueueFull(t *testing.T) {
 		Options:        testOptions(t),
 		ModuleRegistry: newModuleRegistry(),
 		IsModule:       false,
-		// The small number of workers and small queue means that a lot of updates will need to be retried.
-		WorkerPool: worker.NewShardedWorkerPool(1, 1),
+		WorkerPool:     workerPool,
 	})
 
 	// Use testUpdatesFile from graph_builder_test.go.
@@ -380,6 +395,6 @@ func newTestController(t *testing.T) *Flow {
 		ModuleRegistry: newModuleRegistry(),
 		IsModule:       false,
 		// Make sure that we have consistent number of workers for tests to make them deterministic.
-		WorkerPool: worker.NewShardedWorkerPool(4, 100),
+		WorkerPool: worker.NewShardedWorkerPool(4, 100, time.Minute),
 	})
 }

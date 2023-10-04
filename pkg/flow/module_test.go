@@ -236,7 +236,7 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 		DataPath:       t.TempDir(),
 		Reg:            prometheus.NewRegistry(),
 		ModuleRegistry: newModuleRegistry(),
-		WorkerPool:     worker.NewShardedWorkerPool(1, 100),
+		WorkerPool:     worker.NewShardedWorkerPool(1, 100, time.Minute),
 	}
 }
 
