@@ -427,7 +427,6 @@ require (
 	github.com/hashicorp/vault/sdk v0.5.1 // indirect
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443 // indirect
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
-	github.com/hetznercloud/hcloud-go v1.45.1 // indirect
 	github.com/hodgesds/perf-utils v0.7.0 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
@@ -632,6 +631,7 @@ require (
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
+	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
@@ -677,7 +677,7 @@ replace (
 // prometheus/prometheus#12677 and prometheus/prometheus#12729.
 // We use the last v1-related tag as the replace statement does not work for v2
 // tags without the v2 suffix to the module root
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231002111159-38991b77eb53 // grafana:prometheus:v0.45.0-retry-improvements
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231003113207-17e15326a784 // grafana:prometheus:v0.46.0-retry-improvements
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
