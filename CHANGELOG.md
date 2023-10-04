@@ -150,6 +150,8 @@ Main (unreleased)
   of each node separately, instead of all the directly and indirectly
   dependant nodes. (@thampiotr)
 
+- Update Prometheus dependency to v2.46.0. (@tpaschalis)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
@@ -195,6 +197,8 @@ Main (unreleased)
 - `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
 
 - Documentation updated to correct default path from `prometheus.exporter.windows` `text_file` block (@timo1707)
+
+- Bump `redis_exporter` to v1.54.0 (@spartan0x117)
 
 v0.36.2 (2023-09-22)
 --------------------

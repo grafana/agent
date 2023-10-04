@@ -40,6 +40,7 @@ func toRedisExporter(config *redis_exporter.Config) *redis.Arguments {
 		CheckSingleKeys:         splitByCommaNullOnEmpty(config.CheckSingleKeys),
 		CheckStreams:            splitByCommaNullOnEmpty(config.CheckStreams),
 		CheckSingleStreams:      splitByCommaNullOnEmpty(config.CheckSingleStreams),
+		ExportKeyValues:         config.ExportKeyValues,
 		CountKeys:               splitByCommaNullOnEmpty(config.CountKeys),
 		ScriptPath:              config.ScriptPath,
 		ScriptPaths:             nil,
