@@ -17,7 +17,6 @@ import (
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 
 	"github.com/go-kit/log"
-	"github.com/prometheus/snmp_exporter/collector"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 )
 
@@ -25,7 +24,6 @@ type snmpHandler struct {
 	cfg     *Config
 	snmpCfg *snmp_config.Config
 	log     log.Logger
-	metrics collector.Metrics
 }
 
 func (sh *snmpHandler) Targets(ep integrations.Endpoint) []*targetgroup.Group {
@@ -122,6 +120,6 @@ func (sh *snmpHandler) RunIntegration(ctx context.Context) error {
 
 func (sh *snmpHandler) createHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		snmp_exporter.Handler(w, r, sh.log, sh.snmpCfg, sh.cfg.SnmpTargets, sh.cfg.WalkParams, sh.metrics)
+		snmp_exporter.Handler(w, r, sh.log, sh.snmpCfg, sh.cfg.SnmpTargets, sh.cfg.WalkParams)
 	}
 }

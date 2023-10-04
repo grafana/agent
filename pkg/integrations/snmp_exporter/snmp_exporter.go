@@ -82,13 +82,11 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 			return nil, fmt.Errorf("failed to load snmp_targets; the `name` and `address` fields are mandatory")
 		}
 	}
-	registry := prometheus.NewRegistry()
 
 	sh := &snmpHandler{
 		cfg:     c,
 		snmpCfg: snmpCfg,
 		log:     log,
-		metrics: NewSNMPMetrics(registry),
 	}
 	integration := &Integration{
 		sh: sh,

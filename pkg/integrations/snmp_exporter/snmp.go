@@ -25,11 +25,10 @@ type snmpHandler struct {
 	cfg     *Config
 	snmpCfg *snmp_config.Config
 	log     log.Logger
-	metrics collector.Metrics
 }
 
 func Handler(w http.ResponseWriter, r *http.Request, logger log.Logger, snmpCfg *snmp_config.Config,
-	targets []SNMPTarget, wParams map[string]snmp_config.WalkParams, metrics collector.Metrics) {
+	targets []SNMPTarget, wParams map[string]snmp_config.WalkParams) {
 
 	query := r.URL.Query()
 
@@ -88,14 +87,13 @@ func Handler(w http.ResponseWriter, r *http.Request, logger log.Logger, snmpCfg 
 		http.Error(w, "'walk_params' parameter must only be specified once", http.StatusBadRequest)
 		return
 	}
-
 	if walkParams != "" {
 		zeroRetries := 0
 		if wp, ok := wParams[walkParams]; ok {
 			if wp.MaxRepetitions != 0 {
 				module.WalkParams.MaxRepetitions = wp.MaxRepetitions
 			}
-			if wp.Retries != &zeroRetries {
+			if wp.Retries != nil && wp.Retries != &zeroRetries {
 				module.WalkParams.Retries = wp.Retries
 			}
 			if wp.Timeout != 0 {
@@ -111,12 +109,11 @@ func Handler(w http.ResponseWriter, r *http.Request, logger log.Logger, snmpCfg 
 	}
 	var nmodules []*collector.NamedModule
 	nmodules = append(nmodules, collector.NewNamedModule(moduleName, module))
-
 	level.Debug(logger).Log("msg", "Starting scrape")
 
 	start := time.Now()
 	registry := prometheus.NewRegistry()
-	c := collector.New(r.Context(), target, authName, auth, nmodules, logger, metrics, concurrency)
+	c := collector.New(r.Context(), target, authName, auth, nmodules, logger, NewSNMPMetrics(registry), concurrency)
 	registry.MustRegister(c)
 	// Delegate http serving to Prometheus client library, which will call collector.Collect.
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
@@ -126,5 +123,5 @@ func Handler(w http.ResponseWriter, r *http.Request, logger log.Logger, snmpCfg 
 }
 
 func (sh snmpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	Handler(w, r, sh.log, sh.snmpCfg, sh.cfg.SnmpTargets, sh.cfg.WalkParams, sh.metrics)
+	Handler(w, r, sh.log, sh.snmpCfg, sh.cfg.SnmpTargets, sh.cfg.WalkParams)
 }
