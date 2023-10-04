@@ -623,10 +623,7 @@ require (
 
 require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
 
-require (
-	github.com/githubexporter/github-exporter v0.0.0-20230925090839-9e31cd0e7721
-	github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
-)
+require github.com/githubexporter/github-exporter v0.0.0-20230925090839-9e31cd0e7721
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
@@ -715,7 +712,7 @@ replace (
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 
 	// Replace node_export with custom fork for multi usage. https://github.com/prometheus/node_exporter/pull/2812
-	github.com/prometheus/node_exporter => github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004141716-a372120527dd
+	github.com/prometheus/node_exporter => github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004161416-702318429731
 )
 
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
