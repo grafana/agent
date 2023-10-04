@@ -265,7 +265,7 @@ func init() {
 	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.Shim)
 }
 
-func (c *Config) mapConfigToNodeConfig() (*collector.NodeCollectorConfig, map[string]bool) {
+func (c *Config) mapConfigToNodeConfig() *collector.NodeCollectorConfig {
 	validCollectors := make(map[string]bool)
 	collectors := make(map[string]CollectorState, len(Collectors))
 	for k, v := range Collectors {
@@ -521,7 +521,9 @@ func (c *Config) mapConfigToNodeConfig() (*collector.NodeCollectorConfig, map[st
 		Fixtures: &blankString,
 	}
 
-	return cfg, validCollectors
+	cfg.Collectors = validCollectors
+
+	return cfg
 }
 
 func flagSliceToStringSlice(fl flagext.StringSlice) *[]string {

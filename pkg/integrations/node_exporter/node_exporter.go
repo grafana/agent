@@ -29,8 +29,8 @@ type Integration struct {
 
 // New creates a new node_exporter integration.
 func New(log log.Logger, c *Config) (*Integration, error) {
-	cfg, enabledCollectors := c.mapConfigToNodeConfig()
-	nc, err := collector.NewNodeCollector(cfg, enabledCollectors, log)
+	cfg := c.mapConfigToNodeConfig()
+	nc, err := collector.NewNodeCollector(cfg, log)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create node_exporter: %w", err)
 	}
