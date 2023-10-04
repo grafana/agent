@@ -27,9 +27,9 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `store_container_labels` | `bool` | Whether to convert container labels and environment variables into labels on Prometheus metrics for each container. | `true` | no
 `allowlisted_container_labels` | `list(string)` | Allowlist of container labels to convert to Prometheus labels. | `[]`  | no
-`env_metadata_allowlist` | `list(string)` | Allowlist of environment variable keys matched with specified prefix that needs to be collected for containers. | `[]` | no
-`raw_cgroup_prefix_allowlist` | `list(string)` | List of cgroup path prefix that needs to be collected, even when docker_only is specified. | `[]` | no
-`perf_events_config` | `string` | Path to a JSON file containing configuration of perf events to measure. | `""` | no
+`env_metadata_allowlist` | `list(string)` | Allowlist of environment variable keys matched with a specified prefix that needs to be collected for containers. | `[]` | no
+`raw_cgroup_prefix_allowlist` | `list(string)` | List of cgroup path prefixes that need to be collected, even when docker_only is specified. | `[]` | no
+`perf_events_config` | `string` | Path to a JSON file containing the configuration of perf events to measure. | `""` | no
 `resctrl_interval` | `duration` | Interval to update resctrl mon groups. | `0` | no
 `disabled_metrics` | `list(string)` | List of metrics to be disabled which, if set, overrides the default disabled metrics. | (see below) | no
 `enabled_metrics` | `list(string)` | List of metrics to be enabled which, if set, overrides disabled_metrics. | `[]` | no
