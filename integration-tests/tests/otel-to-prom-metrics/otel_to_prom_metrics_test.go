@@ -2,52 +2,28 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"net/http"
 	"testing"
-	"time"
+
+	"github.com/grafana/agent/integration-tests/common"
+	"github.com/stretchr/testify/assert"
 )
 
-const query = "http://localhost:9009/prometheus/api/v1/query?query=avalanche_metric_mmmmm_0_0"
+const query = "http://localhost:9009/prometheus/api/v1/label/__name__/values"
 
-type jsonResponse struct {
-	Status string `json:"status"`
-	Data   struct {
-		ResultType string `json:"resultType"`
-		Result     []struct {
-			Metric map[string]string `json:"metric"`
-			Value  []interface{}     `json:"value"`
-		} `json:"result"`
-	} `json:"data"`
+type MetricResponse struct {
+	Status string   `json:"status"`
+	Data   []string `json:"data"`
 }
 
-func TestAgentIntegration(t *testing.T) {
-	const maxRetries = 20
-	const retryInterval = time.Second * 5
+func TestOtelToPromMetrics(t *testing.T) {
+	var metricResponse MetricResponse
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		err := common.FetchDataFromURL(query, &metricResponse)
+		assert.NoError(c, err)
+		assert.Contains(c, metricResponse.Data, "span_metrics_duration_bucket")
+	}, common.DefaultTimeout, common.DefaultRetryInterval, "Data did not satisfy the conditions within the time limit")
+}
 
-	for i := 0; i < maxRetries; i++ {
-		fmt.Println("retry", i)
-		resp, err := http.Get(query)
-		if err != nil {
-			t.Fatalf("Failed to get metrics from Mimir: %v", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			t.Fatalf("Expected status OK but got %v", resp.Status)
-		}
-
-		var jsonResponse jsonResponse
-		if err := json.NewDecoder(resp.Body).Decode(&jsonResponse); err != nil {
-			t.Fatalf("Failed to decode JSON: %v", err)
-		}
-
-		if len(jsonResponse.Data.Result) > 0 {
-			return
-		}
-
-		time.Sleep(retryInterval)
-	}
-
-	t.Fatal("The result array is empty after all retries")
+func (m *MetricResponse) Unmarshal(data []byte) error {
+	return json.Unmarshal(data, m)
 }

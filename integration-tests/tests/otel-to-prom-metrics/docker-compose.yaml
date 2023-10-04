@@ -20,12 +20,26 @@ services:
     ports:
       - "4317:4317"   # OTLP gRPC receiver
       - "4318:4318"   # OTLP HTTP exporter
+  
+  demo-client:
+    build:
+      dockerfile: Dockerfile
+      context: ../../configs/otel-gen-client
+    restart: always
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+      - DEMO_SERVER_ENDPOINT=http://demo-server:7080/hello
+    depends_on:
+      - demo-server
 
-  otelgen:
-    image: ghcr.io/krzko/otelgen:latest
-    command:
-      - --otel-exporter-otlp-endpoint=otel-collector:4317
-      - metrics
-      - counter
+  demo-server:
+    build:
+      dockerfile: Dockerfile
+      context: ../../configs/otel-gen-server
+    restart: always
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
     ports:
-      - "9001:9001"
+      - "7080"
+    depends_on:
+      - otel-collector

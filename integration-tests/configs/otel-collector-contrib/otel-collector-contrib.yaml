@@ -7,7 +7,7 @@ exporters:
   logging:
 
   otlphttp:
-    endpoint: http://host.docker.internal:8081
+    endpoint: http://host.docker.internal:8080
 
 
 connectors:
@@ -15,6 +15,7 @@ connectors:
     namespace: span.metrics
     exemplars:
       enabled: true
+    metrics_flush_interval: 1s
 
 service:
   pipelines:
