@@ -71,7 +71,7 @@ network as the browser. To accept telemetry data from a wider set of clients,
 modify the `listen_address` attribute to the IP address of the appropriate
 network interface to use.
 
-The `cors_allowed_origins` argument determines what oriigns browser requests
+The `cors_allowed_origins` argument determines what origins browser requests
 may come from. The default value, `[]`, disables CORS support. To support
 requests from all origins, set `cors_allowed_origins` to `["*"]`. The `*`
 character indicates a wildcard.
@@ -94,12 +94,12 @@ Name | Type | Description | Default | Required
 `burst_size` | `number` | Allowed burst size of requests. | `100` | no
 
 Rate limiting functions as a [token bucket algorithm][token-bucket], where
-a bucket has maximum capacity for up to `burst_size` requests, and refills at a
+a bucket has a maximum capacity for up to `burst_size` requests and refills at a
 rate of `rate` per second.
 
 Each HTTP request drains the capacity of the bucket by one. Once the bucket is
-empty, HTTP requests are rejected with a `HTTP 429 Too Many Requests` status
-code until the bucket has more availble capacity.
+empty, HTTP requests are rejected with an `HTTP 429 Too Many Requests` status
+code until the bucket has more available capacity.
 
 Configuring the `rate` argument determines how fast the bucket refills, and
 configuring the `burst_size` argument determines how many requests can be
@@ -120,7 +120,7 @@ Name | Type | Description | Default | Required
 `download_timeout` | `duration` | Timeout when downloading sourcemaps. | `"1s"` | no
 
 When exceptions are sent to the `faro.receiver` component, it can download
-sourcemaps from the web application. This behavior can be disabled by setting
+sourcemaps from the web application. You can disable this behavior by setting
 the `download` argument to `false`.
 
 The `download_from_origins` argument determines which origins a sourcemap may
@@ -177,7 +177,7 @@ The `output` block specifies where to forward collected logs and traces.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`logs` | `list(LogsReceiver)` | A list of `loki` components to forward lgos to. | `[]` | no
+`logs` | `list(LogsReceiver)` | A list of `loki` components to forward logs to. | `[]` | no
 `traces` | `list(otelcol.Consumer)` | A list of `otelcol` components to forward traces to. | `[]` | no
 
 ## Exported fields
@@ -247,7 +247,7 @@ otelcol.exporter.otlp "traces" {
 Replace the following:
 
 * `NETWORK_ADDRESS`: IP address of the network interface to listen to traffic
-  on. This IP adddress must be reachable by browsers using the web application
+  on. This IP address must be reachable by browsers using the web application
   to instrument.
 
 * `PATH_TO_SOURCEMAPS`: Path on disk where sourcemaps are located.
