@@ -37,15 +37,15 @@ The [wal block][] (in Flow mode) or the [metrics config][] (in static mode)
 contain some configurable parameters that can be used to control the tradeoff
 between memory usage, disk usage and data retention.
 
-The `truncate_frequency/wal_truncate_frequency` parameter configures the
+The `truncate_frequency` or `wal_truncate_frequency` parameter configures the
 interval at which truncations happen. A lower value leads to reduced memory
 usage, but also provides less resiliency to long outages.
 
 When a WAL clean-up starts, the lowest successfully sent timestamp is used to
 determine how much data is safe to remove from the WAL.
-The `min_keepalive_time/min_wal_time` controls the minimum age of samples
+The `min_keepalive_time` or `min_wal_time` controls the minimum age of samples
 considered for removal; no samples more recent than `min_keepalive_time` are
-removed. The `max_keepalive_time/max_wal_time` controls the maximum age of
+removed. The `max_keepalive_time` or `max_wal_time` controls the maximum age of
 samples that can be kept in the WAL; samples older than
 `max_keepalive_time` are forcibly removed.
 
