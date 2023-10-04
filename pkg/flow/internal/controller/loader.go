@@ -445,6 +445,16 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				continue
 			}
 
+			if block.Label == "" {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Component %q must have a label", componentName),
+					StartPos: block.NamePos.Position(),
+					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+				})
+				continue
+			}
+
 			// Create a new component
 			c = NewComponentNode(l.globals, registration, block)
 		}
