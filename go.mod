@@ -707,7 +707,7 @@ replace (
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
 
 	// Replace node_export with custom fork for multi usage. https://github.com/prometheus/node_exporter/pull/2812
-    github.com/prometheus/node_exporter => github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231003194228-26e058a40f9a
+	github.com/prometheus/node_exporter => github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004141716-a372120527dd
 )
 
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
@@ -732,4 +732,3 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
-
