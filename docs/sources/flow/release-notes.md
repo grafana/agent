@@ -65,7 +65,19 @@ now correct with the OTLP Instrumentation Scope specification.
 ### Breaking change: `prometheus.exporter.unix` now requires a label.
 
 Previously the exporter was a singleton and did not require a label. The exporter now can be used multiple times and
-needs a label, `prometheus.exporter.unix "example"`.
+needs a label.
+
+Old configuration example:
+
+```river 
+prometheus.exporter.unix { /* ... */ } 
+```
+
+New configuration example:
+
+```river 
+prometheus.exporter.unix "example" { /* ... */ } 
+```
 
 ## v0.36
 
