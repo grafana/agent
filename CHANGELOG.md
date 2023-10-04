@@ -154,6 +154,9 @@ Main (unreleased)
 
 - Update Prometheus dependency to v2.46.0. (@tpaschalis)
 
+- The `client_secret` config argument in the `otelcol.auth.oauth2` component is 
+  now of type `secret` instead of type `string`. (@ptodev)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
