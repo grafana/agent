@@ -199,3 +199,5 @@ integrations:
     resource_type: "Microsoft.Dashboard/grafana"
     metrics:
       - "HttpRequestCount"
+  cadvisor:
+    enabled: true

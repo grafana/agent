@@ -53,7 +53,7 @@ type Config struct {
 	PerfEventsConfig string `yaml:"perf_events_config,omitempty"`
 
 	// ResctrlInterval resctrl mon groups updating interval. Zero value disables updating mon groups.
-	ResctrlInterval int `yaml:"resctrl_interval,omitempty"`
+	ResctrlInterval int64 `yaml:"resctrl_interval,omitempty"`
 
 	// DisableMetrics list of `metrics` to be disabled.
 	DisabledMetrics []string `yaml:"disabled_metrics,omitempty"`
