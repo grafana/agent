@@ -62,6 +62,11 @@ to `true` and controlled via the `include_scope_labels` argument.
 `name` to `otel_scope_name` and `version` to `otel_scope_version`. This is
 now correct with the OTLP Instrumentation Scope specification.
 
+### Breaking change: `prometheus.exporter.unix` now requires a label.
+
+Previously the exporter was a singleton and did not require a label. The exporter now can be used multiple times and
+needs a label, `prometheus.exporter.unix "example"`.
+
 ## v0.36
 
 ### Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`

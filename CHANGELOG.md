@@ -26,6 +26,9 @@ Main (unreleased)
   got replaced by the pair of `__meta_component_name` and `__meta_component_id`
   labels. (@tpaschalis)
 
+- Flow: Allow `prometheus.exporter.unix` to be specified multiple times and used in modules. This now means all
+  `prometheus.exporter.unix` references will need a label `prometheus.exporter.unix "example"`. (@mattdurham)
+
 ### Features
 
 - New Grafana Agent Flow components:
@@ -80,8 +83,6 @@ Main (unreleased)
 
 - Flow: the `prometheus.scrape` component can now configure the scraping of
   Prometheus native histograms. (@tpaschalis)
-
-- Flow: Allow `prometheus.exporter.unix` to be specified multiple times and used in modules. (@mattdurham)
 
 ### Enhancements
 
