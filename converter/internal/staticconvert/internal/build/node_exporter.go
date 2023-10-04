@@ -12,11 +12,11 @@ func (b *IntegrationsV1ConfigBuilder) appendNodeExporter(config *node_exporter.C
 	args := toNodeExporter(config)
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
 		[]string{"prometheus", "exporter", "unix"},
-		"",
+		"u",
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports("prometheus.exporter.unix.targets")
+	return prometheusconvert.NewDiscoveryExports("prometheus.exporter.unix.u.targets")
 }
 
 func toNodeExporter(config *node_exporter.Config) *unix.Arguments {
