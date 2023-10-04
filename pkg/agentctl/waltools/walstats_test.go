@@ -51,7 +51,7 @@ func setupTestWAL(t *testing.T) string {
 	walDir := t.TempDir()
 
 	reg := prometheus.NewRegistry()
-	w, err := wlog.NewSize(log.NewNopLogger(), reg, filepath.Join(walDir, "wal"), wlog.DefaultSegmentSize, true)
+	w, err := wlog.NewSize(log.NewNopLogger(), reg, filepath.Join(walDir, "wal"), wlog.DefaultSegmentSize, wlog.CompressionSnappy)
 	require.NoError(t, err)
 	defer w.Close()
 

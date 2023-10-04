@@ -26,16 +26,13 @@ Main (unreleased)
   got replaced by the pair of `__meta_component_name` and `__meta_component_id`
   labels. (@tpaschalis)
 
+- Flow: Allow `prometheus.exporter.unix` to be specified multiple times and used in modules. This now means all
+  `prometheus.exporter.unix` references will need a label `prometheus.exporter.unix "example"`. (@mattdurham)
+
 ### Features
 
 - New Grafana Agent Flow components:
 
-  - `otelcol.connector.spanlogs` creates logs from spans. It is the flow mode equivalent
-  to static mode's `automatic_logging` processor. (@ptodev)
-  - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
-  flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
-  - `otelcol.processor.k8sattributes` adds Kubernetes metadata as resource attributes
-     to spans, logs, and metrics. (@acr92)
   - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
   - `discovery.linode` discovers scrape targets from the Linode API. (@captncraig)
@@ -46,13 +43,26 @@ Main (unreleased)
   - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
     instances and bare-metal machines. (@rfratto)
+  - `faro.receiver` accepts Grafana Faro-formatted telemetry data over the
+    network and forwards it to other components. (@megumish, @rfratto)
   - `prometheus.exporter.azure` collects metrics from Azure. (@wildum)
   - `discovery.dockerswarm` discovers scrape targets from Docker Swarm. (@wildum)
+  - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
+  flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
+  - `otelcol.connector.spanlogs` creates logs from spans. It is the flow mode equivalent
+  to static mode's `automatic_logging` processor. (@ptodev)
+  - `otelcol.processor.k8sattributes` adds Kubernetes metadata as resource attributes
+     to spans, logs, and metrics. (@acr92)
   - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
+  - `otelcol.processor.transform` transforms OTLP telemetry data using the
+    OpenTelemetry Transformation Language (OTTL). It is most commonly used
+    for transformations on attributes.
   - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
   - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
-  - `prometheus.exporter.agent` - scrape agent's metrics. (@hainenber)
-  - `prometheus.exporter.vsphere` - scrape vmware vsphere metrics. (@marctc)
+  - `prometheus.exporter.agent` exposes the agent's internal metrics. (@hainenber)
+  - `prometheus.exporter.azure` collects metrics from Azure. (@wildum)
+  - `prometheus.exporter.cadvisor` exposes cAdvisor metrics. (@tpaschalis)
+  - `prometheus.exporter.vsphere` exposes vmware vsphere metrics. (@marctc)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
@@ -76,8 +86,12 @@ Main (unreleased)
   This will load all River files in the directory as a single configuration;
   component names must be unique across all loaded files. (@rfratto, @hainenber)
 
+- Added support for `static` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@erikbaranowski)
+
 - Flow: the `prometheus.scrape` component can now configure the scraping of
   Prometheus native histograms. (@tpaschalis)
+
+- Flow: the `prometheus.remote_write` component now supports SigV4 and AzureAD authentication. (@ptodev)
 
 ### Enhancements
 
@@ -99,7 +113,7 @@ Main (unreleased)
 
 - Flow: add `randomization_factor` and `multiplier` to retry settings in
   `otelcol` components. (@rfratto)
-  
+
 - Add support for `windows_certificate_filter` under http tls config block. (@mattdurham)
 
 - Add `openstack` config converter to convert OpenStack yaml config (static mode) to river config (flow mode). (@wildum)
@@ -127,6 +141,19 @@ Main (unreleased)
 
 - Promtail converter will now treat `global positions configuration is not supported` as a Warning instead of Error. (@erikbaranowski)
 
+- Add new `agent_component_dependencies_wait_seconds` histogram metric and a dashboard panel
+  that measures how long components wait to be evaluated after their dependency is updated (@thampiotr)
+
+- Add additional endpoint to debug scrape configs generated inside `prometheus.operator.*` components (@captncraig)
+
+- Components evaluation is now performed in parallel, reducing the impact of
+  slow components potentially blocking the entire telemetry pipeline.
+  The `agent_component_evaluation_seconds` metric now measures evaluation time
+  of each node separately, instead of all the directly and indirectly
+  dependant nodes. (@thampiotr)
+
+- Update Prometheus dependency to v2.46.0. (@tpaschalis)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
@@ -141,6 +168,8 @@ Main (unreleased)
 - Fixed race condition in cleaning up metrics when stopping to tail files in static mode. (@thampiotr)
 
 - Fixed a bug where the BackOffLimit for the kubernetes tailer was always set to zero. (@anderssonw)
+
+- Fixed a bug where Flow agent fails to load `comment` statement in `argument` block. (@hainenber)
 
 ### Other changes
 
@@ -168,6 +197,10 @@ Main (unreleased)
 - Bump `webdevops/go-commons` to version containing `LICENSE`. (@hainenber)
 
 - `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
+
+- Documentation updated to correct default path from `prometheus.exporter.windows` `text_file` block (@timo1707)
+
+- Bump `redis_exporter` to v1.54.0 (@spartan0x117)
 
 v0.36.2 (2023-09-22)
 --------------------

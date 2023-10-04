@@ -117,6 +117,9 @@ Full reference of options:
   # Comma separated list of single streams to export info about streams, groups and consumers.
   [check_single_streams: <string>]
 
+  # Whether to export key values as labels when using `check_keys` or `check_single_keys`.
+  [export_key_values: <bool> | default = true]
+
   # Comma separated list of individual keys to export counts for.
   [count_keys: <string>]
 

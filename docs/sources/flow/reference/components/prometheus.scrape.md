@@ -51,7 +51,7 @@ Name | Type | Description | Default | Required
 `honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
 `honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
 `params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
-`scrape_classic_histogram` | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
+`scrape_classic_histograms` | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
 `scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"60s"` | no
 `scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"10s"` | no
 `metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
@@ -234,7 +234,7 @@ processed. When the target is behaving normally, the `up` metric is set to
 
 To enable scraping of Prometheus' native histograms over gRPC, the
 `enable_protobuf_negotiation` must be set to true. The
-`scrape_classic_histogram` argument controls whether the component should also
+`scrape_classic_histograms` argument controls whether the component should also
 scrape the 'classic' histogram equivalent of a native histogram, if it is
 present.
 

@@ -180,7 +180,7 @@ For a server name to be included, it must match the regular expression specified
 ### text_file block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`text_file_directory` | `string` | The directory containing the files to be ingested. | `C:\Program Files\windows_exporter\textfile_inputs` | no
+`text_file_directory` | `string` | The directory containing the files to be ingested. | `C:\Program Files\Grafana Agent Flow\textfile_inputs` | no
 
 When `text_file_directory` is set, only files with the extension `.prom` inside the specified directory are read. Each `.prom` file found must end with an empty line feed to work properly.
 
