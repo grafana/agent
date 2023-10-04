@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/service"
 	cluster_service "github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 
@@ -151,6 +152,9 @@ func testOptions(t *testing.T) flow.Options {
 	})
 	require.NoError(t, err)
 
+	otelService := otel_service.New(s)
+	require.NotNil(t, otelService)
+
 	return flow.Options{
 		Logger:   s,
 		DataPath: t.TempDir(),
@@ -158,6 +162,7 @@ func testOptions(t *testing.T) flow.Options {
 		Services: []service.Service{
 			http_service.New(http_service.Options{}),
 			clusterService,
+			otelService,
 		},
 	}
 }
