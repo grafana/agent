@@ -7,9 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
-	"strings"
 
-	"github.com/alecthomas/kingpin/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/build"
@@ -31,23 +29,8 @@ type Integration struct {
 
 // New creates a new node_exporter integration.
 func New(log log.Logger, c *Config) (*Integration, error) {
-	// NOTE(rfratto): this works as long as node_exporter is the only thing using
-	// kingpin across the codebase. node_exporter may need a PR eventually to pass
-	// in a custom kingpin application or expose methods to explicitly enable/disable
-	// collectors that we can use instead of this command line hack.
-	flags, _ := MapConfigToNodeExporterFlags(c)
-	level.Debug(log).Log("msg", "initializing node_exporter with flags converted from agent config", "flags", strings.Join(flags, " "))
-
-	for _, warn := range c.UnmarshalWarnings {
-		level.Warn(log).Log("msg", warn)
-	}
-
-	_, err := kingpin.CommandLine.Parse(flags)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse flags for generating node_exporter configuration: %w", err)
-	}
-
-	nc, err := collector.NewNodeCollector(log)
+	cfg := c.mapConfigToNodeConfig()
+	nc, err := collector.NewNodeCollector(cfg, log)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create node_exporter: %w", err)
 	}

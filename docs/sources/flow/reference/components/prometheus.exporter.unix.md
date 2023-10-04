@@ -18,9 +18,6 @@ The `node_exporter` itself is comprised of various _collectors_, which can be
 enabled and disabled at will. For more information on collectors, refer to the
 [`collectors-list`](#collectors-list) section.
 
-The `prometheus.exporter.unix` component can only appear once per
-configuration file, and a block label must not be passed to it.
-
 ## Usage
 
 ```river
@@ -381,11 +378,11 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.unix`:
 
 ```river
-prometheus.exporter.unix { }
+prometheus.exporter.unix "demo" { }
 
 // Configure a prometheus.scrape component to collect unix metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.exporter.unix.targets
+  targets    = prometheus.exporter.unix.demo.targets
   forward_to = [prometheus.remote_write.demo.receiver]
 }
 
