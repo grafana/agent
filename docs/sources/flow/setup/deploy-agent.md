@@ -13,16 +13,16 @@ weight: 900
 # Deploying Grafana Agent
 
 Grafana Agent is a flexible, vendor-neutral telemetry collector. This
-flexibility means that the Agent doesn’t enforce a specific deployment topology
+flexibility means that Grafana Agent doesn’t enforce a specific deployment topology
 but can work in multiple scenarios.
 
 This page lists common topologies used for deployments of Grafana Agent, when
-to consider using each, issues that users may run into, as well as scaling
+to consider using each topology, issues you may run into, and scaling
 considerations.
 
 ## As a centralized collection service
-Deploying the Grafana Agent as a centralized service is recommended for
-collecting application telemetry. This allows a smaller set of agents to
+Deploying Grafana Agent as a centralized service is recommended for
+collecting application telemetry. This topology allows you to use a smaller number of agents to
 coordinate service discovery, collection, and remote writing.
 
 ![](../../../assets/deploy-agent/centralized-collection.png)
@@ -30,8 +30,8 @@ coordinate service discovery, collection, and remote writing.
 Using this topology requires deploying the Agent on separate infrastructure,
 and making sure that agents can discover and reach these applications over the
 network. The main predictor for the size of the agent is the number of active
-metrics series it is scraping; a rule of thumb is ~10kb of memory for each
-series. We recommend you start looking towards horizontal scaling around the 1M
+metrics series it is scraping; a rule of thumb is approximately 10 KB of memory for each
+series. We recommend you start looking towards horizontal scaling around the 1 million
 active series mark.
 
 ### Using Kubernetes StatefulSets
@@ -63,7 +63,7 @@ metrics or journald system logs.
 
 ![](../../../assets/deploy-agent/daemonset.png)
 
-Each Agent requires opening an outgoing connection for each remote endpoint
+Each Grafana Agent requires you to open an outgoing connection for each remote endpoint
 it’s shipping data to. This can lead to NAT port exhaustion on the egress
 infrastructure. Each egress IP can support up to (65535 - 1024 = 64511)
 outgoing connections on different ports. So, if all agents are shipping metrics
@@ -71,7 +71,7 @@ and log data, an egress IP can support up to 32,255 agents.
 
 ### Using Kubernetes DaemonSets
 The simplest use case of the host daemon topology is a Kubernetes DaemonSet,
-and is required for node-level observability (for example cAdvisor metrics) and
+and it is required for node-level observability (for example cAdvisor metrics) and
 collecting pod logs.
 
 ### Pros
@@ -80,25 +80,25 @@ collecting pod logs.
 * Lower network latency to instrumented applications
 
 ### Cons
-* Requires planning a process for provisioning the Agent on new machines, as well as keeping configuration up to date to avoid configuration drift
+* Requires planning a process for provisioning Grafana Agent on new machines, as well as keeping configuration up to date to avoid configuration drift
 * Not possible to scale agents independently when using Kubernetes DaemonSets
 * Scaling the topology can strain external APIs (like service discovery) and network infrastructure (like firewalls, proxy servers, and egress points)
 
 ### Use for
-* Collecting machine-level metrics and logs (for example node_exporter hardware metrics, Kubernetes pod logs)
+* Collecting machine-level metrics and logs (for example, node_exporter hardware metrics, Kubernetes pod logs)
 
 ### Don’t use for
-* Scenarios where the Agent grows so large it can become a noisy neighbor
+* Scenarios where Grafana Agent grows so large it can become a noisy neighbor
 * Collecting an unpredictable amount of telemetry
 
 ## As a container sidecar
-Deploying the Grafana Agent as a container sidecar is only recommended for
+Deploying Grafana Agent as a container sidecar is only recommended for
 short-lived applications or specialized agent deployments.
 
 ![](../../../assets/deploy-agent/sidecar.png)
 
 ### Using Kubernetes pod sidecars
-In a Kubernetes environment, the sidecar model consists of deploying the agent
+In a Kubernetes environment, the sidecar model consists of deploying Grafana Agent
 as an extra container on the pod. The pod’s controller, network configuration,
 enabled capabilities, and available resources are shared between the actual
 application and the sidecar agent.
