@@ -25,7 +25,7 @@ Deploying Grafana Agent as a centralized service is recommended for
 collecting application telemetry. This topology allows you to use a smaller number of agents to
 coordinate service discovery, collection, and remote writing.
 
-![](../../../assets/deploy-agent/centralized-collection.png)
+![centralized-collection](/media/docs/agent/agent-topologies/centralized-collection.png)
 
 Using this topology requires deploying the Agent on separate infrastructure,
 and making sure that agents can discover and reach these applications over the
@@ -61,7 +61,7 @@ Deploying one Grafana Agent per machine is required for collecting
 machine-level metrics and logs, such as node_exporter hardware and network
 metrics or journald system logs.
 
-![](../../../assets/deploy-agent/daemonset.png)
+![daemonset](/media/docs/agent/agent-topologies/daemonset.png)
 
 Each Grafana Agent requires you to open an outgoing connection for each remote endpoint
 it’s shipping data to. This can lead to NAT port exhaustion on the egress
@@ -95,7 +95,7 @@ collecting pod logs.
 Deploying Grafana Agent as a container sidecar is only recommended for
 short-lived applications or specialized agent deployments.
 
-![](../../../assets/deploy-agent/sidecar.png)
+![daemonset](/media/docs/agent/agent-topologies/sidecar.png)
 
 ### Using Kubernetes pod sidecars
 In a Kubernetes environment, the sidecar model consists of deploying Grafana Agent
