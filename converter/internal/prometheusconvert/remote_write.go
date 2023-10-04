@@ -8,7 +8,10 @@ import (
 	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/river/rivertypes"
+	"github.com/prometheus/common/sigv4"
 	prom_config "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/storage/remote/azuread"
 )
 
 func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.GlobalConfig, remoteWriteConfigs []*prom_config.RemoteWriteConfig, label string) *remotewrite.Exports {
@@ -39,10 +42,6 @@ func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.
 
 func validateRemoteWriteConfig(remoteWriteConfig *prom_config.RemoteWriteConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
-
-	if remoteWriteConfig.SigV4Config != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported remote_write sigv4 config was provided")
-	}
 
 	diags.AddAll(ValidateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig))
 	return diags
@@ -76,6 +75,8 @@ func getEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*
 			QueueOptions:         toQueueOptions(&remoteWriteConfig.QueueConfig),
 			MetadataOptions:      toMetadataOptions(&remoteWriteConfig.MetadataConfig),
 			WriteRelabelConfigs:  ToFlowRelabelConfigs(remoteWriteConfig.WriteRelabelConfigs),
+			SigV4:                toSigV4(remoteWriteConfig.SigV4Config),
+			AzureAD:              toAzureAD(remoteWriteConfig.AzureADConfig),
 		}
 
 		endpoints = append(endpoints, endpoint)
@@ -102,5 +103,34 @@ func toMetadataOptions(metadataConfig *prom_config.MetadataConfig) *remotewrite.
 		Send:              metadataConfig.Send,
 		SendInterval:      time.Duration(metadataConfig.SendInterval),
 		MaxSamplesPerSend: metadataConfig.MaxSamplesPerSend,
+	}
+}
+
+// toSigV4 converts a Prometheus SigV4 config to a River SigV4 config.
+func toSigV4(sigv4Config *sigv4.SigV4Config) *remotewrite.SigV4Config {
+	if sigv4Config == nil {
+		return nil
+	}
+
+	return &remotewrite.SigV4Config{
+		Region:    sigv4Config.Region,
+		AccessKey: sigv4Config.AccessKey,
+		SecretKey: rivertypes.Secret(sigv4Config.SecretKey),
+		Profile:   sigv4Config.Profile,
+		RoleARN:   sigv4Config.RoleARN,
+	}
+}
+
+// toAzureAD converts a Prometheus AzureAD config to a River AzureAD config.
+func toAzureAD(azureADConfig *azuread.AzureADConfig) *remotewrite.AzureADConfig {
+	if azureADConfig == nil {
+		return nil
+	}
+
+	return &remotewrite.AzureADConfig{
+		Cloud: azureADConfig.Cloud,
+		ManagedIdentity: remotewrite.ManagedIdentityConfig{
+			ClientID: azureADConfig.ManagedIdentity.ClientID,
+		},
 	}
 }

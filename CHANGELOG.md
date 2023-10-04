@@ -85,6 +85,8 @@ Main (unreleased)
 - Flow: the `prometheus.scrape` component can now configure the scraping of
   Prometheus native histograms. (@tpaschalis)
 
+- Flow: the `prometheus.remote_write` component now supports SigV4 and AzureAD authentication. (@ptodev)
+
 ### Enhancements
 
 - Clustering: allow advertise interfaces to be configurable, with the possibility to select all available interfaces. (@wildum)
