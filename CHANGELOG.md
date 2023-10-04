@@ -43,6 +43,9 @@ Main (unreleased)
   - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
     instances and bare-metal machines. (@rfratto)
+  - `faro.receiver` accepts Grafana Faro-formatted telemetry data over the
+    network and forwards it to other components. (@megumish, @rfratto)
+  - `prometheus.exporter.azure` collects metrics from Azure. (@wildum)
   - `discovery.dockerswarm` discovers scrape targets from Docker Swarm. (@wildum)
   - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
   flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
@@ -51,8 +54,8 @@ Main (unreleased)
   - `otelcol.processor.k8sattributes` adds Kubernetes metadata as resource attributes
      to spans, logs, and metrics. (@acr92)
   - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
-  - `otelcol.processor.transform` transforms OTLP telemetry data using the 
-    OpenTelemetry Transformation Language (OTTL). It is most commonly used 
+  - `otelcol.processor.transform` transforms OTLP telemetry data using the
+    OpenTelemetry Transformation Language (OTTL). It is most commonly used
     for transformations on attributes.
   - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
   - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
@@ -108,7 +111,7 @@ Main (unreleased)
 
 - Flow: add `randomization_factor` and `multiplier` to retry settings in
   `otelcol` components. (@rfratto)
-  
+
 - Add support for `windows_certificate_filter` under http tls config block. (@mattdurham)
 
 - Add `openstack` config converter to convert OpenStack yaml config (static mode) to river config (flow mode). (@wildum)
@@ -136,15 +139,15 @@ Main (unreleased)
 
 - Promtail converter will now treat `global positions configuration is not supported` as a Warning instead of Error. (@erikbaranowski)
 
-- Add new `agent_component_dependencies_wait_seconds` histogram metric and a dashboard panel 
+- Add new `agent_component_dependencies_wait_seconds` histogram metric and a dashboard panel
   that measures how long components wait to be evaluated after their dependency is updated (@thampiotr)
 
 - Add additional endpoint to debug scrape configs generated inside `prometheus.operator.*` components (@captncraig)
 
-- Components evaluation is now performed in parallel, reducing the impact of 
-  slow components potentially blocking the entire telemetry pipeline. 
-  The `agent_component_evaluation_seconds` metric now measures evaluation time 
-  of each node separately, instead of all the directly and indirectly 
+- Components evaluation is now performed in parallel, reducing the impact of
+  slow components potentially blocking the entire telemetry pipeline.
+  The `agent_component_evaluation_seconds` metric now measures evaluation time
+  of each node separately, instead of all the directly and indirectly
   dependant nodes. (@thampiotr)
 
 ### Bugfixes
