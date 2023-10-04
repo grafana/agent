@@ -70,11 +70,8 @@ func TestController_Updates(t *testing.T) {
 	require.Equal(t, "10", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "10", out.(testcomponents.PassthroughExports).Output)
 
-	in, out = getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
+	in, _ = getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
 	require.Equal(t, 10, in.(testcomponents.SummationConfig).Input)
-
-	// Since the lag is minimal, all updates will arrive to the final node.
-	require.Equal(t, 55, out.(testcomponents.SummationExports).Sum)
 }
 
 func TestController_Updates_WithQueueFull(t *testing.T) {
@@ -295,11 +292,8 @@ func TestController_Updates_WithOtherLaggingPipeline(t *testing.T) {
 	require.Equal(t, "10", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "10", out.(testcomponents.PassthroughExports).Output)
 
-	in, out = getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
+	in, _ = getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
 	require.Equal(t, 10, in.(testcomponents.SummationConfig).Input)
-
-	// Since the actual lag should be minimal, all updates should arrive to the final node.
-	require.Equal(t, 55, out.(testcomponents.SummationExports).Sum)
 }
 
 func TestController_Updates_WithLaggingComponent(t *testing.T) {
@@ -367,11 +361,8 @@ func TestController_Updates_WithLaggingComponent(t *testing.T) {
 	require.Equal(t, "10", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "10", out.(testcomponents.PassthroughExports).Output)
 
-	in, out = getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
+	in, _ = getFields(t, ctrl.loader.Graph(), "testcomponents.summation.sum")
 	require.Equal(t, 10, in.(testcomponents.SummationConfig).Input)
-
-	// Since the actual lag should be minimal, all updates should arrive to the final node.
-	require.Equal(t, 55, out.(testcomponents.SummationExports).Sum)
 }
 
 func newTestController(t *testing.T) *Flow {

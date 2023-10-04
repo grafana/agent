@@ -61,7 +61,7 @@ require (
 	github.com/grafana/pyroscope/api v0.2.0
 	github.com/grafana/pyroscope/ebpf v0.2.3
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
-	github.com/grafana/river v0.1.2-0.20230830200459-0ff21cf610eb
+	github.com/grafana/river v0.1.2-0.20231003183959-75f893ffa7df
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/tail v0.0.0-20230510142333-77b18831edf0
 	github.com/grafana/vmware_exporter v0.0.4-beta
@@ -82,7 +82,6 @@ require (
 	github.com/hashicorp/vault/api/auth/userpass v0.2.0
 	github.com/heroku/x v0.0.61
 	github.com/iamseth/oracledb_exporter v0.0.0-20230504204552-f801dc432dcf
-	github.com/infinityworks/github-exporter v0.0.0-20210802160115-284088c21e7d
 	github.com/influxdata/go-syslog/v3 v3.0.1-0.20210608084020-ac565dc76ba6
 	github.com/jaegertracing/jaeger v1.48.0
 	github.com/jmespath/go-jmespath v0.4.0
@@ -97,7 +96,7 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
 	github.com/ncabatoff/process-exporter v0.7.10
 	github.com/nerdswords/yet-another-cloudwatch-exporter v0.54.0
-	github.com/ohler55/ojg v1.19.2 // indirect
+	github.com/ohler55/ojg v1.19.3 // indirect
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.51.0
@@ -123,6 +122,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.85.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver v0.85.0
@@ -515,7 +515,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.85.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc4 // indirect
-	github.com/opencontainers/runc v1.1.5 // indirect
+	github.com/opencontainers/runc v1.1.9 // indirect
 	github.com/opencontainers/runtime-spec v1.1.0-rc.1 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
@@ -622,12 +622,16 @@ require (
 )
 
 require (
+	github.com/githubexporter/github-exporter v0.0.0-20230925090839-9e31cd0e7721
+	github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
+)
+
+require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
@@ -693,8 +697,10 @@ replace (
 
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
-	// Upstream seems to be inactive, see https://github.com/grafana/agent/issues/1845
-	github.com/infinityworks/github-exporter => github.com/grafana/github-exporter v0.0.0-20230418063919-fa34e926116a
+	// TODO(tpaschalis) this is to remove global instantiation of plugins
+	// and allow non-singleton components.
+	// https://github.com/grafana/cadvisor/tree/grafana-v0.47-noglobals
+	github.com/google/cadvisor => github.com/grafana/cadvisor v0.0.0-20230927082732-0d72868a513e
 
 	// TODO(mattdurham): this is so you can debug on windows, when PR is merged into perflib, can you use that
 	// and eventually remove if windows_exporter shifts to it. https://github.com/leoluk/perflib_exporter/pull/43
