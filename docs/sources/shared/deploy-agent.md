@@ -120,5 +120,5 @@ application and the sidecar agent.
 * Long-lived applications 
 * Scenarios where the agent size grows so large it can become a noisy neighbor
 
-[hashmod sharding]: {{< relref "../../static/operation-guide/_index.md" >}}
-[clustering]: {{< relref "../concepts/clustering.md" >}}
+[hashmod sharding]: {{< relref "../static/operation-guide/_index.md" >}}
+[clustering]: {{< relref "../flow/concepts/clustering.md" >}}
