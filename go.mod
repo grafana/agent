@@ -61,7 +61,7 @@ require (
 	github.com/grafana/pyroscope/api v0.2.0
 	github.com/grafana/pyroscope/ebpf v0.2.3
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
-	github.com/grafana/river v0.1.2-0.20230830200459-0ff21cf610eb
+	github.com/grafana/river v0.1.2-0.20231003183959-75f893ffa7df
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/tail v0.0.0-20230510142333-77b18831edf0
 	github.com/grafana/vmware_exporter v0.0.4-beta
@@ -97,7 +97,7 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
 	github.com/ncabatoff/process-exporter v0.7.10
 	github.com/nerdswords/yet-another-cloudwatch-exporter v0.54.0
-	github.com/ohler55/ojg v1.19.2 // indirect
+	github.com/ohler55/ojg v1.19.3 // indirect
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.51.0
@@ -516,7 +516,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.85.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc4 // indirect
-	github.com/opencontainers/runc v1.1.5 // indirect
+	github.com/opencontainers/runc v1.1.9 // indirect
 	github.com/opencontainers/runtime-spec v1.1.0-rc.1 // indirect
 	github.com/opencontainers/selinux v1.11.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
@@ -694,6 +694,11 @@ replace (
 
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
+	// TODO(tpaschalis) this is to remove global instantiation of plugins
+	// and allow non-singleton components.
+	// https://github.com/grafana/cadvisor/tree/grafana-v0.47-noglobals
+	github.com/google/cadvisor => github.com/grafana/cadvisor v0.0.0-20230927082732-0d72868a513e
+
 	// Upstream seems to be inactive, see https://github.com/grafana/agent/issues/1845
 	github.com/infinityworks/github-exporter => github.com/grafana/github-exporter v0.0.0-20230418063919-fa34e926116a
 
