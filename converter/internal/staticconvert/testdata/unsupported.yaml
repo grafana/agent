@@ -23,8 +23,6 @@ metrics:
 integrations:
   agent:
     enabled: true
-  cadvisor:
-    enabled: true
   mssql:
     enabled: true
     scrape_integration: false

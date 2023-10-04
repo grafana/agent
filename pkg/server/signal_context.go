@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kit/log"
-	"github.com/weaveworks/common/signals"
+	"github.com/grafana/dskit/signals"
 	"go.uber.org/atomic"
 )
 
@@ -25,7 +25,7 @@ func SignalContext(ctx context.Context, l log.Logger) (context.Context, context.
 
 	ctx, cancel := context.WithCancel(ctx)
 
-	handler := signals.NewHandler(GoKitLogger(l))
+	handler := signals.NewHandler(l)
 	go func() {
 		handler.Loop()
 		signalContexts.Store(0)

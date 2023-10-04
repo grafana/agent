@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.azure/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.azure/
 title: discovery.azure
+description: Learn about discovery.azure
 ---
 
 # discovery.azure

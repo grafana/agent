@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/weaveworks/common/instrument"
+	"github.com/grafana/dskit/instrument"
 
 	"github.com/hashicorp/go-cleanhttp"
 

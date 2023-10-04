@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.linode/
 title: discovery.linode
+description: Learn about discovery.linode
 ---
 
 # discovery.linode

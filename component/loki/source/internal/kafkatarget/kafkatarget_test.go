@@ -13,7 +13,7 @@ import (
 
 	"github.com/grafana/agent/component/common/loki/client/fake"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/stretchr/testify/require"

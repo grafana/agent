@@ -1,4 +1,4 @@
-package vmware_exporter
+package vmware_exporter_v2
 
 import (
 	"fmt"

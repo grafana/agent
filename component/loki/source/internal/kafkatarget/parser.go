@@ -1,7 +1,7 @@
 package kafkatarget
 
 import (
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"

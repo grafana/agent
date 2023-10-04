@@ -53,6 +53,8 @@ type Arguments struct {
 	HonorTimestamps bool `river:"honor_timestamps,attr,optional"`
 	// A set of query parameters with which the target is scraped.
 	Params url.Values `river:"params,attr,optional"`
+	// Whether to scrape a classic histogram that is also exposed as a native histogram.
+	ScrapeClassicHistograms bool `river:"scrape_classic_histograms,attr,optional"`
 	// How frequently to scrape the targets of this scrape config.
 	ScrapeInterval time.Duration `river:"scrape_interval,attr,optional"`
 	// The timeout for scraping targets of this config.
@@ -83,7 +85,8 @@ type Arguments struct {
 	HTTPClientConfig component_config.HTTPClientConfig `river:",squash"`
 
 	// Scrape Options
-	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
+	ExtraMetrics              bool `river:"extra_metrics,attr,optional"`
+	EnableProtobufNegotiation bool `river:"enable_protobuf_negotiation,attr,optional"`
 
 	Clustering Clustering `river:"clustering,block,optional"`
 }
@@ -155,6 +158,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		HTTPClientOptions: []config_util.HTTPClientOption{
 			config_util.WithDialContextFunc(httpData.DialFunc),
 		},
+		EnableProtobufNegotiation: args.EnableProtobufNegotiation,
 	}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 
@@ -204,20 +208,16 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-c.reloadTargets:
 			c.mut.RLock()
 			var (
-				tgs     = c.args.Targets
-				jobName = c.opts.ID
-				cl      = c.args.Clustering.Enabled
+				targets           = c.args.Targets
+				jobName           = c.opts.ID
+				clusteringEnabled = c.args.Clustering.Enabled
 			)
 			if c.args.JobName != "" {
 				jobName = c.args.JobName
 			}
 			c.mut.RUnlock()
 
-			// NOTE(@tpaschalis) First approach, manually building the
-			// 'clustered' targets implementation every time.
-			ct := discovery.NewDistributedTargets(cl, c.cluster, tgs)
-			promTargets := c.componentTargetsToProm(jobName, ct.Get())
-			c.targetsGauge.Set(float64(len(promTargets)))
+			promTargets := c.distTargets(targets, jobName, clusteringEnabled)
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -288,6 +288,7 @@ func getPromScrapeConfigs(jobName string, c Arguments) *config.ScrapeConfig {
 	dec.HonorLabels = c.HonorLabels
 	dec.HonorTimestamps = c.HonorTimestamps
 	dec.Params = c.Params
+	dec.ScrapeClassicHistograms = c.ScrapeClassicHistograms
 	dec.ScrapeInterval = model.Duration(c.ScrapeInterval)
 	dec.ScrapeTimeout = model.Duration(c.ScrapeTimeout)
 	dec.MetricsPath = c.MetricsPath
@@ -302,6 +303,20 @@ func getPromScrapeConfigs(jobName string, c Arguments) *config.ScrapeConfig {
 	// HTTP scrape client settings
 	dec.HTTPClientConfig = *c.HTTPClientConfig.Convert()
 	return &dec
+}
+
+func (c *Component) distTargets(
+	targets []discovery.Target,
+	jobName string,
+	clustering bool,
+) map[string][]*targetgroup.Group {
+	// NOTE(@tpaschalis) First approach, manually building the
+	// 'clustered' targets implementation every time.
+	dt := discovery.NewDistributedTargets(clustering, c.cluster, targets)
+	flowTargets := dt.Get()
+	c.targetsGauge.Set(float64(len(flowTargets)))
+	promTargets := c.componentTargetsToProm(jobName, flowTargets)
+	return promTargets
 }
 
 // ScraperStatus reports the status of the scraper's jobs.

@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.write/
 title: loki.write
+description: Learn about loki.write
 ---
 
 # loki.write

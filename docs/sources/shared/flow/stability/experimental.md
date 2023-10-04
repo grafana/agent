@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/stability/experimental/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/stability/experimental/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/stability/experimental/
+description: Shared content, experimental
 headless: true
 ---
 

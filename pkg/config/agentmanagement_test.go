@@ -69,6 +69,21 @@ var validAgentManagementConfig = AgentManagementConfig{
 
 var cachedConfig = []byte(`{"base_config":"","snippets":[]}`)
 
+func TestUnmarshalDefault(t *testing.T) {
+	cfg := `host: "localhost:1234"
+protocol: "https"
+polling_interval: "1m"
+remote_configuration:
+  namespace: "test_namespace"`
+	var am AgentManagementConfig
+	err := yaml.Unmarshal([]byte(cfg), &am)
+	assert.NoError(t, err)
+	assert.True(t, am.RemoteConfiguration.AcceptHTTPNotModified)
+	assert.Equal(t, "https", am.Protocol)
+	assert.Equal(t, time.Minute, am.PollingInterval)
+	assert.Equal(t, "test_namespace", am.RemoteConfiguration.Namespace)
+}
+
 func TestValidateValidConfig(t *testing.T) {
 	assert.NoError(t, validAgentManagementConfig.Validate())
 }
@@ -514,7 +529,7 @@ func TestGetRemoteConfig_ExpandsEnvVars(t *testing.T) {
 	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.Equal(t, "15s", cfg.Metrics.Configs[0].ScrapeConfigs[0].ScrapeInterval.String())
-	assert.Equal(t, "json", cfg.Server.LogFormat.String())
+	assert.Equal(t, "json", cfg.Server.LogFormat)
 }
 
 func TestGetCachedConfig_DefaultConfigFallback(t *testing.T) {

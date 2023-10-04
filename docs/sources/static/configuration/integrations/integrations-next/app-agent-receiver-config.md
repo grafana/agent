@@ -3,6 +3,7 @@ aliases:
 - ../../../../configuration/integrations/integrations-next/app-agent-receiver-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/app-agent-receiver-config/
 title: app_agent_receiver_config next
+description: Learn about app_agent_receiver_config next
 ---
 
 # app_agent_receiver_config next
