@@ -11,6 +11,7 @@ import (
 	remote_http "github.com/grafana/agent/component/remote/http"
 	"github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/grafana/river/rivertypes"
 )
 
@@ -19,7 +20,7 @@ func init() {
 		Name:          "module.http",
 		Args:          Arguments{},
 		Exports:       module.Exports{},
-		NeedsServices: []string{http_service.ServiceName, cluster.ServiceName},
+		NeedsServices: []string{http_service.ServiceName, cluster.ServiceName, otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
