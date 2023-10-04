@@ -6,6 +6,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
+	"github.com/prometheus/client_golang/prometheus"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 )
 
@@ -47,10 +48,12 @@ func (c *Config) NewIntegration(log log.Logger, globals integrations_v2.Globals)
 		return nil, err
 	}
 	c.globals = globals
+	registry := prometheus.NewRegistry()
 	sh := &snmpHandler{
 		cfg:     c,
 		snmpCfg: snmpCfg,
 		log:     log,
+		metrics: snmp_exporter.NewSNMPMetrics(registry),
 	}
 	return sh, nil
 }
