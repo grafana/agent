@@ -705,6 +705,9 @@ replace (
 	// TODO(mattdurham): this is to allow defaults to propogate properly.
 	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230612134738-fdb3ba7accd8
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20201015182516-5ac885b2d38a
+
+	// Replace node_export with custom fork for multi usage. https://github.com/prometheus/node_exporter/pull/2812
+    github.com/prometheus/node_exporter => github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231003194228-26e058a40f9a
 )
 
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
@@ -730,5 +733,3 @@ exclude (
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
 
-// Replace node_export with custom fork for multi usage.
-replace github.com/prometheus/node_exporter => github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231003194228-26e058a40f9a
