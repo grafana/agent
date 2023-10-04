@@ -147,6 +147,8 @@ Main (unreleased)
   of each node separately, instead of all the directly and indirectly
   dependant nodes. (@thampiotr)
 
+- Update Prometheus dependency to v2.46.0. (@tpaschalis)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
