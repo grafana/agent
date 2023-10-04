@@ -277,5 +277,4 @@ func TestRiverConfig(t *testing.T) {
 			require.Equal(t, tc.expectedCfg, promCfg)
 		})
 	}
-
 }
