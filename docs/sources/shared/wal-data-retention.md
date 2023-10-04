@@ -21,11 +21,11 @@ that grows on-disk indefinitely, the component _truncates_ its segments on a
 set interval.
 
 On each truncation, the WAL deletes references to series that are no longer
-present to reduce memory usage, and also _checkpoints_ roughly the oldest
-2/3rds of the segments written to it. A checkpoint means that the WAL only
-keeps track of the unique identifier for each existing metrics series, but
-deletes the actual samples associated with it. If that data has not been pushed
-to remote_write yet, it is lost.
+present and also _checkpoints_ roughly the oldest two thirds of the segments
+written to it. A checkpoint means that the WAL only keeps track of the unique
+identifier for each existing metrics series, and deletes the actual samples
+associated with it. If that data has not yet been pushed to remote_write, it is
+lost.
 
 This behavior dictates the data retention for the `prometheus.remote_write`
 component. It also means that it is not possible to directly correlate data
