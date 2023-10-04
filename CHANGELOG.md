@@ -195,6 +195,8 @@ Main (unreleased)
 
 - Documentation updated to correct default path from `prometheus.exporter.windows` `text_file` block (@timo1707)
 
+- Bump `redis_exporter` to v1.54.0 (@spartan0x117)
+
 v0.36.2 (2023-09-22)
 --------------------
 
