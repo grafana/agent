@@ -20,7 +20,7 @@ and forwards it to other components for future processing.
 ```river
 faro.receiver "LABEL" {
     output {
-        logs   = [LOGS_RECEIVERS]
+        logs   = [LOKI_RECEIVERS]
         traces = [OTELCOL_COMPONENTS]
     }
 }
@@ -64,7 +64,7 @@ Name | Type | Description | Default | Required
 `listen_port` | `number` | Port to listen for HTTP traffic on. | `12347` | no
 `cors_allowed_origins` | `list(string)` | Origins for which cross-origin requests are permitted. | `[]` | no
 `api_key` | `secret` | Optional API key to validate client requests with. | `""` | no
-`max_allowed_payload_size` | `number` | Maximum size (in bytes) for client requests. | `5e6` | no
+`max_allowed_payload_size` | `string` | Maximum size (in bytes) for client requests. | `"5MiB"` | no
 
 By default, telemetry data is only accepted from applications on the same local
 network as the browser. To accept telemetry data from a wider set of clients,

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/faro/receiver/internal/payload"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -107,7 +108,7 @@ func TestPayloadWithinLimit(t *testing.T) {
 	)
 
 	h.Update(ServerArguments{
-		MaxAllowedPayloadSize: int64(len(emptyPayload)),
+		MaxAllowedPayloadSize: units.Base2Bytes(len(emptyPayload)),
 	})
 
 	req, err := http.NewRequest(http.MethodPost, "/collect", strings.NewReader(emptyPayload))
@@ -133,7 +134,7 @@ func TestPayloadTooLarge(t *testing.T) {
 	)
 
 	h.Update(ServerArguments{
-		MaxAllowedPayloadSize: int64(len(emptyPayload) - 1),
+		MaxAllowedPayloadSize: units.Base2Bytes(len(emptyPayload) - 1),
 	})
 
 	req, err := http.NewRequest(http.MethodPost, "/collect", strings.NewReader(emptyPayload))

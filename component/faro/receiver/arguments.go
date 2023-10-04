@@ -3,6 +3,7 @@ package receiver
 import (
 	"time"
 
+	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/river"
@@ -20,7 +21,7 @@ var (
 		Host:                  "127.0.0.1",
 		Port:                  12347,
 		RateLimiting:          DefaultRateLimitingArguments,
-		MaxAllowedPayloadSize: 5e6,
+		MaxAllowedPayloadSize: 5 * units.MiB,
 	}
 
 	DefaultRateLimitingArguments = RateLimitingArguments{
@@ -57,7 +58,7 @@ type ServerArguments struct {
 	Port                  int               `river:"listen_port,attr,optional"`
 	CORSAllowedOrigins    []string          `river:"cors_allowed_origins,attr,optional"`
 	APIKey                rivertypes.Secret `river:"api_key,attr,optional"`
-	MaxAllowedPayloadSize int64             `river:"max_allowed_payload_size,attr,optional"`
+	MaxAllowedPayloadSize units.Base2Bytes  `river:"max_allowed_payload_size,attr,optional"`
 
 	RateLimiting RateLimitingArguments `river:"rate_limiting,block,optional"`
 }

@@ -104,7 +104,7 @@ func (h *handler) handleRequest(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// Validate content length.
-	if h.args.MaxAllowedPayloadSize > 0 && req.ContentLength > h.args.MaxAllowedPayloadSize {
+	if h.args.MaxAllowedPayloadSize > 0 && req.ContentLength > int64(h.args.MaxAllowedPayloadSize) {
 		http.Error(rw, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
 		return
 	}
