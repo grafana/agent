@@ -123,6 +123,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.85.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver v0.85.0

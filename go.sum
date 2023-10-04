@@ -1807,6 +1807,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocesso
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.85.0/go.mod h1:Rp+79qY7tJEgja2kHdWkWS0WDHP4+KRPfHmttCjbwDo=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.85.0 h1:R4oQpH2bRx6UEGDdv15S2GkkkDFRbjXLO1b8fcjS8Lg=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.85.0/go.mod h1:WuIjXo1AF9FWkG5HVSnm5koj27SEoVmENH3YVDNR1x4=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.85.0 h1:8bhHzQpYe0zFANlQU+yRvhqsVFMRpaqtBVlHzyPqHkc=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.85.0/go.mod h1:D1VNHbfUdVgtWiXUwr6OBetOl+TVDsZ8PkC5Fji1AAc=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.85.0 h1:1oQGK9OibOxvtJcnCdB6+r6jGpzSp3DrcoeaVgCwP28=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.85.0/go.mod h1:GNnx5ftrhf2bBSVIUzvfAkXBBjHfUYvmUOuR7mJWUOE=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.85.0 h1:yDfzy7NPgjWptm/wmbLunsbV4L6YzY1fwXY5i++afFU=

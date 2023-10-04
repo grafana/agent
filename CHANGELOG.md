@@ -30,12 +30,6 @@ Main (unreleased)
 
 - New Grafana Agent Flow components:
 
-  - `otelcol.connector.spanlogs` creates logs from spans. It is the flow mode equivalent
-  to static mode's `automatic_logging` processor. (@ptodev)
-  - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
-  flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
-  - `otelcol.processor.k8sattributes` adds Kubernetes metadata as resource attributes
-     to spans, logs, and metrics. (@acr92)
   - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
   - `discovery.linode` discovers scrape targets from the Linode API. (@captncraig)
@@ -46,14 +40,23 @@ Main (unreleased)
   - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
     instances and bare-metal machines. (@rfratto)
-  - `prometheus.exporter.azure` collects metrics from Azure. (@wildum)
   - `discovery.dockerswarm` discovers scrape targets from Docker Swarm. (@wildum)
+  - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
+  flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
+  - `otelcol.connector.spanlogs` creates logs from spans. It is the flow mode equivalent
+  to static mode's `automatic_logging` processor. (@ptodev)
+  - `otelcol.processor.k8sattributes` adds Kubernetes metadata as resource attributes
+     to spans, logs, and metrics. (@acr92)
   - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
+  - `otelcol.processor.transform` transforms OTLP telemetry data using the 
+    OpenTelemetry Transformation Language (OTTL). It is most commonly used 
+    for transformations on attributes.
   - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
   - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
   - `prometheus.exporter.agent` exposes the agent's internal metrics. (@hainenber)
-  - `prometheus.exporter.vsphere` exposes vmware vsphere metrics. (@marctc)
+  - `prometheus.exporter.azure` collects metrics from Azure. (@wildum)
   - `prometheus.exporter.cadvisor` exposes cAdvisor metrics. (@tpaschalis)
+  - `prometheus.exporter.vsphere` exposes vmware vsphere metrics. (@marctc)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
@@ -132,6 +135,14 @@ Main (unreleased)
 
 - Add new `agent_component_dependencies_wait_seconds` histogram metric and a dashboard panel 
   that measures how long components wait to be evaluated after their dependency is updated (@thampiotr)
+
+- Add additional endpoint to debug scrape configs generated inside `prometheus.operator.*` components (@captncraig)
+
+- Components evaluation is now performed in parallel, reducing the impact of 
+  slow components potentially blocking the entire telemetry pipeline. 
+  The `agent_component_evaluation_seconds` metric now measures evaluation time 
+  of each node separately, instead of all the directly and indirectly 
+  dependant nodes. (@thampiotr)
 
 ### Bugfixes
 
