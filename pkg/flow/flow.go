@@ -226,7 +226,7 @@ func newController(o controllerOptions) *Flow {
 // Run starts the Flow controller, blocking until the provided context is
 // canceled. Run must only be called once.
 func (f *Flow) Run(ctx context.Context) {
-	defer f.sched.Close()
+	defer func() { _ = f.sched.Close() }()
 	defer f.loader.Cleanup(!f.opts.IsModule)
 	defer level.Debug(f.log).Log("msg", "flow controller exiting")
 
@@ -240,11 +240,7 @@ func (f *Flow) Run(ctx context.Context) {
 			// throughput - it prevents the situation where two components have the same dependency, and the first time
 			// it's picked up by the worker pool and the second time it's enqueued again, resulting in more evaluations.
 			all := f.updateQueue.DequeueAll()
-			toRetry := f.loader.EvaluateDependencies(all)
-			// Put back on the queue any components that need to be retried.
-			for _, c := range toRetry {
-				f.updateQueue.Enqueue(c)
-			}
+			f.loader.EvaluateDependencies(ctx, all)
 		case <-f.loadFinished:
 			level.Info(f.log).Log("msg", "scheduling loaded components and services")
 
