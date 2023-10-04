@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/faro.receiver/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/faro.receiver/
 title: faro.receiver
+description: Learn about the faro.receiver
 ---
 
 # faro.receiver
