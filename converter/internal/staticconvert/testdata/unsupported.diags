@@ -1,4 +1,4 @@
-(Error) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
+(Warning) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
 (Warning) server.log_level is not supported - Flow mode components may produce different logs
 (Error) unsupported integration which is not being scraped was provided: mssql.
 (Error) mapping_config is not supported in statsd_exporter integrations config
@@ -7,7 +7,6 @@
 (Error) unsupported prefer_server_cipher_suites server config was provided.
 (Error) unsupported wal_directory metrics config was provided. use the run command flag --storage.path for Flow mode instead.
 (Error) unsupported integration agent was provided.
-(Error) unsupported integration cadvisor was provided.
 (Warning) disabled integrations do nothing and are not included in the output: node_exporter.
 (Error) unsupported traces config was provided.
 (Error) unsupported agent_management config was provided.

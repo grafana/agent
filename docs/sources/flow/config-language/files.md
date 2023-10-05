@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/files/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/files/
 title: Files
+description: Learn about River files
 weight: 100
 ---
 

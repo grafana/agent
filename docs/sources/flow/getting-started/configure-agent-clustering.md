@@ -6,10 +6,11 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/configure-agent-clustering/
 menuTitle: Configure Grafana Agent clustering
 title: Configure Grafana Agent clustering in an existing installation
+description: Learn how to configure Grafana Agent clustering in an existing installation
 weight: 400
 ---
 
-# Configure Grafana Agent clustering
+# Configure Grafana Agent clustering in an existing installation
 
 You can configure Grafana Agent to run with [clustering][] so that
 individual agents can work together for workload distribution and high

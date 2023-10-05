@@ -25,12 +25,24 @@ const (
 	apiPath                      = "/agent-management/api/agent/v2"
 	labelManagementEnabledHeader = "X-LabelManagementEnabled"
 	agentIDHeader                = "X-AgentID"
+	agentNamespaceVersionHeader  = "X-AgentNamespaceVersion"
+	agentInfoVersionHeader       = "X-AgentInfoVersion"
+	acceptNotModifiedHeader      = "X-AcceptHTTPNotModified"
+)
+
+var (
+	agentInfoVersion           string
+	agentNamespaceVersion      string
+	defaultRemoteConfiguration = RemoteConfiguration{
+		AcceptHTTPNotModified: true,
+	}
 )
 
 type remoteConfigProvider interface {
 	GetCachedRemoteConfig() ([]byte, error)
 	CacheRemoteConfig(remoteConfigBytes []byte) error
 	FetchRemoteConfig() ([]byte, error)
+	GetPollingInterval() time.Duration
 }
 
 type remoteConfigHTTPProvider struct {
@@ -138,6 +150,16 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 			labelManagementEnabledHeader: "1",
 			agentIDHeader:                r.InitialConfig.RemoteConfiguration.AgentID,
 		}
+
+		if agentNamespaceVersion != "" {
+			remoteOpts.headers[agentNamespaceVersionHeader] = agentNamespaceVersion
+		}
+		if agentInfoVersion != "" {
+			remoteOpts.headers[agentInfoVersionHeader] = agentInfoVersion
+		}
+		if r.InitialConfig.RemoteConfiguration.AcceptHTTPNotModified {
+			remoteOpts.headers[acceptNotModifiedHeader] = "1"
+		}
 	}
 
 	url, err := r.InitialConfig.fullUrl()
@@ -149,11 +171,30 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 		return nil, fmt.Errorf("error reading remote config: %w", err)
 	}
 
-	bb, err := rc.retrieve()
+	bb, headers, err := rc.retrieve()
+
+	// If the server returns a 304, return it and the caller will handle it.
+	var nme notModifiedError
+	if errors.Is(err, nme) {
+		return nil, nme
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving remote config: %w", err)
 	}
+
+	nsVersion := headers.Get(agentNamespaceVersionHeader)
+	infoVersion := headers.Get(agentInfoVersionHeader)
+	if nsVersion != "" && infoVersion != "" {
+		agentNamespaceVersion = nsVersion
+		agentInfoVersion = infoVersion
+	}
+
 	return bb, nil
+}
+
+func (r remoteConfigHTTPProvider) GetPollingInterval() time.Duration {
+	return r.InitialConfig.PollingInterval
 }
 
 type labelMap map[string]string
@@ -161,9 +202,18 @@ type labelMap map[string]string
 type RemoteConfiguration struct {
 	Labels                 labelMap `yaml:"labels"`
 	LabelManagementEnabled bool     `yaml:"label_management_enabled"`
+	AcceptHTTPNotModified  bool     `yaml:"accept_http_not_modified"`
 	AgentID                string   `yaml:"agent_id"`
 	Namespace              string   `yaml:"namespace"`
 	CacheLocation          string   `yaml:"cache_location"`
+}
+
+// UnmarshalYAML implement YAML Unmarshaler
+func (rc *RemoteConfiguration) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// Apply defaults
+	*rc = defaultRemoteConfiguration
+	type plain RemoteConfiguration
+	return unmarshal((*plain)(rc))
 }
 
 type AgentManagementConfig struct {
@@ -181,12 +231,27 @@ type AgentManagementConfig struct {
 // error will be returned.
 func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, log *server.Logger, fs *flag.FlagSet, retry bool) (*Config, error) {
 	remoteConfigBytes, err := configProvider.FetchRemoteConfig()
+	if errors.Is(err, notModifiedError{}) {
+		level.Info(log).Log("msg", "remote config has not changed since last fetch, using cached copy")
+		remoteConfigBytes, err = configProvider.GetCachedRemoteConfig()
+	}
 	if err != nil {
 		var retryAfterErr retryAfterError
 		if errors.As(err, &retryAfterErr) && retry {
-			level.Error(log).Log("msg", "received retry-after from API, sleeping and falling back to cache", "retry-after", retryAfterErr.retryAfter)
-			time.Sleep(retryAfterErr.retryAfter)
-			return getRemoteConfig(expandEnvVars, configProvider, log, fs, false)
+			// In the case that the server is telling us to retry after a time greater than our polling interval,
+			// the agent should sleep for the duration of the retry-after header.
+			//
+			// If the duration of the retry-after is lower than the polling interval, the agent will simply
+			// fall back to the cache and continue polling at the polling interval, effectively skipping
+			// this poll.
+			if retryAfterErr.retryAfter > configProvider.GetPollingInterval() {
+				level.Info(log).Log("msg", "received retry-after from API, sleeping and falling back to cache", "retry-after", retryAfterErr.retryAfter)
+				time.Sleep(retryAfterErr.retryAfter)
+			} else {
+				level.Info(log).Log("msg", "received retry-after from API, falling back to cache", "retry-after", retryAfterErr.retryAfter)
+			}
+			// Return the cached config, as this is the last known good config and a config must be returned here.
+			return getCachedRemoteConfig(expandEnvVars, configProvider, fs, log)
 		}
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
 		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, log)

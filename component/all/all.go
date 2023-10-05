@@ -30,6 +30,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/serverset"                      // Import discovery.serverset
 	_ "github.com/grafana/agent/component/discovery/triton"                         // Import discovery.triton
 	_ "github.com/grafana/agent/component/discovery/uyuni"                          // Import discovery.uyuni
+	_ "github.com/grafana/agent/component/faro/receiver"                            // Import faro.receiver
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
 	_ "github.com/grafana/agent/component/local/file_match"                         // Import local.file_match
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo
@@ -76,10 +77,12 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/processor/attributes"             // Import otelcol.processor.attributes
 	_ "github.com/grafana/agent/component/otelcol/processor/batch"                  // Import otelcol.processor.batch
 	_ "github.com/grafana/agent/component/otelcol/processor/discovery"              // Import otelcol.processor.discovery
+	_ "github.com/grafana/agent/component/otelcol/processor/k8sattributes"          // Import otelcol.processor.k8sattributes
 	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"          // Import otelcol.processor.memory_limiter
 	_ "github.com/grafana/agent/component/otelcol/processor/probabilistic_sampler"  // Import otelcol.processor.probabilistic_sampler
 	_ "github.com/grafana/agent/component/otelcol/processor/span"                   // Import otelcol.processor.span
 	_ "github.com/grafana/agent/component/otelcol/processor/tail_sampling"          // Import otelcol.processor.tail_sampling
+	_ "github.com/grafana/agent/component/otelcol/processor/transform"              // Import otelcol.processor.transform
 	_ "github.com/grafana/agent/component/otelcol/receiver/jaeger"                  // Import otelcol.receiver.jaeger
 	_ "github.com/grafana/agent/component/otelcol/receiver/kafka"                   // Import otelcol.receiver.kafka
 	_ "github.com/grafana/agent/component/otelcol/receiver/loki"                    // Import otelcol.receiver.loki
@@ -91,6 +94,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/apache"               // Import prometheus.exporter.apache
 	_ "github.com/grafana/agent/component/prometheus/exporter/azure"                // Import prometheus.exporter.azure
 	_ "github.com/grafana/agent/component/prometheus/exporter/blackbox"             // Import prometheus.exporter.blackbox
+	_ "github.com/grafana/agent/component/prometheus/exporter/cadvisor"             // Import prometheus.exporter.cadvisor
 	_ "github.com/grafana/agent/component/prometheus/exporter/cloudwatch"           // Import prometheus.exporter.cloudwatch
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"               // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/dnsmasq"              // Import prometheus.exporter.dnsmasq
@@ -111,6 +115,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/squid"                // Import prometheus.exporter.squid
 	_ "github.com/grafana/agent/component/prometheus/exporter/statsd"               // Import prometheus.exporter.statsd
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"                 // Import prometheus.exporter.unix
+	_ "github.com/grafana/agent/component/prometheus/exporter/vsphere"              // Import prometheus.exporter.vsphere
 	_ "github.com/grafana/agent/component/prometheus/exporter/windows"              // Import prometheus.exporter.windows
 	_ "github.com/grafana/agent/component/prometheus/operator/podmonitors"          // Import prometheus.operator.podmonitors
 	_ "github.com/grafana/agent/component/prometheus/operator/probes"               // Import prometheus.operator.probes

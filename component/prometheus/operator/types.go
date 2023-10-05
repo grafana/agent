@@ -27,12 +27,23 @@ type Arguments struct {
 	Clustering Clustering `river:"clustering,block,optional"`
 
 	RelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
+
+	Scrape ScrapeOptions `river:"scrape,block,optional"`
 }
 
 // Clustering holds values that configure clustering-specific behavior.
 type Clustering struct {
 	// TODO(@tpaschalis) Move this block to a shared place for all components using clustering.
 	Enabled bool `river:"enabled,attr"`
+}
+
+// ScrapeOptions holds values that configure scraping behavior.
+type ScrapeOptions struct {
+	// DefaultScrapeInterval is the default interval to scrape targets.
+	DefaultScrapeInterval time.Duration `river:"default_scrape_interval,attr,optional"`
+
+	// DefaultScrapeTimeout is the default timeout to scrape targets.
+	DefaultScrapeTimeout time.Duration `river:"default_scrape_timeout,attr,optional"`
 }
 
 var DefaultArguments = Arguments{
@@ -60,8 +71,9 @@ type DebugInfo struct {
 }
 
 type DiscoveredResource struct {
-	Namespace      string    `river:"namespace,attr"`
-	Name           string    `river:"name,attr"`
-	LastReconcile  time.Time `river:"last_reconcile,attr,optional"`
-	ReconcileError string    `river:"reconcile_error,attr,optional"`
+	Namespace        string    `river:"namespace,attr"`
+	Name             string    `river:"name,attr"`
+	LastReconcile    time.Time `river:"last_reconcile,attr,optional"`
+	ReconcileError   string    `river:"reconcile_error,attr,optional"`
+	ScrapeConfigsURL string    `river:"scrape_configs_url,attr,optional"`
 }

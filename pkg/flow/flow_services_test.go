@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
-	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Import test components
 	"github.com/grafana/agent/pkg/flow/internal/testservices"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service"
@@ -17,6 +16,7 @@ import (
 )
 
 func TestServices(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -37,7 +37,7 @@ func TestServices(t *testing.T) {
 	opts.Services = append(opts.Services, svc)
 
 	ctrl := New(opts)
-	require.NoError(t, ctrl.LoadFile(makeEmptyFile(t), nil))
+	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil))
 
 	// Start the controller. This should cause our service to run.
 	go ctrl.Run(ctx)
@@ -46,6 +46,7 @@ func TestServices(t *testing.T) {
 }
 
 func TestServices_Configurable(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	type ServiceOptions struct {
 		Name string `river:"name,attr"`
 	}
@@ -74,7 +75,7 @@ func TestServices_Configurable(t *testing.T) {
 		}
 	)
 
-	f, err := ReadFile(t.Name(), []byte(`
+	f, err := ParseSource(t.Name(), []byte(`
 		fake {
 			name = "John Doe"
 		}
@@ -87,7 +88,7 @@ func TestServices_Configurable(t *testing.T) {
 
 	ctrl := New(opts)
 
-	require.NoError(t, ctrl.LoadFile(f, nil))
+	require.NoError(t, ctrl.LoadSource(f, nil))
 
 	// Start the controller. This should cause our service to run.
 	go ctrl.Run(ctx)
@@ -99,6 +100,7 @@ func TestServices_Configurable(t *testing.T) {
 // arguments is configured properly even when it is not defined in the config
 // file.
 func TestServices_Configurable_Optional(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	type ServiceOptions struct {
 		Name string `river:"name,attr,optional"`
 	}
@@ -132,7 +134,7 @@ func TestServices_Configurable_Optional(t *testing.T) {
 
 	ctrl := New(opts)
 
-	require.NoError(t, ctrl.LoadFile(makeEmptyFile(t), nil))
+	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil))
 
 	// Start the controller. This should cause our service to run.
 	go ctrl.Run(ctx)
@@ -141,6 +143,7 @@ func TestServices_Configurable_Optional(t *testing.T) {
 }
 
 func TestFlow_GetServiceConsumers(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	var (
 		svcA = &testservices.Fake{
 			DefinitionFunc: func() service.Definition {
@@ -164,7 +167,8 @@ func TestFlow_GetServiceConsumers(t *testing.T) {
 	opts.Services = append(opts.Services, svcA, svcB)
 
 	ctrl := New(opts)
-	require.NoError(t, ctrl.LoadFile(makeEmptyFile(t), nil))
+	defer cleanUpController(ctrl)
+	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil))
 
 	expectConsumers := []service.Consumer{{
 		Type:  service.ConsumerTypeService,
@@ -175,6 +179,7 @@ func TestFlow_GetServiceConsumers(t *testing.T) {
 }
 
 func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -223,7 +228,7 @@ func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
 
 	cfg := `module_loader "example" {}`
 
-	f, err := ReadFile(t.Name(), []byte(cfg))
+	f, err := ParseSource(t.Name(), []byte(cfg))
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
@@ -235,7 +240,7 @@ func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
 		ComponentRegistry: registry,
 		ModuleRegistry:    newModuleRegistry(),
 	})
-	require.NoError(t, ctrl.LoadFile(f, nil))
+	require.NoError(t, ctrl.LoadSource(f, nil))
 	go ctrl.Run(ctx)
 
 	require.NoError(t, componentBuilt.Wait(5*time.Second), "Component should have been built")
@@ -245,6 +250,7 @@ func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
 }
 
 func TestComponents_Using_Services(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -308,7 +314,7 @@ func TestComponents_Using_Services(t *testing.T) {
 		service_consumer "example" {}
 	`
 
-	f, err := ReadFile(t.Name(), []byte(cfg))
+	f, err := ParseSource(t.Name(), []byte(cfg))
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
@@ -320,7 +326,7 @@ func TestComponents_Using_Services(t *testing.T) {
 		ComponentRegistry: registry,
 		ModuleRegistry:    newModuleRegistry(),
 	})
-	require.NoError(t, ctrl.LoadFile(f, nil))
+	require.NoError(t, ctrl.LoadSource(f, nil))
 	go ctrl.Run(ctx)
 
 	require.NoError(t, componentBuilt.Wait(5*time.Second), "Component should have been built")
@@ -328,6 +334,7 @@ func TestComponents_Using_Services(t *testing.T) {
 }
 
 func TestComponents_Using_Services_In_Modules(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -388,7 +395,7 @@ func TestComponents_Using_Services_In_Modules(t *testing.T) {
 
 	cfg := `module_loader "example" {}`
 
-	f, err := ReadFile(t.Name(), []byte(cfg))
+	f, err := ParseSource(t.Name(), []byte(cfg))
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
@@ -400,16 +407,16 @@ func TestComponents_Using_Services_In_Modules(t *testing.T) {
 		ComponentRegistry: registry,
 		ModuleRegistry:    newModuleRegistry(),
 	})
-	require.NoError(t, ctrl.LoadFile(f, nil))
+	require.NoError(t, ctrl.LoadSource(f, nil))
 	go ctrl.Run(ctx)
 
 	require.NoError(t, componentBuilt.Wait(5*time.Second), "Component should have been built")
 }
 
-func makeEmptyFile(t *testing.T) *File {
+func makeEmptyFile(t *testing.T) *Source {
 	t.Helper()
 
-	f, err := ReadFile(t.Name(), nil)
+	f, err := ParseSource(t.Name(), nil)
 	require.NoError(t, err)
 	require.NotNil(t, f)
 

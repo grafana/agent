@@ -7,11 +7,11 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/release-notes/
 description: Release notes for Grafana Agent flow mode
 menuTitle: Release notes
-title: Release notes for Grafana Agentflow mode
+title: Release notes for Grafana Agent flow mode
 weight: 999
 ---
 
-# Release notes
+# Release notes for Grafana Agent flow mode
 
 The release notes provide information about deprecations and breaking changes in Grafana Agent flow mode.
 
@@ -61,6 +61,23 @@ to `true` and controlled via the `include_scope_labels` argument.
 * A bugfix was made to rename `otel_scope_info` metric labels from
 `name` to `otel_scope_name` and `version` to `otel_scope_version`. This is
 now correct with the OTLP Instrumentation Scope specification.
+
+### Breaking change: `prometheus.exporter.unix` now requires a label.
+
+Previously the exporter was a singleton and did not require a label. The exporter now can be used multiple times and
+needs a label.
+
+Old configuration example:
+
+```river 
+prometheus.exporter.unix { /* ... */ } 
+```
+
+New configuration example:
+
+```river 
+prometheus.exporter.unix "example" { /* ... */ } 
+```
 
 ## v0.36
 

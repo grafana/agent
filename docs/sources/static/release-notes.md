@@ -1,7 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/static/release-notes/
 description: Release notes for Grafana Agent static mode
-title: Release notes for Grafana Agent static mode
+title: Release notes
 menuTitle: Release notes
 aliases:
 - ../upgrade-guide/
@@ -24,8 +24,12 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 {{% docs/reference %}}
 [release-notes-operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator/release-notes"
 [release-notes-operator]: "/docs/grafana-cloud/ -> ../operator/release-notes"
+
 [release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-[release-notes-flow]: "/docs/grafana-cloud/ -> ../flow/release-notes"
+[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
+
+[Modules]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/concepts/modules"
+[Modules]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/concepts/modules"
 {{% /docs/reference %}}
 
 ## v0.37
@@ -140,7 +144,7 @@ See [Module and Auth Split Migration](https://github.com/prometheus/snmp_exporte
 ### Removal of Dynamic Configuration
 
 The experimental feature Dynamic Configuration has been removed. The use case of dynamic configuration will be replaced
-with [Modules](../../concepts/modules/) in Grafana Agent Flow.
+with [Modules][] in Grafana Agent Flow.
 
 ### Breaking change: Removed and renamed tracing metrics
 
@@ -181,7 +185,7 @@ use the new binaries that are prefixed with `/bin/grafana*`.
 
 ### Deprecation of Dynamic Configuration
 
-[Dynamic Configuration](https://grafana.com/docs/agent/v0.33/cookbook/dynamic-configuration/) will be removed in v0.34.
+[Dynamic Configuration](/docs/agent/v0.33/cookbook/dynamic-configuration/) will be removed in v0.34.
 The use case of dynamic configuration will be replaced with Modules in Grafana Agent Flow.
 
 ## v0.32

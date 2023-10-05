@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.lightsail/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.lightsail/
 title: discovery.lightsail
+description: Learn about discovery.lightsail
 ---
 
 # discovery.lightsail

@@ -4,7 +4,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 )
 
 func init() {
@@ -12,13 +11,12 @@ func init() {
 		Name:          "prometheus.exporter.windows",
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
-		Singleton:     false,
 		NeedsServices: exporter.RequiredServices(),
 		Build:         exporter.New(createExporter, "windows"),
 	})
 }
 
-func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return windows_exporter.New(opts.Logger, a.Convert())
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/apache_http"
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	"github.com/grafana/agent/pkg/integrations/cadvisor"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
@@ -130,6 +131,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *statsd_exporter.Config:
 		case *windows_exporter.Config:
 		case *azure_exporter.Config:
+		case *cadvisor.Config:
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
 		}

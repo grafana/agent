@@ -16,6 +16,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/trace"
+
+	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
 
 func TestLoader(t *testing.T) {
@@ -175,19 +177,6 @@ func TestLoader(t *testing.T) {
 		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
-	})
-
-	t.Run("Handling of singleton component labels", func(t *testing.T) {
-		invalidFile := `
-			testcomponents.tick {
-			}
-			testcomponents.singleton "first" {
-			}
-		`
-		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
-		require.ErrorContains(t, diags[0], `Component "testcomponents.tick" must have a label`)
-		require.ErrorContains(t, diags[1], `Component "testcomponents.singleton" does not support labels`)
 	})
 }
 

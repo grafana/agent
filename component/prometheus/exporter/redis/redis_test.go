@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/redis_exporter"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
@@ -12,33 +11,34 @@ import (
 
 func TestRiverUnmarshal(t *testing.T) {
 	riverConfig := `
-		redis_addr                  = "localhost:6379"
-		redis_user                  = "redis_user"
-		redis_password_file         = "/tmp/pass"
-		namespace                   = "namespace"
-		config_command              = "TEST_CONFIG"
-		check_keys                  = ["key1*", "cache_*"]
-		check_key_groups            = ["other_key%d+"]
-		check_key_groups_batch_size = 5000
-		max_distinct_key_groups     = 50
-		check_single_keys           = ["particular_key"]
-		check_streams               = ["stream1*"]
-		check_single_streams        = ["particular_stream"]
-		count_keys                  = ["count_key1", "count_key2"]
-		script_path                 = "/tmp/metrics-script.lua,/tmp/cooler-metrics-script.lua"
-		connection_timeout          = "7s"
-		tls_client_key_file         = "/tmp/client-key.pem"
-		tls_client_cert_file        = "/tmp/client-cert.pem"
-		tls_ca_cert_file            = "/tmp/ca-cert.pem"
-		set_client_name             = false
-		is_tile38                   = true
-		export_client_list          = false
-		export_client_port          = true
-		redis_metrics_only          = false
-		ping_on_connect             = true
-		incl_system_metrics         = true
-		skip_tls_verification       = false
-		is_cluster                  = true
+		redis_addr                   = "localhost:6379"
+		redis_user                   = "redis_user"
+		redis_password_file          = "/tmp/pass"
+		namespace                    = "namespace"
+		config_command               = "TEST_CONFIG"
+		check_keys                   = ["key1*", "cache_*"]
+		check_key_groups             = ["other_key%d+"]
+		check_key_groups_batch_size  = 5000
+		max_distinct_key_groups      = 50
+		check_single_keys            = ["particular_key"]
+		check_streams                = ["stream1*"]
+		check_single_streams         = ["particular_stream"]
+		export_key_values            = false
+		count_keys                   = ["count_key1", "count_key2"]
+		script_path                  = "/tmp/metrics-script.lua,/tmp/cooler-metrics-script.lua"
+		connection_timeout           = "7s"
+		tls_client_key_file          = "/tmp/client-key.pem"
+		tls_client_cert_file         = "/tmp/client-cert.pem"
+		tls_ca_cert_file             = "/tmp/ca-cert.pem"
+		set_client_name              = false
+		is_tile38                    = true
+		export_client_list           = false
+		export_client_port           = true
+		redis_metrics_only           = false
+		ping_on_connect              = true
+		incl_system_metrics          = true
+		skip_tls_verification        = false
+		is_cluster                   = true
 	`
 	var args Arguments
 	err := river.Unmarshal([]byte(riverConfig), &args)
@@ -59,6 +59,7 @@ func TestRiverUnmarshal(t *testing.T) {
 
 		CheckStreams:       []string{"stream1*"},
 		CheckSingleStreams: []string{"particular_stream"},
+		ExportKeyValues:    false,
 		CountKeys:          []string{"count_key1", "count_key2"},
 
 		ScriptPath:        "/tmp/metrics-script.lua,/tmp/cooler-metrics-script.lua",
@@ -111,6 +112,7 @@ func TestRiverConvert(t *testing.T) {
 		CheckKeys:               []string{"key1*", "cache_*"},
 		CheckKeyGroups:          []string{"other_key%d+"},
 		CheckSingleKeys:         []string{"particular_key"},
+		ExportKeyValues:         false,
 		CountKeys:               []string{"count_key1", "count_key2"},
 		CheckKeyGroupsBatchSize: 5000,
 		MaxDistinctKeyGroups:    50,
@@ -145,6 +147,7 @@ func TestRiverConvert(t *testing.T) {
 		CheckKeys:               "key1*,cache_*",
 		CheckKeyGroups:          "other_key%d+",
 		CheckSingleKeys:         "particular_key",
+		ExportKeyValues:         false,
 		CountKeys:               "count_key1,count_key2",
 		CheckKeyGroupsBatchSize: 5000,
 		MaxDistinctKeyGroups:    50,
@@ -170,15 +173,4 @@ func TestRiverConvert(t *testing.T) {
 	}
 
 	require.Equal(t, expected, *converted)
-}
-
-func TestCustomizeTarget(t *testing.T) {
-	args := Arguments{
-		RedisAddr: "localhost:6379",
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "localhost:6379", newTargets[0]["instance"])
 }

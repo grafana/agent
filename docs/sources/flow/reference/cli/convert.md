@@ -9,17 +9,18 @@ description: The `convert` command converts supported configuration formats to R
 labels:
   stage: beta
 menuTitle: convert
-title: convert command
+title: The convert command
+description: Learn about the convert command
 weight: 100
 ---
 
-# `convert` command
+# The convert command
 
 The `convert` command converts a supported configuration format to Grafana Agent Flow River format.
 
 ## Usage
 
-Usage: 
+Usage:
 
 * `AGENT_MODE=flow grafana-agent convert [FLAG ...] FILE_NAME`
 * `grafana-agent-flow convert [FLAG ...] FILE_NAME`
@@ -44,12 +45,13 @@ The following flags are supported:
 
 * `--report`, `-r`: The filepath and filename where the report is written.
 
-* `--source-format`, `-f`: Required. The format of the source file. Supported formats: [prometheus], [promtail].
+* `--source-format`, `-f`: Required. The format of the source file. Supported formats: [prometheus], [promtail], [static].
 
 * `--bypass-errors`, `-b`: Enable bypassing errors when converting.
 
 [prometheus]: #prometheus
 [promtail]: #promtail
+[static]: #static
 [errors]: #errors
 
 ### Defaults
@@ -79,14 +81,28 @@ This includes Prometheus features such as
 and many supported *_sd_configs. Unsupported features in a source config result
 in [errors].
 
+Refer to [Migrate from Prometheus to Grafana Agent Flow]({{< relref "../../getting-started/migrating-from-prometheus/" >}}) for a detailed migration guide.
+
 ### Promtail
 
 Using the `--source-format=promtail` will convert the source configuration from
-[Promtail v2.8.x](https://grafana.com/docs/loki/v2.8.x/clients/promtail/)
+[Promtail v2.8.x](/docs/loki/v2.8.x/clients/promtail/)
 to Grafana Agent Flow configuration.
 
-Nearly all [Promtail features](https://grafana.com/docs/loki/v2.8.x/clients/promtail/configuration/)
+Nearly all [Promtail features](/docs/loki/v2.8.x/clients/promtail/configuration/)
 are supported and can be converted to Grafana Agent Flow config.
 
 If you have unsupported features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
 also raise warnings for configuration options that may require your attention.
+
+Refer to [Migrate from Promtail to Grafana Agent Flow]({{< relref "../../getting-started/migrating-from-promtail/" >}}) for a detailed migration guide.
+
+### Static
+
+Using the `--source-format=static` will convert the source configuration from
+Grafana Agent [Static]({{< relref "../../../static" >}}) mode to Flow mode configuration.
+
+If you have unsupported features in a Static mode source configuration, you will receive [errors][] when you convert to a Flow mode configuration. The converter will
+also raise warnings for configuration options that may require your attention.
+
+Refer to [Migrate Grafana Agent from Static mode to Flow mode]({{< relref "../../getting-started/migrating-from-static/" >}}) for a detailed migration guide.
