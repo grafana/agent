@@ -22,7 +22,7 @@ scrape_configs:
       - targets: ["localhost:9093"]
 
 remote_write:
-  - name: "remote-1"
+  - name: "remote1"
     url: "http://remote-write-url1"
     write_relabel_configs:
       - source_labels: [__address1__]
@@ -31,3 +31,25 @@ remote_write:
         target_label: __param_target2
   - name: "remote2"
     url: "http://remote-write-url2"
+  - name: "remote3_sigv4_defaults"
+    url: http://localhost:9012/api/prom/push
+    sigv4: {}
+  - name: "remote4_sigv4_explicit"
+    url: http://localhost:9012/api/prom/push
+    sigv4:
+      region: us-east-1
+      access_key: fake_access_key
+      secret_key: fake_secret_key
+      profile: fake_profile
+      role_arn: fake_role_arn
+  - name: "remote5_azuread_defaults"
+    url: http://localhost:9012/api/prom/push
+    azuread:
+      managed_identity:
+        client_id: 00000000-0000-0000-0000-000000000000
+  - name: "remote6_azuread_explicit"
+    url: http://localhost:9012/api/prom/push
+    azuread:
+      cloud: AzureGovernment
+      managed_identity:
+        client_id: 00000000-0000-0000-0000-000000000000

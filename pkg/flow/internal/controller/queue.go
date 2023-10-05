@@ -1,23 +1,27 @@
 package controller
 
-import "sync"
+import (
+	"sync"
+)
 
-// Queue is an unordered queue of components.
+// Queue is a thread-safe, insertion-ordered set of components.
 //
 // Queue is intended for tracking components that have updated their Exports
 // for later reevaluation.
 type Queue struct {
-	mut    sync.Mutex
-	queued map[*ComponentNode]struct{}
+	mut         sync.Mutex
+	queuedSet   map[*ComponentNode]struct{}
+	queuedOrder []*ComponentNode
 
 	updateCh chan struct{}
 }
 
-// NewQueue returns a new unordered component queue.
+// NewQueue returns a new queue.
 func NewQueue() *Queue {
 	return &Queue{
-		updateCh: make(chan struct{}, 1),
-		queued:   make(map[*ComponentNode]struct{}),
+		updateCh:    make(chan struct{}, 1),
+		queuedSet:   make(map[*ComponentNode]struct{}),
+		queuedOrder: make([]*ComponentNode, 0),
 	}
 }
 
@@ -26,7 +30,14 @@ func NewQueue() *Queue {
 func (q *Queue) Enqueue(c *ComponentNode) {
 	q.mut.Lock()
 	defer q.mut.Unlock()
-	q.queued[c] = struct{}{}
+
+	// Skip if already queued.
+	if _, ok := q.queuedSet[c]; ok {
+		return
+	}
+
+	q.queuedOrder = append(q.queuedOrder, c)
+	q.queuedSet[c] = struct{}{}
 	select {
 	case q.updateCh <- struct{}{}:
 	default:
@@ -36,16 +47,14 @@ func (q *Queue) Enqueue(c *ComponentNode) {
 // Chan returns a channel which is written to when the queue is non-empty.
 func (q *Queue) Chan() <-chan struct{} { return q.updateCh }
 
-// TryDequeue dequeues a randomly queued component. TryDequeue will return nil
-// if the queue is empty.
-func (q *Queue) TryDequeue() *ComponentNode {
+// DequeueAll removes all components from the queue and returns them.
+func (q *Queue) DequeueAll() []*ComponentNode {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
-	for c := range q.queued {
-		delete(q.queued, c)
-		return c
-	}
+	all := q.queuedOrder
+	q.queuedOrder = make([]*ComponentNode, 0)
+	q.queuedSet = make(map[*ComponentNode]struct{})
 
-	return nil
+	return all
 }

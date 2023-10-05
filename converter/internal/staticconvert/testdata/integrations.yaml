@@ -159,6 +159,7 @@ integrations:
   redis_exporter:
     enabled: true
     redis_addr: "redis-2:6379"
+    export_key_values: false
     relabel_configs:
     - source_labels: [__address__]
       target_label: instance
@@ -198,3 +199,5 @@ integrations:
     resource_type: "Microsoft.Dashboard/grafana"
     metrics:
       - "HttpRequestCount"
+  cadvisor:
+    enabled: true

@@ -51,7 +51,5 @@ remote_write:
     proxy_from_environment: true
     tls_config:
       max_version: TLS13
-    sigv4:
-      region: us-east-1
   - name: "remote2"
     url: "http://remote-write-url2"
