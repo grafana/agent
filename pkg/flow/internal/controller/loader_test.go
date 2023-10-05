@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -220,7 +221,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
 				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
-					return nil
+					return fakeModuleController{}
 				},
 			},
 		}
@@ -314,4 +315,17 @@ func requireGraph(t *testing.T, g *dag.Graph, expect graphDefinition) {
 		})
 	}
 	require.ElementsMatch(t, expect.OutEdges, actualEdges, "List of edges do not match")
+}
+
+type fakeModuleController struct{}
+
+func (f fakeModuleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
+	return nil, nil
+}
+
+func (f fakeModuleController) ModuleIDs() []string {
+	return nil
+}
+
+func (f fakeModuleController) ClearModuleIDs() {
 }

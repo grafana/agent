@@ -182,22 +182,6 @@ func TestIDCollision(t *testing.T) {
 	require.Nil(t, m)
 }
 
-func TestIDRemoval(t *testing.T) {
-	opts := testModuleControllerOptions(t)
-	opts.ID = "test"
-	nc := newModuleController(opts)
-	m, err := nc.NewModule("t1", func(exports map[string]any) {})
-	require.NoError(t, err)
-	err = m.LoadConfig([]byte(""), nil)
-	require.NoError(t, err)
-	require.NotNil(t, m)
-	ctx := context.Background()
-	ctx, cncl := context.WithTimeout(ctx, 1*time.Second)
-	defer cncl()
-	m.Run(ctx)
-	require.Len(t, nc.(*moduleController).modules, 0)
-}
-
 func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	t.Helper()
 

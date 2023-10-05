@@ -64,13 +64,14 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 	return mod, nil
 }
 
-// RemoveID removes a reference from the module registry and name cache.
-func (m *moduleController) RemoveID(id string) {
+func (m *moduleController) ClearModuleIDs() {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	delete(m.modules, id)
-	m.o.ModuleRegistry.Unregister(id)
+	for id := range m.modules {
+		m.o.ModuleRegistry.Unregister(id)
+	}
+	m.modules = make(map[string]struct{})
 }
 
 // ModuleIDs implements [controller.ModuleController].
@@ -130,17 +131,11 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 	return c.f.LoadFile(ff, args)
 }
 
-// Remove removed the ID from the registry. Generally only used if fails to start.
-func (c *module) Remove() {
-	c.o.parent.RemoveID(c.o.ID)
-}
-
 // Run starts the Module. No components within the Module
 // will be run until Run is called.
 //
 // Run blocks until the provided context is canceled.
 func (c *module) Run(ctx context.Context) {
-	defer c.o.parent.RemoveID(c.o.ID)
 	c.f.Run(ctx)
 }
 

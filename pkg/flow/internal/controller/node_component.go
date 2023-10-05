@@ -255,6 +255,7 @@ func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
 	case nil:
 		cn.setEvalHealth(component.HealthTypeHealthy, "component evaluated")
 	default:
+		cn.moduleController.ClearModuleIDs()
 		msg := fmt.Sprintf("component evaluation failed: %s", err)
 		cn.setEvalHealth(component.HealthTypeUnhealthy, msg)
 	}
@@ -316,6 +317,8 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 	cn.mut.RLock()
 	managed := cn.managed
 	cn.mut.RUnlock()
+	// When finished running clear the module ids.
+	defer cn.moduleController.ClearModuleIDs()
 
 	if managed == nil {
 		return ErrUnevaluated

@@ -34,6 +34,7 @@ content=""
 fail=true
 }`
 	err = t1.updateContent(badContent)
+	// Because we have bad content this should fail, but the ids should be removed.
 	require.Error(t, err)
 	goodContent :=
 		`test.fail.module "int" { 
@@ -56,12 +57,10 @@ func init() {
 				return nil, err
 			}
 			if args.(TestFailArguments).Fail {
-				m.Remove()
 				return nil, fmt.Errorf("module told to fail")
 			}
 			err = m.LoadFlowContent(nil, args.(TestFailArguments).Content)
 			if err != nil {
-				m.Remove()
 				return nil, err
 			}
 			return &testFailModule{
