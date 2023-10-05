@@ -41,18 +41,20 @@ You can use the following arguments to configure a `pyroscope.ebpf`. Only the
 `forward_to` and `targets` fields are required. Omitted fields take their default
 values.
 
-| Name                      | Type                     | Description                                                  | Default | Required |
-|---------------------------|--------------------------|--------------------------------------------------------------|---------|----------|
-| `targets`                 | `list(map(string))`      | List of targets to group profiles by container id            |         | yes      |
-| `forward_to`              | `list(ProfilesReceiver)` | List of receivers to send collected profiles to.             |         | yes      |   
-| `collect_interval`        | `duration`               | How frequently to collect profiles                           | `15s`   | no       |       
-| `sample_rate`             | `int`                    | How many times per second to collect profile samples         | 97      | no       |     
-| `pid_cache_size`          | `int`                    | The size of the pid -> proc symbols table LRU cache          | 32      | no       |      
-| `build_id_cache_size`     | `int`                    | The size of the elf file build id -> symbols table LRU cache | 64      | no       |       
-| `same_file_cache_size`    | `int`                    | The size of the elf file -> symbols table LRU cache          | 8       | no       |       
-| `container_id_cache_size` | `int`                    | The size of the pid -> container ID table LRU cache          | 1024    | no       |       
-| `collect_user_profile`    | `bool`                   | A flag to enable/disable collection of userspace profiles    | true    | no       |       
-| `collect_kernel_profile`  | `bool`                   | A flag to enable/disable collection of kernelspace profiles  | true    | no       |       
+| Name                      | Type                     | Description                                                                         | Default | Required |
+|---------------------------|--------------------------|-------------------------------------------------------------------------------------|---------|----------|
+| `targets`                 | `list(map(string))`      | List of targets to group profiles by container id                                   |         | yes      |
+| `forward_to`              | `list(ProfilesReceiver)` | List of receivers to send collected profiles to.                                    |         | yes      |   
+| `collect_interval`        | `duration`               | How frequently to collect profiles                                                  | `15s`   | no       |       
+| `sample_rate`             | `int`                    | How many times per second to collect profile samples                                | 97      | no       |     
+| `pid_cache_size`          | `int`                    | The size of the pid -> proc symbols table LRU cache                                 | 32      | no       |      
+| `build_id_cache_size`     | `int`                    | The size of the elf file build id -> symbols table LRU cache                        | 64      | no       |       
+| `same_file_cache_size`    | `int`                    | The size of the elf file -> symbols table LRU cache                                 | 8       | no       |       
+| `container_id_cache_size` | `int`                    | The size of the pid -> container ID table LRU cache                                 | 1024    | no       |       
+| `collect_user_profile`    | `bool`                   | A flag to enable/disable collection of userspace profiles                           | true    | no       |       
+| `collect_kernel_profile`  | `bool`                   | A flag to enable/disable collection of kernelspace profiles                         | true    | no       |       
+| `demangle`                | `string`                 | C++ demangle mode. Available options are: `none`, `simplified`, `templates`, `full` | `none`  | no       |
+
 
 ## Exported fields
 

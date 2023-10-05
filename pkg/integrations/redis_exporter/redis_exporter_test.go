@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/config"
+	"gopkg.in/yaml.v2"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
@@ -209,6 +210,17 @@ integrations:
     redis_password: secret_password
 `
 	config.CheckSecret(t, stringCfg, "secret_password")
+}
+
+func TestConfig_DefaultExportKeyValues(t *testing.T) {
+	stringCfg := `
+enabled: true
+redis_addr: localhost:6379`
+
+	var config Config
+	err := yaml.Unmarshal([]byte(stringCfg), &config)
+	require.NoError(t, err)
+	require.True(t, config.ExportKeyValues)
 }
 
 func matchMetricNames(names map[string]bool, p textparse.Parser) {

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net/url"
 
+	gh_config "github.com/githubexporter/github-exporter/config"
+	"github.com/githubexporter/github-exporter/exporter"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
-	gh_config "github.com/infinityworks/github-exporter/config"
-	"github.com/infinityworks/github-exporter/exporter"
 	config_util "github.com/prometheus/common/config"
 )
 

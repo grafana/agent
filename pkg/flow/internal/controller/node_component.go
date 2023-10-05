@@ -99,8 +99,6 @@ type ComponentNode struct {
 	managed component.Component // Inner managed component
 	args    component.Arguments // Evaluated arguments for the managed component
 
-	doingEval atomic.Bool
-
 	// NOTE(rfratto): health and exports have their own mutex because they may be
 	// set asynchronously while mut is still being held (i.e., when calling Evaluate
 	// and the managed component immediately creates new exports)
@@ -267,9 +265,6 @@ func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
-	cn.doingEval.Store(true)
-	defer cn.doingEval.Store(false)
-
 	argsPointer := cn.reg.CloneArguments()
 	if err := cn.eval.Evaluate(scope, argsPointer); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
@@ -390,16 +385,6 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 		cn.exports = e
 	}
 	cn.exportsMut.Unlock()
-
-	if cn.doingEval.Load() {
-		// Optimization edge case: some components supply exports when they're
-		// being evaluated.
-		//
-		// Since components that are being evaluated will always cause their
-		// dependencies to also be evaluated, there's no reason to call
-		// onExportsChange here.
-		return
-	}
 
 	if changed {
 		// Inform the controller that we have new exports.

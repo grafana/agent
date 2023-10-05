@@ -7,7 +7,6 @@
 (Error) unsupported native_histogram_bucket_limit for scrape_configs
 (Error) unsupported storage config was provided
 (Error) unsupported tracing config was provided
-(Error) unsupported remote_write sigv4 config was provided
 (Error) unsupported HTTP Client config proxy_from_environment was provided
 (Error) unsupported HTTP Client config max_version was provided
 (Error) unsupported remote_read config was provided
