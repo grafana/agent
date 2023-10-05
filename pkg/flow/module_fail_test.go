@@ -15,9 +15,9 @@ func TestIDRemovalIfFailedToLoad(t *testing.T) {
 	f := New(testOptions(t))
 
 	fullContent := "test.fail.module \"t1\" { content = \"\" }"
-	fl, err := ReadFile("test", []byte(fullContent))
+	fl, err := ParseSource("test", []byte(fullContent))
 	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
+	err = f.LoadSource(fl, nil)
 	require.NoError(t, err)
 	ctx := context.Background()
 	ctx, cnc := context.WithTimeout(ctx, 600*time.Second)
@@ -59,7 +59,7 @@ func init() {
 			if args.(TestFailArguments).Fail {
 				return nil, fmt.Errorf("module told to fail")
 			}
-			err = m.LoadFlowContent(nil, args.(TestFailArguments).Content)
+			err = m.LoadFlowSource(nil, args.(TestFailArguments).Content)
 			if err != nil {
 				return nil, err
 			}
@@ -94,7 +94,7 @@ func (t *testFailModule) Run(ctx context.Context) error {
 
 func (t *testFailModule) updateContent(content string) error {
 	t.content = content
-	err := t.mc.LoadFlowContent(nil, t.content)
+	err := t.mc.LoadFlowSource(nil, t.content)
 	return err
 }
 
