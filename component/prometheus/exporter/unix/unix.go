@@ -11,7 +11,6 @@ func init() {
 		Name:          "prometheus.exporter.unix",
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
-		Singleton:     true,
 		NeedsServices: exporter.RequiredServices(),
 		Build:         exporter.New(createExporter, "unix"),
 	})

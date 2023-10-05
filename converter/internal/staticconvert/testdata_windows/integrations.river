@@ -23,17 +23,7 @@ http {
 }
 
 prometheus.exporter.windows "integrations_windows_exporter" {
-	enabled_collectors = ["cpu", "cs", "logical_disk", "net", "os", "service", "system"]
-
-	dfsr {
-		sources_enabled = ["connection", "folder", "volume"]
-	}
-
 	exchange { }
-
-	mssql {
-		enabled_classes = ["accessmethods", "availreplica", "bufman", "databases", "dbreplica", "genstats", "locks", "memmgr", "sqlstats", "sqlerrors", "transactions", "waitstats"]
-	}
 
 	network {
 		exclude = ".+"

@@ -11,7 +11,6 @@ func init() {
 		Name:          "prometheus.exporter.windows",
 		Args:          Arguments{},
 		Exports:       exporter.Exports{},
-		Singleton:     false,
 		NeedsServices: exporter.RequiredServices(),
 		Build:         exporter.New(createExporter, "windows"),
 	})

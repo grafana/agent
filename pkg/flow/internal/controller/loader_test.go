@@ -177,19 +177,6 @@ func TestLoader(t *testing.T) {
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
 	})
-
-	t.Run("Handling of singleton component labels", func(t *testing.T) {
-		invalidFile := `
-			testcomponents.tick {
-			}
-			testcomponents.singleton "first" {
-			}
-		`
-		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
-		require.ErrorContains(t, diags[0], `Component "testcomponents.tick" must have a label`)
-		require.ErrorContains(t, diags[1], `Component "testcomponents.singleton" does not support labels`)
-	})
 }
 
 // TestScopeWithFailingComponent is used to ensure that the scope is filled out, even if the component
