@@ -206,9 +206,9 @@ Furthermore, we recommend that you review the following checklist:
   additional unsupported features are returned as errors during conversion.
 * Check if you are using any extra command line arguments with Prometheus that
   are not present in your configuration file. For example, `--web.listen-address`.
-* Metrics exposed by the Flow Mode usually match Prometheus metrics but
-  will use a different name. Make sure that you use the new metric names, for example,
-  in your alerts and dashboards queries.
+* Metamonitoring metrics exposed by the Flow Mode usually match Prometheus
+  metamonitoring metrics but will use a different name. Make sure that you use
+  the new metric names, for example, in your alerts and dashboards queries.
 * The logs produced by Grafana Agent will differ from those
   produced by Prometheus.
 * Grafana Agent exposes the [Grafana Agent Flow UI][].

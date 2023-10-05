@@ -191,7 +191,7 @@ values.
 
 `discovery.dockerswarm` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.dockerswarm` does not expose any component-specific debug metrics.
 

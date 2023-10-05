@@ -2003,8 +2003,8 @@ github.com/prometheus/procfs v0.7.3/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1
 github.com/prometheus/procfs v0.8.0/go.mod h1:z7EfXMXOkbkqb9IINtpCn86r/to3BnA0uaxHdg830/4=
 github.com/prometheus/procfs v0.11.1 h1:xRC8Iq1yyca5ypa9n1EZnWZkt7dwcoRPQwX/5gwaUuI=
 github.com/prometheus/procfs v0.11.1/go.mod h1:eesXgaPo1q7lBpVMoMy0ZOFTth9hBn4W/y0/p/ScXhY=
-github.com/prometheus/snmp_exporter v0.23.0 h1:v+NUGGSj2a8QaLC4+cWAlTNWoI0qEZ8cEuJmtpVhsew=
-github.com/prometheus/snmp_exporter v0.23.0/go.mod h1:vdODeAhHaSbDD2B4yngJgkWkAB393LuCGJUbK8AFfFU=
+github.com/prometheus/snmp_exporter v0.24.1 h1:AihTbJHurMo8bjtjJde8U+4gMEvpvYvT21Xbd4SzJgY=
+github.com/prometheus/snmp_exporter v0.24.1/go.mod h1:j6uIGkdR0DXvKn7HJtSkeDj//UY0sWmdd6XhvdBjln0=
 github.com/prometheus/statsd_exporter v0.22.7/go.mod h1:N/TevpjkIh9ccs6nuzY3jQn9dFqnUakOjnEuMPJJJnI=
 github.com/prometheus/statsd_exporter v0.22.8 h1:Qo2D9ZzaQG+id9i5NYNGmbf1aa/KxKbB9aKfMS+Yib0=
 github.com/prometheus/statsd_exporter v0.22.8/go.mod h1:/DzwbTEaFTE0Ojz5PqcSk6+PFHOPWGxdXVr6yC8eFOM=

@@ -108,7 +108,7 @@ unhealthy and the health includes the error from loading the module.
 
 `module.file` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `module.file` does not expose any component-specific debug metrics.
 

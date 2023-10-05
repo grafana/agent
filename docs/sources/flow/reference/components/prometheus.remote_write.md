@@ -254,7 +254,7 @@ values.
 `prometheus.remote_write` does not expose any component-specific debug
 information.
 
-### Debug metrics
+## Debug metrics
 
 * `agent_wal_storage_active_series` (gauge): Current number of active series
   being tracked by the WAL.
@@ -381,3 +381,8 @@ prometheus.remote_write "default" {
 `prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
 
 Any labels that start with `__` will be removed before sending to the endpoint.
+
+## Data retention
+
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT VERSION>" >}}
+

@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.37.0-rc.0 (2023-10-05)
+-----------------
+
 ### Breaking changes
 
 - Set `retry_on_http_429` to `true` by default in the `queue_config` block in static mode's `remote_write`. (@wildum)
@@ -154,6 +157,9 @@ Main (unreleased)
 
 - Update Prometheus dependency to v2.46.0. (@tpaschalis)
 
+- The `client_secret` config argument in the `otelcol.auth.oauth2` component is 
+  now of type `secret` instead of type `string`. (@ptodev)
+
 ### Bugfixes
 
 - Fixed `otelcol.exporter.prometheus` label names for the `otel_scope_info`
@@ -190,7 +196,7 @@ Main (unreleased)
 
 - Documentation updated to link discovery.http and prometheus.scrape advanced configs (@proffalken)
 
-- Bump SNMP exporter version to v0.23 (@marctc)
+- Bump SNMP exporter version to v0.24.1 (@marctc)
 
 - Switch to `IBM/sarama` module. (@hainenber)
 

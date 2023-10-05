@@ -193,7 +193,7 @@ start.
 
 `faro.receiver` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `faro.receiver` exposes the following metrics for monitoring the component:
 

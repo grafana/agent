@@ -113,7 +113,7 @@ values.
 
 `discovery.linode` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.linode` does not expose any component-specific debug metrics.
 
