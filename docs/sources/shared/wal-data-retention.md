@@ -9,12 +9,10 @@ description: Shared content, information about data retention in the WAL
 headless: true
 ---
 
-The `prometheus.remote_write` component reuses the Prometheus Write-Ahead Log
-(WAL) implementation for resiliency against network outages and to avoid the
-prohibitively expensive in-memory buffering of all metric samples. The
-component buffers the received metrics on-disk, in a WAL per configured
-endpoint. The queue shards can use the WAL after the network outage is resolved
-and flush the buffered metrics to the endpoints.
+The `prometheus.remote_write` component uses a Write Ahead Log (WAL) to prevent
+data loss during network outages. The component buffers the received metrics in
+a WAL for each configured endpoint. The queue shards can use the WAL after the
+network outage is resolved and flush the buffered metrics to the endpoints.
 
 The WAL records metrics in 128 MB files called segments. To avoid having a WAL
 that grows on-disk indefinitely, the component _truncates_ its segments on a
@@ -22,10 +20,11 @@ set interval.
 
 On each truncation, the WAL deletes references to series that are no longer
 present and also _checkpoints_ roughly the oldest two thirds of the segments
-written to it. A checkpoint means that the WAL only keeps track of the unique
-identifier for each existing metrics series, and deletes the actual samples
-associated with it. If that data has not yet been pushed to remote_write, it is
-lost.
+(rounded down to the nearest integer) written to it since the last truncation
+period. A checkpoint means that the WAL only keeps track of the unique
+identifier for each existing metrics series, and can no longer use the samples
+for remote writing. If that data has not yet been pushed to the remote
+endpoint, it is lost.
 
 This behavior dictates the data retention for the `prometheus.remote_write`
 component. It also means that it is impossible to directly correlate data
@@ -59,11 +58,12 @@ If the remote write outage is longer than the `max_keepalive_time` parameter,
 then the WAL is truncated, and the oldest data is lost.
 
 ### In cases of intermittent `remote_write` outages
-If the remote write endpoint is intermittently reachable, the lowest
+If the remote write endpoint is intermittently reachable, the most recent
 successfully sent timestamp is updated whenever the connection is successful.
-This updates the series' comparison with `min_keepalive_time` and triggers a
-truncation on the `truncate_frequency` interval which checkpoints
-approximately two thirds of the data written since the previous truncation.
+A successful connection updates the series' comparison with
+`min_keepalive_time` and triggers a truncation on the next `truncate_frequency`
+interval which checkpoints two thirds of the segments (rounded down to the
+nearest integer) written since the previous truncation.
 
 ### In cases of falling behind
 If the queue shards cannot flush data quickly enough to keep
