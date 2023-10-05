@@ -69,10 +69,10 @@ Hierarchy | Block | Description | Required
 output | [output][] | Configures where to send received telemetry data. | yes
 extract | [extract][] | Rules for extracting data from Kubernetes. | no
 extract > annotation | [annotation][] | Creating resource attributes from Kubernetes annotations. | no
-extract > label | [extract_label][] | Creating resource attributes from Kubernetes labels. | no
+extract > label | [label][extract_label] | Creating resource attributes from Kubernetes labels. | no
 filter | [filter][] | Filters the data loaded from Kubernetes. | no
 filter > field | [field][] | Filter pods by generic Kubernetes fields. | no
-filter > label | [filter_label][] | Filter pods by Kubernetes labels. | no
+filter > label | [label][filter_label] | Filter pods by Kubernetes labels. | no
 pod_association | [pod_association][] | Rules to associate pod metadata with telemetry signals. | no
 pod_association > source | [source][] | Source information to identify a pod. | no
 exclude | [exclude][] | Exclude pods from being processed. | no
@@ -94,7 +94,7 @@ refers to an `annotation` block defined inside an `extract` block.
 [exclude]: #exclude-block
 [pod]: #pod-block
 
-### extract block
+### extract
 
 The `extract` block configures which metadata, annotations, and labels to extract from the pod.
 
@@ -138,19 +138,19 @@ By default, if `metadata` is not specified, the following fields are extracted a
 * `container.image.name` (requires one of the following additional attributes to be set: `container.id` or `k8s.container.name`)
 * `container.image.tag` (requires one of the following additional attributes to be set: `container.id` or `k8s.container.name`)
 
-### annotation block
+### extract > annotation
 
 The `annotation` block configures how to extract Kubernetes annotations.
 
 {{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### label block {#extract-label-block}
+### extract > label {#extract-label-block}
 
 The `label` block configures how to extract Kubernetes labels.
 
 {{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### filter block
+### filter
 
 The `filter` block configures which nodes to get data from and which fields and labels to fetch.
 
@@ -163,19 +163,19 @@ Name | Type     | Description                                                   
 
 If `node` is specified, then any pods not running on the specified node will be ignored by `otelcol.processor.k8sattributes`.
 
-### field block
+### filter > field
 
 The `field` block allows you to filter pods by generic Kubernetes fields.
 
 {{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### label block {#filter-label-block}
+### filter > label {#filter-label-block}
 
 The `label` block allows you to filter pods by generic Kubernetes labels.
 
 {{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### pod_association block
+### pod_association
 
 The `pod_association` block configures rules on how to associate logs/traces/metrics to pods.
 
@@ -204,7 +204,7 @@ pod_association {
 }
 ```
 
-### source block
+#### pod_association > source
 
 The `source` block configures a pod association rule. This is used by the `k8sattributes` processor to determine the
 pod associated with a telemetry signal.
@@ -220,11 +220,14 @@ Name | Type     | Description                                                   
 `name` | `string` | Name represents extracted key name. For example, `ip`, `pod_uid`, `k8s.pod.ip`           |  | no
 
 
-### exclude block
+### exclude
 
 The `exclude` block configures which pods to exclude from the processor.
 
-### pod block
+The `exclude` block does not support any arguments, and is configured
+fully through child blocks.
+
+### exclude > pod
 
 The `pod` block configures a pod to be excluded from the processor.
 
@@ -234,7 +237,7 @@ Name | Type     | Description         | Default | Required
 ---- |----------|---------------------| ------- | --------
 `name` | `string` | The name of the pod |  | yes
 
-### output block
+### output
 
 {{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 

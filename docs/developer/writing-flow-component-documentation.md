@@ -317,9 +317,14 @@ The Block section is a sub-section of Blocks describing an individual block
 supported by a component. There is one Block section per recognized block type
 within the component.
 
-The Block section starts with an `h3` header with the name of the block,
-followed by the word "block." Do not surround the name of the block in
-backticks in the header.
+The Block section starts with an `h3` header with the names of the block and its parents, 
+separated by ` > `. Do not surround the names of the blocks in backticks in the header.
+
+For example, if the section is for a block called `annotation`, which is contained inside 
+a block called `extract`, which is contained inside a block called `filter`, the header should be:
+```
+### filter > extract > annotation
+```
 
 Block sections are similar to Arguments section, where it is composed of:
 
