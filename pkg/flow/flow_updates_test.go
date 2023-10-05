@@ -77,11 +77,16 @@ func TestController_Updates(t *testing.T) {
 func TestController_Updates_WithQueueFull(t *testing.T) {
 	defer verifyNoGoroutineLeaks(t)
 
-	// Simple pipeline with a minimal lag
+	// Simple pipeline with a minimal lag with one node having 3 direct dependencies and one misbehaving node.
 	config := `
 	testcomponents.count "inc" {
 		frequency = "10ms"
 		max = 10
+	}
+
+	testcomponents.passthrough "misbehaving_slow" {
+		input = testcomponents.count.inc.count
+		lag = "100ms"
 	}
 
 	testcomponents.passthrough "inc_dep_1" {
