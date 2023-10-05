@@ -199,9 +199,9 @@ Furthermore, we recommend that you review the following checklist:
   Refer to the [loki.source.file][] documentation for more details. Check if you have any existing
   setup, for example, a Kubernetes Persistent Volume, that you must update to use the new
   positions file path.
-* Metrics exposed by the Flow Mode usually match Promtail metrics but
-  will use a different name. Make sure that you use the new metric names, for example,
-  in your alerts and dashboards queries.
+* Metamonitoring metrics exposed by the Flow Mode usually match Promtail
+  metamonitoring metrics but will use a different name. Make sure that you
+  use the new metric names, for example, in your alerts and dashboards queries.
 * Note that the logs produced by the Agent will differ from those
   produced by Promtail.
 * Note that the Agent exposes the [Grafana Agent Flow UI][], which differs
