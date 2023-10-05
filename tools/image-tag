@@ -9,13 +9,13 @@ fi
 
 set -o nounset
 
-WIP=$(git diff --quiet || echo '-WIP')
-BRANCH=$(git rev-parse --abbrev-ref HEAD | sed 's#/#-#g')
+VERSION=$(cat VERSION)
 
-# When 7 chars are not enough to be unique, git automatically uses more.
-# We are forcing to 7 here, as we are doing for grafana/grafana as well.
-SHA=$(git rev-parse --short=7 HEAD | head -c7)
-
-# If this is a tag, use it, otherwise use <branch>-<hash>
-TAG=$(git describe --exact-match 2> /dev/null || echo "${BRANCH}-${SHA}")
-echo ${TAG}${WIP}
+if [[ -z $(git status -s) ]]; then
+  # There are no changes; report version as VERSION-devel+SHA.
+  SHA=$(git rev-parse --short HEAD)
+  echo ${VERSION}-devel+${SHA}
+else
+  # Git is dirty; tag as VERSION-devel+wip.
+  echo ${VERSION}-devel+wip
+fi

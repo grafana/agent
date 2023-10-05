@@ -24,3 +24,7 @@ Patch Releases for that major pr minor version of the agent.
 
     > **NOTE**: Don't create any other branches that are prefixed with `release` when creating PRs or
     those branches will collide with our automated release build publish rules.
+
+3. Open a PR against the `main` branch to update the VERSION file to the _next_ release.
+
+    For example, if working on release-v0.31, the VERSION file in main should be updated to v0.32.0.
