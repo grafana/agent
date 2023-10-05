@@ -133,7 +133,7 @@ Instances of `remote.kubernetes.secret` report as healthy if the most recent att
 
 `remote.kubernetes.secret` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `remote.kubernetes.secret` does not expose any component-specific debug metrics.
 
