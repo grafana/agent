@@ -129,7 +129,7 @@ values.
 
 `discovery.consul` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.consul` does not expose any component-specific debug metrics.
 

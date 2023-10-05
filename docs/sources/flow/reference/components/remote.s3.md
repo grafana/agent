@@ -87,7 +87,7 @@ the watched file was successful.
 
 `remote.s3` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `remote.s3` does not expose any component-specific debug metrics.
 
