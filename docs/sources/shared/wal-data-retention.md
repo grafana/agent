@@ -40,8 +40,8 @@ The `truncate_frequency` or `wal_truncate_frequency` parameter configures the
 interval at which truncations happen. A lower value leads to reduced memory
 usage, but also provides less resiliency to long outages.
 
-When a WAL clean-up starts, the lowest successfully sent timestamp is used to
-determine how much data is safe to remove from the WAL.
+When a WAL clean-up starts, the most recently successfully sent timestamp is
+used to determine how much data is safe to remove from the WAL.
 The `min_keepalive_time` or `min_wal_time` controls the minimum age of samples
 considered for removal. No samples more recent than `min_keepalive_time` are
 removed. The `max_keepalive_time` or `max_wal_time` controls the maximum age of
@@ -49,8 +49,8 @@ samples that can be kept in the WAL. Samples older than
 `max_keepalive_time` are forcibly removed.
 
 ### In cases of `remote_write` outages
-When the remote write endpoint is unreachable over a period of time, the lowest
-successfully sent timestamp is not updated. The
+When the remote write endpoint is unreachable over a period of time, the most
+recent successfully sent timestamp is not updated. The
 `min_keepalive_time` and `max_keepalive_time` arguments control the age range
 of data kept in the WAL.
 
