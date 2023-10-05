@@ -193,7 +193,7 @@ Main (unreleased)
 
 - Documentation updated to link discovery.http and prometheus.scrape advanced configs (@proffalken)
 
-- Bump SNMP exporter version to v0.23 (@marctc)
+- Bump SNMP exporter version to v0.24.1 (@marctc)
 
 - Switch to `IBM/sarama` module. (@hainenber)
 
