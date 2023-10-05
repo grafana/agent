@@ -61,7 +61,7 @@ values.
 
 `discovery.serverset` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.serverset` does not expose any component-specific debug metrics.
 

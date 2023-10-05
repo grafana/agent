@@ -132,7 +132,7 @@ and most recent load of the module was successful.
 * The full SHA of the currently checked out revision.
 * The most recent error when trying to fetch the repository, if any.
 
-### Debug metrics
+## Debug metrics
 
 `module.git` does not expose any component-specific debug metrics.
 
