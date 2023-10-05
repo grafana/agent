@@ -42,6 +42,7 @@ type remoteConfigProvider interface {
 	GetCachedRemoteConfig() ([]byte, error)
 	CacheRemoteConfig(remoteConfigBytes []byte) error
 	FetchRemoteConfig() ([]byte, error)
+	GetPollingInterval() time.Duration
 }
 
 type remoteConfigHTTPProvider struct {
@@ -192,6 +193,10 @@ func (r remoteConfigHTTPProvider) FetchRemoteConfig() ([]byte, error) {
 	return bb, nil
 }
 
+func (r remoteConfigHTTPProvider) GetPollingInterval() time.Duration {
+	return r.InitialConfig.PollingInterval
+}
+
 type labelMap map[string]string
 
 type RemoteConfiguration struct {
@@ -233,9 +238,20 @@ func getRemoteConfig(expandEnvVars bool, configProvider remoteConfigProvider, lo
 	if err != nil {
 		var retryAfterErr retryAfterError
 		if errors.As(err, &retryAfterErr) && retry {
-			level.Error(log).Log("msg", "received retry-after from API, sleeping and falling back to cache", "retry-after", retryAfterErr.retryAfter)
-			time.Sleep(retryAfterErr.retryAfter)
-			return getRemoteConfig(expandEnvVars, configProvider, log, fs, false)
+			// In the case that the server is telling us to retry after a time greater than our polling interval,
+			// the agent should sleep for the duration of the retry-after header.
+			//
+			// If the duration of the retry-after is lower than the polling interval, the agent will simply
+			// fall back to the cache and continue polling at the polling interval, effectively skipping
+			// this poll.
+			if retryAfterErr.retryAfter > configProvider.GetPollingInterval() {
+				level.Info(log).Log("msg", "received retry-after from API, sleeping and falling back to cache", "retry-after", retryAfterErr.retryAfter)
+				time.Sleep(retryAfterErr.retryAfter)
+			} else {
+				level.Info(log).Log("msg", "received retry-after from API, falling back to cache", "retry-after", retryAfterErr.retryAfter)
+			}
+			// Return the cached config, as this is the last known good config and a config must be returned here.
+			return getCachedRemoteConfig(expandEnvVars, configProvider, fs, log)
 		}
 		level.Error(log).Log("msg", "could not fetch from API, falling back to cache", "err", err)
 		return getCachedRemoteConfig(expandEnvVars, configProvider, fs, log)
