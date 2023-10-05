@@ -586,7 +586,8 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 // workerPool. It should be called whenever components update their exports.
 // It is beneficial to call EvaluateDependencies with a batch of components, as it will enqueue the entire batch before
 // the worker pool starts to evaluate them, resulting in smaller number of total evaluations when
-// node updates are frequent.
+// node updates are frequent. If the worker pool's queue is full, EvaluateDependencies will retry with a backoff until
+// it succeeds or until the ctx is cancelled.
 func (l *Loader) EvaluateDependencies(ctx context.Context, updatedNodes []*ComponentNode) {
 	if len(updatedNodes) == 0 {
 		return
