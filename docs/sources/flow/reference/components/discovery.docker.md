@@ -145,7 +145,7 @@ values.
 
 `discovery.docker` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.docker` does not expose any component-specific debug metrics.
 

@@ -107,7 +107,7 @@ values.
 
 `discovery.azure` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.azure` does not expose any component-specific debug metrics.
 
