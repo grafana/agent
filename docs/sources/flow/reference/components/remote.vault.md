@@ -300,7 +300,7 @@ secret around:
 * Whether the token is renewable.
 * Warnings from Vault from when the token was retrieved.
 
-### Debug metrics
+## Debug metrics
 
 `remote.vault` exposes the following metrics:
 

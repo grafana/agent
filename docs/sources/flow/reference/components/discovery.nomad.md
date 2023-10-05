@@ -114,7 +114,7 @@ values.
 
 `discovery.nomad` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.nomad` does not expose any component-specific debug metrics.
 

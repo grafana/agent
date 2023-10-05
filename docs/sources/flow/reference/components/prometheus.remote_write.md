@@ -254,7 +254,7 @@ values.
 `prometheus.remote_write` does not expose any component-specific debug
 information.
 
-### Debug metrics
+## Debug metrics
 
 * `agent_wal_storage_active_series` (gauge): Current number of active series
   being tracked by the WAL.
