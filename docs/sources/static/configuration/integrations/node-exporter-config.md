@@ -70,7 +70,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:{{< param "AGENT_RELEASE" >}}
+  - image: grafana/agent:v0.37.0-rc.0
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml

@@ -10,7 +10,7 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-v0.37.0-rc.0 (2023-10-05)
+v0.37.0-rc.1 (2023-10-06)
 -----------------
 
 ### Breaking changes
@@ -37,35 +37,34 @@ v0.37.0-rc.0 (2023-10-05)
 - New Grafana Agent Flow components:
 
   - `discovery.consulagent` discovers scrape targets from Consul Agent. (@wildum)
+  - `discovery.dockerswarm` discovers scrape targets from Docker Swarm. (@wildum)
+  - `discovery.ionos` discovers scrape targets from the IONOS Cloud API. (@wildum)
   - `discovery.kuma` discovers scrape targets from the Kuma control plane. (@tpaschalis)
   - `discovery.linode` discovers scrape targets from the Linode API. (@captncraig)
   - `discovery.marathon` discovers scrape targets from Marathon servers. (@wildum)
-  - `discovery.ionos` discovers scrape targets from the IONOS Cloud API. (@wildum)
-  - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
   - `discovery.nerve` discovers scrape targets from AirBnB's Nerve. (@tpaschalis)
-  - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
   - `discovery.scaleway` discovers scrape targets from Scaleway virtual
     instances and bare-metal machines. (@rfratto)
+  - `discovery.serverset` discovers Serversets stored in Zookeeper. (@thampiotr)
+  - `discovery.triton` discovers scrape targets from Triton Container Monitor. (@erikbaranowski)
   - `faro.receiver` accepts Grafana Faro-formatted telemetry data over the
     network and forwards it to other components. (@megumish, @rfratto)
-  - `prometheus.exporter.azure` collects metrics from Azure. (@wildum)
-  - `discovery.dockerswarm` discovers scrape targets from Docker Swarm. (@wildum)
   - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
-  flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
+    flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
   - `otelcol.connector.spanlogs` creates logs from spans. It is the flow mode equivalent
-  to static mode's `automatic_logging` processor. (@ptodev)
+    to static mode's `automatic_logging` processor. (@ptodev)
   - `otelcol.processor.k8sattributes` adds Kubernetes metadata as resource attributes
-     to spans, logs, and metrics. (@acr92)
+    to spans, logs, and metrics. (@acr92)
   - `otelcol.processor.probabilistic_sampler` samples logs and traces based on configuration options. (@mar4uk)
   - `otelcol.processor.transform` transforms OTLP telemetry data using the
     OpenTelemetry Transformation Language (OTTL). It is most commonly used
     for transformations on attributes.
-  - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
-  - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
   - `prometheus.exporter.agent` exposes the agent's internal metrics. (@hainenber)
   - `prometheus.exporter.azure` collects metrics from Azure. (@wildum)
   - `prometheus.exporter.cadvisor` exposes cAdvisor metrics. (@tpaschalis)
   - `prometheus.exporter.vsphere` exposes vmware vsphere metrics. (@marctc)
+  - `remote.kubernetes.configmap` loads a configmap's data for use in other components (@captncraig)
+  - `remote.kubernetes.secret` loads a secret's data for use in other components (@captncraig)
 
 - Flow: allow the HTTP server to be configured with TLS in the config file
   using the new `http` config block. (@rfratto)
@@ -176,6 +175,9 @@ v0.37.0-rc.0 (2023-10-05)
 - Fixed a bug where the BackOffLimit for the kubernetes tailer was always set to zero. (@anderssonw)
 
 - Fixed a bug where Flow agent fails to load `comment` statement in `argument` block. (@hainenber)
+
+- Fix initialization of the RAPL collector for the node_exporter integration
+  and the prometheus.exporter.unix component. (@marctc)
 
 ### Other changes
 
