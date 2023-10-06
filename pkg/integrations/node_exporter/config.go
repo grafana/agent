@@ -504,6 +504,10 @@ func (c *Config) mapConfigToNodeConfig() *collector.NodeCollectorConfig {
 		OldDeviceExclude: &blankString,
 	}
 
+	cfg.Rapl = collector.RaplConfig{
+		ZoneLabel: &blankBool,
+	}
+
 	cfg.Systemd = collector.SystemdConfig{
 		UnitInclude:            &c.SystemdUnitInclude,
 		UnitIncludeSet:         true,
