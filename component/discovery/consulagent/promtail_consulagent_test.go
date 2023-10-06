@@ -33,8 +33,6 @@ import (
 
 //nolint:interfacer // this follows the pattern in prometheus service discovery
 func TestMain(m *testing.M) {
-	m.Run()
-	// Verify no leaks after tests run.
 	goleak.VerifyTestMain(m, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 }
 
