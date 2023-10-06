@@ -73,13 +73,6 @@ The `value` attribute sets the value of the header directly.
 Alternatively, `from_context` can be used to dynamically retrieve the header
 value from request metadata.
 
-> **NOTE**: It is not possible to use `from_context` to get the header value if
-> [the `otelcol.processor.batch` component][otelcol.processor.batch] is used to
-> batch before data is sent to the component referencing
-> `otelcol.auth.headers`.
-
-[otelcol.processor.batch]: {{< relref "./otelcol.processor.batch.md" >}}
-
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
