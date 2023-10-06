@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
+
+
 v0.37.0-rc.0 (2023-10-05)
 -----------------
 
