@@ -4,3 +4,8 @@ description: 'Grafana Agent'
 type: application
 version: 0.25.0
 appVersion: 'v0.36.2'
+
+dependencies:
+  - name: crds
+    version: "0.0.0"
+    condition: crds.create
