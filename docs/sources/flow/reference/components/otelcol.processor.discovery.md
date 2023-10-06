@@ -40,7 +40,7 @@ If your use case is to add resource attributes which contain Kubernetes metadata
 consider using `otelcol.processor.k8sattributes` instead.
 
 ------
-The main use case for `otelcol.processor.discovery` is for customers who migrate to Agent Flow 
+The main use case for `otelcol.processor.discovery` is for users who migrate to Grafana Agent Flow mode
 from Static mode's `prom_sd_operation_type`/`prom_sd_pod_associations` [configuration options][Traces].
 
 [Prometheus data model]: https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels
