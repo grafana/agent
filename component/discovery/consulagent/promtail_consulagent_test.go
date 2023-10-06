@@ -33,6 +33,8 @@ import (
 
 //nolint:interfacer // this follows the pattern in prometheus service discovery
 func TestMain(m *testing.M) {
+	m.Run()
+	// Verify no leaks after tests run.
 	goleak.VerifyTestMain(m, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 }
 
@@ -367,14 +369,15 @@ func TestAllServices(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	ch := make(chan []*targetgroup.Group)
+	done := make(chan struct{})
 	go func() {
 		d.Run(ctx, ch)
-		close(ch)
+		done <- struct{}{}
 	}()
 	checkOneTarget(t, <-ch)
 	checkOneTarget(t, <-ch)
 	cancel()
-	<-ch
+	<-done
 }
 
 // targetgroup with no targets is emitted if no services were discovered.
