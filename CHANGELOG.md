@@ -48,7 +48,6 @@ v0.37.0-rc.0 (2023-10-05)
     instances and bare-metal machines. (@rfratto)
   - `faro.receiver` accepts Grafana Faro-formatted telemetry data over the
     network and forwards it to other components. (@megumish, @rfratto)
-  - `prometheus.exporter.azure` collects metrics from Azure. (@wildum)
   - `discovery.dockerswarm` discovers scrape targets from Docker Swarm. (@wildum)
   - `otelcol.connector.servicegraph` creates service graph metrics from spans. It is the
   flow mode equivalent to static mode's `service_graphs` processor. (@ptodev)
