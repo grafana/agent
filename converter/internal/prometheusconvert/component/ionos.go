@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -7,19 +7,20 @@ import (
 	"github.com/grafana/agent/component/discovery/ionos"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	prom_ionos "github.com/prometheus/prometheus/discovery/ionos"
 )
 
-func appendDiscoveryIonos(pb *prometheusBlocks, label string, sdConfig *prom_ionos.SDConfig) discovery.Exports {
+func appendDiscoveryIonos(pb *build.PrometheusBlocks, label string, sdConfig *prom_ionos.SDConfig) discovery.Exports {
 	discoveryIonosArgs := toDiscoveryIonos(sdConfig)
 	name := []string{"discovery", "ionos"}
 	block := common.NewBlockWithOverride(name, label, discoveryIonosArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.ionos." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.ionos." + label + ".targets")
 }
 
-func validateDiscoveryIonos(sdConfig *prom_ionos.SDConfig) diag.Diagnostics {
-	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+func ValidateDiscoveryIonos(sdConfig *prom_ionos.SDConfig) diag.Diagnostics {
+	return common.ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toDiscoveryIonos(sdConfig *prom_ionos.SDConfig) *ionos.Arguments {
@@ -31,6 +32,6 @@ func toDiscoveryIonos(sdConfig *prom_ionos.SDConfig) *ionos.Arguments {
 		DatacenterID:     sdConfig.DatacenterID,
 		RefreshInterval:  time.Duration(sdConfig.RefreshInterval),
 		Port:             sdConfig.Port,
-		HTTPClientConfig: *ToHttpClientConfig(&sdConfig.HTTPClientConfig),
+		HTTPClientConfig: *common.ToHttpClientConfig(&sdConfig.HTTPClientConfig),
 	}
 }

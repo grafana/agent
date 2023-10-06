@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"fmt"
@@ -8,13 +8,14 @@ import (
 	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/sigv4"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/storage/remote/azuread"
 )
 
-func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.GlobalConfig, remoteWriteConfigs []*prom_config.RemoteWriteConfig, label string) *remotewrite.Exports {
+func AppendPrometheusRemoteWrite(pb *build.PrometheusBlocks, globalConfig prom_config.GlobalConfig, remoteWriteConfigs []*prom_config.RemoteWriteConfig, label string) *remotewrite.Exports {
 	remoteWriteArgs := toRemotewriteArguments(globalConfig, remoteWriteConfigs)
 
 	remoteWriteLabel := label
@@ -32,7 +33,7 @@ func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.
 		}
 		summary := fmt.Sprintf("Converted %d remote_write[s] %q into...", len(remoteWriteConfigs), strings.Join(names, ","))
 		detail := fmt.Sprintf("	A prometheus.remote_write.%s component", remoteWriteLabel)
-		pb.prometheusRemoteWriteBlocks = append(pb.prometheusRemoteWriteBlocks, newPrometheusBlock(block, name, remoteWriteLabel, summary, detail))
+		pb.PrometheusRemoteWriteBlocks = append(pb.PrometheusRemoteWriteBlocks, build.NewPrometheusBlock(block, name, remoteWriteLabel, summary, detail))
 	}
 
 	return &remotewrite.Exports{
@@ -40,10 +41,10 @@ func appendPrometheusRemoteWrite(pb *prometheusBlocks, globalConfig prom_config.
 	}
 }
 
-func validateRemoteWriteConfig(remoteWriteConfig *prom_config.RemoteWriteConfig) diag.Diagnostics {
+func ValidateRemoteWriteConfig(remoteWriteConfig *prom_config.RemoteWriteConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.AddAll(ValidateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig))
+	diags.AddAll(common.ValidateHttpClientConfig(&remoteWriteConfig.HTTPClientConfig))
 	return diags
 }
 
@@ -71,7 +72,7 @@ func getEndpointOptions(remoteWriteConfigs []*prom_config.RemoteWriteConfig) []*
 			Headers:              remoteWriteConfig.Headers,
 			SendExemplars:        remoteWriteConfig.SendExemplars,
 			SendNativeHistograms: remoteWriteConfig.SendNativeHistograms,
-			HTTPClientConfig:     ToHttpClientConfig(&remoteWriteConfig.HTTPClientConfig),
+			HTTPClientConfig:     common.ToHttpClientConfig(&remoteWriteConfig.HTTPClientConfig),
 			QueueOptions:         toQueueOptions(&remoteWriteConfig.QueueConfig),
 			MetadataOptions:      toMetadataOptions(&remoteWriteConfig.MetadataConfig),
 			WriteRelabelConfigs:  ToFlowRelabelConfigs(remoteWriteConfig.WriteRelabelConfigs),

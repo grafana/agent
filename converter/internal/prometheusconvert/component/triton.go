@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -7,22 +7,23 @@ import (
 	"github.com/grafana/agent/component/discovery/triton"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 )
 
-func appendDiscoveryTriton(pb *prometheusBlocks, label string, sdConfig *prom_triton.SDConfig) discovery.Exports {
-	discoveryTritonArgs := ToDiscoveryTriton(sdConfig)
+func appendDiscoveryTriton(pb *build.PrometheusBlocks, label string, sdConfig *prom_triton.SDConfig) discovery.Exports {
+	discoveryTritonArgs := toDiscoveryTriton(sdConfig)
 	name := []string{"discovery", "triton"}
 	block := common.NewBlockWithOverride(name, label, discoveryTritonArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.triton." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.triton." + label + ".targets")
 }
 
-func validateDiscoveryTriton(sdConfig *prom_triton.SDConfig) diag.Diagnostics {
+func ValidateDiscoveryTriton(sdConfig *prom_triton.SDConfig) diag.Diagnostics {
 	return nil
 }
 
-func ToDiscoveryTriton(sdConfig *prom_triton.SDConfig) *triton.Arguments {
+func toDiscoveryTriton(sdConfig *prom_triton.SDConfig) *triton.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
@@ -36,6 +37,6 @@ func ToDiscoveryTriton(sdConfig *prom_triton.SDConfig) *triton.Arguments {
 		Port:            sdConfig.Port,
 		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
 		Version:         sdConfig.Version,
-		TLSConfig:       *ToTLSConfig(&sdConfig.TLSConfig),
+		TLSConfig:       *common.ToTLSConfig(&sdConfig.TLSConfig),
 	}
 }

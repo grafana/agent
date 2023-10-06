@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/process"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
 )
 
@@ -19,7 +18,7 @@ func (b *IntegrationsV1ConfigBuilder) appendProcessExporter(config *process_expo
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.process.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.process.%s.targets", compLabel))
 }
 
 func toProcessExporter(config *process_exporter.Config) *process.Arguments {

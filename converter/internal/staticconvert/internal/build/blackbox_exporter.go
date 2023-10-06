@@ -7,7 +7,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/blackbox"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	"github.com/grafana/river/rivertypes"
 )
@@ -21,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendBlackboxExporter(config *blackbox_ex
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.blackbox.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.blackbox.%s.targets", compLabel))
 }
 
 func toBlackboxExporter(config *blackbox_exporter.Config) *blackbox.Arguments {

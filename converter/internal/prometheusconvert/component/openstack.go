@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -7,19 +7,20 @@ import (
 	"github.com/grafana/agent/component/discovery/openstack"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	"github.com/grafana/river/rivertypes"
 	prom_openstack "github.com/prometheus/prometheus/discovery/openstack"
 )
 
-func appendDiscoveryOpenstack(pb *prometheusBlocks, label string, sdConfig *prom_openstack.SDConfig) discovery.Exports {
+func appendDiscoveryOpenstack(pb *build.PrometheusBlocks, label string, sdConfig *prom_openstack.SDConfig) discovery.Exports {
 	discoveryOpenstackArgs := toDiscoveryOpenstack(sdConfig)
 	name := []string{"discovery", "openstack"}
 	block := common.NewBlockWithOverride(name, label, discoveryOpenstackArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.openstack." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.openstack." + label + ".targets")
 }
 
-func validateDiscoveryOpenstack(sdConfig *prom_openstack.SDConfig) diag.Diagnostics {
+func ValidateDiscoveryOpenstack(sdConfig *prom_openstack.SDConfig) diag.Diagnostics {
 	return nil
 }
 
@@ -45,7 +46,7 @@ func toDiscoveryOpenstack(sdConfig *prom_openstack.SDConfig) *openstack.Argument
 		RefreshInterval:             time.Duration(sdConfig.RefreshInterval),
 		Port:                        sdConfig.Port,
 		AllTenants:                  sdConfig.AllTenants,
-		TLSConfig:                   *ToTLSConfig(&sdConfig.TLSConfig),
+		TLSConfig:                   *common.ToTLSConfig(&sdConfig.TLSConfig),
 		Availability:                sdConfig.Availability,
 	}
 }

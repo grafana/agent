@@ -8,7 +8,6 @@ import (
 	lokiwrite "github.com/grafana/agent/component/loki/write"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
 	"github.com/grafana/river/token/builder"
@@ -45,7 +44,7 @@ func toLokiWriteArguments(config *client.Config, diags *diag.Diagnostics) *lokiw
 				URL:               config.URL.String(),
 				BatchWait:         config.BatchWait,
 				BatchSize:         batchSize,
-				HTTPClientConfig:  prometheusconvert.ToHttpClientConfig(&config.Client),
+				HTTPClientConfig:  common.ToHttpClientConfig(&config.Client),
 				Headers:           config.Headers,
 				MinBackoff:        config.BackoffConfig.MinBackoff,
 				MaxBackoff:        config.BackoffConfig.MaxBackoff,
