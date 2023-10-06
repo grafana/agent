@@ -108,7 +108,7 @@ values.
 
 `discovery.eureka` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.eureka` does not expose any component-specific debug metrics.
 

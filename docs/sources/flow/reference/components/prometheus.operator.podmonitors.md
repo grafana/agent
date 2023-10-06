@@ -201,8 +201,9 @@ scrape job on the component's debug endpoint, including discovered labels, and t
 
 It also exposes some debug information for each PodMonitor it has discovered, including any errors found while reconciling the scrape configuration from the PodMonitor.
 
-### Debug metrics
+## Debug metrics
 
+`prometheus.operator.podmonitors` does not expose any component-specific debug metrics.
 
 ## Example
 

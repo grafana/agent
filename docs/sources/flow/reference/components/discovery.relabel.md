@@ -92,7 +92,7 @@ values.
 
 `discovery.relabel` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.relabel` does not expose any component-specific debug metrics.
 

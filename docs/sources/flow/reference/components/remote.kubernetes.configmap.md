@@ -121,7 +121,7 @@ Instances of `remote.kubernetes.configmap` report as healthy if the most recent 
 
 `remote.kubernetes.configmap` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `remote.kubernetes.configmap` does not expose any component-specific debug metrics.
 

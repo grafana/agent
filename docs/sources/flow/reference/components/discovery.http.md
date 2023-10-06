@@ -153,7 +153,7 @@ values.
 
 `discovery.http` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 * `prometheus_sd_http_failures_total` (counter): Total number of refresh failures.
 

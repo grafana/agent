@@ -59,7 +59,7 @@ values.
 
 `local.file_match` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `local.file_match` does not expose any component-specific debug metrics.
 

@@ -126,7 +126,7 @@ values.
 
 `discovery.kubelet` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.kubelet` does not expose any component-specific debug metrics.
 
