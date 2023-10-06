@@ -452,7 +452,7 @@ To collect metrics from a custom set of targets, complete the following steps:
 
         * To explicitly specify which HTTP path to collect metrics from, set
           the `__metrics_path__` key to the HTTP path to use. If the
-          `__metrics_path__` key is not provided, the protocol to use is
+          `__metrics_path__` key is not provided, the path to use is
           inherited by the settings of the `prometheus.scrape` component
           (default `"/metrics"`).
 
