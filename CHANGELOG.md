@@ -7,7 +7,7 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.37.0-rc.0 (2023-10-05)
+v0.37.0-rc.1 (2023-10-06)
 -----------------
 
 ### Breaking changes
@@ -173,6 +173,9 @@ v0.37.0-rc.0 (2023-10-05)
 - Fixed a bug where the BackOffLimit for the kubernetes tailer was always set to zero. (@anderssonw)
 
 - Fixed a bug where Flow agent fails to load `comment` statement in `argument` block. (@hainenber)
+
+- Fix initialization of the RAPL collector for the node_exporter integration
+  and the prometheus.exporter.unix component. (@marctc)
 
 ### Other changes
 
