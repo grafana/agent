@@ -2,14 +2,14 @@
 
 The Agent depends on various OpenTelemetry (Otel) modules such as these:
 ```
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.80.0
-github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension v0.80.0
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.80.0
-go.opentelemetry.io/collector v0.80.0
-go.opentelemetry.io/collector/component v0.80.0
-go.opentelemetry.io/otel v1.16.0
-go.opentelemetry.io/otel/metric v1.16.0
-go.opentelemetry.io/otel/sdk v1.16.0
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter
+github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor
+go.opentelemetry.io/collector
+go.opentelemetry.io/collector/component
+go.opentelemetry.io/otel
+go.opentelemetry.io/otel/metric
+go.opentelemetry.io/otel/sdk
 ```
 
 The dependencies mostly come from these repositories:
@@ -22,8 +22,9 @@ Unfortunately, updating Otel dependencies is not straightforward:
 
 * Some of the modules in `opentelemetry-collector` come from a [grafana/opentelemetry-collector](https://github.com/grafana/opentelemetry-collector) fork. 
   * This is mostly so that we can include metrics of Collector components with the metrics shown under the Agent's `/metrics` endpoint.
-* All Collector and Collector-Contrib dependencies are kept in sync on the same version.
-  * E.g. if we use `v0.80.0` of `go.opentelemetry.io/collector`, we also use `v0.80.0` of `spanmetricsprocessor`.
+* All Collector and Collector-Contrib dependencies should be updated at the same time, because they 
+  are kept in sync on the same version.
+  * E.g. if we use `v0.85.0` of `go.opentelemetry.io/collector`, we also use `v0.85.0` of `spanmetricsprocessor`.
   * This is in line with how the Collector itself imports dependencies.
   * It helps us avoid bugs.
   * It makes it easier to communicate to customers the version of Collector which we use in the Agent.
@@ -34,13 +35,14 @@ Unfortunately, updating Otel dependencies is not straightforward:
 
 ### Update the Grafana fork of Otel Collector
 
-1. Create a new release branch with a `-grafana` suffix under [grafana/opentelemetry-collector](https://github.com/grafana/opentelemetry-collector). For example, if porting branch `v0.81.0`, make a branch under the fork repo called `0.81-grafana`.
+1. Create a new release branch with a `-grafana` suffix under [grafana/opentelemetry-collector](https://github.com/grafana/opentelemetry-collector). For example, if porting branch `v0.86.0`, make a branch under the fork repo called `0.86-grafana`.
 2. Check which branch of the fork repo the Agent currently uses.
-3. Create a PR to cherry-pick the same changes to the new `-grafana` branch.
+3. See what commits were pushed onto that branch to customize it.
+4. Create a PR to cherry-pick the same commits to the new branch. See the [changes to the 0.85 branch](https://github.com/grafana/opentelemetry-collector/pull/8) for an example PR.
 
 ### Update the Agent's dependencies
 
-1. Make sure we use the same version of Collector and Collector-Contrib for all relevant modules. For example, if we use version `v0.81.0` of Collector, we should also use version `v0.81.0` for all Contrib modules.
+1. Make sure we use the same version of Collector and Collector-Contrib for all relevant modules. For example, if we use version `v0.86.0` of Collector, we should also use version `v0.86.0` for all Contrib modules.
 2. Update the `replace` directives in the go.mod file to point to the latest commit of the forked release branch. Use a command like this:
    ```
    go mod edit -replace=go.opentelemetry.io/collector=github.com/grafana/opentelemetry-collector@asdf123jkl
@@ -51,12 +53,12 @@ Unfortunately, updating Otel dependencies is not straightforward:
 ### Update otelcol Flow components
 
 1. Note which Otel components are in use by the Agent.
-   * Usually for every "otelcol" Flow component there is a corresponding Collector component.
+   * For every "otelcol" Flow component there is usually a corresponding Collector component.
+   * For example, the Otel component used by [otelcol.auth.sigv4](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.sigv4/) is [sigv4auth](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/sigv4authextension).
    * In some cases we don't use the corresponding Collector component:
      * For example, [otelcol.receiver.prometheus](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.prometheus/) and [otelcol.exporter.prometheus](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.prometheus/).
      * Those components usually have a note like this:
        > NOTE: otelcol.exporter.prometheus is a custom component unrelated to the prometheus exporter from OpenTelemetry Collector.
-    * For example, the Otel component used by [otelcol.auth.sigv4](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.sigv4/) is [sigv4auth](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/sigv4authextension).
 2. Make a list of the components which have changed since the previously used version.
    1. Go through the changelogs of both [Collector](https://github.com/open-telemetry/opentelemetry-collector/releases) and [Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases).
    2. If a component which is in use by the Agent has changed, note it down.
@@ -64,9 +66,36 @@ Unfortunately, updating Otel dependencies is not straightforward:
    1. Compare the old and new version of Otel's documentation.
    2. Compare the config.go file to see if new parameters were added.
 4. Update the Agent's code and documentation where needed.
-   * Pay particular attention to whether the component's stability has changed. 
-   Stability is labeled at the top of the Collector documentation. 
-   The stability label in Collector's docs should match the one in the Agent's docs.
+   * Pay attention to stability labels:
+      * Never lower the stability label in the Agent. E.g. if the stability 
+       of an Otel component is "alpha", there are cases where it might be 
+       stable in the Agent and that is ok. Stability labels in the Agent can 
+       be increased, but not decreased.
+      * If the stability level of an Otel component has increased, consult 
+      the rest of the team on whether the stability of the corresponding 
+      Agent component should also be increased.
+   * Update the [documentation](https://grafana.com/docs/agent/latest/static/configuration/traces-config/) 
+     for Static mode's Tracing subsystem:.
+   * Static mode's Tracing subsystem code should generally not updated to 
+     have new parameters which have been added to the Otel components recently.
+     If you do think it should be updated, check with the rest of the team on
+     whether it is really necessary.
+5. Some Agent components reuse OpenTelemetry code, but do not import it:
+   * `otelcol.extension.jaeger_remote_sampling`: a lot of this code has 
+     been copy-pasted from Otel and modified slightly to fit the Agent's needs.
+     This component needs to be updated by copy-pasting the new Otel code 
+     and modifying it again.
+6. Note that we don't port every single config option which OpenTelemetry Collector exposes.
+   For example, Collector's [oauth2client extension](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/extension/oauth2clientauthextension) supports `client_id_file` and `client_secret_file`
+   parameters. However, Agent's [otelcol.auth.oauth2](https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.oauth2/) does not support them because the idiomatic way of doing the same
+   in the Agent is to use the local.file component.
+7. When updating semantic conventions, check those the changelogs of those repositories for breaking changes:
+   * [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go/releases)
+   * [semantic-conventions](https://github.com/open-telemetry/semantic-conventions/releases)
+   * [opentelemetry-specification](https://github.com/open-telemetry/opentelemetry-specification/releases)
+
+You can refer to [PR #5290](https://github.com/grafana/agent/pull/5290)
+for an example on how to update the Agent.
 
 ## Testing
 
