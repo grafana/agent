@@ -10,6 +10,24 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- In the mysqld exporter integration, some metrics are removed and others are renamed. (@marctc)
+  - Removed metrics:
+    - "mysql_last_scrape_failed" (gauge)
+    - "mysql_exporter_scrapes_total" (counter)
+    - "mysql_exporter_scrape_errors_total" (counter)
+  - Metric names in the `info_schema.processlist` collector have been [changed](https://github.com/prometheus/mysqld_exporter/pull/603).
+  - Metric names in the `info_schema.replica_host` collector have been [changed](https://github.com/prometheus/mysqld_exporter/pull/496).
+  - Changes related to `replication_group_member_stats collector`:
+    - metric "transaction_in_queue" was Counter instead of Gauge
+    - renamed 3 metrics starting with `mysql_perf_schema_transaction_` to start with `mysql_perf_schema_transactions_` to be consistent with column names.
+    - exposing only server's own stats by matching `MEMBER_ID` with `@@server_uuid` resulting "member_id" label to be dropped.
+
+### Other changes
+
+- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
+
 v0.37.0-rc.1 (2023-10-06)
 -----------------
 
