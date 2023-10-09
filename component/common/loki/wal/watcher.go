@@ -158,6 +158,8 @@ func (w *Watcher) run() error {
 		// if the marker contains a valid segment number stored, and we correctly find the segment that follows that one,
 		// start tailing from there.
 		currentSegment = nextToSavedSegment
+	} else {
+		level.Debug(w.logger).Log("msg", fmt.Sprintf("failed to find segment for saved index %d", w.savedSegment), "err", err)
 	}
 
 	level.Debug(w.logger).Log("msg", "Tailing WAL", "currentSegment", currentSegment, "lastSegment", lastSegment)
@@ -272,7 +274,7 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 
 		// read from open segment routine
 		ok, err := w.readSegment(reader, segmentNum)
-		if debug && err != nil {
+		if debug {
 			level.Warn(w.logger).Log("msg", "Error reading segment inside read ticker or notification", "segment", segmentNum, "read", reader.Offset(), "err", err)
 		}
 
