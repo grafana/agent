@@ -272,11 +272,12 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 
 		// read from open segment routine
 		ok, err := w.readSegment(reader, segmentNum)
-		if debug {
-			level.Warn(w.logger).Log("msg", "Error reading segment inside readTicker", "segment", segmentNum, "read", reader.Offset(), "err", err)
+		if debug && err != nil {
+			level.Warn(w.logger).Log("msg", "Error reading segment inside read ticker or notification", "segment", segmentNum, "read", reader.Offset(), "err", err)
 		}
 
-		// Ignore all errors reading to end of segment whilst replaying the WAL.
+		// Ignore all errors reading to end of segment whilst replaying the WAL. If error, log a warning accordingly. If not,
+		// return with an ignorable error.
 		if !tail {
 			if err != nil && errors.Unwrap(err) != io.EOF {
 				level.Warn(w.logger).Log("msg", "Ignoring error reading to end of segment, may have dropped data", "segment", segmentNum, "err", err)
