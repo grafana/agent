@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- Fixed an issue where `loki.process` validation for stage `metric.counter` was 
+  allowing invalid combination of configuration options. (@thampiotr)
+
 v0.37.0-rc.0 (2023-10-05)
 -----------------
 
