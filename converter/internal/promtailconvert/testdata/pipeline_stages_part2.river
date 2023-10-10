@@ -79,6 +79,8 @@ loki.process "example" {
 		source  = "internet"
 		db_type = "mmdb"
 	}
+
+	stage.decolorize { }
 }
 
 loki.source.file "example" {
