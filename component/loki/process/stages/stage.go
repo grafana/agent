@@ -5,6 +5,7 @@ package stages
 // new code without being able to slowly review, examine and test them.
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -18,29 +19,34 @@ import (
 
 // TODO(@tpaschalis) Let's use this as the list of stages we need to port over.
 const (
-	StageTypeJSON               = "json"
-	StageTypeLogfmt             = "logfmt"
-	StageTypeRegex              = "regex"
-	StageTypeReplace            = "replace"
-	StageTypeMetric             = "metrics"
-	StageTypeLabel              = "labels"
-	StageTypeStructuredMetadata = "structured_metadata"
-	StageTypeLabelDrop          = "labeldrop"
-	StageTypeTimestamp          = "timestamp"
-	StageTypeOutput             = "output"
-	StageTypeDocker             = "docker"
-	StageTypeCRI                = "cri"
-	StageTypeMatch              = "match"
-	StageTypeTemplate           = "template"
-	StageTypePipeline           = "pipeline"
-	StageTypeTenant             = "tenant"
-	StageTypeDrop               = "drop"
-	StageTypeLimit              = "limit"
-	StageTypeMultiline          = "multiline"
-	StageTypePack               = "pack"
-	StageTypeLabelAllow         = "labelallow"
+	StageTypeCRI        = "cri"
+	StageTypeDecolorize = "decolorize"
+	StageTypeDocker     = "docker"
+	StageTypeDrop       = "drop"
+	//TODO(thampiotr): Add support for eventlogmessage stage
+	StageTypeEventLogMessage = "eventlogmessage"
+	StageTypeGeoIP           = "geoip"
+	StageTypeJSON            = "json"
+	StageTypeLabel           = "labels"
+	StageTypeLabelAllow      = "labelallow"
+	StageTypeLabelDrop       = "labeldrop"
+	StageTypeLimit           = "limit"
+	StageTypeLogfmt          = "logfmt"
+	StageTypeMatch           = "match"
+	StageTypeMetric          = "metrics"
+	StageTypeMultiline       = "multiline"
+	StageTypeOutput          = "output"
+	StageTypePack            = "pack"
+	StageTypePipeline        = "pipeline"
+	StageTypeRegex           = "regex"
+	StageTypeReplace         = "replace"
+	//TODO(thampiotr): Add support for sampling stage
+	StageTypeSampling           = "sampling"
 	StageTypeStaticLabels       = "static_labels"
-	StageTypeGeoIP              = "geoip"
+	StageTypeStructuredMetadata = "structured_metadata"
+	StageTypeTemplate           = "template"
+	StageTypeTenant             = "tenant"
+	StageTypeTimestamp          = "timestamp"
 )
 
 // Processor takes an existing set of labels, timestamp and log entry and returns either a possibly mutated
@@ -222,9 +228,13 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-
+	case cfg.DecolorizeConfig != nil:
+		s, err = newDecolorizeStage(*cfg.DecolorizeConfig)
+		if err != nil {
+			return nil, err
+		}
 	default:
-		panic("unreachable; should have decoded into one of the StageConfig fields")
+		panic(fmt.Sprintf("unreachable; should have decoded into one of the StageConfig fields: %+v", cfg))
 	}
 	return s, nil
 }

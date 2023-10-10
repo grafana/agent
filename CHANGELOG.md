@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Added a new `stage.decolorize` stage to `loki.process` component which 
+  allows to strip ANSI color codes from the log lines. (@thampiotr)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
@@ -19,7 +24,7 @@ Main (unreleased)
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
 
-v0.37.0-rc.1 (2023-10-06)
+v0.37.0 (2023-10-10)
 -----------------
 
 ### Breaking changes
