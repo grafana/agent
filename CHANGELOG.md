@@ -20,7 +20,7 @@ Main (unreleased)
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
   allowing invalid combination of configuration options. (@thampiotr)
 
-v0.37.0-rc.1 (2023-10-06)
+v0.37.0 (2023-10-10)
 -----------------
 
 ### Breaking changes
