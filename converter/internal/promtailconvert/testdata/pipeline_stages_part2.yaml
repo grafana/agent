@@ -53,6 +53,7 @@ scrape_configs:
           db: /usr/share/GeoIP/GeoLite2-City.mmdb
           source: internet
           db_type: mmdb
+      - decolorize: { }
     kubernetes_sd_configs:
       - role: pod
         kubeconfig_file: /home/toby/.kube/config

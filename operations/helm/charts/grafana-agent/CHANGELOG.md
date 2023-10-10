@@ -10,6 +10,9 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Make CRDs optional through the `crds.create` setting. (@bentonam, @rfratto)
 
 0.25.0 (2023-09-22)
 -------------------

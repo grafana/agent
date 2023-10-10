@@ -102,7 +102,7 @@ values.
 
 `discovery.ec2` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.ec2` does not expose any component-specific debug metrics.
 

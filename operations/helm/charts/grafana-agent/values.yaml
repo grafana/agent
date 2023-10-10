@@ -23,6 +23,10 @@ global:
 ##
 initContainers: []
 
+crds:
+  # -- Whether to install CRDs for monitoring.
+  create: true
+
 # Various agent settings.
 agent:
   # -- Mode to run Grafana Agent in. Can be "flow" or "static".
