@@ -71,6 +71,7 @@ func (c *clientWriteTo) AppendEntries(entries wal.RefEntries, segment int) error
 			c.toClient <- entry
 		}
 	} else {
+		// TODO(thepalbi): Add metric here
 		level.Debug(c.logger).Log("msg", "series for entry not found")
 	}
 	return nil

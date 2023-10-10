@@ -29,6 +29,9 @@ type batch struct {
 	createdAt time.Time
 
 	maxStreams int
+
+	// segmentCounter tracks the amount of entries for each segment present in this batch.
+	segmentCounter map[int]int
 }
 
 func newBatch(maxStreams int, entries ...loki.Entry) *batch {
@@ -71,6 +74,42 @@ func (b *batch) add(entry loki.Entry) error {
 	return nil
 }
 
+func (b *batch) countForSegment(segment int) {
+	if curr, ok := b.segmentCounter[segment]; ok {
+		b.segmentCounter[segment] = curr + 1
+		return
+	}
+	b.segmentCounter[segment] = 1
+}
+
+// add an entry to the batch
+func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry, segment int) error {
+	b.bytes += len(entry.Line)
+
+	// Append the entry to an already existing stream (if any)
+	labels := labelsMapToString(lbs, ReservedLabelTenantID)
+	if stream, ok := b.streams[labels]; ok {
+		stream.Entries = append(stream.Entries, entry)
+		b.countForSegment(segment)
+		return nil
+	}
+
+	streams := len(b.streams)
+	if b.maxStreams > 0 && streams >= b.maxStreams {
+		return fmt.Errorf(errMaxStreamsLimitExceeded, streams, b.maxStreams, labels)
+	}
+
+	// Add the entry as a new stream
+	b.streams[labels] = &logproto.Stream{
+		Labels:  labels,
+		Entries: []logproto.Entry{entry},
+	}
+	b.countForSegment(segment)
+
+	return nil
+}
+
+// labelsMapToString encodes an entry's label set as a string, ignoring the without label.
 func labelsMapToString(ls model.LabelSet, without model.LabelName) string {
 	var b strings.Builder
 	totalSize := 2
@@ -110,8 +149,8 @@ func (b *batch) sizeBytes() int {
 
 // sizeBytesAfter returns the size of the batch after the input entry
 // will be added to the batch itself
-func (b *batch) sizeBytesAfter(entry loki.Entry) int {
-	return b.bytes + len(entry.Line)
+func (b *batch) sizeBytesAfter(line string) int {
+	return b.bytes + len(line)
 }
 
 // age of the batch since its creation
