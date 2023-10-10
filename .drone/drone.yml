@@ -241,6 +241,22 @@ trigger:
 type: docker
 ---
 kind: pipeline
+name: Integration Tests
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - cd integration-tests/tests
+  - ./run-integration-tests.sh
+  image: grafana/agent-build-image:0.30.2
+  name: Run integration tests
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Check Linux container (grafana/agent)
 platform:
   arch: amd64
@@ -1476,8 +1492,3 @@ get:
   path: infra/data/ci/github/updater-app
 kind: secret
 name: updater_private_key
----
-kind: signature
-hmac: d9fd1e02c62a58f2f6ccd7c87108f53d0a701dd5d44e81366ff825edb9401ae6
-
-...
