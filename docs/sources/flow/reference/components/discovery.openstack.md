@@ -122,7 +122,7 @@ values.
 
 `discovery.openstack` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.openstack` does not expose any component-specific debug metrics.
 

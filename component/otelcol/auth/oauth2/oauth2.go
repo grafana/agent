@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/auth"
 	otel_service "github.com/grafana/agent/service/otel"
+	"github.com/grafana/river/rivertypes"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configopaque"
@@ -31,7 +32,7 @@ func init() {
 // Arguments configures the otelcol.auth.oauth2 component.
 type Arguments struct {
 	ClientID       string                     `river:"client_id,attr"`
-	ClientSecret   string                     `river:"client_secret,attr"`
+	ClientSecret   rivertypes.Secret          `river:"client_secret,attr"`
 	TokenURL       string                     `river:"token_url,attr"`
 	EndpointParams url.Values                 `river:"endpoint_params,attr,optional"`
 	Scopes         []string                   `river:"scopes,attr,optional"`

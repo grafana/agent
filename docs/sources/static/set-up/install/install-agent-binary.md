@@ -54,7 +54,7 @@ To download the Grafana Agent as a standalone binary, perform the following step
 [linux]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-linux"
 [linux]: "/docs/grafana-cloud/ -> ./install-agent-linux"
 [macos]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-macos"
-[macos]: "/docs/grafana-cloud/ -> ./install-agent-mac-os"
+[macos]: "/docs/grafana-cloud/ -> ./install-agent-macos"
 [windows]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-on-windows"
 [windows]: "/docs/grafana-cloud/ -> ./install-agent-on-windows"
 [start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent#standalone-binary"

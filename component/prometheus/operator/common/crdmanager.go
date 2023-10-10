@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/http"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -215,6 +216,17 @@ func (c *crdManager) DebugInfo() interface{} {
 	return info
 }
 
+func (c *crdManager) getScrapeConfig(ns, name string) []*config.ScrapeConfig {
+	prefix := fmt.Sprintf("%s/%s/%s", c.kind, ns, name)
+	matches := []*config.ScrapeConfig{}
+	for k, v := range c.scrapeConfigs {
+		if strings.HasPrefix(k, prefix) {
+			matches = append(matches, v)
+		}
+	}
+	return matches
+}
+
 // runInformers starts all the informers that are required to discover CRDs.
 func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) error {
 	scheme := runtime.NewScheme()
@@ -231,9 +243,11 @@ func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) 
 		return fmt.Errorf("building label selector: %w", err)
 	}
 	for _, ns := range c.args.Namespaces {
+		defaultNamespaces := map[string]cache.Config{}
+		defaultNamespaces[ns] = cache.Config{}
 		opts := cache.Options{
-			Scheme:     scheme,
-			Namespaces: []string{ns},
+			Scheme:            scheme,
+			DefaultNamespaces: defaultNamespaces,
 		}
 
 		if ls != labels.Nothing() {
@@ -356,6 +370,11 @@ func (c *crdManager) addDebugInfo(ns string, name string, err error) {
 	} else {
 		debug.ReconcileError = ""
 	}
+	if data, err := c.opts.GetServiceData(http.ServiceName); err == nil {
+		if hdata, ok := data.(http.Data); ok {
+			debug.ScrapeConfigsURL = fmt.Sprintf("%s%s/scrapeConfig/%s/%s", hdata.HTTPListenAddr, hdata.HTTPPathForComponent(c.opts.ID), ns, name)
+		}
+	}
 	prefix := fmt.Sprintf("%s/%s/%s", c.kind, ns, name)
 	c.debugInfo[prefix] = debug
 }
@@ -398,13 +417,13 @@ func (c *crdManager) onAddPodMonitor(obj interface{}) {
 }
 func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*promopv1.PodMonitor)
-	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	c.addPodMonitor(newObj.(*promopv1.PodMonitor))
 }
 
 func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	pm := obj.(*promopv1.PodMonitor)
-	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
 		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
 	}
@@ -448,13 +467,13 @@ func (c *crdManager) onAddServiceMonitor(obj interface{}) {
 }
 func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*promopv1.ServiceMonitor)
-	c.clearConfigs("serviceMonitor", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	c.addServiceMonitor(newObj.(*promopv1.ServiceMonitor))
 }
 
 func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
 	pm := obj.(*promopv1.ServiceMonitor)
-	c.clearConfigs("serviceMonitor", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
 		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
 	}
@@ -496,22 +515,22 @@ func (c *crdManager) onAddProbe(obj interface{}) {
 }
 func (c *crdManager) onUpdateProbe(oldObj, newObj interface{}) {
 	pm := oldObj.(*promopv1.Probe)
-	c.clearConfigs("probe", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	c.addProbe(newObj.(*promopv1.Probe))
 }
 
 func (c *crdManager) onDeleteProbe(obj interface{}) {
 	pm := obj.(*promopv1.Probe)
-	c.clearConfigs("probe", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
 		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
 	}
 }
 
-func (c *crdManager) clearConfigs(kind, ns, name string) {
+func (c *crdManager) clearConfigs(ns, name string) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	prefix := fmt.Sprintf("%s/%s/%s", kind, ns, name)
+	prefix := fmt.Sprintf("%s/%s/%s", c.kind, ns, name)
 	for k := range c.discoveryConfigs {
 		if strings.HasPrefix(k, prefix) {
 			delete(c.discoveryConfigs, k)

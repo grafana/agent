@@ -73,16 +73,29 @@ prometheus.scrape "integrations_snmp" {
 }
 
 prometheus.exporter.azure "integrations_azure_exporter" {
-	subscriptions          = ["subId"]
-	resource_type          = "Microsoft.Dashboard/grafana"
-	metrics                = ["HttpRequestCount"]
-	included_resource_tags = ["owner"]
+	subscriptions = ["subId"]
+	resource_type = "Microsoft.Dashboard/grafana"
+	metrics       = ["HttpRequestCount"]
 }
 
 prometheus.scrape "integrations_azure_exporter" {
 	targets    = prometheus.exporter.azure.integrations_azure_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/azure_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
+}
+
+prometheus.exporter.cadvisor "integrations_cadvisor" { }
+
+prometheus.scrape "integrations_cadvisor" {
+	targets    = prometheus.exporter.cadvisor.integrations_cadvisor.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/cadvisor"
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -358,10 +371,10 @@ prometheus.scrape "integrations_mysqld_exporter" {
 	}
 }
 
-prometheus.exporter.unix { }
+prometheus.exporter.unix "default" { }
 
 discovery.relabel "integrations_node_exporter" {
-	targets = prometheus.exporter.unix.targets
+	targets = prometheus.exporter.unix.default.targets
 
 	rule {
 		source_labels = ["__address__"]
@@ -468,7 +481,8 @@ prometheus.scrape "integrations_process_exporter" {
 }
 
 prometheus.exporter.redis "integrations_redis_exporter" {
-	redis_addr = "redis-2:6379"
+	redis_addr        = "redis-2:6379"
+	export_key_values = false
 }
 
 discovery.relabel "integrations_redis_exporter" {

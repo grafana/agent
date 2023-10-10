@@ -85,7 +85,7 @@ values.
 
 `discovery.consulagent` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 - `discovery_consulagent_rpc_failures_total` (Counter): The number of Consul Agent RPC call failures.
 - `discovery_consulagent_rpc_duration_seconds` (SummaryVec): The duration of a Consul Agent RPC call in seconds.

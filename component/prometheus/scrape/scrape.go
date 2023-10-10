@@ -53,6 +53,8 @@ type Arguments struct {
 	HonorTimestamps bool `river:"honor_timestamps,attr,optional"`
 	// A set of query parameters with which the target is scraped.
 	Params url.Values `river:"params,attr,optional"`
+	// Whether to scrape a classic histogram that is also exposed as a native histogram.
+	ScrapeClassicHistograms bool `river:"scrape_classic_histograms,attr,optional"`
 	// How frequently to scrape the targets of this scrape config.
 	ScrapeInterval time.Duration `river:"scrape_interval,attr,optional"`
 	// The timeout for scraping targets of this config.
@@ -83,7 +85,8 @@ type Arguments struct {
 	HTTPClientConfig component_config.HTTPClientConfig `river:",squash"`
 
 	// Scrape Options
-	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
+	ExtraMetrics              bool `river:"extra_metrics,attr,optional"`
+	EnableProtobufNegotiation bool `river:"enable_protobuf_negotiation,attr,optional"`
 
 	Clustering Clustering `river:"clustering,block,optional"`
 }
@@ -155,6 +158,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		HTTPClientOptions: []config_util.HTTPClientOption{
 			config_util.WithDialContextFunc(httpData.DialFunc),
 		},
+		EnableProtobufNegotiation: args.EnableProtobufNegotiation,
 	}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 
@@ -284,6 +288,7 @@ func getPromScrapeConfigs(jobName string, c Arguments) *config.ScrapeConfig {
 	dec.HonorLabels = c.HonorLabels
 	dec.HonorTimestamps = c.HonorTimestamps
 	dec.Params = c.Params
+	dec.ScrapeClassicHistograms = c.ScrapeClassicHistograms
 	dec.ScrapeInterval = model.Duration(c.ScrapeInterval)
 	dec.ScrapeTimeout = model.Duration(c.ScrapeTimeout)
 	dec.MetricsPath = c.MetricsPath

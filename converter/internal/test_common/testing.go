@@ -45,7 +45,7 @@ func TestDirectory(t *testing.T, folderPath string, sourceSuffix string, loadFlo
 		}
 
 		if strings.HasSuffix(path, sourceSuffix) {
-			tc := getTestCaseName(path, sourceSuffix)
+			tc := filepath.Base(path)
 			t.Run(tc, func(t *testing.T) {
 				riverFile := strings.TrimSuffix(path, sourceSuffix) + flowSuffix
 				diagsFile := strings.TrimSuffix(path, sourceSuffix) + diagsSuffix
@@ -76,12 +76,6 @@ func getSourceContents(t *testing.T, path string) []byte {
 	sourceBytes, err := os.ReadFile(path)
 	require.NoError(t, err)
 	return sourceBytes
-}
-
-// getTestCaseName gets the test case name based on the path and source suffix.
-func getTestCaseName(path string, sourceSuffix string) string {
-	caseName := filepath.Base(path)
-	return strings.TrimSuffix(caseName, sourceSuffix)
 }
 
 // getExpectedDiags will retrieve any expected diags for the test.

@@ -102,7 +102,7 @@ unhealthy and the health includes the error from loading the module.
 
 `module.string` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `module.string` does not expose any component-specific debug metrics.
 
