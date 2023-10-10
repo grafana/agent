@@ -10,6 +10,11 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Breaking changes
+
+- The `initContainers` setting has been moved to `controller.initContainers`
+  for consistency with other Pod-level settings. (@rfratto)
+
 ### Enhancements
 
 - Make CRDs optional through the `crds.create` setting. (@bentonam, @rfratto)
