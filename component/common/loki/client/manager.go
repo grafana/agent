@@ -77,38 +77,42 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 	clients := make([]Client, 0, len(clientCfgs))
 	watchers := make([]Stoppable, 0, len(clientCfgs))
 	for _, cfg := range clientCfgs {
-		client, err := New(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger)
-		if err != nil {
-			return nil, err
-		}
-
-		// Don't allow duplicate clients, we have client specific metrics that need at least one unique label value (name).
-		if _, ok := clientsCheck[client.Name()]; ok {
-			return nil, fmt.Errorf("duplicate client configs are not allowed, found duplicate for name: %s", cfg.Name)
-		}
-
-		clientsCheck[client.Name()] = fake
-		clients = append(clients, client)
-
 		if walCfg.Enabled {
-			// Create and launch wal watcher for this client
+			// TODO: Should I care here about duplicate clients and else, or should we be thinking in a WAL only future?
+			configName := asSha256(cfg)
 
 			// add some context information for the logger the watcher uses
-			wlog := log.With(logger, "client", client.Name())
+			wlog := log.With(logger, "client", configName)
 
-			writeTo := newClientWriteTo(client.Chan(), wlog)
+			queue, err := NewQueue(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger)
+			if err != nil {
+				return nil, fmt.Errorf("error starting queue client: %w", err)
+			}
 			// subscribe watcher's wal.WriteTo to writer events. This will make the writer trigger the cleanup of the wal.WriteTo
 			// series cache whenever a segment is deleted.
-			notifier.SubscribeCleanup(writeTo)
+			notifier.SubscribeCleanup(queue)
 
-			watcher := wal.NewWatcher(walCfg.Dir, client.Name(), watcherMetrics, writeTo, wlog, walCfg.WatchConfig, NilMarker)
+			watcher := wal.NewWatcher(walCfg.Dir, configName, watcherMetrics, queue, wlog, walCfg.WatchConfig, NilMarker)
 			// subscribe watcher to wal write events
 			notifier.SubscribeWrite(watcher)
 
-			level.Debug(logger).Log("msg", "starting WAL watcher for client", "client", client.Name())
+			level.Debug(logger).Log("msg", "starting WAL watcher for client", "client", configName)
 			watcher.Start()
 
 			watchers = append(watchers, watcher)
+		} else {
+			client, err := New(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger)
+			if err != nil {
+				return nil, fmt.Errorf("error starting client: %w", err)
+			}
+
+			// Don't allow duplicate clients, we have client specific metrics that need at least one unique label value (name).
+			if _, ok := clientsCheck[client.Name()]; ok {
+				return nil, fmt.Errorf("duplicate client configs are not allowed, found duplicate for name: %s", cfg.Name)
+			}
+
+			clientsCheck[client.Name()] = fake
+			clients = append(clients, client)
 		}
 	}
 	manager := &Manager{
