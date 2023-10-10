@@ -30,12 +30,13 @@ type queueClient struct {
 	logger  log.Logger
 	cfg     Config
 	client  *http.Client
-	batches map[string]*batch
+
+	batches    map[string]*batch
+	batchesMtx sync.Mutex
+	sendQueue  chan queuedBatch
 
 	once sync.Once
 	wg   sync.WaitGroup
-
-	sendQueue chan queuedBatch
 
 	externalLabels model.LabelSet
 
@@ -92,8 +93,9 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		logger:    log.With(logger, "component", "client", "host", cfg.URL.Host),
 		cfg:       cfg,
 		metrics:   metrics,
-		batches:   make(map[string]*batch),
 		sendQueue: make(chan queuedBatch, 10), // this channel should have some buffering
+
+		batches: make(map[string]*batch),
 
 		series:        make(map[chunks.HeadSeriesRef]model.LabelSet),
 		seriesSegment: make(map[chunks.HeadSeriesRef]int),
@@ -159,6 +161,9 @@ func (c *queueClient) AppendEntries(entries wal.RefEntries, segment int) error {
 }
 
 func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry, segment int) {
+	// TODO: can I make this locking more fine grained?
+	c.batchesMtx.Lock()
+	defer c.batchesMtx.Unlock()
 	lbs, tenantID := c.processLabels(lbs)
 
 	// Either drop or mutate the log entry because its length is greater than maxLineSize. maxLineSize == 0 means disabled.
@@ -239,6 +244,8 @@ func (c *queueClient) runSendQueue() {
 
 	// pablo: maybe this should be moved out
 	defer func() {
+		c.batchesMtx.Lock()
+		defer c.batchesMtx.Unlock()
 		maxWaitCheck.Stop()
 		// Send all pending batches
 		for tenantID, batch := range c.batches {
@@ -258,6 +265,7 @@ func (c *queueClient) runSendQueue() {
 			c.sendBatch(qb.TenantID, qb.Batch)
 
 		case <-maxWaitCheck.C:
+			c.batchesMtx.Lock()
 			// Send all batches whose max wait time has been reached
 			for tenantID, b := range c.batches {
 				if b.age() < c.cfg.BatchWait {
@@ -269,6 +277,7 @@ func (c *queueClient) runSendQueue() {
 				// hasn't been written for some time
 				delete(c.batches, tenantID)
 			}
+			c.batchesMtx.Unlock()
 		}
 	}
 }
