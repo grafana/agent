@@ -13,6 +13,7 @@ cleanup() {
             cat "$logfile"
             echo "Capturing logs from otel-collector..."
             docker logs otel-collector
+            docker-compose down
         fi
         kill $AGENT_PID || true
         rm -rf data-agent
@@ -44,7 +45,6 @@ while read -r test_dir; do
     AGENT_PID=$!
     if ! go test; then
         failed=1
-        docker-compose down
         exit 1
     fi
     cleanup
