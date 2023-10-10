@@ -19,6 +19,10 @@ Main (unreleased)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
   allowing invalid combination of configuration options. (@thampiotr)
+  
+### Enhancements
+
+- The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
 
 v0.37.0 (2023-10-10)
 -----------------
