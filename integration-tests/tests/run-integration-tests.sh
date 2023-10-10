@@ -32,7 +32,6 @@ docker-compose up -d
 
 while read -r test_dir; do
     pushd "$test_dir"
-    sleep 1
     ../../../build/grafana-agent-flow run config.river > "$logfile" 2>&1 &
     AGENT_PID=$!
     if ! go test; then

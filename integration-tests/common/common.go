@@ -12,7 +12,7 @@ type Unmarshaler interface {
 }
 
 const DefaultRetryInterval = time.Second * 5
-const DefaultTimeout = time.Minute * 3
+const DefaultTimeout = time.Minute
 
 func FetchDataFromURL(url string, target Unmarshaler) error {
 	resp, err := http.Get(url)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/grafana/agent/integration-tests/common"
@@ -10,25 +9,12 @@ import (
 
 const query = "http://localhost:3100/loki/api/v1/series"
 
-type data struct {
-	Filename string `json:"filename"`
-}
-
-type LogsResponse struct {
-	Status string `json:"status"`
-	Data   []data `json:"data"`
-}
-
 func TestReadLogFile(t *testing.T) {
-	var logsResponse LogsResponse
+	var logResponse common.LogResponse
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err := common.FetchDataFromURL(query, &logsResponse)
+		err := common.FetchDataFromURL(query, &logResponse)
 		assert.NoError(c, err)
-		assert.NotEmpty(c, logsResponse.Data)
-		assert.Equal(c, logsResponse.Data[0].Filename, "logs.txt")
+		assert.NotEmpty(c, logResponse.Data)
+		assert.Equal(c, logResponse.Data[0].Filename, "logs.txt")
 	}, common.DefaultTimeout, common.DefaultRetryInterval, "Data did not satisfy the conditions within the time limit")
-}
-
-func (m *LogsResponse) Unmarshal(data []byte) error {
-	return json.Unmarshal(data, m)
 }

@@ -1,13 +1,13 @@
-prometheus.scrape "test" {
+prometheus.scrape "scrap_prom_metrics" {
   targets = [
     {"__address__" = "localhost:9001"},
   ]
-  forward_to = [prometheus.remote_write.test.receiver]
+  forward_to = [prometheus.remote_write.scrap_prom_metrics.receiver]
   scrape_interval = "10s"
   scrape_timeout = "5s"
 }
 
-prometheus.remote_write "test" {
+prometheus.remote_write "scrap_prom_metrics" {
   endpoint {
     url = "http://localhost:9009/api/v1/push"
     metadata_config {
