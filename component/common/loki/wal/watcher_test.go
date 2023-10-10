@@ -38,7 +38,7 @@ func (t *testWriteTo) SeriesReset(segmentNum int) {
 	t.ReceivedSeriesReset = append(t.ReceivedSeriesReset, segmentNum)
 }
 
-func (t *testWriteTo) AppendEntries(entries wal.RefEntries) error {
+func (t *testWriteTo) AppendEntries(entries wal.RefEntries, segment int) error {
 	var entry loki.Entry
 	if l, ok := t.series[uint64(entries.Ref)]; ok {
 		entry.Labels = l

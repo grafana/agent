@@ -70,7 +70,7 @@ func (c *clientWriteTo) SeriesReset(segmentNum int) {
 	}
 }
 
-func (c *clientWriteTo) AppendEntries(entries wal.RefEntries) error {
+func (c *clientWriteTo) AppendEntries(entries wal.RefEntries, segment int) error {
 	var entry loki.Entry
 	c.seriesLock.RLock()
 	l, ok := c.series[entries.Ref]
