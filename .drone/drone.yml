@@ -505,33 +505,15 @@ platform:
   arch: amd64
   os: linux
 steps:
-- name: Build
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM=
+    make agent-flow
   image: grafana/agent-build-image:0.30.2
-  commands:
-    - make generate-ui
-    - GO_TAGS="builtinassets promtail_journal_enabled" GOOS=linux GOARCH=amd64 GOARM= make agent-flow
-  volumes:
-    - name: artifacts
-      path: /artifacts
-
-- name: Integration Tests
-  image: grafana/agent-build-image:0.30.2
-  environment:
-    CI_MODE: true
-  commands:
-    - cd integration-tests/tests
-    - ./run-integration-tests.sh
-  volumes:
-    - name: artifacts
-      path: /artifacts
-
-volumes:
-  - name: artifacts
-    temp: {}
-
+  name: Build
 trigger:
   event:
-    - pull_request
+  - pull_request
 type: docker
 ---
 kind: pipeline

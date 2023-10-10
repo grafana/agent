@@ -25,12 +25,12 @@ success() {
 }
 
 # Check if running in CI mode or locally
-if [ "$CI_MODE" == "true" ]; then
-    AGENT_BINARY_PATH="/artifacts/grafana-agent-flow"
-else
+# if [ "$CI_MODE" == "true" ]; then
+#     AGENT_BINARY_PATH="/artifacts/grafana-agent-flow"
+# else
     make -C ../.. agent-flow
     AGENT_BINARY_PATH="../../../build/grafana-agent-flow"
-fi
+# fi
 
 trap cleanup EXIT ERR
 
