@@ -1492,3 +1492,8 @@ get:
   path: infra/data/ci/github/updater-app
 kind: secret
 name: updater_private_key
+---
+kind: signature
+hmac: adb76e3978f5b8f725c59ff0f0170adb4da6a677ae1751b0ca092d9743ec0044
+
+...
