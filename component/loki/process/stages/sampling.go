@@ -44,7 +44,7 @@ func (s *SamplingConfig) Validate() error {
 // newSamplingStage creates a SamplingStage from config
 // code from jaeger project.
 // github.com/uber/jaeger-client-go@v2.30.0+incompatible/tracer.go:126
-func newSamplingStage(logger log.Logger, cfg SamplingConfig, registerer prometheus.Registerer) (Stage, error) {
+func newSamplingStage(logger log.Logger, cfg SamplingConfig, registerer prometheus.Registerer) Stage {
 	samplingRate := math.Max(0.0, math.Min(cfg.SamplingRate, 1.0))
 	samplingBoundary := uint64(float64(maxRandomNumber) * samplingRate)
 	seedGenerator := utils.NewRand(time.Now().UnixNano())
@@ -55,7 +55,7 @@ func newSamplingStage(logger log.Logger, cfg SamplingConfig, registerer promethe
 		dropCount:        getDropCountMetric(registerer),
 		samplingBoundary: samplingBoundary,
 		source:           source,
-	}, nil
+	}
 }
 
 type samplingStage struct {
