@@ -89,7 +89,7 @@ type ComponentNode struct {
 	managedOpts        component.Options
 	registry           *prometheus.Registry
 	exportsType        reflect.Type
-	moduleSuccessCheck sync.Once // This is used on first startup to see if module loaded correctly and if not then clean up registry.
+	moduleFailureCheck sync.Once // This is used on first startup to see if module loaded correctly and if not then clean up registry.
 	moduleController   ModuleController
 	OnComponentUpdate  func(cn *ComponentNode) // Informs controller that we need to reevaluate
 	lastUpdateTime     atomic.Time
@@ -258,7 +258,9 @@ func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
 		msg := fmt.Sprintf("component evaluation failed: %s", err)
 		cn.setEvalHealth(component.HealthTypeUnhealthy, msg)
 	}
-	cn.moduleSuccessCheck.Do(func() {
+	// Check for failure on initial loading, if not then we need to remove any modules it the component may habe created.
+	// In the case where the component is not a module loader this is a noop.
+	cn.moduleFailureCheck.Do(func() {
 		if err != nil {
 			cn.moduleController.ClearModuleIDs()
 		}
