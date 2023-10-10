@@ -24,9 +24,9 @@ success() {
     exit 0
 }
 
-# Check if running in CI mode or locally
-# if [ "$CI_MODE" == "true" ]; then
-#     AGENT_BINARY_PATH="/artifacts/grafana-agent-flow"
+# Check if running in GitHub Actions or locally
+# if [ "$GITHUB_ACTIONS" == "true" ]; then
+#     AGENT_BINARY_PATH="./grafana-agent-flow"  # Assuming you've moved the binary to this path before running the script
 # else
     make -C ../.. agent-flow
     AGENT_BINARY_PATH="../../../build/grafana-agent-flow"
