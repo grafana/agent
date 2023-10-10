@@ -243,6 +243,8 @@ func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) 
 		return fmt.Errorf("building label selector: %w", err)
 	}
 	for _, ns := range c.args.Namespaces {
+		// TODO: This is going down an unnecessary extra step in the cache when `c.args.Namespaces` defaults to NamespaceAll.
+		// This code path should be simplified and support a scenario when len(c.args.Namespace) == 0.
 		defaultNamespaces := map[string]cache.Config{}
 		defaultNamespaces[ns] = cache.Config{}
 		opts := cache.Options{
