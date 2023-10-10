@@ -21,7 +21,7 @@ func TestIDRemovalIfFailedToLoad(t *testing.T) {
 	require.NoError(t, err)
 	ctx := context.Background()
 	ctx, cnc := context.WithTimeout(ctx, 600*time.Second)
-	defer cnc()
+
 	go f.Run(ctx)
 	require.Eventually(t, func() bool {
 		t1 := f.loader.Components()[0].Component().(*testFailModule)
@@ -43,6 +43,7 @@ fail=false
 }`
 	err = t1.updateContent(goodContent)
 	require.NoError(t, err)
+	cnc()
 }
 
 func init() {
@@ -88,6 +89,7 @@ type testFailModule struct {
 }
 
 func (t *testFailModule) Run(ctx context.Context) error {
+	go t.mc.RunFlowController(ctx)
 	<-ctx.Done()
 	return nil
 }

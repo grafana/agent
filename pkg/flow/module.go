@@ -65,6 +65,15 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 	return mod, nil
 }
 
+func (m *moduleController) removeID(id string) {
+	m.mut.Lock()
+	defer m.mut.Unlock()
+
+	m.o.ModuleRegistry.Unregister(id)
+	delete(m.modules, id)
+}
+
+// ClearModuleIDs removes all ids from the registry.
 func (m *moduleController) ClearModuleIDs() {
 	m.mut.Lock()
 	defer m.mut.Unlock()
@@ -138,6 +147,7 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 //
 // Run blocks until the provided context is canceled.
 func (c *module) Run(ctx context.Context) {
+	defer c.o.parent.removeID(c.o.ID)
 	c.f.Run(ctx)
 }
 
