@@ -126,9 +126,8 @@ func convertEventLogMessage(diags *diag.Diagnostics) (stages.StageConfig, bool) 
 	return stages.StageConfig{}, false
 }
 
-func convertDecolorize(diags *diag.Diagnostics) (stages.StageConfig, bool) {
-	diags.Add(diag.SeverityLevelError, "pipeline_stages.decolorize is not supported")
-	return stages.StageConfig{}, false
+func convertDecolorize(_ *diag.Diagnostics) (stages.StageConfig, bool) {
+	return stages.StageConfig{DecolorizeConfig: &stages.DecolorizeConfig{}}, true
 }
 
 func convertStaticLabels(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {

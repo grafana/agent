@@ -51,17 +51,18 @@ loki.process "LABEL" {
 The following blocks are supported inside the definition of `loki.process`:
 
 | Hierarchy                 | Block                         | Description                                          | Required |
-|---------------------------|-------------------------------|------------------------------------------------------| -------- |
+|---------------------------|-------------------------------|------------------------------------------------------|----------|
 | stage.cri                 | [stage.cri][]                 | Configures a pre-defined CRI-format pipeline.        | no       |
+| stage.decolorize          | [stage.decolorize][]          | Strips ANSI color codes from log lines.              | no       |
 | stage.docker              | [stage.docker][]              | Configures a pre-defined Docker log format pipeline. | no       |
 | stage.drop                | [stage.drop][]                | Configures a `drop` processing stage.                | no       |
 | stage.json                | [stage.json][]                | Configures a JSON processing stage.                  | no       |
 | stage.label_drop          | [stage.label_drop][]          | Configures a `label_drop` processing stage.          | no       |
 | stage.label_keep          | [stage.label_keep][]          | Configures a `label_keep` processing stage.          | no       |
-| stage.labels              | [stage.labels][]              | Configures a `labels` processing stage.                | no       |
+| stage.labels              | [stage.labels][]              | Configures a `labels` processing stage.              | no       |
 | stage.structured_metadata | [stage.structured_metadata][] | Configures a structured metadata processing stage.   | no       |
 | stage.limit               | [stage.limit][]               | Configures a `limit` processing stage.               | no       |
-| stage.logfmt              | [stage.logfmt][]              | Configures a `logfmt` processing stage.                | no       |
+| stage.logfmt              | [stage.logfmt][]              | Configures a `logfmt` processing stage.              | no       |
 | stage.match               | [stage.match][]               | Configures a `match` processing stage.               | no       |
 | stage.metrics             | [stage.metrics][]             | Configures a `metrics` stage.                        | no       |
 | stage.multiline           | [stage.multiline][]           | Configures a `multiline` processing stage.           | no       |
@@ -80,6 +81,7 @@ A user can provide any number of these stage blocks nested inside
 file.
 
 [stage.cri]: #stagecri-block
+[stage.decolorize]: #stagedecolorize-block
 [stage.docker]: #stagedocker-block
 [stage.drop]: #stagedrop-block
 [stage.json]: #stagejson-block
@@ -139,6 +141,31 @@ shared map of extracted data:
 content: message
 stream: stdout
 timestamp: 2019-04-30T02:12:41.8443515
+```
+
+### stage.decolorize block
+
+The `stage.decolorize` strips ANSI color codes from the log lines, thus making
+it easier to parse logs further.
+
+The `stage.decolorize` block does not support any arguments or inner blocks, so 
+it is always empty.
+
+```river
+stage.decolorize {}
+```
+
+`stage.decolorize` turns each line having a color code into a non-colored one, 
+for example:
+
+```
+[2022-11-04 22:17:57.811] \033[0;32http\033[0m: GET /_health (0 ms) 204
+```
+
+is turned into
+
+```
+[2022-11-04 22:17:57.811] http: GET /_health (0 ms) 204
 ```
 
 ### stage.docker block

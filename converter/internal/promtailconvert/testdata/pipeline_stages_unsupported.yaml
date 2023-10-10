@@ -5,7 +5,6 @@ scrape_configs:
     pipeline_stages:
       - sampling:
           rate: 100
-      - decolorize: { }
       - eventlogmessage: { }
     kubernetes_sd_configs:
       - role: pod
