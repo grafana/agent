@@ -1,9 +1,8 @@
 name: Integration Tests
-on: 
+on:
   push:
     branches:
       - experiment-integration-tests
-  pull_request:
 jobs:
   run_tests:
     runs-on: ubuntu-latest
@@ -25,8 +24,6 @@ jobs:
         go-version: "1.21.0"
         cache-dependency-path: "**/*.sum"
     - name: Run tests
-      with:
-        cache-dependency-path: "**/*.sum"
       run: |
         cd integration-tests/tests
         ./run-integration-tests.sh
