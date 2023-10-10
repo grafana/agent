@@ -80,18 +80,19 @@ type ComponentGlobals struct {
 // arguments and exports. ComponentNode manages the arguments for the component
 // from a River block.
 type ComponentNode struct {
-	id                ComponentID
-	globalID          string
-	label             string
-	componentName     string
-	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	reg               component.Registration
-	managedOpts       component.Options
-	registry          *prometheus.Registry
-	exportsType       reflect.Type
-	moduleController  ModuleController
-	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
-	lastUpdateTime    atomic.Time
+	id                 ComponentID
+	globalID           string
+	label              string
+	componentName      string
+	nodeID             string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	reg                component.Registration
+	managedOpts        component.Options
+	registry           *prometheus.Registry
+	exportsType        reflect.Type
+	moduleSuccessCheck sync.Once // This is used on first startup to see if module loaded correctly and if not then clean up registry.
+	moduleController   ModuleController
+	OnComponentUpdate  func(cn *ComponentNode) // Informs controller that we need to reevaluate
+	lastUpdateTime     atomic.Time
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -254,10 +255,14 @@ func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
 	case nil:
 		cn.setEvalHealth(component.HealthTypeHealthy, "component evaluated")
 	default:
-		cn.moduleController.ClearModuleIDs()
 		msg := fmt.Sprintf("component evaluation failed: %s", err)
 		cn.setEvalHealth(component.HealthTypeUnhealthy, msg)
 	}
+	cn.moduleSuccessCheck.Do(func() {
+		if err != nil {
+			cn.moduleController.ClearModuleIDs()
+		}
+	})
 
 	return err
 }
