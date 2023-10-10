@@ -24,23 +24,22 @@ const (
 	StageTypeDocker     = "docker"
 	StageTypeDrop       = "drop"
 	//TODO(thampiotr): Add support for eventlogmessage stage
-	StageTypeEventLogMessage = "eventlogmessage"
-	StageTypeGeoIP           = "geoip"
-	StageTypeJSON            = "json"
-	StageTypeLabel           = "labels"
-	StageTypeLabelAllow      = "labelallow"
-	StageTypeLabelDrop       = "labeldrop"
-	StageTypeLimit           = "limit"
-	StageTypeLogfmt          = "logfmt"
-	StageTypeMatch           = "match"
-	StageTypeMetric          = "metrics"
-	StageTypeMultiline       = "multiline"
-	StageTypeOutput          = "output"
-	StageTypePack            = "pack"
-	StageTypePipeline        = "pipeline"
-	StageTypeRegex           = "regex"
-	StageTypeReplace         = "replace"
-	//TODO(thampiotr): Add support for sampling stage
+	StageTypeEventLogMessage    = "eventlogmessage"
+	StageTypeGeoIP              = "geoip"
+	StageTypeJSON               = "json"
+	StageTypeLabel              = "labels"
+	StageTypeLabelAllow         = "labelallow"
+	StageTypeLabelDrop          = "labeldrop"
+	StageTypeLimit              = "limit"
+	StageTypeLogfmt             = "logfmt"
+	StageTypeMatch              = "match"
+	StageTypeMetric             = "metrics"
+	StageTypeMultiline          = "multiline"
+	StageTypeOutput             = "output"
+	StageTypePack               = "pack"
+	StageTypePipeline           = "pipeline"
+	StageTypeRegex              = "regex"
+	StageTypeReplace            = "replace"
 	StageTypeSampling           = "sampling"
 	StageTypeStaticLabels       = "static_labels"
 	StageTypeStructuredMetadata = "structured_metadata"
@@ -230,6 +229,11 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		}
 	case cfg.DecolorizeConfig != nil:
 		s, err = newDecolorizeStage(*cfg.DecolorizeConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.SamplingConfig != nil:
+		s, err = newSamplingStage(logger, *cfg.SamplingConfig, registerer)
 		if err != nil {
 			return nil, err
 		}

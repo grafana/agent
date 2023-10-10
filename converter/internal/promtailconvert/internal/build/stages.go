@@ -216,8 +216,21 @@ func convertLimit(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig,
 }
 
 func convertSampling(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
-	diags.Add(diag.SeverityLevelError, fmt.Sprintf("pipeline_stages.sampling is currently not supported: %v", cfg))
-	return stages.StageConfig{}, false
+	pSampling := &promtailstages.SamplingConfig{}
+	// NOTE: using WeakDecode to match promtail behaviour
+	if err := mapstructure.WeakDecode(cfg, pSampling); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	fSampling := &stages.SamplingConfig{}
+	fSampling.SetToDefault()
+	fSampling.SamplingRate = pSampling.SamplingRate
+	if pSampling.DropReason != nil {
+		fSampling.DropReason = pSampling.DropReason
+	}
+	return stages.StageConfig{
+		SamplingConfig: fSampling,
+	}, true
 }
 
 func convertDrop(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
