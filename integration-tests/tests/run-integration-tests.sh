@@ -11,6 +11,8 @@ cleanup() {
         if [ "$failed" -eq "1" ]; then
             echo "Capturing grafana-agent-flow logs due to a failure..."
             cat "$logfile"
+            echo "Capturing logs from otel-collector..."
+            docker logs otel-collector
         fi
         kill $AGENT_PID || true
         rm -rf data-agent

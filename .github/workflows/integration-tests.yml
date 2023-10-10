@@ -6,7 +6,7 @@ on:
       - experiment-integration-tests
 
 jobs:
-  test:
+  run_tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +30,7 @@ jobs:
         go-version: "1.21.0"
         cache-dependency-path: "**/*.sum"
 
-    - name: Build and run tests
+    - name: Run tests
       run: |
         cd integration-tests/tests
         ./run-integration-tests.sh
