@@ -1,21 +1,13 @@
 name: Integration Tests
-
-on:
-  push:
-    branches:
-      - experiment-integration-tests
-
+on: pull_request
 jobs:
   run_tests:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-
     - name: Cache Docker layers
       uses: actions/cache@v3
       with:
@@ -23,13 +15,11 @@ jobs:
         key: ${{ runner.os }}-buildx-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-buildx-
-
     - name: Setup Go
       uses: actions/setup-go@v4
       with:
         go-version: "1.21.0"
         cache-dependency-path: "**/*.sum"
-
     - name: Run tests
       run: |
         cd integration-tests/tests

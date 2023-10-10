@@ -12,6 +12,7 @@ cleanup() {
             echo "Capturing grafana-agent-flow logs due to a failure..."
             cat "$logfile"
             echo "Capturing logs from otel-collector..."
+            docker ps
             docker logs tests-otel-collector-1
             docker-compose down
         fi
