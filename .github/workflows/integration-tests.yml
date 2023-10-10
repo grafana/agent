@@ -1,5 +1,9 @@
 name: Integration Tests
-on: pull_request
+on: 
+  push:
+    branches:
+      - experiment-integration-tests
+  pull_request:
 jobs:
   run_tests:
     runs-on: ubuntu-latest
