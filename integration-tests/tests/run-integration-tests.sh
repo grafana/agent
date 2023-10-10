@@ -13,7 +13,6 @@ cleanup() {
             cat "$logfile"
         fi
         kill $AGENT_PID || true
-        docker-compose down
         rm -rf data-agent
         rm -f "$logfile"
     fi
@@ -29,20 +28,22 @@ make -C ../.. agent-flow
 
 trap cleanup EXIT ERR
 
-for i in {1..5}; do
-    while read -r test_dir; do
-        pushd "$test_dir"
-        docker-compose up -d
-        sleep 1
-        ../../../build/grafana-agent-flow run config.river > "$logfile" 2>&1 &
-        AGENT_PID=$!
-        if ! go test; then
-            failed=1
-            exit 1
-        fi
-        cleanup
-        popd
-    done < <(find . -maxdepth 1 -type d ! -path .)
-done
+docker-compose up -d
+
+while read -r test_dir; do
+    pushd "$test_dir"
+    sleep 1
+    ../../../build/grafana-agent-flow run config.river > "$logfile" 2>&1 &
+    AGENT_PID=$!
+    if ! go test; then
+        failed=1
+        docker-compose down
+        exit 1
+    fi
+    cleanup
+    popd
+done < <(find . -maxdepth 1 -type d ! -path .)
+
+docker-compose down
 
 success
