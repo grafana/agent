@@ -24,7 +24,13 @@ success() {
     exit 0
 }
 
-make -C ../.. agent-flow
+# Check if running in CI mode or locally
+if [ "$CI_MODE" == "true" ]; then
+    AGENT_BINARY_PATH="/artifacts/grafana-agent-flow"
+else
+    make -C ../.. agent-flow
+    AGENT_BINARY_PATH="../../../build/grafana-agent-flow"
+fi
 
 trap cleanup EXIT ERR
 
@@ -32,7 +38,7 @@ docker-compose up -d
 
 while read -r test_dir; do
     pushd "$test_dir"
-    ../../../build/grafana-agent-flow run config.river > "$logfile" 2>&1 &
+    "$AGENT_BINARY_PATH" run config.river > "$logfile" 2>&1 &
     AGENT_PID=$!
     if ! go test; then
         failed=1
