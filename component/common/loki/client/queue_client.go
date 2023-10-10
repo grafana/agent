@@ -31,9 +31,10 @@ type queueClient struct {
 	cfg     Config
 	client  *http.Client
 
-	batches    map[string]*batch
-	batchesMtx sync.Mutex
-	sendQueue  chan queuedBatch
+	batches      map[string]*batch
+	batchesMtx   sync.Mutex
+	sendQueue    chan queuedBatch
+	drainTimeout time.Duration
 
 	once sync.Once
 	wg   sync.WaitGroup
@@ -51,6 +52,7 @@ type queueClient struct {
 	maxStreams          int
 	maxLineSize         int
 	maxLineSizeTruncate bool
+	quit                chan struct{}
 }
 
 func (c *queueClient) SeriesReset(segmentNum int) {
@@ -90,10 +92,12 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 	ctx, cancel := context.WithCancel(context.Background())
 
 	c := &queueClient{
-		logger:    log.With(logger, "component", "client", "host", cfg.URL.Host),
-		cfg:       cfg,
-		metrics:   metrics,
-		sendQueue: make(chan queuedBatch, 10), // this channel should have some buffering
+		logger:       log.With(logger, "component", "client", "host", cfg.URL.Host),
+		cfg:          cfg,
+		metrics:      metrics,
+		sendQueue:    make(chan queuedBatch, 10), // this channel should have some buffering
+		drainTimeout: 5 * time.Minute,            // make this configurable
+		quit:         make(chan struct{}),
 
 		batches: make(map[string]*batch),
 
@@ -244,25 +248,20 @@ func (c *queueClient) runSendQueue() {
 
 	// pablo: maybe this should be moved out
 	defer func() {
-		c.batchesMtx.Lock()
-		defer c.batchesMtx.Unlock()
 		maxWaitCheck.Stop()
-		// Send all pending batches
-		for tenantID, batch := range c.batches {
-			// pablo: should this be sent without the queue in the middle?
-			c.sendBatch(tenantID, batch)
-		}
-
 		c.wg.Done()
 	}()
 
 	for {
 		select {
+		case <-c.quit:
+			return
+
 		case qb, ok := <-c.sendQueue:
 			if !ok {
 				return
 			}
-			c.sendBatch(qb.TenantID, qb.Batch)
+			c.sendBatch(context.Background(), qb.TenantID, qb.Batch)
 
 		case <-maxWaitCheck.C:
 			c.batchesMtx.Lock()
@@ -282,7 +281,37 @@ func (c *queueClient) runSendQueue() {
 	}
 }
 
-func (c *queueClient) sendBatch(tenantID string, batch *batch) {
+func (c *queueClient) drain(ctx context.Context) {
+	// auxiliary go-routine will enqueue partial batches to use the same sending routine
+	// this helps constraint the whole drain under a single timeout
+	go func() {
+		c.batchesMtx.Lock()
+		defer c.batchesMtx.Unlock()
+
+		for tenantID, batch := range c.batches {
+			select {
+			case <-ctx.Done():
+				return
+			case c.sendQueue <- queuedBatch{
+				TenantID: tenantID,
+				Batch:    batch,
+			}:
+			}
+		}
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			level.Warn(c.logger).Log("msg", "drain send queue exceeded context timeout")
+			return
+		case qe := <-c.sendQueue:
+			c.sendBatch(ctx, qe.TenantID, qe.Batch)
+		}
+	}
+}
+
+func (c *queueClient) sendBatch(ctx context.Context, tenantID string, batch *batch) {
 	buf, entriesCount, err := batch.encode()
 	if err != nil {
 		level.Error(c.logger).Log("msg", "error encoding batch", "error", err)
@@ -296,7 +325,7 @@ func (c *queueClient) sendBatch(tenantID string, batch *batch) {
 	for {
 		start := time.Now()
 		// send uses `timeout` internally, so `context.Background` is good enough.
-		status, err = c.send(context.Background(), tenantID, buf)
+		status, err = c.send(ctx, tenantID, buf)
 
 		c.metrics.requestDuration.WithLabelValues(strconv.Itoa(status), c.cfg.URL.Host).Observe(time.Since(start).Seconds())
 
@@ -406,16 +435,25 @@ func (c *queueClient) getTenantID(labels model.LabelSet) string {
 
 // Stop the client.
 func (c *queueClient) Stop() {
-	// TODO: Figure out how the stop should work, since there might be stuff in the send queue
-	//c.once.Do(func() { close(c.entries) })
+	// first close main queue routine
+	close(c.quit)
 	c.wg.Wait()
+
+	// drain with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), c.drainTimeout)
+	defer cancel()
+	c.drain(ctx)
+
+	close(c.sendQueue)
 }
 
-// StopNow stops the client without retries
+// StopNow stops the client without retries or draining the send queue
 func (c *queueClient) StopNow() {
 	// cancel will stop retrying http requests.
 	c.cancel()
-	c.Stop()
+	close(c.quit)
+	close(c.sendQueue)
+	c.wg.Wait()
 }
 
 func (c *queueClient) processLabels(lbs model.LabelSet) (model.LabelSet, string) {
