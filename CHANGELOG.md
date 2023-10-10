@@ -24,6 +24,14 @@ Main (unreleased)
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
 
+v0.37.1 (2023-10-10)
+-----------------
+
+### Bugfixes
+
+- Fix the initialization of the default namespaces map for the operator and the
+  loki.source.kubernetes component. (@wildum)
+
 v0.37.0 (2023-10-10)
 -----------------
 
