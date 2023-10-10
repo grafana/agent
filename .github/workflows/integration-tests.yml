@@ -24,6 +24,11 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-buildx-
 
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.21.0"
+
     - name: Build and run tests
       run: |
         cd integration-tests/tests
