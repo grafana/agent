@@ -21,6 +21,8 @@ jobs:
         go-version: "1.21.0"
         cache-dependency-path: "**/*.sum"
     - name: Run tests
+      with:
+        cache-dependency-path: "**/*.sum"
       run: |
         cd integration-tests/tests
         ./run-integration-tests.sh
