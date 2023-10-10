@@ -19,6 +19,9 @@ Main (unreleased)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
   allowing invalid combination of configuration options. (@thampiotr)
+
+- Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
+  permanently fail to load with `id already exists` error. (@mattdurham)
   
 ### Enhancements
 
@@ -236,9 +239,6 @@ v0.36.2 (2023-09-22)
 - Fixed a bug where documented default settings in `otelcol.exporter.loadbalancing` were never set. (@rfratto)
 
 - Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
-
-- Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
-  permanently fail to load with `id already exists` error. (@mattdurham)
 
 v0.36.1 (2023-09-06)
 --------------------
