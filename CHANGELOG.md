@@ -204,6 +204,8 @@ v0.37.0 (2023-10-10)
 - Fix initialization of the RAPL collector for the node_exporter integration
   and the prometheus.exporter.unix component. (@marctc)
 
+- Set instrumentation scope attribute for traces emitted by Flow component. (@hainenber)
+
 ### Other changes
 
 - Use Go 1.21.1 for builds. (@rfratto)
