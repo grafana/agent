@@ -238,12 +238,12 @@ func Test_Insert(t *testing.T) {
 					"value": { "stringValue": "1.2.2.2" }
 				},
 				{
-					"key": "test_label",
-					"value": { "stringValue": "test_val2" }
-				},
-				{
 					"key": "test.label.with.dots",
 					"value": { "stringValue": "test.val2.with.dots" }
+				},
+				{
+					"key": "test_label",
+					"value": { "stringValue": "test_val2" }
 				}]
 			},
 			"scopeSpans": [{
