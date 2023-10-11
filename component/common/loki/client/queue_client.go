@@ -324,6 +324,10 @@ func (c *queueClient) drain(ctx context.Context) {
 			return
 		case qe := <-c.sendQueue:
 			c.sendBatch(ctx, qe.TenantID, qe.Batch)
+		default:
+			// we want a default case for when the sendQueue channel has been completely drained
+			level.Debug(c.logger).Log("msg", "sendQueue drain complete. No batches left in channel")
+			return
 		}
 	}
 }
