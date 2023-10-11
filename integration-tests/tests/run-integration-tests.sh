@@ -11,9 +11,6 @@ cleanup() {
         if [ "$failed" -eq "1" ]; then
             echo "Capturing grafana-agent-flow logs due to a failure..."
             cat "$logfile"
-            echo "Capturing logs from otel-collector..."
-            docker ps
-            docker logs tests_otel-collector_1 || true
             docker-compose down
         fi
         kill $AGENT_PID || true
@@ -28,13 +25,8 @@ success() {
     exit 0
 }
 
-# Check if running in GitHub Actions or locally
-# if [ "$GITHUB_ACTIONS" == "true" ]; then
-#     AGENT_BINARY_PATH="./grafana-agent-flow"  # Assuming you've moved the binary to this path before running the script
-# else
-    make -C ../.. agent-flow
-    AGENT_BINARY_PATH="../../../build/grafana-agent-flow"
-# fi
+make -C ../.. agent-flow
+AGENT_BINARY_PATH="../../../build/grafana-agent-flow"
 
 trap cleanup EXIT ERR
 
