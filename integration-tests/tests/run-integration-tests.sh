@@ -13,7 +13,7 @@ cleanup() {
             cat "$logfile"
             echo "Capturing logs from otel-collector..."
             docker ps
-            docker logs tests_otel-collector_1
+            docker logs tests_otel-collector_1 || true
             docker-compose down
         fi
         kill $AGENT_PID || true

@@ -26,6 +26,8 @@ services:
     ports:
       - "4317:4317"   # OTLP gRPC receiver
       - "4318:4318"   # OTLP HTTP exporter
+    environment:
+      - OTEL_EXPORTER_ENDPOINT=${OTEL_EXPORTER_ENDPOINT:-http://host.docker.internal:8080}
   
   demo-client:
     build:

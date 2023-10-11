@@ -7,7 +7,7 @@ exporters:
   logging:
 
   otlphttp:
-    endpoint: http://host.docker.internal:8080
+    endpoint: ${OTEL_EXPORTER_ENDPOINT}
 
 
 connectors:
