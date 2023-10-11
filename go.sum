@@ -1737,8 +1737,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraph
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector v0.85.0/go.mod h1:CA1v4fzjPVIu/YEDD9Q6FppAGhZGBBxQ+MKAvMERd0o=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.85.0 h1:r75lKRDTUz+qCMO5Bghe1o6Snef7Vov55ycQChB/vps=
 github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.85.0/go.mod h1:enlrQwrV86jYc8w5rCrvJkXBjZqPUyexs53pFY7YjXo=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.85.0 h1:NyqJDAgm3VC1UNrTW0gv2auQoTlaCEcit5c0On0oYG4=
-github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.85.0/go.mod h1:F8TX5dXc8VcF789x8UAu1fIWta16sGZMxhfGLNes+L8=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.85.0 h1:zCFV4nSdHziunsWYB/Zwsy2C4W88KlACyENQyjLZHw8=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.85.0/go.mod h1:ADyJg6g2zJ3t6FMGOdw0PjmFhZhDxNT2QVFdt6ZFl5k=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.85.0 h1:qBUujYIkqkctwNkmnAF8ajbVN357DQNbOPp6VAe4ldE=
