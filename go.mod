@@ -530,7 +530,7 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
 	github.com/prometheus-community/go-runit v0.1.0 // indirect
 	github.com/prometheus/alertmanager v0.26.0 // indirect
-	github.com/prometheus/common/sigv4 v0.1.0 // indirect
+	github.com/prometheus/common/sigv4 v0.1.0
 	github.com/prometheus/exporter-toolkit v0.10.1-0.20230714054209-2f4150c63f97 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/remeh/sizedwaitgroup v1.0.0 // indirect
@@ -674,10 +674,10 @@ replace (
 // TODO(tpaschalis): remove replace directive once:
 //
 // * There is a release of Prometheus which contains
-// prometheus/prometheus#12677 and prometheus/prometheus#12729.
+// prometheus/prometheus#12677, prometheus/prometheus#12729 and prometheus/prometheus#12838.
 // We use the last v1-related tag as the replace statement does not work for v2
 // tags without the v2 suffix to the module root
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231003113207-17e15326a784 // grafana:prometheus:v0.46.0-retry-improvements
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231011132208-6399ad9b176e // grafana:prometheus:v0.47.1-retry-improvements-nh-fix
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
