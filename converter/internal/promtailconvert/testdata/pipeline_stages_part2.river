@@ -79,6 +79,17 @@ loki.process "example" {
 		source  = "internet"
 		db_type = "mmdb"
 	}
+
+	stage.decolorize { }
+
+	stage.sampling {
+		rate = 100
+	}
+
+	stage.sampling {
+		drop_counter_reason = "womp womp!"
+		rate                = 0
+	}
 }
 
 loki.source.file "example" {

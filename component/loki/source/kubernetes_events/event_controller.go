@@ -97,7 +97,9 @@ func (ctrl *eventController) runError(ctx context.Context) error {
 	}
 
 	defaultNamespaces := map[string]cache.Config{}
-	defaultNamespaces[ctrl.task.Namespace] = cache.Config{}
+	if ctrl.task.Namespace != "" {
+		defaultNamespaces[ctrl.task.Namespace] = cache.Config{}
+	}
 	opts := cache.Options{
 		Scheme:            scheme,
 		DefaultNamespaces: defaultNamespaces,
