@@ -176,22 +176,35 @@ Replace the following:
 
 You can set up and manage the standalone binary for Grafana Agent as a Linux systemd service.
 
-1. To create a new user called `grafana-agent` run the following command in a terminal window:
+{{% admonition type="note" %}}
+These steps assume you have a default systemd and Grafana Agent configuration.
+{{% /admonition %}}
+
+1. To create a new user called `grafana-agent-flow` run the following command in a terminal window:
 
    ```shell
-   sudo useradd --no-create-home --shell /bin/false grafana-agent
+   sudo useradd --no-create-home --shell /bin/false grafana-agent-flow
    ```
 
-1. Create a file in `/etc/systemd/system` called `grafana-agent.service` with the following contents:
+1. Create a service file in `/etc/systemd/system` called `grafana-agent-flow.service` with the following contents:
 
    ```shell
    [Unit]
-   Description=Grafana Agent
+   Description=Vendor-neutral programmable observability pipelines.
+   Documentation=https://grafana.com/docs/agent/latest/flow/
+   Wants=network-online.target
+   After=network-online.target
 
    [Service]
-   User=grafana-agent
-   ExecStart=BINARY_PATH/grafana-agent-flow run /etc/grafana-agent-flow.river
    Restart=always
+   User=grafana-agent-flow
+   Environment=HOSTNAME=%H
+   EnvironmentFile=/etc/default/grafana-agent-flow
+   WorkingDirectory=WORKING_PATH/grafana-agent-flow
+   ExecStart=BINARY_PATH/grafana-agent-flow run $CUSTOM_ARGS --storage.path=WORKING_PATH/grafana-agent-flow $CONFIG_FILE
+   ExecReload=/usr/bin/env kill -HUP $MAINPID
+   TimeoutStopSec=20s
+   SendSIGKILL=no
 
    [Install]
    WantedBy=multi-user.target
@@ -200,8 +213,34 @@ You can set up and manage the standalone binary for Grafana Agent as a Linux sys
    Replace the following:
 
    * `BINARY_PATH`: The path to the Grafana Agent binary file
+   * `WORKING_PATH`: The path to a working directory, for example `/var/lib/grafana-agent-flow`.
 
-1. To reload the service files,run the following command in a terminal window:
+1. Create an environment file in `/etc/default/` called `grafana-agent-flow` with the following contents:
+
+   ```shell
+   ## Path:
+   ## Description: Grafana Agent Flow settings
+   ## Type:        string
+   ## Default:     ""
+   ## ServiceRestart: grafana-agent-flow
+   #
+   # Command line options for grafana-agent
+   #
+   # The configuration file holding the agent config.
+   CONFIG_FILE="CONFIGURATION_PATH/grafana-agent-flow.river"
+
+   # User-defined arguments to pass to the run command.
+   CUSTOM_ARGS=""
+
+   # Restart on system upgrade. Defaults to true.
+   RESTART_ON_UPGRADE=true
+   ```
+
+   Replace the following:
+
+      * `CONFIGURATION_PATH`: The path to the Grafana Agent configuration file
+
+1. To reload the service files, run the following command in a terminal window:
 
    ```shell
    sudo systemctl daemon-reload
