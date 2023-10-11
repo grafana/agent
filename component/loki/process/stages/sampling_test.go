@@ -14,7 +14,7 @@ import (
 	util_log "github.com/grafana/loki/pkg/util/log"
 )
 
-var testSampingYaml = `
+var testSamplingRiver = `
 stage.sampling {
   rate = 0.5
 }
@@ -22,7 +22,7 @@ stage.sampling {
 
 func TestSamplingPipeline(t *testing.T) {
 	registry := prometheus.NewRegistry()
-	pl, err := NewPipeline(util_log.Logger, loadConfig(testSampingYaml), &plName, registry)
+	pl, err := NewPipeline(util_log.Logger, loadConfig(testSamplingRiver), &plName, registry)
 	require.NoError(t, err)
 
 	entries := make([]Entry, 0)
