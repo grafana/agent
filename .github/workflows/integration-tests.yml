@@ -23,15 +23,6 @@ jobs:
       with:
         go-version: "1.21.0"
         cache-dependency-path: "**/*.sum"
-    - name: Cache Go dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
     - name: Set OTEL Exporter Endpoint
       run: echo "OTEL_EXPORTER_ENDPOINT=http://172.17.0.1:8080" >> $GITHUB_ENV
     - name: Run tests
