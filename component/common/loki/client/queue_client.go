@@ -135,8 +135,9 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		counter.WithLabelValues(c.cfg.URL.Host).Add(0)
 	}
 
-	c.wg.Add(1)
+	c.wg.Add(2)
 	go c.runSendQueue()
+	go c.runSendOldBatches()
 	return c, nil
 }
 
@@ -237,6 +238,23 @@ func (c *queueClient) enqueue(tenantID string, b *batch) {
 }
 
 func (c *queueClient) runSendQueue() {
+	defer c.wg.Done()
+
+	for {
+		select {
+		case <-c.quit:
+			return
+
+		case qb, ok := <-c.sendQueue:
+			if !ok {
+				return
+			}
+			c.sendBatch(context.Background(), qb.TenantID, qb.Batch)
+		}
+	}
+}
+
+func (c *queueClient) runSendOldBatches() {
 	// Given the client handles multiple batches (1 per tenant) and each batch
 	// can be created at a different point in time, we look for batches whose
 	// max wait time has been reached every 10 times per BatchWait, so that the
@@ -261,12 +279,6 @@ func (c *queueClient) runSendQueue() {
 		select {
 		case <-c.quit:
 			return
-
-		case qb, ok := <-c.sendQueue:
-			if !ok {
-				return
-			}
-			c.sendBatch(context.Background(), qb.TenantID, qb.Batch)
 
 		case <-maxWaitCheck.C:
 			c.batchesMtx.Lock()
