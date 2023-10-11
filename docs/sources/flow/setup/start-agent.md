@@ -172,4 +172,40 @@ Replace the following:
 * `BINARY_PATH`: The path to the Grafana Agent binary file
 * `CONFIG_FILE`: The path to the Grafana Agent configuration file.
 
+### Set up Grafana Agent as a Linux systemd service
+
+You can set up and manage the standalone binary for Grafana Agent as a Linux systemd service.
+
+1. Create a new user called `grafana-agent`.
+   ```shell
+   sudo useradd --no-create-home --shell /bin/false grafana-agent
+   ```
+
+1. Create a file in `/etc/systemd/system` called `grafana-agent.service` with the following contents.
+
+   ```shell
+   [Unit]
+   Description=Grafana Agent
+
+   [Service]
+   User=grafana-agent
+   ExecStart=BINARY_PATH/grafana-agent --config.file=/etc/grafana-agent-flow.river
+   Restart=always
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   Replace the following:
+
+   * `BINARY_PATH`: The path to the Grafana Agent binary file
+
+1. Reload the service files.
+
+   ```shell
+   sudo systemctl daemon-reload
+   ```
+
+1. Use the [Linux](#linux) systemd commands to manage your standalone Linux installation of Grafana Agent.
+
 [release]: https://github.com/grafana/agent/releases/latest
