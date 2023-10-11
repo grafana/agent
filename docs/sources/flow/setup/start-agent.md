@@ -28,7 +28,7 @@ To start Grafana Agent, run the following command in a terminal window:
 sudo systemctl start grafana-agent-flow
 ```
 
-(Optional) Verify that the service is running:
+(Optional) To verify that the service is running, run the following command in a terminal window:
 
 ```shell
 sudo systemctl status grafana-agent-flow
@@ -80,7 +80,7 @@ brew services start grafana-agent-flow
 
 Grafana Agent automatically runs when the system starts.
 
-(Optional) Verify that the service is running:
+(Optional) To verify that the service is running, run the following command in a terminal window:
 
 ```shell
 brew services info grafana-agent-flow
@@ -150,13 +150,13 @@ If you downloaded the standalone binary, you must run the agent from a terminal 
 To start Grafana Agent on Linux, macOS, or FreeBSD, run the following command in a terminal window:
 
 ```shell
-AGENT_MODE=flow BINARY_PATH run CONFIG_FILE
+AGENT_MODE=flow BINARY_PATH run CONFIG_PATH
 ```
 
 Replace the following:
 
-* `BINARY_PATH`: The path to the Grafana Agent binary file
-* `CONFIG_FILE`: The path to the Grafana Agent configuration file.
+* `BINARY_PATH`: The path and Grafana Agent binary filename.
+* `CONFIG_PATH`: The path and Grafana Agent configuration filename.
 
 ### Start Grafana Agent on Windows
 
@@ -164,12 +164,88 @@ To start Grafana Agent on Windows, run the following commands in a command promp
 
 ```cmd
 set AGENT_MODE=flow
-BINARY_PATH run CONFIG_FILE
+BINARY_PATH run CONFIG_PATH
 ```
 
 Replace the following:
 
-* `BINARY_PATH`: The path to the Grafana Agent binary file
-* `CONFIG_FILE`: The path to the Grafana Agent configuration file.
+* `BINARY_PATH`: The path and Grafana Agent binary filename.
+* `CONFIG_PATH`: The path and Grafana Agent configuration filename.
+
+### Set up Grafana Agent as a Linux systemd service
+
+You can set up and manage the standalone binary for Grafana Agent as a Linux systemd service.
+
+{{% admonition type="note" %}}
+These steps assume you have a default systemd and Grafana Agent configuration.
+{{% /admonition %}}
+
+1. To create a new user called `grafana-agent-flow` run the following command in a terminal window:
+
+   ```shell
+   sudo useradd --no-create-home --shell /bin/false grafana-agent-flow
+   ```
+
+1. Create a service file in `/etc/systemd/system` called `grafana-agent-flow.service` with the following contents:
+
+   ```shell
+   [Unit]
+   Description=Vendor-neutral programmable observability pipelines.
+   Documentation=https://grafana.com/docs/agent/latest/flow/
+   Wants=network-online.target
+   After=network-online.target
+
+   [Service]
+   Restart=always
+   User=grafana-agent-flow
+   Environment=HOSTNAME=%H
+   EnvironmentFile=/etc/default/grafana-agent-flow
+   WorkingDirectory=WORKING_PATH
+   ExecStart=BINARY_PATH run $CUSTOM_ARGS --storage.path=WORKING_PATH $CONFIG_FILE
+   ExecReload=/usr/bin/env kill -HUP $MAINPID
+   TimeoutStopSec=20s
+   SendSIGKILL=no
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   Replace the following:
+
+   * `BINARY_PATH`: The path and Grafana Agent binary filename.
+   * `WORKING_PATH`: The path to a working directory, for example `/var/lib/grafana-agent-flow`.
+
+1. Create an environment file in `/etc/default/` called `grafana-agent-flow` with the following contents:
+
+   ```shell
+   ## Path:
+   ## Description: Grafana Agent Flow settings
+   ## Type:        string
+   ## Default:     ""
+   ## ServiceRestart: grafana-agent-flow
+   #
+   # Command line options for grafana-agent
+   #
+   # The configuration file holding the agent config.
+   CONFIG_FILE="CONFIG_PATH"
+
+   # User-defined arguments to pass to the run command.
+   CUSTOM_ARGS=""
+
+   # Restart on system upgrade. Defaults to true.
+   RESTART_ON_UPGRADE=true
+   ```
+
+   Replace the following:
+
+      * `CONFIG_PATH`: The path and Grafana Agent configuration filename.
+
+1. To reload the service files, run the following command in a terminal window:
+
+   ```shell
+   sudo systemctl daemon-reload
+   ```
+
+1. Use the [Linux](#linux) systemd commands to manage your standalone Linux installation of Grafana Agent.
 
 [release]: https://github.com/grafana/agent/releases/latest
