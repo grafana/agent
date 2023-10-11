@@ -28,7 +28,7 @@ To start Grafana Agent, run the following command in a terminal window:
 sudo systemctl start grafana-agent-flow
 ```
 
-(Optional) Verify that the service is running:
+(Optional) To verify that the service is running, run the following command in a terminal window:
 
 ```shell
 sudo systemctl status grafana-agent-flow
@@ -80,7 +80,7 @@ brew services start grafana-agent-flow
 
 Grafana Agent automatically runs when the system starts.
 
-(Optional) Verify that the service is running:
+(Optional) To verify that the service is running, run the following command in a terminal window:
 
 ```shell
 brew services info grafana-agent-flow
@@ -150,13 +150,13 @@ If you downloaded the standalone binary, you must run the agent from a terminal 
 To start Grafana Agent on Linux, macOS, or FreeBSD, run the following command in a terminal window:
 
 ```shell
-AGENT_MODE=flow BINARY_PATH run CONFIG_FILE
+AGENT_MODE=flow BINARY_PATH run CONFIG_PATH
 ```
 
 Replace the following:
 
-* `BINARY_PATH`: The path to the Grafana Agent binary file
-* `CONFIG_FILE`: The path to the Grafana Agent configuration file.
+* `BINARY_PATH`: The path and Grafana Agent binary filename.
+* `CONFIG_PATH`: The path and Grafana Agent configuration filename.
 
 ### Start Grafana Agent on Windows
 
@@ -164,13 +164,13 @@ To start Grafana Agent on Windows, run the following commands in a command promp
 
 ```cmd
 set AGENT_MODE=flow
-BINARY_PATH run CONFIG_FILE
+BINARY_PATH run CONFIG_PATH
 ```
 
 Replace the following:
 
-* `BINARY_PATH`: The path to the Grafana Agent binary file
-* `CONFIG_FILE`: The path to the Grafana Agent configuration file.
+* `BINARY_PATH`: The path and Grafana Agent binary filename.
+* `CONFIG_PATH`: The path and Grafana Agent configuration filename.
 
 ### Set up Grafana Agent as a Linux systemd service
 
@@ -200,8 +200,8 @@ These steps assume you have a default systemd and Grafana Agent configuration.
    User=grafana-agent-flow
    Environment=HOSTNAME=%H
    EnvironmentFile=/etc/default/grafana-agent-flow
-   WorkingDirectory=WORKING_PATH/grafana-agent-flow
-   ExecStart=BINARY_PATH/grafana-agent-flow run $CUSTOM_ARGS --storage.path=WORKING_PATH/grafana-agent-flow $CONFIG_FILE
+   WorkingDirectory=WORKING_PATH
+   ExecStart=BINARY_PATH run $CUSTOM_ARGS --storage.path=WORKING_PATH $CONFIG_FILE
    ExecReload=/usr/bin/env kill -HUP $MAINPID
    TimeoutStopSec=20s
    SendSIGKILL=no
@@ -212,7 +212,7 @@ These steps assume you have a default systemd and Grafana Agent configuration.
 
    Replace the following:
 
-   * `BINARY_PATH`: The path to the Grafana Agent binary file
+   * `BINARY_PATH`: The path and Grafana Agent binary filename.
    * `WORKING_PATH`: The path to a working directory, for example `/var/lib/grafana-agent-flow`.
 
 1. Create an environment file in `/etc/default/` called `grafana-agent-flow` with the following contents:
@@ -227,7 +227,7 @@ These steps assume you have a default systemd and Grafana Agent configuration.
    # Command line options for grafana-agent
    #
    # The configuration file holding the agent config.
-   CONFIG_FILE="CONFIGURATION_PATH/grafana-agent-flow.river"
+   CONFIG_FILE="CONFIG_PATH"
 
    # User-defined arguments to pass to the run command.
    CUSTOM_ARGS=""
@@ -238,7 +238,7 @@ These steps assume you have a default systemd and Grafana Agent configuration.
 
    Replace the following:
 
-      * `CONFIGURATION_PATH`: The path to the Grafana Agent configuration file
+      * `CONFIG_PATH`: The path and Grafana Agent configuration filename.
 
 1. To reload the service files, run the following command in a terminal window:
 
