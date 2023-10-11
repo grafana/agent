@@ -36,6 +36,9 @@ fail=true
 	err = t1.updateContent(badContent)
 	// Because we have bad content this should fail, but the ids should be removed.
 	require.Error(t, err)
+	// fail a second time to ensure the once is done again.
+	err = t1.updateContent(badContent)
+	require.Error(t, err)
 	goodContent :=
 		`test.fail.module "int" { 
 content=""

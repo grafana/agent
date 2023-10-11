@@ -6,6 +6,7 @@ import (
 	"path"
 	"sync"
 
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
@@ -46,48 +47,42 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 	if id != "" {
 		fullPath = path.Join(fullPath, id)
 	}
-	if _, found := m.modules[fullPath]; found {
-		return nil, fmt.Errorf("id %s already exists", id)
-	}
 
 	mod := newModule(&moduleOptions{
-		ID:                      fullPath,
+		FullPath:                fullPath,
+		LocalID:                 id,
 		export:                  export,
 		moduleControllerOptions: m.o,
 		parent:                  m,
 	})
 
-	if err := m.o.ModuleRegistry.Register(fullPath, mod); err != nil {
-		return nil, err
-	}
-
-	m.modules[fullPath] = struct{}{}
 	return mod, nil
 }
 
-func (m *moduleController) removeID(id string) {
+func (m *moduleController) removeModule(mod *module) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	m.o.ModuleRegistry.Unregister(id)
-	delete(m.modules, id)
+	m.o.ModuleRegistry.Unregister(mod.o.FullPath)
+	delete(m.modules, mod.o.FullPath)
 }
 
-// ClearModuleIDs removes all ids from the registry.
-func (m *moduleController) ClearModuleIDs() {
+func (m *moduleController) addModule(mod *module) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
-
-	for id := range m.modules {
-		m.o.ModuleRegistry.Unregister(id)
+	if err := m.o.ModuleRegistry.Register(mod.o.FullPath, mod); err != nil {
+		level.Error(m.o.Logger).Log("msg", "error registering module", "id", mod.o.FullPath, "err", err)
+		return err
 	}
-	m.modules = make(map[string]struct{})
+	m.modules[mod.o.FullPath] = struct{}{}
+	return nil
 }
 
 // ModuleIDs implements [controller.ModuleController].
 func (m *moduleController) ModuleIDs() []string {
 	m.mut.RLock()
 	defer m.mut.RUnlock()
+
 	return maps.Keys(m.modules)
 }
 
@@ -97,9 +92,10 @@ type module struct {
 }
 
 type moduleOptions struct {
-	ID     string
-	export component.ExportFunc
-	parent *moduleController
+	FullPath string // FullPath is the full name including all parents, "module.file.example.prometheus.remote_write.id".
+	LocalID  string // LocalID is the id of this module without the full path, "prometheus.remote_write.id" of the above.
+	export   component.ExportFunc
+	parent   *moduleController
 	*moduleControllerOptions
 }
 
@@ -117,7 +113,7 @@ func newModule(o *moduleOptions) *module {
 			ComponentRegistry: o.ComponentRegistry,
 			WorkerPool:        o.WorkerPool,
 			Options: Options{
-				ControllerID: o.ID,
+				ControllerID: o.FullPath,
 				Tracer:       o.Tracer,
 				Reg:          o.Reg,
 				Logger:       o.Logger,
@@ -135,7 +131,7 @@ func newModule(o *moduleOptions) *module {
 
 // LoadConfig parses River config and loads it.
 func (c *module) LoadConfig(config []byte, args map[string]any) error {
-	ff, err := ParseSource(c.o.ID, config)
+	ff, err := ParseSource(c.o.FullPath, config)
 	if err != nil {
 		return err
 	}
@@ -146,9 +142,14 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 // will be run until Run is called.
 //
 // Run blocks until the provided context is canceled.
-func (c *module) Run(ctx context.Context) {
-	defer c.o.parent.removeID(c.o.ID)
+func (c *module) Run(ctx context.Context) error {
+	if err := c.o.parent.addModule(c); err != nil {
+		return err
+	}
+	defer c.o.parent.removeModule(c)
+
 	c.f.Run(ctx)
+	return nil
 }
 
 // moduleControllerOptions holds static options for module controller.

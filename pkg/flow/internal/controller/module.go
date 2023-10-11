@@ -9,7 +9,4 @@ type ModuleController interface {
 
 	// ModuleIDs returns the list of managed modules in unspecified order.
 	ModuleIDs() []string
-
-	// ClearModuleIDs removes all the module id references from the controller.
-	ClearModuleIDs()
 }
