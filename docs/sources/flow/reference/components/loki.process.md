@@ -56,11 +56,11 @@ The following blocks are supported inside the definition of `loki.process`:
 | stage.decolorize          | [stage.decolorize][]          | Strips ANSI color codes from log lines.              | no       |
 | stage.docker              | [stage.docker][]              | Configures a pre-defined Docker log format pipeline. | no       |
 | stage.drop                | [stage.drop][]                | Configures a `drop` processing stage.                | no       |
+| stage.geoip               | [stage.geoip][]               | Configures a `geoip` processing stage.               | no       |
 | stage.json                | [stage.json][]                | Configures a JSON processing stage.                  | no       |
 | stage.label_drop          | [stage.label_drop][]          | Configures a `label_drop` processing stage.          | no       |
 | stage.label_keep          | [stage.label_keep][]          | Configures a `label_keep` processing stage.          | no       |
 | stage.labels              | [stage.labels][]              | Configures a `labels` processing stage.              | no       |
-| stage.structured_metadata | [stage.structured_metadata][] | Configures a structured metadata processing stage.   | no       |
 | stage.limit               | [stage.limit][]               | Configures a `limit` processing stage.               | no       |
 | stage.logfmt              | [stage.logfmt][]              | Configures a `logfmt` processing stage.              | no       |
 | stage.match               | [stage.match][]               | Configures a `match` processing stage.               | no       |
@@ -70,11 +70,12 @@ The following blocks are supported inside the definition of `loki.process`:
 | stage.pack                | [stage.pack][]                | Configures a `pack` processing stage.                | no       |
 | stage.regex               | [stage.regex][]               | Configures a `regex` processing stage.               | no       |
 | stage.replace             | [stage.replace][]             | Configures a `replace` processing stage.             | no       |
+| stage.sampling            | [stage.sampling][]            | Samples logs at a given rate.                        | no       |
 | stage.static_labels       | [stage.static_labels][]       | Configures a `static_labels` processing stage.       | no       |
+| stage.structured_metadata | [stage.structured_metadata][] | Configures a structured metadata processing stage.   | no       |
 | stage.template            | [stage.template][]            | Configures a `template` processing stage.            | no       |
 | stage.tenant              | [stage.tenant][]              | Configures a `tenant` processing stage.              | no       |
 | stage.timestamp           | [stage.timestamp][]           | Configures a `timestamp` processing stage.           | no       |
-| stage.geoip               | [stage.geoip][]               | Configures a `geoip` processing stage.               | no       |
 
 A user can provide any number of these stage blocks nested inside
 `loki.process`; these will run in order of appearance in the configuration
@@ -84,11 +85,11 @@ file.
 [stage.decolorize]: #stagedecolorize-block
 [stage.docker]: #stagedocker-block
 [stage.drop]: #stagedrop-block
+[stage.geoip]: #stagegeoip-block
 [stage.json]: #stagejson-block
 [stage.label_drop]: #stagelabel_drop-block
 [stage.label_keep]: #stagelabel_keep-block
 [stage.labels]: #stagelabels-block
-[stage.structured_metadata]: #stagestructuredmetadata-block
 [stage.limit]: #stagelimit-block
 [stage.logfmt]: #stagelogfmt-block
 [stage.match]: #stagematch-block
@@ -98,11 +99,12 @@ file.
 [stage.pack]: #stagepack-block
 [stage.regex]: #stageregex-block
 [stage.replace]: #stagereplace-block
+[stage.sampling]: #stagesampling-block
 [stage.static_labels]: #stagestatic_labels-block
+[stage.structured_metadata]: #stagestructuredmetadata-block
 [stage.template]: #stagetemplate-block
 [stage.tenant]: #stagetenant-block
 [stage.timestamp]: #stagetimestamp-block
-[stage.geoip]: #stagegeoip-block
 
 
 ### stage.cri block
@@ -1096,6 +1098,30 @@ ToLower, ToUpper, Replace, Trim, TrimLeftTrimRight, TrimPrefix, TrimSuffix, Trim
 
 "{{ if eq .Value \"200\" }}{{ Replace .Value \"200\" \"HttpStatusOk\" -1 }}{{ else }}{{ .Value | ToUpper }}{{ end }}"
 "*IP4*{{ .Value | Hash "salt" }}*"
+```
+
+### stage.sampling block
+
+The `sampling` stage is used to sample the logs. Configuring the value 
+`rate = 0.1` means that 10% of the logs will continue to be processed. The
+remaining 90% of the logs will be dropped.
+
+The following arguments are supported:
+
+| Name                  | Type     | Description                                                                                        | Default        | Required |
+|-----------------------|----------|----------------------------------------------------------------------------------------------------|----------------|----------|
+| `rate`                | `float`  | The sampling rate in a range of `[0, 1]`                                                           |                | yes      |
+| `drop_counter_reason` | `string` | The label to add to `loki_process_dropped_lines_total` metric when logs are dropped by this stage. | sampling_stage | no       |
+
+For example, the configuration below will sample 25% of the logs and drop the 
+remaining 75%. When logs are dropped, the `loki_process_dropped_lines_total` 
+metric is incremented with an additional `reason=logs_sampling` label.
+
+```river
+stage.sampling {
+    rate = 0.25
+    drop_counter_reason = "logs_sampling"
+}
 ```
 
 ### stage.static_labels block

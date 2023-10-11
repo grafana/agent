@@ -15,6 +15,9 @@ Main (unreleased)
 - Added a new `stage.decolorize` stage to `loki.process` component which 
   allows to strip ANSI color codes from the log lines. (@thampiotr)
 
+- Added a new `stage.sampling` stage to `loki.process` component which
+  allows to only process a fraction of logs and drop the rest. (@thampiotr)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
