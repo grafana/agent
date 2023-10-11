@@ -77,14 +77,19 @@ func (c *queueClient) StoreSeries(series []record.RefSeries, segment int) {
 	}
 }
 
-func NewQueue(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger) (*queueClient, error) {
+type QueueConfig struct {
+	Size         int
+	DrainTimeout time.Duration
+}
+
+func NewQueue(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, queueConfig QueueConfig) (*queueClient, error) {
 	if cfg.StreamLagLabels.String() != "" {
 		return nil, fmt.Errorf("client config stream_lag_labels is deprecated and the associated metric has been removed, stream_lag_labels: %+v", cfg.StreamLagLabels.String())
 	}
-	return newQueueClient(metrics, cfg, maxStreams, maxLineSize, maxLineSizeTruncate, logger)
+	return newQueueClient(metrics, cfg, maxStreams, maxLineSize, maxLineSizeTruncate, logger, queueConfig)
 }
 
-func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger) (*queueClient, error) {
+func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, queueConfig QueueConfig) (*queueClient, error) {
 	if cfg.URL.URL == nil {
 		return nil, errors.New("client needs target URL")
 	}
@@ -95,8 +100,8 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		logger:       log.With(logger, "component", "client", "host", cfg.URL.Host),
 		cfg:          cfg,
 		metrics:      metrics,
-		sendQueue:    make(chan queuedBatch, 10), // this channel should have some buffering
-		drainTimeout: 5 * time.Minute,            // make this configurable
+		sendQueue:    make(chan queuedBatch, queueConfig.Size), // this channel should have some buffering
+		drainTimeout: queueConfig.DrainTimeout,                 // make this configurable
 		quit:         make(chan struct{}),
 
 		batches: make(map[string]*batch),

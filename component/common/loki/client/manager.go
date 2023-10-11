@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/flow/logging/level"
@@ -75,7 +76,10 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 			// add some context information for the logger the watcher uses
 			wlog := log.With(logger, "client", configName)
 
-			queue, err := NewQueue(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger)
+			queue, err := NewQueue(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger, QueueConfig{
+				DrainTimeout: time.Minute * 5,
+				Size:         10,
+			})
 			if err != nil {
 				return nil, fmt.Errorf("error starting queue client: %w", err)
 			}
