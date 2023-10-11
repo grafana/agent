@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- Remove `otelcol.exporter.jaeger` component (@hainenber)
+
 ### Features
 
 - Added a new `stage.decolorize` stage to `loki.process` component which 
