@@ -24,8 +24,6 @@ type WriterEventsNotifier interface {
 var (
 	// NilNotifier is a no-op WriterEventsNotifier.
 	NilNotifier = nilNotifier{}
-
-	NilMarker = nilMarker{}
 )
 
 // nilNotifier implements WriterEventsNotifier with no-ops callbacks.
@@ -34,13 +32,6 @@ type nilNotifier struct{}
 func (n nilNotifier) SubscribeCleanup(_ wal.CleanupEventSubscriber) {}
 
 func (n nilNotifier) SubscribeWrite(_ wal.WriteEventSubscriber) {}
-
-// nilMarker implements Marker returning always a non-existing segment number.
-type nilMarker struct{}
-
-func (n nilMarker) LastMarkedSegment() int {
-	return -1
-}
 
 type Stoppable interface {
 	Stop()
@@ -92,7 +83,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 			// series cache whenever a segment is deleted.
 			notifier.SubscribeCleanup(queue)
 
-			watcher := wal.NewWatcher(walCfg.Dir, configName, watcherMetrics, queue, wlog, walCfg.WatchConfig, NilMarker)
+			watcher := wal.NewWatcher(walCfg.Dir, configName, watcherMetrics, queue, wlog, walCfg.WatchConfig)
 			// subscribe watcher to wal write events
 			notifier.SubscribeWrite(watcher)
 

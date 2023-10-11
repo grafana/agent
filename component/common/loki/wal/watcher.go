@@ -25,10 +25,6 @@ const (
 	debug = false
 )
 
-var (
-	ErrIgnorable = fmt.Errorf("ignore me") // ignorable error used when Watcher is replaying WAL segments
-)
-
 // Based in the implementation of prometheus WAL watcher
 // https://github.com/prometheus/prometheus/blob/main/tsdb/wlog/watcher.go. Includes some changes to make it suitable
 // for log WAL entries, but also, the writeTo surface has been implemented according to the actions necessary for
@@ -62,18 +58,7 @@ type WriteTo interface {
 	// found in.
 	StoreSeries(series []record.RefSeries, segmentNum int)
 
-	AppendEntries(entries wal.RefEntries, segment int) error
-}
-
-// Marker allows the Watcher to start from a specific segment in the WAL.
-// Implementers can use this interface to save and restore save points.
-type Marker interface {
-	// LastMarkedSegment should return the last segment stored in the marker.
-	// Must return nil if there is no mark.
-	//
-	// The Watcher will start reading the first segment whose value is greater
-	// than the return value.
-	LastMarkedSegment() int
+	AppendEntries(entries wal.RefEntries, segmentNum int) error
 }
 
 type Watcher struct {
@@ -89,30 +74,25 @@ type Watcher struct {
 	logger     log.Logger
 	MaxSegment int
 
-	marker       Marker
-	savedSegment int // last tailed marker
-
 	metrics     *WatcherMetrics
 	minReadFreq time.Duration
 	maxReadFreq time.Duration
 }
 
 // NewWatcher creates a new Watcher.
-func NewWatcher(walDir, id string, metrics *WatcherMetrics, writeTo WriteTo, logger log.Logger, config WatchConfig, marker Marker) *Watcher {
+func NewWatcher(walDir, id string, metrics *WatcherMetrics, writeTo WriteTo, logger log.Logger, config WatchConfig) *Watcher {
 	return &Watcher{
-		walDir:       walDir,
-		id:           id,
-		actions:      writeTo,
-		readNotify:   make(chan struct{}),
-		quit:         make(chan struct{}),
-		done:         make(chan struct{}),
-		MaxSegment:   -1,
-		marker:       marker,
-		savedSegment: -1,
-		logger:       logger,
-		metrics:      metrics,
-		minReadFreq:  config.MinReadFrequency,
-		maxReadFreq:  config.MaxReadFrequency,
+		walDir:      walDir,
+		id:          id,
+		actions:     writeTo,
+		readNotify:  make(chan struct{}),
+		quit:        make(chan struct{}),
+		done:        make(chan struct{}),
+		MaxSegment:  -1,
+		logger:      logger,
+		metrics:     metrics,
+		minReadFreq: config.MinReadFrequency,
+		maxReadFreq: config.MaxReadFrequency,
 	}
 }
 
@@ -127,11 +107,6 @@ func (w *Watcher) Start() {
 func (w *Watcher) mainLoop() {
 	defer close(w.done)
 	for !isClosed(w.quit) {
-		if w.marker != nil {
-			w.savedSegment = w.marker.LastMarkedSegment()
-			level.Debug(w.logger).Log("msg", "last saved segment", "segment", w.savedSegment)
-		}
-
 		if err := w.run(); err != nil {
 			level.Error(w.logger).Log("msg", "error tailing WAL", "err", err)
 		}
@@ -153,15 +128,6 @@ func (w *Watcher) run() error {
 	}
 
 	currentSegment := lastSegment
-	// TODO(thepalbi): taking as convention that the segment number stored in the marker is the last read completely
-	if nextToSavedSegment, err := w.findSegmentForIndex(w.savedSegment); w.savedSegment != -1 && err == nil {
-		// if the marker contains a valid segment number stored, and we correctly find the segment that follows that one,
-		// start tailing from there.
-		currentSegment = nextToSavedSegment
-	} else {
-		level.Debug(w.logger).Log("msg", fmt.Sprintf("failed to find segment for saved index %d", w.savedSegment), "err", err)
-	}
-
 	level.Debug(w.logger).Log("msg", "Tailing WAL", "currentSegment", currentSegment, "lastSegment", lastSegment)
 	for !isClosed(w.quit) {
 		w.metrics.currentSegment.WithLabelValues(w.id).Set(float64(currentSegment))
@@ -169,7 +135,7 @@ func (w *Watcher) run() error {
 
 		// On start, we have a pointer to what is the latest segment. On subsequent calls to this function,
 		// currentSegment will have been incremented, and we should open that segment.
-		if err := w.watch(currentSegment, currentSegment >= lastSegment); err != nil && !errors.Is(err, ErrIgnorable) {
+		if err := w.watch(currentSegment); err != nil {
 			return err
 		}
 
@@ -184,27 +150,10 @@ func (w *Watcher) run() error {
 	return nil
 }
 
-// findSegmentForIndex finds the first segment greater than or equal to index.
-func (w *Watcher) findSegmentForIndex(index int) (int, error) {
-	// TODO(thepalbi): is segs in order?
-	segs, err := readSegmentNumbers(w.walDir)
-	if err != nil {
-		return -1, err
-	}
-
-	for _, r := range segs {
-		if r > index {
-			return r, nil
-		}
-	}
-
-	return -1, errors.New("failed to find segment for index")
-}
-
 // watch will start reading from the segment identified by segmentNum. If an EOF is reached, it will keep
 // reading for more WAL records with a wlog.LiveReader. Periodically, it will check if there's a new segment, and if positive
 // read the remaining from the current one and return.
-func (w *Watcher) watch(segmentNum int, tail bool) error {
+func (w *Watcher) watch(segmentNum int) error {
 	segment, err := wlog.OpenReadSegment(wlog.SegmentName(w.walDir, segmentNum))
 	if err != nil {
 		return err
@@ -217,18 +166,6 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 
 	segmentTicker := time.NewTicker(segmentCheckPeriod)
 	defer segmentTicker.Stop()
-
-	// If we're replaying the segment we need to know the size of the file to know
-	// when to return from watch and move on to the next segment.
-	size := int64(math.MaxInt64)
-	if !tail {
-		segmentTicker.Stop()
-		var err error
-		size, err = getSegmentSize(w.walDir, segmentNum)
-		if err != nil {
-			return fmt.Errorf("error getting segment size: %w", err)
-		}
-	}
 
 	for {
 		select {
@@ -275,18 +212,7 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 		// read from open segment routine
 		ok, err := w.readSegment(reader, segmentNum)
 		if debug {
-			level.Warn(w.logger).Log("msg", "Error reading segment inside read ticker or notification", "segment", segmentNum, "read", reader.Offset(), "err", err)
-		}
-
-		// Ignore all errors reading to end of segment whilst replaying the WAL. If error, log a warning accordingly. If not,
-		// return with an ignorable error.
-		if !tail {
-			if err != nil && errors.Unwrap(err) != io.EOF {
-				level.Warn(w.logger).Log("msg", "Ignoring error reading to end of segment, may have dropped data", "segment", segmentNum, "err", err)
-			} else if reader.Offset() != size {
-				level.Warn(w.logger).Log("msg", "Expected to have read whole segment, may have dropped data", "segment", segmentNum, "read", reader.Offset(), "size", size)
-			}
-			return ErrIgnorable
+			level.Warn(w.logger).Log("msg", "Error reading segment inside readTicker", "segment", segmentNum, "read", reader.Offset(), "err", err)
 		}
 
 		// io.EOF error are non-fatal since we are tailing the wal
@@ -422,14 +348,4 @@ func readSegmentNumbers(dir string) ([]int, error) {
 		refs = append(refs, k)
 	}
 	return refs, nil
-}
-
-// Get size of segment.
-func getSegmentSize(dir string, index int) (int64, error) {
-	i := int64(-1)
-	fi, err := os.Stat(wlog.SegmentName(dir, index))
-	if err == nil {
-		i = fi.Size()
-	}
-	return i, err
 }
