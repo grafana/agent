@@ -213,6 +213,32 @@ func TestIDList(t *testing.T) {
 	}, 1*time.Second, 100*time.Millisecond)
 }
 
+func TestDuplicateIDList(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
+	o := testModuleControllerOptions(t)
+	defer o.WorkerPool.Stop()
+	nc := newModuleController(o)
+	require.Len(t, nc.ModuleIDs(), 0)
+
+	mod1, err := nc.NewModule("t1", nil)
+	require.NoError(t, err)
+	ctx := context.Background()
+	ctx, cncl := context.WithCancel(ctx)
+	defer cncl()
+	go func() {
+		m1err := mod1.Run(ctx)
+		require.NoError(t, m1err)
+	}()
+	require.Eventually(t, func() bool {
+		return len(nc.ModuleIDs()) == 1
+	}, 5*time.Second, 100*time.Millisecond)
+
+	// This should panic with duplicate registration.
+	require.PanicsWithError(t, "duplicate metrics collector registration attempted", func() {
+		_, _ = nc.NewModule("t1", nil)
+	})
+}
+
 func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	t.Helper()
 
