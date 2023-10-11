@@ -190,7 +190,7 @@ You can set up and manage the standalone binary for Grafana Agent as a Linux sys
 
    [Service]
    User=grafana-agent
-   ExecStart=BINARY_PATH/grafana-agent --config.file=/etc/grafana-agent-flow.river
+   ExecStart=BINARY_PATH/grafana-agent run /etc/grafana-agent-flow.river
    Restart=always
 
    [Install]
