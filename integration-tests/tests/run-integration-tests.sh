@@ -17,7 +17,7 @@ cleanup() {
             docker-compose down
         fi
         kill $AGENT_PID || true
-        rm -rf data-agent
+        sudo rm -rf data-agent
         rm -f "$logfile"
     fi
 }
