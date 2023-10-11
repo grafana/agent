@@ -35,7 +35,7 @@ Unfortunately, updating Otel dependencies is not straightforward:
 
 ### Update the Grafana fork of Otel Collector
 
-1. Create a new release branch with a `-grafana` suffix under [grafana/opentelemetry-collector](https://github.com/grafana/opentelemetry-collector). For example, if porting branch `v0.86.0`, make a branch under the fork repo called `0.86-grafana`.
+1. Create a new release branch from the [opentelemetry release branch](https://github.com/open-telemetry/opentelemetry-collector) with a `-grafana` suffix under [grafana/opentelemetry-collector](https://github.com/grafana/opentelemetry-collector). For example, if porting branch `v0.86.0`, make a branch under the fork repo called `0.86-grafana`.
 2. Check which branch of the fork repo the Agent currently uses.
 3. See what commits were pushed onto that branch to customize it.
 4. Create a PR to cherry-pick the same commits to the new branch. See the [changes to the 0.85 branch](https://github.com/grafana/opentelemetry-collector/pull/8) for an example PR.
@@ -47,7 +47,7 @@ Unfortunately, updating Otel dependencies is not straightforward:
    ```
    go mod edit -replace=go.opentelemetry.io/collector=github.com/grafana/opentelemetry-collector@asdf123jkl
    ```
-   Repeat this for any other modules where a replacement is necessary.
+   Repeat this for any other modules where a replacement is necessary. For debugging purposes, you can first have the replace directive pointing to your local repo.
 3. Note that sometimes Collector depends on packages with "rc" versions such as `v1.0.0-rcv0013`. This is ok, as long as the go.mod of Collector also references the same versions - for example, [pdata](https://github.com/open-telemetry/opentelemetry-collector/blob/v0.81.0/go.mod#L25) and [featuregate](https://github.com/open-telemetry/opentelemetry-collector/blob/v0.81.0/go.mod#L24).
 
 ### Update otelcol Flow components
