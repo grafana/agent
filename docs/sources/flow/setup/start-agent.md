@@ -176,12 +176,13 @@ Replace the following:
 
 You can set up and manage the standalone binary for Grafana Agent as a Linux systemd service.
 
-1. Create a new user called `grafana-agent`.
+1. To create a new user called `grafana-agent` run the following command in a terminal window:
+
    ```shell
    sudo useradd --no-create-home --shell /bin/false grafana-agent
    ```
 
-1. Create a file in `/etc/systemd/system` called `grafana-agent.service` with the following contents.
+1. Create a file in `/etc/systemd/system` called `grafana-agent.service` with the following contents:
 
    ```shell
    [Unit]
@@ -200,7 +201,7 @@ You can set up and manage the standalone binary for Grafana Agent as a Linux sys
 
    * `BINARY_PATH`: The path to the Grafana Agent binary file
 
-1. Reload the service files.
+1. To reload the service files,run the following command in a terminal window:
 
    ```shell
    sudo systemctl daemon-reload
