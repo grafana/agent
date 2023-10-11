@@ -66,9 +66,9 @@ remote_write:
     [ protocol: <string> | default = "grpc" | supported = "grpc", "http" ]
 
     # Controls what format to use when exporting traces, in combination with protocol.
-    # protocol/format supported combinations are grpc/otlp, http/otlp and grpc/jaeger
+    # protocol/format supported combinations are grpc/otlp and http/otlp.
     # Only grpc/otlp is supported in Grafana Cloud.
-    [ format: <string> | default = "otlp" | supported = "otlp", "jaeger" ]
+    [ format: <string> | default = "otlp" | supported = "otlp" ]
 
     # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
     [ insecure: <boolean> | default = false ]
@@ -323,11 +323,11 @@ load_balancing:
       [ port: <int> | default = 4317 ]
       # Resolver interval
       [ interval: <duration> | default = 5s ]
-      # Resolver timeout 
+      # Resolver timeout
       [ timeout: <duration> | default = 1s ]
 
   # routing_key can be either "traceID" or "service":
-  # * "service": exports spans based on their service name. 
+  # * "service": exports spans based on their service name.
   # * "traceID": exports spans based on their traceID.
   [ routing_key: <string> | default = "traceID" ]
 
@@ -415,9 +415,9 @@ service_graphs:
 # jaeger_remote_sampling configures one or more jaeger remote sampling extensions.
 # For more details about the configuration please consult the OpenTelemetry documentation:
 # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/extension/jaegerremotesampling
-# 
+#
 # Example config:
-# 
+#
 # jaeger_remote_sampling:
 #   - source:
 #       remote:
@@ -427,7 +427,7 @@ service_graphs:
 #   - source:
 #       reload_interval: 1s
 #       file: /etc/otelcol/sampling_strategies.json
-# 
+#
 jaeger_remote_sampling:
   [ - <jaeger_remote_sampling> ... ]
 ```
