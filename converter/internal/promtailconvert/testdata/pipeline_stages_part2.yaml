@@ -59,6 +59,10 @@ scrape_configs:
       - sampling:
           rate: 0
           drop_counter_reason: "womp womp!"
+      - eventlogmessage:
+          source: something
+          drop_invalid_labels: true
+          overwrite_existing: true
     kubernetes_sd_configs:
       - role: pod
         kubeconfig_file: /home/toby/.kube/config
