@@ -41,7 +41,7 @@ type StageConfig struct {
 	ReplaceConfig         *ReplaceConfig         `river:"replace,block,optional"`
 	StaticLabelsConfig    *StaticLabelsConfig    `river:"static_labels,block,optional"`
 	StructuredMetadata    *LabelsConfig          `river:"structured_metadata,block,optional"`
-	SamplingConfig     *SamplingConfig     `river:"sampling,block,optional"`
+	SamplingConfig        *SamplingConfig        `river:"sampling,block,optional"`
 	TemplateConfig        *TemplateConfig        `river:"template,block,optional"`
 	TenantConfig          *TenantConfig          `river:"tenant,block,optional"`
 	TimestampConfig       *TimestampConfig       `river:"timestamp,block,optional"`
