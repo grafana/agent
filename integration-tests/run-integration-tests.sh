@@ -25,7 +25,7 @@ success() {
     exit 0
 }
 
-#make -C .. agent-flow
+make -C .. agent-flow
 AGENT_BINARY_PATH="../../../build/grafana-agent-flow"
 
 docker-compose up -d
