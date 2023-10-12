@@ -8,7 +8,7 @@ weight: 320
 
 # Migrating from Grafana Agent Operator to Grafana Agent Flow
 
-With the release of flow, Grafana Agent Operator is no longer the recommended way to deploy Grafana Agent. Some of the Operator functionality has been moved into Grafana Agent
+With the release of flow, Grafana Agent Operator is no longer the recommended way to deploy Grafana Agent in Kubernetes. Some of the Operator functionality has been moved into Grafana Agent
 itself, and the remaining functionality has been replaced by our Helm Chart.
 
 - The Monitor types (`PodMonitor`, `ServiceMonitor`, `Probe`, and `LogsInstance`) are all supported natively by Grafana Agent in Flow mode. You no longer are 
