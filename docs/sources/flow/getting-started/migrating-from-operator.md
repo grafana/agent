@@ -34,7 +34,7 @@ This guide will provide some steps to get started with Grafana Agent for users c
     replicas: 2
     ```
 
-    This config will use Grafana Agent's built in [clustering]() to allow distributing scrapes across all Agent Pods.
+    This config will use Grafana Agent's built in [clustering](https://grafana.com/docs/agent/latest/flow/concepts/clustering/) to allow distributing scrapes across all Agent Pods.
 
 2. Create a flow config file, `agent.river`.
 
