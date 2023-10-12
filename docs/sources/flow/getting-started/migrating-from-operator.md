@@ -1,4 +1,3 @@
-
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-operator/
 description: Migrating from Grafana Agent Operator to Grafana Agent Flow
