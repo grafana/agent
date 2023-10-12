@@ -11,8 +11,8 @@ type Unmarshaler interface {
 	Unmarshal([]byte) error
 }
 
-const DefaultRetryInterval = time.Second * 5
-const DefaultTimeout = time.Minute * 2
+const DefaultRetryInterval = 100 * time.Millisecond
+const DefaultTimeout = time.Minute
 
 func FetchDataFromURL(url string, target Unmarshaler) error {
 	resp, err := http.Get(url)

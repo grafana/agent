@@ -4,7 +4,7 @@ services:
   mimir:
     image: grafana/mimir:2.9.0
     volumes:
-      - ../configs/mimir:/etc/mimir-config
+      - ./configs/mimir:/etc/mimir-config
     entrypoint:
       - /bin/mimir
       - -config.file=/etc/mimir-config/mimir.yaml
@@ -22,7 +22,7 @@ services:
     restart: always
     command: ["--config=/etc/otel-collector-contrib.yaml", ""]
     volumes:
-      - ../configs/otel-collector-contrib/otel-collector-contrib.yaml:/etc/otel-collector-contrib.yaml
+      - ./configs/otel-collector-contrib/otel-collector-contrib.yaml:/etc/otel-collector-contrib.yaml
     ports:
       - "4317:4317"   # OTLP gRPC receiver
       - "4318:4318"   # OTLP HTTP exporter
@@ -32,7 +32,7 @@ services:
   demo-client:
     build:
       dockerfile: Dockerfile
-      context: ../configs/otel-gen-client
+      context: ./configs/otel-gen-client
     restart: always
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
@@ -43,7 +43,7 @@ services:
   demo-server:
     build:
       dockerfile: Dockerfile
-      context: ../configs/otel-gen-server
+      context: ./configs/otel-gen-server
     restart: always
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317

@@ -21,5 +21,8 @@ jobs:
       run: echo "OTEL_EXPORTER_ENDPOINT=http://172.17.0.1:8080" >> $GITHUB_ENV
     - name: Run tests
       run: |
+        top -b -n 10 -d 5 > top_output.txt &
+        TOP_PID=$!
         cd integration-tests/tests
         ./run-integration-tests.sh
+        kill $TOP_PID
