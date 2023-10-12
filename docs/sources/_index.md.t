@@ -23,7 +23,7 @@ form programmable observability **pipelines** for telemetry collection,
 processing, and delivery.
 
 {{% admonition type="note" %}}
-This page focuses mainly on [Flow mode](https://grafana.com/docs/agent/latest/flow/), the Terraform-inspired variant of Grafana Agent.
+This page focuses mainly on [Flow mode](https://grafana.com/docs/agent/<AGENT VERSION>/flow/), the Terraform-inspired variant of Grafana Agent.
 
 For information on other variants of Grafana Agent, refer to [Introduction to Grafana Agent]({{< relref "./about.md" >}}).
 {{% /admonition %}}
