@@ -59,7 +59,7 @@ This guide will provide some steps to get started with Grafana Agent for users c
 
 A `MetricsInstance` resource primarily defines:
 
-- The remote endpoint(s) Grafana Agent to send metrics to.
+- The remote endpoint(s) Grafana Agent should send metrics to.
 - Which `PodMonitor`, `ServiceMonitor`, and `Probe` resources this Agent should discover.
 
 These functions can be done in Grafana Agent Flow with the `prometheus.remote_write`, `prometheus.operator.podmonitors`, `prometheus.operator.servicemonitors`, and `prometheus.operator.probes` components respectively.
