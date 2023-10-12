@@ -49,8 +49,7 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 	}
 
 	mod := newModule(&moduleOptions{
-		FullPath:                fullPath,
-		LocalID:                 id,
+		ID:                      fullPath,
 		export:                  export,
 		moduleControllerOptions: m.o,
 		parent:                  m,
@@ -63,18 +62,18 @@ func (m *moduleController) removeModule(mod *module) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	m.o.ModuleRegistry.Unregister(mod.o.FullPath)
-	delete(m.modules, mod.o.FullPath)
+	m.o.ModuleRegistry.Unregister(mod.o.ID)
+	delete(m.modules, mod.o.ID)
 }
 
 func (m *moduleController) addModule(mod *module) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
-	if err := m.o.ModuleRegistry.Register(mod.o.FullPath, mod); err != nil {
-		level.Error(m.o.Logger).Log("msg", "error registering module", "id", mod.o.FullPath, "err", err)
+	if err := m.o.ModuleRegistry.Register(mod.o.ID, mod); err != nil {
+		level.Error(m.o.Logger).Log("msg", "error registering module", "id", mod.o.ID, "err", err)
 		return err
 	}
-	m.modules[mod.o.FullPath] = struct{}{}
+	m.modules[mod.o.ID] = struct{}{}
 	return nil
 }
 
@@ -92,10 +91,9 @@ type module struct {
 }
 
 type moduleOptions struct {
-	FullPath string // FullPath is the full name including all parents, "module.file.example.prometheus.remote_write.id".
-	LocalID  string // LocalID is the id of this module without the full path, "prometheus.remote_write.id" of the above.
-	export   component.ExportFunc
-	parent   *moduleController
+	ID     string // ID is the full name including all parents, "module.file.example.prometheus.remote_write.id".
+	export component.ExportFunc
+	parent *moduleController
 	*moduleControllerOptions
 }
 
@@ -113,7 +111,7 @@ func newModule(o *moduleOptions) *module {
 			ComponentRegistry: o.ComponentRegistry,
 			WorkerPool:        o.WorkerPool,
 			Options: Options{
-				ControllerID: o.FullPath,
+				ControllerID: o.ID,
 				Tracer:       o.Tracer,
 				Reg:          o.Reg,
 				Logger:       o.Logger,
@@ -131,7 +129,7 @@ func newModule(o *moduleOptions) *module {
 
 // LoadConfig parses River config and loads it.
 func (c *module) LoadConfig(config []byte, args map[string]any) error {
-	ff, err := ParseSource(c.o.FullPath, config)
+	ff, err := ParseSource(c.o.ID, config)
 	if err != nil {
 		return err
 	}
