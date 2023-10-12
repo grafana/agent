@@ -39,7 +39,7 @@ type eventLogMessageStage struct {
 func newEventLogMessageStage(logger log.Logger, cfg *EventLogMessageConfig) Stage {
 	return &eventLogMessageStage{
 		cfg:    cfg,
-		logger: log.With(logger, "component", "stage", "type", "event_log_message"),
+		logger: log.With(logger, "component", "stage", "type", "eventlogmessage"),
 	}
 }
 

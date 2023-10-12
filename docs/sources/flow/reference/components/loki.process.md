@@ -302,19 +302,19 @@ stage.eventlogmessage {
 
 Given the following log line:
 ```
-{"event_id": 1, "Overwritten": "old", "message": "Message type:\r\nOverwritten: new\r\nImage: C:\\Users\\User\\promtail.exe"}
+{"event_id": 1, "Overwritten": "old", "message": "Message type:\r\nOverwritten: new\r\nImage: C:\\Users\\User\\agent.exe"}
 ```
 
 The first stage would create the following key-value pairs in the set of
 extracted data:
 
-- `message`: `Message type:\r\nOverwritten: new\r\nImage: C:\Users\User\promtail.exe`
+- `message`: `Message type:\r\nOverwritten: new\r\nImage: C:\Users\User\agent.exe`
 - `Overwritten`: `old`
 
 The second stage will parse the value of `message` from the extracted data
 and append/overwrite the following key-value pairs to the set of extracted data:
 
-- `Image`: `C:\\Users\\User\\promtail.exe`
+- `Image`: `C:\\Users\\User\\agent.exe`
 - `Message_type`: (empty string)
 - `Overwritten`: `new`
 
