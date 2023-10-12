@@ -145,7 +145,8 @@ func Test_Insert(t *testing.T) {
 		targets = [{
 			"__address__" = "1.2.2.2", 
 			"__internal_label__" = "test_val",
-			"test_label" = "test_val2"}]
+			"test_label" = "test_val2",
+			"test.label.with.dots" = "test.val2.with.dots"}]
 
 		operation_type = "insert"
 
@@ -169,6 +170,10 @@ func Test_Insert(t *testing.T) {
 				{
 					"key": "test_label",
 					"value": { "stringValue": "old_val" }
+				},
+				{
+					"key": "test.label.with.dots",
+					"value": { "stringValue": "old_val" }
 				}]
 			},
 			"scopeSpans": [{
@@ -210,6 +215,10 @@ func Test_Insert(t *testing.T) {
 				{
 					"key": "test_label",
 					"value": { "stringValue": "old_val" }
+				},
+				{
+					"key": "test.label.with.dots",
+					"value": { "stringValue": "old_val" }
 				}]
 			},
 			"scopeSpans": [{
@@ -231,6 +240,10 @@ func Test_Insert(t *testing.T) {
 				{
 					"key": "test_label",
 					"value": { "stringValue": "test_val2" }
+				},
+				{
+					"key": "test.label.with.dots",
+					"value": { "stringValue": "test.val2.with.dots" }
 				}]
 			},
 			"scopeSpans": [{
@@ -253,7 +266,8 @@ func Test_Update(t *testing.T) {
 		targets = [{
 			"__address__" = "1.2.2.2", 
 			"__internal_label__" = "test_val",
-			"test_label" = "test_val2"}]
+			"test_label" = "test_val2",
+			"test.label.with.dots" = "test.val2.with.dots"}]
 
 		operation_type = "update"
 
@@ -277,6 +291,10 @@ func Test_Update(t *testing.T) {
 				{
 					"key": "test_label",
 					"value": { "stringValue": "old_val" }
+				},
+				{
+					"key": "test.label.with.dots",
+					"value": { "stringValue": "old_val" }
 				}]
 			},
 			"scopeSpans": [{
@@ -318,6 +336,10 @@ func Test_Update(t *testing.T) {
 				{
 					"key": "test_label",
 					"value": { "stringValue": "test_val2" }
+				},
+				{
+					"key": "test.label.with.dots",
+					"value": { "stringValue": "test.val2.with.dots" }
 				}]
 			},
 			"scopeSpans": [{
