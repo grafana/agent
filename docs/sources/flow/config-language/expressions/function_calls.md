@@ -25,7 +25,7 @@ allow for more complex expressions (e.g. concatenating arrays or decoding JSON
 strings into objects).
 ```river
 env("HOME")
-json_decode(local.file.cfg.contents)["namespace"]
+json_decode(local.file.cfg.content)["namespace"]
 ```
 
 [standard library]: {{< relref "../../reference/stdlib" >}}
