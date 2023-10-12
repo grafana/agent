@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -13,6 +14,10 @@ import (
 	"github.com/prometheus/common/model"
 )
 
+type EnabledAware interface {
+	Enabled(context.Context, slog.Level) bool
+}
+
 // Logger is the logging subsystem of Flow. It supports being dynamically
 // updated at runtime.
 type Logger struct {
@@ -22,6 +27,13 @@ type Logger struct {
 	format  *formatVar     // Current configured format.
 	writer  *writerVar     // Current configured multiwriter (inner + write_to).
 	handler *handler       // Handler which handles logs.
+}
+
+var _ EnabledAware = (*Logger)(nil)
+
+// Enabled implements EnabledAware interface.
+func (l *Logger) Enabled(ctx context.Context, level slog.Level) bool {
+	return l.handler.Enabled(ctx, level)
 }
 
 // New creates a New logger with the default log level and format.
