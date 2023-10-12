@@ -171,9 +171,6 @@ func (c *queueClient) AppendEntries(entries wal.RefEntries, segment int) error {
 }
 
 func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry, segment int) {
-	// TODO: can I make this locking more fine grained?
-	c.batchesMtx.Lock()
-	defer c.batchesMtx.Unlock()
 	lbs, tenantID := c.processLabels(lbs)
 
 	// Either drop or mutate the log entry because its length is greater than maxLineSize. maxLineSize == 0 means disabled.
@@ -189,13 +186,19 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry, se
 		e.Line = e.Line[:c.maxLineSize]
 	}
 
+	// TODO: can I make this locking more fine grained?
+	c.batchesMtx.Lock()
+
 	batch, ok := c.batches[tenantID]
 
 	// If the batch doesn't exist yet, we create a new one with the entry
 	if !ok {
 		nb := newBatch(c.maxStreams)
 		_ = nb.addFromWAL(lbs, e, segment)
+
 		c.batches[tenantID] = nb
+		c.batchesMtx.Unlock()
+
 		c.initBatchMetrics(tenantID)
 		return
 	}
@@ -208,12 +211,15 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry, se
 		nb := newBatch(c.maxStreams)
 		_ = nb.addFromWAL(lbs, e, segment)
 		c.batches[tenantID] = nb
+		c.batchesMtx.Unlock()
 
 		return
 	}
 
 	// The max size of the batch isn't reached, so we can add the entry
 	err := batch.addFromWAL(lbs, e, segment)
+	c.batchesMtx.Unlock()
+
 	if err != nil {
 		level.Error(c.logger).Log("msg", "batch add err", "tenant", tenantID, "error", err)
 		reason := ReasonGeneric
@@ -275,6 +281,8 @@ func (c *queueClient) runSendOldBatches() {
 		c.wg.Done()
 	}()
 
+	batchesToFlush := make([]queuedBatch, 0)
+
 	for {
 		select {
 		case <-c.quit:
@@ -288,12 +296,26 @@ func (c *queueClient) runSendOldBatches() {
 					continue
 				}
 
-				c.enqueue(tenantID, b)
+				// add to batches to flush, so we can enqueue them later and release the batches lock
+				// as early as possible
+				batchesToFlush = append(batchesToFlush, queuedBatch{
+					TenantID: tenantID,
+					Batch:    b,
+				})
+
 				// deleting assuming that since the batch expired the wait time, it
 				// hasn't been written for some time
 				delete(c.batches, tenantID)
 			}
+
 			c.batchesMtx.Unlock()
+
+			// enqueue batches that were marked as too old
+			for _, qb := range batchesToFlush {
+				c.sendQueue <- qb
+			}
+
+			batchesToFlush = batchesToFlush[:] // renew slide
 		}
 	}
 }

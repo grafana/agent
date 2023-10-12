@@ -14,6 +14,7 @@ import (
 	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/stretchr/testify/require"
+	"os"
 	"testing"
 	"time"
 )
@@ -40,14 +41,16 @@ func TestQueueClient(t *testing.T) {
 		BatchWait:      time.Millisecond * 50,
 		BatchSize:      10,
 		Client:         config.HTTPClientConfig{},
-		BackoffConfig:  backoff.Config{MinBackoff: 5 * time.Second, MaxBackoff: 10 * time.Second, MaxRetries: 3},
+		BackoffConfig:  backoff.Config{MinBackoff: 5 * time.Second, MaxBackoff: 10 * time.Second, MaxRetries: 1},
 		ExternalLabels: lokiflag.LabelSet{},
 		Timeout:        1 * time.Second,
 		TenantID:       "",
 	}
 
+	logger := log.NewLogfmtLogger(os.Stdout)
+
 	m := NewMetrics(reg)
-	qc, err := NewQueue(m, cfg, 0, 0, false, log.NewNopLogger(), QueueConfig{
+	qc, err := NewQueue(m, cfg, 0, 0, false, logger, QueueConfig{
 		Size:         10,
 		DrainTimeout: time.Second,
 	})
