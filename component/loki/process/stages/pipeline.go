@@ -20,29 +20,31 @@ import (
 // exactly one is set.
 type StageConfig struct {
 	//TODO(thampiotr): sync these with new stages
-	CRIConfig          *CRIConfig          `river:"cri,block,optional"`
-	DecolorizeConfig   *DecolorizeConfig   `river:"decolorize,block,optional"`
-	DockerConfig       *DockerConfig       `river:"docker,block,optional"`
-	DropConfig         *DropConfig         `river:"drop,block,optional"`
-	GeoIPConfig        *GeoIPConfig        `river:"geoip,block,optional"`
-	JSONConfig         *JSONConfig         `river:"json,block,optional"`
-	LabelAllowConfig   *LabelAllowConfig   `river:"label_keep,block,optional"`
-	LabelDropConfig    *LabelDropConfig    `river:"label_drop,block,optional"`
-	LabelsConfig       *LabelsConfig       `river:"labels,block,optional"`
-	LimitConfig        *LimitConfig        `river:"limit,block,optional"`
-	LogfmtConfig       *LogfmtConfig       `river:"logfmt,block,optional"`
-	MatchConfig        *MatchConfig        `river:"match,block,optional"`
-	MetricsConfig      *MetricsConfig      `river:"metrics,block,optional"`
-	MultilineConfig    *MultilineConfig    `river:"multiline,block,optional"`
-	OutputConfig       *OutputConfig       `river:"output,block,optional"`
-	PackConfig         *PackConfig         `river:"pack,block,optional"`
-	RegexConfig        *RegexConfig        `river:"regex,block,optional"`
-	ReplaceConfig      *ReplaceConfig      `river:"replace,block,optional"`
-	StaticLabelsConfig *StaticLabelsConfig `river:"static_labels,block,optional"`
-	StructuredMetadata *LabelsConfig       `river:"structured_metadata,block,optional"`
-	TemplateConfig     *TemplateConfig     `river:"template,block,optional"`
-	TenantConfig       *TenantConfig       `river:"tenant,block,optional"`
-	TimestampConfig    *TimestampConfig    `river:"timestamp,block,optional"`
+	CRIConfig             *CRIConfig             `river:"cri,block,optional"`
+	DecolorizeConfig      *DecolorizeConfig      `river:"decolorize,block,optional"`
+	DockerConfig          *DockerConfig          `river:"docker,block,optional"`
+	DropConfig            *DropConfig            `river:"drop,block,optional"`
+	EventLogMessageConfig *EventLogMessageConfig `river:"eventlogmessage,block,optional"`
+	GeoIPConfig           *GeoIPConfig           `river:"geoip,block,optional"`
+	JSONConfig            *JSONConfig            `river:"json,block,optional"`
+	LabelAllowConfig      *LabelAllowConfig      `river:"label_keep,block,optional"`
+	LabelDropConfig       *LabelDropConfig       `river:"label_drop,block,optional"`
+	LabelsConfig          *LabelsConfig          `river:"labels,block,optional"`
+	LimitConfig           *LimitConfig           `river:"limit,block,optional"`
+	LogfmtConfig          *LogfmtConfig          `river:"logfmt,block,optional"`
+	MatchConfig           *MatchConfig           `river:"match,block,optional"`
+	MetricsConfig         *MetricsConfig         `river:"metrics,block,optional"`
+	MultilineConfig       *MultilineConfig       `river:"multiline,block,optional"`
+	OutputConfig          *OutputConfig          `river:"output,block,optional"`
+	PackConfig            *PackConfig            `river:"pack,block,optional"`
+	RegexConfig           *RegexConfig           `river:"regex,block,optional"`
+	ReplaceConfig         *ReplaceConfig         `river:"replace,block,optional"`
+	StaticLabelsConfig    *StaticLabelsConfig    `river:"static_labels,block,optional"`
+	StructuredMetadata    *LabelsConfig          `river:"structured_metadata,block,optional"`
+	SamplingConfig        *SamplingConfig        `river:"sampling,block,optional"`
+	TemplateConfig        *TemplateConfig        `river:"template,block,optional"`
+	TenantConfig          *TenantConfig          `river:"tenant,block,optional"`
+	TimestampConfig       *TimestampConfig       `river:"timestamp,block,optional"`
 }
 
 var rateLimiter *rate.Limiter

@@ -24,23 +24,22 @@ const (
 	StageTypeDocker     = "docker"
 	StageTypeDrop       = "drop"
 	//TODO(thampiotr): Add support for eventlogmessage stage
-	StageTypeEventLogMessage = "eventlogmessage"
-	StageTypeGeoIP           = "geoip"
-	StageTypeJSON            = "json"
-	StageTypeLabel           = "labels"
-	StageTypeLabelAllow      = "labelallow"
-	StageTypeLabelDrop       = "labeldrop"
-	StageTypeLimit           = "limit"
-	StageTypeLogfmt          = "logfmt"
-	StageTypeMatch           = "match"
-	StageTypeMetric          = "metrics"
-	StageTypeMultiline       = "multiline"
-	StageTypeOutput          = "output"
-	StageTypePack            = "pack"
-	StageTypePipeline        = "pipeline"
-	StageTypeRegex           = "regex"
-	StageTypeReplace         = "replace"
-	//TODO(thampiotr): Add support for sampling stage
+	StageTypeEventLogMessage    = "eventlogmessage"
+	StageTypeGeoIP              = "geoip"
+	StageTypeJSON               = "json"
+	StageTypeLabel              = "labels"
+	StageTypeLabelAllow         = "labelallow"
+	StageTypeLabelDrop          = "labeldrop"
+	StageTypeLimit              = "limit"
+	StageTypeLogfmt             = "logfmt"
+	StageTypeMatch              = "match"
+	StageTypeMetric             = "metrics"
+	StageTypeMultiline          = "multiline"
+	StageTypeOutput             = "output"
+	StageTypePack               = "pack"
+	StageTypePipeline           = "pipeline"
+	StageTypeRegex              = "regex"
+	StageTypeReplace            = "replace"
 	StageTypeSampling           = "sampling"
 	StageTypeStaticLabels       = "static_labels"
 	StageTypeStructuredMetadata = "structured_metadata"
@@ -233,6 +232,10 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
+	case cfg.SamplingConfig != nil:
+		s = newSamplingStage(logger, *cfg.SamplingConfig, registerer)
+	case cfg.EventLogMessageConfig != nil:
+		s = newEventLogMessageStage(logger, cfg.EventLogMessageConfig)
 	default:
 		panic(fmt.Sprintf("unreachable; should have decoded into one of the StageConfig fields: %+v", cfg))
 	}

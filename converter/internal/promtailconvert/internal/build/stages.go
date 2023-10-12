@@ -83,7 +83,7 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 		case promtailstages.StageTypeDecolorize:
 			return convertDecolorize(diags)
 		case promtailstages.StageTypeEventLogMessage:
-			return convertEventLogMessage(diags)
+			return convertEventLogMessage(iCfg, diags)
 		case promtailstages.StageTypeGeoIP:
 			return convertGeoIP(iCfg, diags)
 		case promtailstages.StageTypeStructuredMetadata:
@@ -121,9 +121,22 @@ func convertGeoIP(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig,
 	}, true
 }
 
-func convertEventLogMessage(diags *diag.Diagnostics) (stages.StageConfig, bool) {
-	diags.Add(diag.SeverityLevelError, "pipeline_stages.eventlogmessage is not supported")
-	return stages.StageConfig{}, false
+func convertEventLogMessage(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pCfg := &promtailstages.EventLogMessageConfig{}
+	if err := mapstructure.Decode(cfg, pCfg); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	result := &stages.EventLogMessageConfig{}
+	result.SetToDefault()
+	result.DropInvalidLabels = pCfg.DropInvalidLabels
+	result.OverwriteExisting = pCfg.OverwriteExisting
+	if pCfg.Source != nil {
+		result.Source = *pCfg.Source
+	}
+	return stages.StageConfig{
+		EventLogMessageConfig: result,
+	}, true
 }
 
 func convertDecolorize(_ *diag.Diagnostics) (stages.StageConfig, bool) {
@@ -216,8 +229,21 @@ func convertLimit(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig,
 }
 
 func convertSampling(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
-	diags.Add(diag.SeverityLevelError, fmt.Sprintf("pipeline_stages.sampling is currently not supported: %v", cfg))
-	return stages.StageConfig{}, false
+	pSampling := &promtailstages.SamplingConfig{}
+	// NOTE: using WeakDecode to match promtail behaviour
+	if err := mapstructure.WeakDecode(cfg, pSampling); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	fSampling := &stages.SamplingConfig{}
+	fSampling.SetToDefault()
+	fSampling.SamplingRate = pSampling.SamplingRate
+	if pSampling.DropReason != nil {
+		fSampling.DropReason = pSampling.DropReason
+	}
+	return stages.StageConfig{
+		SamplingConfig: fSampling,
+	}, true
 }
 
 func convertDrop(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {

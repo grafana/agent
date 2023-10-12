@@ -10,9 +10,19 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.26.0 (2023-10-10)
+-------------------
+
+### Breaking changes
+
+- The `initContainers` setting has been moved to `controller.initContainers`
+  for consistency with other Pod-level settings. (@rfratto)
+
 ### Enhancements
 
 - Make CRDs optional through the `crds.create` setting. (@bentonam, @rfratto)
+
+- Update Grafana Agent version to v0.37.1. (@tpaschalis)
 
 0.25.0 (2023-09-22)
 -------------------

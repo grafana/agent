@@ -23,9 +23,9 @@ spec:
     {{- toYaml .Values.image.pullSecrets | nindent 4 }}
     {{- end }}
   {{- end }}
-  {{- if .Values.initContainers }}
+  {{- if .Values.controller.initContainers }}
   initContainers:
-    {{- with .Values.initContainers }}
+    {{- with .Values.controller.initContainers }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   {{- end }}

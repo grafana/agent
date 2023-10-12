@@ -18,11 +18,6 @@ global:
   # -- Security context to apply to the Grafana Agent pod.
   podSecurityContext: {}
 
-## The init containers to run.
-## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
-##
-initContainers: []
-
 crds:
   # -- Whether to install CRDs for monitoring.
   create: true
@@ -209,6 +204,11 @@ controller:
 
   # -- volumeClaimTemplates to add when controller.type is 'statefulset'.
   volumeClaimTemplates: []
+
+  ## -- Additional init containers to run.
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ##
+  initContainers: []
 
 service:
   # -- Creates a Service for the controller's pods.
