@@ -13,7 +13,7 @@ itself, and the remaining functionality has been replaced by our Helm Chart.
 
 - The Monitor types (`PodMonitor`, `ServiceMonitor`, `Probe`, and `LogsInstance`) are all supported natively by Grafana Agent in Flow mode. You no longer are 
 required to use the Operator to consume those CRDs for dynamic monitoring in your cluster.
-- The parts of the Operator that deploy the agent itself (`GrafanaAgent`, `MetricsInstance`, and `LogsInstance` CRDs) are depricated. We now recommend
+- The parts of the Operator that deploy the agent itself (`GrafanaAgent`, `MetricsInstance`, and `LogsInstance` CRDs) are deprecated. We now recommend
 operator users use the [Grafana Agent Helm Chart](https://grafana.com/docs/agent/latest/flow/setup/install/kubernetes/) to deploy the Agent directly to your clusters.
 
 This guide will provide some steps to get started with Grafana Agent for users coming from Grafana Agent Operator.
