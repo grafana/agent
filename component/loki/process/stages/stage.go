@@ -234,6 +234,8 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		}
 	case cfg.SamplingConfig != nil:
 		s = newSamplingStage(logger, *cfg.SamplingConfig, registerer)
+	case cfg.EventLogMessageConfig != nil:
+		s = newEventLogMessageStage(logger, cfg.EventLogMessageConfig)
 	default:
 		panic(fmt.Sprintf("unreachable; should have decoded into one of the StageConfig fields: %+v", cfg))
 	}
