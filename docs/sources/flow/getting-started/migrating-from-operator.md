@@ -55,7 +55,7 @@ This guide will provide some steps to get started with Grafana Agent for users c
 
     This command uses the `--set-file` flag to pass the config file as a helm value, so that we can continue to edit it as a regular river file.
 
-## Convert `MetricsIntances` to flow components.
+## Convert `MetricsIntances` to flow components
 
 A `MetricsInstance` resource primarily defines:
 
