@@ -25,6 +25,58 @@ import (
 	lokiutil "github.com/grafana/loki/pkg/util"
 )
 
+type queue struct {
+	client *queueClient
+	q      chan queuedBatch
+	quit   chan struct{}
+	wg     sync.WaitGroup
+}
+
+func newQueue(client *queueClient, size int) *queue {
+	q := queue{
+		client: client,
+		q:      make(chan queuedBatch, size),
+		quit:   make(chan struct{}),
+	}
+
+	q.wg.Add(1)
+	go q.run()
+
+	return &q
+}
+
+func (q *queue) enqueue(qb queuedBatch) {
+	q.q <- qb
+}
+
+// enqueueWithCancel tries to enqueue a batch, giving up if the supplied context times deadlines
+// times out. If the batch is successfully enqueued, it returns true.
+func (q *queue) enqueueWithCancel(ctx context.Context, qb queuedBatch) bool {
+	select {
+	case <-ctx.Done():
+		return false
+	case q.q <- qb:
+	}
+	return true
+}
+
+func (q *queue) run() {
+	defer q.wg.Done()
+
+	for {
+		select {
+		case <-q.quit:
+			return
+		case qb := <-q.q:
+			q.client.sendBatch(context.Background(), qb.TenantID, qb.Batch)
+		}
+	}
+}
+
+func (q *queue) stop() {
+	close(q.quit)
+}
+
 type queueClient struct {
 	metrics *Metrics
 	logger  log.Logger
@@ -33,7 +85,7 @@ type queueClient struct {
 
 	batches      map[string]*batch
 	batchesMtx   sync.Mutex
-	sendQueue    chan queuedBatch
+	sendQueue    *queue
 	drainTimeout time.Duration
 
 	once sync.Once
@@ -100,8 +152,7 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		logger:       log.With(logger, "component", "client", "host", cfg.URL.Host),
 		cfg:          cfg,
 		metrics:      metrics,
-		sendQueue:    make(chan queuedBatch, queueConfig.Size), // this channel should have some buffering
-		drainTimeout: queueConfig.DrainTimeout,                 // make this configurable
+		drainTimeout: queueConfig.DrainTimeout, // make this configurable
 		quit:         make(chan struct{}),
 
 		batches: make(map[string]*batch),
@@ -116,6 +167,9 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		maxLineSize:         maxLineSize,
 		maxLineSizeTruncate: maxLineSizeTruncate,
 	}
+
+	// create sendQueue
+	c.sendQueue = newQueue(c, queueConfig.Size)
 
 	err := cfg.Client.Validate()
 	if err != nil {
@@ -135,8 +189,7 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		counter.WithLabelValues(c.cfg.URL.Host).Add(0)
 	}
 
-	c.wg.Add(2)
-	go c.runSendQueue()
+	c.wg.Add(1)
 	go c.runSendOldBatches()
 	return c, nil
 }
@@ -206,7 +259,10 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry, se
 	// If adding the entry to the batch will increase the size over the max
 	// size allowed, we do send the current batch and then create a new one
 	if batch.sizeBytesAfter(e.Line) > c.cfg.BatchSize {
-		c.enqueue(tenantID, batch)
+		c.sendQueue.enqueue(queuedBatch{
+			TenantID: tenantID,
+			Batch:    batch,
+		})
 
 		nb := newBatch(c.maxStreams)
 		_ = nb.addFromWAL(lbs, e, segment)
@@ -236,30 +292,6 @@ type queuedBatch struct {
 	Batch    *batch
 }
 
-func (c *queueClient) enqueue(tenantID string, b *batch) {
-	c.sendQueue <- queuedBatch{
-		TenantID: tenantID,
-		Batch:    b,
-	}
-}
-
-func (c *queueClient) runSendQueue() {
-	defer c.wg.Done()
-
-	for {
-		select {
-		case <-c.quit:
-			return
-
-		case qb, ok := <-c.sendQueue:
-			if !ok {
-				return
-			}
-			c.sendBatch(context.Background(), qb.TenantID, qb.Batch)
-		}
-	}
-}
-
 func (c *queueClient) runSendOldBatches() {
 	// Given the client handles multiple batches (1 per tenant) and each batch
 	// can be created at a different point in time, we look for batches whose
@@ -281,7 +313,7 @@ func (c *queueClient) runSendOldBatches() {
 		c.wg.Done()
 	}()
 
-	batchesToFlush := make([]queuedBatch, 0)
+	var batchesToFlush []queuedBatch
 
 	for {
 		select {
@@ -312,7 +344,7 @@ func (c *queueClient) runSendOldBatches() {
 
 			// enqueue batches that were marked as too old
 			for _, qb := range batchesToFlush {
-				c.sendQueue <- qb
+				c.sendQueue.enqueue(qb)
 			}
 
 			batchesToFlush = batchesToFlush[:] // renew slide
@@ -328,13 +360,12 @@ func (c *queueClient) drain(ctx context.Context) {
 		defer c.batchesMtx.Unlock()
 
 		for tenantID, batch := range c.batches {
-			select {
-			case <-ctx.Done():
-				return
-			case c.sendQueue <- queuedBatch{
+			if !c.sendQueue.enqueueWithCancel(ctx, queuedBatch{
 				TenantID: tenantID,
 				Batch:    batch,
-			}:
+			}) {
+				// if enqueue times out due to the context timing out, cancel all
+				return
 			}
 		}
 	}()
@@ -344,6 +375,7 @@ func (c *queueClient) drain(ctx context.Context) {
 		case <-ctx.Done():
 			level.Warn(c.logger).Log("msg", "drain send queue exceeded context timeout")
 			return
+			// pablo: termianr esto!
 		case qe := <-c.sendQueue:
 			c.sendBatch(ctx, qe.TenantID, qe.Batch)
 		default:
@@ -487,6 +519,8 @@ func (c *queueClient) Stop() {
 	defer cancel()
 	c.drain(ctx)
 
+	// stop request after drain times out or exits
+	c.cancel()
 	close(c.sendQueue)
 }
 
