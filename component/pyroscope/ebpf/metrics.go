@@ -5,7 +5,7 @@
 package ebpf
 
 import (
-	"github.com/grafana/pyroscope/ebpf/symtab"
+	ebpfmetrics "github.com/grafana/pyroscope/ebpf/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -16,7 +16,7 @@ type metrics struct {
 	pprofsTotal                   *prometheus.CounterVec
 	pprofBytesTotal               *prometheus.CounterVec
 	pprofSamplesTotal             *prometheus.CounterVec
-	symtabMetrics                 *symtab.Metrics
+	ebpfMetrics                   *ebpfmetrics.Metrics
 }
 
 func newMetrics(reg prometheus.Registerer) *metrics {
@@ -45,7 +45,7 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 			Name: "pyroscope_ebpf_pprof_samples_total",
 			Help: "Total number of pprof profiles collected by the ebpf component",
 		}, []string{"service_name"}),
-		symtabMetrics: symtab.NewMetrics(reg),
+		ebpfMetrics: ebpfmetrics.New(reg),
 	}
 
 	if reg != nil {
