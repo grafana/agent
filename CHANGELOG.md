@@ -22,6 +22,9 @@ Main (unreleased)
 - Added a new `stage.sampling` stage to `loki.process` component which
   allows to only process a fraction of logs and drop the rest. (@thampiotr)
 
+- Added a new `stage.eventlogmessage` stage to `loki.process` component which
+  allows to extract data from Windows Event Log. (@thampiotr)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
