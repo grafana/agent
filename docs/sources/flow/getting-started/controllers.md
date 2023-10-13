@@ -22,7 +22,7 @@ A `Deployment` has most of the same properties as a `StatefulSet`, but cannot us
 A `DaemonSet` will deploy a Grafana Agent pod to each Node in your Kubernetes cluster. This is needed when you need access to something that is present on every Node in your cluster, such as:
 
 - Local access to log files.
-- Exporters, such as `node_exporter`, which run on every physical node.
+- Exporters, such as `node_exporter`, which need to run on every physical node.
 
 There are several downsides to a `DaemonSet` which need to be considered:
 
