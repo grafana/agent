@@ -42,7 +42,7 @@ services:
 
   demo-server:
     build:
-      dockerfile: ./configs/otel-gen-client/Dockerfile
+      dockerfile: ./configs/otel-gen-server/Dockerfile
       context: ..
     restart: always
     environment:
