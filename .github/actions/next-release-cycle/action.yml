@@ -1,0 +1,14 @@
+name: Next release cycle
+description: Determine the next release cycle given an input.
+inputs:
+  branch-name:
+    description: Branch name of current release cycle.
+    required: true
+outputs:
+  next-cycle:
+    description: Next release cycle (formatted as a version number).
+runs:
+  using: 'docker'
+  image: Dockerfile
+  args:
+    - ${{ inputs.branch-name }}

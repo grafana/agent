@@ -1,0 +1,50 @@
+name: Bump release cycle
+on:
+  workflow_dispatch: {}
+  create:
+    branches:
+      - 'release-v*'
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  bump-release-cycle:
+    if: ${{ startsWith(github.ref, 'refs/heads/release-v')}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check out main branch"
+        uses: "actions/checkout@v4"
+        with:
+          ref: main
+      - name: "Determine next release cycle"
+        id: next-release-cycle
+        uses: "./.github/actions/next-release-cycle"
+        with:
+          branch-name: ${{ github.ref_name }}
+      - name: "Update version files"
+        run: |
+          echo -n "${{ steps.next-release-cycle.outputs.next-cycle }}" > tools/gen-versioned-files/agent-version.txt
+          make generate-versioned-files
+          git add .
+
+      - name: "Open PR"
+        run: |
+          git config --local user.name "${GITHUB_ACTOR}"
+          git config --local user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+          NEXT_CYCLE=${{ steps.next-release-cycle.outputs.next-cycle }}
+
+          BRANCH=start-release-cycle-$NEXT_CYCLE
+          git checkout -b $BRANCH
+
+          git commit -F - <<EOF
+          Start release cycle $NEXT_CYCLE
+
+          Triggered by ${GITHUB_REF_NAME} being created.
+          EOF
+
+          git push origin HEAD
+
+          gh pr create -B main --fill --reviewer "${GITHUB_ACTOR}"
+        env:
+          GH_TOKEN: ${{ github.token }}
