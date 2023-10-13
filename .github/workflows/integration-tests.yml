@@ -21,11 +21,5 @@ jobs:
       run: echo "OTEL_EXPORTER_ENDPOINT=http://172.17.0.1:8080" >> $GITHUB_ENV
     - name: Run tests
       run: |
-        vmstat 5 10 > vmstat_output.txt &
-        VMSTAT_PID=$!
         cd integration-tests
-        go run integration_tests.go
-        cd ..
-        kill $VMSTAT_PID || true
-    - name: Display vmstat output
-      run: cat vmstat_output.txt
+        go run .
