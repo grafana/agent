@@ -13,8 +13,8 @@ The `debug_metrics` block configures the metrics that this component generates t
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
+Name                               | Type      | Description                                          | Default | Required
+-----------------------------------|-----------|------------------------------------------------------|---------|---------
 `disable_high_cardinality_metrics` | `boolean` | Whether to disable certain high cardinality metrics. | `false` | no
 
 `disable_high_cardinality_metrics` is the Grafana Agent equivalent to the

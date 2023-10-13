@@ -10,7 +10,7 @@ description: Learn about discovery.consul
 
 # discovery.consul
 
-`discovery.consul` allows retrieving scrape targets from [Consul's Catalog API][].
+`discovery.consul` allows you to retrieve scrape targets from [Consul's Catalog API][].
 
 [Consul's Catalog API]: https://www.consul.io/use-cases/discover-services
 
@@ -50,7 +50,7 @@ Name | Type | Description | Default | Required
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
+ - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -63,12 +63,12 @@ Name | Type | Description | Default | Required
 The following blocks are supported inside the definition of
 `discovery.consul`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+Hierarchy           | Block             | Description                                              | Required
+--------------------|-------------------|----------------------------------------------------------|---------
+basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no
+authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no
+oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no
+oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -79,19 +79,19 @@ an `oauth2` block.
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
 
-### basic_auth block
+### basic_auth
 
 {{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### authorization block
+### authorization
 
 {{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### oauth2 block
+### oauth2
 
 {{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### tls_config block
+### tls_config
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
@@ -99,39 +99,38 @@ an `oauth2` block.
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
+Name      | Type                | Description
+----------|---------------------|-----------------------------------------------------------
 `targets` | `list(map(string))` | The set of targets discovered from the Consul catalog API.
 
 Each target includes the following labels:
 
-* `__meta_consul_address`: the address of the target.
-* `__meta_consul_dc`: the datacenter name for the target.
-* `__meta_consul_health`: the health status of the service.
-* `__meta_consul_partition`: the admin partition name where the service is registered.
-* `__meta_consul_metadata_<key>`: each node metadata key value of the target.
-* `__meta_consul_node`: the node name defined for the target.
-* `__meta_consul_service_address`: the service address of the target.
-* `__meta_consul_service_id`: the service ID of the target.
-* `__meta_consul_service_metadata_<key>`: each service metadata key value of the target.
-* `__meta_consul_service_port`: the service port of the target.
-* `__meta_consul_service`: the name of the service the target belongs to.
-* `__meta_consul_tagged_address_<key>`: each node tagged address key value of the target.
-* `__meta_consul_tags`: the list of tags of the target joined by the tag separator.
+* `__meta_consul_address`: The address of the target.
+* `__meta_consul_dc`: The datacenter name for the target.
+* `__meta_consul_health`: The health status of the service.
+* `__meta_consul_partition`: The admin partition name where the service is registered.
+* `__meta_consul_metadata_<key>`: Each node metadata key value of the target.
+* `__meta_consul_node`: The node name defined for the target.
+* `__meta_consul_service_address`: The service address of the target.
+* `__meta_consul_service_id`: The service ID of the target.
+* `__meta_consul_service_metadata_<key>`: Each service metadata key value of the target.
+* `__meta_consul_service_port`: The service port of the target.
+* `__meta_consul_service`: The name of the service the target belongs to.
+* `__meta_consul_tagged_address_<key>`: Each node tagged address key value of the target.
+* `__meta_consul_tags`: The list of tags of the target joined by the tag separator.
 
 ## Component health
 
-`discovery.consul` is only reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`discovery.consul` is only reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
-`discovery.consul` does not expose any component-specific debug information.
+`discovery.consul` doesn't expose any component-specific debug information.
 
 ## Debug metrics
 
-`discovery.consul` does not expose any component-specific debug metrics.
+`discovery.consul` doesn't expose any component-specific debug metrics.
 
 ## Example
 
@@ -153,16 +152,16 @@ prometheus.scrape "demo" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - `<PROMETHEUS_REMOTE_WRITE_URL>`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `<USERNAME>`: The username to use for authentication to the remote_write API.
+  - `<PASSWORD>`: The password to use for authentication to the remote_write API.

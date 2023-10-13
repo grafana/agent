@@ -12,7 +12,7 @@ headless: true
 The following fields are exported and can be referenced by other components.
 
 Name      | Type                | Description
---------- | ------------------- | -----------
+----------|---------------------|----------------------------------------------------------
 `targets` | `list(map(string))` | The targets that can be used to collect exporter metrics.
 
 For example, the `targets` can either be passed to a `discovery.relabel`

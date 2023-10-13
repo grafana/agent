@@ -12,18 +12,18 @@ This block defines how to match based on a log record's SeverityNumber field.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`min` | `string` | The lowest severity that may be matched. | | yes
-`match_undefined` | `bool` | Whether logs with "undefined" severity match. | | yes
+Name              | Type     | Description                                   | Default | Required
+------------------|----------|-----------------------------------------------|---------|---------
+`min`             | `string` | The lowest severity that may be matched.      |         | yes
+`match_undefined` | `bool`   | Whether logs with "undefined" severity match. |         | yes
 
 If `match_undefined` is true, entries with undefined severity will match.
 
-The severities supported by Otel are listed in the table below. 
+The severities supported by Otel are listed in the table below.
 The value for `min` should be one of the values in the "Log Severity" column.
 
 Log Severity | Severity number
------------- | ---------------
+-------------|----------------
 TRACE        | 1
 TRACE2       | 2
 TRACE3       | 3

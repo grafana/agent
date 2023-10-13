@@ -9,11 +9,10 @@ description: Shared content, authorization block
 headless: true
 ---
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`type` | `string` | Authorization type, for example, "Bearer". | | no
-`credentials` | `secret` | Secret value. | | no
-`credentials_file` | `string` | File containing the secret value. | | no
+Name               | Type     | Description                                | Default | Required
+-------------------|----------|--------------------------------------------|---------|---------
+`type`             | `string` | Authorization type, for example, "Bearer". |         | no
+`credentials`      | `secret` | Secret value.                              |         | no
+`credentials_file` | `string` | File containing the secret value.          |         | no
 
-`credential` and `credentials_file` are mutually exclusive and only one can be
-provided inside of an `authorization` block.
+`credential` and `credentials_file` are mutually exclusive and only one can be provided inside of an `authorization` block.
