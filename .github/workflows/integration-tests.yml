@@ -24,7 +24,7 @@ jobs:
         vmstat 5 10 > vmstat_output.txt &
         VMSTAT_PID=$!
         cd integration-tests
-        ./run-integration-tests.sh
+        go run integration_tests.go
         cd ..
         kill $VMSTAT_PID || true
     - name: Display vmstat output
