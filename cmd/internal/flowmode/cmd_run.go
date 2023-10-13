@@ -89,7 +89,7 @@ depending on the nature of the reload error.
 		SilenceUsage: true,
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return r.Run(args[0])
+			return r.Run(cmd.Context(), args[0])
 		},
 	}
 
@@ -145,11 +145,11 @@ type flowRun struct {
 	configBypassConversionErrors bool
 }
 
-func (fr *flowRun) Run(configPath string) error {
+func (fr *flowRun) Run(ctx context.Context, configPath string) error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
-	ctx, cancel := interruptContext()
+	ctx, cancel := interruptContext(ctx)
 	defer cancel()
 
 	if configPath == "" {
@@ -412,8 +412,8 @@ func loadFlowSource(path string, converterSourceFormat string, converterBypassEr
 	return flow.ParseSource(path, bb)
 }
 
-func interruptContext() (context.Context, context.CancelFunc) {
-	ctx, cancel := context.WithCancel(context.Background())
+func interruptContext(parent context.Context) (context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(parent)
 
 	go func() {
 		defer cancel()

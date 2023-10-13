@@ -107,6 +107,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
+			//TODO(thampiotr): We can expose this as `notify_on_append` option - it can be used to reduce latency in
+			// the pipeline if users want to, with a trade-off being more CPU and I/O.
+			remoteStore.Notify()
 			return globalRef, nextErr
 		}),
 		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
@@ -119,6 +122,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
+			//TODO(thampiotr): We can expose this as `notify_on_append` option - it can be used to reduce latency in
+			// the pipeline if users want to, with a trade-off being more CPU and I/O.
+			remoteStore.Notify()
 			return globalRef, nextErr
 		}),
 		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
@@ -131,6 +137,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
+			//TODO(thampiotr): We can expose this as `notify_on_append` option - it can be used to reduce latency in
+			// the pipeline if users want to, with a trade-off being more CPU and I/O.
+			remoteStore.Notify()
 			return globalRef, nextErr
 		}),
 	)

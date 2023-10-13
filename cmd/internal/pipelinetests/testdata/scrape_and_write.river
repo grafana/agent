@@ -1,0 +1,26 @@
+logging {
+  level  = "debug"
+  format = "logfmt"
+}
+
+prometheus.scrape "agent_self" {
+	targets = [
+		{"__address__" = "127.0.0.1:"+env("AGENT_SELF_HTTP_PORT"), "job" = "agent"},
+	]
+	forward_to      = [prometheus.remote_write.default.receiver]
+
+  // Scrape settings for the impatient
+	scrape_interval = "250ms"
+	scrape_timeout  = "250ms"
+}
+
+prometheus.remote_write "default" {
+	endpoint {
+		url = env("PROM_SERVER_URL")
+
+		// Queue settings for the impatient
+		queue_config {
+      batch_send_deadline = "250ms"
+    }
+	}
+}
