@@ -34,8 +34,6 @@ func buildAgent() {
 func setupEnvironment() {
 	fmt.Println("Setting up environment with Docker Compose...")
 	cmd := exec.Command(dockerComposeCmd, "up", "-d")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
