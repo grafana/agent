@@ -57,10 +57,7 @@ while read -r test_dir; do
         popd
     ) &
 
-    # Increment the counter
     counter=$((counter+1))
-
-    # If 5 tests are running, wait for them to finish
     if [ "$counter" -eq "$parallel_runs" ]; then
         wait
         counter=0
