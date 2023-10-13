@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+parallel_runs=10
+
 fail_flag_file="/tmp/test_fail_flag"
 rm -f "$fail_flag_file"
 tmp_dir="temp_logs"
@@ -8,7 +10,6 @@ tmp_dir="temp_logs"
 cleanup() {
     if [ -d "$tmp_dir" ]; then
         for tmp_log in "$tmp_dir"/*; do
-            echo "$tmp_log"
             if grep -q "FAIL" "$tmp_log"; then
                 echo "Failure detected in $tmp_log:"
                 cat "$tmp_log"
@@ -60,7 +61,7 @@ while read -r test_dir; do
     counter=$((counter+1))
 
     # If 5 tests are running, wait for them to finish
-    if [ "$counter" -eq 5 ]; then
+    if [ "$counter" -eq "$parallel_runs" ]; then
         wait
         counter=0
     fi
