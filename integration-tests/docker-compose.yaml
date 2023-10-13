@@ -55,8 +55,8 @@ services:
   avalanche:
     image: quay.io/freshtracks.io/avalanche:latest
     command:
-      - --metric-count=10
-      - --series-interval=3600
+      - --metric-count=50
+      - --series-interval=7200
       - --metric-interval=7200
     ports:
       - "9001:9001"
