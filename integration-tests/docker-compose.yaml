@@ -31,7 +31,7 @@ services:
   
   demo-client:
     build:
-      dockerfile: ./configs/otel-gen-client/Dockerfile
+      dockerfile: ./integration-tests/configs/otel-gen-client/Dockerfile
       context: ..
     restart: always
     environment:
@@ -42,7 +42,7 @@ services:
 
   demo-server:
     build:
-      dockerfile: ./configs/otel-gen-server/Dockerfile
+      dockerfile: ./integration-tests/configs/otel-gen-server/Dockerfile
       context: ..
     restart: always
     environment:
