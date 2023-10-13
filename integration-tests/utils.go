@@ -26,8 +26,6 @@ var logChan chan TestLog
 func buildAgent() {
 	fmt.Println("Building agent...")
 	cmd := exec.Command(makeCmd, "-C", "..", "agent-flow")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
@@ -36,6 +34,8 @@ func buildAgent() {
 func setupEnvironment() {
 	fmt.Println("Setting up environment with Docker Compose...")
 	cmd := exec.Command(dockerComposeCmd, "up", "-d")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
