@@ -3,15 +3,15 @@ prometheus.scrape "scrap_prom_metrics28" {
     {"__address__" = "localhost:9001"},
   ]
   forward_to = [prometheus.remote_write.scrap_prom_metrics28.receiver]
-  scrape_interval = "100ms"
-  scrape_timeout = "50ms"
+  scrape_interval = "1s"
+  scrape_timeout = "500ms"
 }
 
 prometheus.remote_write "scrap_prom_metrics28" {
   endpoint {
     url = "http://localhost:9009/api/v1/push"
     metadata_config {
-        send_interval = "200ms"
+        send_interval = "1s"
     }
     queue_config {
         max_samples_per_send = 100
