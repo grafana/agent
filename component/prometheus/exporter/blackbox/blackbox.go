@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river/rivertypes"
 )
 
@@ -92,7 +93,6 @@ type Arguments struct {
 	Config             rivertypes.OptionalSecret `river:"config,attr,optional"`
 	Targets            TargetBlock               `river:"target,block"`
 	ProbeTimeoutOffset time.Duration             `river:"probe_timeout_offset,attr,optional"`
-	ConfigStruct       blackbox_config.Config
 }
 
 // SetToDefault implements river.Defaulter.
@@ -106,7 +106,8 @@ func (a *Arguments) Validate() error {
 		return errors.New("config and config_file are mutually exclusive")
 	}
 
-	err := yaml.UnmarshalStrict([]byte(a.Config.Value), &a.ConfigStruct)
+	var blackboxConfig blackbox_config.Config
+	err := yaml.UnmarshalStrict([]byte(a.Config.Value), &blackboxConfig)
 	if err != nil {
 		return fmt.Errorf("invalid backbox_exporter config: %s", err)
 	}
@@ -118,7 +119,7 @@ func (a *Arguments) Validate() error {
 func (a *Arguments) Convert() *blackbox_exporter.Config {
 	return &blackbox_exporter.Config{
 		BlackboxConfigFile: a.ConfigFile,
-		BlackboxConfig:     a.ConfigStruct,
+		BlackboxConfig:     util.RawYAML(a.Config.Value),
 		BlackboxTargets:    a.Targets.Convert(),
 		ProbeTimeoutOffset: a.ProbeTimeoutOffset.Seconds(),
 	}
