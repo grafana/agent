@@ -11,6 +11,9 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	snmp_common "github.com/grafana/agent/pkg/integrations/snmp_exporter/common"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/snmp_exporter/collector"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 )
 
@@ -97,7 +100,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 func LoadSNMPConfig(snmpConfigFile string, snmpCfg *snmp_config.Config) (*snmp_config.Config, error) {
 	var err error
 	if snmpConfigFile != "" {
-		snmpCfg, err = snmp_config.LoadFile(snmpConfigFile)
+		snmpCfg, err = snmp_config.LoadFile([]string{snmpConfigFile})
 		if err != nil {
 			return nil, fmt.Errorf("failed to load snmp config from file %v: %w", snmpConfigFile, err)
 		}
@@ -110,6 +113,49 @@ func LoadSNMPConfig(snmpConfigFile string, snmpCfg *snmp_config.Config) (*snmp_c
 		}
 	}
 	return snmpCfg, nil
+}
+
+func NewSNMPMetrics(reg prometheus.Registerer) collector.Metrics {
+	buckets := prometheus.ExponentialBuckets(0.0001, 2, 15)
+	return collector.Metrics{
+		SNMPCollectionDuration: promauto.With(reg).NewHistogramVec(
+			prometheus.HistogramOpts{
+				Namespace: namespace,
+				Name:      "collection_duration_seconds",
+				Help:      "Duration of collections by the SNMP exporter",
+			},
+			[]string{"module"},
+		),
+		SNMPUnexpectedPduType: promauto.With(reg).NewCounter(
+			prometheus.CounterOpts{
+				Namespace: namespace,
+				Name:      "unexpected_pdu_type_total",
+				Help:      "Unexpected Go types in a PDU.",
+			},
+		),
+		SNMPDuration: promauto.With(reg).NewHistogram(
+			prometheus.HistogramOpts{
+				Namespace: namespace,
+				Name:      "packet_duration_seconds",
+				Help:      "A histogram of latencies for SNMP packets.",
+				Buckets:   buckets,
+			},
+		),
+		SNMPPackets: promauto.With(reg).NewCounter(
+			prometheus.CounterOpts{
+				Namespace: namespace,
+				Name:      "packets_total",
+				Help:      "Number of SNMP packet sent, including retries.",
+			},
+		),
+		SNMPRetries: promauto.With(reg).NewCounter(
+			prometheus.CounterOpts{
+				Namespace: namespace,
+				Name:      "packet_retries_total",
+				Help:      "Number of SNMP packet retries.",
+			},
+		),
+	}
 }
 
 // Integration is the SNMP integration. The integration scrapes metrics

@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/collect-prometheus-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-prometheus-metrics/
 title: Collect and forward Prometheus metrics
+description: Learn how to collect and forward Prometheus metrics
 weight: 200
 ---
 
@@ -451,7 +452,7 @@ To collect metrics from a custom set of targets, complete the following steps:
 
         * To explicitly specify which HTTP path to collect metrics from, set
           the `__metrics_path__` key to the HTTP path to use. If the
-          `__metrics_path__` key is not provided, the protocol to use is
+          `__metrics_path__` key is not provided, the path to use is
           inherited by the settings of the `prometheus.scrape` component
           (default `"/metrics"`).
 

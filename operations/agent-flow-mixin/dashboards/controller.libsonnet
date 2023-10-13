@@ -174,9 +174,9 @@ local filename = 'agent-flow-controller.json';
         ])
       ),
 
-      // Graph evaluation rate
+      // Component evaluation rate
       (
-        panel.new(title='Graph evaluation rate', type='timeseries') {
+        panel.new(title='Component evaluation rate', type='timeseries') {
           fieldConfig: {
             defaults: {
               custom: {
@@ -188,7 +188,7 @@ local filename = 'agent-flow-controller.json';
         } +
         panel.withUnit('ops') +
         panel.withDescription(|||
-          The frequency in which the component graph gets updated.
+          The frequency at which components get updated.
         |||) +
         panel.withPosition({ x: 0, y: 12, w: 8, h: 10 }) +
         panel.withMultiTooltip() +
@@ -199,15 +199,15 @@ local filename = 'agent-flow-controller.json';
         ])
       ),
 
-      // Graph evaluation time
+      // Component evaluation time
       (
-        panel.new(title='Graph evaluation time', type='timeseries') +
+        panel.new(title='Component evaluation time', type='timeseries') +
         panel.withUnit('s') +
         panel.withDescription(|||
-          The percentiles for how long it takes to complete a graph evaluation.
+          The percentiles for how long it takes to complete component evaluations.
 
-          Graph evaluations must complete for components to have the latest
-          arguments. The longer graph evaluations take, the slower it will be to
+          Component evaluations must complete for components to have the latest
+          arguments. The longer the evaluations take, the slower it will be to
           reconcile the state of components.
 
           If evaluation is taking too long, consider sharding your components to
@@ -233,11 +233,11 @@ local filename = 'agent-flow-controller.json';
         ])
       ),
 
-      // Graph evaluation histogram
+      // Component evaluation histogram
       (
-        panel.newHeatmap('Graph evaluation histogram') +
+        panel.newHeatmap('Component evaluation histogram') +
         panel.withDescription(|||
-          Detailed histogram view of how long graph evaluations take.
+          Detailed histogram view of how long component evaluations take.
 
           The goal is to design your config so that evaluations take as little
           time as possible; under 100ms is a good goal.
@@ -246,6 +246,25 @@ local filename = 'agent-flow-controller.json';
         panel.withQueries([
           panel.newQuery(
             expr='sum by (le) (increase(agent_component_evaluation_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))',
+            format='heatmap',
+            legendFormat='{{le}}',
+          ),
+        ])
+      ),
+
+      // Component dependency wait time histogram
+      (
+        panel.newHeatmap('Component dependency wait histogram') +
+        panel.withDescription(|||
+          Detailed histogram of how long components wait to be evaluated after their dependency is updated.
+
+          The goal is to design your config so that most of the time components do not
+          queue for long; under 10ms is a good goal.
+        |||) +
+        panel.withPosition({ x: 0, y: 22, w: 8, h: 10 }) +
+        panel.withQueries([
+          panel.newQuery(
+            expr='sum by (le) (increase(agent_component_dependencies_wait_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))',
             format='heatmap',
             legendFormat='{{le}}',
           ),

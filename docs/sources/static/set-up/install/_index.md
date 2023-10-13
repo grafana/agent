@@ -5,6 +5,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/
 menuTitle: Install static mode
 title: Install Grafana Agent in static mode
+description: Learn how to install GRafana Agent in static mode
 weight: 100
 ---
 
@@ -14,7 +15,7 @@ You can install Grafana Agent in static mode on Docker, Kubernetes, Linux, macOS
 
 The following architectures are supported:
 
-- Linux: AMD64, ARM64, ARMv6, ARMv7
+- Linux: AMD64, ARM64
 - Windows: AMD64
 - macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 - FreeBSD: AMD64

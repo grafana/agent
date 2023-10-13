@@ -4,6 +4,10 @@ metrics:
       - url: http://localhost:9009/api/prom/push
 
 integrations:
+  http_tls_config:
+      ca_file: "/something7.cert"
+      cert_file: "/something8.cert"
+      key_file: "/something9.cert"
   scrape_integrations: true
   apache_http:
     enabled: true
@@ -33,15 +37,36 @@ integrations:
         - type: AWS/EC2
           regions:
             - us-east-2
+          nil_to_zero: true
           metrics:
             - name: CPUUtilization
               period: 5m
               statistics:
                 - Average
+              nil_to_zero: false
             - name: NetworkPacketsIn
               period: 5m
               statistics:
                 - Average
+    static:
+      - name: single_ec2_instance
+        regions:
+          - us-east-2
+        namespace: AWS/EC2
+        dimensions:
+          - name: InstanceId
+            value: i-0e43cee369aa44b52
+        nil_to_zero: true
+        metrics:
+          - name: CPUUtilization
+            period: 5m
+            statistics:
+              - Average
+            nil_to_zero: false
+          - name: NetworkPacketsIn
+            period: 5m
+            statistics:
+              - Average
   consul_exporter:
     enabled: true
   dnsmasq_exporter:
@@ -134,6 +159,7 @@ integrations:
   redis_exporter:
     enabled: true
     redis_addr: "redis-2:6379"
+    export_key_values: false
     relabel_configs:
     - source_labels: [__address__]
       target_label: instance
@@ -165,4 +191,13 @@ integrations:
     scrape_timeout: 1m
     scrape_integration: true
   statsd_exporter:
+    enabled: true
+  azure_exporter:
+    enabled: true
+    subscriptions:
+      - "subId"
+    resource_type: "Microsoft.Dashboard/grafana"
+    metrics:
+      - "HttpRequestCount"
+  cadvisor:
     enabled: true

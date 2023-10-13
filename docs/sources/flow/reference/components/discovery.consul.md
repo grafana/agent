@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.consul/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.consul/
 title: discovery.consul
+description: Learn about discovery.consul
 ---
 
 # discovery.consul
@@ -128,7 +129,7 @@ values.
 
 `discovery.consul` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.consul` does not expose any component-specific debug metrics.
 

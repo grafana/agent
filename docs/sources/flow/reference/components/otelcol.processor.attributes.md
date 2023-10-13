@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.attributes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.attributes/
 title: otelcol.processor.attributes
+description: Learn about otelcol.processor.attributes
 ---
 
 # otelcol.processor.attributes
@@ -163,6 +164,12 @@ For example, adding a `span_names` filter could cause the component to error if 
 ### exclude block
 
 The `exclude` block provides an option to exclude data from being fed into the [action] blocks based on the properties of a span, log, or metric records.
+
+{{% admonition type="note" %}}
+Signals excluded by the `exclude` block will still be propagated to downstream components as-is.
+If you would like to not propagate certain signals to downstream components,
+consider a processor such as [otelcol.processor.tail_sampling]({{< relref "./otelcol.processor.tail_sampling.md" >}}).
+{{% /admonition %}}
 
 {{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" version="<AGENT VERSION>" >}}
 

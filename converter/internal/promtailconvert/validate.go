@@ -11,17 +11,9 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	// The positions global config is not supported in Flow Mode.
 	if cfg.PositionsConfig != DefaultPositionsConfig() {
 		diags.Add(
-			diag.SeverityLevelError,
+			diag.SeverityLevelWarn,
 			"global positions configuration is not supported - each Flow Mode's loki.source.file component "+
 				"has its own positions file in the component's data directory",
-		)
-	}
-
-	// The global and per-client stream lag labels is deprecated and has no effect.
-	if len(cfg.Options.StreamLagLabels) > 0 {
-		diags.Add(
-			diag.SeverityLevelWarn,
-			"stream_lag_labels is deprecated and the associated metric has been removed",
 		)
 	}
 

@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.blackbox/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.blackbox/
 title: prometheus.exporter.blackbox
+description: Learn about prometheus.exporter.blackbox
 ---
 
 # prometheus.exporter.blackbox
@@ -54,11 +55,10 @@ The following blocks are supported inside the definition of
 ### target block
 
 The `target` block defines an individual blackbox target.
-The `target` block may be specified multiple times to define multiple targets.
+The `target` block may be specified multiple times to define multiple targets. The label of the block is required and will be used in the target's `job` label.
 
 | Name      | Type     | Description                         | Default | Required |
 | --------- | -------- | ----------------------------------- | ------- | -------- |
-| `name`    | `string` | Name of the target.                 |         | yes      |
 | `address` | `string` | The address of the target to probe. |         | yes      |
 | `module`  | `string` | Blackbox module to use to probe.    | `""`    | no       |
 
@@ -87,7 +87,7 @@ debug metrics.
 ### Collect metrics using a blackbox exporter config file
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.exporter.blackbox`:
+from `prometheus.exporter.blackbox`. It adds an extra label, `env="dev"`, to the metrics emitted by the `grafana` target. The `example` target does not have any added labels.
 
 ```river
 prometheus.exporter.blackbox "example" {
@@ -101,6 +101,9 @@ prometheus.exporter.blackbox "example" {
   target "grafana" {
     address = "http://grafana.com"
     module  = "http_2xx"
+    labels = {
+      "env": "dev",
+    }
   }
 }
 
@@ -144,6 +147,9 @@ prometheus.exporter.blackbox "example" {
   target "grafana" {
     address = "http://grafana.com"
     module  = "http_2xx"
+    labels = {
+      "env": "dev",
+    }
   }
 }
 
@@ -170,5 +176,6 @@ Replace the following:
 - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
 - `USERNAME`: The username to use for authentication to the remote_write API.
 - `PASSWORD`: The password to use for authentication to the remote_write API.
+
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

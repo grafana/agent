@@ -7,11 +7,11 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/release-notes/
 description: Release notes for Grafana Agent flow mode
 menuTitle: Release notes
-title: Release notes for Grafana Agentflow mode
+title: Release notes for Grafana Agent flow mode
 weight: 999
 ---
 
-# Release notes
+# Release notes for Grafana Agent flow mode
 
 The release notes provide information about deprecations and breaking changes in Grafana Agent flow mode.
 
@@ -28,9 +28,67 @@ Other release notes for the different Grafana Agent variants are contained on se
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{% /admonition %}}
 
+## v0.38
+
+### Breaking change: `otelcol.exporter.jaeger` component removed
+
+The deprecated `otelcol.exporter.jaeger` component has been removed. To send
+traces to Jaeger, use `otelcol.exporter.otlp` and a version of Jaeger that
+supports OTLP.
+
+## v0.37
+
+### Breaking change: Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`.
+
+If you use the Loki processing stage in your Agent configuration, you must rename the `non_indexed_labels` pipeline stage definition to `structured_metadata`.
+
+Old configuration example:
+
+```river
+stage.non_indexed_labels {
+    values = {"app" = ""}
+}
+```
+
+New configuration example:
+```river
+stage.structured_metadata {
+    values = {"app" = ""}
+}
+```
+
+### Breaking change: `otelcol.exporter.prometheus` scope labels updated.
+
+There are 2 changes to the way scope labels work for this component.
+
+* Previously, the `include_scope_info` argument would trigger including
+`otel_scope_name` and `otel_scope_version` in metrics. This is now defaulted
+to `true` and controlled via the `include_scope_labels` argument.
+
+* A bugfix was made to rename `otel_scope_info` metric labels from
+`name` to `otel_scope_name` and `version` to `otel_scope_version`. This is
+now correct with the OTLP Instrumentation Scope specification.
+
+### Breaking change: `prometheus.exporter.unix` now requires a label.
+
+Previously the exporter was a singleton and did not require a label. The exporter now can be used multiple times and
+needs a label.
+
+Old configuration example:
+
+```river
+prometheus.exporter.unix { /* ... */ }
+```
+
+New configuration example:
+
+```river
+prometheus.exporter.unix "example" { /* ... */ }
+```
+
 ## v0.36
 
-## Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`
+### Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`
 
 The default value of `retry_on_http_429` is changed from `false` to `true` for the `queue_config` block in `prometheus.remote_write`
 so that the agent can retry sending and avoid data being lost for metric pipelines by default.
@@ -38,7 +96,7 @@ so that the agent can retry sending and avoid data being lost for metric pipelin
 * If you set the `retry_on_http_429` explicitly - no action is required.
 * If you do not set `retry_on_http_429` explicitly and you do *not* want to retry on HTTP 429, make sure you set it to `false` as you upgrade to this new version.
 
-## Breaking change: `loki.source.file` no longer automatically extracts logs from compressed files
+### Breaking change: `loki.source.file` no longer automatically extracts logs from compressed files
 
 `loki.source.file` component will no longer automatically detect and decompress
 logs from compressed files (this was an undocumented behaviour).
@@ -65,11 +123,11 @@ How to migrate:
         format        = "<compression format>"
       }
     }
-    ``` 
+    ```
 
     where the `<compression format>` is the appropriate compression format -
     see [`loki.source.file` documentation][loki-source-file-docs] for details.
-    
+
     [loki-source-file-docs]: {{< relref "./reference/components/loki.source.file.md" >}}
 
 ## v0.35
@@ -237,7 +295,7 @@ prometehus.scrape "example" {
 
 ### Breaking change: The algorithm for the "hash" action of `otelcol.processor.attributes` has changed
 The hash produced when using `action = "hash"` in the `otelcol.processor.attributes` flow component is now using the more secure SHA-256 algorithm.
-The change was made in PR [#22831](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22831) of opentelemetry-collector-contrib. 
+The change was made in PR [#22831](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22831) of opentelemetry-collector-contrib.
 
 ### Breaking change: `otelcol.exporter.loki` now includes instrumentation scope in its output
 
@@ -265,16 +323,16 @@ Additional `instrumentation_scope` information will be added to the OTLP log sig
 ### Breaking change: `otelcol.extension.jaeger_remote_sampling` removes the `/` HTTP endpoint
 
 The `/` HTTP endpoint was the same as the `/sampling` endpoint. The `/sampling` endpoint is still functional.
-The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib. 
+The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib.
 
 ### Breaking change: The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`
 
-The `remote_sampling` block in `otelcol.receiver.jaeger` has been an undocumented no-op configuration for some time, and has now been removed. 
+The `remote_sampling` block in `otelcol.receiver.jaeger` has been an undocumented no-op configuration for some time, and has now been removed.
 Customers are advised to use `otelcol.extension.jaeger_remote_sampling` instead.
 
 ### Deprecation: `otelcol.exporter.jaeger` has been deprecated and will be removed in Agent v0.38.0.
 
-This is because Jaeger supports OTLP directly and OpenTelemetry Collector is also removing its 
+This is because Jaeger supports OTLP directly and OpenTelemetry Collector is also removing its
 [Jaeger receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/jaegerexporter).
 
 ## v0.34

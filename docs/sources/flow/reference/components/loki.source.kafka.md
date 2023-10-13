@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.kafka/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kafka/
 title: loki.source.kafka
+description: Learn about loki.source.kafka
 ---
 
 # loki.source.kafka
@@ -147,21 +148,22 @@ This example consumes Kafka events from the specified brokers and topics
 then forwards them to a `loki.write` component using the Kafka timestamp.
 
 ```river
-loki.relabel "kafka" {
-  rule {
-    source_labels = ["__meta_kafka_topic"]
-    target_label  = "topic"
-  }
-}
-
-
 loki.source.kafka "local" {
   brokers                = ["localhost:9092"]
   topics                 = ["quickstart-events"]
   labels                 = {component = "loki.source.kafka"}
-  forward_to             = [loki.write.local.receiver]
+  forward_to             = [loki.relabel.kafka.receiver]
   use_incoming_timestamp = true
   relabel_rules          = loki.relabel.kafka.rules
+}
+
+loki.relabel "kafka" {
+  forward_to      = [loki.write.local.receiver]
+
+  rule {
+    source_labels = ["__meta_kafka_topic"]
+    target_label  = "topic"
+  }
 }
 
 loki.write "local" {
@@ -170,4 +172,3 @@ loki.write "local" {
   }
 }
 ```
-

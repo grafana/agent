@@ -59,7 +59,7 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 		case promtailstages.StageTypeDocker:
 			return convertDocker()
 		case promtailstages.StageTypeCRI:
-			return convertCRI()
+			return convertCRI(iCfg, diags)
 		case promtailstages.StageTypeMatch:
 			return convertMatch(iCfg, diags)
 		case promtailstages.StageTypeTemplate:
@@ -83,11 +83,11 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 		case promtailstages.StageTypeDecolorize:
 			return convertDecolorize(diags)
 		case promtailstages.StageTypeEventLogMessage:
-			return convertEventLogMessage(diags)
+			return convertEventLogMessage(iCfg, diags)
 		case promtailstages.StageTypeGeoIP:
 			return convertGeoIP(iCfg, diags)
-		case promtailstages.StageTypeNonIndexedLabels:
-			return convertNonIndexedLabels(iCfg, diags)
+		case promtailstages.StageTypeStructuredMetadata:
+			return convertStructuredMetadata(iCfg, diags)
 		}
 	}
 
@@ -95,13 +95,13 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 	return stages.StageConfig{}, false
 }
 
-func convertNonIndexedLabels(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+func convertStructuredMetadata(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
 	pLabels := &promtailstages.LabelsConfig{}
 	if err := mapstructure.Decode(cfg, pLabels); err != nil {
 		addInvalidStageError(diags, cfg, err)
 		return stages.StageConfig{}, false
 	}
-	return stages.StageConfig{NonIndexedLabelsConfig: &stages.LabelsConfig{
+	return stages.StageConfig{StructuredMetadata: &stages.LabelsConfig{
 		Values: *pLabels,
 	}}, true
 }
@@ -121,14 +121,26 @@ func convertGeoIP(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig,
 	}, true
 }
 
-func convertEventLogMessage(diags *diag.Diagnostics) (stages.StageConfig, bool) {
-	diags.Add(diag.SeverityLevelError, "pipeline_stages.eventlogmessage is not supported")
-	return stages.StageConfig{}, false
+func convertEventLogMessage(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pCfg := &promtailstages.EventLogMessageConfig{}
+	if err := mapstructure.Decode(cfg, pCfg); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	result := &stages.EventLogMessageConfig{}
+	result.SetToDefault()
+	result.DropInvalidLabels = pCfg.DropInvalidLabels
+	result.OverwriteExisting = pCfg.OverwriteExisting
+	if pCfg.Source != nil {
+		result.Source = *pCfg.Source
+	}
+	return stages.StageConfig{
+		EventLogMessageConfig: result,
+	}, true
 }
 
-func convertDecolorize(diags *diag.Diagnostics) (stages.StageConfig, bool) {
-	diags.Add(diag.SeverityLevelError, "pipeline_stages.decolorize is not supported")
-	return stages.StageConfig{}, false
+func convertDecolorize(_ *diag.Diagnostics) (stages.StageConfig, bool) {
+	return stages.StageConfig{DecolorizeConfig: &stages.DecolorizeConfig{}}, true
 }
 
 func convertStaticLabels(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
@@ -217,8 +229,21 @@ func convertLimit(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig,
 }
 
 func convertSampling(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
-	diags.Add(diag.SeverityLevelError, fmt.Sprintf("pipeline_stages.sampling is currently not supported: %v", cfg))
-	return stages.StageConfig{}, false
+	pSampling := &promtailstages.SamplingConfig{}
+	// NOTE: using WeakDecode to match promtail behaviour
+	if err := mapstructure.WeakDecode(cfg, pSampling); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+	fSampling := &stages.SamplingConfig{}
+	fSampling.SetToDefault()
+	fSampling.SamplingRate = pSampling.SamplingRate
+	if pSampling.DropReason != nil {
+		fSampling.DropReason = pSampling.DropReason
+	}
+	return stages.StageConfig{
+		SamplingConfig: fSampling,
+	}, true
 }
 
 func convertDrop(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
@@ -352,8 +377,24 @@ func convertMatch(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig,
 	}}, true
 }
 
-func convertCRI() (stages.StageConfig, bool) {
-	return stages.StageConfig{CRIConfig: &stages.CRIConfig{}}, true
+func convertCRI(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {
+	pCRI := &promtailstages.CriConfig{}
+	if err := mapstructure.Decode(cfg, pCRI); err != nil {
+		addInvalidStageError(diags, cfg, err)
+		return stages.StageConfig{}, false
+	}
+
+	// Copied logic from Promtail: if MaxPartialLines is 0, default it to
+	// MaxPartialLinesSize.
+	if pCRI.MaxPartialLines == 0 {
+		pCRI.MaxPartialLines = promtailstages.MaxPartialLinesSize
+	}
+
+	return stages.StageConfig{CRIConfig: &stages.CRIConfig{
+		MaxPartialLines:            pCRI.MaxPartialLines,
+		MaxPartialLineSize:         uint64(pCRI.MaxPartialLineSize),
+		MaxPartialLineSizeTruncate: pCRI.MaxPartialLineSizeTruncate,
+	}}, true
 }
 
 func convertDocker() (stages.StageConfig, bool) {

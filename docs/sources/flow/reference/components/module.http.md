@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/modul
 labels:
   stage: beta
 title: module.http
+description: Learn about module.http
 ---
 
 # module.http
@@ -108,7 +109,7 @@ unhealthy, and the health includes the error from loading the module.
 
 `module.http` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `module.http` does not expose any component-specific debug metrics.
 

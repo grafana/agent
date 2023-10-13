@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/split/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/split/
 title: split
+description: Learn about split
 ---
 
 # split
@@ -19,12 +20,12 @@ split(list, separator)
 ## Examples
 
 ```river
-> split(",", "foo,bar,baz")
+> split("foo,bar,baz", "," )
 ["foo", "bar", "baz"]
 
-> split(",", "foo")
+> split("foo", ",")
 ["foo"]
 
-> split(",", "")
+> split("", ",")
 [""]
 ```

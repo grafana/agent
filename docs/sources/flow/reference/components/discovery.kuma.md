@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.kuma/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kuma/
 title: discovery.kuma
+description: Learn about discovery.kuma
 ---
 
 # discovery.kuma
@@ -44,7 +45,7 @@ Name               | Type           | Description                               
  - [`oauth2` block][oauth2].
 
 The following blocks are supported inside the definition of
-`discovery.nomad`:
+`discovery.kuma`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -104,7 +105,7 @@ values.
 
 `discovery.kuma` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.kuma` does not expose any component-specific debug metrics.
 

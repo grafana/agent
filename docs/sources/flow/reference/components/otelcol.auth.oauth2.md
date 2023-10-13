@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.auth.oauth2/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.oauth2/
 title: otelcol.auth.oauth2
+description: Learn about otelcol.auth.oauth2
 ---
 
 # otelcol.auth.oauth2
@@ -12,8 +13,8 @@ title: otelcol.auth.oauth2
 `otelcol.auth.oauth2` exposes a `handler` that can be used by other `otelcol`
 components to authenticate requests using OAuth 2.0.
 
-The authorization tokens can be used by HTTP and gRPC based OpenTelemetry exporters. 
-This component can fetch and refresh expired tokens automatically. For further details about 
+The authorization tokens can be used by HTTP and gRPC based OpenTelemetry exporters.
+This component can fetch and refresh expired tokens automatically. For further details about
 OAuth 2.0 Client Credentials flow (2-legged workflow) see [this document](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4).
 
 > **NOTE**: `otelcol.auth.oauth2` is a wrapper over the upstream OpenTelemetry
@@ -38,7 +39,7 @@ otelcol.auth.oauth2 "LABEL" {
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `client_id` | `string` | The client identifier issued to the client. | | yes
-`client_secret` | `string` | The secret string associated with the client identifier. | | yes
+`client_secret` | `secret` | The secret string associated with the client identifier. | | yes
 `token_url` | `string` | The server endpoint URL from which to get tokens. | | yes
 `endpoint_params` | `map(list(string))` | Additional parameters that are sent to the token endpoint. | `{}` | no
 `scopes` | `list(string)` | Requested permissions associated for the client. | `[]` | no

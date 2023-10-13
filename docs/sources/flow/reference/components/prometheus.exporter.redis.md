@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.redis/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.redis/
 title: prometheus.exporter.redis
+description: Learn about prometheus.exporter.redis
 ---
 
 # prometheus.exporter.redis
@@ -41,6 +42,7 @@ Omitted fields take their default values.
 | `check_single_keys`           | `list(string)` | List of single keys to export value and length/size.                                                                    |            | no       |
 | `check_streams`               | `list(string)` | List of stream-patterns to export info about streams, groups, and consumers to search for with SCAN.                    |            | no       |
 | `check_single_streams`        | `list(string)` | List of single streams to export info about streams, groups, and consumers.                                             |            | no       |
+| `export_key_values`           | `bool`         | Whether to export key values as labels when using `check_keys` or `check_single_keys`.                                  | `true`     | no       |
 | `count_keys`                  | `list(string)` | List of individual keys to export counts for.                                                                           |            | no       |
 | `script_path`                 | `string`       | Path to Lua Redis script for collecting extra metrics.                                                                  |            | no       |
 | `script_paths`                | `list(string)` | List of paths to Lua Redis scripts for collecting extra metrics.                                                        |            | no       |

@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.scaleway/
 title: discovery.scaleway
+description: Learn about discovery.scaleway
 ---
 
 # discovery.scaleway
@@ -130,7 +131,7 @@ values.
 
 `discovery.scaleway` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.scaleway` does not expose any component-specific debug metrics.
 

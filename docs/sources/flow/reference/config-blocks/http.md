@@ -4,7 +4,9 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/http/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/http/
-title: http
+title: http block
+menuTitle: http
+description: Learn about the http configuration block
 ---
 
 # http block
@@ -42,11 +44,17 @@ inner blocks.
 
 The following blocks are supported inside the definition of `http`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-tls | [tls][] | Define TLS settings for the HTTP server. | no
+Hierarchy | Block                          | Description                                                   | Required
+--------- |--------------------------------|---------------------------------------------------------------| --------
+tls | [tls][]                        | Define TLS settings for the HTTP server.                      | no
+tls > windows_certificate_filter | [windows_certificate_filter][] | Configure Windows certificate store for all certificates.     | no
+tls > windows_certificate_filter > server | [server][]                     | Configure server certificates for Windows certificate filter. | no
+tls > windows_certificate_filter > client | [client][]                     | Configure client certificates for Windows certificate filter. | no
 
 [tls]: #tls-block
+[windows_certificate_filter]: #windows-certificate-filter-block
+[server]: #server-block
+[client]: #client-block
 
 ### tls block
 
@@ -150,3 +158,51 @@ The following versions are recognized:
 * `TLS12` for TLS 1.2
 * `TLS11` for TLS 1.1
 * `TLS10` for TLS 1.0
+
+
+### windows certificate filter block
+
+The `windows_certificate_filter` block is used to configure retrieving certificates from the built-in Windows
+certificate store. When you use the `windows_certificate_filter` block
+the following TLS settings are overridden and will cause an error if defined.
+
+* `cert_pem`
+* `cert_file`
+* `key_pem`
+* `key_file`
+* `client_ca`
+* `client_ca_file`
+
+{{% admonition type="warning" %}}
+This feature is only available on Windows.
+
+TLS min and max may not be compatible with the certificate stored in the Windows certificate store. The `windows_certificate_filter`
+will serve the found certificate even if it is not compatible with the specified TLS version.
+{{% /admonition %}}
+
+
+### server block
+
+The `server` block is used to find the certificate to check the signer. If multiple certificates are found the 
+`windows_certificate_filter` will choose the certificate with the expiration farthest in the future.
+
+Name | Type           | Description                                                                               | Default | Required
+---- |----------------|-------------------------------------------------------------------------------------------|---------| --------
+`store` | `string`       | Name of the system store to look for the server Certificate, for example, LocalMachine, CurrentUser. | `""`    | yes
+`system_store` | `string`       | Name of the store to look for the server Certificate, for example, My, CA.                           | `""`    | yes
+`issuer_common_names` | `list(string)` | Issuer common names to check against.                                                     |         | no
+`template_id` | `string`       | Server Template ID to match in ASN1 format, for example, "1.2.3".                                    | `""`    | no
+`refresh_interval` | `string`       | How often to check for a new server certificate.                                          | `"5m"`  | no
+
+
+
+### client block
+
+The `client` block is used to check the certificate presented to the server.
+
+Name | Type           | Description                                            | Default | Required
+---- |----------------|--------------------------------------------------------|-----| --------
+`issuer_common_names` | `list(string)` | Issuer common names to check against.                  |     | no
+`subject_regex` | `string`       | Regular expression to match Subject name.              | `""` | no
+`template_id` | `string`       | Client Template ID to match in ASN1 format, for example, "1.2.3".                 |   `""`   | no
+

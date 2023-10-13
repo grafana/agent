@@ -28,8 +28,8 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	fs := flag.NewFlagSet("convert", flag.ExitOnError)
-	staticConfig, err := config.LoadFromFunc(fs, []string{"-config.file", "convert"}, func(_, _ string, _ bool, c *config.Config) error {
-		return config.LoadBytes(in, false, c)
+	staticConfig, err := config.LoadFromFunc(fs, []string{"-config.file", "convert", "-config.expand-env"}, func(_, _ string, expandEnvVars bool, c *config.Config) error {
+		return config.LoadBytes(in, expandEnvVars, c)
 	})
 
 	if err != nil {
@@ -66,8 +66,8 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	diags.AddAll(appendStaticPrometheus(f, staticConfig))
 	diags.AddAll(appendStaticPromtail(f, staticConfig))
 	diags.AddAll(appendStaticIntegrationsV1(f, staticConfig))
+	// TODO integrations v2
 	// TODO otel
-	// TODO other
 
 	diags.AddAll(validate(staticConfig))
 
@@ -158,7 +158,7 @@ func appendStaticIntegrationsV1(f *builder.File, staticConfig *config.Config) di
 	var diags diag.Diagnostics
 
 	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
-	b.AppendIntegrations()
+	b.Build()
 
 	return diags
 }

@@ -160,17 +160,17 @@ func (c *Consumer) processAttributes(ctx context.Context, attrs pcommon.Map) {
 		return
 	}
 
-	for k, v := range labels {
+	for _, label := range labels.Labels() {
 		switch c.opts.OperationType {
 		case OperationTypeUpsert:
-			attrs.PutStr(k, v)
+			attrs.PutStr(label.Name, label.Value)
 		case OperationTypeInsert:
-			if _, ok := attrs.Get(k); !ok {
-				attrs.PutStr(k, v)
+			if _, ok := attrs.Get(label.Name); !ok {
+				attrs.PutStr(label.Name, label.Value)
 			}
 		case OperationTypeUpdate:
-			if toVal, ok := attrs.Get(k); ok {
-				toVal.SetStr(v)
+			if toVal, ok := attrs.Get(label.Name); ok {
+				toVal.SetStr(label.Value)
 			}
 		}
 	}
@@ -247,10 +247,12 @@ func GetHostFromLabels(labels discovery.Target) (string, error) {
 	return host, nil
 }
 
-func CleanupLabels(labels discovery.Target) {
-	for k := range labels {
-		if strings.HasPrefix(k, "__") {
-			delete(labels, k)
+func NewTargetsWithNonInternalLabels(labels discovery.Target) discovery.Target {
+	res := make(discovery.Target)
+	for k, v := range labels {
+		if !strings.HasPrefix(k, "__") {
+			res[k] = v
 		}
 	}
+	return res
 }

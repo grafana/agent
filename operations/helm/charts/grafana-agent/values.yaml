@@ -18,10 +18,9 @@ global:
   # -- Security context to apply to the Grafana Agent pod.
   podSecurityContext: {}
 
-## The init containers to run.
-## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
-##
-initContainers: []
+crds:
+  # -- Whether to install CRDs for monitoring.
+  create: true
 
 # Various agent settings.
 agent:
@@ -99,6 +98,8 @@ image:
   # -- (string) Grafana Agent image tag. When empty, the Chart's appVersion is
   # used.
   tag: null
+  # -- Grafana Agent image's SHA256 digest (either in format "sha256:XYZ" or "XYZ"). When set, will override `image.tag`.
+  digest: null
   # -- Grafana Agent image pull policy.
   pullPolicy: IfNotPresent
   # -- Optional set of image pull secrets.
@@ -128,6 +129,8 @@ configReloader:
     repository: jimmidyson/configmap-reload
     # -- Tag of image to use for config reloading.
     tag: v0.8.0
+    # -- SHA256 digest of image to use for config reloading (either in format "sha256:XYZ" or "XYZ"). When set, will override `configReloader.image.tag`
+    digest: ""
   # -- Override the args passed to the container.
   customArgs: []
   # -- Resource requests and limits to apply to the config reloader container.
@@ -202,6 +205,11 @@ controller:
   # -- volumeClaimTemplates to add when controller.type is 'statefulset'.
   volumeClaimTemplates: []
 
+  ## -- Additional init containers to run.
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ##
+  initContainers: []
+
 service:
   # -- Creates a Service for the controller's pods.
   enabled: true
@@ -211,6 +219,29 @@ service:
   clusterIP: ''
   annotations: {}
     # cloud.google.com/load-balancer-type: Internal
+
+serviceMonitor:
+  enabled: false
+  # -- Additional labels for the service monitor.
+  additionalLabels: {}
+  # -- Scrape interval. If not set, the Prometheus default scrape interval is used.
+  interval: ""
+  # -- MetricRelabelConfigs to apply to samples after scraping, but before ingestion.
+  # ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+  metricRelabelings: []
+  # - action: keep
+  #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+  #   sourceLabels: [__name__]
+
+  # -- RelabelConfigs to apply to samples before scraping
+  # ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+  relabelings: []
+  # - sourceLabels: [__meta_kubernetes_pod_node_name]
+  #   separator: ;
+  #   regex: ^(.*)$
+  #   targetLabel: nodename
+  #   replacement: $1
+  #   action: replace
 
 ingress:
   # -- Enables ingress for the agent (faro port)

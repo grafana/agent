@@ -10,6 +10,33 @@ internal API changes are not present.
 Unreleased
 ----------
 
+- Add `secrets` and `configmaps` to cluster role for `remote.kubernetes.*` components. (@captncraig)
+
+0.26.0 (2023-10-10)
+-------------------
+
+### Breaking changes
+
+- The `initContainers` setting has been moved to `controller.initContainers`
+  for consistency with other Pod-level settings. (@rfratto)
+
+### Enhancements
+
+- Make CRDs optional through the `crds.create` setting. (@bentonam, @rfratto)
+
+- Update Grafana Agent version to v0.37.1. (@tpaschalis)
+
+0.25.0 (2023-09-22)
+-------------------
+
+### Enhancements
+
+- An image's digest can now be used in place of a tag. (@hainenber)
+
+- Add ServiceMonitor support. (@QuentinBisson)
+
+- Update Grafana Agent version to v0.36.2. (@ptodev)
+
 0.24.0 (2023-09-08)
 -------------------
 

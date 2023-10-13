@@ -6,6 +6,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/join/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/join/
 title: join
+description: Learn about join
 ---
 
 # join

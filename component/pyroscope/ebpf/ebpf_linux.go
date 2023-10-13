@@ -17,6 +17,8 @@ import (
 	"github.com/grafana/pyroscope/ebpf/pprof"
 	"github.com/grafana/pyroscope/ebpf/sd"
 	"github.com/grafana/pyroscope/ebpf/symtab"
+	"github.com/grafana/pyroscope/ebpf/symtab/elf"
+	"github.com/ianlancetaylor/demangle"
 	"github.com/oklog/run"
 )
 
@@ -81,6 +83,7 @@ func defaultArguments() Arguments {
 		CollectUserProfile:   true,
 		CollectKernelProfile: true,
 		TargetsOnly:          true,
+		Demangle:             "none",
 	}
 }
 
@@ -230,6 +233,10 @@ func convertSessionOptions(args Arguments, ms *metrics) ebpfspy.SessionOptions {
 		CollectKernel: args.CollectKernelProfile,
 		SampleRate:    args.SampleRate,
 		CacheOptions: symtab.CacheOptions{
+			SymbolOptions: symtab.SymbolOptions{
+				GoTableFallback: false,
+				DemangleOptions: convertDemangleOptions(args.Demangle),
+			},
 			PidCacheOptions: symtab.GCacheOptions{
 				Size:       args.PidCacheSize,
 				KeepRounds: args.CacheRounds,
@@ -244,5 +251,20 @@ func convertSessionOptions(args Arguments, ms *metrics) ebpfspy.SessionOptions {
 			},
 			Metrics: ms.symtabMetrics,
 		},
+	}
+}
+
+func convertDemangleOptions(o string) []demangle.Option {
+	switch o {
+	case "none":
+		return elf.DemangleNone
+	case "simplified":
+		return elf.DemangleSimplified
+	case "templates":
+		return elf.DemangleTemplates
+	case "full":
+		return elf.DemangleFull
+	default:
+		return elf.DemangleNone
 	}
 }

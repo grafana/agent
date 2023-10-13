@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.http/
 title: discovery.http
+description: Learn about discovery.http
 ---
 
 # discovery.http
@@ -26,6 +27,55 @@ Example response body:
   ...
 ]
 ```
+
+It is possible to use additional fields in the JSON to pass parameters to [prometheus.scrape][] such as the `metricsPath` and `scrape_interval`.
+
+[prometheus.scrape]: {{< relref "./prometheus.scrape.md#technical-details" >}}
+
+As an example, the following will provide a target with a custom `metricsPath`, scrape interval, and timeout value:
+
+```json
+[
+   {
+      "labels" : {
+         "__metrics_path__" : "/api/prometheus",
+         "__scheme__" : "https",
+         "__scrape_interval__" : "60s",
+         "__scrape_timeout__" : "10s",
+         "service" : "custom-api-service"
+      },
+      "targets" : [
+         "custom-api:443"
+      ]
+   },
+]
+
+```
+
+It is also possible to append query parameters to the metrics path with the `__param_<name>` syntax.
+
+For example, the following will call a metrics path of `/health?target_data=prometheus`:
+
+```json
+[
+   {
+      "labels" : {
+         "__metrics_path__" : "/health",
+         "__scheme__" : "https",
+         "__scrape_interval__" : "60s",
+         "__scrape_timeout__" : "10s",
+         "__param_target_data": "prometheus",
+         "service" : "custom-api-service"
+      },
+      "targets" : [
+         "custom-api:443"
+      ]
+   },
+]
+
+```
+
+For more information on the potential labels you can use, see the [prometheus.scrape technical details][prometheus.scrape] section, or the [Prometheus Configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) documentation.
 
 ## Usage
 
@@ -103,7 +153,7 @@ values.
 
 `discovery.http` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 * `prometheus_sd_http_failures_total` (counter): Total number of refresh failures.
 

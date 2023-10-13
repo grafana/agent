@@ -7,6 +7,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/
 menuTitle: Install flow mode
 title: Install Grafana Agent in flow mode
+description: Learn how to install Grafana Agent in flow mode
 weight: 50
 ---
 
@@ -16,7 +17,7 @@ You can install Grafana Agent in flow mode on Docker, Kubernetes, Linux, macOS, 
 
 The following architectures are supported:
 
-- Linux: AMD64, ARM64, ARMv6, ARMv7
+- Linux: AMD64, ARM64
 - Windows: AMD64
 - macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 - FreeBSD: AMD64

@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.remote_write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
 title: prometheus.remote_write
+description: Learn about prometheus.remote_write
 ---
 
 # prometheus.remote_write
@@ -53,6 +54,9 @@ endpoint > basic_auth | [basic_auth][] | Configure basic_auth for authenticating
 endpoint > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 endpoint > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 endpoint > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+endpoint > sigv4 | [sigv4][] | Configure AWS Signature Verification 4 for authenticating to the endpoint. | no
+endpoint > azuread | [azuread][] | Configure AzureAD for authenticating to the endpoint. | no
+endpoint > azuread > managed_identity | [managed_identity][] | Configure Azure user-assigned managed identity. | yes
 endpoint > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 endpoint > queue_config | [queue_config][] | Configuration for how metrics are batched before sending. | no
 endpoint > metadata_config | [metadata_config][] | Configuration for how metric metadata is sent. | no
@@ -67,6 +71,9 @@ basic_auth` refers to a `basic_auth` block defined inside an
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
+[sigv4]: #sigv4-block
+[azuread]: #azuread-block
+[managed_identity]: #managed_identity-block
 [tls_config]: #tls_config-block
 [queue_config]: #queue_config-block
 [metadata_config]: #metadata_config-block
@@ -100,6 +107,8 @@ Name | Type | Description | Default | Required
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
+ - [`sigv4` block][sigv4].
+ - [`azuread` block][azuread].
 
 When multiple `endpoint` blocks are provided, metrics are concurrently sent to all
 configured locations. Each endpoint has a _queue_ which is used to read metrics
@@ -126,6 +135,18 @@ metrics fails.
 ### oauth2 block
 
 {{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### sigv4 block
+
+{{< docs/shared lookup="flow/reference/components/sigv4-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### azuread block
+
+{{< docs/shared lookup="flow/reference/components/azuread-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### managed_identity block
+
+{{< docs/shared lookup="flow/reference/components/managed_identity-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
@@ -233,7 +254,7 @@ values.
 `prometheus.remote_write` does not expose any component-specific debug
 information.
 
-### Debug metrics
+## Debug metrics
 
 * `agent_wal_storage_active_series` (gauge): Current number of active series
   being tracked by the WAL.
@@ -360,3 +381,8 @@ prometheus.remote_write "default" {
 `prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
 
 Any labels that start with `__` will be removed before sending to the endpoint.
+
+## Data retention
+
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT VERSION>" >}}
+

@@ -6,9 +6,10 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/remote.vault/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.vault/
 title: remote.vault
+description: Learn about remote.vault
 ---
 
-# `remote.vault`
+# remote.vault
 
 `remote.vault` connect to Vault to retrieve secrets. It can retrieve a secret
 using the [KV v2][] secrets engine.
@@ -299,7 +300,7 @@ secret around:
 * Whether the token is renewable.
 * Warnings from Vault from when the token was retrieved.
 
-### Debug metrics
+## Debug metrics
 
 `remote.vault` exposes the following metrics:
 

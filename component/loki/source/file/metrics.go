@@ -1,8 +1,8 @@
 package file
 
-// This code is copied from Promtail. The metrics struct provides a common set
-// of metrics that are reused between all implementations of the reader
-// interface.
+// This code is copied from loki/promtail@a8d5815510bd959a6dd8c176a5d9fd9bbfc8f8b5.
+// The metrics struct provides a common set of metrics that are reused between all
+// implementations of the reader interface.
 
 import "github.com/prometheus/client_golang/prometheus"
 

@@ -3,6 +3,7 @@ aliases:
 - ../../../configuration/integrations/redis-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/redis-exporter-config/
 title: redis_exporter_config
+description: Learn about redis_exporter_config
 ---
 
 # redis_exporter_config
@@ -115,6 +116,9 @@ Full reference of options:
 
   # Comma separated list of single streams to export info about streams, groups and consumers.
   [check_single_streams: <string>]
+
+  # Whether to export key values as labels when using `check_keys` or `check_single_keys`.
+  [export_key_values: <bool> | default = true]
 
   # Comma separated list of individual keys to export counts for.
   [count_keys: <string>]

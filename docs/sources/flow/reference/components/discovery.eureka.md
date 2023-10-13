@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.eureka/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.eureka/
 title: discovery.eureka
+description: Learn about discovery.eureka
 ---
 
 # discovery.eureka
@@ -107,7 +108,7 @@ values.
 
 `discovery.eureka` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.eureka` does not expose any component-specific debug metrics.
 

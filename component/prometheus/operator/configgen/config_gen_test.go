@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/kubernetes"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/prometheus/operator"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -414,6 +416,42 @@ func TestGenerateAuthorization(t *testing.T) {
 			assert.Equal(t, tt.hasErr, err != nil)
 			assert.Equal(t, tt.creds, got.Credentials)
 			assert.Equal(t, tt.Type, got.Type)
+		})
+	}
+}
+
+func TestGenerateDefaultScrapeConfig(t *testing.T) {
+	tests := []struct {
+		name             string
+		scrapeOptions    operator.ScrapeOptions
+		expectedInterval time.Duration
+		expectedTimeout  time.Duration
+	}{
+		{
+			name:             "empty",
+			scrapeOptions:    operator.ScrapeOptions{},
+			expectedInterval: 1 * time.Minute,
+			expectedTimeout:  10 * time.Second,
+		},
+		{
+			name: "defaults set",
+			scrapeOptions: operator.ScrapeOptions{
+				DefaultScrapeInterval: 30 * time.Second,
+				DefaultScrapeTimeout:  5 * time.Second,
+			},
+			expectedInterval: 30 * time.Second,
+			expectedTimeout:  5 * time.Second,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cg := &ConfigGenerator{
+				ScrapeOptions: tt.scrapeOptions,
+			}
+			got := cg.generateDefaultScrapeConfig()
+
+			assert.Equal(t, model.Duration(tt.expectedInterval), got.ScrapeInterval)
+			assert.Equal(t, model.Duration(tt.expectedTimeout), got.ScrapeTimeout)
 		})
 	}
 }
