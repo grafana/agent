@@ -68,7 +68,10 @@ func runSingleTest(testDir string) {
 	testCmd.Dir = testDir
 	testOutput, errTest := testCmd.CombinedOutput()
 
-	cmd.Process.Kill()
+	err = cmd.Process.Kill()
+	if err != nil {
+		panic(err)
+	}
 
 	agentLog := agentLogBuffer.String()
 
@@ -80,7 +83,10 @@ func runSingleTest(testDir string) {
 		}
 	}
 
-	os.RemoveAll(filepath.Join(testDir, "data-agent"))
+	err = os.RemoveAll(filepath.Join(testDir, "data-agent"))
+	if err != nil {
+		panic(err)
+	}
 }
 
 func runAllTests() {
@@ -103,7 +109,10 @@ func runAllTests() {
 
 func cleanUpEnvironment() {
 	fmt.Println("Cleaning up Docker environment...")
-	exec.Command(dockerComposeCmd, "down").Run()
+	err := exec.Command(dockerComposeCmd, "down").Run()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func reportResults() {

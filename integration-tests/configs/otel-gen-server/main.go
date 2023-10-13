@@ -154,7 +154,6 @@ func main() {
 			http.Error(w, "write operation failed.", http.StatusInternalServerError)
 			return
 		}
-
 	})
 
 	mux := http.NewServeMux()
