@@ -29,6 +29,9 @@ Main (unreleased)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
   allowing invalid combination of configuration options. (@thampiotr)
+
+- Fix the handling of the `--cluster.join-addresses` flag causing an invalid
+  comparison with the mutually-exclusive `--cluster.discover-peers`. (@tpaschalis)
   
 ### Enhancements
 

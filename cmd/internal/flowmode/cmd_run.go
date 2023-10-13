@@ -210,7 +210,7 @@ func (fr *flowRun) Run(configPath string) error {
 		NodeName:            fr.clusterNodeName,
 		AdvertiseAddress:    fr.clusterAdvAddr,
 		ListenAddress:       fr.httpListenAddr,
-		JoinPeers:           strings.Split(fr.clusterJoinAddr, ","),
+		JoinPeers:           splitPeers(fr.clusterJoinAddr, ","),
 		DiscoverPeers:       fr.clusterDiscoverPeers,
 		RejoinInterval:      fr.clusterRejoinInterval,
 		AdvertiseInterfaces: fr.clusterAdvInterfaces,
@@ -429,4 +429,11 @@ func interruptContext() (context.Context, context.CancelFunc) {
 	}()
 
 	return ctx, cancel
+}
+
+func splitPeers(s, sep string) []string {
+	if len(s) == 0 {
+		return []string{}
+	}
+	return strings.Split(s, sep)
 }
