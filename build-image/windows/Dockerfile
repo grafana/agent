@@ -17,7 +17,6 @@ RUN Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointMa
 # make - building with a Makefile
 # docker - building images
 # git - bash for windows
-# test commit
 
 RUN choco install 7zip --version 22.1 -y
 

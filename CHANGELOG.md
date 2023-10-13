@@ -157,7 +157,7 @@ v0.37.0-rc.0 (2023-10-05)
 
 - Update Prometheus dependency to v2.46.0. (@tpaschalis)
 
-- The `client_secret` config argument in the `otelcol.auth.oauth2` component is 
+- The `client_secret` config argument in the `otelcol.auth.oauth2` component is
   now of type `secret` instead of type `string`. (@ptodev)
 
 ### Bugfixes
@@ -204,12 +204,9 @@ v0.37.0-rc.0 (2023-10-05)
 
 - `prometheus.operator.probes` no longer ignores relabeling `rule` blocks. (@sberz)
 
-- Migrate `Check Linux/Windows build image` to GitHub Actions. (@hainenber)
-
 - Documentation updated to correct default path from `prometheus.exporter.windows` `text_file` block (@timo1707)
 
 - Bump `redis_exporter` to v1.54.0 (@spartan0x117)
-
 
 v0.36.2 (2023-09-22)
 --------------------
