@@ -32,6 +32,9 @@ Main (unreleased)
 
 - Fix the handling of the `--cluster.join-addresses` flag causing an invalid
   comparison with the mutually-exclusive `--cluster.discover-peers`. (@tpaschalis)
+
+- Fix an issue with the static to flow converter for blackbox exporter modules
+  config not being included in the river output. (@erikbaranowski)
   
 ### Enhancements
 
