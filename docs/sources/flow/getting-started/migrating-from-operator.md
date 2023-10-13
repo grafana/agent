@@ -86,6 +86,7 @@ prometheus.remote_write "primary" {
 
 prometheus.operator.podmonitors "primary" {
     forward_to = [prometheus.remote_write.primary.receiver]
+    // leave out selector to find all podmonitors in the entire cluster
     selector {
         key = "instance"
         operator = "In"
@@ -95,15 +96,7 @@ prometheus.operator.podmonitors "primary" {
 
 prometheus.operator.servicemonitors "primary" {
     forward_to = [prometheus.remote_write.primary.receiver]
-    selector {
-        key = "instance"
-        operator = "In"
-        values = ["primary"]
-    }
-}
-
-prometheus.operator.probes "primary" {
-    forward_to = [prometheus.remote_write.primary.receiver]
+    // leave out selector to find all podmonitors in the entire cluster
     selector {
         key = "instance"
         operator = "In"
@@ -126,8 +119,8 @@ If you are using additional features in your `MetricsInstance` resources, you ma
 
 ## Collecting Logs
 
-To Be Continued
+
 
 ## Integrations
 
-To Be Continued
+The `Integration` CRD is not supported with Grafana Agent Flow, however all static mode integrations have an eqivalent component in the [`prometheus.exporter`](https://grafana.com/docs/agent/latest/flow/reference/components) namespace. The reference docs should help convert those integrations to their flow equivalent.
