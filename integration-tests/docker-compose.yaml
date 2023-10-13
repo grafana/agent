@@ -32,7 +32,7 @@ services:
   demo-client:
     build:
       context: ..
-      dockerfile: ./configs/otel-gen-client/Dockerfile
+      dockerfile: ./integration-tests/configs/otel-gen-client/Dockerfile
     restart: always
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
@@ -43,7 +43,7 @@ services:
   demo-server:
     build:
       context: ..
-      dockerfile: ./configs/otel-gen-server/Dockerfile
+      dockerfile: ./integration-tests/configs/otel-gen-server/Dockerfile
     restart: always
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
