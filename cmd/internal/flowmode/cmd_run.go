@@ -28,7 +28,7 @@ import (
 	"github.com/grafana/agent/service"
 	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
-	"github.com/grafana/agent/service/labelcache"
+	"github.com/grafana/agent/service/labelstore"
 	otel_service "github.com/grafana/agent/service/otel"
 	uiservice "github.com/grafana/agent/service/ui"
 	"github.com/grafana/ckit/advertise"
@@ -245,7 +245,7 @@ func (fr *flowRun) Run(configPath string) error {
 		return fmt.Errorf("failed to create otel service")
 	}
 
-	labelCacheService := labelcache.New(l)
+	labelService := labelstore.New(l)
 
 	f := flow.New(flow.Options{
 		Logger:   l,
@@ -257,7 +257,7 @@ func (fr *flowRun) Run(configPath string) error {
 			uiService,
 			clusterService,
 			otelService,
-			labelCacheService,
+			labelService,
 		},
 	})
 

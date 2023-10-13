@@ -1,4 +1,4 @@
-package labelcache
+package labelstore
 
 import (
 	"testing"

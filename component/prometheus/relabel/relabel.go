@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/service/labelcache"
+	"github.com/grafana/agent/service/labelstore"
 	lru "github.com/hashicorp/golang-lru/v2"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
@@ -26,9 +26,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.relabel",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:          "prometheus.relabel",
+		Args:          Arguments{},
+		Exports:       Exports{},
+		NeedsServices: []string{labelstore.ServiceName},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -75,7 +76,7 @@ type Component struct {
 	cacheDeletes     prometheus_client.Counter
 	fanout           *prometheus.Fanout
 	exited           atomic.Bool
-	labelcache       labelcache.LabelCache
+	ls               labelstore.LabelStore
 
 	cacheMut sync.RWMutex
 	cache    *lru.Cache[uint64, *labelAndID]
@@ -91,14 +92,14 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := o.GetServiceData(labelcache.ServiceName)
+	data, err := o.GetServiceData(labelstore.ServiceName)
 	if err != nil {
 		return nil, err
 	}
 	c := &Component{
-		opts:       o,
-		cache:      cache,
-		labelcache: data.(labelcache.LabelCache),
+		opts:  o,
+		cache: cache,
+		ls:    data.(labelstore.LabelStore),
 	}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
@@ -132,9 +133,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		}
 	}
 
-	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
+	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, c.ls)
 	c.receiver = prometheus.NewInterceptor(
 		c.fanout,
+		c.ls,
 		prometheus.WithAppendHook(func(_ storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
@@ -221,7 +223,7 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	globalRef := c.labelcache.GetOrAddGlobalRefID(lbls)
+	globalRef := c.ls.GetOrAddGlobalRefID(lbls)
 	var (
 		relabelled labels.Labels
 		keep       bool
@@ -283,7 +285,7 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool)
 		c.cache.Add(originalID, nil)
 		return
 	}
-	newGlobal := c.labelcache.GetOrAddGlobalRefID(lbls)
+	newGlobal := c.ls.GetOrAddGlobalRefID(lbls)
 	c.cache.Add(originalID, &labelAndID{
 		labels: lbls,
 		id:     newGlobal,

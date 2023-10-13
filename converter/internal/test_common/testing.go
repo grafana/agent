@@ -3,6 +3,7 @@ package test_common
 import (
 	"bytes"
 	"fmt"
+	"github.com/grafana/agent/service/labelstore"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -199,6 +200,7 @@ func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 			// properly.
 			http_service.New(http_service.Options{}),
 			clusterService,
+			labelstore.New(nil),
 		},
 	})
 	err = f.LoadSource(cfg, nil)

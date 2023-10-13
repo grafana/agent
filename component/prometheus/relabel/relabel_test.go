@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/agent/service/labelcache"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/river"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
@@ -24,7 +24,7 @@ import (
 )
 
 func TestCache(t *testing.T) {
-	lc := labelcache.New(nil)
+	lc := labelstore.New(nil)
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
 	relabeller.relabel(0, lbls)
@@ -50,7 +50,8 @@ func TestUpdateReset(t *testing.T) {
 }
 
 func TestNil(t *testing.T) {
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, _ labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, _ labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(t, false)
 		return ref, nil
 	}))
@@ -96,7 +97,8 @@ func TestLRUNaN(t *testing.T) {
 }
 
 func BenchmarkCache(b *testing.B) {
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(b, l.Has("new_label"))
 		return ref, nil
 	}))
@@ -132,7 +134,8 @@ func BenchmarkCache(b *testing.B) {
 }
 
 func generateRelabel(t *testing.T) *Component {
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(t, l.Has("new_label"))
 		return ref, nil
 	}))

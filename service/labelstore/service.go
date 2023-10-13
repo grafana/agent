@@ -1,4 +1,4 @@
-package labelcache
+package labelstore
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/prometheus/model/labels"
 )
 
-const ServiceName = "labelcache"
+const ServiceName = "labelstore"
 
 type service struct {
 	log                log.Logger

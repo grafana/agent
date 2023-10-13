@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/labelstore"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -31,8 +32,7 @@ func init() {
 	component.Register(component.Registration{
 		Name:          "prometheus.scrape",
 		Args:          Arguments{},
-		NeedsServices: []string{http.ServiceName, cluster.ServiceName},
-
+		NeedsServices: []string{http.ServiceName, cluster.ServiceName, labelstore.ServiceName},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -149,7 +149,13 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 	clusterData := data.(cluster.Cluster)
 
-	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
+	service, err := o.GetServiceData(labelstore.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+	ls := service.(labelstore.LabelStore)
+
+	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, ls)
 	scrapeOptions := &scrape.Options{
 		ExtraMetrics: args.ExtraMetrics,
 		HTTPClientOptions: []config_util.HTTPClientOption{

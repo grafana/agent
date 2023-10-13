@@ -16,6 +16,7 @@ import (
 	"github.com/prometheus/prometheus/model/metadata"
 
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/service/labelstore"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -36,9 +37,10 @@ func init() {
 	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 
 	component.Register(component.Registration{
-		Name:    "prometheus.remote_write",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:          "prometheus.remote_write",
+		Args:          Arguments{},
+		Exports:       Exports{},
+		NeedsServices: []string{labelstore.ServiceName},
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
 			return New(o, c.(Arguments))
 		},
@@ -81,6 +83,12 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	remoteLogger := log.With(o.Logger, "subcomponent", "rw")
 	remoteStore := remote.NewStorage(remoteLogger, o.Registerer, startTime, o.DataPath, remoteFlushDeadline, nil)
 
+	service, err := o.GetServiceData(labelstore.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+	ls := service.(labelstore.LabelStore)
+
 	res := &Component{
 		log:         o.Logger,
 		opts:        o,
@@ -90,6 +98,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	}
 	res.receiver = prometheus.NewInterceptor(
 		res.storage,
+		ls,
 
 		// In the methods below, conversion is needed because remote_writes assume
 		// they are responsible for generating ref IDs. This means two
@@ -102,10 +111,10 @@ func New(o component.Options, c Arguments) (*Component, error) {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
 
-			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
 			if localID == 0 {
-				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			return globalRef, nextErr
 		}),
@@ -114,10 +123,10 @@ func New(o component.Options, c Arguments) (*Component, error) {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
 
-			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
 			if localID == 0 {
-				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			return globalRef, nextErr
 		}),
@@ -126,10 +135,10 @@ func New(o component.Options, c Arguments) (*Component, error) {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
 
-			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
 			if localID == 0 {
-				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			return globalRef, nextErr
 		}),

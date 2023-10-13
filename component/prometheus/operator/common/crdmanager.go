@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -47,6 +48,7 @@ type crdManager struct {
 	discoveryManager  *discovery.Manager
 	scrapeManager     *scrape.Manager
 	clusteringUpdated chan struct{}
+	ls                labelstore.LabelStore
 
 	opts    component.Options
 	logger  log.Logger
@@ -64,7 +66,7 @@ const (
 	KindProbe          string = "probe"
 )
 
-func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.Logger, args *operator.Arguments, kind string) *crdManager {
+func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.Logger, args *operator.Arguments, kind string, ls labelstore.LabelStore) *crdManager {
 	switch kind {
 	case KindPodMonitor, KindServiceMonitor, KindProbe:
 	default:
@@ -80,6 +82,7 @@ func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.L
 		debugInfo:         map[string]*operator.DiscoveredResource{},
 		kind:              kind,
 		clusteringUpdated: make(chan struct{}, 1),
+		ls:                ls,
 	}
 }
 
@@ -103,7 +106,7 @@ func (c *crdManager) Run(ctx context.Context) error {
 	}()
 
 	// Start prometheus scrape manager.
-	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer)
+	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer, c.ls)
 	opts := &scrape.Options{}
 	c.scrapeManager = scrape.NewManager(opts, c.logger, flowAppendable)
 	defer c.scrapeManager.Stop()
