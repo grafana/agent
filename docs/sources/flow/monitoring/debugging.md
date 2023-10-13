@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/debugging/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/
 title: Debugging
+description: Learn about debugging
 weight: 300
 ---
 
@@ -34,9 +35,9 @@ server, which defaults to listening at `http://localhost:12345`.
 > learn how to change the HTTP listen address, and pass the appropriate flag
 > when running Grafana Agent Flow.
 >
-> [install]: {{< relref "../setup/install/" >}}
+> [install]: {{< relref "../setup/install" >}}
 
-[grafana-agent run]: {{< relref "../reference/cli/run.md" >}}
+[grafana-agent run]: {{< relref "../reference/cli/run" >}}
 
 ### Home page
 
@@ -130,5 +131,5 @@ down and set its state to Terminating, but it has not completely gone away. Chec
 the clustering page to view the state of the peers and verify that the
 terminating Agent has been shut down.
 
-[logging]: {{< relref "../reference/config-blocks/logging.md" >}}
-[clustering]: {{< relref "../concepts/clustering.md" >}}
+[logging]: {{< relref "../reference/config-blocks/logging" >}}
+[clustering]: {{< relref "../concepts/clustering" >}}

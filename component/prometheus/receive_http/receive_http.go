@@ -59,7 +59,7 @@ func New(opts component.Options, args Arguments) (*Component, error) {
 
 	c := &Component{
 		opts:               opts,
-		handler:            remote.NewWriteHandler(opts.Logger, fanout),
+		handler:            remote.NewWriteHandler(opts.Logger, opts.Registerer, fanout),
 		fanout:             fanout,
 		uncheckedCollector: uncheckedCollector,
 	}

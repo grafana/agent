@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/getting-started/
 canonical: https://grafana.com/docs/agent/latest/operator/getting-started/
 title: Install the Operator
+description: Learn how to install the Operator
 weight: 110
 ---
 
@@ -12,7 +13,7 @@ weight: 110
 
 In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster. This guide does not use Helm. To learn how to deploy Agent Operator using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator), see [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}).
 
-> **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](https://grafana.com/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator. Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
+> **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator. Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
 ## Before you begin
 
 To deploy Agent Operator, make sure that you have the following:
@@ -30,7 +31,7 @@ you need to deploy the
 to the cluster. These definitions describe the schema that the custom
 resources will conform to. This is also required for Grafana Agent Operator to run; it
 will fail if it can't find the Custom Resource Definitions of objects it is
-looking to use. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
+looking to use. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture" >}}).
 
 You can find the set of Custom Resource Definitions for Grafana Agent Operator in the Grafana Agent repository under
 [production/operator/crds](https://github.com/grafana/agent/tree/main/production/operator/crds).
@@ -78,7 +79,7 @@ To install Agent Operator:
           serviceAccountName: grafana-agent-operator
           containers:
           - name: operator
-            image: grafana/agent-operator:v0.36.1
+            image: grafana/agent-operator:{{< param "AGENT_RELEASE" >}}
             args:
             - --kubelet-service=default/kubelet
     ---
@@ -151,4 +152,4 @@ To install Agent Operator:
 
 ## Deploy the Grafana Agent Operator resources
 
-Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources.md" >}}) topic.
+Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources" >}}) topic.

@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.24.0](https://img.shields.io/badge/Version-0.24.0-informational?style=flat-square) ![AppVersion: v0.36.1](https://img.shields.io/badge/AppVersion-v0.36.1-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.26.0](https://img.shields.io/badge/Version-0.26.0-informational?style=flat-square) ![AppVersion: v0.37.1](https://img.shields.io/badge/AppVersion-v0.37.1-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -78,6 +78,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.enableStatefulSetAutoDeletePVC | bool | `false` | Whether to enable automatic deletion of stale PVCs due to a scale down operation, when controller.type is 'statefulset'. |
 | controller.hostNetwork | bool | `false` | Configures Pods to use the host network. When set to true, the ports that will be used must be specified. |
 | controller.hostPID | bool | `false` | Configures Pods to use the host PID namespace. |
+| controller.initContainers | list | `[]` |  |
 | controller.nodeSelector | object | `{}` | nodeSelector to apply to Grafana Agent pods. |
 | controller.parallelRollout | bool | `true` | Whether to deploy pods in parallel. Only used when controller.type is 'statefulset'. |
 | controller.podAnnotations | object | `{}` | Extra pod annotations to add. |
@@ -89,6 +90,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.updateStrategy | object | `{}` | Update strategy for updating deployed Pods. |
 | controller.volumeClaimTemplates | list | `[]` | volumeClaimTemplates to add when controller.type is 'statefulset'. |
 | controller.volumes.extra | list | `[]` | Extra volumes to add to the Grafana Agent pod. |
+| crds.create | bool | `true` | Whether to install CRDs for monitoring. |
 | fullnameOverride | string | `nil` | Overrides the chart's computed fullname. Used to change the full prefix of resource names. |
 | global.image.pullSecrets | list | `[]` | Optional set of global image pull secrets. |
 | global.image.registry | string | `""` | Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...) |
@@ -108,7 +110,6 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | ingress.path | string | `"/"` |  |
 | ingress.pathType | string | `"Prefix"` |  |
 | ingress.tls | list | `[]` |  |
-| initContainers | list | `[]` |  |
 | nameOverride | string | `nil` | Overrides the chart's name. Used to change the infix in the resource names. |
 | rbac.create | bool | `true` | Whether to create RBAC resources for the agent. |
 | service.annotations | object | `{}` |  |
@@ -118,6 +119,11 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | serviceAccount.annotations | object | `{}` | Annotations to add to the created service account. |
 | serviceAccount.create | bool | `true` | Whether to create a service account for the Grafana Agent deployment. |
 | serviceAccount.name | string | `nil` | The name of the existing service account to use when serviceAccount.create is false. |
+| serviceMonitor.additionalLabels | object | `{}` | Additional labels for the service monitor. |
+| serviceMonitor.enabled | bool | `false` |  |
+| serviceMonitor.interval | string | `""` | Scrape interval. If not set, the Prometheus default scrape interval is used. |
+| serviceMonitor.metricRelabelings | list | `[]` | MetricRelabelConfigs to apply to samples after scraping, but before ingestion. ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig |
+| serviceMonitor.relabelings | list | `[]` | RelabelConfigs to apply to samples before scraping ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig |
 
 ### agent.extraArgs
 

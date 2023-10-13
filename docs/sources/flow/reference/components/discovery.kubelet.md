@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/disco
 labels:
   stage: beta
 title: discovery.kubelet
+description: Learn about discovery.kubelet
 ---
 
 # discovery.kubelet
@@ -125,7 +126,7 @@ values.
 
 `discovery.kubelet` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.kubelet` does not expose any component-specific debug metrics.
 

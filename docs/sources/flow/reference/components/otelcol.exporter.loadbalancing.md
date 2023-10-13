@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelc
 labels:
   stage: beta
 title: otelcol.exporter.loadbalancing
+description: Learn about otelcol.exporter.loadbalancing
 ---
 
 # otelcol.exporter.loadbalancing
@@ -159,11 +160,14 @@ Name | Type | Description | Default | Required
 `wait_for_ready` | `boolean` | Waits for gRPC connection to be in the `READY` state before sending data. | `false` | no
 `headers` | `map(string)` | Additional headers to send with the request. | `{}` | no
 `balancer_name` | `string` | Which gRPC client-side load balancer to use for requests. | `pick_first` | no
+`authority` | `string` | Overrides the default `:authority` header in gRPC requests from the gRPC client. | | no
 `auth` | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 
 {{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT VERSION>" >}}
 
 {{< docs/shared lookup="flow/reference/components/otelcol-grpc-balancer-name.md" source="agent" version="<AGENT VERSION>" >}}
+
+{{< docs/shared lookup="flow/reference/components/otelcol-grpc-authority.md" source="agent" version="<AGENT VERSION>" >}}
 
 You can configure an HTTP proxy with the following environment variables:
 

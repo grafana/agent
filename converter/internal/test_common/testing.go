@@ -45,7 +45,7 @@ func TestDirectory(t *testing.T, folderPath string, sourceSuffix string, loadFlo
 		}
 
 		if strings.HasSuffix(path, sourceSuffix) {
-			tc := getTestCaseName(path, sourceSuffix)
+			tc := filepath.Base(path)
 			t.Run(tc, func(t *testing.T) {
 				riverFile := strings.TrimSuffix(path, sourceSuffix) + flowSuffix
 				diagsFile := strings.TrimSuffix(path, sourceSuffix) + diagsSuffix
@@ -76,12 +76,6 @@ func getSourceContents(t *testing.T, path string) []byte {
 	sourceBytes, err := os.ReadFile(path)
 	require.NoError(t, err)
 	return sourceBytes
-}
-
-// getTestCaseName gets the test case name based on the path and source suffix.
-func getTestCaseName(path string, sourceSuffix string) string {
-	caseName := filepath.Base(path)
-	return strings.TrimSuffix(caseName, sourceSuffix)
 }
 
 // getExpectedDiags will retrieve any expected diags for the test.
@@ -170,7 +164,7 @@ func validateRiver(t *testing.T, expectedRiver []byte, actualRiver []byte, loadF
 
 // attemptLoadingFlowConfig will attempt to load the Flow config and report any errors.
 func attemptLoadingFlowConfig(t *testing.T, river []byte) {
-	cfg, err := flow.ReadFile(t.Name(), river)
+	cfg, err := flow.ParseSource(t.Name(), river)
 	require.NoError(t, err, "the output River config failed to parse: %s", string(normalizeLineEndings(river)))
 
 	// The below check suffers from test race conditions on Windows. Our goal here is to verify config conversions,
@@ -201,7 +195,7 @@ func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 			clusterService,
 		},
 	})
-	err = f.LoadFile(cfg, nil)
+	err = f.LoadSource(cfg, nil)
 
 	// Many components will fail to build as e.g. the cert files are missing, so we ignore these errors.
 	// This is not ideal, but we still validate for other potential issues.

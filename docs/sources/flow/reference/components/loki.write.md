@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.write/
 title: loki.write
+description: Learn about loki.write
 ---
 
 # loki.write
@@ -204,7 +205,7 @@ You can create a `loki.write` component that sends your log entries to a managed
 ```river
 loki.write "default" {
     endpoint {
-        url = "https://logs-xxx.grafana.net"
+        url = "https://logs-xxx.grafana.net/loki/api/v1/push"
         basic_auth {
             username = env("LOKI_USERNAME")
             password = env("GRAFANA_CLOUD_API_KEY")

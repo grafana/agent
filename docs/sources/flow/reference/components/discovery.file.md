@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.file/
 title: discovery.file
+description: Learn about discovery.file
 ---
 
 # discovery.file
@@ -62,7 +63,7 @@ values.
 
 `discovery.file` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.file` does not expose any component-specific debug metrics.
 

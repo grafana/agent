@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.nerve/
 title: discovery.nerve
+description: Learn about discovery.nerve
 ---
 
 # discovery.nerve
@@ -62,7 +63,7 @@ values.
 
 `discovery.nerve` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.nerve` does not expose any component-specific debug metrics.
 

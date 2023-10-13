@@ -208,6 +208,7 @@ type GRPCClientArguments struct {
 	WaitForReady    bool              `river:"wait_for_ready,attr,optional"`
 	Headers         map[string]string `river:"headers,attr,optional"`
 	BalancerName    string            `river:"balancer_name,attr,optional"`
+	Authority       string            `river:"authority,attr,optional"`
 
 	// Auth is a binding to an otelcol.auth.* component extension which handles
 	// authentication.
@@ -244,6 +245,7 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 		WaitForReady:    args.WaitForReady,
 		Headers:         opaqueHeaders,
 		BalancerName:    args.BalancerName,
+		Authority:       args.Authority,
 
 		Auth: auth,
 	}

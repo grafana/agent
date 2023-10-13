@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.memory_limiter/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.memory_limiter/
 title: otelcol.processor.memory_limiter
+description: Learn about otelcol.processor.memory_limiter
 ---
 
 # otelcol.processor.memory_limiter

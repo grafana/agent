@@ -4,6 +4,7 @@ aliases:
 - ../../configuration/metrics-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/metrics-config/
 title: metrics_config
+description: Learn about metrics_config
 weight: 200
 ---
 
@@ -338,6 +339,10 @@ remote_write:
 > * [`relabel_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#relabel_config)
 > * [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
 > * [`remote_write`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write)
+
+## Data retention
+
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT VERSION>" >}}
 
 {{% docs/reference %}}
 [scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"

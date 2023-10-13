@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.http/
 title: discovery.http
+description: Learn about discovery.http
 ---
 
 # discovery.http
@@ -27,7 +28,9 @@ Example response body:
 ]
 ```
 
-It is possible to use additional fields in the JSON to pass parameters to [prometheus.scrape](../prometheus.scrape#technical-details) such as the `metricsPath` and `scrape_interval`.
+It is possible to use additional fields in the JSON to pass parameters to [prometheus.scrape][] such as the `metricsPath` and `scrape_interval`.
+
+[prometheus.scrape]: {{< relref "./prometheus.scrape.md#technical-details" >}}
 
 As an example, the following will provide a target with a custom `metricsPath`, scrape interval, and timeout value:
 
@@ -72,7 +75,7 @@ For example, the following will call a metrics path of `/health?target_data=prom
 
 ```
 
-For more information on the potential labels you can use, see the [prometheus.scrape technical details](../prometheus.scrape#technical-details) section, or the [Prometheus Configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) documentation.
+For more information on the potential labels you can use, see the [prometheus.scrape technical details][prometheus.scrape] section, or the [Prometheus Configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) documentation.
 
 ## Usage
 
@@ -150,7 +153,7 @@ values.
 
 `discovery.http` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 * `prometheus_sd_http_failures_total` (counter): Total number of refresh failures.
 

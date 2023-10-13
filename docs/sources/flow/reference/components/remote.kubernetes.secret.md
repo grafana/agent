@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.secret/
 title: remote.kubernetes.secret
+description: Learn about remote.kubernetes.secret
 ---
 
 # remote.kubernetes.secret
@@ -29,7 +30,7 @@ Name | Type | Description | Default | Required
 `poll_frequency` | `duration` | Frequency to poll the Kubernetes API. | `"1m"` | no
 `poll_timeout` | `duration` | Timeout when polling the Kubernetes API. | `"15s"` | no
 
-When this component performs a poll operation, it requests the Secret data from the Kubernetes API. 
+When this component performs a poll operation, it requests the Secret data from the Kubernetes API.
 A poll is triggered by the following:
 
 * When the component first loads.
@@ -87,19 +88,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 
 ## Exported fields
@@ -108,9 +109,9 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`data` | `map(secret)` | Data from the secret obtained from kubernetes.
+`data` | `map(secret)` | Data from the secret obtained from Kubernetes.
 
-The `data` field contains a mapping from field names to values. 
+The `data` field contains a mapping from field names to values.
 
 If an individual key stored in `data` does not hold sensitive data, it can be
 converted into a string using [the `nonsensitive` function][nonsensitive]:
@@ -132,7 +133,7 @@ Instances of `remote.kubernetes.secret` report as healthy if the most recent att
 
 `remote.kubernetes.secret` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `remote.kubernetes.secret` does not expose any component-specific debug metrics.
 
@@ -163,4 +164,4 @@ prometheus.remote_write "default" {
 ```
 
 This example assumes that the Secret and ConfigMap have already been created, and that the appropriate field names
-exist in their data. 
+exist in their data.

@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.marathon/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.marathon/
 title: discovery.marathon
+description: Learn about discovery.marathon
 ---
 
 # discovery.marathon
@@ -108,7 +109,7 @@ values.
 
 `discovery.marathon` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.marathon` does not expose any component-specific debug metrics.
 

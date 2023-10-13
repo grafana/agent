@@ -5,6 +5,7 @@ aliases:
   - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.dockerswarm/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.dockerswarm/
 title: discovery.dockerswarm
+description: Learn about discovery.dockerswarm
 ---
 
 # discovery.dockerswarm
@@ -190,7 +191,7 @@ values.
 
 `discovery.dockerswarm` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.dockerswarm` does not expose any component-specific debug metrics.
 
