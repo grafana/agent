@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-parallel_runs=10
+parallel_runs=50
 
 fail_flag_file="/tmp/test_fail_flag"
 rm -f "$fail_flag_file"
