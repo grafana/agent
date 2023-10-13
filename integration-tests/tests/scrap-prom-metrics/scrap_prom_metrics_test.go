@@ -15,7 +15,7 @@ func TestScrapPromMetrics(t *testing.T) {
 		err := common.FetchDataFromURL(query, &metricResponse)
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
-			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, "avalanche_metric_mmmmm_0_0")
+			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, "avalanche_metric_mmmmm_0_")
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Job, "prometheus.scrape.scrap_prom_metrics")
 		}
 	}, common.DefaultTimeout, common.DefaultRetryInterval, "Data did not satisfy the conditions within the time limit")
