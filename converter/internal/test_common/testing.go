@@ -3,7 +3,6 @@ package test_common
 import (
 	"bytes"
 	"fmt"
-	"github.com/grafana/agent/service/labelstore"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -18,6 +17,7 @@ import (
 	"github.com/grafana/agent/service"
 	cluster_service "github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/stretchr/testify/require"
 )
 
