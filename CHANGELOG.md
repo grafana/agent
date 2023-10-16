@@ -35,6 +35,8 @@ Main (unreleased)
 
 - Fix an issue with the static to flow converter for blackbox exporter modules
   config not being included in the river output. (@erikbaranowski)
+
+- Fix issue with default values in `discovery.nomad`. (@marctc)
   
 ### Enhancements
 
