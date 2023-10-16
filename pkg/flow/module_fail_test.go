@@ -2,12 +2,10 @@ package flow
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component"
-	mod "github.com/grafana/agent/component/module"
+	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,86 +21,49 @@ func TestIDRemovalIfFailedToLoad(t *testing.T) {
 	ctx, cnc := context.WithTimeout(ctx, 600*time.Second)
 
 	go f.Run(ctx)
+	var t1 *componenttest.TestFailModule
 	require.Eventually(t, func() bool {
-		t1 := f.loader.Components()[0].Component().(*testFailModule)
+		t1 = f.loader.Components()[0].Component().(*componenttest.TestFailModule)
 		return t1 != nil
 	}, 10*time.Second, 100*time.Millisecond)
-	t1 := f.loader.Components()[0].Component().(*testFailModule)
+	require.Eventually(t, func() bool {
+		// This should be one due to t1.
+		return len(f.modules.modules) == 1
+	}, 10*time.Second, 100*time.Millisecond)
 	badContent :=
-		`test.fail.module "int" {
+		`test.fail.module "bad" {
 content=""
 fail=true
 }`
-	err = t1.updateContent(badContent)
+	err = t1.UpdateContent(badContent)
 	// Because we have bad content this should fail, but the ids should be removed.
 	require.Error(t, err)
+	require.Eventually(t, func() bool {
+		// Only one since the bad one never should have been added.
+		rightLength := len(f.modules.modules) == 1
+		_, foundT1 := f.modules.modules["test.fail.module.t1"]
+		return rightLength && foundT1
+	}, 10*time.Second, 100*time.Millisecond)
 	// fail a second time to ensure the once is done again.
-	err = t1.updateContent(badContent)
+	err = t1.UpdateContent(badContent)
 	require.Error(t, err)
+
 	goodContent :=
-		`test.fail.module "int" { 
+		`test.fail.module "good" { 
 content=""
 fail=false
 }`
-	err = t1.updateContent(goodContent)
+	err = t1.UpdateContent(goodContent)
 	require.NoError(t, err)
+	require.Eventually(t, func() bool {
+		rightLength := len(f.modules.modules) == 2
+		_, foundT1 := f.modules.modules["test.fail.module.t1"]
+		_, foundGood := f.modules.modules["test.fail.module.t1/test.fail.module.good"]
+		return rightLength && foundT1 && foundGood
+	}, 10*time.Second, 100*time.Millisecond)
 	cnc()
-}
-
-func init() {
-	component.Register(component.Registration{
-		Name:    "test.fail.module",
-		Args:    TestFailArguments{},
-		Exports: mod.Exports{},
-
-		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			m, err := mod.NewModuleComponent(opts)
-			if err != nil {
-				return nil, err
-			}
-			if args.(TestFailArguments).Fail {
-				return nil, fmt.Errorf("module told to fail")
-			}
-			err = m.LoadFlowSource(nil, args.(TestFailArguments).Content)
-			if err != nil {
-				return nil, err
-			}
-			return &testFailModule{
-				mc:      m,
-				content: args.(TestFailArguments).Content,
-				opts:    opts,
-				fail:    args.(TestFailArguments).Fail,
-				ch:      make(chan error),
-			}, nil
-		},
-	})
-}
-
-type TestFailArguments struct {
-	Content string `river:"content,attr"`
-	Fail    bool   `river:"fail,attr,optional"`
-}
-
-type testFailModule struct {
-	content string
-	opts    component.Options
-	ch      chan error
-	mc      *mod.ModuleComponent
-	fail    bool
-}
-
-func (t *testFailModule) Run(ctx context.Context) error {
-	go t.mc.RunFlowController(ctx)
-	<-ctx.Done()
-	return nil
-}
-
-func (t *testFailModule) updateContent(content string) error {
-	t.content = content
-	err := t.mc.LoadFlowSource(nil, t.content)
-	return err
-}
-
-func (t *testFailModule) Update(_ component.Arguments) error {
-	return nil
+	require.Eventually(t, func() bool {
+		// All should be cleaned up.
+		return len(f.modules.modules) == 0
+	}, 10*time.Second, 100*time.Millisecond)
 }
