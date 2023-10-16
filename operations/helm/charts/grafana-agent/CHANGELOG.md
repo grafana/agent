@@ -10,6 +10,8 @@ internal API changes are not present.
 Unreleased
 ----------
 
+- Add `secrets` and `configmaps` to cluster role for `remote.kubernetes.*` components. (@captncraig)
+
 0.26.0 (2023-10-10)
 -------------------
 

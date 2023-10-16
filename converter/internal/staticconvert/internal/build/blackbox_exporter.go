@@ -26,11 +26,13 @@ func (b *IntegrationsV1ConfigBuilder) appendBlackboxExporter(config *blackbox_ex
 
 func toBlackboxExporter(config *blackbox_exporter.Config) *blackbox.Arguments {
 	return &blackbox.Arguments{
-		ConfigFile:         config.BlackboxConfigFile,
-		Config:             rivertypes.OptionalSecret{},
+		ConfigFile: config.BlackboxConfigFile,
+		Config: rivertypes.OptionalSecret{
+			IsSecret: false,
+			Value:    string(config.BlackboxConfig),
+		},
 		Targets:            toBlackboxTargets(config.BlackboxTargets),
 		ProbeTimeoutOffset: time.Duration(config.ProbeTimeoutOffset),
-		ConfigStruct:       config.BlackboxConfig,
 	}
 }
 
