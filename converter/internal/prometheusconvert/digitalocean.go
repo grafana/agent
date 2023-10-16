@@ -24,10 +24,14 @@ func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *p
 func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.BasicAuth, nil, "digitalocean_sd_configs basic_auth"))
-	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.Authorization, nil, "digitalocean_sd_configs authorization"))
-	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.OAuth2, nil, "digitalocean_sd_configs oauth2"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(prom_config.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig, "digitalocean_sd_configs tls_config"))
+	var nilBasicAuth *prom_config.BasicAuth
+	var nilAuthorization *prom_config.Authorization
+	var nilOAuth2 *prom_config.OAuth2
+
+	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.BasicAuth, nilBasicAuth, "digitalocean_sd_configs basic_auth"))
+	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.Authorization, nilAuthorization, "digitalocean_sd_configs authorization"))
+	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.OAuth2, nilOAuth2, "digitalocean_sd_configs oauth2"))
+	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.TLSConfig, prom_config.TLSConfig{}, "digitalocean_sd_configs tls_config"))
 
 	diags.AddAll(ValidateHttpClientConfig(&sdConfig.HTTPClientConfig))
 

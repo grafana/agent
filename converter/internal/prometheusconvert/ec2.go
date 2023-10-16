@@ -23,9 +23,13 @@ func appendDiscoveryEC2(pb *prometheusBlocks, label string, sdConfig *prom_aws.E
 func validateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.BasicAuth, nil, "ec2_sd_configs basic_auth"))
-	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.Authorization, nil, "ec2_sd_configs authorization"))
-	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.OAuth2, nil, "ec2_sd_configs oauth2"))
+	var nilBasicAuth *prom_config.BasicAuth
+	var nilAuthorization *prom_config.Authorization
+	var nilOAuth2 *prom_config.OAuth2
+
+	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.BasicAuth, nilBasicAuth, "ec2_sd_configs basic_auth"))
+	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.Authorization, nilAuthorization, "ec2_sd_configs authorization"))
+	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.OAuth2, nilOAuth2, "ec2_sd_configs oauth2"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.BearerToken, prom_config.DefaultHTTPClientConfig.BearerToken, "ec2_sd_configs bearer_token"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.BearerTokenFile, prom_config.DefaultHTTPClientConfig.BearerTokenFile, "ec2_sd_configs bearer_token_file"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.FollowRedirects, prom_config.DefaultHTTPClientConfig.FollowRedirects, "ec2_sd_configs follow_redirects"))

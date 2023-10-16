@@ -35,7 +35,7 @@ func ValidateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) di
 	diags.AddAll(common.UnsupportedNotEquals(httpClientConfig.NoProxy, "", "HTTP Client no_proxy"))
 	diags.AddAll(common.UnsupportedEquals(httpClientConfig.ProxyFromEnvironment, true, "HTTP Client proxy_from_environment"))
 	diags.AddAll(common.UnsupportedEquals(len(httpClientConfig.ProxyConnectHeader) > 0, true, "HTTP Client proxy_connect_header"))
-	diags.AddAll(common.UnsupportedNotEquals(httpClientConfig.TLSConfig.MaxVersion, 0, "HTTP Client max_version"))
+	diags.AddAll(common.UnsupportedNotEquals(httpClientConfig.TLSConfig.MaxVersion, prom_config.TLSVersion(0), "HTTP Client max_version"))
 
 	return diags
 }

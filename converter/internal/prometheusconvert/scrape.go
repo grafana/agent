@@ -28,7 +28,7 @@ func appendPrometheusScrape(pb *prometheusBlocks, scrapeConfig *prom_config.Scra
 func validatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.AddAll(common.UnsupportedNotEquals(scrapeConfig.NativeHistogramBucketLimit != 0, true, "scrape_configs native_histogram_bucket_limit"))
+	diags.AddAll(common.UnsupportedNotEquals(scrapeConfig.NativeHistogramBucketLimit, uint(0), "scrape_configs native_histogram_bucket_limit"))
 	diags.AddAll(ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig))
 
 	return diags
