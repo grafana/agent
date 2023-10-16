@@ -60,15 +60,6 @@ func UnsupportedEqualsMessage(a any, b any, name string, message string) diag.Di
 	return diags
 }
 
-func UnsupportedNotNil(a any, name string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if a != nil {
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config.", name))
-	}
-
-	return diags
-}
-
 // ValidateNodes will look at the final nodes and ensure that there are no
 // duplicate labels.
 func ValidateNodes(f *builder.File) diag.Diagnostics {
