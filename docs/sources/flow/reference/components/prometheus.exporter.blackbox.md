@@ -57,10 +57,13 @@ The following blocks are supported inside the definition of
 The `target` block defines an individual blackbox target.
 The `target` block may be specified multiple times to define multiple targets. The label of the block is required and will be used in the target's `job` label.
 
-| Name      | Type     | Description                         | Default | Required |
-| --------- | -------- | ----------------------------------- | ------- | -------- |
-| `address` | `string` | The address of the target to probe. |         | yes      |
-| `module`  | `string` | Blackbox module to use to probe.    | `""`    | no       |
+| Name      | Type             | Description                         | Default | Required |
+| --------- | ---------------- | ----------------------------------- | ------- | -------- |
+| `address` | `string`         | The address of the target to probe. |         | yes      |
+| `module`  | `string`         | Blackbox module to use to probe.    | `""`    | no       |
+| `labels`  | `map(string)`    | Labels to add to the target.        |         | no       |
+
+Labels specified in the `labels` argument will not override labels set by `blackbox_exporter`.
 
 ## Exported fields
 
