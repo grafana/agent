@@ -40,6 +40,8 @@ Main (unreleased)
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
 
+- Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
+
 v0.37.1 (2023-10-10)
 -----------------
 
