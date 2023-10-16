@@ -7,6 +7,27 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.37.2 (2023-10-16)
+-----------------
+
+### Bugfixes
+
+- Fix the handling of the `--cluster.join-addresses` flag causing an invalid
+  comparison with the mutually-exclusive `--cluster.discover-peers`. (@tpaschalis)
+
+- Fix an issue with the static to flow converter for blackbox exporter modules
+  config not being included in the river output. (@erikbaranowski)
+
+### Enhancements
+
+- Update Prometheus dependency to v2.47.2. (@tpaschalis)
+
+- Allow Out of Order writing to the WAL for metrics. (@mattdurham)
+
+### Other changes
+
+- Use Go 1.21.3 for builds. (@tpaschalis)
+
 v0.37.1 (2023-10-10)
 -----------------
 
