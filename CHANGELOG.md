@@ -44,6 +44,8 @@ Main (unreleased)
 
 - Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
 
+- Allow Out of Order writing to the WAL for metrics. (@mattdurham)
+
 ### Other changes
 
 - Use Go 1.21.3 for builds. (@tpaschalis)
