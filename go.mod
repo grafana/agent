@@ -674,10 +674,10 @@ replace (
 // TODO(tpaschalis): remove replace directive once:
 //
 // * There is a release of Prometheus which contains
-// prometheus/prometheus#12677, prometheus/prometheus#12729 and prometheus/prometheus#12838.
+// prometheus/prometheus#12677 and prometheus/prometheus#12729.
 // We use the last v1-related tag as the replace statement does not work for v2
-// tags without the v2 suffix to the module root
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231011132208-6399ad9b176e // grafana:prometheus:v0.47.1-retry-improvements-nh-fix
+// tags without the v2 suffix to the module root.
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231016083943-46550094220d // grafana:prometheus:v0.47.2-retry-improvements
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
