@@ -40,6 +40,8 @@ Main (unreleased)
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
 
+- Update Prometheus dependency to v2.47.2. (@tpaschalis)
+
 v0.37.1 (2023-10-10)
 -----------------
 
