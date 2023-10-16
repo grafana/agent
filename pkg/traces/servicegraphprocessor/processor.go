@@ -17,7 +17,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/metric/aggregation"
 	"google.golang.org/grpc/codes"
 )
 
@@ -226,13 +225,13 @@ func OtelMetricViews() []sdkmetric.View {
 	return []sdkmetric.View{
 		sdkmetric.NewView(
 			sdkmetric.Instrument{Name: serviceGraphRequestServerHistogram_name},
-			sdkmetric.Stream{Aggregation: aggregation.ExplicitBucketHistogram{
+			sdkmetric.Stream{Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
 				Boundaries: []float64{0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48},
 			}},
 		),
 		sdkmetric.NewView(
 			sdkmetric.Instrument{Name: serviceGraphRequestClientHistogram_name},
-			sdkmetric.Stream{Aggregation: aggregation.ExplicitBucketHistogram{
+			sdkmetric.Stream{Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
 				Boundaries: []float64{0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1.28, 2.56, 5.12, 10.24, 20.48},
 			}},
 		),

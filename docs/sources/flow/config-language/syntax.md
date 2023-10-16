@@ -45,7 +45,7 @@ The following example sets the `log_level` attribute to `"debug"`.
 log_level = "debug"
 ```
 
-The `ATTRIBUTE_NAME` must be a valid River [identifier](#identifier).
+The `ATTRIBUTE_NAME` must be a valid River [identifier](#identifiers).
 
 The `ATTRIBUTE_VALUE` can be either a constant value of a valid River
 [type]({{< relref "./expressions/types_and_values.md" >}}) (eg. string,

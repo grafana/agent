@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/apache_http"
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	"github.com/grafana/agent/pkg/integrations/cadvisor"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	int_config "github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
@@ -126,6 +127,8 @@ func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
 			exports = b.appendWindowsExporter(itg)
 		case *azure_exporter.Config:
 			exports = b.appendAzureExporter(itg)
+		case *cadvisor.Config:
+			exports = b.appendCadvisorExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {

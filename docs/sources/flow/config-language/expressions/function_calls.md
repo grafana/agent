@@ -10,7 +10,7 @@ description: Learn about function calls
 weight: 400
 ---
 
-# Function Calls
+# Function calls
 Function calls is one more River feature that lets users build richer
 expressions.
 
@@ -28,7 +28,7 @@ allow for more complex expressions (e.g. concatenating arrays or decoding JSON
 strings into objects).
 ```river
 env("HOME")
-json_decode(local.file.cfg.contents)["namespace"]
+json_decode(local.file.cfg.content)["namespace"]
 ```
 
-[standard library]: {{< relref "../../reference/stdlib/_index.md" >}}
+[standard library]: {{< relref "../../reference/stdlib" >}}

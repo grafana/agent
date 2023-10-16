@@ -129,7 +129,7 @@ request of the specified URL succeeds.
 
 `remote.http` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `remote.http` does not expose any component-specific debug metrics.
 

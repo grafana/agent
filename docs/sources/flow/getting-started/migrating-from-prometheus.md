@@ -4,15 +4,13 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-prometheus/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-prometheus/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-prometheus/
-description: Learn how to migrate your configuration from Prometheus to Grafana Agent
-  flow mode
 menuTitle: Migrate from Prometheus
-title: Migrate from Prometheus to Grafana Agent flow mode
-description: Learn how to migrate from Prometheus to Grafana Agent flow mode
+title: Migrate from Prometheus to Grafana Agent Flow
+description: Learn how to migrate from Prometheus to Grafana Agent Flow
 weight: 320
 ---
 
-# Migrate from Prometheus to Grafana Agent
+# Migrate from Prometheus to Grafana Agent Flow
 
 The built-in Grafana Agent convert command can migrate your [Prometheus][] configuration to a Grafana Agent flow configuration.
 
@@ -149,7 +147,9 @@ remote_write:
       password: PASSWORD
 ```
 
-The convert command takes the YAML file as input and outputs a River file.
+The convert command takes the YAML file as input and outputs a [River][] file.
+
+[River]: {{< relref "../config-language/_index.md" >}}
 
 ```bash
 AGENT_MODE=flow; grafana-agent convert --source-format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
@@ -189,3 +189,28 @@ prometheus.remote_write "default" {
   }
 }
 ```
+
+## Limitations
+
+Configuration conversion is done on a best-effort basis. The Agent will issue
+warnings or errors where the conversion cannot be performed.
+
+Once the configuration is converted, we recommend that you review
+the Flow Mode configuration file created and verify that it is correct
+before starting to use it in a production environment.
+
+Furthermore, we recommend that you review the following checklist:
+
+* The following configurations are not available for conversion to flow mode:
+  `rule_files`, `alerting`, `remote_read`, `storage`, and `tracing`. Any
+  additional unsupported features are returned as errors during conversion.
+* Check if you are using any extra command line arguments with Prometheus that
+  are not present in your configuration file. For example, `--web.listen-address`.
+* Metamonitoring metrics exposed by the Flow Mode usually match Prometheus
+  metamonitoring metrics but will use a different name. Make sure that you use
+  the new metric names, for example, in your alerts and dashboards queries.
+* The logs produced by Grafana Agent will differ from those
+  produced by Prometheus.
+* Grafana Agent exposes the [Grafana Agent Flow UI][].
+
+[Grafana Agent Flow UI]: {{< relref "../monitoring/debugging/#grafana-agent-flow-ui" >}}

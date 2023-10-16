@@ -27,6 +27,7 @@ var DefaultConfig = Config{
 	SetClientName:           true,
 	CheckKeyGroupsBatchSize: 10000,
 	MaxDistinctKeyGroups:    100,
+	ExportKeyValues:         true,
 }
 
 // Config controls the redis_exporter integration.
@@ -51,6 +52,7 @@ type Config struct {
 	CheckSingleKeys         string             `yaml:"check_single_keys,omitempty"`
 	CheckStreams            string             `yaml:"check_streams,omitempty"`
 	CheckSingleStreams      string             `yaml:"check_single_streams,omitempty"`
+	ExportKeyValues         bool               `yaml:"export_key_values,omitempty"`
 	CountKeys               string             `yaml:"count_keys,omitempty"`
 	ScriptPath              string             `yaml:"script_path,omitempty"`
 	ConnectionTimeout       time.Duration      `yaml:"connection_timeout,omitempty"`
@@ -73,29 +75,30 @@ type Config struct {
 // we marshal the yaml into Config and then create the re.Options from that.
 func (c Config) GetExporterOptions() re.Options {
 	return re.Options{
-		User:                  c.RedisUser,
-		Password:              string(c.RedisPassword),
-		Namespace:             c.Namespace,
-		ConfigCommandName:     c.ConfigCommand,
-		CheckKeys:             c.CheckKeys,
-		CheckKeysBatchSize:    c.CheckKeyGroupsBatchSize,
-		CheckKeyGroups:        c.CheckKeyGroups,
-		CheckSingleKeys:       c.CheckSingleKeys,
-		CheckStreams:          c.CheckStreams,
-		CheckSingleStreams:    c.CheckSingleStreams,
-		CountKeys:             c.CountKeys,
-		InclSystemMetrics:     c.InclSystemMetrics,
-		InclConfigMetrics:     false,
-		RedactConfigMetrics:   true,
-		SkipTLSVerification:   c.SkipTLSVerification,
-		SetClientName:         c.SetClientName,
-		IsTile38:              c.IsTile38,
-		IsCluster:             c.IsCluster,
-		ExportClientList:      c.ExportClientList,
-		ExportClientsInclPort: c.ExportClientPort,
-		ConnectionTimeouts:    c.ConnectionTimeout,
-		RedisMetricsOnly:      c.RedisMetricsOnly,
-		PingOnConnect:         c.PingOnConnect,
+		User:                      c.RedisUser,
+		Password:                  string(c.RedisPassword),
+		Namespace:                 c.Namespace,
+		ConfigCommandName:         c.ConfigCommand,
+		CheckKeys:                 c.CheckKeys,
+		CheckKeysBatchSize:        c.CheckKeyGroupsBatchSize,
+		CheckKeyGroups:            c.CheckKeyGroups,
+		CheckSingleKeys:           c.CheckSingleKeys,
+		CheckStreams:              c.CheckStreams,
+		CheckSingleStreams:        c.CheckSingleStreams,
+		DisableExportingKeyValues: !c.ExportKeyValues,
+		CountKeys:                 c.CountKeys,
+		InclSystemMetrics:         c.InclSystemMetrics,
+		InclConfigMetrics:         false,
+		RedactConfigMetrics:       true,
+		SkipTLSVerification:       c.SkipTLSVerification,
+		SetClientName:             c.SetClientName,
+		IsTile38:                  c.IsTile38,
+		IsCluster:                 c.IsCluster,
+		ExportClientList:          c.ExportClientList,
+		ExportClientsInclPort:     c.ExportClientPort,
+		ConnectionTimeouts:        c.ConnectionTimeout,
+		RedisMetricsOnly:          c.RedisMetricsOnly,
+		PingOnConnect:             c.PingOnConnect,
 	}
 }
 

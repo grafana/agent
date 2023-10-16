@@ -101,7 +101,7 @@ var _ Stage = (*cri)(nil)
 
 // Name implement the Stage interface.
 func (c *cri) Name() string {
-	return "cri"
+	return StageTypeCRI
 }
 
 // implements Stage interface

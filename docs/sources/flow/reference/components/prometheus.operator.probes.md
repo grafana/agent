@@ -14,7 +14,7 @@ description: Learn about prometheus.operator.probes
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
-`prometheus.operator.probes` discovers [Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe) resources in your kubernetes cluster and scrapes the targets they reference. This component performs three main functions:
+`prometheus.operator.probes` discovers [Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe) resources in your Kubernetes cluster and scrapes the targets they reference. This component performs three main functions:
 
 1. Discover Probe resources from your Kubernetes cluster.
 2. Discover targets or ingresses that match those Probes.
@@ -184,7 +184,7 @@ fully consistent like hashmod sharding is).
 If the agent is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.probes` scrapes every target it receives in its arguments.
 
-[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
+[clustered mode]: {{< relref "../cli/run.md#clustering-beta" >}}
 
 ## Exported fields
 
@@ -201,8 +201,9 @@ scrape job on the component's debug endpoint, including discovered labels, and t
 
 It also exposes some debug information for each Probe it has discovered, including any errors found while reconciling the scrape configuration from the Probe.
 
-### Debug metrics
+## Debug metrics
 
+`prometheus.operator.probes` does not expose any component-specific debug metrics.
 
 ## Example
 

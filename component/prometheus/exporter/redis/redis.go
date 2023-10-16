@@ -38,6 +38,7 @@ var DefaultArguments = Arguments{
 	SetClientName:           true,
 	CheckKeyGroupsBatchSize: 10000,
 	MaxDistinctKeyGroups:    100,
+	ExportKeyValues:         true,
 }
 
 type Arguments struct {
@@ -61,6 +62,7 @@ type Arguments struct {
 	CheckSingleKeys         []string          `river:"check_single_keys,attr,optional"`
 	CheckStreams            []string          `river:"check_streams,attr,optional"`
 	CheckSingleStreams      []string          `river:"check_single_streams,attr,optional"`
+	ExportKeyValues         bool              `river:"export_key_values,attr,optional"`
 	CountKeys               []string          `river:"count_keys,attr,optional"`
 	ScriptPath              string            `river:"script_path,attr,optional"`
 	ScriptPaths             []string          `river:"script_paths,attr,optional"`
@@ -116,6 +118,7 @@ func (a *Arguments) Convert() *redis_exporter.Config {
 		CheckSingleKeys:         strings.Join(a.CheckSingleKeys, ","),
 		CheckStreams:            strings.Join(a.CheckStreams, ","),
 		CheckSingleStreams:      strings.Join(a.CheckSingleStreams, ","),
+		ExportKeyValues:         a.ExportKeyValues,
 		CountKeys:               strings.Join(a.CountKeys, ","),
 		ScriptPath:              scriptPath,
 		ConnectionTimeout:       a.ConnectionTimeout,

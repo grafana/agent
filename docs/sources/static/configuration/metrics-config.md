@@ -340,6 +340,10 @@ remote_write:
 > * [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
 > * [`remote_write`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write)
 
+## Data retention
+
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT VERSION>" >}}
+
 {{% docs/reference %}}
 [scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
 [scrape]: "/docs/grafana-cloud/ -> ./scraping-service"
