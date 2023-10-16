@@ -4,6 +4,7 @@ package componenttest
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/agent/service/labelstore"
 	"os"
 	"reflect"
 	"sync"
@@ -158,6 +159,10 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 		DataPath:      dataPath,
 		OnStateChange: c.onStateChange,
 		Registerer:    prometheus.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			return labelstore.New(nil), nil
+
+		},
 	}
 
 	inner, err := c.reg.Build(opts, args)

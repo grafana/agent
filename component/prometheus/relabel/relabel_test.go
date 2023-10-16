@@ -60,6 +60,9 @@ func TestNil(t *testing.T) {
 		Logger:        util.TestFlowLogger(t),
 		OnStateChange: func(e component.Exports) {},
 		Registerer:    prom.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			return labelstore.New(nil), nil
+		},
 	}, Arguments{
 		ForwardTo: []storage.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
@@ -144,6 +147,9 @@ func generateRelabel(t *testing.T) *Component {
 		Logger:        util.TestFlowLogger(t),
 		OnStateChange: func(e component.Exports) {},
 		Registerer:    prom.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			return labelstore.New(nil), nil
+		},
 	}, Arguments{
 		ForwardTo: []storage.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
