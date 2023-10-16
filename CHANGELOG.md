@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- Remove `otelcol.exporter.jaeger` component (@hainenber)
+
 ### Features
 
 - Added a new `stage.decolorize` stage to `loki.process` component which 
@@ -18,10 +22,19 @@ Main (unreleased)
 - Added a new `stage.sampling` stage to `loki.process` component which
   allows to only process a fraction of logs and drop the rest. (@thampiotr)
 
+- Added a new `stage.eventlogmessage` stage to `loki.process` component which
+  allows to extract data from Windows Event Log. (@thampiotr)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
   allowing invalid combination of configuration options. (@thampiotr)
+
+- Fix the handling of the `--cluster.join-addresses` flag causing an invalid
+  comparison with the mutually-exclusive `--cluster.discover-peers`. (@tpaschalis)
+
+- Fix an issue with the static to flow converter for blackbox exporter modules
+  config not being included in the river output. (@erikbaranowski)
   
 ### Enhancements
 
@@ -183,7 +196,7 @@ v0.37.0 (2023-10-10)
 
 - Update Prometheus dependency to v2.46.0. (@tpaschalis)
 
-- The `client_secret` config argument in the `otelcol.auth.oauth2` component is 
+- The `client_secret` config argument in the `otelcol.auth.oauth2` component is
   now of type `secret` instead of type `string`. (@ptodev)
 
 ### Bugfixes
@@ -205,6 +218,8 @@ v0.37.0 (2023-10-10)
 
 - Fix initialization of the RAPL collector for the node_exporter integration
   and the prometheus.exporter.unix component. (@marctc)
+
+- Set instrumentation scope attribute for traces emitted by Flow component. (@hainenber)
 
 ### Other changes
 
