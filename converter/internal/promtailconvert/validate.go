@@ -67,8 +67,8 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	}
 
 	if cfg.ServerConfig.LogLevel.String() != "info" {
-		diags.Add(diag.SeverityLevelWarn, "server.log_level is not supported - Flow mode "+
-			"components may produce different logs")
+		diags.Add(diag.SeverityLevelWarn, "The converter does not support converting the provided server.log_level config: "+
+			"The equivalent feature in Flow mode is to use the logging config block to set the level argument.")
 	}
 
 	if cfg.ServerConfig.PathPrefix != "" {

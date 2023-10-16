@@ -81,7 +81,6 @@ func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diag
 	defaultMetrics := config.DefaultConfig().Metrics
 	defaultMetrics.ServiceConfig.Lifecycler.ListenPort = grpcListenPort
 	diags.AddAll(common.UnsupportedNotDeepEquals(metricsConfig.WALCleanupAge, defaultMetrics.WALCleanupAge, "wal_cleanup_age metrics"))
-	diags.AddAll(common.UnsupportedNotEqualsMessage(metricsConfig.WALDir, defaultMetrics.WALDir, "metrics wal_directory", "Use the run command flag --storage.path for Flow mode instead."))
 	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.WALCleanupPeriod, defaultMetrics.WALCleanupPeriod, "wal_cleanup_period metrics"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(metricsConfig.ServiceConfig, defaultMetrics.ServiceConfig, "scraping_service metrics"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(metricsConfig.ServiceClientConfig, defaultMetrics.ServiceClientConfig, "scraping_service_client metrics"))
@@ -89,6 +88,10 @@ func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diag
 	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.InstanceMode, defaultMetrics.InstanceMode, "instance_mode metrics"))
 	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.DisableKeepAlives, defaultMetrics.DisableKeepAlives, "http_disable_keepalives metrics"))
 	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.IdleConnTimeout, defaultMetrics.IdleConnTimeout, "http_idle_conn_timeout metrics"))
+
+	if metricsConfig.WALDir != defaultMetrics.WALDir {
+		diags.Add(diag.SeverityLevelWarn, "The converter does not support converting the provided metrics wal_directory config: Use the run command flag --storage.path for Flow mode instead.")
+	}
 
 	return diags
 }

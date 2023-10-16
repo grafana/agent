@@ -1,10 +1,10 @@
-(Warning) server.log_level is not supported - Flow mode components may produce different logs
+(Warning) The converter does not support converting the provided server.log_level config: The equivalent feature in Flow mode is to use the logging config block to set the level argument.
 (Error) The converter does not support handling integrations which are not being scraped: mssql.
 (Error) mapping_config is not supported in statsd_exporter integrations config
 (Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
 (Error) The converter does not support converting the provided grpc_tls_config server config: flow mode does not have a gRPC server to configure.
 (Error) The converter does not support converting the provided prefer_server_cipher_suites server config.
-(Error) The converter does not support converting the provided metrics wal_directory config: Use the run command flag --storage.path for Flow mode instead.
+(Warning) The converter does not support converting the provided metrics wal_directory config: Use the run command flag --storage.path for Flow mode instead.
 (Error) The converter does not support converting the provided agent integration.
 (Warning) disabled integrations do nothing and are not included in the output: node_exporter.
 (Error) The converter does not support converting the provided traces config.
