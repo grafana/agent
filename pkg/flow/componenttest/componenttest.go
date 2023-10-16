@@ -4,12 +4,12 @@ package componenttest
 import (
 	"context"
 	"fmt"
-	"github.com/grafana/agent/service/labelstore"
 	"os"
 	"reflect"
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/atomic"
@@ -161,7 +161,6 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 		Registerer:    prometheus.NewRegistry(),
 		GetServiceData: func(name string) (interface{}, error) {
 			return labelstore.New(nil), nil
-
 		},
 	}
 
