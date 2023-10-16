@@ -42,6 +42,9 @@ Main (unreleased)
 
 - Update Prometheus dependency to v2.47.2. (@tpaschalis)
 
+- Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
+
+
 v0.37.1 (2023-10-10)
 -----------------
 
