@@ -103,7 +103,6 @@ require (
 	github.com/oliver006/redis_exporter v1.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.85.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.85.0
@@ -213,11 +212,11 @@ require (
 	go.uber.org/goleak v1.2.1
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.25.0
-	golang.org/x/crypto v0.13.0
+	golang.org/x/crypto v0.14.0
 	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
-	golang.org/x/net v0.15.0
+	golang.org/x/net v0.17.0
 	golang.org/x/oauth2 v0.11.0
-	golang.org/x/sys v0.12.0
+	golang.org/x/sys v0.13.0
 	golang.org/x/text v0.13.0
 	golang.org/x/time v0.3.0
 	google.golang.org/api v0.139.0
@@ -530,7 +529,7 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20220216144756-c35f1ee13d7c // indirect
 	github.com/prometheus-community/go-runit v0.1.0 // indirect
 	github.com/prometheus/alertmanager v0.26.0 // indirect
-	github.com/prometheus/common/sigv4 v0.1.0 // indirect
+	github.com/prometheus/common/sigv4 v0.1.0
 	github.com/prometheus/exporter-toolkit v0.10.1-0.20230714054209-2f4150c63f97 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/remeh/sizedwaitgroup v1.0.0 // indirect
@@ -599,7 +598,7 @@ require (
 	go4.org/netipx v0.0.0-20230125063823-8449b0a6169f // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/term v0.12.0 // indirect
+	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/tools v0.12.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect

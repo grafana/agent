@@ -2,7 +2,7 @@ package operator
 
 // Supported versions of the Grafana Agent.
 var (
-	DefaultAgentVersion   = "v0.37.1"
+	DefaultAgentVersion   = "$AGENT_VERSION"
 	DefaultAgentBaseImage = "grafana/agent"
 	DefaultAgentImage     = DefaultAgentBaseImage + ":" + DefaultAgentVersion
 )

@@ -50,16 +50,17 @@
 ##
 ## Targets for generating assets:
 ##
-##   generate             Generate everything.
-##   generate-crds        Generate Grafana Agent Operator CRDs ands its documentation.
-##   generate-drone       Generate the Drone YAML from Jsonnet.
-##   generate-helm-docs   Generate Helm chart documentation.
-##   generate-helm-tests  Generate Helm chart tests.
-##   generate-manifests   Generate production/kubernetes YAML manifests.
-##   generate-dashboards  Generate dashboards in example/docker-compose after
-##                        changing Jsonnet.
-##   generate-protos      Generate protobuf files.
-##   generate-ui          Generate the UI assets.
+##   generate                 Generate everything.
+##   generate-crds            Generate Grafana Agent Operator CRDs ands its documentation.
+##   generate-drone           Generate the Drone YAML from Jsonnet.
+##   generate-helm-docs       Generate Helm chart documentation.
+##   generate-helm-tests      Generate Helm chart tests.
+##   generate-manifests       Generate production/kubernetes YAML manifests.
+##   generate-dashboards      Generate dashboards in example/docker-compose after
+##                            changing Jsonnet.
+##   generate-protos          Generate protobuf files.
+##   generate-ui              Generate the UI assets.
+##   generate-versioned-files Generate versioned files.
 ##
 ## Other targets:
 ##
@@ -280,8 +281,8 @@ smoke-image:
 # Targets for generating assets
 #
 
-.PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
-generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
+.PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files
+generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files
 
 generate-crds:
 ifeq ($(USE_CONTAINER),1)
@@ -335,6 +336,13 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	cd ./web/ui && yarn --network-timeout=1200000 && yarn run build
+endif
+
+generate-versioned-files:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	sh ./tools/gen-versioned-files/gen-versioned-files.sh
 endif
 
 #

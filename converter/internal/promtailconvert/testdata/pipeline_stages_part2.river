@@ -81,6 +81,21 @@ loki.process "example" {
 	}
 
 	stage.decolorize { }
+
+	stage.sampling {
+		rate = 100
+	}
+
+	stage.sampling {
+		drop_counter_reason = "womp womp!"
+		rate                = 0
+	}
+
+	stage.eventlogmessage {
+		source              = "something"
+		drop_invalid_labels = true
+		overwrite_existing  = true
+	}
 }
 
 loki.source.file "example" {

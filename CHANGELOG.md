@@ -10,10 +10,20 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- Remove `otelcol.exporter.jaeger` component (@hainenber)
+
 ### Features
 
 - Added a new `stage.decolorize` stage to `loki.process` component which 
   allows to strip ANSI color codes from the log lines. (@thampiotr)
+
+- Added a new `stage.sampling` stage to `loki.process` component which
+  allows to only process a fraction of logs and drop the rest. (@thampiotr)
+
+- Added a new `stage.eventlogmessage` stage to `loki.process` component which
+  allows to extract data from Windows Event Log. (@thampiotr)
 
 ### Bugfixes
 
@@ -26,6 +36,14 @@ Main (unreleased)
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
+
+v0.37.1 (2023-10-10)
+-----------------
+
+### Bugfixes
+
+- Fix the initialization of the default namespaces map for the operator and the
+  loki.source.kubernetes component. (@wildum)
 
 v0.37.0 (2023-10-10)
 -----------------
@@ -195,6 +213,8 @@ v0.37.0 (2023-10-10)
 
 - Fix initialization of the RAPL collector for the node_exporter integration
   and the prometheus.exporter.unix component. (@marctc)
+
+- Set instrumentation scope attribute for traces emitted by Flow component. (@hainenber)
 
 ### Other changes
 

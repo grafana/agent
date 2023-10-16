@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.25.0](https://img.shields.io/badge/Version-0.25.0-informational?style=flat-square) ![AppVersion: v0.36.2](https://img.shields.io/badge/AppVersion-v0.36.2-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.26.0](https://img.shields.io/badge/Version-0.26.0-informational?style=flat-square) ![AppVersion: v0.37.1](https://img.shields.io/badge/AppVersion-v0.37.1-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -78,6 +78,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.enableStatefulSetAutoDeletePVC | bool | `false` | Whether to enable automatic deletion of stale PVCs due to a scale down operation, when controller.type is 'statefulset'. |
 | controller.hostNetwork | bool | `false` | Configures Pods to use the host network. When set to true, the ports that will be used must be specified. |
 | controller.hostPID | bool | `false` | Configures Pods to use the host PID namespace. |
+| controller.initContainers | list | `[]` |  |
 | controller.nodeSelector | object | `{}` | nodeSelector to apply to Grafana Agent pods. |
 | controller.parallelRollout | bool | `true` | Whether to deploy pods in parallel. Only used when controller.type is 'statefulset'. |
 | controller.podAnnotations | object | `{}` | Extra pod annotations to add. |
@@ -109,7 +110,6 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | ingress.path | string | `"/"` |  |
 | ingress.pathType | string | `"Prefix"` |  |
 | ingress.tls | list | `[]` |  |
-| initContainers | list | `[]` |  |
 | nameOverride | string | `nil` | Overrides the chart's name. Used to change the infix in the resource names. |
 | rbac.create | bool | `true` | Whether to create RBAC resources for the agent. |
 | service.annotations | object | `{}` |  |
