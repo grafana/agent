@@ -27,8 +27,10 @@ func TestIDRemovalIfFailedToLoad(t *testing.T) {
 		return t1 != nil
 	}, 10*time.Second, 100*time.Millisecond)
 	require.Eventually(t, func() bool {
+		f.loadMut.RLock()
+		defer f.loadMut.RUnlock()
 		// This should be one due to t1.
-		return len(f.modules.modules) == 1
+		return len(f.modules.List()) == 1
 	}, 10*time.Second, 100*time.Millisecond)
 	badContent :=
 		`test.fail.module "bad" {
@@ -39,9 +41,11 @@ fail=true
 	// Because we have bad content this should fail, but the ids should be removed.
 	require.Error(t, err)
 	require.Eventually(t, func() bool {
+		f.loadMut.RLock()
+		defer f.loadMut.RUnlock()
 		// Only one since the bad one never should have been added.
-		rightLength := len(f.modules.modules) == 1
-		_, foundT1 := f.modules.modules["test.fail.module.t1"]
+		rightLength := len(f.modules.List()) == 1
+		_, foundT1 := f.modules.Get("test.fail.module.t1")
 		return rightLength && foundT1
 	}, 10*time.Second, 100*time.Millisecond)
 	// fail a second time to ensure the once is done again.
@@ -56,14 +60,17 @@ fail=false
 	err = t1.UpdateContent(goodContent)
 	require.NoError(t, err)
 	require.Eventually(t, func() bool {
-		rightLength := len(f.modules.modules) == 2
-		_, foundT1 := f.modules.modules["test.fail.module.t1"]
-		_, foundGood := f.modules.modules["test.fail.module.t1/test.fail.module.good"]
-		return rightLength && foundT1 && foundGood
+		f.loadMut.RLock()
+		defer f.loadMut.RUnlock()
+		modT1, foundT1 := f.modules.Get("test.fail.module.t1")
+		modGood, foundGood := f.modules.Get("test.fail.module.t1/test.fail.module.good")
+		return modT1 != nil && modGood != nil && foundT1 && foundGood
 	}, 10*time.Second, 100*time.Millisecond)
 	cnc()
 	require.Eventually(t, func() bool {
+		f.loadMut.RLock()
+		defer f.loadMut.RUnlock()
 		// All should be cleaned up.
-		return len(f.modules.modules) == 0
+		return len(f.modules.List()) == 0
 	}, 10*time.Second, 100*time.Millisecond)
 }
