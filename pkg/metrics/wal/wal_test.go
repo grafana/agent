@@ -434,6 +434,35 @@ func TestGlobalReferenceID_Normal(t *testing.T) {
 	require.True(t, ref3 == 2)
 }
 
+func TestDBAllowOOOSamples(t *testing.T) {
+	walDir := t.TempDir()
+
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, s.Close())
+	}()
+
+	app := s.Appender(context.Background())
+
+	// Write some samples
+	payload := buildSeries([]string{"foo", "bar", "baz"})
+	for _, metric := range payload {
+		metric.Write(t, app)
+	}
+
+	require.NoError(t, app.Commit())
+	for _, metric := range payload {
+		for _, sa := range metric.samples {
+			// We want to set the timestamp to before. This should no longer trigger an out of order.
+			sa.ts = sa.ts - 10_000
+		}
+	}
+	for _, metric := range payload {
+		metric.Write(t, app)
+	}
+}
+
 func BenchmarkAppendExemplar(b *testing.B) {
 	walDir := b.TempDir()
 
