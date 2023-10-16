@@ -23,13 +23,11 @@ import (
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 	prom_linode "github.com/prometheus/prometheus/discovery/linode"
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
-	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_moby "github.com/prometheus/prometheus/discovery/moby"
 	prom_openstack "github.com/prometheus/prometheus/discovery/openstack"
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	prom_xds "github.com/prometheus/prometheus/discovery/xds"
-	prom_nerve "github.com/prometheus/prometheus/discovery/zookeeper"
 	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 	"github.com/prometheus/prometheus/storage"
 
@@ -148,7 +146,7 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_dns.SDConfig:
 			labelCounts["dns"]++
 			exports = appendDiscoveryDns(pb, common.LabelWithIndex(labelCounts["dns"]-1, label), sdc)
-		case *prom_docker.DockerSDConfig:
+		case *prom_moby.DockerSDConfig:
 			labelCounts["docker"]++
 			exports = appendDiscoveryDocker(pb, common.LabelWithIndex(labelCounts["docker"]-1, label), sdc)
 		case *prom_aws.EC2SDConfig:
@@ -187,7 +185,7 @@ func AppendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig 
 		case *prom_linode.SDConfig:
 			labelCounts["linode"]++
 			exports = appendDiscoveryLinode(pb, common.LabelWithIndex(labelCounts["linode"]-1, label), sdc)
-		case *prom_nerve.NerveSDConfig:
+		case *prom_zk.NerveSDConfig:
 			labelCounts["nerve"]++
 			exports = appendDiscoveryNerve(pb, common.LabelWithIndex(labelCounts["nerve"]-1, label), sdc)
 		case *prom_openstack.SDConfig:

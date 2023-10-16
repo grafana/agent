@@ -17,9 +17,9 @@ func UnsupportedNotDeepEqualsMessage(a any, b any, name string, message string) 
 	var diags diag.Diagnostics
 	if !reflect.DeepEqual(a, b) {
 		if message != "" {
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported %s config was provided: %s", name, message))
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config: %s", name, message))
 		} else {
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported %s config was provided.", name))
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config.", name))
 		}
 	}
 
@@ -27,9 +27,43 @@ func UnsupportedNotDeepEqualsMessage(a any, b any, name string, message string) 
 }
 
 func UnsupportedNotEquals(a any, b any, name string) diag.Diagnostics {
+	return UnsupportedNotEqualsMessage(a, b, name, "")
+}
+
+func UnsupportedNotEqualsMessage(a any, b any, name string, message string) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if a != b {
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported %s config was provided.", name))
+		if message != "" {
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config: %s", name, message))
+		} else {
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config.", name))
+		}
+	}
+
+	return diags
+}
+
+func UnsupportedEquals(a any, b any, name string) diag.Diagnostics {
+	return UnsupportedEqualsMessage(a, b, name, "")
+}
+
+func UnsupportedEqualsMessage(a any, b any, name string, message string) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if a == b {
+		if message != "" {
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config: %s", name, message))
+		} else {
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config.", name))
+		}
+	}
+
+	return diags
+}
+
+func UnsupportedNotNil(a any, name string) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if a != nil {
+		diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config.", name))
 	}
 
 	return diags

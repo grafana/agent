@@ -2,9 +2,9 @@ package prometheusconvert
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/converter/internal/common"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discover "github.com/prometheus/prometheus/discovery"
 
@@ -20,13 +20,11 @@ import (
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 	prom_linode "github.com/prometheus/prometheus/discovery/linode"
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
-	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_moby "github.com/prometheus/prometheus/discovery/moby"
 	prom_openstack "github.com/prometheus/prometheus/discovery/openstack"
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	prom_kuma "github.com/prometheus/prometheus/discovery/xds"
-	prom_nerve "github.com/prometheus/prometheus/discovery/zookeeper"
 	prom_zk "github.com/prometheus/prometheus/discovery/zookeeper"
 )
 
@@ -45,33 +43,20 @@ func validate(promConfig *prom_config.Config) diag.Diagnostics {
 
 func validateGlobalConfig(globalConfig *prom_config.GlobalConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
-	if globalConfig.EvaluationInterval != prom_config.DefaultGlobalConfig.EvaluationInterval {
-		diags.Add(diag.SeverityLevelError, "unsupported global evaluation_interval config was provided")
-	}
 
-	if globalConfig.QueryLogFile != "" {
-		diags.Add(diag.SeverityLevelError, "unsupported global query_log_file config was provided")
-	}
+	diags.AddAll(common.UnsupportedNotEquals(globalConfig.EvaluationInterval, prom_config.DefaultGlobalConfig.EvaluationInterval, "global evaluation_interval"))
+	diags.AddAll(common.UnsupportedNotEquals(globalConfig.QueryLogFile, "", "global query_log_file"))
 
 	return diags
 }
 
 func validateAlertingConfig(alertingConfig *prom_config.AlertingConfig) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if len(alertingConfig.AlertmanagerConfigs) > 0 || len(alertingConfig.AlertRelabelConfigs) > 0 {
-		diags.Add(diag.SeverityLevelError, "unsupported alerting config was provided")
-	}
-
-	return diags
+	hasAlerting := len(alertingConfig.AlertmanagerConfigs) > 0 || len(alertingConfig.AlertRelabelConfigs) > 0
+	return common.UnsupportedEquals(hasAlerting, true, "alerting")
 }
 
 func validateRuleFilesConfig(ruleFilesConfig []string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if len(ruleFilesConfig) > 0 {
-		diags.Add(diag.SeverityLevelError, "unsupported rule_files config was provided")
-	}
-
-	return diags
+	return common.UnsupportedEquals(len(ruleFilesConfig) > 0, true, "rule_files")
 }
 
 func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagnostics {
@@ -99,7 +84,7 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryDigitalOcean(sdc))
 		case *prom_dns.SDConfig:
 			diags.AddAll(validateDiscoveryDns(sdc))
-		case *prom_docker.DockerSDConfig:
+		case *prom_moby.DockerSDConfig:
 			diags.AddAll(validateDiscoveryDocker(sdc))
 		case *prom_aws.EC2SDConfig:
 			diags.AddAll(validateDiscoveryEC2(sdc))
@@ -125,14 +110,14 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 			diags.AddAll(validateDiscoveryIonos(sdc))
 		case *prom_zk.ServersetSDConfig:
 			diags.AddAll(validateDiscoveryServerset(sdc))
-		case *prom_nerve.NerveSDConfig:
+		case *prom_zk.NerveSDConfig:
 			diags.AddAll(validateDiscoveryNerve(sdc))
 		case *prom_openstack.SDConfig:
 			diags.AddAll(validateDiscoveryOpenstack(sdc))
 		case *prom_moby.DockerSwarmSDConfig:
 			diags.AddAll(validateDiscoveryDockerswarm(sdc))
 		default:
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s service discovery.", serviceDiscoveryConfig.Name()))
 		}
 	}
 
@@ -140,21 +125,12 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 }
 
 func validateStorageConfig(storageConfig *prom_config.StorageConfig) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if storageConfig.TSDBConfig != nil || storageConfig.ExemplarsConfig != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported storage config was provided")
-	}
-
-	return diags
+	hasStorage := storageConfig.TSDBConfig != nil || storageConfig.ExemplarsConfig != nil
+	return common.UnsupportedEquals(hasStorage, true, "storage")
 }
 
 func validateTracingConfig(tracingConfig *prom_config.TracingConfig) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if !reflect.DeepEqual(*tracingConfig, prom_config.TracingConfig{}) {
-		diags.Add(diag.SeverityLevelError, "unsupported tracing config was provided")
-	}
-
-	return diags
+	return common.UnsupportedNotDeepEquals(*tracingConfig, prom_config.TracingConfig{}, "tracing")
 }
 
 func validateRemoteWriteConfigs(remoteWriteConfigs []*prom_config.RemoteWriteConfig) diag.Diagnostics {
@@ -168,10 +144,5 @@ func validateRemoteWriteConfigs(remoteWriteConfigs []*prom_config.RemoteWriteCon
 }
 
 func validateRemoteReadConfigs(remoteReadConfigs []*prom_config.RemoteReadConfig) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if len(remoteReadConfigs) > 0 {
-		diags.Add(diag.SeverityLevelError, "unsupported remote_read config was provided")
-	}
-
-	return diags
+	return common.UnsupportedEquals(len(remoteReadConfigs) > 0, true, "remote_read")
 }

@@ -81,11 +81,7 @@ func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diag
 	defaultMetrics := config.DefaultConfig().Metrics
 	defaultMetrics.ServiceConfig.Lifecycler.ListenPort = grpcListenPort
 	diags.AddAll(common.UnsupportedNotDeepEquals(metricsConfig.WALCleanupAge, defaultMetrics.WALCleanupAge, "wal_cleanup_age metrics"))
-
-	if metricsConfig.WALDir != defaultMetrics.WALDir {
-		diags.Add(diag.SeverityLevelError, "unsupported wal_directory metrics config was provided. use the run command flag --storage.path for Flow mode instead.")
-	}
-
+	diags.AddAll(common.UnsupportedNotEqualsMessage(metricsConfig.WALDir, defaultMetrics.WALDir, "metrics wal_directory", "Use the run command flag --storage.path for Flow mode instead."))
 	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.WALCleanupPeriod, defaultMetrics.WALCleanupPeriod, "wal_cleanup_period metrics"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(metricsConfig.ServiceConfig, defaultMetrics.ServiceConfig, "scraping_service metrics"))
 	diags.AddAll(common.UnsupportedNotDeepEquals(metricsConfig.ServiceClientConfig, defaultMetrics.ServiceClientConfig, "scraping_service_client metrics"))
@@ -133,7 +129,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *azure_exporter.Config:
 		case *cadvisor.Config:
 		default:
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", itg.Name()))
 		}
 	}
 

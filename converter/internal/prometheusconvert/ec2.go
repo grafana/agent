@@ -1,7 +1,6 @@
 package prometheusconvert
 
 import (
-	"reflect"
 	"time"
 
 	"github.com/grafana/agent/component/discovery"
@@ -24,41 +23,18 @@ func appendDiscoveryEC2(pb *prometheusBlocks, label string, sdConfig *prom_aws.E
 func validateDiscoveryEC2(sdConfig *prom_aws.EC2SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if sdConfig.HTTPClientConfig.BasicAuth != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported basic_auth for ec2_sd_configs")
-	}
-
-	if sdConfig.HTTPClientConfig.Authorization != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported authorization for ec2_sd_configs")
-	}
-
-	if sdConfig.HTTPClientConfig.OAuth2 != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for ec2_sd_configs")
-	}
-
-	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.BearerToken, prom_config.DefaultHTTPClientConfig.BearerToken) {
-		diags.Add(diag.SeverityLevelError, "unsupported bearer_token for ec2_sd_configs")
-	}
-
-	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.BearerTokenFile, prom_config.DefaultHTTPClientConfig.BearerTokenFile) {
-		diags.Add(diag.SeverityLevelError, "unsupported bearer_token_file for ec2_sd_configs")
-	}
-
-	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.FollowRedirects, prom_config.DefaultHTTPClientConfig.FollowRedirects) {
-		diags.Add(diag.SeverityLevelError, "unsupported follow_redirects for ec2_sd_configs")
-	}
-
-	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.EnableHTTP2, prom_config.DefaultHTTPClientConfig.EnableHTTP2) {
-		diags.Add(diag.SeverityLevelError, "unsupported enable_http2 for ec2_sd_configs")
-	}
-
-	if !reflect.DeepEqual(sdConfig.HTTPClientConfig.ProxyConfig, prom_config.DefaultHTTPClientConfig.ProxyConfig) {
-		diags.Add(diag.SeverityLevelError, "unsupported proxy for ec2_sd_configs")
-	}
+	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.BasicAuth, nil, "ec2_sd_configs basic_auth"))
+	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.Authorization, nil, "ec2_sd_configs authorization"))
+	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.OAuth2, nil, "ec2_sd_configs oauth2"))
+	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.BearerToken, prom_config.DefaultHTTPClientConfig.BearerToken, "ec2_sd_configs bearer_token"))
+	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.BearerTokenFile, prom_config.DefaultHTTPClientConfig.BearerTokenFile, "ec2_sd_configs bearer_token_file"))
+	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.FollowRedirects, prom_config.DefaultHTTPClientConfig.FollowRedirects, "ec2_sd_configs follow_redirects"))
+	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.EnableHTTP2, prom_config.DefaultHTTPClientConfig.EnableHTTP2, "ec2_sd_configs enable_http2"))
+	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.ProxyConfig, prom_config.DefaultHTTPClientConfig.ProxyConfig, "ec2_sd_configs proxy"))
 
 	// Do a last check in case any of the specific checks missed anything.
-	if len(diags) == 0 && !reflect.DeepEqual(sdConfig.HTTPClientConfig, prom_config.DefaultHTTPClientConfig) {
-		diags.Add(diag.SeverityLevelError, "unsupported http_client_config for ec2_sd_configs")
+	if len(diags) == 0 {
+		diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig, prom_config.DefaultHTTPClientConfig, "ec2_sd_configs http_client_config"))
 	}
 
 	return diags
