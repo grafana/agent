@@ -44,6 +44,9 @@ Main (unreleased)
 
 - Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
 
+### Other changes
+
+- Use Go 1.21.3 for builds. (@tpaschalis)
 
 v0.37.1 (2023-10-10)
 -----------------
