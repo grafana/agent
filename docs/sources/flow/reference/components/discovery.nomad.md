@@ -16,7 +16,6 @@ description: Learn about discovery.nomad
 
 ```river
 discovery.nomad "LABEL" {
-  server = NOMAD_SERVER
 }
 ```
 
@@ -124,7 +123,6 @@ This example discovers targets from a Nomad server:
 
 ```river
 discovery.nomad "example" {
-  server = "localhost:8500"
 }
 
 prometheus.scrape "demo" {
