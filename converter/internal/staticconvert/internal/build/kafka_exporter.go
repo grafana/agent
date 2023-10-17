@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/kafka"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
 )
 
@@ -19,7 +18,7 @@ func (b *IntegrationsV1ConfigBuilder) appendKafkaExporter(config *kafka_exporter
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.kafka.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.kafka.%s.targets", compLabel))
 }
 
 func toKafkaExporter(config *kafka_exporter.Config) *kafka.Arguments {
