@@ -48,6 +48,8 @@ Main (unreleased)
 
 - Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
   permanently fail to load with `id already exists` error. (@mattdurham)
+
+- Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
   
 ### Enhancements
 
