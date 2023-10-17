@@ -30,7 +30,7 @@ func ValidatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagn
 	var diags diag.Diagnostics
 
 	diags.AddAll(common.UnsupportedNotEquals(scrapeConfig.NativeHistogramBucketLimit, uint(0), "scrape_configs native_histogram_bucket_limit"))
-	diags.AddAll(ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig))
+	diags.AddAll(common.ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig))
 
 	return diags
 }
