@@ -49,7 +49,7 @@ type Module interface {
 	//
 	// Run blocks until the provided context is canceled. The ID of a module as defined in
 	// ModuleController.NewModule will not be released until Run returns.
-	Run(context.Context)
+	Run(context.Context) error
 }
 
 // ExportFunc is used for onExport of the Module

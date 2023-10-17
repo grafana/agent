@@ -27,10 +27,10 @@ func init() {
 type Arguments struct {
 	AllowStale       bool                    `river:"allow_stale,attr,optional"`
 	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
-	Namespace        string                  `river:"namespace,attr"`
+	Namespace        string                  `river:"namespace,attr,optional"`
 	RefreshInterval  time.Duration           `river:"refresh_interval,attr,optional"`
 	Region           string                  `river:"region,attr,optional"`
-	Server           string                  `river:"server,attr"`
+	Server           string                  `river:"server,attr,optional"`
 	TagSeparator     string                  `river:"tag_separator,attr,optional"`
 }
 
