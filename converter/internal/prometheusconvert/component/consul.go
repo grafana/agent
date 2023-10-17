@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -7,20 +7,21 @@ import (
 	"github.com/grafana/agent/component/discovery/consul"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	"github.com/grafana/river/rivertypes"
 	prom_consul "github.com/prometheus/prometheus/discovery/consul"
 )
 
-func appendDiscoveryConsul(pb *prometheusBlocks, label string, sdConfig *prom_consul.SDConfig) discovery.Exports {
+func appendDiscoveryConsul(pb *build.PrometheusBlocks, label string, sdConfig *prom_consul.SDConfig) discovery.Exports {
 	discoveryConsulArgs := toDiscoveryConsul(sdConfig)
 	name := []string{"discovery", "consul"}
 	block := common.NewBlockWithOverride(name, label, discoveryConsulArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.consul." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.consul." + label + ".targets")
 }
 
-func validateDiscoveryConsul(sdConfig *prom_consul.SDConfig) diag.Diagnostics {
-	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+func ValidateDiscoveryConsul(sdConfig *prom_consul.SDConfig) diag.Diagnostics {
+	return common.ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toDiscoveryConsul(sdConfig *prom_consul.SDConfig) *consul.Arguments {
@@ -43,6 +44,6 @@ func toDiscoveryConsul(sdConfig *prom_consul.SDConfig) *consul.Arguments {
 		ServiceTags:      sdConfig.ServiceTags,
 		NodeMeta:         sdConfig.NodeMeta,
 		RefreshInterval:  time.Duration(sdConfig.RefreshInterval),
-		HTTPClientConfig: *ToHttpClientConfig(&sdConfig.HTTPClientConfig),
+		HTTPClientConfig: *common.ToHttpClientConfig(&sdConfig.HTTPClientConfig),
 	}
 }

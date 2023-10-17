@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component/discovery/consulagent"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	promtail_consulagent "github.com/grafana/loki/clients/pkg/promtail/discovery/consulagent"
 	"github.com/grafana/river/rivertypes"
 )
@@ -52,6 +51,6 @@ func toDiscoveryAgentConsul(sdConfig *promtail_consulagent.SDConfig, diags *diag
 		Password:        rivertypes.Secret(sdConfig.Password),
 		Services:        sdConfig.Services,
 		ServiceTags:     sdConfig.ServiceTags,
-		TLSConfig:       *prometheusconvert.ToTLSConfig(&sdConfig.TLSConfig),
+		TLSConfig:       *common.ToTLSConfig(&sdConfig.TLSConfig),
 	}
 }

@@ -52,6 +52,7 @@ The following blocks are supported inside the definition of
 | info_schema.tables           | [info_schema.tables][]           | Configures the `info_schema.tables` collector.           | no       |
 | perf_schema.eventsstatements | [perf_schema.eventsstatements][] | Configures the `perf_schema.eventsstatements` collector. | no       |
 | perf_schema.file_instances   | [perf_schema.file_instances][]   | Configures the `perf_schema.file_instances` collector.   | no       |
+| perf_schema.memory_events    | [perf_schema.memory_events][]    | Configures the `perf_schema.memory_events` collector.    | no       |
 | heartbeat                    | [heartbeat][]                    | Configures the `heartbeat` collector.                    | no       |
 | mysql.user                   | [mysql.user][]                   | Configures the `mysql.user` collector.                   | no       |
 
@@ -59,6 +60,7 @@ The following blocks are supported inside the definition of
 [info_schema.tables]: #info_schematables-block
 [perf_schema.eventsstatements]: #perf_schemaeventsstatements-block
 [perf_schema.file_instances]: #perf_schemafile_instances-block
+[perf_schema.memory_events]: #perf_schemamemory_events-block
 [heartbeat]: #heartbeat-block
 [mysql.user]: #mysqluser-block
 
@@ -92,6 +94,12 @@ The following blocks are supported inside the definition of
 | `remove_prefix` | `string` | Prefix to trim away from `file_name`.                                               | `"/var/lib/mysql"` | no       |
 
 View more detailed documentation on the tables used in `perf_schema_file_instances_filter` and `perf_schema_file_instances_remove_prefix` [in the MySQL documentation](https://dev.mysql.com/doc/mysql-perfschema-excerpt/8.0/en/performance-schema-file-summary-tables.html).
+
+### perf_schema.memory_events block
+
+| Name            | Type     | Description                                                                         | Default            | Required |
+| --------------- | -------- | ----------------------------------------------------------------------------------- | ------------------ | -------- |
+| `remove_prefix` | `string` | Prefix to trim away from `performance_schema.memory_summary_global_by_event_name`.  | `"memory/"`        | no       |
 
 ### heartbeat block
 
@@ -138,6 +146,7 @@ The full list of supported collectors is:
 | perf_schema.file_events                          | Collect metrics from `performance_schema.file_summary_by_event_name`.                        | no                 |
 | perf_schema.file_instances                       | Collect metrics from `performance_schema.file_summary_by_instance`.                          | no                 |
 | perf_schema.indexiowaits                         | Collect metrics from `performance_schema.table_io_waits_summary_by_index_usage`.             | no                 |
+| perf_schema.memory_events                        | Collect metrics from `performance_schema.memory_summary_global_by_event_name`.               | no                 |
 | perf_schema.replication_applier_status_by_worker | Collect metrics from `performance_schema.replication_applier_status_by_worker`.              | no                 |
 | perf_schema.replication_group_member_stats       | Collect metrics from `performance_schema.replication_group_member_stats`.                    | no                 |
 | perf_schema.replication_group_members            | Collect metrics from `performance_schema.replication_group_members`.                         | no                 |

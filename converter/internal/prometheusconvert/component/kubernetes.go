@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"github.com/grafana/agent/component/common/config"
@@ -6,19 +6,20 @@ import (
 	"github.com/grafana/agent/component/discovery/kubernetes"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 )
 
-func appendDiscoveryKubernetes(pb *prometheusBlocks, label string, sdConfig *prom_kubernetes.SDConfig) discovery.Exports {
+func appendDiscoveryKubernetes(pb *build.PrometheusBlocks, label string, sdConfig *prom_kubernetes.SDConfig) discovery.Exports {
 	discoveryKubernetesArgs := toDiscoveryKubernetes(sdConfig)
 	name := []string{"discovery", "kubernetes"}
 	block := common.NewBlockWithOverride(name, label, discoveryKubernetesArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.kubernetes." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.kubernetes." + label + ".targets")
 }
 
-func validateDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) diag.Diagnostics {
-	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+func ValidateDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) diag.Diagnostics {
+	return common.ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Arguments {
@@ -30,7 +31,7 @@ func toDiscoveryKubernetes(sdConfig *prom_kubernetes.SDConfig) *kubernetes.Argum
 		APIServer:          config.URL(sdConfig.APIServer),
 		Role:               string(sdConfig.Role),
 		KubeConfig:         sdConfig.KubeConfig,
-		HTTPClientConfig:   *ToHttpClientConfig(&sdConfig.HTTPClientConfig),
+		HTTPClientConfig:   *common.ToHttpClientConfig(&sdConfig.HTTPClientConfig),
 		NamespaceDiscovery: toNamespaceDiscovery(&sdConfig.NamespaceDiscovery),
 		Selectors:          toSelectorConfig(sdConfig.Selectors),
 		AttachMetadata:     toAttachMetadata(&sdConfig.AttachMetadata),

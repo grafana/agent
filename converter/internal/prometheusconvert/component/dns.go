@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -7,18 +7,19 @@ import (
 	"github.com/grafana/agent/component/discovery/dns"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	prom_dns "github.com/prometheus/prometheus/discovery/dns"
 )
 
-func appendDiscoveryDns(pb *prometheusBlocks, label string, sdConfig *prom_dns.SDConfig) discovery.Exports {
+func appendDiscoveryDns(pb *build.PrometheusBlocks, label string, sdConfig *prom_dns.SDConfig) discovery.Exports {
 	discoveryDnsArgs := toDiscoveryDns(sdConfig)
 	name := []string{"discovery", "dns"}
 	block := common.NewBlockWithOverride(name, label, discoveryDnsArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.dns." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.dns." + label + ".targets")
 }
 
-func validateDiscoveryDns(sdConfig *prom_dns.SDConfig) diag.Diagnostics {
+func ValidateDiscoveryDns(sdConfig *prom_dns.SDConfig) diag.Diagnostics {
 	return make(diag.Diagnostics, 0)
 }
 
