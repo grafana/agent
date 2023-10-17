@@ -185,44 +185,58 @@ func TestIDList(t *testing.T) {
 	nc := newModuleController(o)
 	require.Len(t, nc.ModuleIDs(), 0)
 
-	_, err := nc.NewModule("t1", nil)
+	mod1, err := nc.NewModule("t1", nil)
 	require.NoError(t, err)
-	require.Len(t, nc.ModuleIDs(), 1)
+	ctx := context.Background()
+	ctx, cncl := context.WithCancel(ctx)
+	go func() {
+		m1err := mod1.Run(ctx)
+		require.NoError(t, m1err)
+	}()
+	require.Eventually(t, func() bool {
+		return len(nc.ModuleIDs()) == 1
+	}, 1*time.Second, 100*time.Millisecond)
 
-	_, err = nc.NewModule("t2", nil)
+	mod2, err := nc.NewModule("t2", nil)
 	require.NoError(t, err)
-	require.Len(t, nc.ModuleIDs(), 2)
+	go func() {
+		m2err := mod2.Run(ctx)
+		require.NoError(t, m2err)
+	}()
+	require.Eventually(t, func() bool {
+		return len(nc.ModuleIDs()) == 2
+	}, 1*time.Second, 100*time.Millisecond)
+	// Call cncl which will stop the run methods and remove the ids from the module controller
+	cncl()
+	require.Eventually(t, func() bool {
+		return len(nc.ModuleIDs()) == 0
+	}, 1*time.Second, 100*time.Millisecond)
 }
 
-func TestIDCollision(t *testing.T) {
+func TestDuplicateIDList(t *testing.T) {
 	defer verifyNoGoroutineLeaks(t)
 	o := testModuleControllerOptions(t)
 	defer o.WorkerPool.Stop()
 	nc := newModuleController(o)
-	m, err := nc.NewModule("t1", nil)
-	require.NoError(t, err)
-	require.NotNil(t, m)
-	m, err = nc.NewModule("t1", nil)
-	require.Error(t, err)
-	require.Nil(t, m)
-}
+	require.Len(t, nc.ModuleIDs(), 0)
 
-func TestIDRemoval(t *testing.T) {
-	defer verifyNoGoroutineLeaks(t)
-	opts := testModuleControllerOptions(t)
-	defer opts.WorkerPool.Stop()
-	opts.ID = "test"
-	nc := newModuleController(opts)
-	m, err := nc.NewModule("t1", func(exports map[string]any) {})
+	mod1, err := nc.NewModule("t1", nil)
 	require.NoError(t, err)
-	err = m.LoadConfig([]byte(""), nil)
-	require.NoError(t, err)
-	require.NotNil(t, m)
 	ctx := context.Background()
-	ctx, cncl := context.WithTimeout(ctx, 1*time.Second)
+	ctx, cncl := context.WithCancel(ctx)
 	defer cncl()
-	m.Run(ctx)
-	require.Len(t, nc.(*moduleController).modules, 0)
+	go func() {
+		m1err := mod1.Run(ctx)
+		require.NoError(t, m1err)
+	}()
+	require.Eventually(t, func() bool {
+		return len(nc.ModuleIDs()) == 1
+	}, 5*time.Second, 100*time.Millisecond)
+
+	// This should panic with duplicate registration.
+	require.PanicsWithError(t, "duplicate metrics collector registration attempted", func() {
+		_, _ = nc.NewModule("t1", nil)
+	})
 }
 
 func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {

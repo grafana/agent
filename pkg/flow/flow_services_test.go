@@ -183,7 +183,7 @@ func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	componentBuilt := util.NewWaitTrigger()
+	componentRunning := util.NewWaitTrigger()
 
 	var (
 		svc = &testservices.Fake{
@@ -218,9 +218,14 @@ func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
 				Name:          "service_consumer",
 				Args:          struct{}{},
 				NeedsServices: []string{"service"},
-				Build: func(_ component.Options, _ component.Arguments) (component.Component, error) {
-					componentBuilt.Trigger()
-					return &testcomponents.Fake{}, nil
+				Build: func(o component.Options, _ component.Arguments) (component.Component, error) {
+					return &testcomponents.Fake{
+						RunFunc: func(ctx context.Context) error {
+							componentRunning.Trigger()
+							<-ctx.Done()
+							return nil
+						},
+					}, nil
 				},
 			},
 		}
@@ -243,7 +248,7 @@ func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
 	require.NoError(t, ctrl.LoadSource(f, nil))
 	go ctrl.Run(ctx)
 
-	require.NoError(t, componentBuilt.Wait(5*time.Second), "Component should have been built")
+	require.NoError(t, componentRunning.Wait(5*time.Second), "Component should have been built")
 
 	consumers := ctrl.GetServiceConsumers("service")
 	require.Len(t, consumers, 2, "There should be a consumer for the module loader and the module's component")
