@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/github"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/github_exporter"
 	"github.com/grafana/river/rivertypes"
 )
@@ -20,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendGithubExporter(config *github_export
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.github.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.github.%s.targets", compLabel))
 }
 
 func toGithubExporter(config *github_exporter.Config) *github.Arguments {

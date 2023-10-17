@@ -1,4 +1,4 @@
-package prometheusconvert
+package build
 
 import (
 	"fmt"
@@ -8,24 +8,24 @@ import (
 	"github.com/grafana/river/token/builder"
 )
 
-// prometheusBlocks is a type for categorizing River Blocks before appending
+// PrometheusBlocks is a type for categorizing River Blocks before appending
 // them to a River File. This gives control over the order they are written
 // versus appending them in the order the Blocks are created.
-type prometheusBlocks struct {
-	discoveryBlocks             []prometheusBlock
-	discoveryRelabelBlocks      []prometheusBlock
-	prometheusScrapeBlocks      []prometheusBlock
-	prometheusRelabelBlocks     []prometheusBlock
-	prometheusRemoteWriteBlocks []prometheusBlock
+type PrometheusBlocks struct {
+	DiscoveryBlocks             []prometheusBlock
+	DiscoveryRelabelBlocks      []prometheusBlock
+	PrometheusScrapeBlocks      []prometheusBlock
+	PrometheusRelabelBlocks     []prometheusBlock
+	PrometheusRemoteWriteBlocks []prometheusBlock
 }
 
-func NewPrometheusBlocks() *prometheusBlocks {
-	return &prometheusBlocks{
-		discoveryBlocks:             []prometheusBlock{},
-		discoveryRelabelBlocks:      []prometheusBlock{},
-		prometheusScrapeBlocks:      []prometheusBlock{},
-		prometheusRelabelBlocks:     []prometheusBlock{},
-		prometheusRemoteWriteBlocks: []prometheusBlock{},
+func NewPrometheusBlocks() *PrometheusBlocks {
+	return &PrometheusBlocks{
+		DiscoveryBlocks:             []prometheusBlock{},
+		DiscoveryRelabelBlocks:      []prometheusBlock{},
+		PrometheusScrapeBlocks:      []prometheusBlock{},
+		PrometheusRelabelBlocks:     []prometheusBlock{},
+		PrometheusRemoteWriteBlocks: []prometheusBlock{},
 	}
 }
 
@@ -37,47 +37,47 @@ func NewPrometheusBlocks() *prometheusBlocks {
 // 3. Prometheus scrape component(s)
 // 4. Prometheus relabel component(s) (if any)
 // 5. Prometheus remote_write
-func (pb *prometheusBlocks) AppendToFile(f *builder.File) {
-	for _, promBlock := range pb.discoveryBlocks {
+func (pb *PrometheusBlocks) AppendToFile(f *builder.File) {
+	for _, promBlock := range pb.DiscoveryBlocks {
 		f.Body().AppendBlock(promBlock.block)
 	}
 
-	for _, promBlock := range pb.discoveryRelabelBlocks {
+	for _, promBlock := range pb.DiscoveryRelabelBlocks {
 		f.Body().AppendBlock(promBlock.block)
 	}
 
-	for _, promBlock := range pb.prometheusScrapeBlocks {
+	for _, promBlock := range pb.PrometheusScrapeBlocks {
 		f.Body().AppendBlock(promBlock.block)
 	}
 
-	for _, promBlock := range pb.prometheusRelabelBlocks {
+	for _, promBlock := range pb.PrometheusRelabelBlocks {
 		f.Body().AppendBlock(promBlock.block)
 	}
 
-	for _, promBlock := range pb.prometheusRemoteWriteBlocks {
+	for _, promBlock := range pb.PrometheusRemoteWriteBlocks {
 		f.Body().AppendBlock(promBlock.block)
 	}
 }
 
-func (pb *prometheusBlocks) getScrapeInfo() diag.Diagnostics {
+func (pb *PrometheusBlocks) GetScrapeInfo() diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	for _, promScrapeBlock := range pb.prometheusScrapeBlocks {
+	for _, promScrapeBlock := range pb.PrometheusScrapeBlocks {
 		detail := promScrapeBlock.detail
 
-		for _, promDiscoveryBlock := range pb.discoveryBlocks {
+		for _, promDiscoveryBlock := range pb.DiscoveryBlocks {
 			if strings.HasPrefix(promDiscoveryBlock.label, promScrapeBlock.label) {
 				detail = fmt.Sprintln(detail) + fmt.Sprintf("	A %s.%s component", strings.Join(promDiscoveryBlock.name, "."), promDiscoveryBlock.label)
 			}
 		}
 
-		for _, promDiscoveryRelabelBlock := range pb.discoveryRelabelBlocks {
+		for _, promDiscoveryRelabelBlock := range pb.DiscoveryRelabelBlocks {
 			if strings.HasPrefix(promDiscoveryRelabelBlock.label, promScrapeBlock.label) {
 				detail = fmt.Sprintln(detail) + fmt.Sprintf("	A %s.%s component", strings.Join(promDiscoveryRelabelBlock.name, "."), promDiscoveryRelabelBlock.label)
 			}
 		}
 
-		for _, promRelabelBlock := range pb.prometheusRelabelBlocks {
+		for _, promRelabelBlock := range pb.PrometheusRelabelBlocks {
 			if strings.HasPrefix(promRelabelBlock.label, promScrapeBlock.label) {
 				detail = fmt.Sprintln(detail) + fmt.Sprintf("	A %s.%s component", strings.Join(promRelabelBlock.name, "."), promRelabelBlock.label)
 			}
@@ -86,7 +86,7 @@ func (pb *prometheusBlocks) getScrapeInfo() diag.Diagnostics {
 		diags.AddWithDetail(diag.SeverityLevelInfo, promScrapeBlock.summary, detail)
 	}
 
-	for _, promRemoteWriteBlock := range pb.prometheusRemoteWriteBlocks {
+	for _, promRemoteWriteBlock := range pb.PrometheusRemoteWriteBlocks {
 		diags.AddWithDetail(diag.SeverityLevelInfo, promRemoteWriteBlock.summary, promRemoteWriteBlock.detail)
 	}
 
@@ -101,7 +101,7 @@ type prometheusBlock struct {
 	detail  string
 }
 
-func newPrometheusBlock(block *builder.Block, name []string, label string, summary string, detail string) prometheusBlock {
+func NewPrometheusBlock(block *builder.Block, name []string, label string, summary string, detail string) prometheusBlock {
 	return prometheusBlock{
 		block:   block,
 		name:    name,
