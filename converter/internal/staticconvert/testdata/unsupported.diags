@@ -1,4 +1,3 @@
-(Warning) The converter does not support converting the provided server.log_level config: The equivalent feature in Flow mode is to use the logging config block to set the level argument.
 (Error) The converter does not support handling integrations which are not being scraped: mssql.
 (Error) mapping_config is not supported in statsd_exporter integrations config
 (Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.

@@ -1,4 +1,3 @@
-(Warning) The converter does not support converting the provided server.log_level config: The equivalent feature in Flow mode is to use the logging config block to set the level argument.
 (Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
 (Warning) The converter does not support converting the provided metrics wal_directory config: Use the run command flag --storage.path for Flow mode instead.
 (Error) The converter does not support converting the provided agent integration.
