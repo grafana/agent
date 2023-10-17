@@ -50,7 +50,9 @@ Main (unreleased)
   permanently fail to load with `id already exists` error. (@mattdurham)
 
 - Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
-  
+
+- Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
