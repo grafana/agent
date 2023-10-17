@@ -4,7 +4,6 @@ import (
 	"github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/syslog"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 )
 
 func (s *ScrapeConfigBuilder) AppendSyslogConfig() {
@@ -20,7 +19,7 @@ func (s *ScrapeConfigBuilder) AppendSyslogConfig() {
 		UseIncomingTimestamp: s.cfg.SyslogConfig.UseIncomingTimestamp,
 		UseRFC5424Message:    s.cfg.SyslogConfig.UseRFC5424Message,
 		MaxMessageLength:     s.cfg.SyslogConfig.MaxMessageLength,
-		TLSConfig:            *prometheusconvert.ToTLSConfig(&s.cfg.SyslogConfig.TLSConfig),
+		TLSConfig:            *common.ToTLSConfig(&s.cfg.SyslogConfig.TLSConfig),
 	}
 
 	args := syslog.Arguments{

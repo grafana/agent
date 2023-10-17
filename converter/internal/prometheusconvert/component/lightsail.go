@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -7,20 +7,21 @@ import (
 	"github.com/grafana/agent/component/discovery/aws"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
 )
 
-func appendDiscoveryLightsail(pb *prometheusBlocks, label string, sdConfig *prom_aws.LightsailSDConfig) discovery.Exports {
+func appendDiscoveryLightsail(pb *build.PrometheusBlocks, label string, sdConfig *prom_aws.LightsailSDConfig) discovery.Exports {
 	discoverylightsailArgs := toDiscoveryLightsail(sdConfig)
 	name := []string{"discovery", "lightsail"}
 	block := common.NewBlockWithOverride(name, label, discoverylightsailArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.lightsail." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.lightsail." + label + ".targets")
 }
 
-func validateDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) diag.Diagnostics {
+func ValidateDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	var nilBasicAuth *prom_config.BasicAuth

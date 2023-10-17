@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/snmp"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	"github.com/grafana/river/rivertypes"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
@@ -21,7 +20,7 @@ func (b *IntegrationsV1ConfigBuilder) appendSnmpExporter(config *snmp_exporter.C
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.snmp.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.snmp.%s.targets", compLabel))
 }
 
 func toSnmpExporter(config *snmp_exporter.Config) *snmp.Arguments {
