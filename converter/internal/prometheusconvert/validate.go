@@ -26,19 +26,19 @@ func validate(promConfig *prom_config.Config) diag.Diagnostics {
 func validateGlobalConfig(globalConfig *prom_config.GlobalConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.AddAll(common.UnsupportedNotEquals(globalConfig.EvaluationInterval, prom_config.DefaultGlobalConfig.EvaluationInterval, "global evaluation_interval"))
-	diags.AddAll(common.UnsupportedNotEquals(globalConfig.QueryLogFile, "", "global query_log_file"))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, globalConfig.EvaluationInterval, prom_config.DefaultGlobalConfig.EvaluationInterval, "global evaluation_interval", ""))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, globalConfig.QueryLogFile, "", "global query_log_file", ""))
 
 	return diags
 }
 
 func validateAlertingConfig(alertingConfig *prom_config.AlertingConfig) diag.Diagnostics {
 	hasAlerting := len(alertingConfig.AlertmanagerConfigs) > 0 || len(alertingConfig.AlertRelabelConfigs) > 0
-	return common.UnsupportedEquals(hasAlerting, true, "alerting")
+	return common.ValidateSupported(common.Equals, hasAlerting, true, "alerting", "")
 }
 
 func validateRuleFilesConfig(ruleFilesConfig []string) diag.Diagnostics {
-	return common.UnsupportedEquals(len(ruleFilesConfig) > 0, true, "rule_files")
+	return common.ValidateSupported(common.Equals, len(ruleFilesConfig) > 0, true, "rule_files", "")
 }
 
 func validateScrapeConfigs(scrapeConfigs []*prom_config.ScrapeConfig) diag.Diagnostics {
@@ -63,11 +63,11 @@ func ValidateServiceDiscoveryConfigs(serviceDiscoveryConfigs prom_discover.Confi
 
 func validateStorageConfig(storageConfig *prom_config.StorageConfig) diag.Diagnostics {
 	hasStorage := storageConfig.TSDBConfig != nil || storageConfig.ExemplarsConfig != nil
-	return common.UnsupportedEquals(hasStorage, true, "storage")
+	return common.ValidateSupported(common.Equals, hasStorage, true, "storage", "")
 }
 
 func validateTracingConfig(tracingConfig *prom_config.TracingConfig) diag.Diagnostics {
-	return common.UnsupportedNotDeepEquals(*tracingConfig, prom_config.TracingConfig{}, "tracing")
+	return common.ValidateSupported(common.NotDeepEquals, *tracingConfig, prom_config.TracingConfig{}, "tracing", "")
 }
 
 func validateRemoteWriteConfigs(remoteWriteConfigs []*prom_config.RemoteWriteConfig) diag.Diagnostics {
@@ -81,5 +81,5 @@ func validateRemoteWriteConfigs(remoteWriteConfigs []*prom_config.RemoteWriteCon
 }
 
 func validateRemoteReadConfigs(remoteReadConfigs []*prom_config.RemoteReadConfig) diag.Diagnostics {
-	return common.UnsupportedEquals(len(remoteReadConfigs) > 0, true, "remote_read")
+	return common.ValidateSupported(common.Equals, len(remoteReadConfigs) > 0, true, "remote_read", "")
 }

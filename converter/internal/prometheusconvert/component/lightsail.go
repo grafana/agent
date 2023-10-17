@@ -28,18 +28,18 @@ func ValidateDiscoveryLightsail(sdConfig *prom_aws.LightsailSDConfig) diag.Diagn
 	var nilAuthorization *prom_config.Authorization
 	var nilOAuth2 *prom_config.OAuth2
 
-	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.BasicAuth, nilBasicAuth, "lightsail_sd_configs basic_auth"))
-	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.Authorization, nilAuthorization, "lightsail_sd_configs authorization"))
-	diags.AddAll(common.UnsupportedNotEquals(sdConfig.HTTPClientConfig.OAuth2, nilOAuth2, "lightsail_sd_configs oauth2"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.BearerToken, prom_config.DefaultHTTPClientConfig.BearerToken, "lightsail_sd_configs bearer_token"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.BearerTokenFile, prom_config.DefaultHTTPClientConfig.BearerTokenFile, "lightsail_sd_configs bearer_token_file"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.FollowRedirects, prom_config.DefaultHTTPClientConfig.FollowRedirects, "lightsail_sd_configs follow_redirects"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.EnableHTTP2, prom_config.DefaultHTTPClientConfig.EnableHTTP2, "lightsail_sd_configs enable_http2"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig.ProxyConfig, prom_config.DefaultHTTPClientConfig.ProxyConfig, "lightsail_sd_configs proxy"))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, sdConfig.HTTPClientConfig.BasicAuth, nilBasicAuth, "lightsail_sd_configs basic_auth", ""))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, sdConfig.HTTPClientConfig.Authorization, nilAuthorization, "lightsail_sd_configs authorization", ""))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, sdConfig.HTTPClientConfig.OAuth2, nilOAuth2, "lightsail_sd_configs oauth2", ""))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, sdConfig.HTTPClientConfig.BearerToken, prom_config.DefaultHTTPClientConfig.BearerToken, "lightsail_sd_configs bearer_token", ""))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, sdConfig.HTTPClientConfig.BearerTokenFile, prom_config.DefaultHTTPClientConfig.BearerTokenFile, "lightsail_sd_configs bearer_token_file", ""))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, sdConfig.HTTPClientConfig.FollowRedirects, prom_config.DefaultHTTPClientConfig.FollowRedirects, "lightsail_sd_configs follow_redirects", ""))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, sdConfig.HTTPClientConfig.EnableHTTP2, prom_config.DefaultHTTPClientConfig.EnableHTTP2, "lightsail_sd_configs enable_http2", ""))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, sdConfig.HTTPClientConfig.ProxyConfig, prom_config.DefaultHTTPClientConfig.ProxyConfig, "lightsail_sd_configs proxy", ""))
 
 	// Do a last check in case any of the specific checks missed anything.
 	if len(diags) == 0 {
-		diags.AddAll(common.UnsupportedNotDeepEquals(sdConfig.HTTPClientConfig, prom_config.DefaultHTTPClientConfig, "lightsail_sd_configs http_client_config"))
+		diags.AddAll(common.ValidateSupported(common.NotDeepEquals, sdConfig.HTTPClientConfig, prom_config.DefaultHTTPClientConfig, "lightsail_sd_configs http_client_config", ""))
 	}
 
 	return diags

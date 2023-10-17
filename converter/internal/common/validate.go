@@ -9,47 +9,36 @@ import (
 	"github.com/grafana/river/token/builder"
 )
 
-func UnsupportedNotDeepEquals(a any, b any, name string) diag.Diagnostics {
-	return UnsupportedNotDeepEqualsMessage(a, b, name, "")
-}
+const (
+	Equals = iota
+	NotEquals
+	DeepEquals
+	NotDeepEquals
+)
 
-func UnsupportedNotDeepEqualsMessage(a any, b any, name string, message string) diag.Diagnostics {
+// ValidateSupported will return a diagnostic error if the validationType
+// specified results in a match for value1 and value2.
+//
+// For example, if using validationType Equals and value1 is equal to value2,
+// then a diagnostic error will be returned.
+func ValidateSupported(validationType int, value1 any, value2 any, name string, message string) diag.Diagnostics {
 	var diags diag.Diagnostics
-	if !reflect.DeepEqual(a, b) {
-		if message != "" {
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config: %s", name, message))
-		} else {
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config.", name))
-		}
+	var isInvalid bool
+
+	switch validationType {
+	case Equals:
+		isInvalid = value1 == value2
+	case NotEquals:
+		isInvalid = value1 != value2
+	case DeepEquals:
+		isInvalid = reflect.DeepEqual(value1, value2)
+	case NotDeepEquals:
+		isInvalid = !reflect.DeepEqual(value1, value2)
+	default:
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("Invalid converter validation type was requested: %d.", validationType))
 	}
 
-	return diags
-}
-
-func UnsupportedNotEquals(a any, b any, name string) diag.Diagnostics {
-	return UnsupportedNotEqualsMessage(a, b, name, "")
-}
-
-func UnsupportedNotEqualsMessage(a any, b any, name string, message string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if a != b {
-		if message != "" {
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config: %s", name, message))
-		} else {
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config.", name))
-		}
-	}
-
-	return diags
-}
-
-func UnsupportedEquals(a any, b any, name string) diag.Diagnostics {
-	return UnsupportedEqualsMessage(a, b, name, "")
-}
-
-func UnsupportedEqualsMessage(a any, b any, name string, message string) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if a == b {
+	if isInvalid {
 		if message != "" {
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s config: %s", name, message))
 		} else {
