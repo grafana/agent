@@ -48,6 +48,9 @@ func toMysqldExporter(config *mysqld_exporter.Config) *mysql.Arguments {
 			Filter:       config.PerfSchemaFileInstancesFilter,
 			RemovePrefix: config.PerfSchemaFileInstancesRemovePrefix,
 		},
+		PerfSchemaMemoryEvents: mysql.PerfSchemaMemoryEvents{
+			RemovePrefix: config.PerfSchemaMemoryEventsRemovePrefix,
+		},
 		Heartbeat: mysql.Heartbeat{
 			Database: config.HeartbeatDatabase,
 			Table:    config.HeartbeatTable,
