@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -7,19 +7,20 @@ import (
 	"github.com/grafana/agent/component/discovery/dockerswarm"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	prom_moby "github.com/prometheus/prometheus/discovery/moby"
 )
 
-func appendDiscoveryDockerswarm(pb *prometheusBlocks, label string, sdConfig *prom_moby.DockerSwarmSDConfig) discovery.Exports {
+func appendDiscoveryDockerswarm(pb *build.PrometheusBlocks, label string, sdConfig *prom_moby.DockerSwarmSDConfig) discovery.Exports {
 	discoveryDockerswarmArgs := toDiscoveryDockerswarm(sdConfig)
 	name := []string{"discovery", "dockerswarm"}
 	block := common.NewBlockWithOverride(name, label, discoveryDockerswarmArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.dockerswarm." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.dockerswarm." + label + ".targets")
 }
 
-func validateDiscoveryDockerswarm(sdConfig *prom_moby.DockerSwarmSDConfig) diag.Diagnostics {
-	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+func ValidateDiscoveryDockerswarm(sdConfig *prom_moby.DockerSwarmSDConfig) diag.Diagnostics {
+	return common.ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toDiscoveryDockerswarm(sdConfig *prom_moby.DockerSwarmSDConfig) *dockerswarm.Arguments {
@@ -33,7 +34,7 @@ func toDiscoveryDockerswarm(sdConfig *prom_moby.DockerSwarmSDConfig) *dockerswar
 		Port:             sdConfig.Port,
 		Filters:          convertFilters(sdConfig.Filters),
 		RefreshInterval:  time.Duration(sdConfig.RefreshInterval),
-		HTTPClientConfig: *ToHttpClientConfig(&sdConfig.HTTPClientConfig),
+		HTTPClientConfig: *common.ToHttpClientConfig(&sdConfig.HTTPClientConfig),
 	}
 }
 

@@ -4,7 +4,6 @@ import (
 	"github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/kafka"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/river/rivertypes"
 )
@@ -48,13 +47,13 @@ func (s *ScrapeConfigBuilder) AppendKafka() {
 func convertKafkaAuthConfig(kafkaCfg *scrapeconfig.KafkaTargetConfig) kafka.KafkaAuthentication {
 	return kafka.KafkaAuthentication{
 		Type:      string(kafkaCfg.Authentication.Type),
-		TLSConfig: *prometheusconvert.ToTLSConfig(&kafkaCfg.Authentication.TLSConfig),
+		TLSConfig: *common.ToTLSConfig(&kafkaCfg.Authentication.TLSConfig),
 		SASLConfig: kafka.KafkaSASLConfig{
 			Mechanism: string(kafkaCfg.Authentication.SASLConfig.Mechanism),
 			User:      kafkaCfg.Authentication.SASLConfig.User,
 			Password:  kafkaCfg.Authentication.SASLConfig.Password.String(),
 			UseTLS:    kafkaCfg.Authentication.SASLConfig.UseTLS,
-			TLSConfig: *prometheusconvert.ToTLSConfig(&kafkaCfg.Authentication.SASLConfig.TLSConfig),
+			TLSConfig: *common.ToTLSConfig(&kafkaCfg.Authentication.SASLConfig.TLSConfig),
 		},
 	}
 }

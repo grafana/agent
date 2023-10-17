@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"reflect"
@@ -9,20 +9,21 @@ import (
 	"github.com/grafana/agent/component/discovery/digitalocean"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
 )
 
-func appendDiscoveryDigitalOcean(pb *prometheusBlocks, label string, sdConfig *prom_digitalocean.SDConfig) discovery.Exports {
+func appendDiscoveryDigitalOcean(pb *build.PrometheusBlocks, label string, sdConfig *prom_digitalocean.SDConfig) discovery.Exports {
 	discoveryDigitalOceanArgs := toDiscoveryDigitalOcean(sdConfig)
 	name := []string{"discovery", "digitalocean"}
 	block := common.NewBlockWithOverride(name, label, discoveryDigitalOceanArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.digitalocean." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.digitalocean." + label + ".targets")
 }
 
-func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
+func ValidateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	if sdConfig.HTTPClientConfig.BasicAuth != nil {
@@ -41,7 +42,7 @@ func validateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Di
 		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for digitalocean_sd_configs")
 	}
 
-	diags.AddAll(ValidateHttpClientConfig(&sdConfig.HTTPClientConfig))
+	diags.AddAll(common.ValidateHttpClientConfig(&sdConfig.HTTPClientConfig))
 
 	return diags
 }

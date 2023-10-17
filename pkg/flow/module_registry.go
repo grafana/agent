@@ -16,7 +16,7 @@ func newModuleRegistry() *moduleRegistry {
 	}
 }
 
-// Get retrives a module by ID.
+// Get retrieves a module by ID.
 func (reg *moduleRegistry) Get(id string) (*module, bool) {
 	reg.mut.RLock()
 	defer reg.mut.RUnlock()

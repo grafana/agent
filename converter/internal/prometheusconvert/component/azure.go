@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -8,16 +8,17 @@ import (
 	"github.com/grafana/agent/component/discovery/azure"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	"github.com/grafana/river/rivertypes"
 	prom_azure "github.com/prometheus/prometheus/discovery/azure"
 )
 
-func appendDiscoveryAzure(pb *prometheusBlocks, label string, sdConfig *prom_azure.SDConfig) discovery.Exports {
+func appendDiscoveryAzure(pb *build.PrometheusBlocks, label string, sdConfig *prom_azure.SDConfig) discovery.Exports {
 	discoveryAzureArgs := toDiscoveryAzure(sdConfig)
 	name := []string{"discovery", "azure"}
 	block := common.NewBlockWithOverride(name, label, discoveryAzureArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.azure." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.azure." + label + ".targets")
 }
 
 func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
@@ -36,12 +37,12 @@ func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
 		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
 		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
 		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
-		TLSConfig:       *ToTLSConfig(&sdConfig.HTTPClientConfig.TLSConfig),
+		TLSConfig:       *common.ToTLSConfig(&sdConfig.HTTPClientConfig.TLSConfig),
 	}
 }
 
-func validateDiscoveryAzure(sdConfig *prom_azure.SDConfig) diag.Diagnostics {
-	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+func ValidateDiscoveryAzure(sdConfig *prom_azure.SDConfig) diag.Diagnostics {
+	return common.ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toManagedIdentity(sdConfig *prom_azure.SDConfig) *azure.ManagedIdentity {
