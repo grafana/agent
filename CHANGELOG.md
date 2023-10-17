@@ -48,6 +48,8 @@ Main (unreleased)
 
 - Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
   permanently fail to load with `id already exists` error. (@mattdurham)
+
+- Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
   
 ### Enhancements
 
