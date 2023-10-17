@@ -29,6 +29,9 @@ Main (unreleased)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
   allowing invalid combination of configuration options. (@thampiotr)
+
+- Fix the handling of the `--cluster.join-addresses` flag causing an invalid
+  comparison with the mutually-exclusive `--cluster.discover-peers`. (@tpaschalis)
   
 ### Enhancements
 
@@ -188,7 +191,7 @@ v0.37.0 (2023-10-10)
 
 - Update Prometheus dependency to v2.46.0. (@tpaschalis)
 
-- The `client_secret` config argument in the `otelcol.auth.oauth2` component is 
+- The `client_secret` config argument in the `otelcol.auth.oauth2` component is
   now of type `secret` instead of type `string`. (@ptodev)
 
 ### Bugfixes
