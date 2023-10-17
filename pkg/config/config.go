@@ -4,6 +4,13 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
+	"os"
+	"strings"
+	"testing"
+	"unicode"
+	"unicode/utf8"
+
 	"github.com/dimchansky/utfbom"
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
@@ -22,12 +29,6 @@ import (
 	uni "golang.org/x/text/encoding/unicode"
 	utf32 "golang.org/x/text/encoding/unicode/utf32"
 	"gopkg.in/yaml.v2"
-	"io"
-	"os"
-	"strings"
-	"testing"
-	"unicode"
-	"unicode/utf8"
 )
 
 var (
@@ -249,15 +250,11 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 // LoadFile reads a file and passes the contents to Load
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
-
 	buf, err := os.ReadFile(filename)
-
 	if err != nil {
 		return fmt.Errorf("error reading config file %w", err)
 	}
-
 	instrumentation.InstrumentConfig(buf)
-
 	return LoadBytes(buf, expandEnvVars, c)
 }
 

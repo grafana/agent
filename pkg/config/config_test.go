@@ -565,7 +565,7 @@ func TestConfigEncoding(t *testing.T) {
 	for _, tt := range cases {
 		t.Run(tt.filename, func(t *testing.T) {
 			buf, err := os.ReadFile(path.Join("encoding_configs", tt.filename))
-			os.Setenv("TEST", "debug")
+			t.Setenv("TEST", "debug")
 			require.NoError(t, err)
 			c := &Config{}
 			err = LoadBytes(buf, true, c)
@@ -575,8 +575,6 @@ func TestConfigEncoding(t *testing.T) {
 			} else {
 				require.Error(t, err)
 			}
-
 		})
-
 	}
 }
