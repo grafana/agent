@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -7,18 +7,19 @@ import (
 	"github.com/grafana/agent/component/discovery/file"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	prom_file "github.com/prometheus/prometheus/discovery/file"
 )
 
-func appendDiscoveryFile(pb *prometheusBlocks, label string, sdConfig *prom_file.SDConfig) discovery.Exports {
+func appendDiscoveryFile(pb *build.PrometheusBlocks, label string, sdConfig *prom_file.SDConfig) discovery.Exports {
 	discoveryFileArgs := toDiscoveryFile(sdConfig)
 	name := []string{"discovery", "file"}
 	block := common.NewBlockWithOverride(name, label, discoveryFileArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.file." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.file." + label + ".targets")
 }
 
-func validateDiscoveryFile(sdConfig *prom_file.SDConfig) diag.Diagnostics {
+func ValidateDiscoveryFile(sdConfig *prom_file.SDConfig) diag.Diagnostics {
 	return make(diag.Diagnostics, 0)
 }
 

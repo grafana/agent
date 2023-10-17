@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/mysql"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/river/rivertypes"
 )
@@ -20,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendMysqldExporter(config *mysqld_export
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.mysql.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.mysql.%s.targets", compLabel))
 }
 
 func toMysqldExporter(config *mysqld_exporter.Config) *mysql.Arguments {
