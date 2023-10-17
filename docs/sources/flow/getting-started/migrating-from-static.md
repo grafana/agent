@@ -63,7 +63,7 @@ features available in Grafana Agent Flow mode.
 1. Open a terminal window and run the following command:
 
     ```bash
-    AGENT_MODE=flow; grafana-agent convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+    AGENT_MODE=flow grafana-agent convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
     ```
 
    Replace the following:
@@ -83,13 +83,13 @@ features available in Grafana Agent Flow mode.
    {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original [Static] mode configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
 
     ```bash
-    AGENT_MODE=flow; grafana-agent convert --source-format=static --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+    AGENT_MODE=flow grafana-agent convert --source-format=static --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
     ```
 
 1. You can use the `--report` flag to output a diagnostic report.
 
     ```bash
-    AGENT_MODE=flow; grafana-agent convert --source-format=static --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+    AGENT_MODE=flow grafana-agent convert --source-format=static --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
     ```
 
     * Replace `OUTPUT_REPORT_PATH` with the output path for the report.
@@ -199,7 +199,7 @@ The convert command takes the YAML file as input and outputs a [River][] file.
 [River]: {{< relref "../config-language/_index.md" >}}
 
 ```bash
-AGENT_MODE=flow; grafana-agent convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+AGENT_MODE=flow grafana-agent convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
 ```
 
 The new Flow mode configuration file looks like this:
