@@ -622,10 +622,7 @@ require (
 
 require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
 
-require (
-	github.com/githubexporter/github-exporter v0.0.0-20230925090839-9e31cd0e7721
-	github.com/softlandia/cpd v1.0.0
-)
+require github.com/githubexporter/github-exporter v0.0.0-20230925090839-9e31cd0e7721
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
