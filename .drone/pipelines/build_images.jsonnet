@@ -17,25 +17,6 @@ local locals = {
 };
 
 [
-  pipelines.linux('Check Linux build image') {
-    trigger: locals.on_merge,
-    steps: [{
-      name: 'Build',
-      image: 'docker',
-      volumes: [{
-        name: 'docker',
-        path: '/var/run/docker.sock',
-      }],
-      commands: [
-        'docker buildx build -t grafana/agent-build-image:latest ./build-image',
-      ],
-    }],
-    volumes: [{
-      name: 'docker',
-      host: { path: '/var/run/docker.sock' },
-    }],
-  },
-
   pipelines.linux('Create Linux build image') {
     trigger: locals.on_build_image_tag,
     steps: [{
@@ -57,25 +38,6 @@ local locals = {
     volumes: [{
       name: 'docker',
       host: { path: '/var/run/docker.sock' },
-    }],
-  },
-
-  pipelines.windows('Check Windows build image') {
-    trigger: locals.on_merge,
-    steps: [{
-      name: 'Build',
-      image: 'docker:windowsservercore-1809',
-      volumes: [{
-        name: 'docker',
-        path: '//./pipe/docker_engine/',
-      }],
-      commands: [
-        'docker build -t grafana/agent-build-image:latest ./build-image/windows',
-      ],
-    }],
-    volumes: [{
-      name: 'docker',
-      host: { path: '//./pipe/docker_engine/' },
     }],
   },
 

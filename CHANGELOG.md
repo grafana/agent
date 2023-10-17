@@ -12,6 +12,8 @@ Main (unreleased)
 
 ### Breaking changes
 
+- Remove `otelcol.exporter.jaeger` component (@hainenber)
+
 - In the mysqld exporter integration, some metrics are removed and others are renamed. (@marctc)
   - Removed metrics:
     - "mysql_last_scrape_failed" (gauge)
@@ -28,7 +30,63 @@ Main (unreleased)
 
 - Bump `mysqld_exporter` version to v0.15.0. (@marctc)
 
-v0.37.0-rc.1 (2023-10-06)
+### Features
+
+- Added a new `stage.decolorize` stage to `loki.process` component which 
+  allows to strip ANSI color codes from the log lines. (@thampiotr)
+
+- Added a new `stage.sampling` stage to `loki.process` component which
+  allows to only process a fraction of logs and drop the rest. (@thampiotr)
+
+- Added a new `stage.eventlogmessage` stage to `loki.process` component which
+  allows to extract data from Windows Event Log. (@thampiotr)
+
+### Bugfixes
+
+- Fixed an issue where `loki.process` validation for stage `metric.counter` was 
+  allowing invalid combination of configuration options. (@thampiotr)
+
+- Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
+  permanently fail to load with `id already exists` error. (@mattdurham)
+  
+### Enhancements
+
+- The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
+
+- Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
+
+v0.37.2 (2023-10-16)
+-----------------
+
+### Bugfixes
+
+- Fix the handling of the `--cluster.join-addresses` flag causing an invalid
+  comparison with the mutually-exclusive `--cluster.discover-peers`. (@tpaschalis)
+
+- Fix an issue with the static to flow converter for blackbox exporter modules
+  config not being included in the river output. (@erikbaranowski)
+
+- Fix issue with default values in `discovery.nomad`. (@marctc)
+  
+### Enhancements
+
+- Update Prometheus dependency to v2.47.2. (@tpaschalis)
+
+- Allow Out of Order writing to the WAL for metrics. (@mattdurham)
+
+### Other changes
+
+- Use Go 1.21.3 for builds. (@tpaschalis)
+
+v0.37.1 (2023-10-10)
+-----------------
+
+### Bugfixes
+
+- Fix the initialization of the default namespaces map for the operator and the
+  loki.source.kubernetes component. (@wildum)
+
+v0.37.0 (2023-10-10)
 -----------------
 
 ### Breaking changes
@@ -174,7 +232,7 @@ v0.37.0-rc.1 (2023-10-06)
 
 - Update Prometheus dependency to v2.46.0. (@tpaschalis)
 
-- The `client_secret` config argument in the `otelcol.auth.oauth2` component is 
+- The `client_secret` config argument in the `otelcol.auth.oauth2` component is
   now of type `secret` instead of type `string`. (@ptodev)
 
 ### Bugfixes
@@ -196,6 +254,8 @@ v0.37.0-rc.1 (2023-10-06)
 
 - Fix initialization of the RAPL collector for the node_exporter integration
   and the prometheus.exporter.unix component. (@marctc)
+
+- Set instrumentation scope attribute for traces emitted by Flow component. (@hainenber)
 
 ### Other changes
 

@@ -74,6 +74,15 @@ rules:
       - get
       - list
       - watch
+  # needed for remote.kubernetes.*
+  - apiGroups: [""]
+    resources:
+      - "configmaps"
+      - "secrets"
+    verbs:
+      - get
+      - list
+      - watch
 
 ---
 

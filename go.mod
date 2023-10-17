@@ -103,7 +103,6 @@ require (
 	github.com/oliver006/redis_exporter v1.54.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.85.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.85.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.85.0
@@ -213,15 +212,15 @@ require (
 	go.uber.org/goleak v1.2.1
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.25.0
-	golang.org/x/crypto v0.13.0
+	golang.org/x/crypto v0.14.0
 	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
-	golang.org/x/net v0.15.0
+	golang.org/x/net v0.17.0
 	golang.org/x/oauth2 v0.11.0
-	golang.org/x/sys v0.12.0
+	golang.org/x/sys v0.13.0
 	golang.org/x/text v0.13.0
 	golang.org/x/time v0.3.0
 	google.golang.org/api v0.139.0
-	google.golang.org/grpc v1.58.0
+	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -597,7 +596,7 @@ require (
 	go4.org/netipx v0.0.0-20230125063823-8449b0a6169f // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/term v0.12.0 // indirect
+	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/tools v0.12.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
@@ -674,8 +673,8 @@ replace (
 // * There is a release of Prometheus which contains
 // prometheus/prometheus#12677 and prometheus/prometheus#12729.
 // We use the last v1-related tag as the replace statement does not work for v2
-// tags without the v2 suffix to the module root
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231003113207-17e15326a784 // grafana:prometheus:v0.46.0-retry-improvements
+// tags without the v2 suffix to the module root.
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231016083943-46550094220d // grafana:prometheus:v0.47.2-retry-improvements
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
