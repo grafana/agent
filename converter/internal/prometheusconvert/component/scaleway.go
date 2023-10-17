@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -8,23 +8,24 @@ import (
 	"github.com/grafana/agent/component/discovery/scaleway"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	"github.com/grafana/river/rivertypes"
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 )
 
-func appendDiscoveryScaleway(pb *prometheusBlocks, label string, sdConfig *prom_scaleway.SDConfig) discovery.Exports {
-	discoveryScalewayArgs := ToDiscoveryScaleway(sdConfig)
+func appendDiscoveryScaleway(pb *build.PrometheusBlocks, label string, sdConfig *prom_scaleway.SDConfig) discovery.Exports {
+	discoveryScalewayArgs := toDiscoveryScaleway(sdConfig)
 	name := []string{"discovery", "scaleway"}
 	block := common.NewBlockWithOverride(name, label, discoveryScalewayArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.scaleway." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.scaleway." + label + ".targets")
 }
 
-func validateDiscoveryScaleway(sdConfig *prom_scaleway.SDConfig) diag.Diagnostics {
+func ValidateDiscoveryScaleway(sdConfig *prom_scaleway.SDConfig) diag.Diagnostics {
 	return nil
 }
 
-func ToDiscoveryScaleway(sdConfig *prom_scaleway.SDConfig) *scaleway.Arguments {
+func toDiscoveryScaleway(sdConfig *prom_scaleway.SDConfig) *scaleway.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
@@ -42,7 +43,7 @@ func ToDiscoveryScaleway(sdConfig *prom_scaleway.SDConfig) *scaleway.Arguments {
 		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
 		Port:            sdConfig.Port,
 		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
-		TLSConfig:       *ToTLSConfig(&sdConfig.HTTPClientConfig.TLSConfig),
+		TLSConfig:       *common.ToTLSConfig(&sdConfig.HTTPClientConfig.TLSConfig),
 		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
 		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
 	}

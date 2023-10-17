@@ -5,6 +5,7 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	prom_discover "github.com/prometheus/prometheus/discovery"
@@ -16,7 +17,7 @@ func (s *ScrapeConfigBuilder) AppendSDs() {
 		return
 	}
 
-	pb := prometheusconvert.NewPrometheusBlocks()
+	pb := build.NewPrometheusBlocks()
 	targets := prometheusconvert.AppendServiceDiscoveryConfigs(pb, sdConfigs, common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName))
 	pb.AppendToFile(s.f)
 

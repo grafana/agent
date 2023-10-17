@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -7,18 +7,19 @@ import (
 	"github.com/grafana/agent/component/discovery/nerve"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	prom_nerve "github.com/prometheus/prometheus/discovery/zookeeper"
 )
 
-func appendDiscoveryNerve(pb *prometheusBlocks, label string, sdConfig *prom_nerve.NerveSDConfig) discovery.Exports {
+func appendDiscoveryNerve(pb *build.PrometheusBlocks, label string, sdConfig *prom_nerve.NerveSDConfig) discovery.Exports {
 	discoveryNerveArgs := toDiscoveryNerve(sdConfig)
 	name := []string{"discovery", "nerve"}
 	block := common.NewBlockWithOverride(name, label, discoveryNerveArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.nerve." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.nerve." + label + ".targets")
 }
 
-func validateDiscoveryNerve(sdConfig *prom_nerve.NerveSDConfig) diag.Diagnostics {
+func ValidateDiscoveryNerve(sdConfig *prom_nerve.NerveSDConfig) diag.Diagnostics {
 	return nil
 }
 

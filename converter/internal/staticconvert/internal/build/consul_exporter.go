@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/consul"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 )
 
@@ -19,7 +18,7 @@ func (b *IntegrationsV1ConfigBuilder) appendConsulExporter(config *consul_export
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.consul.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.consul.%s.targets", compLabel))
 }
 
 func toConsulExporter(config *consul_exporter.Config) *consul.Arguments {
