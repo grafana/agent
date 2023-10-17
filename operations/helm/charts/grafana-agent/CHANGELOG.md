@@ -13,7 +13,10 @@ Unreleased
 0.27.0 (2023-10-12)
 ----------
 
+### Enhancements
+
 - Add `secrets` and `configmaps` to cluster role for `remote.kubernetes.*` components. (@captncraig)
+- Update Grafana Agent version to v0.37.2. (@tpaschalis)
 
 0.26.0 (2023-10-10)
 -------------------
