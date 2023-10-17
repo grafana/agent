@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/grafana/agent/pkg/config/encoder"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/diag"
 	"github.com/grafana/river/parser"
@@ -27,6 +28,10 @@ type Source struct {
 //
 // bb must not be modified after passing to ParseSource.
 func ParseSource(name string, bb []byte) (*Source, error) {
+	bb, err := encoder.EnsureUTF8(bb, true)
+	if err != nil {
+		return nil, err
+	}
 	node, err := parser.ParseFile(name, bb)
 	if err != nil {
 		return nil, err

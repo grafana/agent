@@ -51,6 +51,8 @@ Main (unreleased)
 
 - Fixed some converter diagnostics so they show as warnings rather than errors. Improve
   clarity for various diagnostics. (@erikbaranowski)
+
+- Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
   
 ### Enhancements
 
