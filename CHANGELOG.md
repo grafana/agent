@@ -48,6 +48,9 @@ Main (unreleased)
 
 - Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
   permanently fail to load with `id already exists` error. (@mattdurham)
+
+- Fixed some converter diagnostics so they show as warnings rather than errors. Improve
+  clarity for various diagnostics. (@erikbaranowski)
   
 ### Enhancements
 
