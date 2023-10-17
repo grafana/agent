@@ -29,6 +29,8 @@ Main (unreleased)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
   allowing invalid combination of configuration options. (@thampiotr)
+
+- Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
   
 ### Enhancements
 
