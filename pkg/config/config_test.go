@@ -579,7 +579,7 @@ func TestConfigEncoding(t *testing.T) {
 	}
 }
 
-func TestConfigEncodingStruct(t *testing.T) {
+func TestConfigEncodingStrict(t *testing.T) {
 	buf, err := os.ReadFile(path.Join("encoding_configs", "test_encoding_utf16le.txt"))
 	require.NoError(t, err)
 	_, err = EnsureUTF8(buf, false)
