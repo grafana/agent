@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/encoding"
 	uni "golang.org/x/text/encoding/unicode"
-	utf32 "golang.org/x/text/encoding/unicode/utf32"
+	"golang.org/x/text/encoding/unicode/utf32"
 	"gopkg.in/yaml.v2"
 )
 
@@ -344,26 +344,26 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 }
 
 func performEnvVarExpansion(buf []byte, expandEnvVars bool) ([]byte, error) {
+	utf8Buf, err := EnsureUTF8(buf, false)
+	if err != nil {
+		return nil, err
+	}
 	// (Optionally) expand with environment variables
 	if expandEnvVars {
-		s, err := envsubst.Eval(string(buf), getenv)
+		s, err := envsubst.Eval(string(utf8Buf), getenv)
 		if err != nil {
 			return nil, fmt.Errorf("unable to substitute config with environment variables: %w", err)
 		}
 		return []byte(s), nil
 	}
-	return buf, nil
+	return utf8Buf, nil
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
 // applied to the file and must be done manually if LoadBytes
 // is called directly.
 func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
-	utf8Buf, err := EnsureUTF8(buf)
-	if err != nil {
-		return err
-	}
-	expandedBuf, err := performEnvVarExpansion(utf8Buf, expandEnvVars)
+	expandedBuf, err := performEnvVarExpansion(buf, expandEnvVars)
 	if err != nil {
 		return err
 	}
@@ -372,7 +372,8 @@ func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
 }
 
 // EnsureUTF8 will convert from the most common encodings to UTF8.
-func EnsureUTF8(config []byte) ([]byte, error) {
+// If useStrictUTF8 is enabled then if the file is not already utf8 then an error will be returned.
+func EnsureUTF8(config []byte, useStrictUTF8 bool) ([]byte, error) {
 	buffer := bytes.NewBuffer(config)
 	src, enc := utfbom.Skip(buffer)
 	var converted []byte
@@ -398,6 +399,9 @@ func EnsureUTF8(config []byte) ([]byte, error) {
 			return config, nil
 		}
 		return nil, fmt.Errorf("unknown encoding for config")
+	}
+	if useStrictUTF8 {
+		return nil, fmt.Errorf("configuration is encoded with %s but must be utf8", enc.String())
 	}
 	decoder := encoder.NewDecoder()
 	converted, err = decoder.Bytes(skippedBytes)
