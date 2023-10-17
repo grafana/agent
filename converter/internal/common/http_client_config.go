@@ -1,8 +1,7 @@
-package prometheusconvert
+package common
 
 import (
 	"github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
@@ -107,22 +106,4 @@ func ToTLSConfig(tlsConfig *prom_config.TLSConfig) *config.TLSConfig {
 		InsecureSkipVerify: tlsConfig.InsecureSkipVerify,
 		MinVersion:         config.TLSVersion(tlsConfig.MinVersion),
 	}
-}
-
-// NewDiscoveryExports will return a new [discovery.Exports] with a specific
-// key for converter component exports. The argument will be tokenized
-// as a component export string rather than the standard [discovery.Target]
-// RiverTokenize.
-func NewDiscoveryExports(expr string) discovery.Exports {
-	return discovery.Exports{
-		Targets: newDiscoveryTargets(expr),
-	}
-}
-
-// newDiscoveryTargets will return a new [[]discovery.Target] with a specific
-// key for converter component exports. The argument will be tokenized
-// as a component export string rather than the standard [discovery.Target]
-// RiverTokenize.
-func newDiscoveryTargets(expr string) []discovery.Target {
-	return []discovery.Target{map[string]string{"__expr__": expr}}
 }

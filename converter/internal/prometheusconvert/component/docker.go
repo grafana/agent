@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"time"
@@ -7,19 +7,20 @@ import (
 	"github.com/grafana/agent/component/discovery/docker"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 )
 
-func appendDiscoveryDocker(pb *prometheusBlocks, label string, sdConfig *prom_docker.DockerSDConfig) discovery.Exports {
+func appendDiscoveryDocker(pb *build.PrometheusBlocks, label string, sdConfig *prom_docker.DockerSDConfig) discovery.Exports {
 	discoveryDockerArgs := toDiscoveryDocker(sdConfig)
 	name := []string{"discovery", "docker"}
 	block := common.NewBlockWithOverride(name, label, discoveryDockerArgs)
-	pb.discoveryBlocks = append(pb.discoveryBlocks, newPrometheusBlock(block, name, label, "", ""))
-	return NewDiscoveryExports("discovery.docker." + label + ".targets")
+	pb.DiscoveryBlocks = append(pb.DiscoveryBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
+	return common.NewDiscoveryExports("discovery.docker." + label + ".targets")
 }
 
-func validateDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) diag.Diagnostics {
-	return ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
+func ValidateDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) diag.Diagnostics {
+	return common.ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
 func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
@@ -33,7 +34,7 @@ func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
 		HostNetworkingHost: sdConfig.HostNetworkingHost,
 		RefreshInterval:    time.Duration(sdConfig.RefreshInterval),
 		Filters:            toDockerFilters(sdConfig.Filters),
-		HTTPClientConfig:   *ToHttpClientConfig(&sdConfig.HTTPClientConfig),
+		HTTPClientConfig:   *common.ToHttpClientConfig(&sdConfig.HTTPClientConfig),
 	}
 }
 
