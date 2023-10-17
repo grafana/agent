@@ -4,11 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"os"
-	"strings"
-	"testing"
-	"unicode"
-
+	"github.com/dimchansky/utfbom"
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -22,7 +18,16 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/text/encoding"
+	uni "golang.org/x/text/encoding/unicode"
+	utf32 "golang.org/x/text/encoding/unicode/utf32"
 	"gopkg.in/yaml.v2"
+	"io"
+	"os"
+	"strings"
+	"testing"
+	"unicode"
+	"unicode/utf8"
 )
 
 var (
@@ -244,6 +249,7 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 
 // LoadFile reads a file and passes the contents to Load
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
+
 	buf, err := os.ReadFile(filename)
 
 	if err != nil {
@@ -356,12 +362,49 @@ func performEnvVarExpansion(buf []byte, expandEnvVars bool) ([]byte, error) {
 // applied to the file and must be done manually if LoadBytes
 // is called directly.
 func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
-	expandedBuf, err := performEnvVarExpansion(buf, expandEnvVars)
+	utf8Buf, err := EnsureUTF8(buf)
+	if err != nil {
+		return err
+	}
+	expandedBuf, err := performEnvVarExpansion(utf8Buf, expandEnvVars)
 	if err != nil {
 		return err
 	}
 	// Unmarshal yaml config
 	return yaml.UnmarshalStrict(expandedBuf, c)
+}
+
+// EnsureUTF8 will convert from the most common encodings to UTF8.
+func EnsureUTF8(config []byte) ([]byte, error) {
+	buffer := bytes.NewBuffer(config)
+	src, enc := utfbom.Skip(buffer)
+	var converted []byte
+	skippedBytes, err := io.ReadAll(src)
+	if err != nil {
+		return nil, err
+	}
+	var encoder encoding.Encoding
+	switch enc {
+	case utfbom.UTF16BigEndian:
+		encoder = uni.UTF16(uni.BigEndian, uni.IgnoreBOM)
+	case utfbom.UTF16LittleEndian:
+		encoder = uni.UTF16(uni.LittleEndian, uni.IgnoreBOM)
+	case utfbom.UTF32BigEndian:
+		encoder = utf32.UTF32(utf32.BigEndian, utf32.IgnoreBOM)
+	case utfbom.UTF32LittleEndian:
+		encoder = utf32.UTF32(utf32.LittleEndian, utf32.IgnoreBOM)
+	case utfbom.UTF8: // This only checks utf8 bom
+		return config, nil
+	default:
+		// If its utf8 valid then return.
+		if utf8.Valid(config) {
+			return config, nil
+		}
+		return nil, fmt.Errorf("unknown encoding for config")
+	}
+	decoder := encoder.NewDecoder()
+	converted, err = decoder.Bytes(skippedBytes)
+	return converted, err
 }
 
 // getenv is a wrapper around os.Getenv that ignores patterns that are numeric

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/grafana/agent/pkg/config"
 	"io/fs"
 	"os"
 	"os/signal"
@@ -383,6 +384,10 @@ func loadFlowSource(path string, converterSourceFormat string, converterBypassEr
 			}
 
 			bb, err := os.ReadFile(curPath)
+			// Retain the original error and don't try to convert if an error occurred.
+			if err != nil {
+				bb, err = config.EnsureUTF8(bb)
+			}
 			sources[curPath] = bb
 			return err
 		})

@@ -3,6 +3,8 @@ package config
 import (
 	"flag"
 	"net/url"
+	"os"
+	"path"
 	"strings"
 	"testing"
 	"time"
@@ -544,4 +546,37 @@ integrations:
 	var cfg Config
 	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
 	require.NoError(t, cfg.Validate(nil))
+}
+
+func TestConfigEncoding(t *testing.T) {
+	type testCase struct {
+		filename string
+		success  bool
+	}
+	cases := []testCase{
+		{filename: "test_encoding_unknown.txt", success: false},
+		{filename: "test_encoding_utf8.txt", success: true},
+		{filename: "test_encoding_utf8bom.txt", success: true},
+		{filename: "test_encoding_utf16le.txt", success: true},
+		{filename: "test_encoding_utf16be.txt", success: true},
+		{filename: "test_encoding_utf32be.txt", success: true},
+		{filename: "test_encoding_utf32le.txt", success: true},
+	}
+	for _, tt := range cases {
+		t.Run(tt.filename, func(t *testing.T) {
+			buf, err := os.ReadFile(path.Join("encoding_configs", tt.filename))
+			os.Setenv("TEST", "debug")
+			require.NoError(t, err)
+			c := &Config{}
+			err = LoadBytes(buf, true, c)
+			if tt.success {
+				require.NoError(t, err)
+				require.True(t, c.Server.LogLevel.String() == "debug")
+			} else {
+				require.Error(t, err)
+			}
+
+		})
+
+	}
 }
