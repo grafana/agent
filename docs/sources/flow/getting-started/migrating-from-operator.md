@@ -32,6 +32,8 @@ This guide will provide some steps to get started with Grafana Agent for users c
     controller:
       type: 'statefulset'
     replicas: 2
+    crds:
+      create: false
     ```
 
     This config will deploy Grafana Agent as a `StatefulSet` using the built in [clustering](https://grafana.com/docs/agent/latest/flow/concepts/clustering/) functionality to allow distributing scrapes across all Agent Pods. 
@@ -49,10 +51,10 @@ This guide will provide some steps to get started with Grafana Agent for users c
     helm repo update
     ```
 
-4. Create a helm relase. You may name the relase anything you like. Here we are installing a release named `grafana-agent` in the `monitoring` namespace.
+4. Create a helm relase. You may name the relase anything you like. Here we are installing a release named `grafana-agent-metrics` in the `monitoring` namespace.
 
     ```
-    helm upgrade grafana-agent grafana/grafana-agent -i -n monitoring -f values.yaml --set-file agent.configMap.content=agent.river
+    helm upgrade grafana-agent-metrics grafana/grafana-agent -i -n monitoring -f values.yaml --set-file agent.configMap.content=agent.river
     ```
 
     This command uses the `--set-file` flag to pass the config file as a helm value, so that we can continue to edit it as a regular river file.
@@ -90,19 +92,15 @@ prometheus.operator.podmonitors "primary" {
     forward_to = [prometheus.remote_write.primary.receiver]
     // leave out selector to find all podmonitors in the entire cluster
     selector {
-        key = "instance"
-        operator = "In"
-        values = ["primary"]
+        match_labels = {instance = "primary"}
     }
 }
 
 prometheus.operator.servicemonitors "primary" {
     forward_to = [prometheus.remote_write.primary.receiver]
-    // leave out selector to find all podmonitors in the entire cluster
+    // leave out selector to find all servicemonitors in the entire cluster
     selector {
-        key = "instance"
-        operator = "In"
-        values = ["primary"]
+        match_labels = {instance = "primary"}
     }
 }
 
@@ -121,6 +119,35 @@ If you are using additional features in your `MetricsInstance` resources, you ma
 
 ## Collecting Logs
 
+Our current recommendation is to create an additional DaemonSet deployment of Grafana Agents in order to scrape logs.
+
+> We do have a components that can scrape pod logs directly from the kubernetes api without needing a DaemonSet deployment. These are 
+> still considered experimental, but if you would like to try them, see documentation for [loki.source.kubernetes](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/) and 
+> [loki.source.podlogs](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.podlogs/).
+
+These values are close to what the operator currently deploys for logs:
+
+```yaml
+agent:
+  mode: 'flow'
+  configMap:
+    create: true
+  clustering:
+    enabled: false
+  controller:
+    type: 'daemonset'
+  mounts:
+    # -- Mount /var/log from the host into the container for log collection.
+    varlog: true
+```
+
+This command will instal a release named `grafana-agent-logs` in the `monitoring` namespace:
+
+```
+helm upgrade grafana-agent-logs grafana/grafana-agent -i -n monitoring -f values-logs.yaml --set-file agent.configMap.content=agent-logs.river
+```
+
+This is a simple config that will scrape logs for every pod on each node. For more logging examples see [examples in our modules repo]().
 
 
 ## Integrations
