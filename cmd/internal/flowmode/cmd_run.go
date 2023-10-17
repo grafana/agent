@@ -20,7 +20,6 @@ import (
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/boringcrypto"
-	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -384,10 +383,6 @@ func loadFlowSource(path string, converterSourceFormat string, converterBypassEr
 			}
 
 			bb, err := os.ReadFile(curPath)
-			// Retain the original error and don't try to convert if an error occurred.
-			if err != nil {
-				bb, err = config.EnsureUTF8(bb, true)
-			}
 			sources[curPath] = bb
 			return err
 		})
@@ -399,10 +394,6 @@ func loadFlowSource(path string, converterSourceFormat string, converterBypassEr
 	}
 
 	bb, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	bb, err = config.EnsureUTF8(bb, true)
 	if err != nil {
 		return nil, err
 	}

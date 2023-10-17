@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+
 	"net/url"
 	"os"
 	"path"
@@ -9,17 +10,16 @@ import (
 	"testing"
 	"time"
 
-	commonCfg "github.com/prometheus/common/config"
-
-	"github.com/stretchr/testify/assert"
-
+	"github.com/grafana/agent/pkg/config/encoder"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/util"
+	commonCfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -564,7 +564,7 @@ func TestConfigEncoding(t *testing.T) {
 	}
 	for _, tt := range cases {
 		t.Run(tt.filename, func(t *testing.T) {
-			buf, err := os.ReadFile(path.Join("encoding_configs", tt.filename))
+			buf, err := os.ReadFile(path.Join("encoder", tt.filename))
 			t.Setenv("TEST", "debug")
 			require.NoError(t, err)
 			c := &Config{}
@@ -580,10 +580,10 @@ func TestConfigEncoding(t *testing.T) {
 }
 
 func TestConfigEncodingStrict(t *testing.T) {
-	buf, err := os.ReadFile(path.Join("encoding_configs", "test_encoding_utf16le.txt"))
+	buf, err := os.ReadFile(path.Join("encoder", "test_encoding_utf16le.txt"))
 	require.NoError(t, err)
-	_, err = EnsureUTF8(buf, false)
+	_, err = encoder.EnsureUTF8(buf, false)
 	require.NoError(t, err)
-	_, err = EnsureUTF8(buf, true)
+	_, err = encoder.EnsureUTF8(buf, true)
 	require.Error(t, err)
 }
