@@ -1,7 +1,6 @@
 package pipelinetests
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -12,14 +11,12 @@ import (
 
 type runtimeContext struct {
 	agentPort int
-	sink      RequestsSink
 	promData  *promData
 }
 
-func newAgentRuntimeContext(t *testing.T, ctx context.Context) (*runtimeContext, func()) {
+func newAgentRuntimeContext(t *testing.T) (*runtimeContext, func()) {
 	sinkPort, err := freeport.GetFreePort()
 	require.NoError(t, err)
-	sink := newHttpSink(ctx, sinkPort)
 	cleanSinkVar := setEnvVariable(t, "HTTP_SINK_URL", fmt.Sprintf("http://127.0.0.1:%d", sinkPort))
 
 	agentPort, err := freeport.GetFreePort()
@@ -28,7 +25,6 @@ func newAgentRuntimeContext(t *testing.T, ctx context.Context) (*runtimeContext,
 
 	agentRuntimeCtx := &runtimeContext{
 		agentPort: agentPort,
-		sink:      sink,
 		promData:  &promData{},
 	}
 

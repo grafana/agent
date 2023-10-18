@@ -54,9 +54,34 @@ func TestPipeline_Prometheus_SelfScrapeAndWrite(topT *testing.T) {
 		eventuallyAssert: func(t *assert.CollectT, context *runtimeContext) {
 			writes := context.promData.getPromWrites()
 			assert.NotEmptyf(t, writes, "must receive at least one prom write request")
-			assert.Greater(t, context.promData.sampleValueForSeries("agent_prometheus_forwarded_samples_total"), float64(1000))
-			assert.Greater(t, context.promData.sampleValueForSeries("agent_wal_samples_appended_total"), float64(1000))
-			assert.Equal(t, context.promData.sampleValueForSeries("agent_prometheus_scrape_targets_gauge"), float64(1))
+			// One target expected
+			assert.Equal(t, float64(1), context.promData.findLastSampleMatching("agent_prometheus_scrape_targets_gauge"))
+			// Fanned out at least one target
+			assert.GreaterOrEqual(t, context.promData.findLastSampleMatching(
+				"agent_prometheus_fanout_latency_count",
+				"component_id",
+				"prometheus.scrape.agent_self",
+			), float64(1))
+
+			// Received at least `count` samples
+			count := 1000
+			assert.Greater(t, context.promData.findLastSampleMatching(
+				"agent_prometheus_forwarded_samples_total",
+				"component_id",
+				"prometheus.scrape.agent_self",
+			), float64(count))
+			assert.Greater(t, context.promData.findLastSampleMatching(
+				"agent_wal_samples_appended_total",
+				"component_id",
+				"prometheus.remote_write.default",
+			), float64(count))
+
+			// At least 100 active series should be present
+			assert.Greater(t, context.promData.findLastSampleMatching(
+				"agent_wal_storage_active_series",
+				"component_id",
+				"prometheus.remote_write.default",
+			), float64(100))
 		},
 	})
 }
@@ -67,7 +92,7 @@ func runTestCase(t *testing.T, testCase pipelineTest) {
 	cleanUp := setUpGlobalRegistryForTesting(prometheus.NewRegistry())
 	defer cleanUp()
 
-	agentRuntimeCtx, cleanUpAgent := newAgentRuntimeContext(t, ctx)
+	agentRuntimeCtx, cleanUpAgent := newAgentRuntimeContext(t)
 	defer cleanUpAgent()
 
 	cmd := flowmode.Command()
