@@ -45,10 +45,13 @@ const (
 type Target struct {
 	// Labels before any processing.
 	discoveredLabels labels.Labels
-	// Any labels that are added to this target and its metrics.
-	labels labels.Labels
+	// Any privateLabels that are added to this target and its metrics.
+	privateLabels labels.Labels
+	labels        labels.Labels
 	// Additional URL parameters that are part of the target URL.
 	params url.Values
+	hash   uint64
+	url    string
 
 	mtx                sync.RWMutex
 	lastError          error
@@ -58,25 +61,65 @@ type Target struct {
 }
 
 // NewTarget creates a reasonably configured target for querying.
-func NewTarget(labels, discoveredLabels labels.Labels, params url.Values) *Target {
+func NewTarget(lbls, discoveredLabels labels.Labels, params url.Values) *Target {
+	publicLabels := make(labels.Labels, 0, len(lbls))
+	for _, l := range lbls {
+		if !strings.HasPrefix(l.Name, model.ReservedLabelPrefix) {
+			publicLabels = append(publicLabels, l)
+		}
+	}
+	url := URLFromTarget(lbls, params)
+
+	h := fnv.New64a()
+	_, _ = h.Write([]byte(fmt.Sprintf("%016d", publicLabels.Hash())))
+	_, _ = h.Write([]byte(url))
+
 	return &Target{
-		labels:           labels,
+		privateLabels:    lbls,
+		url:              url,
+		hash:             h.Sum64(),
+		labels:           publicLabels,
 		discoveredLabels: discoveredLabels,
 		params:           params,
 		health:           HealthUnknown,
 	}
 }
 
+func URLFromTarget(lbls labels.Labels, params url.Values) string {
+	newParams := url.Values{}
+
+	for k, v := range params {
+		newParams[k] = make([]string, len(v))
+		copy(newParams[k], v)
+	}
+	for _, l := range lbls {
+		if !strings.HasPrefix(l.Name, model.ParamLabelPrefix) {
+			continue
+		}
+		ks := l.Name[len(model.ParamLabelPrefix):]
+
+		if len(newParams[ks]) > 0 {
+			newParams[ks][0] = l.Value
+		} else {
+			newParams[ks] = []string{l.Value}
+		}
+	}
+
+	return (&url.URL{
+		Scheme:   lbls.Get(model.SchemeLabel),
+		Host:     lbls.Get(model.AddressLabel),
+		Path:     lbls.Get(ProfilePath),
+		RawQuery: newParams.Encode(),
+	}).String()
+}
+
 func (t *Target) String() string {
-	return t.URL().String()
+	return t.URL()
 }
 
 // hash returns an identifying hash for the target.
-func (t *Target) hash() uint64 {
-	h := fnv.New64a()
-	_, _ = h.Write([]byte(fmt.Sprintf("%016d", t.Labels().Hash())))
-	_, _ = h.Write([]byte(t.URL().String()))
-	return h.Sum64()
+func (t *Target) Hash() uint64 {
+	return t.hash
 }
 
 // offset returns the time until the next scrape cycle for the target.
@@ -85,7 +128,7 @@ func (t *Target) offset(interval time.Duration) time.Duration {
 
 	var (
 		base   = now % int64(interval)
-		offset = t.hash() % uint64(interval)
+		offset = t.hash % uint64(interval)
 		next   = base + int64(offset)
 	)
 
@@ -107,13 +150,7 @@ func (t *Target) Params() url.Values {
 
 // Labels returns a copy of the set of all public labels of the target.
 func (t *Target) Labels() labels.Labels {
-	lset := make(labels.Labels, 0, len(t.labels))
-	for _, l := range t.labels {
-		if !strings.HasPrefix(l.Name, model.ReservedLabelPrefix) {
-			lset = append(lset, l)
-		}
-	}
-	return lset
+	return t.labels
 }
 
 // DiscoveredLabels returns a copy of the target's labels before any processing.
@@ -142,32 +179,8 @@ func (t *Target) SetDiscoveredLabels(l labels.Labels) {
 }
 
 // URL returns a copy of the target's URL.
-func (t *Target) URL() *url.URL {
-	params := url.Values{}
-
-	for k, v := range t.params {
-		params[k] = make([]string, len(v))
-		copy(params[k], v)
-	}
-	for _, l := range t.labels {
-		if !strings.HasPrefix(l.Name, model.ParamLabelPrefix) {
-			continue
-		}
-		ks := l.Name[len(model.ParamLabelPrefix):]
-
-		if len(params[ks]) > 0 {
-			params[ks][0] = l.Value
-		} else {
-			params[ks] = []string{l.Value}
-		}
-	}
-
-	return &url.URL{
-		Scheme:   t.labels.Get(model.SchemeLabel),
-		Host:     t.labels.Get(model.AddressLabel),
-		Path:     t.labels.Get(ProfilePath),
-		RawQuery: params.Encode(),
-	}
+func (t *Target) URL() string {
+	return t.url
 }
 
 // LastError returns the error encountered during the last scrape.
@@ -226,7 +239,7 @@ func LabelsByProfiles(lset labels.Labels, c *ProfilingConfig) []labels.Labels {
 type Targets []*Target
 
 func (ts Targets) Len() int           { return len(ts) }
-func (ts Targets) Less(i, j int) bool { return ts[i].URL().String() < ts[j].URL().String() }
+func (ts Targets) Less(i, j int) bool { return ts[i].URL() < ts[j].URL() }
 func (ts Targets) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
 
 const (
