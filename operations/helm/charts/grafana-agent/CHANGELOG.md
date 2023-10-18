@@ -10,6 +10,11 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Bugfixes
+
+- Fix issue where CRDs were created with annotations after the `crds.create`
+  setting was introduced (@rfratto).
+
 0.27.0 (2023-10-12)
 ----------
 
