@@ -10,30 +10,25 @@ import (
 )
 
 type runtimeContext struct {
-	agentPort int
-	promData  *promData
+	agentPort      int
+	dataSentToProm *promData
 }
 
 func newAgentRuntimeContext(t *testing.T) (*runtimeContext, func()) {
-	sinkPort, err := freeport.GetFreePort()
-	require.NoError(t, err)
-	cleanSinkVar := setEnvVariable(t, "HTTP_SINK_URL", fmt.Sprintf("http://127.0.0.1:%d", sinkPort))
-
 	agentPort, err := freeport.GetFreePort()
 	require.NoError(t, err)
 	cleanAgentPortVar := setEnvVariable(t, "AGENT_SELF_HTTP_PORT", fmt.Sprintf("%d", agentPort))
 
 	agentRuntimeCtx := &runtimeContext{
-		agentPort: agentPort,
-		promData:  &promData{},
+		agentPort:      agentPort,
+		dataSentToProm: &promData{},
 	}
 
-	promServer := newTestPromServer(agentRuntimeCtx.promData.appendPromWrite)
+	promServer := newTestPromServer(agentRuntimeCtx.dataSentToProm.appendPromWrite)
 	cleanPromServerVar := setEnvVariable(t, "PROM_SERVER_URL", fmt.Sprintf("%s/api/v1/write", promServer.URL))
 
 	return agentRuntimeCtx, func() {
 		promServer.Close()
-		cleanSinkVar()
 		cleanAgentPortVar()
 		cleanPromServerVar()
 	}

@@ -6,7 +6,6 @@ import (
 
 	"github.com/prometheus/prometheus/prompb"
 	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 type promData struct {
@@ -20,10 +19,10 @@ func (r *promData) appendPromWrite(req *prompb.WriteRequest) {
 	r.promWrites = append(r.promWrites, req)
 }
 
-func (r *promData) getPromWrites() []*prompb.WriteRequest {
+func (r *promData) writesCount() int {
 	r.mut.Lock()
 	defer r.mut.Unlock()
-	return slices.Clone(r.promWrites)
+	return len(r.promWrites)
 }
 
 func (r *promData) findLastSampleMatching(name string, labelsKV ...string) float64 {
