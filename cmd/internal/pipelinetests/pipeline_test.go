@@ -25,6 +25,16 @@ type pipelineTest struct {
 	requireCleanShutdown bool
 }
 
+/**
+//TODO(thampiotr):
+- Move the framework to own internal package to separate from tests
+- Provide fake scrape target that can be scraped?
+- Think how to make this low-code and easier to use
+- Make a test with logging pipeline
+- Make a test with OTEL pipeline
+- Make a test with loki.process
+- Make a test with relabel rules
+**/
 func TestPipeline_WithEmptyConfig(t *testing.T) {
 	runTestCase(t, pipelineTest{
 		configFile:           "testdata/empty.river",
