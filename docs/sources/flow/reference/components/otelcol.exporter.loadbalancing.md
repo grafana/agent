@@ -65,10 +65,20 @@ Name | Type | Description | Default | Required
 `routing_key` | `string` | Routing strategy for load balancing. | `"traceID"` | no
 
 The `routing_key` attribute determines how to route signals across endpoints. Its value could be one of the following:
-* `"service"`: spans with the same `service.name` will be exported to the same backend.
-This is useful when using processors like the span metrics, so all spans for each service are sent to consistent Agent instances 
-for metric collection. Otherwise, metrics for the same services would be sent to different Agents, making aggregations inaccurate.
-* `"traceID"`: spans belonging to the same traceID will be exported to the same backend.
+* `"service"`:
+  * Works for logs, spans, and metrics. 
+  * Signals with the same `service.name` will be exported to the same backend.
+    This is useful when using processors like the span metrics, so all spans for each service are sent to consistent Agent instances 
+    for metric collection. Otherwise, metrics for the same services would be sent to different Agents, making aggregations inaccurate.
+* `"traceID"`: 
+  * Works for logs and spans.
+  * Signals belonging to the same traceID will be exported to the same backend.
+* `"resource"`:  
+  * Works for metrics.
+  * Signals with the same metric name and the same resource attributes will be exported to the same backend.
+* `"metric"`:   
+  * Works for metrics.
+  * Signals with the same metric name will be exported to the same backend.
 
 ## Blocks
 
