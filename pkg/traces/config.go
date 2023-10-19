@@ -372,7 +372,7 @@ type SpanMetricsConfig struct {
 	AggregationTemporality string `yaml:"aggregation_temporality"`
 
 	// MetricsEmitInterval is the time period between when metrics are flushed
-	// or emitted to the configured MetricsExporter.
+	// or emitted to the configured MetricsInstance or HandlerEndpoint.
 	MetricsFlushInterval time.Duration `yaml:"metrics_flush_interval"`
 }
 
