@@ -32,6 +32,12 @@ discovery.relabel "example" {
 			__path__exclude__ = "/shelf/books/star_wars*",
 			category          = "sf",
 			quality           = "high",
+		}, {
+			__address__ = "localhost",
+			__path__    = "/var/log/this_is_not_used.log",
+			category    = "superfluous",
+		}, {
+			__address__ = "localhost",
 		}],
 	)
 
