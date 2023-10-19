@@ -272,7 +272,7 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `extract_headers` | `bool` | Enables attaching header fields to resource attributes. | `false` | no
-`headers` | `list(string)` | A list of headers to extract from the Kafka record. | `[]]` | no
+`headers` | `list(string)` | A list of headers to extract from the Kafka record. | `[]` | no
 
 Regular expressions are not allowed in the `headers` argument. Only exact matching will be performed.
 
