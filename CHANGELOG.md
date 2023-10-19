@@ -52,6 +52,8 @@ Main (unreleased)
 - Fixed some converter diagnostics so they show as warnings rather than errors. Improve
   clarity for various diagnostics. (@erikbaranowski)
 
+- Wire up the agent exporter integration for the static converter. (@erikbaranowski)
+
 - Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
 
 - Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)

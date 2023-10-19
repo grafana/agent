@@ -1,11 +1,9 @@
-prometheus.exporter.apache "integrations_apache_http" {
-	scrape_uri = "http://0.0.0.0/server-status?auto"
-}
+prometheus.exporter.agent "integrations_agent" { }
 
-prometheus.scrape "integrations_apache_http" {
-	targets    = prometheus.exporter.apache.integrations_apache_http.targets
+prometheus.scrape "integrations_agent" {
+	targets    = prometheus.exporter.agent.integrations_agent.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/apache_http"
+	job_name   = "integrations/agent"
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -21,6 +19,22 @@ prometheus.remote_write "integrations" {
 		queue_config { }
 
 		metadata_config { }
+	}
+}
+
+prometheus.exporter.apache "integrations_apache_http" {
+	scrape_uri = "http://0.0.0.0/server-status?auto"
+}
+
+prometheus.scrape "integrations_apache_http" {
+	targets    = prometheus.exporter.apache.integrations_apache_http.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/apache_http"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
 	}
 }
 
