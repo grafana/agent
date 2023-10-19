@@ -916,7 +916,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/test/* # use branch naming convention to build test images from PRs
+  - refs/heads/test/*
 type: docker
 volumes:
 - host:
@@ -961,6 +961,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
+  - refs/heads/test/*
 type: docker
 volumes:
 - host:
@@ -1005,6 +1006,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
+  - refs/heads/test/*
 type: docker
 volumes:
 - host:
@@ -1049,6 +1051,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
+  - refs/heads/test/*
 type: docker
 volumes:
 - host:
@@ -1093,6 +1096,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
+  - refs/heads/test/*
 type: docker
 volumes:
 - host:
@@ -1137,6 +1141,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
+  - refs/heads/test/*
 type: docker
 volumes:
 - host:
@@ -1428,6 +1433,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 47d018f95267288b13edfd1bdabbab3bc60daa2674fda3ebeb713fac569586cb
+hmac: 764b5e875892436a677f8c1c051d87b5265512843e0fa20bc8cc8f330da0ffee
 
 ...

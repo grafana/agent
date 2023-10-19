@@ -13,6 +13,7 @@ local linux_containers_jobs = std.map(function(container) (
       ref: [
         'refs/heads/main',
         'refs/tags/v*',
+        'refs/heads/test/*', // use branch naming convention to build test images from PRs
       ],
     },
     steps: [{
