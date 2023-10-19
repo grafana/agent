@@ -199,14 +199,14 @@ require (
 	go.opentelemetry.io/collector/receiver v0.85.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.85.0
 	go.opentelemetry.io/collector/semconv v0.85.0
-	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.36.4
-	go.opentelemetry.io/otel v1.17.0
+	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.45.0
+	go.opentelemetry.io/otel v1.19.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.17.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.40.1-0.20230831181707-02616a25c68e
-	go.opentelemetry.io/otel/metric v1.17.0
+	go.opentelemetry.io/otel/metric v1.19.0
 	go.opentelemetry.io/otel/sdk v1.17.0
 	go.opentelemetry.io/otel/sdk/metric v0.40.0
-	go.opentelemetry.io/otel/trace v1.17.0
+	go.opentelemetry.io/otel/trace v1.19.0
 	go.opentelemetry.io/proto/otlp v1.0.0
 	go.uber.org/atomic v1.11.0
 	go.uber.org/goleak v1.2.1
