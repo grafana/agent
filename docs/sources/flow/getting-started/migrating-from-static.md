@@ -98,8 +98,6 @@ features available in Grafana Agent Flow mode.
    report provides the following information:
 
     ```plaintext
-    (Warning) global positions configuration is not supported - each Flow Mode's loki.source.file component has its own positions file in the component's data directory
-    (Warning) server.log_level is not supported - Flow mode components may produce different logs
     (Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
     ```
 
@@ -217,7 +215,7 @@ prometheus.scrape "metrics_test_local_agent" {
 
 prometheus.remote_write "metrics_test" {
 	endpoint {
-		name = "test-a653a1"
+		name = "test-3a2a1b"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
 		basic_auth {

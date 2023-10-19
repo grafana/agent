@@ -73,7 +73,7 @@ func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
 		}
 
 		if !scrapeIntegration {
-			b.diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration which is not being scraped was provided: %s.", integration.Name()))
+			b.diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support handling integrations which are not being scraped: %s.", integration.Name()))
 			continue
 		}
 

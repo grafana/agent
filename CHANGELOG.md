@@ -18,14 +18,8 @@ v0.37.2 (2023-10-16)
 - Fix an issue with the static to flow converter for blackbox exporter modules
   config not being included in the river output. (@erikbaranowski)
 
-<<<<<<< HEAD
-||||||| parent of c0a52bcfc (remote.vault: respect value of `namespace` argument (#5582))
 - Fix issue with default values in `discovery.nomad`. (@marctc)
   
-=======
-- Fix issue with default values in `discovery.nomad`. (@marctc)
-
->>>>>>> c0a52bcfc (remote.vault: respect value of `namespace` argument (#5582))
 ### Enhancements
 
 - Update Prometheus dependency to v2.47.2. (@tpaschalis)
