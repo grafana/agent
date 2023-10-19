@@ -21,7 +21,7 @@ enabled and disabled at will. For more information on collectors, refer to the
 ## Usage
 
 ```river
-prometheus.exporter.unix {
+prometheus.exporter.unix "LABEL" {
 }
 ```
 
