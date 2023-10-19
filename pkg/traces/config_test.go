@@ -546,6 +546,8 @@ spanmetrics:
     - name: http.status_code
   metrics_instance: traces
   dimensions_cache_size: 10000
+  aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
+  metrics_flush_interval: 20s
 `,
 			expectedConfig: `
 receivers:
@@ -572,6 +574,8 @@ processors:
         default: GET
       - name: http.status_code
     dimensions_cache_size: 10000
+    aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
+    metrics_flush_interval: 20s
 extensions: {}
 service:
   pipelines:
@@ -617,6 +621,9 @@ processors:
     metrics_exporter: prometheus
     latency_histogram_buckets: {}
     dimensions: {}
+    aggregation_temporality: AGGREGATION_TEMPORALITY_CUMULATIVE
+    metrics_flush_interval: 15s
+    dimensions_cache_size: 1000
 
 extensions: {}
 service:

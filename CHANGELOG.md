@@ -52,7 +52,9 @@ Main (unreleased)
   permanently fail to load with `id already exists` error. (@mattdurham)
 
 - Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
- 
+
+- Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
@@ -77,6 +79,10 @@ v0.37.2 (2023-10-16)
 - Update Prometheus dependency to v2.47.2. (@tpaschalis)
 
 - Allow Out of Order writing to the WAL for metrics. (@mattdurham)
+
+- Added new config options to spanmetrics processor in static mode (@ptodev):
+  - `aggregation_temporality`: configures whether to reset the metrics after flushing.
+  - `metrics_flush_interval`: configures how often to flush generated metrics.
 
 ### Other changes
 
