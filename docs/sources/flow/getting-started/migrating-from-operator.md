@@ -121,7 +121,7 @@ If you are using additional features in your `MetricsInstance` resources, you ma
 
 ## Collecting Logs
 
-Our current recommendation is to create an additional DaemonSet deployment of Grafana Agents in order to scrape logs.
+Our current recommendation is to create an additional DaemonSet deployment of Grafana Agents to scrape logs.
 
 > We have components that can scrape pod logs directly from the Kubernetes API without needing a DaemonSet deployment. These are 
 > still considered experimental, but if you would like to try them, see the documentation for [loki.source.kubernetes](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/) and 
