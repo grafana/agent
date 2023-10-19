@@ -70,11 +70,11 @@ agent_management:
     # Whether to use labels from the label management service. If enabled, labels from the API supersede the ones configured in the agent. The agent_id field must be defined.
     label_management_enabled: <bool> | default = false
 
-    # Whether to accept HTTP 304 Not Modified responses from the API server. If enabled, the agent will use the cached configuration if the API server responds with HTTP 304 Not Modified. You can set this argument to `false` for debugging or testing.
-    accept_http_not_modified: <bool> | default = true
-
     # A unique ID for the agent, which is used to identify the agent.
     agent_id: <string>
+
+    # Whether to accept HTTP 304 Not Modified responses from the API server. If enabled, the agent will use the cached configuration if the API server responds with HTTP 304 Not Modified. You can set this argument to `false` for debugging or testing.
+    accept_http_not_modified: <bool> | default = true
 ```
 
 ## API
