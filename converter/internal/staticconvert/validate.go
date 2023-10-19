@@ -6,6 +6,7 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/config"
+	agent_exporter "github.com/grafana/agent/pkg/integrations/agent"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
@@ -106,6 +107,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		}
 
 		switch itg := integration.Config.(type) {
+		case *agent_exporter.Config:
 		case *apache_http.Config:
 		case *node_exporter.Config:
 		case *blackbox_exporter.Config:
