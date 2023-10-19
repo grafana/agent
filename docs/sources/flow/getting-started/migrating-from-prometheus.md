@@ -46,7 +46,7 @@ This topic describes how to:
 
 To fully migrate your configuration from [Prometheus] to Grafana Agent
 in flow mode, you must convert your Prometheus configuration into a Grafana Agent flow
-mode configuration. This conversion will enable you to take full advantage of the many 
+mode configuration. This conversion will enable you to take full advantage of the many
 additional features available in Grafana Agent flow mode.
 
 > In this task, we will use the [convert][] CLI command to output a flow
@@ -54,11 +54,19 @@ additional features available in Grafana Agent flow mode.
 
 1. Open a terminal window and run the following command:
 
-    ```bash
-    AGENT_MODE=flow; grafana-agent convert --source-format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-    ```
-  
-    Replace the following: 
+   {{< code >}}
+
+   ```static-binary
+   AGENT_MODE=flow grafana-agent convert --source-format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   ```flow-binary
+   grafana-agent-flow convert --source-format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   {{< /code >}}
+
+    Replace the following:
       * `INPUT_CONFIG_PATH`: The full path to the Prometheus configuration.
       * `OUTPUT_CONFIG_PATH`: The full path to output the flow configuration.
 
@@ -66,22 +74,38 @@ additional features available in Grafana Agent flow mode.
 
 ### Debugging
 
-1. If the convert command cannot convert a Prometheus configuration,
+1. If the convert command can't convert a Prometheus configuration,
    diagnostic information is sent to `stderr`. You can bypass
-   any non-critical issues and output the flow configuration using a 
+   any non-critical issues and output the flow configuration using a
    best-effort conversion by including the `--bypass-errors` flag.
 
     {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
 
-    ```bash
-    AGENT_MODE=flow; grafana-agent convert --source-format=prometheus --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-    ```
+   {{< code >}}
+
+   ```static-binary
+   AGENT_MODE=flow grafana-agent convert --source-format=prometheus --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   ```flow-binary
+   grafana-agent-flow convert --source-format=prometheus --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   {{< /code >}}
 
 1. You can also output a diagnostic report by including the `--report` flag.
 
-    ```bash
-    AGENT_MODE=flow; grafana-agent convert --source-format=prometheus --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-    ```
+   {{< code >}}
+
+   ```static-binary
+   AGENT_MODE=flow grafana-agent convert --source-format=prometheus --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   ```flow-binary
+   grafana-agent-flow convert --source-format=prometheus --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   {{< /code >}}
 
     * Replace `OUTPUT_REPORT_PATH` with the output path for the report.
 
@@ -151,9 +175,17 @@ The convert command takes the YAML file as input and outputs a [River][] file.
 
 [River]: {{< relref "../config-language/_index.md" >}}
 
-```bash
-AGENT_MODE=flow; grafana-agent convert --source-format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+{{< code >}}
+
+```static-binary
+AGENT_MODE=flow grafana-agent convert --source-format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
 ```
+
+```flow-binary
+grafana-agent-flow convert --source-format=prometheus --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+```
+
+{{< /code >}}
 
 The new flow configuration file looks like this:
 

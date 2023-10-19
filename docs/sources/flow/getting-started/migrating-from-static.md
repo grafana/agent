@@ -62,9 +62,17 @@ features available in Grafana Agent Flow mode.
 
 1. Open a terminal window and run the following command:
 
-    ```bash
-    AGENT_MODE=flow grafana-agent convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-    ```
+   {{< code >}}
+
+   ```static-binary
+   AGENT_MODE=flow grafana-agent convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   ```flow-binary
+   grafana-agent-flow convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   {{< /code >}}
 
    Replace the following:
     * `INPUT_CONFIG_PATH`: The full path to the [Static][] configuration.
@@ -82,15 +90,31 @@ features available in Grafana Agent Flow mode.
 
    {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original [Static] mode configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
 
-    ```bash
-    AGENT_MODE=flow grafana-agent convert --source-format=static --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-    ```
+   {{< code >}}
+
+   ```static-binary
+   AGENT_MODE=flow grafana-agent convert --source-format=static --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   ```flow-binary
+   grafana-agent-flow convert --source-format=static --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   {{< /code >}}
 
 1. You can use the `--report` flag to output a diagnostic report.
 
-    ```bash
-    AGENT_MODE=flow grafana-agent convert --source-format=static --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   {{< code >}}
+
+   ```static-binary
+   AGENT_MODE=flow grafana-agent convert --source-format=static --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   ```flow-binary
+   grafana-agent-flow convert --source-format=static --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
     ```
+
+   {{< /code >}}
 
     * Replace `OUTPUT_REPORT_PATH` with the output path for the report.
 
@@ -161,7 +185,7 @@ metrics:
             - targets: ['127.0.0.1:12345']
               labels:
                 cluster: 'localhost'
-    
+
 logs:
   global:
     file_watch_config:
@@ -198,9 +222,17 @@ The convert command takes the YAML file as input and outputs a [River][] file.
 
 [River]: {{< relref "../config-language/_index.md" >}}
 
-```bash
+{{< code >}}
+
+```static-binary
 AGENT_MODE=flow grafana-agent convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
 ```
+
+```flow-binary
+grafana-agent-flow convert --source-format=static --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+```
+
+{{< /code >}}
 
 The new Flow mode configuration file looks like this:
 
