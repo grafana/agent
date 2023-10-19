@@ -916,7 +916,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/test/*
+  - refs/heads/custom-image-*
 type: docker
 volumes:
 - host:
@@ -961,7 +961,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/test/*
+  - refs/heads/custom-image-*
 type: docker
 volumes:
 - host:
@@ -1006,7 +1006,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/test/*
+  - refs/heads/custom-image-*
 type: docker
 volumes:
 - host:
@@ -1051,7 +1051,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/test/*
+  - refs/heads/custom-image-*
 type: docker
 volumes:
 - host:
@@ -1096,7 +1096,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/test/*
+  - refs/heads/custom-image-*
 type: docker
 volumes:
 - host:
@@ -1141,7 +1141,7 @@ trigger:
   ref:
   - refs/heads/main
   - refs/tags/v*
-  - refs/heads/test/*
+  - refs/heads/custom-image-*
 type: docker
 volumes:
 - host:
@@ -1433,6 +1433,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 764b5e875892436a677f8c1c051d87b5265512843e0fa20bc8cc8f330da0ffee
+hmac: 37081b0d18b8076fcb5d1a7b4a1849bd38febbcaf40b4692c1892e44e69594d8
 
 ...
