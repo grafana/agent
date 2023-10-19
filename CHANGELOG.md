@@ -78,6 +78,10 @@ v0.37.2 (2023-10-16)
 
 - Allow Out of Order writing to the WAL for metrics. (@mattdurham)
 
+- Added new config options to spanmetrics processor in static mode (@ptodev):
+  - `aggregation_temporality`: configures whether to reset the metrics after flushing.
+  - `metrics_flush_interval`: configures how often to flush generated metrics.
+
 ### Other changes
 
 - Use Go 1.21.3 for builds. (@tpaschalis)
