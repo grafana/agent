@@ -9,6 +9,8 @@ integrations:
       cert_file: "/something8.cert"
       key_file: "/something9.cert"
   scrape_integrations: true
+  agent:
+    enabled: true
   apache_http:
     enabled: true
     scrape_uri: http://0.0.0.0/server-status?auto
