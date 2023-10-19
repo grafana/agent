@@ -74,6 +74,9 @@ v0.37.2 (2023-10-16)
   config not being included in the river output. (@erikbaranowski)
 
 - Fix issue with default values in `discovery.nomad`. (@marctc)
+
+- Fix issue where two scrape options `prometheus.scrape` component not getting
+  applied after agent got reloaded. (hainenber) 
   
 ### Enhancements
 
