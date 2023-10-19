@@ -50,6 +50,8 @@ Main (unreleased)
   permanently fail to load with `id already exists` error. (@mattdurham)
 
 - Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
+
+- Use a more durable bookmark file for windows event log to prevent corruption on unexpected reboots. (@mattdurham)
   
 ### Enhancements
 
