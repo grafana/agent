@@ -2,8 +2,7 @@ package windowsevent
 
 import (
 	"context"
-	"os"
-	"path"
+	"path/filepath"
 	"sync"
 
 	"github.com/grafana/agent/component"
@@ -11,7 +10,6 @@ import (
 	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/windows"
 )
 
 func init() {
@@ -35,7 +33,7 @@ type Component struct {
 
 	mut       sync.RWMutex
 	args      Arguments
-	target    *windows.Target
+	target    *Target
 	handle    *handler
 	receivers []loki.LogsReceiver
 }
@@ -106,24 +104,14 @@ func (c *Component) Update(args component.Arguments) error {
 
 	// If no bookmark specified create one in the datapath.
 	if newArgs.BookmarkPath == "" {
-		newArgs.BookmarkPath = path.Join(c.opts.DataPath, "bookmark.xml")
+		newArgs.BookmarkPath = filepath.Join(c.opts.DataPath, "bookmark.db")
+	}
+	// If there is an existing item then the current one needs to be closed.
+	if c.target != nil && c.target.pdb != nil {
+		_ = c.target.pdb.close()
 	}
 
-	// Create the bookmark file and parent folders if they don't exist.
-	_, err := os.Stat(newArgs.BookmarkPath)
-	if os.IsNotExist(err) {
-		err := os.MkdirAll(path.Dir(newArgs.BookmarkPath), 644)
-		if err != nil {
-			return err
-		}
-		f, err := os.Create(newArgs.BookmarkPath)
-		if err != nil {
-			return err
-		}
-		_ = f.Close()
-	}
-
-	winTarget, err := windows.New(c.opts.Logger, c.handle, nil, convertConfig(newArgs))
+	winTarget, err := NewTarget(c.opts.Logger, c.handle, nil, convertConfig(newArgs))
 	if err != nil {
 		return err
 	}
