@@ -143,7 +143,7 @@ agent:
     varlog: true
 ```
 
-This command will instal a release named `grafana-agent-logs` in the `monitoring` namespace:
+This command will install a release named `grafana-agent-logs` in the `monitoring` namespace:
 
 ```
 helm upgrade grafana-agent-logs grafana/grafana-agent -i -n monitoring -f values-logs.yaml --set-file agent.configMap.content=agent-logs.river
