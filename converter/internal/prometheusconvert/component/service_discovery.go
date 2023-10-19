@@ -147,7 +147,7 @@ func ValidateServiceDiscoveryConfig(serviceDiscoveryConfig prom_discover.Config)
 		return ValidateDiscoveryDockerswarm(sdc)
 	default:
 		var diags diag.Diagnostics
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported service discovery %s was provided", serviceDiscoveryConfig.Name()))
+		diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s service discovery.", serviceDiscoveryConfig.Name()))
 		return diags
 	}
 }

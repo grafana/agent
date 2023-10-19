@@ -8,10 +8,10 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
-	prom_docker "github.com/prometheus/prometheus/discovery/moby"
+	prom_moby "github.com/prometheus/prometheus/discovery/moby"
 )
 
-func appendDiscoveryDocker(pb *build.PrometheusBlocks, label string, sdConfig *prom_docker.DockerSDConfig) discovery.Exports {
+func appendDiscoveryDocker(pb *build.PrometheusBlocks, label string, sdConfig *prom_moby.DockerSDConfig) discovery.Exports {
 	discoveryDockerArgs := toDiscoveryDocker(sdConfig)
 	name := []string{"discovery", "docker"}
 	block := common.NewBlockWithOverride(name, label, discoveryDockerArgs)
@@ -19,11 +19,11 @@ func appendDiscoveryDocker(pb *build.PrometheusBlocks, label string, sdConfig *p
 	return common.NewDiscoveryExports("discovery.docker." + label + ".targets")
 }
 
-func ValidateDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) diag.Diagnostics {
+func ValidateDiscoveryDocker(sdConfig *prom_moby.DockerSDConfig) diag.Diagnostics {
 	return common.ValidateHttpClientConfig(&sdConfig.HTTPClientConfig)
 }
 
-func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
+func toDiscoveryDocker(sdConfig *prom_moby.DockerSDConfig) *docker.Arguments {
 	if sdConfig == nil {
 		return nil
 	}
@@ -38,7 +38,7 @@ func toDiscoveryDocker(sdConfig *prom_docker.DockerSDConfig) *docker.Arguments {
 	}
 }
 
-func toDockerFilters(filtersConfig []prom_docker.Filter) []docker.Filter {
+func toDockerFilters(filtersConfig []prom_moby.Filter) []docker.Filter {
 	filters := make([]docker.Filter, 0)
 
 	for _, filter := range filtersConfig {

@@ -49,6 +49,9 @@ Main (unreleased)
 - Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
   permanently fail to load with `id already exists` error. (@mattdurham)
 
+- Fixed some converter diagnostics so they show as warnings rather than errors. Improve
+  clarity for various diagnostics. (@erikbaranowski)
+
 - Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
 
 - Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
