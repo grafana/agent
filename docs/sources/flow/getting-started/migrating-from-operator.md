@@ -80,7 +80,7 @@ remote.kubernetes.secret "credentials" {
 
 prometheus.remote_write "primary" {
     endpoint {
-        url = your_remote_write_URL
+        url = "https://PROMETHEUS_URL/api/prom/push"
         basic_auth {
             username = nonsensitive(remote.kubernetes.secret.credentials.data["username"])
             password = remote.kubernetes.secret.credentials.data["password"]
@@ -105,6 +105,8 @@ prometheus.operator.servicemonitors "primary" {
 }
 
 ```
+
+You will need to replace `PROMETHEUS_URL` with the actual endpoint you want to send metrics to.
 
 This config will discover all `PodMonitor`, `ServiceMonitor`, and `Probe` resources in your cluster that match our label selector `instance=primary`. It will then scrape metrics from their targets, and forward them on to your remote write endpoint.
 
@@ -147,7 +149,112 @@ This command will instal a release named `grafana-agent-logs` in the `monitoring
 helm upgrade grafana-agent-logs grafana/grafana-agent -i -n monitoring -f values-logs.yaml --set-file agent.configMap.content=agent-logs.river
 ```
 
-This is a simple config that will scrape logs for every pod on each node. For more logging examples see [examples in our modules repo]().
+This simple configuration will scrape logs for every pod on each node:
+
+```
+// read the credentials secret for remote_write authorization
+remote.kubernetes.secret "credentials" {
+  namespace = "monitoring"
+  name = "primary-credentials-logs"
+}
+
+discovery.kubernetes "pods" {
+  role = "pod"
+  // limit to pods on this node to reduce amount we need to filter
+  selectors {
+    role = "pod"
+    field = "spec.nodeName=" + env("HOSTNAME")
+  }
+}
+
+discovery.relabel "pod_logs" {
+  targets = discovery.kubernetes.pods.targets
+  rule {
+    source_labels = ["__meta_kubernetes_namespace"]
+    target_label = "namespace"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_name"]
+    target_label = "pod"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_container_name"]
+    target_label = "container"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name"]
+    separator = "/"
+    target_label = "job"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+    separator = "/"
+    action = "replace"
+    replacement = "/var/log/pods/*$1/*.log"
+    target_label = "__path__"
+  }
+}
+
+local.file_match "pod_logs" {
+  path_targets = discovery.relabel.pod_logs.output
+}
+
+loki.source.file "pod_logs" {
+  targets    = local.file_match.pod_logs.targets
+  forward_to = [loki.process.pod_logs.receiver]
+}
+
+// basic processing to parse the container format. You can add additional processing stages
+// to match your application logs.
+loki.process "pod_logs" {
+  stage.match {
+    selector = "{tmp_container_runtime=\"containerd\"}"
+    // the cri processing stage extracts the following k/v pairs: log, stream, time, flags
+    stage.cri {}
+    // Set the extract flags and stream values as labels
+    stage.labels {
+      values = {
+        flags  = "",
+        stream  = "",
+      }
+    }
+  }
+
+  // if the label tmp_container_runtime from above is docker parse using docker
+  stage.match {
+    selector = "{tmp_container_runtime=\"docker\"}"
+    // the docker processing stage extracts the following k/v pairs: log, stream, time
+    stage.docker {}
+
+    // Set the extract stream value as a label
+    stage.labels {
+      values = {
+        stream  = "",
+      }
+    }
+  }
+
+  // drop the temporary container runtime label as it is no longer needed
+  stage.label_drop {
+    values = ["tmp_container_runtime"]
+  }
+
+  forward_to = [loki.write.loki.receiver]
+}
+
+loki.write "loki" {
+  endpoint {
+    url = "https://LOKI_URL/api/v1/push"
+    basic_auth {
+      username = nonsensitive(remote.kubernetes.secret.credentials.data["username"])
+      password = remote.kubernetes.secret.credentials.data["password"]
+    }
+}
+}
+```
+
+You will need to replace `LOKI_URL` with the actual endpoint of your Loki instance. The logging subsytem is very powerful
+and has many options for processing logs. For further details see the [component documentation](https://grafana.com/docs/agent/latest/flow/reference/components/).
 
 
 ## Integrations
