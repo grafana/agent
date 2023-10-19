@@ -31,24 +31,10 @@ This topic describes how to:
 * [loki.source.file][]
 * [loki.write][]
 
-[prometheus.scrape]: {{< relref "../reference/components/prometheus.scrape.md" >}}
-[prometheus.remote_write]: {{< relref "../reference/components/prometheus.remote_write.md" >}}
-[local.file_match]: {{< relref "../reference/components/local.file_match.md" >}}
-[loki.process]: {{< relref "../reference/components/loki.process.md" >}}
-[loki.source.file]: {{< relref "../reference/components/loki.source.file.md" >}}
-[loki.write]: {{< relref "../reference/components/loki.write.md" >}}
-
 ## Before you begin
 
 * You must have an existing Grafana Agent Static mode configuration.
 * You must be familiar with the [Components][] concept in Grafana Agent Flow mode.
-
-[Components]: {{< relref "../concepts/components.md" >}}
-[convert]: {{< relref "../reference/cli/convert.md" >}}
-[run]: {{< relref "../reference/cli/run.md" >}}
-[Start the agent]: {{< relref "../setup/start-agent.md" >}}
-[Flow Debugging]: {{< relref "../monitoring/debugging.md" >}}
-[debugging]: #debugging
 
 ## Convert a Static mode configuration
 
@@ -149,12 +135,14 @@ mode configuration file.
 1. Refer to the Grafana Agent [Flow Debugging][] for more information about
    running Grafana Agent in Flow mode.
 
-1. If your [Static] mode configuration cannot be converted and loaded directly into
+1. If your [Static] mode configuration can't be converted and loaded directly into
     Grafana Agent, diagnostic information is sent to `stderr`. You can use the `
     --config.bypass-conversion-errors` flag with `--config.format=static` to bypass any
     non-critical issues and start the Agent.
 
    {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Grafana Agent Static mode configuration. Do not use this flag in a production environment.{{%/admonition %}}
+
+[debugging]: #debugging
 
 ## Example
 
@@ -217,8 +205,6 @@ logs:
 ```
 
 The convert command takes the YAML file as input and outputs a [River][] file.
-
-[River]: {{< relref "../config-language/_index.md" >}}
 
 {{< code >}}
 
@@ -307,7 +293,6 @@ loki.write "logs_varlogs" {
 	}
 	external_labels = {}
 }
-
 ```
 
 ## Limitations
@@ -339,12 +324,47 @@ Furthermore, we recommend that you review the following checklist:
   produced by Static mode.
 * Grafana Agent exposes the [Grafana Agent Flow UI][].
 
-[Integrations next]: {{< relref "../../static/configuration/integrations/integrations-next/_index.md" >}}
-[Traces]: {{< relref "../../static/configuration/traces-config.md" >}}
-[Agent Management]: {{< relref "../../static/configuration/agent-management.md" >}}
-[env]: {{< relref "../reference/stdlib/env.md" >}}
-[Prometheus Limitations]: {{< relref "migrating-from-prometheus.md/#limitations" >}}
-[Promtail Limitations]: {{< relref "migrating-from-promtail.md/#limitations" >}}
-[Metrics]: {{< relref "../../static/configuration/metrics-config.md" >}}
-[Logs]: {{< relref "../../static/configuration/logs-config.md" >}}
-[Grafana Agent Flow UI]: {{< relref "../monitoring/debugging/#grafana-agent-flow-ui" >}}
+{{% docs/reference %}}
+[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
+[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape.md"
+[prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
+[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write.md"
+[local.file_match]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match.md"
+[local.file_match]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/local.file_match.md"
+[loki.process]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.process.md"
+[loki.process]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.process.md"
+[loki.source.file]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file.md"
+[loki.source.file]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.file.md"
+[loki.write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.write.md"
+[loki.write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.write.md"
+[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+[convert]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert.md"
+[convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/convert.md"
+[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[Start the agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
+[Start the agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md"
+[Flow Debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
+[Flow Debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md"
+[River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/"
+[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/"
+[Integrations next]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next/_index.md"
+[Integrations next]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/traces-config.md
+[Traces]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/traces-config.md"
+[Traces]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/traces-config.md"
+[Agent Management]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/agent-management.md"
+[Agent Management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/agent-management.md"
+[env]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/stdlib/env.md"
+[env]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/env.md"
+[Prometheus Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-prometheus.md#limitations"
+[Prometheus Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-prometheus.md#limitations"
+[Promtail Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md#limitations"
+[Promtail Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-promtail.md#limitations"
+[Metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config.md"
+[Metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/metrics-config.md"
+[Logs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/logs-config.md"
+[Logs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/logs-config.md"
+[Grafana Agent Flow UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
+[Grafana Agent Flow UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
+{{% /docs/reference %}}
