@@ -183,7 +183,7 @@ metrics:
             - targets: ['127.0.0.1:12345']
               labels:
                 cluster: 'localhost'
-    
+
 logs:
   global:
     file_watch_config:
