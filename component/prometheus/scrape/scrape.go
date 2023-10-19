@@ -140,27 +140,11 @@ var (
 
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	data, err := o.GetServiceData(http.ServiceName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get information about HTTP server: %w", err)
-	}
-	httpData := data.(http.Data)
-
-	data, err = o.GetServiceData(cluster.ServiceName)
+	data, err := o.GetServiceData(cluster.ServiceName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get information about cluster: %w", err)
 	}
 	clusterData := data.(cluster.Cluster)
-
-	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
-	scrapeOptions := &scrape.Options{
-		ExtraMetrics: args.ExtraMetrics,
-		HTTPClientOptions: []config_util.HTTPClientOption{
-			config_util.WithDialContextFunc(httpData.DialFunc),
-		},
-		EnableProtobufNegotiation: args.EnableProtobufNegotiation,
-	}
-	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
 		Name: "agent_prometheus_scrape_targets_gauge",
@@ -174,10 +158,18 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:          o,
 		cluster:       clusterData,
 		reloadTargets: make(chan struct{}, 1),
-		scraper:       scraper,
-		appendable:    flowAppendable,
 		targetsGauge:  targetsGauge,
 	}
+
+	// Update created component with prometheus.Fanout and prometheus.ScrapeManager
+	data, err = o.GetServiceData(http.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about HTTP server: %w", err)
+	}
+	httpData := data.(http.Data)
+	flowAppendable, scraper := c.createPromScrapeResources(httpData, args)
+	c.appendable = flowAppendable
+	c.scraper = scraper
 
 	// Call to Update() to set the receivers and targets once at the start.
 	if err := c.Update(args); err != nil {
@@ -236,13 +228,22 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 	c.args = newArgs
 
+	// Update scraper with scrape options
+	data, err := c.opts.GetServiceData(http.ServiceName)
+	if err != nil {
+		return fmt.Errorf("failed to get information about HTTP server: %w", err)
+	}
+	newFlowAppendables, newScraper := c.createPromScrapeResources(data.(http.Data), newArgs)
+	c.appendable = newFlowAppendables
+	c.scraper = newScraper
+
 	c.appendable.UpdateChildren(newArgs.ForwardTo)
 
 	sc := getPromScrapeConfigs(c.opts.ID, newArgs)
-	err := c.scraper.ApplyConfig(&config.Config{
+
+	if err := c.scraper.ApplyConfig(&config.Config{
 		ScrapeConfigs: []*config.ScrapeConfig{sc},
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("error applying scrape configs: %w", err)
 	}
 	level.Debug(c.opts.Logger).Log("msg", "scrape config was updated")
@@ -375,6 +376,21 @@ func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Targe
 	}
 
 	return map[string][]*targetgroup.Group{jobName: {promGroup}}
+}
+
+// newScrapeManager creates new prometheus.scrape manager
+func (c *Component) createPromScrapeResources(httpData http.Data, args Arguments) (*prometheus.Fanout, *scrape.Manager) {
+	flowAppendable := prometheus.NewFanout(args.ForwardTo, c.opts.ID, c.opts.Registerer)
+	scrapeOptions := &scrape.Options{
+		ExtraMetrics: args.ExtraMetrics,
+		HTTPClientOptions: []config_util.HTTPClientOption{
+			config_util.WithDialContextFunc(httpData.DialFunc),
+		},
+		EnableProtobufNegotiation: args.EnableProtobufNegotiation,
+	}
+	scraper := scrape.NewManager(scrapeOptions, c.opts.Logger, flowAppendable)
+
+	return flowAppendable, scraper
 }
 
 func convertLabelSet(tg discovery.Target) model.LabelSet {
