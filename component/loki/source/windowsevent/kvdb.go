@@ -1,9 +1,10 @@
 package windowsevent
 
 import (
-	"go.etcd.io/bbolt"
 	"os"
 	"path/filepath"
+
+	"go.etcd.io/bbolt"
 )
 
 type KVDB struct {
