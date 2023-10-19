@@ -26,6 +26,8 @@ Main (unreleased)
     - renamed 3 metrics starting with `mysql_perf_schema_transaction_` to start with `mysql_perf_schema_transactions_` to be consistent with column names.
     - exposing only server's own stats by matching `MEMBER_ID` with `@@server_uuid` resulting "member_id" label to be dropped.
 
+- Use a more durable bookmark file for windows event log to prevent corruption on unexpected reboots. (@mattdurham)
+
 ### Other changes
 
 - Bump `mysqld_exporter` version to v0.15.0. (@marctc)
@@ -50,9 +52,7 @@ Main (unreleased)
   permanently fail to load with `id already exists` error. (@mattdurham)
 
 - Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
-
-- Use a more durable bookmark file for windows event log to prevent corruption on unexpected reboots. (@mattdurham)
-  
+ 
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)

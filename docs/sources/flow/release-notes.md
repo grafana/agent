@@ -28,6 +28,12 @@ Other release notes for the different Grafana Agent variants are contained on se
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{% /admonition %}}
 
+## Breaking change: Windows Event Log bookmark format and named changed
+
+Previously Windows Event Logs were stored by default in bookmark.xml file. The newest release changes that to a more resilient
+storage named bookmark.db. When running for the first time if using the defaults the old bookmark.xml will be transitioned to
+bookmark.db. If using a custom path or fails to transition then duplicate events may be sent.
+
 ## v0.38
 
 ### Breaking change: `otelcol.exporter.jaeger` component removed
