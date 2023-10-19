@@ -73,9 +73,9 @@ to a new metric data type or can be used to create new metrics.
 - [Orphaned Telemetry][]: The processor allows you to modify `span_id`, `trace_id`, and `parent_span_id` for traces 
   and `span_id`, and `trace_id` logs.  Modifying these fields could lead to orphaned spans or logs.
 
-[Unsound Transformations]: https://github.com/open-telemetry/opentelemetry-collector/blob/v0.87.0/docs/standard-warnings.md#unsound-transformations
-[Identity Conflict]: https://github.com/open-telemetry/opentelemetry-collector/blob/v0.87.0/docs/standard-warnings.md#identity-conflict
-[Orphaned Telemetry]: https://github.com/open-telemetry/opentelemetry-collector/blob/v0.87.0/docs/standard-warnings.md#orphaned-telemetry
+[Unsound Transformations]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/docs/standard-warnings.md#unsound-transformations
+[Identity Conflict]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/docs/standard-warnings.md#identity-conflict
+[Orphaned Telemetry]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/docs/standard-warnings.md#orphaned-telemetry
 [no-op]: https://en.wikipedia.org/wiki/NOP_(code)
 [metrics data model]: https://github.com/open-telemetry/opentelemetry-specification/blob/main//specification/metrics/data-model.md
 {{% /admonition %}}
@@ -552,24 +552,24 @@ Some values in the River strings are [escaped][river-strings]:
 
 [river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
 
-[traces protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v0.17.0/opentelemetry/proto/trace/v1/trace.proto
-[metrics protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v0.17.0/opentelemetry/proto/metrics/v1/metrics.proto
-[logs protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v0.17.0/opentelemetry/proto/logs/v1/logs.proto
+[traces protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/trace/v1/trace.proto
+[metrics protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/metrics/v1/metrics.proto
+[logs protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/logs/v1/logs.proto
 
 
-[OTTL]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.87.0/pkg/ottl/README.md
-[OTTL functions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.87.0/pkg/ottl/ottlfuncs/README.md
-[convert_sum_to_gauge]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/transformprocessor#convert_sum_to_gauge
-[convert_gauge_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/transformprocessor#convert_gauge_to_sum
-[convert_summary_count_val_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/transformprocessor#convert_summary_count_val_to_sum
-[convert_summary_sum_val_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/transformprocessor#convert_summary_sum_val_to_sum
-[OTTL booleans]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/pkg/ottl#booleans
-[OTTL math expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/pkg/ottl#math-expressions
-[OTTL boolean expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/pkg/ottl#boolean-expressions
-[OTTL resource context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.87.0/pkg/ottl/contexts/ottlresource/README.md
-[OTTL scope context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.87.0/pkg/ottl/contexts/ottlscope/README.md
-[OTTL span context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.87.0/pkg/ottl/contexts/ottlspan/README.md
-[OTTL spanevent context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.87.0/pkg/ottl/contexts/ottlspanevent/README.md
-[OTTL metric context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.87.0/pkg/ottl/contexts/ottlmetric/README.md
-[OTTL datapoint context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.87.0/pkg/ottl/contexts/ottldatapoint/README.md
-[OTTL log context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.87.0/pkg/ottl/contexts/ottllog/README.md
+[OTTL]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/README.md
+[OTTL functions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/ottlfuncs/README.md
+[convert_sum_to_gauge]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/transformprocessor#convert_sum_to_gauge
+[convert_gauge_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/transformprocessor#convert_gauge_to_sum
+[convert_summary_count_val_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/transformprocessor#convert_summary_count_val_to_sum
+[convert_summary_sum_val_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/transformprocessor#convert_summary_sum_val_to_sum
+[OTTL booleans]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/pkg/ottl#booleans
+[OTTL math expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/pkg/ottl#math-expressions
+[OTTL boolean expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/pkg/ottl#boolean-expressions
+[OTTL resource context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlresource/README.md
+[OTTL scope context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlscope/README.md
+[OTTL span context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlspan/README.md
+[OTTL spanevent context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlspanevent/README.md
+[OTTL metric context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlmetric/README.md
+[OTTL datapoint context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottldatapoint/README.md
+[OTTL log context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottllog/README.md
