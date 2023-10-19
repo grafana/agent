@@ -56,12 +56,12 @@ func newScrapePool(cfg Arguments, appendable pyroscope.Appendable, logger log.Lo
 func (tg *scrapePool) sync(groups []*targetgroup.Group) {
 	tg.mtx.Lock()
 	defer tg.mtx.Unlock()
-
+	allTarget := tg.config.ProfilingConfig.AllTargets()
 	level.Info(tg.logger).Log("msg", "syncing target groups", "job", tg.config.JobName)
 	var actives []*Target
 	tg.droppedTargets = tg.droppedTargets[:0]
 	for _, group := range groups {
-		targets, dropped, err := targetsFromGroup(group, tg.config)
+		targets, dropped, err := targetsFromGroup(group, tg.config, allTarget)
 		if err != nil {
 			level.Error(tg.logger).Log("msg", "creating targets failed", "err", err)
 			continue

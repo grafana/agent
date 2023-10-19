@@ -347,7 +347,7 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 }
 
 // targetsFromGroup builds targets based on the given TargetGroup and config.
-func targetsFromGroup(group *targetgroup.Group, cfg Arguments) ([]*Target, []*Target, error) {
+func targetsFromGroup(group *targetgroup.Group, cfg Arguments, targetTypes map[string]ProfilingTarget) ([]*Target, []*Target, error) {
 	var (
 		targets        = make([]*Target, 0, len(group.Targets))
 		droppedTargets = make([]*Target, 0, len(group.Targets))
@@ -404,7 +404,7 @@ func targetsFromGroup(group *targetgroup.Group, cfg Arguments) ([]*Target, []*Ta
 					params = url.Values{}
 				}
 
-				if pcfg, found := cfg.ProfilingConfig.AllTargets()[profType]; found && pcfg.Delta {
+				if pcfg, found := targetTypes[profType]; found && pcfg.Delta {
 					params.Add("seconds", strconv.Itoa(int((cfg.ScrapeInterval)/time.Second)-1))
 				}
 				targets = append(targets, NewTarget(lbls, origLabels, params))

@@ -97,21 +97,12 @@ type ProfilingConfig struct {
 	Custom            []CustomProfilingTarget `river:"profile.custom,block,optional"`
 
 	PprofPrefix string `river:"path_prefix,attr,optional"`
-
-	allTargets map[string]ProfilingTarget
 }
 
 // AllTargets returns the set of all standard and custom profiling targets,
 // regardless of whether they're enabled. The key in the map indicates the name
 // of the target.
 func (cfg *ProfilingConfig) AllTargets() map[string]ProfilingTarget {
-	if cfg.allTargets == nil {
-		cfg.allTargets = cfg.buildAllTargets()
-	}
-	return cfg.allTargets
-}
-
-func (cfg ProfilingConfig) buildAllTargets() map[string]ProfilingTarget {
 	targets := map[string]ProfilingTarget{
 		pprofMemory:            cfg.Memory,
 		pprofBlock:             cfg.Block,
