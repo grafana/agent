@@ -155,7 +155,7 @@ This simple configuration will scrape logs for every pod on each node:
 // read the credentials secret for remote_write authorization
 remote.kubernetes.secret "credentials" {
   namespace = "monitoring"
-  name = "primary-credentials-logs"
+  name      = "primary-credentials-logs"
 }
 
 discovery.kubernetes "pods" {
