@@ -214,7 +214,7 @@ loki.process "pod_logs" {
     // Set the extract flags and stream values as labels
     stage.labels {
       values = {
-        flags  = "",
+        flags   = "",
         stream  = "",
       }
     }
