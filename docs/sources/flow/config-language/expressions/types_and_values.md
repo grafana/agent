@@ -90,7 +90,8 @@ The supported escape sequences are as follows:
 
 ## Raw strings
 
-Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```:
+Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```. 
+Raw strings do not support any escape sequences:
 
 ```river
 `Hello, "world"!`
