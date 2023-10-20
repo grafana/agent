@@ -322,8 +322,9 @@ Furthermore, we recommend that you review the following checklist:
   produced by Static mode.
 * Grafana Agent exposes the [Grafana Agent Flow UI][].
 
-{{% docs/reference %}}
 [debugging]: #debugging
+
+{{% docs/reference %}}
 [prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
 [prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape.md"
 [prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"

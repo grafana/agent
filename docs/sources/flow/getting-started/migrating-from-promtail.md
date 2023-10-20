@@ -230,10 +230,11 @@ Furthermore, we recommend that you review the following checklist:
 * Note that the Agent exposes the [Grafana Agent Flow UI][], which differs
   from Promtail's Web UI.
 
-{{% docs/reference %}}
 [Promtail]: https://www.grafana.com/docs/loki/<LOKI_VERSION>/clients/promtail/
 [debugging]: #debugging
 [expanded in the config file]: https://www.grafana.com/docs/loki/<LOKI_VERSION>/clients/promtail/configuration/#use-environment-variables-in-the-configuration
+
+{{% docs/reference %}}
 [local.file_match]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match.md"
 [local.file_match]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/local.file_match.md"
 [loki.source.file]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file.md"
