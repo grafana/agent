@@ -1,9 +1,10 @@
 package framework
 
 import (
+	"net/http/httptest"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"net/http/httptest"
 )
 
 type TestTarget struct {
