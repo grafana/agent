@@ -1,4 +1,4 @@
-package pipelinetests
+package framework
 
 import (
 	"net/http"

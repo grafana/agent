@@ -1,4 +1,4 @@
-package pipelinetests
+package framework
 
 import (
 	"math"
@@ -8,24 +8,24 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-type promData struct {
+type PromData struct {
 	mut        sync.Mutex
 	promWrites []*prompb.WriteRequest
 }
 
-func (r *promData) appendPromWrite(req *prompb.WriteRequest) {
+func (r *PromData) appendPromWrite(req *prompb.WriteRequest) {
 	r.mut.Lock()
 	defer r.mut.Unlock()
 	r.promWrites = append(r.promWrites, req)
 }
 
-func (r *promData) writesCount() int {
+func (r *PromData) WritesCount() int {
 	r.mut.Lock()
 	defer r.mut.Unlock()
 	return len(r.promWrites)
 }
 
-func (r *promData) findLastSampleMatching(name string, labelsKV ...string) float64 {
+func (r *PromData) FindLastSampleMatching(name string, labelsKV ...string) float64 {
 	labelsMap := make(map[string]string)
 	for i := 0; i < len(labelsKV); i += 2 {
 		labelsMap[labelsKV[i]] = labelsKV[i+1]
