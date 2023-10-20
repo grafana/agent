@@ -302,7 +302,7 @@ You can now check the pipeline graphically by visiting http://localhost:12345/gr
 
 {{% docs/reference %}}
 [OpenTelemetry]: https://opentelemetry.io
-[Grafana Loki]: /oss/loki/
+[Grafana Loki]: https://grafana.com/oss/loki/
 [Grafana Tempo]: https://grafana.com/oss/tempo/
 [GrafanaCloud Portal]: https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/#your-grafana-cloud-stack 
 [Prometheus Remote Write]: https://prometheus.io/docs/operating/integrations/#remote-endpoints-and-storage
