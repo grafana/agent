@@ -56,6 +56,9 @@ Main (unreleased)
 
 - Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
 
+- Fix an issue with static mode and `promtail` converters, where static targets 
+  did not correctly default to `localhost` when not provided. (@thampiotr)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)

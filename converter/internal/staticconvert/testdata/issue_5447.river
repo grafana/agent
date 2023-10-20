@@ -1,0 +1,60 @@
+prometheus.remote_write "metrics_default" {
+	external_labels = {
+		cluster = "docker-compose",
+		source  = "agent",
+	}
+
+	endpoint {
+		name = "default-de1a95"
+		url  = "http://mimir:8080/api/v1/push"
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}
+
+local.file_match "logs_default_integrations_mysql" {
+	path_targets = [{
+		__address__ = "localhost",
+		__path__    = "/var/log/mysql/error-log.log",
+		instance    = "grafana-mysql-db",
+		job         = "integrations/mysql",
+	}]
+}
+
+loki.process "logs_default_integrations_mysql" {
+	forward_to = [loki.write.logs_default.receiver]
+
+	stage.regex {
+		expression = "(?P<timestamp>.+) (?P<thread>[\\d]+) \\[(?P<label>.+?)\\]( \\[(?P<err_code>.+?)\\] \\[(?P<subsystem>.+?)\\])? (?P<msg>.+)"
+	}
+
+	stage.labels {
+		values = {
+			err_code  = null,
+			label     = null,
+			subsystem = null,
+		}
+	}
+
+	stage.drop {
+		drop_counter_reason = "drop empty lines"
+		expression          = "^ *$"
+	}
+}
+
+loki.source.file "logs_default_integrations_mysql" {
+	targets    = local.file_match.logs_default_integrations_mysql.targets
+	forward_to = [loki.process.logs_default_integrations_mysql.receiver]
+}
+
+loki.write "logs_default" {
+	endpoint {
+		url = "http://loki:3100/loki/api/v1/push"
+	}
+	external_labels = {
+		cluster = "docker-compose",
+		source  = "agent",
+	}
+}
