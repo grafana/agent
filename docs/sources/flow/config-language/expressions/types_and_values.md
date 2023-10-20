@@ -88,7 +88,7 @@ The supported escape sequences are as follows:
 | `\uNNNN` | A Unicode character from the basic multilingual plane (NNNN is four hexadecimal digits) |
 | `\UNNNNNNNN` | A Unicode character from supplementary planes (NNNNNNNN is eight hexadecimal digits) |
 
-## Raw Strings
+## Raw strings
 
 Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```:
 
