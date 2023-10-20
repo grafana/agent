@@ -20,7 +20,7 @@ This guide will provide some steps to get started with Grafana Agent for users c
 
 ## Deploy Grafana Agent with Helm
 
-1. You will need to create a `values.yaml` file, which contains options for how to deploy your agent. You may start with the [default values](https://github.com/grafana/agent/blob/main/operations/helm/charts/grafana-agent/values.yaml) and customize as you see fit, or start with this snippet, which should be a good starting point for what the operator does:
+1. You will need to create a `values.yaml` file, which contains options for how to deploy your Agent. You may start with the [default values](https://github.com/grafana/agent/blob/main/operations/helm/charts/grafana-agent/values.yaml) and customize as you see fit, or start with this snippet, which should be a good starting point for what the operator does:
 
     ```yaml
     agent:
