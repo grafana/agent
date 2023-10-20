@@ -124,10 +124,10 @@ func New(o component.Options, c Arguments) (*Component, error) {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
 
-			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.AppendHistogram(storage.SeriesRef(localID), l, t, h, fh)
 			if localID == 0 {
-				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			return globalRef, nextErr
 		}),
