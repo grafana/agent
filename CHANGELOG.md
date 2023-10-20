@@ -44,6 +44,8 @@ v0.37.3 (2023-10-26)
   - `otelcol.receiver.kafka` has a new `version` argument to change the version of 
     the SASL Protocol for SASL authentication.
 
+- Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
+
 v0.37.2 (2023-10-16)
 -----------------
 

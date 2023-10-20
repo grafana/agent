@@ -56,12 +56,12 @@ func newScrapePool(cfg Arguments, appendable pyroscope.Appendable, logger log.Lo
 func (tg *scrapePool) sync(groups []*targetgroup.Group) {
 	tg.mtx.Lock()
 	defer tg.mtx.Unlock()
-
+	allTargets := tg.config.ProfilingConfig.AllTargets()
 	level.Info(tg.logger).Log("msg", "syncing target groups", "job", tg.config.JobName)
 	var actives []*Target
-	tg.droppedTargets = []*Target{}
+	tg.droppedTargets = tg.droppedTargets[:0]
 	for _, group := range groups {
-		targets, dropped, err := targetsFromGroup(group, tg.config)
+		targets, dropped, err := targetsFromGroup(group, tg.config, allTargets)
 		if err != nil {
 			level.Error(tg.logger).Log("msg", "creating targets failed", "err", err)
 			continue
@@ -75,12 +75,12 @@ func (tg *scrapePool) sync(groups []*targetgroup.Group) {
 	}
 
 	for _, t := range actives {
-		if _, ok := tg.activeTargets[t.hash()]; !ok {
+		if _, ok := tg.activeTargets[t.Hash()]; !ok {
 			loop := newScrapeLoop(t, tg.scrapeClient, tg.appendable, tg.config.ScrapeInterval, tg.config.ScrapeTimeout, tg.logger)
-			tg.activeTargets[t.hash()] = loop
+			tg.activeTargets[t.Hash()] = loop
 			loop.start()
 		} else {
-			tg.activeTargets[t.hash()].SetDiscoveredLabels(t.DiscoveredLabels())
+			tg.activeTargets[t.Hash()].SetDiscoveredLabels(t.DiscoveredLabels())
 		}
 	}
 
@@ -88,7 +88,7 @@ func (tg *scrapePool) sync(groups []*targetgroup.Group) {
 Outer:
 	for h, t := range tg.activeTargets {
 		for _, at := range actives {
-			if h == at.hash() {
+			if h == at.Hash() {
 				continue Outer
 			}
 		}
@@ -179,7 +179,7 @@ func newScrapeLoop(t *Target, scrapeClient *http.Client, appendable pyroscope.Ap
 		Target:       t,
 		logger:       logger,
 		scrapeClient: scrapeClient,
-		appender:     NewDeltaAppender(appendable.Appender(), t.labels),
+		appender:     NewDeltaAppender(appendable.Appender(), t.allLabels),
 		interval:     interval,
 		timeout:      timeout,
 	}
@@ -222,7 +222,7 @@ func (t *scrapeLoop) scrape() {
 	)
 	defer cancel()
 
-	for _, l := range t.labels {
+	for _, l := range t.allLabels {
 		if l.Name == ProfileName {
 			profileType = l.Value
 			break
@@ -238,7 +238,7 @@ func (t *scrapeLoop) scrape() {
 	if len(b) > 0 {
 		t.lastScrapeSize = len(b)
 	}
-	if err := t.appender.Append(context.Background(), t.labels, []*pyroscope.RawSample{{RawProfile: b}}); err != nil {
+	if err := t.appender.Append(context.Background(), t.allLabels, []*pyroscope.RawSample{{RawProfile: b}}); err != nil {
 		level.Error(t.logger).Log("msg", "push failed", "labels", t.Labels().String(), "err", err)
 		t.updateTargetStatus(start, err)
 		return
@@ -262,7 +262,7 @@ func (t *scrapeLoop) updateTargetStatus(start time.Time, err error) {
 
 func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, buf io.Writer) error {
 	if t.req == nil {
-		req, err := http.NewRequest("GET", t.URL().String(), nil)
+		req, err := http.NewRequest("GET", t.URL(), nil)
 		if err != nil {
 			return err
 		}
