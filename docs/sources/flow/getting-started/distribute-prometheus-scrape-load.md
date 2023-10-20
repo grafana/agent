@@ -18,23 +18,17 @@ auto-distribution allows a fleet of agents to work together to dynamically
 distribute their scrape load, providing high-availability.
 
 {{% admonition type="note" %}}
-Clustering is a [beta]({{< relref "../../stability.md#beta" >}}) feature. Beta features are subject to breaking
+Clustering is a [beta](https://www.grafana.com/docs/agent/<AGENT_VERSION>/stability#beta) feature. Beta features are subject to breaking
 changes and may be replaced with equivalent functionality that covers the same
 use case.
 {{%/admonition %}}
-
-[Clustering]: {{< relref "../concepts/clustering.md" >}}
 
 ## Before you begin
 
 - Familiarize yourself with how to [configure existing Grafana Agent installations][configure-grafana-agent].
 - [Configure Prometheus metrics collection][].
 - [Configure clustering][] of agents.
-- Ensure that all of your clustered agents have the same config file.
-
-[configure-grafana-agent]: {{< relref "../setup/configure" >}}
-[Configure Prometheus metrics collection]: {{< relref "collect-prometheus-metrics.md" >}}
-[Configure clustering]: {{< relref "./configure-agent-clustering.md" >}}
+- Ensure that all of your clustered agents have the same configuration file.
 
 ## Steps
 
@@ -57,6 +51,17 @@ To distribute Prometheus metrics scrape load with clustering:
       the `prometheus.scrape` components you modified.
 
    2. Compare the Debug Info sections between two different agents to ensure
-      that they are not scraping the same sets of targets.
+      that they're not scraping the same sets of targets.
 
-[UI]: {{< relref "../monitoring/debugging.md#component-detail-page" >}}
+{{% docs/reference %}}
+[Clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
+[Clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/clustering.md"
+[configure-grafana-agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure"
+[configure-grafana-agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure"
+[Configure Prometheus metrics collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics.md"
+[Configure Prometheus metrics collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/collect-prometheus-metrics.md"
+[Configure clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/configure-agent-clustering.md"
+[Configure clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/configure-agent-clustering.md"
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#component-detail-page"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#component-detail-page"
+{{% /docs/reference %}}
