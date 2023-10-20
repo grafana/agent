@@ -11,10 +11,14 @@ import (
 )
 
 type RuntimeContext struct {
-	AgentPort      int
+	// AgentPort is the port the agent's HTTP server is listening on.
+	AgentPort int
+	// DataSentToProm is a collection of data sent to the fake test Prometheus server.
 	DataSentToProm *PromData
+	// DataSentToLoki is a collection of data sent to the fake test Loki server.
 	DataSentToLoki *LokiData
-	TestTarget     *TestTarget
+	// TestTarget is a fake test target that can be used to expose metrics that can be scraped by the agent.
+	TestTarget *TestTarget
 }
 
 func newAgentRuntimeContext(t *testing.T) (*RuntimeContext, func()) {

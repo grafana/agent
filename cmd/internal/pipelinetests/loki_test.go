@@ -43,19 +43,16 @@ func TestPipeline_Loki_APILogsWrite(topT *testing.T) {
 		Entry:  logproto.Entry{Timestamp: time.Now(), Line: "hello world!"},
 	}
 
-	logLineSent := false
-
 	framework.PipelineTest{
 		ConfigFile: "testdata/loki_source_api_write.river",
 		Environment: map[string]string{
 			"API_SERVER_PORT": fmt.Sprintf("%d", apiServerPort),
 		},
+		Before: func(context *framework.RuntimeContext) {
+			// Send the line first
+			lokiClient.Chan() <- testLogEntry
+		},
 		EventuallyAssert: func(t *assert.CollectT, context *framework.RuntimeContext) {
-			// Send the line if not yet sent
-			if !logLineSent {
-				lokiClient.Chan() <- testLogEntry
-				logLineSent = true
-			}
 			// Verify we have received the line at the other end of the pipeline
 			line, labels := context.DataSentToLoki.FindLineContaining("hello world!")
 			assert.NotNil(t, line)

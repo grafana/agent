@@ -21,6 +21,9 @@ const (
 type PipelineTest struct {
 	// ConfigFile is the path to the config file to be used for the test.
 	ConfigFile string
+	// Before is a function that will be called once, right after the agent is started, but before we start checking
+	// for the assertions. Can be nil.
+	Before func(context *RuntimeContext)
 	// EventuallyAssert is a function that will be called after the agent has started, repeatedly until all assertions
 	// are satisfied or the default timeout is reached. The provided context contains all the extra information that
 	// the framework has collected, such as data received by the fake prometheus server.
@@ -69,6 +72,10 @@ func (p PipelineTest) RunTest(t *testing.T) {
 
 	doneErr := make(chan error)
 	go func() { doneErr <- cmd.ExecuteContext(ctx) }()
+
+	if p.Before != nil {
+		p.Before(agentRuntimeCtx)
+	}
 
 	assertionsDone := make(chan struct{})
 	go func() {
