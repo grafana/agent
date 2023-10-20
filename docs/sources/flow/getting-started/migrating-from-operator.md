@@ -244,7 +244,7 @@ loki.process "pod_logs" {
 
 loki.write "loki" {
   endpoint {
-    url = "https://LOKI_URL/api/v1/push"
+    url = "https://LOKI_URL/loki/api/v1/push"
     basic_auth {
       username = nonsensitive(remote.kubernetes.secret.credentials.data["username"])
       password = remote.kubernetes.secret.credentials.data["password"]
