@@ -51,7 +51,7 @@ This guide will provide some steps to get started with Grafana Agent for users c
     helm repo update
     ```
 
-4. Create a helm relase. You may name the relase anything you like. Here we are installing a release named `grafana-agent-metrics` in the `monitoring` namespace.
+4. Create a helm release. You may name the release anything you like. Here we are installing a release named `grafana-agent-metrics` in the `monitoring` namespace.
 
     ```
     helm upgrade grafana-agent-metrics grafana/grafana-agent -i -n monitoring -f values.yaml --set-file agent.configMap.content=agent.river
