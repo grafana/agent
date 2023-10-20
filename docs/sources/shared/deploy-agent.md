@@ -6,10 +6,11 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/deploy-agent/
 canonical: https://grafana.com/docs/agent/latest/shared/deploy-agent/
 description: Shared content, deployment topologies for Grafana Agent
+title: Deploy Grafana Agent
 headless: true
 ---
 
-# Deploying Grafana Agent
+# Deploy Grafana Agent
 
 Grafana Agent is a flexible, vendor-neutral telemetry collector. This
 flexibility means that Grafana Agent doesn’t enforce a specific deployment topology
@@ -47,7 +48,7 @@ You can also use a Kubernetes deployment in cases where persistent storage is no
 * Easy to meta-monitor
 
 ### Cons
-* Requires running on separate infrastructure
+* Requires running on separate infrastructureDeploying Grafana Agent
 
 ### Use for
 * Scalable telemetry collection
