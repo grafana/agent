@@ -171,27 +171,27 @@ discovery.relabel "pod_logs" {
   targets = discovery.kubernetes.pods.targets
   rule {
     source_labels = ["__meta_kubernetes_namespace"]
-    target_label = "namespace"
+    target_label  = "namespace"
   }
   rule {
     source_labels = ["__meta_kubernetes_pod_name"]
-    target_label = "pod"
+    target_label  = "pod"
   }
   rule {
     source_labels = ["__meta_kubernetes_pod_container_name"]
-    target_label = "container"
+    target_label  = "container"
   }
   rule {
     source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name"]
-    separator = "/"
-    target_label = "job"
+    separator     = "/"
+    target_label  = "job"
   }
   rule {
     source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
-    separator = "/"
-    action = "replace"
-    replacement = "/var/log/pods/*$1/*.log"
-    target_label = "__path__"
+    separator     = "/"
+    action        = "replace"
+    replacement   = "/var/log/pods/*$1/*.log"
+    target_label  = "__path__"
   }
 }
 
