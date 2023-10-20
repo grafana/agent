@@ -36,6 +36,7 @@ type Arguments struct {
 	IncludeScopeLabels bool                 `river:"include_scope_labels,attr,optional"`
 	GCFrequency        time.Duration        `river:"gc_frequency,attr,optional"`
 	ForwardTo          []storage.Appendable `river:"forward_to,attr"`
+	AddMetricSuffixes  bool                 `river:"add_metrics_suffixes,attr,optional"`
 }
 
 // DefaultArguments holds defaults values.
@@ -44,6 +45,7 @@ var DefaultArguments = Arguments{
 	IncludeScopeInfo:   false,
 	IncludeScopeLabels: true,
 	GCFrequency:        5 * time.Minute,
+	AddMetricSuffixes:  true,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -86,6 +88,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	converter := convert.New(o.Logger, fanout, convert.Options{
 		IncludeTargetInfo: true,
 		IncludeScopeInfo:  false,
+		AddMetricSuffixes: true,
 	})
 
 	res := &Component{
