@@ -33,11 +33,6 @@ installed on Kubernetes using the [Grafana Agent Helm chart][install-helm].
 
 [install-helm]: {{< relref "../setup/install/kubernetes.md" >}}
 
-### Before you begin
-
-- Ensure that your `values.yaml` file has `controller.type` set to
-  `statefulset`.
-
 ### Steps
 
 To configure clustering:
