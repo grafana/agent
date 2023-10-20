@@ -1,4 +1,4 @@
-package pipelinetests
+package framework
 
 import (
 	"fmt"
@@ -9,22 +9,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type runtimeContext struct {
-	agentPort      int
-	dataSentToProm *promData
+type RuntimeContext struct {
+	AgentPort      int
+	DataSentToProm *PromData
 }
 
-func newAgentRuntimeContext(t *testing.T) (*runtimeContext, func()) {
+func newAgentRuntimeContext(t *testing.T) (*RuntimeContext, func()) {
 	agentPort, err := freeport.GetFreePort()
 	require.NoError(t, err)
 	cleanAgentPortVar := setEnvVariable(t, "AGENT_SELF_HTTP_PORT", fmt.Sprintf("%d", agentPort))
 
-	agentRuntimeCtx := &runtimeContext{
-		agentPort:      agentPort,
-		dataSentToProm: &promData{},
+	agentRuntimeCtx := &RuntimeContext{
+		AgentPort:      agentPort,
+		DataSentToProm: &PromData{},
 	}
 
-	promServer := newTestPromServer(agentRuntimeCtx.dataSentToProm.appendPromWrite)
+	promServer := newTestPromServer(agentRuntimeCtx.DataSentToProm.appendPromWrite)
 	cleanPromServerVar := setEnvVariable(t, "PROM_SERVER_URL", fmt.Sprintf("%s/api/v1/write", promServer.URL))
 
 	return agentRuntimeCtx, func() {
