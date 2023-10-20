@@ -40,7 +40,7 @@ This guide will provide some steps to get started with Grafana Agent for users c
     
     This is not the only deployment mode possible. For example, you may desire a `DaemonSet` if collecting host level logs or metrics. See [the Agent deployment guide](https://grafana.com/docs/agent/latest/flow/setup/deploy-agent/) for more details about different topologies.
 
-2. Create a flow config file, `agent.river`.
+2. Create a Flow config file, `agent.river`.
 
     You can add any config you need directly to this file.
 
@@ -57,9 +57,9 @@ This guide will provide some steps to get started with Grafana Agent for users c
     helm upgrade grafana-agent-metrics grafana/grafana-agent -i -n monitoring -f values.yaml --set-file agent.configMap.content=agent.river
     ```
 
-    This command uses the `--set-file` flag to pass the configuration file as a Hhelm value, so that we can continue to edit it as a regular River file.
+    This command uses the `--set-file` flag to pass the configuration file as a Helm value, so that we can continue to edit it as a regular River file.
 
-## Convert `MetricsIntances` to flow components
+## Convert `MetricsIntances` to Flow components
 
 A `MetricsInstance` resource primarily defines:
 
@@ -259,4 +259,4 @@ and has many options for processing logs. For further details see the [component
 
 ## Integrations
 
-The `Integration` CRD is not supported with Grafana Agent Flow, however all static mode integrations have an eqivalent component in the [`prometheus.exporter`](https://grafana.com/docs/agent/latest/flow/reference/components) namespace. The reference docs should help convert those integrations to their flow equivalent.
+The `Integration` CRD is not supported with Grafana Agent Flow, however all static mode integrations have an eqivalent component in the [`prometheus.exporter`](https://grafana.com/docs/agent/latest/flow/reference/components) namespace. The reference docs should help convert those integrations to their Flow equivalent.
