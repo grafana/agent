@@ -43,11 +43,12 @@ const (
 
 // Target refers to a singular HTTP or HTTPS endpoint.
 type Target struct {
+	// All labels of this target - public and private
+	allLabels labels.Labels
+	// Only public labels that are added to this target and its metrics.
+	publicLabels labels.Labels
 	// Labels before any processing.
 	discoveredLabels labels.Labels
-	// Any privateLabels that are added to this target and its metrics.
-	privateLabels labels.Labels
-	labels        labels.Labels
 	// Additional URL parameters that are part of the target URL.
 	params url.Values
 	hash   uint64
@@ -68,24 +69,24 @@ func NewTarget(lbls, discoveredLabels labels.Labels, params url.Values) *Target 
 			publicLabels = append(publicLabels, l)
 		}
 	}
-	url := URLFromTarget(lbls, params)
+	url := urlFromTarget(lbls, params)
 
 	h := fnv.New64a()
-	_, _ = h.Write([]byte(fmt.Sprintf("%016d", publicLabels.Hash())))
+	_, _ = h.Write([]byte(strconv.FormatUint(publicLabels.Hash(), 16)))
 	_, _ = h.Write([]byte(url))
 
 	return &Target{
-		privateLabels:    lbls,
+		allLabels:        lbls,
 		url:              url,
 		hash:             h.Sum64(),
-		labels:           publicLabels,
+		publicLabels:     publicLabels,
 		discoveredLabels: discoveredLabels,
 		params:           params,
 		health:           HealthUnknown,
 	}
 }
 
-func URLFromTarget(lbls labels.Labels, params url.Values) string {
+func urlFromTarget(lbls labels.Labels, params url.Values) string {
 	newParams := url.Values{}
 
 	for k, v := range params {
@@ -117,7 +118,7 @@ func (t *Target) String() string {
 	return t.URL()
 }
 
-// hash returns an identifying hash for the target.
+// Hash returns an identifying hash for the target, based on public labels and the URL.
 func (t *Target) Hash() uint64 {
 	return t.hash
 }
@@ -148,9 +149,9 @@ func (t *Target) Params() url.Values {
 	return q
 }
 
-// Labels returns a copy of the set of all public labels of the target.
+// Labels returns the set of all public labels of the target. Callers must not modify the returned labels.
 func (t *Target) Labels() labels.Labels {
-	return t.labels
+	return t.publicLabels
 }
 
 // DiscoveredLabels returns a copy of the target's labels before any processing.
@@ -178,7 +179,7 @@ func (t *Target) SetDiscoveredLabels(l labels.Labels) {
 	t.discoveredLabels = l
 }
 
-// URL returns a copy of the target's URL.
+// URL returns the target's URL as string.
 func (t *Target) URL() string {
 	return t.url
 }
@@ -346,7 +347,7 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 	return res, lset, nil
 }
 
-// targetsFromGroup builds targets based on the given TargetGroup and config.
+// targetsFromGroup builds targets based on the given TargetGroup, config and target types map.
 func targetsFromGroup(group *targetgroup.Group, cfg Arguments, targetTypes map[string]ProfilingTarget) ([]*Target, []*Target, error) {
 	var (
 		targets        = make([]*Target, 0, len(group.Targets))
