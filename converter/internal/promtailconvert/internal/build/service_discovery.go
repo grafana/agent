@@ -115,7 +115,9 @@ func toDiscoveryConfig(cfg *scrapeconfig.Config) prom_discover.Configs {
 		for i, targetGroup := range cfg.ServiceDiscoveryConfig.StaticConfigs {
 			targetGroup.Source = fmt.Sprintf("%d", i)
 			if len(targetGroup.Targets) == 0 {
-				targetGroup.Targets = []model.LabelSet{map[model.LabelName]model.LabelValue{"__address__": "localhost"}}
+				targetGroup.Targets = []model.LabelSet{
+					{model.AddressLabel: "localhost"},
+				}
 			}
 		}
 		sdConfigs = append(sdConfigs, cfg.ServiceDiscoveryConfig.StaticConfigs)
