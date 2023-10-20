@@ -300,14 +300,13 @@ You can now check the pipeline graphically by visiting http://localhost:12345/gr
 
 ![](../../../assets/getting-started/otlp-lgtm-graph.png)
 
+{{% docs/reference %}}
 [OpenTelemetry]: https://opentelemetry.io
 [Grafana Loki]: /oss/loki/
 [Grafana Tempo]: https://grafana.com/oss/tempo/
 [GrafanaCloud Portal]: https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/#your-grafana-cloud-stack 
 [Prometheus Remote Write]: https://prometheus.io/docs/operating/integrations/#remote-endpoints-and-storage
 [Grafana Mimir]: https://grafana.com/oss/mimir/
-
-{{% docs/reference %}}
 [Collect open telemetry data]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data.md"
 [Collect open telemetry data]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/collect-opentelemetry-data.md"
 [Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
