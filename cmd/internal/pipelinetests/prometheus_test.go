@@ -2,6 +2,7 @@ package pipelinetests
 
 import (
 	"testing"
+	"time"
 
 	"github.com/grafana/agent/cmd/internal/pipelinetests/internal/framework"
 	"github.com/prometheus/client_golang/prometheus"
@@ -9,8 +10,9 @@ import (
 )
 
 func TestPipeline_Prometheus_SelfScrapeAndWrite(topT *testing.T) {
-	framework.RunPipelineTest(topT, framework.PipelineTest{
+	framework.PipelineTest{
 		ConfigFile: "testdata/self_scrape_and_write.river",
+		Timeout:    1 * time.Minute, // prometheus tests are slower due to remote_write/wal issues
 		EventuallyAssert: func(t *assert.CollectT, context *framework.RuntimeContext) {
 			assert.NotEmptyf(t, context.DataSentToProm.WritesCount(), "must receive at least one prom write request")
 			// One target expected
@@ -42,21 +44,23 @@ func TestPipeline_Prometheus_SelfScrapeAndWrite(topT *testing.T) {
 				"job", "agent",
 			), float64(100))
 		},
-	})
+	}.RunTest(topT)
 }
 
 func TestPipeline_Prometheus_TargetScrapeAndWrite(topT *testing.T) {
-	framework.RunPipelineTest(topT, framework.PipelineTest{
+	framework.PipelineTest{
 		ConfigFile:       "testdata/target_scrape_and_write.river",
+		Timeout:          1 * time.Minute, // prometheus tests are slower due to remote_write/wal issues
 		EventuallyAssert: verifyDifferentTypesOfMetricsWithTestTarget(),
-	})
+	}.RunTest(topT)
 }
 
 func TestPipeline_Prometheus_TargetScrapeAndWrite_WithOTELConversion(topT *testing.T) {
-	framework.RunPipelineTest(topT, framework.PipelineTest{
+	framework.PipelineTest{
 		ConfigFile:       "testdata/target_scrape_and_write_otel_conversion.river",
+		Timeout:          1 * time.Minute, // prometheus tests are slower due to remote_write/wal issues
 		EventuallyAssert: verifyDifferentTypesOfMetricsWithTestTarget(),
-	})
+	}.RunTest(topT)
 }
 
 // verifyDifferentTypesOfMetricsWithTestTarget exposes different metrics using the context.TestTarget and then

@@ -1,0 +1,12 @@
+logging {
+  level  = "debug"
+  format = "logfmt"
+  write_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+  endpoint {
+    url = env("LOKI_SERVER_URL")
+    batch_wait = "100ms"
+  }
+}

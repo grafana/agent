@@ -13,6 +13,7 @@ import (
 type RuntimeContext struct {
 	AgentPort      int
 	DataSentToProm *PromData
+	DataSentToLoki *LokiData
 	TestTarget     *TestTarget
 }
 
@@ -27,11 +28,15 @@ func newAgentRuntimeContext(t *testing.T) (*RuntimeContext, func()) {
 	agentRuntimeCtx := &RuntimeContext{
 		AgentPort:      agentPort,
 		DataSentToProm: &PromData{},
+		DataSentToLoki: &LokiData{},
 		TestTarget:     testTarget,
 	}
 
 	promServer := newTestPromServer(agentRuntimeCtx.DataSentToProm.appendPromWrite)
 	cleanPromServerVar := setEnvVariable(t, "PROM_SERVER_URL", fmt.Sprintf("%s/api/v1/write", promServer.URL))
+
+	lokiServer := newTestLokiServer(agentRuntimeCtx.DataSentToLoki.appendLokiWrite)
+	cleanLokiServerVar := setEnvVariable(t, "LOKI_SERVER_URL", lokiServer.URL)
 
 	return agentRuntimeCtx, func() {
 		cleanAgentPortVar()
@@ -39,6 +44,8 @@ func newAgentRuntimeContext(t *testing.T) (*RuntimeContext, func()) {
 		cleanTestTargetVar()
 		promServer.Close()
 		cleanPromServerVar()
+		lokiServer.Close()
+		cleanLokiServerVar()
 	}
 }
 
