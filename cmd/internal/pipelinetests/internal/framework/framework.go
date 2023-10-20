@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultTimeout         = 1 * time.Minute
+	defaultTimeout         = 10 * time.Second
 	assertionCheckInterval = 100 * time.Millisecond
 	shutdownTimeout        = 5 * time.Second
 )
@@ -31,10 +31,25 @@ type PipelineTest struct {
 	// RequireCleanShutdown indicates whether the test framework should verify that the agent shut down cleanly after
 	// the test case has completed.
 	RequireCleanShutdown bool
+	// Timeout is the maximum amount of time the test case is allowed to run. If 0, defaultTimeout is used.
+	Timeout time.Duration
+	// Environment is a map of environment variables to be set before running the test. It will be automatically
+	// cleaned. The values can be used inside the config files using the `env("ENV_VAR")` syntax.
+	Environment map[string]string
 }
 
-func RunPipelineTest(t *testing.T, testCase PipelineTest) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+func (p PipelineTest) RunTest(t *testing.T) {
+	if p.Timeout == 0 {
+		p.Timeout = defaultTimeout
+	}
+	// Main context has some padding added to the timeout to allow for assertions error message to surface first.
+	ctx, cancel := context.WithTimeout(context.Background(), p.Timeout+2*assertionCheckInterval)
+
+	for k, v := range p.Environment {
+		cleanUp := setEnvVariable(t, k, v)
+		//goland:noinspection GoDeferInLoop
+		defer cleanUp()
+	}
 
 	cleanUp := setUpGlobalRegistryForTesting(prometheus.NewRegistry())
 	defer cleanUp()
@@ -45,7 +60,7 @@ func RunPipelineTest(t *testing.T, testCase PipelineTest) {
 	cmd := flowmode.Command()
 	cmd.SetArgs([]string{
 		"run",
-		testCase.ConfigFile,
+		p.ConfigFile,
 		"--server.http.listen-addr",
 		fmt.Sprintf("127.0.0.1:%d", agentRuntimeCtx.AgentPort),
 		"--storage.path",
@@ -57,10 +72,10 @@ func RunPipelineTest(t *testing.T, testCase PipelineTest) {
 
 	assertionsDone := make(chan struct{})
 	go func() {
-		if testCase.EventuallyAssert != nil {
+		if p.EventuallyAssert != nil {
 			require.EventuallyWithT(t, func(t *assert.CollectT) {
-				testCase.EventuallyAssert(t, agentRuntimeCtx)
-			}, defaultTimeout, assertionCheckInterval)
+				p.EventuallyAssert(t, agentRuntimeCtx)
+			}, p.Timeout, assertionCheckInterval)
 		}
 		assertionsDone <- struct{}{}
 	}()
@@ -70,7 +85,7 @@ func RunPipelineTest(t *testing.T, testCase PipelineTest) {
 		t.Fatalf("test case failed to complete within deadline")
 	case <-assertionsDone:
 	case err := <-doneErr:
-		verifyDoneError(t, testCase, err)
+		verifyDoneError(t, p, err)
 		cancel()
 		return
 	}
@@ -79,13 +94,13 @@ func RunPipelineTest(t *testing.T, testCase PipelineTest) {
 	cancel()
 	select {
 	case <-time.After(shutdownTimeout):
-		if testCase.RequireCleanShutdown {
+		if p.RequireCleanShutdown {
 			t.Fatalf("agent failed to shut down within deadline")
 		} else {
 			t.Log("agent failed to shut down within deadline")
 		}
 	case err := <-doneErr:
-		verifyDoneError(t, testCase, err)
+		verifyDoneError(t, p, err)
 	}
 }
 
