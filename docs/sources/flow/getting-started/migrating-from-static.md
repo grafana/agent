@@ -20,8 +20,6 @@ This topic describes how to:
 * Convert a Grafana Agent Static mode configuration to a Flow mode configuration.
 * Run a Grafana Agent Static mode configuration natively using Grafana Agent Flow mode.
 
-[Static]: {{< relref "../../static/_index.md" >}}
-
 ## Components used in this topic
 
 * [prometheus.scrape][]
@@ -325,6 +323,8 @@ Furthermore, we recommend that you review the following checklist:
 [debugging]: #debugging
 
 {{% docs/reference %}}
+[Static]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static"
+[Static]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static"
 [prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
 [prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape.md"
 [prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
