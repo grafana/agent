@@ -59,6 +59,8 @@ Main (unreleased)
 
 - Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
 
+- Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
+
 v0.37.2 (2023-10-16)
 -----------------
 
