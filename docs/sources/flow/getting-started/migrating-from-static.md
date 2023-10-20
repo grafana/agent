@@ -142,8 +142,6 @@ mode configuration file.
 
    {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Grafana Agent Static mode configuration. Do not use this flag in a production environment.{{%/admonition %}}
 
-[debugging]: #debugging
-
 ## Example
 
 This example demonstrates converting a [Static] mode configuration file to a Flow mode configuration file.
@@ -323,6 +321,8 @@ Furthermore, we recommend that you review the following checklist:
 * The logs produced by Grafana Agent Flow mode will differ from those
   produced by Static mode.
 * Grafana Agent exposes the [Grafana Agent Flow UI][].
+
+[debugging]: #debugging
 
 {{% docs/reference %}}
 [prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
