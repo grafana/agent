@@ -7,7 +7,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/cadvisor"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	cadvisor_integration "github.com/grafana/agent/pkg/integrations/cadvisor"
 )
 
@@ -20,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendCadvisorExporter(config *cadvisor_in
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.cadvisor.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.cadvisor.%s.targets", compLabel))
 }
 
 func toCadvisorExporter(config *cadvisor_integration.Config) *cadvisor.Arguments {

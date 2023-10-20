@@ -28,7 +28,7 @@ func Test_targetsFromGroup(t *testing.T) {
 		Labels: model.LabelSet{
 			"foo": "bar",
 		},
-	}, args)
+	}, args, args.ProfilingConfig.AllTargets())
 	expected := []*Target{
 		// unspecified
 		NewTarget(
@@ -68,7 +68,7 @@ func Test_targetsFromGroup(t *testing.T) {
 			}),
 			url.Values{"seconds": []string{"14"}}),
 
-		//specified
+		// specified
 		NewTarget(
 			labels.FromMap(map[string]string{
 				model.AddressLabel:    "localhost:9091",

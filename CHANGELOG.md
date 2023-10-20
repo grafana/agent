@@ -14,6 +14,22 @@ Main (unreleased)
 
 - Remove `otelcol.exporter.jaeger` component (@hainenber)
 
+- In the mysqld exporter integration, some metrics are removed and others are renamed. (@marctc)
+  - Removed metrics:
+    - "mysql_last_scrape_failed" (gauge)
+    - "mysql_exporter_scrapes_total" (counter)
+    - "mysql_exporter_scrape_errors_total" (counter)
+  - Metric names in the `info_schema.processlist` collector have been [changed](https://github.com/prometheus/mysqld_exporter/pull/603).
+  - Metric names in the `info_schema.replica_host` collector have been [changed](https://github.com/prometheus/mysqld_exporter/pull/496).
+  - Changes related to `replication_group_member_stats collector`:
+    - metric "transaction_in_queue" was Counter instead of Gauge
+    - renamed 3 metrics starting with `mysql_perf_schema_transaction_` to start with `mysql_perf_schema_transactions_` to be consistent with column names.
+    - exposing only server's own stats by matching `MEMBER_ID` with `@@server_uuid` resulting "member_id" label to be dropped.
+
+### Other changes
+
+- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
+
 ### Features
 
 - Added a new `stage.decolorize` stage to `loki.process` component which 
@@ -29,12 +45,26 @@ Main (unreleased)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
   allowing invalid combination of configuration options. (@thampiotr)
-  
+
+- Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
+  permanently fail to load with `id already exists` error. (@mattdurham)
+
+- Fixed some converter diagnostics so they show as warnings rather than errors. Improve
+  clarity for various diagnostics. (@erikbaranowski)
+
+- Wire up the agent exporter integration for the static converter. (@erikbaranowski)
+
+- Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
+
+- Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
 
 - Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
+
+- Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
 
 v0.37.2 (2023-10-16)
 -----------------
@@ -54,6 +84,10 @@ v0.37.2 (2023-10-16)
 - Update Prometheus dependency to v2.47.2. (@tpaschalis)
 
 - Allow Out of Order writing to the WAL for metrics. (@mattdurham)
+
+- Added new config options to spanmetrics processor in static mode (@ptodev):
+  - `aggregation_temporality`: configures whether to reset the metrics after flushing.
+  - `metrics_flush_interval`: configures how often to flush generated metrics.
 
 ### Other changes
 

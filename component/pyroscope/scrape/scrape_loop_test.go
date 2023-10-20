@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/pkg/util"
@@ -201,4 +202,50 @@ func TestScrapeLoop(t *testing.T) {
 	require.Error(t, loop.LastError())
 	require.WithinDuration(t, time.Now(), loop.LastScrape(), 1*time.Second)
 	require.NotEmpty(t, loop.LastScrapeDuration())
+}
+
+func BenchmarkSync(b *testing.B) {
+	args := NewDefaultArguments()
+	args.Targets = []discovery.Target{}
+
+	p, err := newScrapePool(args, pyroscope.AppendableFunc(
+		func(ctx context.Context, labels labels.Labels, samples []*pyroscope.RawSample) error {
+			return nil
+		}),
+		log.NewNopLogger())
+	require.NoError(b, err)
+	groups1 := []*targetgroup.Group{
+		{
+			Targets: []model.LabelSet{
+				{model.AddressLabel: "localhost:9090", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9091", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9092", serviceNameLabel: "s"},
+			},
+			Labels: model.LabelSet{"foo": "bar"},
+		},
+	}
+	groups2 := []*targetgroup.Group{
+		{
+			Targets: []model.LabelSet{
+				{model.AddressLabel: "localhost:9090", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9091", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9092", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9093", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9094", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9095", serviceNameLabel: "s"},
+			},
+			Labels: model.LabelSet{"foo": "bar"},
+		},
+	}
+
+	defer p.stop()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		p.sync(groups1)
+		p.sync(groups2)
+		p.sync([]*targetgroup.Group{})
+	}
 }

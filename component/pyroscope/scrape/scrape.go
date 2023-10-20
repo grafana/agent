@@ -102,7 +102,7 @@ type ProfilingConfig struct {
 // AllTargets returns the set of all standard and custom profiling targets,
 // regardless of whether they're enabled. The key in the map indicates the name
 // of the target.
-func (cfg ProfilingConfig) AllTargets() map[string]ProfilingTarget {
+func (cfg *ProfilingConfig) AllTargets() map[string]ProfilingTarget {
 	targets := map[string]ProfilingTarget{
 		pprofMemory:            cfg.Memory,
 		pprofBlock:             cfg.Block,
@@ -376,7 +376,7 @@ func (c *Component) DebugInfo() interface{} {
 			if st != nil {
 				res = append(res, scrape.TargetStatus{
 					JobName:            job,
-					URL:                st.URL().String(),
+					URL:                st.URL(),
 					Health:             string(st.Health()),
 					Labels:             st.discoveredLabels.Map(),
 					LastError:          lastError,

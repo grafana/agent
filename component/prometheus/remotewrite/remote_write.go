@@ -12,6 +12,7 @@ import (
 	"go.uber.org/atomic"
 
 	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 
@@ -115,6 +116,18 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			newRef, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+			}
+			return globalRef, nextErr
+		}),
+		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
+			if res.exited.Load() {
+				return 0, fmt.Errorf("%s has exited", o.ID)
+			}
+
+			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			newRef, nextErr := next.AppendHistogram(storage.SeriesRef(localID), l, t, h, fh)
+			if localID == 0 {
+				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			return globalRef, nextErr
 		}),

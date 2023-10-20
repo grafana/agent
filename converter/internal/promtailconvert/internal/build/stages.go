@@ -91,7 +91,7 @@ func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 		}
 	}
 
-	diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported pipeline stage: %v", st))
+	diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided pipeline stage: %v", st))
 	return stages.StageConfig{}, false
 }
 
