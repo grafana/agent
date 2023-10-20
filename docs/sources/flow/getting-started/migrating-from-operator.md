@@ -68,7 +68,7 @@ A `MetricsInstance` resource primarily defines:
 
 These functions can be done in Grafana Agent Flow with the `prometheus.remote_write`, `prometheus.operator.podmonitors`, `prometheus.operator.servicemonitors`, and `prometheus.operator.probes` components respectively.
 
-This is a river sample that is equivalent to the `MetricsInstance` from our [operator guide](https://grafana.com/docs/agent/latest/operator/deploy-agent-operator-resources/#deploy-a-metricsinstance-resource):
+This is a River sample that is equivalent to the `MetricsInstance` from our [operator guide](https://grafana.com/docs/agent/latest/operator/deploy-agent-operator-resources/#deploy-a-metricsinstance-resource):
 
 ```river
 
