@@ -58,11 +58,16 @@ Main (unreleased)
 
 - Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
 
+- Fix an issue with static mode and `promtail` converters, where static targets 
+  did not correctly default to `localhost` when not provided. (@thampiotr)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
 
 - Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
+
+- Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
 
 v0.37.2 (2023-10-16)
 -----------------
