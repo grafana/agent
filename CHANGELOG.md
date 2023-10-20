@@ -41,6 +41,8 @@ Main (unreleased)
 - Added a new `stage.eventlogmessage` stage to `loki.process` component which
   allows to extract data from Windows Event Log. (@thampiotr)
 
+- Update version of River to support raw strings in flow using a backtick. (@erikbaranowski)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
