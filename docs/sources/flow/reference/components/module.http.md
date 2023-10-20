@@ -116,9 +116,9 @@ unhealthy, and the health includes the error from loading the module.
 ## Example
 
 In this example, the `module.http` component loads a module from a locally running
-HTTP server, polling for changes once every minute. 
+HTTP server, polling for changes once every minute.
 
-The module sets up a Redis exporter and exports the list of targets to the parent config to scrape 
+The module sets up a Redis exporter and exports the list of targets to the parent config to scrape
 and remote write.
 
 
@@ -130,10 +130,10 @@ module.http "remote_module" {
   poll_frequency   = "1m"
 }
 
-prometheus.exporter.unix { }
+prometheus.exporter.unix "default" { }
 
 prometheus.scrape "local_agent" {
-  targets         = concat(prometheus.exporter.unix.targets, module.http.remote_module.exports.targets)
+  targets         = concat(prometheus.exporter.unix.default.targets, module.http.remote_module.exports.targets)
   forward_to      = [module.http.metrics.exports.prometheus_remote_write.receiver]
   scrape_interval = "10s"
 }
