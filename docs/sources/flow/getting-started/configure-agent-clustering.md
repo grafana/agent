@@ -25,7 +25,7 @@ This topic describes how to add clustering to an existing installation.
 
 ## Configure Grafana Agent clustering with Helm Chart
 
-This section will guide you through enabling clustering when Grafana Agent is
+This section guides you through enabling clustering when Grafana Agent is
 installed on Kubernetes using the [Grafana Agent Helm chart][install-helm].
 
 ### Before you begin
