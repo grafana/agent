@@ -1,0 +1,47 @@
+logging {
+  level  = "debug"
+  format = "logfmt"
+}
+
+// Scrape test target and send to OTEL converter
+prometheus.scrape "agent_self" {
+	targets = [
+		{"__address__" = env("TEST_TARGET_ADDRESS"), "job" = "test_target"},
+	]
+	forward_to      = [otelcol.receiver.prometheus.to_otel.receiver]
+
+  // Scrape settings for the impatient
+	scrape_interval = "250ms"
+	scrape_timeout  = "250ms"
+}
+
+// converts prom metrics and sends to OTEL batch processor
+otelcol.receiver.prometheus "to_otel" {
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+  }
+}
+
+// Batches metrics and sends to OTEL exporter
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.prometheus.default.input]
+  }
+}
+
+// Converts metrics to prom and sends to remote_write
+otelcol.exporter.prometheus "default" {
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+// Sends to test prom server
+prometheus.remote_write "default" {
+	endpoint {
+		url = env("PROM_SERVER_URL")
+
+		// Queue settings for the impatient
+		queue_config {
+      batch_send_deadline = "250ms"
+    }
+	}
+}
