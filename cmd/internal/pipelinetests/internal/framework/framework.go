@@ -18,9 +18,17 @@ const (
 )
 
 type PipelineTest struct {
-	ConfigFile           string
-	EventuallyAssert     func(t *assert.CollectT, context *RuntimeContext)
-	CmdErrContains       string
+	// ConfigFile is the path to the config file to be used for the test.
+	ConfigFile string
+	// EventuallyAssert is a function that will be called after the agent has started, repeatedly until all assertions
+	// are satisfied or the default timeout is reached. The provided context contains all the extra information that
+	// the framework has collected, such as data received by the fake prometheus server.
+	EventuallyAssert func(t *assert.CollectT, context *RuntimeContext)
+	// CmdErrContains is a string that must be contained in the error returned by the command. If empty, no error is
+	// expected.
+	CmdErrContains string
+	// RequireCleanShutdown indicates whether the test framework should verify that the agent shut down cleanly after
+	// the test case has completed.
 	RequireCleanShutdown bool
 }
 
