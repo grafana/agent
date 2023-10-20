@@ -88,6 +88,30 @@ The supported escape sequences are as follows:
 | `\uNNNN` | A Unicode character from the basic multilingual plane (NNNN is four hexadecimal digits) |
 | `\UNNNNNNNN` | A Unicode character from supplementary planes (NNNNNNNN is eight hexadecimal digits) |
 
+## Raw Strings
+
+Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```:
+
+```river
+`Hello, "world"!`
+```
+
+Within the backticks, any character may appear except a backtick.
+
+A multiline raw string will be interpretted exactly as written:
+
+```river
+`Hello,
+"world"!`
+```
+
+is interpretted as a string with the value:
+
+```string
+Hello,
+"world"!
+```
+
 ## Bools
 
 Bools are represented by the symbols `true` and `false`.
