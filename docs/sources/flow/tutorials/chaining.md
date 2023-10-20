@@ -15,7 +15,7 @@ weight: 400
 
 This tutorial shows how to use [multiple-inputs.river](/docs/agent/latest/flow/tutorials/assets/flow_configs/multiple-inputs.river) to send data to several different locations. This tutorial uses the same base as [Filtering metrics]({{< relref "./filtering-metrics" >}}).
 
-A new concept introduced in Flow is chaining components together in a composable pipeline. This promotes the reusability of components while offering flexibility. 
+A new concept introduced in Flow is chaining components together in a composable pipeline. This promotes the reusability of components while offering flexibility.
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ A new concept introduced in Flow is chaining components together in a composable
 
 ## Run the example
 
-Run the following 
+Run the following
 
 ```bash
 curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tutorials/assets/runt.sh -O && bash ./runt.sh multiple-inputs.river
@@ -31,7 +31,7 @@ curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tuto
 
 The `runt.sh` script does:
 
-1. Downloads the configs necessary for Mimir, Grafana and the Grafana Agent. 
+1. Downloads the configs necessary for Mimir, Grafana and the Grafana Agent.
 2. Downloads the docker image for Grafana Agent explicitly.
 3. Runs the docker-compose up command to bring all the services up.
 
@@ -43,37 +43,37 @@ There are two scrapes each sending metrics to one filter. Note the `job` label l
 
 ```river
 prometheus.scrape "agent" {
-	targets    = [{"__address__" = "localhost:12345"}]
-	forward_to = [prometheus.relabel.service.receiver]
+    targets    = [{"__address__" = "localhost:12345"}]
+    forward_to = [prometheus.relabel.service.receiver]
 }
 
-prometheus.exporter.unix {
-	set_collectors = ["cpu", "diskstats"]
+prometheus.exporter.unix "default" {
+    set_collectors = ["cpu", "diskstats"]
 }
 
 prometheus.scrape "unix" {
-	targets    = prometheus.exporter.unix.targets
-	forward_to = [prometheus.relabel.service.receiver]
+    targets    = prometheus.exporter.unix.default.targets
+    forward_to = [prometheus.relabel.service.receiver]
 }
 
 prometheus.relabel "service" {
-	rule {
-		source_labels = ["__name__"]
-		regex         = "(.+)"
-		replacement   = "api_server"
-		target_label  = "service"
-	}
-	forward_to = [prometheus.remote_write.prom.receiver]
+    rule {
+        source_labels = ["__name__"]
+        regex         = "(.+)"
+        replacement   = "api_server"
+        target_label  = "service"
+    }
+    forward_to = [prometheus.remote_write.prom.receiver]
 }
 
 prometheus.remote_write "prom" {
-	endpoint {
-		url = "http://mimir:9009/api/v1/push"
-	}
+    endpoint {
+        url = "http://mimir:9009/api/v1/push"
+    }
 }
 ```
 
-In the above Flow block, `prometheus.relabel.service` is being forwarded metrics from two sources `prometheus.scrape.agent` and `prometheus.exporter.unix`. This allows for a single relabel component to be used with any number of inputs.
+In the above Flow block, `prometheus.relabel.service` is being forwarded metrics from two sources `prometheus.scrape.agent` and `prometheus.exporter.unix.default`. This allows for a single relabel component to be used with any number of inputs.
 
 ## Adding another relabel
 
