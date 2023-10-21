@@ -30,13 +30,15 @@ type queue struct {
 	q      chan queuedBatch
 	quit   chan struct{}
 	wg     sync.WaitGroup
+	logger log.Logger
 }
 
-func newQueue(client *queueClient, size int) *queue {
+func newQueue(client *queueClient, size int, logger log.Logger) *queue {
 	q := queue{
 		client: client,
 		q:      make(chan queuedBatch, size),
 		quit:   make(chan struct{}),
+		logger: logger,
 	}
 
 	q.wg.Add(1)
@@ -73,8 +75,34 @@ func (q *queue) run() {
 	}
 }
 
+func (q *queue) stopGracefully(ctx context.Context) {
+	// defer main channel closing
+	defer close(q.q)
+
+	// first stop main routine, and wait for it to signal
+	close(q.quit)
+	q.wg.Wait()
+
+	// keep reading messages from sendQueue until all have been consumed, or timeout is exceeded
+	for {
+		select {
+		case qb := <-q.q:
+			q.client.sendBatch(context.Background(), qb.TenantID, qb.Batch)
+		case <-ctx.Done():
+			level.Warn(q.logger).Log("msg", "timeout exceeded while draining send queue")
+			return
+		default:
+			level.Debug(q.logger).Log("msg", "drain queue exited because there were no batches left to send")
+			return
+			// if default clause is taken, it means there's nothing left in the send queue
+		}
+	}
+}
+
 func (q *queue) stop() {
 	close(q.quit)
+	q.wg.Wait()
+	close(q.q)
 }
 
 type queueClient struct {
@@ -105,28 +133,6 @@ type queueClient struct {
 	maxLineSize         int
 	maxLineSizeTruncate bool
 	quit                chan struct{}
-}
-
-func (c *queueClient) SeriesReset(segmentNum int) {
-	c.seriesLock.Lock()
-	defer c.seriesLock.Unlock()
-	for k, v := range c.seriesSegment {
-		if v <= segmentNum {
-			level.Debug(c.logger).Log("msg", fmt.Sprintf("reclaiming series under segment %d", segmentNum))
-			delete(c.seriesSegment, k)
-			delete(c.series, k)
-		}
-	}
-}
-
-func (c *queueClient) StoreSeries(series []record.RefSeries, segment int) {
-	c.seriesLock.Lock()
-	defer c.seriesLock.Unlock()
-	for _, seriesRec := range series {
-		c.seriesSegment[seriesRec.Ref] = segment
-		labels := lokiutil.MapToModelLabelSet(seriesRec.Labels.Map())
-		c.series[seriesRec.Ref] = labels
-	}
 }
 
 type QueueConfig struct {
@@ -169,7 +175,7 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 	}
 
 	// create sendQueue
-	c.sendQueue = newQueue(c, queueConfig.Size)
+	c.sendQueue = newQueue(c, queueConfig.Size, logger)
 
 	err := cfg.Client.Validate()
 	if err != nil {
@@ -205,6 +211,28 @@ func (c *queueClient) initBatchMetrics(tenantID string) {
 
 	for _, counter := range c.metrics.countersWithHostTenant {
 		counter.WithLabelValues(c.cfg.URL.Host, tenantID).Add(0)
+	}
+}
+
+func (c *queueClient) SeriesReset(segmentNum int) {
+	c.seriesLock.Lock()
+	defer c.seriesLock.Unlock()
+	for k, v := range c.seriesSegment {
+		if v <= segmentNum {
+			level.Debug(c.logger).Log("msg", fmt.Sprintf("reclaiming series under segment %d", segmentNum))
+			delete(c.seriesSegment, k)
+			delete(c.series, k)
+		}
+	}
+}
+
+func (c *queueClient) StoreSeries(series []record.RefSeries, segment int) {
+	c.seriesLock.Lock()
+	defer c.seriesLock.Unlock()
+	for _, seriesRec := range series {
+		c.seriesSegment[seriesRec.Ref] = segment
+		labels := lokiutil.MapToModelLabelSet(seriesRec.Labels.Map())
+		c.series[seriesRec.Ref] = labels
 	}
 }
 
@@ -352,35 +380,16 @@ func (c *queueClient) runSendOldBatches() {
 	}
 }
 
-func (c *queueClient) drain(ctx context.Context) {
-	// auxiliary go-routine will enqueue partial batches to use the same sending routine
-	// this helps constraint the whole drain under a single timeout
-	go func() {
-		c.batchesMtx.Lock()
-		defer c.batchesMtx.Unlock()
+func (c *queueClient) xxxenqueuePendingBatches(ctx context.Context) {
+	c.batchesMtx.Lock()
+	defer c.batchesMtx.Unlock()
 
-		for tenantID, batch := range c.batches {
-			if !c.sendQueue.enqueueWithCancel(ctx, queuedBatch{
-				TenantID: tenantID,
-				Batch:    batch,
-			}) {
-				// if enqueue times out due to the context timing out, cancel all
-				return
-			}
-		}
-	}()
-
-	for {
-		select {
-		case <-ctx.Done():
-			level.Warn(c.logger).Log("msg", "drain send queue exceeded context timeout")
-			return
-			// pablo: termianr esto!
-		case qe := <-c.sendQueue:
-			c.sendBatch(ctx, qe.TenantID, qe.Batch)
-		default:
-			// we want a default case for when the sendQueue channel has been completely drained
-			level.Debug(c.logger).Log("msg", "sendQueue drain complete. No batches left in channel")
+	for tenantID, batch := range c.batches {
+		if !c.sendQueue.enqueueWithCancel(ctx, queuedBatch{
+			TenantID: tenantID,
+			Batch:    batch,
+		}) {
+			// if enqueue times out due to the context timing out, cancel all
 			return
 		}
 	}
@@ -517,11 +526,13 @@ func (c *queueClient) Stop() {
 	// drain with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), c.drainTimeout)
 	defer cancel()
-	c.drain(ctx)
+	c.xxxenqueuePendingBatches(ctx)
+
+	// drain sendQueue with timeout in context
+	c.sendQueue.stopGracefully(ctx)
 
 	// stop request after drain times out or exits
 	c.cancel()
-	close(c.sendQueue)
 }
 
 // StopNow stops the client without retries or draining the send queue
@@ -529,7 +540,7 @@ func (c *queueClient) StopNow() {
 	// cancel will stop retrying http requests.
 	c.cancel()
 	close(c.quit)
-	close(c.sendQueue)
+	c.sendQueue.stop()
 	c.wg.Wait()
 }
 
