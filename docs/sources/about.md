@@ -58,9 +58,6 @@ You should run Static mode when:
 
 * **Grafana Cloud integrations**: You need to use Grafana Agent with Grafana Cloud integrations.
 
-* **Complete list of integrations**: You need to use a Static mode [integration][integrations] which is not yet
-  available as a [component][components] in Flow mode.
-
 ### Static mode Kubernetes operator
 
 The [Static mode Kubernetes operator][] is a variant of Grafana Agent first
@@ -86,8 +83,6 @@ vendor neutrality, ease-of-use, improved debuggability, and ability to adapt to
 the needs of power users by adopting a configuration-as-code model.
 
 Flow mode is considered to be the future of the Grafana Agent project.
-Eventually, all functionality of Static mode and the Static mode Kubernetes
-operator will be added into Flow mode.
 
 You should run Flow mode when:
 
