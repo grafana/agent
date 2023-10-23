@@ -288,7 +288,6 @@ func (conv *Converter) consumeMetric(app storage.Appender, memResource *memorySe
 }
 
 func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	// TODO: should we make the param addMetricSuffixes configurable? For now we set the default value (true) to keep the same behavior as before
 	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
