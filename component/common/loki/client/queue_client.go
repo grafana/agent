@@ -268,7 +268,7 @@ func (c *queueClient) AppendEntries(entries wal.RefEntries, segment int) error {
 	c.seriesLock.RUnlock()
 	if ok {
 		for _, e := range entries.Entries {
-			c.appendSingleEntry(l, e, segment)
+			c.appendSingleEntry(l, e)
 		}
 	} else {
 		// TODO(thepalbi): Add metric here
@@ -277,7 +277,7 @@ func (c *queueClient) AppendEntries(entries wal.RefEntries, segment int) error {
 	return nil
 }
 
-func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry, segment int) {
+func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry) {
 	lbs, tenantID := c.processLabels(lbs)
 
 	// Either drop or mutate the log entry because its length is greater than maxLineSize. maxLineSize == 0 means disabled.
