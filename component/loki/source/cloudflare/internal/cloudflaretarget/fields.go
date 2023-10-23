@@ -1,8 +1,9 @@
 package cloudflaretarget
 
-// This code is copied from Promtail. The cloudflaretarget package is used to
-// configure and run a target that can read from the Cloudflare Logpull API and
-// forward entries to other loki components.
+// This code is copied from Promtail (a1c1152b79547a133cc7be520a0b2e6db8b84868).
+// The cloudflaretarget package is used to configure and run a target that can
+// read from the Cloudflare Logpull API and forward entries to other loki
+// components.
 
 import (
 	"fmt"
