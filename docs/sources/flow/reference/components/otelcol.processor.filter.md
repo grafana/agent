@@ -28,7 +28,7 @@ there is also a set of metrics-only functions exclusively by the processor
 * [HasAttrKeyOnDataPoint][]
 * [HasAttrOnDataPoint][]
 
-[OTTL][] statements used in `filterprocessor` mostly contain constructs such as:
+[OTTL][] statements used in `otelcol.processor.filter` mostly contain constructs such as:
 * [Booleans][OTTL booleans]:
   * `not true`
   * `not IsMatch(name, "http_.*")`
