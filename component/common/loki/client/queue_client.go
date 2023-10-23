@@ -6,11 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	agentWal "github.com/grafana/agent/component/common/loki/wal"
-	"github.com/grafana/loki/pkg/ingester/wal"
-	"github.com/grafana/loki/pkg/logproto"
-	"github.com/prometheus/prometheus/tsdb/chunks"
-	"github.com/prometheus/prometheus/tsdb/record"
 	"io"
 	"net/http"
 	"strconv"
@@ -19,10 +14,15 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	agentWal "github.com/grafana/agent/component/common/loki/wal"
 	"github.com/grafana/dskit/backoff"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/tsdb/chunks"
+	"github.com/prometheus/prometheus/tsdb/record"
 
+	"github.com/grafana/loki/pkg/ingester/wal"
+	"github.com/grafana/loki/pkg/logproto"
 	lokiutil "github.com/grafana/loki/pkg/util"
 )
 
@@ -147,8 +147,7 @@ type queueClient struct {
 	sendQueue    *queue
 	drainTimeout time.Duration
 
-	once sync.Once
-	wg   sync.WaitGroup
+	wg sync.WaitGroup
 
 	externalLabels model.LabelSet
 

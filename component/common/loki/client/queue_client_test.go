@@ -1,22 +1,24 @@
 package client
 
 import (
+	"os"
+	"testing"
+	"time"
+
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/flagext"
-	"github.com/grafana/loki/pkg/ingester/wal"
-	"github.com/grafana/loki/pkg/logproto"
-	lokiflag "github.com/grafana/loki/pkg/util/flagext"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/tsdb/chunks"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/stretchr/testify/require"
-	"os"
-	"testing"
-	"time"
+
+	"github.com/grafana/loki/pkg/ingester/wal"
+	"github.com/grafana/loki/pkg/logproto"
+	lokiflag "github.com/grafana/loki/pkg/util/flagext"
 )
 
 func TestQueueClient(t *testing.T) {
