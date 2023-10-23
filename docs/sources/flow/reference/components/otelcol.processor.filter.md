@@ -117,6 +117,20 @@ Name        | Type           | Description                                      
 `span`      | `list(string)` | List of OTTL statements filtering OTLP spans.       |         | no
 `spanevent` | `list(string)` | List of OTTL statements filtering OTLP span events. |         | no
 
+The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry 
+documentation for more information:
+* [OTTL span context][]
+* [OTTL spanevent context][]
+
+Statements are checked in order from "high level" to "low level" telemetry, in this order:
+1. `span`
+2. `spanevent`
+
+Hence, if at least one `span` condition is satisfied, the `spanevent` conditions will not be checked.
+Only one of the statements inside the list of statements has to be satisfied.
+
+If all span events for a span are dropped, the span will be left intact.
+
 ### metrics block
 
 The `metrics` block specifies statements which filter metric telemetry signals. 
