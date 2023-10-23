@@ -23,8 +23,6 @@ The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for
 
 * Install [Homebrew][] on your computer.
 
-[Homebrew]: https://brew.sh
-
 ## Install
 
 To install Grafana Agent on macOS, run the following commands in a terminal window.
@@ -67,5 +65,15 @@ brew uninstall grafana-agent-flow
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent#macos" >}})
-- [Configure Grafana Agent]({{< relref "../configure/configure-macos" >}})
+- [Start Grafana Agent][]
+- [Configure Grafana Agent][]
+
+
+[Homebrew]: https://brew.sh
+
+{{% docs/reference %}}
+[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#macos"
+[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md#macos"
+[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-macos.md"
+{{% /docs/reference %}}
