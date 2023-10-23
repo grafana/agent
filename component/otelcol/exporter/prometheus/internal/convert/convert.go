@@ -64,7 +64,7 @@ type Options struct {
 	// labels from the scope in the metrics.
 	IncludeScopeLabels bool
 	// AddMetricSuffixes controls whether suffixes are added to metric names. Defaults to true.
-	AddMetricSuffixes bool `mapstructure:"add_metric_suffixes"`
+	AddMetricSuffixes bool
 }
 
 var _ consumer.Metrics = (*Converter)(nil)

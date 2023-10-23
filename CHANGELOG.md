@@ -88,6 +88,9 @@ Main (unreleased)
   - `otelcol.receiver.kafka` has a new `version` argument to change the version of 
     the SASL Protocol for SASL authentication.
 
+- Added new config options to `otelcol.exporter.prometheus` in flow mode (@mar4uk):
+  - `add_metrics_suffixes`: configures whether to add type and unit suffixes to metrics names.
+
 v0.37.2 (2023-10-16)
 -----------------
 

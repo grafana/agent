@@ -145,6 +145,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	c.converter.UpdateOptions(convert.Options{
 		IncludeTargetInfo: cfg.IncludeTargetInfo,
 		IncludeScopeInfo:  cfg.IncludeScopeInfo,
+		AddMetricSuffixes: cfg.AddMetricSuffixes,
 	})
 
 	// If our forward_to argument changed, we need to flush the metadata cache to

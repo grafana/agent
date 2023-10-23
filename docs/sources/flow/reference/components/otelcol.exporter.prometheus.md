@@ -42,7 +42,7 @@ Name | Type | Description                                               | Defaul
 `include_target_info` | `boolean` | Whether to include `target_info` metrics.                 | `true` | no
 `include_scope_info` | `boolean` | Whether to include `otel_scope_info` metrics.             | `false` | no
 `include_scope_labels` | `boolean` | Whether to include additional OTLP labels in all metrics. | `true` | no
-`add_metrics_suffixes` | `boolean` | Whether to add type and unit suffixes to metrics. | `true` | no
+`add_metrics_suffixes` | `boolean` | Whether to add type and unit suffixes to metrics names.   | `true` | no
 `gc_frequency` | `duration` | How often to clean up stale metrics from memory.          | `"5m"` | no
 `forward_to` | `list(receiver)` | Where to forward converted Prometheus metrics.            | | yes
 
