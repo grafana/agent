@@ -26,6 +26,12 @@ import (
 	lokiutil "github.com/grafana/loki/pkg/util"
 )
 
+// StoppableWriteTo is a mixing of the WAL's WriteTo interface, that is Stoppable as well.
+type StoppableWriteTo interface {
+	agentWal.WriteTo
+	Stoppable
+}
+
 // queuedBatch is a batch specific to a tenant, that is considered ready to be sent.
 type queuedBatch struct {
 	TenantID string
@@ -161,7 +167,7 @@ type queueClient struct {
 }
 
 // NewQueue creates a new queueClient.
-func NewQueue(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, queueConfig QueueConfig) (agentWal.WriteTo, error) {
+func NewQueue(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, queueConfig QueueConfig) (StoppableWriteTo, error) {
 	if cfg.StreamLagLabels.String() != "" {
 		return nil, fmt.Errorf("client config stream_lag_labels is deprecated and the associated metric has been removed, stream_lag_labels: %+v", cfg.StreamLagLabels.String())
 	}
