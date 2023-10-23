@@ -51,8 +51,6 @@ to forward data to it.
 
 > Refer to the list of available [Components][] for the full list of
 > `otelcol.exporter` components that can be used to export OpenTelemetry data.
->
-> [Components]: {{< relref "../reference/components/" >}}
 
 To configure an `otelcol.exporter.otlp` component for exporting OpenTelemetry
 data using OTLP, complete the following steps:
