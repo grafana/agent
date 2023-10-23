@@ -97,7 +97,9 @@ Raw strings do not support any escape sequences:
 `Hello, "world"!`
 ```
 
-Within the backticks, any character may appear except a backtick.
+Within the backticks, any character may appear except a backtick. A backtick
+can be included by concatenating a double quoted string that contains a
+backtick using `+`.
 
 A multiline raw string will be interpretted exactly as written:
 
