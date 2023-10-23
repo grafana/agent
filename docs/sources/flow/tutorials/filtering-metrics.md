@@ -31,7 +31,7 @@ curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tuto
 
 The `runt.sh` script does:
 
-1. Downloads the configs necessary for Mimir, Grafana and Grafana Agent.
+1. Downloads the configurations necessary for Mimir, Grafana and Grafana Agent.
 1. Downloads the docker image for Grafana Agent explicitly.
 1. Runs the docker-compose up command to bring all the services up.
 
