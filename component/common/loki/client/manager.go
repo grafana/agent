@@ -1,6 +1,7 @@
 package client
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"strings"
 	"sync"
@@ -69,16 +70,23 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 	clients := make([]Client, 0, len(clientCfgs))
 	watchers := make([]Stoppable, 0, len(clientCfgs))
 	for _, cfg := range clientCfgs {
+		// Don't allow duplicate clients, we have client specific metrics that need at least one unique label value (name).
+		configDigest := GetClientName(cfg)
+		if _, ok := clientsCheck[configDigest]; ok {
+			return nil, fmt.Errorf("duplicate client configs are not allowed, found duplicate for name: %s", cfg.Name)
+		}
+
+		clientsCheck[configDigest] = fake
+
 		if walCfg.Enabled {
-			// TODO: Should I care here about duplicate clients and else, or should we be thinking in a WAL only future?
-			configName := asSha256(cfg)
+			configName := GetClientName(cfg)
 
 			// add some context information for the logger the watcher uses
 			wlog := log.With(logger, "client", configName)
 
 			queue, err := NewQueue(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger, QueueConfig{
 				DrainTimeout: time.Minute * 5,
-				Size:         10,
+				Capacity:     10,
 			})
 			if err != nil {
 				return nil, fmt.Errorf("error starting queue client: %w", err)
@@ -101,12 +109,6 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 				return nil, fmt.Errorf("error starting client: %w", err)
 			}
 
-			// Don't allow duplicate clients, we have client specific metrics that need at least one unique label value (name).
-			if _, ok := clientsCheck[client.Name()]; ok {
-				return nil, fmt.Errorf("duplicate client configs are not allowed, found duplicate for name: %s", cfg.Name)
-			}
-
-			clientsCheck[client.Name()] = fake
 			clients = append(clients, client)
 		}
 	}
@@ -190,4 +192,18 @@ func (m *Manager) Stop() {
 	for _, c := range m.clients {
 		c.Stop()
 	}
+}
+
+// GetClientName computes the specific name for each client config. Since the name is a hash of the config as whole,
+// this allows us to detect repeated configs.
+func GetClientName(cfg Config) string {
+	return asSha256(cfg)
+}
+
+func asSha256(o interface{}) string {
+	h := sha256.New()
+	h.Write([]byte(fmt.Sprintf("%v", o)))
+
+	temp := fmt.Sprintf("%x", h.Sum(nil))
+	return temp[:6]
 }

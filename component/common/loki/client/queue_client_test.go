@@ -58,7 +58,7 @@ func TestQueueClient(t *testing.T) {
 
 	m := NewMetrics(reg)
 	qc, err := NewQueue(m, cfg, 0, 0, false, logger, QueueConfig{
-		Size:         10,
+		Capacity:     10,
 		DrainTimeout: time.Second,
 	})
 	require.NoError(t, err)

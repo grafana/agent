@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	agentWal "github.com/grafana/agent/component/common/loki/wal"
 	"github.com/grafana/loki/pkg/ingester/wal"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/prometheus/tsdb/chunks"
@@ -25,6 +26,13 @@ import (
 	lokiutil "github.com/grafana/loki/pkg/util"
 )
 
+// queuedBatch is a batch specific to a tenant, that is considered ready to be sent.
+type queuedBatch struct {
+	TenantID string
+	Batch    *batch
+}
+
+// queue wraps a buffered channel and a routine that reads from it, sending batches of entries.
 type queue struct {
 	client *queueClient
 	q      chan queuedBatch
@@ -47,6 +55,7 @@ func newQueue(client *queueClient, size int, logger log.Logger) *queue {
 	return &q
 }
 
+// enqueue is a blocking operation to add to the send queue a batch ready to be sent.
 func (q *queue) enqueue(qb queuedBatch) {
 	q.q <- qb
 }
@@ -75,7 +84,10 @@ func (q *queue) run() {
 	}
 }
 
-func (q *queue) stopGracefully(ctx context.Context) {
+// closeAndDrain stops gracefully the queue. The process first stops the main routine that reads batches to be sent,
+// to instead drain the queue and send those batches from this thread, exiting if the supplied context deadline
+// is exceeded. Also, if the underlying buffered channel is fully drain, this will exit promptly.
+func (q *queue) closeAndDrain(ctx context.Context) {
 	// defer main channel closing
 	defer close(q.q)
 
@@ -99,12 +111,25 @@ func (q *queue) stopGracefully(ctx context.Context) {
 	}
 }
 
-func (q *queue) stop() {
+// closeNow closes the queue, without draining batches that might be buffered to be sent.
+func (q *queue) closeNow() {
 	close(q.quit)
 	q.wg.Wait()
 	close(q.q)
 }
 
+// QueueConfig holds configurations for the queue-based remote-write client.
+type QueueConfig struct {
+	// Capacity controls the maximum number of batches that can be buffered in the send queue.
+	Capacity int
+
+	// DrainTimeout controls the maximum time that draining the send queue can take.
+	DrainTimeout time.Duration
+}
+
+// queueClient is a WAL-specific remote write client implementation. This client attests to the wal.WriteTo interface,
+// which allows it to be injected in the wal.Watcher as a destination where to write read series and entries. As the watcher
+// reads from the WAL, batches are created and dispatched onto a send queue when ready to be sent.
 type queueClient struct {
 	metrics *Metrics
 	logger  log.Logger
@@ -135,12 +160,8 @@ type queueClient struct {
 	quit                chan struct{}
 }
 
-type QueueConfig struct {
-	Size         int
-	DrainTimeout time.Duration
-}
-
-func NewQueue(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, queueConfig QueueConfig) (*queueClient, error) {
+// NewQueue creates a new queueClient.
+func NewQueue(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, queueConfig QueueConfig) (agentWal.WriteTo, error) {
 	if cfg.StreamLagLabels.String() != "" {
 		return nil, fmt.Errorf("client config stream_lag_labels is deprecated and the associated metric has been removed, stream_lag_labels: %+v", cfg.StreamLagLabels.String())
 	}
@@ -175,7 +196,7 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 	}
 
 	// create sendQueue
-	c.sendQueue = newQueue(c, queueConfig.Size, logger)
+	c.sendQueue = newQueue(c, queueConfig.Capacity, logger)
 
 	err := cfg.Client.Validate()
 	if err != nil {
@@ -315,11 +336,6 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry, se
 	}
 }
 
-type queuedBatch struct {
-	TenantID string
-	Batch    *batch
-}
-
 func (c *queueClient) runSendOldBatches() {
 	// Given the client handles multiple batches (1 per tenant) and each batch
 	// can be created at a different point in time, we look for batches whose
@@ -380,7 +396,9 @@ func (c *queueClient) runSendOldBatches() {
 	}
 }
 
-func (c *queueClient) xxxenqueuePendingBatches(ctx context.Context) {
+// enqueuePendingBatches will go over the pending batches, and enqueue them in the send queue. If the context's
+// deadline is exceeded in any enqueue operation, this routine exits.
+func (c *queueClient) enqueuePendingBatches(ctx context.Context) {
 	c.batchesMtx.Lock()
 	defer c.batchesMtx.Unlock()
 
@@ -517,19 +535,22 @@ func (c *queueClient) getTenantID(labels model.LabelSet) string {
 	return ""
 }
 
-// Stop the client.
+// Stop the client, enqueueing pending batches and draining the send queue accordingly. Both closing operations are
+// limited by a deadline, controlled by a configured drain timeout, which is global to the Stop call.
 func (c *queueClient) Stop() {
 	// first close main queue routine
 	close(c.quit)
 	c.wg.Wait()
 
-	// drain with timeout
+	// fire timeout timer
 	ctx, cancel := context.WithTimeout(context.Background(), c.drainTimeout)
 	defer cancel()
-	c.xxxenqueuePendingBatches(ctx)
+
+	// enqueue batches that might be pending in the batches map
+	c.enqueuePendingBatches(ctx)
 
 	// drain sendQueue with timeout in context
-	c.sendQueue.stopGracefully(ctx)
+	c.sendQueue.closeAndDrain(ctx)
 
 	// stop request after drain times out or exits
 	c.cancel()
@@ -540,7 +561,7 @@ func (c *queueClient) StopNow() {
 	// cancel will stop retrying http requests.
 	c.cancel()
 	close(c.quit)
-	c.sendQueue.stop()
+	c.sendQueue.closeNow()
 	c.wg.Wait()
 }
 

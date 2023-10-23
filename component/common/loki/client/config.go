@@ -46,6 +46,9 @@ type Config struct {
 	DropRateLimitedBatches bool `yaml:"drop_rate_limited_batches"`
 
 	StreamLagLabels flagext.StringSliceCSV `yaml:"stream_lag_labels" doc:"deprecated"`
+
+	// Queue controls configuration parameters specific to the queue client
+	Queue QueueConfig
 }
 
 // RegisterFlags with prefix registers flags where every name is prefixed by
