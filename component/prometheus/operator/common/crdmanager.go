@@ -495,15 +495,15 @@ func (c *crdManager) addProbe(p *promopv1.Probe) {
 		// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <probe>`.
 		level.Error(c.logger).Log("name", p.Name, "err", err, "msg", "error generating scrapeconfig from probe")
 	}
+	if err != nil {
+		c.addDebugInfo(p.Namespace, p.Name, err)
+		return
+	}
 	c.mut.Lock()
 	c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
 	c.scrapeConfigs[pmc.JobName] = pmc
 	c.mut.Unlock()
 
-	if err != nil {
-		c.addDebugInfo(p.Namespace, p.Name, err)
-		return
-	}
 	if err = c.apply(); err != nil {
 		level.Error(c.logger).Log("name", p.Name, "err", err, "msg", "error applying scrape configs from "+c.kind)
 	}
