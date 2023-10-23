@@ -127,6 +127,20 @@ Name        | Type           | Description                                      
 `metric`    | `list(string)` | List of OTTL statements filtering OTLP metric.            |         | no
 `datapoint` | `list(string)` | List of OTTL statements filtering OTLP metric datapoints. |         | no
 
+The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry 
+documentation for more information:
+* [OTTL metric context][]
+* [OTTL datapoint context][]
+
+Statements are checked in order from "high level" to "low level" telemetry, in this order:
+1. `metric`
+2. `datapoint`
+
+Hence, if at least one `metric` condition is satisfied, the `datapoint` conditions will not be checked.
+Only one of the statements inside the list of statements has to be satisfied.
+
+If all datapoints for a metric are dropped, the metric will also be dropped.
+
 ### logs block
 
 The `logs` block specifies statements which filter log telemetry signals. 
