@@ -124,6 +124,12 @@ Name            | Type           | Description                                  
 --------------- | -------------- | ---------------------------------------------- | ------- | --------
 `log_record`    | `list(string)` | List of OTTL statements filtering OTLP metric. |         | no
 
+The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry 
+documentation for more information:
+* [OTTL log context][]
+
+Only one of the statements inside the list of statements has to be satisfied.
+
 
 ### output block
 
