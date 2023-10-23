@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/go-kit/log"
+	gokitlevel "github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/logging"
 )
 
@@ -30,6 +31,18 @@ func Info(logger log.Logger) log.Logger {
 // Debug returns a logger that includes a Key/DebugValue pair.
 func Debug(logger log.Logger) log.Logger {
 	return toLevel(logger, "debug", slog.LevelDebug)
+}
+
+func NewFilter(next log.Logger, options ...gokitlevel.Option) log.Logger {
+	return gokitlevel.NewFilter(next, options...)
+}
+
+func AllowDebug() gokitlevel.Option {
+	return gokitlevel.AllowDebug()
+}
+
+func AllowInfo() gokitlevel.Option {
+	return gokitlevel.AllowInfo()
 }
 
 func toLevel(logger log.Logger, level string, slogLevel slog.Level) log.Logger {

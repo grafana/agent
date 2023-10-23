@@ -7,8 +7,8 @@ import (
 	"github.com/go-kit/log"
 
 	"github.com/bmatcuk/doublestar"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 // watch handles a single discovery.target for file watching.

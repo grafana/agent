@@ -6,12 +6,12 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
 	"github.com/grafana/river"
 )
