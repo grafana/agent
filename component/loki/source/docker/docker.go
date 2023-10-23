@@ -282,7 +282,7 @@ func (c *Component) getManagerOptions(args Arguments) (*options, error) {
 		opts = append(opts,
 			client.WithHTTPClient(&http.Client{
 				Transport: rt,
-				Timeout:   time.Duration(args.RefreshInterval),
+				Timeout:   args.RefreshInterval,
 			}),
 			client.WithScheme(hostURL.Scheme),
 			client.WithHTTPHeaders(map[string]string{
