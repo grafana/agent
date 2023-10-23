@@ -14,8 +14,8 @@ description: Learn about otelcol.processor.filter
 
 {{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
 
-`otelcol.processor.filter` accepts telemetry data from other `otelcol`
-components and filter out using the [OpenTelemetry Transformation Language (OTTL)][OTTL].
+`otelcol.processor.filter` accepts and filters telemetry data from other `otelcol`
+components using the [OpenTelemetry Transformation Language (OTTL)][OTTL].
 OTTL statements consist of [OTTL Converter functions][], which act on paths.
 A path is a reference to a telemetry data such as:
 * Resource attributes.
