@@ -25,6 +25,13 @@ func TestQueueClient(t *testing.T) {
 	// Create a buffer channel where we do enqueue received requests
 	receivedReqsChan := make(chan utils.RemoteWriteRequest, 10)
 
+	receivedReqs := utils.NewSyncSlice[utils.RemoteWriteRequest]()
+	go func() {
+		for req := range receivedReqsChan {
+			receivedReqs.Append(req)
+		}
+	}()
+
 	// Start a local HTTP server
 	server := utils.NewRemoteWriteServer(receivedReqsChan, 200)
 	require.NotNil(t, server)
@@ -85,7 +92,7 @@ func TestQueueClient(t *testing.T) {
 	}
 
 	require.Eventually(t, func() bool {
-		return len(receivedReqsChan) >= len(lines)
+		return receivedReqs.Length() >= len(lines)
 	}, time.Second*10, time.Second, "timed out waiting for messages to arrive")
 
 	// Stop the client: it waits until the current batch is sent
