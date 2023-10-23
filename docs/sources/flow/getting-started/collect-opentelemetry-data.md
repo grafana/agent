@@ -168,8 +168,6 @@ batch data before sending it to our exporter.
 > `otelcol.processor` components that can be used to process OpenTelemetry
 > data. You can chain processors by having one processor send data to another
 > processor.
->
-> [Components]: {{< relref "../reference/components/" >}}
 
 To configure an `otelcol.processor.batch` component, complete the following
 steps:
@@ -251,8 +249,6 @@ Agent Flow components.
 > Refer to the list of available [Components][] for the full list of
 > `otelcol.receiver` components that can be used to receive
 > OpenTelemetry-compatible data.
->
-> [Components]: {{< relref "../reference/components/" >}}
 
 To configure an `otelcol.receiver.otlp` component for receiving OTLP data,
 complete the following steps:
