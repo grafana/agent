@@ -74,8 +74,7 @@ server.
 
 ### basic_auth block
 
-The `basic_auth` block configures basic authentication to use when polling the
-configured URL.
+The `basic_auth` block configures basic authentication to use when talking to Docker.
 
 {{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
