@@ -7,11 +7,11 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	fnet "github.com/grafana/agent/component/common/net"
 	agentprom "github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/storage"

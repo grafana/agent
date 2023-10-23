@@ -13,7 +13,7 @@ import (
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/common/model"
 
 	"golang.org/x/crypto/sha3"
