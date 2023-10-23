@@ -24,7 +24,7 @@ re-evaluating their arguments and providing their exports.
 ## Configuring components
 Components are created by defining a top-level River block. All components
 are identified by their name, describing what the component is responsible for,
-while some allow or require to provide an extra user-specified _label_.
+and a user-specified _label_.
 
 The [components docs]({{< relref "../reference/components/_index.md" >}}) contain a list
 of all available components. Each one has a complete reference page, so getting

@@ -87,7 +87,10 @@ func (c *Config) registerFlags(f *flag.FlagSet) error {
 
 	c.Controller.WebhookServer = webhook.NewServer(webhookServerOptions)
 
-	c.Controller.Cache.DefaultNamespaces[namespace] = cache.Config{}
+	if namespace != "" {
+		c.Controller.Cache.DefaultNamespaces = map[string]cache.Config{}
+		c.Controller.Cache.DefaultNamespaces[namespace] = cache.Config{}
+	}
 
 	// Custom initial values for the endpoint names.
 	c.Controller.ReadinessEndpointName = "/-/ready"

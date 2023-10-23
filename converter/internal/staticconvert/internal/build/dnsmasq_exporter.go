@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/dnsmasq"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
 )
 
@@ -19,7 +18,7 @@ func (b *IntegrationsV1ConfigBuilder) appendDnsmasqExporter(config *dnsmasq_expo
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.dnsmasq.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.dnsmasq.%s.targets", compLabel))
 }
 
 func toDnsmasqExporter(config *dnsmasq_exporter.Config) *dnsmasq.Arguments {

@@ -13,7 +13,6 @@ import (
 
 	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
 	"github.com/mitchellh/mapstructure"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
@@ -366,6 +365,15 @@ type SpanMetricsConfig struct {
 	// DimensionsCacheSize defines the size of cache for storing Dimensions, which helps to avoid cache memory growing
 	// indefinitely over the lifetime of the collector.
 	DimensionsCacheSize int `yaml:"dimensions_cache_size"`
+
+	// Defines the aggregation temporality of the generated metrics. Can be either of:
+	// * "AGGREGATION_TEMPORALITY_CUMULATIVE"
+	// * "AGGREGATION_TEMPORALITY_DELTA"
+	AggregationTemporality string `yaml:"aggregation_temporality"`
+
+	// MetricsEmitInterval is the time period between when metrics are flushed
+	// or emitted to the configured MetricsInstance or HandlerEndpoint.
+	MetricsFlushInterval time.Duration `yaml:"metrics_flush_interval"`
 }
 
 // tailSamplingConfig is the configuration for tail-based sampling
@@ -740,6 +748,12 @@ func (c *InstanceConfig) otelConfig() (*otelcol.Config, error) {
 			"latency_histogram_buckets": c.SpanMetrics.LatencyHistogramBuckets,
 			"dimensions":                c.SpanMetrics.Dimensions,
 		}
+		if c.SpanMetrics.AggregationTemporality != "" {
+			spanMetrics["aggregation_temporality"] = c.SpanMetrics.AggregationTemporality
+		}
+		if c.SpanMetrics.MetricsFlushInterval != 0 {
+			spanMetrics["metrics_flush_interval"] = c.SpanMetrics.MetricsFlushInterval
+		}
 		if c.SpanMetrics.DimensionsCacheSize != 0 {
 			spanMetrics["dimensions_cache_size"] = c.SpanMetrics.DimensionsCacheSize
 		}
@@ -899,7 +913,6 @@ func tracingFactories() (otelcol.Factories, error) {
 	exporters, err := otelexporter.MakeFactoryMap(
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
-		jaegerexporter.NewFactory(),
 		loadbalancingexporter.NewFactory(),
 		prometheusexporter.NewFactory(),
 		remotewriteexporter.NewFactory(),

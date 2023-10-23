@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	delta = time.Millisecond * 20
+	maxOvershoot = 200 * time.Millisecond
 )
 
 func TestBackoffTimer(t *testing.T) {
@@ -16,19 +16,24 @@ func TestBackoffTimer(t *testing.T) {
 	var max = time.Second
 	timer := newBackoffTimer(min, max)
 
-	now := time.Now()
+	start := time.Now()
 	<-timer.C
-	require.WithinDuration(t, now.Add(min), time.Now(), delta, "expected backing off timer to fire in the minimum")
+	verifyElapsedTime(t, min, time.Since(start))
 
 	// backoff, and expect it will take twice the time
-	now = time.Now()
+	start = time.Now()
 	timer.backoff()
 	<-timer.C
-	require.WithinDuration(t, now.Add(min*2), time.Now(), delta, "expected backing off timer to fire in the twice the minimum")
+	verifyElapsedTime(t, 2*min, time.Since(start))
 
 	// backoff capped, backoff will actually be 1200ms, but capped at 1000
-	now = time.Now()
+	start = time.Now()
 	timer.backoff()
 	<-timer.C
-	require.WithinDuration(t, now.Add(max), time.Now(), delta, "expected backing off timer to fire in the max")
+	verifyElapsedTime(t, max, time.Since(start))
+}
+
+func verifyElapsedTime(t *testing.T, expected time.Duration, elapsed time.Duration) {
+	require.GreaterOrEqual(t, elapsed, expected, "elapsed time should be greater or equal to the expected value")
+	require.Less(t, elapsed, expected+maxOvershoot, "elapsed time should be less than the expected value plus the max overshoot")
 }

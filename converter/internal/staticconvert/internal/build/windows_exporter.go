@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/windows"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 )
 
@@ -19,7 +18,7 @@ func (b *IntegrationsV1ConfigBuilder) appendWindowsExporter(config *windows_expo
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.windows.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.windows.%s.targets", compLabel))
 }
 
 func toWindowsExporter(config *windows_exporter.Config) *windows.Arguments {

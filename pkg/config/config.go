@@ -13,6 +13,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/config/encoder"
 	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/logs"
@@ -245,13 +246,10 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 // LoadFile reads a file and passes the contents to Load
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := os.ReadFile(filename)
-
 	if err != nil {
 		return fmt.Errorf("error reading config file %w", err)
 	}
-
 	instrumentation.InstrumentConfig(buf)
-
 	return LoadBytes(buf, expandEnvVars, c)
 }
 
@@ -341,15 +339,19 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 }
 
 func performEnvVarExpansion(buf []byte, expandEnvVars bool) ([]byte, error) {
+	utf8Buf, err := encoder.EnsureUTF8(buf, false)
+	if err != nil {
+		return nil, err
+	}
 	// (Optionally) expand with environment variables
 	if expandEnvVars {
-		s, err := envsubst.Eval(string(buf), getenv)
+		s, err := envsubst.Eval(string(utf8Buf), getenv)
 		if err != nil {
 			return nil, fmt.Errorf("unable to substitute config with environment variables: %w", err)
 		}
 		return []byte(s), nil
 	}
-	return buf, nil
+	return utf8Buf, nil
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
