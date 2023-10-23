@@ -212,7 +212,11 @@ otelcol.processor.filter "default" {
 
 Each `"` is [escaped][river-strings] with `\"` inside the River string.
 
-### Drop either metric by specific name and OTEL attribute or histogram-based metric
+### Drop metrics based on either of two criteria
+
+This example drops metrics which satisfy at least one of two OTTL statements:
+* The metric name is `my.metric` and there is a `my_label` resource attribute with a value of `abc123 `.
+* The metric is a histogram.
 
 ```river
 otelcol.processor.filter "default" {
