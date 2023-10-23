@@ -494,8 +494,6 @@ func (c *crdManager) addProbe(p *promopv1.Probe) {
 	if err != nil {
 		// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <probe>`.
 		level.Error(c.logger).Log("name", p.Name, "err", err, "msg", "error generating scrapeconfig from probe")
-	}
-	if err != nil {
 		c.addDebugInfo(p.Namespace, p.Name, err)
 		return
 	}
