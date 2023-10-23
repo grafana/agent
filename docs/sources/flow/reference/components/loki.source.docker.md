@@ -45,7 +45,7 @@ Name            | Type                 | Description          | Default | Requir
 
 ## Blocks
 
-The following blocks are supported inside the definition of `remote.http`:
+The following blocks are supported inside the definition of `loki.source.docker`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
