@@ -300,11 +300,3 @@ Some values in the River strings are [escaped][river-strings]:
 [HasAttrOnDataPoint]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/filterprocessor/README.md#hasattrondatapoint
 [OTTL booleans]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/pkg/ottl#booleans
 [OTTL math expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/pkg/ottl#math-expressions
-[OTTL boolean expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/pkg/ottl#boolean-expressions
-[OTTL resource context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottlresource/README.md
-[OTTL scope context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottlscope/README.md
-[OTTL span context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottlspan/README.md
-[OTTL spanevent context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottlspanevent/README.md
-[OTTL metric context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottlmetric/README.md
-[OTTL datapoint context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottldatapoint/README.md
-[OTTL log context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottllog/README.md
