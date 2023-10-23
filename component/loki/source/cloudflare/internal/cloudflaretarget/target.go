@@ -1,8 +1,9 @@
 package cloudflaretarget
 
-// This code is copied from Promtail. The cloudflaretarget package is used to
-// configure and run a target that can read from the Cloudflare Logpull API and
-// forward entries to other loki components.
+// This code is copied from Promtail (a1c1152b79547a133cc7be520a0b2e6db8b84868).
+// The cloudflaretarget package is used to configure and run a target that can
+// read from the Cloudflare Logpull API and forward entries to other loki
+// components.
 
 import (
 	"context"
@@ -12,11 +13,11 @@ import (
 	"time"
 
 	"github.com/buger/jsonparser"
-	"github.com/cloudflare/cloudflare-go"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/cloudflare-go"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/concurrency"
 	"github.com/grafana/dskit/multierror"

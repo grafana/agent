@@ -23,7 +23,6 @@ require (
 	github.com/burningalchemist/sql_exporter v0.0.0-20221222155641-2ff59aa75200
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/cilium/ebpf v0.11.0 // indirect
-	github.com/cloudflare/cloudflare-go v0.27.0
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
@@ -683,7 +682,7 @@ replace (
 	github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 	github.com/Azure/azure-storage-blob-go => github.com/MasslessParticle/azure-storage-blob-go v0.14.1-0.20220216145902-b5e698eff68e
 	github.com/bradfitz/gomemcache => github.com/themihai/gomemcache v0.0.0-20180902122335-24332e2d58ab
-	github.com/cloudflare/cloudflare-go => github.com/cyriltovena/cloudflare-go v0.27.1-0.20211118103540-ff77400bcb93
+	github.com/cloudflare/cloudflare-go => github.com/grafana/cloudflare-go v0.0.0-20230110200409-c627cf6792f2
 	github.com/go-kit/log => github.com/dannykopping/go-kit-log v0.2.2-0.20221002180827-5591c1641b6b
 	github.com/gocql/gocql => github.com/grafana/gocql v0.0.0-20200605141915-ba5dc39ece85
 	github.com/hashicorp/consul => github.com/hashicorp/consul v1.5.1
