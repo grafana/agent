@@ -67,10 +67,10 @@ func (args *traceConfig) convert() map[string]interface{} {
 
 	result := make(map[string]interface{})
 	if len(args.Span) > 0 {
-		result["span"] = args.Span
+		result["span"] = append([]string{}, args.Span...)
 	}
 	if len(args.SpanEvent) > 0 {
-		result["spanevent"] = args.SpanEvent
+		result["spanevent"] = append([]string{}, args.SpanEvent...)
 	}
 
 	return result
@@ -83,10 +83,10 @@ func (args *metricConfig) convert() map[string]interface{} {
 
 	result := make(map[string]interface{})
 	if len(args.Metric) > 0 {
-		result["metric"] = args.Metric
+		result["metric"] = append([]string{}, args.Metric...)
 	}
 	if len(args.Datapoint) > 0 {
-		result["datapoint"] = args.Datapoint
+		result["datapoint"] = append([]string{}, args.Datapoint...)
 	}
 
 	return result
@@ -98,7 +98,7 @@ func (args *logConfig) convert() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"log_record": args.LogRecord,
+		"log_record": append([]string{}, args.LogRecord...),
 	}
 }
 
