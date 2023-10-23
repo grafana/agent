@@ -59,6 +59,9 @@ client > tls_config | [tls_config][] | Configure TLS settings for connecting to 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to an `basic_auth` block defined inside a `client` block.
 
+These blocks are only applicable when connecting to a Docker daemon over HTTP
+or HTTPS and has no effect when connecting via a `unix:///` socket
+
 [client]: #client-block
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
@@ -67,34 +70,36 @@ basic_auth` refers to an `basic_auth` block defined inside a `client` block.
 
 ### client block
 
-The `client` block configures settings used to connect to the HTTP
-server.
+The `client` block configures settings used to connect to HTTP(S) Docker
+daemons.
 
 {{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### basic_auth block
 
-The `basic_auth` block configures basic authentication to use when talking to Docker.
+The `basic_auth` block configures basic authentication for HTTP(S) Docker
+daemons.
 
 {{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-The `authorization` block configures custom authorization to use when polling
-the configured URL.
+The `authorization` block configures custom authorization to use for the Docker
+daemon.
 
 {{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-The `oauth2` block configures OAuth2 authorization to use when polling the
-configured URL.
+The `oauth2` block configures OAuth2 authorization to use for the Docker
+daemon.
 
 {{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-The `tls_config` block configures TLS settings for connecting to HTTPS servers.
+The `tls_config` block configures TLS settings for connecting to HTTPS Docker
+daemons.
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
