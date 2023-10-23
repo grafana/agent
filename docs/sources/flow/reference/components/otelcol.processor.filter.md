@@ -174,7 +174,7 @@ information.
 
 ## Examples
 
-### Drop spans having "app_container_1" value as span attribute
+### Drop spans which contain a certain span attribute
 
 This example sets the attribute `test` to `pass` if the attribute `test` does not exist.
 
