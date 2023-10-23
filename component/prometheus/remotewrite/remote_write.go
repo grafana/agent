@@ -12,15 +12,16 @@ import (
 	"go.uber.org/atomic"
 
 	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 
 	"github.com/grafana/agent/component/prometheus"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/storage"
@@ -104,6 +105,18 @@ func New(o component.Options, c Arguments) (*Component, error) {
 
 			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
+			if localID == 0 {
+				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+			}
+			return globalRef, nextErr
+		}),
+		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
+			if res.exited.Load() {
+				return 0, fmt.Errorf("%s has exited", o.ID)
+			}
+
+			localID := prometheus.GlobalRefMapping.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			newRef, nextErr := next.AppendHistogram(storage.SeriesRef(localID), l, t, h, fh)
 			if localID == 0 {
 				prometheus.GlobalRefMapping.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}

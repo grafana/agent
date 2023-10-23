@@ -1,7 +1,6 @@
 package component
 
 import (
-	"reflect"
 	"time"
 
 	"github.com/grafana/agent/component/common/config"
@@ -26,21 +25,14 @@ func appendDiscoveryDigitalOcean(pb *build.PrometheusBlocks, label string, sdCon
 func ValidateDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if sdConfig.HTTPClientConfig.BasicAuth != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported basic_auth for digitalocean_sd_configs")
-	}
+	var nilBasicAuth *prom_config.BasicAuth
+	var nilAuthorization *prom_config.Authorization
+	var nilOAuth2 *prom_config.OAuth2
 
-	if sdConfig.HTTPClientConfig.Authorization != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported authorization for digitalocean_sd_configs")
-	}
-
-	if sdConfig.HTTPClientConfig.OAuth2 != nil {
-		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for digitalocean_sd_configs")
-	}
-
-	if !reflect.DeepEqual(prom_config.TLSConfig{}, sdConfig.HTTPClientConfig.TLSConfig) {
-		diags.Add(diag.SeverityLevelError, "unsupported oauth2 for digitalocean_sd_configs")
-	}
+	diags.AddAll(common.ValidateSupported(common.NotEquals, sdConfig.HTTPClientConfig.BasicAuth, nilBasicAuth, "digitalocean_sd_configs basic_auth", ""))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, sdConfig.HTTPClientConfig.Authorization, nilAuthorization, "digitalocean_sd_configs authorization", ""))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, sdConfig.HTTPClientConfig.OAuth2, nilOAuth2, "digitalocean_sd_configs oauth2", ""))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, sdConfig.HTTPClientConfig.TLSConfig, prom_config.TLSConfig{}, "digitalocean_sd_configs tls_config", ""))
 
 	diags.AddAll(common.ValidateHttpClientConfig(&sdConfig.HTTPClientConfig))
 

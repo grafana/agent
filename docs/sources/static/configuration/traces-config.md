@@ -157,7 +157,7 @@ remote_write:
 automatic_logging:
   # Indicates where the stream of log lines should go. Either supports writing
   # to a logs instance defined in this same config or to stdout.
-  [ backend: <string> | default = "stdout" | supported "stdout", "logs_instance" ]
+  [ backend: <string> | default = "stdout" | supported = "stdout", "logs_instance" ]
   # Indicates the logs instance to write logs to.
   # Required if backend is set to logs_instance.
   [ logs_instance_name: <string> ]
@@ -264,8 +264,13 @@ spanmetrics:
   [ metrics_instance: <string> ]
   # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed.
   [ handler_endpoint: <string> ]
-  # dimensions_cache_size defines the size of cache for storing Dimensions
-  [ dimensions_cache_size: <int> ]
+  # dimensions_cache_size defines the size of cache for storing Dimensions.
+  [ dimensions_cache_size: <int> | default = 1000 ]
+  # aggregation_temporality configures whether to reset the metrics after flushing.
+  # It can be either AGGREGATION_TEMPORALITY_CUMULATIVE or AGGREGATION_TEMPORALITY_DELTA.
+  [ aggregation_temporality: <string> | default = "AGGREGATION_TEMPORALITY_CUMULATIVE" ]
+  # metrics_flush_interval configures how often to flush generated metrics.
+  [ metrics_flush_interval: <duration> | default = 15s ]
 
 # tail_sampling supports tail-based sampling of traces in the agent.
 #

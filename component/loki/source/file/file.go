@@ -9,11 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/tail/watch"
 	"github.com/prometheus/common/model"
 )

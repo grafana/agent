@@ -30,21 +30,10 @@ func ToHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.
 func ValidateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if httpClientConfig.NoProxy != "" {
-		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config no_proxy was provided")
-	}
-
-	if httpClientConfig.ProxyFromEnvironment {
-		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config proxy_from_environment was provided")
-	}
-
-	if len(httpClientConfig.ProxyConnectHeader) > 0 {
-		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config proxy_connect_header was provided")
-	}
-
-	if httpClientConfig.TLSConfig.MaxVersion != 0 {
-		diags.Add(diag.SeverityLevelError, "unsupported HTTP Client config max_version was provided")
-	}
+	diags.AddAll(ValidateSupported(NotEquals, httpClientConfig.NoProxy, "", "HTTP Client no_proxy", ""))
+	diags.AddAll(ValidateSupported(Equals, httpClientConfig.ProxyFromEnvironment, true, "HTTP Client proxy_from_environment", ""))
+	diags.AddAll(ValidateSupported(Equals, len(httpClientConfig.ProxyConnectHeader) > 0, true, "HTTP Client proxy_connect_header", ""))
+	diags.AddAll(ValidateSupported(NotEquals, httpClientConfig.TLSConfig.MaxVersion, prom_config.TLSVersion(0), "HTTP Client max_version", ""))
 
 	return diags
 }

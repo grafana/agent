@@ -39,8 +39,8 @@ scrape_configs:
           category: sf
           quality: high
       - labels:
-          __path__: /var/log/this_is_not_used.log
-          category: superfluous
+          __path__: /var/log/this_is_used.log
+          category: important
       - labels: { }
     # Include k8s config to demonstrate how other discovery features differ from static_configs
     kubernetes_sd_configs:

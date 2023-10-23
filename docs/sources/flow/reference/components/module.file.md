@@ -131,10 +131,10 @@ module.file "metrics" {
   }
 }
 
-prometheus.exporter.unix { }
+prometheus.exporter.unix "default" { }
 
 prometheus.scrape "local_agent" {
-  targets         = prometheus.exporter.unix.targets
+  targets         = prometheus.exporter.unix.default.targets
   forward_to      = [module.file.metrics.exports.prometheus_remote_write.receiver]
   scrape_interval = "10s"
 }

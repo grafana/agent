@@ -57,9 +57,18 @@ features available in Grafana Agent Flow Mode.
 
 1. Open a terminal window and run the following command:
 
-    ```bash
-    AGENT_MODE=flow; grafana-agent convert --source-format=promtail --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-    ```
+   {{< code >}}
+
+   ```static-binary
+   AGENT_MODE=flow grafana-agent convert --source-format=promtail --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   ```flow-binary
+   grafana-agent-flow convert --source-format=promtail --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   {{< /code >}}
+
 
    Replace the following:
     * `INPUT_CONFIG_PATH`: The full path to the Promtail configuration.
@@ -77,15 +86,31 @@ features available in Grafana Agent Flow Mode.
 
    {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Promtail configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
 
-    ```bash
-    AGENT_MODE=flow; grafana-agent convert --source-format=promtail --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-    ```
+   {{< code >}}
+
+   ```static-binary
+   AGENT_MODE=flow grafana-agent convert --source-format=promtail --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   ```flow-binary
+   grafana-agent-flow convert --source-format=promtail --bypass-errors --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   {{< /code >}}
 
 1. You can also output a diagnostic report by including the `--report` flag.
 
-    ```bash
-    AGENT_MODE=flow; grafana-agent convert --source-format=promtail --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
-    ```
+   {{< code >}}
+
+   ```static-binary
+   AGENT_MODE=flow grafana-agent convert --source-format=promtail --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   ```flow-binary
+   grafana-agent-flow convert --source-format=promtail --report=OUTPUT_REPORT_PATH --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+   ```
+
+   {{< /code >}}
 
     * Replace `OUTPUT_REPORT_PATH` with the output path for the report.
 
@@ -152,9 +177,17 @@ The convert command takes the YAML file as input and outputs a [River][] file.
 
 [River]: {{< relref "../config-language/_index.md" >}}
 
-```bash
-AGENT_MODE=flow; grafana-agent convert --source-format=promtail --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+{{< code >}}
+
+```static-binary
+AGENT_MODE=flow grafana-agent convert --source-format=promtail --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
 ```
+
+```flow-binary
+grafana-agent-flow convert --source-format=promtail --output=OUTPUT_CONFIG_PATH INPUT_CONFIG_PATH
+```
+
+{{< /code >}}
 
 The new Flow Mode configuration file looks like this:
 
@@ -182,7 +215,7 @@ loki.write "default" {
 ## Limitations
 
 Configuration conversion is done on a best-effort basis. The Agent will issue
-warnings or errors where the conversion cannot be performed.
+warnings or errors where the conversion can't be performed.
 
 Once the configuration is converted, we recommend that you review
 the Flow Mode configuration file created, and verify that it is correct

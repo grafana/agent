@@ -29,10 +29,7 @@ func AppendPrometheusScrape(pb *build.PrometheusBlocks, scrapeConfig *prom_confi
 func ValidatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if scrapeConfig.NativeHistogramBucketLimit != 0 {
-		diags.Add(diag.SeverityLevelError, "unsupported native_histogram_bucket_limit for scrape_configs")
-	}
-
+	diags.AddAll(common.ValidateSupported(common.NotEquals, scrapeConfig.NativeHistogramBucketLimit, uint(0), "scrape_configs native_histogram_bucket_limit", ""))
 	diags.AddAll(common.ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig))
 
 	return diags
