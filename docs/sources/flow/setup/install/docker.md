@@ -49,7 +49,7 @@ You can modify the last line to change the arguments passed to the Grafana Agent
 Refer to the documentation for [run][] for more information about the options available to the `run` command.
 
 > **Note:** Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
-> If you don't pass this argument, the [debugging UI][] won't be available outside of the Docker container.
+> If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
 
 
 ## Run a Windows Docker container
@@ -72,7 +72,7 @@ Refer to the documentation for [run][] for more information about the options av
 
 
 > **Note:** Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
-* If you don't pass this argument, the [debugging UI][] won't be available outside of the Docker container.
+* If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
 
 ## Verify
 
@@ -83,8 +83,6 @@ To verify that Grafana Agent is running successfully, navigate to <http://localh
 [Docker]: https://docker.io
 
 {{% docs/reference %}}
-[debugging UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-[debugging UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
 [run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
 [UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
