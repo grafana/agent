@@ -42,7 +42,7 @@ This guide will provide some steps to get started with Grafana Agent for users c
 
 2. Create a Flow config file, `agent.river`.
 
-    You can add any config you need directly to this file.
+    We will be adding to this config in the next step as we convert `MetricsInstances`. You can add any additional configuration to this file as you desire.
 
 3. Install the grafana helm repository:
 
@@ -80,7 +80,7 @@ remote.kubernetes.secret "credentials" {
 
 prometheus.remote_write "primary" {
     endpoint {
-        url = "https://PROMETHEUS_URL/api/prom/push"
+        url = "https://PROMETHEUS_URL/api/v1/push"
         basic_auth {
             username = nonsensitive(remote.kubernetes.secret.credentials.data["username"])
             password = remote.kubernetes.secret.credentials.data["password"]
