@@ -72,7 +72,7 @@ Refer to the documentation for [run][] for more information about the options av
 
 
 > **Note:** Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
-* If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
+> If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
 
 ## Verify
 
