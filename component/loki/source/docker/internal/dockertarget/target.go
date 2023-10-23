@@ -1,8 +1,8 @@
 package dockertarget
 
-// This code is copied from Promtail. The dockertarget package is used to
-// configure and run the targets that can read logs from Docker containers and
-// forward them to other loki components.
+// NOTE: This code is adapted from Promtail (90a1d4593e2d690b37333386383870865fe177bf).
+// The dockertarget package is used to configure and run the targets that can
+// read logs from Docker containers and forward them to other loki components.
 
 import (
 	"bufio"
@@ -261,6 +261,7 @@ func (t *Target) Hash() uint64 {
 	return uint64(t.labels.Fingerprint())
 }
 
+// Path returns the target's container name.
 func (t *Target) Path() string {
 	return t.containerName
 }

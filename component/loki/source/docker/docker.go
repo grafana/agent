@@ -1,5 +1,7 @@
 package docker
 
+// NOTE: This code is adapted from Promtail (90a1d4593e2d690b37333386383870865fe177bf).
+
 import (
 	"context"
 	"fmt"
