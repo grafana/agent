@@ -43,6 +43,8 @@ Main (unreleased)
 - Added a new `stage.eventlogmessage` stage to `loki.process` component which
   allows to extract data from Windows Event Log. (@thampiotr)
 
+- Update version of River to support raw strings in flow using a backtick. (@erikbaranowski)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
@@ -51,15 +53,25 @@ Main (unreleased)
 - Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
   permanently fail to load with `id already exists` error. (@mattdurham)
 
+- Fixed some converter diagnostics so they show as warnings rather than errors. Improve
+  clarity for various diagnostics. (@erikbaranowski)
+
+- Wire up the agent exporter integration for the static converter. (@erikbaranowski)
+
 - Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
 
 - Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
+
+- Fix an issue with static mode and `promtail` converters, where static targets 
+  did not correctly default to `localhost` when not provided. (@thampiotr)
 
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
 
 - Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
+
+- Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
 
 v0.37.2 (2023-10-16)
 -----------------

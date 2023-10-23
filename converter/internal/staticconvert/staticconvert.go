@@ -129,6 +129,12 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 		promtailConfig.TargetConfig = logConfig.TargetConfig
 		promtailConfig.LimitsConfig = logConfig.LimitsConfig
 
+		// We are using the
+		err := promtailConfig.ServerConfig.Config.LogLevel.Set("info")
+		if err != nil {
+			panic("unable to set default promtail log level from the static converter.")
+		}
+
 		// We need to set this when empty so the promtail converter doesn't think it has been overridden
 		if promtailConfig.Global == (promtail_config.GlobalConfig{}) {
 			promtailConfig.Global.FileWatch = file.DefaultWatchConig

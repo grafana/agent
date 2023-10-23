@@ -51,7 +51,7 @@ func (ds Diagnostics) GenerateReport(writer io.Writer, reportType string) error 
 	case Text:
 		return generateTextReport(writer, ds)
 	default:
-		return fmt.Errorf("unsupported diagnostic report type %q", reportType)
+		return fmt.Errorf("Invalid diagnostic report type %q", reportType)
 	}
 }
 

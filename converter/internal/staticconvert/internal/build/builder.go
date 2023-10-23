@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/config"
+	agent_exporter "github.com/grafana/agent/pkg/integrations/agent"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
@@ -73,12 +74,14 @@ func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
 		}
 
 		if !scrapeIntegration {
-			b.diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration which is not being scraped was provided: %s.", integration.Name()))
+			b.diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support handling integrations which are not being scraped: %s.", integration.Name()))
 			continue
 		}
 
 		var exports discovery.Exports
 		switch itg := integration.Config.(type) {
+		case *agent_exporter.Config:
+			exports = b.appendAgentExporter(itg)
 		case *apache_http.Config:
 			exports = b.appendApacheExporter(itg)
 		case *node_exporter.Config:

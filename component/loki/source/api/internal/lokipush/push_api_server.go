@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component/common/loki"
 	fnet "github.com/grafana/agent/component/common/net"
 	frelabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/dskit/tenant"
 	"github.com/grafana/loki/pkg/loghttp/push"
 	"github.com/grafana/loki/pkg/logproto"

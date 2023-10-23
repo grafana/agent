@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	commonk8s "github.com/grafana/agent/component/common/kubernetes"
@@ -18,6 +17,7 @@ import (
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/loki/source/kubernetes"
 	"github.com/grafana/agent/component/loki/source/kubernetes/kubetail"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/oklog/run"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

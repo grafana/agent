@@ -242,7 +242,7 @@ local _config = config._config;
           {
             alert: 'AgentRemoteConfigBadAPIRequests',
             expr: |||
-              100 * sum(rate(agent_remote_config_fetches_total{status_code="(4|5).."}[10m])) by (%(group_by_cluster)s)
+              100 * sum(rate(agent_remote_config_fetches_total{status_code=~"(4|5).."}[10m])) by (%(group_by_cluster)s)
                 /
               sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 5
@@ -260,7 +260,7 @@ local _config = config._config;
           {
             alert: 'AgentRemoteConfigBadAPIRequests',
             expr: |||
-              100 * sum(rate(agent_remote_config_fetches_total{status_code="(4|5).."}[10m])) by (%(group_by_cluster)s)
+              100 * sum(rate(agent_remote_config_fetches_total{status_code=~"(4|5).."}[10m])) by (%(group_by_cluster)s)
                 /
               sum(rate(agent_remote_config_fetches_total[10m])) by (%(group_by_cluster)s)
                 > 10
