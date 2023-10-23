@@ -266,7 +266,7 @@ func (t *Target) Path() string {
 }
 
 // Details returns target-specific details.
-func (t *Target) Details() interface{} {
+func (t *Target) Details() map[string]string {
 	var errMsg string
 	if t.err != nil {
 		errMsg = t.err.Error()
