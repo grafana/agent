@@ -72,7 +72,7 @@ func (b *batch) add(entry loki.Entry) error {
 }
 
 // add an entry to the batch
-func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry, segment int) error {
+func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry) error {
 	b.bytes += len(entry.Line)
 
 	// Append the entry to an already existing stream (if any)

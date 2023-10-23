@@ -301,7 +301,7 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry, se
 	// If the batch doesn't exist yet, we create a new one with the entry
 	if !ok {
 		nb := newBatch(c.maxStreams)
-		_ = nb.addFromWAL(lbs, e, segment)
+		_ = nb.addFromWAL(lbs, e)
 
 		c.batches[tenantID] = nb
 		c.batchesMtx.Unlock()
@@ -319,7 +319,7 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry, se
 		})
 
 		nb := newBatch(c.maxStreams)
-		_ = nb.addFromWAL(lbs, e, segment)
+		_ = nb.addFromWAL(lbs, e)
 		c.batches[tenantID] = nb
 		c.batchesMtx.Unlock()
 
@@ -327,7 +327,7 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry, se
 	}
 
 	// The max size of the batch isn't reached, so we can add the entry
-	err := batch.addFromWAL(lbs, e, segment)
+	err := batch.addFromWAL(lbs, e)
 	c.batchesMtx.Unlock()
 
 	if err != nil {
