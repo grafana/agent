@@ -110,7 +110,7 @@ output    | [output][]  | Configures where to send received telemetry data. | ye
 ### traces block
 
 The `traces` block specifies statements which filter trace telemetry signals. 
-Only one `traces` blocks can be specified.
+Only one `traces` block can be specified.
 
 Name        | Type           | Description                                         | Default | Required
 ----------- | -------------- | --------------------------------------------------- | ------- | --------
