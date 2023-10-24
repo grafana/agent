@@ -32,7 +32,7 @@ Main (unreleased)
 
 ### Features
 
-- Added a new `stage.decolorize` stage to `loki.process` component which 
+- Added a new `stage.decolorize` stage to `loki.process` component which
   allows to strip ANSI color codes from the log lines. (@thampiotr)
 
 - Added a new `stage.sampling` stage to `loki.process` component which
@@ -45,7 +45,7 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fixed an issue where `loki.process` validation for stage `metric.counter` was 
+- Fixed an issue where `loki.process` validation for stage `metric.counter` was
   allowing invalid combination of configuration options. (@thampiotr)
 
 - Fixed issue where adding a module after initial start, that failed to load then subsequently resolving the issue would cause the module to
@@ -60,8 +60,10 @@ Main (unreleased)
 
 - Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
 
-- Fix an issue with static mode and `promtail` converters, where static targets 
+- Fix an issue with static mode and `promtail` converters, where static targets
   did not correctly default to `localhost` when not provided. (@thampiotr)
+
+- Fix an issue where `remote.vault` ignored the `namespace` argument. (@rfratto)
 
 ### Enhancements
 
@@ -83,7 +85,7 @@ v0.37.2 (2023-10-16)
   config not being included in the river output. (@erikbaranowski)
 
 - Fix issue with default values in `discovery.nomad`. (@marctc)
-  
+
 ### Enhancements
 
 - Update Prometheus dependency to v2.47.2. (@tpaschalis)
