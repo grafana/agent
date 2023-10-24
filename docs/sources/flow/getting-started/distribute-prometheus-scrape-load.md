@@ -44,7 +44,7 @@ To distribute Prometheus metrics scrape load with clustering:
 
 3. Validate that auto-distribution is functioning:
 
-   1. Using the [UI][] on each agent, navigate to the details page for one of
+   1. Using the [Grafana Agent UI][UI] on each agent, navigate to the details page for one of
       the `prometheus.scrape` components you modified.
 
    2. Compare the Debug Info sections between two different agents to ensure

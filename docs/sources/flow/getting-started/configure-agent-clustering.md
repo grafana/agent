@@ -45,7 +45,7 @@ To configure clustering:
        enabled: true
    ```
 
-1. Upgrade your installation to use the new values.yaml file:
+1. Upgrade your installation to use the new `values.yaml` file:
 
    ```bash
    helm upgrade RELEASE_NAME -f values.yaml
@@ -54,7 +54,7 @@ To configure clustering:
    Replace `RELEASE_NAME` with the name of the installation you chose when you
    installed the Helm chart.
 
-1. Use [UI][] to verify the cluster status:
+1. Use the [Grafana Agent UI][UI] to verify the cluster status:
 
    1. Click **Clustering** in the navigation bar.
 
