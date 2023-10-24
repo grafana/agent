@@ -42,5 +42,12 @@ To download Grafana Agent as a standalone binary, perform the following steps.
 
 ## Next steps
 
-* [Start Grafana Agent]({{< relref "../start-agent#standalone-binary" >}})
-* [Configure Grafana Agent]({{< relref "../configure" >}})
+* [Start Grafana Agent][]
+* [Configure Grafana Agent][]
+
+{{% docs/reference %}}
+[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#standalone-binary"
+[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md#standalone-binary"
+[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/"
+{{% /docs/reference %}}

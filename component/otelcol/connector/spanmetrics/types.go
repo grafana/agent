@@ -37,7 +37,7 @@ const (
 // The unit is a private type in an internal Otel package,
 // so we need to convert it to a map and then back to the internal type.
 // ConvertMetricUnit matches the Unit type in this internal package:
-// https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/connector/spanmetricsconnector/internal/metrics/unit.go
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.87.0/connector/spanmetricsconnector/internal/metrics/unit.go
 func ConvertMetricUnit(unit string) (map[string]interface{}, error) {
 	switch unit {
 	case MetricsUnitMilliseconds:

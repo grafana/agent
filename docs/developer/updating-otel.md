@@ -39,6 +39,7 @@ Unfortunately, updating Otel dependencies is not straightforward:
 2. Check which branch of the fork repo the Agent currently uses.
 3. See what commits were pushed onto that branch to customize it.
 4. Create a PR to cherry-pick the same commits to the new branch. See the [changes to the 0.85 branch](https://github.com/grafana/opentelemetry-collector/pull/8) for an example PR.
+5. Run `make` on the branch to make sure it builds and that the tests pass.
 
 ### Update the Agent's dependencies
 
@@ -80,6 +81,10 @@ Unfortunately, updating Otel dependencies is not straightforward:
      have new parameters which have been added to the Otel components recently.
      If you do think it should be updated, check with the rest of the team on
      whether it is really necessary.
+   * Search the Agent repository for the old version (e.g. "0.87") to find code and 
+     documentation which also needs updating.
+   * Update the `OTEL_VERSION` parameter in the `docs/sources/_index.md.t` file.
+     Then run `make generate-versioned-files`, which will update `docs/sources/_index.md`.
 5. Some Agent components reuse OpenTelemetry code, but do not import it:
    * `otelcol.extension.jaeger_remote_sampling`: a lot of this code has 
      been copy-pasted from Otel and modified slightly to fit the Agent's needs.
