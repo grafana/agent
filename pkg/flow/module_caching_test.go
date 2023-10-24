@@ -5,7 +5,6 @@ package flow_test
 
 import (
 	"context"
-	"github.com/grafana/agent/service/labelstore"
 	"os"
 	"strconv"
 	"testing"
@@ -18,6 +17,7 @@ import (
 	"github.com/grafana/agent/service"
 	cluster_service "github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/labelstore"
 	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
