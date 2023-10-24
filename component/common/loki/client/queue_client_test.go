@@ -55,15 +55,16 @@ func TestQueueClient(t *testing.T) {
 		ExternalLabels: lokiflag.LabelSet{},
 		Timeout:        1 * time.Second,
 		TenantID:       "",
+		Queue: QueueConfig{
+			Capacity:     10,
+			DrainTimeout: time.Second,
+		},
 	}
 
 	logger := log.NewLogfmtLogger(os.Stdout)
 
 	m := NewMetrics(reg)
-	qc, err := NewQueue(m, cfg, 0, 0, false, logger, QueueConfig{
-		Capacity:     10,
-		DrainTimeout: time.Second,
-	})
+	qc, err := NewQueue(m, cfg, 0, 0, false, logger)
 	require.NoError(t, err)
 
 	//labels := model.LabelSet{"app": "test"}
@@ -141,10 +142,7 @@ func BenchmarkQueueClient(b *testing.B) {
 	logger := log.NewLogfmtLogger(os.Stdout)
 
 	m := NewMetrics(reg)
-	qc, err := NewQueue(m, cfg, 0, 0, false, logger, QueueConfig{
-		Capacity:     10,
-		DrainTimeout: time.Second,
-	})
+	qc, err := NewQueue(m, cfg, 0, 0, false, logger)
 	require.NoError(b, err)
 
 	//labels := model.LabelSet{"app": "test"}
