@@ -3,6 +3,7 @@ package wal
 import (
 	"fmt"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -488,4 +489,23 @@ func TestWatcher_Replay(t *testing.T) {
 	}, time.Second*10, time.Second, "timed out waiting for watcher to catch up")
 	writeTo.AssertContainsLines(t, segment1Lines...)
 	writeTo.AssertContainsLines(t, segment2Lines...)
+}
+
+func Test(t *testing.T) {
+	ch := make(chan struct{})
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		ch <- struct{}{}
+	}()
+	go func() {
+		defer wg.Done()
+		ch <- struct{}{}
+	}()
+
+	<-ch
+	close(ch)
+	wg.Wait()
 }

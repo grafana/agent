@@ -30,6 +30,9 @@ type batch struct {
 	createdAt  time.Time
 
 	maxStreams int
+
+	// segmentCounter tracks the amount of entries for each segment present in this batch.
+	segmentCounter map[int]int
 }
 
 func newBatch(maxStreams int, entries ...loki.Entry) *batch {
@@ -73,13 +76,14 @@ func (b *batch) add(entry loki.Entry) error {
 }
 
 // add an entry to the batch
-func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry) error {
+func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry, segmentNum int) error {
 	b.totalBytes += len(entry.Line)
 
 	// Append the entry to an already existing stream (if any)
 	labels := labelsMapToString(lbs, ReservedLabelTenantID)
 	if stream, ok := b.streams[labels]; ok {
 		stream.Entries = append(stream.Entries, entry)
+		b.countForSegment(segmentNum)
 		return nil
 	}
 
@@ -93,6 +97,7 @@ func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry) error {
 		Labels:  labels,
 		Entries: []logproto.Entry{entry},
 	}
+	b.countForSegment(segmentNum)
 
 	return nil
 }
@@ -170,4 +175,12 @@ func (b *batch) createPushRequest() (*logproto.PushRequest, int) {
 		entriesCount += len(stream.Entries)
 	}
 	return &req, entriesCount
+}
+
+func (b *batch) countForSegment(segment int) {
+	if curr, ok := b.segmentCounter[segment]; ok {
+		b.segmentCounter[segment] = curr + 1
+		return
+	}
+	b.segmentCounter[segment] = 1
 }

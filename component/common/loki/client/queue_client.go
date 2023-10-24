@@ -33,6 +33,11 @@ type StoppableWriteTo interface {
 	StopNow()
 }
 
+type MarkerHandler interface {
+	UpdateReceivedData(segmentId, dataCount int) // Data queued for sending
+	UpdateSentData(segmentId, dataCount int)     // Data which was sent or given up on sending
+}
+
 // queuedBatch is a batch specific to a tenant, that is considered ready to be sent.
 type queuedBatch struct {
 	TenantID string
@@ -159,17 +164,18 @@ type queueClient struct {
 	maxLineSize         int
 	maxLineSizeTruncate bool
 	quit                chan struct{}
+	markerHandler       MarkerHandler
 }
 
 // NewQueue creates a new queueClient.
-func NewQueue(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger) (StoppableWriteTo, error) {
+func NewQueue(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, markerHandler MarkerHandler) (StoppableWriteTo, error) {
 	if cfg.StreamLagLabels.String() != "" {
 		return nil, fmt.Errorf("client config stream_lag_labels is deprecated and the associated metric has been removed, stream_lag_labels: %+v", cfg.StreamLagLabels.String())
 	}
-	return newQueueClient(metrics, cfg, maxStreams, maxLineSize, maxLineSizeTruncate, logger)
+	return newQueueClient(metrics, cfg, maxStreams, maxLineSize, maxLineSizeTruncate, logger, markerHandler)
 }
 
-func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger) (*queueClient, error) {
+func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, markerHandler MarkerHandler) (*queueClient, error) {
 	if cfg.URL.URL == nil {
 		return nil, errors.New("client needs target URL")
 	}
@@ -183,7 +189,8 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		drainTimeout: cfg.Queue.DrainTimeout,
 		quit:         make(chan struct{}),
 
-		batches: make(map[string]*batch),
+		batches:       make(map[string]*batch),
+		markerHandler: markerHandler,
 
 		series:        make(map[chunks.HeadSeriesRef]model.LabelSet),
 		seriesSegment: make(map[chunks.HeadSeriesRef]int),
@@ -266,8 +273,10 @@ func (c *queueClient) AppendEntries(entries wal.RefEntries, _ int) error {
 	c.seriesLock.RUnlock()
 	if ok {
 		for _, e := range entries.Entries {
-			c.appendSingleEntry(l, e)
+			c.appendSingleEntry(segment, l, e)
 		}
+		// count all enqueued appended entries as received from WAL
+		c.markerHandler.UpdateReceivedData(segment, len(entries.Entries))
 	} else {
 		// TODO(thepalbi): Add metric here
 		level.Debug(c.logger).Log("msg", "series for entry not found")
@@ -275,7 +284,7 @@ func (c *queueClient) AppendEntries(entries wal.RefEntries, _ int) error {
 	return nil
 }
 
-func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry) {
+func (c *queueClient) appendSingleEntry(segmentNum int, lbs model.LabelSet, e logproto.Entry) {
 	lbs, tenantID := c.processLabels(lbs)
 
 	// Either drop or mutate the log entry because its length is greater than maxLineSize. maxLineSize == 0 means disabled.
@@ -301,7 +310,7 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry) {
 		nb := newBatch(c.maxStreams)
 		// since the batch is new, adding a new entry, and hence a new stream, won't fail since there aren't any stream
 		// registered in the batch.
-		_ = nb.addFromWAL(lbs, e)
+		_ = nb.addFromWAL(lbs, e, segmentNum)
 
 		c.batches[tenantID] = nb
 		c.batchesMtx.Unlock()
@@ -319,7 +328,7 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry) {
 		})
 
 		nb := newBatch(c.maxStreams)
-		_ = nb.addFromWAL(lbs, e)
+		_ = nb.addFromWAL(lbs, e, segmentNum)
 		c.batches[tenantID] = nb
 		c.batchesMtx.Unlock()
 
@@ -327,7 +336,7 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry) {
 	}
 
 	// The max size of the batch isn't reached, so we can add the entry
-	err := batch.addFromWAL(lbs, e)
+	err := batch.addFromWAL(lbs, e, segmentNum)
 	c.batchesMtx.Unlock()
 
 	if err != nil {
