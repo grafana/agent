@@ -17,8 +17,9 @@ type MetricResult struct {
 }
 
 type Metric struct {
-	Job  string `json:"job"`
-	Name string `json:"__name__"`
+	Job       string `json:"job"`
+	TestLabel string `json:"test"`
+	Name      string `json:"__name__"`
 }
 
 func (m *MetricResponse) Unmarshal(data []byte) error {

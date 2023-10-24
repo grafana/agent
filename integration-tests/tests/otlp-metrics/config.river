@@ -1,0 +1,31 @@
+otelcol.receiver.otlp "otlp_metrics" {
+  http {
+    endpoint="0.0.0.0:8080"
+  }
+
+  output {
+    metrics = [otelcol.processor.attributes.otlp_metrics.input]
+  }
+}
+
+otelcol.processor.attributes "otlp_metrics" {
+  action {
+    key = "test"
+    value = "otlp_metrics"
+    action = "insert"
+  }
+
+  output {
+    metrics = [otelcol.exporter.otlphttp.otlp_metrics.input]
+  }
+}
+
+otelcol.exporter.otlphttp "otlp_metrics" {
+  client {
+    endpoint = "http://localhost:9009/otlp"
+    tls {
+      insecure             = true
+      insecure_skip_verify = true
+    }
+  }
+}
