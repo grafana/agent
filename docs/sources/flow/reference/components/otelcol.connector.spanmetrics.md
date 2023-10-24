@@ -17,9 +17,9 @@ description: Learn about otelcol.connector.spanmetrics
 `otelcol.connector.spanmetrics` accepts span data from other `otelcol` components and
 aggregates Request, Error and Duration (R.E.D) OpenTelemetry metrics from the spans:
 
-* **Request** counts are computed as the number of spans seen per unique set of dimensions, 
-including Errors. Multiple metrics can be aggregated if, for instance, a user wishes to 
-view call counts just on `service.name`` and `span.name``.
+- **Request** counts are computed as the number of spans seen per unique set of dimensions,
+  including Errors. Multiple metrics can be aggregated if, for instance, a user wishes to
+  view call counts just on `service.name` and `span.name`.
 
 * **Error** counts are computed from the Request counts which have an `Error` status code metric dimension.
 
@@ -126,9 +126,10 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `unit` | `string` | Configures the histogram units. | `"ms"` | no
 
-The supported values for `aggregation_temporality` are:
-* `"ms"`: milliseconds
-* `"s"`: seconds
+The supported values for `unit` are:
+
+- `"ms"`: milliseconds
+- `"s"`: seconds
 
 ### exponential block
 
