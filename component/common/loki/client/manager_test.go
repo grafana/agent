@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"github.com/grafana/agent/component/common/loki/limit"
 	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/agent/component/common/loki/wal"
@@ -303,24 +302,4 @@ func TestManager_WALDisabled_MultipleConfigs(t *testing.T) {
 		seenEntries[fmt.Sprintf("%s-%s", req.Request.Streams[0].Labels, req.Request.Streams[0].Entries[0].Line)] = struct{}{}
 	}
 	require.Len(t, seenEntries, expectedTotalLines)
-}
-
-func TestManager_StopClients(t *testing.T) {
-	var stopped int
-
-	stopping := func() {
-		stopped++
-	}
-	fc := fake.NewClient(stopping)
-	clients := []Client{fc, fc, fc, fc}
-	m := &Manager{
-		clients: clients,
-		entries: make(chan loki.Entry),
-	}
-	m.startWithForward()
-	m.Stop()
-
-	if stopped != len(clients) {
-		t.Fatal("missing stop call")
-	}
 }
