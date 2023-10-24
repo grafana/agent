@@ -94,7 +94,8 @@ func TestQueueClient(t *testing.T) {
 	}
 
 	require.Eventually(t, func() bool {
-		return receivedReqs.Length() >= len(lines)
+		t.Logf("seen lines: %d", receivedReqs.Length())
+		return receivedReqs.Length() == len(lines)
 	}, time.Second*10, time.Second, "timed out waiting for messages to arrive")
 
 	// Stop the client: it waits until the current batch is sent

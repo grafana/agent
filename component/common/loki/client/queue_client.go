@@ -30,6 +30,7 @@ import (
 type StoppableWriteTo interface {
 	agentWal.WriteTo
 	Stoppable
+	StopNow()
 }
 
 // queuedBatch is a batch specific to a tenant, that is considered ready to be sent.
@@ -396,7 +397,7 @@ func (c *queueClient) runSendOldBatches() {
 				c.sendQueue.enqueue(qb)
 			}
 
-			batchesToFlush = batchesToFlush[:] // renew slide
+			batchesToFlush = batchesToFlush[:0] // renew slide
 		}
 	}
 }
