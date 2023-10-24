@@ -84,6 +84,7 @@ Unfortunately, updating Otel dependencies is not straightforward:
    * Search the Agent repository for the old version (e.g. "0.87") to find code and 
      documentation which also needs updating.
    * Update the `OTEL_VERSION` parameter in the `docs/sources/_index.md.t` file.
+     Then run `make generate-versioned-files`, which will update `docs/sources/_index.md`.
 5. Some Agent components reuse OpenTelemetry code, but do not import it:
    * `otelcol.extension.jaeger_remote_sampling`: a lot of this code has 
      been copy-pasted from Otel and modified slightly to fit the Agent's needs.
