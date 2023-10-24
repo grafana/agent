@@ -57,14 +57,11 @@ For more information on the Grafana Agent Helm chart, refer to the Helm chart do
 
 ## Next steps
 
-<!--- [Start Grafana Agent][]-->
 - [Configure Grafana Agent][]
 
 [Helm]: https://helm.sh
 
 {{% docs/reference %}}
-<!--[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md"-->
 [Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-kubernetes.md"
 [Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-kubernetes.md"
 {{% /docs/reference %}}
