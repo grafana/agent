@@ -108,7 +108,7 @@ prometheus.operator.servicemonitors "primary" {
 
 You will need to replace `PROMETHEUS_URL` with the actual endpoint you want to send metrics to.
 
-This configuration will discover all `PodMonitor`, `ServiceMonitor`, and `Probe` resources in your cluster that match our label selector `instance=primary`. It will then scrape metrics from their targets, and forward them on to your remote write endpoint.
+This configuration will discover all `PodMonitor`, `ServiceMonitor`, and `Probe` resources in your cluster that match our label selector `instance=primary`. It will then scrape metrics from their targets and forward them to your remote write endpoint.
 
 You may need to customize this configuration further if you use additional features in your `MetricsInstance` resources.  Refer to the documentation for the relevant components for additional information:
 
