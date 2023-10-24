@@ -68,7 +68,6 @@ brew uninstall grafana-agent-flow
 - [Start Grafana Agent][]
 - [Configure Grafana Agent][]
 
-
 [Homebrew]: https://brew.sh
 
 {{% docs/reference %}}
