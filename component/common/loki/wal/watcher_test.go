@@ -52,6 +52,26 @@ func (t *testWriteTo) AppendEntries(entries wal.RefEntries, _ int) error {
 	return nil
 }
 
+func (t *testWriteTo) AssertContainsLines(tst *testing.T, lines ...string) {
+	seen := map[string]bool{}
+	for _, l := range lines {
+		seen[l] = false
+	}
+	for _, e := range t.ReadEntries.StartIterate() {
+		if _, ok := seen[e.Line]; ok {
+			seen[e.Line] = true
+		}
+	}
+	t.ReadEntries.DoneIterate()
+
+	allSeen := true
+	for _, wasSeen := range seen {
+		allSeen = allSeen && wasSeen
+	}
+
+	require.True(tst, allSeen, "expected all entries to have been received")
+}
+
 // watcherTestResources contains all resources necessary to test an individual Watcher functionality
 type watcherTestResources struct {
 	writeEntry             func(entry loki.Entry)
@@ -301,6 +321,12 @@ var cases = map[string]watcherTest{
 	},
 }
 
+type noMarker struct{}
+
+func (n noMarker) LastMarkedSegment() int {
+	return -1
+}
+
 // TestWatcher is the main test function, that works as framework to test different scenarios of the Watcher. It bootstraps
 // necessary test components.
 func TestWatcher(t *testing.T) {
@@ -317,7 +343,7 @@ func TestWatcher(t *testing.T) {
 				ReadEntries: utils.NewSyncSlice[loki.Entry](),
 			}
 			// create new watcher, and defer stop
-			watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig)
+			watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, noMarker{})
 			defer watcher.Stop()
 			wl, err := New(Config{
 				Enabled: true,
@@ -354,4 +380,112 @@ func TestWatcher(t *testing.T) {
 			)
 		})
 	}
+}
+
+type mockMarker struct {
+	LastMarkedSegmentFunc func() int
+}
+
+func (m mockMarker) LastMarkedSegment() int {
+	return m.LastMarkedSegmentFunc()
+}
+
+func TestWatcher_Replay(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	logger := level.NewFilter(log.NewLogfmtLogger(os.Stdout), level.AllowDebug())
+	dir := t.TempDir()
+	metrics := NewWatcherMetrics(reg)
+	writeTo := &testWriteTo{
+		series:      map[uint64]model.LabelSet{},
+		logger:      logger,
+		ReadEntries: utils.NewSyncSlice[loki.Entry](),
+	}
+	// create new watcher, and defer stop
+	watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, mockMarker{
+		LastMarkedSegmentFunc: func() int {
+			// when starting watcher, read from segment 0
+			return 0
+		},
+	})
+	defer watcher.Stop()
+	wl, err := New(Config{
+		Enabled: true,
+		Dir:     dir,
+	}, logger, reg)
+	require.NoError(t, err)
+	defer wl.Close()
+
+	ew := newEntryWriter()
+
+	labels := model.LabelSet{
+		"app": "test",
+	}
+
+	// First, write to segment 0. This will be the last "marked" segment
+	err = ew.WriteEntry(loki.Entry{
+		Labels: labels,
+		Entry: logproto.Entry{
+			Timestamp: time.Now(),
+			Line:      "this line should appear in received entries",
+		},
+	}, wl, logger)
+	require.NoError(t, err)
+
+	// cut segment and sync
+	_, err = wl.NextSegment()
+	require.NoError(t, err)
+
+	// Now, write to segment 1, this will be a segment not marked, hence replayed
+
+	segment1Lines := []string{
+		"before 1",
+		"before 2",
+		"before 3",
+	}
+
+	for _, line := range segment1Lines {
+		err = ew.WriteEntry(loki.Entry{
+			Labels: labels,
+			Entry: logproto.Entry{
+				Timestamp: time.Now(),
+				Line:      line,
+			},
+		}, wl, logger)
+		require.NoError(t, err)
+	}
+
+	// cut segment and sync
+	_, err = wl.NextSegment()
+	require.NoError(t, err)
+
+	// Finally, write some data to the last segment, this will be the write head
+
+	segment2Lines := []string{
+		"after 1",
+		"after 2",
+		"after 3",
+	}
+
+	for _, line := range segment2Lines {
+		err = ew.WriteEntry(loki.Entry{
+			Labels: labels,
+			Entry: logproto.Entry{
+				Timestamp: time.Now(),
+				Line:      line,
+			},
+		}, wl, logger)
+		require.NoError(t, err)
+	}
+
+	// sync wal, and start watcher
+	require.NoError(t, wl.Sync())
+
+	// start watcher
+	watcher.Start()
+
+	require.Eventually(t, func() bool {
+		return writeTo.ReadEntries.Length() == 6 // wait for watcher to catch up with both segments
+	}, time.Second*10, time.Second, "timed out waiting for watcher to catch up")
+	writeTo.AssertContainsLines(t, segment1Lines...)
+	writeTo.AssertContainsLines(t, segment2Lines...)
 }
