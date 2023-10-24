@@ -126,7 +126,7 @@ func TestStaleness(t *testing.T) {
 	require.Len(t, mapping.labelsHashToGlobal, 2)
 	staleDuration = 1 * time.Millisecond
 	time.Sleep(10 * time.Millisecond)
-	mapping.CheckStaleMarkers()
+	mapping.CheckAndRemoveStaleMarkers()
 	require.Len(t, mapping.staleGlobals, 0)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
 }

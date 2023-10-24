@@ -185,8 +185,8 @@ func (s *service) RemoveStaleMarker(globalRefID uint64) {
 // staleDuration determines how often we should wait after a stale value is received to GC that value
 var staleDuration = time.Minute * 10
 
-// CheckStaleMarkers is called to garbage collect and items that have grown stale over stale duration (10m)
-func (s *service) CheckStaleMarkers() {
+// CheckAndRemoveStaleMarkers is called to garbage collect and items that have grown stale over stale duration (10m)
+func (s *service) CheckAndRemoveStaleMarkers() {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
