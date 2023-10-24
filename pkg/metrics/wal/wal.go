@@ -760,7 +760,7 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, _ labels.Labels, e exem
 	// Otherwise, record the current exemplar as the latest.
 	// Prometheus' TSDB returns 0 when encountering duplicates, so we do the same here.
 	prevExemplar := a.w.series.GetLatestExemplar(s.ref)
-	if prevExemplar != nil && prevExemplar.Equals(e) {
+	if prevExemplar != nil && (prevExemplar.Equals(e) || prevExemplar.Ts > e.Ts) {
 		// Duplicate, don't return an error but don't accept the exemplar.
 		return 0, nil
 	}
