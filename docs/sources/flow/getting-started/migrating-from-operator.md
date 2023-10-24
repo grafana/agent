@@ -160,7 +160,7 @@ remote.kubernetes.secret "credentials" {
 
 discovery.kubernetes "pods" {
   role = "pod"
-  // limit to pods on this node to reduce amount we need to filter
+  // limit to pods on this node to reduce the amount we need to filter
   selectors {
     role  = "pod"
     field = "spec.nodeName=" + env("HOSTNAME")
