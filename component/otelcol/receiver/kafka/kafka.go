@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/receiver"
 	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/grafana/river/rivertypes"
+	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -38,10 +39,11 @@ type Arguments struct {
 	ClientID        string   `river:"client_id,attr,optional"`
 	InitialOffset   string   `river:"initial_offset,attr,optional"`
 
-	Authentication AuthenticationArguments `river:"authentication,block,optional"`
-	Metadata       MetadataArguments       `river:"metadata,block,optional"`
-	AutoCommit     AutoCommitArguments     `river:"autocommit,block,optional"`
-	MessageMarking MessageMarkingArguments `river:"message_marking,block,optional"`
+	Authentication   AuthenticationArguments `river:"authentication,block,optional"`
+	Metadata         MetadataArguments       `river:"metadata,block,optional"`
+	AutoCommit       AutoCommitArguments     `river:"autocommit,block,optional"`
+	MessageMarking   MessageMarkingArguments `river:"message_marking,block,optional"`
+	HeaderExtraction HeaderExtraction        `river:"header_extraction,block,optional"`
 
 	// DebugMetrics configures component internal metrics. Optional.
 	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
@@ -79,6 +81,10 @@ var DefaultArguments = Arguments{
 		AfterExecution:      false,
 		IncludeUnsuccessful: false,
 	},
+	HeaderExtraction: HeaderExtraction{
+		ExtractHeaders: false,
+		Headers:        []string{},
+	},
 }
 
 // SetToDefault implements river.Defaulter.
@@ -88,20 +94,28 @@ func (args *Arguments) SetToDefault() {
 
 // Convert implements receiver.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
-	return &kafkareceiver.Config{
-		Brokers:         args.Brokers,
-		ProtocolVersion: args.ProtocolVersion,
-		Topic:           args.Topic,
-		Encoding:        args.Encoding,
-		GroupID:         args.GroupID,
-		ClientID:        args.ClientID,
-		InitialOffset:   args.InitialOffset,
+	input := make(map[string]interface{})
+	input["auth"] = args.Authentication.Convert()
 
-		Authentication: args.Authentication.Convert(),
-		Metadata:       args.Metadata.Convert(),
-		AutoCommit:     args.AutoCommit.Convert(),
-		MessageMarking: args.MessageMarking.Convert(),
-	}, nil
+	var result kafkareceiver.Config
+	err := mapstructure.Decode(input, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	result.Brokers = args.Brokers
+	result.ProtocolVersion = args.ProtocolVersion
+	result.Topic = args.Topic
+	result.Encoding = args.Encoding
+	result.GroupID = args.GroupID
+	result.ClientID = args.ClientID
+	result.InitialOffset = args.InitialOffset
+	result.Metadata = args.Metadata.Convert()
+	result.AutoCommit = args.AutoCommit.Convert()
+	result.MessageMarking = args.MessageMarking.Convert()
+	result.HeaderExtraction = args.HeaderExtraction.Convert()
+
+	return &result, nil
 }
 
 // Extensions implements receiver.Arguments.
@@ -128,26 +142,26 @@ type AuthenticationArguments struct {
 }
 
 // Convert converts args into the upstream type.
-func (args AuthenticationArguments) Convert() kafkaexporter.Authentication {
-	var res kafkaexporter.Authentication
+func (args AuthenticationArguments) Convert() map[string]interface{} {
+	auth := make(map[string]interface{})
 
 	if args.Plaintext != nil {
 		conv := args.Plaintext.Convert()
-		res.PlainText = &conv
+		auth["plain_text"] = &conv
 	}
 	if args.SASL != nil {
 		conv := args.SASL.Convert()
-		res.SASL = &conv
+		auth["sasl"] = &conv
 	}
 	if args.TLS != nil {
-		res.TLS = args.TLS.Convert()
+		auth["tls"] = args.TLS.Convert()
 	}
 	if args.Kerberos != nil {
 		conv := args.Kerberos.Convert()
-		res.Kerberos = &conv
+		auth["kerberos"] = &conv
 	}
 
-	return res
+	return auth
 }
 
 // PlaintextArguments configures plaintext authentication against the Kafka
@@ -158,10 +172,10 @@ type PlaintextArguments struct {
 }
 
 // Convert converts args into the upstream type.
-func (args PlaintextArguments) Convert() kafkaexporter.PlainTextConfig {
-	return kafkaexporter.PlainTextConfig{
-		Username: args.Username,
-		Password: string(args.Password),
+func (args PlaintextArguments) Convert() map[string]interface{} {
+	return map[string]interface{}{
+		"username": args.Username,
+		"password": string(args.Password),
 	}
 }
 
@@ -170,16 +184,18 @@ type SASLArguments struct {
 	Username  string            `river:"username,attr"`
 	Password  rivertypes.Secret `river:"password,attr"`
 	Mechanism string            `river:"mechanism,attr"`
+	Version   int               `river:"version,attr,optional"`
 	AWSMSK    AWSMSKArguments   `river:"aws_msk,block,optional"`
 }
 
 // Convert converts args into the upstream type.
-func (args SASLArguments) Convert() kafkaexporter.SASLConfig {
-	return kafkaexporter.SASLConfig{
-		Username:  args.Username,
-		Password:  string(args.Password),
-		Mechanism: args.Mechanism,
-		AWSMSK:    args.AWSMSK.Convert(),
+func (args SASLArguments) Convert() map[string]interface{} {
+	return map[string]interface{}{
+		"username":  args.Username,
+		"password":  string(args.Password),
+		"mechanism": args.Mechanism,
+		"version":   args.Version,
+		"aws_msk":   args.AWSMSK.Convert(),
 	}
 }
 
@@ -191,10 +207,10 @@ type AWSMSKArguments struct {
 }
 
 // Convert converts args into the upstream type.
-func (args AWSMSKArguments) Convert() kafkaexporter.AWSMSKConfig {
-	return kafkaexporter.AWSMSKConfig{
-		Region:     args.Region,
-		BrokerAddr: args.BrokerAddr,
+func (args AWSMSKArguments) Convert() map[string]interface{} {
+	return map[string]interface{}{
+		"region":      args.Region,
+		"broker_addr": args.BrokerAddr,
 	}
 }
 
@@ -211,15 +227,15 @@ type KerberosArguments struct {
 }
 
 // Convert converts args into the upstream type.
-func (args KerberosArguments) Convert() kafkaexporter.KerberosConfig {
-	return kafkaexporter.KerberosConfig{
-		ServiceName: args.ServiceName,
-		Realm:       args.Realm,
-		UseKeyTab:   args.UseKeyTab,
-		Username:    args.Username,
-		Password:    string(args.Password),
-		ConfigPath:  args.ConfigPath,
-		KeyTabPath:  args.KeyTabPath,
+func (args KerberosArguments) Convert() map[string]interface{} {
+	return map[string]interface{}{
+		"service_name": args.ServiceName,
+		"realm":        args.Realm,
+		"use_keytab":   args.UseKeyTab,
+		"username":     args.Username,
+		"password":     string(args.Password),
+		"config_file":  args.ConfigPath,
+		"keytab_file":  args.KeyTabPath,
 	}
 }
 
@@ -280,6 +296,19 @@ func (args MessageMarkingArguments) Convert() kafkareceiver.MessageMarking {
 	return kafkareceiver.MessageMarking{
 		After:   args.AfterExecution,
 		OnError: args.IncludeUnsuccessful,
+	}
+}
+
+type HeaderExtraction struct {
+	ExtractHeaders bool     `river:"extract_headers,attr,optional"`
+	Headers        []string `river:"headers,attr,optional"`
+}
+
+// Convert converts HeaderExtraction into the upstream type.
+func (h HeaderExtraction) Convert() kafkareceiver.HeaderExtraction {
+	return kafkareceiver.HeaderExtraction{
+		ExtractHeaders: h.ExtractHeaders,
+		Headers:        h.Headers,
 	}
 }
 
