@@ -163,6 +163,10 @@ func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
 	_, _ = app.AppendExemplar(sRef, nil, e)
 	_, _ = app.AppendExemplar(sRef, nil, e)
 
+	e.Ts = 24
+	_, _ = app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
+
 	require.NoError(t, app.Commit())
 	collector := walDataCollector{}
 	replayer := walReplayer{w: &collector}
