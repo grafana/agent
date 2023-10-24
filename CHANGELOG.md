@@ -63,6 +63,8 @@ Main (unreleased)
 - Fix an issue with static mode and `promtail` converters, where static targets 
   did not correctly default to `localhost` when not provided. (@thampiotr)
 
+- Fix validation issue with ServiceMonitors when scrape timeout is greater than interval. (@captncraig)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
@@ -73,6 +75,9 @@ Main (unreleased)
 
 - Added support for comma-separated list of fields in `source` option and a 
   new `separator` option in `drop` stage of `loki.process`. (@thampiotr)
+
+- The `loki.source.docker` component now allows connecting to Docker daemons
+  over HTTP(S) and setting up TLS credentials. (@tpaschalis)
 
 v0.37.2 (2023-10-16)
 -----------------

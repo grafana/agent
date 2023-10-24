@@ -230,5 +230,5 @@ func (cg *ConfigGenerator) GenerateProbeConfig(m *promopv1.Probe) (cfg *config.S
 	}
 	cfg.MetricRelabelConfigs = metricRelabels.configs
 
-	return cfg, nil
+	return cfg, cfg.Validate(cg.ScrapeOptions.GlobalConfig())
 }

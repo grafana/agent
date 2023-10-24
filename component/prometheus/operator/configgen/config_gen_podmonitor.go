@@ -277,5 +277,5 @@ func (cg *ConfigGenerator) GeneratePodMonitorConfig(m *promopv1.PodMonitor, ep p
 	cfg.LabelNameLengthLimit = uint(m.Spec.LabelNameLengthLimit)
 	cfg.LabelValueLengthLimit = uint(m.Spec.LabelValueLengthLimit)
 
-	return cfg, nil
+	return cfg, cfg.Validate(cg.ScrapeOptions.GlobalConfig())
 }
