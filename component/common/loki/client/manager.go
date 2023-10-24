@@ -123,9 +123,10 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 		}
 	}
 	manager := &Manager{
-		clients:     clients,
-		walWatchers: watchers,
-		entries:     make(chan loki.Entry),
+		clients:          clients,
+		stoppableClients: stoppableClients,
+		walWatchers:      watchers,
+		entries:          make(chan loki.Entry),
 	}
 	if walCfg.Enabled {
 		manager.name = buildManagerName("wal", clientCfgs...)
