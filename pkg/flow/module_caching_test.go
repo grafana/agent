@@ -5,6 +5,7 @@ package flow_test
 
 import (
 	"context"
+	"github.com/grafana/agent/service/labelstore"
 	"os"
 	"strconv"
 	"testing"
@@ -163,6 +164,7 @@ func testOptions(t *testing.T) flow.Options {
 			http_service.New(http_service.Options{}),
 			clusterService,
 			otelService,
+			labelstore.New(nil),
 		},
 	}
 }
