@@ -127,7 +127,7 @@ Our current recommendation is to create an additional DaemonSet deployment of Gr
 > still considered experimental, but if you would like to try them, see the documentation for [loki.source.kubernetes](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/) and 
 > [loki.source.podlogs](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.podlogs/).
 
-These values are close to what the operator currently deploys for logs:
+These values are close to what the Operator currently deploys for logs:
 
 ```yaml
 agent:
