@@ -104,7 +104,7 @@ loki.write "default" {
 }
 ```
 
-To use Loki with basic-auth, which is required with GrafanaCloud Loki, you must configure the [loki.write][] component. You can get the Loki configuration from the Loki **Details** page in the [GrafanaCloud Portal][]:
+To use Loki with basic-auth, which is required with Grafana Cloud Loki, you must configure the [loki.write][] component. You can get the Loki configuration from the Loki **Details** page in the [Grafana Cloud Portal][]:
 
 ![](../../../assets/getting-started/loki-config.png)
 
@@ -137,7 +137,7 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-To use Tempo with basic-auth, which is required with GrafanaCloud Tempo, you must use the [otelcol.auth.basic][] component. You can get the Tempo configuration from the Tempo **Details** page in the [GrafanaCloud Portal][]:
+To use Tempo with basic-auth, which is required with Grafana Cloud Tempo, you must use the [otelcol.auth.basic][] component. You can get the Tempo configuration from the Tempo **Details** page in the [Grafana Cloud Portal][]:
 
 ![](../../../assets/getting-started/tempo-config.png)
 
@@ -157,7 +157,7 @@ otelcol.auth.basic "grafana_cloud_tempo" {
 
 ## Grafana Mimir or Prometheus Remote Write
 
-[Prometheus Remote Write][] is a popular metrics transmission protocol supported by most metrics systems, including [Grafana Mimir][] and GrafanaCloud. To send from OTLP to Prometheus, we do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component. The Prometheus remote write component in Agent is a robust protocol implementation, including a Write Ahead Log for resiliency.
+[Prometheus Remote Write][] is a popular metrics transmission protocol supported by most metrics systems, including [Grafana Mimir][] and Grafana Cloud. To send from OTLP to Prometheus, we do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component. The Prometheus remote write component in Agent is a robust protocol implementation, including a Write Ahead Log for resiliency.
 
 ```river
 otelcol.exporter.prometheus "default" {
@@ -171,7 +171,7 @@ prometheus.remote_write "default" {
 }
 ```
 
-To use Prometheus with basic-auth, which is required with GrafanaCloud Prometheus, you must configure the [prometheus.remote_write][] component. You can get the Prometheus configuration from the Prometheus **Details** page in the [GrafanaCloud Portal][]:
+To use Prometheus with basic-auth, which is required with Grafana Cloud Prometheus, you must configure the [prometheus.remote_write][] component. You can get the Prometheus configuration from the Prometheus **Details** page in the [Grafana Cloud Portal][]:
 
 ![](../../../assets/getting-started/prometheus-config.png)
 
@@ -303,7 +303,7 @@ You can now check the pipeline graphically by visiting http://localhost:12345/gr
 [OpenTelemetry]: https://opentelemetry.io
 [Grafana Loki]: https://grafana.com/oss/loki/
 [Grafana Tempo]: https://grafana.com/oss/tempo/
-[GrafanaCloud Portal]: https://grafana.com/docs/grafana-cloud/account-management/cloud-portal#your-grafana-cloud-stack
+[Grafana Cloud Portal]: https://grafana.com/docs/grafana-cloud/account-management/cloud-portal#your-grafana-cloud-stack
 [Prometheus Remote Write]: https://prometheus.io/docs/operating/integrations/#remote-endpoints-and-storage
 [Grafana Mimir]: https://grafana.com/oss/mimir/
 
