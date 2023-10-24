@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -94,9 +95,94 @@ func TestQueueClient(t *testing.T) {
 	}
 
 	require.Eventually(t, func() bool {
-		t.Logf("seen lines: %d", receivedReqs.Length())
 		return receivedReqs.Length() == len(lines)
 	}, time.Second*10, time.Second, "timed out waiting for messages to arrive")
+
+	// Stop the client: it waits until the current batch is sent
+	qc.Stop()
+	close(receivedReqsChan)
+}
+
+func BenchmarkQueueClient(b *testing.B) {
+	reg := prometheus.NewRegistry()
+
+	// Create a buffer channel where we do enqueue received requests
+	receivedReqsChan := make(chan utils.RemoteWriteRequest, 10)
+
+	receivedReqs := utils.NewSyncSlice[utils.RemoteWriteRequest]()
+	go func() {
+		for req := range receivedReqsChan {
+			receivedReqs.Append(req)
+		}
+	}()
+
+	// Start a local HTTP server
+	server := utils.NewRemoteWriteServer(receivedReqsChan, 200)
+	require.NotNil(b, server)
+	defer server.Close()
+
+	// Get the URL at which the local test server is listening to
+	serverURL := flagext.URLValue{}
+	err := serverURL.Set(server.URL)
+	require.NoError(b, err)
+
+	// Instance the client
+	cfg := Config{
+		URL:            serverURL,
+		BatchWait:      time.Millisecond * 50,
+		BatchSize:      10,
+		Client:         config.HTTPClientConfig{},
+		BackoffConfig:  backoff.Config{MinBackoff: 5 * time.Second, MaxBackoff: 10 * time.Second, MaxRetries: 1},
+		ExternalLabels: lokiflag.LabelSet{},
+		Timeout:        1 * time.Second,
+		TenantID:       "",
+	}
+
+	logger := log.NewLogfmtLogger(os.Stdout)
+
+	m := NewMetrics(reg)
+	qc, err := NewQueue(m, cfg, 0, 0, false, logger, QueueConfig{
+		Capacity:     10,
+		DrainTimeout: time.Second,
+	})
+	require.NoError(b, err)
+
+	//labels := model.LabelSet{"app": "test"}
+	var lines []string
+	for i := 0; i < 100; i++ {
+		lines = append(lines, fmt.Sprintf("hola %d", i))
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// Send all the input log entries
+		for _, l := range lines {
+			qc.StoreSeries([]record.RefSeries{
+				{
+					Labels: labels.Labels{{
+						Name:  "app",
+						Value: "test",
+					}},
+					Ref: chunks.HeadSeriesRef(1),
+				},
+			}, 0)
+
+			_ = qc.AppendEntries(wal.RefEntries{
+				Ref: chunks.HeadSeriesRef(1),
+				Entries: []logproto.Entry{{
+					Timestamp: time.Now(),
+					Line:      l,
+				}},
+			}, 0)
+		}
+
+		require.Eventually(b, func() bool {
+			return receivedReqs.Length() == len(lines)
+		}, time.Second*10, time.Second, "timed out waiting for messages to arrive")
+
+		// reset receiving slice
+		receivedReqs.Reset()
+	}
 
 	// Stop the client: it waits until the current batch is sent
 	qc.Stop()

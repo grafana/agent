@@ -158,7 +158,6 @@ func TestManager_WALEnabled(t *testing.T) {
 	}
 
 	require.Eventually(t, func() bool {
-		t.Logf("seen lines in eventual assert: %d", receivedRequests.Length())
 		return receivedRequests.Length() == totalLines
 	}, 5*time.Second, time.Second, "timed out waiting for requests to be received")
 
