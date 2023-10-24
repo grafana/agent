@@ -53,7 +53,7 @@ To distribute Prometheus metrics scrape load with clustering:
 {{% docs/reference %}}
 [Clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
 [Clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/clustering.md"
-[beta]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>stability.md#beta"
+[beta]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/stability.md#beta"
 [beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/stability.md#beta"
 [configure-grafana-agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure"
 [configure-grafana-agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure"
