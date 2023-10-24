@@ -107,8 +107,8 @@ brew services stop grafana-agent-flow
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
 `$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
 
-If you followed [Configure the Grafana Agent service]({{< relref "./configure/configure-macos#configure-the-grafana-agent-service" >}})
-and changed the path where logs are written, refer to your current copy of the Grafana Agent formula to locate your log files.
+If you followed [Configure the Grafana Agent service][] and changed the path where logs are written,
+refer to your current copy of the Grafana Agent formula to locate your log files.
 
 ## Windows
 
@@ -249,3 +249,8 @@ These steps assume you have a default systemd and Grafana Agent configuration.
 1. Use the [Linux](#linux) systemd commands to manage your standalone Linux installation of Grafana Agent.
 
 [release]: https://github.com/grafana/agent/releases/latest
+
+{{% docs/reference %}}
+[Configure the Grafana Agent service]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
+[Configure the Grafana Agent service]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
+{{% /docs/reference %}}
