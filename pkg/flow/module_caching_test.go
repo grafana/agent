@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/service"
 	cluster_service "github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/labelstore"
 	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
@@ -163,6 +164,7 @@ func testOptions(t *testing.T) flow.Options {
 			http_service.New(http_service.Options{}),
 			clusterService,
 			otelService,
+			labelstore.New(nil),
 		},
 	}
 }
