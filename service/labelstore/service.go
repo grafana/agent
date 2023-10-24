@@ -182,7 +182,7 @@ func (s *service) RemoveStaleMarker(globalRefID uint64) {
 	delete(s.staleGlobals, globalRefID)
 }
 
-// staleDuration determines how often we should wait after a stale value is received to GC that value
+// staleDuration determines how long we should wait after a stale value is received to GC that value
 var staleDuration = time.Minute * 10
 
 // CheckAndRemoveStaleMarkers is called to garbage collect and items that have grown stale over stale duration (10m)

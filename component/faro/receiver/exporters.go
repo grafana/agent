@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/faro/receiver/internal/payload"
 	"github.com/grafana/agent/component/otelcol"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"

@@ -11,7 +11,7 @@ import (
 	"reflect"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/jmespath/go-jmespath"
 	"github.com/oschwald/geoip2-golang"
 	"github.com/oschwald/maxminddb-golang"

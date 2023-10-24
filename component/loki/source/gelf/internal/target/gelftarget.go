@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/go-gelf/v2/gelf"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"

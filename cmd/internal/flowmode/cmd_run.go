@@ -15,7 +15,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
@@ -23,6 +22,7 @@ import (
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/service"
