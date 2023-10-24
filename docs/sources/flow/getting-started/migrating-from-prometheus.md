@@ -19,28 +19,16 @@ This topic describes how to:
 * Convert a Prometheus configuration to a flow configuration.
 * Run a Prometheus configuration natively using Grafana Agent flow mode.
 
-[Prometheus]: https://prometheus.io/docs/prometheus/latest/configuration/configuration/
-
 ## Components used in this topic
 
 * [prometheus.scrape][]
 * [prometheus.remote_write][]
-
-[prometheus.scrape]: {{< relref "../reference/components/prometheus.scrape.md" >}}
-[prometheus.remote_write]: {{< relref "../reference/components/prometheus.remote_write.md" >}}
 
 ## Before you begin
 
 * You must have an existing Prometheus configuration.
 * You must have a set of Prometheus applications ready to push telemetry data to Grafana Agent.
 * You must be familiar with the concept of [Components][] in Grafana Agent flow mode.
-
-[Components]: {{< relref "../concepts/components.md" >}}
-[convert]: {{< relref "../reference/cli/convert.md" >}}
-[run]: {{< relref "../reference/cli/run.md" >}}
-[Start the agent]: {{< relref "../setup/start-agent.md" >}}
-[Flow Debugging]: {{< relref "../monitoring/debugging.md" >}}
-[debugging]: #debugging
 
 ## Convert a Prometheus configuration
 
@@ -79,7 +67,10 @@ additional features available in Grafana Agent flow mode.
    any non-critical issues and output the flow configuration using a
    best-effort conversion by including the `--bypass-errors` flag.
 
-    {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
+    {{% admonition type="caution" %}}
+    If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration.
+    Make sure you fully test the converted configuration before using it in a production environment.
+    {{% /admonition %}}
 
    {{< code >}}
 
@@ -139,14 +130,17 @@ This allows you to try flow mode without modifying your existing Prometheus conf
 1. Refer to the Grafana Agent [Flow Debugging][] for more information about a running Grafana
    Agent in flow mode.
 
-1. If your Prometheus configuration cannot be converted and 
-    loaded directly into Grafana Agent, diagnostic information 
-    is sent to `stderr`. You can bypass any non-critical issues 
+1. If your Prometheus configuration cannot be converted and
+    loaded directly into Grafana Agent, diagnostic information
+    is sent to `stderr`. You can bypass any non-critical issues
     and start the Agent by including the
    `--config.bypass-conversion-errors` flag in addition to
    `--config.format=prometheus`.
 
-    {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration. Do not use this flag in a production environment.{{% /admonition %}}
+    {{% admonition type="caution" %}}
+    If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration.
+    Do not use this flag in a production environment.
+    {{% /admonition %}}
 
 ## Example
 
@@ -172,8 +166,6 @@ remote_write:
 ```
 
 The convert command takes the YAML file as input and outputs a [River][] file.
-
-[River]: {{< relref "../config-language/_index.md" >}}
 
 {{< code >}}
 
@@ -245,4 +237,26 @@ Furthermore, we recommend that you review the following checklist:
   produced by Prometheus.
 * Grafana Agent exposes the [Grafana Agent Flow UI][].
 
-[Grafana Agent Flow UI]: {{< relref "../monitoring/debugging/#grafana-agent-flow-ui" >}}
+[Prometheus]: https://prometheus.io/docs/prometheus/latest/configuration/configuration/
+[debugging]: #debugging
+
+{{% docs/reference %}}
+[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
+[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape.md"
+[prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
+[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write.md"
+[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+[convert]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert.md"
+[convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/convert.md"
+[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[Start the agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
+[Start the agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md"
+[Flow Debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
+[Flow Debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md"
+[River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/_index.md"
+[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/_index.md"
+[Grafana Agent Flow UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
+[Grafana Agent Flow UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
+{{% /docs/reference %}}
