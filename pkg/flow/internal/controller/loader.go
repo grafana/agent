@@ -505,7 +505,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 				if dep == nil {
 					diags.Add(diag.Diagnostic{
 						Severity: diag.SeverityLevelError,
-						Message:  fmt.Sprintf("component depends on undefined service %q; please report this issue to project maintainers", depName),
+						Message:  fmt.Sprintf("%s component depends on undefined service %q; please report this issue to project maintainers", n.NodeID(), depName),
 						StartPos: ast.StartPos(n.Block()).Position(),
 						EndPos:   ast.EndPos(n.Block()).Position(),
 					})

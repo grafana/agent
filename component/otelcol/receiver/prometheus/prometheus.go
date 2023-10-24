@@ -111,6 +111,10 @@ func (c *Component) Update(newConfig component.Arguments) error {
 			// TODO(tpaschalis): expose tracing and logging statistics.
 			TracerProvider: trace.NewNoopTracerProvider(),
 			MeterProvider:  noop.NewMeterProvider(),
+
+			ReportComponentStatus: func(*otelcomponent.StatusEvent) error {
+				return nil
+			},
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{
