@@ -88,12 +88,14 @@ func (mh *markerHandler) updatePendingData() {
 
 		markableSegment := -1
 		for segment, count := range batchSegmentCount {
-			//TODO: If count is less than 0, then log an error and remove the entry from the map?
+			// TODO: If count is less than 0, then log an error and remove the entry from the map?
 			if count != 0 {
 				continue
 			}
 
-			//TODO: Is it save to assume that just because a segment is 0 inside the map,
+			// we know (segment, 0) is in the map
+
+			// TODO: Is it safe to assume that just because a segment is 0 inside the map,
 			//      all samples from it have been processed?
 			if segment > markableSegment {
 				markableSegment = segment
@@ -104,6 +106,13 @@ func (mh *markerHandler) updatePendingData() {
 			delete(batchSegmentCount, segment)
 		}
 
+		// NOTE: I think this could lead to a situation where some segments are skipped. For example,
+		// consider the following situation
+		// seg   0   1   2   3   4
+		// cnt   0   0   1   0   10
+		// and lastMarkedSegment being 0, then a run in here would cause the lastMarkedSegment
+		// to be 3. while there's data in 2. But if there's data in 2, that means that there was a count
+		// error somewhere right?
 		if markableSegment > mh.lastMarkedSegment {
 			mh.markerFileHandler.MarkSegment(markableSegment)
 			mh.lastMarkedSegment = markableSegment

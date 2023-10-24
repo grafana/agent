@@ -95,6 +95,8 @@ func (q *queue) run() {
 			// Since inside the actual send operation a context with time out is used, we should exceed that timeout
 			// instead of cancelling this send operations, since that batch has been taken out of the queue.
 			q.client.sendBatch(context.Background(), qb.TenantID, qb.Batch)
+			// mark segment data for that batch as sent, even if the send operation failed
+			qb.Batch.reportAsSentData(q.client.markerHandler)
 		}
 	}
 }
@@ -117,6 +119,8 @@ func (q *queue) closeAndDrain(ctx context.Context) {
 			// drain uses the same timeout, so if a timeout was applied to the parent context, it can cancel the underlying
 			// send operation preemptively.
 			q.client.sendBatch(ctx, qb.TenantID, qb.Batch)
+			// mark segment data for that batch as sent, even if the send operation failed
+			qb.Batch.reportAsSentData(q.client.markerHandler)
 		case <-ctx.Done():
 			level.Warn(q.logger).Log("msg", "timeout exceeded while draining send queue")
 			return

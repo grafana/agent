@@ -53,6 +53,16 @@ func newBatch(maxStreams int, entries ...loki.Entry) *batch {
 	return b
 }
 
+type SendDataMarkerHandler interface {
+	UpdateSentData(segmentId, dataCount int)
+}
+
+func (b *batch) reportAsSentData(h SendDataMarkerHandler) {
+	for seg, data := range b.segmentCounter {
+		h.UpdateSentData(seg, data)
+	}
+}
+
 // add an entry to the batch
 func (b *batch) add(entry loki.Entry) error {
 	b.totalBytes += len(entry.Line)
