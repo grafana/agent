@@ -71,6 +71,9 @@ Main (unreleased)
 
 - Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
 
+- Added support for comma-separated list of fields in `source` option and a 
+  new `separator` option in `drop` stage of `loki.process`. (@thampiotr)
+
 v0.37.2 (2023-10-16)
 -----------------
 

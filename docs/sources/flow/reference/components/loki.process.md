@@ -210,23 +210,32 @@ To drop entries with an OR clause, specify multiple `drop` blocks in sequence.
 
 The following arguments are supported:
 
-| Name                  | Type       | Description                                                                                                         | Default        | Required |
-| --------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------- | -------------- | -------- |
-| `source`              | `string`   | Name from extracted data to parse. If empty or not defined, it uses the log message.                                | `""`           | no       |
-| `expression`          | `string`   | A valid RE2 regular expression.                                                                                     | `""`           | no       |
-| `value`               | `string`   | If both `source` and `value` are specified, the stage drops lines where `value` exactly matches the source content. | `""`           | no       |
-| `older_than`          | `duration` | If specified, the stage drops lines whose timestamp is older than the current time minus this duration.             | `""`           | no       |
-| `longer_than`         | `string`   | If specified, the stage drops lines whose size exceeds the configured value.                                        | `""`           | no       |
-| `drop_counter_reason` | `string`   | A custom reason to report for dropped lines.                                                                        | `"drop_stage"` | no       |
+| Name                  | Type       | Description                                                                                                            | Default        | Required |
+|-----------------------|------------|------------------------------------------------------------------------------------------------------------------------|----------------|----------|
+| `source`              | `string`   | Name or comma-separated list of names from extracted data to match. If empty or not defined, it uses the log message.  | `""`           | no       |
+| `separator`           | `string`   | When `source` is a comma-separated list of names, this separator is placed between concatenated extracted data values. | `";"`          | no       |
+| `expression`          | `string`   | A valid RE2 regular expression.                                                                                        | `""`           | no       |
+| `value`               | `string`   | If both `source` and `value` are specified, the stage drops lines where `value` exactly matches the source content.    | `""`           | no       |
+| `older_than`          | `duration` | If specified, the stage drops lines whose timestamp is older than the current time minus this duration.                | `""`           | no       |
+| `longer_than`         | `string`   | If specified, the stage drops lines whose size exceeds the configured value.                                           | `""`           | no       |
+| `drop_counter_reason` | `string`   | A custom reason to report for dropped lines.                                                                           | `"drop_stage"` | no       |
 
-The `expression` field needs to be a RE2 regex string. If `source` is empty or
-not provided, the regex attempts to match the log line itself. If source is
-provided, the regex attempts to match the corresponding value from the
-extracted map.
+The `expression` field needs to be a RE2 regex string.
+* If `source` is empty or not provided, the regex attempts to match the log 
+line itself. 
+* If `source` is a single name, the regex attempts to match the corresponding
+value from the extracted map. 
+* If `source` is a comma-separated list of names, the corresponding values from
+the extracted map are concatenated using `separator` and the regex attempts to
+match the concatenated string.
 
 The `value` field can only work with values from the extracted map, and must be
-specified together with `source`. Entries are dropped when there is an exact
-match between the two.
+specified together with `source`.
+* If `source` is a single name, the entries are dropped when there is an exact
+match between the corresponding value from the extracted map and the `value`.
+* If `source` is a comma-separated list of names, the entries are dropped when 
+the `value` matches the `source` values from extracted data, concatenated using 
+the `separator`.
 
 Whenever an entry is dropped, the metric `loki_process_dropped_lines_total`
 is incremented. By default, the reason label is `"drop_stage"`, but you can
