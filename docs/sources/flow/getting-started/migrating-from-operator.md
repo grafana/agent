@@ -110,7 +110,7 @@ You will need to replace `PROMETHEUS_URL` with the actual endpoint you want to s
 
 This configuration will discover all `PodMonitor`, `ServiceMonitor`, and `Probe` resources in your cluster that match our label selector `instance=primary`. It will then scrape metrics from their targets, and forward them on to your remote write endpoint.
 
-If you are using additional features in your `MetricsInstance` resources, you may need to further customize this config. Please see the documentation for the relevant components for additional information:
+You may need to customize this configuration further if you use additional features in your `MetricsInstance` resources.  Refer to the documentation for the relevant components for additional information:
 
 - [remote.kubernetes.secret](https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.secret)
 - [prometheus.remote_write](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write)
