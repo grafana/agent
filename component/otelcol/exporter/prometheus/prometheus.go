@@ -85,11 +85,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	ls := service.(labelstore.LabelStore)
 	fanout := prometheus.NewFanout(nil, o.ID, o.Registerer, ls)
 
-	converter := convert.New(o.Logger, fanout, convert.Options{
-		IncludeTargetInfo: true,
-		IncludeScopeInfo:  false,
-		AddMetricSuffixes: true,
-	})
+	converter := convert.New(o.Logger, fanout, convertArgumentsToConvertOptions(c))
 
 	res := &Component{
 		log:  o.Logger,
@@ -142,11 +138,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	c.cfg = cfg
 
 	c.fanout.UpdateChildren(cfg.ForwardTo)
-	c.converter.UpdateOptions(convert.Options{
-		IncludeTargetInfo: cfg.IncludeTargetInfo,
-		IncludeScopeInfo:  cfg.IncludeScopeInfo,
-		AddMetricSuffixes: cfg.AddMetricSuffixes,
-	})
+	c.converter.UpdateOptions(convertArgumentsToConvertOptions(cfg))
 
 	// If our forward_to argument changed, we need to flush the metadata cache to
 	// ensure the new children have all the metadata they need.
@@ -155,4 +147,12 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	// more intelligent here in the future.
 	c.converter.FlushMetadata()
 	return nil
+}
+
+func convertArgumentsToConvertOptions(args Arguments) convert.Options {
+	return convert.Options{
+		IncludeTargetInfo: args.IncludeTargetInfo,
+		IncludeScopeInfo:  args.IncludeScopeInfo,
+		AddMetricSuffixes: args.AddMetricSuffixes,
+	}
 }
