@@ -91,7 +91,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 			// add some context information for the logger the watcher uses
 			wlog := log.With(logger, "client", clientName)
 
-			markerFileHandler, err := internal.NewMarkerFileHandler(logger, walCfg.Dir, "")
+			markerFileHandler, err := internal.NewMarkerFileHandler(logger, walCfg.Dir)
 			if err != nil {
 				return nil, err
 			}

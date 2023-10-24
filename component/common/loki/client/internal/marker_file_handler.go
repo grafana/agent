@@ -27,12 +27,11 @@ var (
 	_ MarkerFileHandler = (*markerFileHandler)(nil)
 )
 
-func NewMarkerFileHandler(logger log.Logger, walDir, markerId string) (MarkerFileHandler, error) {
-	markerDir := filepath.Join(walDir, "remote", markerId)
-
-	dir := filepath.Join(walDir, "remote", markerId)
-	if err := os.MkdirAll(dir, 0o777); err != nil {
-		return nil, fmt.Errorf("error creating segment marker folder %q: %w", dir, err)
+func NewMarkerFileHandler(logger log.Logger, walDir string) (MarkerFileHandler, error) {
+	markerDir := filepath.Join(walDir, "remote")
+	// attempt to create dir if doesn't exist
+	if err := os.MkdirAll(markerDir, 0o777); err != nil {
+		return nil, fmt.Errorf("error creating segment marker folder %q: %w", markerDir, err)
 	}
 
 	mfh := &markerFileHandler{
