@@ -172,7 +172,7 @@ func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
 	replayer := walReplayer{w: &collector}
 	require.NoError(t, replayer.Replay(s.wal.Dir()))
 
-	// We had 9 calls to AppendExemplar but only 4 of those should have gotten through
+	// We had 11 calls to AppendExemplar but only 4 of those should have gotten through.
 	require.Equal(t, 4, len(collector.exemplars))
 }
 
@@ -456,14 +456,11 @@ func TestDBAllowOOOSamples(t *testing.T) {
 	}
 
 	require.NoError(t, app.Commit())
+
 	for _, metric := range payload {
-		for _, sa := range metric.samples {
-			// We want to set the timestamp to before. This should no longer trigger an out of order.
-			sa.ts = sa.ts - 10_000
-		}
-	}
-	for _, metric := range payload {
-		metric.Write(t, app)
+		// We want to set the timestamp to before using this offset.
+		// This should no longer trigger an out of order.
+		metric.WriteOOO(t, app, 10_000)
 	}
 }
 
@@ -525,6 +522,28 @@ func (s *series) Write(t *testing.T, app storage.Appender) {
 	for _, exemplar := range s.exemplars {
 		var err error
 		sRef, err = app.AppendExemplar(sRef, nil, exemplar)
+		require.NoError(t, err)
+	}
+}
+
+func (s *series) WriteOOO(t *testing.T, app storage.Appender, tsOffset int64) {
+	t.Helper()
+
+	lbls := labels.FromMap(map[string]string{"__name__": s.name})
+
+	offset := 0
+	if s.ref == nil {
+		// Write first sample to get ref ID
+		ref, err := app.Append(0, lbls, s.samples[0].ts-tsOffset, s.samples[0].val)
+		require.NoError(t, err)
+
+		s.ref = &ref
+		offset = 1
+	}
+
+	// Write other data points with AddFast
+	for _, sample := range s.samples[offset:] {
+		_, err := app.Append(*s.ref, lbls, sample.ts-tsOffset, sample.val)
 		require.NoError(t, err)
 	}
 }
