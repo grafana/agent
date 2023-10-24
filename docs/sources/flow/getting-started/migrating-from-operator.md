@@ -11,7 +11,7 @@ weight: 320
 With the release of Flow, Grafana Agent Operator is no longer the recommended way to deploy Grafana Agent in Kubernetes. Some of the Operator functionality has been moved into Grafana Agent
 itself, and the remaining functionality has been replaced by our Helm Chart.
 
-- The Monitor types (`PodMonitor`, `ServiceMonitor`, `Probe`, and `LogsInstance`) are all supported natively by Grafana Agent in Flow mode. You no longer are 
+- The Monitor types (`PodMonitor`, `ServiceMonitor`, `Probe`, and `LogsInstance`) are all supported natively by Grafana Agent in Flow mode. You are no longer
 required to use the Operator to consume those CRDs for dynamic monitoring in your cluster.
 - The parts of the Operator that deploy the agent itself (`GrafanaAgent`, `MetricsInstance`, and `LogsInstance` CRDs) are deprecated. We now recommend
 operator users use the [Grafana Agent Helm Chart](https://grafana.com/docs/agent/latest/flow/setup/install/kubernetes/) to deploy the Agent directly to your clusters.
