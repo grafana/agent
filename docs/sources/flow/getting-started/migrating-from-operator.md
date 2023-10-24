@@ -259,4 +259,4 @@ and has many options for processing logs. For further details see the [component
 
 ## Integrations
 
-The `Integration` CRD is not supported with Grafana Agent Flow, however all static mode integrations have an eqivalent component in the [`prometheus.exporter`](https://grafana.com/docs/agent/latest/flow/reference/components) namespace. The reference docs should help convert those integrations to their Flow equivalent.
+The `Integration` CRD is not supported with Grafana Agent Flow, however all static mode integrations have an equivalent component in the [`prometheus.exporter`](https://grafana.com/docs/agent/latest/flow/reference/components) namespace. The reference docs should help convert those integrations to their Flow equivalent.
