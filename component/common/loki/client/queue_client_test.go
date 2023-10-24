@@ -43,6 +43,17 @@ type testCase struct {
 	expectedRWReqsCount int64
 }
 
+type nilMarkerHandler struct{}
+
+func (n nilMarkerHandler) UpdateReceivedData(segmentId, dataCount int) {
+}
+
+func (n nilMarkerHandler) UpdateSentData(segmentId, dataCount int) {
+}
+
+func (n nilMarkerHandler) Stop() {
+}
+
 func TestQueueClient(t *testing.T) {
 	for name, tc := range map[string]testCase{
 		"small test": {

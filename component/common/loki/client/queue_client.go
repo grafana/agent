@@ -36,6 +36,7 @@ type StoppableWriteTo interface {
 type MarkerHandler interface {
 	UpdateReceivedData(segmentId, dataCount int) // Data queued for sending
 	UpdateSentData(segmentId, dataCount int)     // Data which was sent or given up on sending
+	Stoppable
 }
 
 // queuedBatch is a batch specific to a tenant, that is considered ready to be sent.
@@ -568,6 +569,8 @@ func (c *queueClient) Stop() {
 
 	// stop request after drain times out or exits
 	c.cancel()
+
+	c.markerHandler.Stop()
 }
 
 // StopNow stops the client without retries or draining the send queue
@@ -577,6 +580,7 @@ func (c *queueClient) StopNow() {
 	close(c.quit)
 	c.sendQueue.closeNow()
 	c.wg.Wait()
+	c.markerHandler.Stop()
 }
 
 func (c *queueClient) processLabels(lbs model.LabelSet) (model.LabelSet, string) {

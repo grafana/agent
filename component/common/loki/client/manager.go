@@ -3,6 +3,7 @@ package client
 import (
 	"crypto/sha256"
 	"fmt"
+	"github.com/grafana/agent/component/common/loki/client/internal"
 	"strings"
 	"sync"
 
@@ -90,7 +91,13 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 			// add some context information for the logger the watcher uses
 			wlog := log.With(logger, "client", clientName)
 
-			queue, err := NewQueue(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger)
+			markerFileHandler, err := internal.NewMarkerFileHandler(logger, walCfg.Dir, "")
+			if err != nil {
+				return nil, err
+			}
+			markerHandler := internal.NewMarkerHandler(markerFileHandler)
+
+			queue, err := NewQueue(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger, markerHandler)
 			if err != nil {
 				return nil, fmt.Errorf("error starting queue client: %w", err)
 			}
@@ -100,7 +107,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 			// series cache whenever a segment is deleted.
 			notifier.SubscribeCleanup(queue)
 
-			watcher := wal.NewWatcher(walCfg.Dir, clientName, watcherMetrics, queue, wlog, walCfg.WatchConfig)
+			watcher := wal.NewWatcher(walCfg.Dir, clientName, watcherMetrics, queue, wlog, walCfg.WatchConfig, markerHandler)
 			// subscribe watcher to wal write events
 			notifier.SubscribeWrite(watcher)
 

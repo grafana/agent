@@ -37,10 +37,11 @@ type batch struct {
 
 func newBatch(maxStreams int, entries ...loki.Entry) *batch {
 	b := &batch{
-		streams:    map[string]*logproto.Stream{},
-		totalBytes: 0,
-		createdAt:  time.Now(),
-		maxStreams: maxStreams,
+		streams:        map[string]*logproto.Stream{},
+		totalBytes:     0,
+		createdAt:      time.Now(),
+		maxStreams:     maxStreams,
+		segmentCounter: map[int]int{},
 	}
 
 	// Add entries to the batch
