@@ -71,6 +71,9 @@ Main (unreleased)
 
 - Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
 
+- The `loki.source.docker` component now allows connecting to Docker daemons
+  over HTTP(S) and setting up TLS credentials. (@tpaschalis)
+
 v0.37.2 (2023-10-16)
 -----------------
 
