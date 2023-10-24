@@ -36,7 +36,7 @@ type Arguments struct {
 	IncludeScopeLabels bool                 `river:"include_scope_labels,attr,optional"`
 	GCFrequency        time.Duration        `river:"gc_frequency,attr,optional"`
 	ForwardTo          []storage.Appendable `river:"forward_to,attr"`
-	AddMetricSuffixes  bool                 `river:"add_metrics_suffixes,attr,optional"`
+	AddMetricSuffixes  bool                 `river:"add_metric_suffixes,attr,optional"`
 }
 
 // DefaultArguments holds defaults values.
