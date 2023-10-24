@@ -13,6 +13,7 @@ import (
 	agentprom "github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
@@ -20,8 +21,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "prometheus.receive_http",
-		Args: Arguments{},
+		Name:          "prometheus.receive_http",
+		Args:          Arguments{},
+		NeedsServices: []string{labelstore.ServiceName},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -52,7 +54,12 @@ type Component struct {
 }
 
 func New(opts component.Options, args Arguments) (*Component, error) {
-	fanout := agentprom.NewFanout(args.ForwardTo, opts.ID, opts.Registerer)
+	service, err := opts.GetServiceData(labelstore.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+	ls := service.(labelstore.LabelStore)
+	fanout := agentprom.NewFanout(args.ForwardTo, opts.ID, opts.Registerer, ls)
 
 	uncheckedCollector := util.NewUncheckedCollector(nil)
 	opts.Registerer.MustRegister(uncheckedCollector)

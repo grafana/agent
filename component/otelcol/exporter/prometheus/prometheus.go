@@ -13,15 +13,16 @@ import (
 	"github.com/grafana/agent/component/otelcol/exporter/prometheus/internal/convert"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/prometheus/storage"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.exporter.prometheus",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
-
+		Name:          "otelcol.exporter.prometheus",
+		Args:          Arguments{},
+		Exports:       otelcol.ConsumerExports{},
+		NeedsServices: []string{labelstore.ServiceName},
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))
 		},
@@ -75,7 +76,12 @@ var _ component.Component = (*Component)(nil)
 
 // New creates a new otelcol.exporter.prometheus component.
 func New(o component.Options, c Arguments) (*Component, error) {
-	fanout := prometheus.NewFanout(nil, o.ID, o.Registerer)
+	service, err := o.GetServiceData(labelstore.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+	ls := service.(labelstore.LabelStore)
+	fanout := prometheus.NewFanout(nil, o.ID, o.Registerer, ls)
 
 	converter := convert.New(o.Logger, fanout, convert.Options{
 		IncludeTargetInfo: true,
