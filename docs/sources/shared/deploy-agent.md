@@ -48,7 +48,7 @@ You can also use a Kubernetes deployment in cases where persistent storage is no
 * Easy to meta-monitor
 
 ### Cons
-* Requires running on separate infrastructureDeploying Grafana Agent
+* Requires running on separate infrastructure
 
 ### Use for
 * Scalable telemetry collection

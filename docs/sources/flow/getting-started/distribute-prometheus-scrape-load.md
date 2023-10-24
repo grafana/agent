@@ -17,11 +17,8 @@ Prometheus targets each agent scrapes. [Clustering][] with target
 auto-distribution allows a fleet of agents to work together to dynamically
 distribute their scrape load, providing high-availability.
 
-{{% admonition type="note" %}}
-Clustering is a [beta](https://www.grafana.com/docs/agent/<AGENT_VERSION>/stability#beta) feature. Beta features are subject to breaking
-changes and may be replaced with equivalent functionality that covers the same
-use case.
-{{%/admonition %}}
+> **Note:** Clustering is a [beta][] feature. Beta features are subject to breaking
+> changes and may be replaced with equivalent functionality that covers the same use case.
 
 ## Before you begin
 
@@ -56,6 +53,8 @@ To distribute Prometheus metrics scrape load with clustering:
 {{% docs/reference %}}
 [Clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
 [Clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/clustering.md"
+[beta]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>stability.md#beta"
+[beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/stability.md#beta"
 [configure-grafana-agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure"
 [configure-grafana-agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure"
 [Configure Prometheus metrics collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics.md"

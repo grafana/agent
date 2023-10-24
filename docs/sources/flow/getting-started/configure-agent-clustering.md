@@ -16,10 +16,9 @@ You can configure Grafana Agent to run with [clustering][] so that
 individual agents can work together for workload distribution and high
 availability.
 
-{{% admonition type="note" %}}
-Clustering is a [beta](http://www.grafana.com/docs/agent/flow/stability.md#beta) feature.
-Beta features are subject to breaking changes and may be replaced with equivalent functionality that covers the same use case.
-{{%/admonition %}}
+
+> **Note:** Clustering is a [beta][] feature. Beta features are subject to breaking changes and may be
+> replaced with equivalent functionality that covers the same use case.
 
 This topic describes how to add clustering to an existing installation.
 
@@ -64,6 +63,8 @@ To configure clustering:
 {{% docs/reference %}}
 [clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
 [clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/clustering.md"
+[beta]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>stability.md#beta"
+[beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/stability.md#beta"
 [install-helm]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/kubernetes.md"
 [install-helm]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/kubernetes.md"
 [UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#component-detail-page"
