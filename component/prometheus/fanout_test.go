@@ -3,6 +3,7 @@ package prometheus
 import (
 	"testing"
 
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/prometheus/prometheus/storage"
@@ -13,14 +14,16 @@ import (
 )
 
 func TestRollback(t *testing.T) {
-	fanout := NewFanout([]storage.Appendable{NewFanout(nil, "1", prometheus.DefaultRegisterer)}, "", prometheus.DefaultRegisterer)
+	ls := labelstore.New(nil)
+	fanout := NewFanout([]storage.Appendable{NewFanout(nil, "1", prometheus.DefaultRegisterer, ls)}, "", prometheus.DefaultRegisterer, ls)
 	app := fanout.Appender(context.Background())
 	err := app.Rollback()
 	require.NoError(t, err)
 }
 
 func TestCommit(t *testing.T) {
-	fanout := NewFanout([]storage.Appendable{NewFanout(nil, "1", prometheus.DefaultRegisterer)}, "", prometheus.DefaultRegisterer)
+	ls := labelstore.New(nil)
+	fanout := NewFanout([]storage.Appendable{NewFanout(nil, "1", prometheus.DefaultRegisterer, ls)}, "", prometheus.DefaultRegisterer, ls)
 	app := fanout.Appender(context.Background())
 	err := app.Commit()
 	require.NoError(t, err)

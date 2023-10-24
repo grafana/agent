@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/ckit/memconn"
 	"github.com/grafana/river"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
@@ -85,7 +86,8 @@ func TestForwardingToAppendable(t *testing.T) {
 
 			case cluster.ServiceName:
 				return cluster.Mock(), nil
-
+			case labelstore.ServiceName:
+				return labelstore.New(nil), nil
 			default:
 				return nil, fmt.Errorf("service %q does not exist", name)
 			}
@@ -112,7 +114,8 @@ func TestForwardingToAppendable(t *testing.T) {
 	// Update the component with a mock receiver; it should be passed along to the Appendable.
 	var receivedTs int64
 	var receivedSamples labels.Labels
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, t int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, t int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		receivedTs = t
 		receivedSamples = l
 		return ref, nil
@@ -189,6 +192,8 @@ func TestCustomDialer(t *testing.T) {
 
 			case cluster.ServiceName:
 				return cluster.Mock(), nil
+			case labelstore.ServiceName:
+				return labelstore.New(nil), nil
 
 			default:
 				return nil, fmt.Errorf("service %q does not exist", name)
