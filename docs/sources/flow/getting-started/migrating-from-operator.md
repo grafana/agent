@@ -36,7 +36,7 @@ This guide will provide some steps to get started with Grafana Agent for users c
       create: false
     ```
 
-    This config will deploy Grafana Agent as a `StatefulSet` using the built in [clustering](https://grafana.com/docs/agent/latest/flow/concepts/clustering/) functionality to allow distributing scrapes across all Agent Pods. 
+    This configuration will deploy Grafana Agent as a `StatefulSet` using the built-in [clustering](https://grafana.com/docs/agent/latest/flow/concepts/clustering/) functionality to allow distributing scrapes across all Agent Pods. 
     
     This is not the only deployment mode possible. For example, you may desire a `DaemonSet` if collecting host level logs or metrics. See [the Agent deployment guide](https://grafana.com/docs/agent/latest/flow/setup/deploy-agent/) for more details about different topologies.
 
