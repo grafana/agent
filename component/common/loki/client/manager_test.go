@@ -98,6 +98,10 @@ func newServerAndClientConfig(t *testing.T) (Config, chan utils.RemoteWriteReque
 		BackoffConfig: backoff.Config{
 			MaxRetries: 0,
 		},
+		Queue: QueueConfig{
+			Capacity:     10,
+			DrainTimeout: time.Second * 10,
+		},
 	}
 	return testClientConfig, receivedReqsChan, closerFunc(func() {
 		server.Close()
@@ -126,10 +130,10 @@ func TestManager_WALEnabled(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "wal:test-client", manager.Name())
 
-	receivedRequest := utils.NewSyncSlice[utils.RemoteWriteRequest]()
+	receivedRequests := utils.NewSyncSlice[utils.RemoteWriteRequest]()
 	go func() {
 		for req := range rwReceivedReqs {
-			receivedRequest.Append(req)
+			receivedRequests.Append(req)
 		}
 	}()
 
@@ -154,13 +158,14 @@ func TestManager_WALEnabled(t *testing.T) {
 	}
 
 	require.Eventually(t, func() bool {
-		return receivedRequest.Length() == totalLines
+		t.Logf("seen lines in eventual assert: %d", receivedRequests.Length())
+		return receivedRequests.Length() == totalLines
 	}, 5*time.Second, time.Second, "timed out waiting for requests to be received")
 
 	var seenEntries = map[string]struct{}{}
 	// assert over rw client received entries
-	defer receivedRequest.DoneIterate()
-	for _, req := range receivedRequest.StartIterate() {
+	defer receivedRequests.DoneIterate()
+	for _, req := range receivedRequests.StartIterate() {
 		require.Len(t, req.Request.Streams, 1, "expected 1 stream requests to be received")
 		require.Len(t, req.Request.Streams[0].Entries, 1, "expected 1 entry in the only stream received per request")
 		require.Equal(t, `{wal_enabled="true"}`, req.Request.Streams[0].Labels)
