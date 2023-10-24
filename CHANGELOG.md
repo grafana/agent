@@ -308,6 +308,8 @@ v0.37.0 (2023-10-10)
 
 - Bump `redis_exporter` to v1.54.0 (@spartan0x117)
 
+- Migrate NodeJS installation in CI build image away from installation script. (@hainenber)
+
 v0.36.2 (2023-09-22)
 --------------------
 
