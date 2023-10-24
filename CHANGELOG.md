@@ -41,6 +41,8 @@ Main (unreleased)
 - Added a new `stage.eventlogmessage` stage to `loki.process` component which
   allows to extract data from Windows Event Log. (@thampiotr)
 
+- Update version of River to support raw strings in flow using a backtick. (@erikbaranowski)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
@@ -305,6 +307,8 @@ v0.37.0 (2023-10-10)
 - Documentation updated to correct default path from `prometheus.exporter.windows` `text_file` block (@timo1707)
 
 - Bump `redis_exporter` to v1.54.0 (@spartan0x117)
+
+- Migrate NodeJS installation in CI build image away from installation script. (@hainenber)
 
 v0.36.2 (2023-09-22)
 --------------------
