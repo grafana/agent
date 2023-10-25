@@ -43,6 +43,8 @@ Main (unreleased)
 
 - Update version of River to support raw strings in flow using a backtick. (@erikbaranowski)
 
+- Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was 
