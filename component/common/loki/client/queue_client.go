@@ -129,15 +129,6 @@ func (q *queue) closeNow() {
 	close(q.q)
 }
 
-// QueueConfig holds configurations for the queue-based remote-write client.
-type QueueConfig struct {
-	// Capacity controls the maximum number of batches that can be buffered in the send queue.
-	Capacity int
-
-	// DrainTimeout controls the maximum time that draining the send queue can take.
-	DrainTimeout time.Duration
-}
-
 // queueClient is a WAL-specific remote write client implementation. This client attests to the wal.WriteTo interface,
 // which allows it to be injected in the wal.Watcher as a destination where to write read series and entries. As the watcher
 // reads from the WAL, batches are created and dispatched onto a send queue when ready to be sent.
@@ -205,8 +196,10 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		maxLineSizeTruncate: maxLineSizeTruncate,
 	}
 
-	// create sendQueue
-	c.sendQueue = newQueue(c, cfg.Queue.Capacity, logger)
+	// The buffered channel size is calculated using the configured capacity, which is the worst case number of bytes
+	// the send queue can consume.
+	var queueBufferSize = cfg.Queue.Capacity / cfg.BatchSize
+	c.sendQueue = newQueue(c, queueBufferSize, logger)
 
 	err := cfg.Client.Validate()
 	if err != nil {

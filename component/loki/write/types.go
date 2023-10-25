@@ -74,14 +74,14 @@ func (r *EndpointOptions) Validate() error {
 // QueueConfig controls how the queue logs remote write client is configured. Note that this client is only used when the
 // loki.write component has WAL support enabled.
 type QueueConfig struct {
-	Capacity     int           `river:"capacity,attr,optional"`
-	DrainTimeout time.Duration `river:"drain_timeout,attr,optional"`
+	Capacity     units.Base2Bytes `river:"capacity,attr,optional"`
+	DrainTimeout time.Duration    `river:"drain_timeout,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
 func (q *QueueConfig) SetToDefault() {
 	*q = QueueConfig{
-		Capacity:     10,
+		Capacity:     100 * units.MiB, // considering the default BatchSize of 1MiB, this gives us a default buffered channel of size 100
 		DrainTimeout: time.Minute,
 	}
 }
@@ -107,7 +107,7 @@ func (args Arguments) convertClientConfigs() []client.Config {
 			TenantID:               cfg.TenantID,
 			DropRateLimitedBatches: !cfg.RetryOnHTTP429,
 			Queue: client.QueueConfig{
-				Capacity:     cfg.QueueConfig.Capacity,
+				Capacity:     int(cfg.QueueConfig.Capacity),
 				DrainTimeout: cfg.QueueConfig.DrainTimeout,
 			},
 		}

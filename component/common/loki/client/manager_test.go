@@ -99,7 +99,7 @@ func newServerAndClientConfig(t *testing.T) (Config, chan utils.RemoteWriteReque
 			MaxRetries: 0,
 		},
 		Queue: QueueConfig{
-			Capacity:     10,
+			Capacity:     10, // buffered channel of size 10
 			DrainTimeout: time.Second * 10,
 		},
 	}

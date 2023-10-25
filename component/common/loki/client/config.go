@@ -51,6 +51,20 @@ type Config struct {
 	Queue QueueConfig
 }
 
+// QueueConfig holds configurations for the queue-based remote-write client.
+type QueueConfig struct {
+	// Capacity is the worst case size in bytes desired for the send queue. This value is used to calculate the size of
+	// the buffered channel used underneath. The worst case scenario assumed is that every batch buffered in full, hence
+	// the channel capacity would be calculated as: bufferChannelSize = Capacity / BatchSize.
+	//
+	// For example, assuming BatchSize
+	// is the 1 MiB default, and a capacity of 100 MiB, the underlying buffered channel would buffer up to 100 batches.
+	Capacity int
+
+	// DrainTimeout controls the maximum time that draining the send queue can take.
+	DrainTimeout time.Duration
+}
+
 // RegisterFlags with prefix registers flags where every name is prefixed by
 // prefix. If prefix is a non-empty string, prefix should end with a period.
 func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {

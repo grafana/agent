@@ -56,7 +56,7 @@ func TestQueueClient(t *testing.T) {
 		Timeout:        1 * time.Second,
 		TenantID:       "",
 		Queue: QueueConfig{
-			Capacity:     10,
+			Capacity:     100, // buffered channel of size 10
 			DrainTimeout: time.Second,
 		},
 	}
