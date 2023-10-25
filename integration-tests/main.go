@@ -29,6 +29,9 @@ func main() {
 }
 
 func runIntegrationTests(cmd *cobra.Command, args []string) {
+	defer reportResults()
+	defer cleanUpEnvironment()
+
 	if !skipBuild {
 		buildAgent()
 	}
@@ -49,8 +52,4 @@ func runIntegrationTests(cmd *cobra.Command, args []string) {
 		logChan = make(chan TestLog, len(testDirs))
 		runAllTests()
 	}
-
-	cleanUpEnvironment()
-
-	reportResults()
 }

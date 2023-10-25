@@ -17,4 +17,7 @@ prometheus.remote_write "scrape_prom_metrics" {
         max_samples_per_send = 100
     }
   }
+  external_labels = {
+    test_name = "scrape_prom_metrics",
+  }
 }

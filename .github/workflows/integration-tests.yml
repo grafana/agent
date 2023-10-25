@@ -20,6 +20,4 @@ jobs:
     - name: Set OTEL Exporter Endpoint
       run: echo "OTEL_EXPORTER_ENDPOINT=http://172.17.0.1:8080" >> $GITHUB_ENV
     - name: Run tests
-      run: |
-        cd integration-tests
-        go run .
+      run: make integration-tests

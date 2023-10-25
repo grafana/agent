@@ -9,4 +9,7 @@ loki.write "test" {
   endpoint {
     url = "http://localhost:3100/loki/api/v1/push"
   }
+  external_labels = {
+    test_name = "read_log_file",
+  }
 }

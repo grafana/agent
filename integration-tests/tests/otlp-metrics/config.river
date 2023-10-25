@@ -10,7 +10,7 @@ otelcol.receiver.otlp "otlp_metrics" {
 
 otelcol.processor.attributes "otlp_metrics" {
   action {
-    key = "test"
+    key = "test_name"
     value = "otlp_metrics"
     action = "insert"
   }

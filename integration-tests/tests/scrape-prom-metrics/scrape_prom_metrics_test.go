@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const query = "http://localhost:9009/prometheus/api/v1/query?query=avalanche_metric_mmmmm_0_0{job='prometheus.scrape.scrape_prom_metrics'}"
+const query = "http://localhost:9009/prometheus/api/v1/query?query=avalanche_metric_mmmmm_0_0{test_name='scrape_prom_metrics'}"
 
 func TestScrapePromMetrics(t *testing.T) {
 	var metricResponse common.MetricResponse
@@ -16,7 +16,8 @@ func TestScrapePromMetrics(t *testing.T) {
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, "avalanche_metric_mmmmm_0_0")
-			assert.Equal(c, metricResponse.Data.Result[0].Metric.Job, "prometheus.scrape.scrape_prom_metrics")
+			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics")
+			assert.NotEmpty(c, metricResponse.Data.Result[0].Value.Value)
 		}
 	}, common.DefaultTimeout, common.DefaultRetryInterval, "Data did not satisfy the conditions within the time limit")
 }

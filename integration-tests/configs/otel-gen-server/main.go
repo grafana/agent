@@ -1,3 +1,5 @@
+// This file was copied with minor modifications from https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/b0be5c98325ec71f35b82e278a3fc3e6f3fe4954/examples/demo/server/main.go
+
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
@@ -8,7 +10,6 @@ package main
 import (
 	"context"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -30,7 +31,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+const otelExporterOtlpEndpoint = "OTEL_EXPORTER_OTLP_ENDPOINT"
 
 // Initializes an OTLP exporter, and configures the corresponding trace and
 // metric providers.
@@ -49,7 +50,7 @@ func initProvider() func() {
 	)
 	handleErr(err, "failed to create resource")
 
-	otelAgentAddr, ok := os.LookupEnv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	otelAgentAddr, ok := os.LookupEnv(otelExporterOtlpEndpoint)
 	if !ok {
 		otelAgentAddr = "0.0.0.0:4317"
 	}
@@ -122,22 +123,7 @@ func main() {
 
 	// create a handler wrapped in OpenTelemetry instrumentation
 	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		//  random sleep to simulate latency
-		var sleep int64
-
-		switch modulus := time.Now().Unix() % 5; modulus {
-		case 0:
-			sleep = rng.Int63n(2000)
-		case 1:
-			sleep = rng.Int63n(15)
-		case 2:
-			sleep = rng.Int63n(917)
-		case 3:
-			sleep = rng.Int63n(87)
-		case 4:
-			sleep = rng.Int63n(1173)
-		}
-		time.Sleep(time.Duration(sleep) * time.Millisecond)
+		time.Sleep(time.Duration(100) * time.Millisecond)
 		ctx := req.Context()
 		requestCount.Add(ctx, 1, metric.WithAttributes(commonLabels...))
 		span := trace.SpanFromContext(ctx)

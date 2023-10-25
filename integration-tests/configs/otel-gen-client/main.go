@@ -1,3 +1,5 @@
+// This file was copied with minor modifications from https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/b0be5c98325ec71f35b82e278a3fc3e6f3fe4954/examples/demo/client/main.go
+
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
@@ -7,7 +9,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -30,6 +31,11 @@ import (
 	"google.golang.org/grpc"
 )
 
+const (
+	otelExporterOtlpEndpoint = "OTEL_EXPORTER_OTLP_ENDPOINT"
+	demoServerEndpoint       = "DEMO_SERVER_ENDPOINT"
+)
+
 // Initializes an OTLP exporter, and configures the corresponding trace and
 // metric providers.
 func initProvider() func() {
@@ -47,7 +53,7 @@ func initProvider() func() {
 	)
 	handleErr(err, "failed to create resource")
 
-	otelAgentAddr, ok := os.LookupEnv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	otelAgentAddr, ok := os.LookupEnv(otelExporterOtlpEndpoint)
 	if !ok {
 		otelAgentAddr = "0.0.0.0:4317"
 	}
@@ -164,19 +170,17 @@ func main() {
 			randLineLength := rng.Int63n(999)
 			lineCounts.Add(ctx, 1, metric.WithAttributes(commonLabels...))
 			lineLengths.Record(ctx, randLineLength, metric.WithAttributes(commonLabels...))
-			fmt.Printf("#%d: LineLength: %dBy\n", i, randLineLength)
 		}
 
 		requestLatency.Record(ctx, latencyMs, metric.WithAttributes(commonLabels...))
 		requestCount.Add(ctx, 1, metric.WithAttributes(commonLabels...))
 
-		fmt.Printf("Latency: %.3fms\n", latencyMs)
 		time.Sleep(time.Duration(1) * time.Second)
 	}
 }
 
 func makeRequest(ctx context.Context) {
-	demoServerAddr, ok := os.LookupEnv("DEMO_SERVER_ENDPOINT")
+	demoServerAddr, ok := os.LookupEnv(demoServerEndpoint)
 	if !ok {
 		demoServerAddr = "http://0.0.0.0:7080/hello"
 	}
