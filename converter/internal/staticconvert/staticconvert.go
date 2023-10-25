@@ -24,11 +24,13 @@ import (
 )
 
 // Convert implements a Static config converter.
-func Convert(in []byte) ([]byte, diag.Diagnostics) {
+func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	fs := flag.NewFlagSet("convert", flag.ExitOnError)
-	staticConfig, err := config.LoadFromFunc(fs, []string{"-config.file", "convert", "-config.expand-env"}, func(_, _ string, expandEnvVars bool, c *config.Config) error {
+	args := []string{"-config.file", "convert", "-config.expand-env"}
+	args = append(args, extraArgs...)
+	staticConfig, err := config.LoadFromFunc(fs, args, func(_, _ string, expandEnvVars bool, c *config.Config) error {
 		return config.LoadBytes(in, expandEnvVars, c)
 	})
 
@@ -65,8 +67,7 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 
 	diags.AddAll(appendStaticPrometheus(f, staticConfig))
 	diags.AddAll(appendStaticPromtail(f, staticConfig))
-	diags.AddAll(appendStaticIntegrationsV1(f, staticConfig))
-	// TODO integrations v2
+	diags.AddAll(appendStaticIntegrations(f, staticConfig))
 	// TODO otel
 
 	diags.AddAll(validate(staticConfig))
@@ -160,10 +161,10 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 	return diags
 }
 
-func appendStaticIntegrationsV1(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+func appendStaticIntegrations(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
+	b := build.NewIntegrationsConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
 	b.Build()
 
 	return diags

@@ -41,14 +41,14 @@ var SupportedFormats = []string{
 // because of mismatched functionality, an error is returned with no resulting
 // config. If the conversion completed successfully but generated warnings, an
 // error is returned alongside the resulting config.
-func Convert(in []byte, kind Input) ([]byte, diag.Diagnostics) {
+func Convert(in []byte, kind Input, extraArgs []string) ([]byte, diag.Diagnostics) {
 	switch kind {
 	case InputPrometheus:
-		return prometheusconvert.Convert(in)
+		return prometheusconvert.Convert(in, extraArgs)
 	case InputPromtail:
-		return promtailconvert.Convert(in)
+		return promtailconvert.Convert(in, extraArgs)
 	case InputStatic:
-		return staticconvert.Convert(in)
+		return staticconvert.Convert(in, extraArgs)
 	}
 
 	var diags diag.Diagnostics

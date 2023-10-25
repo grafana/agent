@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/apache_http"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendApacheExporter(config *apache_http.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendApacheExporter(config *apache_http.Config) discovery.Exports {
 	args := toApacheExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

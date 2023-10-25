@@ -419,9 +419,9 @@ func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path str
 
 	// Complete unmarshaling integrations using the version from the flag. This
 	// MUST be called before ApplyDefaults.
-	version := integrationsVersion1
+	version := IntegrationsVersion1
 	if features.Enabled(fs, featIntegrationsNext) {
-		version = integrationsVersion2
+		version = IntegrationsVersion2
 	}
 
 	if err := cfg.Integrations.setVersion(version); err != nil {
@@ -504,7 +504,7 @@ func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
 
 	// Set integrations version to make sure our marshal function goes through
 	// the custom marshaling code.
-	err = cfg.Integrations.setVersion(integrationsVersion1)
+	err = cfg.Integrations.setVersion(IntegrationsVersion1)
 	require.NoError(t, err)
 
 	bb, err := yaml.Marshal(&cfg)

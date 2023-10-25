@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendWindowsExporter(config *windows_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendWindowsExporter(config *windows_exporter.Config) discovery.Exports {
 	args := toWindowsExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
