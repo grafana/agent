@@ -109,7 +109,7 @@ func runAllTests() {
 
 func cleanUpEnvironment() {
 	fmt.Println("Cleaning up Docker environment...")
-	err := exec.Command(dockerComposeCmd, "down", "--volumes", "--rmi", "all").Run()
+	err := exec.Command(dockerComposeCmd, "down").Run()
 	if err != nil {
 		panic(err)
 	}
