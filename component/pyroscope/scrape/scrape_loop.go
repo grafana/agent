@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	commonconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/util/pool"

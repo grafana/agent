@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/util"
 	"github.com/grafana/tail"

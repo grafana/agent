@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	dskit "github.com/grafana/dskit/server"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"

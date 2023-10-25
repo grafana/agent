@@ -21,8 +21,6 @@ Grafana Agent can be deployed on Kubernetes by using the Helm chart for Grafana 
 * Configure a Kubernetes cluster that you can use for Grafana Agent.
 * Configure your local Kubernetes context to point to the cluster.
 
-[Helm]: https://helm.sh
-
 ## Deploy
 
 {{% admonition type="note" %}}
@@ -59,5 +57,11 @@ For more information on the Grafana Agent Helm chart, refer to the Helm chart do
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent" >}})
-- [Configure Grafana Agent]({{< relref "../configure/configure-kubernetes" >}})
+- [Configure Grafana Agent][]
+
+[Helm]: https://helm.sh
+
+{{% docs/reference %}}
+[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-kubernetes.md"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-kubernetes.md"
+{{% /docs/reference %}}

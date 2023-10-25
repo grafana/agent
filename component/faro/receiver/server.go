@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/dskit/instrument"
 	"github.com/grafana/dskit/middleware"
 	"github.com/prometheus/client_golang/prometheus"

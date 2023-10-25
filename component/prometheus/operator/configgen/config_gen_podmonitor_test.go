@@ -9,6 +9,7 @@ import (
 
 	"github.com/grafana/agent/component/common/kubernetes"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/prometheus/operator"
 	"github.com/grafana/agent/pkg/util"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
@@ -65,8 +66,8 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 			expected: &config.ScrapeConfig{
 				JobName:         "podMonitor/operator/podmonitor/1",
 				HonorTimestamps: true,
-				ScrapeInterval:  model.Duration(time.Minute),
-				ScrapeTimeout:   model.Duration(10 * time.Second),
+				ScrapeInterval:  model.Duration(time.Hour),
+				ScrapeTimeout:   model.Duration(42 * time.Second),
 				MetricsPath:     "/metrics",
 				Scheme:          "http",
 				HTTPClientConfig: commonConfig.HTTPClientConfig{
@@ -121,8 +122,8 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 			expected: &config.ScrapeConfig{
 				JobName:         "podMonitor/operator/podmonitor/1",
 				HonorTimestamps: true,
-				ScrapeInterval:  model.Duration(time.Minute),
-				ScrapeTimeout:   model.Duration(10 * time.Second),
+				ScrapeInterval:  model.Duration(time.Hour),
+				ScrapeTimeout:   model.Duration(42 * time.Second),
 				MetricsPath:     "/metrics",
 				Scheme:          "http",
 				HTTPClientConfig: commonConfig.HTTPClientConfig{
@@ -177,8 +178,64 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 			expected: &config.ScrapeConfig{
 				JobName:         "podMonitor/operator/podmonitor/1",
 				HonorTimestamps: true,
-				ScrapeInterval:  model.Duration(time.Minute),
-				ScrapeTimeout:   model.Duration(10 * time.Second),
+				ScrapeInterval:  model.Duration(time.Hour),
+				ScrapeTimeout:   model.Duration(42 * time.Second),
+				MetricsPath:     "/metrics",
+				Scheme:          "http",
+				HTTPClientConfig: commonConfig.HTTPClientConfig{
+					FollowRedirects: true,
+					EnableHTTP2:     true,
+				},
+				ServiceDiscoveryConfigs: discovery.Configs{
+					&promk8s.SDConfig{
+						Role: "pod",
+
+						NamespaceDiscovery: promk8s.NamespaceDiscovery{
+							IncludeOwnNamespace: false,
+							Names:               []string{"operator"},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "defaults_from_scrapeoptions",
+			m: &promopv1.PodMonitor{
+				ObjectMeta: metav1.ObjectMeta{
+					Namespace: "operator",
+					Name:      "podmonitor",
+				},
+			},
+			ep: promopv1.PodMetricsEndpoint{
+				TargetPort: &intstr.IntOrString{IntVal: 8080, Type: intstr.Int},
+			},
+			expectedRelabels: util.Untab(`
+				- target_label: __meta_foo
+				  replacement: bar
+				- source_labels: [job]
+				  target_label: __tmp_prometheus_job_name
+				- source_labels: [__meta_kubernetes_pod_phase]
+				  regex: (Failed|Succeeded)
+				  action: drop
+				- source_labels: ["__meta_kubernetes_pod_container_port_number"]
+				  regex: "8080"
+				  action: "keep"
+				- source_labels: [__meta_kubernetes_namespace]
+				  target_label: namespace
+				- source_labels: [__meta_kubernetes_pod_container_name]
+				  target_label: container
+				- source_labels: [__meta_kubernetes_pod_name]
+				  target_label: pod
+				- target_label: job
+				  replacement: operator/podmonitor
+				- target_label: endpoint
+				  replacement: "8080"
+			`),
+			expected: &config.ScrapeConfig{
+				JobName:         "podMonitor/operator/podmonitor/1",
+				HonorTimestamps: true,
+				ScrapeInterval:  model.Duration(time.Hour),
+				ScrapeTimeout:   model.Duration(42 * time.Second),
 				MetricsPath:     "/metrics",
 				Scheme:          "http",
 				HTTPClientConfig: commonConfig.HTTPClientConfig{
@@ -247,8 +304,8 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				FollowRedirects: &falseVal,
 				ProxyURL:        &proxyURL,
 				Scheme:          "https",
-				ScrapeTimeout:   "17m",
-				Interval:        "1s",
+				ScrapeTimeout:   "17s",
+				Interval:        "12m",
 				HonorLabels:     true,
 				HonorTimestamps: &falseVal,
 				FilterRunning:   &falseVal,
@@ -325,8 +382,8 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				JobName:         "podMonitor/operator/podmonitor/1",
 				HonorTimestamps: false,
 				HonorLabels:     true,
-				ScrapeInterval:  model.Duration(time.Second),
-				ScrapeTimeout:   model.Duration(17 * time.Minute),
+				ScrapeInterval:  model.Duration(12 * time.Minute),
+				ScrapeTimeout:   model.Duration(17 * time.Second),
 				MetricsPath:     "/foo",
 				Scheme:          "https",
 				Params: url.Values{
@@ -367,6 +424,10 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				Client: &kubernetes.ClientArguments{},
 				AdditionalRelabelConfigs: []*flow_relabel.Config{
 					{TargetLabel: "__meta_foo", Replacement: "bar"},
+				},
+				ScrapeOptions: operator.ScrapeOptions{
+					DefaultScrapeInterval: time.Hour,
+					DefaultScrapeTimeout:  42 * time.Second,
 				},
 			}
 			cfg, err := cg.GeneratePodMonitorConfig(tc.m, tc.ep, 1)
