@@ -20,6 +20,9 @@ import (
 )
 
 // Convert implements a Prometheus config converter.
+//
+// extraArgs are supported to mirror the other converter params due to shared
+// testing code but they should be passed empty to this converter.
 func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 

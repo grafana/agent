@@ -24,6 +24,9 @@ import (
 )
 
 // Convert implements a Static config converter.
+//
+// extraArgs are supported to be passed along to the Static config parser such
+// as enabling integrations-next.
 func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 

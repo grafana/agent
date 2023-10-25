@@ -32,6 +32,10 @@ var SupportedFormats = []string{
 // Convert generates a Grafana Agent Flow config given an input configuration
 // file.
 //
+// extraArgs are supported to be passed along to a converter such as enabling
+// integrations-next for the static converter. Converters that do not support
+// extraArgs will return a critical severity diagnostic if any are passed.
+//
 // Conversions are made as literally as possible, so the resulting config files
 // may be unoptimized (i.e., lacking component reuse). A converted config file
 // should just be the starting point rather than the final destination.
