@@ -118,5 +118,12 @@ To uninstall Grafana Agent on Linux, run the following commands in a terminal wi
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent#linux" >}})
-- [Configure Grafana Agent]({{< relref "../configure/configure-linux" >}})
+- [Start Grafana Agent][]
+- [Configure Grafana Agent][]
+
+{{% docs/reference %}}
+[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#linux"
+[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md#linux"
+[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-linux.md"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-linux.md"
+{{% /docs/reference %}}

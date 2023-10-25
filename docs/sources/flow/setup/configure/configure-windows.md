@@ -88,4 +88,8 @@ To expose the UI to other machines, complete the following steps:
 
        To listen on all interfaces, replace `LISTEN_ADDR` with `0.0.0.0`.
 
-[UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+{{% docs/reference %}}
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+{{% /docs/reference %}}
+

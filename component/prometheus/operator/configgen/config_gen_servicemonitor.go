@@ -301,5 +301,5 @@ func (cg *ConfigGenerator) GenerateServiceMonitorConfig(m *promopv1.ServiceMonit
 	cfg.LabelNameLengthLimit = uint(m.Spec.LabelNameLengthLimit)
 	cfg.LabelValueLengthLimit = uint(m.Spec.LabelValueLengthLimit)
 
-	return cfg, nil
+	return cfg, cfg.Validate(cg.ScrapeOptions.GlobalConfig())
 }

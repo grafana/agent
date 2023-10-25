@@ -65,6 +65,13 @@ Main (unreleased)
 
 - Fix an issue where `remote.vault` ignored the `namespace` argument. (@rfratto)
 
+- Fix validation issue with ServiceMonitors when scrape timeout is greater than interval. (@captncraig)
+
+- Static mode's spanmetrics processor will now prune histograms when the dimension cache is pruned.
+  Dimension cache was always pruned but histograms were not being pruned. This caused metric series 
+  created by the spanmetrics processor to grow unbounded. Only static mode has this issue. Flow mode's
+  `otelcol.connector.spanmetrics` does not have this bug. (@nijave)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
@@ -72,6 +79,14 @@ Main (unreleased)
 - Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
 
 - Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
+
+- The `loki.source.docker` component now allows connecting to Docker daemons
+  over HTTP(S) and setting up TLS credentials. (@tpaschalis)
+  
+- Upgrade OpenTelemetry Collector packages to version 0.87 (@ptodev):
+  - `otelcol.receiver.kafka` has a new `header_extraction` block to extract headers from Kafka records.
+  - `otelcol.receiver.kafka` has a new `version` argument to change the version of 
+    the SASL Protocol for SASL authentication.
 
 v0.37.2 (2023-10-16)
 -----------------
