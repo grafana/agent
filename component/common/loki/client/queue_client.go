@@ -189,7 +189,7 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		logger:       log.With(logger, "component", "client", "host", cfg.URL.Host),
 		cfg:          cfg,
 		metrics:      metrics,
-		drainTimeout: cfg.Queue.DrainTimeout, // make this configurable
+		drainTimeout: cfg.Queue.DrainTimeout,
 		quit:         make(chan struct{}),
 
 		batches: make(map[string]*batch),
@@ -306,6 +306,8 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry) {
 	// If the batch doesn't exist yet, we create a new one with the entry
 	if !ok {
 		nb := newBatch(c.maxStreams)
+		// since the batch is new, adding a new entry, and hence a new stream, won't fail since there aren't any stream
+		// registered in the batch.
 		_ = nb.addFromWAL(lbs, e)
 
 		c.batches[tenantID] = nb
