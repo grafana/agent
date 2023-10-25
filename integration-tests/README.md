@@ -2,6 +2,10 @@
 
 This document provides an outline of how to run and add new integration tests to the project.
 
+The purpose of these tests is to verify simple, happy-path pipelines to catch issues between the agent and external dependencies.
+
+The external dependencies are launched as Docker containers.
+
 ## Running tests
 
 Execute the integration tests using the following command:
@@ -21,3 +25,5 @@ Follow these steps to add a new integration test to the project:
 2. Create a new directory under the tests directory to house the files for the new test.
 3. Within the new test directory, create a file named `config.river` to hold the pipeline configuration you want to test.
 4. Create a `_test.go` file within the new test directory. This file should contain the Go code necessary to run the test and verify the data processing through the pipeline.
+
+ _NOTE_: The tests run concurrently. Each agent must tag its data with a label that corresponds to its specific configuration. This ensures the correct data verification during the Go testing process.
