@@ -42,6 +42,21 @@ import (
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 )
 
+func validateExtraArgs(extraArgs []string) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if len(extraArgs) == 0 {
+		return diags
+	}
+
+	if len(extraArgs) != 2 || extraArgs[0] != "-enable-features" || extraArgs[1] != "integrations-next" {
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("The static converter only supports the extra arguments [-enable-features integrations-next]. Received: %v", extraArgs))
+		return diags
+	}
+
+	return diags
+}
+
 func validate(staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
