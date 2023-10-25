@@ -28,12 +28,13 @@ import (
 // extraArgs are supported to be passed along to the Static config parser such
 // as enabling integrations-next.
 func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
-	diags := validateExtraArgs(extraArgs)
-	if len(diags) > 0 {
-		return nil, diags
-	}
+	var diags diag.Diagnostics
+	// diags := validateExtraArgs(extraArgs)
+	// if len(diags) > 0 {
+	// 	return nil, diags
+	// }
 
-	fs := flag.NewFlagSet("convert", flag.ExitOnError)
+	fs := flag.NewFlagSet("convert", flag.ContinueOnError)
 	args := []string{"-config.file", "convert", "-config.expand-env"}
 	args = append(args, extraArgs...)
 	staticConfig, err := config.LoadFromFunc(fs, args, func(_, _ string, expandEnvVars bool, c *config.Config) error {
