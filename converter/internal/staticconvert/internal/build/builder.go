@@ -40,13 +40,6 @@ import (
 	prom_config "github.com/prometheus/prometheus/config"
 )
 
-type IntegrationsVersion int
-
-const (
-	IntegrationsVersion1 IntegrationsVersion = iota
-	IntegrationsVersion2
-)
-
 type IntegrationsConfigBuilder struct {
 	f         *builder.File
 	diags     *diag.Diagnostics
@@ -70,10 +63,10 @@ func (b *IntegrationsConfigBuilder) Build() {
 }
 
 func (b *IntegrationsConfigBuilder) appendIntegrations() {
-	switch IntegrationsVersion(b.cfg.Integrations.Version) {
-	case IntegrationsVersion1:
+	switch b.cfg.Integrations.Version {
+	case config.IntegrationsVersion1:
 		b.appendV1Integrations()
-	case IntegrationsVersion2:
+	case config.IntegrationsVersion2:
 		b.appendV2Integrations()
 	default:
 		panic(fmt.Sprintf("unknown integrations version %d", b.cfg.Integrations.Version))
