@@ -29,6 +29,7 @@ Main (unreleased)
 ### Other changes
 
 - Bump `mysqld_exporter` version to v0.15.0. (@marctc)
+- Bump `github-exporter` version to 1.0.6. (@marctc)
 
 ### Features
 
