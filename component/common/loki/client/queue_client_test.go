@@ -72,7 +72,7 @@ func TestQueueClient(t *testing.T) {
 				Capacity:     int(100 * units.MiB), // keep buffered channel size on 100
 				DrainTimeout: 10 * time.Second,
 			},
-			expectedRWReqsCount: 1,
+			expectedRWReqsCount: 1, // expect all entries to be sent in a single batch (100 * < 10B per line) < 1MiB
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -170,13 +170,25 @@ func TestQueueClient(t *testing.T) {
 
 func BenchmarkQueueClient(b *testing.B) {
 	for name, bc := range map[string]testCase{
-		"100 entries single series": {
+		"100 entries, single series, no batching": {
 			numLines:  100,
 			numSeries: 1,
+			batchSize: 10,
+			batchWait: time.Millisecond * 50,
+			queueConfig: QueueConfig{
+				Capacity:     1000, // buffer size 100
+				DrainTimeout: time.Second,
+			},
 		},
-		"100k entries, 100 series": {
+		"100k entries, 100 series, default batching": {
 			numLines:  100_000,
 			numSeries: 100,
+			batchSize: int(1 * units.MiB),
+			batchWait: time.Second,
+			queueConfig: QueueConfig{
+				Capacity:     int(100 * units.MiB), // buffer size 100
+				DrainTimeout: 5 * time.Second,
+			},
 		},
 	} {
 		b.Run(name, func(b *testing.B) {
@@ -190,11 +202,15 @@ func runSingleBenchCase(b *testing.B, bc testCase) {
 
 	// Create a buffer channel where we do enqueue received requests
 	receivedReqsChan := make(chan utils.RemoteWriteRequest, 10)
+	// count the number for remote-write requests received (which should correlated with the number of sent batches),
+	// and the total number of entries.
+	var receivedEntriesCount atomic.Int64
 
-	receivedReqs := utils.NewSyncSlice[utils.RemoteWriteRequest]()
 	go func() {
 		for req := range receivedReqsChan {
-			receivedReqs.Append(req)
+			for _, s := range req.Request.Streams {
+				receivedEntriesCount.Add(int64(len(s.Entries)))
+			}
 		}
 	}()
 
@@ -262,11 +278,8 @@ func runSingleBenchCase(b *testing.B, bc testCase) {
 		}
 
 		require.Eventually(b, func() bool {
-			return receivedReqs.Length() == len(lines)
-		}, time.Second*10, time.Second, "timed out waiting for messages to arrive")
-
-		// reset receiving slice
-		receivedReqs.Reset()
+			return receivedEntriesCount.Load() == int64(len(lines))
+		}, time.Second*10, time.Second, "timed out waiting for entries to arrive")
 	}
 
 	// Stop the client: it waits until the current batch is sent
