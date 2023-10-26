@@ -77,10 +77,10 @@ before being pushed to the remote_write endpoint.
 ### WAL corruption
 
 WAL corruption can occur when Grafana Agent unexpectedly stops while the latest WAL segments
-are still being written to disk. For example, a WAL corruption can happen if a host disk fails,
-the host crashes, or the host is forcibly shut down. When you restart Grafana Agent, it tries
-to repair the WAL by removing corrupt segments. Sometimes, this repair is unsuccessful, and
-you must manually delete the corrupted WAL to continue.
+are still being written to disk. For example, the host computer has a general disk failure
+and crashes before you can stop Grafana Agent and other running services. When you restart Grafana
+Agent, the Agent verifies the WAL, removing any corrupt segments it finds. Sometimes, this repair
+is unsuccessful, and you must manually delete the corrupted WAL to continue.
 
 When the WAL becomes corrupted, Grafana Agent writes error messages such as
 `err="failed to find segment for index"` to the log file.
@@ -92,10 +92,10 @@ Deleting a WAL segment or a WAL file permanently deletes the stored WAL data.
 To delete the corrupted WAL:
 
 1. [Stop][] Grafana Agent.
-1. Delete the WAL from disk. By default, the WAL is located in the `data-agent` directory in
-   the working directory for Grafana Agent.
-   The data directory may be different than the default depending on the [wal_directory][] setting
-   in your Static configuration file or the path specified by the Flow [command line flag][run] `--storage-path`.
+1. Delete the WAL from disk. By default, the WAL is in the `data-agent` directory located in
+   the Grafana Agent working directory. The WAL data directory may be different than the default
+   depending on the [wal_directory][] setting in your Static configuration file or the path
+   specified by the Flow [command line flag][run] `--storage-path`.
 1. [Start][Stop] Grafana Agent and verify that the WAL is working correctly.
 
 [WAL block]: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write#wal-block
