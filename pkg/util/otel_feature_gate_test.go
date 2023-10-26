@@ -5,6 +5,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/featuregate"
+
+	// Register the feature gates.
+	_ "go.opentelemetry.io/collector/exporter/exporterhelper"
 )
 
 func Test_FeatureGates(t *testing.T) {

@@ -37,13 +37,14 @@ otelcol.exporter.prometheus "LABEL" {
 
 `otelcol.exporter.prometheus` supports the following arguments:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`include_target_info` | `boolean` | Whether to include `target_info` metrics. | `true` | no
-`include_scope_info` | `boolean` | Whether to include `otel_scope_info` metrics. | `false` | no
+Name | Type | Description                                               | Default | Required
+---- | ---- |-----------------------------------------------------------| ------- | --------
+`include_target_info` | `boolean` | Whether to include `target_info` metrics.                 | `true` | no
+`include_scope_info` | `boolean` | Whether to include `otel_scope_info` metrics.             | `false` | no
 `include_scope_labels` | `boolean` | Whether to include additional OTLP labels in all metrics. | `true` | no
-`gc_frequency` | `duration` | How often to clean up stale metrics from memory. | `"5m"` | no
-`forward_to` | `list(receiver)` | Where to forward converted Prometheus metrics. | | yes
+`add_metric_suffixes` | `boolean` | Whether to add type and unit suffixes to metrics names.   | `true` | no
+`gc_frequency` | `duration` | How often to clean up stale metrics from memory.          | `"5m"` | no
+`forward_to` | `list(receiver)` | Where to forward converted Prometheus metrics.            | | yes
 
 By default, OpenTelemetry resources are converted into `target_info` metrics. 
 OpenTelemetry instrumentation scopes are converted into `otel_scope_info`

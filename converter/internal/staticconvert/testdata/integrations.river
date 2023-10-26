@@ -1,11 +1,9 @@
-prometheus.exporter.apache "integrations_apache_http" {
-	scrape_uri = "http://0.0.0.0/server-status?auto"
-}
+prometheus.exporter.agent "integrations_agent" { }
 
-prometheus.scrape "integrations_apache_http" {
-	targets    = prometheus.exporter.apache.integrations_apache_http.targets
+prometheus.scrape "integrations_agent" {
+	targets    = prometheus.exporter.agent.integrations_agent.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/apache_http"
+	job_name   = "integrations/agent"
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -24,7 +22,25 @@ prometheus.remote_write "integrations" {
 	}
 }
 
+prometheus.exporter.apache "integrations_apache_http" {
+	scrape_uri = "http://0.0.0.0/server-status?auto"
+}
+
+prometheus.scrape "integrations_apache_http" {
+	targets    = prometheus.exporter.apache.integrations_apache_http.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/apache_http"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
+}
+
 prometheus.exporter.blackbox "integrations_blackbox" {
+	config = "modules:\n  http_2xx:\n    prober: http\n    timeout: 5s\n    http:\n      method: POST\n      headers:\n        Content-Type: application/json\n      body: '{}'\n      preferred_ip_protocol: ip4\n"
+
 	target "example" {
 		address = "http://example.com"
 		module  = "http_2xx"

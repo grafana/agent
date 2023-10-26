@@ -13,6 +13,7 @@ import (
 	fnet "github.com/grafana/agent/component/common/net"
 	agentprom "github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/config"
@@ -347,8 +348,10 @@ func testAppendable(actualSamples chan testSample) []storage.Appendable {
 		return ref, nil
 	}
 
+	ls := labelstore.New(nil)
 	return []storage.Appendable{agentprom.NewInterceptor(
 		nil,
+		ls,
 		agentprom.WithAppendHook(
 			hookFn))}
 }
@@ -381,6 +384,9 @@ func testOptions(t *testing.T) component.Options {
 		ID:         "prometheus.receive_http.test",
 		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			return labelstore.New(nil), nil
+		},
 	}
 }
 

@@ -101,3 +101,50 @@ loki.write "logs_integrations" {
 	}
 	external_labels = {}
 }
+
+prometheus.exporter.agent "integrations_agent" { }
+
+discovery.relabel "integrations_agent" {
+	targets = prometheus.exporter.agent.integrations_agent.targets
+
+	rule {
+		source_labels = ["agent_hostname"]
+		target_label  = "instance"
+	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/agent-check"
+	}
+}
+
+prometheus.scrape "integrations_agent" {
+	targets    = discovery.relabel.integrations_agent.output
+	forward_to = [prometheus.relabel.integrations_agent.receiver]
+	job_name   = "integrations/agent"
+}
+
+prometheus.relabel "integrations_agent" {
+	forward_to = [prometheus.remote_write.integrations.receiver]
+
+	rule {
+		source_labels = ["__name__"]
+		regex         = "(prometheus_target_.*|prometheus_sd_discovered_targets|agent_build.*|agent_wal_samples_appended_total|process_start_time_seconds)"
+		action        = "keep"
+	}
+}
+
+prometheus.remote_write "integrations" {
+	endpoint {
+		url = "https://region.grafana.net/api/prom/push"
+
+		basic_auth {
+			username = "id"
+			password = "token"
+		}
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}

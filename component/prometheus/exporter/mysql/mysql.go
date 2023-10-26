@@ -44,6 +44,9 @@ var DefaultArguments = Arguments{
 		Filter:       ".*",
 		RemovePrefix: "/var/lib/mysql",
 	},
+	PerfSchemaMemoryEvents: PerfSchemaMemoryEvents{
+		RemovePrefix: "memory/",
+	},
 	Heartbeat: Heartbeat{
 		Database: "heartbeat",
 		Table:    "heartbeat",
@@ -72,8 +75,10 @@ type Arguments struct {
 	InfoSchemaTables           InfoSchemaTables           `river:"info_schema.tables,block,optional"`
 	PerfSchemaEventsStatements PerfSchemaEventsStatements `river:"perf_schema.eventsstatements,block,optional"`
 	PerfSchemaFileInstances    PerfSchemaFileInstances    `river:"perf_schema.file_instances,block,optional"`
-	Heartbeat                  Heartbeat                  `river:"heartbeat,block,optional"`
-	MySQLUser                  MySQLUser                  `river:"mysql.user,block,optional"`
+	PerfSchemaMemoryEvents     PerfSchemaMemoryEvents     `river:"perf_schema.memory_events,block,optional"`
+
+	Heartbeat Heartbeat `river:"heartbeat,block,optional"`
+	MySQLUser MySQLUser `river:"mysql.user,block,optional"`
 }
 
 // InfoSchemaProcessList configures the info_schema.processlist collector
@@ -98,6 +103,11 @@ type PerfSchemaEventsStatements struct {
 // PerfSchemaFileInstances configures the perf_schema.file_instances collector
 type PerfSchemaFileInstances struct {
 	Filter       string `river:"filter,attr,optional"`
+	RemovePrefix string `river:"remove_prefix,attr,optional"`
+}
+
+// PerfSchemaMemoryEvents configures the perf_schema.memory_events collector
+type PerfSchemaMemoryEvents struct {
 	RemovePrefix string `river:"remove_prefix,attr,optional"`
 }
 
@@ -144,6 +154,7 @@ func (a *Arguments) Convert() *mysqld_exporter.Config {
 		PerfSchemaEventsStatementsTextLimit:  a.PerfSchemaEventsStatements.TextLimit,
 		PerfSchemaFileInstancesFilter:        a.PerfSchemaFileInstances.Filter,
 		PerfSchemaFileInstancesRemovePrefix:  a.PerfSchemaFileInstances.RemovePrefix,
+		PerfSchemaMemoryEventsRemovePrefix:   a.PerfSchemaMemoryEvents.RemovePrefix,
 		HeartbeatDatabase:                    a.Heartbeat.Database,
 		HeartbeatTable:                       a.Heartbeat.Table,
 		HeartbeatUTC:                         a.Heartbeat.UTC,

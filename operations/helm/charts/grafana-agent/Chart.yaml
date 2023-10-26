@@ -2,8 +2,8 @@ apiVersion: v2
 name: grafana-agent
 description: 'Grafana Agent'
 type: application
-version: 0.26.0
-appVersion: 'v0.37.1'
+version: 0.27.1
+appVersion: 'v0.37.3'
 
 dependencies:
   - name: crds

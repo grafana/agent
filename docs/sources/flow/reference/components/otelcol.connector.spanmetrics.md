@@ -19,7 +19,7 @@ aggregates Request, Error and Duration (R.E.D) OpenTelemetry metrics from the sp
 
 - **Request** counts are computed as the number of spans seen per unique set of dimensions,
   including Errors. Multiple metrics can be aggregated if, for instance, a user wishes to
-  view call counts just on `service.name`` and `span.name``.
+  view call counts just on `service.name` and `span.name`.
 
 - **Error** counts are computed from the Request counts which have an `Error` status code metric dimension.
 
@@ -134,7 +134,7 @@ The following attributes are supported:
 | `unit` | `string` | Configures the histogram units. | `"ms"`  | no       |
 | `disable`| `bool` | Disable all histogram metrics. | `false` | no |
 
-The supported values for `aggregation_temporality` are:
+The supported values for `unit` are:
 
 - `"ms"`: milliseconds
 - `"s"`: seconds

@@ -20,7 +20,7 @@ import (
 	"github.com/mwitkow/go-conntrack"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/influxdata/go-syslog/v3"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/model/labels"

@@ -10,7 +10,7 @@ import (
 	"reflect"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/jmespath/go-jmespath"
 	json "github.com/json-iterator/go"
 )
