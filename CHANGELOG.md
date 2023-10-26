@@ -72,6 +72,12 @@ Main (unreleased)
   created by the spanmetrics processor to grow unbounded. Only static mode has this issue. Flow mode's
   `otelcol.connector.spanmetrics` does not have this bug. (@nijave)
 
+- Prevent logging errors on normal shutdown in `loki.source.journal`. (@wildum)
+
+- Break on iterate journal failure in `loki.source.journal`. (@wildum)
+
+- Fix file descriptor leak in `loki.source.journal`. (@wildum)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
