@@ -1,4 +1,4 @@
-package prometheusconvert
+package component
 
 import (
 	"fmt"
@@ -8,11 +8,12 @@ import (
 	disc_relabel "github.com/grafana/agent/component/discovery/relabel"
 	"github.com/grafana/agent/component/prometheus/relabel"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	prom_relabel "github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/storage"
 )
 
-func appendPrometheusRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
+func AppendPrometheusRelabel(pb *build.PrometheusBlocks, relabelConfigs []*prom_relabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
@@ -20,7 +21,7 @@ func appendPrometheusRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabe
 	relabelArgs := toRelabelArguments(relabelConfigs, forwardTo)
 	name := []string{"prometheus", "relabel"}
 	block := common.NewBlockWithOverride(name, label, relabelArgs)
-	pb.prometheusRelabelBlocks = append(pb.prometheusRelabelBlocks, newPrometheusBlock(block, name, label, "", ""))
+	pb.PrometheusRelabelBlocks = append(pb.PrometheusRelabelBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
 
 	return &relabel.Exports{
 		Receiver: common.ConvertAppendable{Expr: fmt.Sprintf("prometheus.relabel.%s.receiver", label)},
@@ -38,7 +39,7 @@ func toRelabelArguments(relabelConfigs []*prom_relabel.Config, forwardTo []stora
 	}
 }
 
-func appendDiscoveryRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel.Config, targets []discovery.Target, label string) *disc_relabel.Exports {
+func AppendDiscoveryRelabel(pb *build.PrometheusBlocks, relabelConfigs []*prom_relabel.Config, targets []discovery.Target, label string) *disc_relabel.Exports {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
@@ -46,10 +47,10 @@ func appendDiscoveryRelabel(pb *prometheusBlocks, relabelConfigs []*prom_relabel
 	relabelArgs := toDiscoveryRelabelArguments(relabelConfigs, targets)
 	name := []string{"discovery", "relabel"}
 	block := common.NewBlockWithOverride(name, label, relabelArgs)
-	pb.discoveryRelabelBlocks = append(pb.discoveryRelabelBlocks, newPrometheusBlock(block, name, label, "", ""))
+	pb.DiscoveryRelabelBlocks = append(pb.DiscoveryRelabelBlocks, build.NewPrometheusBlock(block, name, label, "", ""))
 
 	return &disc_relabel.Exports{
-		Output: newDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.output", label)),
+		Output: common.NewDiscoveryTargets(fmt.Sprintf("discovery.relabel.%s.output", label)),
 	}
 }
 

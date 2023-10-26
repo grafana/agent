@@ -21,8 +21,6 @@ metrics:
             - targets: ['localhost:9099']
 
 integrations:
-  agent:
-    enabled: true
   mssql:
     enabled: true
     scrape_integration: false

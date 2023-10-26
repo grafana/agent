@@ -65,7 +65,15 @@ func (a *Arguments) client() (*vault.Client, error) {
 	cfg.MaxRetries = a.ClientOptions.MaxRetries
 	cfg.Timeout = a.ClientOptions.Timeout
 
-	return vault.NewClient(cfg)
+	cli, err := vault.NewClient(cfg)
+	if err != nil {
+		return cli, err
+	}
+
+	if a.Namespace != "" {
+		cli.SetNamespace(a.Namespace)
+	}
+	return cli, nil
 }
 
 // SetToDefault implements river.Defaulter.
