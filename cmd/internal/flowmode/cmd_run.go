@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/agent/service"
 	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/kv"
 	"github.com/grafana/agent/service/labelstore"
 	otel_service "github.com/grafana/agent/service/otel"
 	uiservice "github.com/grafana/agent/service/ui"
@@ -247,6 +248,11 @@ func (fr *flowRun) Run(configPath string) error {
 
 	labelService := labelstore.New(l)
 
+	kvService, err := kv.NewKVDB(filepath.Join(fr.storagePath, "kv"))
+	if err != nil {
+		return fmt.Errorf("failed to create kv service")
+	}
+
 	f := flow.New(flow.Options{
 		Logger:   l,
 		Tracer:   t,
@@ -258,6 +264,7 @@ func (fr *flowRun) Run(configPath string) error {
 			clusterService,
 			otelService,
 			labelService,
+			kvService,
 		},
 	})
 

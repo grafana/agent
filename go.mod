@@ -622,28 +622,19 @@ require (
 require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
 
 require (
-	github.com/cockroachdb/pebble v0.0.0-20231017151438-5807b5917615
 	github.com/githubexporter/github-exporter v0.0.0-20230925090839-9e31cd0e7721
 	go.etcd.io/bbolt v1.3.7
 )
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
-	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
-	github.com/cockroachdb/errors v1.11.1 // indirect
-	github.com/cockroachdb/logtags v0.0.0-20230118201751-21c54148d20b // indirect
-	github.com/cockroachdb/redact v1.1.5 // indirect
-	github.com/cockroachdb/tokenbucket v0.0.0-20230807174530-cc333fc44b06 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
-	github.com/getsentry/sentry-go v0.18.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
-	github.com/kr/pretty v0.3.1 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
@@ -652,7 +643,6 @@ require (
 	github.com/openshift/api v3.9.0+incompatible // indirect
 	github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // indirect
 	github.com/prometheus-community/prom-label-proxy v0.6.0 // indirect
-	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sercand/kuberesolver/v4 v4.0.0 // indirect
 	github.com/sony/gobreaker v0.5.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.42.0 // indirect
