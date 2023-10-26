@@ -59,7 +59,7 @@ Main (unreleased)
 - Fix validation issue with ServiceMonitors when scrape timeout is greater than interval. (@captncraig)
 
 - Static mode's spanmetrics processor will now prune histograms when the dimension cache is pruned.
-  Dimension cache was always pruned but histograms were not being pruned. This caused metric series 
+  Dimension cache was always pruned but histograms were not being pruned. This caused metric series
   created by the spanmetrics processor to grow unbounded. Only static mode has this issue. Flow mode's
   `otelcol.connector.spanmetrics` does not have this bug. (@nijave)
 
@@ -74,8 +74,11 @@ Main (unreleased)
 - The `loki.source.docker` component now allows connecting to Docker daemons
   over HTTP(S) and setting up TLS credentials. (@tpaschalis)
 
-- Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode, 
+- Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode,
   which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
+
+- Improve detection of rolled log files in `loki.source.kubernetes` and
+  `loki.source.podlogs` (@slim-bean).
 
 v0.37.3 (2023-10-26)
 -----------------
@@ -98,9 +101,9 @@ v0.37.3 (2023-10-26)
 
 - Upgrade OpenTelemetry Collector packages to version 0.87 (@ptodev):
   - `otelcol.receiver.kafka` has a new `header_extraction` block to extract headers from Kafka records.
-  - `otelcol.receiver.kafka` has a new `version` argument to change the version of 
+  - `otelcol.receiver.kafka` has a new `version` argument to change the version of
     the SASL Protocol for SASL authentication.
-  
+
 v0.37.2 (2023-10-16)
 -----------------
 
