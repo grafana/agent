@@ -82,8 +82,8 @@ the host crashes, or the host is forcibly shut down. When you restart Grafana Ag
 to repair the WAL by removing corrupt segments. Sometimes, this repair is unsuccessful, and
 you must manually delete the corrupted WAL to continue.
 
-When the WAL becomes corrupted, you will see error messages such as `err="failed to find segment for index"`
-in the Grafana Agent log file.
+When the WAL becomes corrupted, Grafana Agent writes error messages such as
+`err="failed to find segment for index"` to the log file.
 
 {{% admonition type="caution" %}}
 Deleting a WAL segment or a WAL file permanently deletes the stored WAL data.
