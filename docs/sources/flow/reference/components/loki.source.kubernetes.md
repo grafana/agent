@@ -141,7 +141,7 @@ Name | Type | Description | Default | Required
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
+`enabled` | `bool` | Distribute log collection with other cluster nodes. | | yes
 
 When the agent is [using clustering][], and `enabled` is set to true, then this
 `loki.source.kubernetes` component instance opts-in to participating in the

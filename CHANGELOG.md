@@ -82,6 +82,8 @@ Main (unreleased)
 
 - Support clustering in `loki.source.kubernetes` (@slim-bean).
 
+- Support clustering in `loki.source.podlogs` (@rfratto).
+
 v0.37.3 (2023-10-26)
 -----------------
 
