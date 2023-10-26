@@ -135,7 +135,7 @@ func TestQueueClient(t *testing.T) {
 			logger := log.NewLogfmtLogger(os.Stdout)
 
 			m := NewMetrics(reg)
-			qc, err := NewQueue(m, cfg, 0, 0, false, logger)
+			qc, err := NewQueue(m, cfg, 0, 0, false, logger, nilMarkerHandler{})
 			require.NoError(t, err)
 
 			//labels := model.LabelSet{"app": "test"}
@@ -265,7 +265,7 @@ func runQueueClientBenchCase(b *testing.B, bc testCase) {
 	logger := log.NewLogfmtLogger(os.Stdout)
 
 	m := NewMetrics(reg)
-	qc, err := NewQueue(m, cfg, 0, 0, false, logger)
+	qc, err := NewQueue(m, cfg, 0, 0, false, logger, nilMarkerHandler{})
 	require.NoError(b, err)
 
 	//labels := model.LabelSet{"app": "test"}

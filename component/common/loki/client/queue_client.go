@@ -272,7 +272,7 @@ func (c *queueClient) StoreSeries(series []record.RefSeries, segment int) {
 	}
 }
 
-func (c *queueClient) AppendEntries(entries wal.RefEntries, _ int) error {
+func (c *queueClient) AppendEntries(entries wal.RefEntries, segment int) error {
 	c.seriesLock.RLock()
 	l, ok := c.series[entries.Ref]
 	c.seriesLock.RUnlock()
