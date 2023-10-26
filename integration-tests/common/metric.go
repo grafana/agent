@@ -15,6 +15,7 @@ type MetricData struct {
 	Result     []MetricResult `json:"result"`
 }
 
+// TODO: check for the type
 type MetricResult struct {
 	Metric Metric `json:"metric"`
 	Value  Value  `json:"value"`
