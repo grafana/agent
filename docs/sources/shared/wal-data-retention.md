@@ -95,9 +95,17 @@ To delete the corrupted WAL:
 1. Delete the WAL from disk. By default, the WAL is located in the `data-agent` directory in
    the working directory for Grafana Agent.
    The data directory may be different than the default depending on the [wal_directory][] setting
-   in your Static configuration file or the path specified by the Flow [run][command line flag] `--storage-path`.
-1. [Stop][Start] Grafana Agent and verify that the WAL is working correctly.
+   in your Static configuration file or the path specified by the Flow [command line flag][run] `--storage-path`.
+1. [Start][Stop] Grafana Agent and verify that the WAL is working correctly.
 
+
+[WAL block]: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write#wal-block
+[metrics config]: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config
+[Stop]: /docs/agent/<AGENT_VERSION>/flow/setup/start-agent
+[wal_directory]: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config
+[run]: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run
+
+<!--
 {{% docs/reference %}}
 [WAL block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md#wal-block"
 [WAL block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write.md#wal-block"
@@ -110,3 +118,4 @@ To delete the corrupted WAL:
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
 [run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
 {{% /docs/reference %}}
+-->
