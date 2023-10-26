@@ -77,7 +77,7 @@ before being pushed to the remote_write endpoint.
 ### WAL corruption
 
 WAL corruption can occur when Grafana Agent unexpectedly stops while the latest WAL segments
-are still being written to disk. For example, a WAL corruption can happen if a disk fails,
+are still being written to disk. For example, a WAL corruption can happen if a host disk fails,
 the host crashes, or the host is forcibly shut down. When you restart Grafana Agent, it tries
 to repair the WAL by removing corrupt segments. Sometimes, this repair is unsuccessful, and
 you must manually delete the corrupted WAL to continue.
@@ -96,7 +96,7 @@ To delete the corrupted WAL:
    the working directory for Grafana Agent.
    The data directory may be different than the default depending on the [wal_directory][] setting
    in your Static configuration file or the path specified by the Flow [run][command line flag] `--storage-path`.
-1. [Stop][Start] Grafana Agent.
+1. [Stop][Start] Grafana Agent and verify that the WAL is working correctly.
 
 {{% docs/reference %}}
 [WAL block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md#wal-block"
