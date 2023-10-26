@@ -33,11 +33,19 @@ func (c *Config) Clone() flagext.Registerer {
 }
 
 // Convert implements a Promtail config converter.
-func Convert(in []byte) ([]byte, diag.Diagnostics) {
+//
+// extraArgs are supported to mirror the other converter params due to shared
+// testing code but they should be passed empty to this converter.
+func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var (
 		diags diag.Diagnostics
 		cfg   Config
 	)
+
+	if len(extraArgs) > 0 {
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("extra arguments are not supported for the promtail converter: %s", extraArgs))
+		return nil, diags
+	}
 
 	// Set default values first.
 	flagSet := flag.NewFlagSet("", flag.PanicOnError)

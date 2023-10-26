@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendRedisExporter(config *redis_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendRedisExporter(config *redis_exporter.Config) discovery.Exports {
 	args := toRedisExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendDnsmasqExporter(config *dnsmasq_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendDnsmasqExporter(config *dnsmasq_exporter.Config) discovery.Exports {
 	args := toDnsmasqExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

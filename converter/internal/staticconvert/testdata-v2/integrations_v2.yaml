@@ -1,0 +1,8 @@
+metrics:
+  global:
+    remote_write:
+      - url: http://localhost:9009/api/prom/push
+
+integrations:
+  agent:
+    instance: "agent"

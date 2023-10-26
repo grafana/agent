@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendSnowflakeExporter(config *snowflake_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendSnowflakeExporter(config *snowflake_exporter.Config) discovery.Exports {
 	args := toSnowflakeExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
