@@ -188,7 +188,7 @@ func BenchmarkClientImplementations(b *testing.B) {
 			batchSize: int(1 * units.MiB),
 			batchWait: time.Second,
 			queueConfig: QueueConfig{
-				Capacity:     int(100 * units.MiB), // buffer size 100
+				Capacity:     int(10 * units.MiB), // buffer size 100
 				DrainTimeout: 5 * time.Second,
 			},
 		},

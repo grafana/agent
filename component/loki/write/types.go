@@ -81,7 +81,7 @@ type QueueConfig struct {
 // SetToDefault implements river.Defaulter.
 func (q *QueueConfig) SetToDefault() {
 	*q = QueueConfig{
-		Capacity:     100 * units.MiB, // considering the default BatchSize of 1MiB, this gives us a default buffered channel of size 100
+		Capacity:     10 * units.MiB, // considering the default BatchSize of 1MiB, this gives us a default buffered channel of size 10
 		DrainTimeout: time.Minute,
 	}
 }
