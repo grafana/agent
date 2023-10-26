@@ -80,6 +80,8 @@ Main (unreleased)
 - Improve detection of rolled log files in `loki.source.kubernetes` and
   `loki.source.podlogs` (@slim-bean).
 
+- Support clustering in `loki.source.kubernetes` (@slim-bean).
+
 v0.37.3 (2023-10-26)
 -----------------
 
