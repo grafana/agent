@@ -28,11 +28,11 @@ Other release notes for the different Grafana Agent variants are contained on se
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{% /admonition %}}
 
-## Breaking change: Windows Event Log bookmark format and named changed
+## Breaking change: Windows Event Log bookmark location and named changed
 
 Previously Windows Event Logs were stored by default in bookmark.xml file. The newest release changes that to a more resilient
-storage named bookmark.db. When running for the first time if using the defaults the old bookmark.xml will be transitioned to
-bookmark.db. If using a custom path or fails to transition then duplicate events may be sent.
+mechanism where bookmarks are immutable and stored within the Flow data directory. The system will transition the old bookmark
+to the new location and then delete the old bookmark file.
 
 ## v0.38
 

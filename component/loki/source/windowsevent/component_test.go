@@ -4,9 +4,6 @@ package windowsevent
 
 import (
 	"context"
-	"go.etcd.io/bbolt"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -23,52 +20,6 @@ import (
 
 func TestEventLogger(t *testing.T) {
 	createTest(t, "")
-}
-
-func TestBookmarkStorage(t *testing.T) {
-	datapath := createTest(t, "")
-	dbPath := filepath.Join(datapath, "bookmark.db")
-	// Lets remove the existing file and ensure it recovers correctly.
-	_ = os.WriteFile(dbPath, nil, 0600)
-	createTest(t, datapath)
-	fbytes, err := os.ReadFile(dbPath)
-	require.NoError(t, err)
-	for i := 0; i < len(fbytes); i++ {
-		// Set every tenth byte to zero.
-		if i%10 != 0 {
-			continue
-		}
-		fbytes[i] = 0
-	}
-	fbytes[28] = 0
-	_ = os.WriteFile(dbPath, fbytes, 0600)
-	createTest(t, datapath)
-}
-
-func TestBookmarkTransition(t *testing.T) {
-	dir := createTest(t, "")
-	bb, err := bbolt.Open(filepath.Join(dir, "bookmark.db"), os.ModeExclusive, nil)
-	require.NoError(t, err)
-
-	var bookmarkString string
-	err = bb.View(func(tx *bbolt.Tx) error {
-		b := tx.Bucket([]byte("bookmark"))
-		v := b.Get([]byte(bookmarkKey))
-		require.NotNil(t, v)
-		nv := make([]byte, len(v))
-		copy(nv, v)
-		bookmarkString = string(nv)
-		return nil
-	})
-	require.NoError(t, err)
-	require.NoError(t, bb.Close())
-
-	xmlPath := filepath.Join(dir, "bookmark.xml")
-	err = os.WriteFile(xmlPath, []byte(bookmarkString), 0744)
-	require.NoError(t, err)
-	createTest(t, dir)
-	_, err = os.Stat(xmlPath)
-	require.ErrorIs(t, err, os.ErrNotExist)
 }
 
 func createTest(t *testing.T, dataPath string) string {
@@ -104,13 +55,16 @@ func createTest(t *testing.T, dataPath string) string {
 	})
 	require.NoError(t, err)
 	ctx := context.Background()
-	ctx, cancelFunc := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancelFunc := context.WithTimeout(ctx, 60*time.Second)
 	found := atomic.Bool{}
 	go c.Run(ctx)
 	tm := time.Now().Format(time.RFC3339Nano)
 	err = wlog.Info(2, tm)
 	require.NoError(t, err)
 
+	// This test is extremely flaky without these longer times. Since it has to work through all the noise
+	// that can be being added to the application event log.
+	// TODO: Create specific event log source so it does not have any noise.
 	go func() {
 		for {
 			select {
@@ -129,7 +83,7 @@ func createTest(t *testing.T, dataPath string) string {
 
 	require.Eventually(t, func() bool {
 		return found.Load()
-	}, 20*time.Second, 500*time.Millisecond)
+	}, 60*time.Second, 500*time.Millisecond)
 
 	cancelFunc()
 

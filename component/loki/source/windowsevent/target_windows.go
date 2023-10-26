@@ -52,6 +52,7 @@ func NewTarget(
 	handler api.EntryHandler,
 	relabel []*relabel.Config,
 	cfg *scrapeconfig.WindowsEventsTargetConfig,
+	datadir string,
 ) (*Target, error) {
 	sigEvent, err := windows.CreateEvent(nil, 0, 0, nil)
 	if err != nil {
@@ -59,7 +60,7 @@ func NewTarget(
 	}
 	defer windows.CloseHandle(sigEvent)
 
-	pdb, err := newBookmarkDB(cfg.BookmarkPath)
+	pdb, err := newBookmarkDB(datadir, cfg.BookmarkPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create bookmark using path=%s: %w", cfg.BookmarkPath, err)
 	}
@@ -231,9 +232,6 @@ func (t *Target) Stop() error {
 	close(t.done)
 	t.wg.Wait()
 	t.handler.Stop()
-	if err := t.pdb.close(); err != nil {
-		return err
-	}
 	t.closed.Store(true)
 	return t.err
 }

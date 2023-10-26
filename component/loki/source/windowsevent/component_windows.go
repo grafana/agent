@@ -106,12 +106,8 @@ func (c *Component) Update(args component.Arguments) error {
 	if newArgs.BookmarkPath == "" {
 		newArgs.BookmarkPath = filepath.Join(c.opts.DataPath, "bookmark.db")
 	}
-	// If there is an existing item then the current one needs to be closed.
-	if c.target != nil && c.target.pdb != nil {
-		_ = c.target.pdb.close()
-	}
 
-	winTarget, err := NewTarget(c.opts.Logger, c.handle, nil, convertConfig(newArgs))
+	winTarget, err := NewTarget(c.opts.Logger, c.handle, nil, convertConfig(newArgs), c.opts.DataPath)
 	if err != nil {
 		return err
 	}
