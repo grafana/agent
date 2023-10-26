@@ -63,6 +63,8 @@ type Options struct {
 	// IncludeScopeLabels includes the otel_scope_name and otel_scope_version
 	// labels from the scope in the metrics.
 	IncludeScopeLabels bool
+	// AddMetricSuffixes controls whether suffixes are added to metric names. Defaults to true.
+	AddMetricSuffixes bool
 }
 
 var _ consumer.Metrics = (*Converter)(nil)
@@ -286,8 +288,7 @@ func (conv *Converter) consumeMetric(app storage.Appender, memResource *memorySe
 }
 
 func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	// TODO: should we make the param addMetricSuffixes configurable? For now we set the default value (true) to keep the same behavior as before
-	metricName := prometheus.BuildCompliantName(m, "", true)
+	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
 		Type: textparse.MetricTypeGauge,
@@ -389,7 +390,7 @@ func getNumberDataPointValue(dp pmetric.NumberDataPoint) float64 {
 }
 
 func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildCompliantName(m, "", true)
+	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	// Excerpt from the spec:
 	//
@@ -447,7 +448,7 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 }
 
 func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildCompliantName(m, "", true)
+	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	if m.Histogram().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
 		// Drop non-cumulative histograms for now, which is permitted by the spec.
@@ -606,7 +607,7 @@ func (conv *Converter) convertExemplar(otelExemplar pmetric.Exemplar, ts time.Ti
 }
 
 func (conv *Converter) consumeSummary(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildCompliantName(m, "", true)
+	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
 		Type: textparse.MetricTypeSummary,

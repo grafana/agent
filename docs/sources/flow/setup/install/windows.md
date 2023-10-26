@@ -31,8 +31,6 @@ To do a standard graphical install of Grafana Agent on Windows, perform the foll
 
 Grafana Agent is installed into the default directory `C:\Program Files\Grafana Agent Flow`.
 
-[latest]: https://github.com/grafana/agent/releases/latest
-
 ## Silent install
 
 To do a silent install of Grafana Agent on Windows, perform the following steps.
@@ -53,15 +51,22 @@ To do a silent install of Grafana Agent on Windows, perform the following steps.
 
    Replace `PATH_TO_INSTALLER` with the path where the unzipped installer executable is located.
 
-[latest]: https://github.com/grafana/agent/releases/latest
-
 ## Uninstall
 
-You can uninstall Grafana Agent with Windows Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`. Uninstalling Grafana Agent will stop the service and remove it from disk. This includes any configuration files in the installation directory. 
+You can uninstall Grafana Agent with Windows Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`. Uninstalling Grafana Agent stops the service and removes it from disk. This includes any configuration files in the installation directory.
 
 Grafana Agent can also be silently uninstalled by running `uninstall.exe /S` as Administrator.
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent#windows" >}})
-- [Configure Grafana Agent]({{< relref "../configure/configure-windows" >}})
+- [Start Grafana Agent][]
+- [Configure Grafana Agent][]
+
+[latest]: https://github.com/grafana/agent/releases/latest
+
+{{% docs/reference %}}
+[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#windows"
+[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md#windows"
+[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-windows.md"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-windows.md"
+{{% /docs/reference %}}
