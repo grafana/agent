@@ -10,6 +10,13 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.27.1 (2023-10-26)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.37.3. (@tpaschalis)
+
 ### Bugfixes
 
 - Fix issue where CRDs were created with annotations after the `crds.create`
