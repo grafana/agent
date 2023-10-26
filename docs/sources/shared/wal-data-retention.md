@@ -103,18 +103,3 @@ To delete the corrupted WAL:
 [Stop]: /docs/agent/<AGENT_VERSION>/flow/setup/start-agent
 [wal_directory]: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config
 [run]: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run
-
-<!--
-{{% docs/reference %}}
-[WAL block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md#wal-block"
-[WAL block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write.md#wal-block"
-[metrics config]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config.md"
-[metrics config]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/metrics-config.md"
-[Stop]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Stop]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md"
-[wal_directory]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config.md"
-[wal_directory]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/metrics-config.md"
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
-{{% /docs/reference %}}
--->
