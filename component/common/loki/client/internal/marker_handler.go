@@ -2,26 +2,36 @@ package internal
 
 import (
 	"github.com/grafana/agent/component/common/loki/wal"
+	"sync"
 )
 
 type MarkerHandler interface {
 	wal.Marker
 
-	UpdateReceivedData(segmentId, dataCount int) // Data queued for sending
-	UpdateSentData(segmentId, dataCount int)     // Data which was sent or given up on sending
+	// UpdateReceivedData sends an update event to the handler, that informs that some dataUpdate, coming from a particular WAL
+	// segment, has been read out of the WAL and enqueued for sending.
+	UpdateReceivedData(segmentId, dataCount int)
 
+	// UpdateSentData sends an update event to the handler, informing that some dataUpdate, coming from a particular WAL
+	// segment, has been delivered, or the sender has given up on it.
+	UpdateSentData(segmentId, dataCount int) // Data which was sent or given up on sending
+
+	// Stop stops the handler, and it's async processing of receive/send dataUpdate updates.
 	Stop()
 }
 
+// markerHandler implements MarkerHandler, processing data update events in an asynchronous manner, and tracking the last
+// consumed segment in a file.
 type markerHandler struct {
 	markerFileHandler MarkerFileHandler
 	lastMarkedSegment int
-	dataIOUpdate      chan data
+	dataIOUpdate      chan dataUpdate
 	quit              chan struct{}
+	wg                sync.WaitGroup
 }
 
-// TODO: Rename this struct
-type data struct {
+// dataUpdate is an update event that some amount of data has been read out of the WAL and enqueued, delivered or dropped.
+type dataUpdate struct {
 	segmentId int
 	dataCount int
 }
@@ -30,12 +40,13 @@ var (
 	_ MarkerHandler = (*markerHandler)(nil)
 )
 
+// NewMarkerHandler creates a new markerHandler.
 func NewMarkerHandler(mfh MarkerFileHandler) MarkerHandler {
 	mh := &markerHandler{
 		lastMarkedSegment: -1, // Segment ID last marked on disk.
 		markerFileHandler: mfh,
 		//TODO: What is a good size for the channel?
-		dataIOUpdate: make(chan data, 100),
+		dataIOUpdate: make(chan dataUpdate, 100),
 		quit:         make(chan struct{}),
 	}
 
@@ -44,8 +55,8 @@ func NewMarkerHandler(mfh MarkerFileHandler) MarkerHandler {
 		mh.lastMarkedSegment = lastSegment
 	}
 
-	//TODO: Should this be in a separate Start() function?
-	go mh.updatePendingData()
+	mh.wg.Add(1)
+	go mh.runUpdatePendingData()
 
 	return mh
 }
@@ -55,27 +66,25 @@ func (mh *markerHandler) LastMarkedSegment() int {
 }
 
 func (mh *markerHandler) UpdateReceivedData(segmentId, dataCount int) {
-	mh.dataIOUpdate <- data{
+	mh.dataIOUpdate <- dataUpdate{
 		segmentId: segmentId,
 		dataCount: dataCount,
 	}
 }
 
 func (mh *markerHandler) UpdateSentData(segmentId, dataCount int) {
-	mh.dataIOUpdate <- data{
+	mh.dataIOUpdate <- dataUpdate{
 		segmentId: segmentId,
 		dataCount: -1 * dataCount,
 	}
 }
 
-func (mh *markerHandler) Stop() {
-	// Firstly stop the Marker Handler, because it might want to use the Marker File Handler.
-	mh.quit <- struct{}{}
-}
+// runUpdatePendingData is assumed to run in a separate routine, asynchronously keeping track of how much data each WAL
+// segment the Watcher reads from, has left to send. When a segment reaches zero, it means that is has been consumed,
+// and the highest numbered one is marked as consumed.
+func (mh *markerHandler) runUpdatePendingData() {
+	defer mh.wg.Done()
 
-// updatePendingData updates a counter for how much data is yet to be sent from each segment.
-// "dataCount" will be added to the segment with ID "dataSegment".
-func (mh *markerHandler) updatePendingData() {
 	batchSegmentCount := make(map[int]int)
 
 	for {
@@ -118,4 +127,9 @@ func (mh *markerHandler) updatePendingData() {
 			mh.lastMarkedSegment = markableSegment
 		}
 	}
+}
+
+func (mh *markerHandler) Stop() {
+	mh.quit <- struct{}{}
+	mh.wg.Wait()
 }
