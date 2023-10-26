@@ -216,11 +216,7 @@ func journalTargetWithReader(
 		for {
 			err := t.r.Follow(until, io.Discard)
 			if err != nil {
-				if err == sdjournal.ErrExpired {
-					return
-				}
-
-				if err == syscall.EBADMSG || err == io.EOF || strings.HasPrefix(err.Error(), "failed to iterate journal:") {
+				if err == sdjournal.ErrExpired || err == syscall.EBADMSG || err == io.EOF || strings.HasPrefix(err.Error(), "failed to iterate journal:") {
 					level.Error(t.logger).Log("msg", "unable to follow journal", "err", err.Error())
 					return
 				}
