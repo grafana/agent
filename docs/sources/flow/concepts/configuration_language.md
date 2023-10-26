@@ -39,7 +39,7 @@ River was designed with the following requirements in mind:
 * _Simple_: The configuration language must be easy to read and write to
   minimize the learning curve.
 * _Debuggable_: The configuration language must give detailed information when
-  there's a mistake in the config file.
+  there's a mistake in the configuration file.
 
 ## Attributes
 
@@ -100,4 +100,7 @@ This file has two blocks:
 River is documented in detail in [Configuration language][config-docs] section
 of the Grafana Agent Flow docs.
 
-[config-docs]: {{< relref "../config-language" >}}
+{{% docs/reference %}}
+[config-docs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language"
+[config-docs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language"
+{{% /docs/reference %}}
