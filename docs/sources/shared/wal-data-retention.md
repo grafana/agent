@@ -98,7 +98,6 @@ To delete the corrupted WAL:
    in your Static configuration file or the path specified by the Flow [command line flag][run] `--storage-path`.
 1. [Start][Stop] Grafana Agent and verify that the WAL is working correctly.
 
-
 [WAL block]: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write#wal-block
 [metrics config]: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config
 [Stop]: /docs/agent/<AGENT_VERSION>/flow/setup/start-agent
