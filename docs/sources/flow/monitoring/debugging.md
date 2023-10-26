@@ -34,16 +34,12 @@ server, which defaults to listening at `http://localhost:12345`.
 > documentation for [the `grafana-agent run` command][grafana-agent run] to
 > learn how to change the HTTP listen address, and pass the appropriate flag
 > when running Grafana Agent Flow.
->
-> [install]: {{< relref "../setup/install" >}}
-
-[grafana-agent run]: {{< relref "../reference/cli/run" >}}
 
 ### Home page
 
 ![](../../../assets/ui_home_page.png)
 
-The home page shows a table of components defined in the config file along with
+The home page shows a table of components defined in the configuration file along with
 their health.
 
 Click **View** on a row in the table to navigate to the [Component detail page](#component-detail-page)
@@ -55,7 +51,7 @@ Click the Grafana Agent logo to navigate back to the home page.
 
 ![](../../../assets/ui_graph_page.png)
 
-The **Graph** page shows a graph view of components defined in the config file
+The **Graph** page shows a graph view of components defined in the configuration file
 along with their health. Clicking a component in the graph navigates to the
 [Component detail page](#component-detail-page) for that component.
 
@@ -72,8 +68,6 @@ The component detail page shows the following information for each component:
 
 > Values marked as a [secret][] are obfuscated and will display as the text
 > `(secret)`.
-
-[secret]: {{< relref "../config-language/expressions/types_and_values.md#secrets" >}}
 
 ### Clustering page
 
@@ -126,10 +120,21 @@ changes have been applied.
   nodes with conflicting names are rejected and will not join the cluster. Look
 at the clustering UI page for the list of current peers with their names, and
 check the logs for any reported name conflict events.
-- **Node stuck in terminating state**: The node attempted to gracefully shut 
+- **Node stuck in terminating state**: The node attempted to gracefully shut
 down and set its state to Terminating, but it has not completely gone away. Check
 the clustering page to view the state of the peers and verify that the
 terminating Agent has been shut down.
 
-[logging]: {{< relref "../reference/config-blocks/logging" >}}
-[clustering]: {{< relref "../concepts/clustering" >}}
+{{% docs/reference %}}
+[logging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/logging.md"
+[logging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/logging.md"
+[clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
+[clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/clustering.md"
+[install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install"
+[install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install"
+[secret]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values.md#secrets.md"
+[secret]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/types_and_values.md#secrets.md"
+[grafana-agent run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
+[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+{{% /docs/reference %}}
+
