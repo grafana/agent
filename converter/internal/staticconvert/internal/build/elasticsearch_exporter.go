@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendElasticsearchExporter(config *elasticsearch_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendElasticsearchExporter(config *elasticsearch_exporter.Config) discovery.Exports {
 	args := toElasticsearchExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

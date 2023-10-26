@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendStatsdExporter(config *statsd_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendStatsdExporter(config *statsd_exporter.Config) discovery.Exports {
 	args := toStatsdExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

@@ -40,15 +40,15 @@ import (
 	prom_config "github.com/prometheus/prometheus/config"
 )
 
-type IntegrationsV1ConfigBuilder struct {
+type IntegrationsConfigBuilder struct {
 	f         *builder.File
 	diags     *diag.Diagnostics
 	cfg       *config.Config
 	globalCtx *GlobalContext
 }
 
-func NewIntegrationsV1ConfigBuilder(f *builder.File, diags *diag.Diagnostics, cfg *config.Config, globalCtx *GlobalContext) *IntegrationsV1ConfigBuilder {
-	return &IntegrationsV1ConfigBuilder{
+func NewIntegrationsConfigBuilder(f *builder.File, diags *diag.Diagnostics, cfg *config.Config, globalCtx *GlobalContext) *IntegrationsConfigBuilder {
+	return &IntegrationsConfigBuilder{
 		f:         f,
 		diags:     diags,
 		cfg:       cfg,
@@ -56,13 +56,24 @@ func NewIntegrationsV1ConfigBuilder(f *builder.File, diags *diag.Diagnostics, cf
 	}
 }
 
-func (b *IntegrationsV1ConfigBuilder) Build() {
+func (b *IntegrationsConfigBuilder) Build() {
 	b.appendLogging(b.cfg.Server)
 	b.appendServer(b.cfg.Server)
 	b.appendIntegrations()
 }
 
-func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
+func (b *IntegrationsConfigBuilder) appendIntegrations() {
+	switch b.cfg.Integrations.Version {
+	case config.IntegrationsVersion1:
+		b.appendV1Integrations()
+	case config.IntegrationsVersion2:
+		b.appendV2Integrations()
+	default:
+		panic(fmt.Sprintf("unknown integrations version %d", b.cfg.Integrations.Version))
+	}
+}
+
+func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 	for _, integration := range b.cfg.Integrations.ConfigV1.Integrations {
 		if !integration.Common.Enabled {
 			continue
@@ -140,7 +151,11 @@ func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
 	}
 }
 
-func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
+func (b *IntegrationsConfigBuilder) appendV2Integrations() {
+
+}
+
+func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
 	scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs

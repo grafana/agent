@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendAzureExporter(config *azure_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendAzureExporter(config *azure_exporter.Config) discovery.Exports {
 	args := toAzureExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

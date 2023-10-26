@@ -759,8 +759,12 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, _ labels.Labels, e exem
 	// Check for duplicate vs last stored exemplar for this series, and discard those.
 	// Otherwise, record the current exemplar as the latest.
 	// Prometheus' TSDB returns 0 when encountering duplicates, so we do the same here.
+	// TODO(@tpaschalis) The case of OOO exemplars is currently unique to
+	// Native Histograms. Prometheus is tracking a (possibly different) fix to
+	// this, we should revisit once they've settled on a solution.
+	// https://github.com/prometheus/prometheus/issues/12971
 	prevExemplar := a.w.series.GetLatestExemplar(s.ref)
-	if prevExemplar != nil && prevExemplar.Equals(e) {
+	if prevExemplar != nil && (prevExemplar.Equals(e) || prevExemplar.Ts > e.Ts) {
 		// Duplicate, don't return an error but don't accept the exemplar.
 		return 0, nil
 	}

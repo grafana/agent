@@ -112,7 +112,7 @@ func convert(r io.Reader, fc *flowConvert) error {
 		return err
 	}
 
-	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat))
+	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat), []string{})
 	err = generateConvertReport(diags, fc)
 	if err != nil {
 		return err
