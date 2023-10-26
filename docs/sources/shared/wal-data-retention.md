@@ -76,12 +76,13 @@ before being pushed to the remote_write endpoint.
 
 ### WAL corruption
 
-WAL corruption can occur when Grafana Agent unexpectedly stops because the host crashes or is
-forcibly shut down while the latest segments are still being flushed to disk. When you restart
-Grafana Agent, it tries to repair the WAL by removing corrupt segments. Sometimes, this repair
-is unsuccessful, and you must manually delete the corrupted WAL to continue.
+WAL corruption can occur when Grafana Agent unexpectedly stops while the latest WAL segments
+are still being written to disk. For example, a disk fails, the host crashes, or the host is
+forcibly shut down. When you restart Grafana Agent, it tries to repair the WAL by removing
+corrupt segments. Sometimes, this repair is unsuccessful, and you must manually delete the
+corrupted WAL to continue.
 
-When you have a corrupted WAL, you can see error messages such as `err="failed to find segment for index"`
+When the WAL becomes corrupted, you will see error messages such as `err="failed to find segment for index"`
 in the Grafana Agent log file.
 
 {{% admonition type="caution" %}}
