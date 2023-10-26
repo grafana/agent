@@ -12,6 +12,11 @@ import (
 	"github.com/prometheus/prometheus/tsdb/fileutil"
 )
 
+const (
+	MarkerFolderName = "remote"
+	MarkerFileName   = "segment"
+)
+
 type MarkerFileHandler interface {
 	wal.Marker
 	MarkSegment(segment int)
@@ -28,7 +33,7 @@ var (
 )
 
 func NewMarkerFileHandler(logger log.Logger, walDir string) (MarkerFileHandler, error) {
-	markerDir := filepath.Join(walDir, "remote")
+	markerDir := filepath.Join(walDir, MarkerFolderName)
 	// attempt to create dir if doesn't exist
 	if err := os.MkdirAll(markerDir, 0o777); err != nil {
 		return nil, fmt.Errorf("error creating segment marker folder %q: %w", markerDir, err)
@@ -36,7 +41,7 @@ func NewMarkerFileHandler(logger log.Logger, walDir string) (MarkerFileHandler, 
 
 	mfh := &markerFileHandler{
 		logger:                    logger,
-		lastMarkedSegmentFilePath: filepath.Join(markerDir, "segment"),
+		lastMarkedSegmentFilePath: filepath.Join(markerDir, MarkerFileName),
 	}
 
 	return mfh, nil
