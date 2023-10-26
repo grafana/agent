@@ -27,7 +27,7 @@ for remote writing. If that data has not yet been pushed to the remote
 endpoint, it is lost.
 
 This behavior dictates the data retention for the `prometheus.remote_write`
-component. It also means that it is impossible to directly correlate data
+component. It also means that it's impossible to directly correlate data
 retention directly to the data age itself, as the truncation logic works on
 _segments_, not the samples themselves. This makes data retention less
 predictable when the component receives a non-consistent rate of data.
@@ -48,7 +48,7 @@ removed. The `max_keepalive_time` or `max_wal_time` controls the maximum age of
 samples that can be kept in the WAL. Samples older than
 `max_keepalive_time` are forcibly removed.
 
-### In cases of `remote_write` outages
+### Extended `remote_write` outages
 When the remote write endpoint is unreachable over a period of time, the most
 recent successfully sent timestamp is not updated. The
 `min_keepalive_time` and `max_keepalive_time` arguments control the age range
@@ -57,7 +57,7 @@ of data kept in the WAL.
 If the remote write outage is longer than the `max_keepalive_time` parameter,
 then the WAL is truncated, and the oldest data is lost.
 
-### In cases of intermittent `remote_write` outages
+### Intermittent `remote_write` outages
 If the remote write endpoint is intermittently reachable, the most recent
 successfully sent timestamp is updated whenever the connection is successful.
 A successful connection updates the series' comparison with
@@ -65,7 +65,7 @@ A successful connection updates the series' comparison with
 interval which checkpoints two thirds of the segments (rounded down to the
 nearest integer) written since the previous truncation.
 
-### In cases of falling behind
+### Falling behind
 If the queue shards cannot flush data quickly enough to keep
 up-to-date with the most recent data buffered in the WAL, we say that the
 component is 'falling behind'.
@@ -74,5 +74,38 @@ If the component falls behind more than one third of the data written since the
 last truncate interval, it is possible for the truncate loop to checkpoint data
 before being pushed to the remote_write endpoint.
 
-[WAL block]: {{< relref "../flow/reference/components/prometheus.remote_write.md/#wal-block" >}}
-[metrics config]: {{< relref "../static/configuration/metrics-config.md" >}}
+### WAL corruption
+
+WAL corruption can occur when Grafana Agent unexpectedly stops because the host crashes or is
+forcibly shut down while the latest segments are still being flushed to disk. When you restart
+Grafana Agent, it tries to repair the WAL by removing corrupt segments. Sometimes, this repair
+is unsuccessful, and you must manually delete the corrupted WAL to continue.
+
+When you have a corrupted WAL, you can see error messages such as `err="failed to find segment for index"`
+in the Grafana Agent log file.
+
+{{% admonition type="caution" %}}
+Deleting a WAL segment or a WAL file permanently deletes the stored WAL data.
+{{% /admonition %}}
+
+To delete the corrupted WAL:
+
+1. [Stop][] Grafana Agent.
+1. Delete the WAL from disk. By default, the WAL is located in the `data-agent` directory in
+   the working directory for Grafana Agent.
+   The data directory may be different than the default depending on the [wal_directory][] setting
+   in your Static configuration file or the path specified by the Flow [run][command line flag] `--storage-path`.
+1. [Stop][Start] Grafana Agent.
+
+{{% docs/reference %}}
+[WAL block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md#wal-block"
+[WAL block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write.md#wal-block"
+[metrics config]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config.md"
+[metrics config]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/metrics-config.md"
+[Stop]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
+[Stop]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md"
+[wal_directory]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config.md"
+[wal_directory]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/metrics-config.md"
+[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+{{% /docs/reference %}}
