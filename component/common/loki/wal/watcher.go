@@ -69,7 +69,7 @@ type WriteTo interface {
 // Implementers can use this interface to save and restore save points.
 type Marker interface {
 	// LastMarkedSegment should return the last segment stored in the marker.
-	// Must return nil if there is no mark.
+	// Must return -1 if there is no mark.
 	//
 	// The Watcher will start reading the first segment whose value is greater
 	// than the return value.
@@ -169,7 +169,7 @@ func (w *Watcher) run() error {
 
 		// On start, we have a pointer to what is the latest segment. On subsequent calls to this function,
 		// currentSegment will have been incremented, and we should open that segment.
-		if err := w.watch(currentSegment, currentSegment >= lastSegment); err != nil && !errors.Is(err, ErrIgnorable) {
+		if err := w.watch(currentSegment, currentSegment >= lastSegment); err != nil {
 			return err
 		}
 
@@ -201,9 +201,11 @@ func (w *Watcher) findSegmentForIndex(index int) (int, error) {
 	return -1, errors.New("failed to find segment for index")
 }
 
-// watch will start reading from the segment identified by segmentNum. If an EOF is reached, it will keep
-// reading for more WAL records with a wlog.LiveReader. Periodically, it will check if there's a new segment, and if positive
-// read the remaining from the current one and return.
+// watch will start reading from the segment identified by segmentNum.
+// If an EOF is reached and tail is true, it will keep reading for more WAL records with a wlog.LiveReader. Periodically,
+// it will check if there's a new segment, and if positive read the remaining from the current one and return.
+// If tail is false, we know the segment we are "watching" over is closed (no further write will occur to it). Then, the
+// segment is read fully, any errors are logged as Warnings, and no error is returned.
 func (w *Watcher) watch(segmentNum int, tail bool) error {
 	segment, err := wlog.OpenReadSegment(wlog.SegmentName(w.walDir, segmentNum))
 	if err != nil {
@@ -278,15 +280,17 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 			level.Warn(w.logger).Log("msg", "Error reading segment inside read ticker or notification", "segment", segmentNum, "read", reader.Offset(), "err", err)
 		}
 
-		// Ignore all errors reading to end of segment whilst replaying the WAL. If error, log a warning accordingly. If not,
-		// return with an ignorable error.
+		// Ignore all errors reading to end of segment whilst replaying the WAL. This is because when replaying not the
+		// last segment, we assume that segment is not written anymore (closed), and the call to readSegment will read
+		// to the end of it. If error, log a warning accordingly. After, error or no error, nil is returned so that the
+		// caller can continue to the following segment.
 		if !tail {
 			if err != nil && errors.Unwrap(err) != io.EOF {
 				level.Warn(w.logger).Log("msg", "Ignoring error reading to end of segment, may have dropped data", "segment", segmentNum, "err", err)
 			} else if reader.Offset() != size {
 				level.Warn(w.logger).Log("msg", "Expected to have read whole segment, may have dropped data", "segment", segmentNum, "read", reader.Offset(), "size", size)
 			}
-			return ErrIgnorable
+			return nil
 		}
 
 		// io.EOF error are non-fatal since we are tailing the wal
