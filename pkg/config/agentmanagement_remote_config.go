@@ -55,7 +55,7 @@ func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
 	}
 
 	// For now Agent Management only supports integrations v1
-	if err := c.Integrations.setVersion(integrationsVersion1); err != nil {
+	if err := c.Integrations.setVersion(IntegrationsVersion1); err != nil {
 		return nil, err
 	}
 
