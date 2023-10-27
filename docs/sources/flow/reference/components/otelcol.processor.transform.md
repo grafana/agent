@@ -282,7 +282,7 @@ otelcol.processor.transform "default" {
     context = "span"
     statements = [
       // Accessing a map with a key that does not exist will return nil. 
-      "set(attributes[\"test\"], \"pass\") where attributes[\"test\"] == nil",
+      `set(attributes["test"], "pass") where attributes["test"] == nil`,
     ]
   }
 
@@ -294,7 +294,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Each `"` is [escaped][river-strings] with `\"` inside the River string.
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"` inside a [normal][river-strings] River string.
 
 ### Rename a resource attribute
 
@@ -308,8 +310,8 @@ otelcol.processor.transform "default" {
   trace_statements {
     context = "resource"
     statements = [
-      "set(attributes[\"namespace\"], attributes[\"k8s.namespace.name\"])",
-      "delete_key(attributes, \"k8s.namespace.name\")",
+      `set(attributes["namespace"], attributes["k8s.namespace.name"])`,
+      `delete_key(attributes, "k8s.namespace.name")`,
     ]
   }
 
@@ -330,7 +332,7 @@ otelcol.processor.transform "default" {
   trace_statements {
     context = "resource"
     statements = [
-     "replace_all_patterns(attributes, \"key\", \"k8s\\\\.namespace\\\\.name\", \"namespace\")",
+     `replace_all_patterns(attributes, "key", "k8s\\.namespace\\.name", "namespace")`,
     ]
   }
 
@@ -342,9 +344,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Some values in the River string are [escaped][river-strings]:
-* `\` is escaped with `\\`
-* `"` is escaped with `\"`
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
 ### Create an attribute from the contents of a log body
 
@@ -357,7 +359,7 @@ otelcol.processor.transform "default" {
   log_statements {
     context = "log"
     statements = [
-      "set(attributes[\"body\"], body)",
+      `set(attributes["body"], body)`,
     ]
   }
 
@@ -369,7 +371,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Each `"` is [escaped][river-strings] with `\"` inside the River string.
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"` inside a [normal][river-strings] River string.
 
 ### Combine two attributes
 
@@ -383,7 +387,7 @@ otelcol.processor.transform "default" {
     context = "resource"
     statements = [
       // The Concat function combines any number of strings, separated by a delimiter.
-      "set(attributes[\"test\"], Concat([attributes[\"service.name\"], attributes[\"service.version\"]], \" \"))",
+      `set(attributes["test"], Concat([attributes["foo"], attributes["bar"]], " "))`,
     ]
   }
 
@@ -395,7 +399,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Each `"` is [escaped][river-strings] with `\"` inside the River string.
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"` inside a [normal][river-strings] River string.
 
 ### Parsing JSON logs
 
@@ -424,16 +430,16 @@ otelcol.processor.transform "default" {
     statements = [
       // Parse body as JSON and merge the resulting map with the cache map, ignoring non-json bodies.
       // cache is a field exposed by OTTL that is a temporary storage place for complex operations.
-      "merge_maps(cache, ParseJSON(body), \"upsert\") where IsMatch(body, \"^\\\\{\") ",
+      `merge_maps(cache, ParseJSON(body), "upsert") where IsMatch(body, "^\\{")`,
   
       // Set attributes using the values merged into cache.
       // If the attribute doesn't exist in cache then nothing happens.
-      "set(attributes[\"attr1\"], cache[\"attr1\"])",
-      "set(attributes[\"attr2\"], cache[\"attr2\"])",
+      `set(attributes["attr1"], cache["attr1"])`,
+      `set(attributes["attr2"], cache["attr2"])`,
   
       // To access nested maps you can chain index ([]) operations.
       // If nested or attr3 do no exist in cache then nothing happens.
-      "set(attributes[\"nested.attr3\"], cache[\"nested\"][\"attr3\"])",
+      `set(attributes["nested.attr3"], cache["nested"]["attr3"])`,
     ]
   }
 
@@ -445,9 +451,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Some values in the River strings are [escaped][river-strings]:
-* `\` is escaped with `\\`
-* `"` is escaped with `\"`
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
 ### Various transformations of attributes and status codes
 
@@ -472,63 +478,63 @@ otelcol.processor.transform "default" {
   trace_statements {
     context = "resource"
     statements = [
-      "keep_keys(attributes, [\"service.name\", \"service.namespace\", \"cloud.region\", \"process.command_line\"])",
-      "replace_pattern(attributes[\"process.command_line\"], \"password\\\\=[^\\\\s]*(\\\\s?)\", \"password=***\")",
-      "limit(attributes, 100, [])",
-      "truncate_all(attributes, 4096)",
+      `keep_keys(attributes, ["service.name", "service.namespace", "cloud.region", "process.command_line"])`,
+      `replace_pattern(attributes["process.command_line"], "password\\=[^\\s]*(\\s?)", "password=***")`,
+      `limit(attributes, 100, [])`,
+      `truncate_all(attributes, 4096)`,
     ]
   }
 
   trace_statements {
     context = "span"
     statements = [
-      "set(status.code, 1) where attributes[\"http.path\"] == \"/health\"",
-      "set(name, attributes[\"http.route\"])",
-      "replace_match(attributes[\"http.target\"], \"/user/*/list/*\", \"/user/{userId}/list/{listId}\")",
-      "limit(attributes, 100, [])",
-      "truncate_all(attributes, 4096)",
+      `set(status.code, 1) where attributes["http.path"] == "/health"`,
+      `set(name, attributes["http.route"])`,
+      `replace_match(attributes["http.target"], "/user/*/list/*", "/user/{userId}/list/{listId}")`,
+      `limit(attributes, 100, [])`,
+      `truncate_all(attributes, 4096)`,
     ]
   }
 
   metric_statements {
     context = "resource"
     statements = [
-      "keep_keys(attributes, [\"host.name\"])",
-      "truncate_all(attributes, 4096)",
+      `keep_keys(attributes, ["host.name"])`,
+      `truncate_all(attributes, 4096)`,
     ]
   }
 
   metric_statements {
     context = "metric"
     statements = [
-      "set(description, \"Sum\") where type == \"Sum\"",
+      `set(description, "Sum") where type == "Sum"`,
     ]
   }
 
   metric_statements {
     context = "datapoint"
     statements = [
-      "limit(attributes, 100, [\"host.name\"])",
-      "truncate_all(attributes, 4096)",
-      "convert_sum_to_gauge() where metric.name == \"system.processes.count\"",
-      "convert_gauge_to_sum(\"cumulative\", false) where metric.name == \"prometheus_metric\"",
+      `limit(attributes, 100, ["host.name"])`,
+      `truncate_all(attributes, 4096)`,
+      `convert_sum_to_gauge() where metric.name == "system.processes.count"`,
+      `convert_gauge_to_sum("cumulative", false) where metric.name == "prometheus_metric"`,
     ]
   }
 
   log_statements {
     context = "resource"
     statements = [
-      "keep_keys(attributes, [\"service.name\", \"service.namespace\", \"cloud.region\"])",
+      `keep_keys(attributes, ["service.name", "service.namespace", "cloud.region"])`,
     ]
   }
 
   log_statements {
     context = "log"
     statements = [
-      "set(severity_text, \"FAIL\") where body == \"request failed\"",
-      "replace_all_matches(attributes, \"/user/*/list/*\", \"/user/{userId}/list/{listId}\")",
-      "replace_all_patterns(attributes, \"value\", \"/account/\\\\d{4}\", \"/account/{accountId}\")",
-      "set(body, attributes[\"http.route\"])",
+      `set(severity_text, "FAIL") where body == "request failed"`,
+      `replace_all_matches(attributes, "/user/*/list/*", "/user/{userId}/list/{listId}")`,
+      `replace_all_patterns(attributes, "value", "/account/\\d{4}", "/account/{accountId}")`,
+      `set(body, attributes["http.route"])`,
     ]
   }
 
@@ -546,11 +552,12 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-Some values in the River strings are [escaped][river-strings]:
-* `\` is escaped with `\\`
-* `"` is escaped with `\"`
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
 [river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
+[river-raw-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#raw-strings" >}}
 
 [traces protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/trace/v1/trace.proto
 [metrics protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/metrics/v1/metrics.proto
