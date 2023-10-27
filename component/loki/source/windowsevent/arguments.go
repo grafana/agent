@@ -16,6 +16,7 @@ type Arguments struct {
 	PollInterval         time.Duration       `river:"poll_interval,attr,optional"`
 	ExcludeEventData     bool                `river:"exclude_event_data,attr,optional"`
 	ExcludeUserdata      bool                `river:"exclude_user_data,attr,optional"`
+	ExcludeEventMessage  bool                `river:"exclude_event_message,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
@@ -30,6 +31,7 @@ func defaultArgs() Arguments {
 		PollInterval:         3 * time.Second,
 		ExcludeEventData:     false,
 		ExcludeUserdata:      false,
+		ExcludeEventMessage:  false,
 		UseIncomingTimestamp: false,
 	}
 }

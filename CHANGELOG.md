@@ -81,6 +81,9 @@ Main (unreleased)
 - Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode, 
   which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
 
+- Added an `exclude_event_message` option to `loki.source.windowsevent` in flow mode,
+  which excludes the human-friendly event message from Windows event logs. (@ptodev)
+
 v0.37.3 (2023-10-26)
 -----------------
 
