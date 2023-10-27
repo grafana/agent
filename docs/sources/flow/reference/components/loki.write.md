@@ -139,8 +139,8 @@ The following arguments are supported:
 
 | Name            | Type       | Description                                                                                                                                                                      | Default | Required |
 | --------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
-| `capacity`      | `string`   | Controls the size of the underlying send queue buffer. This setting should be considered as a worst case scenario of memory consumption, in which all enqueued batches are full. | `10MiB`  | no       |
-| `drain_timeout` | `duration` | Configures the maximum time the client can take to drain the send queue, upon shutdown. During that time it will enqueue pending batches, and drain the send queue sending each. | `"1m"`  | no       |
+| `capacity`      | `string`   | Controls the size of the underlying send queue buffer. This setting should be considered a worst-case scenario of memory consumption, in which all enqueued batches are full. | `10MiB`  | no       |
+| `drain_timeout` | `duration` | Configures the maximum time the client can take to drain the send queue upon shutdown. During that time, it will enqueue pending batches and drain the send queue sending each. | `"1m"`  | no       |
 
 ### wal block (experimental)
 
