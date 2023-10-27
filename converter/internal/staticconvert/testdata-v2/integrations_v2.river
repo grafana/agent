@@ -1,0 +1,18 @@
+prometheus.remote_write "metrics_default" {
+	endpoint {
+		name = "default-8be96f"
+		url  = "http://localhost:9009/api/prom/push"
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}
+
+prometheus.exporter.agent "integrations_agent" { }
+
+prometheus.scrape "integrations_agent" {
+	targets    = prometheus.exporter.agent.integrations_agent.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/agent"
+}

@@ -33,6 +33,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
+	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -157,7 +158,13 @@ func validateIntegrationsV1(integrationsConfig *v1.ManagerConfig) diag.Diagnosti
 func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// TODO
+	for _, integration := range integrationsConfig.Configs {
+		switch itg := integration.(type) {
+		case *agent_exporter_v2.Config:
+		default:
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", itg.Name()))
+		}
+	}
 
 	return diags
 }

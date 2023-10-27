@@ -5,7 +5,9 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/config"
 	agent_exporter "github.com/grafana/agent/pkg/integrations/agent"
@@ -34,7 +36,10 @@ import (
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
+	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
+	common_v2 "github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
+	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
@@ -151,10 +156,6 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 	}
 }
 
-func (b *IntegrationsConfigBuilder) appendV2Integrations() {
-
-}
-
 func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
@@ -191,6 +192,74 @@ func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Comm
 
 	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, b.globalCtx.RemoteWriteExports))
 	b.globalCtx.InitializeRemoteWriteExports()
+}
+
+func (b *IntegrationsConfigBuilder) appendV2Integrations() {
+	for _, integration := range b.cfg.Integrations.ConfigV2.Configs {
+		var exports discovery.Exports
+		var commonConfig common_v2.MetricsConfig
+
+		switch itg := integration.(type) {
+		case *agent_exporter_v2.Config:
+			exports = b.appendAgentExporter(itg)
+			commonConfig = itg.Common
+		}
+
+		if len(exports.Targets) > 0 {
+			b.appendExporterV2(&commonConfig, integration.Name(), exports.Targets)
+		}
+	}
+}
+
+func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.MetricsConfig, name string, extraTargets []discovery.Target) {
+	scrapeConfig := prom_config.DefaultScrapeConfig
+	scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
+	scrapeConfig.RelabelConfigs = commonConfig.Autoscrape.RelabelConfigs
+	scrapeConfig.MetricRelabelConfigs = commonConfig.Autoscrape.MetricRelabelConfigs
+	// TODO extra labels - discovery.relabel to add the labels
+
+	commonConfig.ApplyDefaults(b.cfg.Integrations.ConfigV2.Metrics.Autoscrape)
+	scrapeConfig.ScrapeInterval = model.Duration(commonConfig.Autoscrape.ScrapeInterval)
+	scrapeConfig.ScrapeTimeout = model.Duration(commonConfig.Autoscrape.ScrapeTimeout)
+
+	scrapeConfigs := []*prom_config.ScrapeConfig{&scrapeConfig}
+
+	var remoteWriteExports *remotewrite.Exports
+	for _, metrics := range b.cfg.Metrics.Configs {
+		if metrics.Name == commonConfig.Autoscrape.MetricsInstance {
+			// This must match the name of the existing remote write config in the metrics config:
+			label, err := scanner.SanitizeIdentifier("metrics_" + metrics.Name)
+			if err != nil {
+				b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
+			}
+
+			remoteWriteExports = &remotewrite.Exports{
+				Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write." + label + ".receiver"},
+			}
+			break
+		}
+	}
+
+	if remoteWriteExports == nil {
+		b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("integration %s is looking for an undefined metrics config: %s", name, commonConfig.Autoscrape.MetricsInstance))
+	}
+
+	promConfig := &prom_config.Config{
+		GlobalConfig:  b.cfg.Metrics.Global.Prometheus,
+		ScrapeConfigs: scrapeConfigs,
+	}
+
+	jobNameToCompLabelsFunc := func(jobName string) string {
+		labelSuffix := strings.TrimPrefix(jobName, "integrations/")
+		if labelSuffix == "" {
+			return b.globalCtx.LabelPrefix
+		}
+
+		return fmt.Sprintf("%s_%s", b.globalCtx.LabelPrefix, labelSuffix)
+	}
+
+	// Need to pass in the remote write reference from the metrics config here:
+	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, remoteWriteExports))
 }
 
 func splitByCommaNullOnEmpty(s string) []string {

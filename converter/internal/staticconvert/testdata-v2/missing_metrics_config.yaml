@@ -9,4 +9,4 @@ integrations:
   agent:
     instance: "default"
     autoscrape:
-      metrics_instance: "default"
+      metrics_instance: "not_default"
