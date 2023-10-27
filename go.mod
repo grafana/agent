@@ -18,7 +18,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.18.44
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.34.1
 	github.com/bmatcuk/doublestar v1.3.4
-	github.com/bufbuild/connect-go v1.9.0
+	github.com/bufbuild/connect-go v1.10.0
 	github.com/buger/jsonparser v1.1.1
 	github.com/burningalchemist/sql_exporter v0.0.0-20221222155641-2ff59aa75200
 	github.com/cespare/xxhash/v2 v2.2.0
@@ -59,7 +59,7 @@ require (
 	github.com/grafana/loki v1.6.2-0.20231004111112-07cbef92268a
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.3
 	github.com/grafana/pyroscope/api v0.2.0
-	github.com/grafana/pyroscope/ebpf v0.2.3
+	github.com/grafana/pyroscope/ebpf v0.3.0
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/river v0.2.0
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
@@ -621,7 +621,7 @@ require (
 
 require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
 
-require github.com/githubexporter/github-exporter v0.0.0-20230925090839-9e31cd0e7721
+require github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
 
 require (
 	dario.cat/mergo v1.0.0 // indirect

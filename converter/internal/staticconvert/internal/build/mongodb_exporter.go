@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendMongodbExporter(config *mongodb_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendMongodbExporter(config *mongodb_exporter.Config) discovery.Exports {
 	args := toMongodbExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

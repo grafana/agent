@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendMysqldExporter(config *mysqld_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendMysqldExporter(config *mysqld_exporter.Config) discovery.Exports {
 	args := toMysqldExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

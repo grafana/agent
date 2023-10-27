@@ -9,5 +9,5 @@ import (
 )
 
 func TestConvert(t *testing.T) {
-	test_common.TestDirectory(t, "testdata", ".yaml", true, prometheusconvert.Convert)
+	test_common.TestDirectory(t, "testdata", ".yaml", true, []string{}, prometheusconvert.Convert)
 }
