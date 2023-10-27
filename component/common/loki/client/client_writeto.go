@@ -18,16 +18,9 @@ import (
 // clientWriteTo implements a wal.WriteTo that re-builds entries with the stored series, and the received entries. After,
 // sends each to the provided Client channel.
 type clientWriteTo struct {
-	series     map[chunks.HeadSeriesRef]model.LabelSet
-	seriesLock sync.RWMutex
-
-	// seriesSegment keeps track of the last segment in which the series pointed by each key in this map was seen. Keeping
-	// this in a separate map avoids unnecessary contention.
-	//
-	// Even though it doesn't present a difference right now according to benchmarks, it will help when we introduce other
-	// calls from the wal.Watcher to the wal.WriteTo like `UpdateSeriesSegment`.
-	seriesSegment     map[chunks.HeadSeriesRef]int
-	seriesSegmentLock sync.RWMutex
+	series        map[chunks.HeadSeriesRef]model.LabelSet
+	seriesSegment map[chunks.HeadSeriesRef]int
+	seriesLock    sync.RWMutex
 
 	logger   log.Logger
 	toClient chan<- loki.Entry
@@ -46,8 +39,6 @@ func newClientWriteTo(toClient chan<- loki.Entry, logger log.Logger) *clientWrit
 func (c *clientWriteTo) StoreSeries(series []record.RefSeries, segment int) {
 	c.seriesLock.Lock()
 	defer c.seriesLock.Unlock()
-	c.seriesSegmentLock.Lock()
-	defer c.seriesSegmentLock.Unlock()
 	for _, seriesRec := range series {
 		c.seriesSegment[seriesRec.Ref] = segment
 		labels := util.MapToModelLabelSet(seriesRec.Labels.Map())
@@ -59,8 +50,6 @@ func (c *clientWriteTo) StoreSeries(series []record.RefSeries, segment int) {
 func (c *clientWriteTo) SeriesReset(segmentNum int) {
 	c.seriesLock.Lock()
 	defer c.seriesLock.Unlock()
-	c.seriesSegmentLock.Lock()
-	defer c.seriesSegmentLock.Unlock()
 	for k, v := range c.seriesSegment {
 		if v <= segmentNum {
 			level.Debug(c.logger).Log("msg", fmt.Sprintf("reclaiming series under segment %d", segmentNum))
@@ -70,7 +59,7 @@ func (c *clientWriteTo) SeriesReset(segmentNum int) {
 	}
 }
 
-func (c *clientWriteTo) AppendEntries(entries wal.RefEntries) error {
+func (c *clientWriteTo) AppendEntries(entries wal.RefEntries, _ int) error {
 	var entry loki.Entry
 	c.seriesLock.RLock()
 	l, ok := c.series[entries.Ref]
@@ -82,6 +71,7 @@ func (c *clientWriteTo) AppendEntries(entries wal.RefEntries) error {
 			c.toClient <- entry
 		}
 	} else {
+		// TODO(thepalbi): Add metric here
 		level.Debug(c.logger).Log("msg", "series for entry not found")
 	}
 	return nil

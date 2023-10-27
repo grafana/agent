@@ -24,9 +24,10 @@ const (
 // and entries in a single batch request. In case of multi-tenant Promtail, log
 // streams for each tenant are stored in a dedicated batch.
 type batch struct {
-	streams   map[string]*logproto.Stream
-	bytes     int
-	createdAt time.Time
+	streams map[string]*logproto.Stream
+	// totalBytes holds the total amounts of bytes, across the log lines in this batch.
+	totalBytes int
+	createdAt  time.Time
 
 	maxStreams int
 }
@@ -34,7 +35,7 @@ type batch struct {
 func newBatch(maxStreams int, entries ...loki.Entry) *batch {
 	b := &batch{
 		streams:    map[string]*logproto.Stream{},
-		bytes:      0,
+		totalBytes: 0,
 		createdAt:  time.Now(),
 		maxStreams: maxStreams,
 	}
@@ -50,7 +51,7 @@ func newBatch(maxStreams int, entries ...loki.Entry) *batch {
 
 // add an entry to the batch
 func (b *batch) add(entry loki.Entry) error {
-	b.bytes += len(entry.Line)
+	b.totalBytes += len(entry.Line)
 
 	// Append the entry to an already existing stream (if any)
 	labels := labelsMapToString(entry.Labels, ReservedLabelTenantID)
@@ -71,6 +72,32 @@ func (b *batch) add(entry loki.Entry) error {
 	return nil
 }
 
+// add an entry to the batch
+func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry) error {
+	b.totalBytes += len(entry.Line)
+
+	// Append the entry to an already existing stream (if any)
+	labels := labelsMapToString(lbs, ReservedLabelTenantID)
+	if stream, ok := b.streams[labels]; ok {
+		stream.Entries = append(stream.Entries, entry)
+		return nil
+	}
+
+	streams := len(b.streams)
+	if b.maxStreams > 0 && streams >= b.maxStreams {
+		return fmt.Errorf(errMaxStreamsLimitExceeded, streams, b.maxStreams, labels)
+	}
+
+	// Add the entry as a new stream
+	b.streams[labels] = &logproto.Stream{
+		Labels:  labels,
+		Entries: []logproto.Entry{entry},
+	}
+
+	return nil
+}
+
+// labelsMapToString encodes an entry's label set as a string, ignoring the without label.
 func labelsMapToString(ls model.LabelSet, without model.LabelName) string {
 	var b strings.Builder
 	totalSize := 2
@@ -105,13 +132,13 @@ func labelsMapToString(ls model.LabelSet, without model.LabelName) string {
 
 // sizeBytes returns the current batch size in bytes
 func (b *batch) sizeBytes() int {
-	return b.bytes
+	return b.totalBytes
 }
 
 // sizeBytesAfter returns the size of the batch after the input entry
 // will be added to the batch itself
-func (b *batch) sizeBytesAfter(entry loki.Entry) int {
-	return b.bytes + len(entry.Line)
+func (b *batch) sizeBytesAfter(line string) int {
+	return b.totalBytes + len(line)
 }
 
 // age of the batch since its creation

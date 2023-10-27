@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendProcessExporter(config *process_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendProcessExporter(config *process_exporter.Config) discovery.Exports {
 	args := toProcessExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

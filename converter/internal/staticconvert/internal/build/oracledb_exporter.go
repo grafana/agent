@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendOracledbExporter(config *oracledb_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendOracledbExporter(config *oracledb_exporter.Config) discovery.Exports {
 	args := toOracledbExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

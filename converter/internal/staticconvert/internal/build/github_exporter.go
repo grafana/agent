@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendGithubExporter(config *github_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendGithubExporter(config *github_exporter.Config) discovery.Exports {
 	args := toGithubExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

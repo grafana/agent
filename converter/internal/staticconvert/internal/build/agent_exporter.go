@@ -9,7 +9,7 @@ import (
 	agent_exporter "github.com/grafana/agent/pkg/integrations/agent"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendAgentExporter(config *agent_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendAgentExporter(config *agent_exporter.Config) discovery.Exports {
 	args := toAgentExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

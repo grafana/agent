@@ -10,7 +10,7 @@ import (
 	cadvisor_integration "github.com/grafana/agent/pkg/integrations/cadvisor"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendCadvisorExporter(config *cadvisor_integration.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendCadvisorExporter(config *cadvisor_integration.Config) discovery.Exports {
 	args := toCadvisorExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

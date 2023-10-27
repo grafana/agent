@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/memcached_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendMemcachedExporter(config *memcached_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendMemcachedExporter(config *memcached_exporter.Config) discovery.Exports {
 	args := toMemcachedExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
