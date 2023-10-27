@@ -58,7 +58,7 @@ type WriteTo interface {
 	// found in.
 	StoreSeries(series []record.RefSeries, segmentNum int)
 
-	AppendEntries(entries wal.RefEntries) error
+	AppendEntries(entries wal.RefEntries, segmentNum int) error
 }
 
 type Watcher struct {
@@ -264,7 +264,7 @@ func (w *Watcher) decodeAndDispatch(b []byte, segmentNum int) (bool, error) {
 	readData = true
 
 	for _, entries := range rec.RefEntries {
-		if err := w.actions.AppendEntries(entries); err != nil && firstErr == nil {
+		if err := w.actions.AppendEntries(entries, segmentNum); err != nil && firstErr == nil {
 			firstErr = err
 		}
 	}

@@ -1,8 +1,8 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/pyroscope.ebpf/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.ebpf/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.ebpf/
+  - /docs/grafana-cloud/agent/flow/reference/components/pyroscope.ebpf/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.ebpf/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.ebpf/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.ebpf/
 labels:
   stage: beta
@@ -54,7 +54,7 @@ values.
 | `collect_user_profile`    | `bool`                   | A flag to enable/disable collection of userspace profiles                           | true    | no       |       
 | `collect_kernel_profile`  | `bool`                   | A flag to enable/disable collection of kernelspace profiles                         | true    | no       |       
 | `demangle`                | `string`                 | C++ demangle mode. Available options are: `none`, `simplified`, `templates`, `full` | `none`  | no       |
-
+| `python_enabled`          | `bool`                   | A flag to enable/disable python profiling                                           | true    | no       |
 
 ## Exported fields
 
@@ -136,7 +136,8 @@ with a `.gnu_debuglink` set to `libc.so.6.debug` and a build ID `0123456789abcde
 
 ### Dealing with unknown symbols
 
-Unknown symbols in the profiles you’ve collected indicate that the profiler couldn't access an ELF file ￼associated with a given address in the trace.
+Unknown symbols in the profiles you’ve collected indicate that the profiler couldn't access an ELF file ￼associated with
+a given address in the trace.
 
 This can occur for several reasons:
 
@@ -163,7 +164,7 @@ strip elf -o elf.stripped
 objcopy --add-gnu-debuglink=elf.debug elf.stripped elf.debuglink
 ```
 
-For system libraries, ensure that debug symbols are installed. On Ubuntu, for example, you can install debug symbols 
+For system libraries, ensure that debug symbols are installed. On Ubuntu, for example, you can install debug symbols
 for `libc` by executing:
 
 ```bash
@@ -172,7 +173,8 @@ apt install libc6-dbg
 
 ### Understanding flat stack traces
 
-If your profiles show many shallow stack traces, typically 1-2 frames deep, your binary might have been compiled without frame pointers.
+If your profiles show many shallow stack traces, typically 1-2 frames deep, your binary might have been compiled without
+frame pointers.
 
 To compile your code with frame pointers, include the `-fno-omit-frame-pointer` flag in your compiler options.
 
@@ -190,7 +192,8 @@ Interpreted methods will display the interpreter function’s name rather than t
 
 In the following example, performance profiles are collected from pods on the same node, discovered using
 `discovery.kubernetes`. Pod selection relies on the `HOSTNAME` environment variable, which is a pod name if the agent is
-used as a Grafana agent helm chart. The `service_name` label is set to `{__meta_kubernetes_namespace}/{__meta_kubernetes_pod_container_name}` from kubernetes meta labels.
+used as a Grafana agent helm chart. The `service_name` label is set
+to `{__meta_kubernetes_namespace}/{__meta_kubernetes_pod_container_name}` from kubernetes meta labels.
 
 ```river
 discovery.kubernetes "all_pods" {

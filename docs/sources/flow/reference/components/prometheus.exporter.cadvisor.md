@@ -94,7 +94,7 @@ from `prometheus.exporter.cadvisor`:
 
 ```river
 prometheus.exporter.cadvisor "example" {
-  docker     = "unix:///var/run/docker.sock"
+  docker_host = "unix:///var/run/docker.sock"
 
   storage_duration = "5m"
 }
