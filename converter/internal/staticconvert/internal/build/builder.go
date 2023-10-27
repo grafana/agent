@@ -219,8 +219,8 @@ func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.Met
 	// TODO extra labels - discovery.relabel to add the labels
 
 	commonConfig.ApplyDefaults(b.cfg.Integrations.ConfigV2.Metrics.Autoscrape)
-	scrapeConfig.ScrapeInterval = model.Duration(commonConfig.Autoscrape.ScrapeInterval)
-	scrapeConfig.ScrapeTimeout = model.Duration(commonConfig.Autoscrape.ScrapeTimeout)
+	scrapeConfig.ScrapeInterval = commonConfig.Autoscrape.ScrapeInterval
+	scrapeConfig.ScrapeTimeout = commonConfig.Autoscrape.ScrapeTimeout
 
 	scrapeConfigs := []*prom_config.ScrapeConfig{&scrapeConfig}
 
