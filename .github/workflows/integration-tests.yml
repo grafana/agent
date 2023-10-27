@@ -1,0 +1,17 @@
+name: Integration Tests
+on:
+  pull_request:
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: "1.21.0"
+    - name: Set OTEL Exporter Endpoint
+      run: echo "OTEL_EXPORTER_ENDPOINT=http://172.17.0.1:8080" >> $GITHUB_ENV
+    - name: Run tests
+      run: make integration-test
