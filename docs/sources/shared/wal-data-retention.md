@@ -85,17 +85,27 @@ is unsuccessful, and you must manually delete the corrupted WAL to continue.
 When the WAL becomes corrupted, Grafana Agent writes error messages such as
 `err="failed to find segment for index"` to the log file.
 
-{{% admonition type="caution" %}}
+{{% admonition type="note" %}}
 Deleting a WAL segment or a WAL file permanently deletes the stored WAL data.
 {{% /admonition %}}
 
 To delete the corrupted WAL:
 
 1. [Stop][] Grafana Agent.
-1. Delete the WAL from disk. By default, the WAL is in the `data-agent` directory located in
-   the Grafana Agent working directory. The WAL data directory may be different than the default
-   depending on the [wal_directory][] setting in your Static configuration file or the path
-   specified by the Flow [command line flag][run] `--storage-path`.
+1. Find and delete the contents of the `wal` directory. 
+
+   By default the `wal` directory is a subdirectory
+   of the `data-agent` directory located in the Grafana Agent working directory. The WAL data directory
+   may be different than the default depending on the [wal_directory][] setting in your Static configuration
+   file or the path specified by the Flow [command line flag][run] `--storage-path`.
+
+   {{% admonition type="note" %}}
+   There is one `wal` directory per:
+
+   * Metrics instance running in Static mode
+   * `prometheus.remote_write` component running in Flow mode
+   {{% /admonition %}}
+
 1. [Start][Stop] Grafana Agent and verify that the WAL is working correctly.
 
 [WAL block]: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write#wal-block
