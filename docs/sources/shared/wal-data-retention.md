@@ -82,7 +82,7 @@ and crashes before you can stop Grafana Agent and other running services. When y
 Agent, the Agent verifies the WAL, removing any corrupt segments it finds. Sometimes, this repair
 is unsuccessful, and you must manually delete the corrupted WAL to continue.
 
-When the WAL becomes corrupted, Grafana Agent writes error messages such as
+If the WAL becomes corrupted, Grafana Agent writes error messages such as
 `err="failed to find segment for index"` to the log file.
 
 {{% admonition type="note" %}}
@@ -92,7 +92,7 @@ Deleting a WAL segment or a WAL file permanently deletes the stored WAL data.
 To delete the corrupted WAL:
 
 1. [Stop][] Grafana Agent.
-1. Find and delete the contents of the `wal` directory. 
+1. Find and delete the contents of the `wal` directory.
 
    By default the `wal` directory is a subdirectory
    of the `data-agent` directory located in the Grafana Agent working directory. The WAL data directory
