@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
@@ -194,7 +193,7 @@ func newClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLin
 		cfg:     cfg,
 		entries: make(chan loki.Entry),
 		metrics: metrics,
-		name:    asSha256(cfg),
+		name:    GetClientName(cfg),
 
 		externalLabels:      cfg.ExternalLabels.LabelSet,
 		ctx:                 ctx,
@@ -318,7 +317,7 @@ func (c *client) run() {
 
 			// If adding the entry to the batch will increase the size over the max
 			// size allowed, we do send the current batch and then create a new one
-			if batch.sizeBytesAfter(e) > c.cfg.BatchSize {
+			if batch.sizeBytesAfter(e.Line) > c.cfg.BatchSize {
 				c.sendBatch(tenantID, batch)
 
 				batches[tenantID] = newBatch(c.maxStreams, e)
@@ -353,14 +352,6 @@ func (c *client) run() {
 
 func (c *client) Chan() chan<- loki.Entry {
 	return c.entries
-}
-
-func asSha256(o interface{}) string {
-	h := sha256.New()
-	h.Write([]byte(fmt.Sprintf("%v", o)))
-
-	temp := fmt.Sprintf("%x", h.Sum(nil))
-	return temp[:6]
 }
 
 func batchIsRateLimited(status int) bool {
