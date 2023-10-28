@@ -12,7 +12,7 @@ description: Learn about otelcol.processor.filter
 
 # otelcol.processor.filter
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.processor.filter` accepts and filters telemetry data from other `otelcol`
 components using the [OpenTelemetry Transformation Language (OTTL)][OTTL].
