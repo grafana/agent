@@ -1,27 +1,26 @@
 import React from 'react';
 
+import TableHead from './TableHead';
+
 import styles from './Table.module.css';
 
 interface Props {
   tableHeaders: string[];
   style?: React.CSSProperties;
+  handleSorting?: (sortField: string, sortOrder: string) => void;
   renderTableData: () => JSX.Element[];
 }
 
 /**
- * Simple table component that accept a custom header, and custom render
+ * Simple table component that accept a custom header, custom sorting function and custom render
  * function for the table data
  */
-const Table = ({ tableHeaders, style = {}, renderTableData }: Props) => {
+const Table = ({ tableHeaders, style = {}, handleSorting, renderTableData }: Props) => {
   return (
     <table className={styles.table}>
       <colgroup span={1} style={style} />
       <tbody>
-        <tr>
-          {tableHeaders.map((header) => (
-            <th key={header}>{header}</th>
-          ))}
-        </tr>
+        <TableHead headers={tableHeaders} handleSorting={handleSorting} />
         {renderTableData()}
       </tbody>
     </table>
