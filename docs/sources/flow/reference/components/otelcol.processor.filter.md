@@ -109,7 +109,7 @@ output    | [output][]  | Configures where to send received telemetry data. | ye
 
 ### traces block
 
-The `traces` block specifies statements which filter trace telemetry signals. 
+The `traces` block specifies statements that filter trace telemetry signals. 
 Only one `traces` block can be specified.
 
 Name        | Type           | Description                                         | Default | Required
@@ -126,14 +126,14 @@ Statements are checked in order from "high level" to "low level" telemetry, in t
 1. `span`
 2. `spanevent`
 
-Hence, if at least one `span` condition is satisfied, the `spanevent` conditions will not be checked.
+If at least one `span` condition is satisfied, the `spanevent` conditions will not be checked.
 Only one of the statements inside the list of statements has to be satisfied.
 
 If all span events for a span are dropped, the span will be left intact.
 
 ### metrics block
 
-The `metrics` block specifies statements which filter metric telemetry signals. 
+The `metrics` block specifies statements that filter metric telemetry signals. 
 Only one `metrics` blocks can be specified.
 
 Name        | Type           | Description                                               | Default | Required
@@ -150,14 +150,14 @@ Statements are checked in order from "high level" to "low level" telemetry, in t
 1. `metric`
 2. `datapoint`
 
-Hence, if at least one `metric` condition is satisfied, the `datapoint` conditions will not be checked.
+If at least one `metric` condition is satisfied, the `datapoint` conditions will not be checked.
 Only one of the statements inside the list of statements has to be satisfied.
 
 If all datapoints for a metric are dropped, the metric will also be dropped.
 
 ### logs block
 
-The `logs` block specifies statements which filter log telemetry signals. 
+The `logs` block specifies statements that filter log telemetry signals. 
 Only `logs` blocks can be specified.
 
 Name            | Type           | Description                                    | Default | Required
