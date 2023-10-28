@@ -8,7 +8,9 @@ import { ComponentInfo } from '../features/component/types';
  * @param fromComponent The component requesting component info. Required for
  * determining the proper list of components from the context of a module.
  */
-export const useComponentInfo = (moduleID: string): ComponentInfo[] => {
+export const useComponentInfo = (
+  moduleID: string
+): [ComponentInfo[], React.Dispatch<React.SetStateAction<ComponentInfo[]>>] => {
   const [components, setComponents] = useState<ComponentInfo[]>([]);
 
   useEffect(
@@ -29,5 +31,5 @@ export const useComponentInfo = (moduleID: string): ComponentInfo[] => {
     [moduleID]
   );
 
-  return components;
+  return [components, setComponents];
 };
