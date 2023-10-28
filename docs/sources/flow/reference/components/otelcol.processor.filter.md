@@ -57,7 +57,7 @@ You can specify multiple `otelcol.processor.filter` components by giving them di
 Exercise caution when using `otelcol.processor.filter`:
 
 - Make sure you understand the look of the incoming data and test the configuration thoroughly. 
-  In general, use as specific a configuration as possible to lower the risk of the wrong data being dropped.
+  In general, use a configuration that is as specific as possible ensure you retain only the data you want to keep.
 - [Orphaned Telemetry][]: The processor allows dropping spans. Dropping a span may lead to 
   orphaned spans if the dropped span is a parent. Dropping a span may lead to orphaned logs 
   if the log references the dropped span.
