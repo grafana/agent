@@ -122,6 +122,8 @@ Main (unreleased)
 
 - Support clustering in `loki.source.podlogs` (@rfratto).
 
+- Make component list sortable in web UI. (@hainenber)
+
 v0.37.3 (2023-10-26)
 -----------------
 
