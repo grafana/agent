@@ -24,7 +24,7 @@ A path is a reference to a telemetry data such as:
 If any condition is met, the telemetry data is dropped (each condition is ORed together).
 
 In addition to the [standard OTTL Converter functions][OTTL Converter functions], 
-there is also a set of metrics-only functions exclusively by the processor
+the following metrics-only functions are used exclusively by the processor:
 * [HasAttrKeyOnDataPoint][]
 * [HasAttrOnDataPoint][]
 
