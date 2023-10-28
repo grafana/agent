@@ -21,7 +21,7 @@ A path is a reference to a telemetry data such as:
 * Resource attributes.
 * Instrumentation scope name.
 * Span attributes.
-If any condition is met, the telemetry data is dropped (each condition is ORed together)
+If any condition is met, the telemetry data is dropped (each condition is ORed together).
 
 In addition to the [standard OTTL Converter functions][OTTL Converter functions], 
 there is also a set of metrics-only functions exclusively by the processor
