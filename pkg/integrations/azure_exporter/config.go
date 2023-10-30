@@ -33,6 +33,10 @@ var DefaultConfig = Config{
 	MetricHelpTemplate:    "Azure metric {metric} for {type} with aggregation {aggregation} as {unit}",
 	IncludedResourceTags:  []string{"owner"},
 	AzureCloudEnvironment: "azurecloud",
+	// Dimensions do not always apply to all metrics for a service, which requires you to configure multiple exporters
+	//  to fully monitor a service which is tedious. Turning off validation eliminates this complexity. The underlying
+	//  sdk will only give back the dimensions which are valid for particular metrics.
+	ValidateDimensions: false,
 }
 
 type Config struct {
@@ -68,6 +72,7 @@ type Config struct {
 
 	MetricNameTemplate string `yaml:"metric_name_template"`
 	MetricHelpTemplate string `yaml:"metric_help_template"`
+	ValidateDimensions bool   `yaml:"validate_dimensions"`
 
 	AzureCloudEnvironment string `yaml:"azure_cloud_environment"`
 }
@@ -153,14 +158,15 @@ func (c *Config) Name() string {
 
 func (c *Config) ToScrapeSettings() (*metrics.RequestMetricSettings, error) {
 	settings := metrics.RequestMetricSettings{
-		Subscriptions:   c.Subscriptions,
-		Metrics:         c.Metrics,
-		ResourceType:    c.ResourceType,
-		Aggregations:    c.MetricAggregations,
-		Filter:          c.ResourceGraphQueryFilter,
-		MetricNamespace: c.MetricNamespace,
-		MetricTemplate:  c.MetricNameTemplate,
-		HelpTemplate:    c.MetricHelpTemplate,
+		Subscriptions:      c.Subscriptions,
+		Metrics:            c.Metrics,
+		ResourceType:       c.ResourceType,
+		Aggregations:       c.MetricAggregations,
+		Filter:             c.ResourceGraphQueryFilter,
+		MetricNamespace:    c.MetricNamespace,
+		MetricTemplate:     c.MetricNameTemplate,
+		HelpTemplate:       c.MetricHelpTemplate,
+		ValidateDimensions: c.ValidateDimensions,
 
 		// Interval controls data aggregation timeframe ie 1 minute or 5 minutes aggregations
 		// Timespan controls query start and end time
