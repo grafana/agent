@@ -352,7 +352,7 @@ otelcol.exporter.otlp "default" {
 ### Adding Kubernetes metadata to Prometheus metrics
 
 `otelcol.processor.k8sattributes` adds metadata to metrics signals in the form of resource attributes.
-In order to display the metadata as labels of Prometheus metrics, the OTLP attributes need to be converted from
+To display the metadata as labels of Prometheus metrics, the OTLP attributes must be converted from
 resource attributes to datapoint attributes. One way to do this is by using an `otelcol.processor.transform`
 component.
 
