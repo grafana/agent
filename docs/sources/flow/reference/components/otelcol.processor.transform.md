@@ -44,7 +44,7 @@ there is also a set of metrics-only functions:
 {{% admonition type="note" %}}
 There are two ways of inputting strings in River configuration files:
 * Using quotation marks ([normal River strings][river-strings]). Characters such as `\` and
-  `"` will need to be escaped by preceding them with a `\` character.
+  `"` must be escaped by preceding them with a `\` character.
 * Using backticks ([raw River strings][river-raw-strings]). No characters will need to be escaped.
   However, it will not be possible to have backticks inside the string.
 
