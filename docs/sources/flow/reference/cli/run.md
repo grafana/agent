@@ -53,7 +53,7 @@ The following flags are supported:
 * `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
 * `--server.http.ui-path-prefix`: Base path where the UI is exposed (default `/`).
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
-* `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
+* `--disable-reporting`: Disable [data collection][] (default `false`).
 * `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
 * `--cluster.node-name`: The name to use for this node (defaults to the environment's hostname).
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`). Mutually exclusive with `--cluster.discover-peers`.
@@ -67,7 +67,7 @@ The following flags are supported:
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
+[data collection]: {{< relref "../../data-collection" >}}
 [components]: {{< relref "../../concepts/components.md" >}}
 
 ## Update the configuration file
