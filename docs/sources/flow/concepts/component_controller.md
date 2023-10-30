@@ -15,7 +15,7 @@ weight: 200
 The _component controller_ is the core part of Grafana Agent Flow which manages
 components at runtime.
 
-It is responsible for:
+The component controller is responsible for:
 
 * Reading and validating the configuration file.
 * Managing the lifecycle of defined components.
@@ -60,7 +60,7 @@ behavior. The component controller is finished loading once all components are
 evaluated, configured, and running.
 
 The component controller only evaluates a given component after evaluating all
-of that component's dependencies. Component that do not depend on other
+of that component's dependencies. Components that do not depend on other
 components can be evaluated at any time during the evaluation process.
 
 ## Component reevaluation
@@ -123,13 +123,10 @@ The internal address defaults to `agent.internal:12345`. If this address
 collides with a real target on your network, change it to something unique
 using the `--server.http.memory-addr` flag in the [run][] command.
 
-Components must opt-in to using in-memory traffic; see the individual
+Components must opt-in to using in-memory traffic. See the individual
 documentation for components to learn if in-memory traffic is supported.
 
-[prometheus.exporter.unix]: {{< relref "../reference/components/prometheus.exporter.unix.md" >}}
-[run]: {{< relref "../reference/cli/run.md" >}}
-
-## Updating the config file
+## Updating the configuration file
 
 Both the `/-/reload` HTTP endpoint and the `SIGHUP` signal can be used to
 inform the component controller to reload the configuration file. When this happens,
@@ -139,5 +136,13 @@ the configuration file and creating new components which were added to the confi
 file. All components managed by the controller will be reevaluated after
 reloading.
 
-[Components]: {{< relref "./components.md" >}}
 [DAG]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
+
+{{% docs/reference %}}
+[prometheus.exporter.unix]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.unix.md"
+[prometheus.exporter.unix]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.unix.md"
+[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+{{% /docs/reference %}}

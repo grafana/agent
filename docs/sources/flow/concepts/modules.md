@@ -28,9 +28,6 @@ loader](#module-loaders).
 Refer to the documentation for the [argument block][] and [export block][] to
 learn how to define arguments and exports for a module.
 
-[argument block]: {{< relref "../reference/config-blocks/argument.md" >}}
-[export block]: {{< relref "../reference/config-blocks/export.md" >}}
-
 ## Module loaders
 
 A _Module loader_ is a Grafana Agent Flow component which retrieves a module
@@ -47,12 +44,9 @@ Module loaders typically are called `module.LOADER_NAME`. The list of module
 loader components can be found in the list of Grafana Agent Flow
 [Components][].
 
-Some module loaders may not support running modules with arguments or exports;
-refer to the documentation for the module loader you are using for more
+Some module loaders may not support running modules with arguments or exports.
+Refer to the documentation for the module loader you are using for more
 information.
-
-[Component controller]: {{< relref "./component_controller.md" >}}
-[Components]: {{< relref "../reference/components/" >}}
 
 ## Module sources
 
@@ -119,7 +113,7 @@ export "filter_input" {
 }
 ```
 
-The module above can be saved to a file and then used as a processing step 
+The module above can be saved to a file and then used as a processing step
 before writing logs to Loki:
 
 ```river
@@ -145,3 +139,14 @@ loki.write "default" {
   }
 }
 ```
+
+{{% docs/reference %}}
+[argument block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/argument.md"
+[argument block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/argument.md"
+[export block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/export.md"
+[export block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/export.md"
+[Component controller]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller.md"
+[Component controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/component_controller.md"
+[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components"
+{{% /docs/reference %}}

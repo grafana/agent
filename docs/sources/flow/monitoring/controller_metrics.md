@@ -32,12 +32,16 @@ The controller exposes the following metrics:
 * `agent_component_controller_running_components` (Gauge): The current
   number of running components by health. The health is represented in the
   `health_type` label.
-* `agent_component_evaluation_seconds` (Histogram): The time it takes to 
+* `agent_component_evaluation_seconds` (Histogram): The time it takes to
   evaluate components after one of their dependencies is updated.
-* `agent_component_dependencies_wait_seconds` (Histogram): Time spent by 
+* `agent_component_dependencies_wait_seconds` (Histogram): Time spent by
   components waiting to be evaluated after one of their dependencies is updated.
 * `agent_component_evaluation_queue_size` (Gauge): The current number of
   component evaluations waiting to be performed.
 
-[component controller]: {{< relref "../concepts/component_controller.md" >}}
-[grafana-agent run]: {{< relref "../reference/cli/run.md" >}}
+{{% docs/reference %}}
+[component controller]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller.md"
+[component controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/component_controller.md"
+[grafana-agent run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
+[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+{{% /docs/reference %}}

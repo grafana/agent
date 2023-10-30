@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendSquidExporter(config *squid_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendSquidExporter(config *squid_exporter.Config) discovery.Exports {
 	args := toSquidExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(

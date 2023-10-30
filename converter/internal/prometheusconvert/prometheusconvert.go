@@ -20,8 +20,16 @@ import (
 )
 
 // Convert implements a Prometheus config converter.
-func Convert(in []byte) ([]byte, diag.Diagnostics) {
+//
+// extraArgs are supported to mirror the other converter params due to shared
+// testing code but they should be passed empty to this converter.
+func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
+
+	if len(extraArgs) > 0 {
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("extra arguments are not supported for the prometheus converter: %s", extraArgs))
+		return nil, diags
+	}
 
 	promConfig, err := prom_config.Load(string(in), false, log.NewNopLogger())
 	if err != nil {

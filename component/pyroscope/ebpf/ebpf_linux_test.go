@@ -1,4 +1,4 @@
-//go:build linux
+//go:build (linux && arm64) || (linux && amd64)
 
 package ebpf
 
@@ -39,6 +39,10 @@ func (m *mockSession) Stop() {
 func (m *mockSession) Update(options ebpfspy.SessionOptions) error {
 	m.options = options
 	return nil
+}
+
+func (m *mockSession) UpdateTargets(_ sd.TargetsOptions) {
+
 }
 
 func (m *mockSession) CollectProfiles(f func(target *sd.Target, stack []string, value uint64, pid uint32)) error {
@@ -109,7 +113,7 @@ func TestContextShutdown(t *testing.T) {
 		{"a", "b", "c"},
 		{"q", "w", "e"},
 	}
-	session.dataTarget, _ = sd.NewTarget("cid", map[string]string{"service_name": "foo"})
+	session.dataTarget = sd.NewTarget("cid", 0, map[string]string{"service_name": "foo"})
 	var g run.Group
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Second*1))
 	defer cancel()

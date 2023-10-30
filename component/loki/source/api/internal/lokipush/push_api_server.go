@@ -132,7 +132,7 @@ func (s *PushAPIServer) getRelabelRules() []*relabel.Config {
 	return newRules
 }
 
-// NOTE: This code is copied from Promtail (3478e180211c17bfe2f3f3305f668d5520f40481) with changes kept to the minimum.
+// NOTE: This code is copied from Promtail (https://github.com/grafana/loki/commit/47e2c5884f443667e64764f3fc3948f8f11abbb8) with changes kept to the minimum.
 // Only the HTTP handler functions are copied to allow for flow-specific server configuration and lifecycle management.
 func (s *PushAPIServer) handleLoki(w http.ResponseWriter, r *http.Request) {
 	logger := util_log.WithContext(r.Context(), util_log.Logger)
@@ -206,7 +206,7 @@ func (s *PushAPIServer) handleLoki(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// NOTE: This code is copied from Promtail (3478e180211c17bfe2f3f3305f668d5520f40481) with changes kept to the minimum.
+// NOTE: This code is copied from Promtail (https://github.com/grafana/loki/commit/47e2c5884f443667e64764f3fc3948f8f11abbb8) with changes kept to the minimum.
 // Only the HTTP handler functions are copied to allow for flow-specific server configuration and lifecycle management.
 func (s *PushAPIServer) handlePlaintext(w http.ResponseWriter, r *http.Request) {
 	entries := s.handler.Chan()
@@ -242,7 +242,7 @@ func (s *PushAPIServer) handlePlaintext(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// NOTE: This code is copied from Promtail (3478e180211c17bfe2f3f3305f668d5520f40481) with changes kept to the minimum.
+// NOTE: This code is copied from Promtail (https://github.com/grafana/loki/commit/47e2c5884f443667e64764f3fc3948f8f11abbb8) with changes kept to the minimum.
 // Only the HTTP handler functions are copied to allow for flow-specific server configuration and lifecycle management.
 func (s *PushAPIServer) ready(w http.ResponseWriter, r *http.Request) {
 	resp := "ready"
