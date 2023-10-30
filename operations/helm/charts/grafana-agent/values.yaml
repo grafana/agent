@@ -53,6 +53,9 @@ agent:
   # -- Port to listen for traffic on.
   listenPort: 80
 
+  # --  Base path where the UI is exposed.
+  uiPathPrefix: /
+
   # -- Enables sending Grafana Labs anonymous usage stats to help improve Grafana
   # Agent.
   enableReporting: true

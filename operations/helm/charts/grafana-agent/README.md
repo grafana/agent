@@ -60,6 +60,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.resources | object | `{}` | Resource requests and limits to apply to the Grafana Agent container. |
 | agent.securityContext | object | `{}` | Security context to apply to the Grafana Agent container. |
 | agent.storagePath | string | `"/tmp/agent"` | Path to where Grafana Agent stores data (for example, the Write-Ahead Log). By default, data is lost between reboots. |
+| agent.uiPathPrefix | string | `"/"` | Base path where the UI is exposed. |
 | configReloader.customArgs | list | `[]` | Override the args passed to the container. |
 | configReloader.enabled | bool | `true` | Enables automatically reloading when the agent config changes. |
 | configReloader.image.digest | string | `""` | SHA256 digest of image to use for config reloading (either in format "sha256:XYZ" or "XYZ"). When set, will override `configReloader.image.tag` |

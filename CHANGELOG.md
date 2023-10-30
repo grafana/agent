@@ -81,6 +81,12 @@ Main (unreleased)
   created by the spanmetrics processor to grow unbounded. Only static mode has this issue. Flow mode's
   `otelcol.connector.spanmetrics` does not have this bug. (@nijave)
 
+- Prevent logging errors on normal shutdown in `loki.source.journal`. (@wildum)
+
+- Break on iterate journal failure in `loki.source.journal`. (@wildum)
+
+- Fix file descriptor leak in `loki.source.journal`. (@wildum)
+
 - Fixed a bug in River where passing a non-string key to an object (such as
   `{}[true]`) would incorrectly report that a number type was expected instead. (@rfratto)
 
@@ -97,6 +103,13 @@ Main (unreleased)
 
 - Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode,
   which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
+
+- Improve detection of rolled log files in `loki.source.kubernetes` and
+  `loki.source.podlogs` (@slim-bean).
+
+- Support clustering in `loki.source.kubernetes` (@slim-bean).
+
+- Support clustering in `loki.source.podlogs` (@rfratto).
 
 v0.37.3 (2023-10-26)
 -----------------
