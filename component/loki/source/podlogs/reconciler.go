@@ -133,8 +133,6 @@ func distributeTargets(c cluster.Cluster, targets []*kubetail.Target) []*kubetai
 
 	res := make([]*kubetail.Target, 0, (len(targets)+1)/len(c.Peers()))
 
-	// TODO(@tpaschalis): Make sure OpReadWrite is the correct operation;
-	// eg. this determines how clustering behaves when nodes are shutting down.
 	for _, target := range targets {
 		peers, err := c.Lookup(shard.StringKey(target.Labels().String()), 1, shard.OpReadWrite)
 		if err != nil {
