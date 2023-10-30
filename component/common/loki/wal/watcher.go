@@ -25,10 +25,6 @@ const (
 	debug = false
 )
 
-var (
-	ErrIgnorable = fmt.Errorf("ignore me") // ignorable error used when Watcher is replaying WAL segments
-)
-
 // Based in the implementation of prometheus WAL watcher
 // https://github.com/prometheus/prometheus/blob/main/tsdb/wlog/watcher.go. Includes some changes to make it suitable
 // for log WAL entries, but also, the writeTo surface has been implemented according to the actions necessary for
@@ -143,8 +139,7 @@ func (w *Watcher) mainLoop() {
 	}
 }
 
-// Run the watcher, which will tail the WAL until the quit channel is closed
-// or an error case is hit.
+// Run the watcher, which will tail the WAL until the quit channel is closed or an error case is hit.
 func (w *Watcher) run() error {
 	_, lastSegment, err := w.firstAndLast()
 	if err != nil {
@@ -153,13 +148,15 @@ func (w *Watcher) run() error {
 
 	currentSegment := lastSegment
 
-	// TODO(thepalbi): taking as convention that the segment number stored in the marker is the last read completely
-	if nextToSavedSegment, err := w.findSegmentForIndex(w.savedSegment); w.savedSegment != -1 && err == nil {
-		// if the marker contains a valid segment number stored, and we correctly find the segment that follows that one,
-		// start tailing from there.
-		currentSegment = nextToSavedSegment
+	// if the marker contains a valid segment number stored, and we correctly find the segment that follows that one,
+	// start tailing from there.
+	if nextToMarkedSegment, err := w.findNextSegmentFor(w.savedSegment); w.savedSegment != -1 && err == nil {
+		currentSegment = nextToMarkedSegment
+		// keep a separate metric that will help us track when the segment in the marker is used. This should be considered
+		// a replay event
+		w.metrics.replaySegment.WithLabelValues(w.id).Set(float64(currentSegment))
 	} else {
-		level.Debug(w.logger).Log("msg", fmt.Sprintf("failed to find segment for saved index %d", w.savedSegment), "err", err)
+		level.Debug(w.logger).Log("msg", fmt.Sprintf("failed to find segment for marked index %d", w.savedSegment), "err", err)
 	}
 
 	level.Debug(w.logger).Log("msg", "Tailing WAL", "currentSegment", currentSegment, "lastSegment", lastSegment)
@@ -184,23 +181,6 @@ func (w *Watcher) run() error {
 	return nil
 }
 
-// findSegmentForIndex finds the first segment greater than or equal to index.
-func (w *Watcher) findSegmentForIndex(index int) (int, error) {
-	// TODO(thepalbi): is segs in order?
-	segs, err := readSegmentNumbers(w.walDir)
-	if err != nil {
-		return -1, err
-	}
-
-	for _, r := range segs {
-		if r > index {
-			return r, nil
-		}
-	}
-
-	return -1, errors.New("failed to find segment for index")
-}
-
 // watch will start reading from the segment identified by segmentNum.
 // If an EOF is reached and tail is true, it will keep reading for more WAL records with a wlog.LiveReader. Periodically,
 // it will check if there's a new segment, and if positive read the remaining from the current one and return.
@@ -220,10 +200,11 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 	segmentTicker := time.NewTicker(segmentCheckPeriod)
 	defer segmentTicker.Stop()
 
-	// If we're replaying the segment we need to know the size of the file to know
-	// when to return from watch and move on to the next segment.
+	// If we're replaying the segment we need to know the size of the file to know when to return from watch and move on
+	// to the next segment.
 	size := int64(math.MaxInt64)
 	if !tail {
+		// stop segment ticker since we know we'll read the segment fully, and then exit to the next segment loop
 		segmentTicker.Stop()
 		var err error
 		size, err = getSegmentSize(w.walDir, segmentNum)
@@ -397,6 +378,23 @@ func (w *Watcher) NotifyWrite() {
 		// drop wal written signal if the channel is not being listened
 		w.metrics.droppedWriteNotifications.WithLabelValues(w.id).Inc()
 	}
+}
+
+// findNextSegmentFor finds the first segment greater than or equal to index.
+func (w *Watcher) findNextSegmentFor(index int) (int, error) {
+	// TODO(thepalbi): is segs in order?
+	segs, err := readSegmentNumbers(w.walDir)
+	if err != nil {
+		return -1, err
+	}
+
+	for _, r := range segs {
+		if r > index {
+			return r, nil
+		}
+	}
+
+	return -1, errors.New("failed to find segment for index")
 }
 
 // isClosed checks in a non-blocking manner if a channel is closed or not.
