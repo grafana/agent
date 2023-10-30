@@ -16,12 +16,13 @@ description: Learn about otelcol.processor.filter
 
 `otelcol.processor.filter` accepts and filters telemetry data from other `otelcol`
 components using the [OpenTelemetry Transformation Language (OTTL)][OTTL].
+If any of the OTTL statements evaluates to true, the telemetry data is dropped.
+
 OTTL statements consist of [OTTL Converter functions][], which act on paths.
 A path is a reference to a telemetry data such as:
 * Resource attributes.
 * Instrumentation scope name.
 * Span attributes.
-If any condition is met, the telemetry data is dropped (each condition is ORed together).
 
 In addition to the [standard OTTL Converter functions][OTTL Converter functions], 
 the following metrics-only functions are used exclusively by the processor:
