@@ -220,7 +220,7 @@ The following arguments are supported:
 | `longer_than`         | `string`   | If specified, the stage drops lines whose size exceeds the configured value.                                           | `""`           | no       |
 | `drop_counter_reason` | `string`   | A custom reason to report for dropped lines.                                                                           | `"drop_stage"` | no       |
 
-The `expression` field needs to be a RE2 regex string.
+The `expression` field must be a RE2 regex string.
 * If `source` is empty or not provided, the regex attempts to match the log 
 line itself. 
 * If `source` is a single name, the regex attempts to match the corresponding
