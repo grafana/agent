@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 
 import { HealthLabel } from '../component/HealthLabel';
-import { ComponentInfo } from '../component/types';
+import { ComponentInfo, SortOrder } from '../component/types';
 
 import Table from './Table';
 
@@ -10,7 +10,7 @@ import styles from './ComponentList.module.css';
 interface ComponentListProps {
   components: ComponentInfo[];
   moduleID?: string;
-  handleSorting?: (sortField: string, sortOrder: string) => void;
+  handleSorting?: (sortField: string, sortOrder: SortOrder) => void;
 }
 
 const TABLEHEADERS = ['Health', 'ID'];
