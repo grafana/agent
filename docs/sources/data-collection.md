@@ -26,8 +26,8 @@ The usage information includes the following details:
 * Version of running Grafana Agent.
 * Operating system Grafana Agent is running on.
 * System architecture Grafana Agent is running on.
-* List of enabled feature flags.
-* List of enabled integrations.
+* List of enabled feature flags (Static mode only).
+* List of enabled integrations (Static mode only).
 
 This list may change over time. All newly reported data is documented in the CHANGELOG.
 
