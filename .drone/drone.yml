@@ -181,7 +181,7 @@ platform:
   version: "1809"
 steps:
 - commands:
-  - go test -tags="nodocker,nonetwork" ./...
+  - go test -tags="nodocker,nonetwork" $(go list ./... | grep -v integration-tests)
   image: grafana/agent-build-image:0.30.3-windows
   name: Run Go tests
 trigger:
