@@ -214,6 +214,21 @@ func (d *Discovery) buildPodTargetGroup(pod v1.Pod) *targetgroup.Group {
 	containers := append(pod.Spec.Containers, pod.Spec.InitContainers...)
 	for i, c := range containers {
 		isInit := i >= len(pod.Spec.Containers)
+
+		// If no ports are defined for the container, create an anonymous
+		// target per container.
+		if len(c.Ports) == 0 {
+			// We don't have a port so we just set the address label to the pod IP.
+			// The user has to add a port manually.
+			tg.Targets = append(tg.Targets, model.LabelSet{
+				model.AddressLabel:     lv(pod.Status.PodIP),
+				podContainerNameLabel:  lv(c.Name),
+				podContainerImageLabel: lv(c.Image),
+				podContainerIsInit:     lv(strconv.FormatBool(isInit)),
+			})
+			continue
+		}
+
 		for _, port := range c.Ports {
 			ports := strconv.FormatUint(uint64(port.ContainerPort), 10)
 			addr := net.JoinHostPort(pod.Status.PodIP, ports)

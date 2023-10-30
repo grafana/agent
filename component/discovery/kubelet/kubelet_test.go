@@ -88,3 +88,20 @@ func newPod(name, namespace string) v1.Pod {
 		},
 	}
 }
+
+func TestDiscoveryPodWithoutPod(t *testing.T) {
+	pod1 := newPod("pod-1", "namespace-1")
+	pod2 := newPod("pod-2", "namespace-2")
+	pod1.Spec.Containers[0].Ports = []v1.ContainerPort{}
+
+	podList1 := v1.PodList{
+		Items: []v1.Pod{pod1, pod2},
+	}
+
+	kubeletDiscovery, err := NewKubeletDiscovery(DefaultConfig)
+	require.NoError(t, err)
+
+	_, err = kubeletDiscovery.refresh(podList1)
+	require.NoError(t, err)
+	require.Len(t, kubeletDiscovery.discoveredPodSources, 2)
+}
