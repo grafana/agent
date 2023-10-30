@@ -42,11 +42,20 @@ there is also a set of metrics-only functions:
   * `sum([1, 2, 3, 4]) + (10 / 1) - 1`
 
 {{% admonition type="note" %}}
-Some characters inside River strings [need to be escaped][river-strings] with a `\` character.
-For example, the OTTL statement `set(description, "Sum") where type == "Sum"` 
-is written in River as `"set(description, \"Sum\") where type == \"Sum\""`.
+There are two ways of inputting strings in River configuration files:
+* Using quotation marks ([normal River strings][river-strings]). Characters such as `\` and
+  `"` will need to be escaped by preceding them with a `\` character.
+* Using backticks ([raw River strings][river-raw-strings]). No characters will need to be escaped.
+  However, it will not be possible to have backticks inside the string.
+
+For example, the OTTL statement `set(description, "Sum") where type == "Sum"` can be written as: 
+* A normal River string: `"set(description, \"Sum\") where type == \"Sum\""`.
+* A raw River string: ``` `set(description, "Sum") where type == "Sum"` ```.
+
+Raw strings are generally more convenient for writing OTTL statements.
 
 [river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
+[river-raw-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#raw-strings" >}}
 {{% /admonition %}}
 
 {{% admonition type="note" %}}
