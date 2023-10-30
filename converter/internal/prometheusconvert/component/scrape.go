@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/service/cluster"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/storage"
@@ -61,7 +62,7 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 		HTTPClientConfig:          *common.ToHttpClientConfig(&scrapeConfig.HTTPClientConfig),
 		ExtraMetrics:              false,
 		EnableProtobufNegotiation: false,
-		Clustering:                scrape.Clustering{Enabled: false},
+		Clustering:                cluster.ComponentBlock{Enabled: false},
 	}
 }
 

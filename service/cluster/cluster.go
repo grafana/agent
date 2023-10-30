@@ -355,6 +355,13 @@ type Component interface {
 	NotifyClusterChange()
 }
 
+// ComponentBlock holds common arguments for clustering settings within a
+// component. ComponentBlock is intended to be exposed as a block called
+// "clustering".
+type ComponentBlock struct {
+	Enabled bool `river:"enabled,attr"`
+}
+
 // Cluster is a read-only view of a cluster.
 type Cluster interface {
 	// Lookup determines the set of replicationFactor owners for a given key.
