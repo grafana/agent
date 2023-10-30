@@ -88,13 +88,7 @@ type Arguments struct {
 	ExtraMetrics              bool `river:"extra_metrics,attr,optional"`
 	EnableProtobufNegotiation bool `river:"enable_protobuf_negotiation,attr,optional"`
 
-	Clustering Clustering `river:"clustering,block,optional"`
-}
-
-// Clustering holds values that configure clustering-specific behavior.
-type Clustering struct {
-	// TODO(@tpaschalis) Move this block to a shared place for all components using clustering.
-	Enabled bool `river:"enabled,attr"`
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 }
 
 // SetToDefault implements river.Defaulter.

@@ -47,13 +47,7 @@ type Arguments struct {
 	Selector          config.LabelSelector `river:"selector,block,optional"`
 	NamespaceSelector config.LabelSelector `river:"namespace_selector,block,optional"`
 
-	Clustering Clustering `river:"clustering,block,optional"`
-}
-
-// Clustering holds values that configure clustering-specific behavior.
-type Clustering struct {
-	// TODO(@tpaschalis) Move this block to a shared place for all components using clustering.
-	Enabled bool `river:"enabled,attr"`
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 }
 
 // DefaultArguments holds default settings for loki.source.kubernetes.
