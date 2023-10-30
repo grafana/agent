@@ -284,6 +284,8 @@ func (conv *Converter) consumeMetric(app storage.Appender, memResource *memorySe
 		conv.consumeHistogram(app, memResource, memScope, m)
 	case pmetric.MetricTypeSummary:
 		conv.consumeSummary(app, memResource, memScope, m)
+	case pmetric.MetricTypeExponentialHistogram:
+		conv.consumeExponentialHistogram(app, memResource, memScope, m)
 	}
 }
 
@@ -296,7 +298,7 @@ func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySer
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata, metric name", metricName, "err", err)
+		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "metric name", metricName, "err", err)
 	}
 
 	for dpcount := 0; dpcount < m.Gauge().DataPoints().Len(); dpcount++ {
@@ -424,7 +426,7 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata, metric name", metricName, "err", err)
+		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "metric name", metricName, "err", err)
 	}
 
 	for dpcount := 0; dpcount < m.Sum().DataPoints().Len(); dpcount++ {
@@ -463,7 +465,7 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata, metric name", metricName, "err", err)
+		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "metric name", metricName, "err", err)
 	}
 
 	for dpcount := 0; dpcount < m.Histogram().DataPoints().Len(); dpcount++ {
@@ -475,7 +477,7 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			sumMetricVal := dp.Sum()
 
 			if err := writeSeries(app, sumMetric, dp, sumMetricVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram sum sample, metric name", metricName, "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram sum sample", "metric name", metricName, "err", err)
 			}
 		}
 
@@ -485,7 +487,7 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			countMetricVal := float64(dp.Count())
 
 			if err := writeSeries(app, countMetric, dp, countMetricVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram count sample, metric name", metricName, "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram count sample", "metric name", metricName, "err", err)
 			}
 		}
 
@@ -540,13 +542,13 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			bucketVal := float64(count)
 
 			if err := writeSeries(app, bucket, dp, bucketVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram bucket sample, metric name", metricName, "bucket", bucketLabel.Value, "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram bucket sample", "metric name", metricName, "bucket", bucketLabel.Value, "err", err)
 			}
 
 			for ; exemplarInd < len(exemplars); exemplarInd++ {
 				if exemplars[exemplarInd].DoubleValue() < bound {
 					if err := conv.writeExemplar(app, bucket, exemplars[exemplarInd]); err != nil {
-						level.Error(conv.log).Log("msg", "failed to add exemplar, metric name", metricName, "bucket", bucketLabel.Value, "err", err)
+						level.Error(conv.log).Log("msg", "failed to add exemplar", "metric name", metricName, "bucket", bucketLabel.Value, "err", err)
 					}
 				} else {
 					break
@@ -566,14 +568,63 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			infBucketVal := float64(dp.Count())
 
 			if err := writeSeries(app, infBucket, dp, infBucketVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram bucket sample, metric name", metricName, "bucket", bucketLabel.Value, "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram bucket sample", "metric name", metricName, "bucket", bucketLabel.Value, "err", err)
 			}
 
 			// Add remaining exemplars.
 			for ; exemplarInd < len(exemplars); exemplarInd++ {
 				if err := conv.writeExemplar(app, infBucket, exemplars[exemplarInd]); err != nil {
-					level.Error(conv.log).Log("msg", "failed to add exemplar, metric name", metricName, "bucket", bucketLabel.Value, "err", err)
+					level.Error(conv.log).Log("msg", "failed to add exemplar", "metric name", metricName, "bucket", bucketLabel.Value, "err", err)
 				}
+			}
+		}
+	}
+}
+
+func (conv *Converter) consumeExponentialHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
+	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
+
+	if m.ExponentialHistogram().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
+		// Drop non-cumulative histograms for now, which is permitted by the spec.
+		return
+	}
+
+	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
+		Type: textparse.MetricTypeHistogram,
+		Unit: m.Unit(),
+		Help: m.Description(),
+	})
+	if err := metricMD.WriteTo(app, time.Now()); err != nil {
+		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "metric name", metricName, "err", err)
+	}
+
+	for dpcount := 0; dpcount < m.ExponentialHistogram().DataPoints().Len(); dpcount++ {
+		dp := m.ExponentialHistogram().DataPoints().At(dpcount)
+
+		memSeries := conv.getOrCreateSeries(memResource, memScope, metricName, dp.Attributes())
+
+		ts := dp.Timestamp().AsTime()
+		if ts.Before(memSeries.Timestamp()) {
+			// Out-of-order; skip.
+			continue
+		}
+		memSeries.SetTimestamp(ts)
+
+		promHistogram, err := exponentialToNativeHistogram(dp)
+
+		if err != nil {
+			level.Error(conv.log).Log("msg", "failed to convert exponential histogram to native histogram", "metric name", metricName, "err", err)
+			continue
+		}
+
+		if err := memSeries.WriteNativeHistogramTo(app, ts, &promHistogram, nil); err != nil {
+			level.Error(conv.log).Log("msg", "failed to write native histogram", "metric name", metricName, "err", err)
+			continue
+		}
+
+		for i := 0; i < dp.Exemplars().Len(); i++ {
+			if err := conv.writeExemplar(app, memSeries, dp.Exemplars().At(i)); err != nil {
+				level.Error(conv.log).Log("msg", "failed to add exemplar", "metric name", metricName, "err", err)
 			}
 		}
 	}
@@ -615,7 +666,7 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata, metric name", metricName, "err", err)
+		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "metric name", metricName, "err", err)
 	}
 
 	for dpcount := 0; dpcount < m.Summary().DataPoints().Len(); dpcount++ {
@@ -627,7 +678,7 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 			sumMetricVal := dp.Sum()
 
 			if err := writeSeries(app, sumMetric, dp, sumMetricVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write summary sum sample, metric name", metricName, "err", err)
+				level.Error(conv.log).Log("msg", "failed to write summary sum sample", "metric name", metricName, "err", err)
 			}
 		}
 
@@ -637,7 +688,7 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 			countMetricVal := float64(dp.Count())
 
 			if err := writeSeries(app, countMetric, dp, countMetricVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram count sample, metric name", metricName, "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram count sample", "metric name", metricName, "err", err)
 			}
 		}
 
@@ -654,7 +705,7 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 			quantileVal := qp.Value()
 
 			if err := writeSeries(app, quantile, dp, quantileVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram quantile sample, metric name", metricName, "quantile", quantileLabel.Value, "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram quantile sample", "metric name", metricName, "quantile", quantileLabel.Value, "err", err)
 			}
 		}
 	}

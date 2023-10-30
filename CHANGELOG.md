@@ -46,6 +46,8 @@ Main (unreleased)
 
 - Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
 
+- Added support for native Prometheus histograms to `otelcol.exporter.prometheus` (@wildum)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was

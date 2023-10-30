@@ -2,6 +2,8 @@ package convert_test
 
 import (
 	"context"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/grafana/agent/component/otelcol/exporter/prometheus/internal/convert"
@@ -195,6 +197,100 @@ func TestConverter(t *testing.T) {
 				test_metric_seconds_sum 100.0
 				test_metric_seconds_count 333
 			`,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Exponential Histogram",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_exponential_histogram",
+							"exponential_histogram": {
+								"aggregation_temporality": 2,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"scale": 0,
+									"count": 11,
+									"sum": 158.63,
+									"positive": {
+										"offset": -1,
+										"bucket_counts": [2, 1, 3, 2, 0, 0, 3]
+									},
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 3.0,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										},
+										{
+											"time_unix_nano": 1000000003,
+											"as_double": 1.0,
+											"span_id": "cccccccccccccccc",
+											"trace_id": "cccccccccccccccccccccccccccccccc"
+										},
+										{
+											"time_unix_nano": 1000000002,
+											"as_double": 1.5,
+											"span_id": "bbbbbbbbbbbbbbbb",
+											"trace_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+										}
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			// Native histograms don't have text format yet so we compare the string representation.
+			// The tests only allow one exemplar/series because it uses a map[series]exemplar as storage. Therefore only the exemplar "bbbbbbbbbbbbbbbb" is stored.
+			expect:            `sample_count:11 sample_sum:158.63 bucket:{exemplar:{label:{name:"span_id" value:"bbbbbbbbbbbbbbbb"} label:{name:"trace_id" value:"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"} value:1.5}} schema:0 zero_threshold:1e-128 zero_count:0 positive_span:{offset:0 length:7} positive_delta:2 positive_delta:-1 positive_delta:2 positive_delta:-1 positive_delta:-2 positive_delta:0 positive_delta:3`,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Exponential Histogram 2",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_exponential_histogram_2",
+							"exponential_histogram": {
+								"aggregation_temporality": 2,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"scale": 2,
+									"count": 19,
+									"sum": 200,
+									"zero_count" : 5,
+									"zero_threshold": 0.1,
+									"positive": {
+										"offset": 3,
+										"bucket_counts": [0, 0, 0, 0, 2, 1, 1, 0, 3, 0, 0]
+									},
+									"negative": {
+										"offset": 0,
+										"bucket_counts": [0, 4, 0, 2, 3, 0, 0, 3]
+									},
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 3.0,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										}
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			// Native histograms don't have text format yet so we compare the string representation.
+			// zero_threshold is set to 1e-128 because dp.ZeroThreshold() is not yet available.
+			expect:            `sample_count:19 sample_sum:200 bucket:{exemplar:{label:{name:"span_id" value:"aaaaaaaaaaaaaaaa"} label:{name:"trace_id" value:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} value:3}} schema:2 zero_threshold:1e-128 zero_count:5 negative_span:{offset:1 length:8} negative_delta:0 negative_delta:4 negative_delta:-4 negative_delta:2 negative_delta:1 negative_delta:-3 negative_delta:0 negative_delta:3 positive_span:{offset:4 length:0} positive_span:{offset:4 length:7} positive_delta:2 positive_delta:-1 positive_delta:0 positive_delta:-1 positive_delta:3 positive_delta:-3 positive_delta:0`,
 			enableOpenMetrics: true,
 		},
 		{
@@ -861,6 +957,17 @@ func TestConverter(t *testing.T) {
 			families, err := app.MetricFamilies()
 			require.NoError(t, err)
 
+			// TODO: remove this once native histograms have text format.
+			// If you add another exponential histogram make sure that the metric name contains "exponential" (see dtobuilder.go)
+			if tc.name == "Exponential Histogram" || tc.name == "Exponential Histogram 2" {
+				require.NotEmpty(t, families)
+				require.NotNil(t, families[0])
+				require.NotEmpty(t, families[0].Metric)
+				require.NotNil(t, families[0].Metric[0].Histogram)
+				require.Equal(t, normalizeSpace(families[0].Metric[0].Histogram.String()), tc.expect)
+				return
+			}
+
 			c := testappender.Comparer{OpenMetrics: tc.enableOpenMetrics}
 			require.NoError(t, c.Compare(families, tc.expect))
 		})
@@ -876,4 +983,12 @@ var _ storage.Appendable = appenderAppendable{}
 
 func (aa appenderAppendable) Appender(context.Context) storage.Appender {
 	return aa.Inner
+}
+
+// Temporary function to remove once native histograms have text format
+// normalizeSpace takes a string and replaces multiple spaces with a single space,
+// and trims leading and trailing spaces.
+func normalizeSpace(str string) string {
+	space := regexp.MustCompile(`\s+`)
+	return strings.TrimSpace(space.ReplaceAllString(str, " "))
 }
