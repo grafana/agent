@@ -10,3 +10,6 @@ integrations:
     instance: "default"
     autoscrape:
       metrics_instance: "default"
+    extra_labels:
+      test_label: test_label_value
+      test_label_2: test_label_value_2

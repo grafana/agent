@@ -43,6 +43,7 @@ import (
 	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/model/relabel"
 )
 
 type IntegrationsConfigBuilder struct {
@@ -212,15 +213,26 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 }
 
 func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.MetricsConfig, name string, extraTargets []discovery.Target) {
+	var relabelConfigs []*relabel.Config
+
+	for _, extraLabel := range commonConfig.ExtraLabels {
+		defaultConfig := relabel.DefaultRelabelConfig
+		relabelConfig := &defaultConfig
+		relabelConfig.SourceLabels = []model.LabelName{"__address__"}
+		relabelConfig.TargetLabel = extraLabel.Name
+		relabelConfig.Replacement = extraLabel.Value
+
+		relabelConfigs = append(relabelConfigs, relabelConfig)
+	}
+
+	commonConfig.ApplyDefaults(b.cfg.Integrations.ConfigV2.Metrics.Autoscrape)
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
 	scrapeConfig.RelabelConfigs = commonConfig.Autoscrape.RelabelConfigs
 	scrapeConfig.MetricRelabelConfigs = commonConfig.Autoscrape.MetricRelabelConfigs
-	// TODO extra labels - discovery.relabel to add the labels
-
-	commonConfig.ApplyDefaults(b.cfg.Integrations.ConfigV2.Metrics.Autoscrape)
 	scrapeConfig.ScrapeInterval = commonConfig.Autoscrape.ScrapeInterval
 	scrapeConfig.ScrapeTimeout = commonConfig.Autoscrape.ScrapeTimeout
+	scrapeConfig.RelabelConfigs = relabelConfigs
 
 	scrapeConfigs := []*prom_config.ScrapeConfig{&scrapeConfig}
 

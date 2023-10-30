@@ -11,8 +11,24 @@ prometheus.remote_write "metrics_default" {
 
 prometheus.exporter.agent "integrations_agent" { }
 
+discovery.relabel "integrations_agent" {
+	targets = prometheus.exporter.agent.integrations_agent.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label"
+		replacement   = "test_label_value"
+	}
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label_2"
+		replacement   = "test_label_value_2"
+	}
+}
+
 prometheus.scrape "integrations_agent" {
-	targets    = prometheus.exporter.agent.integrations_agent.targets
+	targets    = discovery.relabel.integrations_agent.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/agent"
 }
