@@ -39,11 +39,10 @@ the following metrics-only functions are used exclusively by the processor:
   * `sum([1, 2, 3, 4]) + (10 / 1) - 1`
 
 {{% admonition type="note" %}}
-Some characters inside River strings [need to be escaped][river-strings] with a `\` character.
+Raw River strings can be used to write OTTL statements.
 For example, the OTTL statement `attributes["grpc"] == true` 
-is written in River as `attributes[\"grpc\"] == true`.
+is written in River as \`attributes["grpc"] == true\`
 
-[river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
 {{% /admonition %}}
 
 {{% admonition type="note" %}}
