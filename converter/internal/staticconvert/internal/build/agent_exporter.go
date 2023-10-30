@@ -20,6 +20,8 @@ func (b *IntegrationsConfigBuilder) appendAgentExporter(config any) discovery.Ex
 	case *agent_exporter_v2.Config:
 		args = toAgentExporterV2(cfg)
 		name = cfg.Name()
+	default:
+		panic("invalid config type passed to appendAgentExporter.")
 	}
 
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, name)
