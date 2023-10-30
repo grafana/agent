@@ -2,13 +2,11 @@ package internal
 
 import (
 	"fmt"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki/wal"
 	"os"
 	"path/filepath"
-	"strconv"
-
-	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 )
 
 const (
@@ -54,7 +52,7 @@ func NewMarkerFileHandler(logger log.Logger, walDir string) (MarkerFileHandler, 
 
 // LastMarkedSegment implements wlog.Marker.
 func (mfh *markerFileHandler) LastMarkedSegment() int {
-	bb, err := os.ReadFile(mfh.lastMarkedSegmentFilePath)
+	bs, err := os.ReadFile(mfh.lastMarkedSegmentFilePath)
 	if os.IsNotExist(err) {
 		level.Warn(mfh.logger).Log("msg", "marker segment file does not exist", "file", mfh.lastMarkedSegmentFilePath)
 		return -1
@@ -63,18 +61,13 @@ func (mfh *markerFileHandler) LastMarkedSegment() int {
 		return -1
 	}
 
-	savedSegment, err := strconv.Atoi(string(bb))
+	savedSegment, err := DecodeMarkerV1(bs)
 	if err != nil {
-		level.Error(mfh.logger).Log("msg", "could not read segment marker file", "file", mfh.lastMarkedSegmentFilePath, "err", err)
+		level.Error(mfh.logger).Log("msg", "could not decode segment marker file", "file", mfh.lastMarkedSegmentFilePath, "err", err)
 		return -1
 	}
 
-	if savedSegment < 0 {
-		level.Error(mfh.logger).Log("msg", "invalid segment number inside marker file", "file", mfh.lastMarkedSegmentFilePath, "segment number", savedSegment)
-		return -1
-	}
-
-	return savedSegment
+	return int(savedSegment)
 }
 
 // MarkSegment implements MarkerHandler.
