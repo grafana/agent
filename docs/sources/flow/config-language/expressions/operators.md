@@ -115,3 +115,9 @@ arr[1]
 obj.app
 local.file.token.content
 ```
+
+If the `[ ]` operator is used to access a member of an object where the member
+doesn't exist, the resulting value is `null`.
+
+If the `.` operator is used to access a named member of an object where the
+named member doesn't exist, an error is generated.

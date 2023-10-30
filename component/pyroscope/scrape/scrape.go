@@ -81,7 +81,7 @@ type Arguments struct {
 
 	ProfilingConfig ProfilingConfig `river:"profiling_config,block,optional"`
 
-	Clustering scrape.Clustering `river:"clustering,block,optional"`
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 }
 
 type ProfilingConfig struct {

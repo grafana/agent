@@ -31,7 +31,7 @@ define one instance.
 # The Grafana Agent assumes that all folders within wal_directory are managed by
 # the agent itself. This means if you are using a PVC, you must point
 # wal_directory to a subdirectory of the PVC mount.
-[wal_directory: <string> | default = ""]
+[wal_directory: <string> | default = "data-agent/"]
 
 # Configures how long ago an abandoned (not associated with an instance) WAL
 # may be written to before being eligible to be deleted

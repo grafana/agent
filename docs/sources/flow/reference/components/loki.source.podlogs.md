@@ -143,6 +143,7 @@ selector | [selector][] | Label selector for which `PodLogs` to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which `PodLogs` to discover. | no
 namespace_selector | [selector][] | Label selector for which namespaces to discover `PodLogs` in. | no
 namespace_selector > match_expression | [match_expression][] | Label selector expression for which namespaces to discover `PodLogs` in. | no
+clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -155,6 +156,7 @@ inside a `client` block.
 [tls_config]: #tls_config-block
 [selector]: #selector-block
 [match_expression]: #match_expression-block
+[clustering]: #clustering-beta
 
 ### client block
 
@@ -232,6 +234,21 @@ The `operator` argument must be one of the following strings:
 
 Both `selector` and `namespace_selector` can make use of multiple
 `match_expression` inner blocks which are treated as AND clauses.
+
+### clustering (beta)
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Distribute log collection with other cluster nodes. | | yes
+
+When the agent is [using clustering][], and `enabled` is set to true, then this
+`loki.source.podlogs` component instance opts-in to participating in the
+cluster to distribute the load of log collection between all cluster nodes.
+
+If the agent is _not_ running in clustered mode, then the block is a no-op and
+`loki.source.podlogs` collects logs based on every PodLogs resource discovered.
+
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 
