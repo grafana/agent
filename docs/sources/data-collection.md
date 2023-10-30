@@ -26,8 +26,9 @@ The usage information includes the following details:
 * Version of running Grafana Agent.
 * Operating system Grafana Agent is running on.
 * System architecture Grafana Agent is running on.
-* List of enabled feature flags (Static mode only).
-* List of enabled integrations (Static mode only).
+* List of enabled feature flags ([Static] mode only).
+* List of enabled integrations ([Static] mode only).
+* List of enabled [components][] ([Flow] mode only).
 
 This list may change over time. All newly reported data is documented in the CHANGELOG.
 
@@ -37,5 +38,11 @@ You can use the `-disable-reporting` [command line flag][] to disable the report
 
 {{% docs/reference %}}
 [command line flag]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[command line flag]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/flow/reference/cli/run.md"
+[command line flag]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
+[components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+[Static]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static"
+[Static]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static
+[Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow"
+[Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow"
 {{% /docs/reference %}}
