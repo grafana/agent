@@ -30,6 +30,8 @@ type tailerTask struct {
 
 var _ runner.Task = (*tailerTask)(nil)
 
+const maxTailerLifetime = 1 * time.Hour
+
 func (tt *tailerTask) Hash() uint64 { return tt.Target.Hash() }
 
 func (tt *tailerTask) Equals(other runner.Task) bool {
@@ -127,7 +129,7 @@ func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {
 	// Set a maximum lifetime of the tail to ensure that connections are
 	// reestablished. This avoids an issue where the Kubernetes API server stops
 	// responding with new logs while the connection is kept open.
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Hour)
+	ctx, cancel := context.WithTimeout(ctx, maxTailerLifetime)
 	defer cancel()
 
 	var (
@@ -167,9 +169,51 @@ func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {
 	if err != nil {
 		return err
 	}
+
+	// Create a new rolling average calculator to determine the average delta
+	// time between log entries.
+	//
+	// Here, we track the most recent 10,000 delta times to compute a fairly
+	// accurate average. If there are less than 100 deltas stored, the average
+	// time defaults to 1h.
+	//
+	// The computed average will never be less than the minimum of 2s.
+	calc := newRollingAverageCalculator(10000, 100, 2*time.Second, maxTailerLifetime)
+
 	go func() {
-		<-ctx.Done()
-		_ = stream.Close()
+		rolledFileTicker := time.NewTicker(1 * time.Second)
+		defer func() {
+			rolledFileTicker.Stop()
+			_ = stream.Close()
+		}()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-rolledFileTicker.C:
+				// Versions of Kubernetes which do not contain
+				// kubernetes/kubernetes#115702 will fail to detect rolled log files
+				// and stop sending logs to us.
+				//
+				// To work around this, we use a rolling average to determine how
+				// frequent we usually expect to see entries. If 3x the normal delta has
+				// elapsed, we'll restart the tailer.
+				//
+				// False positives here are acceptable, but false negatives mean that
+				// we'll have a larger spike of missing logs until we detect a rolled
+				// file.
+				avg := calc.GetAverage()
+				last := calc.GetLast()
+				if last.IsZero() {
+					continue
+				}
+				s := time.Since(last)
+				if s > avg*3 {
+					level.Info(t.log).Log("msg", "have not seen a log line in 3x average time between lines, closing and re-opening tailer", "rolling_average", avg, "time_since_last", s)
+					return
+				}
+			}
+		}
 	}()
 
 	level.Info(t.log).Log("msg", "opened log stream", "start time", lastReadTime)
@@ -183,6 +227,8 @@ func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {
 		// Try processing the line before handling the error, since data may still
 		// be returned alongside an EOF.
 		if len(line) != 0 {
+			calc.AddTimestamp(time.Now())
+
 			entryTimestamp, entryLine := parseKubernetesLog(line)
 			if !entryTimestamp.After(lastReadTime) {
 				continue

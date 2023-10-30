@@ -12,6 +12,8 @@ import (
 	"github.com/grafana/agent/component/loki/source/kubernetes/kubetail"
 	monitoringv1alpha2 "github.com/grafana/agent/component/loki/source/podlogs/internal/apis/monitoring/v1alpha2"
 	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	promlabels "github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -25,12 +27,14 @@ import (
 // The reconciler reconciles the state of PodLogs on Kubernetes with targets to
 // collect logs from.
 type reconciler struct {
-	log    log.Logger
-	tailer *kubetail.Manager
+	log     log.Logger
+	tailer  *kubetail.Manager
+	cluster cluster.Cluster
 
 	reconcileMut             sync.RWMutex
 	podLogsSelector          labels.Selector
 	podLogsNamespaceSelector labels.Selector
+	shouldDistribute         bool
 
 	debugMut  sync.RWMutex
 	debugInfo []DiscoveredPodLogs
@@ -38,10 +42,11 @@ type reconciler struct {
 
 // newReconciler creates a new reconciler which synchronizes targets with the
 // provided tailer whenever Reconcile is called.
-func newReconciler(l log.Logger, tailer *kubetail.Manager) *reconciler {
+func newReconciler(l log.Logger, tailer *kubetail.Manager, cluster cluster.Cluster) *reconciler {
 	return &reconciler{
-		log:    l,
-		tailer: tailer,
+		log:     l,
+		tailer:  tailer,
+		cluster: cluster,
 
 		podLogsSelector:          labels.Everything(),
 		podLogsNamespaceSelector: labels.Everything(),
@@ -55,6 +60,21 @@ func (r *reconciler) UpdateSelectors(podLogs, namespace labels.Selector) {
 
 	r.podLogsSelector = podLogs
 	r.podLogsNamespaceSelector = namespace
+}
+
+// SetDistribute configures whether targets are distributed amongst the cluster.
+func (r *reconciler) SetDistribute(distribute bool) {
+	r.reconcileMut.Lock()
+	defer r.reconcileMut.Unlock()
+
+	r.shouldDistribute = distribute
+}
+
+func (r *reconciler) getShouldDistribute() bool {
+	r.reconcileMut.RLock()
+	defer r.reconcileMut.RUnlock()
+
+	return r.shouldDistribute
 }
 
 // Reconcile synchronizes the set of running kubetail targets with the set of
@@ -90,6 +110,11 @@ func (r *reconciler) Reconcile(ctx context.Context, cli client.Client) error {
 		newDebugInfo = append(newDebugInfo, discoveredPodLogs)
 	}
 
+	// Distribute targets if clustering is enabled.
+	if r.getShouldDistribute() {
+		newTasks = distributeTargets(r.cluster, newTasks)
+	}
+
 	if err := r.tailer.SyncTargets(ctx, newTasks); err != nil {
 		level.Error(r.log).Log("msg", "failed to apply new tailers to run", "err", err)
 	}
@@ -99,6 +124,29 @@ func (r *reconciler) Reconcile(ctx context.Context, cli client.Client) error {
 	r.debugMut.Unlock()
 
 	return nil
+}
+
+func distributeTargets(c cluster.Cluster, targets []*kubetail.Target) []*kubetail.Target {
+	if c == nil {
+		return targets
+	}
+
+	res := make([]*kubetail.Target, 0, (len(targets)+1)/len(c.Peers()))
+
+	for _, target := range targets {
+		peers, err := c.Lookup(shard.StringKey(target.Labels().String()), 1, shard.OpReadWrite)
+		if err != nil {
+			// This can only fail in case we ask for more owners than the
+			// available peers. This will never happen, but in any case we fall
+			// back to owning the target ourselves.
+			res = append(res, target)
+		}
+		if peers[0].Self {
+			res = append(res, target)
+		}
+	}
+
+	return res
 }
 
 func (r *reconciler) reconcilePodLogs(ctx context.Context, cli client.Client, podLogs *monitoringv1alpha2.PodLogs) ([]*kubetail.Target, DiscoveredPodLogs) {
