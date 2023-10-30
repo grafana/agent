@@ -68,7 +68,8 @@ func newQueue(client *queueClient, size int, logger log.Logger) *queue {
 	return &q
 }
 
-// enqueue is a blocking operation to add to the send queue a batch ready to be sent.
+// enqueue adds to the send queue a batch ready to be sent. Note that if the backing queue is has no
+// remaining capacity to enqueue the batch, calling enqueue might block.
 func (q *queue) enqueue(qb queuedBatch) {
 	q.q <- qb
 }
@@ -93,10 +94,8 @@ func (q *queue) run() {
 			return
 		case qb := <-q.q:
 			// Since inside the actual send operation a context with time out is used, we should exceed that timeout
-			// instead of cancelling this send operations, since that batch has been taken out of the queue.
-			q.client.sendBatch(context.Background(), qb.TenantID, qb.Batch)
-			// mark segment data for that batch as sent, even if the send operation failed
-			qb.Batch.reportAsSentData(q.client.markerHandler)
+			// instead of cancelling this send operation, since that batch has been taken out of the queue.
+			q.sendAndReport(context.Background(), qb.TenantID, qb.Batch)
 		}
 	}
 }
@@ -118,9 +117,7 @@ func (q *queue) closeAndDrain(ctx context.Context) {
 		case qb := <-q.q:
 			// drain uses the same timeout, so if a timeout was applied to the parent context, it can cancel the underlying
 			// send operation preemptively.
-			q.client.sendBatch(ctx, qb.TenantID, qb.Batch)
-			// mark segment data for that batch as sent, even if the send operation failed
-			qb.Batch.reportAsSentData(q.client.markerHandler)
+			q.sendAndReport(ctx, qb.TenantID, qb.Batch)
 		case <-ctx.Done():
 			level.Warn(q.logger).Log("msg", "timeout exceeded while draining send queue")
 			return
@@ -130,6 +127,14 @@ func (q *queue) closeAndDrain(ctx context.Context) {
 			// if default clause is taken, it means there's nothing left in the send queue
 		}
 	}
+}
+
+// sendAndReport attempts to send the batch for the given tenant, and either way that operation succeeds or fails, reports
+// the data as sent.
+func (q *queue) sendAndReport(ctx context.Context, tenantId string, b *batch) {
+	q.client.sendBatch(ctx, tenantId, b)
+	// mark segment data for that batch as sent, even if the send operation failed
+	b.reportAsSentData(q.client.markerHandler)
 }
 
 // closeNow closes the queue, without draining batches that might be buffered to be sent.
