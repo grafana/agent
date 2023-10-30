@@ -15,7 +15,6 @@ function PageComponentList() {
         const sortValueB = sortField === 'Health' ? b.health.state.toString() : b.localID;
         if (sortValueA === null) return 1;
         if (sortValueB === null) return -1;
-        if (sortValueA === null && sortValueB == null) return 0;
         return (
           sortValueA.localeCompare(sortValueB, 'en', {
             numeric: true,
