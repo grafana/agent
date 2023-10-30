@@ -67,7 +67,7 @@ The following flags are supported:
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[data collection]: {{< relref "../../data-collection" >}}
+[data collection]: {{< relref "../../../data-collection" >}}
 [components]: {{< relref "../../concepts/components.md" >}}
 
 ## Update the configuration file
