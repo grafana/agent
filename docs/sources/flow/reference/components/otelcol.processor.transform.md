@@ -46,7 +46,7 @@ There are two ways of inputting strings in River configuration files:
 * Using quotation marks ([normal River strings][river-strings]). Characters such as `\` and
   `"` must be escaped by preceding them with a `\` character.
 * Using backticks ([raw River strings][river-raw-strings]). No characters must be escaped.
-  However, it will not be possible to have backticks inside the string.
+  However, it's not possible to have backticks inside the string.
 
 For example, the OTTL statement `set(description, "Sum") where type == "Sum"` can be written as: 
 * A normal River string: `"set(description, \"Sum\") where type == \"Sum\""`.
