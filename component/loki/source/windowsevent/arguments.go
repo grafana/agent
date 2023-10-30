@@ -1,5 +1,9 @@
 package windowsevent
 
+// NOTE: The arguments here are based on commit bde6566
+// of Promtail's arguments in Loki's repository:
+// https://github.com/grafana/loki/blob/bde65667f7c88af17b7729e3621d7bd5d1d3b45f/clients/pkg/promtail/scrapeconfig/scrapeconfig.go#L211-L255
+
 import (
 	"time"
 
