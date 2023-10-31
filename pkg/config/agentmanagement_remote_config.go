@@ -125,6 +125,10 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 }
 
 func appendExternalLabels(c *Config, externalLabels map[string]string) {
+	// Avoid doing anything if there are no external labels
+	if len(externalLabels) == 0 {
+		return
+	}
 	// Start off with the existing external labels, which will only be added to (not replaced)
 	newExternalLabels := c.Metrics.Global.Prometheus.ExternalLabels.Map()
 	for k, v := range externalLabels {
