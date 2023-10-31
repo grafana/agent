@@ -10,7 +10,7 @@ Unicode true
 
 !include nsDialogs.nsh
 !include FileFunc.nsh
-!include macros.nsis
+!include .\macros.nsis
 
 !define APPNAME     "Grafana Agent Flow"
 !define DESCRIPTION "Vendor-neutral programmable observability pipelines."
@@ -25,7 +25,7 @@ RequestExecutionLevel admin
 Name        "${APPNAME} ${VERSION}" # Shown in title bar for installer/uninstaller
 Icon        "logo.ico"
 InstallDir  "$PROGRAMFILES64\${APPNAME}"
-LicenseData ../../../LICENSE
+LicenseData ..\..\..\LICENSE
 OutFile     "${OUT}"
 
 # Pages during the installer.
@@ -49,8 +49,8 @@ Section "install"
 
   # Configure the out path and copy files to it.
   SetOutPath "$INSTDIR"
-  File "../../../dist.temp/grafana-agent-flow-windows-amd64.exe"
-  File "../../../dist.temp/grafana-agent-service-windows-amd64.exe"
+  File "..\..\..\dist.temp\grafana-agent-flow-windows-amd64.exe"
+  File "..\..\..\dist.temp\grafana-agent-service-windows-amd64.exe"
   File "logo.ico"
 
   # Create an uninstaller at the same pathFunctionEnd

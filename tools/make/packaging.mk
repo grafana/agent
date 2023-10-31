@@ -6,7 +6,7 @@ PARENT_MAKEFILE := $(firstword $(MAKEFILE_LIST))
 dist: dist-agent-binaries dist-agent-flow-binaries dist-agentctl-binaries dist-agent-packages dist-agent-flow-packages dist-agent-installer dist-agent-flow-installer
 
 clean-dist:
-	rm -rf dist dist.temp
+	rm -rf ./dist/* ./dist.temp/*
 
 # Used for passing through environment variables to sub-makes.
 #
@@ -374,6 +374,7 @@ ifeq ($(USE_CONTAINER),1)
 else
 	cp ./dist/grafana-agent-windows-amd64.exe ./packaging/grafana-agent/windows
 	cp LICENSE ./packaging/grafana-agent/windows
+	mkdir -p dist
 	makensis -V4 -DVERSION=$(VERSION) -DOUT="../../../dist/grafana-agent-installer.exe" ./packaging/grafana-agent/windows/install_script.nsis
 endif
 
@@ -382,5 +383,6 @@ dist-agent-flow-installer: dist.temp/grafana-agent-flow-windows-amd64.exe dist.t
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
+	mkdir -p dist
 	makensis -V4 -DVERSION=$(VERSION) -DOUT="../../../dist/grafana-agent-flow-installer.exe" ./packaging/grafana-agent-flow/windows/install_script.nsis
 endif
