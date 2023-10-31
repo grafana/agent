@@ -10,7 +10,7 @@ Unicode true
 
 !include nsDialogs.nsh
 !include FileFunc.nsh
-!include ./macros.nsis
+!include macros.nsis
 
 !define APPNAME     "Grafana Agent Flow"
 !define DESCRIPTION "Vendor-neutral programmable observability pipelines."
