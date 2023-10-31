@@ -135,7 +135,7 @@ PROPAGATE_VARS := \
 
 GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
 
-VERSION      := $(shell bash ./tools/image-tag)
+VERSION      ?= $(shell bash ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 VPREFIX      := github.com/grafana/agent/pkg/build
