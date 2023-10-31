@@ -54,6 +54,8 @@ Main (unreleased)
 
 - Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
  
+- NSIS: Add /CONFIG and /DISABLEREPORTING flag (@jkroepke)
+
 - Add queueing logs remote write client for `loki.write` when WAL is enabled. (@thepalbi)
 
 ### Bugfixes

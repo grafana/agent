@@ -51,6 +51,11 @@ To do a silent install of Grafana Agent on Windows, perform the following steps.
 
    Replace `PATH_TO_INSTALLER` with the path where the unzipped installer executable is located.
 
+### Silent options
+
+* `/CONFIG=<path>` Path to config file. Default: `$INSTDIR\config.river`
+* `/DISABLEREPORTING=<yes|no>` Disable Analytics of Agent. Default: `no`
+
 ## Uninstall
 
 You can uninstall Grafana Agent with Windows Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`. Uninstalling Grafana Agent stops the service and removes it from disk. This includes any configuration files in the installation directory.
