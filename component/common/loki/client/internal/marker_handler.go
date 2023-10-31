@@ -116,6 +116,8 @@ func (mh *markerHandler) runUpdatePendingData() {
 			}
 		}
 
+		// TODO: Add rate limit here to not trigger this N log N algo on every update
+
 		markableSegment := FindMarkableSegment(segmentDataCount, time.Hour)
 		if markableSegment > mh.lastMarkedSegment {
 			mh.markerFileHandler.MarkSegment(markableSegment)
@@ -124,6 +126,22 @@ func (mh *markerHandler) runUpdatePendingData() {
 	}
 }
 
+func (mh *markerHandler) Stop() {
+	mh.quit <- struct{}{}
+	mh.wg.Wait()
+}
+
+// FindMarkableSegment finds, given the summary of data updates received, and a threshold on how much time can pass for
+// a segment that hasn't received updates to be considered as "live", the segment that should be marked as last consumed.
+// The algorithm will find the highest numbered segment that is considered as "consumed", with its all predecessors
+// "consumed" as well.
+//
+// A consumed segment is one with data count of zero, meaning that there's no data left in flight for it, or it hasn't
+// received any updates for tooOldThreshold time.
+//
+// Also, while reviewing the data items in segmentDataCount, those who are consumed will be deleted to clean up space.
+//
+// This algorithm runs in O(N log N), being N the size of segmentDataCount, and allocates O(N) memory.
 func FindMarkableSegment(segmentDataCount map[int]countDataItem, tooOldThreshold time.Duration) int {
 	// N = len(segmentDataCount)
 	// alloc slice, N
@@ -157,9 +175,4 @@ func FindMarkableSegment(segmentDataCount map[int]countDataItem, tooOldThreshold
 	}
 
 	return lastZero
-}
-
-func (mh *markerHandler) Stop() {
-	mh.quit <- struct{}{}
-	mh.wg.Wait()
 }
