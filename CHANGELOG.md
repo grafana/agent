@@ -84,6 +84,8 @@ Main (unreleased)
 - Fixed a bug in River where passing a non-string key to an object (such as
   `{}[true]`) would incorrectly report that a number type was expected instead. (@rfratto)
 
+- Include Faro Measurement `type` field in `faro.receiver` Flow component and legacy `app_agent_receiver` integration. (@rlankfo)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
