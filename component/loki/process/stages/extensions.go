@@ -1,8 +1,7 @@
 package stages
 
-// This package is ported over from grafana/loki/clients/pkg/logentry/stages.
-// We aim to port the stages in steps, to avoid introducing huge amounts of
-// new code without being able to slowly review, examine and test them.
+// NOTE: This package is ported over from grafana/loki/clients/pkg/logentry/stages
+// (07cbef92268aecc0f20d1791a6df390c2df5c072) with changes kept to the minimum.
 
 import (
 	"fmt"
