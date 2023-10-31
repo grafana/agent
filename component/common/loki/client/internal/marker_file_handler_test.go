@@ -2,7 +2,7 @@ package internal
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/go-kit/log"
@@ -15,7 +15,7 @@ func TestMarkerFileHandler(t *testing.T) {
 	require.NoError(t, err)
 
 	// write first something to marker
-	markerFile := path.Join(dir, MarkerFolderName, MarkerFileName)
+	markerFile := filepath.Join(dir, MarkerFolderName, MarkerFileName)
 	err = os.WriteFile(markerFile, []byte("10"), 0o666)
 	require.NoError(t, err)
 
