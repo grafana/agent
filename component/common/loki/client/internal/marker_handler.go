@@ -2,7 +2,9 @@ package internal
 
 import (
 	"github.com/grafana/agent/component/common/loki/wal"
+	"sort"
 	"sync"
+	"time"
 )
 
 type MarkerHandler interface {
@@ -79,54 +81,82 @@ func (mh *markerHandler) UpdateSentData(segmentId, dataCount int) {
 	}
 }
 
+type countDataItem struct {
+	count      int
+	lastUpdate time.Time
+}
+
+type processDataItem struct {
+	segment    int
+	count      int
+	lastUpdate time.Time
+}
+
 // runUpdatePendingData is assumed to run in a separate routine, asynchronously keeping track of how much data each WAL
 // segment the Watcher reads from, has left to send. When a segment reaches zero, it means that is has been consumed,
 // and the highest numbered one is marked as consumed.
 func (mh *markerHandler) runUpdatePendingData() {
 	defer mh.wg.Done()
 
-	batchSegmentCount := make(map[int]int)
+	segmentDataCount := make(map[int]countDataItem)
 
 	for {
 		select {
 		case <-mh.quit:
 			return
-		case dataUpdate := <-mh.dataIOUpdate:
-			batchSegmentCount[dataUpdate.segmentId] += dataUpdate.dataCount
+		case update := <-mh.dataIOUpdate:
+			if di, ok := segmentDataCount[update.segmentId]; ok {
+				di.lastUpdate = time.Now()
+				di.count += update.dataCount
+			} else {
+				segmentDataCount[update.segmentId] = countDataItem{
+					count:      update.dataCount,
+					lastUpdate: time.Now(),
+				}
+			}
 		}
 
-		markableSegment := -1
-		for segment, count := range batchSegmentCount {
-			// TODO: If count is less than 0, then log an error and remove the entry from the map?
-			if count != 0 {
-				continue
-			}
-
-			// we know (segment, 0) is in the map
-
-			// TODO: Is it safe to assume that just because a segment is 0 inside the map,
-			//      all samples from it have been processed?
-			if segment > markableSegment {
-				markableSegment = segment
-			}
-
-			// Clean up the pending map: the current segment has been completely
-			// consumed and doesn't need to be considered for marking again.
-			delete(batchSegmentCount, segment)
-		}
-
-		// NOTE: I think this could lead to a situation where some segments are skipped. For example,
-		// consider the following situation
-		// seg   0   1   2   3   4
-		// cnt   0   0   1   0   10
-		// and lastMarkedSegment being 0, then a run in here would cause the lastMarkedSegment
-		// to be 3. while there's data in 2. But if there's data in 2, that means that there was a count
-		// error somewhere right?
+		markableSegment := FindMarkableSegment(segmentDataCount, time.Hour)
 		if markableSegment > mh.lastMarkedSegment {
 			mh.markerFileHandler.MarkSegment(markableSegment)
 			mh.lastMarkedSegment = markableSegment
 		}
 	}
+}
+
+func FindMarkableSegment(segmentDataCount map[int]countDataItem, tooOldThreshold time.Duration) int {
+	// N = len(segmentDataCount)
+	// alloc slice, N
+	orderedSegmentCounts := make([]processDataItem, 0, len(segmentDataCount))
+
+	// convert map into slice, which already has expected capacity, N
+	for seg, item := range segmentDataCount {
+		orderedSegmentCounts = append(orderedSegmentCounts, processDataItem{
+			segment:    seg,
+			count:      item.count,
+			lastUpdate: item.lastUpdate,
+		})
+	}
+
+	// sort orderedSegmentCounts, N log N
+	sort.Slice(orderedSegmentCounts, func(i, j int) bool {
+		return orderedSegmentCounts[i].segment < orderedSegmentCounts[j].segment
+	})
+
+	var lastZero = -1
+	for _, item := range orderedSegmentCounts {
+		// we consider a segment as "consumed if it's data count is zero, or the lastUpdate is too old
+		if item.count == 0 || time.Since(item.lastUpdate) > tooOldThreshold {
+			lastZero = item.segment
+			// since the segment has been consumed, clear from map
+			delete(segmentDataCount, item.segment)
+		} else {
+			// if we find a "non consumed" segment, we exit
+			break
+		}
+	}
+
+	return lastZero
 }
 
 func (mh *markerHandler) Stop() {

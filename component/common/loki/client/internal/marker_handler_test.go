@@ -43,3 +43,95 @@ func TestMarkerHandler(t *testing.T) {
 		require.Equal(t, 11, mockMFH.LastMarkedSegment())
 	})
 }
+
+func TestFindLastMarkableSegment(t *testing.T) {
+	t.Run("all segments with count zero, highest numbered should be marked", func(t *testing.T) {
+		now := time.Now()
+		data := map[int]countDataItem{
+			1: {
+				count:      0,
+				lastUpdate: now,
+			},
+			2: {
+				count:      0,
+				lastUpdate: now,
+			},
+			3: {
+				count:      0,
+				lastUpdate: now,
+			},
+			4: {
+				count:      0,
+				lastUpdate: now,
+			},
+		}
+		require.Equal(t, 4, FindMarkableSegment(data, time.Minute))
+	})
+
+	t.Run("all segments with count zero, and one too old, highest numbered should be marked", func(t *testing.T) {
+		now := time.Now()
+		data := map[int]countDataItem{
+			1: {
+				count:      0,
+				lastUpdate: now,
+			},
+			2: {
+				count:      0,
+				lastUpdate: now,
+			},
+			3: {
+				count:      10,
+				lastUpdate: now.Add(-2 * time.Minute),
+			},
+			4: {
+				count:      0,
+				lastUpdate: now,
+			},
+		}
+		require.Equal(t, 4, FindMarkableSegment(data, time.Minute))
+	})
+	t.Run("should find the zeroed segment before the last non-zero", func(t *testing.T) {
+		now := time.Now()
+		data := map[int]countDataItem{
+			1: {
+				count:      0,
+				lastUpdate: now,
+			},
+			2: {
+				count:      0,
+				lastUpdate: now,
+			},
+			3: {
+				count:      10,
+				lastUpdate: now,
+			},
+			4: {
+				count:      0,
+				lastUpdate: now,
+			},
+		}
+		require.Equal(t, 2, FindMarkableSegment(data, time.Minute))
+	})
+	t.Run("should return -1 when no segment is markable", func(t *testing.T) {
+		now := time.Now()
+		data := map[int]countDataItem{
+			1: {
+				count:      11,
+				lastUpdate: now,
+			},
+			2: {
+				count:      5,
+				lastUpdate: now,
+			},
+			3: {
+				count:      10,
+				lastUpdate: now,
+			},
+			4: {
+				count:      2,
+				lastUpdate: now,
+			},
+		}
+		require.Equal(t, -1, FindMarkableSegment(data, time.Minute))
+	})
+}
