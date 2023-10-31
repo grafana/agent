@@ -1790,6 +1790,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin 
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.87.0/go.mod h1:ybZnD0ldx1tEm6xgJ5wP5tK2x6AY8PNpTonCpOBVI6Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.87.0 h1:9MVdMcdtc+Gl0DAaeZ+PdJzskIg1K8FKuYql4h6pQC0=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.87.0/go.mod h1:NLScciQgJO4tKQ7vXqiUkzjk6O3bo2aMVkMcmYsSDQY=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0 h1:EJHxvRiZbgq25s6U+4iYSv4D4GAonfQ6hiNFxhll634=
+github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0/go.mod h1:ZSLBv4EAicncp1IfpVweKyTZWWR4Yb0deRlsDiw1eI0=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor v0.87.0 h1:mm9DXnoWNHckL0MnYdmCNOU5DOomwdGeUl9t51bQ/Ac=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/k8sattributesprocessor v0.87.0/go.mod h1:g6H0fB9TW03Lb8M+H0BXtgQp7gPncIwf3Fk73xOs9EA=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.87.0 h1:QJKdtNcsxBhG2ZwSzYRVI0oxUqBJJvhfWf0OnjHU3jY=
