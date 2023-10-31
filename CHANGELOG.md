@@ -42,7 +42,15 @@ Main (unreleased)
 - Added a new `stage.eventlogmessage` stage to `loki.process` component which
   allows to extract data from Windows Event Log. (@thampiotr)
 
-- Update version of River to support raw strings in flow using a backtick. (@erikbaranowski)
+- Update version of River:
+
+    - River now supports raw strings, which are strings surrounded by backticks
+      instead of double quotes. Raw strings can span multiple lines, and do not
+      support any escape sequences. (@erikbaranowski)
+
+    - River now permits using `[]` to access non-existent keys in an object.
+      When this is done, the access evaluates to `null`, such that `{}["foo"]
+      == null` is true. (@rfratto)
 
 - Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
  
@@ -63,9 +71,18 @@ Main (unreleased)
 - Fix validation issue with ServiceMonitors when scrape timeout is greater than interval. (@captncraig)
 
 - Static mode's spanmetrics processor will now prune histograms when the dimension cache is pruned.
-  Dimension cache was always pruned but histograms were not being pruned. This caused metric series 
+  Dimension cache was always pruned but histograms were not being pruned. This caused metric series
   created by the spanmetrics processor to grow unbounded. Only static mode has this issue. Flow mode's
   `otelcol.connector.spanmetrics` does not have this bug. (@nijave)
+
+- Prevent logging errors on normal shutdown in `loki.source.journal`. (@wildum)
+
+- Break on iterate journal failure in `loki.source.journal`. (@wildum)
+
+- Fix file descriptor leak in `loki.source.journal`. (@wildum)
+
+- Fixed a bug in River where passing a non-string key to an object (such as
+  `{}[true]`) would incorrectly report that a number type was expected instead. (@rfratto)
 
 ### Enhancements
 
@@ -78,11 +95,17 @@ Main (unreleased)
 - The `loki.source.docker` component now allows connecting to Docker daemons
   over HTTP(S) and setting up TLS credentials. (@tpaschalis)
 
-- Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode, 
+- Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode,
   which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
 
 - Added an `exclude_event_message` option to `loki.source.windowsevent` in flow mode,
   which excludes the human-friendly event message from Windows event logs. (@ptodev)
+- Improve detection of rolled log files in `loki.source.kubernetes` and
+  `loki.source.podlogs` (@slim-bean).
+
+- Support clustering in `loki.source.kubernetes` (@slim-bean).
+
+- Support clustering in `loki.source.podlogs` (@rfratto).
 
 v0.37.3 (2023-10-26)
 -----------------
@@ -105,9 +128,9 @@ v0.37.3 (2023-10-26)
 
 - Upgrade OpenTelemetry Collector packages to version 0.87 (@ptodev):
   - `otelcol.receiver.kafka` has a new `header_extraction` block to extract headers from Kafka records.
-  - `otelcol.receiver.kafka` has a new `version` argument to change the version of 
+  - `otelcol.receiver.kafka` has a new `version` argument to change the version of
     the SASL Protocol for SASL authentication.
-  
+
 v0.37.2 (2023-10-16)
 -----------------
 

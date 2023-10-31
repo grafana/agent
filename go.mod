@@ -61,7 +61,7 @@ require (
 	github.com/grafana/pyroscope/api v0.2.0
 	github.com/grafana/pyroscope/ebpf v0.3.0
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
-	github.com/grafana/river v0.2.0
+	github.com/grafana/river v0.3.0
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/tail v0.0.0-20230510142333-77b18831edf0
 	github.com/grafana/vmware_exporter v0.0.4-beta
@@ -81,7 +81,7 @@ require (
 	github.com/hashicorp/vault/api/auth/ldap v0.2.0
 	github.com/hashicorp/vault/api/auth/userpass v0.2.0
 	github.com/heroku/x v0.0.61
-	github.com/iamseth/oracledb_exporter v0.0.0-20230504204552-f801dc432dcf
+	github.com/iamseth/oracledb_exporter v0.0.0-20230918193147-95e16f21ceee
 	github.com/influxdata/go-syslog/v3 v3.0.1-0.20210608084020-ac565dc76ba6
 	github.com/jaegertracing/jaeger v1.48.0
 	github.com/jmespath/go-jmespath v0.4.0
@@ -157,7 +157,7 @@ require (
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
 	github.com/rs/cors v1.10.1
 	github.com/shirou/gopsutil/v3 v3.23.9
-	github.com/sijms/go-ora/v2 v2.7.3
+	github.com/sijms/go-ora/v2 v2.7.6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/cobra v1.7.0
