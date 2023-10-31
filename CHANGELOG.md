@@ -92,6 +92,9 @@ Main (unreleased)
 
 - Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
 
+- Added support for comma-separated list of fields in `source` option and a 
+  new `separator` option in `drop` stage of `loki.process`. (@thampiotr)
+
 - The `loki.source.docker` component now allows connecting to Docker daemons
   over HTTP(S) and setting up TLS credentials. (@tpaschalis)
 
