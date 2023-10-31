@@ -38,11 +38,11 @@ You can use the `-disable-reporting` [command line flag][] to disable the report
 
 {{% docs/reference %}}
 [command line flag]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[command line flag]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[command line flag]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
 [components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+[components]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
 [Static]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static"
 [Static]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static
 [Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow"
-[Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow"
+[Flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow"
 {{% /docs/reference %}}
