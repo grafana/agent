@@ -379,7 +379,7 @@ else
 endif
 
 .PHONY: dist-agent-flow-installer
-dist-agent-flow-installer:
+dist-agent-flow-installer: dist.temp/grafana-agent-flow-windows-amd64.exe dist.temp/grafana-agent-service-windows-amd64.exe
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
