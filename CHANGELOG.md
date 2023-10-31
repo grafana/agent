@@ -56,6 +56,8 @@ Main (unreleased)
  
 - Add queueing logs remote write client for `loki.write` when WAL is enabled. (@thepalbi)
 
+- Add a Prometheus Target dashboard to agent-flow-mixin (@Paul424)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
