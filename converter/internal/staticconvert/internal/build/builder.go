@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter/diag"
@@ -202,7 +203,7 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 
 		switch itg := integration.(type) {
 		case *agent_exporter_v2.Config:
-			exports = b.appendAgentExporter(itg)
+			exports = b.appendAgentExporterV2(itg)
 			commonConfig = itg.Common
 		}
 
@@ -280,4 +281,15 @@ func splitByCommaNullOnEmpty(s string) []string {
 	}
 
 	return strings.Split(s, ",")
+}
+
+func (b *IntegrationsConfigBuilder) appendExporterBlock(args component.Arguments, name string, exporterName string) discovery.Exports {
+	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, name)
+	b.f.Body().AppendBlock(common.NewBlockWithOverride(
+		[]string{"prometheus", "exporter", exporterName},
+		compLabel,
+		args,
+	))
+
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.%s.%s.targets", exporterName, compLabel))
 }
