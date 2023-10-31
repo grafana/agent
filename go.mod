@@ -635,6 +635,7 @@ require (
 	github.com/leoluk/perflib_exporter v0.2.0 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
+	github.com/natefinch/atomic v1.0.1 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.87.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kafka v0.87.0 // indirect
 	github.com/openshift/api v3.9.0+incompatible // indirect

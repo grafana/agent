@@ -1,10 +1,12 @@
 package internal
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki/wal"
+	"github.com/natefinch/atomic"
 	"os"
 	"path/filepath"
 )
@@ -78,7 +80,7 @@ func (mfh *markerFileHandler) MarkSegment(segment int) {
 		return
 	}
 
-	if err := mfh.swapMarkerFile(encodedMarker); err != nil {
+	if err := mfh.atomicallyWriteMarker(encodedMarker); err != nil {
 		level.Error(mfh.logger).Log("msg", "could not replace segment marker file", "file", mfh.lastMarkedSegmentFilePath, "err", err)
 		return
 	}
@@ -86,34 +88,10 @@ func (mfh *markerFileHandler) MarkSegment(segment int) {
 	level.Debug(mfh.logger).Log("msg", "updated segment marker file", "file", mfh.lastMarkedSegmentFilePath, "segment", segment)
 }
 
-func (mfh *markerFileHandler) swapMarkerFile(bs []byte) error {
-	tempFile, err := os.CreateTemp(mfh.lastMarkedSegmentDir, "segment*")
-	if err != nil {
-		return err
-	}
-
-	// upon exit attempt to close the temporal file handler and remove the file
-	defer func() {
-		if err := tempFile.Close(); err != nil {
-			level.Warn(mfh.logger).Log("msg", "failed to close temporary marker file handler")
-			// TODO: should we try to remove the temporal file either way
-			return
-		}
-		if err := os.Remove(tempFile.Name()); err != nil {
-			level.Warn(mfh.logger).Log("msg", "failed to remove temporary marker file")
-		}
-	}()
-
-	written, err := tempFile.Write(bs)
-	if err != nil {
-		return fmt.Errorf("failed to write to temporal marker file: %w", err)
-	} else if written != len(bs) {
-		return fmt.Errorf("failed to write whole marker. written %d, expected %d", written, len(bs))
-	}
-
-	if err := os.Rename(tempFile.Name(), mfh.lastMarkedSegmentFilePath); err != nil {
-		return fmt.Errorf("failed to swap marker files: %w", err)
-	}
-
-	return nil
+// atomicallyWriteMarker attempts to perform an atomic write of the marker contents. This is delegated to
+// https://github.com/natefinch/atomic/blob/master/atomic.go, that first handles atomic file renaming for UNIX and
+// Windows systems. Also, atomic.WriteFile will first write the contents to a temporal file, and then perform the atomic
+// rename, swapping the marker, or not at all.
+func (mfh *markerFileHandler) atomicallyWriteMarker(bs []byte) error {
+	return atomic.WriteFile(mfh.lastMarkedSegmentFilePath, bytes.NewReader(bs))
 }
