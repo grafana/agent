@@ -6,13 +6,15 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	pc "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/model/labels"
 	"gopkg.in/yaml.v2"
 )
 
 type (
 	RemoteConfig struct {
-		BaseConfig BaseConfigContent `json:"base_config" yaml:"base_config"`
-		Snippets   []Snippet         `json:"snippets" yaml:"snippets"`
+		BaseConfig    BaseConfigContent `json:"base_config" yaml:"base_config"`
+		Snippets      []Snippet         `json:"snippets" yaml:"snippets"`
+		AgentMetadata AgentMetadata     `json:"agent_metadata,omitempty" yaml:"agent_metadata,omitempty"`
 	}
 
 	// BaseConfigContent is the content of a base config
@@ -22,6 +24,10 @@ type (
 	Snippet struct {
 		// Config is the snippet of config to be included.
 		Config string `json:"config" yaml:"config"`
+	}
+
+	AgentMetadata struct {
+		ExternalLabels map[string]string `json:"external_labels,omitempty" yaml:"external_labels,omitempty"`
 	}
 
 	// SnippetContent defines the internal structure of a snippet configuration.
@@ -63,6 +69,7 @@ func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	appendExternalLabels(&c, rc.AgentMetadata.ExternalLabels)
 	return &c, nil
 }
 
@@ -115,4 +122,15 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 
 	c.Integrations.ConfigV1.Integrations = append(c.Integrations.ConfigV1.Integrations, integrationConfigs.Integrations...)
 	return nil
+}
+
+func appendExternalLabels(c *Config, externalLabels map[string]string) {
+	// Start off with the existing external labels, which will only be added to (not replaced)
+	newExternalLabels := c.Metrics.Global.Prometheus.ExternalLabels.Map()
+	for k, v := range externalLabels {
+		if _, ok := newExternalLabels[k]; !ok {
+			newExternalLabels[k] = v
+		}
+	}
+	c.Metrics.Global.Prometheus.ExternalLabels = labels.FromMap(newExternalLabels)
 }
