@@ -294,11 +294,15 @@ otelcol.processor.attributes "default" {
     // then the following attributes will be inserted:
     // new_example_user_key: 12345678
     // version: v1
+    //
     // Note: Similar to the Span Processor, if a target key already exists,
     // it will be updated.
+    //
+    // Note: The regex pattern is enclosed in backticks instead of quotation marks.
+    // This constitutes a raw River string, and lets us avoid the need to escape backslash characters.
     action {
         key = "example_user_key"
-        pattern = "\\/api\\/v1\\/document\\/(?P<new_example_user_key>.*)\\/update\\/(?P<version>.*)$"
+        pattern = `\/api\/v1\/document\/(?P<new_user_key>.*)\/update\/(?P<version>.*)$`
         action = "extract"
     }
 
