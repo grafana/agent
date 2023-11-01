@@ -24,11 +24,20 @@ import (
 )
 
 // Convert implements a Static config converter.
-func Convert(in []byte) ([]byte, diag.Diagnostics) {
+//
+// extraArgs are supported to be passed along to the Static config parser such
+// as enabling integrations-next.
+func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
+	// diags := validateExtraArgs(extraArgs)
+	// if len(diags) > 0 {
+	// 	return nil, diags
+	// }
 
-	fs := flag.NewFlagSet("convert", flag.ExitOnError)
-	staticConfig, err := config.LoadFromFunc(fs, []string{"-config.file", "convert", "-config.expand-env"}, func(_, _ string, expandEnvVars bool, c *config.Config) error {
+	fs := flag.NewFlagSet("convert", flag.ContinueOnError)
+	args := []string{"-config.file", "convert", "-config.expand-env"}
+	args = append(args, extraArgs...)
+	staticConfig, err := config.LoadFromFunc(fs, args, func(_, _ string, expandEnvVars bool, c *config.Config) error {
 		return config.LoadBytes(in, expandEnvVars, c)
 	})
 
@@ -65,8 +74,7 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 
 	diags.AddAll(appendStaticPrometheus(f, staticConfig))
 	diags.AddAll(appendStaticPromtail(f, staticConfig))
-	diags.AddAll(appendStaticIntegrationsV1(f, staticConfig))
-	// TODO integrations v2
+	diags.AddAll(appendStaticIntegrations(f, staticConfig))
 	// TODO otel
 
 	diags.AddAll(validate(staticConfig))
@@ -129,6 +137,12 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 		promtailConfig.TargetConfig = logConfig.TargetConfig
 		promtailConfig.LimitsConfig = logConfig.LimitsConfig
 
+		// We are using the
+		err := promtailConfig.ServerConfig.Config.LogLevel.Set("info")
+		if err != nil {
+			panic("unable to set default promtail log level from the static converter.")
+		}
+
 		// We need to set this when empty so the promtail converter doesn't think it has been overridden
 		if promtailConfig.Global == (promtail_config.GlobalConfig{}) {
 			promtailConfig.Global.FileWatch = file.DefaultWatchConig
@@ -154,10 +168,10 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 	return diags
 }
 
-func appendStaticIntegrationsV1(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+func appendStaticIntegrations(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
+	b := build.NewIntegrationsConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
 	b.Build()
 
 	return diags

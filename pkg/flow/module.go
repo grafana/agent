@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/river/scanner"
 	"github.com/prometheus/client_golang/prometheus"
@@ -46,9 +47,6 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 	if id != "" {
 		fullPath = path.Join(fullPath, id)
 	}
-	if _, found := m.modules[fullPath]; found {
-		return nil, fmt.Errorf("id %s already exists", id)
-	}
 
 	mod := newModule(&moduleOptions{
 		ID:                      fullPath,
@@ -57,26 +55,33 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 		parent:                  m,
 	})
 
-	if err := m.o.ModuleRegistry.Register(fullPath, mod); err != nil {
-		return nil, err
-	}
-
-	m.modules[fullPath] = struct{}{}
 	return mod, nil
 }
 
-func (m *moduleController) removeID(id string) {
+func (m *moduleController) removeModule(mod *module) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
-	delete(m.modules, id)
-	m.o.ModuleRegistry.Unregister(id)
+	m.o.ModuleRegistry.Unregister(mod.o.ID)
+	delete(m.modules, mod.o.ID)
+}
+
+func (m *moduleController) addModule(mod *module) error {
+	m.mut.Lock()
+	defer m.mut.Unlock()
+	if err := m.o.ModuleRegistry.Register(mod.o.ID, mod); err != nil {
+		level.Error(m.o.Logger).Log("msg", "error registering module", "id", mod.o.ID, "err", err)
+		return err
+	}
+	m.modules[mod.o.ID] = struct{}{}
+	return nil
 }
 
 // ModuleIDs implements [controller.ModuleController].
 func (m *moduleController) ModuleIDs() []string {
 	m.mut.RLock()
 	defer m.mut.RUnlock()
+
 	return maps.Keys(m.modules)
 }
 
@@ -86,7 +91,7 @@ type module struct {
 }
 
 type moduleOptions struct {
-	ID     string
+	ID     string // ID is the full name including all parents, "module.file.example.prometheus.remote_write.id".
 	export component.ExportFunc
 	parent *moduleController
 	*moduleControllerOptions
@@ -135,9 +140,14 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 // will be run until Run is called.
 //
 // Run blocks until the provided context is canceled.
-func (c *module) Run(ctx context.Context) {
-	defer c.o.parent.removeID(c.o.ID)
+func (c *module) Run(ctx context.Context) error {
+	if err := c.o.parent.addModule(c); err != nil {
+		return err
+	}
+	defer c.o.parent.removeModule(c)
+
 	c.f.Run(ctx)
+	return nil
 }
 
 // moduleControllerOptions holds static options for module controller.

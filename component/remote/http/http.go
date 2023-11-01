@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	common_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 )

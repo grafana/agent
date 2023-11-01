@@ -42,6 +42,7 @@ func TestEventLogger(t *testing.T) {
 		PollInterval:         10 * time.Millisecond,
 		ExcludeEventData:     false,
 		ExcludeUserdata:      false,
+		ExcludeEventMessage:  false,
 		UseIncomingTimestamp: false,
 		ForwardTo:            []loki.LogsReceiver{rec},
 		Labels:               map[string]string{"job": "windows"},

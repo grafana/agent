@@ -1,6 +1,6 @@
 package kafkatarget
 
-// This code is copied from Promtail. The kafkatarget package is used to
+// This code is copied from Promtail (https://github.com/grafana/loki/commit/065bee7e72b00d800431f4b70f0d673d6e0e7a2b). The kafkatarget package is used to
 // configure and run the targets that can read kafka entries and forward them
 // to other loki components.
 
@@ -10,8 +10,8 @@ import (
 
 	"github.com/IBM/sarama"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"

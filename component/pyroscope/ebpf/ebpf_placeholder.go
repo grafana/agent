@@ -1,12 +1,12 @@
-//go:build !linux
+//go:build linux && !arm64 && !amd64
 
 package ebpf
 
 import (
 	"context"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {

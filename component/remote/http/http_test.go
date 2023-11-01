@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/log/level"
 	http_component "github.com/grafana/agent/component/remote/http"
 	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/river"

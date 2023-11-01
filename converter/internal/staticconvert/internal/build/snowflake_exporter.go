@@ -6,12 +6,11 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/snowflake"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendSnowflakeExporter(config *snowflake_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendSnowflakeExporter(config *snowflake_exporter.Config) discovery.Exports {
 	args := toSnowflakeExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
@@ -20,7 +19,7 @@ func (b *IntegrationsV1ConfigBuilder) appendSnowflakeExporter(config *snowflake_
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.snowflake.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.snowflake.%s.targets", compLabel))
 }
 
 func toSnowflakeExporter(config *snowflake_exporter.Config) *snowflake.Arguments {

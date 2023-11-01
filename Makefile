@@ -15,8 +15,9 @@
 ##
 ## Targets for running tests:
 ##
-##   test  Run tests
-##   lint  Lint code
+##   test              Run tests
+##   lint              Lint code
+##   integration-tests Run integration tests
 ##
 ## Targets for building binaries:
 ##
@@ -50,16 +51,17 @@
 ##
 ## Targets for generating assets:
 ##
-##   generate             Generate everything.
-##   generate-crds        Generate Grafana Agent Operator CRDs ands its documentation.
-##   generate-drone       Generate the Drone YAML from Jsonnet.
-##   generate-helm-docs   Generate Helm chart documentation.
-##   generate-helm-tests  Generate Helm chart tests.
-##   generate-manifests   Generate production/kubernetes YAML manifests.
-##   generate-dashboards  Generate dashboards in example/docker-compose after
-##                        changing Jsonnet.
-##   generate-protos      Generate protobuf files.
-##   generate-ui          Generate the UI assets.
+##   generate                 Generate everything.
+##   generate-crds            Generate Grafana Agent Operator CRDs ands its documentation.
+##   generate-drone           Generate the Drone YAML from Jsonnet.
+##   generate-helm-docs       Generate Helm chart documentation.
+##   generate-helm-tests      Generate Helm chart tests.
+##   generate-manifests       Generate production/kubernetes YAML manifests.
+##   generate-dashboards      Generate dashboards in example/docker-compose after
+##                            changing Jsonnet.
+##   generate-protos          Generate protobuf files.
+##   generate-ui              Generate the UI assets.
+##   generate-versioned-files Generate versioned files.
 ##
 ## Other targets:
 ##
@@ -171,12 +173,16 @@ lint: agentlint
 # We have to run test twice: once for all packages with -race and then once
 # more without -race for packages that have known race detection issues.
 test:
-	$(GO_ENV) go test $(GO_FLAGS) -race ./...
+	$(GO_ENV) go test $(GO_FLAGS) -race $(shell go list ./... | grep -v /integration-tests/)
 	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s ./component/otelcol/processor/tail_sampling ./component/loki/source/file
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
 	go test -tags=packaging  ./packaging
+
+.PHONY: integration-tests
+integration-test:
+	cd integration-tests && $(GO_ENV) go run .
 
 #
 # Targets for building binaries
@@ -280,8 +286,8 @@ smoke-image:
 # Targets for generating assets
 #
 
-.PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
-generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui
+.PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files
+generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files
 
 generate-crds:
 ifeq ($(USE_CONTAINER),1)
@@ -335,6 +341,13 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	cd ./web/ui && yarn --network-timeout=1200000 && yarn run build
+endif
+
+generate-versioned-files:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	sh ./tools/gen-versioned-files/gen-versioned-files.sh
 endif
 
 #

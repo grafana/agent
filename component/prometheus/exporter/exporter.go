@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/integrations"
 	http_service "github.com/grafana/agent/service/http"
 	"github.com/prometheus/common/model"

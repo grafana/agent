@@ -7,7 +7,7 @@ scrape_configs:
           source: string
           drop_counter_reason: "nope"
           value: penny
-          separator: "ignored"
+          separator: ","
           expression: ":joy:"
           older_than: 10m
           longer_than: 1KB
@@ -30,7 +30,7 @@ scrape_configs:
           value: penny
           longer_than: 1KB
       - drop:
-          source: [ "too", "many" ]
+          source: [ "comma", "separated" ]
           longer_than: 1KB
       - drop:
           source: "invalid_longer_than"

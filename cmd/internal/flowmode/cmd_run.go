@@ -15,7 +15,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
@@ -23,11 +22,13 @@ import (
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/labelstore"
 	otel_service "github.com/grafana/agent/service/otel"
 	uiservice "github.com/grafana/agent/service/ui"
 	"github.com/grafana/ckit/advertise"
@@ -210,7 +211,7 @@ func (fr *flowRun) Run(configPath string) error {
 		NodeName:            fr.clusterNodeName,
 		AdvertiseAddress:    fr.clusterAdvAddr,
 		ListenAddress:       fr.httpListenAddr,
-		JoinPeers:           strings.Split(fr.clusterJoinAddr, ","),
+		JoinPeers:           splitPeers(fr.clusterJoinAddr, ","),
 		DiscoverPeers:       fr.clusterDiscoverPeers,
 		RejoinInterval:      fr.clusterRejoinInterval,
 		AdvertiseInterfaces: fr.clusterAdvInterfaces,
@@ -244,6 +245,8 @@ func (fr *flowRun) Run(configPath string) error {
 		return fmt.Errorf("failed to create otel service")
 	}
 
+	labelService := labelstore.New(l)
+
 	f := flow.New(flow.Options{
 		Logger:   l,
 		Tracer:   t,
@@ -254,6 +257,7 @@ func (fr *flowRun) Run(configPath string) error {
 			uiService,
 			clusterService,
 			otelService,
+			labelService,
 		},
 	})
 
@@ -399,7 +403,7 @@ func loadFlowSource(path string, converterSourceFormat string, converterBypassEr
 	}
 	if converterSourceFormat != "flow" {
 		var diags convert_diag.Diagnostics
-		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat))
+		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat), []string{})
 		hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
 		hasCritical := hasErrorLevel(diags, convert_diag.SeverityLevelCritical)
 		if hasCritical || (!converterBypassErrors && hasError) {
@@ -429,4 +433,11 @@ func interruptContext() (context.Context, context.CancelFunc) {
 	}()
 
 	return ctx, cancel
+}
+
+func splitPeers(s, sep string) []string {
+	if len(s) == 0 {
+		return []string{}
+	}
+	return strings.Split(s, sep)
 }

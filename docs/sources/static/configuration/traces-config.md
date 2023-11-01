@@ -66,11 +66,11 @@ remote_write:
     [ protocol: <string> | default = "grpc" | supported = "grpc", "http" ]
 
     # Controls what format to use when exporting traces, in combination with protocol.
-    # protocol/format supported combinations are grpc/otlp, http/otlp and grpc/jaeger
+    # protocol/format supported combinations are grpc/otlp and http/otlp.
     # Only grpc/otlp is supported in Grafana Cloud.
-    [ format: <string> | default = "otlp" | supported = "otlp", "jaeger" ]
+    [ format: <string> | default = "otlp" | supported = "otlp" ]
 
-    # Controls whether or not TLS is required.  See https://godoc.org/google.golang.org/grpc#WithInsecure
+    # Controls whether or not TLS is required. See https://godoc.org/google.golang.org/grpc#WithInsecure
     [ insecure: <boolean> | default = false ]
 
     # Deprecated in favor of tls_config
@@ -80,7 +80,7 @@ remote_write:
 
     # Configures opentelemetry exporters to use the OpenTelemetry auth extension `oauth2clientauthextension`.
     # Can not be used in combination with `basic_auth`.
-    # See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/extension/oauth2clientauthextension/README.md
+    # See https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/extension/oauth2clientauthextension/README.md
     oauth2:
       # Configures the TLS settings specific to the oauth2 client
       # The client identifier issued to the oauth client
@@ -96,7 +96,7 @@ remote_write:
       # Optional, specifies the timeout fetching tokens from the token_url. Default: no timeout
       [ timeout: <duration> ]
       # TLS client configuration for the underneath client to authorization server.
-      # https://github.com/open-telemetry/opentelemetry-collector/blob/v0.85.0/config/configtls/README.md
+      # https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/config/configtls/README.md
       tls:
         # Disable validation of the server certificate.
         [ insecure: <bool> | default = false ]
@@ -157,7 +157,7 @@ remote_write:
 automatic_logging:
   # Indicates where the stream of log lines should go. Either supports writing
   # to a logs instance defined in this same config or to stdout.
-  [ backend: <string> | default = "stdout" | supported "stdout", "logs_instance" ]
+  [ backend: <string> | default = "stdout" | supported = "stdout", "logs_instance" ]
   # Indicates the logs instance to write logs to.
   # Required if backend is set to logs_instance.
   [ logs_instance_name: <string> ]
@@ -191,7 +191,7 @@ automatic_logging:
 
 # Receiver configurations are mapped directly into the OpenTelemetry receivers
 # block. At least one receiver is required.
-# The Agent uses OpenTelemetry v0.85.0. Refer to the corresponding receiver's config.
+# The Agent uses OpenTelemetry {{< param "OTEL_VERSION" >}}. Refer to the corresponding receiver's config.
 #
 # Supported receivers: otlp, jaeger, kafka, opencensus and zipkin.
 receivers: <receivers>
@@ -264,8 +264,13 @@ spanmetrics:
   [ metrics_instance: <string> ]
   # handler_endpoint defines the endpoint where the OTel prometheus exporter will be exposed.
   [ handler_endpoint: <string> ]
-  # dimensions_cache_size defines the size of cache for storing Dimensions
-  [ dimensions_cache_size: <int> ]
+  # dimensions_cache_size defines the size of cache for storing Dimensions.
+  [ dimensions_cache_size: <int> | default = 1000 ]
+  # aggregation_temporality configures whether to reset the metrics after flushing.
+  # It can be either AGGREGATION_TEMPORALITY_CUMULATIVE or AGGREGATION_TEMPORALITY_DELTA.
+  [ aggregation_temporality: <string> | default = "AGGREGATION_TEMPORALITY_CUMULATIVE" ]
+  # metrics_flush_interval configures how often to flush generated metrics.
+  [ metrics_flush_interval: <duration> | default = 15s ]
 
 # tail_sampling supports tail-based sampling of traces in the agent.
 #
@@ -323,11 +328,11 @@ load_balancing:
       [ port: <int> | default = 4317 ]
       # Resolver interval
       [ interval: <duration> | default = 5s ]
-      # Resolver timeout 
+      # Resolver timeout
       [ timeout: <duration> | default = 1s ]
 
   # routing_key can be either "traceID" or "service":
-  # * "service": exports spans based on their service name. 
+  # * "service": exports spans based on their service name.
   # * "traceID": exports spans based on their traceID.
   [ routing_key: <string> | default = "traceID" ]
 
@@ -414,10 +419,10 @@ service_graphs:
 
 # jaeger_remote_sampling configures one or more jaeger remote sampling extensions.
 # For more details about the configuration please consult the OpenTelemetry documentation:
-# https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/extension/jaegerremotesampling
-# 
+# https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/extension/jaegerremotesampling
+#
 # Example config:
-# 
+#
 # jaeger_remote_sampling:
 #   - source:
 #       remote:
@@ -427,24 +432,24 @@ service_graphs:
 #   - source:
 #       reload_interval: 1s
 #       file: /etc/otelcol/sampling_strategies.json
-# 
+#
 jaeger_remote_sampling:
   [ - <jaeger_remote_sampling> ... ]
 ```
 
 More information on the following types can be found on the documentation for their respective projects:
 
-* [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/processor/attributesprocessor)
-* [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.85.0/processor/batchprocessor)
-* [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.85.0/exporter/otlpexporter)
-* [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.85.0/exporter/otlpexporter)
+* [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/attributesprocessor)
+* [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/processor/batchprocessor)
+* [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/exporter/otlpexporter)
+* [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/exporter/otlpexporter)
 * `receivers`:
-  * [`jaegerreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/receiver/jaegerreceiver)
-  * [`kafkareceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/receiver/kafkareceiver)
-  * [`otlpreceiver`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/v0.85.0/receiver/otlpreceiver)
-  * [`opencensusreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/receiver/opencensusreceiver)
-  * [`zipkinreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/receiver/zipkinreceiver)
+  * [`jaegerreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/jaegerreceiver)
+  * [`kafkareceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/kafkareceiver)
+  * [`otlpreceiver`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/receiver/otlpreceiver)
+  * [`opencensusreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/opencensusreceiver)
+  * [`zipkinreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/zipkinreceiver)
 * [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
-* [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/processor/spanmetricsprocessor/config.go#L37-L39)
-* [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/processor/spanmetricsprocessor/config.go#L41-L48)
-* [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/processor/tailsamplingprocessor)
+* [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/processor/spanmetricsprocessor/config.go#L37-L39)
+* [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/processor/spanmetricsprocessor/config.go#L41-L48)
+* [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/tailsamplingprocessor)

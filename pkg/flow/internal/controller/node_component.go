@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
@@ -257,7 +257,6 @@ func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
 		msg := fmt.Sprintf("component evaluation failed: %s", err)
 		cn.setEvalHealth(component.HealthTypeUnhealthy, msg)
 	}
-
 	return err
 }
 
@@ -303,7 +302,7 @@ func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
 }
 
 // Run runs the managed component in the calling goroutine until ctx is
-// canceled. Evaluate must have been called at least once without retuning an
+// canceled. Evaluate must have been called at least once without returning an
 // error before calling Run.
 //
 // Run will immediately return ErrUnevaluated if Evaluate has never been called

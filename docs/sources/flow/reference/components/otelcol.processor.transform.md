@@ -42,11 +42,20 @@ there is also a set of metrics-only functions:
   * `sum([1, 2, 3, 4]) + (10 / 1) - 1`
 
 {{% admonition type="note" %}}
-Some characters inside River strings [need to be escaped][river-strings] with a `\` character.
-For example, the OTTL statement `set(description, "Sum") where type == "Sum"` 
-is written in River as `"set(description, \"Sum\") where type == \"Sum\""`.
+There are two ways of inputting strings in River configuration files:
+* Using quotation marks ([normal River strings][river-strings]). Characters such as `\` and
+  `"` must be escaped by preceding them with a `\` character.
+* Using backticks ([raw River strings][river-raw-strings]). No characters must be escaped.
+  However, it's not possible to have backticks inside the string.
+
+For example, the OTTL statement `set(description, "Sum") where type == "Sum"` can be written as: 
+* A normal River string: `"set(description, \"Sum\") where type == \"Sum\""`.
+* A raw River string: ``` `set(description, "Sum") where type == "Sum"` ```.
+
+Raw strings are generally more convenient for writing OTTL statements.
 
 [river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
+[river-raw-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#raw-strings" >}}
 {{% /admonition %}}
 
 {{% admonition type="note" %}}
@@ -73,9 +82,9 @@ to a new metric data type or can be used to create new metrics.
 - [Orphaned Telemetry][]: The processor allows you to modify `span_id`, `trace_id`, and `parent_span_id` for traces 
   and `span_id`, and `trace_id` logs.  Modifying these fields could lead to orphaned spans or logs.
 
-[Unsound Transformations]: https://github.com/open-telemetry/opentelemetry-collector/blob/v0.85.0/docs/standard-warnings.md#unsound-transformations
-[Identity Conflict]: https://github.com/open-telemetry/opentelemetry-collector/blob/v0.85.0/docs/standard-warnings.md#identity-conflict
-[Orphaned Telemetry]: https://github.com/open-telemetry/opentelemetry-collector/blob/v0.85.0/docs/standard-warnings.md#orphaned-telemetry
+[Unsound Transformations]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/docs/standard-warnings.md#unsound-transformations
+[Identity Conflict]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/docs/standard-warnings.md#identity-conflict
+[Orphaned Telemetry]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/docs/standard-warnings.md#orphaned-telemetry
 [no-op]: https://en.wikipedia.org/wiki/NOP_(code)
 [metrics data model]: https://github.com/open-telemetry/opentelemetry-specification/blob/main//specification/metrics/data-model.md
 {{% /admonition %}}
@@ -282,7 +291,7 @@ otelcol.processor.transform "default" {
     context = "span"
     statements = [
       // Accessing a map with a key that does not exist will return nil. 
-      "set(attributes[\"test\"], \"pass\") where attributes[\"test\"] == nil",
+      `set(attributes["test"], "pass") where attributes["test"] == nil`,
     ]
   }
 
@@ -294,7 +303,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Each `"` is [escaped][river-strings] with `\"` inside the River string.
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"` inside a [normal][river-strings] River string.
 
 ### Rename a resource attribute
 
@@ -308,8 +319,8 @@ otelcol.processor.transform "default" {
   trace_statements {
     context = "resource"
     statements = [
-      "set(attributes[\"namespace\"], attributes[\"k8s.namespace.name\"])",
-      "delete_key(attributes, \"k8s.namespace.name\")",
+      `set(attributes["namespace"], attributes["k8s.namespace.name"])`,
+      `delete_key(attributes, "k8s.namespace.name")`,
     ]
   }
 
@@ -330,7 +341,7 @@ otelcol.processor.transform "default" {
   trace_statements {
     context = "resource"
     statements = [
-     "replace_all_patterns(attributes, \"key\", \"k8s\\\\.namespace\\\\.name\", \"namespace\")",
+     `replace_all_patterns(attributes, "key", "k8s\\.namespace\\.name", "namespace")`,
     ]
   }
 
@@ -342,9 +353,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Some values in the River string are [escaped][river-strings]:
-* `\` is escaped with `\\`
-* `"` is escaped with `\"`
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
 ### Create an attribute from the contents of a log body
 
@@ -357,7 +368,7 @@ otelcol.processor.transform "default" {
   log_statements {
     context = "log"
     statements = [
-      "set(attributes[\"body\"], body)",
+      `set(attributes["body"], body)`,
     ]
   }
 
@@ -369,7 +380,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Each `"` is [escaped][river-strings] with `\"` inside the River string.
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"` inside a [normal][river-strings] River string.
 
 ### Combine two attributes
 
@@ -383,7 +396,7 @@ otelcol.processor.transform "default" {
     context = "resource"
     statements = [
       // The Concat function combines any number of strings, separated by a delimiter.
-      "set(attributes[\"test\"], Concat([attributes[\"service.name\"], attributes[\"service.version\"]], \" \"))",
+      `set(attributes["test"], Concat([attributes["foo"], attributes["bar"]], " "))`,
     ]
   }
 
@@ -395,7 +408,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Each `"` is [escaped][river-strings] with `\"` inside the River string.
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"` inside a [normal][river-strings] River string.
 
 ### Parsing JSON logs
 
@@ -424,16 +439,16 @@ otelcol.processor.transform "default" {
     statements = [
       // Parse body as JSON and merge the resulting map with the cache map, ignoring non-json bodies.
       // cache is a field exposed by OTTL that is a temporary storage place for complex operations.
-      "merge_maps(cache, ParseJSON(body), \"upsert\") where IsMatch(body, \"^\\\\{\") ",
+      `merge_maps(cache, ParseJSON(body), "upsert") where IsMatch(body, "^\\{")`,
   
       // Set attributes using the values merged into cache.
       // If the attribute doesn't exist in cache then nothing happens.
-      "set(attributes[\"attr1\"], cache[\"attr1\"])",
-      "set(attributes[\"attr2\"], cache[\"attr2\"])",
+      `set(attributes["attr1"], cache["attr1"])`,
+      `set(attributes["attr2"], cache["attr2"])`,
   
       // To access nested maps you can chain index ([]) operations.
       // If nested or attr3 do no exist in cache then nothing happens.
-      "set(attributes[\"nested.attr3\"], cache[\"nested\"][\"attr3\"])",
+      `set(attributes["nested.attr3"], cache["nested"]["attr3"])`,
     ]
   }
 
@@ -445,9 +460,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Some values in the River strings are [escaped][river-strings]:
-* `\` is escaped with `\\`
-* `"` is escaped with `\"`
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
 ### Various transformations of attributes and status codes
 
@@ -472,63 +487,63 @@ otelcol.processor.transform "default" {
   trace_statements {
     context = "resource"
     statements = [
-      "keep_keys(attributes, [\"service.name\", \"service.namespace\", \"cloud.region\", \"process.command_line\"])",
-      "replace_pattern(attributes[\"process.command_line\"], \"password\\\\=[^\\\\s]*(\\\\s?)\", \"password=***\")",
-      "limit(attributes, 100, [])",
-      "truncate_all(attributes, 4096)",
+      `keep_keys(attributes, ["service.name", "service.namespace", "cloud.region", "process.command_line"])`,
+      `replace_pattern(attributes["process.command_line"], "password\\=[^\\s]*(\\s?)", "password=***")`,
+      `limit(attributes, 100, [])`,
+      `truncate_all(attributes, 4096)`,
     ]
   }
 
   trace_statements {
     context = "span"
     statements = [
-      "set(status.code, 1) where attributes[\"http.path\"] == \"/health\"",
-      "set(name, attributes[\"http.route\"])",
-      "replace_match(attributes[\"http.target\"], \"/user/*/list/*\", \"/user/{userId}/list/{listId}\")",
-      "limit(attributes, 100, [])",
-      "truncate_all(attributes, 4096)",
+      `set(status.code, 1) where attributes["http.path"] == "/health"`,
+      `set(name, attributes["http.route"])`,
+      `replace_match(attributes["http.target"], "/user/*/list/*", "/user/{userId}/list/{listId}")`,
+      `limit(attributes, 100, [])`,
+      `truncate_all(attributes, 4096)`,
     ]
   }
 
   metric_statements {
     context = "resource"
     statements = [
-      "keep_keys(attributes, [\"host.name\"])",
-      "truncate_all(attributes, 4096)",
+      `keep_keys(attributes, ["host.name"])`,
+      `truncate_all(attributes, 4096)`,
     ]
   }
 
   metric_statements {
     context = "metric"
     statements = [
-      "set(description, \"Sum\") where type == \"Sum\"",
+      `set(description, "Sum") where type == "Sum"`,
     ]
   }
 
   metric_statements {
     context = "datapoint"
     statements = [
-      "limit(attributes, 100, [\"host.name\"])",
-      "truncate_all(attributes, 4096)",
-      "convert_sum_to_gauge() where metric.name == \"system.processes.count\"",
-      "convert_gauge_to_sum(\"cumulative\", false) where metric.name == \"prometheus_metric\"",
+      `limit(attributes, 100, ["host.name"])`,
+      `truncate_all(attributes, 4096)`,
+      `convert_sum_to_gauge() where metric.name == "system.processes.count"`,
+      `convert_gauge_to_sum("cumulative", false) where metric.name == "prometheus_metric"`,
     ]
   }
 
   log_statements {
     context = "resource"
     statements = [
-      "keep_keys(attributes, [\"service.name\", \"service.namespace\", \"cloud.region\"])",
+      `keep_keys(attributes, ["service.name", "service.namespace", "cloud.region"])`,
     ]
   }
 
   log_statements {
     context = "log"
     statements = [
-      "set(severity_text, \"FAIL\") where body == \"request failed\"",
-      "replace_all_matches(attributes, \"/user/*/list/*\", \"/user/{userId}/list/{listId}\")",
-      "replace_all_patterns(attributes, \"value\", \"/account/\\\\d{4}\", \"/account/{accountId}\")",
-      "set(body, attributes[\"http.route\"])",
+      `set(severity_text, "FAIL") where body == "request failed"`,
+      `replace_all_matches(attributes, "/user/*/list/*", "/user/{userId}/list/{listId}")`,
+      `replace_all_patterns(attributes, "value", "/account/\\d{4}", "/account/{accountId}")`,
+      `set(body, attributes["http.route"])`,
     ]
   }
 
@@ -546,30 +561,31 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-Some values in the River strings are [escaped][river-strings]:
-* `\` is escaped with `\\`
-* `"` is escaped with `\"`
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
 [river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
+[river-raw-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#raw-strings" >}}
 
-[traces protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v0.17.0/opentelemetry/proto/trace/v1/trace.proto
-[metrics protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v0.17.0/opentelemetry/proto/metrics/v1/metrics.proto
-[logs protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v0.17.0/opentelemetry/proto/logs/v1/logs.proto
+[traces protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/trace/v1/trace.proto
+[metrics protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/metrics/v1/metrics.proto
+[logs protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/logs/v1/logs.proto
 
 
-[OTTL]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/README.md
-[OTTL functions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/ottlfuncs/README.md
-[convert_sum_to_gauge]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/processor/transformprocessor#convert_sum_to_gauge
-[convert_gauge_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/processor/transformprocessor#convert_gauge_to_sum
-[convert_summary_count_val_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/processor/transformprocessor#convert_summary_count_val_to_sum
-[convert_summary_sum_val_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/processor/transformprocessor#convert_summary_sum_val_to_sum
-[OTTL booleans]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/pkg/ottl#booleans
-[OTTL math expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/pkg/ottl#math-expressions
-[OTTL boolean expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/pkg/ottl#boolean-expressions
-[OTTL resource context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottlresource/README.md
-[OTTL scope context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottlscope/README.md
-[OTTL span context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottlspan/README.md
-[OTTL spanevent context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottlspanevent/README.md
-[OTTL metric context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottlmetric/README.md
-[OTTL datapoint context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottldatapoint/README.md
-[OTTL log context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/contexts/ottllog/README.md
+[OTTL]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/README.md
+[OTTL functions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/ottlfuncs/README.md
+[convert_sum_to_gauge]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/transformprocessor#convert_sum_to_gauge
+[convert_gauge_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/transformprocessor#convert_gauge_to_sum
+[convert_summary_count_val_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/transformprocessor#convert_summary_count_val_to_sum
+[convert_summary_sum_val_to_sum]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/transformprocessor#convert_summary_sum_val_to_sum
+[OTTL booleans]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/pkg/ottl#booleans
+[OTTL math expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/pkg/ottl#math-expressions
+[OTTL boolean expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/pkg/ottl#boolean-expressions
+[OTTL resource context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlresource/README.md
+[OTTL scope context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlscope/README.md
+[OTTL span context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlspan/README.md
+[OTTL spanevent context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlspanevent/README.md
+[OTTL metric context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlmetric/README.md
+[OTTL datapoint context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottldatapoint/README.md
+[OTTL log context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottllog/README.md

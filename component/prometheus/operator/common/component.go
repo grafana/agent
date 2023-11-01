@@ -8,10 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/operator"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/labelstore"
 	"gopkg.in/yaml.v3"
 )
 
@@ -19,6 +20,7 @@ type Component struct {
 	mut     sync.RWMutex
 	config  *operator.Arguments
 	manager *crdManager
+	ls      labelstore.LabelStore
 
 	onUpdate  chan struct{}
 	opts      component.Options
@@ -36,11 +38,17 @@ func New(o component.Options, args component.Arguments, kind string) (*Component
 	}
 	clusterData := data.(cluster.Cluster)
 
+	service, err := o.GetServiceData(labelstore.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+	ls := service.(labelstore.LabelStore)
 	c := &Component{
 		opts:     o,
 		onUpdate: make(chan struct{}, 1),
 		kind:     kind,
 		cluster:  clusterData,
+		ls:       ls,
 	}
 	return c, c.Update(args)
 }
@@ -77,7 +85,7 @@ func (c *Component) Run(ctx context.Context) error {
 			c.reportHealth(err)
 		case <-c.onUpdate:
 			c.mut.Lock()
-			manager := newCrdManager(c.opts, c.cluster, c.opts.Logger, c.config, c.kind)
+			manager := newCrdManager(c.opts, c.cluster, c.opts.Logger, c.config, c.kind, c.ls)
 			c.manager = manager
 			if cancel != nil {
 				cancel()

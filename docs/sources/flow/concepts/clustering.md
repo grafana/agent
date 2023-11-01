@@ -28,8 +28,6 @@ single-node cluster.
 You configure clustering by passing `cluster` command-line flags to the [run][]
 command.
 
-[run]: {{< relref "../reference/cli/run.md#clustering-beta" >}}
-
 ## Use cases
 
 ### Target auto-distribution
@@ -57,10 +55,10 @@ A cluster state change is detected when a new node joins or an existing node goe
 recalculate target ownership and rebalance the number of targets they’re
 scraping without explicitly communicating ownership over the network.
 
-Target auto-distribution allows you to dynamically scale the number of agents to distribute workload during peaks. 
+Target auto-distribution allows you to dynamically scale the number of agents to distribute workload during peaks.
 It also provides resiliency because targets are automatically picked up by one of the node peers if a node goes away.
 
-The agent uses a fully-local consistent hashing algorithm to distribute
+Grafana Agent uses a fully-local consistent hashing algorithm to distribute
 targets, meaning that, on average, only ~1/N of the targets are redistributed.
 
 Refer to component reference documentation to discover whether it supports
@@ -71,16 +69,25 @@ clustering, such as:
 - [prometheus.operator.podmonitors][]
 - [prometheus.operator.servicemonitors][]
 
-[prometheus.scrape]: {{< relref "../reference/components/prometheus.scrape.md#clustering-beta" >}}
-[pyroscope.scrape]: {{< relref "../reference/components/pyroscope.scrape.md#clustering-beta" >}}
-[prometheus.operator.podmonitors]: {{< relref "../reference/components/prometheus.operator.podmonitors.md#clustering-beta" >}}
-[prometheus.operator.servicemonitors]: {{< relref "../reference/components/prometheus.operator.servicemonitors.md#clustering-beta" >}}
-
 ## Cluster monitoring and troubleshooting
 
 To monitor your cluster status, you can check the Flow UI [clustering page][].
 The [debugging][] topic contains some clues to help pin down probable
 clustering issues.
 
-[clustering page]: {{< relref "../monitoring/debugging.md#clustering-page" >}}
-[debugging]: {{< relref "../monitoring/debugging.md#debugging-clustering-issues" >}}
+{{% docs/reference %}}
+[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md#clustering-beta"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md#clustering-beta"
+[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md#clustering-beta"
+[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape.md#clustering-beta"
+[pyroscope.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/pyroscope.scrape.md#clustering-beta"
+[pyroscope.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.scrape.md#clustering-beta"
+[prometheus.operator.podmonitors]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.operator.podmonitors.md#clustering-beta"
+[prometheus.operator.podmonitors]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.operator.podmonitors.md#clustering-beta"
+[prometheus.operator.servicemonitors]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.operator.servicemonitors.md#clustering-beta"
+[prometheus.operator.servicemonitors]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.operator.servicemonitors.md#clustering-beta"
+[clustering page]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#clustering-page"
+[clustering page]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#clustering-page"
+[debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#debugging-clustering-issues"
+[debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#debugging-clustering-issues"
+{{% /docs/reference %}}

@@ -283,8 +283,8 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 				FollowRedirects: &falseVal,
 				ProxyURL:        &proxyURL,
 				Scheme:          "https",
-				ScrapeTimeout:   "17m",
-				Interval:        "1s",
+				ScrapeTimeout:   "17s",
+				Interval:        "12m",
 				HonorLabels:     true,
 				HonorTimestamps: &falseVal,
 				FilterRunning:   &falseVal,
@@ -377,8 +377,8 @@ func TestGenerateServiceMonitorConfig(t *testing.T) {
 				Params: url.Values{
 					"a": []string{"b"},
 				},
-				ScrapeInterval: model.Duration(time.Second),
-				ScrapeTimeout:  model.Duration(17 * time.Minute),
+				ScrapeInterval: model.Duration(12 * time.Minute),
+				ScrapeTimeout:  model.Duration(17 * time.Second),
 				MetricsPath:    "/foo",
 				Scheme:         "https",
 				HTTPClientConfig: commonConfig.HTTPClientConfig{

@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/common/model"
 )
 

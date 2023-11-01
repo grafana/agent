@@ -1,8 +1,12 @@
 package docker
 
+// NOTE: This code is adapted from Promtail (90a1d4593e2d690b37333386383870865fe177bf).
+
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -11,13 +15,16 @@ import (
 
 	"github.com/docker/docker/client"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	types "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/discovery"
 	dt "github.com/grafana/agent/component/loki/source/docker/internal/dockertarget"
+	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
 )
@@ -33,6 +40,8 @@ func init() {
 	})
 }
 
+var userAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+
 const (
 	dockerLabel                = model.MetaLabelPrefix + "docker_"
 	dockerLabelContainerPrefix = dockerLabel + "container_"
@@ -42,11 +51,43 @@ const (
 // Arguments holds values which are used to configure the loki.source.docker
 // component.
 type Arguments struct {
-	Host         string              `river:"host,attr"`
-	Targets      []discovery.Target  `river:"targets,attr"`
-	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
-	Labels       map[string]string   `river:"labels,attr,optional"`
-	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+	Host             string                  `river:"host,attr"`
+	Targets          []discovery.Target      `river:"targets,attr"`
+	ForwardTo        []loki.LogsReceiver     `river:"forward_to,attr"`
+	Labels           map[string]string       `river:"labels,attr,optional"`
+	RelabelRules     flow_relabel.Rules      `river:"relabel_rules,attr,optional"`
+	HTTPClientConfig *types.HTTPClientConfig `river:"http_client_config,block,optional"`
+	RefreshInterval  time.Duration           `river:"refresh_interval,attr,optional"`
+}
+
+// GetDefaultArguments return an instance of Arguments with the optional fields
+// initialized.
+func GetDefaultArguments() Arguments {
+	return Arguments{
+		HTTPClientConfig: types.CloneDefaultHTTPClientConfig(),
+		RefreshInterval:  60 * time.Second,
+	}
+}
+
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = GetDefaultArguments()
+}
+
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
+	if _, err := url.Parse(a.Host); err != nil {
+		return fmt.Errorf("failed to parse Docker host %q: %w", a.Host, err)
+	}
+	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
+	if a.HTTPClientConfig != nil {
+		if a.RefreshInterval <= 0 {
+			return fmt.Errorf("refresh_interval must be positive, got %q", a.RefreshInterval)
+		}
+		return a.HTTPClientConfig.Validate()
+	}
+
+	return nil
 }
 
 var (
@@ -220,10 +261,36 @@ func (c *Component) getManagerOptions(args Arguments) (*options, error) {
 		return c.lastOptions, nil
 	}
 
+	hostURL, err := url.Parse(args.Host)
+	if err != nil {
+		return c.lastOptions, err
+	}
+
 	opts := []client.Opt{
 		client.WithHost(args.Host),
 		client.WithAPIVersionNegotiation(),
 	}
+
+	// There are other protocols than HTTP supported by the Docker daemon, like
+	// unix, which are not supported by the HTTP client. Passing HTTP client
+	// options to the Docker client makes those non-HTTP requests fail.
+	if hostURL.Scheme == "http" || hostURL.Scheme == "https" {
+		rt, err := config.NewRoundTripperFromConfig(*args.HTTPClientConfig.Convert(), "docker_sd")
+		if err != nil {
+			return c.lastOptions, err
+		}
+		opts = append(opts,
+			client.WithHTTPClient(&http.Client{
+				Transport: rt,
+				Timeout:   args.RefreshInterval,
+			}),
+			client.WithScheme(hostURL.Scheme),
+			client.WithHTTPHeaders(map[string]string{
+				"User-Agent": userAgent,
+			}),
+		)
+	}
+
 	client, err := client.NewClientWithOpts(opts...)
 	if err != nil {
 		level.Error(c.opts.Logger).Log("msg", "could not create new Docker client", "err", err)
@@ -241,7 +308,7 @@ func (c *Component) getManagerOptions(args Arguments) (*options, error) {
 func (c *Component) DebugInfo() interface{} {
 	var res readerDebugInfo
 	for _, tgt := range c.manager.targets() {
-		details := tgt.Details().(map[string]string)
+		details := tgt.Details()
 		res.TargetsInfo = append(res.TargetsInfo, targetInfo{
 			Labels:     tgt.LabelsStr(),
 			ID:         details["id"],

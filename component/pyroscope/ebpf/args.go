@@ -22,4 +22,5 @@ type Arguments struct {
 	CollectUserProfile   bool                   `river:"collect_user_profile,attr,optional"`
 	CollectKernelProfile bool                   `river:"collect_kernel_profile,attr,optional"`
 	Demangle             string                 `river:"demangle,attr,optional"`
+	PythonEnabled        bool                   `river:"python_enabled,attr,optional"`
 }

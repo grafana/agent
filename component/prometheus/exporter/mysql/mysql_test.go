@@ -39,6 +39,10 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 		remove_prefix = "instances_remove"
 	}
 
+	perf_schema.memory_events {
+		remove_prefix = "innodb/"
+	}
+
 	heartbeat {
 		database = "heartbeat_database"
 		table = "heartbeat_table"
@@ -69,6 +73,7 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 	require.Equal(t, 5, args.PerfSchemaEventsStatements.TextLimit)
 	require.Equal(t, "instances_filter", args.PerfSchemaFileInstances.Filter)
 	require.Equal(t, "instances_remove", args.PerfSchemaFileInstances.RemovePrefix)
+	require.Equal(t, "innodb/", args.PerfSchemaMemoryEvents.RemovePrefix)
 	require.Equal(t, "heartbeat_database", args.Heartbeat.Database)
 	require.Equal(t, "heartbeat_table", args.Heartbeat.Table)
 	require.True(t, args.Heartbeat.UTC)
@@ -105,6 +110,10 @@ func TestRiverConfigConvert(t *testing.T) {
 		remove_prefix = "instances_remove"
 	}
 
+	perf_schema.memory_events {
+		remove_prefix = "innodb/"
+	}
+
 	heartbeat {
 		database = "heartbeat_database"
 		table = "heartbeat_table"
@@ -136,6 +145,7 @@ func TestRiverConfigConvert(t *testing.T) {
 	require.Equal(t, 5, c.PerfSchemaEventsStatementsTextLimit)
 	require.Equal(t, "instances_filter", c.PerfSchemaFileInstancesFilter)
 	require.Equal(t, "instances_remove", c.PerfSchemaFileInstancesRemovePrefix)
+	require.Equal(t, "innodb/", c.PerfSchemaMemoryEventsRemovePrefix)
 	require.Equal(t, "heartbeat_database", c.HeartbeatDatabase)
 	require.Equal(t, "heartbeat_table", c.HeartbeatTable)
 	require.True(t, c.HeartbeatUTC)

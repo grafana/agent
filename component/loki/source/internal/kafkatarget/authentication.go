@@ -1,6 +1,6 @@
 package kafkatarget
 
-// This code is copied from Promtail. The herokutarget package is used to
+// This code is copied from Promtail (https://github.com/grafana/loki/commit/065bee7e72b00d800431f4b70f0d673d6e0e7a2b). The herokutarget package is used to
 // configure and run the targets that can read heroku entries and forward them
 // to other loki components.
 

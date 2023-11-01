@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"math"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/river"
 )
@@ -66,22 +65,6 @@ func (ll *Level) UnmarshalText(text []byte) error {
 		return fmt.Errorf("unrecognized log level %q", string(text))
 	}
 	return nil
-}
-
-// Filter returns a go-kit logging filter from the level.
-func (ll Level) Filter() level.Option {
-	switch ll {
-	case LevelDebug:
-		return level.AllowDebug()
-	case LevelInfo:
-		return level.AllowInfo()
-	case LevelWarn:
-		return level.AllowWarn()
-	case LevelError:
-		return level.AllowError()
-	default:
-		return level.AllowAll()
-	}
 }
 
 type slogLevel Level
