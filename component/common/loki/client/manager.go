@@ -95,7 +95,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 			if err != nil {
 				return nil, err
 			}
-			markerHandler := internal.NewMarkerHandler(markerFileHandler)
+			markerHandler := internal.NewMarkerHandler(markerFileHandler, walCfg.MaxSegmentAge, logger)
 
 			queue, err := NewQueue(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger, markerHandler)
 			if err != nil {

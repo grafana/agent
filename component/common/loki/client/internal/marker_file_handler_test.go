@@ -13,9 +13,16 @@ func TestMarkerFileHandler(t *testing.T) {
 	logger := log.NewLogfmtLogger(os.Stdout)
 	getTempDir := func(t *testing.T) string {
 		dir := t.TempDir()
-		require.NoError(t, os.Chmod(dir, MarkerFileMode), "failed to change temporary dir mode")
 		return dir
 	}
+
+	t.Run("invalid last marked segment when there's no marker file", func(t *testing.T) {
+		dir := getTempDir(t)
+		fh, err := NewMarkerFileHandler(logger, dir)
+		require.NoError(t, err)
+
+		require.Equal(t, -1, fh.LastMarkedSegment())
+	})
 
 	t.Run("reads the last segment from existing marker file", func(t *testing.T) {
 		dir := getTempDir(t)
@@ -41,13 +48,18 @@ func TestMarkerFileHandler(t *testing.T) {
 		require.Equal(t, 12, fh.LastMarkedSegment())
 	})
 
-	t.Run("marker file is created with correct permissions", func(t *testing.T) {
+	t.Run("marker file and directory is created with correct permissions", func(t *testing.T) {
 		dir := getTempDir(t)
 		fh, err := NewMarkerFileHandler(logger, dir)
 		require.NoError(t, err)
 
 		fh.MarkSegment(12)
-		stats, err := os.Stat(filepath.Join(dir, MarkerFolderName, MarkerFileName))
+		// check folder first
+		stats, err := os.Stat(filepath.Join(dir, MarkerFolderName))
+		require.NoError(t, err)
+		require.Equal(t, MarkerFolderMode, stats.Mode().Perm())
+		// then file
+		stats, err = os.Stat(filepath.Join(dir, MarkerFolderName, MarkerFileName))
 		require.NoError(t, err)
 		require.Equal(t, MarkerFileMode, stats.Mode().Perm())
 	})

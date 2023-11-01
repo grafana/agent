@@ -15,7 +15,8 @@ const (
 	MarkerFolderName = "remote"
 	MarkerFileName   = "segment_marker"
 
-	MarkerFileMode os.FileMode = 0o600
+	MarkerFolderMode os.FileMode = 0o700
+	MarkerFileMode   os.FileMode = 0o600
 )
 
 // MarkerFileHandler is a file-backed wal.Marker, that also allows one to write to the backing store as particular
@@ -41,9 +42,15 @@ var (
 func NewMarkerFileHandler(logger log.Logger, walDir string) (MarkerFileHandler, error) {
 	markerDir := filepath.Join(walDir, MarkerFolderName)
 	// attempt to create dir if doesn't exist
-	if err := os.MkdirAll(markerDir, MarkerFileMode); err != nil {
+	if err := os.MkdirAll(markerDir, MarkerFolderMode); err != nil {
 		return nil, fmt.Errorf("error creating segment marker folder %q: %w", markerDir, err)
 	}
+	// do we need this bit below?
+	//if stat, err := os.Stat(markerDir); err == nil && stat.Mode().Perm() != MarkerFileMode {
+	//	if err := os.Chmod(markerDir, MarkerFileMode); err != nil {
+	//		return nil, err
+	//	}
+	//}
 
 	mfh := &markerFileHandler{
 		logger:                    logger,
