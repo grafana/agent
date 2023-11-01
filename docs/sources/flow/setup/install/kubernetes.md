@@ -1,10 +1,14 @@
 ---
-description: Learn how to deploy Grafana Agent in flow mode on Kubernetes
-title: Deploy Grafana Agent in flow mode on Kubernetes
-menuTitle: Kubernetes
-weight: 200
 aliases:
- - ../../install/kubernetes/
+- ../../install/kubernetes/
+- /docs/grafana-cloud/agent/flow/setup/install/kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/kubernetes/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/install/kubernetes/
+description: Learn how to deploy Grafana Agent in flow mode on Kubernetes
+menuTitle: Kubernetes
+title: Deploy Grafana Agent in flow mode on Kubernetes
+weight: 200
 ---
 
 # Deploy Grafana Agent in flow mode on Kubernetes
@@ -16,8 +20,6 @@ Grafana Agent can be deployed on Kubernetes by using the Helm chart for Grafana 
 * Install [Helm][] on your computer.
 * Configure a Kubernetes cluster that you can use for Grafana Agent.
 * Configure your local Kubernetes context to point to the cluster.
-
-[Helm]: https://helm.sh
 
 ## Deploy
 
@@ -55,5 +57,11 @@ For more information on the Grafana Agent Helm chart, refer to the Helm chart do
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent#linux" >}})
-- [Configure Grafana Agent]({{< relref "../configure/configure-linux" >}})
+- [Configure Grafana Agent][]
+
+[Helm]: https://helm.sh
+
+{{% docs/reference %}}
+[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-kubernetes.md"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-kubernetes.md"
+{{% /docs/reference %}}

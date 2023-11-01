@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.relabel/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.relabel/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.relabel/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.relabel/
 title: discovery.relabel
+description: Learn about discovery.relabel
 ---
 
 # discovery.relabel
@@ -65,7 +71,7 @@ rule | [rule][] | Relabeling rules to apply to targets. | no
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
@@ -86,7 +92,7 @@ values.
 
 `discovery.relabel` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.relabel` does not expose any component-specific debug metrics.
 

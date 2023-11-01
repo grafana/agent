@@ -9,11 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/tail/watch"
 	"github.com/prometheus/common/model"
 )
 
@@ -35,10 +36,36 @@ const (
 
 // Arguments holds values which are used to configure the loki.source.file
 // component.
-// TODO(@tpaschalis) Allow users to configure the encoding of the tailed files.
 type Arguments struct {
-	Targets   []discovery.Target  `river:"targets,attr"`
-	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
+	Targets             []discovery.Target  `river:"targets,attr"`
+	ForwardTo           []loki.LogsReceiver `river:"forward_to,attr"`
+	Encoding            string              `river:"encoding,attr,optional"`
+	DecompressionConfig DecompressionConfig `river:"decompression,block,optional"`
+	FileWatch           FileWatch           `river:"file_watch,block,optional"`
+	TailFromEnd         bool                `river:"tail_from_end,attr,optional"`
+}
+
+type FileWatch struct {
+	MinPollFrequency time.Duration `river:"min_poll_frequency,attr,optional"`
+	MaxPollFrequency time.Duration `river:"max_poll_frequency,attr,optional"`
+}
+
+var DefaultArguments = Arguments{
+	FileWatch: FileWatch{
+		MinPollFrequency: 250 * time.Millisecond,
+		MaxPollFrequency: 250 * time.Millisecond,
+	},
+}
+
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultArguments
+}
+
+type DecompressionConfig struct {
+	Enabled      bool              `river:"enabled,attr"`
+	InitialDelay time.Duration     `river:"initial_delay,attr,optional"`
+	Format       CompressionFormat `river:"format,attr"`
 }
 
 var (
@@ -290,7 +317,7 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 	}
 
 	var reader reader
-	if isCompressed(path) {
+	if c.args.DecompressionConfig.Enabled {
 		level.Debug(c.opts.Logger).Log("msg", "reading from compressed file", "filename", path)
 		decompressor, err := newDecompressor(
 			c.metrics,
@@ -299,7 +326,8 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 			c.posFile,
 			path,
 			labels.String(),
-			"",
+			c.args.Encoding,
+			c.args.DecompressionConfig,
 		)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to start decompressor", "error", err, "filename", path)
@@ -308,6 +336,10 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 		reader = decompressor
 	} else {
 		level.Debug(c.opts.Logger).Log("msg", "tailing new file", "filename", path)
+		pollOptions := watch.PollingFileWatcherOptions{
+			MinPollFrequency: c.args.FileWatch.MinPollFrequency,
+			MaxPollFrequency: c.args.FileWatch.MaxPollFrequency,
+		}
 		tailer, err := newTailer(
 			c.metrics,
 			c.opts.Logger,
@@ -315,7 +347,9 @@ func (c *Component) startTailing(path string, labels model.LabelSet, handler lok
 			c.posFile,
 			path,
 			labels.String(),
-			"",
+			c.args.Encoding,
+			pollOptions,
+			c.args.TailFromEnd,
 		)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to start tailer", "error", err, "filename", path)

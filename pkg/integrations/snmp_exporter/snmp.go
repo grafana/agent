@@ -13,6 +13,14 @@ import (
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 )
 
+const (
+	namespace = "snmp"
+	// This is the default value for snmp.module-concurrency in snmp_exporter.
+	// For now we set to 1 as we don't support multi-module handling.
+	// More info: https://github.com/prometheus/snmp_exporter#multi-module-handling
+	concurrency = 1
+)
+
 type snmpHandler struct {
 	cfg     *Config
 	snmpCfg *snmp_config.Config
@@ -79,14 +87,13 @@ func Handler(w http.ResponseWriter, r *http.Request, logger log.Logger, snmpCfg 
 		http.Error(w, "'walk_params' parameter must only be specified once", http.StatusBadRequest)
 		return
 	}
-
 	if walkParams != "" {
 		zeroRetries := 0
 		if wp, ok := wParams[walkParams]; ok {
 			if wp.MaxRepetitions != 0 {
 				module.WalkParams.MaxRepetitions = wp.MaxRepetitions
 			}
-			if wp.Retries != &zeroRetries {
+			if wp.Retries != nil && wp.Retries != &zeroRetries {
 				module.WalkParams.Retries = wp.Retries
 			}
 			if wp.Timeout != 0 {
@@ -100,11 +107,13 @@ func Handler(w http.ResponseWriter, r *http.Request, logger log.Logger, snmpCfg 
 	} else {
 		logger = log.With(logger, "module", moduleName, "target", target)
 	}
+	var nmodules []*collector.NamedModule
+	nmodules = append(nmodules, collector.NewNamedModule(moduleName, module))
 	level.Debug(logger).Log("msg", "Starting scrape")
 
 	start := time.Now()
 	registry := prometheus.NewRegistry()
-	c := collector.New(r.Context(), target, auth, module, logger, registry)
+	c := collector.New(r.Context(), target, authName, auth, nmodules, logger, NewSNMPMetrics(registry), concurrency)
 	registry.MustRegister(c)
 	// Delegate http serving to Prometheus client library, which will call collector.Collect.
 	h := promhttp.HandlerFor(registry, promhttp.HandlerOpts{})

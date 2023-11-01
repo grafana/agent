@@ -8,12 +8,16 @@ import (
 
 	types "github.com/grafana/agent/component/common/config"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/river/rivertypes"
 
+	"github.com/google/uuid"
 	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	promsigv4 "github.com/prometheus/common/sigv4"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
+	"github.com/prometheus/prometheus/storage/remote/azuread"
 )
 
 // Defaults for config blocks.
@@ -30,7 +34,7 @@ var (
 		BatchSendDeadline: 5 * time.Second,
 		MinBackoff:        30 * time.Millisecond,
 		MaxBackoff:        5 * time.Second,
-		RetryOnHTTP429:    false,
+		RetryOnHTTP429:    true,
 	}
 
 	DefaultMetadataOptions = MetadataOptions{
@@ -72,6 +76,8 @@ type EndpointOptions struct {
 	QueueOptions         *QueueOptions           `river:"queue_config,block,optional"`
 	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
 	WriteRelabelConfigs  []*flow_relabel.Config  `river:"write_relabel_config,block,optional"`
+	SigV4                *SigV4Config            `river:"sigv4,block,optional"`
+	AzureAD              *AzureADConfig          `river:"azuread,block,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -83,12 +89,34 @@ func (r *EndpointOptions) SetToDefault() {
 	}
 }
 
+func isAuthSetInHttpClientConfig(cfg *types.HTTPClientConfig) bool {
+	return cfg.BasicAuth != nil ||
+		cfg.OAuth2 != nil ||
+		cfg.Authorization != nil ||
+		len(cfg.BearerToken) > 0 ||
+		len(cfg.BearerTokenFile) > 0
+}
+
 // Validate implements river.Validator.
 func (r *EndpointOptions) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	if r.HTTPClientConfig != nil {
 		if err := r.HTTPClientConfig.Validate(); err != nil {
 			return err
+		}
+	}
+
+	const tooManyAuthErr = "at most one of sigv4, azuread, basic_auth, oauth2, bearer_token & bearer_token_file must be configured"
+
+	if r.SigV4 != nil {
+		if r.AzureAD != nil || isAuthSetInHttpClientConfig(r.HTTPClientConfig) {
+			return fmt.Errorf(tooManyAuthErr)
+		}
+	}
+
+	if r.AzureAD != nil {
+		if r.SigV4 != nil || isAuthSetInHttpClientConfig(r.HTTPClientConfig) {
+			return fmt.Errorf(tooManyAuthErr)
 		}
 	}
 
@@ -216,7 +244,8 @@ func convertConfigs(cfg Arguments) (*config.Config, error) {
 			HTTPClientConfig:    *rw.HTTPClientConfig.Convert(),
 			QueueConfig:         rw.QueueOptions.toPrometheusType(),
 			MetadataConfig:      rw.MetadataOptions.toPrometheusType(),
-			// TODO(rfratto): SigV4Config
+			SigV4Config:         rw.SigV4.toPrometheusType(),
+			AzureADConfig:       rw.AzureAD.toPrometheusType(),
 		})
 	}
 
@@ -235,4 +264,85 @@ func toLabels(in map[string]string) labels.Labels {
 	}
 	sort.Sort(res)
 	return res
+}
+
+// ManagedIdentityConfig is used to store managed identity config values
+type ManagedIdentityConfig struct {
+	// ClientID is the clientId of the managed identity that is being used to authenticate.
+	ClientID string `river:"client_id,attr"`
+}
+
+func (m ManagedIdentityConfig) toPrometheusType() azuread.ManagedIdentityConfig {
+	return azuread.ManagedIdentityConfig{
+		ClientID: m.ClientID,
+	}
+}
+
+type AzureADConfig struct {
+	// ManagedIdentity is the managed identity that is being used to authenticate.
+	ManagedIdentity ManagedIdentityConfig `river:"managed_identity,block"`
+
+	// Cloud is the Azure cloud in which the service is running. Example: AzurePublic/AzureGovernment/AzureChina.
+	Cloud string `river:"cloud,attr,optional"`
+}
+
+func (a *AzureADConfig) Validate() error {
+	if a.Cloud != azuread.AzureChina && a.Cloud != azuread.AzureGovernment && a.Cloud != azuread.AzurePublic {
+		return fmt.Errorf("must provide a cloud in the Azure AD config")
+	}
+
+	_, err := uuid.Parse(a.ManagedIdentity.ClientID)
+	if err != nil {
+		return fmt.Errorf("the provided Azure Managed Identity client_id provided is invalid")
+	}
+
+	return nil
+}
+
+// SetToDefault implements river.Defaulter.
+func (a *AzureADConfig) SetToDefault() {
+	*a = AzureADConfig{
+		Cloud: azuread.AzurePublic,
+	}
+}
+
+func (a *AzureADConfig) toPrometheusType() *azuread.AzureADConfig {
+	if a == nil {
+		return nil
+	}
+
+	mangedIdentity := a.ManagedIdentity.toPrometheusType()
+	return &azuread.AzureADConfig{
+		ManagedIdentity: &mangedIdentity,
+		Cloud:           a.Cloud,
+	}
+}
+
+type SigV4Config struct {
+	Region    string            `river:"region,attr,optional"`
+	AccessKey string            `river:"access_key,attr,optional"`
+	SecretKey rivertypes.Secret `river:"secret_key,attr,optional"`
+	Profile   string            `river:"profile,attr,optional"`
+	RoleARN   string            `river:"role_arn,attr,optional"`
+}
+
+func (s *SigV4Config) Validate() error {
+	if (s.AccessKey == "") != (s.SecretKey == "") {
+		return fmt.Errorf("must provide an AWS SigV4 access key and secret key if credentials are specified in the SigV4 config")
+	}
+	return nil
+}
+
+func (s *SigV4Config) toPrometheusType() *promsigv4.SigV4Config {
+	if s == nil {
+		return nil
+	}
+
+	return &promsigv4.SigV4Config{
+		Region:    s.Region,
+		AccessKey: s.AccessKey,
+		SecretKey: common.Secret(s.SecretKey),
+		Profile:   s.Profile,
+		RoleARN:   s.RoleARN,
+	}
 }

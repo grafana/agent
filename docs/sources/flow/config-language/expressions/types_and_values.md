@@ -1,7 +1,12 @@
 ---
 aliases:
 - ../../configuration-language/expressions/types-and-values/
+- /docs/grafana-cloud/agent/flow/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/types_and_values/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/types_and_values/
 title: Types and values
+description: Learn about the River types and values
 weight: 100
 ---
 
@@ -40,7 +45,7 @@ the following conventions for referring to types:
   descending units can be combined to add their values together; `"1h30m"` is
   the same as `"90m"`.
 
-[component reference]: {{< relref "../../reference/components/" >}}
+[component reference]: {{< relref "../../reference/components" >}}
 
 ## Numbers
 
@@ -82,6 +87,33 @@ The supported escape sequences are as follows:
 | `\xNN` | A literal byte (NN is two hexadecimal digits) |
 | `\uNNNN` | A Unicode character from the basic multilingual plane (NNNN is four hexadecimal digits) |
 | `\UNNNNNNNN` | A Unicode character from supplementary planes (NNNNNNNN is eight hexadecimal digits) |
+
+## Raw strings
+
+Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```. 
+Raw strings do not support any escape sequences:
+
+```river
+`Hello, "world"!`
+```
+
+Within the backticks, any character may appear except a backtick. A backtick
+can be included by concatenating a double quoted string that contains a
+backtick using `+`.
+
+A multiline raw string will be interpretted exactly as written:
+
+```river
+`Hello,
+"world"!`
+```
+
+is interpretted as a string with the value:
+
+```string
+Hello,
+"world"!
+```
 
 ## Bools
 

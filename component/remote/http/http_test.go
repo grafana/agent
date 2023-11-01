@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/log/level"
 	http_component "github.com/grafana/agent/component/remote/http"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/backoff"
+	"github.com/grafana/river"
+	"github.com/grafana/river/rivertypes"
 	"github.com/stretchr/testify/require"
 )
 
@@ -26,7 +26,7 @@ func Test(t *testing.T) {
 	srv := httptest.NewServer(&handler)
 	defer srv.Close()
 
-	handler.SetHandler(func(w http.ResponseWriter, _ *http.Request) {
+	handler.SetHandler(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Hello, world!")
 	})
 
@@ -38,6 +38,7 @@ func Test(t *testing.T) {
 		method = "%s"
         headers = {
             "x-custom" = "value",
+			"User-Agent" = "custom_useragent",
         }
 
 		poll_frequency = "50ms" 
@@ -76,6 +77,8 @@ func Test(t *testing.T) {
 		fmt.Fprintln(w, "Testing!")
 		fmt.Fprintf(w, "Method: %s\n", r.Method)
 		fmt.Fprintf(w, "Header: %s\n", r.Header.Get("x-custom"))
+
+		require.Equal(t, "custom_useragent", r.Header.Get("User-Agent"))
 	})
 	require.NoError(t, ctrl.WaitExports(time.Second), "component didn't update exports")
 	requireExports(http_component.Exports{

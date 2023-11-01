@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/river/rivertypes"
 	"github.com/oklog/run"
 
 	vault "github.com/hashicorp/vault/api"
@@ -65,7 +65,15 @@ func (a *Arguments) client() (*vault.Client, error) {
 	cfg.MaxRetries = a.ClientOptions.MaxRetries
 	cfg.Timeout = a.ClientOptions.Timeout
 
-	return vault.NewClient(cfg)
+	cli, err := vault.NewClient(cfg)
+	if err != nil {
+		return cli, err
+	}
+
+	if a.Namespace != "" {
+		cli.SetNamespace(a.Namespace)
+	}
+	return cli, nil
 }
 
 // SetToDefault implements river.Defaulter.

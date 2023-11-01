@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.scrape/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.scrape/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/
 title: prometheus.scrape
+description: Learn about prometheus.scrape
 ---
 
 # prometheus.scrape
@@ -41,9 +47,11 @@ Name | Type | Description | Default | Required
 `forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
 `job_name`                 | `string`   | The job name to override the job label with. | component name | no
 `extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
+`enable_protobuf_negotiation` | `bool`     | Whether to enable protobuf negotiation with the client. | `false` | no
 `honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
 `honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
 `params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
+`scrape_classic_histograms` | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
 `scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"60s"` | no
 `scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"10s"` | no
 `metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
@@ -93,19 +101,19 @@ an `oauth2` block.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### clustering (beta)
 
@@ -224,6 +232,12 @@ times out while scraping, or because the samples from the target could not be
 processed. When the target is behaving normally, the `up` metric is set to
 `1`.
 
+To enable scraping of Prometheus' native histograms over gRPC, the
+`enable_protobuf_negotiation` must be set to true. The
+`scrape_classic_histograms` argument controls whether the component should also
+scrape the 'classic' histogram equivalent of a native histogram, if it is
+present.
+
 [in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [run command]: {{< relref "../cli/run.md" >}}
 
@@ -256,6 +270,19 @@ http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
 http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 ```
 
-## Compression
+### Technical details
 
 `prometheus.scrape` supports [gzip](https://en.wikipedia.org/wiki/Gzip) compression.
+
+The following special labels can change the behavior of prometheus.scrape:
+* `__address__` is the name of the label that holds the `<host>:<port>` address of a scrape target.
+* `__metrics_path__`   is the name of the label that holds the path on which to scrape a target.
+* `__scheme__` is the name of the label that holds the scheme (http,https) on which to  scrape a target.
+* `__scrape_interval__` is the name of the label that holds the scrape interval used to scrape a target.
+* `__scrape_timeout__` is the name of the label that holds the scrape timeout used to scrape a target.
+* `__param__` is a prefix for labels that provide URL parameters used to scrape a target.
+
+Special labels added after a scrape
+* `__name__` is the label name indicating the metric name of a timeseries.
+* `job` is the label name indicating the job from which a timeseries was scraped.
+* `instance` is the label name used for the instance label.

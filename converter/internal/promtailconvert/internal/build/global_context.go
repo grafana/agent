@@ -9,4 +9,5 @@ import (
 type GlobalContext struct {
 	WriteReceivers   []loki.LogsReceiver
 	TargetSyncPeriod time.Duration
+	LabelPrefix      string
 }

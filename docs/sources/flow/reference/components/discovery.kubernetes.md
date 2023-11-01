@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.kubernetes/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
 title: discovery.kubernetes
+description: Learn about discovery.kubernetes
 ---
 
 # discovery.kubernetes
@@ -289,6 +295,10 @@ Name | Type | Description | Default | Required
 See Kubernetes' documentation for [Field selectors][] and [Labels and
 selectors][] to learn more about the possible filters that can be used.
 
+The endpoints role supports pod, service, and endpoints selectors.
+The pod role supports node selectors when configured with `attach_metadata: {node: true}`.
+Other roles only support selectors matching the role itself (e.g. node role can only contain node selectors).
+
 > **Note**: Using multiple `discovery.kubernetes` components with different
 > selectors may result in a bigger load against the Kubernetes API.
 >
@@ -298,7 +308,7 @@ selectors][] to learn more about the possible filters that can be used.
 > instead.
 
 [Field selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
-[Labels and selectros]: https://Kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+[Labels and selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
 
 ### attach_metadata block
@@ -311,19 +321,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
@@ -343,7 +353,7 @@ values.
 
 `discovery.kubernetes` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.kubernetes` does not expose any component-specific debug metrics.
 
@@ -410,15 +420,55 @@ Replace the following:
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
 
-### Limit searched namespaces
+### Limit searched namespaces and filter by labels value
 
-This example limits the namespaces where pods are discovered using the `namespaces` block:
+This example limits the searched namespaces and only selects pods with a specific label value attached to them:
 
 ```river
 discovery.kubernetes "k8s_pods" {
   role = "pod"
+
+  selectors {
+    role = "pod"
+    label = "app.kubernetes.io/name=prometheus-node-exporter"
+  }
+
   namespaces {
     names = ["myapp"]
+  }
+}
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
+```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+### Limit to only pods on the same node
+
+This example limits the search to pods on the same node as this Grafana Agent. This configuration could be useful if you are running the Agent as a DaemonSet:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+  selectors {
+    role = "pod"
+    field = "spec.nodeName=" + constants.hostname
   }
 }
 

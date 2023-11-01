@@ -1,17 +1,23 @@
 ---
 aliases:
 - /docs/agent/latest/flow/reference/components/remote.vault
+- /docs/grafana-cloud/agent/flow/reference/components/remote.vault/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/remote.vault/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/remote.vault/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.vault/
 title: remote.vault
+description: Learn about remote.vault
 ---
 
-# `remote.vault`
+# remote.vault
 
-`remote.vault` connect to Vault to retrieve secrets. It can retrieve a secret
-using the [KV v2][] secrets engine.
+`remote.vault` connects to a [HashiCorp Vault][Vault] server to retrieve secrets.
+It can retrieve a secret using the [KV v2][] secrets engine.
 
 Multiple `remote.vault` components can be specified by giving them different
 labels.
 
+[Vault]: https://www.vaultproject.io/
 [KV v2]: https://www.vaultproject.io/docs/secrets/kv/kv-v2
 
 ## Usage
@@ -295,7 +301,7 @@ secret around:
 * Whether the token is renewable.
 * Warnings from Vault from when the token was retrieved.
 
-### Debug metrics
+## Debug metrics
 
 `remote.vault` exposes the following metrics:
 

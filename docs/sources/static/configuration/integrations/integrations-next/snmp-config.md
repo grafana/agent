@@ -1,10 +1,12 @@
 ---
-title: snmp_exporter_config
 aliases:
 - ../../../../configuration/integrations/integrations-next/snmp-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/snmp-config/
+title: snmp config next
+description: Learn about snmp config next
 ---
 
-# snmp config
+# snmp config next
 
 The `snmp` block configures the `snmp` integration,
 which is an embedded version of
@@ -40,7 +42,7 @@ integrations:
 
 ## Prometheus service discovery use case
 
-If you need to scrape SNMP devices in more dynamic environment, and cannot define devices in `snmp_targets` because targets would change over time, you can use service discovery approach. For instance, with [DNS discovery](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#dns_sd_config):
+If you need to scrape SNMP devices in more dynamic environment, and cannot define devices in `snmp_targets` because targets would change over time, you can use service discovery approach. For instance, with [DNS discovery](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#dns_sd_config):
 
 ```yaml
 

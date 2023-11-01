@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.digitalocean/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.digitalocean/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.digitalocean/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.digitalocean/
 title: discovery.digitalocean
+description: Learn about discovery.digitalocean
 ---
 
 # discovery.digitalocean
@@ -79,7 +85,7 @@ values.
 
 `discovery.digitalocean` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.digitalocean` does not expose any component-specific debug metrics.
 

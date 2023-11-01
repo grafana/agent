@@ -1,7 +1,9 @@
 ---
-title: dnsmasq_exporter_config
 aliases:
 - ../../../configuration/integrations/dnsmasq-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/dnsmasq-exporter-config/
+title: dnsmasq_exporter_config
+description: Learn about dnsmasq_exporter_config
 ---
 
 # dnsmasq_exporter_config

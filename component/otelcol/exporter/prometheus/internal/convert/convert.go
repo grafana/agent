@@ -9,6 +9,7 @@ package convert
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"math"
 	"sort"
@@ -17,27 +18,26 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/model/textparse"
+	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/storage"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
-
-	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus"
 )
 
 var (
 	scopeNameLabel    = "otel_scope_name"
 	scopeVersionLabel = "otel_scope_version"
 )
-
-// TODO(rfratto): Exemplars are not currently supported.
 
 // Converter implements consumer.Metrics and converts received metrics
 // into Prometheus-compatible metrics.
@@ -60,6 +60,11 @@ type Options struct {
 	// IncludeScopeInfo includes the otel_scope_info metric and adds
 	// otel_scope_name and otel_scope_version labels to data points.
 	IncludeScopeInfo bool
+	// IncludeScopeLabels includes the otel_scope_name and otel_scope_version
+	// labels from the scope in the metrics.
+	IncludeScopeLabels bool
+	// AddMetricSuffixes controls whether suffixes are added to metric names. Defaults to true.
+	AddMetricSuffixes bool
 }
 
 var _ consumer.Metrics = (*Converter)(nil)
@@ -199,7 +204,7 @@ func (conv *Converter) getOrCreateResource(res pcommon.Resource) *memorySeries {
 		return true
 	})
 
-	labels := lb.Labels(nil)
+	labels := lb.Labels()
 
 	entry := newMemorySeries(map[string]string{
 		model.JobLabel:      jobLabel,
@@ -242,8 +247,8 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 		model.MetricNameLabel, "otel_scope_info",
 		model.JobLabel, res.metadata[model.JobLabel],
 		model.InstanceLabel, res.metadata[model.InstanceLabel],
-		"name", scope.Name(),
-		"version", scope.Version(),
+		scopeNameLabel, scope.Name(),
+		scopeVersionLabel, scope.Version(),
 	)
 
 	lb := labels.NewBuilder(scopeInfoLabels)
@@ -254,7 +259,7 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 		return true
 	})
 
-	labels := lb.Labels(nil)
+	labels := lb.Labels()
 
 	entry := newMemorySeries(map[string]string{
 		scopeNameLabel:    scope.Name(),
@@ -283,7 +288,7 @@ func (conv *Converter) consumeMetric(app storage.Appender, memResource *memorySe
 }
 
 func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildPromCompliantName(m, "")
+	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
 		Type: textparse.MetricTypeGauge,
@@ -291,7 +296,7 @@ func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySer
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		level.Warn(conv.log).Log("msg", "failed to write metric family metadata, metric name", metricName, "err", err)
 	}
 
 	for dpcount := 0; dpcount < m.Gauge().DataPoints().Len(); dpcount++ {
@@ -299,7 +304,7 @@ func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySer
 
 		memSeries := conv.getOrCreateSeries(memResource, memScope, metricName, dp.Attributes())
 		if err := writeSeries(app, memSeries, dp, getNumberDataPointValue(dp)); err != nil {
-			level.Error(conv.log).Log("msg", "failed to write metric sample", "err", err)
+			level.Error(conv.log).Log("msg", "failed to write metric sample", metricName, "err", err)
 		}
 	}
 }
@@ -325,6 +330,16 @@ func writeSeries(app storage.Appender, series *memorySeries, dp otelcolDataPoint
 	return series.WriteTo(app, ts)
 }
 
+func (conv *Converter) writeExemplar(app storage.Appender, series *memorySeries, otelExemplar pmetric.Exemplar) error {
+	ts := otelExemplar.Timestamp().AsTime()
+	if ts.Before(series.Timestamp()) {
+		// Out-of-order; skip.
+		return nil
+	}
+	promExemplar := conv.convertExemplar(otelExemplar, ts)
+	return series.WriteExemplarsTo(app, promExemplar)
+}
+
 // getOrCreateSeries gets or creates a [*memorySeries] from the provided
 // resource, scope, metric, and attributes. The LastSeen field of the
 // *memorySeries is updated before returning.
@@ -340,9 +355,9 @@ func (conv *Converter) getOrCreateSeries(res *memorySeries, scope *memorySeries,
 		lb.Set(extraLabel.Name, extraLabel.Value)
 	}
 
-	if conv.getOpts().IncludeScopeInfo {
-		lb.Set("otel_scope_name", scope.metadata[scopeNameLabel])
-		lb.Set("otel_scope_version", scope.metadata[scopeVersionLabel])
+	if conv.getOpts().IncludeScopeLabels {
+		lb.Set(scopeNameLabel, scope.metadata[scopeNameLabel])
+		lb.Set(scopeVersionLabel, scope.metadata[scopeVersionLabel])
 	}
 
 	// There is no need to sort the attributes here.
@@ -352,7 +367,7 @@ func (conv *Converter) getOrCreateSeries(res *memorySeries, scope *memorySeries,
 		return true
 	})
 
-	labels := lb.Labels(nil)
+	labels := lb.Labels()
 
 	entry := newMemorySeries(nil, labels)
 	if actual, loaded := conv.seriesCache.LoadOrStore(labels.String(), entry); loaded {
@@ -375,7 +390,7 @@ func getNumberDataPointValue(dp pmetric.NumberDataPoint) float64 {
 }
 
 func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildPromCompliantName(m, "")
+	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	// Excerpt from the spec:
 	//
@@ -409,7 +424,7 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		level.Warn(conv.log).Log("msg", "failed to write metric family metadata, metric name", metricName, "err", err)
 	}
 
 	for dpcount := 0; dpcount < m.Sum().DataPoints().Len(); dpcount++ {
@@ -419,13 +434,21 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 
 		val := getNumberDataPointValue(dp)
 		if err := writeSeries(app, memSeries, dp, val); err != nil {
-			level.Error(conv.log).Log("msg", "failed to write metric sample", "err", err)
+			level.Error(conv.log).Log("msg", "failed to write metric sample", metricName, "err", err)
+		}
+
+		if convType == textparse.MetricTypeCounter {
+			for i := 0; i < dp.Exemplars().Len(); i++ {
+				if err := conv.writeExemplar(app, memSeries, dp.Exemplars().At(i)); err != nil {
+					level.Error(conv.log).Log("msg", "failed to write exemplar for metric sample", metricName, "err", err)
+				}
+			}
 		}
 	}
 }
 
 func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildPromCompliantName(m, "")
+	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	if m.Histogram().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
 		// Drop non-cumulative histograms for now, which is permitted by the spec.
@@ -440,7 +463,7 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		level.Warn(conv.log).Log("msg", "failed to write metric family metadata, metric name", metricName, "err", err)
 	}
 
 	for dpcount := 0; dpcount < m.Histogram().DataPoints().Len(); dpcount++ {
@@ -452,7 +475,7 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			sumMetricVal := dp.Sum()
 
 			if err := writeSeries(app, sumMetric, dp, sumMetricVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram sum sample", "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram sum sample, metric name", metricName, "err", err)
 			}
 		}
 
@@ -462,7 +485,7 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			countMetricVal := float64(dp.Count())
 
 			if err := writeSeries(app, countMetric, dp, countMetricVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram count sample", "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram count sample, metric name", metricName, "err", err)
 			}
 		}
 
@@ -488,6 +511,17 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			buckets[bound] = c
 		}
 
+		// Sort the exemplars by value.
+		exemplars := make([]pmetric.Exemplar, dp.Exemplars().Len())
+		for i := 0; i < dp.Exemplars().Len(); i++ {
+			exemplars[i] = dp.Exemplars().At(i)
+		}
+		sort.Slice(exemplars, func(i, j int) bool {
+			return exemplars[i].DoubleValue() < exemplars[j].DoubleValue()
+		})
+
+		exemplarInd := 0
+
 		// Process the boundaries. The number of buckets = number of explicit
 		// bounds + 1.
 		for i := 0; i < dp.ExplicitBounds().Len() && i < dp.BucketCounts().Len(); i++ {
@@ -506,7 +540,17 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			bucketVal := float64(count)
 
 			if err := writeSeries(app, bucket, dp, bucketVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram bucket sample", "bucket", bucketLabel.Value, "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram bucket sample, metric name", metricName, "bucket", bucketLabel.Value, "err", err)
+			}
+
+			for ; exemplarInd < len(exemplars); exemplarInd++ {
+				if exemplars[exemplarInd].DoubleValue() < bound {
+					if err := conv.writeExemplar(app, bucket, exemplars[exemplarInd]); err != nil {
+						level.Error(conv.log).Log("msg", "failed to add exemplar, metric name", metricName, "bucket", bucketLabel.Value, "err", err)
+					}
+				} else {
+					break
+				}
 			}
 		}
 
@@ -522,14 +566,48 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 			infBucketVal := float64(dp.Count())
 
 			if err := writeSeries(app, infBucket, dp, infBucketVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram bucket sample", "bucket", bucketLabel.Value, "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram bucket sample, metric name", metricName, "bucket", bucketLabel.Value, "err", err)
+			}
+
+			// Add remaining exemplars.
+			for ; exemplarInd < len(exemplars); exemplarInd++ {
+				if err := conv.writeExemplar(app, infBucket, exemplars[exemplarInd]); err != nil {
+					level.Error(conv.log).Log("msg", "failed to add exemplar, metric name", metricName, "bucket", bucketLabel.Value, "err", err)
+				}
 			}
 		}
 	}
 }
 
+// Convert Otel Exemplar to Prometheus Exemplar.
+func (conv *Converter) convertExemplar(otelExemplar pmetric.Exemplar, ts time.Time) exemplar.Exemplar {
+	exemplarLabels := make(labels.Labels, 0)
+
+	if traceID := otelExemplar.TraceID(); !traceID.IsEmpty() {
+		exemplarLabels = append(exemplarLabels, labels.Label{Name: "trace_id", Value: hex.EncodeToString(traceID[:])})
+	}
+
+	if spanID := otelExemplar.SpanID(); !spanID.IsEmpty() {
+		exemplarLabels = append(exemplarLabels, labels.Label{Name: "span_id", Value: hex.EncodeToString(spanID[:])})
+	}
+
+	var value float64
+	switch otelExemplar.ValueType() {
+	case pmetric.ExemplarValueTypeDouble:
+		value = otelExemplar.DoubleValue()
+	case pmetric.ExemplarValueTypeInt:
+		value = float64(otelExemplar.IntValue())
+	}
+
+	return exemplar.Exemplar{
+		Value:  value,
+		Labels: exemplarLabels,
+		Ts:     timestamp.FromTime(ts),
+	}
+}
+
 func (conv *Converter) consumeSummary(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
-	metricName := prometheus.BuildPromCompliantName(m, "")
+	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
 		Type: textparse.MetricTypeSummary,
@@ -537,7 +615,7 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 		Help: m.Description(),
 	})
 	if err := metricMD.WriteTo(app, time.Now()); err != nil {
-		level.Warn(conv.log).Log("msg", "failed to write metric family metadata", "err", err)
+		level.Warn(conv.log).Log("msg", "failed to write metric family metadata, metric name", metricName, "err", err)
 	}
 
 	for dpcount := 0; dpcount < m.Summary().DataPoints().Len(); dpcount++ {
@@ -549,7 +627,7 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 			sumMetricVal := dp.Sum()
 
 			if err := writeSeries(app, sumMetric, dp, sumMetricVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write summary sum sample", "err", err)
+				level.Error(conv.log).Log("msg", "failed to write summary sum sample, metric name", metricName, "err", err)
 			}
 		}
 
@@ -559,7 +637,7 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 			countMetricVal := float64(dp.Count())
 
 			if err := writeSeries(app, countMetric, dp, countMetricVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram count sample", "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram count sample, metric name", metricName, "err", err)
 			}
 		}
 
@@ -576,7 +654,7 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 			quantileVal := qp.Value()
 
 			if err := writeSeries(app, quantile, dp, quantileVal); err != nil {
-				level.Error(conv.log).Log("msg", "failed to write histogram quantile sample", "quantile", quantileLabel.Value, "err", err)
+				level.Error(conv.log).Log("msg", "failed to write histogram quantile sample, metric name", metricName, "quantile", quantileLabel.Value, "err", err)
 			}
 		}
 	}

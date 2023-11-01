@@ -1,7 +1,12 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/setup/configure/configure-kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-kubernetes/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-kubernetes/
 description: Learn how to configure Grafana Agent in flow mode on Kubernetes
-title: Configure Grafana Agent in flow mode on Kubernetes
 menuTitle: Kubernetes
+title: Configure Grafana Agent in flow mode on Kubernetes
 weight: 200
 ---
 

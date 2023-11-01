@@ -9,7 +9,6 @@ package fastdelta
 
 import (
 	"bytes"
-	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,6 +24,7 @@ import (
 	"time"
 
 	"github.com/google/pprof/profile"
+	"github.com/klauspost/compress/gzip"
 	"github.com/richardartoul/molecule"
 	"github.com/richardartoul/molecule/src/protowire"
 	"github.com/stretchr/testify/assert"

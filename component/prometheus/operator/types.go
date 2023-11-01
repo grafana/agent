@@ -1,13 +1,15 @@
 package operator
 
 import (
-	"reflect"
 	"time"
 
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/common/kubernetes"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus/scrape"
+	"github.com/grafana/agent/service/cluster"
+	"github.com/prometheus/common/model"
+	promconfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/storage"
 	apiv1 "k8s.io/api/core/v1"
 )
@@ -25,19 +27,27 @@ type Arguments struct {
 	// LabelSelector allows filtering discovered monitor resources by labels
 	LabelSelector *config.LabelSelector `river:"selector,block,optional"`
 
-	Clustering Clustering `river:"clustering,block,optional"`
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 
 	RelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
+
+	Scrape ScrapeOptions `river:"scrape,block,optional"`
 }
 
-func (a *Arguments) Equals(b *Arguments) bool {
-	return reflect.DeepEqual(a, b)
+// ScrapeOptions holds values that configure scraping behavior.
+type ScrapeOptions struct {
+	// DefaultScrapeInterval is the default interval to scrape targets.
+	DefaultScrapeInterval time.Duration `river:"default_scrape_interval,attr,optional"`
+
+	// DefaultScrapeTimeout is the default timeout to scrape targets.
+	DefaultScrapeTimeout time.Duration `river:"default_scrape_timeout,attr,optional"`
 }
 
-// Clustering holds values that configure clustering-specific behavior.
-type Clustering struct {
-	// TODO(@tpaschalis) Move this block to a shared place for all components using clustering.
-	Enabled bool `river:"enabled,attr"`
+func (s *ScrapeOptions) GlobalConfig() promconfig.GlobalConfig {
+	cfg := promconfig.DefaultGlobalConfig
+	cfg.ScrapeInterval = model.Duration(s.DefaultScrapeInterval)
+	cfg.ScrapeTimeout = model.Duration(s.DefaultScrapeTimeout)
+	return cfg
 }
 
 var DefaultArguments = Arguments{
@@ -65,8 +75,9 @@ type DebugInfo struct {
 }
 
 type DiscoveredResource struct {
-	Namespace      string    `river:"namespace,attr"`
-	Name           string    `river:"name,attr"`
-	LastReconcile  time.Time `river:"last_reconcile,attr,optional"`
-	ReconcileError string    `river:"reconcile_error,attr,optional"`
+	Namespace        string    `river:"namespace,attr"`
+	Name             string    `river:"name,attr"`
+	LastReconcile    time.Time `river:"last_reconcile,attr,optional"`
+	ReconcileError   string    `river:"reconcile_error,attr,optional"`
+	ScrapeConfigsURL string    `river:"scrape_configs_url,attr,optional"`
 }

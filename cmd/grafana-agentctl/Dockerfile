@@ -4,7 +4,7 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
-FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.29.0 as build
+FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.30.3 as build
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -20,6 +20,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     GOOS="$TARGETOS" GOARCH="$TARGETARCH" GOARM="${TARGETVARIANT#v}" \
     RELEASE_BUILD="${RELEASE_BUILD}" VERSION="${VERSION}" \
+    GO_TAGS="netgo promtail_journal_enabled" \
     make agentctl
 
 FROM ubuntu:lunar
@@ -30,7 +31,7 @@ LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 RUN <<EOF
   apt-get update
   apt-get install -qy libsystemd-dev tzdata ca-certificates
-
+  apt-get upgrade -y
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOF
 

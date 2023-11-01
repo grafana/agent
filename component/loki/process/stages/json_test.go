@@ -1,9 +1,5 @@
 package stages
 
-// This package is ported over from grafana/loki/clients/pkg/logentry/stages.
-// We aim to port the stages in steps, to avoid introducing huge amounts of
-// new code without being able to slowly review, examine and test them.
-
 import (
 	"errors"
 	"fmt"
@@ -14,8 +10,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river"
 )
 
 var testJSONRiverSingleStageWithoutSource = `

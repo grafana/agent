@@ -1,9 +1,5 @@
 package stages
 
-// This package is ported over from grafana/loki/clients/pkg/logentry/stages.
-// We aim to port the stages in steps, to avoid introducing huge amounts of
-// new code without being able to slowly review, examine and test them.
-
 import (
 	"errors"
 	"fmt"
@@ -11,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/common/model"
 )
 
@@ -62,24 +58,32 @@ type labelStage struct {
 }
 
 // Process implements Stage
-func (l *labelStage) Process(labels model.LabelSet, extracted map[string]interface{}, t *time.Time, entry *string) {
-	for lName, lSrc := range l.cfgs.Values {
+func (l *labelStage) Process(labels model.LabelSet, extracted map[string]interface{}, _ *time.Time, _ *string) {
+	processLabelsConfigs(l.logger, extracted, l.cfgs, func(labelName model.LabelName, labelValue model.LabelValue) {
+		labels[labelName] = labelValue
+	})
+}
+
+type labelsConsumer func(labelName model.LabelName, labelValue model.LabelValue)
+
+func processLabelsConfigs(logger log.Logger, extracted map[string]interface{}, configs LabelsConfig, consumer labelsConsumer) {
+	for lName, lSrc := range configs.Values {
 		if lValue, ok := extracted[*lSrc]; ok {
 			s, err := getString(lValue)
 			if err != nil {
 				if Debug {
-					level.Debug(l.logger).Log("msg", "failed to convert extracted label value to string", "err", err, "type", reflect.TypeOf(lValue))
+					level.Debug(logger).Log("msg", "failed to convert extracted label value to string", "err", err, "type", reflect.TypeOf(lValue))
 				}
 				continue
 			}
 			labelValue := model.LabelValue(s)
 			if !labelValue.IsValid() {
 				if Debug {
-					level.Debug(l.logger).Log("msg", "invalid label value parsed", "value", labelValue)
+					level.Debug(logger).Log("msg", "invalid label value parsed", "value", labelValue)
 				}
 				continue
 			}
-			labels[model.LabelName(lName)] = labelValue
+			consumer(model.LabelName(lName), labelValue)
 		}
 	}
 }

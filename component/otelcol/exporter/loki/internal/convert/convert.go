@@ -13,8 +13,8 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	loki_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/collector/consumer"
@@ -67,7 +67,10 @@ func (conv *Converter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 			for k := 0; k < logs.Len(); k++ {
 				conv.metrics.entriesTotal.Inc()
 
-				entry, err := loki_translator.LogToLokiEntry(logs.At(k), rls.At(i).Resource(), scope)
+				// TODO: loki added a parameter `defaultLabelsEnabled` to this function to add the possibility to disable default labels (exporter, job, instance, level)
+				// Is this interesting for us in any ways? (@wildum)
+				// https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/23863/files#diff-ef7831fcba373f6e8aa7f799b5b89f4e113b2064cd7ef1688286ce193d2256a8
+				entry, err := loki_translator.LogToLokiEntry(logs.At(k), rls.At(i).Resource(), scope, nil)
 				if err != nil {
 					level.Error(conv.log).Log("msg", "failed to convert log to loki entry", "err", err)
 					conv.metrics.entriesFailed.Inc()

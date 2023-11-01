@@ -2,35 +2,53 @@ package staticconvert
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 
+	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
+	"github.com/grafana/agent/converter/internal/promtailconvert"
+	"github.com/grafana/agent/converter/internal/staticconvert/internal/build"
 	"github.com/grafana/agent/pkg/config"
-	"github.com/grafana/agent/pkg/metrics"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/agent/pkg/logs"
+	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
+	"github.com/grafana/loki/clients/pkg/promtail/limit"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
+	"github.com/grafana/river/scanner"
+	"github.com/grafana/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
+
+	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations
 )
 
 // Convert implements a Static config converter.
-func Convert(in []byte) ([]byte, diag.Diagnostics) {
+//
+// extraArgs are supported to be passed along to the Static config parser such
+// as enabling integrations-next.
+func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
+	// diags := validateExtraArgs(extraArgs)
+	// if len(diags) > 0 {
+	// 	return nil, diags
+	// }
 
-	var staticConfig config.Config
-	err := config.LoadBytes(in, false, &staticConfig)
+	fs := flag.NewFlagSet("convert", flag.ContinueOnError)
+	args := []string{"-config.file", "convert", "-config.expand-env"}
+	args = append(args, extraArgs...)
+	staticConfig, err := config.LoadFromFunc(fs, args, func(_, _ string, expandEnvVars bool, c *config.Config) error {
+		return config.LoadBytes(in, expandEnvVars, c)
+	})
+
 	if err != nil {
 		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to parse Static config: %s", err))
 		return nil, diags
 	}
 
-	if err = staticConfig.Validate(nil); err != nil {
-		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to validate Static config: %s", err))
-		return nil, diags
-	}
-
 	f := builder.NewFile()
-	diags = AppendAll(f, &staticConfig)
+	diags = AppendAll(f, staticConfig)
+	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
 	if _, err := f.WriteTo(&buf); err != nil {
@@ -43,7 +61,7 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 	}
 
 	prettyByte, newDiags := common.PrettyPrint(buf.Bytes())
-	diags = append(diags, newDiags...)
+	diags.AddAll(newDiags)
 	return prettyByte, diags
 }
 
@@ -54,19 +72,17 @@ func Convert(in []byte) ([]byte, diag.Diagnostics) {
 func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	newDiags := AppendStaticPrometheus(f, staticConfig)
-	diags = append(diags, newDiags...)
-
-	// TODO promtail
-
+	diags.AddAll(appendStaticPrometheus(f, staticConfig))
+	diags.AddAll(appendStaticPromtail(f, staticConfig))
+	diags.AddAll(appendStaticIntegrations(f, staticConfig))
 	// TODO otel
 
-	// TODO other
+	diags.AddAll(validate(staticConfig))
 
 	return diags
 }
 
-func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 	for _, instance := range staticConfig.Metrics.Configs {
 		promConfig := &prom_config.Config{
@@ -75,7 +91,22 @@ func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 			RemoteWriteConfigs: instance.RemoteWrite,
 		}
 
-		// There is an edge case unhandled here with label collisions.
+		jobNameToCompLabelsFunc := func(jobName string) string {
+			name := fmt.Sprintf("metrics_%s", instance.Name)
+			if jobName != "" {
+				name += fmt.Sprintf("_%s", jobName)
+			}
+
+			name, err := scanner.SanitizeIdentifier(name)
+			if err != nil {
+				diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
+			}
+
+			return name
+		}
+
+		// There is an edge case here with label collisions that will be caught
+		// by a validation [common.ValidateNodes].
 		// For example,
 		//   metrics config name = "agent_test"
 		//   scrape config job_name = "prometheus"
@@ -83,24 +114,65 @@ func AppendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		//   metrics config name = "agent"
 		//   scrape config job_name = "test_prometheus"
 		//
-		//   results in two prometheus.scrape components with the label "agent_test_prometheus"
-		newDiags := prometheusconvert.AppendAll(f, promConfig, instance.Name)
-		diags = append(diags, newDiags...)
+		//   results in two prometheus.scrape components with the label "metrics_agent_test_prometheus"
+		diags.AddAll(prometheusconvert.AppendAllNested(f, promConfig, jobNameToCompLabelsFunc, []discovery.Target{}, nil))
 	}
 
-	newDiags := validateMetrics(staticConfig)
-	diags = append(diags, newDiags...)
 	return diags
 }
 
-func validateMetrics(staticConfig *config.Config) diag.Diagnostics {
+func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if staticConfig.Metrics.WALDir != metrics.DefaultConfig.WALDir {
-		diags.Add(diag.SeverityLevelError, "unsupported config for wal_directory was provided. use the run command flag --storage.path for Flow mode instead.")
+	if staticConfig.Logs == nil {
+		return diags
 	}
 
-	// TODO Static to Flow unsupported features
+	for _, logConfig := range staticConfig.Logs.Configs {
+		promtailConfig := logs.DefaultConfig()
+		promtailConfig.Global = promtail_config.GlobalConfig{FileWatch: staticConfig.Logs.Global.FileWatch}
+		promtailConfig.ClientConfigs = logConfig.ClientConfigs
+		promtailConfig.PositionsConfig = logConfig.PositionsConfig
+		promtailConfig.ScrapeConfig = logConfig.ScrapeConfig
+		promtailConfig.TargetConfig = logConfig.TargetConfig
+		promtailConfig.LimitsConfig = logConfig.LimitsConfig
+
+		// We are using the
+		err := promtailConfig.ServerConfig.Config.LogLevel.Set("info")
+		if err != nil {
+			panic("unable to set default promtail log level from the static converter.")
+		}
+
+		// We need to set this when empty so the promtail converter doesn't think it has been overridden
+		if promtailConfig.Global == (promtail_config.GlobalConfig{}) {
+			promtailConfig.Global.FileWatch = file.DefaultWatchConig
+		}
+
+		if promtailConfig.LimitsConfig == (limit.Config{}) {
+			promtailConfig.LimitsConfig = promtailconvert.DefaultLimitsConfig()
+		}
+
+		// There is an edge case here with label collisions that will be caught
+		// by a validation [common.ValidateNodes].
+		// For example,
+		//   logs config name = "agent_test"
+		//   scrape config job_name = "promtail"
+		//
+		//   logs config name = "agent"
+		//   scrape config job_name = "test_promtail"
+		//
+		//   results in two prometheus.scrape components with the label "logs_agent_test_promtail"
+		diags = promtailconvert.AppendAll(f, &promtailConfig, "logs_"+logConfig.Name, diags)
+	}
+
+	return diags
+}
+
+func appendStaticIntegrations(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	b := build.NewIntegrationsConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
+	b.Build()
 
 	return diags
 }

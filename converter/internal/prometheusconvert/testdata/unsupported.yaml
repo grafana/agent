@@ -42,6 +42,8 @@ scrape_configs:
   - job_name: "prometheus2"
     static_configs:
       - targets: ["localhost:9091"]
+    scrape_classic_histograms: true
+    native_histogram_bucket_limit: 2
 
 remote_write:
   - name: "remote1"
@@ -49,7 +51,5 @@ remote_write:
     proxy_from_environment: true
     tls_config:
       max_version: TLS13
-    sigv4:
-      region: us-east-1
   - name: "remote2"
     url: "http://remote-write-url2"

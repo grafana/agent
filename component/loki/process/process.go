@@ -1,3 +1,6 @@
+// The code in this package is adapted/ported over from grafana/loki/clients/pkg/logentry.
+//
+// The last Loki commit scanned for upstream changes was 7d5475541c66a819f6f456a45f8c143a084e6831.
 package process
 
 import (
@@ -49,11 +52,13 @@ type Component struct {
 
 	mut          sync.RWMutex
 	receiver     loki.LogsReceiver
-	fanout       []loki.LogsReceiver
 	processIn    chan<- loki.Entry
 	processOut   chan loki.Entry
 	entryHandler loki.EntryHandler
 	stages       []stages.StageConfig
+
+	fanoutMut sync.RWMutex
+	fanout    []loki.LogsReceiver
 }
 
 // New creates a new loki.process component.
@@ -83,7 +88,6 @@ func (c *Component) Run(ctx context.Context) error {
 		if c.entryHandler != nil {
 			c.entryHandler.Stop()
 		}
-		close(c.processOut)
 		close(c.processIn)
 		c.mut.RUnlock()
 	}()
@@ -100,6 +104,12 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
+	// Update c.fanout first in case anything else fails.
+	c.fanoutMut.Lock()
+	c.fanout = newArgs.ForwardTo
+	c.fanoutMut.Unlock()
+
+	// Then update the pipeline itself.
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
@@ -119,8 +129,6 @@ func (c *Component) Update(args component.Arguments) error {
 		c.processIn = pipeline.Wrap(c.entryHandler).Chan()
 		c.stages = newArgs.Stages
 	}
-
-	c.fanout = newArgs.ForwardTo
 
 	return nil
 }
@@ -155,8 +163,10 @@ func (c *Component) handleOut(ctx context.Context, wg *sync.WaitGroup) {
 		case <-ctx.Done():
 			return
 		case entry := <-c.processOut:
-			c.mut.RLock()
-			for _, f := range c.fanout {
+			c.fanoutMut.RLock()
+			fanout := c.fanout
+			c.fanoutMut.RUnlock()
+			for _, f := range fanout {
 				select {
 				case <-ctx.Done():
 					return
@@ -164,7 +174,6 @@ func (c *Component) handleOut(ctx context.Context, wg *sync.WaitGroup) {
 					// no-op
 				}
 			}
-			c.mut.RUnlock()
 		}
 	}
 }

@@ -1,12 +1,18 @@
 ---
-title: module.git
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/module.git/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.git/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.git/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.git/
 labels:
   stage: beta
+title: module.git
+description: Learn about module.git
 ---
 
 # module.git
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `module.git` is a *module loader* component. A module loader is a Grafana Agent Flow
 component which retrieves a [module][] and runs the components defined inside of it.
@@ -71,7 +77,7 @@ arguments | [arguments][] | Arguments to pass to the module. | no
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### ssh_key block
 
@@ -126,7 +132,7 @@ and most recent load of the module was successful.
 * The full SHA of the currently checked out revision.
 * The most recent error when trying to fetch the repository, if any.
 
-### Debug metrics
+## Debug metrics
 
 `module.git` does not expose any component-specific debug metrics.
 

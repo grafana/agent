@@ -3,8 +3,7 @@ package github
 import (
 	"testing"
 
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,15 +42,4 @@ func TestConvert(t *testing.T) {
 	require.Contains(t, res.Organizations, "prometheus")
 	require.Equal(t, []string{"jcreixell"}, res.Users)
 	require.Equal(t, "https://some-other-api.github.com", res.APIURL)
-}
-
-func TestCustomizeTarget_Valid(t *testing.T) {
-	args := Arguments{
-		APIURL: "https://some-other-api.github.com",
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "some-other-api.github.com", newTargets[0]["instance"])
 }

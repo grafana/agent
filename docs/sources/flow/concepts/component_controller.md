@@ -1,7 +1,12 @@
 ---
 aliases:
 - ../../concepts/component-controller/
+- /docs/grafana-cloud/agent/flow/concepts/component_controller/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/component_controller/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/component_controller/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/component_controller/
 title: Component controller
+description: Learn about the component controller
 weight: 200
 ---
 
@@ -10,9 +15,9 @@ weight: 200
 The _component controller_ is the core part of Grafana Agent Flow which manages
 components at runtime.
 
-It is responsible for:
+The component controller is responsible for:
 
-* Reading and validating the config file.
+* Reading and validating the configuration file.
 * Managing the lifecycle of defined components.
 * Evaluating the arguments used to configure components.
 * Reporting the health of defined components.
@@ -27,7 +32,7 @@ The set of all components and the relationships between them define a [directed
 acyclic graph][DAG] (DAG), which informs the component controller which
 references are valid and in what order components must be evaluated.
 
-For a config file to be valid, components must not reference themselves or
+For a configuration file to be valid, components must not reference themselves or
 contain a cyclic reference:
 
 ```river
@@ -55,7 +60,7 @@ behavior. The component controller is finished loading once all components are
 evaluated, configured, and running.
 
 The component controller only evaluates a given component after evaluating all
-of that component's dependencies. Component that do not depend on other
+of that component's dependencies. Components that do not depend on other
 components can be evaluated at any time during the evaluation process.
 
 ## Component reevaluation
@@ -118,21 +123,26 @@ The internal address defaults to `agent.internal:12345`. If this address
 collides with a real target on your network, change it to something unique
 using the `--server.http.memory-addr` flag in the [run][] command.
 
-Components must opt-in to using in-memory traffic; see the individual
+Components must opt-in to using in-memory traffic. See the individual
 documentation for components to learn if in-memory traffic is supported.
 
-[prometheus.exporter.unix]: {{< relref "../reference/components/prometheus.exporter.unix.md" >}}
-[run]: {{< relref "../reference/cli/run.md" >}}
-
-## Updating the config file
+## Updating the configuration file
 
 Both the `/-/reload` HTTP endpoint and the `SIGHUP` signal can be used to
-inform the component controller to reload the config file. When this happens,
+inform the component controller to reload the configuration file. When this happens,
 the component controller will synchronize the set of running components with
-the ones in the config file, removing components which are no longer defined in
-the config file and creating new components which were added to the config
+the ones in the configuration file, removing components which are no longer defined in
+the configuration file and creating new components which were added to the configuration
 file. All components managed by the controller will be reevaluated after
 reloading.
 
-[Components]: {{< relref "./components.md" >}}
 [DAG]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
+
+{{% docs/reference %}}
+[prometheus.exporter.unix]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.unix.md"
+[prometheus.exporter.unix]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.unix.md"
+[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+{{% /docs/reference %}}

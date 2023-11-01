@@ -1,7 +1,9 @@
 ---
-title: apache_http_config
 aliases:
 - ../../../configuration/integrations/apache-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/apache-exporter-config/
+title: apache_http_config
+description: Learn about apache_http_config
 ---
 
 # apache_http_config

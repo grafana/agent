@@ -1,19 +1,18 @@
 package client
 
-// This code is copied from Promtail. The client package is used to configure
-// and run the clients that can send log entries to a Loki instance.
-
 import (
 	"fmt"
-	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"
+	"github.com/prometheus/common/model"
+	"golang.org/x/exp/slices"
+
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/loki/pkg/logproto"
-	"github.com/prometheus/common/model"
 )
 
 const (
@@ -25,9 +24,10 @@ const (
 // and entries in a single batch request. In case of multi-tenant Promtail, log
 // streams for each tenant are stored in a dedicated batch.
 type batch struct {
-	streams   map[string]*logproto.Stream
-	bytes     int
-	createdAt time.Time
+	streams map[string]*logproto.Stream
+	// totalBytes holds the total amounts of bytes, across the log lines in this batch.
+	totalBytes int
+	createdAt  time.Time
 
 	maxStreams int
 }
@@ -35,7 +35,7 @@ type batch struct {
 func newBatch(maxStreams int, entries ...loki.Entry) *batch {
 	b := &batch{
 		streams:    map[string]*logproto.Stream{},
-		bytes:      0,
+		totalBytes: 0,
 		createdAt:  time.Now(),
 		maxStreams: maxStreams,
 	}
@@ -51,7 +51,7 @@ func newBatch(maxStreams int, entries ...loki.Entry) *batch {
 
 // add an entry to the batch
 func (b *batch) add(entry loki.Entry) error {
-	b.bytes += len(entry.Line)
+	b.totalBytes += len(entry.Line)
 
 	// Append the entry to an already existing stream (if any)
 	labels := labelsMapToString(entry.Labels, ReservedLabelTenantID)
@@ -72,31 +72,73 @@ func (b *batch) add(entry loki.Entry) error {
 	return nil
 }
 
-func labelsMapToString(ls model.LabelSet, without ...model.LabelName) string {
-	lstrs := make([]string, 0, len(ls))
-Outer:
-	for l, v := range ls {
-		for _, w := range without {
-			if l == w {
-				continue Outer
-			}
-		}
-		lstrs = append(lstrs, fmt.Sprintf("%s=%q", l, v))
+// add an entry to the batch
+func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry) error {
+	b.totalBytes += len(entry.Line)
+
+	// Append the entry to an already existing stream (if any)
+	labels := labelsMapToString(lbs, ReservedLabelTenantID)
+	if stream, ok := b.streams[labels]; ok {
+		stream.Entries = append(stream.Entries, entry)
+		return nil
 	}
 
-	sort.Strings(lstrs)
-	return fmt.Sprintf("{%s}", strings.Join(lstrs, ", "))
+	streams := len(b.streams)
+	if b.maxStreams > 0 && streams >= b.maxStreams {
+		return fmt.Errorf(errMaxStreamsLimitExceeded, streams, b.maxStreams, labels)
+	}
+
+	// Add the entry as a new stream
+	b.streams[labels] = &logproto.Stream{
+		Labels:  labels,
+		Entries: []logproto.Entry{entry},
+	}
+
+	return nil
+}
+
+// labelsMapToString encodes an entry's label set as a string, ignoring the without label.
+func labelsMapToString(ls model.LabelSet, without model.LabelName) string {
+	var b strings.Builder
+	totalSize := 2
+	lstrs := make([]model.LabelName, 0, len(ls))
+
+	for l, v := range ls {
+		if l == without {
+			continue
+		}
+
+		lstrs = append(lstrs, l)
+		// guess size increase: 2 for `, ` between labels and 3 for the `=` and quotes around label value
+		totalSize += len(l) + 2 + len(v) + 3
+	}
+
+	b.Grow(totalSize)
+	b.WriteByte('{')
+	slices.Sort(lstrs)
+	for i, l := range lstrs {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		b.WriteString(string(l))
+		b.WriteString(`=`)
+		b.WriteString(strconv.Quote(string(ls[l])))
+	}
+	b.WriteByte('}')
+
+	return b.String()
 }
 
 // sizeBytes returns the current batch size in bytes
 func (b *batch) sizeBytes() int {
-	return b.bytes
+	return b.totalBytes
 }
 
 // sizeBytesAfter returns the size of the batch after the input entry
 // will be added to the batch itself
-func (b *batch) sizeBytesAfter(entry loki.Entry) int {
-	return b.bytes + len(entry.Line)
+func (b *batch) sizeBytesAfter(line string) int {
+	return b.totalBytes + len(line)
 }
 
 // age of the batch since its creation

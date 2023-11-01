@@ -21,9 +21,9 @@ import (
 	"github.com/grafana/agent/component/common/loki/client/fake"
 	fnet "github.com/grafana/agent/component/common/net"
 	frelabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/river"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -63,8 +63,8 @@ regex = "dropme"
 		BatchWait: 1 * time.Second,
 		BatchSize: 100 * 1024,
 	}
-	m := client.NewMetrics(prometheus.DefaultRegisterer, nil)
-	pc, err := client.New(m, ccfg, nil, 0, logger)
+	m := client.NewMetrics(prometheus.DefaultRegisterer)
+	pc, err := client.New(m, ccfg, 0, 0, false, logger)
 	require.NoError(t, err)
 	defer pc.Stop()
 
@@ -138,8 +138,8 @@ regex = "dropme"
 		BatchWait: 1 * time.Second,
 		BatchSize: 100 * 1024,
 	}
-	m := client.NewMetrics(prometheus.DefaultRegisterer, nil)
-	pc, err := client.New(m, ccfg, nil, 0, logger)
+	m := client.NewMetrics(prometheus.DefaultRegisterer)
+	pc, err := client.New(m, ccfg, 0, 0, false, logger)
 	require.NoError(t, err)
 	defer pc.Stop()
 

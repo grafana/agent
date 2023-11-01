@@ -9,8 +9,11 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
+	"github.com/grafana/agent/pkg/util"
 	blackbox_config "github.com/prometheus/blackbox_exporter/config"
 	"github.com/prometheus/blackbox_exporter/prober"
+	"github.com/prometheus/client_golang/prometheus"
+	"gopkg.in/yaml.v3"
 )
 
 // DefaultConfig holds the default settings for the blackbox_exporter integration.
@@ -20,9 +23,8 @@ var DefaultConfig = Config{
 }
 
 func loadFile(filename string, log log.Logger) (*blackbox_config.Config, error) {
-	sc := &blackbox_config.SafeConfig{
-		C: &blackbox_config.Config{},
-	}
+	r := prometheus.NewRegistry()
+	sc := blackbox_config.NewSafeConfig(r)
 	err := sc.ReloadConfig(filename, log)
 	if err != nil {
 		return nil, err
@@ -39,10 +41,10 @@ type BlackboxTarget struct {
 
 // Config configures the Blackbox integration.
 type Config struct {
-	BlackboxConfigFile string                 `yaml:"config_file,omitempty"`
-	BlackboxTargets    []BlackboxTarget       `yaml:"blackbox_targets"`
-	BlackboxConfig     blackbox_config.Config `yaml:"blackbox_config,omitempty"`
-	ProbeTimeoutOffset float64                `yaml:"probe_timeout_offset,omitempty"`
+	BlackboxConfigFile string           `yaml:"config_file,omitempty"`
+	BlackboxTargets    []BlackboxTarget `yaml:"blackbox_targets"`
+	BlackboxConfig     util.RawYAML     `yaml:"blackbox_config,omitempty"`
+	ProbeTimeoutOffset float64          `yaml:"probe_timeout_offset,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -50,7 +52,13 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 
 	type plain Config
-	return unmarshal((*plain)(c))
+	err := unmarshal((*plain)(c))
+	if err != nil {
+		return err
+	}
+
+	var blackbox_config blackbox_config.Config
+	return yaml.Unmarshal(c.BlackboxConfig, &blackbox_config)
 }
 
 // Name returns the name of the integration.
@@ -96,7 +104,13 @@ func LoadBlackboxConfig(log log.Logger, configFile string, targets []BlackboxTar
 
 // New creates a new blackbox_exporter integration
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	modules, err := LoadBlackboxConfig(log, c.BlackboxConfigFile, c.BlackboxTargets, &c.BlackboxConfig)
+	var blackbox_config blackbox_config.Config
+	err := yaml.Unmarshal(c.BlackboxConfig, &blackbox_config)
+	if err != nil {
+		return nil, err
+	}
+
+	modules, err := LoadBlackboxConfig(log, c.BlackboxConfigFile, c.BlackboxTargets, &blackbox_config)
 	if err != nil {
 		return nil, err
 	}

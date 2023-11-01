@@ -1,7 +1,12 @@
 ---
 aliases:
 - /docs/agent/latest/flow/reference/components/loki.source.docker
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.docker/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.docker/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.docker/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.docker/
 title: loki.source.docker
+description: Learn about loki.source.docker
 ---
 
 # loki.source.docker
@@ -36,11 +41,67 @@ Name            | Type                 | Description          | Default | Requir
 `forward_to`    | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
 `labels`        | `map(string)`        | The default set of labels to apply on entries. | `"{}"` | no
 `relabel_rules` | `RelabelRules`       | Relabeling rules to apply on log entries. | `"{}"` | no
+`refresh_interval` | `duration`        | The refresh interval to use when connecting to the Docker daemon over HTTP(S). | `"60s"` | no
 
 ## Blocks
 
-The `loki.source.docker` component doesn't support any inner blocks and is
-configured fully through arguments.
+The following blocks are supported inside the definition of `loki.source.docker`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+client | [client][] | HTTP client settings when connecting to the endpoint. | no
+client > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
+client > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
+client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
+client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+
+The `>` symbol indicates deeper levels of nesting. For example, `client >
+basic_auth` refers to an `basic_auth` block defined inside a `client` block.
+
+These blocks are only applicable when connecting to a Docker daemon over HTTP
+or HTTPS and has no effect when connecting via a `unix:///` socket
+
+[client]: #client-block
+[basic_auth]: #basic_auth-block
+[authorization]: #authorization-block
+[oauth2]: #oauth2-block
+[tls_config]: #tls_config-block
+
+### client block
+
+The `client` block configures settings used to connect to HTTP(S) Docker
+daemons.
+
+{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### basic_auth block
+
+The `basic_auth` block configures basic authentication for HTTP(S) Docker
+daemons.
+
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### authorization block
+
+The `authorization` block configures custom authorization to use for the Docker
+daemon.
+
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### oauth2 block
+
+The `oauth2` block configures OAuth2 authorization to use for the Docker
+daemon.
+
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### tls_config block
+
+The `tls_config` block configures TLS settings for connecting to HTTPS Docker
+daemons.
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -62,6 +123,12 @@ configuration.
 
 * `loki_source_docker_target_entries_total` (gauge): Total number of successful entries sent to the Docker target.
 * `loki_source_docker_target_parsing_errors_total` (gauge): Total number of parsing errors while receiving Docker messages.
+
+## Component behavior
+The component uses its data path (a directory named after the domain's
+fully qualified name) to store its _positions file_. The positions file
+stores the read offsets so that if there is a component or Agent restart,
+`loki.source.docker` can pick up tailing from the same spot.
 
 ## Example
 

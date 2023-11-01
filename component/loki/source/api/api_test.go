@@ -372,13 +372,14 @@ func newTestLokiClient(t *testing.T, args Arguments, opts component.Options) cli
 	require.NoError(t, err)
 
 	lokiClient, err := client.New(
-		client.NewMetrics(nil, nil),
+		client.NewMetrics(nil),
 		client.Config{
 			URL:     url,
 			Timeout: 5 * time.Second,
 		},
-		[]string{},
 		0,
+		0,
+		false,
 		opts.Logger,
 	)
 	require.NoError(t, err)

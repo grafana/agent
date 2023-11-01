@@ -1,7 +1,12 @@
 ---
 aliases:
 - ../../configuration-language/standard-library/nonsensitive/
+- /docs/grafana-cloud/agent/flow/reference/stdlib/nonsensitive/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/nonsensitive/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/nonsensitive/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/nonsensitive/
 title: nonsensitive
+description: Learn about nonsensitive
 ---
 
 # nonsensitive

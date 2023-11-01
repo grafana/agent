@@ -145,7 +145,7 @@ type Storage struct {
 
 // NewStorage makes a new Storage.
 func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
-	w, err := wlog.NewSize(logger, registerer, SubDirectory(path), wlog.DefaultSegmentSize, true)
+	w, err := wlog.NewSize(logger, registerer, SubDirectory(path), wlog.DefaultSegmentSize, wlog.CompressionSnappy)
 	if err != nil {
 		return nil, err
 	}
@@ -451,7 +451,7 @@ func (w *Storage) loadWAL(r *wlog.Reader, multiRef map[chunks.HeadSeriesRef]chun
 		return err
 	default:
 		if r.Err() != nil {
-			return fmt.Errorf("read records: %w", err)
+			return fmt.Errorf("read records: %w", r.Err())
 		}
 		return nil
 	}
@@ -534,7 +534,7 @@ func (w *Storage) Truncate(mint int64) error {
 	// The checkpoint is written and segments before it is truncated, so we no
 	// longer need to track deleted series that are before it.
 	for ref, segment := range w.deleted {
-		if segment < first {
+		if segment <= last {
 			delete(w.deleted, ref)
 			w.metrics.totalRemovedSeries.Inc()
 		}
@@ -699,11 +699,6 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	series.Lock()
 	defer series.Unlock()
 
-	if t < series.lastTs {
-		a.w.metrics.totalOutOfOrderSamples.Inc()
-		return 0, storage.ErrOutOfOrderSample
-	}
-
 	// NOTE(rfratto): always modify pendingSamples and sampleSeries together.
 	a.pendingSamples = append(a.pendingSamples, record.RefSample{
 		Ref: series.ref,
@@ -764,8 +759,12 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, _ labels.Labels, e exem
 	// Check for duplicate vs last stored exemplar for this series, and discard those.
 	// Otherwise, record the current exemplar as the latest.
 	// Prometheus' TSDB returns 0 when encountering duplicates, so we do the same here.
+	// TODO(@tpaschalis) The case of OOO exemplars is currently unique to
+	// Native Histograms. Prometheus is tracking a (possibly different) fix to
+	// this, we should revisit once they've settled on a solution.
+	// https://github.com/prometheus/prometheus/issues/12971
 	prevExemplar := a.w.series.GetLatestExemplar(s.ref)
-	if prevExemplar != nil && prevExemplar.Equals(e) {
+	if prevExemplar != nil && (prevExemplar.Equals(e) || prevExemplar.Ts > e.Ts) {
 		// Duplicate, don't return an error but don't accept the exemplar.
 		return 0, nil
 	}
@@ -824,11 +823,6 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 	series.Lock()
 	defer series.Unlock()
 
-	if t < series.lastTs {
-		a.w.metrics.totalOutOfOrderSamples.Inc()
-		return 0, storage.ErrOutOfOrderSample
-	}
-
 	switch {
 	case h != nil:
 		// NOTE(rfratto): always modify pendingHistograms and histogramSeries
@@ -861,6 +855,16 @@ func (a *appender) UpdateMetadata(ref storage.SeriesRef, _ labels.Labels, m meta
 
 // Commit submits the collected samples and purges the batch.
 func (a *appender) Commit() error {
+	if err := a.log(); err != nil {
+		return err
+	}
+
+	a.clearData()
+	a.w.appenderPool.Put(a)
+	return nil
+}
+
+func (a *appender) log() error {
 	a.w.walMtx.RLock()
 	defer a.w.walMtx.RUnlock()
 
@@ -870,6 +874,9 @@ func (a *appender) Commit() error {
 
 	var encoder record.Encoder
 	buf := a.w.bufPool.Get().([]byte)
+	defer func() {
+		a.w.bufPool.Put(buf) //nolint:staticcheck
+	}()
 
 	if len(a.pendingSeries) > 0 {
 		buf = encoder.Series(a.pendingSeries, buf)
@@ -931,12 +938,11 @@ func (a *appender) Commit() error {
 		}
 	}
 
-	//nolint:staticcheck
-	a.w.bufPool.Put(buf)
-	return a.Rollback()
+	return nil
 }
 
-func (a *appender) Rollback() error {
+// clearData clears all pending data.
+func (a *appender) clearData() {
 	a.pendingSeries = a.pendingSeries[:0]
 	a.pendingSamples = a.pendingSamples[:0]
 	a.pendingHistograms = a.pendingHistograms[:0]
@@ -945,6 +951,43 @@ func (a *appender) Rollback() error {
 	a.sampleSeries = a.sampleSeries[:0]
 	a.histogramSeries = a.histogramSeries[:0]
 	a.floatHistogramSeries = a.floatHistogramSeries[:0]
+}
+
+func (a *appender) Rollback() error {
+	// Series are created in-memory regardless of rollback. This means we must
+	// log them to the WAL, otherwise subsequent commits may reference a series
+	// which was never written to the WAL.
+	if err := a.logSeries(); err != nil {
+		return err
+	}
+
+	a.clearData()
 	a.w.appenderPool.Put(a)
+	return nil
+}
+
+// logSeries logs only pending series records to the WAL.
+func (a *appender) logSeries() error {
+	a.w.walMtx.RLock()
+	defer a.w.walMtx.RUnlock()
+
+	if a.w.walClosed {
+		return ErrWALClosed
+	}
+
+	if len(a.pendingSeries) > 0 {
+		var encoder record.Encoder
+		buf := a.w.bufPool.Get().([]byte)
+		defer func() {
+			a.w.bufPool.Put(buf) //nolint:staticcheck
+		}()
+
+		buf = encoder.Series(a.pendingSeries, buf)
+		if err := a.w.wal.Log(buf); err != nil {
+			return err
+		}
+		buf = buf[:0]
+	}
+
 	return nil
 }

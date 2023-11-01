@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -23,6 +23,13 @@ const argumentConfig = `
 	argument "username" {} 
 	argument "defaulted" {
 		optional = true
+		default = "default_value"
+	}`
+
+const argumentWithFullOptsConfig = `
+	argument "foo" {
+		comment = "description of foo"
+		optional = true	
 		default = "default_value"
 	}`
 
@@ -97,19 +104,25 @@ func TestModule(t *testing.T) {
 			exportModuleContent: exportStringConfig + exportDummy,
 			expectedExports:     []string{"username", "dummy"},
 		},
+		{
+			name:                "Argument block with comment is parseable",
+			exportModuleContent: argumentWithFullOptsConfig,
+		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			defer verifyNoGoroutineLeaks(t)
 			mc := newModuleController(testModuleControllerOptions(t)).(*moduleController)
+			// modules do not clean up their own worker pool as we normally use a shared one from the root controller
+			defer mc.o.WorkerPool.Stop()
 
 			tm := &testModule{
 				content: tc.argumentModuleContent + tc.exportModuleContent,
 				args:    tc.args,
 				opts:    component.Options{ModuleController: mc},
 			}
-			ctx := context.Background()
-			ctx, cnc := context.WithTimeout(ctx, 1*time.Second)
+			ctx, cnc := context.WithTimeout(context.Background(), 1*time.Second)
 			defer cnc()
 			err := tm.Run(ctx)
 			if tc.expectedErrorContains == "" {
@@ -126,28 +139,33 @@ func TestModule(t *testing.T) {
 }
 
 func TestArgsNotInModules(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	f := New(testOptions(t))
-	fl, err := ReadFile("test", []byte("argument \"arg\"{}"))
+	defer cleanUpController(f)
+	fl, err := ParseSource("test", []byte("argument \"arg\"{}"))
 	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
+	err = f.LoadSource(fl, nil)
 	require.ErrorContains(t, err, "argument blocks only allowed inside a module")
 }
 
 func TestExportsNotInModules(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	f := New(testOptions(t))
-	fl, err := ReadFile("test", []byte("export \"arg\"{ value = 1}"))
+	defer cleanUpController(f)
+	fl, err := ParseSource("test", []byte("export \"arg\"{ value = 1}"))
 	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
+	err = f.LoadSource(fl, nil)
 	require.ErrorContains(t, err, "export blocks only allowed inside a module")
 }
 
 func TestExportsWhenNotUsed(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	f := New(testOptions(t))
 	content := " export \\\"username\\\"  { value  = 1 } \\n export \\\"dummy\\\" { value = 2 } "
 	fullContent := "test.module \"t1\" { content = \"" + content + "\" }"
-	fl, err := ReadFile("test", []byte(fullContent))
+	fl, err := ParseSource("test", []byte(fullContent))
 	require.NoError(t, err)
-	err = f.LoadFile(fl, nil)
+	err = f.LoadSource(fl, nil)
 	require.NoError(t, err)
 	ctx := context.Background()
 	ctx, cnc := context.WithTimeout(ctx, 1*time.Second)
@@ -161,42 +179,64 @@ func TestExportsWhenNotUsed(t *testing.T) {
 }
 
 func TestIDList(t *testing.T) {
-	nc := newModuleController(testModuleControllerOptions(t))
+	defer verifyNoGoroutineLeaks(t)
+	o := testModuleControllerOptions(t)
+	defer o.WorkerPool.Stop()
+	nc := newModuleController(o)
 	require.Len(t, nc.ModuleIDs(), 0)
 
-	_, err := nc.NewModule("t1", nil)
+	mod1, err := nc.NewModule("t1", nil)
 	require.NoError(t, err)
-	require.Len(t, nc.ModuleIDs(), 1)
-
-	_, err = nc.NewModule("t2", nil)
-	require.NoError(t, err)
-	require.Len(t, nc.ModuleIDs(), 2)
-}
-
-func TestIDCollision(t *testing.T) {
-	nc := newModuleController(testModuleControllerOptions(t))
-	m, err := nc.NewModule("t1", nil)
-	require.NoError(t, err)
-	require.NotNil(t, m)
-	m, err = nc.NewModule("t1", nil)
-	require.Error(t, err)
-	require.Nil(t, m)
-}
-
-func TestIDRemoval(t *testing.T) {
-	opts := testModuleControllerOptions(t)
-	opts.ID = "test"
-	nc := newModuleController(opts)
-	m, err := nc.NewModule("t1", func(exports map[string]any) {})
-	require.NoError(t, err)
-	err = m.LoadConfig([]byte(""), nil)
-	require.NoError(t, err)
-	require.NotNil(t, m)
 	ctx := context.Background()
-	ctx, cncl := context.WithTimeout(ctx, 1*time.Second)
+	ctx, cncl := context.WithCancel(ctx)
+	go func() {
+		m1err := mod1.Run(ctx)
+		require.NoError(t, m1err)
+	}()
+	require.Eventually(t, func() bool {
+		return len(nc.ModuleIDs()) == 1
+	}, 1*time.Second, 100*time.Millisecond)
+
+	mod2, err := nc.NewModule("t2", nil)
+	require.NoError(t, err)
+	go func() {
+		m2err := mod2.Run(ctx)
+		require.NoError(t, m2err)
+	}()
+	require.Eventually(t, func() bool {
+		return len(nc.ModuleIDs()) == 2
+	}, 1*time.Second, 100*time.Millisecond)
+	// Call cncl which will stop the run methods and remove the ids from the module controller
+	cncl()
+	require.Eventually(t, func() bool {
+		return len(nc.ModuleIDs()) == 0
+	}, 1*time.Second, 100*time.Millisecond)
+}
+
+func TestDuplicateIDList(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
+	o := testModuleControllerOptions(t)
+	defer o.WorkerPool.Stop()
+	nc := newModuleController(o)
+	require.Len(t, nc.ModuleIDs(), 0)
+
+	mod1, err := nc.NewModule("t1", nil)
+	require.NoError(t, err)
+	ctx := context.Background()
+	ctx, cncl := context.WithCancel(ctx)
 	defer cncl()
-	m.Run(ctx)
-	require.Len(t, nc.(*moduleController).modules, 0)
+	go func() {
+		m1err := mod1.Run(ctx)
+		require.NoError(t, m1err)
+	}()
+	require.Eventually(t, func() bool {
+		return len(nc.ModuleIDs()) == 1
+	}, 5*time.Second, 100*time.Millisecond)
+
+	// This should panic with duplicate registration.
+	require.PanicsWithError(t, "duplicate metrics collector registration attempted", func() {
+		_, _ = nc.NewModule("t1", nil)
+	})
 }
 
 func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
@@ -205,14 +245,12 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 
-	c := &cluster.Clusterer{Node: cluster.NewLocalNode("")}
-
 	return &moduleControllerOptions{
 		Logger:         s,
 		DataPath:       t.TempDir(),
 		Reg:            prometheus.NewRegistry(),
-		Clusterer:      c,
 		ModuleRegistry: newModuleRegistry(),
+		WorkerPool:     worker.NewShardedWorkerPool(1, 100),
 	}
 }
 

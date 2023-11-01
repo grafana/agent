@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component/common/loki"
 	fnet "github.com/grafana/agent/component/common/net"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/loki/pkg/logproto"
 	herokuEncoding "github.com/heroku/x/logplex/encoding"
 	"github.com/prometheus/client_golang/prometheus"
@@ -104,7 +104,7 @@ func (h *HerokuTarget) drain(w http.ResponseWriter, r *http.Request) {
 			lb.Set(ReservedLabelTenantID, tenantIDHeaderValue)
 		}
 
-		processed, _ := relabel.Process(lb.Labels(nil), h.relabelConfigs...)
+		processed, _ := relabel.Process(lb.Labels(), h.relabelConfigs...)
 
 		// Start with the set of labels fixed in the configuration
 		filtered := h.Labels().Clone()

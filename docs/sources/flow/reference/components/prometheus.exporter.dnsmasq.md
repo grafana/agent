@@ -1,8 +1,15 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.dnsmasq/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.dnsmasq/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.dnsmasq/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.dnsmasq/
 title: prometheus.exporter.dnsmasq
+description: Learn about prometheus.exporter.dnsmasq
 ---
 
 # prometheus.exporter.dnsmasq
+
 The `prometheus.exporter.dnsmasq` component embeds
 [dnsmasq_exporter](https://github.com/google/dnsmasq_exporter) for collecting statistics from a dnsmasq server.
 
@@ -14,31 +21,19 @@ prometheus.exporter.dnsmasq "LABEL" {
 ```
 
 ## Arguments
+
 The following arguments can be used to configure the exporter's behavior.
 All arguments are optional. Omitted fields take their default values.
 
-Name          | Type     | Description                          | Default                          | Required
-------------- | -------- | ------------------------------------ | -------------------------------- | --------
-`address`     | `string` | The address of the dnsmasq server.   | `"localhost:53"`                 | no
-`leases_file` | `string` | The path to the dnsmasq leases file. | `"/var/lib/misc/dnsmasq.leases"` | no
-`expose_leases` | `bool` | Expose dnsmasq leases as metrics (high cardinality). | `false` | no
+| Name            | Type     | Description                                          | Default                          | Required |
+| --------------- | -------- | ---------------------------------------------------- | -------------------------------- | -------- |
+| `address`       | `string` | The address of the dnsmasq server.                   | `"localhost:53"`                 | no       |
+| `leases_file`   | `string` | The path to the dnsmasq leases file.                 | `"/var/lib/misc/dnsmasq.leases"` | no       |
+| `expose_leases` | `bool`   | Expose dnsmasq leases as metrics (high cardinality). | `false`                          | no       |
 
 ## Exported fields
-The following fields are exported and can be referenced by other components.
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The targets that can be used to collect `dnsmasq` metrics.
-
-For example, the `targets` can either be passed to a `prometheus.relabel`
-component to rewrite the metric's label set, or to a `prometheus.scrape`
-component that collects the exposed metrics.
-
-The exported targets will use the configured [in-memory traffic][] address
-specified by the [run command][].
-
-[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../cli/run.md" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Component health
 
@@ -83,9 +78,11 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}

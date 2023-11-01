@@ -1,7 +1,9 @@
 ---
-title: snowflake_config
 aliases:
 - ../../../configuration/integrations/snowflake-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/snowflake-config/
+title: snowflake_config
+description: Learn about snowflake_config
 ---
 
 # snowflake_config

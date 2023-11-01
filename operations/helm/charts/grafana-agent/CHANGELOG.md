@@ -10,6 +10,119 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Expose the `ui-path-prefix` flag on the Helm chart (@mlcdf)
+
+0.27.1 (2023-10-26)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.37.3. (@tpaschalis)
+
+### Bugfixes
+
+- Fix issue where CRDs were created with annotations after the `crds.create`
+  setting was introduced (@rfratto).
+
+0.27.0 (2023-10-12)
+----------
+
+### Enhancements
+
+- Add `secrets` and `configmaps` to cluster role for `remote.kubernetes.*` components. (@captncraig)
+
+- Update Grafana Agent version to v0.37.2. (@tpaschalis)
+
+0.26.0 (2023-10-10)
+-------------------
+
+### Breaking changes
+
+- The `initContainers` setting has been moved to `controller.initContainers`
+  for consistency with other Pod-level settings. (@rfratto)
+
+### Enhancements
+
+- Make CRDs optional through the `crds.create` setting. (@bentonam, @rfratto)
+
+- Update Grafana Agent version to v0.37.1. (@tpaschalis)
+
+0.25.0 (2023-09-22)
+-------------------
+
+### Enhancements
+
+- An image's digest can now be used in place of a tag. (@hainenber)
+
+- Add ServiceMonitor support. (@QuentinBisson)
+
+- Update Grafana Agent version to v0.36.2. (@ptodev)
+
+0.24.0 (2023-09-08)
+-------------------
+
+### Enhancements
+
+- StatefulSets will now use `podManagementPolicy: Parallel` by default. To
+  disable this behavior, set `controller.parallelRollout` to `false`.
+  (@rfratto)
+
+0.23.0 (2023-09-06)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.36.1. (@erikbaranowski)
+
+- Enable clustering for deployments and daemonsets. (@tpaschalis)
+
+0.22.0 (2023-08-30)
+-------------------
+
+- Update Grafana Agent version to v0.36.0. (@thampiotr)
+
+0.21.1 (2023-08-30)
+-------------------
+
+- Condition parameter minReadySeconds on StatefulSet, Deployment, and DaemonSet to Kubernetes v1.22 clusters.
+
+0.21.0 (2023-08-15)
+-------------------
+
+- Update Grafana Agent version to v0.35.4. (@mattdurham)
+
+0.20.0 (2023-08-09)
+-------------------
+
+- Update Grafana Agent version to v0.35.3. (@tpaschalis)
+
+### Enhancements
+
+- Add support for initcontainers in helm chart. (@dwalker-sabiogroup)
+
+0.19.0 (2023-07-27)
+-------------------
+
+### Enhancements
+
+- Set hostPID from values. (@korniltsev)
+
+- Set nodeSelector at podlevel. (@Flasheh)
+
+- Update Grafana Agent version to v0.35.2. (@rfratto)
+
+0.18.0 (2023-07-26)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.35.1. (@ptodev)
+
+0.17.0 (2023-07-19)
+-------------------
+
 ### Features
 
 - Add native support for Flow mode clustering with the
@@ -19,6 +132,10 @@ Unreleased
 ### Enhancements
 
 - Set securityContext for configReloader container. (@yanehi)
+
+- Set securityContext at podlevel. (@yanehi)
+
+- Update Grafana Agent version to v0.35.0. (@mattdurham)
 
 0.16.0 (2023-06-20)
 -------------------

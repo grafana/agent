@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.receive_http/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.receive_http/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.receive_http/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.receive_http/
 title: prometheus.receive_http
+description: Learn about prometheus.receive_http
 ---
 
 # prometheus.receive_http
@@ -9,7 +15,7 @@ title: prometheus.receive_http
 The HTTP API exposed is compatible with [Prometheus `remote_write` API][prometheus-remote-write-docs]. This means that other [`prometheus.remote_write`][prometheus.remote_write] components can be used as a client and send requests to `prometheus.receive_http` which enables using the Agent as a proxy for prometheus metrics.
 
 [prometheus.remote_write]: {{< relref "./prometheus.remote_write.md" >}}
-[prometheus-remote-write-docs]: https://prometheus.io/docs/prometheus/2.42/querying/api/#remote-write-receiver
+[prometheus-remote-write-docs]: https://prometheus.io/docs/prometheus/2.45/querying/api/#remote-write-receiver
 
 ## Usage
 
@@ -47,7 +53,7 @@ The following blocks are supported inside the definition of `prometheus.receive_
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
@@ -119,6 +125,6 @@ prometheus.remote_write "local" {
 }
 ```
 
-## Compression
+## Technical details
 
 `prometheus.receive_http` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.

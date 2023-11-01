@@ -1,11 +1,16 @@
 ---
 aliases:
 - ../../configuration-language/expressions/function-calls/
+- /docs/grafana-cloud/agent/flow/config-language/expressions/function_calls/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/function_calls/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/function_calls/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/function_calls/
 title: Function calls
+description: Learn about function calls
 weight: 400
 ---
 
-# Function Calls
+# Function calls
 Function calls is one more River feature that lets users build richer
 expressions.
 
@@ -23,7 +28,7 @@ allow for more complex expressions (e.g. concatenating arrays or decoding JSON
 strings into objects).
 ```river
 env("HOME")
-json_decode(local.file.cfg.contents)["namespace"]
+json_decode(local.file.cfg.content)["namespace"]
 ```
 
-[standard library]: {{< relref "../../reference/stdlib/_index.md" >}}
+[standard library]: {{< relref "../../reference/stdlib" >}}

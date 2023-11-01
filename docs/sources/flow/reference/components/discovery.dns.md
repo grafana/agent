@@ -1,7 +1,12 @@
 ---
 aliases:
 - /docs/agent/latest/flow/reference/components/discovery.dns
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.dns/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.dns/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.dns/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.dns/
 title: discovery.dns
+description: Learn about discovery.dns
 ---
 
 # discovery.dns
@@ -53,7 +58,7 @@ values.
 
 `discovery.dns` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.dns` does not expose any component-specific debug metrics.
 

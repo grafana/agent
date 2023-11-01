@@ -14,7 +14,7 @@ func TestLogger_DefaultParameters(t *testing.T) {
 	makeLogger := func(cfg *Config) (log.Logger, error) {
 		var l log.Logger
 		require.Equal(t, "info", cfg.LogLevel.String())
-		require.Equal(t, "logfmt", cfg.LogFormat.String())
+		require.Equal(t, "logfmt", cfg.LogFormat)
 		return l, nil
 	}
 	defaultCfg := DefaultConfig()
@@ -25,10 +25,10 @@ func TestLogger_ApplyConfig(t *testing.T) {
 	var buf bytes.Buffer
 	makeLogger := func(cfg *Config) (log.Logger, error) {
 		l := log.NewLogfmtLogger(log.NewSyncWriter(&buf))
-		if cfg.LogFormat.String() == "json" {
+		if cfg.LogFormat == "json" {
 			l = log.NewJSONLogger(log.NewSyncWriter(&buf))
 		}
-		l = level.NewFilter(l, cfg.LogLevel.Gokit)
+		l = level.NewFilter(l, cfg.LogLevel.Level.Option)
 		return l, nil
 	}
 

@@ -2,5 +2,10 @@ apiVersion: v2
 name: grafana-agent
 description: 'Grafana Agent'
 type: application
-version: 0.16.0
-appVersion: 'v0.34.2'
+version: 0.27.1
+appVersion: 'v0.37.3'
+
+dependencies:
+  - name: crds
+    version: "0.0.0"
+    condition: crds.create

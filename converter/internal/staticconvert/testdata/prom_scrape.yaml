@@ -1,3 +1,12 @@
+server:
+  log_level: ${SOME_ENVIRONMENT_VARIABLE:='debug'}
+  log_format: json
+  http_tls_config:
+    client_ca_file: "./testdata/example-cert.pem"
+    cert_file: "./testdata/example-cert.pem"
+    key_file: "./testdata/example-key.pem"
+    client_auth_type: "VerifyClientCertIfGiven"
+
 metrics:
   wal_directory: /home/pi/Projects/agent/agentwal
   global:

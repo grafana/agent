@@ -11,21 +11,22 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/config"
 	commonk8s "github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/loki/source/kubernetes/kubetail"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/service/cluster"
 	"k8s.io/client-go/kubernetes"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.kubernetes",
-		Args: Arguments{},
+		Name:          "loki.source.kubernetes",
+		Args:          Arguments{},
+		NeedsServices: []string{cluster.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -41,13 +42,13 @@ type Arguments struct {
 
 	// Client settings to connect to Kubernetes.
 	Client commonk8s.ClientArguments `river:"client,block,optional"`
+
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 }
 
 // DefaultArguments holds default settings for loki.source.kubernetes.
 var DefaultArguments = Arguments{
-	Client: commonk8s.ClientArguments{
-		HTTPClientConfig: config.DefaultHTTPClientConfig,
-	},
+	Client: commonk8s.DefaultClientArguments,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -60,6 +61,7 @@ type Component struct {
 	log       log.Logger
 	opts      component.Options
 	positions positions.Positions
+	cluster   cluster.Cluster
 
 	mut         sync.Mutex
 	args        Arguments
@@ -75,6 +77,7 @@ type Component struct {
 var (
 	_ component.Component      = (*Component)(nil)
 	_ component.DebugComponent = (*Component)(nil)
+	_ cluster.Component        = (*Component)(nil)
 )
 
 // New creates a new loki.source.kubernetes component.
@@ -92,7 +95,13 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 
+	data, err := o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+
 	c := &Component{
+		cluster:   data.(cluster.Cluster),
 		log:       o.Logger,
 		opts:      o,
 		handler:   loki.NewLogsReceiver(),
@@ -171,28 +180,43 @@ func (c *Component) Update(args component.Arguments) error {
 		// No-op: manager already exists and options didn't change.
 	}
 
-	// Convert input targets into targets to give to tailer.
-	targets := make([]*kubetail.Target, 0, len(newArgs.Targets))
+	c.resyncTargets(newArgs.Targets)
+	c.args = newArgs
+	return nil
+}
 
-	for _, inTarget := range newArgs.Targets {
-		lset := inTarget.Labels()
+func (c *Component) resyncTargets(targets []discovery.Target) {
+	distTargets := discovery.NewDistributedTargets(c.args.Clustering.Enabled, c.cluster, targets)
+	targets = distTargets.Get()
+
+	tailTargets := make([]*kubetail.Target, 0, len(targets))
+	for _, target := range targets {
+		lset := target.Labels()
 		processed, err := kubetail.PrepareLabels(lset, c.opts.ID)
 		if err != nil {
 			// TODO(rfratto): should this set the health of the component?
 			level.Error(c.log).Log("msg", "failed to process input target", "target", lset.String(), "err", err)
 			continue
 		}
-		targets = append(targets, kubetail.NewTarget(lset, processed))
+		tailTargets = append(tailTargets, kubetail.NewTarget(lset, processed))
 	}
 
 	// This will never fail because it only fails if the context gets canceled.
 	//
 	// TODO(rfratto): should we have a generous update timeout to prevent this
 	// from potentially hanging forever?
-	_ = c.tailer.SyncTargets(context.Background(), targets)
+	_ = c.tailer.SyncTargets(context.Background(), tailTargets)
+}
 
-	c.args = newArgs
-	return nil
+// NotifyClusterChange implements cluster.Component.
+func (c *Component) NotifyClusterChange() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	if !c.args.Clustering.Enabled {
+		return
+	}
+	c.resyncTargets(c.args.Targets)
 }
 
 // getTailerOptions gets tailer options from arguments. If args hasn't changed

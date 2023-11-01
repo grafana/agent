@@ -1,6 +1,7 @@
 package build
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -14,9 +15,11 @@ import (
 	lokisourcefile "github.com/grafana/agent/component/loki/source/file"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/component"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
+	"github.com/grafana/river/scanner"
+	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
 )
 
@@ -50,7 +53,15 @@ func NewScrapeConfigBuilder(
 	}
 }
 
-func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
+func (s *ScrapeConfigBuilder) Sanitize() {
+	var err error
+	s.cfg.JobName, err = scanner.SanitizeIdentifier(s.cfg.JobName)
+	if err != nil {
+		s.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
+	}
+}
+
+func (s *ScrapeConfigBuilder) AppendLokiSourceFile(watchConfig *file.WatchConfig) {
 	// If there were no targets expressions collected, that means
 	// we didn't have any components that produced SD targets, so
 	// we can skip this component.
@@ -61,7 +72,10 @@ func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
 	forwardTo := s.getOrNewProcessStageReceivers()
 
 	args := lokisourcefile.Arguments{
-		ForwardTo: forwardTo,
+		ForwardTo:           forwardTo,
+		Encoding:            s.cfg.Encoding,
+		DecompressionConfig: convertDecompressionConfig(s.cfg.DecompressionCfg),
+		FileWatch:           convertFileWatchConfig(watchConfig),
 	}
 	overrideHook := func(val interface{}) interface{} {
 		if _, ok := val.([]discovery.Target); ok {
@@ -70,9 +84,10 @@ func (s *ScrapeConfigBuilder) AppendLokiSourceFile() {
 		return val
 	}
 
+	compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
 		[]string{"loki", "source", "file"},
-		s.cfg.JobName,
+		compLabel,
 		args,
 		overrideHook,
 	))
@@ -87,10 +102,11 @@ func (s *ScrapeConfigBuilder) getOrNewLokiRelabel() string {
 	if s.lokiRelabelReceiverExpr == "" {
 		args := lokirelabel.Arguments{
 			ForwardTo:      s.getOrNewProcessStageReceivers(),
-			RelabelConfigs: prometheusconvert.ToFlowRelabelConfigs(s.cfg.RelabelConfigs),
+			RelabelConfigs: component.ToFlowRelabelConfigs(s.cfg.RelabelConfigs),
 		}
-		s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "relabel"}, s.cfg.JobName, args))
-		s.lokiRelabelReceiverExpr = "loki.relabel." + s.cfg.JobName + ".receiver"
+		compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
+		s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "relabel"}, compLabel, args))
+		s.lokiRelabelReceiverExpr = "[loki.relabel." + compLabel + ".receiver]"
 	}
 	return s.lokiRelabelReceiverExpr
 }
@@ -114,9 +130,10 @@ func (s *ScrapeConfigBuilder) getOrNewProcessStageReceivers() []loki.LogsReceive
 		ForwardTo: s.globalCtx.WriteReceivers,
 		Stages:    flowStages,
 	}
-	s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "process"}, s.cfg.JobName, args))
+	compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
+	s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "process"}, compLabel, args))
 	s.processStageReceivers = []loki.LogsReceiver{common.ConvertLogsReceiver{
-		Expr: fmt.Sprintf("loki.process.%s.receiver", s.cfg.JobName),
+		Expr: fmt.Sprintf("loki.process.%s.receiver", compLabel),
 	}}
 	return s.processStageReceivers
 }
@@ -131,7 +148,7 @@ func (s *ScrapeConfigBuilder) appendDiscoveryRelabel() {
 		return
 	}
 
-	relabelConfigs := prometheusconvert.ToFlowRelabelConfigs(s.cfg.RelabelConfigs)
+	relabelConfigs := component.ToFlowRelabelConfigs(s.cfg.RelabelConfigs)
 	args := relabel.Arguments{
 		RelabelConfigs: relabelConfigs,
 	}
@@ -143,13 +160,14 @@ func (s *ScrapeConfigBuilder) appendDiscoveryRelabel() {
 		return val
 	}
 
+	compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
 		[]string{"discovery", "relabel"},
-		s.cfg.JobName,
+		compLabel,
 		args,
 		overrideHook,
 	))
-	compName := fmt.Sprintf("discovery.relabel.%s", s.cfg.JobName)
+	compName := fmt.Sprintf("discovery.relabel.%s", compLabel)
 	s.allRelabeledTargetsExpr, s.discoveryRelabelRulesExpr = compName+".output", compName+".rules"
 }
 
@@ -177,13 +195,14 @@ func (s *ScrapeConfigBuilder) getExpandedFileTargetsExpr() string {
 		return val
 	}
 
+	compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 	s.f.Body().AppendBlock(common.NewBlockWithOverrideFn(
-		[]string{"discovery", "file"},
-		s.cfg.JobName,
+		[]string{"local", "file_match"},
+		compLabel,
 		args,
 		overrideHook,
 	))
-	s.allExpandedFileTargetsExpr = "discovery.file." + s.cfg.JobName + ".targets"
+	s.allExpandedFileTargetsExpr = "local.file_match." + compLabel + ".targets"
 	return s.allExpandedFileTargetsExpr
 }
 
@@ -209,11 +228,43 @@ func convertPromLabels(labels model.LabelSet) map[string]string {
 	return result
 }
 
+func convertDecompressionConfig(cfg *scrapeconfig.DecompressionConfig) lokisourcefile.DecompressionConfig {
+	if cfg == nil {
+		return lokisourcefile.DecompressionConfig{}
+	}
+	return lokisourcefile.DecompressionConfig{
+		Enabled:      cfg.Enabled,
+		InitialDelay: cfg.InitialDelay,
+		Format:       lokisourcefile.CompressionFormat(cfg.Format),
+	}
+}
+
+func convertFileWatchConfig(watchConfig *file.WatchConfig) lokisourcefile.FileWatch {
+	if watchConfig == nil {
+		return lokisourcefile.FileWatch{}
+	}
+	return lokisourcefile.FileWatch{
+		MinPollFrequency: watchConfig.MinPollFrequency,
+		MaxPollFrequency: watchConfig.MaxPollFrequency,
+	}
+}
+
 func logsReceiversToExpr(r []loki.LogsReceiver) string {
 	var exprs []string
 	for _, r := range r {
-		clr := r.(*common.ConvertLogsReceiver)
+		clr := r.(common.ConvertLogsReceiver)
 		exprs = append(exprs, clr.Expr)
 	}
 	return "[" + strings.Join(exprs, ", ") + "]"
+}
+
+func toRiverExpression(goValue interface{}) (string, error) {
+	e := builder.NewExpr()
+	e.SetValue(goValue)
+	var buff bytes.Buffer
+	_, err := e.WriteTo(&buff)
+	if err != nil {
+		return "", err
+	}
+	return buff.String(), nil
 }

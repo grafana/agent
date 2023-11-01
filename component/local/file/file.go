@@ -10,9 +10,9 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/river/rivertypes"
 )
 
 // waitReadPeriod holds the time to wait before reading a file while the

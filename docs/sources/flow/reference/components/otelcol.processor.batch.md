@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.batch/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.batch/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.batch/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.batch/
 title: otelcol.processor.batch
+description: Learn about otelcol.processor.batch
 ---
 
 # otelcol.processor.batch
@@ -91,7 +97,7 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
@@ -113,6 +119,13 @@ configuration.
 
 `otelcol.processor.batch` does not expose any component-specific debug
 information.
+
+## Debug metrics
+
+* `processor_batch_batch_send_size_ratio` (histogram): Number of units in the batch.
+* `processor_batch_metadata_cardinality_ratio` (gauge): Number of distinct metadata value combinations being processed.
+* `processor_batch_timeout_trigger_send_ratio_total` (counter): Number of times the batch was sent due to a timeout trigger.
+* `processor_batch_batch_size_trigger_send_ratio_total` (counter): Number of times the batch was sent due to a size trigger.
 
 ## Examples
 

@@ -1,9 +1,5 @@
 package stages
 
-// This package is ported over from grafana/loki/clients/pkg/logentry/stages.
-// We aim to port the stages in steps, to avoid introducing huge amounts of
-// new code without being able to slowly review, examine and test them.
-
 import (
 	"testing"
 	"time"
@@ -100,15 +96,18 @@ type testEntry struct {
 
 func TestCRI_tags(t *testing.T) {
 	cases := []struct {
-		name            string
-		lines           []string
-		expected        []string
-		maxPartialLines int
-		entries         []testEntry
-		err             error
+		name                       string
+		lines                      []string
+		expected                   []string
+		maxPartialLines            int
+		maxPartialLineSize         uint64
+		maxPartialLineSizeTruncate bool
+		entries                    []testEntry
+		err                        error
 	}{
 		{
-			name: "tag F",
+			name:            "tag F",
+			maxPartialLines: 100,
 			entries: []testEntry{
 				{line: "2019-05-07T18:57:50.904275087+00:00 stdout F some full line", labels: model.LabelSet{"foo": "bar"}},
 				{line: "2019-05-07T18:57:55.904275087+00:00 stdout F log", labels: model.LabelSet{"foo": "bar"}},
@@ -116,7 +115,8 @@ func TestCRI_tags(t *testing.T) {
 			expected: []string{"some full line", "log"},
 		},
 		{
-			name: "tag P multi-stream",
+			name:            "tag P multi-stream",
+			maxPartialLines: 100,
 			entries: []testEntry{
 				{line: "2019-05-07T18:57:50.904275087+00:00 stdout P partial line 1 ", labels: model.LabelSet{"foo": "bar"}},
 				{line: "2019-05-07T18:57:50.904275087+00:00 stdout P partial line 2 ", labels: model.LabelSet{"foo": "bar2"}},
@@ -141,7 +141,7 @@ func TestCRI_tags(t *testing.T) {
 				{line: "2019-05-07T18:57:55.904275087+00:00 stdout F another full log", labels: model.LabelSet{"label1": "val3"}},
 				{line: "2019-05-07T18:57:55.904275087+00:00 stdout F yet an another full log", labels: model.LabelSet{"label1": "val4"}},
 			},
-			maxPartialLines: 2,
+			maxPartialLines: 3,
 			expected: []string{
 				"partial line 1 partial line 3 ",
 				"partial line 2 ",
@@ -167,19 +167,35 @@ func TestCRI_tags(t *testing.T) {
 				"another full log",
 			},
 		},
+		{
+			name: "tag P multi-stream with truncation",
+			entries: []testEntry{
+				{line: "2019-05-07T18:57:50.904275087+00:00 stdout P partial line 1 ", labels: model.LabelSet{"foo": "bar"}},
+				{line: "2019-05-07T18:57:50.904275087+00:00 stdout P partial", labels: model.LabelSet{"foo": "bar2"}},
+				{line: "2019-05-07T18:57:55.904275087+00:00 stdout F log finished", labels: model.LabelSet{"foo": "bar"}},
+				{line: "2019-05-07T18:57:55.904275087+00:00 stdout F full", labels: model.LabelSet{"foo": "bar2"}},
+			},
+			maxPartialLines:            100,
+			maxPartialLineSizeTruncate: true,
+			maxPartialLineSize:         11,
+			expected: []string{
+				"partial lin",
+				"partialfull",
+			},
+		},
 	}
 
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			p, err := NewCRI(util_log.Logger, prometheus.DefaultRegisterer)
+			cfg := CRIConfig{
+				MaxPartialLines:            tt.maxPartialLines,
+				MaxPartialLineSize:         tt.maxPartialLineSize,
+				MaxPartialLineSizeTruncate: tt.maxPartialLineSizeTruncate,
+			}
+			p, err := NewCRI(util_log.Logger, cfg, prometheus.DefaultRegisterer)
 			require.NoError(t, err)
 
 			got := make([]string, 0)
-
-			// tweak `maxPartialLines`
-			if tt.maxPartialLines != 0 {
-				p.(*cri).maxPartialLines = tt.maxPartialLines
-			}
 
 			for _, entry := range tt.entries {
 				out := processEntries(p, newEntry(nil, entry.labels, entry.line, time.Now()))
@@ -258,7 +274,8 @@ func TestNewCri(t *testing.T) {
 		tt := tt
 		t.Run(tName, func(t *testing.T) {
 			t.Parallel()
-			p, err := NewCRI(util_log.Logger, prometheus.DefaultRegisterer)
+			cfg := DefaultCRIConfig
+			p, err := NewCRI(util_log.Logger, cfg, prometheus.DefaultRegisterer)
 			if err != nil {
 				t.Fatalf("failed to create CRI parser: %s", err)
 			}

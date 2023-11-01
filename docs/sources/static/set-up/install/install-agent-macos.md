@@ -1,10 +1,12 @@
 ---
-title: Install Grafana Agent in static mode on macOS
-menuTitle: macOS
-weight: 500
 aliases:
 - ../../set-up/install-agent-macos/
 - ../set-up/install-agent-macos/
+canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-macos/
+menuTitle: macOS
+title: Install Grafana Agent in static mode on macOS
+description: Learn how to install Grafana Agent in static mode on macOS
+weight: 500
 ---
 
 # Install Grafana Agent in static mode on macOS
@@ -70,7 +72,7 @@ brew uninstall grafana-agent
     touch $(brew --prefix)/etc/grafana-agent/config.yml
     ```
 
-1. Edit `$(brew --prefix)/etc/grafana-agent/config.yml` and add the configuration blocks for your specific telemetry needs. Refer to [Configure Grafana Agent]({{< relref "../../configuration/" >}}) for more information.
+1. Edit `$(brew --prefix)/etc/grafana-agent/config.yml` and add the configuration blocks for your specific telemetry needs. Refer to [Configure Grafana Agent][configure] for more information.
 
 {{% admonition type="note" %}}
 To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud integration. Refer to [how to install an integration](/docs/grafana-cloud/data-configuration/integrations/install-and-manage-integrations/) and [macOS integration](/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-macos-node/).
@@ -78,5 +80,12 @@ To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent/" >}})
-- [Configure Grafana Agent]({{< relref "../../configuration/" >}})
+- [Start Grafana Agent][start]
+- [Configure Grafana Agent][configure]
+
+{{% docs/reference %}}
+[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/grafana-cloud/ -> ../start-agent"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
+{{% /docs/reference %}}

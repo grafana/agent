@@ -12,6 +12,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 3
+  podManagementPolicy: Parallel
   minReadySeconds: 10
   serviceName: grafana-agent
   selector:
@@ -27,13 +28,14 @@ spec:
       serviceAccountName: grafana-agent
       containers:
         - name: grafana-agent
-          image: docker.io/grafana/agent:v0.34.2
+          image: docker.io/grafana/agent:v0.37.3
           imagePullPolicy: IfNotPresent
           args:
             - run
             - /etc/agent/config.river
             - --storage.path=/tmp/agent
             - --server.http.listen-addr=0.0.0.0:80
+            - --server.http.ui-path-prefix=/
             - --cluster.enabled=true
             - --cluster.join-addresses=grafana-agent-cluster
           env:

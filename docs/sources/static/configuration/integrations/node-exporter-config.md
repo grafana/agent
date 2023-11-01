@@ -1,7 +1,9 @@
 ---
-title: node_exporter_config
 aliases:
 - ../../../configuration/integrations/node-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/node-exporter-config/
+title: node_exporter_config
+description: Learn about node_exporter_config
 ---
 
 # node_exporter_config
@@ -28,7 +30,7 @@ docker run \
   -v "/proc:/host/proc:ro,rslave" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.35.0-rc.0 \
+  grafana/agent:{{< param "AGENT_RELEASE" >}} \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -55,6 +57,7 @@ integrations:
     rootfs_path: /host/root
     sysfs_path: /host/sys
     procfs_path: /host/proc
+    udev_data_path: /host/root/run/udev/data
 ```
 
 For running on Kubernetes, ensure to set the equivalent mounts and capabilities
@@ -67,7 +70,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.35.0-rc.0
+  - image: {{< param "AGENT_RELEASE" >}}
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml
@@ -265,6 +268,10 @@ the Agent is running on is a no-op.
   # directory.
   [rootfs_path: <string> | default = "/"]
 
+  # udev data path needed for diskstats from Node exporter. When running
+  # in Kubernetes it should be set to /host/root/run/udev/data.
+  [udev_data_path: <string> | default = "/run/udev/data"]
+
   # Expose expensive bcache priority stats.
   [enable_bcache_priority_stats: <boolean>]
 
@@ -367,7 +374,7 @@ the Agent is running on is a no-op.
   # Perf software profilers that should be collected.
   perf_software_profilers:
     [- <string>]
-  
+
   # Disable perf cache profilers.
   [perf_disable_cache_profilers: <boolean> | default = false]
 

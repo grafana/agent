@@ -48,13 +48,20 @@ func (t *testRemoteConfigProvider) CacheRemoteConfig(r []byte) error {
 	return nil
 }
 
+func (t *testRemoteConfigProvider) GetPollingInterval() time.Duration {
+	return t.InitialConfig.PollingInterval
+}
+
 var validAgentManagementConfig = AgentManagementConfig{
 	Enabled: true,
 	Host:    "localhost:1234",
-	BasicAuth: config.BasicAuth{
-		Username:     "test",
-		PasswordFile: "/test/path",
+	HTTPClientConfig: config.HTTPClientConfig{
+		BasicAuth: &config.BasicAuth{
+			Username:     "test",
+			PasswordFile: "/test/path",
+		},
 	},
+
 	Protocol:        "https",
 	PollingInterval: time.Minute,
 	RemoteConfiguration: RemoteConfiguration{
@@ -66,29 +73,49 @@ var validAgentManagementConfig = AgentManagementConfig{
 
 var cachedConfig = []byte(`{"base_config":"","snippets":[]}`)
 
+func TestUnmarshalDefault(t *testing.T) {
+	cfg := `host: "localhost:1234"
+protocol: "https"
+polling_interval: "1m"
+remote_configuration:
+  namespace: "test_namespace"`
+	var am AgentManagementConfig
+	err := yaml.Unmarshal([]byte(cfg), &am)
+	assert.NoError(t, err)
+	assert.True(t, am.RemoteConfiguration.AcceptHTTPNotModified)
+	assert.Equal(t, "https", am.Protocol)
+	assert.Equal(t, time.Minute, am.PollingInterval)
+	assert.Equal(t, "test_namespace", am.RemoteConfiguration.Namespace)
+}
+
 func TestValidateValidConfig(t *testing.T) {
 	assert.NoError(t, validAgentManagementConfig.Validate())
 }
 
 func TestValidateInvalidBasicAuth(t *testing.T) {
 	invalidConfig := &AgentManagementConfig{
-		Enabled:         true,
-		Host:            "localhost:1234",
-		BasicAuth:       config.BasicAuth{},
-		Protocol:        "https",
-		PollingInterval: time.Minute,
+		Enabled:          true,
+		Host:             "localhost:1234",
+		HTTPClientConfig: config.HTTPClientConfig{},
+		Protocol:         "https",
+		PollingInterval:  time.Minute,
 		RemoteConfiguration: RemoteConfiguration{
 			Namespace:     "test_namespace",
 			CacheLocation: "/test/path/",
 		},
 	}
+	// This should error as the BasicAuth is nil
 	assert.Error(t, invalidConfig.Validate())
 
-	invalidConfig.BasicAuth.Username = "test"
+	// This should error as the BasicAuth is empty
+	invalidConfig.HTTPClientConfig.BasicAuth = &config.BasicAuth{}
+	assert.Error(t, invalidConfig.Validate())
+
+	invalidConfig.HTTPClientConfig.BasicAuth.Username = "test"
 	assert.Error(t, invalidConfig.Validate()) // Should still error as there is no password file set
 
-	invalidConfig.BasicAuth.Username = ""
-	invalidConfig.BasicAuth.PasswordFile = "/test/path"
+	invalidConfig.HTTPClientConfig.BasicAuth.Username = ""
+	invalidConfig.HTTPClientConfig.BasicAuth.PasswordFile = "/test/path"
 	assert.Error(t, invalidConfig.Validate()) // Should still error as there is no username set
 }
 
@@ -96,9 +123,11 @@ func TestMissingCacheLocation(t *testing.T) {
 	invalidConfig := &AgentManagementConfig{
 		Enabled: true,
 		Host:    "localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username:     "test",
-			PasswordFile: "/test/path",
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     "test",
+				PasswordFile: "/test/path",
+			},
 		},
 		Protocol:        "https",
 		PollingInterval: 1 * time.Minute,
@@ -113,9 +142,11 @@ func TestValidateLabelManagement(t *testing.T) {
 	cfg := &AgentManagementConfig{
 		Enabled: true,
 		Host:    "localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username:     "test",
-			PasswordFile: "/test/path",
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     "test",
+				PasswordFile: "/test/path",
+			},
 		},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
@@ -197,9 +228,11 @@ func TestNewRemoteConfigProvider_ValidInitialConfig(t *testing.T) {
 	invalidAgentManagementConfig := &AgentManagementConfig{
 		Enabled: true,
 		Host:    "localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username:     "test",
-			PasswordFile: "/test/path",
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     "test",
+				PasswordFile: "/test/path",
+			},
 		},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
@@ -221,9 +254,11 @@ func TestNewRemoteConfigProvider_InvalidProtocol(t *testing.T) {
 	invalidAgentManagementConfig := &AgentManagementConfig{
 		Enabled: true,
 		Host:    "localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username:     "test",
-			PasswordFile: "/test/path",
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username:     "test",
+				PasswordFile: "/test/path",
+			},
 		},
 		Protocol:        "ws",
 		PollingInterval: time.Minute,
@@ -246,8 +281,10 @@ func TestNewRemoteConfigHTTPProvider_InvalidInitialConfig(t *testing.T) {
 	invalidAgentManagementConfig := &AgentManagementConfig{
 		Enabled: true,
 		Host:    "localhost:1234",
-		BasicAuth: config.BasicAuth{
-			Username: "test",
+		HTTPClientConfig: config.HTTPClientConfig{
+			BasicAuth: &config.BasicAuth{
+				Username: "test",
+			},
 		},
 		Protocol:        "https",
 		PollingInterval: time.Minute,
@@ -459,7 +496,7 @@ func TestGetRemoteConfig_ValidBaseConfig(t *testing.T) {
 	assert.Equal(t, "278220", cfg.Logs.Global.ClientConfigs[0].Client.BasicAuth.Username)
 	assert.Equal(t, "prometheus", cfg.Metrics.Configs[0].ScrapeConfigs[0].JobName)
 	assert.Equal(t, "yologs", cfg.Logs.Configs[0].ScrapeConfig[0].JobName)
-	assert.Equal(t, 1, len(cfg.Integrations.configV1.Integrations))
+	assert.Equal(t, 1, len(cfg.Integrations.ConfigV1.Integrations))
 }
 
 func TestGetRemoteConfig_ExpandsEnvVars(t *testing.T) {
@@ -496,7 +533,7 @@ func TestGetRemoteConfig_ExpandsEnvVars(t *testing.T) {
 	cfg, err := getRemoteConfig(true, &testProvider, logger, fs, false)
 	assert.NoError(t, err)
 	assert.Equal(t, "15s", cfg.Metrics.Configs[0].ScrapeConfigs[0].ScrapeInterval.String())
-	assert.Equal(t, "json", cfg.Server.LogFormat.String())
+	assert.Equal(t, "json", cfg.Server.LogFormat)
 }
 
 func TestGetCachedConfig_DefaultConfigFallback(t *testing.T) {
@@ -533,9 +570,8 @@ func TestGetCachedConfig_RetryAfter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, testProvider.didCacheRemoteConfig)
 
-	// check that FetchRemoteConfig was called twice on the TestProvider:
-	// 1 call for the initial attempt, a second for the retry
-	assert.Equal(t, 2, testProvider.fetchRemoteConfigCallCount)
+	// check that FetchRemoteConfig was called only once on the TestProvider
+	assert.Equal(t, 1, testProvider.fetchRemoteConfigCallCount)
 
 	// the cached config should have been retrieved once, on the second
 	// attempt to fetch the remote config

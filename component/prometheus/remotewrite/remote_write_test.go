@@ -10,8 +10,8 @@ import (
 
 	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/prometheus/prometheus/storage/remote"
@@ -82,7 +82,7 @@ func Test(t *testing.T) {
 	}}
 
 	select {
-	case <-time.After(5 * time.Second):
+	case <-time.After(time.Minute):
 		require.FailNow(t, "timed out waiting for metrics")
 	case res := <-writeResult:
 		require.Equal(t, expect, res.Timeseries)
@@ -183,7 +183,7 @@ func TestUpdate(t *testing.T) {
 
 func assertReceived(t *testing.T, writeResult chan *prompb.WriteRequest, expect []prompb.TimeSeries) {
 	select {
-	case <-time.After(time.Second * 10):
+	case <-time.After(time.Minute):
 		require.FailNow(t, "timed out waiting for metrics")
 	case res := <-writeResult:
 		require.Equal(t, expect, res.Timeseries)
