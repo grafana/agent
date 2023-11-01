@@ -8,11 +8,18 @@ interface Props {
 }
 
 const TableHead = ({ headers, handleSorting }: Props) => {
-  const [sortField, setSortField] = useState('');
+  const [sortField, setSortField] = useState('ID');
   const [order, setOrder] = useState(SortOrder.ASC);
 
   const handleSortingChange = (header: string) => {
-    const sortOrder = header === sortField && order === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
+    // User clicks on the new header, use default ASC sort order
+    let sortOrder = SortOrder.ASC;
+
+    // User clicks again on the header we toggled the sort order previously
+    if (header === sortField) {
+      sortOrder = order === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
+    }
+
     if (handleSorting !== undefined) {
       setSortField(header);
       setOrder(sortOrder);
