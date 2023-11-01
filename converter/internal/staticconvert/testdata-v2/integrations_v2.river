@@ -9,6 +9,30 @@ prometheus.remote_write "metrics_default" {
 	}
 }
 
+prometheus.exporter.azure "integrations_azure1" {
+	subscriptions = ["subId"]
+	resource_type = "Microsoft.Dashboard/grafana"
+	metrics       = ["HttpRequestCount"]
+}
+
+prometheus.scrape "integrations_azure1" {
+	targets    = prometheus.exporter.azure.integrations_azure1.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/azure1"
+}
+
+prometheus.exporter.azure "integrations_azure2" {
+	subscriptions = ["subId"]
+	resource_type = "Microsoft.Dashboard/grafana"
+	metrics       = ["HttpRequestCount"]
+}
+
+prometheus.scrape "integrations_azure2" {
+	targets    = prometheus.exporter.azure.integrations_azure2.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/azure2"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {

@@ -35,6 +35,7 @@ import (
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
 	apache_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/apache_http"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -163,6 +164,12 @@ func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagno
 		switch itg := integration.(type) {
 		case *agent_exporter_v2.Config:
 		case *apache_exporter_v2.Config:
+		case *metricsutils.ConfigShim:
+			switch v1_itg := itg.Orig.(type) {
+			case *azure_exporter.Config:
+			default:
+				diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", v1_itg.Name()))
+			}
 		default:
 			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", itg.Name()))
 		}

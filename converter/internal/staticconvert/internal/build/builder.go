@@ -40,6 +40,7 @@ import (
 	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
 	apache_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/apache_http"
 	common_v2 "github.com/grafana/agent/pkg/integrations/v2/common"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
@@ -148,7 +149,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *windows_exporter.Config:
 			exports = b.appendWindowsExporter(itg)
 		case *azure_exporter.Config:
-			exports = b.appendAzureExporter(itg)
+			exports = b.appendAzureExporter(itg, nil)
 		case *cadvisor.Config:
 			exports = b.appendCadvisorExporter(itg)
 		}
@@ -204,6 +205,14 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 		case *apache_exporter_v2.Config:
 			exports = b.appendApacheExporterV2(itg)
 			commonConfig = itg.Common
+		case *metricsutils.ConfigShim:
+			commonConfig = itg.Common
+			switch v1_itg := itg.Orig.(type) {
+			case *azure_exporter.Config:
+				{
+					exports = b.appendAzureExporter(v1_itg, itg.Common.InstanceKey)
+				}
+			}
 		}
 
 		if len(exports.Targets) > 0 {

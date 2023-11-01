@@ -19,3 +19,16 @@ integrations:
       extra_labels:
         test_label: test_label_value
         test_label_2: test_label_value_2
+  azure_configs:
+    - instance: "azure1"
+      subscriptions:
+        - "subId"
+      resource_type: "Microsoft.Dashboard/grafana"
+      metrics:
+        - "HttpRequestCount"
+    - instance: "azure2"
+      subscriptions:
+        - "subId"
+      resource_type: "Microsoft.Dashboard/grafana"
+      metrics:
+        - "HttpRequestCount"
