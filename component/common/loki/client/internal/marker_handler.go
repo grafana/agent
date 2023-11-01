@@ -2,12 +2,13 @@ package internal
 
 import (
 	"fmt"
-	"github.com/go-kit/log"
-	"github.com/grafana/agent/component/common/loki/wal"
-	"github.com/grafana/agent/pkg/flow/logging/level"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/common/loki/wal"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 type MarkerHandler interface {

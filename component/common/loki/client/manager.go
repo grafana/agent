@@ -3,11 +3,11 @@ package client
 import (
 	"crypto/sha256"
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/client/internal"
 	"strings"
 	"sync"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/common/loki/client/internal"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/client_golang/prometheus"
 

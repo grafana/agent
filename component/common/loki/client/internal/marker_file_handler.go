@@ -3,12 +3,13 @@ package internal
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki/wal"
 	"github.com/natefinch/atomic"
-	"os"
-	"path/filepath"
 )
 
 const (

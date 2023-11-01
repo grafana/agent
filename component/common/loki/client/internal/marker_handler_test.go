@@ -1,11 +1,11 @@
 package internal
 
 import (
-	"github.com/go-kit/log"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/stretchr/testify/require"
 )
 
