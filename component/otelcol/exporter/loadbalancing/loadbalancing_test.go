@@ -203,6 +203,58 @@ func TestConfigConversion(t *testing.T) {
 				Protocol:   defaultProtocol,
 			},
 		},
+		{
+			testName: "k8s with defaults",
+			agentCfg: `
+			resolver {
+				k8s {
+					service = "lb-svc.lb-ns"
+				}
+			}
+			protocol {
+				otlp {
+					client {}
+				}
+			}
+			`,
+			expected: loadbalancingexporter.Config{
+				Resolver: loadbalancingexporter.ResolverSettings{
+					Static: nil,
+					K8sSvc: &loadbalancingexporter.K8sSvcResolver{
+						Service: "lb-svc.lb-ns",
+					},
+				},
+				RoutingKey: "traceID",
+				Protocol:   defaultProtocol,
+			},
+		},
+		{
+			testName: "k8s with non-defaults",
+			agentCfg: `
+			resolver {
+				k8s {
+					service = "lb-svc.lb-ns"
+					ports = [55690, 55691]
+				}
+			}
+			protocol {
+				otlp {
+					client {}
+				}
+			}
+			`,
+			expected: loadbalancingexporter.Config{
+				Resolver: loadbalancingexporter.ResolverSettings{
+					Static: nil,
+					K8sSvc: &loadbalancingexporter.K8sSvcResolver{
+						Service: "lb-svc.lb-ns",
+						Ports:   []int32{55690, 55691},
+					},
+				},
+				RoutingKey: "traceID",
+				Protocol:   defaultProtocol,
+			},
+		},
 	}
 
 	for _, tc := range tests {

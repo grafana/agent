@@ -66,6 +66,7 @@ const (
 	// agent's load balancing options
 	dnsTagName    = "dns"
 	staticTagName = "static"
+	k8sTagName    = "k8s"
 
 	// sampling policies
 	alwaysSamplePolicy = "always_sample"
@@ -585,7 +586,7 @@ func resolver(config map[string]interface{}) (map[string]interface{}, error) {
 	resolverCfg := make(map[string]interface{})
 	for typ, cfg := range config {
 		switch typ {
-		case dnsTagName, staticTagName:
+		case dnsTagName, staticTagName, k8sTagName:
 			resolverCfg[typ] = cfg
 		default:
 			return nil, fmt.Errorf("unsupported resolver config type: %s", typ)

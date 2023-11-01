@@ -332,6 +332,9 @@ load_balancing:
       [ interval: <duration> | default = 5s ]
       # Resolver timeout
       [ timeout: <duration> | default = 1s ]
+    k8s:
+      service: <string>
+      [ ports: <int array> | default = 4317 ]
 
   # routing_key can be either "traceID" or "service":
   # * "service": exports spans based on their service name.
