@@ -38,6 +38,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
+	apache_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/apache_http"
 	common_v2 "github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/river/scanner"
@@ -160,7 +161,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 
 func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
 	scrapeConfig := prom_config.DefaultScrapeConfig
-	scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
+	scrapeConfig.JobName = b.formatJobName(name, nil)
 	scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs
 	scrapeConfig.MetricRelabelConfigs = commonConfig.MetricRelabelConfigs
 	scrapeConfig.HTTPClientConfig.TLSConfig = b.cfg.Integrations.ConfigV1.TLSConfig
@@ -184,12 +185,7 @@ func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Comm
 	}
 
 	jobNameToCompLabelsFunc := func(jobName string) string {
-		labelSuffix := strings.TrimPrefix(jobName, "integrations/")
-		if labelSuffix == "" {
-			return b.globalCtx.LabelPrefix
-		}
-
-		return fmt.Sprintf("%s_%s", b.globalCtx.LabelPrefix, labelSuffix)
+		return b.jobNameToCompLabel(jobName)
 	}
 
 	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, b.globalCtx.RemoteWriteExports))
@@ -204,6 +200,9 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 		switch itg := integration.(type) {
 		case *agent_exporter_v2.Config:
 			exports = b.appendAgentExporterV2(itg)
+			commonConfig = itg.Common
+		case *apache_exporter_v2.Config:
+			exports = b.appendApacheExporterV2(itg)
 			commonConfig = itg.Common
 		}
 
@@ -228,7 +227,7 @@ func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.Met
 
 	commonConfig.ApplyDefaults(b.cfg.Integrations.ConfigV2.Metrics.Autoscrape)
 	scrapeConfig := prom_config.DefaultScrapeConfig
-	scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
+	scrapeConfig.JobName = b.formatJobName(name, commonConfig.InstanceKey)
 	scrapeConfig.RelabelConfigs = commonConfig.Autoscrape.RelabelConfigs
 	scrapeConfig.MetricRelabelConfigs = commonConfig.Autoscrape.MetricRelabelConfigs
 	scrapeConfig.ScrapeInterval = commonConfig.Autoscrape.ScrapeInterval
@@ -263,12 +262,7 @@ func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.Met
 	}
 
 	jobNameToCompLabelsFunc := func(jobName string) string {
-		labelSuffix := strings.TrimPrefix(jobName, "integrations/")
-		if labelSuffix == "" {
-			return b.globalCtx.LabelPrefix
-		}
-
-		return fmt.Sprintf("%s_%s", b.globalCtx.LabelPrefix, labelSuffix)
+		return b.jobNameToCompLabel(jobName)
 	}
 
 	// Need to pass in the remote write reference from the metrics config here:
@@ -283,8 +277,32 @@ func splitByCommaNullOnEmpty(s string) []string {
 	return strings.Split(s, ",")
 }
 
-func (b *IntegrationsConfigBuilder) appendExporterBlock(args component.Arguments, name string, exporterName string) discovery.Exports {
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, name)
+func (b *IntegrationsConfigBuilder) jobNameToCompLabel(jobName string) string {
+	labelSuffix := strings.TrimPrefix(jobName, "integrations/")
+	if labelSuffix == "" {
+		return b.globalCtx.LabelPrefix
+	}
+
+	return fmt.Sprintf("%s_%s", b.globalCtx.LabelPrefix, labelSuffix)
+}
+
+func (b *IntegrationsConfigBuilder) formatJobName(name string, instanceKey *string) string {
+	jobName := b.globalCtx.LabelPrefix
+	if instanceKey != nil {
+		jobName = fmt.Sprintf("%s/%s", jobName, *instanceKey)
+	} else {
+		jobName = fmt.Sprintf("%s/%s", jobName, name)
+	}
+
+	return jobName
+}
+
+func (b *IntegrationsConfigBuilder) appendExporterBlock(args component.Arguments, configName string, instanceKey *string, exporterName string) discovery.Exports {
+	compLabel, err := scanner.SanitizeIdentifier(b.formatJobName(configName, instanceKey))
+	if err != nil {
+		b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
+	}
+
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
 		[]string{"prometheus", "exporter", exporterName},
 		compLabel,

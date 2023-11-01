@@ -32,3 +32,37 @@ prometheus.scrape "integrations_agent" {
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/agent"
 }
+
+prometheus.exporter.apache "integrations_apache1" {
+	insecure = true
+}
+
+prometheus.scrape "integrations_apache1" {
+	targets    = prometheus.exporter.apache.integrations_apache1.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/apache1"
+}
+
+prometheus.exporter.apache "integrations_apache2" { }
+
+discovery.relabel "integrations_apache2" {
+	targets = prometheus.exporter.apache.integrations_apache2.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label"
+		replacement   = "test_label_value"
+	}
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label_2"
+		replacement   = "test_label_value_2"
+	}
+}
+
+prometheus.scrape "integrations_apache2" {
+	targets    = discovery.relabel.integrations_apache2.output
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/apache2"
+}
