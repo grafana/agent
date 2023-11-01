@@ -145,7 +145,7 @@ It accepts the following arguments:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
-`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/memory"` | no
+`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/allocs"` | no
 `delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
 
 When the `delta` argument is `true`, a `seconds` query parameter is
