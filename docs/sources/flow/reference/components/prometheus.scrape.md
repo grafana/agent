@@ -45,7 +45,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `targets`                  | `list(map(string))`     | List of targets to scrape. | | yes
 `forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
-`job_name`                 | `string`   | The job name to override the job label with. | component name | no
+`job_name`                 | `string`   | The value to use for the job label if not already set. | component name | no
 `extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
 `honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
 `honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
