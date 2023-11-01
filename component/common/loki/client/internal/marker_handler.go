@@ -35,6 +35,7 @@ type markerHandler struct {
 	maxSegmentAge     time.Duration
 	quit              chan struct{}
 	wg                sync.WaitGroup
+	runFindTicker     *time.Ticker
 }
 
 // dataUpdate is an update event that some amount of data has been read out of the WAL and enqueued, delivered or dropped.
@@ -58,6 +59,8 @@ func NewMarkerHandler(mfh MarkerFileHandler, maxSegmentAge time.Duration, logger
 		logger:       logger,
 
 		maxSegmentAge: maxSegmentAge,
+		// runFindTicker will force the execution of the find markable segment routine every second
+		runFindTicker: time.NewTicker(time.Second),
 	}
 
 	// Load the last marked segment from disk (if it exists).
@@ -109,19 +112,36 @@ func (mh *markerHandler) runUpdatePendingData() {
 	segmentDataCount := make(map[int]*countDataItem)
 
 	for {
+		// shouldRunFind will be true if a markable segment should be found after the update, that is if one reached a count
+		// of zero, or a ticker fired
+		shouldRunFind := false
 		select {
 		case <-mh.quit:
 			return
 		case update := <-mh.dataIOUpdate:
 			if di, ok := segmentDataCount[update.segmentId]; ok {
 				di.lastUpdate = time.Now()
-				di.count += update.dataCount
+				resultingCount := di.count + update.dataCount
+				di.count = resultingCount
+				// if a segment reached zero, run find routine because a segment might be ready to be marked
+				shouldRunFind = resultingCount == 0
 			} else {
 				segmentDataCount[update.segmentId] = &countDataItem{
 					count:      update.dataCount,
 					lastUpdate: time.Now(),
 				}
 			}
+		}
+
+		// if ticker fired, force run find
+		select {
+		case <-mh.runFindTicker.C:
+			shouldRunFind = true
+		default:
+		}
+
+		if !shouldRunFind {
+			continue
 		}
 
 		markableSegment := FindMarkableSegment(segmentDataCount, mh.maxSegmentAge)
@@ -134,6 +154,7 @@ func (mh *markerHandler) runUpdatePendingData() {
 }
 
 func (mh *markerHandler) Stop() {
+	mh.runFindTicker.Stop()
 	mh.quit <- struct{}{}
 	mh.wg.Wait()
 }

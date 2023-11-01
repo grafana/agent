@@ -45,6 +45,27 @@ func TestMarkerHandler(t *testing.T) {
 		}, time.Second, time.Millisecond*100, "expected last marked segment to catch up")
 		require.Equal(t, 11, mockMFH.LastMarkedSegment())
 	})
+
+	t.Run("last marked segment is updated when segment becomes old", func(t *testing.T) {
+		mockMFH := &mockMarkerFileHandler{lastMarkedSegment: 10}
+		mh := NewMarkerHandler(mockMFH, 2*time.Second, logger)
+		defer mh.Stop()
+
+		// segment 11 has 5 pending data items, and will become old after 2 secs
+		mh.UpdateReceivedData(11, 10)
+		mh.UpdateSentData(11, 5)
+
+		// wait until segment becomes old
+		time.Sleep(2*time.Second + time.Millisecond*100)
+
+		// send dummy data item to trigger find
+		mh.UpdateReceivedData(12, 1)
+
+		require.Eventually(t, func() bool {
+			return mh.LastMarkedSegment() == 11
+		}, 3*time.Second, time.Millisecond*100, "expected last marked segment to catch up")
+		require.Equal(t, 11, mockMFH.LastMarkedSegment())
+	})
 }
 
 func TestFindLastMarkableSegment(t *testing.T) {
