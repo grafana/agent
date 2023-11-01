@@ -93,11 +93,13 @@ func (mh *markerHandler) UpdateSentData(segmentId, dataCount int) {
 	}
 }
 
+// countDataItem tracks inside a map the count of in-flight log entries, and the last update received, for a given segment.
 type countDataItem struct {
 	count      int
 	lastUpdate time.Time
 }
 
+// processDataItem is a version of countDataItem, with the segment number the information corresponds to included.
 type processDataItem struct {
 	segment    int
 	count      int
@@ -106,7 +108,9 @@ type processDataItem struct {
 
 // runUpdatePendingData is assumed to run in a separate routine, asynchronously keeping track of how much data each WAL
 // segment the Watcher reads from, has left to send. When a segment reaches zero, it means that is has been consumed,
-// and the highest numbered one is marked as consumed.
+// and a procedure is triggered to find the "last consumed segment", implemented by FindMarkableSegment. Since this
+// last procedure could be expensive, it's execution is run at most if a segment has reached count zero, of when a timer
+// is fired (once per second).
 func (mh *markerHandler) runUpdatePendingData() {
 	defer mh.wg.Done()
 

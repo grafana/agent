@@ -33,6 +33,8 @@ type StoppableWriteTo interface {
 	StopNow()
 }
 
+// MarkerHandler re-defines the interface of internal.MarkerHandler that the queue client interacts with, to contribute
+// to the feedback loop of when data from a segment is read from the WAL, or delivered.
 type MarkerHandler interface {
 	UpdateReceivedData(segmentId, dataCount int) // Data queued for sending
 	UpdateSentData(segmentId, dataCount int)     // Data which was sent or given up on sending

@@ -30,7 +30,7 @@ func EncodeMarkerV1(segment uint64) ([]byte, error) {
 	return bs, nil
 }
 
-// DecodeMarkerV1
+// DecodeMarkerV1 decodes the segment number from a segment marker, encoded with EncodeMarkerV1.
 func DecodeMarkerV1(bs []byte) (uint64, error) {
 	// first check that read byte stream has expected length
 	if len(bs) != 14 {
