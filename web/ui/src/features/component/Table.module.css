@@ -33,10 +33,6 @@
   width: 2%;
 }
 
-.table tr th[data-sort-order="default"] {
-  cursor: pointer;
-}
-
 .table tr th[data-sort-order="desc"] {
   cursor: pointer;
   box-shadow: none !important;

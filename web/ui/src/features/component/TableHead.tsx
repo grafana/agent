@@ -23,12 +23,11 @@ const TableHead = ({ headers, handleSorting }: Props) => {
   return (
     <tr>
       {headers.map((header) => {
-        const sortOrderHeaderAttribute = sortField === header ? order : 'default';
         return (
           <th
             key={header}
             onClick={() => handleSortingChange(header)}
-            data-sort-order={handleSorting ? sortOrderHeaderAttribute : undefined}
+            data-sort-order={handleSorting && sortField === header ? order : undefined}
           >
             {header}
           </th>
