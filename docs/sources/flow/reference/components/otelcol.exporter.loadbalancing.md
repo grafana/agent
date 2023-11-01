@@ -156,6 +156,9 @@ If this fails, the `default` namespace will be used.
 
 Each of the ports listed in `ports` will be used with each of the IPs resolved from `service`. 
 
+The "get", "list", and "watch" [roles](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-example)
+must be granted in Kubernetes for the resolver to work.
+
 ### protocol block
 
 The `protocol` block configures protocol-related settings for exporting.
