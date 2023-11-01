@@ -33,6 +33,8 @@ Var Config
 Var ConfigFlag
 Var DisableReporting
 Var DisableReportingFlag
+Var DisableProfiling
+Var DisableProfilingFlag
 
 # Pages during the installer.
 Page license
@@ -47,6 +49,7 @@ FunctionEnd
 
 Section "install"
   ${GetParameters} $PassedInParameters
+  ${GetOptions} $PassedInParameters "/DISABLEPROFILING=" $DisableProfiling
   ${GetOptions} $PassedInParameters "/DISABLEREPORTING=" $DisableReporting
   ${GetOptions} $PassedInParameters "/CONFIG=" $Config
 
@@ -128,12 +131,18 @@ Function InitializeRegistry
     StrCpy $DisableReportingFlag ""
   ${EndIf}
 
+  ${If} $DisableProfiling == "yes"
+    StrCpy $DisableProfilingFlag "--server.http.enable-pprof=false\0"
+  ${Else}
+    StrCpy $DisableProfilingFlag ""
+  ${EndIf}
+
   # Define the arguments key, which holds arguments to pass to the
   # service.
   nsExec::ExecToLog 'Reg.exe query "${REGKEY}" /reg:64 /v Arguments'
   Pop $0
   ${If} $0 == 1
-    nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Arguments /t REG_MULTI_SZ /d "run"\0"$ConfigFlag"\0"--storage.path=$APPDATA\${APPNAME}\data"\0"$DisableReportingFlag"'
+    nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Arguments /t REG_MULTI_SZ /d "run"\0"$ConfigFlag"\0"--storage.path=$APPDATA\${APPNAME}\data"\0"$DisableReportingFlag$DisableProfilingFlag"'
     Pop $0 # Ignore return result
   ${EndIf}
 
