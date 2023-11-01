@@ -54,6 +54,8 @@ Main (unreleased)
 
 - Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
  
+- Windows Flow Installer: Add /CONFIG /DISABLEPROFILING and /DISABLEREPORTING flag (@jkroepke)
+
 - Add queueing logs remote write client for `loki.write` when WAL is enabled. (@thepalbi)
 
 - New Grafana Agent Flow components:
