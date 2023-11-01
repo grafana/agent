@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+const (
+	minimumMarkLimiter = time.Second
+)
+
 type MarkerHandler interface {
 	wal.Marker
 
@@ -30,6 +34,11 @@ type markerHandler struct {
 	dataIOUpdate      chan dataUpdate
 	quit              chan struct{}
 	wg                sync.WaitGroup
+
+	maxSegmentAge time.Duration
+	// markupLimiter will limit the number of times the Mark routine is executed, cleaning up and marking consumed segments.
+	// We need to limit this since the algo takes N log N in a potentially unbounded number
+	markupLimiter *time.Ticker
 }
 
 // dataUpdate is an update event that some amount of data has been read out of the WAL and enqueued, delivered or dropped.
@@ -43,13 +52,26 @@ var (
 )
 
 // NewMarkerHandler creates a new markerHandler.
-func NewMarkerHandler(mfh MarkerFileHandler) MarkerHandler {
+func NewMarkerHandler(mfh MarkerFileHandler, maxSegmentAge time.Duration) MarkerHandler {
+	// By taking 2% as the limiter amount, we will execute the find last marked segment
+	// every 2% of the maximum segment agent, which for time.Hour, is ~1min. This will allow
+	// just a minute slip between the time the marker should have been advanced, and the time it actually is.
+	limiterValue := maxSegmentAge / 50
+
+	// protect against a zero value
+	if limiterValue < minimumMarkLimiter {
+		limiterValue = minimumMarkLimiter
+	}
+
 	mh := &markerHandler{
 		lastMarkedSegment: -1, // Segment ID last marked on disk.
 		markerFileHandler: mfh,
 		//TODO: What is a good size for the channel?
 		dataIOUpdate: make(chan dataUpdate, 100),
 		quit:         make(chan struct{}),
+
+		maxSegmentAge: maxSegmentAge,
+		markupLimiter: time.NewTicker(limiterValue),
 	}
 
 	// Load the last marked segment from disk (if it exists).
@@ -116,17 +138,21 @@ func (mh *markerHandler) runUpdatePendingData() {
 			}
 		}
 
-		// TODO: Add rate limit here to not trigger this N log N algo on every update
-
-		markableSegment := FindMarkableSegment(segmentDataCount, time.Hour)
-		if markableSegment > mh.lastMarkedSegment {
-			mh.markerFileHandler.MarkSegment(markableSegment)
-			mh.lastMarkedSegment = markableSegment
+		// if limiter has fired, it means we can run the markup routine. If not go back to select block above
+		select {
+		case <-mh.markupLimiter.C:
+			markableSegment := FindMarkableSegment(segmentDataCount, mh.maxSegmentAge)
+			if markableSegment > mh.lastMarkedSegment {
+				mh.markerFileHandler.MarkSegment(markableSegment)
+				mh.lastMarkedSegment = markableSegment
+			}
+		default:
 		}
 	}
 }
 
 func (mh *markerHandler) Stop() {
+	mh.markupLimiter.Stop()
 	mh.quit <- struct{}{}
 	mh.wg.Wait()
 }
