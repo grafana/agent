@@ -561,10 +561,14 @@ The following arguments are supported:
 
 | Name                  | Type     | Description                                                                                           | Default         | Required |
 | --------------------- | -------- | ----------------------------------------------------------------------------------------------------- | --------------- | -------- |
-| `selector`            | `string` | The LogQL stream selector and filter expressions to use.                                              |                 | yes      |
+| `selector`            | `string` | The LogQL stream selector and line filter expressions to use.                                         |                 | yes      |
 | `pipeline_name`       | `string` | A custom name to use for the nested pipeline.                                                         | `""`            | no       |
 | `action`              | `string` | The action to take when the selector matches the log line. Supported values are `"keep"` and `"drop"` | `"keep"`        | no       |
 | `drop_counter_reason` | `string` | A custom reason to report for dropped lines.                                                          | `"match_stage"` | no       |
+
+{{% admonition type="note" %}}
+The filters do not include label filter expressions such as `| label == "foobar"`.
+{{% /admonition %}}
 
 The `stage.match` block supports a number of `stage.*` inner blocks, like the top-level
 block. These are used to construct the nested set of stages to run if the
