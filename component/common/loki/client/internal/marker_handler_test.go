@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"github.com/go-kit/log"
+	"os"
 	"testing"
 	"time"
 
@@ -20,9 +22,10 @@ func (m *mockMarkerFileHandler) MarkSegment(segment int) {
 }
 
 func TestMarkerHandler(t *testing.T) {
+	logger := log.NewLogfmtLogger(os.Stdout)
 	t.Run("returns last marked segment from file handler on start", func(t *testing.T) {
 		mockMFH := &mockMarkerFileHandler{lastMarkedSegment: 10}
-		mh := NewMarkerHandler(mockMFH)
+		mh := NewMarkerHandler(mockMFH, time.Minute, logger)
 		defer mh.Stop()
 
 		require.Equal(t, 10, mh.LastMarkedSegment())
@@ -30,7 +33,7 @@ func TestMarkerHandler(t *testing.T) {
 
 	t.Run("last marked segment is updated when sends complete", func(t *testing.T) {
 		mockMFH := &mockMarkerFileHandler{lastMarkedSegment: 10}
-		mh := NewMarkerHandler(mockMFH)
+		mh := NewMarkerHandler(mockMFH, time.Minute, logger)
 		defer mh.Stop()
 
 		mh.UpdateReceivedData(11, 10)
@@ -47,7 +50,7 @@ func TestMarkerHandler(t *testing.T) {
 func TestFindLastMarkableSegment(t *testing.T) {
 	t.Run("all segments with count zero, highest numbered should be marked", func(t *testing.T) {
 		now := time.Now()
-		data := map[int]countDataItem{
+		data := map[int]*countDataItem{
 			1: {
 				count:      0,
 				lastUpdate: now,
@@ -70,7 +73,7 @@ func TestFindLastMarkableSegment(t *testing.T) {
 
 	t.Run("all segments with count zero, and one too old, highest numbered should be marked", func(t *testing.T) {
 		now := time.Now()
-		data := map[int]countDataItem{
+		data := map[int]*countDataItem{
 			1: {
 				count:      0,
 				lastUpdate: now,
@@ -89,10 +92,12 @@ func TestFindLastMarkableSegment(t *testing.T) {
 			},
 		}
 		require.Equal(t, 4, FindMarkableSegment(data, time.Minute))
+		// items that should have been cleanup up
+		require.Len(t, data, 0)
 	})
 	t.Run("should find the zeroed segment before the last non-zero", func(t *testing.T) {
 		now := time.Now()
-		data := map[int]countDataItem{
+		data := map[int]*countDataItem{
 			1: {
 				count:      0,
 				lastUpdate: now,
@@ -111,10 +116,12 @@ func TestFindLastMarkableSegment(t *testing.T) {
 			},
 		}
 		require.Equal(t, 2, FindMarkableSegment(data, time.Minute))
+		require.NotContains(t, data, 1)
+		require.NotContains(t, data, 2)
 	})
 	t.Run("should return -1 when no segment is markable", func(t *testing.T) {
 		now := time.Now()
-		data := map[int]countDataItem{
+		data := map[int]*countDataItem{
 			1: {
 				count:      11,
 				lastUpdate: now,
@@ -132,6 +139,19 @@ func TestFindLastMarkableSegment(t *testing.T) {
 				lastUpdate: now,
 			},
 		}
+		lenBefore := len(data)
 		require.Equal(t, -1, FindMarkableSegment(data, time.Minute))
+		require.Len(t, data, lenBefore, "none key should have been deleted")
+	})
+	t.Run("should find only item with zero, and clean it up", func(t *testing.T) {
+		now := time.Now()
+		data := map[int]*countDataItem{
+			11: {
+				count:      0,
+				lastUpdate: now,
+			},
+		}
+		require.Equal(t, 11, FindMarkableSegment(data, time.Minute))
+		require.Len(t, data, 0)
 	})
 }

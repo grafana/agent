@@ -1,14 +1,13 @@
 package internal
 
 import (
+	"fmt"
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki/wal"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"sort"
 	"sync"
 	"time"
-)
-
-const (
-	minimumMarkLimiter = time.Second
 )
 
 type MarkerHandler interface {
@@ -29,16 +28,13 @@ type MarkerHandler interface {
 // markerHandler implements MarkerHandler, processing data update events in an asynchronous manner, and tracking the last
 // consumed segment in a file.
 type markerHandler struct {
-	markerFileHandler MarkerFileHandler
-	lastMarkedSegment int
 	dataIOUpdate      chan dataUpdate
+	lastMarkedSegment int
+	logger            log.Logger
+	markerFileHandler MarkerFileHandler
+	maxSegmentAge     time.Duration
 	quit              chan struct{}
 	wg                sync.WaitGroup
-
-	maxSegmentAge time.Duration
-	// markupLimiter will limit the number of times the Mark routine is executed, cleaning up and marking consumed segments.
-	// We need to limit this since the algo takes N log N in a potentially unbounded number
-	markupLimiter *time.Ticker
 }
 
 // dataUpdate is an update event that some amount of data has been read out of the WAL and enqueued, delivered or dropped.
@@ -52,26 +48,16 @@ var (
 )
 
 // NewMarkerHandler creates a new markerHandler.
-func NewMarkerHandler(mfh MarkerFileHandler, maxSegmentAge time.Duration) MarkerHandler {
-	// By taking 2% as the limiter amount, we will execute the find last marked segment
-	// every 2% of the maximum segment agent, which for time.Hour, is ~1min. This will allow
-	// just a minute slip between the time the marker should have been advanced, and the time it actually is.
-	limiterValue := maxSegmentAge / 50
-
-	// protect against a zero value
-	if limiterValue < minimumMarkLimiter {
-		limiterValue = minimumMarkLimiter
-	}
-
+func NewMarkerHandler(mfh MarkerFileHandler, maxSegmentAge time.Duration, logger log.Logger) MarkerHandler {
 	mh := &markerHandler{
 		lastMarkedSegment: -1, // Segment ID last marked on disk.
 		markerFileHandler: mfh,
 		//TODO: What is a good size for the channel?
 		dataIOUpdate: make(chan dataUpdate, 100),
 		quit:         make(chan struct{}),
+		logger:       logger,
 
 		maxSegmentAge: maxSegmentAge,
-		markupLimiter: time.NewTicker(limiterValue),
 	}
 
 	// Load the last marked segment from disk (if it exists).
@@ -120,7 +106,7 @@ type processDataItem struct {
 func (mh *markerHandler) runUpdatePendingData() {
 	defer mh.wg.Done()
 
-	segmentDataCount := make(map[int]countDataItem)
+	segmentDataCount := make(map[int]*countDataItem)
 
 	for {
 		select {
@@ -131,28 +117,23 @@ func (mh *markerHandler) runUpdatePendingData() {
 				di.lastUpdate = time.Now()
 				di.count += update.dataCount
 			} else {
-				segmentDataCount[update.segmentId] = countDataItem{
+				segmentDataCount[update.segmentId] = &countDataItem{
 					count:      update.dataCount,
 					lastUpdate: time.Now(),
 				}
 			}
 		}
 
-		// if limiter has fired, it means we can run the markup routine. If not go back to select block above
-		select {
-		case <-mh.markupLimiter.C:
-			markableSegment := FindMarkableSegment(segmentDataCount, mh.maxSegmentAge)
-			if markableSegment > mh.lastMarkedSegment {
-				mh.markerFileHandler.MarkSegment(markableSegment)
-				mh.lastMarkedSegment = markableSegment
-			}
-		default:
+		markableSegment := FindMarkableSegment(segmentDataCount, mh.maxSegmentAge)
+		level.Debug(mh.logger).Log("msg", fmt.Sprintf("found as markable segment %d", markableSegment))
+		if markableSegment > mh.lastMarkedSegment {
+			mh.markerFileHandler.MarkSegment(markableSegment)
+			mh.lastMarkedSegment = markableSegment
 		}
 	}
 }
 
 func (mh *markerHandler) Stop() {
-	mh.markupLimiter.Stop()
 	mh.quit <- struct{}{}
 	mh.wg.Wait()
 }
@@ -168,7 +149,7 @@ func (mh *markerHandler) Stop() {
 // Also, while reviewing the data items in segmentDataCount, those who are consumed will be deleted to clean up space.
 //
 // This algorithm runs in O(N log N), being N the size of segmentDataCount, and allocates O(N) memory.
-func FindMarkableSegment(segmentDataCount map[int]countDataItem, tooOldThreshold time.Duration) int {
+func FindMarkableSegment(segmentDataCount map[int]*countDataItem, tooOldThreshold time.Duration) int {
 	// N = len(segmentDataCount)
 	// alloc slice, N
 	orderedSegmentCounts := make([]processDataItem, 0, len(segmentDataCount))
