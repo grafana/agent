@@ -1577,7 +1577,7 @@ The extracted data from the IP used in this example:
 
 - geoip_city_name: Kansas City
 - geoip_country_name: United States
-- geoip_continet_name: North America
+- geoip_continent_name: North America
 - geoip_continent_code: NA
 - geoip_location_latitude: 39.1027
 - geoip_location_longitude: -94.5778
