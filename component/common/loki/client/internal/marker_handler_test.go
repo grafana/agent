@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"go.uber.org/atomic"
 	"os"
 	"testing"
 	"time"
@@ -10,21 +11,27 @@ import (
 )
 
 type mockMarkerFileHandler struct {
-	lastMarkedSegment int
+	lastMarkedSegment atomic.Int64
+}
+
+func newMockMarkerFileHandler(seg int) *mockMarkerFileHandler {
+	mh := &mockMarkerFileHandler{}
+	mh.MarkSegment(seg)
+	return mh
 }
 
 func (m *mockMarkerFileHandler) LastMarkedSegment() int {
-	return m.lastMarkedSegment
+	return int(m.lastMarkedSegment.Load())
 }
 
 func (m *mockMarkerFileHandler) MarkSegment(segment int) {
-	m.lastMarkedSegment = segment
+	m.lastMarkedSegment.Store(int64(segment))
 }
 
 func TestMarkerHandler(t *testing.T) {
 	logger := log.NewLogfmtLogger(os.Stdout)
 	t.Run("returns last marked segment from file handler on start", func(t *testing.T) {
-		mockMFH := &mockMarkerFileHandler{lastMarkedSegment: 10}
+		mockMFH := newMockMarkerFileHandler(10)
 		mh := NewMarkerHandler(mockMFH, time.Minute, logger)
 		defer mh.Stop()
 
@@ -32,7 +39,7 @@ func TestMarkerHandler(t *testing.T) {
 	})
 
 	t.Run("last marked segment is updated when sends complete", func(t *testing.T) {
-		mockMFH := &mockMarkerFileHandler{lastMarkedSegment: 10}
+		mockMFH := newMockMarkerFileHandler(10)
 		mh := NewMarkerHandler(mockMFH, time.Minute, logger)
 		defer mh.Stop()
 
@@ -47,7 +54,7 @@ func TestMarkerHandler(t *testing.T) {
 	})
 
 	t.Run("last marked segment is updated when segment becomes old", func(t *testing.T) {
-		mockMFH := &mockMarkerFileHandler{lastMarkedSegment: 10}
+		mockMFH := newMockMarkerFileHandler(10)
 		mh := NewMarkerHandler(mockMFH, 2*time.Second, logger)
 		defer mh.Stop()
 
