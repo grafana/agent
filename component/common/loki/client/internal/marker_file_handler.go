@@ -1,15 +1,14 @@
 package internal
 
 import (
+	"bytes"
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/wal"
-	"os"
-	"path/filepath"
-	"strconv"
-
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/prometheus/prometheus/tsdb/fileutil"
+	"github.com/grafana/agent/component/common/loki/wal"
+	"github.com/natefinch/atomic"
+	"os"
+	"path/filepath"
 )
 
 const (
@@ -28,6 +27,7 @@ type MarkerFileHandler interface {
 
 type markerFileHandler struct {
 	logger                    log.Logger
+	lastMarkedSegmentDir      string
 	lastMarkedSegmentFilePath string
 }
 
@@ -45,6 +45,7 @@ func NewMarkerFileHandler(logger log.Logger, walDir string) (MarkerFileHandler, 
 
 	mfh := &markerFileHandler{
 		logger:                    logger,
+		lastMarkedSegmentDir:      filepath.Join(markerDir),
 		lastMarkedSegmentFilePath: filepath.Join(markerDir, MarkerFileName),
 	}
 
@@ -53,7 +54,7 @@ func NewMarkerFileHandler(logger log.Logger, walDir string) (MarkerFileHandler, 
 
 // LastMarkedSegment implements wlog.Marker.
 func (mfh *markerFileHandler) LastMarkedSegment() int {
-	bb, err := os.ReadFile(mfh.lastMarkedSegmentFilePath)
+	bs, err := os.ReadFile(mfh.lastMarkedSegmentFilePath)
 	if os.IsNotExist(err) {
 		level.Warn(mfh.logger).Log("msg", "marker segment file does not exist", "file", mfh.lastMarkedSegmentFilePath)
 		return -1
@@ -62,35 +63,35 @@ func (mfh *markerFileHandler) LastMarkedSegment() int {
 		return -1
 	}
 
-	savedSegment, err := strconv.Atoi(string(bb))
+	savedSegment, err := DecodeMarkerV1(bs)
 	if err != nil {
-		level.Error(mfh.logger).Log("msg", "could not read segment marker file", "file", mfh.lastMarkedSegmentFilePath, "err", err)
+		level.Error(mfh.logger).Log("msg", "could not decode segment marker file", "file", mfh.lastMarkedSegmentFilePath, "err", err)
 		return -1
 	}
 
-	if savedSegment < 0 {
-		level.Error(mfh.logger).Log("msg", "invalid segment number inside marker file", "file", mfh.lastMarkedSegmentFilePath, "segment number", savedSegment)
-		return -1
-	}
-
-	return savedSegment
+	return int(savedSegment)
 }
 
 // MarkSegment implements MarkerHandler.
 func (mfh *markerFileHandler) MarkSegment(segment int) {
-	var (
-		segmentText = strconv.Itoa(segment)
-		tmp         = mfh.lastMarkedSegmentFilePath + ".tmp"
-	)
-
-	if err := os.WriteFile(tmp, []byte(segmentText), 0o666); err != nil {
-		level.Error(mfh.logger).Log("msg", "could not create segment marker file", "file", tmp, "err", err)
+	encodedMarker, err := EncodeMarkerV1(uint64(segment))
+	if err != nil {
+		level.Error(mfh.logger).Log("msg", "failed to encode marker when marking segment", "err", err)
 		return
 	}
-	if err := fileutil.Replace(tmp, mfh.lastMarkedSegmentFilePath); err != nil {
+
+	if err := mfh.atomicallyWriteMarker(encodedMarker); err != nil {
 		level.Error(mfh.logger).Log("msg", "could not replace segment marker file", "file", mfh.lastMarkedSegmentFilePath, "err", err)
 		return
 	}
 
 	level.Debug(mfh.logger).Log("msg", "updated segment marker file", "file", mfh.lastMarkedSegmentFilePath, "segment", segment)
+}
+
+// atomicallyWriteMarker attempts to perform an atomic write of the marker contents. This is delegated to
+// https://github.com/natefinch/atomic/blob/master/atomic.go, that first handles atomic file renaming for UNIX and
+// Windows systems. Also, atomic.WriteFile will first write the contents to a temporal file, and then perform the atomic
+// rename, swapping the marker, or not at all.
+func (mfh *markerFileHandler) atomicallyWriteMarker(bs []byte) error {
+	return atomic.WriteFile(mfh.lastMarkedSegmentFilePath, bytes.NewReader(bs))
 }
