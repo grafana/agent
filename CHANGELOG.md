@@ -58,6 +58,12 @@ Main (unreleased)
 
 - Add queueing logs remote write client for `loki.write` when WAL is enabled. (@thepalbi)
 
+- New Grafana Agent Flow components:
+
+  - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
+    Transformation Language (OTTL). (@hainenber)
+
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
@@ -85,6 +91,8 @@ Main (unreleased)
 
 - Fixed a bug in River where passing a non-string key to an object (such as
   `{}[true]`) would incorrectly report that a number type was expected instead. (@rfratto)
+
+- Include Faro Measurement `type` field in `faro.receiver` Flow component and legacy `app_agent_receiver` integration. (@rlankfo)
 
 ### Enhancements
 

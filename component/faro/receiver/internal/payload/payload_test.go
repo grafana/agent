@@ -123,6 +123,7 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 
 	require.Equal(t, []Measurement{
 		{
+			Type: "foobar",
 			Values: map[string]float64{
 				"ttfp":  20.12,
 				"ttfcp": 22.12,
