@@ -41,13 +41,13 @@ func DecodeMarkerV1(bs []byte) (uint64, error) {
 	expectedCrc := crc32.ChecksumIEEE(bs[0:10])
 	gotCrc := binary.BigEndian.Uint32(bs[len(bs)-4:])
 	if expectedCrc != gotCrc {
-		return 0, fmt.Errorf("bad checksum")
+		return 0, fmt.Errorf("corrupted WAL marker")
 	}
 
 	// check expected version header
 	header := bs[:2]
 	if !(header[0] == markerHeaderV1[0] && header[1] == markerHeaderV1[1]) {
-		return 0, fmt.Errorf("wrong marker header")
+		return 0, fmt.Errorf("wrong WAL marker header")
 	}
 
 	// lastly, decode marked segment number
