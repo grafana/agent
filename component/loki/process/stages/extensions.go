@@ -1,8 +1,5 @@
 package stages
 
-// NOTE: This package is ported over from grafana/loki/clients/pkg/logentry/stages
-// (07cbef92268aecc0f20d1791a6df390c2df5c072) with changes kept to the minimum.
-
 import (
 	"fmt"
 	"strings"
