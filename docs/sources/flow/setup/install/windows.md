@@ -55,7 +55,7 @@ To do a silent install of Grafana Agent on Windows, perform the following steps.
 
 * `/CONFIG=<path>` Path to the configuration file. Default: `$INSTDIR\config.river`
 * `/DISABLEREPORTING=<yes|no>` Disable [data collection][]. Default: `no`
-* `/DISABLEPROFLING=<yes|no>` Disable profiling endpoint. Default: `no`
+* `/DISABLEPROFILING=<yes|no>` Disable profiling endpoint. Default: `no`
 
 ## Uninstall
 
