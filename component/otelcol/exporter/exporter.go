@@ -56,6 +56,8 @@ type Exporter struct {
 
 	sched     *scheduler.Scheduler
 	collector *lazycollector.Collector
+
+	disableMetricsExporter bool
 }
 
 var (
@@ -69,7 +71,7 @@ var (
 //
 // The registered component must be registered to export the
 // otelcol.ConsumerExports type, otherwise New will panic.
-func New(opts component.Options, f otelexporter.Factory, args Arguments) (*Exporter, error) {
+func New(opts component.Options, f otelexporter.Factory, args Arguments, disableMetricsExporter bool) (*Exporter, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	consumer := lazyconsumer.New(ctx)
@@ -96,6 +98,8 @@ func New(opts component.Options, f otelexporter.Factory, args Arguments) (*Expor
 
 		sched:     scheduler.New(opts.Logger),
 		collector: collector,
+
+		disableMetricsExporter: disableMetricsExporter,
 	}
 	if err := e.Update(args); err != nil {
 		return nil, err
@@ -169,11 +173,14 @@ func (e *Exporter) Update(args component.Arguments) error {
 		components = append(components, tracesExporter)
 	}
 
-	metricsExporter, err := e.factory.CreateMetricsExporter(e.ctx, settings, exporterConfig)
-	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-		return err
-	} else if metricsExporter != nil {
-		components = append(components, metricsExporter)
+	var metricsExporter otelexporter.Metrics
+	if !e.disableMetricsExporter {
+		metricsExporter, err := e.factory.CreateMetricsExporter(e.ctx, settings, exporterConfig)
+		if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+			return err
+		} else if metricsExporter != nil {
+			components = append(components, metricsExporter)
+		}
 	}
 
 	logsExporter, err := e.factory.CreateLogsExporter(e.ctx, settings, exporterConfig)
