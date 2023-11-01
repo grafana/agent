@@ -391,101 +391,183 @@ func (m mockMarker) LastMarkedSegment() int {
 }
 
 func TestWatcher_Replay(t *testing.T) {
-	reg := prometheus.NewRegistry()
-	logger := level.NewFilter(log.NewLogfmtLogger(os.Stdout), level.AllowDebug())
-	dir := t.TempDir()
-	metrics := NewWatcherMetrics(reg)
-	writeTo := &testWriteTo{
-		series:      map[uint64]model.LabelSet{},
-		logger:      logger,
-		ReadEntries: utils.NewSyncSlice[loki.Entry](),
-	}
-	// create new watcher, and defer stop
-	watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, mockMarker{
-		LastMarkedSegmentFunc: func() int {
-			// when starting watcher, read from segment 0
-			return 0
-		},
-	})
-	defer watcher.Stop()
-	wl, err := New(Config{
-		Enabled: true,
-		Dir:     dir,
-	}, logger, reg)
-	require.NoError(t, err)
-	defer wl.Close()
-
-	ew := newEntryWriter()
-
 	labels := model.LabelSet{
 		"app": "test",
 	}
-
-	// First, write to segment 0. This will be the last "marked" segment
-	err = ew.WriteEntry(loki.Entry{
-		Labels: labels,
-		Entry: logproto.Entry{
-			Timestamp: time.Now(),
-			Line:      "this line should appear in received entries",
-		},
-	}, wl, logger)
-	require.NoError(t, err)
-
-	// cut segment and sync
-	_, err = wl.NextSegment()
-	require.NoError(t, err)
-
-	// Now, write to segment 1, this will be a segment not marked, hence replayed
-
 	segment1Lines := []string{
 		"before 1",
 		"before 2",
 		"before 3",
 	}
-
-	for _, line := range segment1Lines {
-		err = ew.WriteEntry(loki.Entry{
-			Labels: labels,
-			Entry: logproto.Entry{
-				Timestamp: time.Now(),
-				Line:      line,
-			},
-		}, wl, logger)
-		require.NoError(t, err)
-	}
-
-	// cut segment and sync
-	_, err = wl.NextSegment()
-	require.NoError(t, err)
-
-	// Finally, write some data to the last segment, this will be the write head
-
 	segment2Lines := []string{
 		"after 1",
 		"after 2",
 		"after 3",
 	}
 
-	for _, line := range segment2Lines {
+	t.Run("replay from marked segment if marker is not invalid", func(t *testing.T) {
+		reg := prometheus.NewRegistry()
+		logger := level.NewFilter(log.NewLogfmtLogger(os.Stdout), level.AllowDebug())
+		dir := t.TempDir()
+		metrics := NewWatcherMetrics(reg)
+		writeTo := &testWriteTo{
+			series:      map[uint64]model.LabelSet{},
+			logger:      logger,
+			ReadEntries: utils.NewSyncSlice[loki.Entry](),
+		}
+		// create new watcher, and defer stop
+		watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, mockMarker{
+			LastMarkedSegmentFunc: func() int {
+				// when starting watcher, read from segment 0
+				return 0
+			},
+		})
+		defer watcher.Stop()
+		wl, err := New(Config{
+			Enabled: true,
+			Dir:     dir,
+		}, logger, reg)
+		require.NoError(t, err)
+		defer wl.Close()
+
+		ew := newEntryWriter()
+
+		// First, write to segment 0. This will be the last "marked" segment
 		err = ew.WriteEntry(loki.Entry{
 			Labels: labels,
 			Entry: logproto.Entry{
 				Timestamp: time.Now(),
-				Line:      line,
+				Line:      "this line should appear in received entries",
 			},
 		}, wl, logger)
 		require.NoError(t, err)
-	}
 
-	// sync wal, and start watcher
-	require.NoError(t, wl.Sync())
+		// cut segment and sync
+		_, err = wl.NextSegment()
+		require.NoError(t, err)
 
-	// start watcher
-	watcher.Start()
+		// Now, write to segment 1, this will be a segment not marked, hence replayed
+		for _, line := range segment1Lines {
+			err = ew.WriteEntry(loki.Entry{
+				Labels: labels,
+				Entry: logproto.Entry{
+					Timestamp: time.Now(),
+					Line:      line,
+				},
+			}, wl, logger)
+			require.NoError(t, err)
+		}
 
-	require.Eventually(t, func() bool {
-		return writeTo.ReadEntries.Length() == 6 // wait for watcher to catch up with both segments
-	}, time.Second*10, time.Second, "timed out waiting for watcher to catch up")
-	writeTo.AssertContainsLines(t, segment1Lines...)
-	writeTo.AssertContainsLines(t, segment2Lines...)
+		// cut segment and sync
+		_, err = wl.NextSegment()
+		require.NoError(t, err)
+
+		// Finally, write some data to the last segment, this will be the write head
+		for _, line := range segment2Lines {
+			err = ew.WriteEntry(loki.Entry{
+				Labels: labels,
+				Entry: logproto.Entry{
+					Timestamp: time.Now(),
+					Line:      line,
+				},
+			}, wl, logger)
+			require.NoError(t, err)
+		}
+
+		// sync wal, and start watcher
+		require.NoError(t, wl.Sync())
+
+		// start watcher
+		watcher.Start()
+
+		require.Eventually(t, func() bool {
+			return writeTo.ReadEntries.Length() == 6 // wait for watcher to catch up with both segments
+		}, time.Second*10, time.Second, "timed out waiting for watcher to catch up")
+		writeTo.AssertContainsLines(t, segment1Lines...)
+		writeTo.AssertContainsLines(t, segment2Lines...)
+	})
+
+	t.Run("do not replay at all if invalid marker", func(t *testing.T) {
+		reg := prometheus.NewRegistry()
+		logger := level.NewFilter(log.NewLogfmtLogger(os.Stdout), level.AllowDebug())
+		dir := t.TempDir()
+		metrics := NewWatcherMetrics(reg)
+		writeTo := &testWriteTo{
+			series:      map[uint64]model.LabelSet{},
+			logger:      logger,
+			ReadEntries: utils.NewSyncSlice[loki.Entry](),
+		}
+		// create new watcher, and defer stop
+		watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, mockMarker{
+			LastMarkedSegmentFunc: func() int {
+				// when starting watcher, read from segment 0
+				return -1
+			},
+		})
+		defer watcher.Stop()
+		wl, err := New(Config{
+			Enabled: true,
+			Dir:     dir,
+		}, logger, reg)
+		require.NoError(t, err)
+		defer wl.Close()
+
+		ew := newEntryWriter()
+
+		// First, write to segment 0. This will be the last "marked" segment
+		err = ew.WriteEntry(loki.Entry{
+			Labels: labels,
+			Entry: logproto.Entry{
+				Timestamp: time.Now(),
+				Line:      "this line should appear in received entries",
+			},
+		}, wl, logger)
+		require.NoError(t, err)
+
+		// cut segment and sync
+		_, err = wl.NextSegment()
+		require.NoError(t, err)
+
+		// Now, write to segment 1, this will be a segment not marked, hence replayed
+		for _, line := range segment1Lines {
+			err = ew.WriteEntry(loki.Entry{
+				Labels: labels,
+				Entry: logproto.Entry{
+					Timestamp: time.Now(),
+					Line:      line,
+				},
+			}, wl, logger)
+			require.NoError(t, err)
+		}
+
+		// cut segment and sync
+		_, err = wl.NextSegment()
+		require.NoError(t, err)
+
+		// sync wal, and start watcher
+		require.NoError(t, wl.Sync())
+
+		// start watcher
+		watcher.Start()
+
+		// Write something after watcher started
+		for _, line := range segment2Lines {
+			err = ew.WriteEntry(loki.Entry{
+				Labels: labels,
+				Entry: logproto.Entry{
+					Timestamp: time.Now(),
+					Line:      line,
+				},
+			}, wl, logger)
+			require.NoError(t, err)
+		}
+
+		// sync wal, and start watcher
+		require.NoError(t, wl.Sync())
+
+		require.Eventually(t, func() bool {
+			return writeTo.ReadEntries.Length() == 3 // wait for watcher to catch up with both segments
+		}, time.Second*10, time.Second, "timed out waiting for watcher to catch up")
+		writeTo.AssertContainsLines(t, segment2Lines...)
+	})
 }
