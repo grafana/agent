@@ -5,6 +5,17 @@ import { SortOrder } from '../features/component/types';
 import Page from '../features/layout/Page';
 import { useComponentInfo } from '../hooks/componentInfo';
 
+const fieldMappings: { [key: string]: (comp: any) => string | undefined } = {
+  Health: (comp) => comp.health?.state?.toString(),
+  ID: (comp) => comp.localID,
+  // Add new fields if needed here.
+};
+
+function getSortValue(component: any, field: string): string | undefined {
+  const valueGetter = fieldMappings[field];
+  return valueGetter ? valueGetter(component) : undefined;
+}
+
 function PageComponentList() {
   const [components, setComponents] = useComponentInfo('');
 
@@ -12,10 +23,10 @@ function PageComponentList() {
   const handleSorting = (sortField: string, sortOrder: SortOrder): void => {
     if (!sortField || !sortOrder) return;
     const sorted = [...components].sort((a, b) => {
-      const sortValueA = sortField === 'Health' ? a.health.state.toString() : a.localID;
-      const sortValueB = sortField === 'Health' ? b.health.state.toString() : b.localID;
-      if (sortValueA === null) return 1;
-      if (sortValueB === null) return -1;
+      const sortValueA = getSortValue(a, sortField);
+      const sortValueB = getSortValue(b, sortField);
+      if (!sortValueA) return 1;
+      if (!sortValueB) return -1;
       return (
         sortValueA.localeCompare(sortValueB, 'en', {
           numeric: true,
