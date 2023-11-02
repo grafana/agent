@@ -58,6 +58,8 @@ Main (unreleased)
 
 - Add queueing logs remote write client for `loki.write` when WAL is enabled. (@thepalbi)
 
+- Added support for replaying not sent data for `loki.write` when WAL is enabled. (@thepalbi)
+
 - New Grafana Agent Flow components:
 
   - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
