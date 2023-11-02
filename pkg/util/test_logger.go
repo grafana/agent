@@ -11,7 +11,7 @@ import (
 )
 
 // TestLogger generates a logger for a test.
-func TestLogger(t *testing.T) log.Logger {
+func TestLogger(t testing.TB) log.Logger {
 	t.Helper()
 
 	l := log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
