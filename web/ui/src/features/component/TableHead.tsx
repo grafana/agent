@@ -15,7 +15,7 @@ const TableHead = ({ headers, handleSorting }: Props) => {
     // User clicks on the new header, use default ASC sort order
     let sortOrder = SortOrder.ASC;
 
-    // User clicks again on the header we toggled the sort order previously
+    // User clicks again on the header, we toggle the previous sort order
     if (header === sortField) {
       sortOrder = order === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC;
     }
