@@ -117,12 +117,15 @@ Main (unreleased)
 
 - Added an `exclude_event_message` option to `loki.source.windowsevent` in flow mode,
   which excludes the human-friendly event message from Windows event logs. (@ptodev)
+
 - Improve detection of rolled log files in `loki.source.kubernetes` and
   `loki.source.podlogs` (@slim-bean).
 
 - Support clustering in `loki.source.kubernetes` (@slim-bean).
 
 - Support clustering in `loki.source.podlogs` (@rfratto).
+
+- Make component list sortable in web UI. (@hainenber)
 
 - Adds new metrics (`mssql_server_total_memory_bytes`, `mssql_server_target_memory_bytes`,
   and `mssql_available_commit_memory_bytes`) for `mssql` integration.
