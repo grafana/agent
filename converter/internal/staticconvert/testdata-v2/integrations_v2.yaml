@@ -97,3 +97,6 @@ integrations:
         - source_labels: [__address__]
           target_label: instance
           replacement: dnsmasq-a
+  elasticsearch_configs:
+    - autoscrape:
+        metrics_instance: "default"

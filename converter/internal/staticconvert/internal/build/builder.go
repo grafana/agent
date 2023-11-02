@@ -116,7 +116,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *dnsmasq_exporter.Config:
 			exports = b.appendDnsmasqExporter(itg, nil)
 		case *elasticsearch_exporter.Config:
-			exports = b.appendElasticsearchExporter(itg)
+			exports = b.appendElasticsearchExporter(itg, nil)
 		case *gcp_exporter.Config:
 			exports = b.appendGcpExporter(itg)
 		case *github_exporter.Config:
@@ -222,6 +222,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendConsulExporter(v1_itg, itg.Common.InstanceKey)
 			case *dnsmasq_exporter.Config:
 				exports = b.appendDnsmasqExporter(v1_itg, itg.Common.InstanceKey)
+			case *elasticsearch_exporter.Config:
+				exports = b.appendElasticsearchExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 

@@ -128,6 +128,14 @@ prometheus.scrape "integrations_dnsmasq" {
 	job_name   = "integrations/dnsmasq"
 }
 
+prometheus.exporter.elasticsearch "integrations_elasticsearch_exporter" { }
+
+prometheus.scrape "integrations_elasticsearch" {
+	targets    = prometheus.exporter.elasticsearch.integrations_elasticsearch_exporter.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/elasticsearch"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {
