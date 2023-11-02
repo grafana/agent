@@ -6,11 +6,7 @@ local filename = 'agent-flow-prometheus-target.json';
   [filename]:
     dashboard.new(name='Grafana Agent Flow / Prometheus Target') +
     dashboard.withDocsLink(
-      url='https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.servicemonitors/',
-      desc='Component documentation',
-    ) +
-    dashboard.withDocsLink(
-      url='https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.podmonitors/',
+      url='https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/',
       desc='Component documentation',
     ) +
     dashboard.withDashboardsLink() +
@@ -19,17 +15,17 @@ local filename = 'agent-flow-prometheus-target.json';
       dashboard.newTemplateVariable('cluster', |||
         label_values(agent_component_controller_running_components, cluster)
       |||),
-      dashboard.newTemplateVariable('namespace', |||
+      dashboard.newMultiTemplateVariable('namespace', |||
         label_values(agent_component_controller_running_components{cluster="$cluster"}, namespace)
       |||),
       dashboard.newMultiTemplateVariable('job', |||
-        label_values(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace"}, job)
+        label_values(agent_component_controller_running_components{cluster="$cluster", namespace=~"$namespace"}, job)
       |||),
       dashboard.newMultiTemplateVariable('instance', |||
-        label_values(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace"}, instance)
+        label_values(agent_component_controller_running_components{cluster="$cluster", namespace=~"$namespace"}, instance)
       |||),
       dashboard.newMultiTemplateVariable('scrape_job', |||
-        label_values(prometheus_target_scrape_pool_targets{namespace="$namespace"}, scrape_job)
+        label_values(prometheus_target_scrape_pool_targets{namespace=~"$namespace"}, scrape_job)
       |||),
     ]) +
     dashboard.withPanelsMixin([
@@ -45,7 +41,7 @@ local filename = 'agent-flow-prometheus-target.json';
           panel.newQuery(
             expr=|||
               sum by (job) (
-                prometheus_target_scrape_pool_targets{job=~"$job", namespace="$namespace", instance=~"$instance"}
+                prometheus_target_scrape_pool_targets{job=~"$job", namespace=~"$namespace", instance=~"$instance"}
               )
             |||,
             legendFormat='{{job}}',
@@ -64,7 +60,7 @@ local filename = 'agent-flow-prometheus-target.json';
           panel.newQuery(
             expr=|||
               sum by (job, instance_group_name) (
-                rate(agent_wal_samples_appended_total{job=~"$job", namespace="$namespace", instance=~"$instance"}[$__rate_interval])
+                rate(agent_wal_samples_appended_total{job=~"$job", namespace=~"$namespace", instance=~"$instance"}[$__rate_interval])
               )
             |||,
             legendFormat='{{job}} {{instance_group_name}}',
@@ -82,8 +78,8 @@ local filename = 'agent-flow-prometheus-target.json';
         panel.withQueries([
           panel.newQuery(
             expr=|||
-              rate(prometheus_target_interval_length_seconds_sum{job=~"$job", namespace="$namespace", instance=~"$instance"}[$__rate_interval]) / 
-              rate(prometheus_target_interval_length_seconds_count{job=~"$job", namespace="$namespace", instance=~"$instance"}[$__rate_interval])
+              rate(prometheus_target_interval_length_seconds_sum{job=~"$job", namespace=~"$namespace", instance=~"$instance"}[$__rate_interval]) / 
+              rate(prometheus_target_interval_length_seconds_count{job=~"$job", namespace=~"$namespace", instance=~"$instance"}[$__rate_interval])
             |||,
             legendFormat='{{instance}} {{interval}} configured',
           ),
@@ -101,7 +97,7 @@ local filename = 'agent-flow-prometheus-target.json';
           panel.newQuery(
             expr=|||
               sum by (job) (
-                rate(prometheus_target_scrapes_exceeded_sample_limit_total{job=~"$job", namespace="$namespace", instance=~"$instance"}[$__rate_interval])
+                rate(prometheus_target_scrapes_exceeded_sample_limit_total{job=~"$job", namespace=~"$namespace", instance=~"$instance"}[$__rate_interval])
               )
             |||,
             legendFormat='exceeded sample limit: {{job}}',
@@ -109,7 +105,7 @@ local filename = 'agent-flow-prometheus-target.json';
           panel.newQuery(
             expr=|||
               sum by (job) (
-                rate(prometheus_target_scrapes_sample_duplicate_timestamp_total{job=~"$job", namespace="$namespace", instance=~"$instance"}[$__rate_interval])
+                rate(prometheus_target_scrapes_sample_duplicate_timestamp_total{job=~"$job", namespace=~"$namespace", instance=~"$instance"}[$__rate_interval])
               )
             |||,
             legendFormat='duplicate timestamp: {{job}}',
@@ -117,7 +113,7 @@ local filename = 'agent-flow-prometheus-target.json';
           panel.newQuery(
             expr=|||
               sum by (job) (
-                rate(prometheus_target_scrapes_sample_out_of_bounds_total{job=~"$job", namespace="$namespace", instance=~"$instance"}[$__rate_interval])
+                rate(prometheus_target_scrapes_sample_out_of_bounds_total{job=~"$job", namespace=~"$namespace", instance=~"$instance"}[$__rate_interval])
               )
             |||,
             legendFormat='out of bounds: {{job}}',
@@ -125,7 +121,7 @@ local filename = 'agent-flow-prometheus-target.json';
           panel.newQuery(
             expr=|||
               sum by (job) (
-                rate(prometheus_target_scrapes_sample_out_of_order_total{job=~"$job", namespace="$namespace", instance=~"$instance"}[$__rate_interval])
+                rate(prometheus_target_scrapes_sample_out_of_order_total{job=~"$job", namespace=~"$namespace", instance=~"$instance"}[$__rate_interval])
               )
             |||,
             legendFormat='out of order: {{job}}',
@@ -183,7 +179,7 @@ local filename = 'agent-flow-prometheus-target.json';
             legendFormat='Refused',
             expr='count by (reason) (
                 rate(
-                  net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace="$namespace", instance=~"$instance", reason="refused"}[2m]
+                  net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance", reason="refused"}[2m]
                 ) > 0
               ) or label_replace(vector(0), "reason", "refused", "", "")',
           ),
@@ -191,7 +187,7 @@ local filename = 'agent-flow-prometheus-target.json';
             legendFormat='Timeout',
             expr='count by (reason) (
                 rate(
-                  net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace="$namespace", instance=~"$instance", reason="timeout"}[2m]
+                  net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance", reason="timeout"}[2m]
                 ) > 0
               ) or label_replace(vector(0), "reason", "timeout", "", "")',
           ),
@@ -199,7 +195,7 @@ local filename = 'agent-flow-prometheus-target.json';
             legendFormat='Resolution',
             expr='count by (reason) (
                 rate(
-                  net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace="$namespace", instance=~"$instance", reason="resolution"}[2m]
+                  net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance", reason="resolution"}[2m]
                 ) > 0
               ) or label_replace(vector(0), "reason", "resolution", "", "")',
           ),
@@ -221,7 +217,7 @@ local filename = 'agent-flow-prometheus-target.json';
           panel.newInstantQuery(
             expr='count by (dialer_name, instance, job, namespace, reason) (
                 rate(
-                  net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace="$namespace", instance=~"$instance", reason!~"unknown"}[2m]
+                  net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance", reason!~"unknown"}[2m]
                 ) > 0
               )',
             format='table',
