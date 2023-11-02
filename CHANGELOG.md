@@ -116,8 +116,6 @@ Main (unreleased)
 - Added an `exclude_event_message` option to `loki.source.windowsevent` in flow mode,
   which excludes the human-friendly event message from Windows event logs. (@ptodev)
 
-- Make component list sortable in web UI. (@hainenber)
-
 - Improve detection of rolled log files in `loki.source.kubernetes` and
   `loki.source.podlogs` (@slim-bean).
 
