@@ -178,28 +178,57 @@ local filename = 'agent-flow-prometheus-target.json';
           panel.newInstantQuery(
             legendFormat='Refused',
             expr='count by (reason) (
+              label_replace(
                 rate(
                   net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance", reason="refused"}[2m]
-                ) > 0
-              ) or label_replace(vector(0), "reason", "refused", "", "")',
+                ),
+                "scrape_job",
+                "$1",
+                "dialer_name",
+                "(.*)"
+              )
+              * on(scrape_job, job, namespace, instance, service, pod)
+              group_left() 
+              prometheus_target_scrape_pool_targets{scrape_job=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance"}
+              > 0
+            ) or label_replace(vector(0), "reason", "refused", "", "")',
           ),
           panel.newInstantQuery(
             legendFormat='Timeout',
             expr='count by (reason) (
+              label_replace(
                 rate(
                   net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance", reason="timeout"}[2m]
-                ) > 0
-              ) or label_replace(vector(0), "reason", "timeout", "", "")',
+                ),
+                "scrape_job",
+                "$1",
+                "dialer_name",
+                "(.*)"
+              )
+              * on(scrape_job, job, namespace, instance, service, pod)
+              group_left() 
+              prometheus_target_scrape_pool_targets{scrape_job=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance"}
+              > 0
+            ) or label_replace(vector(0), "reason", "timeout", "", "")',
           ),
           panel.newInstantQuery(
             legendFormat='Resolution',
             expr='count by (reason) (
+              label_replace(
                 rate(
                   net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance", reason="resolution"}[2m]
-                ) > 0
-              ) or label_replace(vector(0), "reason", "resolution", "", "")',
+                ),
+                "scrape_job",
+                "$1",
+                "dialer_name",
+                "(.*)"
+              )
+              * on(scrape_job, job, namespace, instance, service, pod)
+              group_left() 
+              prometheus_target_scrape_pool_targets{scrape_job=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance"}
+              > 0
+            ) or label_replace(vector(0), "reason", "resolution", "", "")',
           ),
-
         ])        
       ),
       // HTTP Scrape failures - table
@@ -215,11 +244,21 @@ local filename = 'agent-flow-prometheus-target.json';
         panel.withPosition({ h: 9, w: 24, x: 0, y: 18 }) +
         panel.withQueries([
           panel.newInstantQuery(
-            expr='count by (dialer_name, instance, job, namespace, reason) (
+            expr='count by (scrape_job, instance, job, namespace, reason) (
+              label_replace(
                 rate(
                   net_conntrack_dialer_conn_failed_total{dialer_name=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance", reason!~"unknown"}[2m]
-                ) > 0
-              )',
+                ),
+                "scrape_job",
+                "$1",
+                "dialer_name",
+                "(.*)"
+              )
+              * on(scrape_job, job, namespace, instance, service, pod)
+              group_left() 
+              prometheus_target_scrape_pool_targets{scrape_job=~"$scrape_job", job=~"$job", namespace=~"$namespace", instance=~"$instance"}
+            > 0
+            )',
             format='table',
           ),
         ])
