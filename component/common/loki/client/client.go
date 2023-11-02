@@ -58,6 +58,7 @@ type Metrics struct {
 	mutatedBytes                 *prometheus.CounterVec
 	requestDuration              *prometheus.HistogramVec
 	batchRetries                 *prometheus.CounterVec
+	lastReadTimestamp            *prometheus.GaugeVec
 	countersWithHost             []*prometheus.CounterVec
 	countersWithHostTenant       []*prometheus.CounterVec
 	countersWithHostTenantReason []*prometheus.CounterVec

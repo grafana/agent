@@ -10,6 +10,7 @@ type WatcherMetrics struct {
 	currentSegment            *prometheus.GaugeVec
 	replaySegment             *prometheus.GaugeVec
 	watchersRunning           *prometheus.GaugeVec
+	lastReadTimestamp         *prometheus.GaugeVec
 }
 
 func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
@@ -86,6 +87,7 @@ func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
 		m.segmentRead = mustRegisterOrGet(reg, m.segmentRead).(*prometheus.CounterVec)
 		m.currentSegment = mustRegisterOrGet(reg, m.currentSegment).(*prometheus.GaugeVec)
 		m.watchersRunning = mustRegisterOrGet(reg, m.watchersRunning).(*prometheus.GaugeVec)
+		m.lastReadTimestamp = mustRegisterOrGet(reg, m.lastReadTimestamp).(*prometheus.GaugeVec)
 	}
 
 	return m

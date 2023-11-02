@@ -150,10 +150,11 @@ func (q *queue) closeNow() {
 // which allows it to be injected in the wal.Watcher as a destination where to write read series and entries. As the watcher
 // reads from the WAL, batches are created and dispatched onto a send queue when ready to be sent.
 type queueClient struct {
-	metrics *Metrics
-	logger  log.Logger
-	cfg     Config
-	client  *http.Client
+	metrics   *Metrics
+	qcMetrics *QueueClientMetrics
+	logger    log.Logger
+	cfg       Config
+	client    *http.Client
 
 	batches      map[string]*batch
 	batchesMtx   sync.Mutex
@@ -180,14 +181,14 @@ type queueClient struct {
 }
 
 // NewQueue creates a new queueClient.
-func NewQueue(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, markerHandler MarkerHandler) (StoppableWriteTo, error) {
+func NewQueue(metrics *Metrics, queueClientMetrics *QueueClientMetrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, markerHandler MarkerHandler) (StoppableWriteTo, error) {
 	if cfg.StreamLagLabels.String() != "" {
 		return nil, fmt.Errorf("client config stream_lag_labels is deprecated and the associated metric has been removed, stream_lag_labels: %+v", cfg.StreamLagLabels.String())
 	}
-	return newQueueClient(metrics, cfg, maxStreams, maxLineSize, maxLineSizeTruncate, logger, markerHandler)
+	return newQueueClient(metrics, queueClientMetrics, cfg, maxStreams, maxLineSize, maxLineSizeTruncate, logger, markerHandler)
 }
 
-func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, markerHandler MarkerHandler) (*queueClient, error) {
+func newQueueClient(metrics *Metrics, qcMetrics *QueueClientMetrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, markerHandler MarkerHandler) (*queueClient, error) {
 	if cfg.URL.URL == nil {
 		return nil, errors.New("client needs target URL")
 	}
@@ -198,6 +199,7 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		logger:       log.With(logger, "component", "client", "host", cfg.URL.Host),
 		cfg:          cfg,
 		metrics:      metrics,
+		qcMetrics:    qcMetrics,
 		drainTimeout: cfg.Queue.DrainTimeout,
 		quit:         make(chan struct{}),
 
@@ -283,9 +285,13 @@ func (c *queueClient) AppendEntries(entries wal.RefEntries, segment int) error {
 	c.seriesLock.RLock()
 	l, ok := c.series[entries.Ref]
 	c.seriesLock.RUnlock()
+	var maxSeenTimestamp int64 = -1
 	if ok {
 		for _, e := range entries.Entries {
 			c.appendSingleEntry(segment, l, e)
+			if e.Timestamp.Unix() > maxSeenTimestamp {
+				maxSeenTimestamp = e.Timestamp.Unix()
+			}
 		}
 		// count all enqueued appended entries as received from WAL
 		c.markerHandler.UpdateReceivedData(segment, len(entries.Entries))
@@ -293,6 +299,12 @@ func (c *queueClient) AppendEntries(entries wal.RefEntries, segment int) error {
 		// TODO(thepalbi): Add metric here
 		level.Debug(c.logger).Log("msg", "series for entry not found")
 	}
+
+	// emit metric tracking max seen timestamp in WAL entry
+	if maxSeenTimestamp != -1 {
+		c.qcMetrics.lastReadTimestamp.WithLabelValues().Set(float64(maxSeenTimestamp))
+	}
+
 	return nil
 }
 
