@@ -118,7 +118,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *elasticsearch_exporter.Config:
 			exports = b.appendElasticsearchExporter(itg, nil)
 		case *gcp_exporter.Config:
-			exports = b.appendGcpExporter(itg)
+			exports = b.appendGcpExporter(itg, nil)
 		case *github_exporter.Config:
 			exports = b.appendGithubExporter(itg)
 		case *kafka_exporter.Config:
@@ -224,6 +224,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendDnsmasqExporter(v1_itg, itg.Common.InstanceKey)
 			case *elasticsearch_exporter.Config:
 				exports = b.appendElasticsearchExporter(v1_itg, itg.Common.InstanceKey)
+			case *gcp_exporter.Config:
+				exports = b.appendGcpExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 

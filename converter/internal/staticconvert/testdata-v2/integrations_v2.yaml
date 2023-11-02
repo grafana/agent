@@ -100,3 +100,11 @@ integrations:
   elasticsearch_configs:
     - autoscrape:
         metrics_instance: "default"
+  gcp_configs:
+    - project_ids:
+        - <project_id>
+      metrics_prefixes:
+        - loadbalancing.googleapis.com/https/request_bytes_count
+        - loadbalancing.googleapis.com/https/total_latencies
+      extra_filters:
+        - loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"
