@@ -32,3 +32,19 @@ integrations:
       resource_type: "Microsoft.Dashboard/grafana"
       metrics:
         - "HttpRequestCount"
+  blackbox:
+    blackbox_targets:
+      - name: example
+        address: http://example.com
+        module: http_2xx
+    blackbox_config:
+      modules:
+        http_2xx:
+          prober: http
+          timeout: 5s
+          http:
+            method: POST
+            headers:
+              Content-Type: application/json
+            body: '{}'
+            preferred_ip_protocol: "ip4"

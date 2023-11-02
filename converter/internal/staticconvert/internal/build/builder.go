@@ -39,6 +39,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
 	apache_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/apache_http"
+	blackbox_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"
 	common_v2 "github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
@@ -204,6 +205,9 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 			commonConfig = itg.Common
 		case *apache_exporter_v2.Config:
 			exports = b.appendApacheExporterV2(itg)
+			commonConfig = itg.Common
+		case *blackbox_exporter_v2.Config:
+			exports = b.appendBlackboxExporterV2(itg)
 			commonConfig = itg.Common
 		case *metricsutils.ConfigShim:
 			commonConfig = itg.Common
