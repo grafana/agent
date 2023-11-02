@@ -203,14 +203,13 @@ func (args *Arguments) Convert() kt.Config {
 }
 
 func (auth KafkaAuthentication) Convert() kt.Authentication {
-	password, _ := ConvertSecretToString(auth.SASLConfig.Password)
 	return kt.Authentication{
 		Type:      kt.AuthenticationType(auth.Type),
 		TLSConfig: *auth.TLSConfig.Convert(),
 		SASLConfig: kt.SASLConfig{
 			Mechanism: sarama.SASLMechanism(auth.SASLConfig.Mechanism),
 			User:      auth.SASLConfig.User,
-			Password:  flagext.SecretWithValue(password),
+			Password:  flagext.SecretWithValue(string(auth.SASLConfig.Password)),
 			UseTLS:    auth.SASLConfig.UseTLS,
 			TLSConfig: *auth.SASLConfig.TLSConfig.Convert(),
 			OAuthConfig: kt.OAuthConfig{
