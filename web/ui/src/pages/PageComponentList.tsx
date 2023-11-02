@@ -1,17 +1,17 @@
 import { faCubes } from '@fortawesome/free-solid-svg-icons';
 
 import ComponentList from '../features/component/ComponentList';
-import { SortOrder } from '../features/component/types';
+import { ComponentInfo, SortOrder } from '../features/component/types';
 import Page from '../features/layout/Page';
 import { useComponentInfo } from '../hooks/componentInfo';
 
-const fieldMappings: { [key: string]: (comp: any) => string | undefined } = {
+const fieldMappings: { [key: string]: (comp: ComponentInfo) => string | undefined } = {
   Health: (comp) => comp.health?.state?.toString(),
   ID: (comp) => comp.localID,
   // Add new fields if needed here.
 };
 
-function getSortValue(component: any, field: string): string | undefined {
+function getSortValue(component: ComponentInfo, field: string): string | undefined {
   const valueGetter = fieldMappings[field];
   return valueGetter ? valueGetter(component) : undefined;
 }
