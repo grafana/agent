@@ -46,12 +46,6 @@ func NewMarkerFileHandler(logger log.Logger, walDir string) (MarkerFileHandler, 
 	if err := os.MkdirAll(markerDir, MarkerFolderMode); err != nil {
 		return nil, fmt.Errorf("error creating segment marker folder %q: %w", markerDir, err)
 	}
-	// If marker folder exists, and has other perms, change them
-	if stat, err := os.Stat(markerDir); err == nil && stat.Mode().Perm() != MarkerFolderMode {
-		if err := os.Chmod(markerDir, MarkerFolderMode); err != nil {
-			return nil, err
-		}
-	}
 
 	mfh := &markerFileHandler{
 		logger:                    logger,

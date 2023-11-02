@@ -63,19 +63,4 @@ func TestMarkerFileHandler(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, MarkerFileMode, stats.Mode().Perm())
 	})
-
-	t.Run("marker folder perms are fixed when existing and different", func(t *testing.T) {
-		dir := getTempDir(t)
-		markerFolder := filepath.Join(dir, MarkerFolderName)
-
-		// most permisive
-		require.NoError(t, os.MkdirAll(markerFolder, os.FileMode(0777)))
-
-		_, err := NewMarkerFileHandler(logger, dir)
-		require.NoError(t, err)
-
-		stats, err := os.Stat(filepath.Join(dir, MarkerFolderName))
-		require.NoError(t, err)
-		require.Equal(t, MarkerFolderMode, stats.Mode().Perm(), "marker folder perms should have been changed")
-	})
 }
