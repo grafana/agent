@@ -33,6 +33,16 @@ prometheus.scrape "integrations_azure2" {
 	job_name   = "integrations/azure2"
 }
 
+prometheus.exporter.cadvisor "integrations_cadvisor" {
+	store_container_labels = false
+}
+
+prometheus.scrape "integrations_cadvisor" {
+	targets    = prometheus.exporter.cadvisor.integrations_cadvisor.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/cadvisor"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {

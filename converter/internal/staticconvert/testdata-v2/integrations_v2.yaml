@@ -48,3 +48,5 @@ integrations:
               Content-Type: application/json
             body: '{}'
             preferred_ip_protocol: "ip4"
+  cadvisor:
+    store_container_labels: false

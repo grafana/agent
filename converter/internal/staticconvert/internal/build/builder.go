@@ -152,7 +152,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *azure_exporter.Config:
 			exports = b.appendAzureExporter(itg, nil)
 		case *cadvisor.Config:
-			exports = b.appendCadvisorExporter(itg)
+			exports = b.appendCadvisorExporter(itg, nil)
 		}
 
 		if len(exports.Targets) > 0 {
@@ -214,6 +214,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 			switch v1_itg := itg.Orig.(type) {
 			case *azure_exporter.Config:
 				exports = b.appendAzureExporter(v1_itg, itg.Common.InstanceKey)
+			case *cadvisor.Config:
+				exports = b.appendCadvisorExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 

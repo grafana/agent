@@ -169,6 +169,7 @@ func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagno
 		case *metricsutils.ConfigShim:
 			switch v1_itg := itg.Orig.(type) {
 			case *azure_exporter.Config:
+			case *cadvisor.Config:
 			default:
 				diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", v1_itg.Name()))
 			}
