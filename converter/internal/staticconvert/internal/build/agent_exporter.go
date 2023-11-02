@@ -9,7 +9,7 @@ import (
 
 func (b *IntegrationsConfigBuilder) appendAgentExporter(config *agent_exporter.Config) discovery.Exports {
 	args := toAgentExporter(config)
-	return b.appendExporterBlock(args, config.Name(), "agent")
+	return b.appendExporterBlock(args, config.Name(), nil, "agent")
 }
 
 func toAgentExporter(config *agent_exporter.Config) *agent.Arguments {
@@ -18,7 +18,7 @@ func toAgentExporter(config *agent_exporter.Config) *agent.Arguments {
 
 func (b *IntegrationsConfigBuilder) appendAgentExporterV2(config *agent_exporter_v2.Config) discovery.Exports {
 	args := toAgentExporterV2(config)
-	return b.appendExporterBlock(args, config.Name(), "agent")
+	return b.appendExporterBlock(args, config.Name(), config.Common.InstanceKey, "agent")
 }
 
 func toAgentExporterV2(config *agent_exporter_v2.Config) *agent.Arguments {

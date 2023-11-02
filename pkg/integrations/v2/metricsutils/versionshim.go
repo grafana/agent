@@ -19,9 +19,9 @@ import (
 // v2.Config with a new name.
 func NewNamedShim(newName string) v2.UpgradeFunc {
 	return func(before v1.Config, common common.MetricsConfig) v2.UpgradedConfig {
-		return &configShim{
-			orig:         before,
-			common:       common,
+		return &ConfigShim{
+			Orig:         before,
+			Common:       common,
 			nameOverride: newName,
 		}
 	}
@@ -30,55 +30,55 @@ func NewNamedShim(newName string) v2.UpgradeFunc {
 // Shim upgrades a v1.Config to a v2.Config. The resulting config is NOT
 // registered. Shim matches the v2.UpgradeFunc type.
 func Shim(before v1.Config, common common.MetricsConfig) (after v2.UpgradedConfig) {
-	return &configShim{orig: before, common: common}
+	return &ConfigShim{Orig: before, Common: common}
 }
 
-type configShim struct {
-	orig         v1.Config
-	common       common.MetricsConfig
+type ConfigShim struct {
+	Orig         v1.Config
+	Common       common.MetricsConfig
 	nameOverride string
 }
 
 var (
-	_ v2.Config           = (*configShim)(nil)
-	_ v2.UpgradedConfig   = (*configShim)(nil)
-	_ v2.ComparableConfig = (*configShim)(nil)
+	_ v2.Config           = (*ConfigShim)(nil)
+	_ v2.UpgradedConfig   = (*ConfigShim)(nil)
+	_ v2.ComparableConfig = (*ConfigShim)(nil)
 )
 
-func (s *configShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.orig, s.common }
+func (s *ConfigShim) LegacyConfig() (v1.Config, common.MetricsConfig) { return s.Orig, s.Common }
 
-func (s *configShim) Name() string {
+func (s *ConfigShim) Name() string {
 	if s.nameOverride != "" {
 		return s.nameOverride
 	}
-	return s.orig.Name()
+	return s.Orig.Name()
 }
 
-func (s *configShim) ApplyDefaults(g v2.Globals) error {
-	s.common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
+func (s *ConfigShim) ApplyDefaults(g v2.Globals) error {
+	s.Common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)
 	if id, err := s.Identifier(g); err == nil {
-		s.common.InstanceKey = &id
+		s.Common.InstanceKey = &id
 	}
 	return nil
 }
 
-func (s *configShim) ConfigEquals(c v2.Config) bool {
-	o, ok := c.(*configShim)
+func (s *ConfigShim) ConfigEquals(c v2.Config) bool {
+	o, ok := c.(*ConfigShim)
 	if !ok {
 		return false
 	}
-	return util.CompareYAML(s.orig, o.orig) && util.CompareYAML(s.common, o.common)
+	return util.CompareYAML(s.Orig, o.Orig) && util.CompareYAML(s.Common, o.Common)
 }
 
-func (s *configShim) Identifier(g v2.Globals) (string, error) {
-	if s.common.InstanceKey != nil {
-		return *s.common.InstanceKey, nil
+func (s *ConfigShim) Identifier(g v2.Globals) (string, error) {
+	if s.Common.InstanceKey != nil {
+		return *s.Common.InstanceKey, nil
 	}
-	return s.orig.InstanceKey(g.AgentIdentifier)
+	return s.Orig.InstanceKey(g.AgentIdentifier)
 }
 
-func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration, error) {
-	v1Integration, err := s.orig.NewIntegration(l)
+func (s *ConfigShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration, error) {
+	v1Integration, err := s.Orig.NewIntegration(l)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (s *configShim) NewIntegration(l log.Logger, g v2.Globals) (v2.Integration,
 		integrationName: s.Name(),
 		instanceID:      id,
 
-		common:  s.common,
+		common:  s.Common,
 		globals: g,
 		handler: handler,
 		targets: targets,

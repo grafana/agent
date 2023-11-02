@@ -96,6 +96,8 @@ Main (unreleased)
 
 - Mark `password` argument of `loki.source.kafka` as a `secret` rather than a `string`. (@harsiddhdave44)
 
+- Fixed a bug where UDP syslog messages were never processed (@joshuapare)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
@@ -124,6 +126,9 @@ Main (unreleased)
 - Support clustering in `loki.source.podlogs` (@rfratto).
 
 - Make component list sortable in web UI. (@hainenber)
+
+- Adds new metrics (`mssql_server_total_memory_bytes`, `mssql_server_target_memory_bytes`,
+  and `mssql_available_commit_memory_bytes`) for `mssql` integration.
 
 v0.37.3 (2023-10-26)
 -----------------
