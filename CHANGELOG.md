@@ -128,8 +128,10 @@ Main (unreleased)
 - Mark `password` argument of `loki.source.kafka` as a `secret` rather than a `string`. (@harsiddhdave44)
 
 - Fixed a bug where UDP syslog messages were never processed (@joshuapare)
+  "blgithub.com/grafana/loki/pkg/logproto"
+  loki_util "github.com/grafana/loki/pkg/util"
 
-- Add missing lock in `loki.write#Run` routine. (@thepalbi)
+- Updating configuration for `loki.write` no longer drops data. (@thepalbi)
 
 v0.37.4 (2023-11-06)
 -----------------
