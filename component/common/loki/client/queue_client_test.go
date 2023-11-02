@@ -220,7 +220,7 @@ func BenchmarkClientImplementations(b *testing.B) {
 					markerFileHandler, err := internal.NewMarkerFileHandler(nopLogger, dir)
 					require.NoError(b, err)
 
-					markerHandler := internal.NewMarkerHandler(markerFileHandler, time.Minute, nopLogger)
+					markerHandler := internal.NewMarkerHandler(markerFileHandler, time.Minute, nopLogger, internal.NewMarkerMetrics(nil).WithCurriedId("test"))
 
 					return markerHandler
 				})
