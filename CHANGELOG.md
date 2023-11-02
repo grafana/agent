@@ -53,7 +53,7 @@ Main (unreleased)
       == null` is true. (@rfratto)
 
 - Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
- 
+
 - Windows Flow Installer: Add /CONFIG /DISABLEPROFILING and /DISABLEREPORTING flag (@jkroepke)
 
 - Add queueing logs remote write client for `loki.write` when WAL is enabled. (@thepalbi)
@@ -94,6 +94,8 @@ Main (unreleased)
 
 - Include Faro Measurement `type` field in `faro.receiver` Flow component and legacy `app_agent_receiver` integration. (@rlankfo)
 
+- Mark `password` argument of `loki.source.kafka` as a `secret` rather than a `string`. (@harsiddhdave44)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
@@ -102,7 +104,7 @@ Main (unreleased)
 
 - Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
 
-- Added support for comma-separated list of fields in `source` option and a 
+- Added support for comma-separated list of fields in `source` option and a
   new `separator` option in `drop` stage of `loki.process`. (@thampiotr)
 
 - The `loki.source.docker` component now allows connecting to Docker daemons
