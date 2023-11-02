@@ -129,6 +129,8 @@ Main (unreleased)
 
 - Fixed a bug where UDP syslog messages were never processed (@joshuapare)
 
+- Add missing lock in `loki.write#Run` routine. (@thepalbi)
+
 v0.37.4 (2023-11-06)
 -----------------
 
