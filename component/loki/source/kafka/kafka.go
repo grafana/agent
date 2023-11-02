@@ -27,16 +27,6 @@ func init() {
 	})
 }
 
-// Takes in a variable of type `rivertypes.Secret`, converts it to an OptionalSecret in order to extract the string value
-func ConvertSecretToString(secret rivertypes.Secret) (string, error) {
-	var optSecret rivertypes.OptionalSecret
-	err := secret.ConvertInto(&optSecret)
-	if err != nil {
-		return "", err
-	}
-	return optSecret.Value, nil
-}
-
 // Arguments holds values which are used to configure the loki.source.kafka
 // component.
 type Arguments struct {
