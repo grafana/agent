@@ -82,6 +82,7 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -92,6 +93,7 @@ inside a `client` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
+[clustering]: #clustering-beta
 
 ### client block
 
@@ -134,6 +136,22 @@ Name | Type | Description | Default | Required
 ### tls_config block
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### clustering (beta)
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Distribute log collection with other cluster nodes. | | yes
+
+When the agent is [using clustering][], and `enabled` is set to true, then this
+`loki.source.kubernetes` component instance opts-in to participating in the
+cluster to distribute the load of log collection between all cluster nodes.
+
+If the agent is _not_ running in clustered mode, then the block is a no-op and
+`loki.source.kubernetes` collects logs from every target it receives in its
+arguments.
+
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 

@@ -1,6 +1,6 @@
 package parser
 
-// This code is copied from Promtail. The parser package is used to
+// This code is copied from Promtail (https://github.com/grafana/loki/commit/065bee7e72b00d800431f4b70f0d673d6e0e7a2b). The parser package is used to
 // enable parsing entries from Azure Event Hubs  entries and forward them
 // to other loki components.
 

@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const backtick = "`"
+
 func TestArguments_UnmarshalRiver(t *testing.T) {
 	tests := []struct {
 		testName string
@@ -44,7 +46,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				context = "span"
 				statements = [
 					// Accessing a map with a key that does not exist will return nil. 
-					"set(attributes[\"test\"], \"pass\") where attributes[\"test\"] == nil",
+					` + backtick + `set(attributes["test"], "pass") where attributes["test"] == nil` + backtick + `,
 				]
 			}
 			output {}
@@ -68,8 +70,8 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			trace_statements {
 				context = "resource"
 				statements = [
-					"set(attributes[\"namespace\"], attributes[\"k8s.namespace.name\"])",
-					"delete_key(attributes, \"k8s.namespace.name\")",
+					` + backtick + `set(attributes["namespace"], attributes["k8s.namespace.name"])` + backtick + `,
+					` + backtick + `delete_key(attributes, "k8s.namespace.name")` + backtick + `,
 				]
 			}
 			output {}
@@ -94,7 +96,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			trace_statements {
 				context = "resource"
 				statements = [
-					"replace_all_patterns(attributes, \"key\", \"k8s\\\\.namespace\\\\.name\", \"namespace\")",
+					` + backtick + `replace_all_patterns(attributes, "key", "k8s\\.namespace\\.name", "namespace")` + backtick + `,
 				]
 			}
 			output {}
@@ -118,7 +120,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			log_statements {
 				context = "log"
 				statements = [
-					"set(attributes[\"body\"], body)",
+					` + backtick + `set(attributes["body"], body)` + backtick + `,
 				]
 			}
 			output {}
@@ -143,7 +145,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				context = "resource"
 				statements = [
 					// The Concat function combines any number of strings, separated by a delimiter.
-					"set(attributes[\"test\"], Concat([attributes[\"foo\"], attributes[\"bar\"]], \" \"))",
+					` + backtick + `set(attributes["test"], Concat([attributes["foo"], attributes["bar"]], " "))` + backtick + `,
 				]
 			}
 			output {}
@@ -167,10 +169,10 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			log_statements {
 				context = "log"
 				statements = [
-					"merge_maps(cache, ParseJSON(body), \"upsert\") where IsMatch(body, \"^\\\\{\") ",
-					"set(attributes[\"attr1\"], cache[\"attr1\"])",
-					"set(attributes[\"attr2\"], cache[\"attr2\"])",
-					"set(attributes[\"nested.attr3\"], cache[\"nested\"][\"attr3\"])",
+					` + backtick + `merge_maps(cache, ParseJSON(body), "upsert") where IsMatch(body, "^\\{")` + backtick + `,
+					` + backtick + `set(attributes["attr1"], cache["attr1"])` + backtick + `,
+					` + backtick + `set(attributes["attr2"], cache["attr2"])` + backtick + `,
+					` + backtick + `set(attributes["nested.attr3"], cache["nested"]["attr3"])` + backtick + `,
 				]
 			}
 			output {}
@@ -181,7 +183,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 					map[string]interface{}{
 						"context": "log",
 						"statements": []interface{}{
-							`merge_maps(cache, ParseJSON(body), "upsert") where IsMatch(body, "^\\{") `,
+							`merge_maps(cache, ParseJSON(body), "upsert") where IsMatch(body, "^\\{")`,
 							`set(attributes["attr1"], cache["attr1"])`,
 							`set(attributes["attr2"], cache["attr2"])`,
 							`set(attributes["nested.attr3"], cache["nested"]["attr3"])`,
@@ -197,57 +199,57 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			trace_statements {
 				context = "resource"
 				statements = [
-					"keep_keys(attributes, [\"service.name\", \"service.namespace\", \"cloud.region\", \"process.command_line\"])",
-					"replace_pattern(attributes[\"process.command_line\"], \"password\\\\=[^\\\\s]*(\\\\s?)\", \"password=***\")",
-					"limit(attributes, 100, [])",
-					"truncate_all(attributes, 4096)",
+					` + backtick + `keep_keys(attributes, ["service.name", "service.namespace", "cloud.region", "process.command_line"])` + backtick + `,
+					` + backtick + `replace_pattern(attributes["process.command_line"], "password\\=[^\\s]*(\\s?)", "password=***")` + backtick + `,
+					` + backtick + `limit(attributes, 100, [])` + backtick + `,
+					` + backtick + `truncate_all(attributes, 4096)` + backtick + `,
 				]
 			}
 			trace_statements {
 				context = "span"
 				statements = [
-					"set(status.code, 1) where attributes[\"http.path\"] == \"/health\"",
-					"set(name, attributes[\"http.route\"])",
-					"replace_match(attributes[\"http.target\"], \"/user/*/list/*\", \"/user/{userId}/list/{listId}\")",
-					"limit(attributes, 100, [])",
-					"truncate_all(attributes, 4096)",
+					` + backtick + `set(status.code, 1) where attributes["http.path"] == "/health"` + backtick + `,
+					` + backtick + `set(name, attributes["http.route"])` + backtick + `,
+					` + backtick + `replace_match(attributes["http.target"], "/user/*/list/*", "/user/{userId}/list/{listId}")` + backtick + `,
+					` + backtick + `limit(attributes, 100, [])` + backtick + `,
+					` + backtick + `truncate_all(attributes, 4096)` + backtick + `,
 				]
 			}
 			metric_statements {
 				context = "resource"
 				statements = [
-					"keep_keys(attributes, [\"host.name\"])",
-					"truncate_all(attributes, 4096)",
+					` + backtick + `keep_keys(attributes, ["host.name"])` + backtick + `,
+					` + backtick + `truncate_all(attributes, 4096)` + backtick + `,
 				]
 			}
 			metric_statements {
 				context = "metric"
 				statements = [
-					"set(description, \"Sum\") where type == \"Sum\"",
+					` + backtick + `set(description, "Sum") where type == "Sum"` + backtick + `,
 				]
 			}
 			metric_statements {
 				context = "datapoint"
 				statements = [
-					"limit(attributes, 100, [\"host.name\"])",
-					"truncate_all(attributes, 4096)",
-					"convert_sum_to_gauge() where metric.name == \"system.processes.count\"",
-					"convert_gauge_to_sum(\"cumulative\", false) where metric.name == \"prometheus_metric\"",
+					` + backtick + `limit(attributes, 100, ["host.name"])` + backtick + `,
+					` + backtick + `truncate_all(attributes, 4096)` + backtick + `,
+					` + backtick + `convert_sum_to_gauge() where metric.name == "system.processes.count"` + backtick + `,
+					` + backtick + `convert_gauge_to_sum("cumulative", false) where metric.name == "prometheus_metric"` + backtick + `,
 				]
 			}
 			log_statements {
 				context = "resource"
 				statements = [
-					"keep_keys(attributes, [\"service.name\", \"service.namespace\", \"cloud.region\"])",
+					` + backtick + `keep_keys(attributes, ["service.name", "service.namespace", "cloud.region"])` + backtick + `,
 				]
 			}
 			log_statements {
 				context = "log"
 				statements = [
-					"set(severity_text, \"FAIL\") where body == \"request failed\"",
-					"replace_all_matches(attributes, \"/user/*/list/*\", \"/user/{userId}/list/{listId}\")",
-					"replace_all_patterns(attributes, \"value\", \"/account/\\\\d{4}\", \"/account/{accountId}\")",
-					"set(body, attributes[\"http.route\"])",
+					` + backtick + `set(severity_text, "FAIL") where body == "request failed"` + backtick + `,
+					` + backtick + `replace_all_matches(attributes, "/user/*/list/*", "/user/{userId}/list/{listId}")` + backtick + `,
+					` + backtick + `replace_all_patterns(attributes, "value", "/account/\\d{4}", "/account/{accountId}")` + backtick + `,
+					` + backtick + `set(body, attributes["http.route"])` + backtick + `,
 				]
 			}
 			output {}
@@ -324,40 +326,40 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			trace_statements {
 				context = "span"
 				statements = [
-					"set(name, \"bear\") where attributes[\"http.path\"] == \"/animal\"",
-					"keep_keys(attributes, [\"http.method\", \"http.path\"])",
+					` + backtick + `set(name, "bear") where attributes["http.path"] == "/animal"` + backtick + `,
+					` + backtick + `keep_keys(attributes, ["http.method", "http.path"])` + backtick + `,
 				]
 			}
 			trace_statements {
 				context = "resource"
 				statements = [
-					"set(attributes[\"name\"], \"bear\")",
+					` + backtick + `set(attributes["name"], "bear")` + backtick + `,
 				]
 			}
 			metric_statements {
 				context = "datapoint"
 				statements = [
-					"set(metric.name, \"bear\") where attributes[\"http.path\"] == \"/animal\"",
-					"keep_keys(attributes, [\"http.method\", \"http.path\"])",
+					` + backtick + `set(metric.name, "bear") where attributes["http.path"] == "/animal"` + backtick + `,
+					` + backtick + `keep_keys(attributes, ["http.method", "http.path"])` + backtick + `,
 				]
 			}
 			metric_statements {
 				context = "resource"
 				statements = [
-					"set(attributes[\"name\"], \"bear\")",
+					` + backtick + `set(attributes["name"], "bear")` + backtick + `,
 				]
 			}
 			log_statements {
 				context = "log"
 				statements = [
-					"set(body, \"bear\") where attributes[\"http.path\"] == \"/animal\"",
-					"keep_keys(attributes, [\"http.method\", \"http.path\"])",
+					` + backtick + `set(body, "bear") where attributes["http.path"] == "/animal"` + backtick + `,
+					` + backtick + `keep_keys(attributes, ["http.method", "http.path"])` + backtick + `,
 				]
 			}
 			log_statements {
 				context = "resource"
 				statements = [
-					"set(attributes[\"name\"], \"bear\")",
+					` + backtick + `set(attributes["name"], "bear")` + backtick + `,
 				]
 			}
 			output {}
@@ -425,8 +427,8 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			log_statements {
 				context = "log"
 				statements = [
-					"set(body, \"bear\" where attributes[\"http.path\"] == \"/animal\"",
-					"keep_keys(attributes, [\"http.method\", \"http.path\"])",
+					` + backtick + `set(body, "bear" where attributes["http.path"] == "/animal"` + backtick + `,
+					` + backtick + `keep_keys(attributes, ["http.method", "http.path"])` + backtick + `,
 				]
 			}
 			output {}
@@ -439,8 +441,8 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			metric_statements {
 				context = "datapoint"
 				statements = [
-					"set(name, \"bear\" where attributes[\"http.path\"] == \"/animal\"",
-					"keep_keys(attributes, [\"http.method\", \"http.path\"])",
+					` + backtick + `set(name, "bear" where attributes["http.path"] == "/animal"` + backtick + `,
+					` + backtick + `keep_keys(attributes, ["http.method", "http.path"])` + backtick + `,
 				]
 			}
 			output {}
@@ -453,8 +455,8 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			trace_statements {
 				context = "span"
 				statements = [
-					"set(name, \"bear\" where attributes[\"http.path\"] == \"/animal\"",
-					"keep_keys(attributes, [\"http.method\", \"http.path\"])",
+					` + backtick + `set(name, "bear" where attributes["http.path"] == "/animal"` + backtick + `,
+					` + backtick + `keep_keys(attributes, ["http.method", "http.path"])` + backtick + `,
 				]
 			}
 			output {}
@@ -467,8 +469,8 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			log_statements {
 				context = "log"
 				statements = [
-					"set(body, \"bear\") where attributes[\"http.path\"] == \"/animal\"",
-					"not_a_function(attributes, [\"http.method\", \"http.path\"])",
+					` + backtick + `set(body, "bear") where attributes["http.path"] == "/animal"` + backtick + `,
+					` + backtick + `not_a_function(attributes, ["http.method", "http.path"])` + backtick + `,
 				]
 			}
 			output {}
@@ -481,8 +483,8 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			metric_statements {
 				context = "datapoint"
 				statements = [
-					"set(metric.name, \"bear\") where attributes[\"http.path\"] == \"/animal\"",
-					"not_a_function(attributes, [\"http.method\", \"http.path\"])",
+					` + backtick + `set(metric.name, "bear") where attributes["http.path"] == "/animal"` + backtick + `,
+					` + backtick + `not_a_function(attributes, ["http.method", "http.path"])` + backtick + `,
 				]
 			}
 			output {}
@@ -495,8 +497,8 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			trace_statements {
 				context = "span"
 				statements = [
-					"set(name, \"bear\") where attributes[\"http.path\"] == \"/animal\"",
-					"not_a_function(attributes, [\"http.method\", \"http.path\"])",
+					` + backtick + `set(name, "bear") where attributes["http.path"] == "/animal"` + backtick + `,
+					` + backtick + `not_a_function(attributes, ["http.method", "http.path"])` + backtick + `,
 				]
 			}
 			output {}
@@ -509,7 +511,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			trace_statements {
 				context = "test"
 				statements = [
-					"set(name, \"bear\") where attributes[\"http.path\"] == \"/animal\"",
+					` + backtick + `set(name, "bear") where attributes["http.path"] == "/animal"` + backtick + `,
 				]
 			}
 			output {}

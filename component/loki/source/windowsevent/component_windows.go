@@ -150,7 +150,7 @@ func convertConfig(arg Arguments) *scrapeconfig.WindowsEventsTargetConfig {
 		BookmarkPath:         arg.BookmarkPath,
 		PollInterval:         arg.PollInterval,
 		ExcludeEventData:     arg.ExcludeEventData,
-		ExcludeEventMessage:  false,
+		ExcludeEventMessage:  arg.ExcludeEventMessage,
 		ExcludeUserData:      arg.ExcludeUserdata,
 		Labels:               utils.ToLabelSet(arg.Labels),
 	}

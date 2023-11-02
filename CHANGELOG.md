@@ -54,7 +54,15 @@ Main (unreleased)
 
 - Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
  
+- Windows Flow Installer: Add /CONFIG /DISABLEPROFILING and /DISABLEREPORTING flag (@jkroepke)
+
 - Add queueing logs remote write client for `loki.write` when WAL is enabled. (@thepalbi)
+
+- New Grafana Agent Flow components:
+
+  - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
+    Transformation Language (OTTL). (@hainenber)
+
 
 ### Bugfixes
 
@@ -75,8 +83,16 @@ Main (unreleased)
   created by the spanmetrics processor to grow unbounded. Only static mode has this issue. Flow mode's
   `otelcol.connector.spanmetrics` does not have this bug. (@nijave)
 
+- Prevent logging errors on normal shutdown in `loki.source.journal`. (@wildum)
+
+- Break on iterate journal failure in `loki.source.journal`. (@wildum)
+
+- Fix file descriptor leak in `loki.source.journal`. (@wildum)
+
 - Fixed a bug in River where passing a non-string key to an object (such as
   `{}[true]`) would incorrectly report that a number type was expected instead. (@rfratto)
+
+- Include Faro Measurement `type` field in `faro.receiver` Flow component and legacy `app_agent_receiver` integration. (@rlankfo)
 
 ### Enhancements
 
@@ -86,11 +102,23 @@ Main (unreleased)
 
 - Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
 
+- Added support for comma-separated list of fields in `source` option and a 
+  new `separator` option in `drop` stage of `loki.process`. (@thampiotr)
+
 - The `loki.source.docker` component now allows connecting to Docker daemons
   over HTTP(S) and setting up TLS credentials. (@tpaschalis)
 
 - Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode,
   which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
+
+- Added an `exclude_event_message` option to `loki.source.windowsevent` in flow mode,
+  which excludes the human-friendly event message from Windows event logs. (@ptodev)
+- Improve detection of rolled log files in `loki.source.kubernetes` and
+  `loki.source.podlogs` (@slim-bean).
+
+- Support clustering in `loki.source.kubernetes` (@slim-bean).
+
+- Support clustering in `loki.source.podlogs` (@rfratto).
 
 v0.37.3 (2023-10-26)
 -----------------
