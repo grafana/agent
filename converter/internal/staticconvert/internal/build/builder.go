@@ -112,7 +112,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *cloudwatch_exporter.Config:
 			exports = b.appendCloudwatchExporter(itg, nil)
 		case *consul_exporter.Config:
-			exports = b.appendConsulExporter(itg)
+			exports = b.appendConsulExporter(itg, nil)
 		case *dnsmasq_exporter.Config:
 			exports = b.appendDnsmasqExporter(itg)
 		case *elasticsearch_exporter.Config:
@@ -218,6 +218,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendCadvisorExporter(v1_itg, itg.Common.InstanceKey)
 			case *cloudwatch_exporter.Config:
 				exports = b.appendCloudwatchExporter(v1_itg, itg.Common.InstanceKey)
+			case *consul_exporter.Config:
+				exports = b.appendConsulExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 

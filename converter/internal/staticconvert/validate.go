@@ -171,6 +171,7 @@ func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagno
 			case *azure_exporter.Config:
 			case *cadvisor.Config:
 			case *cloudwatch_exporter.Config:
+			case *consul_exporter.Config:
 			default:
 				diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", v1_itg.Name()))
 			}

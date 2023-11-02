@@ -87,3 +87,6 @@ integrations:
               period: 5m
               statistics:
                 - Average
+  consul_configs:
+    - autoscrape:
+        metrics_instance: "default"

@@ -100,6 +100,14 @@ prometheus.scrape "integrations_cloudwatch" {
 	job_name   = "integrations/cloudwatch"
 }
 
+prometheus.exporter.consul "integrations_consul_exporter" { }
+
+prometheus.scrape "integrations_consul" {
+	targets    = prometheus.exporter.consul.integrations_consul_exporter.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/consul"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {
