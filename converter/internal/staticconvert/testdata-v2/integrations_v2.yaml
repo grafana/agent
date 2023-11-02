@@ -2,7 +2,33 @@ metrics:
   global:
     remote_write:
       - url: http://localhost:9009/api/prom/push
+  configs:
+    - name: default
 
 integrations:
   agent:
-    instance: "agent"
+    autoscrape:
+      metrics_instance: "default"
+    extra_labels:
+      test_label: test_label_value
+      test_label_2: test_label_value_2
+  apache_http_configs:
+    - instance: "apache1"
+      insecure: true
+    - instance: "apache2"
+      extra_labels:
+        test_label: test_label_value
+        test_label_2: test_label_value_2
+  azure_configs:
+    - instance: "azure1"
+      subscriptions:
+        - "subId"
+      resource_type: "Microsoft.Dashboard/grafana"
+      metrics:
+        - "HttpRequestCount"
+    - instance: "azure2"
+      subscriptions:
+        - "subId"
+      resource_type: "Microsoft.Dashboard/grafana"
+      metrics:
+        - "HttpRequestCount"

@@ -101,8 +101,6 @@ one minor release is moved.
 
 Patch and security releases may be created at any time.
 
-[Milestones]: https://github.com/grafana/agent/milestones
-
 {{% docs/reference %}}
 [variants]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/about"
 [variants]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/about"

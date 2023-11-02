@@ -1,24 +1,14 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/azure"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 )
 
-func (b *IntegrationsConfigBuilder) appendAzureExporter(config *azure_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendAzureExporter(config *azure_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toAzureExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "azure"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.azure.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "azure")
 }
 
 func toAzureExporter(config *azure_exporter.Config) *azure.Arguments {
