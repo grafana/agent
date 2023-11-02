@@ -100,18 +100,13 @@ launch dependencies to play with Grafana Agent locally.
 
 ## Release cadence
 
-A new minor release is planned every six weeks. You can use the list of
-[Milestones][] to see what maintainers are planning on working on for a given
-release cycle.
+A new minor release is planned every six weeks.
 
-Both the release cadence and the items assigned to a milestone are best-effort:
-releases may be moved forwards or backwards if needed, and items may be moved
-to a different milestone or removed entirely. The planned release dates for
-future minor releases do not change if one minor release is moved.
+The release cadence is best-effort: releases may be moved forwards or backwards
+if needed. The planned release dates for future minor releases do not change if
+one minor release is moved.
 
 Patch and security releases may be created at any time.
-
-[Milestones]: https://github.com/grafana/agent/milestones
 
 ## Community
 
