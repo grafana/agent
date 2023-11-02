@@ -68,7 +68,8 @@ type Manager struct {
 func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg prometheus.Registerer, walCfg wal.Config, notifier WriterEventsNotifier, clientCfgs ...Config) (*Manager, error) {
 	var fake struct{}
 
-	watcherMetrics := wal.NewWatcherMetrics(reg)
+	walWatcherMetrics := wal.NewWatcherMetrics(reg)
+	walMarkerMetrics := internal.NewMarkerMetrics(reg)
 
 	if len(clientCfgs) == 0 {
 		return nil, fmt.Errorf("at least one client config must be provided")
@@ -95,7 +96,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 			if err != nil {
 				return nil, err
 			}
-			markerHandler := internal.NewMarkerHandler(markerFileHandler, walCfg.MaxSegmentAge, logger)
+			markerHandler := internal.NewMarkerHandler(markerFileHandler, walCfg.MaxSegmentAge, logger, walMarkerMetrics.WithCurriedId(clientName))
 
 			queue, err := NewQueue(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger, markerHandler)
 			if err != nil {
@@ -107,7 +108,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 			// series cache whenever a segment is deleted.
 			notifier.SubscribeCleanup(queue)
 
-			watcher := wal.NewWatcher(walCfg.Dir, clientName, watcherMetrics, queue, wlog, walCfg.WatchConfig, markerHandler)
+			watcher := wal.NewWatcher(walCfg.Dir, clientName, walWatcherMetrics, queue, wlog, walCfg.WatchConfig, markerHandler)
 			// subscribe watcher to wal write events
 			notifier.SubscribeWrite(watcher)
 

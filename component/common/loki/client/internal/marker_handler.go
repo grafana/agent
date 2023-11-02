@@ -34,9 +34,10 @@ type markerHandler struct {
 	logger            log.Logger
 	markerFileHandler MarkerFileHandler
 	maxSegmentAge     time.Duration
+	metrics           *MarkerMetrics
 	quit              chan struct{}
-	wg                sync.WaitGroup
 	runFindTicker     *time.Ticker
+	wg                sync.WaitGroup
 }
 
 // dataUpdate is an update event that some amount of data has been read out of the WAL and enqueued, delivered or dropped.
@@ -50,7 +51,7 @@ var (
 )
 
 // NewMarkerHandler creates a new markerHandler.
-func NewMarkerHandler(mfh MarkerFileHandler, maxSegmentAge time.Duration, logger log.Logger) MarkerHandler {
+func NewMarkerHandler(mfh MarkerFileHandler, maxSegmentAge time.Duration, logger log.Logger, metrics *MarkerMetrics) MarkerHandler {
 	mh := &markerHandler{
 		lastMarkedSegment: -1, // Segment ID last marked on disk.
 		markerFileHandler: mfh,
@@ -58,6 +59,7 @@ func NewMarkerHandler(mfh MarkerFileHandler, maxSegmentAge time.Duration, logger
 		dataIOUpdate: make(chan dataUpdate, 100),
 		quit:         make(chan struct{}),
 		logger:       logger,
+		metrics:      metrics,
 
 		maxSegmentAge: maxSegmentAge,
 		// runFindTicker will force the execution of the find markable segment routine every second
@@ -154,6 +156,7 @@ func (mh *markerHandler) runUpdatePendingData() {
 		if markableSegment > mh.lastMarkedSegment {
 			mh.markerFileHandler.MarkSegment(markableSegment)
 			mh.lastMarkedSegment = markableSegment
+			mh.metrics.lastMarkedSegment.WithLabelValues().Set(float64(markableSegment))
 		}
 	}
 }
