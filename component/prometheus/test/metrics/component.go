@@ -42,8 +42,6 @@ type Component struct {
 
 // Handler should return a valid HTTP handler for the component.
 // All requests to the component will have the path trimmed such that the component is at the root.
-// For example, f a request is made to `/component/{id}/metrics`, the component
-// will receive a request to just `/metrics`.
 func (c *Component) Handler() httpgo.Handler {
 	r := mux.NewRouter()
 	r.HandleFunc("/discovery", c.discovery)

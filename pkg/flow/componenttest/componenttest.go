@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/ckit/memconn"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/atomic"
@@ -24,12 +25,15 @@ type Controller struct {
 	reg component.Registration
 	log log.Logger
 
+	httpport atomic.Int32
+
 	onRun    sync.Once
 	running  chan struct{}
 	runError atomic.Error
 
-	innerMut sync.Mutex
-	inner    component.Component
+	innerMut    sync.Mutex
+	inner       component.Component
+	httpService *memconn.Listener
 
 	exportsMut sync.Mutex
 	exports    component.Exports
@@ -61,6 +65,11 @@ func NewControllerFromReg(l log.Logger, reg component.Registration) *Controller 
 		running:   make(chan struct{}, 1),
 		exportsCh: make(chan struct{}, 1),
 	}
+}
+
+// HTTPPort returns the port exposed by the controller.
+func (c *Controller) HTTPPort() int {
+	return int(c.httpport.Load())
 }
 
 func (c *Controller) onStateChange(e component.Exports) {
