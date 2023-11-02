@@ -90,3 +90,10 @@ integrations:
   consul_configs:
     - autoscrape:
         metrics_instance: "default"
+  dnsmasq_configs:
+    - dnsmasq_address: dnsmasq-a:53
+      autoscrape:
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: instance
+          replacement: dnsmasq-a

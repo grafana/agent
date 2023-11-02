@@ -114,7 +114,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *consul_exporter.Config:
 			exports = b.appendConsulExporter(itg, nil)
 		case *dnsmasq_exporter.Config:
-			exports = b.appendDnsmasqExporter(itg)
+			exports = b.appendDnsmasqExporter(itg, nil)
 		case *elasticsearch_exporter.Config:
 			exports = b.appendElasticsearchExporter(itg)
 		case *gcp_exporter.Config:
@@ -220,6 +220,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendCloudwatchExporter(v1_itg, itg.Common.InstanceKey)
 			case *consul_exporter.Config:
 				exports = b.appendConsulExporter(v1_itg, itg.Common.InstanceKey)
+			case *dnsmasq_exporter.Config:
+				exports = b.appendDnsmasqExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 
@@ -245,11 +247,10 @@ func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.Met
 	commonConfig.ApplyDefaults(b.cfg.Integrations.ConfigV2.Metrics.Autoscrape)
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = b.formatJobName(name, commonConfig.InstanceKey)
-	scrapeConfig.RelabelConfigs = commonConfig.Autoscrape.RelabelConfigs
+	scrapeConfig.RelabelConfigs = append(commonConfig.Autoscrape.RelabelConfigs, relabelConfigs...)
 	scrapeConfig.MetricRelabelConfigs = commonConfig.Autoscrape.MetricRelabelConfigs
 	scrapeConfig.ScrapeInterval = commonConfig.Autoscrape.ScrapeInterval
 	scrapeConfig.ScrapeTimeout = commonConfig.Autoscrape.ScrapeTimeout
-	scrapeConfig.RelabelConfigs = relabelConfigs
 
 	scrapeConfigs := []*prom_config.ScrapeConfig{&scrapeConfig}
 
