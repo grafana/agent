@@ -1,15 +1,11 @@
 package stages
 
-// This package is ported over from grafana/loki/clients/pkg/logentry/stages.
-// We aim to port the stages in steps, to avoid introducing huge amounts of
-// new code without being able to slowly review, examine and test them.
-
 import (
 	"fmt"
 	"strings"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -101,7 +97,7 @@ var _ Stage = (*cri)(nil)
 
 // Name implement the Stage interface.
 func (c *cri) Name() string {
-	return "cri"
+	return StageTypeCRI
 }
 
 // implements Stage interface

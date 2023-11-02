@@ -6,9 +6,12 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/config"
+	v1 "github.com/grafana/agent/pkg/integrations"
+	agent_exporter "github.com/grafana/agent/pkg/integrations/agent"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	"github.com/grafana/agent/pkg/integrations/cadvisor"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 	"github.com/grafana/agent/pkg/integrations/dnsmasq_exporter"
@@ -29,6 +32,8 @@ import (
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
+	v2 "github.com/grafana/agent/pkg/integrations/v2"
+	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -66,8 +71,8 @@ func validateServer(serverConfig *server.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	defaultServerConfig := server.DefaultConfig()
-	diags.AddAll(common.UnsupportedNotDeepEqualsMessage(serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server", "flow mode does not have a gRPC server to configure."))
-	diags.AddAll(common.UnsupportedNotEquals(serverConfig.HTTP.TLSConfig.PreferServerCipherSuites, defaultServerConfig.HTTP.TLSConfig.PreferServerCipherSuites, "prefer_server_cipher_suites server"))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, serverConfig.GRPC, defaultServerConfig.GRPC, "grpc_tls_config server", "flow mode does not have a gRPC server to configure."))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, serverConfig.HTTP.TLSConfig.PreferServerCipherSuites, defaultServerConfig.HTTP.TLSConfig.PreferServerCipherSuites, "prefer_server_cipher_suites server", ""))
 
 	return diags
 }
@@ -79,33 +84,44 @@ func validateMetrics(metricsConfig metrics.Config, grpcListenPort int) diag.Diag
 
 	defaultMetrics := config.DefaultConfig().Metrics
 	defaultMetrics.ServiceConfig.Lifecycler.ListenPort = grpcListenPort
-	diags.AddAll(common.UnsupportedNotDeepEquals(metricsConfig.WALCleanupAge, defaultMetrics.WALCleanupAge, "wal_cleanup_age metrics"))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, metricsConfig.WALCleanupAge, defaultMetrics.WALCleanupAge, "wal_cleanup_age metrics", ""))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, metricsConfig.WALCleanupPeriod, defaultMetrics.WALCleanupPeriod, "wal_cleanup_period metrics", ""))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, metricsConfig.ServiceConfig, defaultMetrics.ServiceConfig, "scraping_service metrics", ""))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, metricsConfig.ServiceClientConfig, defaultMetrics.ServiceClientConfig, "scraping_service_client metrics", ""))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, metricsConfig.InstanceRestartBackoff, defaultMetrics.InstanceRestartBackoff, "instance_restart_backoff metrics", ""))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, metricsConfig.InstanceMode, defaultMetrics.InstanceMode, "instance_mode metrics", ""))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, metricsConfig.DisableKeepAlives, defaultMetrics.DisableKeepAlives, "http_disable_keepalives metrics", ""))
+	diags.AddAll(common.ValidateSupported(common.NotEquals, metricsConfig.IdleConnTimeout, defaultMetrics.IdleConnTimeout, "http_idle_conn_timeout metrics", ""))
 
 	if metricsConfig.WALDir != defaultMetrics.WALDir {
-		diags.Add(diag.SeverityLevelError, "unsupported wal_directory metrics config was provided. use the run command flag --storage.path for Flow mode instead.")
+		diags.Add(diag.SeverityLevelWarn, "The converter does not support converting the provided metrics wal_directory config: Use the run command flag --storage.path for Flow mode instead.")
 	}
-
-	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.WALCleanupPeriod, defaultMetrics.WALCleanupPeriod, "wal_cleanup_period metrics"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(metricsConfig.ServiceConfig, defaultMetrics.ServiceConfig, "scraping_service metrics"))
-	diags.AddAll(common.UnsupportedNotDeepEquals(metricsConfig.ServiceClientConfig, defaultMetrics.ServiceClientConfig, "scraping_service_client metrics"))
-	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.InstanceRestartBackoff, defaultMetrics.InstanceRestartBackoff, "instance_restart_backoff metrics"))
-	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.InstanceMode, defaultMetrics.InstanceMode, "instance_mode metrics"))
-	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.DisableKeepAlives, defaultMetrics.DisableKeepAlives, "http_disable_keepalives metrics"))
-	diags.AddAll(common.UnsupportedNotEquals(metricsConfig.IdleConnTimeout, defaultMetrics.IdleConnTimeout, "http_idle_conn_timeout metrics"))
 
 	return diags
 }
 
 func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.Diagnostics {
+	switch integrationsConfig.Version {
+	case config.IntegrationsVersion1:
+		return validateIntegrationsV1(integrationsConfig.ConfigV1)
+	case config.IntegrationsVersion2:
+		return validateIntegrationsV2(integrationsConfig.ConfigV2)
+	default:
+		panic(fmt.Sprintf("unknown integrations version %d", integrationsConfig.Version))
+	}
+}
+
+func validateIntegrationsV1(integrationsConfig *v1.ManagerConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	for _, integration := range integrationsConfig.ConfigV1.Integrations {
+	for _, integration := range integrationsConfig.Integrations {
 		if !integration.Common.Enabled {
 			diags.Add(diag.SeverityLevelWarn, fmt.Sprintf("disabled integrations do nothing and are not included in the output: %s.", integration.Name()))
 			continue
 		}
 
 		switch itg := integration.Config.(type) {
+		case *agent_exporter.Config:
 		case *apache_http.Config:
 		case *node_exporter.Config:
 		case *blackbox_exporter.Config:
@@ -130,8 +146,23 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 		case *statsd_exporter.Config:
 		case *windows_exporter.Config:
 		case *azure_exporter.Config:
+		case *cadvisor.Config:
 		default:
-			diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration %s was provided.", itg.Name()))
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", itg.Name()))
+		}
+	}
+
+	return diags
+}
+
+func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	for _, integration := range integrationsConfig.Configs {
+		switch itg := integration.(type) {
+		case *agent_exporter_v2.Config:
+		default:
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", itg.Name()))
 		}
 	}
 
@@ -141,7 +172,7 @@ func validateIntegrations(integrationsConfig config.VersionedIntegrations) diag.
 func validateTraces(tracesConfig traces.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.AddAll(common.UnsupportedNotDeepEquals(tracesConfig, traces.Config{}, "traces"))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, tracesConfig, traces.Config{}, "traces", ""))
 
 	return diags
 }
@@ -157,7 +188,7 @@ func validateLogs(logsConfig *logs.Config) diag.Diagnostics {
 func validateAgentManagement(agentManagementConfig config.AgentManagementConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.AddAll(common.UnsupportedNotDeepEquals(agentManagementConfig, config.AgentManagementConfig{}, "agent_management"))
+	diags.AddAll(common.ValidateSupported(common.NotDeepEquals, agentManagementConfig, config.AgentManagementConfig{}, "agent_management", ""))
 
 	return diags
 }

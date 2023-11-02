@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/collect-prometheus-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-prometheus-metrics/
 title: Collect and forward Prometheus metrics
+description: Learn how to collect and forward Prometheus metrics
 weight: 200
 ---
 
@@ -18,17 +19,11 @@ This topic describes how to:
 * Configure metrics delivery
 * Collect metrics from Kubernetes Pods
 
-[Prometheus]: https://prometheus.io
-
 ## Components used in this topic
 
 * [discovery.kubernetes][]
 * [prometheus.remote_write][]
 * [prometheus.scrape][]
-
-[discovery.kubernetes]: {{< relref "../reference/components/discovery.kubernetes.md" >}}
-[prometheus.remote_write]: {{< relref "../reference/components/prometheus.remote_write.md" >}}
-[prometheus.scrape]: {{< relref "../reference/components/prometheus.scrape.md" >}}
 
 ## Before you begin
 
@@ -40,8 +35,6 @@ This topic describes how to:
   Prometheus or Prometheus-compatible endpoints such as Grafana Mimir, Grafana
   Cloud, or Grafana Enterprise Metrics.
 * Be familiar with the concept of [Components][] in Grafana Agent Flow.
-
-[Components]: {{< relref "../concepts/components.md" >}}
 
 ## Configure metrics delivery
 
@@ -167,7 +160,7 @@ To collect metrics from Kubernetes Pods, complete the following steps:
        }
        ```
 
-        1. If you do not want to search for Pods in the Namespace Grafana
+        1. If you don't want to search for Pods in the Namespace Grafana
            Agent is running in, set `own_namespace` to `false`.
 
         2. Replace `NAMESPACE_NAMES` with a comma-delimited list of strings
@@ -231,10 +224,6 @@ To collect metrics from Kubernetes Pods, complete the following steps:
 
         3. Replace `REMOTE_WRITE_LABEL` with the label chosen for your existing
            `prometheus.remote_write` component.
-
-
-[Field Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
-[Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
 
 The following example demonstrates configuring Grafana Agent to collect metrics
 from running production Kubernetes Pods in the `default` Namespace:
@@ -376,10 +365,6 @@ To collect metrics from Kubernetes Services, complete the following steps:
         3. Replace `REMOTE_WRITE_LABEL` with the label chosen for your existing
            `prometheus.remote_write` component.
 
-
-[Field Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
-[Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
-
 The following example demonstrates configuring Grafana Agent to collect metrics
 from running production Kubernetes Services in the `default` Namespace:
 
@@ -451,7 +436,7 @@ To collect metrics from a custom set of targets, complete the following steps:
 
         * To explicitly specify which HTTP path to collect metrics from, set
           the `__metrics_path__` key to the HTTP path to use. If the
-          `__metrics_path__` key is not provided, the protocol to use is
+          `__metrics_path__` key is not provided, the path to use is
           inherited by the settings of the `prometheus.scrape` component
           (default `"/metrics"`).
 
@@ -496,4 +481,21 @@ prometheus.remote_write "default" {
 }
 ```
 
-[Objects]: {{< relref "../config-language/expressions/types_and_values.md#objects" >}}
+[Prometheus]: https://prometheus.io
+[Field Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
+[Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
+[Field Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
+[Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
+
+{{% docs/reference %}}
+[discovery.kubernetes]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.kubernetes.md"
+[discovery.kubernetes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.kubernetes.md"
+[prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
+[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write.md"
+[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
+[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape.md"
+[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+[Objects]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values.md#objects"
+[Objects]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/types_and_values.md#objects"
+{{% /docs/reference %}}

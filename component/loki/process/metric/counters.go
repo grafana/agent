@@ -1,5 +1,7 @@
 package metric
 
+// NOTE: This code is copied from Promtail (07cbef92268aecc0f20d1791a6df390c2df5c072) with changes kept to the minimum.
+
 import (
 	"fmt"
 	"time"
@@ -55,7 +57,7 @@ func (c *CounterConfig) Validate() error {
 	if c.MatchAll && c.Value != "" {
 		return fmt.Errorf("a 'counter' metric supports either 'match_all' or a 'value', but not both")
 	}
-	if c.CountEntryBytes && (!c.MatchAll && c.Action != "add") {
+	if c.CountEntryBytes && (!c.MatchAll || c.Action != "add") {
 		return fmt.Errorf("the 'count_entry_bytes' counter field must be specified along with match_all set to true or action set to 'add'")
 	}
 	return nil

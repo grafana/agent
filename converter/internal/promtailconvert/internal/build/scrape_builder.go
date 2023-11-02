@@ -15,7 +15,7 @@ import (
 	lokisourcefile "github.com/grafana/agent/component/loki/source/file"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/component"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	"github.com/grafana/river/scanner"
@@ -102,7 +102,7 @@ func (s *ScrapeConfigBuilder) getOrNewLokiRelabel() string {
 	if s.lokiRelabelReceiverExpr == "" {
 		args := lokirelabel.Arguments{
 			ForwardTo:      s.getOrNewProcessStageReceivers(),
-			RelabelConfigs: prometheusconvert.ToFlowRelabelConfigs(s.cfg.RelabelConfigs),
+			RelabelConfigs: component.ToFlowRelabelConfigs(s.cfg.RelabelConfigs),
 		}
 		compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "relabel"}, compLabel, args))
@@ -148,7 +148,7 @@ func (s *ScrapeConfigBuilder) appendDiscoveryRelabel() {
 		return
 	}
 
-	relabelConfigs := prometheusconvert.ToFlowRelabelConfigs(s.cfg.RelabelConfigs)
+	relabelConfigs := component.ToFlowRelabelConfigs(s.cfg.RelabelConfigs)
 	args := relabel.Arguments{
 		RelabelConfigs: relabelConfigs,
 	}

@@ -49,7 +49,7 @@ type Module interface {
 	//
 	// Run blocks until the provided context is canceled. The ID of a module as defined in
 	// ModuleController.NewModule will not be released until Run returns.
-	Run(context.Context)
+	Run(context.Context) error
 }
 
 // ExportFunc is used for onExport of the Module
@@ -117,29 +117,6 @@ type Registration struct {
 	// Each identifier must start with a valid ASCII letter, and be followed by
 	// any number of underscores or alphanumeric ASCII characters.
 	Name string
-
-	// A singleton component only supports one instance of itself across the
-	// whole process. Normally, multiple components of the same type may be
-	// created.
-	//
-	// The fully-qualified name of a component is the combination of River block
-	// name and all of its labels. Fully-qualified names must be unique across
-	// the process. Components which are *NOT* singletons automatically support
-	// user-supplied identifiers:
-	//
-	//     // Fully-qualified names: remote.s3.object-a, remote.s3.object-b
-	//     remote.s3 "object-a" { ... }
-	//     remote.s3 "object-b" { ... }
-	//
-	// This allows for multiple instances of the same component to be defined.
-	// However, components registered as a singleton do not support user-supplied
-	// identifiers:
-	//
-	//     node_exporter { ... }
-	//
-	// This prevents the user from defining multiple instances of node_exporter
-	// with different fully-qualified names.
-	Singleton bool
 
 	// An example Arguments value that the registered component expects to
 	// receive as input. Components should provide the zero value of their

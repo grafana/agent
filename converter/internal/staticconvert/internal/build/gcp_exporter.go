@@ -6,11 +6,10 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/gcp"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/gcp_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendGcpExporter(config *gcp_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendGcpExporter(config *gcp_exporter.Config) discovery.Exports {
 	args := toGcpExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
@@ -19,7 +18,7 @@ func (b *IntegrationsV1ConfigBuilder) appendGcpExporter(config *gcp_exporter.Con
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.gcp.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.gcp.%s.targets", compLabel))
 }
 
 func toGcpExporter(config *gcp_exporter.Config) *gcp.Arguments {

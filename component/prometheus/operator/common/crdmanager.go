@@ -10,10 +10,12 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -47,6 +49,7 @@ type crdManager struct {
 	discoveryManager  *discovery.Manager
 	scrapeManager     *scrape.Manager
 	clusteringUpdated chan struct{}
+	ls                labelstore.LabelStore
 
 	opts    component.Options
 	logger  log.Logger
@@ -64,7 +67,7 @@ const (
 	KindProbe          string = "probe"
 )
 
-func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.Logger, args *operator.Arguments, kind string) *crdManager {
+func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.Logger, args *operator.Arguments, kind string, ls labelstore.LabelStore) *crdManager {
 	switch kind {
 	case KindPodMonitor, KindServiceMonitor, KindProbe:
 	default:
@@ -80,6 +83,7 @@ func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.L
 		debugInfo:         map[string]*operator.DiscoveredResource{},
 		kind:              kind,
 		clusteringUpdated: make(chan struct{}, 1),
+		ls:                ls,
 	}
 }
 
@@ -103,7 +107,7 @@ func (c *crdManager) Run(ctx context.Context) error {
 	}()
 
 	// Start prometheus scrape manager.
-	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer)
+	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer, c.ls)
 	opts := &scrape.Options{}
 	c.scrapeManager = scrape.NewManager(opts, c.logger, flowAppendable)
 	defer c.scrapeManager.Stop()
@@ -215,6 +219,17 @@ func (c *crdManager) DebugInfo() interface{} {
 	return info
 }
 
+func (c *crdManager) getScrapeConfig(ns, name string) []*config.ScrapeConfig {
+	prefix := fmt.Sprintf("%s/%s/%s", c.kind, ns, name)
+	matches := []*config.ScrapeConfig{}
+	for k, v := range c.scrapeConfigs {
+		if strings.HasPrefix(k, prefix) {
+			matches = append(matches, v)
+		}
+	}
+	return matches
+}
+
 // runInformers starts all the informers that are required to discover CRDs.
 func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) error {
 	scheme := runtime.NewScheme()
@@ -231,9 +246,13 @@ func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) 
 		return fmt.Errorf("building label selector: %w", err)
 	}
 	for _, ns := range c.args.Namespaces {
+		// TODO: This is going down an unnecessary extra step in the cache when `c.args.Namespaces` defaults to NamespaceAll.
+		// This code path should be simplified and support a scenario when len(c.args.Namespace) == 0.
+		defaultNamespaces := map[string]cache.Config{}
+		defaultNamespaces[ns] = cache.Config{}
 		opts := cache.Options{
-			Scheme:     scheme,
-			Namespaces: []string{ns},
+			Scheme:            scheme,
+			DefaultNamespaces: defaultNamespaces,
 		}
 
 		if ls != labels.Nothing() {
@@ -356,6 +375,11 @@ func (c *crdManager) addDebugInfo(ns string, name string, err error) {
 	} else {
 		debug.ReconcileError = ""
 	}
+	if data, err := c.opts.GetServiceData(http.ServiceName); err == nil {
+		if hdata, ok := data.(http.Data); ok {
+			debug.ScrapeConfigsURL = fmt.Sprintf("%s%s/scrapeConfig/%s/%s", hdata.HTTPListenAddr, hdata.HTTPPathForComponent(c.opts.ID), ns, name)
+		}
+	}
 	prefix := fmt.Sprintf("%s/%s/%s", c.kind, ns, name)
 	c.debugInfo[prefix] = debug
 }
@@ -398,13 +422,13 @@ func (c *crdManager) onAddPodMonitor(obj interface{}) {
 }
 func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*promopv1.PodMonitor)
-	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	c.addPodMonitor(newObj.(*promopv1.PodMonitor))
 }
 
 func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 	pm := obj.(*promopv1.PodMonitor)
-	c.clearConfigs("podMonitor", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
 		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
 	}
@@ -448,13 +472,13 @@ func (c *crdManager) onAddServiceMonitor(obj interface{}) {
 }
 func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*promopv1.ServiceMonitor)
-	c.clearConfigs("serviceMonitor", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	c.addServiceMonitor(newObj.(*promopv1.ServiceMonitor))
 }
 
 func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
 	pm := obj.(*promopv1.ServiceMonitor)
-	c.clearConfigs("serviceMonitor", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
 		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
 	}
@@ -473,16 +497,14 @@ func (c *crdManager) addProbe(p *promopv1.Probe) {
 	if err != nil {
 		// TODO(jcreixell): Generate Kubernetes event to inform of this error when running `kubectl get <probe>`.
 		level.Error(c.logger).Log("name", p.Name, "err", err, "msg", "error generating scrapeconfig from probe")
+		c.addDebugInfo(p.Namespace, p.Name, err)
+		return
 	}
 	c.mut.Lock()
 	c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
 	c.scrapeConfigs[pmc.JobName] = pmc
 	c.mut.Unlock()
 
-	if err != nil {
-		c.addDebugInfo(p.Namespace, p.Name, err)
-		return
-	}
 	if err = c.apply(); err != nil {
 		level.Error(c.logger).Log("name", p.Name, "err", err, "msg", "error applying scrape configs from "+c.kind)
 	}
@@ -496,22 +518,22 @@ func (c *crdManager) onAddProbe(obj interface{}) {
 }
 func (c *crdManager) onUpdateProbe(oldObj, newObj interface{}) {
 	pm := oldObj.(*promopv1.Probe)
-	c.clearConfigs("probe", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	c.addProbe(newObj.(*promopv1.Probe))
 }
 
 func (c *crdManager) onDeleteProbe(obj interface{}) {
 	pm := obj.(*promopv1.Probe)
-	c.clearConfigs("probe", pm.Namespace, pm.Name)
+	c.clearConfigs(pm.Namespace, pm.Name)
 	if err := c.apply(); err != nil {
 		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs after deleting "+c.kind)
 	}
 }
 
-func (c *crdManager) clearConfigs(kind, ns, name string) {
+func (c *crdManager) clearConfigs(ns, name string) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	prefix := fmt.Sprintf("%s/%s/%s", kind, ns, name)
+	prefix := fmt.Sprintf("%s/%s/%s", c.kind, ns, name)
 	for k := range c.discoveryConfigs {
 		if strings.HasPrefix(k, prefix) {
 			delete(c.discoveryConfigs, k)

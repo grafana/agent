@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.docker/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.docker/
 title: discovery.docker
+description: Learn about discovery.docker
 ---
 
 # discovery.docker
@@ -144,7 +145,7 @@ values.
 
 `discovery.docker` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.docker` does not expose any component-specific debug metrics.
 

@@ -7,6 +7,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prome
 labels:
   stage: beta
 title: prometheus.operator.servicemonitors
+description: Learn about prometheus.operator.servicemonitors
 ---
 
 # prometheus.operator.servicemonitors
@@ -200,8 +201,9 @@ scrape job on the component's debug endpoint, including discovered labels, and t
 
 It also exposes some debug information for each ServiceMonitor it has discovered, including any errors found while reconciling the scrape configuration from the ServiceMonitor.
 
-### Debug metrics
+## Debug metrics
 
+`prometheus.operator.servicemonitors` does not expose any component-specific debug metrics.
 
 ## Example
 

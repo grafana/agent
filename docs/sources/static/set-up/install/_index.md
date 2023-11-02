@@ -5,6 +5,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/
 menuTitle: Install static mode
 title: Install Grafana Agent in static mode
+description: Learn how to install GRafana Agent in static mode
 weight: 100
 ---
 
@@ -36,3 +37,13 @@ Use the Grafana Agent [Kubernetes configuration](/docs/grafana-cloud/monitor-inf
 ## Tanka
 
 For more information, refer to the [Tanka](https://tanka.dev) configurations in the Grafana Agent [production](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory on GitHub.
+
+## Data collection
+
+By default, Grafana Agent sends anonymous usage information to Grafana Labs. Refer to [data collection][] for more information
+about what data is collected and how you can opt-out.
+
+{{% docs/reference %}}
+[data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
+[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/data-collection.md"
+{{% /docs/reference %}}

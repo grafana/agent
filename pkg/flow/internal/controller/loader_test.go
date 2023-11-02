@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -15,6 +16,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/trace"
+
+	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
 
 func TestLoader(t *testing.T) {
@@ -175,19 +178,6 @@ func TestLoader(t *testing.T) {
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
 	})
-
-	t.Run("Handling of singleton component labels", func(t *testing.T) {
-		invalidFile := `
-			testcomponents.tick {
-			}
-			testcomponents.singleton "first" {
-			}
-		`
-		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
-		require.ErrorContains(t, diags[0], `Component "testcomponents.tick" must have a label`)
-		require.ErrorContains(t, diags[1], `Component "testcomponents.singleton" does not support labels`)
-	})
 }
 
 // TestScopeWithFailingComponent is used to ensure that the scope is filled out, even if the component
@@ -220,7 +210,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
 				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
-					return nil
+					return fakeModuleController{}
 				},
 			},
 		}
@@ -314,4 +304,17 @@ func requireGraph(t *testing.T, g *dag.Graph, expect graphDefinition) {
 		})
 	}
 	require.ElementsMatch(t, expect.OutEdges, actualEdges, "List of edges do not match")
+}
+
+type fakeModuleController struct{}
+
+func (f fakeModuleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
+	return nil, nil
+}
+
+func (f fakeModuleController) ModuleIDs() []string {
+	return nil
+}
+
+func (f fakeModuleController) ClearModuleIDs() {
 }

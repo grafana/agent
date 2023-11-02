@@ -11,7 +11,7 @@ import (
 	"go.uber.org/atomic"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/tsdb/chunks"
@@ -68,7 +68,7 @@ func TestClientWriter_LogEntriesAreReconstructedAndForwardedCorrectly(t *testing
 					Line:      line,
 				},
 			},
-		})
+		}, 0)
 	}
 
 	require.Eventually(t, func() bool {
@@ -125,7 +125,7 @@ func TestClientWriter_LogEntriesWithoutMatchingSeriesAreIgnored(t *testing.T) {
 					Line:      line,
 				},
 			},
-		})
+		}, 0)
 	}
 
 	time.Sleep(time.Second * 2)
@@ -237,7 +237,7 @@ func startWriter(segmentNum, seriesToReset int, target *clientWriteTo, lines int
 					Line:      fmt.Sprintf("%d - %d - hellooo", segmentNum, i),
 				},
 			},
-		})
+		}, 0)
 		// add some jitter between writes
 		randomSleepMax(time.Millisecond * 1)
 	}

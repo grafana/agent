@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 // ModuleComponent holds the common properties for module components.
@@ -71,7 +72,10 @@ func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue strin
 
 // RunFlowController runs the flow controller that all module components start.
 func (c *ModuleComponent) RunFlowController(ctx context.Context) {
-	c.mod.Run(ctx)
+	err := c.mod.Run(ctx)
+	if err != nil {
+		level.Error(c.opts.Logger).Log("msg", "error running module", "id", c.opts.ID, "err", err)
+	}
 }
 
 // CurrentHealth contains the implementation details for CurrentHealth in a module component.

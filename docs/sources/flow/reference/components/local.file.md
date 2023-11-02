@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/local.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/local.file/
 title: local.file
+description: Learn about local.file
 ---
 
 # local.file
@@ -67,7 +68,7 @@ component.
 
 `local.file` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 * `agent_local_file_timestamp_last_accessed_unix_seconds` (gauge): The
   timestamp, in Unix seconds, that the file was last successfully accessed.

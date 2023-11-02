@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.nomad/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.nomad/
 title: discovery.nomad
+description: Learn about discovery.nomad
 ---
 
 # discovery.nomad
@@ -15,7 +16,6 @@ title: discovery.nomad
 
 ```river
 discovery.nomad "LABEL" {
-  server = NOMAD_SERVER
 }
 ```
 
@@ -113,7 +113,7 @@ values.
 
 `discovery.nomad` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.nomad` does not expose any component-specific debug metrics.
 
@@ -123,7 +123,6 @@ This example discovers targets from a Nomad server:
 
 ```river
 discovery.nomad "example" {
-  server = "localhost:8500"
 }
 
 prometheus.scrape "demo" {

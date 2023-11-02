@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.cloudflare/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.cloudflare/
 title: loki.source.cloudflare
+description: Learn about loki.source.cloudflare
 ---
 
 # loki.source.cloudflare
@@ -70,7 +71,7 @@ plus any extra fields provided via `additional_fields` argument.
 
 * `all` includes all `extended` fields and adds:
 ```
- "BotScore", "BotScoreSrc", "ClientRequestBytes", "ClientSrcPort", "ClientXRequestedWith", "CacheTieredFill", "EdgeResponseCompressionRatio", "EdgeServerIP", "FirewallMatchesSources", "FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID", "RequestHeaders", "ResponseHeaders"
+ "BotScore", "BotScoreSrc", "BotTags", "ClientRequestBytes", "ClientSrcPort", "ClientXRequestedWith", "CacheTieredFill", "EdgeResponseCompressionRatio", "EdgeServerIP", "FirewallMatchesSources", "FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID", "RequestHeaders", "ResponseHeaders", "ClientRequestSource"`
 ```
 plus any extra fields provided via `additional_fields` argument (this is still relevant in this case if new fields are made available via Cloudflare API but are not yet included in `all`).
 
@@ -112,6 +113,7 @@ change the log line format. A sample log looks like this:
     "ClientRequestReferer": "https://www.foo.com/foo/168855/?offset=8625",
     "ClientRequestURI": "/foo/15248108/",
     "ClientRequestUserAgent": "some bot",
+    "ClientRequestSource": "1"
     "ClientSSLCipher": "ECDHE-ECDSA-AES128-GCM-SHA256",
     "ClientSSLProtocol": "TLSv1.2",
     "ClientSrcPort": 39816,
@@ -143,10 +145,10 @@ change the log line format. A sample log looks like this:
     "OriginSSLProtocol": "TLSv1.2",
     "ParentRayID": "00",
     "RayID": "6b0a...",
-  "RequestHeaders": [],
-  "ResponseHeaders": [
-    "x-foo": "bar"
-  ],
+    "RequestHeaders": [],
+    "ResponseHeaders": [
+      "x-foo": "bar"
+    ],
     "SecurityLevel": "med",
     "WAFAction": "unknown",
     "WAFFlags": "0",

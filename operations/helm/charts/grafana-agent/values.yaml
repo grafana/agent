@@ -18,10 +18,9 @@ global:
   # -- Security context to apply to the Grafana Agent pod.
   podSecurityContext: {}
 
-## The init containers to run.
-## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
-##
-initContainers: []
+crds:
+  # -- Whether to install CRDs for monitoring.
+  create: true
 
 # Various agent settings.
 agent:
@@ -53,6 +52,9 @@ agent:
 
   # -- Port to listen for traffic on.
   listenPort: 80
+
+  # --  Base path where the UI is exposed.
+  uiPathPrefix: /
 
   # -- Enables sending Grafana Labs anonymous usage stats to help improve Grafana
   # Agent.
@@ -205,6 +207,11 @@ controller:
 
   # -- volumeClaimTemplates to add when controller.type is 'statefulset'.
   volumeClaimTemplates: []
+
+  ## -- Additional init containers to run.
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ##
+  initContainers: []
 
 service:
   # -- Creates a Service for the controller's pods.

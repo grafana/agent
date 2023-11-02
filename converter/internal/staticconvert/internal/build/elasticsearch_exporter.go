@@ -6,11 +6,10 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/elasticsearch"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendElasticsearchExporter(config *elasticsearch_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendElasticsearchExporter(config *elasticsearch_exporter.Config) discovery.Exports {
 	args := toElasticsearchExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
@@ -19,7 +18,7 @@ func (b *IntegrationsV1ConfigBuilder) appendElasticsearchExporter(config *elasti
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.elasticsearch.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.elasticsearch.%s.targets", compLabel))
 }
 
 func toElasticsearchExporter(config *elasticsearch_exporter.Config) *elasticsearch.Arguments {

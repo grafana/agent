@@ -38,7 +38,8 @@ type Arguments struct {
 	// - status.code
 	// The dimensions will be fetched from the span's attributes. Examples of some conventionally used attributes:
 	// https://github.com/open-telemetry/opentelemetry-collector/blob/main/model/semconv/opentelemetry.go.
-	Dimensions []Dimension `river:"dimension,block,optional"`
+	Dimensions        []Dimension `river:"dimension,block,optional"`
+	ExcludeDimensions []string    `river:"exclude_dimensions,attr,optional"`
 
 	// DimensionsCacheSize defines the size of cache for storing Dimensions, which helps to avoid cache memory growing
 	// indefinitely over the lifetime of the collector.
@@ -53,6 +54,9 @@ type Arguments struct {
 
 	// Namespace is the namespace of the metrics emitted by the connector.
 	Namespace string `river:"namespace,attr,optional"`
+
+	// Exemplars defines the configuration for exemplars.
+	Exemplars ExemplarsConfig `river:"exemplars,block,optional"`
 
 	// Output configures where to send processed data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
@@ -131,13 +135,17 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 		return nil, err
 	}
 
+	excludeDimensions := append([]string(nil), args.ExcludeDimensions...)
+
 	return &spanmetricsconnector.Config{
 		Dimensions:             dimensions,
+		ExcludeDimensions:      excludeDimensions,
 		DimensionsCacheSize:    args.DimensionsCacheSize,
 		AggregationTemporality: aggregationTemporality,
 		Histogram:              *histogram,
 		MetricsFlushInterval:   args.MetricsFlushInterval,
 		Namespace:              args.Namespace,
+		Exemplars:              *args.Exemplars.Convert(),
 	}, nil
 }
 

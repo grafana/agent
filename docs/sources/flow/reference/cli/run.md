@@ -7,11 +7,12 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
 description: The `run` command runs Grafana Agent in the foreground until an interrupt
   is received.
 menuTitle: run
-title: run command
+title: The run command
+description: Learn about the run command
 weight: 300
 ---
 
-# `run` command
+# The run command
 
 The `run` command runs Grafana Agent Flow in the foreground until an
 interrupt is received.
@@ -52,7 +53,7 @@ The following flags are supported:
 * `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
 * `--server.http.ui-path-prefix`: Base path where the UI is exposed (default `/`).
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
-* `--disable-reporting`: Disable [usage reporting][] of enabled [components][] to Grafana (default `false`).
+* `--disable-reporting`: Disable [data collection][] (default `false`).
 * `--cluster.enabled`: Start the Agent in clustered mode (default `false`).
 * `--cluster.node-name`: The name to use for this node (defaults to the environment's hostname).
 * `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`). Mutually exclusive with `--cluster.discover-peers`.
@@ -62,11 +63,11 @@ The following flags are supported:
 * `--cluster.advertise-interfaces`: List of interfaces used to infer an address to advertise. Set to `all` to use all available network interfaces on the system. (default `"eth0,en0"`).
 * `--cluster.max-join-peers`: Number of peers to join from the discovered set (default `5`).
 * `--cluster.name`: Name to prevent nodes without this identifier from joining the cluster (default `""`).
-* `--config.format`: The format of the source file. Supported formats: `flow`, `prometheus`, `promtail` (default `"flow"`).
+* `--config.format`: The format of the source file. Supported formats: `flow`, `prometheus`, `promtail`, `static` (default `"flow"`).
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[usage reporting]: {{< relref "../../../static/configuration/flags.md#report-information-usage" >}}
+[data collection]: {{< relref "../../../data-collection" >}}
 [components]: {{< relref "../../concepts/components.md" >}}
 
 ## Update the configuration file

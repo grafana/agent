@@ -3,6 +3,7 @@ aliases:
 - ../../../configuration/integrations/mysqld-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/mysqld-exporter-config/
 title: mysqld_exporter_config
+description: Learn about mysqld_exporter_config
 ---
 
 # mysqld_exporter_config
@@ -119,6 +120,8 @@ Full reference of options:
   [perf_schema_file_instances_filter: <string> | default = ".*"]
   # Remove path prefix in performance_schema.file_summary_by_instance
   [perf_schema_file_instances_remove_prefix: <string> | default = "/var/lib/mysql"]
+  # Remove instrument prefix in performance_schema.memory_summary_global_by_event_name
+  [perf_schema_memory_events_remove_prefix: <string> | default = "memory/"]
   # Database from where to collect heartbeat data.
   [heartbeat_database: <string> | default = "heartbeat"]
   # Table from where to collect heartbeat data.
@@ -158,6 +161,7 @@ The full list of collectors that are supported for `mysqld_exporter` is:
 | perf_schema.file_events                          | Collect metrics from performance_schema.file_summary_by_event_name | no |
 | perf_schema.file_instances                       | Collect metrics from performance_schema.file_summary_by_instance | no |
 | perf_schema.indexiowaits                         | Collect metrics from performance_schema.table_io_waits_summary_by_index_usage | no |
+| perf_schema.memory_events                        | Collect metrics from performance_schema.memory_summary_global_by_event_name |no |
 | perf_schema.replication_applier_status_by_worker | Collect metrics from performance_schema.replication_applier_status_by_worker | no |
 | perf_schema.replication_group_member_stats       | Collect metrics from performance_schema.replication_group_member_stats | no |
 | perf_schema.replication_group_members            | Collect metrics from performance_schema.replication_group_members | no |

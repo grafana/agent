@@ -151,7 +151,7 @@ func (a *Agent) PushMetricsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	handler := remote.NewWriteHandler(a.logger, managedInstance)
+	handler := remote.NewWriteHandler(a.logger, a.reg, managedInstance)
 	handler.ServeHTTP(w, r)
 }
 

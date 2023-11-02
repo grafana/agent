@@ -1,11 +1,9 @@
-prometheus.exporter.apache "integrations_apache_http" {
-	scrape_uri = "http://0.0.0.0/server-status?auto"
-}
+prometheus.exporter.agent "integrations_agent" { }
 
-prometheus.scrape "integrations_apache_http" {
-	targets    = prometheus.exporter.apache.integrations_apache_http.targets
+prometheus.scrape "integrations_agent" {
+	targets    = prometheus.exporter.agent.integrations_agent.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/apache_http"
+	job_name   = "integrations/agent"
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -24,7 +22,25 @@ prometheus.remote_write "integrations" {
 	}
 }
 
+prometheus.exporter.apache "integrations_apache_http" {
+	scrape_uri = "http://0.0.0.0/server-status?auto"
+}
+
+prometheus.scrape "integrations_apache_http" {
+	targets    = prometheus.exporter.apache.integrations_apache_http.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/apache_http"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
+}
+
 prometheus.exporter.blackbox "integrations_blackbox" {
+	config = "modules:\n  http_2xx:\n    prober: http\n    timeout: 5s\n    http:\n      method: POST\n      headers:\n        Content-Type: application/json\n      body: '{}'\n      preferred_ip_protocol: ip4\n"
+
 	target "example" {
 		address = "http://example.com"
 		module  = "http_2xx"
@@ -73,16 +89,29 @@ prometheus.scrape "integrations_snmp" {
 }
 
 prometheus.exporter.azure "integrations_azure_exporter" {
-	subscriptions          = ["subId"]
-	resource_type          = "Microsoft.Dashboard/grafana"
-	metrics                = ["HttpRequestCount"]
-	included_resource_tags = ["owner"]
+	subscriptions = ["subId"]
+	resource_type = "Microsoft.Dashboard/grafana"
+	metrics       = ["HttpRequestCount"]
 }
 
 prometheus.scrape "integrations_azure_exporter" {
 	targets    = prometheus.exporter.azure.integrations_azure_exporter.targets
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/azure_exporter"
+
+	tls_config {
+		ca_file   = "/something7.cert"
+		cert_file = "/something8.cert"
+		key_file  = "/something9.cert"
+	}
+}
+
+prometheus.exporter.cadvisor "integrations_cadvisor" { }
+
+prometheus.scrape "integrations_cadvisor" {
+	targets    = prometheus.exporter.cadvisor.integrations_cadvisor.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/cadvisor"
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -358,10 +387,10 @@ prometheus.scrape "integrations_mysqld_exporter" {
 	}
 }
 
-prometheus.exporter.unix { }
+prometheus.exporter.unix "default" { }
 
 discovery.relabel "integrations_node_exporter" {
-	targets = prometheus.exporter.unix.targets
+	targets = prometheus.exporter.unix.default.targets
 
 	rule {
 		source_labels = ["__address__"]
@@ -468,7 +497,8 @@ prometheus.scrape "integrations_process_exporter" {
 }
 
 prometheus.exporter.redis "integrations_redis_exporter" {
-	redis_addr = "redis-2:6379"
+	redis_addr        = "redis-2:6379"
+	export_key_values = false
 }
 
 discovery.relabel "integrations_redis_exporter" {

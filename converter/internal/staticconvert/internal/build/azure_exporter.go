@@ -6,11 +6,10 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/azure"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendAzureExporter(config *azure_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendAzureExporter(config *azure_exporter.Config) discovery.Exports {
 	args := toAzureExporter(config)
 	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
@@ -19,7 +18,7 @@ func (b *IntegrationsV1ConfigBuilder) appendAzureExporter(config *azure_exporter
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.azure.%s.targets", compLabel))
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.azure.%s.targets", compLabel))
 }
 
 func toAzureExporter(config *azure_exporter.Config) *azure.Arguments {

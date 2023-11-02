@@ -4,19 +4,18 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/unix"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/node_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendNodeExporter(config *node_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendNodeExporter(config *node_exporter.Config) discovery.Exports {
 	args := toNodeExporter(config)
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
 		[]string{"prometheus", "exporter", "unix"},
-		"",
+		"default",
 		args,
 	))
 
-	return prometheusconvert.NewDiscoveryExports("prometheus.exporter.unix.targets")
+	return common.NewDiscoveryExports("prometheus.exporter.unix.default.targets")
 }
 
 func toNodeExporter(config *node_exporter.Config) *unix.Arguments {

@@ -1,14 +1,12 @@
-(Error) unsupported global evaluation_interval config was provided
-(Error) unsupported global query_log_file config was provided
-(Error) unsupported alerting config was provided
-(Error) unsupported rule_files config was provided
-(Error) unsupported HTTP Client config no_proxy was provided
-(Error) unsupported service discovery nomad was provided
-(Error) unsupported scrape_classic_histograms for scrape_configs
-(Error) unsupported native_histogram_bucket_limit for scrape_configs
-(Error) unsupported storage config was provided
-(Error) unsupported tracing config was provided
-(Error) unsupported remote_write sigv4 config was provided
-(Error) unsupported HTTP Client config proxy_from_environment was provided
-(Error) unsupported HTTP Client config max_version was provided
-(Error) unsupported remote_read config was provided
+(Error) The converter does not support converting the provided global evaluation_interval config.
+(Error) The converter does not support converting the provided global query_log_file config.
+(Error) The converter does not support converting the provided alerting config.
+(Error) The converter does not support converting the provided rule_files config.
+(Error) The converter does not support converting the provided HTTP Client no_proxy config.
+(Error) The converter does not support converting the provided nomad service discovery.
+(Error) The converter does not support converting the provided scrape_configs native_histogram_bucket_limit config.
+(Error) The converter does not support converting the provided storage config.
+(Error) The converter does not support converting the provided tracing config.
+(Error) The converter does not support converting the provided HTTP Client proxy_from_environment config.
+(Error) The converter does not support converting the provided HTTP Client max_version config.
+(Error) The converter does not support converting the provided remote_read config.

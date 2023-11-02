@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.hetzner/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.hetzner/
 title: discovery.hetzner
+description: Learn about discovery.hetzner
 ---
 
 # discovery.hetzner
@@ -140,7 +141,7 @@ values.
 
 `discovery.hetzner` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.hetzner` does not expose any component-specific debug metrics.
 

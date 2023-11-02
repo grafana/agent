@@ -1,6 +1,7 @@
 ---
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.serverset/
 title: discovery.serverset
+description: Learn about discovery.serverset
 ---
 
 # discovery.serverset
@@ -60,7 +61,7 @@ values.
 
 `discovery.serverset` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.serverset` does not expose any component-specific debug metrics.
 

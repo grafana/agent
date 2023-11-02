@@ -10,9 +10,10 @@ import (
 )
 
 func TestConvert(t *testing.T) {
-	test_common.TestDirectory(t, "testdata", ".yaml", true, staticconvert.Convert)
+	test_common.TestDirectory(t, "testdata", ".yaml", true, []string{}, staticconvert.Convert)
+	test_common.TestDirectory(t, "testdata-v2", ".yaml", true, []string{"-enable-features", "integrations-next"}, staticconvert.Convert)
 
 	if runtime.GOOS == "windows" {
-		test_common.TestDirectory(t, "testdata_windows", ".yaml", true, staticconvert.Convert)
+		test_common.TestDirectory(t, "testdata_windows", ".yaml", true, []string{}, staticconvert.Convert)
 	}
 }

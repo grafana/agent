@@ -2,6 +2,7 @@
 package loadbalancing
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/alecthomas/units"
@@ -48,6 +49,7 @@ type Arguments struct {
 var (
 	_ exporter.Arguments = Arguments{}
 	_ river.Defaulter    = &Arguments{}
+	_ river.Validator    = &Arguments{}
 )
 
 var (
@@ -70,6 +72,22 @@ var (
 // SetToDefault implements river.Defaulter.
 func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
+
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
+	//TODO(ptodev): Add support for "resource" and "metric" routing keys later.
+	// The reason we can't add them yet is that otelcol.exporter.loadbalancing
+	// is labeled as "beta", but those routing keys are experimental.
+	// We need a way to label otelcol.exporter.loadbalancing as "beta"
+	// for logs and traces, but "experimental" for metrics.
+	switch args.RoutingKey {
+	case "service", "traceID":
+		// The routing key is valid.
+	default:
+		return fmt.Errorf("invalid routing key %q", args.RoutingKey)
+	}
+	return nil
 }
 
 // Convert implements exporter.Arguments.
@@ -208,6 +226,7 @@ type GRPCClientArguments struct {
 	WaitForReady    bool              `river:"wait_for_ready,attr,optional"`
 	Headers         map[string]string `river:"headers,attr,optional"`
 	BalancerName    string            `river:"balancer_name,attr,optional"`
+	Authority       string            `river:"authority,attr,optional"`
 
 	// Auth is a binding to an otelcol.auth.* component extension which handles
 	// authentication.
@@ -244,6 +263,7 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 		WaitForReady:    args.WaitForReady,
 		Headers:         opaqueHeaders,
 		BalancerName:    args.BalancerName,
+		Authority:       args.Authority,
 
 		Auth: auth,
 	}

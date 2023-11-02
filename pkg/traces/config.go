@@ -13,7 +13,6 @@ import (
 
 	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
 	"github.com/mitchellh/mapstructure"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling"
@@ -125,15 +124,15 @@ type InstanceConfig struct {
 	RemoteWrite []RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
 	// Receivers:
-	// https://github.com/open-telemetry/opentelemetry-collector/blob/v0.80.0/receiver/README.md
+	// https://github.com/open-telemetry/opentelemetry-collector/blob/v0.87.0/receiver/README.md
 	Receivers ReceiverMap `yaml:"receivers,omitempty"`
 
 	// Batch:
-	// https://github.com/open-telemetry/opentelemetry-collector/tree/v0.80.0/processor/batchprocessor
+	// https://github.com/open-telemetry/opentelemetry-collector/tree/v0.87.0/processor/batchprocessor
 	Batch map[string]interface{} `yaml:"batch,omitempty"`
 
 	// Attributes:
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/processor
+	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor
 	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
 	// prom service discovery config
@@ -142,25 +141,25 @@ type InstanceConfig struct {
 	PodAssociations []string      `yaml:"prom_sd_pod_associations,omitempty"`
 
 	// SpanMetricsProcessor:
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/processor/spanmetricsprocessor
+	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/spanmetricsprocessor
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
 
 	// AutomaticLogging
 	AutomaticLogging *automaticloggingprocessor.AutomaticLoggingConfig `yaml:"automatic_logging,omitempty"`
 
 	// TailSampling defines a sampling strategy for the pipeline
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/processor/tailsamplingprocessor
+	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/tailsamplingprocessor
 	TailSampling *tailSamplingConfig `yaml:"tail_sampling,omitempty"`
 
 	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/exporter/loadbalancingexporter
+	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/exporter/loadbalancingexporter
 	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
 
 	// ServiceGraphs
 	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
 
 	// Jaeger's Remote Sampling extension:
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/extension/jaegerremotesampling
+	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/extension/jaegerremotesampling
 	JaegerRemoteSampling []JaegerRemoteSamplingConfig `yaml:"jaeger_remote_sampling"`
 }
 
@@ -326,8 +325,8 @@ type RemoteWriteConfig struct {
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
 	Oauth2             *OAuth2Config          `yaml:"oauth2,omitempty"`
 	Headers            map[string]string      `yaml:"headers,omitempty"`
-	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/v0.80.0/exporter/exporterhelper/queued_retry.go
-	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/v0.80.0/exporter/exporterhelper/queued_retry.go
+	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/v0.87.0/exporter/exporterhelper/queued_retry.go
+	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/v0.87.0/exporter/exporterhelper/queued_retry.go
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -366,12 +365,21 @@ type SpanMetricsConfig struct {
 	// DimensionsCacheSize defines the size of cache for storing Dimensions, which helps to avoid cache memory growing
 	// indefinitely over the lifetime of the collector.
 	DimensionsCacheSize int `yaml:"dimensions_cache_size"`
+
+	// Defines the aggregation temporality of the generated metrics. Can be either of:
+	// * "AGGREGATION_TEMPORALITY_CUMULATIVE"
+	// * "AGGREGATION_TEMPORALITY_DELTA"
+	AggregationTemporality string `yaml:"aggregation_temporality"`
+
+	// MetricsEmitInterval is the time period between when metrics are flushed
+	// or emitted to the configured MetricsInstance or HandlerEndpoint.
+	MetricsFlushInterval time.Duration `yaml:"metrics_flush_interval"`
 }
 
 // tailSamplingConfig is the configuration for tail-based sampling
 type tailSamplingConfig struct {
 	// Policies are the strategies used for sampling. Multiple policies can be used in the same pipeline.
-	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/processor/tailsamplingprocessor
+	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/tailsamplingprocessor
 	Policies []policy `yaml:"policies"`
 	// DecisionWait defines the time to wait for a complete trace before making a decision
 	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
@@ -614,7 +622,7 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 }
 
 // formatPolicies creates sampling policies (i.e. rules) compatible with OTel's tail sampling processor
-// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.80.0/processor/tailsamplingprocessor
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/tailsamplingprocessor
 func formatPolicies(cfg []policy) ([]map[string]interface{}, error) {
 	policies := make([]map[string]interface{}, 0, len(cfg))
 	for i, policy := range cfg {
@@ -739,6 +747,12 @@ func (c *InstanceConfig) otelConfig() (*otelcol.Config, error) {
 			"metrics_exporter":          exporterName,
 			"latency_histogram_buckets": c.SpanMetrics.LatencyHistogramBuckets,
 			"dimensions":                c.SpanMetrics.Dimensions,
+		}
+		if c.SpanMetrics.AggregationTemporality != "" {
+			spanMetrics["aggregation_temporality"] = c.SpanMetrics.AggregationTemporality
+		}
+		if c.SpanMetrics.MetricsFlushInterval != 0 {
+			spanMetrics["metrics_flush_interval"] = c.SpanMetrics.MetricsFlushInterval
 		}
 		if c.SpanMetrics.DimensionsCacheSize != 0 {
 			spanMetrics["dimensions_cache_size"] = c.SpanMetrics.DimensionsCacheSize
@@ -899,7 +913,6 @@ func tracingFactories() (otelcol.Factories, error) {
 	exporters, err := otelexporter.MakeFactoryMap(
 		otlpexporter.NewFactory(),
 		otlphttpexporter.NewFactory(),
-		jaegerexporter.NewFactory(),
 		loadbalancingexporter.NewFactory(),
 		prometheusexporter.NewFactory(),
 		remotewriteexporter.NewFactory(),

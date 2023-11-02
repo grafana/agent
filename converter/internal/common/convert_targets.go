@@ -7,6 +7,24 @@ import (
 	"github.com/grafana/river/token/builder"
 )
 
+// NewDiscoveryExports will return a new [discovery.Exports] with a specific
+// key for converter component exports. The argument will be tokenized
+// as a component export string rather than the standard [discovery.Target]
+// RiverTokenize.
+func NewDiscoveryExports(expr string) discovery.Exports {
+	return discovery.Exports{
+		Targets: NewDiscoveryTargets(expr),
+	}
+}
+
+// NewDiscoveryTargets will return a new [[]discovery.Target] with a specific
+// key for converter component exports. The argument will be tokenized
+// as a component export string rather than the standard [discovery.Target]
+// RiverTokenize.
+func NewDiscoveryTargets(expr string) []discovery.Target {
+	return []discovery.Target{map[string]string{"__expr__": expr}}
+}
+
 // ConvertTargets implements [builder.Tokenizer]. This allows us to set
 // component.Arguments with an implementation that can be tokenized with
 // custom behaviour for converting.

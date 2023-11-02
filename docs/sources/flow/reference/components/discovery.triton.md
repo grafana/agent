@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.triton/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.triton/
 title: discovery.triton
+description: Learn about discovery.triton
 ---
 
 # discovery.triton
@@ -91,7 +92,7 @@ values.
 
 `discovery.triton` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.triton` does not expose any component-specific debug metrics.
 

@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.logging/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.logging/
 title: otelcol.exporter.logging
+description: Learn about otelcol.exporter.logging
 ---
 
 # otelcol.exporter.logging
@@ -40,7 +41,7 @@ Name | Type | Description | Default | Required
 `sampling_initial`    | `int`    | Number of messages initially logged each second. | `2` | no
 `sampling_thereafter` | `int`    | Sampling rate after the initial messages are logged. | `500` | no
 
-The `verbosity` argument must be one of `"basic"`, `"normal"`, or `"detailed"`. 
+The `verbosity` argument must be one of `"basic"`, `"normal"`, or `"detailed"`.
 
 ## Blocks
 
@@ -86,22 +87,22 @@ information.
 This example scrapes prometheus unix metrics and writes them to the console:
 
 ```river
-prometheus.exporter.unix { }
+prometheus.exporter.unix "default" { }
 
 prometheus.scrape "default" {
-	targets    = prometheus.exporter.unix.targets
-	forward_to = [otelcol.receiver.prometheus.default.receiver]
+    targets    = prometheus.exporter.unix.default.targets
+    forward_to = [otelcol.receiver.prometheus.default.receiver]
 }
 
 otelcol.receiver.prometheus "default" {
-	output {
-		metrics = [otelcol.exporter.logging.default.input]
-	}
+    output {
+        metrics = [otelcol.exporter.logging.default.input]
+    }
 }
 
 otelcol.exporter.logging "default" {
-	verbosity           = "detailed"
-	sampling_initial    = 1
-	sampling_thereafter = 1
+    verbosity           = "detailed"
+    sampling_initial    = 1
+    sampling_thereafter = 1
 }
 ```

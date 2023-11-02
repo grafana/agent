@@ -145,7 +145,7 @@ type Storage struct {
 
 // NewStorage makes a new Storage.
 func NewStorage(logger log.Logger, registerer prometheus.Registerer, path string) (*Storage, error) {
-	w, err := wlog.NewSize(logger, registerer, SubDirectory(path), wlog.DefaultSegmentSize, true)
+	w, err := wlog.NewSize(logger, registerer, SubDirectory(path), wlog.DefaultSegmentSize, wlog.CompressionSnappy)
 	if err != nil {
 		return nil, err
 	}
@@ -699,11 +699,6 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	series.Lock()
 	defer series.Unlock()
 
-	if t < series.lastTs {
-		a.w.metrics.totalOutOfOrderSamples.Inc()
-		return 0, storage.ErrOutOfOrderSample
-	}
-
 	// NOTE(rfratto): always modify pendingSamples and sampleSeries together.
 	a.pendingSamples = append(a.pendingSamples, record.RefSample{
 		Ref: series.ref,
@@ -764,8 +759,12 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, _ labels.Labels, e exem
 	// Check for duplicate vs last stored exemplar for this series, and discard those.
 	// Otherwise, record the current exemplar as the latest.
 	// Prometheus' TSDB returns 0 when encountering duplicates, so we do the same here.
+	// TODO(@tpaschalis) The case of OOO exemplars is currently unique to
+	// Native Histograms. Prometheus is tracking a (possibly different) fix to
+	// this, we should revisit once they've settled on a solution.
+	// https://github.com/prometheus/prometheus/issues/12971
 	prevExemplar := a.w.series.GetLatestExemplar(s.ref)
-	if prevExemplar != nil && prevExemplar.Equals(e) {
+	if prevExemplar != nil && (prevExemplar.Equals(e) || prevExemplar.Ts > e.Ts) {
 		// Duplicate, don't return an error but don't accept the exemplar.
 		return 0, nil
 	}
@@ -823,11 +822,6 @@ func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int
 
 	series.Lock()
 	defer series.Unlock()
-
-	if t < series.lastTs {
-		a.w.metrics.totalOutOfOrderSamples.Inc()
-		return 0, storage.ErrOutOfOrderSample
-	}
 
 	switch {
 	case h != nil:

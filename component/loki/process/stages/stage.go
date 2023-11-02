@@ -1,10 +1,7 @@
 package stages
 
-// This package is ported over from grafana/loki/clients/pkg/logentry/stages.
-// We aim to port the stages in steps, to avoid introducing huge amounts of
-// new code without being able to slowly review, examine and test them.
-
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -18,29 +15,33 @@ import (
 
 // TODO(@tpaschalis) Let's use this as the list of stages we need to port over.
 const (
+	StageTypeCRI        = "cri"
+	StageTypeDecolorize = "decolorize"
+	StageTypeDocker     = "docker"
+	StageTypeDrop       = "drop"
+	//TODO(thampiotr): Add support for eventlogmessage stage
+	StageTypeEventLogMessage    = "eventlogmessage"
+	StageTypeGeoIP              = "geoip"
 	StageTypeJSON               = "json"
+	StageTypeLabel              = "labels"
+	StageTypeLabelAllow         = "labelallow"
+	StageTypeLabelDrop          = "labeldrop"
+	StageTypeLimit              = "limit"
 	StageTypeLogfmt             = "logfmt"
+	StageTypeMatch              = "match"
+	StageTypeMetric             = "metrics"
+	StageTypeMultiline          = "multiline"
+	StageTypeOutput             = "output"
+	StageTypePack               = "pack"
+	StageTypePipeline           = "pipeline"
 	StageTypeRegex              = "regex"
 	StageTypeReplace            = "replace"
-	StageTypeMetric             = "metrics"
-	StageTypeLabel              = "labels"
-	StageTypeStructuredMetadata = "structured_metadata"
-	StageTypeLabelDrop          = "labeldrop"
-	StageTypeTimestamp          = "timestamp"
-	StageTypeOutput             = "output"
-	StageTypeDocker             = "docker"
-	StageTypeCRI                = "cri"
-	StageTypeMatch              = "match"
-	StageTypeTemplate           = "template"
-	StageTypePipeline           = "pipeline"
-	StageTypeTenant             = "tenant"
-	StageTypeDrop               = "drop"
-	StageTypeLimit              = "limit"
-	StageTypeMultiline          = "multiline"
-	StageTypePack               = "pack"
-	StageTypeLabelAllow         = "labelallow"
+	StageTypeSampling           = "sampling"
 	StageTypeStaticLabels       = "static_labels"
-	StageTypeGeoIP              = "geoip"
+	StageTypeStructuredMetadata = "structured_metadata"
+	StageTypeTemplate           = "template"
+	StageTypeTenant             = "tenant"
+	StageTypeTimestamp          = "timestamp"
 )
 
 // Processor takes an existing set of labels, timestamp and log entry and returns either a possibly mutated
@@ -222,9 +223,17 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
-
+	case cfg.DecolorizeConfig != nil:
+		s, err = newDecolorizeStage(*cfg.DecolorizeConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.SamplingConfig != nil:
+		s = newSamplingStage(logger, *cfg.SamplingConfig, registerer)
+	case cfg.EventLogMessageConfig != nil:
+		s = newEventLogMessageStage(logger, cfg.EventLogMessageConfig)
 	default:
-		panic("unreachable; should have decoded into one of the StageConfig fields")
+		panic(fmt.Sprintf("unreachable; should have decoded into one of the StageConfig fields: %+v", cfg))
 	}
 	return s, nil
 }

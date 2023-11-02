@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.kubernetes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
 title: discovery.kubernetes
+description: Learn about discovery.kubernetes
 ---
 
 # discovery.kubernetes
@@ -352,7 +353,7 @@ values.
 
 `discovery.kubernetes` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.kubernetes` does not expose any component-specific debug metrics.
 
@@ -434,6 +435,40 @@ discovery.kubernetes "k8s_pods" {
 
   namespaces {
     names = ["myapp"]
+  }
+}
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubernetes.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
+```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+### Limit to only pods on the same node
+
+This example limits the search to pods on the same node as this Grafana Agent. This configuration could be useful if you are running the Agent as a DaemonSet:
+
+```river
+discovery.kubernetes "k8s_pods" {
+  role = "pod"
+  selectors {
+    role = "pod"
+    field = "spec.nodeName=" + constants.hostname
   }
 }
 

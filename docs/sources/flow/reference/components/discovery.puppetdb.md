@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.puppetdb/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.puppetdb/
 title: discovery.puppetdb
+description: Learn about discovery.puppetdb
 ---
 
 # discovery.puppetdb
@@ -119,7 +120,7 @@ values.
 
 `discovery.puppetdb` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.puppetdb` does not expose any component-specific debug metrics.
 

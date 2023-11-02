@@ -4,13 +4,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/config"
+	agent_exporter "github.com/grafana/agent/pkg/integrations/agent"
 	"github.com/grafana/agent/pkg/integrations/apache_http"
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	"github.com/grafana/agent/pkg/integrations/cadvisor"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	int_config "github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
@@ -32,21 +37,25 @@ import (
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
+	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
+	common_v2 "github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
+	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/model/relabel"
 )
 
-type IntegrationsV1ConfigBuilder struct {
+type IntegrationsConfigBuilder struct {
 	f         *builder.File
 	diags     *diag.Diagnostics
 	cfg       *config.Config
 	globalCtx *GlobalContext
 }
 
-func NewIntegrationsV1ConfigBuilder(f *builder.File, diags *diag.Diagnostics, cfg *config.Config, globalCtx *GlobalContext) *IntegrationsV1ConfigBuilder {
-	return &IntegrationsV1ConfigBuilder{
+func NewIntegrationsConfigBuilder(f *builder.File, diags *diag.Diagnostics, cfg *config.Config, globalCtx *GlobalContext) *IntegrationsConfigBuilder {
+	return &IntegrationsConfigBuilder{
 		f:         f,
 		diags:     diags,
 		cfg:       cfg,
@@ -54,13 +63,24 @@ func NewIntegrationsV1ConfigBuilder(f *builder.File, diags *diag.Diagnostics, cf
 	}
 }
 
-func (b *IntegrationsV1ConfigBuilder) Build() {
+func (b *IntegrationsConfigBuilder) Build() {
 	b.appendLogging(b.cfg.Server)
 	b.appendServer(b.cfg.Server)
 	b.appendIntegrations()
 }
 
-func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
+func (b *IntegrationsConfigBuilder) appendIntegrations() {
+	switch b.cfg.Integrations.Version {
+	case config.IntegrationsVersion1:
+		b.appendV1Integrations()
+	case config.IntegrationsVersion2:
+		b.appendV2Integrations()
+	default:
+		panic(fmt.Sprintf("unknown integrations version %d", b.cfg.Integrations.Version))
+	}
+}
+
+func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 	for _, integration := range b.cfg.Integrations.ConfigV1.Integrations {
 		if !integration.Common.Enabled {
 			continue
@@ -72,12 +92,14 @@ func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
 		}
 
 		if !scrapeIntegration {
-			b.diags.Add(diag.SeverityLevelError, fmt.Sprintf("unsupported integration which is not being scraped was provided: %s.", integration.Name()))
+			b.diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support handling integrations which are not being scraped: %s.", integration.Name()))
 			continue
 		}
 
 		var exports discovery.Exports
 		switch itg := integration.Config.(type) {
+		case *agent_exporter.Config:
+			exports = b.appendAgentExporter(itg)
 		case *apache_http.Config:
 			exports = b.appendApacheExporter(itg)
 		case *node_exporter.Config:
@@ -126,6 +148,8 @@ func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
 			exports = b.appendWindowsExporter(itg)
 		case *azure_exporter.Config:
 			exports = b.appendAzureExporter(itg)
+		case *cadvisor.Config:
+			exports = b.appendCadvisorExporter(itg)
 		}
 
 		if len(exports.Targets) > 0 {
@@ -134,7 +158,7 @@ func (b *IntegrationsV1ConfigBuilder) appendIntegrations() {
 	}
 }
 
-func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
+func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
 	scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs
@@ -172,10 +196,100 @@ func (b *IntegrationsV1ConfigBuilder) appendExporter(commonConfig *int_config.Co
 	b.globalCtx.InitializeRemoteWriteExports()
 }
 
+func (b *IntegrationsConfigBuilder) appendV2Integrations() {
+	for _, integration := range b.cfg.Integrations.ConfigV2.Configs {
+		var exports discovery.Exports
+		var commonConfig common_v2.MetricsConfig
+
+		switch itg := integration.(type) {
+		case *agent_exporter_v2.Config:
+			exports = b.appendAgentExporterV2(itg)
+			commonConfig = itg.Common
+		}
+
+		if len(exports.Targets) > 0 {
+			b.appendExporterV2(&commonConfig, integration.Name(), exports.Targets)
+		}
+	}
+}
+
+func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.MetricsConfig, name string, extraTargets []discovery.Target) {
+	var relabelConfigs []*relabel.Config
+
+	for _, extraLabel := range commonConfig.ExtraLabels {
+		defaultConfig := relabel.DefaultRelabelConfig
+		relabelConfig := &defaultConfig
+		relabelConfig.SourceLabels = []model.LabelName{"__address__"}
+		relabelConfig.TargetLabel = extraLabel.Name
+		relabelConfig.Replacement = extraLabel.Value
+
+		relabelConfigs = append(relabelConfigs, relabelConfig)
+	}
+
+	commonConfig.ApplyDefaults(b.cfg.Integrations.ConfigV2.Metrics.Autoscrape)
+	scrapeConfig := prom_config.DefaultScrapeConfig
+	scrapeConfig.JobName = fmt.Sprintf("integrations/%s", name)
+	scrapeConfig.RelabelConfigs = commonConfig.Autoscrape.RelabelConfigs
+	scrapeConfig.MetricRelabelConfigs = commonConfig.Autoscrape.MetricRelabelConfigs
+	scrapeConfig.ScrapeInterval = commonConfig.Autoscrape.ScrapeInterval
+	scrapeConfig.ScrapeTimeout = commonConfig.Autoscrape.ScrapeTimeout
+	scrapeConfig.RelabelConfigs = relabelConfigs
+
+	scrapeConfigs := []*prom_config.ScrapeConfig{&scrapeConfig}
+
+	var remoteWriteExports *remotewrite.Exports
+	for _, metrics := range b.cfg.Metrics.Configs {
+		if metrics.Name == commonConfig.Autoscrape.MetricsInstance {
+			// This must match the name of the existing remote write config in the metrics config:
+			label, err := scanner.SanitizeIdentifier("metrics_" + metrics.Name)
+			if err != nil {
+				b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
+			}
+
+			remoteWriteExports = &remotewrite.Exports{
+				Receiver: common.ConvertAppendable{Expr: "prometheus.remote_write." + label + ".receiver"},
+			}
+			break
+		}
+	}
+
+	if remoteWriteExports == nil {
+		b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("integration %s is looking for an undefined metrics config: %s", name, commonConfig.Autoscrape.MetricsInstance))
+	}
+
+	promConfig := &prom_config.Config{
+		GlobalConfig:  b.cfg.Metrics.Global.Prometheus,
+		ScrapeConfigs: scrapeConfigs,
+	}
+
+	jobNameToCompLabelsFunc := func(jobName string) string {
+		labelSuffix := strings.TrimPrefix(jobName, "integrations/")
+		if labelSuffix == "" {
+			return b.globalCtx.LabelPrefix
+		}
+
+		return fmt.Sprintf("%s_%s", b.globalCtx.LabelPrefix, labelSuffix)
+	}
+
+	// Need to pass in the remote write reference from the metrics config here:
+	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, remoteWriteExports))
+}
+
 func splitByCommaNullOnEmpty(s string) []string {
 	if s == "" {
 		return nil
 	}
 
 	return strings.Split(s, ",")
+}
+
+func (b *IntegrationsConfigBuilder) appendExporterBlock(args component.Arguments, name string, exporterName string) discovery.Exports {
+	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, name)
+	b.f.Body().AppendBlock(common.NewBlockWithOverride(
+		[]string{"prometheus", "exporter", exporterName},
+		compLabel,
+		args,
+	))
+
+	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.%s.%s.targets", exporterName, compLabel))
 }

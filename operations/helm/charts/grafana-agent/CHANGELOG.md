@@ -10,6 +10,44 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Expose the `ui-path-prefix` flag on the Helm chart (@mlcdf)
+
+0.27.1 (2023-10-26)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.37.3. (@tpaschalis)
+
+### Bugfixes
+
+- Fix issue where CRDs were created with annotations after the `crds.create`
+  setting was introduced (@rfratto).
+
+0.27.0 (2023-10-12)
+----------
+
+### Enhancements
+
+- Add `secrets` and `configmaps` to cluster role for `remote.kubernetes.*` components. (@captncraig)
+
+- Update Grafana Agent version to v0.37.2. (@tpaschalis)
+
+0.26.0 (2023-10-10)
+-------------------
+
+### Breaking changes
+
+- The `initContainers` setting has been moved to `controller.initContainers`
+  for consistency with other Pod-level settings. (@rfratto)
+
+### Enhancements
+
+- Make CRDs optional through the `crds.create` setting. (@bentonam, @rfratto)
+
+- Update Grafana Agent version to v0.37.1. (@tpaschalis)
 
 0.25.0 (2023-09-22)
 -------------------

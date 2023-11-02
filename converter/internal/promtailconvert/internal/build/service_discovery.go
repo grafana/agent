@@ -1,12 +1,16 @@
 package build
 
 import (
+	"fmt"
+
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/prometheus/common/model"
 	prom_discover "github.com/prometheus/prometheus/discovery"
 )
 
@@ -16,7 +20,7 @@ func (s *ScrapeConfigBuilder) AppendSDs() {
 		return
 	}
 
-	pb := prometheusconvert.NewPrometheusBlocks()
+	pb := build.NewPrometheusBlocks()
 	targets := prometheusconvert.AppendServiceDiscoveryConfigs(pb, sdConfigs, common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName))
 	pb.AppendToFile(s.f)
 
@@ -106,6 +110,16 @@ func toDiscoveryConfig(cfg *scrapeconfig.Config) prom_discover.Configs {
 	}
 
 	if len(cfg.ServiceDiscoveryConfig.StaticConfigs) != 0 {
+		// Add source and default 'localhost' target to match Promtail's behaviour.
+		// See https://github.com/grafana/loki/blob/4a564456861c0ab7441b815aa49a7c0f22a05f4c/clients/pkg/promtail/targets/file/filetargetmanager.go#L102
+		for i, targetGroup := range cfg.ServiceDiscoveryConfig.StaticConfigs {
+			targetGroup.Source = fmt.Sprintf("%d", i)
+			if len(targetGroup.Targets) == 0 {
+				targetGroup.Targets = []model.LabelSet{
+					{model.AddressLabel: "localhost"},
+				}
+			}
+		}
 		sdConfigs = append(sdConfigs, cfg.ServiceDiscoveryConfig.StaticConfigs)
 	}
 

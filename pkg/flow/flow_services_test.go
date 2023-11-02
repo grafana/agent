@@ -7,7 +7,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
-	"github.com/grafana/agent/pkg/flow/internal/testcomponents" // Import test components
+	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/internal/testservices"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service"
@@ -16,6 +16,7 @@ import (
 )
 
 func TestServices(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -45,6 +46,7 @@ func TestServices(t *testing.T) {
 }
 
 func TestServices_Configurable(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	type ServiceOptions struct {
 		Name string `river:"name,attr"`
 	}
@@ -98,6 +100,7 @@ func TestServices_Configurable(t *testing.T) {
 // arguments is configured properly even when it is not defined in the config
 // file.
 func TestServices_Configurable_Optional(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	type ServiceOptions struct {
 		Name string `river:"name,attr,optional"`
 	}
@@ -140,6 +143,7 @@ func TestServices_Configurable_Optional(t *testing.T) {
 }
 
 func TestFlow_GetServiceConsumers(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	var (
 		svcA = &testservices.Fake{
 			DefinitionFunc: func() service.Definition {
@@ -163,6 +167,7 @@ func TestFlow_GetServiceConsumers(t *testing.T) {
 	opts.Services = append(opts.Services, svcA, svcB)
 
 	ctrl := New(opts)
+	defer cleanUpController(ctrl)
 	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil))
 
 	expectConsumers := []service.Consumer{{
@@ -174,10 +179,11 @@ func TestFlow_GetServiceConsumers(t *testing.T) {
 }
 
 func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	componentBuilt := util.NewWaitTrigger()
+	componentRunning := util.NewWaitTrigger()
 
 	var (
 		svc = &testservices.Fake{
@@ -212,9 +218,14 @@ func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
 				Name:          "service_consumer",
 				Args:          struct{}{},
 				NeedsServices: []string{"service"},
-				Build: func(_ component.Options, _ component.Arguments) (component.Component, error) {
-					componentBuilt.Trigger()
-					return &testcomponents.Fake{}, nil
+				Build: func(o component.Options, _ component.Arguments) (component.Component, error) {
+					return &testcomponents.Fake{
+						RunFunc: func(ctx context.Context) error {
+							componentRunning.Trigger()
+							<-ctx.Done()
+							return nil
+						},
+					}, nil
 				},
 			},
 		}
@@ -237,13 +248,14 @@ func TestFlow_GetServiceConsumers_Modules(t *testing.T) {
 	require.NoError(t, ctrl.LoadSource(f, nil))
 	go ctrl.Run(ctx)
 
-	require.NoError(t, componentBuilt.Wait(5*time.Second), "Component should have been built")
+	require.NoError(t, componentRunning.Wait(5*time.Second), "Component should have been built")
 
 	consumers := ctrl.GetServiceConsumers("service")
 	require.Len(t, consumers, 2, "There should be a consumer for the module loader and the module's component")
 }
 
 func TestComponents_Using_Services(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -327,6 +339,7 @@ func TestComponents_Using_Services(t *testing.T) {
 }
 
 func TestComponents_Using_Services_In_Modules(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

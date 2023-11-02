@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.gce/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.gce/
 title: discovery.gce
+description: Learn about discovery.gce
 ---
 
 # discovery.gce
@@ -79,7 +80,7 @@ values.
 
 `discovery.gce` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.gce` does not expose any component-specific debug metrics.
 

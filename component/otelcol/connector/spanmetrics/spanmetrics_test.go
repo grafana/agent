@@ -33,9 +33,11 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			`,
 			expected: spanmetricsconnector.Config{
 				Dimensions:             []spanmetricsconnector.Dimension{},
+				ExcludeDimensions:      nil,
 				DimensionsCacheSize:    1000,
 				AggregationTemporality: "AGGREGATION_TEMPORALITY_CUMULATIVE",
 				Histogram: spanmetricsconnector.HistogramConfig{
+					Disable:     false,
 					Unit:        0,
 					Exponential: nil,
 					Explicit: &spanmetricsconnector.ExplicitHistogramConfig{
@@ -61,6 +63,9 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				},
 				MetricsFlushInterval: 15 * time.Second,
 				Namespace:            "",
+				Exemplars: spanmetricsconnector.ExemplarsConfig{
+					Enabled: false,
+				},
 			},
 		},
 		{
@@ -75,8 +80,10 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			expected: spanmetricsconnector.Config{
 				Dimensions:             []spanmetricsconnector.Dimension{},
 				DimensionsCacheSize:    1000,
+				ExcludeDimensions:      nil,
 				AggregationTemporality: "AGGREGATION_TEMPORALITY_CUMULATIVE",
 				Histogram: spanmetricsconnector.HistogramConfig{
+					Disable:     false,
 					Unit:        0,
 					Exponential: &spanmetricsconnector.ExponentialHistogramConfig{MaxSize: 160},
 					Explicit:    nil,
@@ -95,9 +102,11 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				name = "http.method"
 				default = "GET"
 			}
+			exclude_dimensions = ["test_exclude_dim1", "test_exclude_dim2"]
 			dimensions_cache_size = 333
 			aggregation_temporality = "DELTA"
 			histogram {
+				disable = true
 				unit = "s"
 				explicit {
 					buckets = ["333ms", "777s", "999h"]
@@ -105,6 +114,9 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			}
 			metrics_flush_interval = "33s"
 			namespace = "test.namespace"
+			exemplars {
+				enabled = true
+			}
 
 			output {}
 			`,
@@ -113,9 +125,11 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 					{Name: "http.status_code", Default: nil},
 					{Name: "http.method", Default: getStringPtr("GET")},
 				},
+				ExcludeDimensions:      []string{"test_exclude_dim1", "test_exclude_dim2"},
 				DimensionsCacheSize:    333,
 				AggregationTemporality: "AGGREGATION_TEMPORALITY_DELTA",
 				Histogram: spanmetricsconnector.HistogramConfig{
+					Disable:     true,
 					Unit:        1,
 					Exponential: nil,
 					Explicit: &spanmetricsconnector.ExplicitHistogramConfig{
@@ -128,6 +142,9 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				},
 				MetricsFlushInterval: 33 * time.Second,
 				Namespace:            "test.namespace",
+				Exemplars: spanmetricsconnector.ExemplarsConfig{
+					Enabled: true,
+				},
 			},
 		},
 		{

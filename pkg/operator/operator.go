@@ -14,10 +14,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	controller "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/hierarchy"
@@ -73,14 +75,22 @@ func (c *Config) registerFlags(f *flag.FlagSet) error {
 	c.LogLevel.RegisterFlags(f)
 	f.Var(&c.Labels, "labels", "Labels to add to all created operator resources")
 	f.StringVar(&c.AgentSelector, "agent-selector", "", "Label selector to discover GrafanaAgent CRs. Defaults to all GrafanaAgent CRs.")
-
-	f.StringVar(&c.Controller.Namespace, "namespace", "", "Namespace to restrict the Operator to.")             // nolint:staticcheck
-	f.StringVar(&c.Controller.Host, "listen-host", "", "Host to listen on. Empty string means all interfaces.") // nolint:staticcheck
-	f.IntVar(&c.Controller.Port, "listen-port", 9443, "Port to listen on.")                                     // nolint:staticcheck
-	f.StringVar(&c.Controller.MetricsBindAddress, "metrics-listen-address", ":8080", "Address to expose Operator metrics on")
+	var namespace string
+	var webhookServerOptions webhook.Options
+	f.StringVar(&namespace, "namespace", "", "Namespace to restrict the Operator to.")                                  // nolint:staticcheck
+	f.StringVar(&webhookServerOptions.Host, "listen-host", "", "Host to listen on. Empty string means all interfaces.") // nolint:staticcheck
+	f.IntVar(&webhookServerOptions.Port, "listen-port", 9443, "Port to listen on.")                                     // nolint:staticcheck
+	f.StringVar(&c.Controller.Metrics.BindAddress, "metrics-listen-address", ":8080", "Address to expose Operator metrics on")
 	f.StringVar(&c.Controller.HealthProbeBindAddress, "health-listen-address", "", "Address to expose Operator health probes on")
 
 	f.StringVar(&c.KubelsetServiceName, "kubelet-service", "", "Service and Endpoints objects to write kubelets into. Allows for monitoring Kubelet and cAdvisor metrics using a ServiceMonitor. Must be in format \"namespace/name\". If empty, nothing will be created.")
+
+	c.Controller.WebhookServer = webhook.NewServer(webhookServerOptions)
+
+	if namespace != "" {
+		c.Controller.Cache.DefaultNamespaces = map[string]cache.Config{}
+		c.Controller.Cache.DefaultNamespaces[namespace] = cache.Config{}
+	}
 
 	// Custom initial values for the endpoint names.
 	c.Controller.ReadinessEndpointName = "/-/ready"

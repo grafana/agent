@@ -50,9 +50,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
+	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/service"
 	"github.com/prometheus/client_golang/prometheus"
@@ -124,6 +125,7 @@ func New(o Options) *Flow {
 		Options:        o,
 		ModuleRegistry: newModuleRegistry(),
 		IsModule:       false, // We are creating a new root controller.
+		WorkerPool:     worker.NewDefaultWorkerPool(),
 	})
 }
 
@@ -135,6 +137,8 @@ type controllerOptions struct {
 	ComponentRegistry controller.ComponentRegistry // Custom component registry used in tests.
 	ModuleRegistry    *moduleRegistry              // Where to register created modules.
 	IsModule          bool                         // Whether this controller is for a module.
+	// A worker pool to evaluate components asynchronously. A default one will be created if this is nil.
+	WorkerPool worker.Pool
 }
 
 // newController creates a new, unstarted Flow controller with a specific
@@ -142,8 +146,9 @@ type controllerOptions struct {
 // given modReg.
 func newController(o controllerOptions) *Flow {
 	var (
-		log    = o.Logger
-		tracer = o.Tracer
+		log        = o.Logger
+		tracer     = o.Tracer
+		workerPool = o.WorkerPool
 	)
 
 	if tracer == nil {
@@ -153,6 +158,11 @@ func newController(o controllerOptions) *Flow {
 			// This shouldn't happen unless there's a bug
 			panic(err)
 		}
+	}
+
+	if workerPool == nil {
+		level.Info(log).Log("msg", "no worker pool provided, creating a default pool", "controller", o.ControllerID)
+		workerPool = worker.NewDefaultWorkerPool()
 	}
 
 	f := &Flow{
@@ -192,6 +202,7 @@ func newController(o controllerOptions) *Flow {
 					DataPath:          o.DataPath,
 					ID:                id,
 					ServiceMap:        serviceMap.FilterByName(availableServices),
+					WorkerPool:        workerPool,
 				})
 			},
 			GetServiceData: func(name string) (interface{}, error) {
@@ -206,6 +217,7 @@ func newController(o controllerOptions) *Flow {
 		Services:          o.Services,
 		Host:              f,
 		ComponentRegistry: o.ComponentRegistry,
+		WorkerPool:        workerPool,
 	})
 
 	return f
@@ -214,8 +226,8 @@ func newController(o controllerOptions) *Flow {
 // Run starts the Flow controller, blocking until the provided context is
 // canceled. Run must only be called once.
 func (f *Flow) Run(ctx context.Context) {
-	defer f.sched.Close()
-	defer f.loader.Cleanup()
+	defer func() { _ = f.sched.Close() }()
+	defer f.loader.Cleanup(!f.opts.IsModule)
 	defer level.Debug(f.log).Log("msg", "flow controller exiting")
 
 	for {
@@ -224,19 +236,11 @@ func (f *Flow) Run(ctx context.Context) {
 			return
 
 		case <-f.updateQueue.Chan():
-			// We need to pop _everything_ from the queue and evaluate each of them.
-			// If we only pop a single element, other components may sit waiting for
-			// evaluation forever.
-			for {
-				updated := f.updateQueue.TryDequeue()
-				if updated == nil {
-					break
-				}
-
-				level.Debug(f.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				f.loader.EvaluateDependencies(updated)
-			}
-
+			// Evaluate all components that have been updated. Sending the entire batch together will improve
+			// throughput - it prevents the situation where two components have the same dependency, and the first time
+			// it's picked up by the worker pool and the second time it's enqueued again, resulting in more evaluations.
+			all := f.updateQueue.DequeueAll()
+			f.loader.EvaluateDependencies(ctx, all)
 		case <-f.loadFinished:
 			level.Info(f.log).Log("msg", "scheduling loaded components and services")
 

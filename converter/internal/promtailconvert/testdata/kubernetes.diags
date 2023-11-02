@@ -1,1 +1,1 @@
-(Error) unsupported HTTP Client config proxy_from_environment was provided
+(Error) The converter does not support converting the provided HTTP Client proxy_from_environment config.

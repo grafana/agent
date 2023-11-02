@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.write/
 title: loki.write
+description: Learn about loki.write
 ---
 
 # loki.write
@@ -48,6 +49,7 @@ endpoint > authorization | [authorization][] | Configure generic authorization t
 endpoint > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 endpoint > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 endpoint > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+| endpoint > queue_config        | [queue_config][]  | When WAL is enabled, configures the queue client.        | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example, `endpoint >
 basic_auth` refers to a `basic_auth` block defined inside an
@@ -59,6 +61,7 @@ basic_auth` refers to a `basic_auth` block defined inside an
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
+[queue_config]: #queue_config-block
 
 ### endpoint block
 
@@ -126,6 +129,18 @@ enabled, the retry mechanism will be governed by the backoff configuration speci
 ### tls_config block
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### queue_config block (experimental)
+
+The optional `queue_config` block configures, when WAL is enabled (see [Write-Ahead block](#wal-block-experimental)), how the
+underlying client queues batches of logs to be sent to Loki.
+
+The following arguments are supported:
+
+| Name            | Type       | Description                                                                                                                                                                      | Default | Required |
+| --------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
+| `capacity`      | `string`   | Controls the size of the underlying send queue buffer. This setting should be considered a worst-case scenario of memory consumption, in which all enqueued batches are full. | `10MiB`  | no       |
+| `drain_timeout` | `duration` | Configures the maximum time the client can take to drain the send queue upon shutdown. During that time, it will enqueue pending batches and drain the send queue sending each. | `"1m"`  | no       |
 
 ### wal block (experimental)
 
@@ -204,7 +219,7 @@ You can create a `loki.write` component that sends your log entries to a managed
 ```river
 loki.write "default" {
     endpoint {
-        url = "https://logs-xxx.grafana.net"
+        url = "https://logs-xxx.grafana.net/loki/api/v1/push"
         basic_auth {
             username = env("LOKI_USERNAME")
             password = env("GRAFANA_CLOUD_API_KEY")

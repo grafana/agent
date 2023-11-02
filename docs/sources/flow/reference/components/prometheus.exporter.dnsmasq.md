@@ -5,6 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.dnsmasq/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.dnsmasq/
 title: prometheus.exporter.dnsmasq
+description: Learn about prometheus.exporter.dnsmasq
 ---
 
 # prometheus.exporter.dnsmasq

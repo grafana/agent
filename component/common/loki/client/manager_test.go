@@ -17,7 +17,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/common/loki/client/fake"
 	"github.com/grafana/agent/component/common/loki/limit"
 	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/agent/component/common/loki/wal"
@@ -99,6 +98,10 @@ func newServerAndClientConfig(t *testing.T) (Config, chan utils.RemoteWriteReque
 		BackoffConfig: backoff.Config{
 			MaxRetries: 0,
 		},
+		Queue: QueueConfig{
+			Capacity:     10, // buffered channel of size 10
+			DrainTimeout: time.Second * 10,
+		},
 	}
 	return testClientConfig, receivedReqsChan, closerFunc(func() {
 		server.Close()
@@ -127,10 +130,10 @@ func TestManager_WALEnabled(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "wal:test-client", manager.Name())
 
-	receivedRequest := utils.NewSyncSlice[utils.RemoteWriteRequest]()
+	receivedRequests := utils.NewSyncSlice[utils.RemoteWriteRequest]()
 	go func() {
 		for req := range rwReceivedReqs {
-			receivedRequest.Append(req)
+			receivedRequests.Append(req)
 		}
 	}()
 
@@ -155,13 +158,13 @@ func TestManager_WALEnabled(t *testing.T) {
 	}
 
 	require.Eventually(t, func() bool {
-		return receivedRequest.Length() == totalLines
+		return receivedRequests.Length() == totalLines
 	}, 5*time.Second, time.Second, "timed out waiting for requests to be received")
 
 	var seenEntries = map[string]struct{}{}
 	// assert over rw client received entries
-	defer receivedRequest.DoneIterate()
-	for _, req := range receivedRequest.StartIterate() {
+	defer receivedRequests.DoneIterate()
+	for _, req := range receivedRequests.StartIterate() {
 		require.Len(t, req.Request.Streams, 1, "expected 1 stream requests to be received")
 		require.Len(t, req.Request.Streams[0].Entries, 1, "expected 1 entry in the only stream received per request")
 		require.Equal(t, `{wal_enabled="true"}`, req.Request.Streams[0].Labels)
@@ -303,24 +306,4 @@ func TestManager_WALDisabled_MultipleConfigs(t *testing.T) {
 		seenEntries[fmt.Sprintf("%s-%s", req.Request.Streams[0].Labels, req.Request.Streams[0].Entries[0].Line)] = struct{}{}
 	}
 	require.Len(t, seenEntries, expectedTotalLines)
-}
-
-func TestManager_StopClients(t *testing.T) {
-	var stopped int
-
-	stopping := func() {
-		stopped++
-	}
-	fc := fake.NewClient(stopping)
-	clients := []Client{fc, fc, fc, fc}
-	m := &Manager{
-		clients: clients,
-		entries: make(chan loki.Entry),
-	}
-	m.startWithForward()
-	m.Stop()
-
-	if stopped != len(clients) {
-		t.Fatal("missing stop call")
-	}
 }

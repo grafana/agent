@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/atomic"
@@ -158,6 +159,14 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 		DataPath:      dataPath,
 		OnStateChange: c.onStateChange,
 		Registerer:    prometheus.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			switch name {
+			case labelstore.ServiceName:
+				return labelstore.New(nil), nil
+			default:
+				return nil, fmt.Errorf("no service named %s defined", name)
+			}
+		},
 	}
 
 	inner, err := c.reg.Build(opts, args)
