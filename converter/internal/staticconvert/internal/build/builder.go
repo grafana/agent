@@ -209,9 +209,7 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 			commonConfig = itg.Common
 			switch v1_itg := itg.Orig.(type) {
 			case *azure_exporter.Config:
-				{
-					exports = b.appendAzureExporter(v1_itg, itg.Common.InstanceKey)
-				}
+				exports = b.appendAzureExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 
