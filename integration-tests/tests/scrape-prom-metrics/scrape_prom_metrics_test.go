@@ -19,6 +19,7 @@ func TestScrapePromMetrics(t *testing.T) {
 		query  string
 		metric string
 	}{
+		// TODO: better differentiate these metric types?
 		{metricQuery("golang_counter", "scrape_prom_metrics"), "golang_counter"},
 		{metricQuery("golang_gauge", "scrape_prom_metrics"), "golang_gauge"},
 		{metricQuery("golang_histogram_bucket", "scrape_prom_metrics"), "golang_histogram_bucket"},
