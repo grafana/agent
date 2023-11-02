@@ -120,7 +120,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *gcp_exporter.Config:
 			exports = b.appendGcpExporter(itg, nil)
 		case *github_exporter.Config:
-			exports = b.appendGithubExporter(itg)
+			exports = b.appendGithubExporter(itg, nil)
 		case *kafka_exporter.Config:
 			exports = b.appendKafkaExporter(itg)
 		case *memcached_exporter.Config:
@@ -226,6 +226,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendElasticsearchExporter(v1_itg, itg.Common.InstanceKey)
 			case *gcp_exporter.Config:
 				exports = b.appendGcpExporter(v1_itg, itg.Common.InstanceKey)
+			case *github_exporter.Config:
+				exports = b.appendGithubExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 
