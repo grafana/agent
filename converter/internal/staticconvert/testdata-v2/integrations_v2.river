@@ -43,6 +43,63 @@ prometheus.scrape "integrations_cadvisor" {
 	job_name   = "integrations/cadvisor"
 }
 
+prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
+	sts_region    = "us-east-2"
+	fips_disabled = false
+
+	discovery {
+		regions     = ["us-east-2"]
+		custom_tags = {}
+		search_tags = {}
+		type        = "AWS/EC2"
+
+		metric {
+			name        = "CPUUtilization"
+			statistics  = ["Average"]
+			period      = "5m0s"
+			nil_to_zero = false
+		}
+
+		metric {
+			name       = "NetworkPacketsIn"
+			statistics = ["Average"]
+			period     = "5m0s"
+		}
+		nil_to_zero = true
+	}
+
+	static "single_ec2_instance" {
+		regions     = ["us-east-2"]
+		custom_tags = {}
+		namespace   = "AWS/EC2"
+		dimensions  = {
+			InstanceId = "i-0e43cee369aa44b52",
+		}
+
+		metric {
+			name        = "CPUUtilization"
+			statistics  = ["Average"]
+			period      = "5m0s"
+			nil_to_zero = false
+		}
+
+		metric {
+			name       = "NetworkPacketsIn"
+			statistics = ["Average"]
+			period     = "5m0s"
+		}
+		nil_to_zero = true
+	}
+
+	decoupled_scraping { }
+}
+
+prometheus.scrape "integrations_cloudwatch" {
+	targets    = prometheus.exporter.cloudwatch.integrations_cloudwatch_exporter.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/cloudwatch"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {

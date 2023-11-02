@@ -110,7 +110,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *blackbox_exporter.Config:
 			exports = b.appendBlackboxExporter(itg)
 		case *cloudwatch_exporter.Config:
-			exports = b.appendCloudwatchExporter(itg)
+			exports = b.appendCloudwatchExporter(itg, nil)
 		case *consul_exporter.Config:
 			exports = b.appendConsulExporter(itg)
 		case *dnsmasq_exporter.Config:
@@ -216,6 +216,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendAzureExporter(v1_itg, itg.Common.InstanceKey)
 			case *cadvisor.Config:
 				exports = b.appendCadvisorExporter(v1_itg, itg.Common.InstanceKey)
+			case *cloudwatch_exporter.Config:
+				exports = b.appendCloudwatchExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 
