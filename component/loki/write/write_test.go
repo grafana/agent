@@ -3,7 +3,6 @@ package write
 import (
 	"context"
 	"fmt"
-	"go.uber.org/atomic"
 	"math"
 	"net/http"
 	"net/http/httptest"
@@ -11,18 +10,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prometheus/common/model"
-	"github.com/stretchr/testify/require"
-
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/wal"
 	"github.com/grafana/agent/component/discovery"
 	lsf "github.com/grafana/agent/component/loki/source/file"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river"
+	"github.com/prometheus/common/model"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
+
 	"github.com/grafana/loki/pkg/logproto"
 	loki_util "github.com/grafana/loki/pkg/util"
-	"github.com/grafana/river"
 )
 
 func TestRiverConfig(t *testing.T) {
