@@ -1,25 +1,15 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/snowflake"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsConfigBuilder) appendSnowflakeExporter(config *snowflake_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendSnowflakeExporter(config *snowflake_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toSnowflakeExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "snowflake"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.snowflake.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "snowflake")
 }
 
 func toSnowflakeExporter(config *snowflake_exporter.Config) *snowflake.Arguments {

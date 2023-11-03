@@ -188,6 +188,7 @@ func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagno
 			case *postgres_exporter.Config:
 			case *process_exporter.Config:
 			case *redis_exporter.Config:
+			case *snowflake_exporter.Config:
 			default:
 				diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", v1_itg.Name()))
 			}

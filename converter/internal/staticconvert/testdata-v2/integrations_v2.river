@@ -349,6 +349,19 @@ prometheus.scrape "integrations_redis" {
 	job_name   = "integrations/redis"
 }
 
+prometheus.exporter.snowflake "integrations_snowflake" {
+	account_name = "XXXXXXX-YYYYYYY"
+	username     = "snowflake-user"
+	password     = "snowflake-pass"
+	warehouse    = "SNOWFLAKE_WAREHOUSE"
+}
+
+prometheus.scrape "integrations_snowflake" {
+	targets    = prometheus.exporter.snowflake.integrations_snowflake.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/snowflake"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {
