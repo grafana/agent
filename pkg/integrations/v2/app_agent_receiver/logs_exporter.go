@@ -36,17 +36,19 @@ type LogsExporter struct {
 	logger           kitlog.Logger
 	labels           map[string]string
 	sourceMapStore   SourceMapStore
+	geoIPProvider    GeoIPProvider
 }
 
 // NewLogsExporter creates a new logs exporter with the given
 // configuration
-func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore SourceMapStore) AppAgentReceiverExporter {
+func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore SourceMapStore, geoIPProvider GeoIPProvider) AppAgentReceiverExporter {
 	return &LogsExporter{
 		logger:           logger,
 		getLogsInstance:  conf.GetLogsInstance,
 		sendEntryTimeout: conf.SendEntryTimeout,
 		labels:           conf.Labels,
 		sourceMapStore:   sourceMapStore,
+		geoIPProvider:    geoIPProvider,
 	}
 }
 
@@ -58,6 +60,8 @@ func (le *LogsExporter) Name() string {
 // Export implements the AppDataExporter interface
 func (le *LogsExporter) Export(ctx context.Context, payload Payload) error {
 	meta := payload.Meta.KeyVal()
+
+	// TODO: Modify meta with GeoIPProvider result.
 
 	var err error
 

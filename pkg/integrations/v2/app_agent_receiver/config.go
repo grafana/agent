@@ -38,6 +38,9 @@ var DefaultConfig = Config{
 		DownloadFromOrigins: []string{"*"},
 		DownloadTimeout:     time.Second,
 	},
+	GeoIP: GeoIPConfig{
+		Enabled: false,
+	},
 }
 
 // ServerConfig holds the receiver http server configuration
@@ -71,6 +74,13 @@ type SourceMapConfig struct {
 	FileSystem          []SourceMapFileLocation `yaml:"filesystem,omitempty"`
 }
 
+// GeoIPConfig represents GeoIP stage config
+type GeoIPConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	DB      string `yaml:"db,omitempty"`
+	DBType  string `yaml:"db_type,omitempty"`
+}
+
 // Config is the configuration struct of the
 // integration
 type Config struct {
@@ -81,6 +91,7 @@ type Config struct {
 	LogsLabels      map[string]string    `yaml:"logs_labels,omitempty"`
 	LogsSendTimeout time.Duration        `yaml:"logs_send_timeout,omitempty"`
 	SourceMaps      SourceMapConfig      `yaml:"sourcemaps,omitempty"`
+	GeoIP           GeoIPConfig          `yaml:"geoip,omitempty"`
 }
 
 // UnmarshalYAML implements the Unmarshaler interface

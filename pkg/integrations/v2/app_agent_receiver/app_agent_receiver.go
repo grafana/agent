@@ -44,6 +44,8 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 	reg := prometheus.NewRegistry()
 	sourcemapLogger := log.With(l, "subcomponent", "sourcemaps")
 	sourcemapStore := NewSourceMapStore(sourcemapLogger, c.SourceMaps, reg, nil, nil)
+	geoipLogger := log.With(l, "subcomponent", "geoip")
+	geoIPProvider := NewGeoIPProvider(geoipLogger, c.GeoIP, reg)
 
 	receiverMetricsExporter := NewReceiverMetricsExporter(reg)
 
@@ -72,6 +74,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 				SendEntryTimeout: c.LogsSendTimeout,
 			},
 			sourcemapStore,
+			geoIPProvider,
 		)
 		exp = append(exp, lokiExporter)
 	}
