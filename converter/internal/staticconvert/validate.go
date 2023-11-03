@@ -180,6 +180,7 @@ func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagno
 			case *memcached_exporter.Config:
 			case *mongodb_exporter.Config:
 			case *mssql_exporter.Config:
+			case *mysqld_exporter.Config:
 			default:
 				diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", v1_itg.Name()))
 			}

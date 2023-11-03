@@ -135,3 +135,10 @@ integrations:
           replacement: 'prod-cluster'
   mssql_configs:
     - connection_string: sqlserver://<USERNAME>:<PASSWORD>@<HOST>:<PORT>
+  mysql_configs:
+    - data_source_name: root@(server-a:3306)/
+      autoscrape:
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: instance
+          replacement: server-a

@@ -1,25 +1,15 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/mysql"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsConfigBuilder) appendMysqldExporter(config *mysqld_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendMysqldExporter(config *mysqld_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toMysqldExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "mysql"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.mysql.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "mysql")
 }
 
 func toMysqldExporter(config *mysqld_exporter.Config) *mysql.Arguments {
