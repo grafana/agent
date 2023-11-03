@@ -171,3 +171,11 @@ integrations:
     - name: "{{.Comm}}"
       cmdline:
       - '.+'
+  redis_configs:
+    - redis_addr: "redis-2:6379"
+      export_key_values: false
+      autoscrape:
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: instance
+          replacement: redis-2
