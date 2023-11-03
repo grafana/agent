@@ -124,7 +124,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *kafka_exporter.Config:
 			exports = b.appendKafkaExporter(itg, nil)
 		case *memcached_exporter.Config:
-			exports = b.appendMemcachedExporter(itg)
+			exports = b.appendMemcachedExporter(itg, nil)
 		case *mongodb_exporter.Config:
 			exports = b.appendMongodbExporter(itg)
 		case *mssql_exporter.Config:
@@ -230,6 +230,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendGithubExporter(v1_itg, itg.Common.InstanceKey)
 			case *kafka_exporter.Config:
 				exports = b.appendKafkaExporter(v1_itg, itg.Common.InstanceKey)
+			case *memcached_exporter.Config:
+				exports = b.appendMemcachedExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 

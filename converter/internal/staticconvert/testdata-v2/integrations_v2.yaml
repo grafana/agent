@@ -116,3 +116,10 @@ integrations:
   kafka_configs:
     - autoscrape:
         metrics_instance: "default"
+  memcached_configs:
+    - memcached_address: memcached-a:53
+      autoscrape:
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: instance
+          replacement: memcached-a
