@@ -98,6 +98,9 @@ Main (unreleased)
 
 - Fixed a bug where UDP syslog messages were never processed (@joshuapare)
 
+- Fix a bug where reloading the configuration of a `loki.write` component lead
+  to a panic. (@tpaschalis)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
