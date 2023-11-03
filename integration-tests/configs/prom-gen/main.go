@@ -34,7 +34,14 @@ func main() {
 	listenAddress := fmt.Sprintf("%s:%s", address, port)
 	http.Handle("/metrics", promhttp.Handler())
 	server := &http.Server{Addr: listenAddress, Handler: nil}
-	defer server.Shutdown(context.Background())
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := server.Shutdown(ctx); err != nil {
+			log.Fatalf("Server shutdown error: %v", err)
+		}
+	}()
 	log.Printf("HTTP server on %s", listenAddress)
 
 	go func() { log.Fatal(server.ListenAndServe()) }()

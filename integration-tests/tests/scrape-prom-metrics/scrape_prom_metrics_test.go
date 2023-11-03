@@ -10,8 +10,8 @@ import (
 
 const promURL = "http://localhost:9009/prometheus/api/v1/query?query="
 
-func metricQuery(metricName, testName string) string {
-	return fmt.Sprintf("%s%s{test_name='%s'}", promURL, metricName, testName)
+func metricQuery(metricName string) string {
+	return fmt.Sprintf("%s%s{test_name='scrape_prom_metrics'}", promURL, metricName)
 }
 
 func TestScrapePromMetrics(t *testing.T) {
@@ -20,10 +20,10 @@ func TestScrapePromMetrics(t *testing.T) {
 		metric string
 	}{
 		// TODO: better differentiate these metric types?
-		{metricQuery("golang_counter", "scrape_prom_metrics"), "golang_counter"},
-		{metricQuery("golang_gauge", "scrape_prom_metrics"), "golang_gauge"},
-		{metricQuery("golang_histogram_bucket", "scrape_prom_metrics"), "golang_histogram_bucket"},
-		{metricQuery("golang_summary", "scrape_prom_metrics"), "golang_summary"},
+		{metricQuery("golang_counter"), "golang_counter"},
+		{metricQuery("golang_gauge"), "golang_gauge"},
+		{metricQuery("golang_histogram_bucket"), "golang_histogram_bucket"},
+		{metricQuery("golang_summary"), "golang_summary"},
 	}
 
 	for _, tt := range tests {
@@ -35,7 +35,7 @@ func TestScrapePromMetrics(t *testing.T) {
 	}
 	t.Run("golang_native_histogram", func(t *testing.T) {
 		t.Parallel()
-		assertHistogramData(t, metricQuery("golang_native_histogram", "scrape_prom_metrics"), "golang_native_histogram")
+		assertHistogramData(t, metricQuery("golang_native_histogram"), "golang_native_histogram")
 	})
 }
 
