@@ -77,11 +77,11 @@ func (e Exporter) MetricsHandler() (http.Handler, error) {
 		prober.SetPrometheusRegistry(reg)
 		prober.SetAzureResourceTagManager(tagManager)
 
-		// When this filter does not have a value then the request is for all resources in the subscription.
+		// When regions has values then the request is for all resources in the subscription.
 		//  "RunOnSubscriptionScope" uses a different API, https://github.com/Azure/azure-rest-api-specs/blob/main/specification/monitor/resource-manager/Microsoft.Insights/stable/2021-05-01/metrics_API.json#L40,
 		//  which can get metric data for all resources in a single API call reducing overhead/likelihood of being rate limited.
 		// Limiting to specific resources requires 1 API call per resource to get metrics which can easily lead to rate limiting
-		if settings.Filter == "" {
+		if len(settings.Regions) > 1 {
 			prober.RunOnSubscriptionScope()
 		} else {
 			err = prober.ServiceDiscovery.FindResourceGraph(ctx, settings.Subscriptions, settings.ResourceType, settings.Filter)
