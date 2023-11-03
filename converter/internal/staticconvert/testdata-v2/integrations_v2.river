@@ -159,6 +159,14 @@ prometheus.scrape "integrations_github" {
 	job_name   = "integrations/github"
 }
 
+prometheus.exporter.kafka "integrations_kafka_exporter" { }
+
+prometheus.scrape "integrations_kafka" {
+	targets    = prometheus.exporter.kafka.integrations_kafka_exporter.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/kafka"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {
