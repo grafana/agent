@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/grafana/agent/pkg/util"
 	"io"
 	"net/http"
 	"strconv"
@@ -22,6 +21,7 @@ import (
 
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/util"
 	lokiutil "github.com/grafana/loki/pkg/util"
 )
 
